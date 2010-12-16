@@ -8169,7 +8169,7 @@ int64_t ibis::index::estimate(const ibis::deprecatedJoin& expr,
 } // ibis::index::estimate
 
 // explicit instantiation of templated functions
-template void ibis::index::mapValues(const array_t<char>&, VMap&);
+template void ibis::index::mapValues(const array_t<signed char>&, VMap&);
 template void ibis::index::mapValues(const array_t<unsigned char>&, VMap&);
 template void ibis::index::mapValues(const array_t<int16_t>&, VMap&);
 template void ibis::index::mapValues(const array_t<uint16_t>&, VMap&);
@@ -8181,7 +8181,7 @@ template void ibis::index::mapValues(const array_t<float>&, VMap&);
 template void ibis::index::mapValues(const array_t<double>&, VMap&);
 
 template void
-ibis::index::mapValues(const array_t<char>&, histogram&, uint32_t);
+ibis::index::mapValues(const array_t<signed char>&, histogram&, uint32_t);
 template void
 ibis::index::mapValues(const array_t<unsigned char>&, histogram&, uint32_t);
 template void
@@ -8202,7 +8202,7 @@ template void
 ibis::index::mapValues(const array_t<double>&, histogram&, uint32_t);
 
 template void
-ibis::index::mapValues(const array_t<char>&, array_t<char>&,
+ibis::index::mapValues(const array_t<signed char>&, array_t<signed char>&,
 		       std::vector<uint32_t>&);
 template void
 ibis::index::mapValues(const array_t<unsigned char>&, array_t<unsigned char>&,

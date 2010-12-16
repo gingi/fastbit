@@ -651,7 +651,7 @@ public:
     void quickTest(const char* pref, long* nerrors) const;
     /// Try a set of range conditions with different combinations of
     /// operators.
-    void testRangeOperators(const char* pref, const ibis::column* col,
+    void testRangeOperators(const ibis::column* col,
 			    long* nerrors) const;
 
     // These functions are in used classes barrel and vault

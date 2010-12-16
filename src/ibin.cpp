@@ -36,8 +36,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "bin[" << col->partition()->name() << '.' << col->name()
+	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
@@ -78,8 +77,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "bin[" << col->partition()->name() << '.' << col->name()
+	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
@@ -119,8 +117,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "bin[" << col->partition()->name() << '.' << col->name()
+	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
@@ -166,8 +163,7 @@ ibis::bin::bin(const ibis::bin& rhs)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "bin[" << col->partition()->name() << '.' << col->name()
+	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
@@ -242,8 +238,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "bin[" << col->partition()->name() << '.' << col->name()
+	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
 		<< "]::ctor -- built an equality index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"")
@@ -296,8 +291,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()
-	    << "bin[" << col->partition()->name() << '.' << col->name()
+	lg()<< "bin[" << col->partition()->name() << '.' << col->name()
 	    << "]::ctor -- built an equality index with "
 	    << nobs << " bin" << (nobs>1?"s":"") << " for "
 	    << nrows << " row" << (nrows>1?"s":"")
@@ -332,8 +326,7 @@ int ibis::bin::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "Warning -- bin[" << col->partition()->name() << '.'
+	    lg()<< "Warning -- bin[" << col->partition()->name() << '.'
 		<< col->name() << "]::read the header from " << fnm
 		<< " (";
 	    if (isprint(header[0]) != 0)
@@ -679,8 +672,10 @@ void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
 	binningT<signed char>(f);
 	break;
     default:
-	ibis::util::logMessage("Warning", "unable to binng column %s type %d",
-			       col->name(), (int)(col->type()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- unable to bin column " << col->name()
+	    << " (type " << (int)(col->type()) << ", "
+	    << ibis::TYPESTRING[(int)(col->type())] << ')';
 	throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
     }
 } // ibis::bin::binning (specified bin boundaries)
@@ -730,8 +725,10 @@ void ibis::bin::binning(const char* f, const array_t<double>& bd) {
 	binningT<signed char>(f);
 	break;
     default:
-	ibis::util::logMessage("Warning", "unable to binng column %s type %d",
-			       col->name(), (int)(col->type()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- unable to bin column " << col->name()
+	    << " (type " << (int)(col->type()) << ", "
+	    << ibis::TYPESTRING[(int)(col->type())] << ')';
 	throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
     }
 } // ibis::bin::binning (specified bin boundaries)
@@ -1544,7 +1541,7 @@ void ibis::bin::binning(const char* f) {
 	    lg() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
 		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
-			    << bounds[i] << "\t" << bits[i]->cnt() << "\n";
+		     << bounds[i] << "\t" << bits[i]->cnt() << "\n";
 	}
     }
 } // ibis::bin::binning
@@ -1570,7 +1567,7 @@ void ibis::bin::binningT(const char* f) {
     }
 
     std::string fnm; // name of the data file
-    dataFileName(fname, fnm);
+    dataFileName(f, fnm);
 
     ibis::bitvector mask;
     {   // name of mask file associated with the data file
@@ -1770,7 +1767,7 @@ void ibis::bin::binningT(const char* f) {
 	    lg() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
 		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
-			    << bounds[i] << "\t" << bits[i]->cnt() << "\n";
+		     << bounds[i] << "\t" << bits[i]->cnt() << "\n";
 	}
     }
 } // ibis::bin::binningT
@@ -2115,8 +2112,10 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 	ierr = checkBin0<signed char>(cmp, jbin, res);
 	break;
     default:
-	ibis::util::logMessage("Warning", "unable to binng column %s type %d",
-			       col->name(), (int)(col->type()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- unable to bin column " << col->name()
+	    << " (type " << (int)(col->type()) << ", "
+	    << ibis::TYPESTRING[(int)(col->type())] << ')';
 	ierr = -4;
     }
     if (ibis::gVerbose > 4) {
@@ -2194,8 +2193,10 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 	ierr = checkBin1<signed char>(cmp, jbin, mask, res);
 	break;
     default:
-	ibis::util::logMessage("Warning", "unable to binng column %s type %d",
-			       col->name(), (int)(col->type()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- unable to bin column " << col->name()
+	    << " (type " << (int)(col->type()) << ", "
+	    << ibis::TYPESTRING[(int)(col->type())] << ')';
 	ierr = -4;
     }
     if (ibis::gVerbose > 4) {
@@ -2228,9 +2229,83 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 
 template <typename E>
 void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
-    uint32_t nbins;
+    if (varr.empty()) return;
+
+    nrows = varr.size();
+    uint32_t nbins = parseNbins();
+    if (eqw <= 1) { // simple binning
+	E amin = varr[0];
+	E amax = varr[0];
+	for (size_t i = 1; i < varr.size(); ++ i) {
+	    if (amin > varr[i]) amin = varr[i];
+	    if (amax < varr[i]) amax = varr[i];
+	}
+	if (amin >= amax) { // a single value
+	    bits.resize(1);
+	    bits[0] = new ibis::bitvector;
+	    bits[0]->set(1, nrows);
+	    minval.resize(1);
+	    maxval.resize(1);
+	    minval[0] = amin;
+	    maxval[0] = amax;
+	    bounds.resize(1);
+	    bounds[1] = DBL_MAX;
+	    return;
+	}
+
+	if (sizeof(amin) >= 4) {
+	    amin = (E) ibis::util::compactValue
+		(amin-0.5*(amax-amin)/nbins, amin);
+	    amax = (E) ibis::util::compactValue
+		(amax, amax+0.5*(amax-amin)/nbins);
+	}
+	else {
+	    ++ amax;
+	}
+	double delta = (amax - amin) / nbins;
+	bits.resize(nbins);
+	minval.resize(nbins);
+	maxval.resize(nbins);
+	for (size_t i = 0; i < nbins; ++ i) {
+	    bits[i] = new ibis::bitvector;
+	    minval[i] = DBL_MAX;
+	    maxval[i] = -DBL_MAX;
+	}
+	for (size_t j = 0; j < varr.size(); ++ j) {
+	    uint32_t k = (uint32_t) ((varr[j] - amin) / delta);
+	    if (k < nbins) {
+		bits[k]->setBit(j, 1);
+		if (minval[k] > varr[j]) minval[k] = varr[j];
+		if (maxval[k] < varr[j]) maxval[k] = varr[j];
+	    }
+	}
+
+	nbins = 0;
+	for (size_t j = 0; j < nbins; ++ j) {
+	    if (bits[j]->cnt() > 0) {
+		if (nbins < j) {
+		    bits[nbins] = bits[j];
+		    minval[nbins] = minval[j];
+		    maxval[nbins] = maxval[j];
+		}
+		++ nbins;
+	    }
+	    else {
+		delete bits[j];
+	    }
+	}
+	bits.resize(nbins);
+	minval.resize(nbins);
+	maxval.resize(nbins);
+	bounds.reserve(nbins);
+	for (size_t i = 1; i < nbins; ++ i)
+	    bounds.push_back(ibis::util::compactValue
+			     (maxval[i-1], minval[i]));
+	bounds.push_back(DBL_MAX);
+	return;
+    }
+
     histogram hist; // a histogram
-    nbins = parseNbins();
     mapValues(varr, hist);
     const uint32_t ncnt = hist.size();
     histogram::const_iterator it;
@@ -2339,7 +2414,7 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
     {
 	ibis::util::logger lg(4);
 	lg() << "DEBUG - content of bounds in scanAndPartition: size("
-		    << bounds.size() << ")\n";
+	     << bounds.size() << ")\n";
 	for (array_t<double>::const_iterator it = bounds.begin();
 	     it != bounds.end(); ++ it)
 	    lg() << *it << " ";
@@ -2365,6 +2440,7 @@ void ibis::bin::construct(const char* df) {
     if (spec != 0 &&
 	(strstr(spec, "precision=") || strstr(spec, "prec="))) {
 	// <binning precision=d /> or <binning prec=d />
+#if 0
 	ibis::bak2 tmp(col, df);
 	swap(tmp);
 
@@ -2378,6 +2454,100 @@ void ibis::bin::construct(const char* df) {
 	maxval.insert(maxval.begin(), -DBL_MAX);
 	// there is now one more bins than before
 	++ nobs;
+#else
+	std::string fname;
+	if (0 == col->dataFileName(fname, df)) {
+	    throw "bin::construct failed to generate a name for raw data";
+	}
+	switch (col->type()) {
+	case ibis::DOUBLE: {
+	    array_t<double> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::UBYTE: {
+	    array_t<unsigned char> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::BYTE: {
+	    array_t<signed char> vals;
+	    int ierr = ibis::fileManager::instance().getFile
+		(fname.c_str(), vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- unable to bin column " << col->name()
+		<< " (type " << (int)(col->type()) << ", "
+		<< ibis::TYPESTRING[(int)(col->type())] << ')';
+	    throw "Unexpected data type for ibis::bin";
+	}
+#endif
 	if (reorder)
 	    binOrder(df);
     }
@@ -2416,9 +2586,10 @@ void ibis::bin::construct(const char* df) {
 		binningT<signed char>(df);
 		break;
 	    default:
-		ibis::util::logMessage
-		    ("Warning", "unable to binng column %s type %d",
-		     col->name(), (int)(col->type()));
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- unable to bin column " << col->name()
+		    << " (type " << (int)(col->type()) << ", "
+		    << ibis::TYPESTRING[(int)(col->type())] << ')';
 		throw "Unexpected data type for ibis::bin";
 	    }
 	}
@@ -2437,8 +2608,7 @@ void ibis::bin::construct(const char* df) {
     }
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg()
-	    << "bin[" << col->partition()->name() << '.' << col->name()
+	lg()<< "bin[" << col->partition()->name() << '.' << col->name()
 	    << "]::construct(" << (df ? df : "") << ") -- finished "
 	    "constructing a simple equality index with " << nobs
 	    << " bin" << (nobs>1?"s":"");
@@ -2450,7 +2620,7 @@ void ibis::bin::construct(const char* df) {
 } // ibis::bin::construct
 
 // explicit instantiations of templated functions
-template void ibis::bin::construct(const array_t<char>&);
+template void ibis::bin::construct(const array_t<signed char>&);
 template void ibis::bin::construct(const array_t<unsigned char>&);
 template void ibis::bin::construct(const array_t<int16_t>&);
 template void ibis::bin::construct(const array_t<uint16_t>&);
@@ -2481,8 +2651,7 @@ void ibis::bin::construct(const array_t<E>& varr) {
     optionalUnpack(bits, spec);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg()
-	    << "bin[" << col->partition()->name() << '.' << col->name()
+	lg()<< "bin[" << col->partition()->name() << '.' << col->name()
 	    << "]::construct<" << typeid(E).name() << '[' << varr.size()
 	    << "]> -- finished constructing a simple equality index with "
 	    << nobs << " bin" << (nobs>1?"s":"");
@@ -2997,7 +3166,7 @@ void ibis::bin::binning(const array_t<E>& varr) {
 	    lg() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
 		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
-			    << bounds[i] << "\t" << bits[i]->cnt() << "\n";
+		     << bounds[i] << "\t" << bits[i]->cnt() << "\n";
 	}
     }
 } // ibis::bin::binning
@@ -3021,6 +3190,7 @@ void ibis::bin::mapGranules(const array_t<E>& val,
 	if (it == gmap.end()) {
 	    grn = new ibis::bin::granule;
 	    gmap[key] = grn;
+	    grn->loce = new ibis::bitvector;
 	    grn->loc0 = new ibis::bitvector;
 	    grn->loc1 = new ibis::bitvector;
 	}
@@ -3035,7 +3205,10 @@ void ibis::bin::mapGranules(const array_t<E>& val,
 	    if (grn->max0 < val[i])
 		grn->max0 = val[i];
 	}
-	else {
+	else if (val[i] == key) {
+	    grn->loce->setBit(i, 1);
+	}
+	else { // assume the incoming value is larger, which may include NaN
 	    grn->loc1->setBit(i, 1);
 	    if (grn->min1 > val[i])
 		grn->min1 = val[i];
@@ -3048,6 +3221,13 @@ void ibis::bin::mapGranules(const array_t<E>& val,
     // ones
     for (ibis::bin::granuleMap::iterator it = gmap.begin();
 	 it != gmap.end(); ++ it) {
+	if ((*it).second->loce->cnt() > 0) {
+	    (*it).second->loce->adjustSize(0, nev);
+	}
+	else {
+	    delete (*it).second->loce;
+	    (*it).second->loce = 0;
+	}
 	if ((*it).second->loc0->cnt() > 0) {
 	    (*it).second->loc0->adjustSize(0, nev);
 	}
@@ -3093,24 +3273,23 @@ void ibis::bin::printGranules(std::ostream& out,
 			      const ibis::bin::granuleMap& bmap) const {
     out << "bin::printGranules(" << bmap.size()
 	<< (bmap.size() > 1 ? " entries" : " entry")
-	<< " [key, min_, max_, count_, min^, max^, count^]"
-	<< std::endl;
+	<< ")\nkey: count=, count_, min_, max_, count^, min^, max^\n";
     uint32_t prt = (ibis::gVerbose > 30 ? bmap.size() : (1 << ibis::gVerbose));
     if (prt < 5) prt = 5;
     if (prt+1 >= bmap.size()) { // print all
 	for (granuleMap::const_iterator it = bmap.begin();
 	     it != bmap.end(); ++ it) {
-	    out << (*it).first << ",\t";
+	    out << (*it).first << ":\t" << (*it).second->loce->cnt() << ",\t";
 	    if ((*it).second->loc0)
-		out << (*it).second->min0 << ",\t"
-		    << (*it).second->max0 << ",\t"
-		    << (*it).second->loc0->cnt();
+		out << (*it).second->loc0->cnt()
+		    << (*it).second->min0 << ",\t"
+		    << (*it).second->max0 << ",\t";
 	    else
 		out << ",\t,\t";
 	    if ((*it).second->loc1)
-		out << ",\t" << (*it).second->min1
-		    << ",\t" << (*it).second->max1
-		    << ",\t" << (*it).second->loc1->cnt() << "\n";
+		out << ",\t" << (*it).second->loc1->cnt()
+		    << ",\t" << (*it).second->min1
+		    << ",\t" << (*it).second->max1 << "\n";
 	    else
 		out << ",\t,\t,\t\n";
 	}
@@ -3118,17 +3297,17 @@ void ibis::bin::printGranules(std::ostream& out,
     else { // print some
 	granuleMap::const_iterator it = bmap.begin();
 	for (uint32_t i = 0; i < prt; ++i, ++it) {
-	    out << (*it).first << ",\t";
+	    out << (*it).first << ":\t" << (*it).second->loce->cnt() << ",\t";
 	    if ((*it).second->loc0)
-		out << (*it).second->min0 << ",\t"
-		    << (*it).second->max0 << ",\t"
-		    << (*it).second->loc0->cnt();
+		out << (*it).second->loc0->cnt()
+		    << (*it).second->min0 << ",\t"
+		    << (*it).second->max0 << ",\t";
 	    else
 		out << ",\t,\t";
 	    if ((*it).second->loc1)
-		out << ",\t" << (*it).second->min1
-		    << ",\t" << (*it).second->max1
-		    << ",\t" << (*it).second->loc1->cnt() << "\n";
+		out << ",\t" << (*it).second->loc1->cnt()
+		    << ",\t" << (*it).second->min1
+		    << ",\t" << (*it).second->max1 << "\n";
 	    else
 		out << ",\t,\t,\t\n";
 	}
@@ -3137,31 +3316,35 @@ void ibis::bin::printGranules(std::ostream& out,
 	-- it;
 	out << "...\n" << prt << (prt > 1 ? " entries" : " entry")
 	    << " omitted\n...\n";
-	out << (*it).first << ",\t";
+	out << (*it).first << ":\t" << (*it).second->loce->cnt() << ",\t";
 	if ((*it).second->loc0)
-	    out << (*it).second->min0 << ",\t"
-		<< (*it).second->max0 << ",\t"
-		<< (*it).second->loc0->cnt();
+	    out << (*it).second->loc0->cnt()
+		<< (*it).second->min0 << ",\t"
+		<< (*it).second->max0 << ",\t";
 	else
 	    out << ",\t,\t";
 	if ((*it).second->loc1)
-	    out << ",\t" << (*it).second->min1
-		<< ",\t" << (*it).second->max1
-		<< ",\t" << (*it).second->loc1->cnt() << "\n";
+	    out << ",\t" << (*it).second->loc1->cnt()
+		<< ",\t" << (*it).second->min1
+		<< ",\t" << (*it).second->max1 << "\n";
 	else
 	    out << ",\t,\t,\t\n";
     }
     out << std::endl;
 } //ibis::bin::printGranules
 
+/// Convert the granule map into binned index.  The bitmaps that are not
+/// empty are transferred to the array bits, therefore, the content of gmap
+/// is no longer valid after calling this function.  However, it is still
+/// necessary for the called to free gmap.
 void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
     // clear the existing content
     clear();
     // reserve space
-    bits.reserve(gmap.size()*2);
-    bounds.reserve(gmap.size()*2);
-    minval.reserve(gmap.size()*2);
-    maxval.reserve(gmap.size()*2);
+    bits.reserve(gmap.size()*3);
+    bounds.reserve(gmap.size()*3);
+    minval.reserve(gmap.size()*3);
+    maxval.reserve(gmap.size()*3);
 
     // copy the values
     for (granuleMap::iterator it = gmap.begin(); it != gmap.end(); ++it) {
@@ -3169,14 +3352,29 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 	    if (maxval.size() > 0)
 		bounds.push_back(ibis::util::compactValue
 				 (maxval.back(), (*it).second->min0));
+	    if (nrows < (*it).second->loc0->size())
+		nrows = (*it).second->loc0->size();
 	    minval.push_back((*it).second->min0);
 	    maxval.push_back((*it).second->max0);
 	    bits.push_back((*it).second->loc0);
 	    (*it).second->loc0 = 0;
 	}
-	if ((*it).second->loc1 != 0 && (*it).second->loc1->cnt() > 0) {
+	if ((*it).second->loce != 0 && (*it).second->loce->cnt() > 0) {
 	    if (maxval.size() > 0)
 		bounds.push_back((*it).first);
+	    if (nrows < (*it).second->loce->size())
+		nrows = (*it).second->loce->size();
+	    minval.push_back((*it).first);
+	    maxval.push_back((*it).first);
+	    bits.push_back((*it).second->loce);
+	    (*it).second->loce = 0;
+	}
+	if ((*it).second->loc1 != 0 && (*it).second->loc1->cnt() > 0) {
+	    if (maxval.size() > 0)
+		bounds.push_back(ibis::util::compactValue
+				 (maxval.back(), (*it).second->min1));
+	    if (nrows < (*it).second->loc0->size())
+		nrows = (*it).second->loc0->size();
 	    minval.push_back((*it).second->min1);
 	    maxval.push_back((*it).second->max1);
 	    bits.push_back((*it).second->loc1);
@@ -3186,6 +3384,14 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
     // append DBL_MAX as the bin boundary at the end
     bounds.push_back(DBL_MAX);
     nobs = bits.size();
+    offset64.resize(nobs+1);
+    offset64[0] = 0;
+    for (size_t j = 0; j < nobs; ++ j)
+	offset64[j+1] = offset64[j] + bits[j]->getSerialSize();
+    LOGGER(ibis::gVerbose > 4)
+	<< "bin::convertGranules converted " << gmap.size() << " granule"
+	<< (gmap.size()>1?"s":"") << " into " << nobs << " bin"
+	<< (nobs>1?"s":"");
 } // ibis::bin::convertGranules
 
 // parse the index specification to determine the number of bins, returns
@@ -3896,7 +4102,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 	    {
 		ibis::util::logger lg(4);
 		lg() << "scanAndPartition: raw bin boundaries\n"
-			  << bounds.back();
+		     << bounds.back();
 		for (array_t<uint32_t>::const_iterator ii = bnds.begin();
 		     ii != bnds.end(); ++ii)
 		    if (*ii < val.size())
@@ -3929,7 +4135,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 	    {
 		ibis::util::logger lg(4);
 		lg() << "scanAndPartition: actual bin boundaries\n"
-			  << bounds[0];
+		     << bounds[0];
 		for (uint32_t ii = 1; ii < bounds.size(); ++ ii)
 		    lg() << " " << bounds[ii];
 	    }
@@ -4014,7 +4220,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
     {
 	ibis::util::logger lg(4);
 	lg() << "DEBUG - content of bounds in scanAndPartition: size("
-		    << bounds.size() << ")\n";
+	     << bounds.size() << ")\n";
 	for (array_t<double>::const_iterator it = bounds.begin();
 	     it != bounds.end(); ++ it)
 	    lg() << *it << " ";
@@ -4895,7 +5101,7 @@ void ibis::bin::divideBitmaps(const std::vector<ibis::bitvector*>& bms,
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "divideBitmaps -- divided " << nbms << " bitmaps into "
-		    << nparts << " groups\n";
+	     << nparts << " groups\n";
 	for (unsigned i = 0; i < nparts; ++ i)
 	    lg() << parts[i] << " ";
     }
@@ -5749,7 +5955,7 @@ long ibis::bin::append(const ibis::bin& tail) {
     if (ibis::gVerbose > 10) {
 	ibis::util::logger lg;
 	lg() << "\nNew combined index (append an index for " << n1
-		  << " objects to an index for " << n0 << " events\n" ;
+	     << " objects to an index for " << n0 << " events\n" ;
 	print(lg());
     }
     return 0;

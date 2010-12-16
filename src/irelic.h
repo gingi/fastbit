@@ -49,7 +49,7 @@ public:
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
     /// This class and its derived classes should produce exact answers,
     /// therefore no undecidable rows.
-    virtual float undecidable(const ibis::qContinuousRange& expr,
+    virtual float undecidable(const ibis::qContinuousRange&,
 			      ibis::bitvector& iffy) const {
 	iffy.clear();
 	return 0.0;
@@ -60,8 +60,8 @@ public:
 	evaluate(expr, lower);
 	upper.clear();
     }
-    virtual uint32_t estimate(const ibis::qDiscreteRange& expr) const;
-    virtual float undecidable(const ibis::qDiscreteRange& expr,
+    virtual uint32_t estimate(const ibis::qDiscreteRange&) const;
+    virtual float undecidable(const ibis::qDiscreteRange&,
 			      ibis::bitvector& iffy) const {
 	iffy.clear();
 	return 0.0;
@@ -228,7 +228,7 @@ public:
     virtual double getSum() const;
 
     virtual void speedTest(std::ostream& out) const;
-    virtual double estimateCost(const ibis::qContinuousRange& expr) const {
+    virtual double estimateCost(const ibis::qContinuousRange&) const {
 	double ret;
 	if (offset64.size() > bits.size())
 	    ret = offset64.back();

@@ -103,14 +103,14 @@ public:
 
     /// Return the type used to store the values of the jth column of the
     /// bundle.
-    virtual ibis::TYPE_T columnType(uint32_t j) const {
+    virtual ibis::TYPE_T columnType(uint32_t) const {
 	return ibis::UNKNOWN_TYPE;}
     /// Return the pointer to the underlying array used to store the jth
     /// column of the bundle.
-    virtual void* columnArray(uint32_t j) const {return 0;}
+    virtual void* columnArray(uint32_t) const {return 0;}
 
     /// Re-order the bundles according to the new keys.
-    virtual void reorder(const char *names, int direction) = 0;
+    virtual void reorder(const char *, int) = 0;
     /// Truncate the list of bundles.
     virtual long truncate(uint32_t keep) = 0;
     /// Truncate the list of bundles.
@@ -208,11 +208,11 @@ public:
     virtual void printAll(std::ostream& out) const;
 
     // can not do anything
-    virtual void reorder(const char *names, int direction) {};
+    virtual void reorder(const char *, int) {};
     // only one bundle.
     virtual long truncate(uint32_t) {return 1;}
     virtual long truncate(uint32_t, uint32_t) {return 1;}
-    virtual long truncate(const char *names, int direction, uint32_t keep)
+    virtual long truncate(const char *, int, uint32_t)
     {return 1;}
 
     virtual void write(const ibis::query& q) const {
@@ -265,7 +265,7 @@ public:
     }
     virtual long truncate(uint32_t);
     virtual long truncate(uint32_t, uint32_t);
-    virtual long truncate(const char *names, int direction, uint32_t keep) {
+    virtual long truncate(const char *, int direction, uint32_t keep) {
 	if (direction < 0) {
 	    reverse();
 	    infile = false;

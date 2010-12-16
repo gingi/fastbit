@@ -67,7 +67,7 @@ public:
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
     /// This class and its derived classes should produce exact answers,
     /// therefore no undecidable rows.
-    virtual float undecidable(const ibis::qContinuousRange& expr,
+    virtual float undecidable(const ibis::qContinuousRange&,
 			      ibis::bitvector& iffy) const {
 	iffy.clear();
 	return 0.0;
@@ -75,7 +75,7 @@ public:
     virtual double estimateCost(const ibis::qContinuousRange& expr) const;
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const;
 
-    struct tokenizer;
+    class tokenizer;
 
 protected:
     virtual size_t getSerialSize() const throw();

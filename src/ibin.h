@@ -159,14 +159,20 @@ public:
     /// value among those that are larger than or equal to the target
     /// value.
     struct granule {
-	double min0, max0, min1, max1;
-	ibis::bitvector* loc0;
-	ibis::bitvector* loc1;
+	double min0, max0; // min and max of values less than the target
+	double min1, max1; // min and max of values greater than the target
+	ibis::bitvector* loce; ///< Values equal to the target.
+	ibis::bitvector* loc0; ///< Values less than the target.
+	ibis::bitvector* loc1; ///< Values greater than the target.
 
-	// the default construct, user to explicitly allocated the bitvector
+	/// Construct.  User has to explicitly allocated the bitvectors.
 	granule() : min0(DBL_MAX), max0(-DBL_MAX), min1(DBL_MAX),
-		    max1(-DBL_MAX), loc0(0), loc1(0) {};
-	~granule() {delete loc0; delete loc1;};
+		    max1(-DBL_MAX), loce(0), loc0(0), loc1(0) {};
+	/// Destructor.
+	~granule() {delete loce; delete loc0; delete loc1;};
+    private:
+	granule(const granule&); // no copy constructor
+	granule& operator=(const granule&); // no assignment
     };
     // key = target value
     typedef std::map< double, granule* > granuleMap;
@@ -228,8 +234,6 @@ protected:
     template <typename E>
     void mapGranules(const array_t<E>&, granuleMap& gmap) const;
     void printGranules(std::ostream& out, const granuleMap& gmap) const;
-    /// Convert the granule map into binned index.  Destroy the content of
-    /// the granuleMap.
     void convertGranules(granuleMap& gmap);
 
     /// Read a file containing a list of floating-point numbers.

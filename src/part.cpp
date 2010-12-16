@@ -5351,7 +5351,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 		// pick one random column to try all possible range
 		// operators
 		if (ibis::util::rand()*columns.size() < 1.0)
-		    testRangeOperators(pref, (*it).second, &nerr);
+		    testRangeOperators((*it).second, &nerr);
 	    }
 	    else if (elm < 0) { // a bad element size
 		++ nerr;
@@ -6083,7 +6083,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 /// Loop through all operators for a continuous range expression,
 /// check to see if the number of hits computed from evaluating a count
 /// query matches that returned from ibis::part::countHits.
-void ibis::part::testRangeOperators(const char* pref, const ibis::column* col,
+void ibis::part::testRangeOperators(const ibis::column* col,
 				    long* nerrors) const {
     if (col == 0 || nEvents <= 1) return;
 

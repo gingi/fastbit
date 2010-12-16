@@ -975,18 +975,18 @@ public:
     virtual double getSum() const {
 	return std::numeric_limits<double>::quiet_NaN();}
     /// Return the ith value as int.  NOT implemented.
-    virtual int32_t getInt(uint32_t i) const {return 0;}
+    virtual int32_t getInt(uint32_t) const {return 0;}
     /// Return the ith value as unsigned int.  NOT implemented.
-    virtual uint32_t getUInt(uint32_t i) const {return 0;}
+    virtual uint32_t getUInt(uint32_t) const {return 0;}
     /// Return the ith value as long.  NOT implemented.
-    virtual int64_t getLong(uint32_t i) const {return 0;}
+    virtual int64_t getLong(uint32_t) const {return 0;}
     /// Return the ith value as unsigned long.  NOT implemented.
-    virtual uint64_t getULong(uint32_t i) const {return 0;}
+    virtual uint64_t getULong(uint32_t) const {return 0;}
     /// Return the ith value as float.  NOT implemented.
-    virtual float getFloat(uint32_t i) const {
+    virtual float getFloat(uint32_t) const {
 	return  std::numeric_limits<float>::quiet_NaN();}
     /// Return the ith value as double.  NOT implemented.
-    virtual double getDouble(uint32_t i) const {
+    virtual double getDouble(uint32_t) const {
 	return std::numeric_limits<double>::quiet_NaN();}
 
 private:

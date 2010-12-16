@@ -48,8 +48,7 @@ public:
 
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);
-    virtual long append(const void* vals, const ibis::bitvector& msk) {
-	return -1;}
+    virtual long append(const void*, const ibis::bitvector&) {return -1;}
     virtual long saveSelected(const ibis::bitvector& sel, const char *dest,
 			      char *buf, uint32_t nbuf);
     /// Return the positions of records marked 1 in the mask.
@@ -134,8 +133,7 @@ public:
     /// Append the content in @a df to the directory @a dt.
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);
-    virtual long append(const void* vals, const ibis::bitvector& msk) {
-	return -1;}
+    virtual long append(const void*, const ibis::bitvector&) {return -1;}
     /// Return the integers corresponding to the select strings.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
     virtual std::vector<std::string>*

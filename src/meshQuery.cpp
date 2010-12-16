@@ -5262,11 +5262,17 @@ int ibis::meshQuery::label1DSimple
 /// second (the faster varying) dimension, they would be absorbed into a
 /// single block.  This simplifies the processing of blocks in this
 /// function.
+///
+/// @return This function returns the number of connected components
+/// identified if it runs to completion.  Otherwise, it returns a negative
+/// number to indicate error.
 int ibis::meshQuery::label2DSimple
 (std::vector<uint32_t>& labels,
  const std::vector< std::vector<uint32_t> >& blocks) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
+    if (blocks[0].size() != 4)
+	return -1;
     if (blocks.size() == 1) {
 	labels[0] = 0;
 	return 1;
@@ -5349,11 +5355,26 @@ int ibis::meshQuery::label2DSimple
     return cnt;
 } //ibis::meshQuery::label2DSimple
 
+/// Assign a unique labels to each connected set of blocks.  It assumes the
+/// incoming blocks are defined on a simple regular 3D mesh, presumably
+/// outputted from ibis::meshQuery::getHitsAsBlocks.  This function only
+/// checks that each block consists of 6 numbers.  It further assumes that
+/// the blocks are organized in ascending order.  If it detects any block
+/// out of order, it will return with an error code (-2).
+/// 
+/// This function assumes the nearest neighbors along each of the three
+/// dimensions are connected.  This is the minimum connectivity.
+///
+/// @return Upon successful completion of this function, it returns the
+/// number of connected components identified.  It returns a negative value
+/// to indicate errors.
 int ibis::meshQuery::label3DSimple
 (std::vector<uint32_t>& labels,
  const std::vector< std::vector<uint32_t> >& blocks) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
+    if (blocks[0].size() != 6)
+	return -1;
     if (blocks.size() == 1) {
 	labels[0] = 0;
 	return 1;
@@ -5496,10 +5517,10 @@ int ibis::meshQuery::label3DSimple
 	}
     } // loop I
     LOGGER(ibis::gVerbose > 4)
-    << "meshQuery::label3DSimple completed the 1st pass with " << uf.size()
-    << " provisional label" << (uf.size()>1 ? "s" : "") << " for "
-    << blocks.size() << " blocks, performed " << cnt
-    << " union operation" << (cnt>1 ? "s" : "");
+	<< "meshQuery::label3DSimple completed the 1st pass with " << uf.size()
+	<< " provisional label" << (uf.size()>1 ? "s" : "") << " for "
+	<< blocks.size() << " blocks, performed " << cnt
+	<< " union operation" << (cnt>1 ? "s" : "");
     if (cnt == 0) // if there was never any union operations, we are done
 	return uf.size();
 
@@ -5529,14 +5550,84 @@ int ibis::meshQuery::label4DSimple
     // scanning
 } // ibis::meshQuery::label4DSimple
 
+/// Assign a unique labels to each connected set of blocks.  It assumes the
+/// incoming blocks are defined on a simple regular mesh, presumably
+/// outputted from ibis::meshQuery::getHitsAsBlocks.  This function works
+/// with a mesh with an arbitrary number of dimensions.  The bounding box
+/// produced are expected to be produced from
+/// ibis::meshQuery::getHitsAsBlocks, where each box uses two numbers (an
+/// inclusive lower bound and an exclusive upper bound) for each dimension.
+/// However, this function only check that the first bounding box has the
+/// expected number of elements; it does not perform this check on the
+/// remaining blocks.  It further assumes that the blocks are organized in
+/// ascending order.  If it detects any block out of order, it will return
+/// with an error code (-2).
+/// 
+/// This function assumes the nearest neighbors along each of the three
+/// dimensions are connected.  This is the minimum connectivity.
+///
+/// @return Upon successful completion of this function, it returns the
+/// number of connected components identified.  It returns a negative value
+/// to indicate errors.
 int ibis::meshQuery::labelNDSimple
 	(std::vector<uint32_t>& labels,
 	 const std::vector< std::vector<uint32_t> >& blocks,
-	 const std::vector<uint32_t>& dims) {
+	 const std::vector<uint32_t>& dim) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
+    if (blocks[0].size() != 2 * dim.size())
+	return -1;
+    if (dim.size() == 1)
+	return label1DSimple(labels, blocks);
     LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- ibis::meshQuery::labelNDSimple has not been "
-	"implemented yet";
-    return -1;
+    	<< "Warning -- ibis::meshQuery::labelNDSimple has not been "
+    	"implemented yet";
+    return -2;
+
+    const uint32_t md = dim.size() - 1;
+    ibis::array_t<uint32_t> ma(md, 0); // markers
+    ibis::array_t<uint32_t> me(md, 0); // end positions of matches
+    ibis::array_t<uint32_t> ms(md, 0); // starting positions of matches
+    ibis::array_t<uint32_t> uf; // the array for union-find
+    uint32_t cnt = 0; // the number of provisional labels or final labels
+    // the main loop: scan each block to determing connectivity and assign
+    // provisional label
+    for (size_t j = 0; j < blocks.size(); ++ j) {
+	// update markers
+	for (size_t i0 = 0; i0 < md; ++ i0) {
+	    const size_t ti0 = i0 + i0;
+	    const size_t ti0p1 = i0 + i0 + 1;
+	    if (blocks[j][ti0] == blocks[ma[i0]][ti0]) {
+		// in the same hyperplane, nothing extra to do
+	    }
+	    else if (blocks[j][ti0] > blocks[ma[i0]][ti0]) {
+		// a new hyperplane
+		while (i0 < md) {
+		    ma[i0] = j;
+		    ++ i0;
+		}
+	    }
+	    else {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- meshQuery::labelNDSimple expects incoming "
+		    "blocks to be in ascending order, but block " << j
+		    << " is not";
+		return -2;
+	    }
+	}
+
+	// move ms to next possible matches in each dimension
+	for (size_t i0 = 0; i0 < md; ++ i0) {
+	    const size_t ti0 = i0 + i0;
+	    const size_t ti0p1 = i0 + i0 + 1;
+	    if (i0 > 0)
+		if (ms[i0] < ms[i0-1])
+		    ms[i0] = ms[i0-1];
+	    while (ms[i0] < ma[i0] &&
+		   blocks[ms[i0]][ti0p1] < blocks[j][ti0])
+		++ ms[i0];
+	}
+    } // scanning loop
+
+
 } // ibis::meshQuery::labelNDSimple

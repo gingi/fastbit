@@ -737,7 +737,7 @@ void ibis::relic::construct(const array_t<E>& arr) {
 } // ibis::relic::construct
 
 // explicit instantiation of construct function
-template void ibis::relic::construct(const array_t<char>& arr);
+template void ibis::relic::construct(const array_t<signed char>& arr);
 template void ibis::relic::construct(const array_t<unsigned char>& arr);
 template void ibis::relic::construct(const array_t<int16_t>& arr);
 template void ibis::relic::construct(const array_t<uint16_t>& arr);

@@ -151,12 +151,12 @@ public:
     /// be hits.
     /// If the variable upper is empty, the variable lower is assumed to
     /// contain the exact answer.
-    virtual void estimate(const ibis::qContinuousRange& expr,
+    virtual void estimate(const ibis::qContinuousRange&,
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const {
 	lower.set(0, nrows); upper.set(1, nrows);}
     /// Returns an upper bound on the number of hits.
-    virtual uint32_t estimate(const ibis::qContinuousRange& expr) const {
+    virtual uint32_t estimate(const ibis::qContinuousRange&) const {
 	return nrows;}
     /// Mark the position of the rows that can not be decided with this
     /// index.
@@ -165,8 +165,8 @@ public:
     /// be decided using the index.
     /// Return value is the expected fraction of undecided rows that might
     /// satisfy the range conditions.
-    virtual float undecidable(const ibis::qContinuousRange& expr,
-			      ibis::bitvector& iffy) const {return 0.5;}
+    virtual float undecidable(const ibis::qContinuousRange&,
+			      ibis::bitvector&) const {return 0.5;}
 
     /// Estimate the hits for discrete ranges, i.e., those translated from
     /// 'a IN (x, y, ..)'.
@@ -223,9 +223,9 @@ public:
 			     const ibis::qRange* const range2) const;
 
     /// Estimate the code of evaluate a range condition.
-    virtual double estimateCost(const ibis::qContinuousRange& expr) const {
+    virtual double estimateCost(const ibis::qContinuousRange&) const {
 	return (offset32.empty() ? (nrows<<3) : offset32.back());}
-    virtual double estimateCost(const ibis::qDiscreteRange& expr) const {
+    virtual double estimateCost(const ibis::qDiscreteRange&) const {
 	return (offset32.empty() ? (nrows<<3) : offset32.back());}
 
     /// Prints human readable information.  Outputs information about the
@@ -244,11 +244,10 @@ public:
     virtual int read(ibis::fileManager::storage* st) = 0;
 
     /// Extend the index.
-    virtual long append(const char* dt, const char* df, uint32_t nnew) {
-	return -1;}
+    virtual long append(const char*, const char*, uint32_t) {return -1;}
 
     /// Time some logical operations and print out their speed.
-    virtual void speedTest(std::ostream& out) const {};
+    virtual void speedTest(std::ostream&) const {};
     /// Returns the number of bit vectors used by the index.
     virtual uint32_t numBitvectors() const {return bits.size();}
     /// Return a pointer to the ith bitvector used in the index (may be 0).
@@ -292,8 +291,8 @@ public:
     /// exact answers using the function estimate.  The default
     /// implementation provided does nothing since this is only meaningful
     /// for indices based on bins.
-    virtual int expandRange(ibis::qContinuousRange& rng) const {return 0;}
-    virtual int contractRange(ibis::qContinuousRange& rng) const {return 0;}
+    virtual int expandRange(ibis::qContinuousRange&) const {return 0;}
+    virtual int contractRange(ibis::qContinuousRange&) const {return 0;}
 
     typedef std::map< double, ibis::bitvector* > VMap;
     typedef std::map< double, uint32_t > histogram;

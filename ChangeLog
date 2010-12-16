@@ -1,3 +1,13 @@
+2010-12-15 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.h, src/ibin.cpp: add one more bitmap to
+	ibis::bin::granule to produce three bins for each target (instead
+	of two), in template function scanAndPartition add a case for
+	working with simpler binning strategy
+	* tests/test1.csv: change the last two columns to be 1 and 0
+	exclusively to produce new test cases
+	* tests/scripts/query-count.list: update queries and counts to
+	accommodate the new test data
+
 2010-12-14 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp: rearrange the call to ibis::init so that it
 	reads the last configuration file from the command line (instead
