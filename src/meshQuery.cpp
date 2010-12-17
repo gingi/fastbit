@@ -5252,6 +5252,10 @@ int ibis::meshQuery::label1DSimple
 	    ++ lbl;
 	}
     }
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery::label1DSimple completed labeling " << blocks.size()
+	<< " block" << (blocks.size()>1?"s":"") << " with " << lbl
+	<< " final label" << (lbl>1 ? "s" : "");
     return lbl;
 } // ibis::meshQuery::label1DSimple
 
@@ -5335,10 +5339,10 @@ int ibis::meshQuery::label2DSimple
 	}
     } // loop I
     LOGGER(ibis::gVerbose > 4)
-	<< "meshQuery::label2DSimple completed the 1st pass with " << uf.size()
-	<< " provisional label" << (uf.size()>1 ? "s" : "") << " for "
-	<< blocks.size() << " blocks, performed " << cnt
-	<< " union operation" << (cnt>1 ? "s" : "");
+	<< "meshQuery::label2DSimple scanned " << blocks.size()
+	<< " blocks, assigned " << uf.size() << " provisional label"
+	<< (uf.size()>1 ? "s" : "") << " and performed " << cnt
+	<< " union operation" << (cnt>1 ? "s" : "") << " among the labels";
     if (cnt == 0) // if there was never any union operations, we are done
 	return uf.size();
 
@@ -5349,7 +5353,7 @@ int ibis::meshQuery::label2DSimple
     for (curr = 0; curr < blocks.size(); ++ curr)
 	labels[curr] = uf[labels[curr]];
 
-    LOGGER(ibis::gVerbose > 3)
+    LOGGER(ibis::gVerbose > 2)
 	<< "meshQuery::label2DSimple completed labeling " << blocks.size()
 	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
     return cnt;
@@ -5431,9 +5435,11 @@ int ibis::meshQuery::label3DSimple
 		   blocks[prevp][3] <= blocks[curr][2]) ++ prevp;
 	    // move prevp to a block that may overlap with the current
 	    while (blocks[prevp][1] == blocks[curr][0] &&
-		   blocks[prevp][2] == blocks[curr][2] &&
+		   blocks[prevp][2] < blocks[curr][3] &&
+		   blocks[prevp][3] > blocks[curr][2] &&
 		   blocks[prevp][5] <= blocks[curr][4]) ++ prevp;
 	}
+	if (prevl < plane) prevl = plane;
 	if (prevl < line) {
 	    // move prevl to the previous line
 	    while (prevl < line && blocks[prevl][3] < blocks[curr][2])
@@ -5452,14 +5458,40 @@ int ibis::meshQuery::label3DSimple
 	    blocks[prevp][5] > blocks[curr][4]) {
 	    size_t startp = prevp;
 	    lbl = afind(uf, labels[prevp]);
+#if defined(_DEBUG)
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- label3Dsimple -- block[" << curr << "] ("
+		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
+		<< blocks[curr][2] << ", " << blocks[curr][3] << ", "
+		<< blocks[curr][4] << ", " << blocks[curr][5]
+		<< ") connects to block[" << prevp << "] ("
+		<< blocks[prevp][0] << ", " << blocks[prevp][1] << ", "
+		<< blocks[prevp][2] << ", " << blocks[prevp][3] << ", "
+		<< blocks[prevp][4] << ", " << blocks[prevp][5]
+		<< "), label = " << labels[prevp]
+		<< ", root = " << lbl;
+#endif
 	    for (++ prevp;
 		 prevp < plane &&
 		 blocks[prevp][1] == blocks[curr ][0] &&
 		 blocks[prevp][2]  < blocks[curr ][3] &&
 		 blocks[curr ][2]  < blocks[prevp][3] &&
 		 blocks[prevp][4]  < blocks[curr ][5];
-				     ++ prevp) {
-		uint32_t tmp = afind(uf, labels[prevp]);
+		 ++ prevp) {
+		const uint32_t tmp = afind(uf, labels[prevp]);
+#if defined(_DEBUG)
+		LOGGER(ibis::gVerbose > 4)
+		    << "DEBUG -- label3Dsimple -- block[" << curr << "] ("
+		    << blocks[curr][0] << ", " << blocks[curr][1] << ", "
+		    << blocks[curr][2] << ", " << blocks[curr][3] << ", "
+		    << blocks[curr][4] << ", " << blocks[curr][5]
+		    << ") connects to block[" << prevp << "] ("
+		    << blocks[prevp][0] << ", " << blocks[prevp][1] << ", "
+		    << blocks[prevp][2] << ", " << blocks[prevp][3] << ", "
+		    << blocks[prevp][4] << ", " << blocks[prevp][5]
+		    << "), label = " << labels[prevp]
+		    << ", root = " << tmp;
+#endif
 		cnt += (tmp != lbl);
 		if (tmp < lbl) lbl = tmp;
 	    }
@@ -5472,7 +5504,21 @@ int ibis::meshQuery::label3DSimple
 		       blocks[prevl][3] == blocks[curr][2] &&
 		       blocks[prevl][4]  < blocks[curr][5] &&
 		       blocks[prevl][5]  > blocks[curr][4]) {
-		    uint32_t tmp = afind(uf, labels[prevl]);
+		    const uint32_t tmp = afind(uf, labels[prevl]);
+#if defined(_DEBUG)
+		    LOGGER(ibis::gVerbose > 4)
+			<< "DEBUG -- label3Dsimple -- block[" << curr
+			<< "] (" << blocks[curr][0] << ", "
+			<< blocks[curr][1] << ", " << blocks[curr][2] << ", "
+			<< blocks[curr][3] << ", " << blocks[curr][4]
+			<< ", " << blocks[curr][5]
+			<< ") connects to block[" << prevl << "] ("
+			<< blocks[prevl][0] << ", " << blocks[prevl][1] << ", "
+			<< blocks[prevl][2] << ", " << blocks[prevl][3] << ", "
+			<< blocks[prevl][4] << ", " << blocks[prevl][5]
+			<< "), label = " << labels[prevl]
+			<< ", root = " << tmp;
+#endif
 		    cnt += (tmp != lbl);
 		    if (tmp < lbl) lbl = tmp;
 		    ++ prevl;
@@ -5494,13 +5540,39 @@ int ibis::meshQuery::label3DSimple
 	    blocks[prevl][5]  > blocks[curr][4]) {
 	    size_t startl = prevl;
 	    lbl = afind(uf, labels[prevl]);
+#if defined(_DEBUG)
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- label3Dsimple -- block[" << curr << "] ("
+		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
+		<< blocks[curr][2] << ", " << blocks[curr][3] << ", "
+		<< blocks[curr][4] << ", " << blocks[curr][5]
+		<< ") connects to block[" << prevl << "] ("
+		<< blocks[prevl][0] << ", " << blocks[prevl][1] << ", "
+		<< blocks[prevl][2] << ", " << blocks[prevl][3] << ", "
+		<< blocks[prevl][4] << ", " << blocks[prevl][5]
+		<< "), label = " << labels[prevl]
+		<< ", root = " << lbl;
+#endif
 	    for (++ prevl;
 		 prevl < line &&
 		     blocks[prevl][3] == blocks[curr][2] &&
 		     blocks[prevl][4]  < blocks[curr][5] &&
 		     blocks[prevl][5]  > blocks[curr][4];
 		 ++ prevl) {
-		uint32_t tmp = afind(uf, labels[prevl]);
+		const uint32_t tmp = afind(uf, labels[prevl]);
+#if defined(_DEBUG)
+		LOGGER(ibis::gVerbose > 4)
+		    << "DEBUG -- label3Dsimple -- block[" << curr << "] ("
+		    << blocks[curr][0] << ", " << blocks[curr][1] << ", "
+		    << blocks[curr][2] << ", " << blocks[curr][3] << ", "
+		    << blocks[curr][4] << ", " << blocks[curr][5]
+		    << ") connects to block[" << prevl << "] ("
+		    << blocks[prevl][0] << ", " << blocks[prevl][1] << ", "
+		    << blocks[prevl][2] << ", " << blocks[prevl][3] << ", "
+		    << blocks[prevl][4] << ", " << blocks[prevl][5]
+		    << "), label = " << labels[prevl]
+		    << ", root = " << tmp;
+#endif
 		cnt += (tmp != lbl);
 		if (tmp < lbl) lbl = tmp;
 	    }
@@ -5517,10 +5589,10 @@ int ibis::meshQuery::label3DSimple
 	}
     } // loop I
     LOGGER(ibis::gVerbose > 4)
-	<< "meshQuery::label3DSimple completed the 1st pass with " << uf.size()
-	<< " provisional label" << (uf.size()>1 ? "s" : "") << " for "
-	<< blocks.size() << " blocks, performed " << cnt
-	<< " union operation" << (cnt>1 ? "s" : "");
+	<< "meshQuery::label3DSimple scanned " << blocks.size()
+	<< " blocks, assigned " << uf.size() << " provisional label"
+	<< (uf.size()>1 ? "s" : "") << " and performed " << cnt
+	<< " union operation" << (cnt>1 ? "s" : "") << " among the labels";
     if (cnt == 0) // if there was never any union operations, we are done
 	return uf.size();
 
@@ -5531,7 +5603,7 @@ int ibis::meshQuery::label3DSimple
     for (curr = 0; curr < blocks.size(); ++ curr)
 	labels[curr] = uf[labels[curr]];
 
-    LOGGER(ibis::gVerbose > 3)
+    LOGGER(ibis::gVerbose > 2)
 	<< "meshQuery::label3DSimple completed labeling " << blocks.size()
 	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
     return cnt;
@@ -5579,17 +5651,15 @@ int ibis::meshQuery::labelNDSimple
 	return -1;
     if (dim.size() == 1)
 	return label1DSimple(labels, blocks);
-    LOGGER(ibis::gVerbose >= 0)
-    	<< "Warning -- ibis::meshQuery::labelNDSimple has not been "
-    	"implemented yet";
-    return -2;
 
+    bool more;
+    uint32_t lbl;
+    uint32_t cnt = 0; // the number of provisional labels or final labels
     const uint32_t md = dim.size() - 1;
     ibis::array_t<uint32_t> ma(md, 0); // markers
     ibis::array_t<uint32_t> me(md, 0); // end positions of matches
     ibis::array_t<uint32_t> ms(md, 0); // starting positions of matches
     ibis::array_t<uint32_t> uf; // the array for union-find
-    uint32_t cnt = 0; // the number of provisional labels or final labels
     // the main loop: scan each block to determing connectivity and assign
     // provisional label
     for (size_t j = 0; j < blocks.size(); ++ j) {
@@ -5618,16 +5688,131 @@ int ibis::meshQuery::labelNDSimple
 
 	// move ms to next possible matches in each dimension
 	for (size_t i0 = 0; i0 < md; ++ i0) {
-	    const size_t ti0 = i0 + i0;
-	    const size_t ti0p1 = i0 + i0 + 1;
-	    if (i0 > 0)
-		if (ms[i0] < ms[i0-1])
-		    ms[i0] = ms[i0-1];
-	    while (ms[i0] < ma[i0] &&
-		   blocks[ms[i0]][ti0p1] < blocks[j][ti0])
-		++ ms[i0];
+	    uint32_t k = (i0 > 0 ? (me[i0] >= ma[i0-1] ? me[i0] : ma[i0-1]) :
+			  me[i0]);
+	    more = (k < ma[i0]);
+	    while (more) {
+		size_t i1 = 0;
+		while (more && i1 < i0) {
+		    if (blocks[k][i1+i1+1] <= blocks[j][i1+i1]) {
+			break; // need to catch up
+		    }
+		    else if (blocks[k][i1+i1] < blocks[j][i1+i1+1] &&
+			     blocks[j][i1+i1] < blocks[k][i1+i1+1]) {
+			++ i1; // match, examine next dimension
+		    }
+		    else {
+			more = false;
+		    }
+		}
+		if (more && (i1 < i0 ||
+			     blocks[k][i0+i0+1] < blocks[j][i0+i0])) {
+		    // touch in the i0-th dimension
+		    ++ k;
+		    more = (k < ma[i0]);
+		}
+		else {
+		    more = false;
+		}
+	    }
+	    // is k in the correct hyperplane?
+	    more = (k < ma[i0] && blocks[k][i0+i0+1] == blocks[j][i0+i0]);
+	    for(size_t i2 = 0; more && i2 < i0; ++ i2)
+		more = (blocks[k][i2+i2] < blocks[j][i2+i2+1] &&
+			blocks[j][i2+i2] < blocks[k][i2+i2+1]);
+	    while (more) {
+		size_t i1 = i0 + 1;
+		while (more && i1 < md) {
+		    if (blocks[k][i1+i1+1] <= blocks[j][i1+i1]) {
+			break; // can move k now
+		    }
+		    else if (blocks[k][i1+i1] < blocks[j][i1+i1+1] &&
+			     blocks[j][i1+i1] < blocks[k][i1+i1+1]) {
+			// dimension i1 match, examine the next dimension
+			++ i1;
+		    }
+		    else { // not matching anymore
+			more = false;
+		    }
+		}
+		if (more && (i1 < md ||
+			     blocks[k][md+md+1] <= blocks[j][md+md])) {
+		    // move k forward
+		    ++ k;
+		    more = (k < ma[i0]); // still in the hyperplane?
+		}
+		else {
+		    more = false;
+		}
+	    }
+	    ms[i0] = k;
 	}
+
+	lbl = uf.size();
+	// determine the actual matches
+	for (size_t i0 = 0; i0 < md; ++ i0) {
+	    more = true;
+	    uint32_t k = ms[i0];
+	    while (k < ma[i0] && more) {
+		// coordinates in dimensions i0+1:md must match
+		for (size_t i1 = i0+1; more && i1 <= md; ++ i1)
+		    more = (blocks[k][i1+i1] < blocks[j][i1+i1+1] &&
+			    blocks[j][i1+i1] < blocks[k][i1+i1+1]);
+		if (more) { // found a match
+		    const uint32_t tmp = afind(uf, labels[k]);
+#if defined(_DEBUG)
+		    if (ibis::gVerbose > 4) {
+			ibis::util::logger lg;
+			lg() << "DEBUG -- labelNDsimple -- block[" << j << "] ("
+			     << blocks[j][0] << ", " << blocks[j][1];
+			for (size_t i2 = 2; i2 < blocks[j].size(); ++ i2)
+			    lg() << ", " << blocks[j][i2];
+			lg() << ") connects to block[" << k << "] ("
+			     << blocks[k][0] << ", " << blocks[k][1];
+			for (size_t i2 = 2; i2 < blocks[k].size(); ++ i2)
+			    lg() << ", " << blocks[k][i2];
+			lg() << ") on dimension " << i0 << ", label = "
+			     << labels[k] << ", root = " << tmp;
+		    }
+#endif
+		    cnt += (lbl < uf.size() && lbl != tmp);
+		    if (tmp < lbl) lbl = tmp;
+		    ++ k;
+		}
+	    }
+	    me[i0] = k;
+	}
+
+	// union the union-find trees
+	for (size_t i0 = 0; i0 < md; ++ i0) {
+	    for (size_t i1 = ms[i0]; i1 < me[i0]; ++ i1)
+		aset(uf, labels[i1], lbl);
+	}
+
+	// assign provisional label to blocks[j]
+	labels[j] = lbl;
+	if (lbl == uf.size()) // expand UF is necessary
+	    uf.push_back(lbl);
     } // scanning loop
 
+    LOGGER(ibis::gVerbose > 4)
+	<< "meshQuery::labelNDSimple scanned " << blocks.size()
+	<< " blocks, assigned " << uf.size() << " provisional label"
+	<< (uf.size()>1 ? "s" : "") << " and performed " << cnt
+	<< " union operation" << (cnt>1 ? "s" : "") << " among the labels";
+    if (cnt == 0) // if there was never any union operations, we are done
+	return uf.size();
+
+    // loop II: flatten the union-find trees, produce the final labels
+    cnt = aflatten(uf);
+
+    // loop III: assign the final labels to each block
+    for (size_t i1 = 0; i1 < blocks.size(); ++ i1)
+	labels[i1] = uf[labels[i1]];
+
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery::labelNDSimple completed labeling " << blocks.size()
+	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
+    return cnt;
 
 } // ibis::meshQuery::labelNDSimple

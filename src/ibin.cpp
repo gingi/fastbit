@@ -3373,8 +3373,8 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 	    if (maxval.size() > 0)
 		bounds.push_back(ibis::util::compactValue
 				 (maxval.back(), (*it).second->min1));
-	    if (nrows < (*it).second->loc0->size())
-		nrows = (*it).second->loc0->size();
+	    if (nrows < (*it).second->loc1->size())
+		nrows = (*it).second->loc1->size();
 	    minval.push_back((*it).second->min1);
 	    maxval.push_back((*it).second->max1);
 	    bits.push_back((*it).second->loc1);
