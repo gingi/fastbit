@@ -5614,12 +5614,229 @@ int ibis::meshQuery::label4DSimple
 	 const std::vector< std::vector<uint32_t> >& blocks) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
-    LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- ibis::meshQuery::label4DSimple has not been "
-	"implemented yet";
-    return -1;
+    if (blocks[0].size() != 8) // check the number of values in a block
+	return -1;
+
+    // in this function, the four dimensions are named Z, Y, X, and W (with
+    // W being the fastest varying dimension)
+    uint32_t zma, yma, xma; // mark the beginning of the hyperplanes
+    uint32_t zms, yms, xms; // starting position of matches
+    uint32_t zme, yme, xme; // ending position of matches
+    uint32_t lbl;
+    uint32_t cnt;
+    ibis::array_t<uint32_t> uf; // array for union-find
+    zma = 0;
+    yma = 0;
+    xma = 0;
+    zme = 0;
+    yme = 0;
+    xme = 0;
+    cnt = 0;
 
     // scanning
+    for (size_t j = 0; j < blocks.size(); ++ j) {
+	// update markers
+	if (blocks[j][0] == blocks[zma][0]) { // same cube
+	    if (blocks[j][2] == blocks[yma][2]) { // same plane
+		if (blocks[j][4] == blocks[xma][4]) {
+		    // markers stay the same
+		}
+		else if (blocks[j][4] > blocks[xma][4]) {
+		    xma = j; // new line
+		}
+		else { // error
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- meshQuery::label4DSimple expects incoming "
+			"blocks to be in ascending order, but block " << j
+			<< " (" << blocks[j][0] << ", " << blocks[j][1]
+			<< ", " << blocks[j][2] << ", " << blocks[j][3]
+			<< ", " << blocks[j][4] << ", " << blocks[j][5]
+			<< ", " << blocks[j][6] << ", " << blocks[j][7]
+			<< ") is not";
+		    return -2;
+		}
+	    }
+	    else if (blocks[j][2] > blocks[yma][2]) {
+		yma = j; // new plane
+		xma = j; // of course also a new line
+	    }
+	    else { // error
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- meshQuery::label4DSimple expects incoming "
+		    "blocks to be in ascending order, but block " << j
+		    << " (" << blocks[j][0] << ", " << blocks[j][1]
+		    << ", " << blocks[j][2] << ", " << blocks[j][3]
+		    << ", " << blocks[j][4] << ", " << blocks[j][5]
+		    << ", " << blocks[j][6] << ", " << blocks[j][7]
+		    << ") is not";
+		return -2;
+	    }
+	}
+	else if (blocks[j][0] > blocks[zma][0]) {
+	    zma = j; // new cube
+	    yma = j;
+	    xma = j;
+	}
+	else { // error
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- meshQuery::label4DSimple expects incoming "
+		"blocks to be in ascending order, but block " << j
+		<< " (" << blocks[j][0] << ", " << blocks[j][1]
+		<< ", " << blocks[j][2] << ", " << blocks[j][3]
+		<< ", " << blocks[j][4] << ", " << blocks[j][5]
+		<< ", " << blocks[j][6] << ", " << blocks[j][7]
+		<< ") is not";
+	    return -2;
+	}
+
+	// look for possible matches
+	zms = zme;
+	while (blocks[zms][1] < blocks[j][0]) ++ zms;
+	while (blocks[zms][1] == blocks[j][0] &&
+	       blocks[zms][3] <= blocks[j][2]) ++ zms;
+	while (blocks[zms][1] == blocks[j][0] &&
+	       blocks[zms][3] > blocks[j][2] &&
+	       blocks[zms][2] < blocks[j][3] &&
+	       blocks[zms][5] <= blocks[j][4]) ++ zms;
+	while (blocks[zms][1] == blocks[j][0] &&
+	       blocks[zms][3] > blocks[j][2] &&
+	       blocks[zms][2] < blocks[j][3] &&
+	       blocks[zms][5] > blocks[j][4] &&
+	       blocks[zms][4] < blocks[j][5] &&
+	       blocks[zms][7] <= blocks[j][6]) ++ zms;
+	yms = (yme >= zma ? yme : zma);
+	while (yms < yma && blocks[yms][3] < blocks[j][2]) ++ yms;
+	while (yms < yma &&
+	       blocks[yms][3] == blocks[j][2] &&
+	       blocks[yms][5] <= blocks[j][4]) ++ yms;
+	while (yms < yma &&
+	       blocks[yms][3] == blocks[j][2] &&
+	       blocks[yms][5] > blocks[j][4] &&
+	       blocks[yms][4] < blocks[j][5] &&
+	       blocks[yms][7] <= blocks[j][6]) ++ yms;
+	xms = (xme >= yma ? xme : yma);
+	while (xms < xma && blocks[xms][5] < blocks[j][4]) ++ xms;
+	while (xms < xma &&
+	       blocks[xms][5] == blocks[j][4] &&
+	       blocks[xms][7] <= blocks[j][6]) ++ xms;
+
+	lbl = uf.size(); // default label value
+	for (zme = zms;
+	     zme < zma &&
+		 blocks[zme][3] > blocks[j][2] &&
+		 blocks[zme][2] < blocks[j][3] &&
+		 blocks[zme][5] > blocks[j][4] &&
+		 blocks[zme][4] < blocks[j][5] &&
+		 blocks[zme][7] > blocks[j][6] &&
+		 blocks[zme][6] < blocks[j][7];
+	     ++ zme) {
+	    const uint32_t tmp = afind(uf, labels[zme]);
+#if defined(_DEBUG)
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- label4Dsimple -- block[" << j << "] ("
+		<< blocks[j][0] << ", " << blocks[j][1] << ", "
+		<< blocks[j][2] << ", " << blocks[j][3] << ", "
+		<< blocks[j][4] << ", " << blocks[j][5] << ", "
+		<< blocks[j][6] << ", " << blocks[j][7]
+		<< ") connects to block[" << zme << "] ("
+		<< blocks[zme][0] << ", " << blocks[zme][1] << ", "
+		<< blocks[zme][2] << ", " << blocks[zme][3] << ", "
+		<< blocks[zme][4] << ", " << blocks[zme][5] << ", "
+		<< blocks[zme][6] << ", " << blocks[zme][7]
+		<< "), label = " << labels[zme] << ", root = " << tmp;
+#endif
+	    cnt += (lbl < uf.size() && lbl != tmp);
+	    if (tmp < lbl) lbl = tmp;
+	}
+	for (yme = yms;
+	     yme < yma &&
+		 blocks[yme][5] > blocks[j][4] &&
+		 blocks[yme][4] < blocks[j][5] &&
+		 blocks[yme][7] > blocks[j][6] &&
+		 blocks[yme][6] < blocks[j][7];
+	     ++ yme) {
+	    const uint32_t tmp = afind(uf, labels[yme]);
+#if defined(_DEBUG)
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- label4Dsimple -- block[" << j << "] ("
+		<< blocks[j][0] << ", " << blocks[j][1] << ", "
+		<< blocks[j][2] << ", " << blocks[j][3] << ", "
+		<< blocks[j][4] << ", " << blocks[j][5] << ", "
+		<< blocks[j][6] << ", " << blocks[j][7]
+		<< ") connects to block[" << yme << "] ("
+		<< blocks[yme][0] << ", " << blocks[yme][1] << ", "
+		<< blocks[yme][2] << ", " << blocks[yme][3] << ", "
+		<< blocks[yme][4] << ", " << blocks[yme][5] << ", "
+		<< blocks[yme][6] << ", " << blocks[yme][7]
+		<< "), label = " << labels[yme] << ", root = " << tmp;
+#endif
+	    cnt += (lbl < uf.size() && lbl != tmp);
+	    if (tmp < lbl) lbl = tmp;
+	}
+	for (xme = xms;
+	     xme < xma &&
+		 blocks[xme][7] > blocks[j][6] &&
+		 blocks[xme][6] < blocks[j][7];
+	     ++ xme) {
+	    const uint32_t tmp = afind(uf, labels[xme]);
+#if defined(_DEBUG)
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- label4Dsimple -- block[" << j << "] ("
+		<< blocks[j][0] << ", " << blocks[j][1] << ", "
+		<< blocks[j][2] << ", " << blocks[j][3] << ", "
+		<< blocks[j][4] << ", " << blocks[j][5] << ", "
+		<< blocks[j][6] << ", " << blocks[j][7]
+		<< ") connects to block[" << xme << "] ("
+		<< blocks[xme][0] << ", " << blocks[xme][1] << ", "
+		<< blocks[xme][2] << ", " << blocks[xme][3] << ", "
+		<< blocks[xme][4] << ", " << blocks[xme][5] << ", "
+		<< blocks[xme][6] << ", " << blocks[xme][7]
+		<< "), label = " << labels[xme] << ", root = " << tmp;
+#endif
+	    cnt += (lbl < uf.size() && lbl != tmp);
+	    if (tmp < lbl) lbl = tmp;
+	}
+
+	if (lbl < uf.size()) {
+	    // unite the union find trees
+	    while (zms < zme) {
+		aset(uf, labels[zms], lbl);
+		++ zms;
+	    }
+	    while (yms < yme) {
+		aset(uf, labels[yms], lbl);
+		++ yms;
+	    }
+	    while (xms < xme) {
+		aset(uf, labels[xms], lbl);
+		++ xms;
+	    }
+	}
+	else {
+	    uf.push_back(lbl);
+	}
+	labels[j] = lbl;
+    } // scanning loop
+
+    LOGGER(ibis::gVerbose > 4)
+	<< "meshQuery::label4DSimple scanned " << blocks.size()
+	<< " blocks, assigned " << uf.size() << " provisional label"
+	<< (uf.size()>1 ? "s" : "") << " and performed " << cnt
+	<< " union operation" << (cnt>1 ? "s" : "") << " among the labels";
+    if (cnt == 0) // if there was never any union operations, we are done
+	return uf.size();
+
+    // loop II: flatten the union-find trees, produce the final labels
+    cnt = aflatten(uf);
+
+    // loop III: assign the final labels to each block
+    for (size_t i1 = 0; i1 < blocks.size(); ++ i1)
+	labels[i1] = uf[labels[i1]];
+
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery::label4DSimple completed labeling " << blocks.size()
+	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
+    return cnt;
 } // ibis::meshQuery::label4DSimple
 
 /// Assign a unique labels to each connected set of blocks.  It assumes the
@@ -5642,9 +5859,9 @@ int ibis::meshQuery::label4DSimple
 /// number of connected components identified.  It returns a negative value
 /// to indicate errors.
 int ibis::meshQuery::labelNDSimple
-	(std::vector<uint32_t>& labels,
-	 const std::vector< std::vector<uint32_t> >& blocks,
-	 const std::vector<uint32_t>& dim) {
+(std::vector<uint32_t>& labels,
+ const std::vector< std::vector<uint32_t> >& blocks,
+ const std::vector<uint32_t>& dim) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
     if (blocks[0].size() != 2 * dim.size())
@@ -5783,16 +6000,19 @@ int ibis::meshQuery::labelNDSimple
 	    me[i0] = k;
 	}
 
-	// union the union-find trees
-	for (size_t i0 = 0; i0 < md; ++ i0) {
-	    for (size_t i1 = ms[i0]; i1 < me[i0]; ++ i1)
-		aset(uf, labels[i1], lbl);
+	if (lbl < uf.size()) { // unite the union-find trees
+	    for (size_t i0 = 0; i0 < md; ++ i0) {
+		for (size_t i1 = ms[i0]; i1 < me[i0]; ++ i1)
+		    aset(uf, labels[i1], lbl);
+	    }
+	}
+	else {
+	    // expand UF is necessary
+	    uf.push_back(lbl);
 	}
 
 	// assign provisional label to blocks[j]
 	labels[j] = lbl;
-	if (lbl == uf.size()) // expand UF is necessary
-	    uf.push_back(lbl);
     } // scanning loop
 
     LOGGER(ibis::gVerbose > 4)
@@ -5814,5 +6034,4 @@ int ibis::meshQuery::labelNDSimple
 	<< "meshQuery::labelNDSimple completed labeling " << blocks.size()
 	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
     return cnt;
-
 } // ibis::meshQuery::labelNDSimple

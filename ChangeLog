@@ -1,6 +1,6 @@
 2010-12-16 John Wu <John dot Wu at ACM dot org>
 	* src/meshQuery.cpp: implement meshQuery::labelNDSimple and use it
-	to debug label3DSimple
+	to debug label3DSimple, implement meshQuery::label4Dsimple
 
 2010-12-15 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.h, src/ibin.cpp: add one more bitmap to
