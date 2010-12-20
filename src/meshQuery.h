@@ -25,9 +25,9 @@ class FASTBIT_CXX_DLLSPEC ibis::meshQuery : public ibis::query {
     meshQuery(const char* dir, const ibis::partList& tl) : query(dir, tl) {};
 
     int  getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
-			 const std::vector<uint32_t>& dim,
 			 const bool merge=false) const;
     int  getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
+			 const std::vector<uint32_t>& dim,
 			 const bool merge=false) const;
 
     int  getPointsOnBoundary(std::vector< std::vector<uint32_t> >& bdy,
@@ -37,29 +37,22 @@ class FASTBIT_CXX_DLLSPEC ibis::meshQuery : public ibis::query {
     static int bitvectorToCoordinates(const ibis::bitvector& bv,
 				      const std::vector<uint32_t>& dim,
 				      std::vector<uint32_t>& coords);
-    static int label1DSimple
-	(std::vector<uint32_t>& labels,
-	 const std::vector< std::vector<uint32_t> >& blocks);
-    static int label2DSimple
-	(std::vector<uint32_t>& labels,
-	 const std::vector< std::vector<uint32_t> >& blocks);
-    static int label3DSimple
-	(std::vector<uint32_t>& labels,
-	 const std::vector< std::vector<uint32_t> >& blocks);
-    static int label4DSimple
-	(std::vector<uint32_t>& labels,
-	 const std::vector< std::vector<uint32_t> >& blocks);
-    static int labelNDSimple
-	(std::vector<uint32_t>& labels,
-	 const std::vector< std::vector<uint32_t> >& blocks,
-	 const std::vector<uint32_t>& dim);
+    static int labelBlocks
+	(const std::vector< std::vector<uint32_t> >& blocks,
+	 std::vector<uint32_t>& labels);
 
  protected:
-    // convert a bitmap into a set of blocks in dim.size()-dimensional grid
-    // assume the simple row-major ordering
-    int  toBlocks(const ibis::bitvector& bv,
-		  const std::vector<uint32_t>& dim,
+    int  toBlocks1(const ibis::bitvector& bv,
 		  std::vector< std::vector<uint32_t> >& reg) const;
+    int  toBlocks2(const ibis::bitvector& bv,
+		   const std::vector<uint32_t>& dim,
+		   std::vector< std::vector<uint32_t> >& reg) const;
+    int  toBlocks3(const ibis::bitvector& bv,
+		   const std::vector<uint32_t>& dim,
+		   std::vector< std::vector<uint32_t> >& reg) const;
+    int  toBlocksN(const ibis::bitvector& bv,
+		   const std::vector<uint32_t>& dim,
+		   std::vector< std::vector<uint32_t> >& reg) const;
     void block2d(uint32_t last, const std::vector<uint32_t>& dim,
 		 std::vector<uint32_t>& block,
 		 std::vector< std::vector<uint32_t> >& reg) const;
@@ -76,8 +69,6 @@ class FASTBIT_CXX_DLLSPEC ibis::meshQuery : public ibis::query {
     void merge3DBlocks(std::vector< std::vector<uint32_t> >& reg) const;
     void mergeNDBlocks(std::vector< std::vector<uint32_t> >& reg) const;
 
-    // convert a bitmap into a set of blocks in dim.size()-dimensional grid
-    // assume the simple row-major ordering
     int  findPointsOnBoundary(const ibis::bitvector& bv,
 			      const std::vector<uint32_t>& dim,
 			      std::vector< std::vector<uint32_t> >& bdy) const;
@@ -98,6 +89,18 @@ class FASTBIT_CXX_DLLSPEC ibis::meshQuery : public ibis::query {
     static void aset(ibis::array_t<uint32_t>& rep,
 		     uint32_t s, uint32_t r);
     static uint32_t aflatten(ibis::array_t<uint32_t>& rep);
+    static int label1DBlocks
+	(const std::vector< std::vector<uint32_t> >& blocks,
+	 std::vector<uint32_t>& labels);
+    static int label2DBlocks
+	(const std::vector< std::vector<uint32_t> >& blocks,
+	 std::vector<uint32_t>& labels);
+    static int label3DBlocks
+	(const std::vector< std::vector<uint32_t> >& blocks,
+	 std::vector<uint32_t>& labels);
+    static int label4DBlocks
+	(const std::vector< std::vector<uint32_t> >& blocks,
+	 std::vector<uint32_t>& labels);
 
  private:
     meshQuery();

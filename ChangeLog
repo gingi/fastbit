@@ -1,3 +1,16 @@
+2010-12-20 John Wu <John dot Wu at ACM dot org>
+	* src/meshQuery.h, src/meshQuery.cpp: break toBlocks into
+	toBlocks1, toBlocks2, toBlocks3 and toBlocksN to make it possible
+	to compare toBlocksN with others for self-consistency check
+
+2010-12-17 John Wu <John dot Wu at ACM dot org>
+	* src/meshQuery.cpp, src/meshQuery.h: rename lableNDSimple to
+	labelBlocks, it is now the only public function for labeling,
+	label[1234]DSimple become label[1234]DBlocks and are now protected
+	functions called through labelBlocks, reorder their formal
+	arguments so that the constant arguments are in the front as in
+	most other functions
+
 2010-12-16 John Wu <John dot Wu at ACM dot org>
 	* src/meshQuery.cpp: implement meshQuery::labelNDSimple and use it
 	to debug label3DSimple, implement meshQuery::label4Dsimple

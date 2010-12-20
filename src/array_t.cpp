@@ -836,7 +836,7 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
     lg() << "DEBUG -- sort(ind[" << ni << "])";
     for (size_t i = 0; i < ni; ++i)
 	lg() << "\nind[" << i << "]=" << ind[i] << "\t"
-		    << m_begin[ind[i]];
+	     << m_begin[ind[i]];
 #endif
 } // ibis::array_t<T>::sort
 
@@ -1078,7 +1078,7 @@ void ibis::array_t<T>::hsort(array_t<uint32_t>& ind, uint32_t front,
 	lg() << ind[i] << "\t" << m_begin[ind[i]];
 	if (i > front && m_begin[ind[i-1]] > m_begin[ind[i]])
 	    lg() << "\t*** error [ind[" << i-1 << "]] > [ind[" << i
-			<< "]] ***";
+		 << "]] ***";
 	lg() << "\n";
     }
 #endif
@@ -1270,7 +1270,7 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
     lg() << "DEBUG -- partition(" << front << ", " << back << ") = "
-		<< pivot << ", target = " << target << "\nfirst half: ";
+	 << pivot << ", target = " << target << "\nfirst half: ";
     for (i = front; i < pivot; ++i)
 	lg() << m_begin[ind[i]] << " ";
     lg() << "\nsecond half: ";
@@ -1362,9 +1362,9 @@ void ibis::array_t<T>::reserve(size_t n) {
 		m_end = 0; m_begin = 0;
 		ibis::util::logger lg;
 		lg() << "array_t::reserve: unable to allocate " << n
-			    << ' ' << sizeof(T) << "-byte elements";
+		     << ' ' << sizeof(T) << "-byte elements";
 		if (n1) lg() << ", lost previous content of "
-				    << n1 << " elements";
+			     << n1 << " elements";
 		throw ibis::bad_alloc("failed to reserve space");
 	    }
 	}

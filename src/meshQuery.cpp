@@ -43,8 +43,8 @@ ibis::meshQuery::~meshQuery() {
    upper bounds of each dimension is specified together, where the lower
    bound is inclusive but the upper bound is exclusive.
  
-   @param dim The size of the grid.  The value dim.size() is the dimension
-   of grid.  Input argument, nor modified.
+   @param dim The size of the mesh.  The value dim.size() is the number of
+   dimensions.  Input argument, not modified.
 
    @param merge An optional argument.  If true, will attempt to merge line
    segments generated to form larger hypercubes.  Default to false because
@@ -68,7 +68,7 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 				     const bool merge) const {
     if (dim.empty()) return -4;
     if (state == FULL_EVALUATE || state == QUICK_ESTIMATE) {
-	if (hits == 0) {
+	if (hits == 0 || hits->cnt() == 0) {
 	    reg.clear(); // empty regions of interest
 	    return 0;
 	}
@@ -80,13 +80,86 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
     ibis::horometer timer;
     timer.start();
 
-    int ierr = toBlocks(*hits, dim, reg);
+    int ierr;
+    switch (dim.size()) {
+    case 1:
+	ierr = toBlocks1(*hits, reg);
+	break;
+    case 2:
+	ierr = toBlocks2(*hits, dim, reg);
+	break;
+    case 3:
+	ierr = toBlocks3(*hits, dim, reg);
+	break;
+    default:
+	ierr = toBlocksN(*hits, dim, reg);
+    }
+    if (ierr <= 0)
+	return ierr;
+
     double t1 = 0;
     if (ibis::gVerbose > 3) {
 	timer.stop();
 	t1 = timer.realTime();
 	timer.resume();
     }
+#if defined(_DEBUG)
+    if (dim.size() == 2 || dim.size() == 3) {
+	// compare the results from toBlocks[23] with toBlocksN
+	std::vector< std::vector<uint32_t> > seg;
+	ierr = toBlocksN(*hits, dim, seg);
+
+	ibis::util::logger lg;
+	if (ierr < 0) {
+	    lg() << "Warning -- meshQuery[" << id() << "]::getHitsAsBlocks "
+		 << "call to toBlocksN failed with error code " << ierr;
+	}
+	else {
+	    size_t cnt = 0;
+	    for (size_t j = 0; j < reg.size() || j < seg.size(); ++ j) {
+		if (j < reg.size()) { // has a valid reg
+		    if (j < seg.size()) { // has a valid seg
+			bool match = (reg[j].size() == seg[j].size());
+			lg() << "\nreg[" << j << "] (" << reg[j][0];
+			for (unsigned ii = 1; ii < reg[j].size(); ++ ii)
+			    lg() << ", " << reg[j][ii];
+			lg() << "),\tseg[" << j << "] (" << seg[j][0];
+			for (unsigned ii = 1; ii < seg[j].size(); ++ ii) {
+			    lg() << ", " << seg[j][ii];
+			    if (match)
+				match = (reg[j][ii] == seg[j][ii]);
+			}
+			lg() << ')';
+			if (! match) {
+			    lg() << " *";
+			    ++ cnt;
+			}
+		    }
+		    else {
+			lg() << "\nreg[" << j << "] (" << reg[j][0];
+			for (unsigned ii = 1; ii < reg[j].size(); ++ ii)
+			    lg() << ", " << reg[j][ii];
+			lg() << ")\tseg[??] (  ) *";
+			++ cnt;
+		    }
+		}
+		else { // run out of reg
+		    lg() << "\nreg[??] (  )\tseg[" << j << "] (" << seg[j][0];
+		    for (unsigned ii = 1; ii < seg[j].size(); ++ ii)
+			lg() << ", " << seg[j][ii];
+		    lg() << ") *";
+		    ++ cnt;
+		}
+	    }
+	    if (cnt > 0) {
+		lg() << "\nWarning -- meshQuery[" << id()
+		     << "]::getHitsAsBlocks found " << cnt << " mismatch"
+		     << (cnt>1?"es":"") << " beteween toBlocksN and toBlocks"
+		     << dim.size();
+	    }
+	}
+    }
+#endif
 
     const uint32_t nold = reg.size(); // number of blocks on input
     if (merge) {
@@ -120,6 +193,8 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 	    lg() << " x " << dim[i];
 	lg() << ") mesh took " << t2 << " sec (elapsed)";
     }
+    if (ierr >= 0)
+	ierr = reg.size();
     return ierr;
 } // ibis::meshQuery::getHitsAsBlocks
 
@@ -134,7 +209,7 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 				     const bool merge) const {
     if (state == FULL_EVALUATE || state == QUICK_ESTIMATE) {
-	if (hits == 0) {
+	if (hits == 0 || hits->cnt() == 0) {
 	    reg.clear(); // empty regions of interest
 	    return 0;
 	}
@@ -148,7 +223,20 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 
     const std::vector<uint32_t>& shape = partition()->getMeshShape();
     if (shape.empty()) return -4;
-    int ierr = toBlocks(*hits, shape, reg);
+    int ierr;
+    switch (shape.size()) {
+    case 1:
+	ierr = toBlocks1(*hits, reg);
+	break;
+    case 2:
+	ierr = toBlocks2(*hits, shape, reg);
+	break;
+    case 3:
+	ierr = toBlocks3(*hits, shape, reg);
+	break;
+    default:
+	ierr = toBlocksN(*hits, shape, reg);
+    }
     double t1 = 0;
     if (ibis::gVerbose > 3) {
 	timer.stop();
@@ -190,20 +278,288 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
     return ierr;
 } // ibis::meshQuery::getHitsAsBlocks
 
-/**
-   The main routine for converting the bitvector into a list of blocks.  It
-   produces a list of blocks.  A block is represented as a rectangle on the
-   underlying grid defined by dim.  The grid points are number in a simple
-   raster scan order with dim[0] being the slowest varying dimension.  A
-   line in the following description refers to a list of consecutive points
-   that only differ in their last coordinates.  A block may either be a
-   line segment if it only contains part of a line or an area if it
-   contains multiple lines.  Both line segments and areas may be arbitrary
-   sizes.  In particular, an area may be hypercube of any dimensions.
-*/
-int ibis::meshQuery::toBlocks
+/// Convert a bitvector into 1-D blocks.
+int ibis::meshQuery::toBlocks1
+(const ibis::bitvector& bv,
+ std::vector< std::vector<uint32_t> >& reg) const {
+    reg.clear();
+    if (bv.cnt() == 0) return 0;
+    std::vector<uint32_t> tmp(2, 0);
+    if (bv.cnt() >= bv.size()) { // every point is in one block
+	tmp[1] = bv.size();
+	reg.push_back(tmp);
+	return 1;
+    }
+
+    ibis::bitvector::indexSet ix = bv.firstIndexSet();
+    const ibis::bitvector::word_t *ind = ix.indices();
+    // handling the first index set
+    tmp[0] = ind[0];
+    if (ix.isRange()) {
+	tmp[1] = ind[1];
+    }
+    else {
+	tmp[1] = ind[0] + 1;
+	for (uint32_t i = 1; i < ix.nIndices(); ++ i) {
+	    if (ind[i] == tmp[1]) {
+		++ tmp[1];
+	    }
+	    else {
+		reg.push_back(tmp);
+		tmp[0] = ind[i];
+		tmp[1] = ind[i] + 1;
+	    }
+	}
+    }
+    ++ ix;
+
+    // the rest index sets
+    while (ix.nIndices() > 0) {
+	if (ix.isRange()) {
+	    if (tmp[1] == ind[0]) { // extend the current block
+		tmp[1] = ind[1];
+	    }
+	    else { // save the current block and start a new one
+		reg.push_back(tmp);
+		tmp[0] = ind[0];
+		tmp[1] = ind[1];
+	    }
+	}
+	else {
+	    for (uint32_t i = 0; i < ix.nIndices(); ++ i) {
+		if (ind[i] == tmp[1]) {
+		    ++ tmp[1];
+		}
+		else {
+		    reg.push_back(tmp);
+		    tmp[0] = ind[i];
+		    tmp[1] = ind[i] + 1;
+		}
+	    }
+	}
+	++ ix; // next group of nonzero bits
+    }
+    reg.push_back(tmp); // record the last block
+
+    LOGGER(ibis::gVerbose > 3)
+	<< "meshQuery::toBlocks1 -- converting the bitmap ("
+	<< bv.cnt() << ", " << bv.size() << ") to " << reg.size()
+	<< " block" << (reg.size()>1?"s":"") << " on a 1-D mesh";
+#if defined(_DEBUG)
+    if (ibis::gVerbose >= 0) {
+	size_t cnt = 0;
+	for (size_t j = 0; j < reg.size(); ++ j) {
+	    cnt += reg[j][1] - reg[j][0];
+	}
+	LOGGER(cnt != bv.cnt())
+	    << "Warning -- meshQuery::toBlocks1 produced a list of blocks "
+	    "that have different number of points (" << cnt
+	    << ") than bv.cnt(" << bv.cnt() << ")";
+    }
+#endif
+    return reg.size(); // successfully completed the conversion
+} // ibis::meshQuery::toBlocks1
+
+/// Convert a bitvector to a list of 2-D blocks.
+int ibis::meshQuery::toBlocks2
 (const ibis::bitvector& bv, const std::vector<uint32_t>& dim,
  std::vector< std::vector<uint32_t> >& reg) const {
+    reg.clear();
+    if (dim.size() != 2) return -2;
+
+    uint32_t nb = dim[0] * dim[1];
+    if (nb != (uint64_t)dim[0]*dim[1])
+	return -2;
+    if (nb != bv.size())
+	return -1;
+    if (bv.cnt() == 0)
+	return 0;
+    std::vector<uint32_t> tmp(4, 0);
+    if (bv.cnt() >= nb) { // every point is in the block
+	tmp[1] = dim[0];
+	tmp[3] = dim[1];
+	reg.push_back(tmp);
+	return 1;
+    }
+
+    ibis::bitvector::indexSet ix = bv.firstIndexSet();
+    const ibis::bitvector::word_t *ind = ix.indices();
+    uint32_t last;
+    // handle to first index set
+    tmp[0] = ind[0] / dim[1];
+    tmp[2] = ind[0] - tmp[0] * dim[1];
+    if (ix.isRange()) {
+	last = ind[1];
+	block2d(ind[1], dim, tmp, reg);
+    }
+    else {
+	for (uint32_t i = 1; i < ix.nIndices(); ++ i) {
+	    if (ind[i] > ind[i-1]+1) {
+		block2d(ind[i-1]+1, dim, tmp, reg);
+		reg.push_back(tmp);
+		tmp[0] = ind[i] / dim[1];
+		tmp[2] = ind[i] - tmp[0] * dim[1];
+	    }
+	}
+	last = ind[ix.nIndices() - 1] + 1;
+	block2d(last, dim, tmp, reg);
+    }
+    ++ ix;
+
+    // handling the rest of the index sets
+    while (ix.nIndices() > 0) {
+	if (ix.isRange()) {
+	    if (ind[0] > last) { // a new block
+		reg.push_back(tmp);
+		tmp[0] = ind[0] / dim[1];
+		tmp[2] = ind[0] - tmp[0] * dim[1];
+	    }
+	    last = ind[1];
+	    block2d(ind[1], dim, tmp, reg);
+	}
+	else {
+	    for (uint32_t i = 0; i < ix.nIndices(); ++ i) {
+		if (ind[i] > last) { // a new block
+		    block2d(last, dim, tmp, reg);
+		    reg.push_back(tmp);
+		    tmp[0] = ind[i] / dim[1];
+		    tmp[2] = ind[i] - tmp[0] * dim[1];
+		}
+		last = ind[i] + 1;
+	    }
+	    block2d(last, dim, tmp, reg);
+	}
+	++ ix; // next group of nonzero bits
+    }
+    reg.push_back(tmp); // record the last block
+
+    LOGGER(ibis::gVerbose > 3)
+	<< "meshQuery::toBlocks2 -- converting the bitmap ("
+	<< bv.cnt() << ", " << bv.size() << ") to " << reg.size()
+	<< " block" << (reg.size()>1?"s":"") << " on a 2-D mesh";
+#if defined(_DEBUG)
+    if (ibis::gVerbose >= 0) {
+	size_t cnt = 0;
+	for (size_t j = 0; j < reg.size(); ++ j) {
+	    cnt += (reg[j][1] - reg[j][0]) * (reg[j][3] - reg[j][2]);
+	}
+	LOGGER(cnt != bv.cnt())
+	    << "Warning -- meshQuery::toBlocks2 produced a list of blocks "
+	    "that have different number of points (" << cnt
+	    << ") than bv.cnt(" << bv.cnt() << ")";
+    }
+#endif
+    return reg.size(); // successfully completed the conversion
+} // ibis::meshQuery::toBlock2
+
+/// Convert a bitvector to a list of 3-D blocks.
+int ibis::meshQuery::toBlocks3
+(const ibis::bitvector& bv, const std::vector<uint32_t>& dim,
+ std::vector< std::vector<uint32_t> >& reg) const {
+    reg.clear();
+    if (dim.empty()) return -2;
+    if (bv.cnt() == 0) return 0;
+    uint32_t nb = dim[0] * dim[1] * dim[2];
+    if (nb == 0)
+	return 0;
+    if (nb != bv.size())
+	return -1;
+
+    std::vector<uint32_t> tmp(6, 0);
+    if (bv.cnt() >= nb) { // every point is in a block
+	tmp[1] = dim[0];
+	tmp[3] = dim[1];
+	tmp[5] = dim[2];
+	reg.push_back(tmp);
+	return 1;
+    }
+
+    ibis::bitvector::indexSet ix = bv.firstIndexSet();
+    const ibis::bitvector::word_t *ind = ix.indices();
+    uint32_t last;
+    const uint32_t n3 = dim[2];
+    const uint32_t n2 = dim[2] * dim[1];
+    // handle the first index set
+    tmp[0] = ind[0] / n2;
+    tmp[2] = (ind[0] - tmp[0] * n2) / n3;
+    tmp[4] = ind[0] % n3;
+    if (ix.isRange()) {
+	last = ind[1];
+	block3d(ind[1], n2, n3, dim, tmp, reg);
+    }
+    else {
+	for (uint32_t i = 1; i < ix.nIndices(); ++ i) {
+	    if (ind[i] > ind[i-1]+1) { // a new block
+		block3d(ind[i-1]+1, n2, n3, dim, tmp, reg);
+		reg.push_back(tmp);
+		tmp[0] = ind[i] / n2;
+		tmp[2] = (ind[i] - n2 * tmp[0]) / n3;
+		tmp[4] = ind[i] % n3;
+	    }
+	}
+	last = ind[ix.nIndices() - 1] + 1;
+	block3d(last, n2, n3, dim, tmp, reg);
+    }
+    ++ ix;
+
+    // handling the rest of the index sets
+    while (ix.nIndices() > 0) {
+	if (ix.isRange()) {
+	    if (ind[0] > last) {
+		reg.push_back(tmp);
+		tmp[0] = ind[0] / n2;
+		tmp[2] = (ind[0] - tmp[0] * n2) / n3;
+		tmp[4] = ind[0] % n3;
+	    }
+	    last = ind[1];
+	    block3d(ind[1], n2, n3, dim, tmp, reg);
+	}
+	else {
+	    for (uint32_t i = 0; i < ix.nIndices(); ++ i) {
+		if (ind[i] > last) {
+		    block3d(last, n2, n3, dim, tmp, reg);
+		    reg.push_back(tmp);
+		    tmp[0] = ind[i] / n2;
+		    tmp[2] = (ind[i] - tmp[0] * n2) / n3;
+		    tmp[4] = ind[i] % n3;
+		}
+		last = ind[i] + 1;
+	    }
+	    block3d(last, n2, n3, dim, tmp, reg);
+	}
+	++ ix; // next group of nonzero bits
+    }
+    reg.push_back(tmp); // record the last block
+    LOGGER(ibis::gVerbose > 3)
+	<< "meshQuery::toBlocks3 -- converting the bitmap ("
+	<< bv.cnt() << ", " << bv.size() << ") to " << reg.size()
+	<< " block" << (reg.size()>1?"s":"") << " on a 3-D mesh";
+#if defined(_DEBUG)
+    if (ibis::gVerbose >= 0) {
+	size_t cnt = 0;
+	for (size_t j = 0; j < reg.size(); ++ j) {
+	    size_t tmp = reg[j][1] - reg[j][0];
+	    for (unsigned i = 2; i+1 < reg[j].size(); i += 2)
+		tmp *= (reg[j][i+1] - reg[j][i]);
+	    cnt += tmp;
+	}
+	LOGGER(cnt != bv.cnt())
+	    << "Warning -- meshQuery::toBlocks3 produced a list of blocks "
+	    "that have different number of points (" << cnt
+	    << ") than bv.cnt(" << bv.cnt() << ")";
+    }
+#endif
+    return reg.size(); // successfully completed the conversion
+} // ibis::meshQuery::toBlocks3
+
+/// Convert a bitvector to a list of n-D blocks.
+int ibis::meshQuery::toBlocksN
+(const ibis::bitvector& bv, const std::vector<uint32_t>& dim,
+ std::vector< std::vector<uint32_t> >& reg) const {
+    reg.clear();
+    if (dim.empty()) return -2;
+    if (bv.cnt() == 0) return 0;
+
     uint32_t nb = 0;
     if (dim.size() > 0) {
 	nb = dim[0];
@@ -217,17 +573,13 @@ int ibis::meshQuery::toBlocks
 	    }
 	}
     }
+    if (nb == 0)
+	return 0;
     if (nb != bv.size())
 	return -1;
 
-    ibis::horometer timer;
-    timer.start();
-
-    reg.clear();
-    if (nb == 0)
-	return 0;
+    std::vector<uint32_t> tmp(dim.size() + dim.size(), 0);
     if (bv.cnt() >= bv.size()) { // every point is in the block
-	std::vector<uint32_t> tmp(dim.size() + dim.size(), 0);
 	for (uint32_t i = 0; i < dim.size(); ++ i)
 	    tmp[i+i+1] = dim[i];
 	reg.push_back(tmp);
@@ -235,261 +587,98 @@ int ibis::meshQuery::toBlocks
     }
 
     ibis::bitvector::indexSet ix = bv.firstIndexSet();
-    if (ix.nIndices() == 0)
-	return 0;
     const ibis::bitvector::word_t *ind = ix.indices();
+    std::vector<uint32_t> scl(dim.size());
+    uint32_t last;
+    scl.back() = 1;
+    for (uint32_t j = dim.size()-1; j > 0;) {
+	scl[j-1] = scl[j] * dim[j];
+	-- j;
+    }
+    // handle the first index set
+    uint32_t xx = ind[0];
+    for (uint32_t j = 0; j < dim.size(); ++ j) {
+	tmp[j+j] = xx / scl[j];
+	xx %= scl[j];
+    }
+    if (ix.isRange()) {
+	last = ind[1];
+	blocknd(ind[1], scl, dim, tmp, reg);
+    }
+    else {
+	for (uint32_t i = 1; i < ix.nIndices(); ++ i) {
+	    if (ind[i] > ind[i-1]+1) { // a new reange
+		blocknd(ind[i-1]+1, scl, dim, tmp, reg);
+		reg.push_back(tmp);
+		xx = ind[i];
+		for (uint32_t j = 0; j < dim.size(); ++j) {
+		    tmp[j+j] = xx / scl[j];
+		    xx %= scl[j];
+		}
+	    }
+	}
+	last = ind[ix.nIndices() - 1] + 1;
+	blocknd(last, scl, dim, tmp, reg);
+    }
+    ++ ix;
 
-    switch (dim.size()) {
-    case 1: {// 1-d
-	std::vector<uint32_t> tmp(2);
-	// handling the first index set
-	tmp[0] = ind[0];
+    // handle the rest of the index sets
+    while (ix.nIndices() > 0) {
 	if (ix.isRange()) {
-	    tmp[1] = ind[1];
-	}
-	else {
-	    tmp[1] = ind[0] + 1;
-	    for (uint32_t i = 1; i < ix.nIndices(); ++ i) {
-		if (ind[i] == tmp[1]) {
-		    ++ tmp[1];
-		}
-		else {
-		    reg.push_back(tmp);
-		    tmp[0] = ind[i];
-		    tmp[1] = ind[i] + 1;
+	    if (ind[0] > last) { // a new block
+		reg.push_back(tmp);
+		xx = ind[0];
+		for (uint32_t j = 0; j < dim.size(); ++j) {
+		    tmp[j+j] = xx / scl[j];
+		    xx %= scl[j];
 		}
 	    }
-	}
-	++ ix;
-
-	// all the rest index sets
-	while (ix.nIndices() > 0) {
-	    if (ix.isRange()) {
-		if (tmp[1] == ind[0]) { // extend the current block
-		    tmp[1] = ind[1];
-		}
-		else { // save the current block and start a new one
-		    reg.push_back(tmp);
-		    tmp[0] = ind[0];
-		    tmp[1] = ind[1];
-		}
-	    }
-	    else {
-		for (uint32_t i = 0; i < ix.nIndices(); ++ i) {
-		    if (ind[i] == tmp[1]) {
-			++ tmp[1];
-		    }
-		    else {
-			reg.push_back(tmp);
-			tmp[0] = ind[i];
-			tmp[1] = ind[i] + 1;
-		    }
-		}
-	    }
-	    ++ ix; // next group of nonzero bits
-	}
-	reg.push_back(tmp); // record the last block
-	break;}
-
-    case 2: {// 2-d
-	uint32_t last;
-	std::vector<uint32_t> tmp(4);
-	// handle to first index set
-	tmp[0] = ind[0] / dim[1];
-	tmp[2] = ind[0] - tmp[0] * dim[1];
-	if (ix.isRange()) {
-	    last = ind[1];
-	    block2d(ind[1], dim, tmp, reg);
-	}
-	else {
-	    for (uint32_t i = 1; i < ix.nIndices(); ++ i) {
-		if (ind[i] > ind[i-1]+1) {
-		    block2d(ind[i-1]+1, dim, tmp, reg);
-		    reg.push_back(tmp);
-		    tmp[0] = ind[i] / dim[1];
-		    tmp[2] = ind[i] - tmp[0] * dim[1];
-		}
-	    }
-	    last = ind[ix.nIndices() - 1] + 1;
-	    block2d(last, dim, tmp, reg);
-	}
-	++ ix;
-
-	// handling the rest of the index sets
-	while (ix.nIndices() > 0) {
-	    if (ix.isRange()) {
-		if (ind[0] > last) { // a new block
-		    reg.push_back(tmp);
-		    tmp[0] = ind[0] / dim[1];
-		    tmp[2] = ind[0] - tmp[0] * dim[1];
-		}
-		last = ind[1];
-		block2d(ind[1], dim, tmp, reg);
-	    }
-	    else {
-		for (uint32_t i = 0; i < ix.nIndices(); ++ i) {
-		    if (ind[i] > last) { // a new block
-			block2d(last, dim, tmp, reg);
-			reg.push_back(tmp);
-			tmp[0] = ind[i] / dim[1];
-			tmp[2] = ind[i] - tmp[0] * dim[1];
-		    }
-		    last = ind[i] + 1;
-		}
-		block2d(last, dim, tmp, reg);
-	    }
-	    ++ ix; // next group of nonzero bits
-	}
-	reg.push_back(tmp); // record the last block
-	break;}
-
-    case 3: {// 3-d
-	uint32_t last;
-	const uint32_t n3 = dim[2];
-	const uint32_t n2 = dim[2] * dim[1];
-	std::vector<uint32_t> tmp(6);
-	// handle the first index set
-	tmp[0] = ind[0] / n2;
-	tmp[2] = (ind[0] - tmp[0] * n2) / n3;
-	tmp[4] = ind[0] % n3;
-	if (ix.isRange()) {
-	    last = ind[1];
-	    block3d(ind[1], n2, n3, dim, tmp, reg);
-	}
-	else {
-	    for (uint32_t i = 1; i < ix.nIndices(); ++ i) {
-		if (ind[i] > ind[i-1]+1) {
-		    block3d(ind[i-1]+1, n2, n3, dim, tmp, reg);
-		    reg.push_back(tmp);
-		    tmp[0] = ind[i] / n2;
-		    tmp[2] = (ind[i] - n2 * tmp[0]) / n3;
-		    tmp[4] = ind[i] % n3;
-		}
-	    }
-	    last = ind[ix.nIndices() - 1] + 1;
-	    block3d(last, n2, n3, dim, tmp, reg);
-	}
-	++ ix;
-
-	// handling the rest of the index sets
-	while (ix.nIndices() > 0) {
-	    if (ix.isRange()) {
-		if (ind[0] > last) {
-		    reg.push_back(tmp);
-		    tmp[0] = ind[0] / n2;
-		    tmp[2] = (ind[0] - tmp[0] * n2) / n3;
-		    tmp[4] = ind[0] % n3;
-		}
-		last = ind[1];
-		block3d(ind[1], n2, n3, dim, tmp, reg);
-	    }
-	    else {
-		for (uint32_t i = 0; i < ix.nIndices(); ++ i) {
-		    if (ind[i] > last) {
-			if (i > 0) {
-			    block3d(last, n2, n3, dim, tmp, reg);
-			}
-			reg.push_back(tmp);
-			tmp[0] = ind[i] / n2;
-			tmp[2] = (ind[i] - tmp[0] * n2) / n3;
-			tmp[4] = ind[i] % n3;
-		    }
-		    last = ind[i] + 1;
-		}
-		block3d(last, n2, n3, dim, tmp, reg);
-	    }
-	    ++ ix; // next group of nonzero bits
-	}
-	reg.push_back(tmp); // record the last block
-	break;}
-
-    default: {// the general case
-	std::vector<uint32_t> tmp(2*dim.size());
-	std::vector<uint32_t> scl(dim.size());
-	uint32_t last;
-	scl.back() = 1;
-	for (uint32_t j = dim.size()-1; j > 0;) {
-	    scl[j-1] = scl[j] * dim[j];
-	    -- j;
-	}
-	// handle the first index set
-	uint32_t xx = ind[0];
-	for (uint32_t j = 0; j < dim.size(); ++ j) {
-	    tmp[j+j] = xx / scl[j];
-	    xx %= scl[j];
-	}
-	if (ix.isRange()) {
 	    last = ind[1];
 	    blocknd(ind[1], scl, dim, tmp, reg);
 	}
 	else {
-	    for (uint32_t i = 1; i < ix.nIndices(); ++ i) {
-		if (ind[i] > ind[i-1]+1) { // a new reange
-		    blocknd(ind[i-1]+1, scl, dim, tmp, reg);
-		    reg.push_back(tmp);
+	    for (uint32_t i = 0; i < ix.nIndices(); ++ i) {
+		if (ind[i] > last) { // start a new block
+		    blocknd(last, scl, dim, tmp, reg);
+		    reg.push_back(tmp); // record the last block
 		    xx = ind[i];
 		    for (uint32_t j = 0; j < dim.size(); ++j) {
 			tmp[j+j] = xx / scl[j];
 			xx %= scl[j];
 		    }
 		}
+		last = ind[i] + 1;
 	    }
-	    last = ind[ix.nIndices() - 1] + 1;
 	    blocknd(last, scl, dim, tmp, reg);
 	}
-	++ ix;
-
-	// handle the rest of the index sets
-	while (ix.nIndices() > 0) {
-	    if (ix.isRange()) {
-		if (ind[0] > last) { // a new block
-		    reg.push_back(tmp);
-		    xx = ind[0];
-		    for (uint32_t j = 0; j < dim.size(); ++j) {
-			tmp[j+j] = xx / scl[j];
-			xx %= scl[j];
-		    }
-		}
-		last = ind[1];
-		blocknd(ind[1], scl, dim, tmp, reg);
-	    }
-	    else {
-		for (uint32_t i = 0; i < ix.nIndices(); ++ i) {
-		    if (ind[i] > last) { // start a new block
-			if (i > 0) {
-			    blocknd(last, scl, dim, tmp, reg);
-			}
-			reg.push_back(tmp); // record the last block
-			xx = ind[i];
-			for (uint32_t j = 0; j < dim.size(); ++j) {
-			    tmp[j+j] = xx / scl[j];
-			    xx %= scl[j];
-			}
-		    }
-		    last = ind[i] + 1;
-		}
-		blocknd(last, scl, dim, tmp, reg);
-	    }
-	    ++ ix; // next group of nonzero bits
-	}
-
-	reg.push_back(tmp); // record the last block
-	break;}
-    } // switch(dim.size())
-
-    if (ibis::gVerbose > 3) {
-	timer.stop();
-	LOGGER(ibis::gVerbose > 3)
-	    << "query[" << id() << "]::toBlocks -- converting the bitmap ("
-	    << bv.size() << ", " << bv.cnt() << ") to " << reg.size()
-	    << " block" << (reg.size()>1?"s":"") << " in " << dim.size()
-	    << "-D space took " << timer.realTime() << " sec (elapsed)";
+	++ ix; // next group of nonzero bits
     }
-    return 0; // successfully completed the conversion
-} // ibis::meshQuery::toBlocks
 
-// deal with one (single) 2D block, the last block generated is not
-// recorded, other blocks generated here are recorded in reg
+    reg.push_back(tmp); // record the last block
+    LOGGER(ibis::gVerbose > 3)
+	<< "meshQuery::toBlocksN -- converting the bitmap ("<< bv.cnt()
+	<< ", " << bv.size() << ") to " << reg.size() << " block"
+	<< (reg.size()>1?"s":"") << " on a " << dim.size() << "-D mesh";
+#if defined(_DEBUG)
+    if (ibis::gVerbose >= 0) {
+	size_t cnt = 0;
+	for (size_t j = 0; j < reg.size(); ++ j) {
+	    size_t tj = reg[j][1] - reg[j][0];
+	    for (unsigned i = 2; i+1 < reg[j].size(); i += 2)
+		tj *= (reg[j][i+1] - reg[j][i]);
+	    cnt += tj;
+	}
+	LOGGER(cnt != bv.cnt())
+	    << "Warning -- meshQuery::toBlocksN produced a list of blocks "
+	    "that have different number of points (" << cnt
+	    << ") than bv.cnt(" << bv.cnt() << ")";
+    }
+#endif
+    return reg.size(); // successfully completed the conversion
+} // ibis::meshQuery::toBlocksN
+
+/// Deal with one (single) 2D block.  The last block generated is not
+/// recorded, other blocks generated here are recorded in reg.
 void ibis::meshQuery::block2d
 (uint32_t last,
  const std::vector<uint32_t>& dim,
@@ -535,7 +724,7 @@ void ibis::meshQuery::block2d
     }
 } // ibis::meshQuery::block2d
 
-// deal with one (single) 3D block
+/// Deal with one (single) 3D block.
 void ibis::meshQuery::block3d
 (uint32_t last, const uint32_t n2, const uint32_t n3,
  const std::vector<uint32_t>& dim, std::vector<uint32_t>& block,
@@ -691,12 +880,12 @@ void ibis::meshQuery::block3d
     }
 } // ibis::meshQuery::block3d
 
-// deal with one (single) N-Dimensional block
+/// Deal with one (single) N-Dimensional block.
 void ibis::meshQuery::blocknd
 (uint32_t last, const std::vector<uint32_t>& scl,
  const std::vector<uint32_t>& dim, std::vector<uint32_t>& block,
  std::vector< std::vector<uint32_t> >& reg) const {
-    if (dim.size() < 3) return; // only handle dimensions higher than 3
+    if (dim.size() < 2) return; // only handle dimensions higher than 3
     std::vector<uint32_t> next(dim.size());
     uint32_t xx = last - 1;
     for (uint32_t j = 0; j < dim.size(); ++j) {
@@ -738,6 +927,8 @@ void ibis::meshQuery::blocknd
 		    // first few dimensions only cover one value each
 		    block[k+k+1] = block[k+k] + 1;
 		// dimension j: from the known start point to the end
+		if (j+1 < dim.size())
+		    ++ block[j+j];
 		block[j+j+1] = dim[j];
 		for (uint32_t k = j + 1; k < dim.size(); ++ k) {
 		    // the faster varying dimensions are covered in whole
@@ -745,16 +936,14 @@ void ibis::meshQuery::blocknd
 		    block[k+k+1] = dim[k];
 		}
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-		if (block[dim.size()+dim.size()-2] == 0 &&
-		    block.back() == dim.back()) {
-		    ibis::util::logger lg(4);
-		    lg() << "DEBUG -- meshQuery[" << id()
-			 << "]::blocknd -- " << reg.size() << "\t(";
-		    for (uint32_t k = 0; k < block.size(); ++k) {
-			if (k > 0) lg() << ", ";
-			lg() << block[k];
+		if (ibis::gVerbose > 4) {
+		    ibis::util::logger lg;
+		    lg() << "DEBUG -- meshQuery::blocknd -- "
+			 << reg.size() << "\t(" << block[0];
+		    for (uint32_t k = 1; k < block.size(); ++ k) {
+			lg() << ", " << block[k];
 		    }
-		    lg() << ")";
+		    lg() << "), last = " << last;
 		}
 #endif
 		reg.push_back(block); // record it
@@ -768,16 +957,14 @@ void ibis::meshQuery::blocknd
 		block[k+k+1] = dim[k];
 	    }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-	    if (block[dim.size()+dim.size()-2] == 0 &&
-		block.back() == dim.back()) {
-		ibis::util::logger lg(4);
-		lg() << "DEBUG -- meshQuery[" << id()
-		     << "]::blocknd -- " << reg.size() << "\t(";
-		for (uint32_t k = 0; k < block.size(); ++k) {
-		    if (k > 0) lg() << ", ";
-		    lg() << block[k];
+	    if (ibis::gVerbose > 4) {
+		ibis::util::logger lg;
+		lg() << "DEBUG -- meshQuery::blocknd -- "
+		     << reg.size() << "\t(" << block[0];
+		for (uint32_t k = 1; k < block.size(); ++k) {
+		    lg() << ", " << block[k];
 		}
-		lg() << ")";
+		lg() << "), last = " << last;
 	    }
 #endif
 	    reg.push_back(block);
@@ -790,22 +977,20 @@ void ibis::meshQuery::blocknd
 		    block[k+k+1] = next[k]+1;
 		}
 		block[j+j] = 0;
-		block[j+j+1] = next[j] + 1;
+		block[j+j+1] = next[j] + (j+1==dim.size());
 		for (uint32_t k = j+1; k < dim.size(); ++k) {
 		    block[k+k] = 0;
 		    block[k+k+1] = dim[k];
 		}
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-		if (block[dim.size()+dim.size()-2] == 0 &&
-		    block.back() == dim.back()) {
-		    ibis::util::logger lg(4);
-		    lg() << "DEBUG -- meshQuery[" << id()
-			 << "]::blocknd -- " << reg.size() << "\t(";
-		    for (uint32_t k = 0; k < block.size(); ++k) {
-			if (k > 0) lg() << ", ";
-			lg() << block[k];
+		if (ibis::gVerbose > 4) {
+		    ibis::util::logger lg;
+		    lg() << "DEBUG -- meshQuery::blocknd -- "
+			 << reg.size() << "\t(" << block[0];
+		    for (uint32_t k = 1; k < block.size(); ++k) {
+			lg() << ", " << block[k];
 		    }
-		    lg() << ")";
+		    lg() << "), last = " << last;
 		}
 #endif
 		if (j+1 < dim.size()) // record all except the last one
@@ -819,13 +1004,14 @@ void ibis::meshQuery::blocknd
     }
 } // ibis::meshQuery::blocknd
 
-// blocks with one dimension that has connecting coordinates and the same
-// coordinates on all other dimensions can be merged
-//
-// assumptions/requirements
-// (1) the incoming reg is assumed to be sorted
-// (2) no dimension reaches the maximum value of UINT_MAX, which is used to
-//     denote a invalid block to be removed
+/// Merge 2D blocks.
+/// Blocks with one dimension that has connecting coordinates and the same
+/// coordinates on all other dimensions can be merged.
+///
+/// Assumptions/requirements:
+/// (1) the incoming reg is assumed to be sorted.
+/// (2) no dimension reaches the maximum value of UINT_MAX, which is used to
+///     denote a invalid block to be removed.
 void ibis::meshQuery::merge2DBlocks
 (std::vector< std::vector<uint32_t> >& reg) const {
     if (reg.empty()) return;
@@ -833,24 +1019,6 @@ void ibis::meshQuery::merge2DBlocks
 
     uint32_t remove = 0;
     uint32_t match = 0;
-    /* UNNACESSARY
-    // loop 1 -- if the first dimension matches, try to merge the second one
-    for (uint32_t i = 1; i < reg.size(); ++ i) {
-    if (reg[i][0] == reg[match][0] && reg[i][1] == reg[match][1]) {
-    for (uint32_t j = match; j < i; ++j) {
-    if (reg[j][3] == reg[i][2]) {
-    reg[j][3] = reg[i][3];
-    reg[i][0] = UINT_MAX; // mark ith block for removal
-    ++ remove;
-    break;
-    }
-    }
-    }
-    else if (reg[i][0] != UINT_MAX) {
-    match = i;
-    }
-    }
-    */
 
     // loop 2 -- for groups with the connecting first dimension, check if
     // the second dimensions match
@@ -921,6 +1089,7 @@ void ibis::meshQuery::merge2DBlocks
     reg.resize(end);
 } // ibis::meshQuery::merge2DBlocks
 
+/// Merge 3D blocks.
 void ibis::meshQuery::merge3DBlocks
 (std::vector< std::vector<uint32_t> >& reg) const {
     if (reg.empty()) return;
@@ -928,25 +1097,6 @@ void ibis::meshQuery::merge3DBlocks
 
     uint32_t remove = 0;
     uint32_t match = 0;
-    /* UNNACESSARY
-    // loop 1 -- if the first two dimensions match, try to merge the third
-    for (uint32_t i = 1; i < reg.size(); ++ i) {
-    if (reg[i][0] == reg[match][0] && reg[i][1] == reg[match][1] &&
-    reg[i][2] == reg[match][2] && reg[i][3] == reg[match][3]) {
-    for (uint32_t j = match; j < i; ++j) {
-    if (reg[j][5] == reg[i][4]) {
-    reg[j][5] = reg[i][5];
-    reg[i][0] = UINT_MAX; // mark ith block for removal
-    ++ remove;
-    break;
-    }
-    }
-    }
-    else if (reg[i][0] != UINT_MAX) {
-    match = i;
-    }
-    }
-    */
 
     // loop 2 -- if the first dimension matches, the second dimension
     // connects, merge those with the same thrid dimension
@@ -1079,6 +1229,7 @@ void ibis::meshQuery::merge3DBlocks
     reg.resize(end);
 } // ibis::meshQuery::merge3DBlocks
 
+/// Merge n-D blocks.
 void ibis::meshQuery::mergeNDBlocks
 (std::vector< std::vector<uint32_t> >& reg) const {
     if (reg.empty()) return;
@@ -1314,8 +1465,8 @@ void ibis::meshQuery::mergeNDBlocks
 
    @param bdy The return value that contains the list of points.
 
-   @param dim The size of the grid.  The value dim.size() is the dimension
-   of the grid.  Each element of bdy is a std::vector with the same size as
+   @param dim The size of the mesh.  The value dim.size() is the number of
+   dimensions.  Each element of bdy is a std::vector with the same size as
    dim.
 
    @see ibis::meshQuery::getHitsAsBlocks
@@ -1343,7 +1494,7 @@ int ibis::meshQuery::getPointsOnBoundary
     timer.start();
 
     std::vector< std::vector<uint32_t> > reg;
-    int ierr = toBlocks(*hits, dim, reg);
+    int ierr = getHitsAsBlocks(reg, dim);
     double t1 = 0;
     if (ibis::gVerbose > 3) {
 	timer.stop();
@@ -1423,7 +1574,7 @@ int ibis::meshQuery::getPointsOnBoundary
     if (dim.empty()) return -4;
 
     std::vector< std::vector<uint32_t> > reg;
-    int ierr = toBlocks(*hits, dim, reg);
+    int ierr = getHitsAsBlocks(reg, dim);
     double t1 = 0;
     if (ibis::gVerbose > 3) {
 	timer.stop();
@@ -1482,7 +1633,7 @@ int ibis::meshQuery::getPointsOnBoundary
 // that have outside nearest neighbores.
 //
 // NOTE: it also makes use the fact that all blocks are sorted.
-// In describing the algorithm, we assume a mapping of the 2D grid.  The
+// In describing the algorithm, we assume a mapping of the 2D mesh.  The
 // first dimension (the slow varying dimension) is assumed to go from south
 // to north and the second (fast varying) dimension is assumed to go from
 // west to east.  A line segment is part of a horizontal line that only
@@ -1904,7 +2055,6 @@ void ibis::meshQuery::boundary2d
 	}
     }
 } // ibis::meshQuery::boundary2d
-
 
 // This implementation uses an array of pointers to store the starting
 // position of lines -- multiple level of nested loops required to
@@ -5234,13 +5384,18 @@ uint32_t ibis::meshQuery::aflatten(ibis::array_t<uint32_t>& rep) {
 
 /// Assign labels to blocks on a 1D mesh.  A node on this 1D mesh is
 /// assumed to connected to its two immediate neighbors.  Furthermore, it
-/// assumes that the blocks are sorted and do not overlap.  This function
-/// may fail if it fails to allocate enough space for the array labels.
-int ibis::meshQuery::label1DSimple
-(std::vector<uint32_t>& labels,
- const std::vector< std::vector<uint32_t> >& blocks) {
+/// assumes that the blocks are sorted and do not overlap.  The only error
+/// condition checked by this function is that the first block must have at
+/// least two numbers.  If this this not true, it returns -1.  There are
+/// two other error conditions that are not check: failure to allocate
+/// enough space for the array labels and memory access error cuased by
+/// some blocks having less than 2 values.
+int ibis::meshQuery::label1DBlocks
+(const std::vector< std::vector<uint32_t> >& blocks,
+ std::vector<uint32_t>& labels) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
+    if (blocks[0].size() < 2) return -1;
     labels[0] = 0;
     uint32_t lbl = 1;
     for (size_t j = 1; j < blocks.size(); ++ j) {
@@ -5253,11 +5408,11 @@ int ibis::meshQuery::label1DSimple
 	}
     }
     LOGGER(ibis::gVerbose > 2)
-	<< "meshQuery::label1DSimple completed labeling " << blocks.size()
+	<< "meshQuery::label1DBlocks completed labeling " << blocks.size()
 	<< " block" << (blocks.size()>1?"s":"") << " with " << lbl
 	<< " final label" << (lbl>1 ? "s" : "");
     return lbl;
-} // ibis::meshQuery::label1DSimple
+} // ibis::meshQuery::label1DBlocks
 
 /// Assign labels to blocks on 2D regular mesh.  A node on this mesh is
 /// assumed to connect to its four nearest neighbors.  The blocks are
@@ -5270,12 +5425,12 @@ int ibis::meshQuery::label1DSimple
 /// @return This function returns the number of connected components
 /// identified if it runs to completion.  Otherwise, it returns a negative
 /// number to indicate error.
-int ibis::meshQuery::label2DSimple
-(std::vector<uint32_t>& labels,
- const std::vector< std::vector<uint32_t> >& blocks) {
+int ibis::meshQuery::label2DBlocks
+(const std::vector< std::vector<uint32_t> >& blocks,
+ std::vector<uint32_t>& labels) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
-    if (blocks[0].size() != 4)
+    if (blocks[0].size() < 4)
 	return -1;
     if (blocks.size() == 1) {
 	labels[0] = 0;
@@ -5298,7 +5453,7 @@ int ibis::meshQuery::label2DSimple
 	}
 	else { // error
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- meshQuery::label2DSimple expects incoming "
+		<< "Warning -- meshQuery::label2DBlocks expects incoming "
 		"blocks to be in ascending order, but block " << curr << " ("
 		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
 		<< blocks[curr][2] << ", " << blocks[curr][3] << ") is not";
@@ -5339,7 +5494,7 @@ int ibis::meshQuery::label2DSimple
 	}
     } // loop I
     LOGGER(ibis::gVerbose > 4)
-	<< "meshQuery::label2DSimple scanned " << blocks.size()
+	<< "meshQuery::label2DBlocks scanned " << blocks.size()
 	<< " blocks, assigned " << uf.size() << " provisional label"
 	<< (uf.size()>1 ? "s" : "") << " and performed " << cnt
 	<< " union operation" << (cnt>1 ? "s" : "") << " among the labels";
@@ -5354,17 +5509,20 @@ int ibis::meshQuery::label2DSimple
 	labels[curr] = uf[labels[curr]];
 
     LOGGER(ibis::gVerbose > 2)
-	<< "meshQuery::label2DSimple completed labeling " << blocks.size()
+	<< "meshQuery::label2DBlocks completed labeling " << blocks.size()
 	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
     return cnt;
-} //ibis::meshQuery::label2DSimple
+} //ibis::meshQuery::label2DBlocks
 
 /// Assign a unique labels to each connected set of blocks.  It assumes the
 /// incoming blocks are defined on a simple regular 3D mesh, presumably
-/// outputted from ibis::meshQuery::getHitsAsBlocks.  This function only
-/// checks that each block consists of 6 numbers.  It further assumes that
-/// the blocks are organized in ascending order.  If it detects any block
-/// out of order, it will return with an error code (-2).
+/// outputted from ibis::meshQuery::getHitsAsBlocks.  This function checks
+/// that first block has at least 6 numbers.  Failure to pass this minimal
+/// test will cause this function to return a negative code.  If some of
+/// the blocks does not have 6 numbers it may cause memory access errors
+/// that are not checked by this function.  It further assumes that the
+/// blocks are organized in ascending order.  If it detects any block out
+/// of order, it will return with an error code (-2).
 /// 
 /// This function assumes the nearest neighbors along each of the three
 /// dimensions are connected.  This is the minimum connectivity.
@@ -5372,12 +5530,12 @@ int ibis::meshQuery::label2DSimple
 /// @return Upon successful completion of this function, it returns the
 /// number of connected components identified.  It returns a negative value
 /// to indicate errors.
-int ibis::meshQuery::label3DSimple
-(std::vector<uint32_t>& labels,
- const std::vector< std::vector<uint32_t> >& blocks) {
+int ibis::meshQuery::label3DBlocks
+(const std::vector< std::vector<uint32_t> >& blocks,
+ std::vector<uint32_t>& labels) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
-    if (blocks[0].size() != 6)
+    if (blocks[0].size() < 6)
 	return -1;
     if (blocks.size() == 1) {
 	labels[0] = 0;
@@ -5403,7 +5561,7 @@ int ibis::meshQuery::label3DSimple
 	    }
 	    else { // error
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- meshQuery::label3DSimple expects incoming "
+		    << "Warning -- meshQuery::label3DBlocks expects incoming "
 		    "blocks to be in ascending order, but block " << curr
 		    << " (" << blocks[curr][0] << ", " << blocks[curr][1]
 		    << ", " << blocks[curr][2] << ", " << blocks[curr][3]
@@ -5418,7 +5576,7 @@ int ibis::meshQuery::label3DSimple
 	}
 	else { // error
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- meshQuery::label3DSimple expects incoming "
+		<< "Warning -- meshQuery::label3DBlocks expects incoming "
 		"blocks to be in ascending order, but block " << curr
 		<< " (" << blocks[curr][0] << ", " << blocks[curr][1]
 		<< ", " << blocks[curr][2] << ", " << blocks[curr][3]
@@ -5460,7 +5618,7 @@ int ibis::meshQuery::label3DSimple
 	    lbl = afind(uf, labels[prevp]);
 #if defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 4)
-		<< "DEBUG -- label3Dsimple -- block[" << curr << "] ("
+		<< "DEBUG -- label3DBlocks -- block[" << curr << "] ("
 		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
 		<< blocks[curr][2] << ", " << blocks[curr][3] << ", "
 		<< blocks[curr][4] << ", " << blocks[curr][5]
@@ -5481,7 +5639,7 @@ int ibis::meshQuery::label3DSimple
 		const uint32_t tmp = afind(uf, labels[prevp]);
 #if defined(_DEBUG)
 		LOGGER(ibis::gVerbose > 4)
-		    << "DEBUG -- label3Dsimple -- block[" << curr << "] ("
+		    << "DEBUG -- label3DBlocks -- block[" << curr << "] ("
 		    << blocks[curr][0] << ", " << blocks[curr][1] << ", "
 		    << blocks[curr][2] << ", " << blocks[curr][3] << ", "
 		    << blocks[curr][4] << ", " << blocks[curr][5]
@@ -5507,7 +5665,7 @@ int ibis::meshQuery::label3DSimple
 		    const uint32_t tmp = afind(uf, labels[prevl]);
 #if defined(_DEBUG)
 		    LOGGER(ibis::gVerbose > 4)
-			<< "DEBUG -- label3Dsimple -- block[" << curr
+			<< "DEBUG -- label3DBlocks -- block[" << curr
 			<< "] (" << blocks[curr][0] << ", "
 			<< blocks[curr][1] << ", " << blocks[curr][2] << ", "
 			<< blocks[curr][3] << ", " << blocks[curr][4]
@@ -5542,7 +5700,7 @@ int ibis::meshQuery::label3DSimple
 	    lbl = afind(uf, labels[prevl]);
 #if defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 4)
-		<< "DEBUG -- label3Dsimple -- block[" << curr << "] ("
+		<< "DEBUG -- label3DBlocks -- block[" << curr << "] ("
 		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
 		<< blocks[curr][2] << ", " << blocks[curr][3] << ", "
 		<< blocks[curr][4] << ", " << blocks[curr][5]
@@ -5562,7 +5720,7 @@ int ibis::meshQuery::label3DSimple
 		const uint32_t tmp = afind(uf, labels[prevl]);
 #if defined(_DEBUG)
 		LOGGER(ibis::gVerbose > 4)
-		    << "DEBUG -- label3Dsimple -- block[" << curr << "] ("
+		    << "DEBUG -- label3DBlocks -- block[" << curr << "] ("
 		    << blocks[curr][0] << ", " << blocks[curr][1] << ", "
 		    << blocks[curr][2] << ", " << blocks[curr][3] << ", "
 		    << blocks[curr][4] << ", " << blocks[curr][5]
@@ -5589,7 +5747,7 @@ int ibis::meshQuery::label3DSimple
 	}
     } // loop I
     LOGGER(ibis::gVerbose > 4)
-	<< "meshQuery::label3DSimple scanned " << blocks.size()
+	<< "meshQuery::label3DBlocks scanned " << blocks.size()
 	<< " blocks, assigned " << uf.size() << " provisional label"
 	<< (uf.size()>1 ? "s" : "") << " and performed " << cnt
 	<< " union operation" << (cnt>1 ? "s" : "") << " among the labels";
@@ -5604,17 +5762,37 @@ int ibis::meshQuery::label3DSimple
 	labels[curr] = uf[labels[curr]];
 
     LOGGER(ibis::gVerbose > 2)
-	<< "meshQuery::label3DSimple completed labeling " << blocks.size()
+	<< "meshQuery::label3DBlocks completed labeling " << blocks.size()
 	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
     return cnt;
-} // ibis::meshQuery::label3DSimple
+} // ibis::meshQuery::label3DBlocks
 
-int ibis::meshQuery::label4DSimple
-	(std::vector<uint32_t>& labels,
-	 const std::vector< std::vector<uint32_t> >& blocks) {
+/// Assign a unique labels to each connected set of blocks.  It assumes the
+/// incoming blocks are defined on a simple regular mesh, presumably
+/// outputted from ibis::meshQuery::getHitsAsBlocks.  This function works
+/// with a mesh with four dimensions only.  The bounding box produced are
+/// expected to be produced from ibis::meshQuery::getHitsAsBlocks, where
+/// each box uses two numbers (an inclusive lower bound and an exclusive
+/// upper bound) for each dimension.  However, this function only check the
+/// number of values of the first bounding box; it does not check the sizes
+/// of remaining blocks.  It is happy to proceed if the first bounding box
+/// has at least eight values, otherwise an error code is returned.  It
+/// further assumes that the blocks are organized in ascending order.  If
+/// it detects any block out of order, it will return with an error code
+/// (-2).
+/// 
+/// This function assumes the nearest neighbors along each of the three
+/// dimensions are connected.  This is the minimum connectivity.
+///
+/// @return Upon successful completion of this function, it returns the
+/// number of connected components identified.  It returns a negative value
+/// to indicate errors.
+int ibis::meshQuery::label4DBlocks
+(const std::vector< std::vector<uint32_t> >& blocks,
+ std::vector<uint32_t>& labels) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
-    if (blocks[0].size() != 8) // check the number of values in a block
+    if (blocks[0].size() < 8) // check the number of values in a block
 	return -1;
 
     // in this function, the four dimensions are named Z, Y, X, and W (with
@@ -5646,9 +5824,9 @@ int ibis::meshQuery::label4DSimple
 		}
 		else { // error
 		    LOGGER(ibis::gVerbose >= 0)
-			<< "Warning -- meshQuery::label4DSimple expects incoming "
-			"blocks to be in ascending order, but block " << j
-			<< " (" << blocks[j][0] << ", " << blocks[j][1]
+			<< "Warning -- meshQuery::label4DBlocks expects "
+			"incoming blocks to be in ascending order, but block "
+			<< j << " (" << blocks[j][0] << ", " << blocks[j][1]
 			<< ", " << blocks[j][2] << ", " << blocks[j][3]
 			<< ", " << blocks[j][4] << ", " << blocks[j][5]
 			<< ", " << blocks[j][6] << ", " << blocks[j][7]
@@ -5662,7 +5840,7 @@ int ibis::meshQuery::label4DSimple
 	    }
 	    else { // error
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- meshQuery::label4DSimple expects incoming "
+		    << "Warning -- meshQuery::label4DBlocks expects incoming "
 		    "blocks to be in ascending order, but block " << j
 		    << " (" << blocks[j][0] << ", " << blocks[j][1]
 		    << ", " << blocks[j][2] << ", " << blocks[j][3]
@@ -5679,7 +5857,7 @@ int ibis::meshQuery::label4DSimple
 	}
 	else { // error
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- meshQuery::label4DSimple expects incoming "
+		<< "Warning -- meshQuery::label4DBlocks expects incoming "
 		"blocks to be in ascending order, but block " << j
 		<< " (" << blocks[j][0] << ", " << blocks[j][1]
 		<< ", " << blocks[j][2] << ", " << blocks[j][3]
@@ -5733,7 +5911,7 @@ int ibis::meshQuery::label4DSimple
 	    const uint32_t tmp = afind(uf, labels[zme]);
 #if defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 4)
-		<< "DEBUG -- label4Dsimple -- block[" << j << "] ("
+		<< "DEBUG -- label4DBlocks -- block[" << j << "] ("
 		<< blocks[j][0] << ", " << blocks[j][1] << ", "
 		<< blocks[j][2] << ", " << blocks[j][3] << ", "
 		<< blocks[j][4] << ", " << blocks[j][5] << ", "
@@ -5758,7 +5936,7 @@ int ibis::meshQuery::label4DSimple
 	    const uint32_t tmp = afind(uf, labels[yme]);
 #if defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 4)
-		<< "DEBUG -- label4Dsimple -- block[" << j << "] ("
+		<< "DEBUG -- label4DBlocks -- block[" << j << "] ("
 		<< blocks[j][0] << ", " << blocks[j][1] << ", "
 		<< blocks[j][2] << ", " << blocks[j][3] << ", "
 		<< blocks[j][4] << ", " << blocks[j][5] << ", "
@@ -5781,7 +5959,7 @@ int ibis::meshQuery::label4DSimple
 	    const uint32_t tmp = afind(uf, labels[xme]);
 #if defined(_DEBUG)
 	    LOGGER(ibis::gVerbose > 4)
-		<< "DEBUG -- label4Dsimple -- block[" << j << "] ("
+		<< "DEBUG -- label4DBlocks -- block[" << j << "] ("
 		<< blocks[j][0] << ", " << blocks[j][1] << ", "
 		<< blocks[j][2] << ", " << blocks[j][3] << ", "
 		<< blocks[j][4] << ", " << blocks[j][5] << ", "
@@ -5819,7 +5997,7 @@ int ibis::meshQuery::label4DSimple
     } // scanning loop
 
     LOGGER(ibis::gVerbose > 4)
-	<< "meshQuery::label4DSimple scanned " << blocks.size()
+	<< "meshQuery::label4DBlocks scanned " << blocks.size()
 	<< " blocks, assigned " << uf.size() << " provisional label"
 	<< (uf.size()>1 ? "s" : "") << " and performed " << cnt
 	<< " union operation" << (cnt>1 ? "s" : "") << " among the labels";
@@ -5834,10 +6012,10 @@ int ibis::meshQuery::label4DSimple
 	labels[i1] = uf[labels[i1]];
 
     LOGGER(ibis::gVerbose > 2)
-	<< "meshQuery::label4DSimple completed labeling " << blocks.size()
+	<< "meshQuery::label4DBlocks completed labeling " << blocks.size()
 	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
     return cnt;
-} // ibis::meshQuery::label4DSimple
+} // ibis::meshQuery::label4DBlocks
 
 /// Assign a unique labels to each connected set of blocks.  It assumes the
 /// incoming blocks are defined on a simple regular mesh, presumably
@@ -5846,8 +6024,8 @@ int ibis::meshQuery::label4DSimple
 /// produced are expected to be produced from
 /// ibis::meshQuery::getHitsAsBlocks, where each box uses two numbers (an
 /// inclusive lower bound and an exclusive upper bound) for each dimension.
-/// However, this function only check that the first bounding box has the
-/// expected number of elements; it does not perform this check on the
+/// However, this function determines the number of dimensions based on the
+/// size of the first bounding box; it does not check the sizes of
 /// remaining blocks.  It further assumes that the blocks are organized in
 /// ascending order.  If it detects any block out of order, it will return
 /// with an error code (-2).
@@ -5857,22 +6035,30 @@ int ibis::meshQuery::label4DSimple
 ///
 /// @return Upon successful completion of this function, it returns the
 /// number of connected components identified.  It returns a negative value
-/// to indicate errors.
-int ibis::meshQuery::labelNDSimple
-(std::vector<uint32_t>& labels,
- const std::vector< std::vector<uint32_t> >& blocks,
- const std::vector<uint32_t>& dim) {
+/// to indicate errors.  There are two likely exceptional conditions not
+/// monitored by this function: failure to allocate enough space for array
+/// labels and memory access failure due to some blocks actually having
+/// less than expected number of elements.
+int ibis::meshQuery::labelBlocks
+(const std::vector< std::vector<uint32_t> >& blocks,
+ std::vector<uint32_t>& labels) {
     labels.resize(blocks.size());
     if (blocks.empty()) return 0;
-    if (blocks[0].size() != 2 * dim.size())
+    if (blocks[0].size() < 2)
 	return -1;
-    if (dim.size() == 1)
-	return label1DSimple(labels, blocks);
+    else if (blocks[0].size() < 4)
+	return label1DBlocks(blocks, labels);
+    else if (blocks[0].size() < 6)
+	return label2DBlocks(blocks, labels);
+    else if (blocks[0].size() < 8)
+	return label3DBlocks(blocks, labels);
+    else if (blocks[0].size() < 10)
+	return label4DBlocks(blocks, labels);
 
     bool more;
     uint32_t lbl;
     uint32_t cnt = 0; // the number of provisional labels or final labels
-    const uint32_t md = dim.size() - 1;
+    const uint32_t md = blocks[0].size()/2 - 1;
     ibis::array_t<uint32_t> ma(md, 0); // markers
     ibis::array_t<uint32_t> me(md, 0); // end positions of matches
     ibis::array_t<uint32_t> ms(md, 0); // starting positions of matches
@@ -5883,7 +6069,6 @@ int ibis::meshQuery::labelNDSimple
 	// update markers
 	for (size_t i0 = 0; i0 < md; ++ i0) {
 	    const size_t ti0 = i0 + i0;
-	    const size_t ti0p1 = i0 + i0 + 1;
 	    if (blocks[j][ti0] == blocks[ma[i0]][ti0]) {
 		// in the same hyperplane, nothing extra to do
 	    }
@@ -5896,7 +6081,7 @@ int ibis::meshQuery::labelNDSimple
 	    }
 	    else {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- meshQuery::labelNDSimple expects incoming "
+		    << "Warning -- meshQuery::labelBlocks expects incoming "
 		    "blocks to be in ascending order, but block " << j
 		    << " is not";
 		return -2;
@@ -5980,7 +6165,7 @@ int ibis::meshQuery::labelNDSimple
 #if defined(_DEBUG)
 		    if (ibis::gVerbose > 4) {
 			ibis::util::logger lg;
-			lg() << "DEBUG -- labelNDsimple -- block[" << j << "] ("
+			lg() << "DEBUG -- labelBlocks -- block[" << j << "] ("
 			     << blocks[j][0] << ", " << blocks[j][1];
 			for (size_t i2 = 2; i2 < blocks[j].size(); ++ i2)
 			    lg() << ", " << blocks[j][i2];
@@ -6016,7 +6201,7 @@ int ibis::meshQuery::labelNDSimple
     } // scanning loop
 
     LOGGER(ibis::gVerbose > 4)
-	<< "meshQuery::labelNDSimple scanned " << blocks.size()
+	<< "meshQuery::labelBlocks scanned " << blocks.size()
 	<< " blocks, assigned " << uf.size() << " provisional label"
 	<< (uf.size()>1 ? "s" : "") << " and performed " << cnt
 	<< " union operation" << (cnt>1 ? "s" : "") << " among the labels";
@@ -6031,7 +6216,8 @@ int ibis::meshQuery::labelNDSimple
 	labels[i1] = uf[labels[i1]];
 
     LOGGER(ibis::gVerbose > 2)
-	<< "meshQuery::labelNDSimple completed labeling " << blocks.size()
-	<< " blocks with " << cnt << " final label" << (cnt>1 ? "s" : "");
+	<< "meshQuery::labelBlocks completed labeling " << blocks.size()
+	<< blocks[0].size()/2 << "-D blocks with " << cnt << " final label"
+	<< (cnt>1 ? "s" : "");
     return cnt;
-} // ibis::meshQuery::labelNDSimple
+} // ibis::meshQuery::labelBlocks
