@@ -1486,7 +1486,8 @@ int ibis::tafel::appendRows(const std::vector<ibis::table::row>& rs) {
 /// - -1: no directory specified.
 /// - -3: unable to open the metadata file.
 int ibis::tafel::writeMetaData(const char* dir, const char* tname,
-			       const char* tdesc, const char* idx) const {
+			       const char* tdesc, const char* idx,
+			       const char* nvpairs) const {
     if (cols.empty()) return 0; // nothing new to write
     if (dir == 0 || *dir == 0) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -1506,7 +1507,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
     if (ibis::gVerbose > 0)
 	timer.start();
 
-    std::string oldnm, olddesc;
+    std::string nmlocal, desclocal;
     time_t currtime = time(0); // current time
     char stamp[28];
     ibis::util::secondsToString(currtime, stamp);
@@ -1515,8 +1516,8 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	oss << "Metadata written with ibis::tafel::writeMetaData on "
 	    << stamp << " with " << cols.size() << " column"
 	    << (cols.size() > 1 ? "s" : "");
-	olddesc = oss.str();
-	tdesc = olddesc.c_str();
+	desclocal = oss.str();
+	tdesc = desclocal.c_str();
     }
     if (tname == 0 || *tname == 0) { // use the directory name as table name
 	tname = strrchr(dir, FASTBIT_DIRSEP);
@@ -1527,15 +1528,15 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 		++ tname;
 	    }
 	    else { // dir ends with FASTBIT_DIRSEP
-		oldnm = dir;
-		oldnm.erase(oldnm.size()-1); // remove the last FASTBIT_DIRSEP
-		uint32_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
-		if (j > oldnm.size())
-		    j = 1 + oldnm.rfind('/');
-		if (j < oldnm.size())
-		    oldnm.erase(0, j);
-		if (! oldnm.empty())
-		    tname = oldnm.c_str();
+		nmlocal = dir;
+		nmlocal.erase(nmlocal.size()-1); // remove the last FASTBIT_DIRSEP
+		uint32_t j = 1 + nmlocal.rfind(FASTBIT_DIRSEP);
+		if (j > nmlocal.size())
+		    j = 1 + nmlocal.rfind('/');
+		if (j < nmlocal.size())
+		    nmlocal.erase(0, j);
+		if (! nmlocal.empty())
+		    tname = nmlocal.c_str();
 		else
 		    tname = 0;
 	    }
@@ -1545,9 +1546,9 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	}
 	if (tname == 0) {
 	    uint32_t sum = ibis::util::checksum(tdesc, strlen(tdesc));
-	    ibis::util::int2string(oldnm, sum);
-	    if (! isalpha(oldnm[0]))
-		oldnm[0] = 'A' + (oldnm[0] % 26);
+	    ibis::util::int2string(nmlocal, sum);
+	    if (! isalpha(nmlocal[0]))
+		nmlocal[0] = 'A' + (nmlocal[0] % 26);
 	}
     }
     LOGGER(ibis::gVerbose > 1)
@@ -1580,6 +1581,9 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	const char* str = ibis::gParameters()[idxkey.c_str()];
 	if (str != 0 && *str != 0)
 	    md << "\nindex = " << str;
+    }
+    if (nvpairs != 0 && *nvpairs != 0) {
+	md << "\nmetaTags = " << nvpairs;
     }
     md << "\nEND HEADER\n";
 
@@ -1659,7 +1663,8 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 /// - -4: unable to open a data file.
 /// - -5: failed to write the expected number of records.
 int ibis::tafel::write(const char* dir, const char* tname,
-		       const char* tdesc, const char* idx) const {
+		       const char* tdesc, const char* idx,
+		       const char* nvpairs) const {
     if (cols.empty() || mrows == 0) return 0; // nothing new to write
     if (dir == 0 || *dir == 0) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -1670,7 +1675,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     if (ibis::gVerbose > 0)
 	timer.start();
 
-    std::string oldnm, olddesc, oldidx;
+    std::string oldnm, olddesc, oldidx, oldtags;
     ibis::bitvector::word_t nold = 0;
     { // read the existing meta data file in the directory dir
 	ibis::part tmp(dir, static_cast<const char*>(0));
@@ -1685,6 +1690,8 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		tdesc = olddesc.c_str();
 	    }
 
+	    if (nvpairs == 0 || *nvpairs == 0)
+		oldtags = tmp.metaTags();
 	    if (tmp.indexSpec() != 0 && *(tmp.indexSpec()) != 0)
 		oldidx = tmp.indexSpec();
 	    unsigned nconflicts = 0;
@@ -1833,6 +1840,12 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	const char* str = ibis::gParameters()[idxkey.c_str()];
 	if (str != 0 && *str != 0)
 	    md << "\nindex = " << str;
+    }
+    if (nvpairs != 0 && *nvpairs != 0) {
+	md << "\nmetaTags = " << nvpairs;
+    }
+    else if (! oldtags.empty()) {
+	md << "\nmetaTags = " << oldtags;
     }
     md << "\nEND HEADER\n";
 

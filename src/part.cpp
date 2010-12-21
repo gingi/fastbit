@@ -1058,10 +1058,10 @@ void ibis::part::init(const char* iname) {
 } // ibis::part::init
 
 /// Read the meta tag entry in the header section of the metadata file in
-/// directory dir.  A meta tag is a list of name-value pairs associated
-/// with a data partition.  It can be used to record information about
-/// about a data partition that one might want to search through
-/// matchNameValuePair or matchMetaTags.
+/// directory dir.  The meta tags are name-value pairs associated with a
+/// data partition.  It can be used to record information about about a
+/// data partition that one might want to search through matchNameValuePair
+/// or matchMetaTags.
 char* ibis::part::readMetaTags(const char* const dir) {
     char *s1;
     char* m_tags = 0;
@@ -1385,13 +1385,6 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		m_desc = s2;
 		delete [] s2;
 	    }
-	    else if (strnicmp(buf, "metaTags", 8) == 0 ||
-		     strnicmp(buf, "Table.metaTags", 14) == 0 ||
-		     strnicmp(buf, "DataSet.metaTags", 16) == 0 ||
-		     strnicmp(buf, "Partition.metaTags", 18) == 0 ||
-		     strnicmp(buf, "Part.metaTags", 13) == 0) {
-		ibis::resource::parseNameValuePairs(s1, metaList);
-	    }
 	    else if (strnicmp(buf, "Timestamp", 9) == 0) {
 		if (sizeof(time_t) == sizeof(int))
 		    switchTime = atoi(s1);
@@ -1414,6 +1407,19 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		     strnicmp(buf, "Partition.State", 15) == 0) {
 		state = (ibis::part::TABLE_STATE)atoi(s1);
 	    }
+	    else if (strnicmp(buf, "metaTags", 8) == 0 ||
+		     strnicmp(buf, "Table.metaTags", 14) == 0 ||
+		     strnicmp(buf, "DataSet.metaTags", 16) == 0 ||
+		     strnicmp(buf, "Partition.metaTags", 18) == 0 ||
+		     strnicmp(buf, "Part.metaTags", 13) == 0) {
+		ibis::resource::parseNameValuePairs(s1, metaList);
+		ibis::resource::vList::const_iterator it =
+		    metaList.find("columnShape");
+		if (it == metaList.end())
+		    it = metaList.find("meshShape");
+		if (it != metaList.end())
+		    digestMeshShape(it->second);
+	    }
 	    else if (strnicmp(buf, "columnShape", 11) == 0 ||
 		     strnicmp(buf, "Part.columnShape", 16) == 0 ||
 		     strnicmp(buf, "Table.columnShape", 17) == 0 ||
@@ -1423,6 +1429,9 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		     strnicmp(buf, "Part.meshShape", 14) == 0 ||
 		     strnicmp(buf, "Partition.meshShape", 19) == 0) {
 		digestMeshShape(s1);
+		if (! shapeSize.empty())
+		    metaList[ibis::util::strnewdup("meshShape")] =
+			ibis::util::strnewdup(s1);
 	    }
 	}
     } // the loop to parse header
@@ -1619,7 +1628,7 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     }
     if (! metaList.empty()) {
 	std::string mt = metaTags();
-	fprintf(fptr, "Table.metaTags = %s\n", mt.c_str());
+	fprintf(fptr, "metaTags = %s\n", mt.c_str());
     }
 
     fprintf(fptr, "Number_of_columns = %lu\n",
@@ -1775,7 +1784,7 @@ bool ibis::part::matchMetaTags(const ibis::resource::vList &mtags) const {
     return ret;
 } // ibis::part::matchMetaTags
 
-/// Digest the columne shape string read from metadata file.
+/// Digest the column shape string read from metadata file.
 void ibis::part::digestMeshShape(const char *shape) {
     if (shape == 0) return;
     while (*shape && isspace(*shape))

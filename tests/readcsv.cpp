@@ -385,7 +385,8 @@ int readValues(FILE *fptr, char*&buf, unsigned& lbuf) {
 			std::string str;
 			columns[i].type = STRING;
 			jerr = readString(tmp, str);
-			(void) fwrite(str.c_str(), 1, str.size()+1, columns[i].file);
+			(void) fwrite(str.c_str(), 1, str.size()+1,
+				      columns[i].file);
 		    }
 		}
 	    }
@@ -412,7 +413,8 @@ int readValues(FILE *fptr, char*&buf, unsigned& lbuf) {
 		    std::string str;
 		    columns[i].type = STRING;
 		    jerr = readString(tmp, str);
-		    (void) fwrite(str.c_str(), 1, str.size()+1, columns[i].file);
+		    (void) fwrite(str.c_str(), 1, str.size()+1,
+				  columns[i].file);
 		}
 	    }
 	    else { // default double value is zero

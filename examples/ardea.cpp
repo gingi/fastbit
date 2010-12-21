@@ -42,15 +42,19 @@ typedef std::set< const char*, ibis::lessi > qList;
 static std::vector<const char*> inputrows;
 static std::vector<const char*> csvfiles;
 static std::vector<const char*> sqlfiles;
-static std::string metadata;
 static const char* metadatafile = 0;
+static const char* indexing = 0;
+static std::string namestypes;
+static std::string metatags;
 
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	"[-d directory-to-write-data] [-n name-of-dataset] "
-	"[-r a-row-in-ASCII] [-t text-file-to-read] [-sqldump file-to-read] [-b break/delimiters-in-text-file]"
+	"[-r a-row-in-ASCII] [-t text-file-to-read] "
+	"[-sqldump file-to-read] [-b break/delimiters-in-text-file]"
 	"[-M metadata-file] [-m name:type[,name:type,...]] [-m max-rows-per-file] "
+	"[-tag name-value-pair] "
 	"[-select clause] [-where clause] [-v[=| ]verbose_level]\n\n"
 	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values, and max-rows-per-file must start with a decimal digit\n"
 	"\tThis program only recognize the following column types:\n"
@@ -122,10 +126,13 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		}
 		break;
 	    case 'c':
-	    case 'C':
+	    case 'C': // conf or csv? default conf
 		if (i+1 < argc) {
+		    if (argv[i][2] == 's' || argv[i][2] == 'S')
+			csvfiles.push_back(argv[i+1]);
+		    else
+			ibis::gParameters().read(argv[i+1]);
 		    ++ i;
-		    ibis::gParameters().read(argv[i]);
 		}
 		break;
 	    case 'd':
@@ -137,6 +144,13 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		    outdir = argv[i];
 		}
 		break;
+	    case 'i':
+	    case 'I':
+		if (i+1 < argc) {
+		    ++ i;
+		    indexing = argv[i];
+		}
+		break;
 	    case 'm':
 		if (i+1 < argc) {
 		    ++ i;
@@ -146,9 +160,9 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 			    nrpf = nn;
 		    }
 		    else {
-			if (! metadata.empty())
-			    metadata += ", ";
-			metadata += argv[i];
+			if (! namestypes.empty())
+			    namestypes += ", ";
+			namestypes += argv[i];
 		    }
 		}
 		break;
@@ -180,10 +194,21 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		}
 		break;
 	    case 't':
-	    case 'T':
+	    case 'T': // tag or text, default text
 		if (i+1 < argc) {
+		    if (argv[i][2] == 'a' || argv[i][2] == 'A') {
+			if (metatags.empty()) {
+			    metatags = argv[i+1];
+			}
+			else {
+			    metatags += ", ";
+			    metatags += argv[i+1];
+			}
+		    }
+		    else {
+			csvfiles.push_back(argv[i+1]);
+		    }
 		    ++ i;
-		    csvfiles.push_back(argv[i]);
 		}
 		break;
 	    case 'q':
@@ -257,9 +282,9 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		std::cout << "\n\t" << csvfiles[i];
 	}
 	std::cout << "\n";
-	if (!metadata.empty()) {
+	if (!namestypes.empty()) {
 	    std::cout << " with the following column names and types\n\t"
-		      << metadata << "\n";
+		      << namestypes << "\n";
 	    if (metadatafile != 0)
 		std::cout << "as well as those names and types from "
 			  << metadatafile << "\n";
@@ -704,7 +729,7 @@ int main(int argc, char** argv) {
     ibis::init();
     parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
     bool usersupplied = (! sqlfiles.empty()) ||
-	((! metadata.empty() || metadatafile != 0) &&
+	((! namestypes.empty() || metadatafile != 0) &&
 	 (inputrows.size() > 0 || csvfiles.size() > 0));
     // create a new table that does not support querying
     ibis::tablex* ta = ibis::tablex::create();
@@ -729,7 +754,7 @@ int main(int argc, char** argv) {
 			      << std::endl;
 
 		ierr = ta->write(outdir, (tname.empty()?dsn:tname.c_str()),
-				 oss.str().c_str());
+				 oss.str().c_str(), indexing, metatags.c_str());
 		if (ierr < 0) {
 		    std::clog
 			<< *argv << " failed to write content of SQL "
@@ -742,8 +767,8 @@ int main(int argc, char** argv) {
 	}
 
 	// process the metadata explicitly entered
-	if (! metadata.empty())
-	    ta->parseNamesAndTypes(metadata.c_str());
+	if (! namestypes.empty())
+	    ta->parseNamesAndTypes(namestypes.c_str());
 	if (metadatafile != 0)
 	    ta->readNamesAndTypes(metadatafile);
 
@@ -763,7 +788,8 @@ int main(int argc, char** argv) {
 			      << (ierr>1?"s":"") << " from " << csvfiles[i]
 			      << std::endl;
 
-		ierr = ta->write(outdir, dsn, oss.str().c_str());
+		ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
+				 metatags.c_str());
 		if (ierr < 0) {
 		    std::clog << *argv << " failed to write data in CSV file "
 			      << csvfiles[i] << " to \"" << outdir
@@ -781,7 +807,8 @@ int main(int argc, char** argv) {
 			  << ierr << ")\n" << inputrows[i] << std::endl;
 	}
 	if (! inputrows.empty()) {
-	    ierr = ta->write(outdir, dsn, oss.str().c_str());
+	    ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
+			     metatags.c_str());
 	    if (ierr < 0) {
 		std::clog << *argv << " failed to write user-supplied data to "
 			  << outdir << ", error code = " << ierr << std::endl;

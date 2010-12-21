@@ -103,7 +103,7 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 	t1 = timer.realTime();
 	timer.resume();
     }
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
     if (dim.size() == 2 || dim.size() == 3) {
 	// compare the results from toBlocks[23] with toBlocksN
 	std::vector< std::vector<uint32_t> > seg;
@@ -179,12 +179,12 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (merge && dim.size() > 1 && ibis::gVerbose > 3)
-	    lg() << "query[" << id() << "]::getHitsAsBlocks -- merging "
+	    lg() << "meshQuery[" << id() << "]::getHitsAsBlocks -- merging "
 		 << nold << " " << dim.size() << "-D block"
 		 << (nold>1 ? "s" : "") << " into " << reg.size()
 		 << " used " << t2-t1 << " sec (elapsed)\n";
 
-	lg() << "query[" << id() << "getHitsAsBlocks -- converting "
+	lg() << "meshQuery[" << id() << "getHitsAsBlocks -- converting "
 	     << hits->cnt() << (hits->cnt() > 1 ? " hits" : " hit")
 	     << " into " << reg.size()
 	     << (reg.size()>1 ? " blocks" : " block") << " on a ("
@@ -262,12 +262,12 @@ int ibis::meshQuery::getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (merge && shape.size() > 1 && ibis::gVerbose > 3)
-	    lg() << "query[" << id() << "]::getHitsAsBlocks -- merging "
+	    lg() << "meshQuery[" << id() << "]::getHitsAsBlocks -- merging "
 		 << nold << " " << shape.size() << "-D block"
 		 << (nold>1 ? "s" : "") << " into " << reg.size()
 		 << " used " << t2-t1 << " sec (elapsed)\n";
 
-	lg() << "query[" << id() << "]::getHitsAsBlocks -- converting "
+	lg() << "meshQuery[" << id() << "]::getHitsAsBlocks -- converting "
 	     << hits->cnt() << (hits->cnt() > 1 ? " hits" : " hit")
 	     << " into " << reg.size() << " block"
 	     << (reg.size() > 1 ? "s" : "") << " on a (" << shape[0];
@@ -345,7 +345,7 @@ int ibis::meshQuery::toBlocks1
 	<< "meshQuery::toBlocks1 -- converting the bitmap ("
 	<< bv.cnt() << ", " << bv.size() << ") to " << reg.size()
 	<< " block" << (reg.size()>1?"s":"") << " on a 1-D mesh";
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
     if (ibis::gVerbose >= 0) {
 	size_t cnt = 0;
 	for (size_t j = 0; j < reg.size(); ++ j) {
@@ -437,7 +437,7 @@ int ibis::meshQuery::toBlocks2
 	<< "meshQuery::toBlocks2 -- converting the bitmap ("
 	<< bv.cnt() << ", " << bv.size() << ") to " << reg.size()
 	<< " block" << (reg.size()>1?"s":"") << " on a 2-D mesh";
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
     if (ibis::gVerbose >= 0) {
 	size_t cnt = 0;
 	for (size_t j = 0; j < reg.size(); ++ j) {
@@ -534,7 +534,7 @@ int ibis::meshQuery::toBlocks3
 	<< "meshQuery::toBlocks3 -- converting the bitmap ("
 	<< bv.cnt() << ", " << bv.size() << ") to " << reg.size()
 	<< " block" << (reg.size()>1?"s":"") << " on a 3-D mesh";
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
     if (ibis::gVerbose >= 0) {
 	size_t cnt = 0;
 	for (size_t j = 0; j < reg.size(); ++ j) {
@@ -659,7 +659,7 @@ int ibis::meshQuery::toBlocksN
 	<< "meshQuery::toBlocksN -- converting the bitmap ("<< bv.cnt()
 	<< ", " << bv.size() << ") to " << reg.size() << " block"
 	<< (reg.size()>1?"s":"") << " on a " << dim.size() << "-D mesh";
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
     if (ibis::gVerbose >= 0) {
 	size_t cnt = 0;
 	for (size_t j = 0; j < reg.size(); ++ j) {
@@ -1531,13 +1531,14 @@ int ibis::meshQuery::getPointsOnBoundary
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (dim.size() > 1 && ibis::gVerbose > 3)
-	    lg()<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
-		<< bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
-		<< " from " << reg.size() << " " << dim.size() << "-D block"
-		<< (reg.size()>1 ? "s" : "") << " took " << t2-t1
-		<< " sec (elapsed)";
+	    lg() << "meshQuery[" << id()
+		 << "]::getPointsOnBoundary -- extracting "
+		 << bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
+		 << " from " << reg.size() << " " << dim.size() << "-D block"
+		 << (reg.size()>1 ? "s" : "") << " took " << t2-t1
+		 << " sec (elapsed)";
 
-	lg() << "query[" << id() << "]::getPointsOnBoundary -- "
+	lg() << "meshQuery[" << id() << "]::getPointsOnBoundary -- "
 	     << bdy.size() << " point" << (bdy.size()>1?"s":"")
 	     << " on a (" << dim[0];
 	for (uint32_t i = 1; i < dim.size(); ++ i)
@@ -1612,16 +1613,17 @@ int ibis::meshQuery::getPointsOnBoundary
 	double t2 = timer.realTime();
 	ibis::util::logger lg;
 	if (dim.size() > 1 && ibis::gVerbose > 3)
-	    lg()<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
-		<< bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
-		<< " from " << reg.size() << " " << dim.size() << "-D block"
-		<< (reg.size()>1 ? "s" : "") << " took " << t2-t1
-		<< " sec (elapsed)";
+	    lg() << "meshQuery[" << id()
+		 << "]::getPointsOnBoundary -- extracting "
+		 << bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
+		 << " from " << reg.size() << " " << dim.size() << "-D block"
+		 << (reg.size()>1 ? "s" : "") << " took " << t2-t1
+		 << " sec (elapsed)";
 
-	lg()<< "query[" << id() << "]::getPointsOnBoundary -- extracting "
-	    << bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
-	    << " from " << hits->cnt() << " hit" << (hits->cnt()>1 ? "s" : "")
-	    << " on a (" << dim[0];
+	lg() << "meshQuery[" << id() << "]::getPointsOnBoundary -- extracting "
+	     << bdy.size() << " boundary point" << (bdy.size()>1?"s":"")
+	     << " from " << hits->cnt() << " hit" << (hits->cnt()>1 ? "s" : "")
+	     << " on a (" << dim[0];
 	for (uint32_t i = 1; i < dim.size(); ++ i)
 	    lg() << " x " << dim[i];
 	lg() << ") mesh took " << t2 << " sec (elapsed)";
@@ -5152,7 +5154,7 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
 	npoints *= dim[i];
     if (npoints != bv.size()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- query::bitvectorToCoordinates -- "
+	    << "Warning -- meshQuery::bitvectorToCoordinates -- "
 	    << "the mesh dimensions (" << npoints
 	    << ") do not match the bitvector size (" << bv.size() << ")";
 	return -1;
@@ -5161,7 +5163,7 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
     switch (ndim) {
     case 0: {
 	LOGGER(ibis::gVerbose > 1)
-	    << "query::bitvectorToCoordinates -- nothing to do for a "
+	    << "meshQuery::bitvectorToCoordinates -- nothing to do for a "
 	    "0-dimensional mesh";
 	break;}
     case 1: {
@@ -5199,7 +5201,7 @@ int ibis::meshQuery::bitvectorToCoordinates(const ibis::bitvector& bv,
 	}
 	cnt = coords.size() / ndim;
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-	ibis::util::logger lg(4);
+	ibis::util::logger lg;
 	lg() << "DEBUG -- meshQuery::bitvectorToCoordinates "
 	     << "produced " << cnt << " points";
 	for (int i = 0; i < cnt; ++ i)
@@ -5474,10 +5476,30 @@ int ibis::meshQuery::label2DBlocks
 	    blocks[prev][2] < blocks[curr][3]) {
 	    size_t start = prev;
 	    lbl = afind(uf, labels[prev]);
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- label2DBlocks -- block[" << curr << "] ("
+		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
+		<< blocks[curr][2] << ", " << blocks[curr][3]
+		<< ") connects to block[" << prev << "] ("
+		<< blocks[prev][0] << ", " << blocks[prev][1] << ", "
+		<< blocks[prev][2] << ", " << blocks[prev][3]
+		<< "), label = " << labels[prev] << ", root = " << lbl;
+#endif
 	    for (++ prev;
 		 prev < line && blocks[prev][2] < blocks[curr][3];
 		 ++ prev) { // iterate through other matches
 		uint32_t tmp = afind(uf, labels[prev]);
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+		LOGGER(ibis::gVerbose > 4)
+		    << "DEBUG -- label2DBlocks -- block[" << curr << "] ("
+		    << blocks[curr][0] << ", " << blocks[curr][1] << ", "
+		    << blocks[curr][2] << ", " << blocks[curr][3]
+		    << ") connects to block[" << prev << "] ("
+		    << blocks[prev][0] << ", " << blocks[prev][1] << ", "
+		    << blocks[prev][2] << ", " << blocks[prev][3]
+		    << "), label = " << labels[prev] << ", root = " << tmp;
+#endif
 		cnt += (lbl != tmp);
 		if (tmp < lbl) lbl = tmp;
 	    }
@@ -5616,7 +5638,7 @@ int ibis::meshQuery::label3DBlocks
 	    blocks[prevp][5] > blocks[curr][4]) {
 	    size_t startp = prevp;
 	    lbl = afind(uf, labels[prevp]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose > 4)
 		<< "DEBUG -- label3DBlocks -- block[" << curr << "] ("
 		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
@@ -5626,8 +5648,7 @@ int ibis::meshQuery::label3DBlocks
 		<< blocks[prevp][0] << ", " << blocks[prevp][1] << ", "
 		<< blocks[prevp][2] << ", " << blocks[prevp][3] << ", "
 		<< blocks[prevp][4] << ", " << blocks[prevp][5]
-		<< "), label = " << labels[prevp]
-		<< ", root = " << lbl;
+		<< "), label = " << labels[prevp] << ", root = " << lbl;
 #endif
 	    for (++ prevp;
 		 prevp < plane &&
@@ -5637,7 +5658,7 @@ int ibis::meshQuery::label3DBlocks
 		 blocks[prevp][4]  < blocks[curr ][5];
 		 ++ prevp) {
 		const uint32_t tmp = afind(uf, labels[prevp]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 		LOGGER(ibis::gVerbose > 4)
 		    << "DEBUG -- label3DBlocks -- block[" << curr << "] ("
 		    << blocks[curr][0] << ", " << blocks[curr][1] << ", "
@@ -5647,8 +5668,7 @@ int ibis::meshQuery::label3DBlocks
 		    << blocks[prevp][0] << ", " << blocks[prevp][1] << ", "
 		    << blocks[prevp][2] << ", " << blocks[prevp][3] << ", "
 		    << blocks[prevp][4] << ", " << blocks[prevp][5]
-		    << "), label = " << labels[prevp]
-		    << ", root = " << tmp;
+		    << "), label = " << labels[prevp] << ", root = " << tmp;
 #endif
 		cnt += (tmp != lbl);
 		if (tmp < lbl) lbl = tmp;
@@ -5663,7 +5683,7 @@ int ibis::meshQuery::label3DBlocks
 		       blocks[prevl][4]  < blocks[curr][5] &&
 		       blocks[prevl][5]  > blocks[curr][4]) {
 		    const uint32_t tmp = afind(uf, labels[prevl]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose > 4)
 			<< "DEBUG -- label3DBlocks -- block[" << curr
 			<< "] (" << blocks[curr][0] << ", "
@@ -5698,7 +5718,7 @@ int ibis::meshQuery::label3DBlocks
 	    blocks[prevl][5]  > blocks[curr][4]) {
 	    size_t startl = prevl;
 	    lbl = afind(uf, labels[prevl]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose > 4)
 		<< "DEBUG -- label3DBlocks -- block[" << curr << "] ("
 		<< blocks[curr][0] << ", " << blocks[curr][1] << ", "
@@ -5718,7 +5738,7 @@ int ibis::meshQuery::label3DBlocks
 		     blocks[prevl][5]  > blocks[curr][4];
 		 ++ prevl) {
 		const uint32_t tmp = afind(uf, labels[prevl]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 		LOGGER(ibis::gVerbose > 4)
 		    << "DEBUG -- label3DBlocks -- block[" << curr << "] ("
 		    << blocks[curr][0] << ", " << blocks[curr][1] << ", "
@@ -5909,7 +5929,7 @@ int ibis::meshQuery::label4DBlocks
 		 blocks[zme][6] < blocks[j][7];
 	     ++ zme) {
 	    const uint32_t tmp = afind(uf, labels[zme]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose > 4)
 		<< "DEBUG -- label4DBlocks -- block[" << j << "] ("
 		<< blocks[j][0] << ", " << blocks[j][1] << ", "
@@ -5934,7 +5954,7 @@ int ibis::meshQuery::label4DBlocks
 		 blocks[yme][6] < blocks[j][7];
 	     ++ yme) {
 	    const uint32_t tmp = afind(uf, labels[yme]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose > 4)
 		<< "DEBUG -- label4DBlocks -- block[" << j << "] ("
 		<< blocks[j][0] << ", " << blocks[j][1] << ", "
@@ -5957,7 +5977,7 @@ int ibis::meshQuery::label4DBlocks
 		 blocks[xme][6] < blocks[j][7];
 	     ++ xme) {
 	    const uint32_t tmp = afind(uf, labels[xme]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 	    LOGGER(ibis::gVerbose > 4)
 		<< "DEBUG -- label4DBlocks -- block[" << j << "] ("
 		<< blocks[j][0] << ", " << blocks[j][1] << ", "
@@ -6162,7 +6182,7 @@ int ibis::meshQuery::labelBlocks
 			    blocks[j][i1+i1] < blocks[k][i1+i1+1]);
 		if (more) { // found a match
 		    const uint32_t tmp = afind(uf, labels[k]);
-#if defined(_DEBUG)
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
 		    if (ibis::gVerbose > 4) {
 			ibis::util::logger lg;
 			lg() << "DEBUG -- labelBlocks -- block[" << j << "] ("
@@ -6221,3 +6241,1441 @@ int ibis::meshQuery::labelBlocks
 	<< (cnt>1 ? "s" : "");
     return cnt;
 } // ibis::meshQuery::labelBlocks
+
+/// Convert the hit vector into a list of line segments.  The underlying
+/// data is assumed to be defined a simple regular mesh.  The shape of the
+/// mesh is defined by the argument dim, where dim[0] is the slowest
+/// varying dimension.  A line segment here is a group of nodes sharing the
+/// same coordinates in all dimensions expected the fastest varying one and
+/// having consecutive coordiantes in the fastest varying dimension.  Each
+/// line segement is represented by (dim.size()+1) consecutive values in
+/// the array lines.  The first (dim.size()-1) values are the shared
+/// coordinates in the first (dim.size()-1) dimensions, element dim.size()
+/// is the coordinate of the first node in dimension dim.size() and the
+/// last element is the coordinate of the point just beyond the last node
+/// in the line segement.  For example, on a 2D mesh, the line segment (11,
+/// 2, 5) contains three nodes with the coordinates (11, 2), (11, 3) and
+/// (11, 4).  On a 3D mesh, the line segment (4, 8, 1, 3) contains two
+/// points with coordinates (4, 8, 1) and (4, 8, 2).
+int ibis::meshQuery::getHitsAsLines(std::vector<uint32_t>& lines,
+				    const std::vector<uint32_t>& dim) const {
+    lines.clear();
+    if (dim.empty()) return -4;
+    if (state == FULL_EVALUATE || state == QUICK_ESTIMATE) {
+	if (hits == 0 || hits->cnt() == 0) {
+	    return 0;
+	}
+    }
+    else {
+	return -3;
+    }
+
+    int ret;
+    ibis::horometer timer;
+    timer.start();
+    switch (dim.size()) {
+    case 1:
+	ret = linesIn1D(lines);
+	break;
+    case 2:
+	ret = linesIn2D(lines, dim);
+	break;
+    case 3:
+	ret = linesIn3D(lines, dim);
+	break;
+    case 4:
+	ret = linesIn4D(lines, dim);
+	break;
+    default:
+	ret = linesInND(lines, dim);
+    }
+    if (ret <= 0) return ret;
+
+    timer.stop();
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery::getHitsAsLines -- coverting " << hits->cnt()
+	<< " hit" << (hits->cnt()>1?"s":"") << " into " << ret
+	<< " line segement" << (ret > 1 ? "s" : "") << " took "
+	<< timer.realTime() << " sec (elapsed)";
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+    if (dim.size() < 5) {
+	std::vector<uint32_t> tmp;
+	int res = linesInND(tmp, dim);
+	bool diff = (tmp.size() != lines.size() ||
+		     res*(dim.size()+1) != tmp.size());
+	for (size_t j = 0; j < lines.size() && ! diff; ++ j)
+	    diff = (tmp[j] != lines[j]);
+	if (diff) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- meshQuery::getHitsAsLine on a " << dim[0];
+	    for (unsigned j = 1; j < dim.size(); ++ j)
+		lg() << " x " << dim[j];
+	    lg() << " mesh failed to produce consistent results";
+	    const size_t mx = (tmp.size() >= lines.size() ? tmp.size() :
+			       lines.size());
+	    for (size_t j = 0; j < mx; j += dim.size()+1) {
+		const size_t j2 = j + dim.size() + 1;
+		if (j2 <= lines.size() && j2 <= tmp.size()) {
+		    diff = false;
+		    for (size_t j1 = j; j1 < j2 && ! diff; ++ j1)
+			diff = (lines[j1] != tmp[j1]);
+		    if (diff || ibis::gVerbose > 6) {
+			lg() << "\n" << j / (dim.size()+1) << ":\t("
+			     << lines[j];
+			for (size_t j1 = j+1; j1 < j2; ++ j1)
+			    lg() << ", " << lines[j1];
+			lg() << ")\t(" << tmp[j];
+			for (size_t j1 = j+1; j1 < j2; ++ j1)
+			    lg() << ", " << tmp[j1];
+			lg() << ")" << (diff ? "\t*" : "");
+		    }
+		}
+		else if (j2 <= lines.size()) {
+		    lg() << "\n" << j / (dim.size()+1) << ":\t(" << lines[j];
+		    for (size_t j1 = j+1; j1 < j2; ++ j1)
+			lg() << ", " << lines[j1];
+		    lg() << ")\t()\t*";
+		}
+		else if (j2 <= tmp.size()) {
+		    lg() << "\n" <<  j / (dim.size()+1) << ":\t()\t(" << tmp[j];
+		    for (size_t j1 = j+1; j1 < j2; ++ j1)
+			lg() << ", " << tmp[j1];
+		    lg() << ")" << (diff ? "\t*" : "");
+		}
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 4)
+		<< "meshQuery::getHitsAsLines produce consistent results";
+	}
+    }
+#endif
+    return ret;
+} // ibis::meshQuery::getHitsAsLines
+
+/// Convert the hits into line segements on a 1-D mesh.
+int ibis::meshQuery::linesIn1D(std::vector<uint32_t>& lines) const {
+    lines.clear();
+    if (hits == 0) return -3;
+    if (hits->cnt() == 0) return 0;
+
+    lines.reserve(hits->getSerialSize()/sizeof(ibis::bitvector::word_t));
+    for (ibis::bitvector::indexSet ix = hits->firstIndexSet();
+	 ix.nIndices() > 0;
+	 ++ ix) {
+	const ibis::bitvector::word_t *inds = ix.indices();
+	if (ix.isRange()) {
+	    if (lines.empty()) {
+		lines.push_back(inds[0]);
+	    }
+	    else if (lines.back() >= inds[0]) {
+		lines.pop_back();
+	    }
+	    else {
+		lines.push_back(inds[0]);
+	    }
+	    lines.push_back(inds[1]);
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		if (lines.empty()) { // a new line segment
+		    lines.push_back(inds[j]);
+		    lines.push_back(inds[j]+1);
+		}
+		else if (lines.back() == inds[j]) {
+		    // the last line is connected to this point
+		    ++ (lines.back());
+		}
+		else {
+		    lines.push_back(inds[j]);
+		    lines.push_back(inds[j]+1);
+		}
+	    }
+	}
+    }
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery[" << id() << "]::linesIn1D converted " << hits->cnt()
+	<< " hit" << (hits->cnt()>1?"s":"") << " into " << lines.size()/2
+	<< " line segment" << (lines.size()>2?"s":"");
+    return lines.size()/2;
+} // ibis::meshQuery::linesIn1D
+
+/// Convert the hits into line segments on a 2-D mesh.
+int ibis::meshQuery::linesIn2D(std::vector<uint32_t>& lines,
+			       const std::vector<uint32_t>& dim) const {
+    lines.clear();
+    if (hits == 0) return -3;
+    if (dim.size() != 2) return -2;
+    if (hits->cnt() == 0) return 0;
+
+    const uint32_t nx = dim[1]; // name the faster varying dimension X
+    if (hits->size() != dim[1] * dim[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- meshQuery[" << id()
+	    << "]::linesIn2D can not proceed because the bitvector size ("
+	    << hits->size() << ") does not match with mesh size (" << dim[0]
+	    << " x " << dim[1] << " == " << dim[1]*dim[0] << ')';
+	return -1;
+    }
+
+    uint32_t jx0, jy0, jx1, jy1; // coordinates of the curent points
+    for (ibis::bitvector::indexSet ix = hits->firstIndexSet();
+	 ix.nIndices() > 0;
+	 ++ ix) {
+	const ibis::bitvector::word_t *inds = ix.indices();
+	if (ix.isRange()) {
+	    jy0 = inds[0] / nx;
+	    jx0 = inds[0] % nx;
+	    jy1 = inds[1] / nx;
+	    jx1 = inds[1] % nx;
+	    if (lines.size() < 3 ||
+		lines[lines.size()-3] != jy0 ||
+		lines.back() != jx0) {
+		lines.push_back(jy0);
+		lines.push_back(jx0);
+		lines.push_back(jx0);
+	    }
+	    if (jy1 <= jy0) { // on the same line
+		lines.back() = jx1;
+	    }
+	    else { // span multiple mesh lines
+		// complete the current line
+		lines.back() = nx;
+		// generate line segements spanning whole mesh lines
+		for (++ jy0; jy0 < jy1; ++ jy0) {
+		    lines.push_back(jy0);
+		    lines.push_back(0U);
+		    lines.push_back(nx);
+		}
+		// tailing portion
+		if (jx1 > 0) {
+		    lines.push_back(jy1);
+		    lines.push_back(0U);
+		    lines.push_back(jx1);
+		}
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		jy0 = inds[j] / nx;
+		jx0 = inds[j] % nx;
+		if (lines.size() < 3 ||
+		    lines[lines.size()-3] != jy0 ||
+		    lines.back() != jx0) { // a new line segement
+		    lines.push_back(jy0);
+		    lines.push_back(jx0);
+		    lines.push_back(jx0+1);
+		}
+		else { // extend the last line segment by one point
+		    ++ lines.back();
+		}
+	    }
+	}
+    }
+    jx0 = lines.size() / 3;
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery[" << id() << "]::linesIn2D converted " << hits->cnt()
+	<< " hit" << (hits->cnt()>1?"s":"") << " into " << jx0
+	<< " line segment" << (jx0>1?"s":"");
+    return jx0;
+} // ibis::meshQuery::linesIn2D
+
+/// Convert hits into line segments in 3-D.
+int ibis::meshQuery::linesIn3D(std::vector<uint32_t>& lines,
+			       const std::vector<uint32_t>& dim) const {
+    lines.clear();
+    if (hits == 0) return -3;
+    if (dim.size() != 3) return -2;
+    if (hits->cnt() == 0) return 0;
+
+    // the three axes are named Z, Y, and X, corresponding to dim[0],
+    // dim[1], and dim[2]
+    // numer of points on the fastest varying direction
+    const uint32_t nx = dim[2];
+    // number of points in a Y-X plane
+    const uint32_t nxy = dim[2]*dim[1];
+    if (hits->size() != nxy*dim[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- meshQuery[" << id()
+	    << "]::linesIn3D can not proceed because the bitvector size ("
+	    << hits->size() << ") does not match with mesh size (" << dim[0]
+	    << " x " << dim[1] << " x " << dim[2] << " == " << nxy*dim[0]
+	    << ')';
+	return -1;
+    }
+
+    uint32_t jx0, jy0, jz0, jx1, jy1, jz1; // coordinates of the curent points
+    for (ibis::bitvector::indexSet ix = hits->firstIndexSet();
+	 ix.nIndices() > 0;
+	 ++ ix) {
+	const ibis::bitvector::word_t *inds = ix.indices();
+	if (ix.isRange()) {
+	    jz0 = inds[0] / nxy;
+	    jy0 = (inds[0] % nxy) / nx;
+	    jx0 = inds[0] % nx;
+	    jz1 = inds[1] / nxy;
+	    jy1 = (inds[1] % nxy) / nx;
+	    jx1 = inds[1] % nx;
+	    if (lines.size() < 4 ||
+		lines[lines.size()-4] != jz0 ||
+		lines[lines.size()-3] != jy0 ||
+		lines.back() != jx0) {
+		lines.push_back(jz0);
+		lines.push_back(jy0);
+		lines.push_back(jx0);
+		lines.push_back(jx0);
+	    }
+	    if (jz0 >= jz1) { // in the same mesh plane
+		if (jy0 >= jy1) { // on the same mesh line
+		    lines.back() = jx1;
+		}
+		else {
+		    // complete the current mesh line
+		    lines.back() = nx;
+		    // whole lines
+		    for (++ jy0; jy0 < jy1; ++ jy0) {
+			lines.push_back(jz0);
+			lines.push_back(jy0);
+			lines.push_back(0U);
+			lines.push_back(nx);
+		    }
+		    if (jx1 > 0) { // trailing line
+			lines.push_back(jz0);
+			lines.push_back(jy1);
+			lines.push_back(0U);
+			lines.push_back(jx1);
+		    }
+		}
+	    }
+	    else { // spanning multiple planes
+		// complete the current line
+		lines.back() = nx;
+		// whole lines in the maining part of plane
+		for (++ jy0; jy0 < dim[1]; ++ jy0) {
+		    lines.push_back(jz0);
+		    lines.push_back(jy0);
+		    lines.push_back(0U);
+		    lines.push_back(nx);
+		}
+		// whole planes
+		for (++ jz0; jz0 < jz1; ++ jz0) {
+		    for (jy0 = 0; jy0 < dim[1]; ++ jy0) {
+			lines.push_back(jz0);
+			lines.push_back(jy0);
+			lines.push_back(0U);
+			lines.push_back(nx);
+		    }
+		}
+		// while lines in the trailing plane
+		for (jy0 = 0; jy0 < jy1; ++ jy0) {
+		    lines.push_back(jz1);
+		    lines.push_back(jy1);
+		    lines.push_back(0U);
+		    lines.push_back(nx);
+		}
+		if (jx1 > 0) { // trailing line
+		    lines.push_back(jz1);
+		    lines.push_back(jy1);
+		    lines.push_back(0U);
+		    lines.push_back(jx1);
+		}
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		jz0 = inds[j] / nxy;
+		jy0 = (inds[j] % nxy) / nx;
+		jx0 = inds[j] % nx;
+		if (lines.size() < 4 ||
+		    lines[lines.size()-4] != jz0 ||
+		    lines[lines.size()-3] != jy0 ||
+		    lines.back() != jx0) { // a new line segement
+		    lines.push_back(jz0);
+		    lines.push_back(jy0);
+		    lines.push_back(jx0);
+		    lines.push_back(jx0+1);
+		}
+		else { // extend the last line segement by 1 point
+		    ++ lines.back();
+		}
+	    }
+	}
+    }
+    jx0 = lines.size() / 4;
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery[" << id() << "]::linesIn3D converted " << hits->cnt()
+	<< " hit" << (hits->cnt()>1?"s":"") << " into " << jx0
+	<< " line segment" << (jx0>1?"s":"");
+    return jx0;
+} // ibis::meshQuery::linesIn3D
+
+/// Convert hits into line segments in 4-D.
+int ibis::meshQuery::linesIn4D(std::vector<uint32_t>& lines,
+			       const std::vector<uint32_t>& dim) const {
+    lines.clear();
+    if (hits == 0) return -3;
+    if (dim.size() != 4) return -2;
+    if (hits->cnt() == 0) return 0;
+
+    // the three axes are named Z, Y, X, and W, corresponding to dim[0],
+    // dim[1], dim[2] and dim[3]
+    // numer of points on the fastest varying direction
+    const uint32_t nw = dim[3];
+    // number of points in a X-W plane
+    const uint32_t nxw = dim[2]*dim[3];
+    // number of point in a Y-X-W cube
+    const uint32_t nyxw = dim[1]*dim[2]*dim[3];
+    if (hits->size() != nyxw * dim[0]) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- meshQuery[" << id()
+	    << "]::linesIn4D can not proceed because the bitvector size ("
+	    << hits->size() << ") does not match with mesh size (" << dim[0]
+	    << " x " << dim[1] << " x " << dim[2] << " x " << dim[3]
+	    << " == " << nyxw*dim[0] << ')';
+	return -1;
+    }
+
+    uint32_t jw0, jx0, jy0, jz0, jw1, jx1, jy1, jz1; // coordinates
+    for (ibis::bitvector::indexSet ix = hits->firstIndexSet();
+	 ix.nIndices() > 0;
+	 ++ ix) {
+	const ibis::bitvector::word_t *inds = ix.indices();
+	if (ix.isRange()) {
+	    jz0 = inds[0] / nyxw;
+	    jy0 = (inds[0] % nyxw) / nxw;
+	    jx0 = (inds[0] % nxw) / nw;
+	    jw0 = inds[0] % nw;
+	    jz1 = inds[1] / nyxw;
+	    jy1 = (inds[1] % nyxw) / nxw;
+	    jx1 = (inds[1] % nxw) / nw;
+	    jw1 = inds[1] % nw;
+	    if (lines.size() < 5 ||
+		lines[lines.size()-5] != jz0 ||
+		lines[lines.size()-4] != jy0 ||
+		lines[lines.size()-3] != jx0 ||
+		lines.back() != jw0) {
+		lines.push_back(jz0);
+		lines.push_back(jy0);
+		lines.push_back(jx0);
+		lines.push_back(jw0);
+		lines.push_back(jw0);
+	    }
+	    if (jz0 >= jz1) { // in the same cube
+		if (jy0 >= jy1) { // in the same plane
+		    if (jx0 >= jx1) { // on the same line
+			lines.back() = jw1;
+		    }
+		    else {
+			// complete the current mesh line
+			lines.back() = nw;
+			// whole lines
+			for (++ jx0; jx0 < jx1; ++ jx0) {
+			    lines.push_back(jz0);
+			    lines.push_back(jy0);
+			    lines.push_back(jx0);
+			    lines.push_back(0U);
+			    lines.push_back(nw);
+			}
+			if (jw1 > 0) { // trailing line
+			    lines.push_back(jz0);
+			    lines.push_back(jy0);
+			    lines.push_back(jx1);
+			    lines.push_back(0U);
+			    lines.push_back(jw1);
+			}
+		    }
+		}
+		else { // spanning multiple planes
+		    // complete the current line
+		    lines.back() = nw;
+		    // whole lines in the maining part of plane
+		    for (++ jx0; jx0 < dim[2]; ++ jx0) {
+			lines.push_back(jz0);
+			lines.push_back(jy0);
+			lines.push_back(jx0);
+			lines.push_back(0U);
+			lines.push_back(nw);
+		    }
+		    // whole planes
+		    for (++ jy0; jy0 < jy1; ++ jy0) {
+			for (jx0 = 0; jx0 < dim[2]; ++ jx0) {
+			    lines.push_back(jz0);
+			    lines.push_back(jy0);
+			    lines.push_back(jx0);
+			    lines.push_back(0U);
+			    lines.push_back(nw);
+			}
+		    }
+		    // while lines in the trailing plane
+		    for (jx0 = 0; jx0 < jx1; ++ jx0) {
+			lines.push_back(jz0);
+			lines.push_back(jy0);
+			lines.push_back(jx0);
+			lines.push_back(0U);
+			lines.push_back(nw);
+		    }
+		    if (jw1 > 0) { // trailing line
+			lines.push_back(jz0);
+			lines.push_back(jy0);
+			lines.push_back(jx0);
+			lines.push_back(0U);
+			lines.push_back(jw1);
+		    }
+		}
+	    }
+	    else { // spanning multiple cubes
+		// complete the line
+		lines.back() = nw;
+		// remaining part of the plane
+		for (++ jx0; jx0 < dim[2]; ++ jx0) {
+		    lines.push_back(jz0);
+		    lines.push_back(jy0);
+		    lines.push_back(jx0);
+		    lines.push_back(0U);
+		    lines.push_back(nw);
+		}
+		// remain plane in the current cube
+		for (++ jy0; jy0 < dim[1]; ++ jy0) {
+		    for (jx0 = 0; jx0 < dim[2]; ++ jx0) {
+			lines.push_back(jz0);
+			lines.push_back(jy0);
+			lines.push_back(jx0);
+			lines.push_back(0U);
+			lines.push_back(nw);
+		    }
+		}
+		// whole cubes
+		for (++ jz0; jz0 < jz1; ++ jz0) {
+		    for (jy0 = 0; jy0 < dim[1]; ++ jy0) {
+			for (jx0 = 0; jx0 < dim[2]; ++ jx0) {
+			    lines.push_back(jz0);
+			    lines.push_back(jy0);
+			    lines.push_back(jx0);
+			    lines.push_back(0U);
+			    lines.push_back(nw);
+			}
+		    }
+		}
+		// planes in the trailing cube
+		for (jy0 = 0; jy0 < jy1; ++ jy0) {
+		    for (jx0 = 0; jx0 < dim[2]; ++ jx0) {
+			lines.push_back(jz0);
+			lines.push_back(jy0);
+			lines.push_back(jx0);
+			lines.push_back(0U);
+			lines.push_back(nw);
+		    }
+		}
+		// lines in the trailing plane
+		for (jx0 = 0; jx0 < jx1; ++ jx0) {
+		    lines.push_back(jz0);
+		    lines.push_back(jy0);
+		    lines.push_back(jx0);
+		    lines.push_back(0U);
+		    lines.push_back(nw);
+		}
+		if (jw1 > 0) { // trailing line
+		    lines.push_back(jz0);
+		    lines.push_back(jy0);
+		    lines.push_back(jx0);
+		    lines.push_back(0U);
+		    lines.push_back(jw1);
+		}
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		jz0 = inds[j] / nyxw;
+		jy0 = (inds[j] % nyxw) / nxw;
+		jx0 = (inds[j] % nxw) / nw;
+		jw0 = inds[j] % nw;
+		if (lines.size() < 5 ||
+		    lines[lines.size()-5] != jz0 ||
+		    lines[lines.size()-4] != jy0 ||
+		    lines[lines.size()-3] != jx0 ||
+		    lines.back() != jw0) { // a new line segement
+		    lines.push_back(jz0);
+		    lines.push_back(jy0);
+		    lines.push_back(jx0);
+		    lines.push_back(jw0);
+		    lines.push_back(jw0+1);
+		}
+		else { // extend the last line segement by 1 point
+		    ++ lines.back();
+		}
+	    }
+	}
+    }
+    jx0 = lines.size() / 5;
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery[" << id() << "]::linesIn4D converted " << hits->cnt()
+	<< " hit" << (hits->cnt()>1?"s":"") << " into " << jx0
+	<< " line segment" << (jx0>1?"s":"");
+    jy0 = 0;
+    for (size_t j = 3; j < lines.size(); j += 5)
+	jy0 += (lines[j+1] - lines[j]);
+    LOGGER(jy0 != hits->cnt())
+	<< "Warning -- meshQuery[" << id() << "]::linesIn4D the number of "
+	"points in the line segments (" << jy0 << ") is expected to be the "
+	"same as the number of hits (" << hits->cnt() << "), but they are not";
+    return jx0;
+} // ibis::meshQuery::linesIn4D
+
+/// Convert hits into line segments in a regular mesh of any dimension.
+int ibis::meshQuery::linesInND(std::vector<uint32_t>& lines,
+			       const std::vector<uint32_t>& dim) const {
+    lines.clear();
+    if (hits == 0) return -3;
+    if (dim.empty()) return -2;
+    if (hits->cnt() == 0) return 0;
+    if (dim.size() == 1) return linesIn1D(lines);
+
+    std::vector<uint32_t> nn(dim);
+    for (unsigned j = dim.size()-1; j > 0; -- j)
+	nn[j-1] *= nn[j];
+    if (nn[0] != hits->size()) {
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- meshQuery[" << id()
+		 << "]::linesInND can not proceed because the bitvector size ("
+		 << hits->size() << ") does not match with mesh size ("
+		 << dim[0];
+	    for (size_t j = 1; j < dim.size(); ++ j)
+		lg() << " x " << dim[j];
+	    lg() << " == " << nn[0] << ')';
+	}
+	return -1;
+    }
+
+    const unsigned ndim = dim.size();
+    const unsigned ndm1 = dim.size() - 1;
+    std::vector<uint32_t> j0(dim.size());
+    for (ibis::bitvector::indexSet ix = hits->firstIndexSet();
+	 ix.nIndices() > 0;
+	 ++ ix) {
+	const ibis::bitvector::word_t *inds = ix.indices();
+	if (ix.isRange()) {
+	    std::vector<uint32_t> j1;
+	    uint32_t t0 = inds[0] % nn[1];
+	    uint32_t t1 = inds[1] % nn[1];
+	    j0[0] = inds[0] / nn[1];
+	    j1[0] = inds[1] / nn[1];
+	    for (unsigned j = 1; j < ndm1; ++ j) {
+		j0[j] = t0 / nn[j+1];
+		j1[j] = t1 / nn[j+1];
+		t0 -= j0[j] * nn[j+1];
+		t1 -= j1[j] * nn[j+1];
+	    }
+	    j0.back() = t0;
+	    j1.back() = t1;
+	    bool startnew = (lines.size() <= ndim);
+	    if (startnew == false) {
+		size_t pos = lines.size() - ndim - 1;
+		startnew = (lines.back() != j0.back());
+		for (unsigned j = 0; j < ndm1 && startnew == false;
+		     ++ j, ++ pos) {
+		    startnew = (lines[pos] != j0[j]);
+		}
+	    }
+	    if (startnew) { // start a new line segement (empty)
+		for (unsigned j = 0; j < ndim; ++ j)
+		    lines.push_back(j0[j]);
+		lines.push_back(j0.back());
+	    }
+
+	    t0 = inds[0] / dim.back();
+	    t1 = inds[1] / dim.back();
+	    if (t0 >= t1) { // assume the last dimension is different
+		lines.back() = j1.back();
+	    }
+	    else {
+		// complete the current line
+		lines.back() = dim.back();
+		// t0 and t1 can be considered as line numbers here
+		for (++ t0; t0 < t1; ++ t0) {
+		    uint32_t t2 = t0 * dim.back();
+		    lines.push_back(t2 / nn[1]);
+		    for (unsigned j = 1; j < ndm1; ++ j) {
+			t2 = t2 % nn[j];
+			lines.push_back(t2 / nn[j+1]);
+		    }
+		    lines.push_back(0U);
+		    lines.push_back(dim.back());
+		}
+		if (j1.back() > 0) {
+		    for (unsigned j = 0; j < ndm1; ++ j)
+			lines.push_back(j1[j]);
+		    lines.push_back(0U);
+		    lines.push_back(j1.back());
+		}
+	    }
+	}
+	else {
+	    for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		uint32_t t0 = inds[j];
+		j0[0] = inds[j] / nn[1];
+		for (unsigned j = 1; j < ndm1; ++ j) {
+		    t0 = t0 % nn[j];
+		    j0[j] = t0 / nn[j+1];
+		}
+		j0.back() = t0 % dim.back();
+		bool startnew = (lines.size() <= ndim);
+		if (startnew == false) {
+		    size_t pos = lines.size() - ndim - 1;
+		    startnew = (lines.back() != j0.back());
+		    for (unsigned j = 0; j < ndm1 && !startnew; ++ j, ++ pos)
+			startnew = (lines[pos] != j0[j]);
+		}
+		if (startnew) {
+		    for (unsigned j = 0; j < ndm1; ++ j)
+			lines.push_back(j0[j]);
+		    lines.push_back(j0.back());
+		    lines.push_back(j0.back()+1);
+		}
+		else {
+		    ++ lines.back();
+		}
+	    }
+	}
+    }
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery[" << id() << "]::linesInND converted " << hits->cnt()
+	<< " hit" << (hits->cnt()>1?"s":"") << " into "
+	<< lines.size() / (ndim+1) << " line segment"
+	<< (lines.size() > (ndim+1) ? "s" : "") << " in a " << ndim
+	<< "-D mesh";
+    nn[0] = 0;
+    for (size_t j = ndm1; j < lines.size(); j += ndim+1)
+	nn[0] += (lines[j+1] - lines[j]);
+    LOGGER(nn[0] != hits->cnt())
+	<< "Warning -- meshQuery[" << id() << "]::linesIn4D the number of "
+	"points in the line segments (" << nn[0] << ") is expected to be the "
+	"same as the number of hits (" << hits->cnt() << "), but they are not";
+    return lines.size() / (ndim+1);
+} // ibis::meshQuery::linesInND
+
+int ibis::meshQuery::labelLines(uint32_t nd,
+				const std::vector<uint32_t>& lines,
+				std::vector<uint32_t>& labels) {
+    int ret = 0;
+    switch (nd) {
+    case 0:
+	ret = -4;
+	break;
+    case 1:
+	ret = labelLines1(lines, labels);
+	break;
+    case 2:
+	ret = labelLines2(lines, labels);
+	break;
+    case 3:
+	ret = labelLines3(lines, labels);
+	break;
+    case 4:
+	ret = labelLines4(lines, labels);
+	break;
+    default:
+	ret = labelLinesN(nd, lines, labels);
+	break;
+    }
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+    if (nd > 1 && nd < 5) {
+	ibis::util::logger lg;
+	std::vector<uint32_t> tmp;
+	int res = labelLinesN(nd, lines, tmp);
+	bool diff = (tmp.size() != labels.size() || res < 0);
+	for (size_t j = 0; j < labels.size() && !diff; ++ j) {
+	    diff = (labels[j] != tmp[j]);
+	}
+	if (diff) {
+	    size_t cnt = 0;
+	    const size_t mx = (labels.size() >= tmp.size() ?
+			       labels.size() : tmp.size());
+	    lg() << "Warning -- meshQuery::labelLines found mismatching "
+		"labels";
+	    for (size_t j = 0; j < mx; ++ j) {
+		const size_t joff = (nd+1) * j;
+		if (j < labels.size() && j < tmp.size()) {
+		    cnt += (labels[j] != tmp[j]);
+		    if (labels[j] != tmp[j] || ibis::gVerbose > 6) {
+			lg() << "\n" << joff << ":\t(" << lines[joff];
+			for (unsigned ii = 1; ii <= nd; ++ ii)
+			    lg() << ", " << lines[joff+ii];
+			lg() << ")\tlabel1 = " << labels[j]
+			     << "\tlabel2 = " << tmp[j];
+		    }
+		}
+		else if (j < labels.size()) {
+		    ++ cnt;
+		    lg() << "\n" << joff << ":\t(" << lines[joff];
+		    for (unsigned ii = 1; ii <= nd; ++ ii)
+			lg() << ", " << lines[joff+ii];
+		    lg() << ")\tlabel1 = " << labels[j]
+			 << "\tlabel2 = *";
+		}
+		else if (j < tmp.size()) {
+		    ++ cnt;
+		    lg() << "\n" << joff << ":\t(" << lines[joff];
+		    for (unsigned ii = 1; ii <= nd; ++ ii)
+			lg() << ", " << lines[joff+ii];
+		    lg() << ")\tlabel1 = *\tlabel2 = "
+			 << tmp[j];
+		}
+	    }
+	    lg() << "\n  " << cnt << " mismatch" << (cnt>1?"es":"") << " found";
+	}
+	else if (ibis::gVerbose > 4) {
+	    lg() << "meshQuery::labelLines found no mismatch";
+	}
+    }
+#endif
+    return ret;
+} // ibis::meshQuery::labelLines
+
+/// Label line segements on a 1D mesh.
+int ibis::meshQuery::labelLines1(const std::vector<uint32_t>& lines,
+				 std::vector<uint32_t>& labels) {
+    if (lines.size() % 2 != 0) return -6;
+    try {
+	labels.resize(lines.size()/2);
+    }
+    catch (...) {
+	labels.clear();
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- meshQuery::labelLines1 failed to allocate "
+	    "enough space for labels";
+	return -5;
+    }
+
+    uint32_t lbl = 1;
+    labels[0] = 0;
+    for (size_t j = 2; j < lines.size(); j += 2) {
+	labels[j/2] = lbl;
+	lbl += (lines[j] > lines[j-1]);
+    }
+    return lbl;
+} // ibis::meshQuery::labelLines1
+
+int ibis::meshQuery::labelLines2(const std::vector<uint32_t>& lines,
+				 std::vector<uint32_t>& labels) {
+    if (lines.size() % 3 != 0) return -6;
+    try {
+	labels.resize(lines.size()/3);
+    }
+    catch (...) {
+	labels.clear();
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- meshQuery::labelLines2 failed to allocate "
+	    "enough space for labels";
+	return -5;
+    }
+
+    if (lines.size() == 3) {
+	labels[0] = 0;
+	return 1;
+    }
+
+    size_t ma = 0; // marker for the beginning of the mesh line
+    size_t ms = 0; // match start
+    size_t me = 0;
+    uint32_t lbl = 0;
+    uint32_t cnt = 0;
+    ibis::array_t<uint32_t> uf; // array for union-find
+    uf.push_back(lbl);
+    labels[0] = lbl;
+    for (size_t j = 3; j < lines.size(); j += 3) {
+	if (lines[j] == lines[ma]) {
+	    // on the same mesh line
+	}
+	else if (lines[j] > lines[ma]) {
+	    // move to a new mesh line
+	    ma = j;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- meshQuery::labelLines2 expects line "
+		"segments to be in ascending order order, but ("
+		<< lines[j] << ", " << lines[j+1] << ", " << lines[j+2]
+		<< ") is not";
+	    return -2;
+	}
+
+	// move ms over nonmatching
+	ms = me;
+	while (ms < ma && lines[ms] < lines[j]-1)
+	    ms += 3;
+	while (ms < ma && lines[ms] == lines[j]-1 &&
+	       lines[ms+2] <= lines[j+1])
+	    ms += 3;
+	// any matches?
+	if (ms < ma && lines[ms] == lines[j]-1 &&
+	    lines[ms+2] > lines[j+1] &&
+	    lines[ms+1] < lines[j+2]) {
+	    lbl = afind(uf, labels[ms/3]);
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- line " << j << " (" << lines[j] << ", "
+		<< lines[j+1] << ", " << lines[j+2] << ") connects to "
+		<< ms << " (" << lines[ms] << ", " << lines[ms+1] << ", "
+		<< lines[ms+2] << "),\tlabel = " << labels[ms/3]
+		<< ", root = " << lbl;
+#endif
+	    for (me = ms+3;
+		 me < ma && lines[me] == lines[j]-1 &&
+		     lines[me+2] > lines[j+1] &&
+		     lines[me+1] < lines[j+2];
+		 me += 3) {
+		const uint32_t tmp = afind(uf, labels[me/3]);
+		cnt += (tmp != lbl);
+		if (tmp < lbl) lbl = tmp;
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+		LOGGER(ibis::gVerbose > 4)
+		    << "DEBUG -- line " << j << " (" << lines[j] << ", "
+		    << lines[j+1] << ", " << lines[j+2] << ") connects to "
+		    << me << " (" << lines[me] << ", " << lines[me+1] << ", "
+		    << lines[me+2] << "),\tlabel = " << labels[me/3]
+		    << ", root = " << tmp;
+#endif
+	    }
+	    for (size_t k = ms/3; k < me/3; ++ k)
+		aset(uf, labels[k], lbl);
+
+	    labels[j/3] = lbl;
+	}
+	else {
+	    lbl = uf.size();
+	    uf.push_back(lbl);
+	    labels[j/3] = lbl;
+	}
+    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "meshQuery::labelLines2 -- assigned " << uf.size()
+	<< " provisional label" << (uf.size()>1?"s":"") << " to "
+	<< lines.size()/3 << " line segments, encounted " << cnt
+	<< " pair" << (cnt>1?"s":"") << " of equivalent labels";
+
+    // flatten the union find trees
+    cnt = aflatten(uf);
+    // assign the final labels
+    me = labels.size();
+    for (size_t j = 0; j < me; ++ j)
+	labels[j] = uf[labels[j]];
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery::labelLines2 -- assigned " << cnt << " final label"
+	<< (cnt>1?"s":"") << " to " << lines.size()/3 << " line segments";
+    return cnt;
+} // ibis::meshQuery::labelLines2
+
+int ibis::meshQuery::labelLines3(const std::vector<uint32_t>& lines,
+				 std::vector<uint32_t>& labels) {
+    if (lines.size() % 4 != 0) return -6;
+    try {
+	labels.resize(lines.size()/4);
+    }
+    catch (...) {
+	labels.clear();
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- meshQuery::labelLines3 failed to allocate "
+	    "enough space for labels";
+	return -5;
+    }
+
+    uint32_t cnt = 0;
+    uint32_t lbl;
+    ibis::array_t<uint32_t> uf; // array for union-find
+    size_t ma0=0, ma1=0; // markers
+    size_t ms0, ms1, me0=0, me1=0;
+    uf.push_back(0);
+    labels[0] = 0;
+    for (size_t j = 4; j < lines.size(); j += 4) {
+	// move the markers
+	if (lines[j] == lines[ma0]) { // in the same plane
+	    if (lines[j+1] == lines[ma1+1]) { // on the same mesh line
+		// nothing to do here
+	    }
+	    else if (lines[j+1] > lines[ma1+1]) {
+		ma1 = j;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- meshQuery::labelLines3 expects line "
+		    "segments to be in ascending order order, but ("
+		    << lines[j] << ", " << lines[j+1] << ", " << lines[j+2]
+		    << ", " << lines[j+3] << ") is not";
+		return -2;
+	    }
+	}
+	else if (lines[j] > lines[ma0]) {
+	    // a new plane
+	    ma0 = j;
+	    ma1 = j;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- meshQuery::labelLines3 expects line "
+		"segments to be in ascending order order, but ("
+		<< lines[j] << ", " << lines[j+1] << ", " << lines[j+2]
+		<< ", " << lines[j+3] << ") is not";
+	    return -2;
+	}
+
+	// skip over nonmatching lines segements
+	ms0 = me0;
+	// ms0 points to an earlier plane
+	while (ms0 < ma0 && lines[ms0] < lines[j]-1)
+	    ms0 += 4;
+	// ms0 points to an earlier mesh line
+	while (ms0 < ma0 &&
+	       lines[ms0+1] < lines[j+1])
+	    ms0 += 4;
+	// ms0 points to the correct line, but the 3rd coordinate is too small
+	while (ms0 < ma0 &&
+	       lines[ms0+1] == lines[j+1] &&
+	       lines[ms0+3] <= lines[j+2])
+	    ms0 += 4;
+	// to make sure that ms1 is in the plane as lines[j]
+	ms1 = (me1 >= ma0 ? me1 : ma0);
+	// ms1 points to an earlier mesh line
+	while (ms1 < ma1 && lines[ms1+1] < lines[j+1]-1)
+	    ms1 += 4;
+	// on the same mesh line, but the 3rd coordinate is too small
+	while (ms1 < ma1 &&
+	       lines[ms1+3] <= lines[j+2])
+	    ms1 += 4;
+
+	lbl = uf.size();
+	for (me0 = ms0;
+	     me0 < ma0 && lines[me0+1] == lines[j+1] &&
+		 lines[me0+2] < lines[j+3] &&
+		 lines[me0+3] > lines[j+2];
+	     me0 += 4) {
+	    const uint32_t tmp = afind(uf, labels[me0/4]);
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- line " << j << " (" << lines[j] << ", "
+		<< lines[j+1] << ", " << lines[j+2] << ", " << lines[j+3]
+		<< ") connects to " << me0 << " (" << lines[me0]
+		<< ", " << lines[me0+1] << ", " << lines[me0+2]
+		<< ", " << lines[me0+3] << "),\tlabel = " << labels[me0/4]
+		<< ", root = " << tmp;
+#endif
+	    cnt += (lbl < uf.size() && lbl != tmp);
+	    if (tmp < lbl)
+		lbl = tmp;
+	}
+	for (me1 = ms1;
+	     me1 < ma1 && lines[me1+2] < lines[j+3] &&
+					 lines[me1+3] > lines[j+2];
+	     me1 += 4) {
+	    const uint32_t tmp = afind(uf, labels[me1/4]);
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- line " << j << " (" << lines[j] << ", "
+		<< lines[j+1] << ", " << lines[j+2] << ", " << lines[j+3]
+		<< ") connects to " << me1 << " (" << lines[me1]
+		<< ", " << lines[me1+1] << ", " << lines[me1+2]
+		<< ", " << lines[me1+3] << "),\tlabel = " << labels[me1/4]
+		<< ", root = " << tmp;
+#endif
+	    cnt += (lbl < uf.size() && lbl != tmp);
+	    if (tmp < lbl)
+		lbl = tmp;
+	}
+
+	if (lbl < uf.size()) {// unite the equivalent labels
+	    for (unsigned k = ms0/4; k < me0/4; ++ k)
+		aset(uf, labels[k], lbl);
+	    for (unsigned k = ms1/4; k < me1/4; ++ k)
+		aset(uf, labels[k], lbl);
+	}
+	else {
+	    uf.push_back(lbl);
+	}
+	labels[j/4] = lbl;
+    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "meshQuery::labelLines3 -- assigned " << uf.size()
+	<< " provisional label" << (uf.size()>1?"s":"") << " to "
+	<< lines.size()/4 << " line segments, encounted " << cnt
+	<< " pair" << (cnt>1?"s":"") << " of equivalent labels";
+
+    // flatten the union find trees
+    cnt = aflatten(uf);
+    // assign the final labels
+    me1 = labels.size();
+    for (size_t j = 0; j < me1; ++ j)
+	labels[j] = uf[labels[j]];
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery::labelLines3 -- assigned " << cnt << " final label"
+	<< (cnt>1?"s":"") << " to " << lines.size()/4 << " line segments";
+    return cnt;
+} // ibis::meshQuery::labelLines3
+
+int ibis::meshQuery::labelLines4(const std::vector<uint32_t>& lines,
+				 std::vector<uint32_t>& labels) {
+    if (lines.size() % 5 != 0) return -6;
+    try {
+	labels.resize(lines.size()/5);
+    }
+    catch (...) {
+	labels.clear();
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- meshQuery::labelLines4 failed to allocate "
+	    "enough space for labels";
+	return -5;
+    }
+
+    uint32_t cnt = 0;
+    uint32_t lbl;
+    ibis::array_t<uint32_t> uf; // array for union-find
+    size_t ma0=0, ma1=0, ma2=0; // markers
+    size_t ms0, ms1, ms2, me0=0, me1=0, me2=0;
+    uf.push_back(0);
+    labels[0] = 0;
+    for (size_t j = 5; j < lines.size(); j += 5) {
+	// move the markers
+	if (lines[j] == lines[ma0]) { // in the same cube
+	    if (lines[j+1] == lines[ma1+1]) { // in the same plane
+		if (lines[j+2] == lines[ma2+2]) { // on the same mesh line
+		    // nothing to do here
+		}
+		else if (lines[j+2] > lines[ma2+2]) {
+		    ma2 = j;
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- meshQuery::labelLines4 expects "
+			"line segments to be in ascending order order, but ("
+			<< lines[j] << ", " << lines[j+1] << ", " << lines[j+2]
+			<< ", " << lines[j+3] << ", " << lines[j+4]
+			<< ") is not";
+		    return -2;
+		}
+	    }
+	    else if (lines[j+1] > lines[ma1+1]) {
+		// a new plane
+		ma1 = j;
+		ma2 = j;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- meshQuery::labelLines4 expects line "
+		    "segments to be in ascending order order, but ("
+		    << lines[j] << ", " << lines[j+1] << ", " << lines[j+2]
+		    << ", " << lines[j+3] << ", " << lines[j+4] << ") is not";
+		return -2;
+	    }
+	}
+	else if (lines[j] > lines[ma0]) {
+	    // a new cube
+	    ma0 = j;
+	    ma1 = j;
+	    ma2 = j;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- meshQuery::labelLines4 expects line "
+		"segments to be in ascending order order, but ("
+		<< lines[j] << ", " << lines[j+1] << ", " << lines[j+2]
+		<< ", " << lines[j+3] << ", " << lines[j+4] << ") is not";
+	    return -2;
+	}
+
+	// skip over nonmatching lines segements
+	ms0 = me0;
+	// ms0 points to an earlier cube
+	while (ms0 < ma0 && lines[ms0] < lines[j]-1)
+	    ms0 += 5;
+	// after the preceeding loop, either ms0 >= ma0 (which implies
+	// lines[ms0] == lines[j]) or lines[ms0] == lines[j]-1
+	// try to reach lines[ms0+1] == lines[j+1], i.e., having the same
+	// coordinates in dim[1]
+	while (ms0 < ma0 &&
+	       lines[ms0+1] < lines[j+1])
+	    ms0 += 5;
+	// to get the same coordinates in dim[1] and dim[2]
+	while (ms0 < ma0 &&
+	       lines[ms0+1] == lines[j+1] &&
+	       lines[ms0+2] < lines[j+2])
+	    ms0 += 5;
+	// same coordinates in dim[1] and dim[2], examine dim[3]
+	while (ms0 < ma0 &&
+	       lines[ms0+1] == lines[j+1] &&
+	       lines[ms0+2] == lines[j+2] &&
+	       lines[ms0+4] <= lines[j+3])
+	    ms0 += 5;
+	// to make sure that ms1 is in the same cube as lines[j]
+	ms1 = (me1 >= ma0 ? me1 : ma0);
+	while (ms1 < ma1 && lines[ms1+1] < lines[j+1]-1)
+	    ms1 += 5;
+	// after the previous loop, we have either ms1 >= ma1 or
+	// lines[ms1+1] == lines[j+1]-1
+	while (ms1 < ma1 &&
+	       lines[ms1+2] < lines[j+2])
+	    ms1 += 5;
+	while (ms1 < ma1 &&
+	       lines[ms1+2] == lines[j+2] &&
+	       lines[ms1+4] <= lines[j+3])
+	    ms1 += 5;
+	ms2 = (me2 >= ma1 ? me2 : ma1);
+	while (ms2 < ma2 && lines[ms2+2] < lines[j+2]-1)
+	    ms2 += 5;
+	while (ms2 < ma2 && lines[ms2+4] <= lines[j+3])
+	    ms2 += 5;
+
+	lbl = uf.size();
+	for (me0 = ms0;
+	     me0 < ma0 && lines[me0+1] == lines[j+1] &&
+		 lines[me0+2] == lines[j+2] &&
+		 lines[me0+3] < lines[j+4] &&
+		 lines[me0+4] > lines[j+3];
+	     me0 += 5) {
+	    const uint32_t tmp = afind(uf, labels[me0/5]);
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- line " << j << " (" << lines[j] << ", "
+		<< lines[j+1] << ", " << lines[j+2] << ", " << lines[j+3]
+		<< ", " << lines[j+4] << ") connects to " << me0 << " ("
+		<< lines[me0] << ", " << lines[me0+1] << ", " << lines[me0+2]
+		<< ", " << lines[me0+3] << ", " << lines[me0+4]
+		<< "),\tlabel = " << labels[me0/5] << ", root = " << tmp;
+#endif
+	    cnt += (lbl < uf.size() && lbl != tmp);
+	    if (tmp < lbl)
+		lbl = tmp;
+	}
+	for (me1 = ms1;
+	     me1 < ma1 && lines[me1+2] == lines[j+2] &&
+		   lines[me1+3] < lines[j+4] && lines[me1+4] > lines[j+3];
+	     me1 += 5) {
+	    const uint32_t tmp = afind(uf, labels[me1/5]);
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- line " << j << " (" << lines[j] << ", "
+		<< lines[j+1] << ", " << lines[j+2] << ", " << lines[j+3]
+		<< ", " << lines[j+4] << ") connects to " << me1 << " ("
+		<< lines[me1] << ", " << lines[me1+1] << ", " << lines[me1+2]
+		<< ", " << lines[me1+3] << ", " << lines[me1+4]
+		<< "),\tlabel = " << labels[me1/5] << ", root = " << tmp;
+#endif
+	    cnt += (lbl < uf.size() && lbl != tmp);
+	    if (tmp < lbl)
+		lbl = tmp;
+	}
+	for (me2 = ms2;
+	     me2 < ma2 &&
+		   lines[me2+3] < lines[j+4] && lines[me2+4] > lines[j+3];
+	     me2 += 5) {
+	    const uint32_t tmp = afind(uf, labels[me2/5]);
+#if _DEBUG+0 > 1 || DEBUG+0 > 1
+	    LOGGER(ibis::gVerbose > 4)
+		<< "DEBUG -- line " << j << " (" << lines[j] << ", "
+		<< lines[j+1] << ", " << lines[j+2] << ", " << lines[j+3]
+		<< ", " << lines[j+4] << ") connects to " << me2 << " ("
+		<< lines[me2] << ", " << lines[me2+1] << ", " << lines[me2+2]
+		<< ", " << lines[me2+3] << ", " << lines[me2+4]
+		<< "),\tlabel = " << labels[me2/5] << ", root = " << tmp;
+#endif
+	    cnt += (lbl < uf.size() && lbl != tmp);
+	    if (tmp < lbl)
+		lbl = tmp;
+	}
+
+	if (lbl < uf.size()) {// unite the equivalent labels
+	    for (unsigned k = ms0/5; k < me0/5; ++ k)
+		aset(uf, labels[k], lbl);
+	    for (unsigned k = ms1/5; k < me1/5; ++ k)
+		aset(uf, labels[k], lbl);
+	    for (unsigned k = ms2/5; k < me2/5; ++ k)
+		aset(uf, labels[k], lbl);
+	}
+	else {
+	    uf.push_back(lbl);
+	}
+	labels[j/5] = lbl;
+    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "meshQuery::labelLines4 -- assigned " << uf.size()
+	<< " provisional label" << (uf.size()>1?"s":"") << " to "
+	<< lines.size()/5 << " line segments, encounted " << cnt
+	<< " pair" << (cnt>1?"s":"") << " of equivalent labels";
+
+    // flatten the union find trees
+    cnt = aflatten(uf);
+    // assign the final labels
+    me2 = labels.size();
+    for (size_t j = 0; j < me2; ++ j)
+	labels[j] = uf[labels[j]];
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery::labelLines4 -- assigned " << cnt << " final label"
+	<< (cnt>1?"s":"") << " to " << lines.size()/5 << " line segments";
+    return cnt;
+} // ibis::meshQuery::labelLines4
+
+int ibis::meshQuery::labelLinesN(uint32_t nd,
+				 const std::vector<uint32_t>& lines,
+				 std::vector<uint32_t>& labels) {
+    if (nd == 0) return -4;
+    if (lines.size() % (nd+1) != 0) return -6;
+    if (nd == 1) return labelLines1(lines, labels);
+    // from now on, nd > 1
+    try {
+	labels.resize(lines.size()/(nd+1));
+    }
+    catch (...) {
+	labels.clear();
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- meshQuery::labelLinesN failed to allocate "
+	    "enough space for labels";
+	return -5;
+    }
+
+    const uint32_t ndm1 = nd - 1;
+    const uint32_t ndp1 = nd + 1;
+    bool more;
+    uint32_t lbl;
+    uint32_t cnt = 0;
+    ibis::array_t<uint32_t> uf; // array for union-find
+    std::vector<size_t> ma(ndm1, 0); // markers
+    std::vector<size_t> ms(ndm1, 0), me(ndm1, 0);
+    uf.push_back(0);
+    labels[0] = 0;
+    for (size_t j = ndp1; j < lines.size(); j += ndp1) {
+	// move the markers
+	for (unsigned k = 0; k < ndm1; ++ k) {
+	    if (lines[j+k] == lines[ma[k]+k]) {
+		// examine the next dimension
+	    }
+	    else if (lines[j+k] > lines[ma[k]+k]) {
+		// a new hyperplane
+		while (k < ndm1) {
+		    ma[k] = j;
+		    ++ k;
+		}
+	    }
+	    else {
+		if (ibis::gVerbose > 0) {
+		    ibis::util::logger lg;
+		    lg() << "Warning -- meshQuery::labelLinesN expects "
+			"line segments to be in ascending order order, but ("
+			 << lines[j];
+		    for (size_t j1 = j+1; j1 <= j+nd; ++ j1)
+			lg() << ", " << lines[j1];
+		    lg() << ") is not";
+		}
+		return -2;
+	    }
+	}
+
+	// skip over nonmatching lines segements
+	for (unsigned k = 0; k < ndm1; ++ k) {
+	    ms[k] = (k > 0 ? (me[k] >= ma[k-1] ? me[k] : ma[k-1]) : me[k]);
+	    // expect dimension k to touch
+	    while (ms[k] < ma[k] && lines[ms[k]+k] < lines[j+k]-1)
+		ms[k] += ndp1;
+	    // after the preceeding loop, either ms[k] >= ma[k] (which implies
+	    // lines[ms[k]+k] == lines[j+k]) or lines[ms[k]+k] == lines[j+k]-1
+	    more = (ms[k] < ma[k]);
+	    while (more) {
+		unsigned k2 = k + 1;
+		while (more && k2 < ndm1) {
+		    // LOGGER(ibis::gVerbose > 4)
+		    // 	<< "DEBUG -- lines[" << ms[k]+k2 << "] = "
+		    // 	<< lines[ms[k]+k2] << ", lines[" << j+k2
+		    // 	<< "] = " << lines[j+k2];
+		    if (lines[ms[k]+k2] < lines[j+k2]) {
+			break;
+		    }
+		    else if (lines[ms[k]+k2] > lines[j+k2]) {
+			more = false;
+		    }
+		    else {
+			++ k2;
+		    }
+		}
+		if (more && (k2 < ndm1 || lines[ms[k]+nd] <= lines[j+ndm1])) {
+		    ms[k] += ndp1;
+		    more = (ms[k] < ma[k]);
+		}
+		else {
+		    more = false;
+		}
+	    }
+	}
+#if _DEBUG+0>2 || DEBUG+0>1
+	if (ibis::gVerbose > 4) {
+	    ibis::util::logger lg;
+	    lg() << "DEBUG -- meshQuery::labelLinesN: j = " << j
+		 << " (" << lines[j];
+	    for (size_t k = j+1; k < j+ndp1; ++ k)
+		lg() << ", " << lines[k];
+	    lg() << "), ma = [" << ma[0];
+	    for (size_t k = 1; k < ndm1; ++ k)
+		lg() << ", " << ma[k];
+	    lg() << "], ms = [" << ms[0];
+	    for (size_t k = 1; k < ndm1; ++ k)
+		lg() << ", " << ms[k];
+	    lg() << ']';
+	}
+#endif
+	lbl = uf.size();
+	for (unsigned k = 0; k < ndm1; ++ k) {
+	    for (me[k] = ms[k]; me[k] < ma[k]; me[k] += ndp1) {
+		more = (lines[me[k]+ndm1] < lines[j+nd] &&
+			lines[me[k]+nd] > lines[j+ndm1]);
+		for (unsigned k1 = k+1; k1 < ndm1 && more; ++ k1)
+		    more = (lines[me[k]+k1] == lines[j+k1]);
+		if (more) {
+		    const uint32_t tmp = afind(uf, labels[me[k]/ndp1]);
+#if _DEBUG+0>1 || DEBUG+0>1
+		    if (ibis::gVerbose > 4) {
+			ibis::util::logger lg;
+			lg() << "DEBUG -- line " << j << " (" << lines[j];
+			for (unsigned k2 = j+1; k2 < j+ndp1; ++ k2)
+			    lg() << ", " << lines[k2];
+			lg() << ") connects to " << me[k] << " ("
+			     << lines[me[k]];
+			for (unsigned k2 = me[k]+1; k2 < me[k]+ndp1; ++ k2)
+			    lg() << ", " << lines[k2];
+			lg() << "),\tlabel = " << labels[me[k]/ndp1]
+			     << ", root = " << tmp;
+		    }
+#endif
+		    cnt += (lbl < uf.size() && lbl != tmp);
+		    if (tmp < lbl)
+			lbl = tmp;
+		}
+		else {
+		    break; // break here to avoid incrementing me[k]
+		}
+	    }
+	}
+
+	if (lbl < uf.size()) {// unite the equivalent labels
+	    for (unsigned k = 0; k < ndm1; ++ k) {
+		for (unsigned k1 = ms[k]/ndp1; k1 < me[k]/ndp1; ++ k1)
+		    aset(uf, labels[k1], lbl);
+	    }
+	}
+	else {
+	    uf.push_back(lbl);
+	}
+	labels[j/ndp1] = lbl;
+    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "meshQuery::labelLinesN -- assigned " << uf.size()
+	<< " provisional label" << (uf.size()>1?"s":"") << " to "
+	<< lines.size()/ndp1 << " line segments, encounted " << cnt
+	<< " pair" << (cnt>1?"s":"") << " of equivalent labels";
+
+    // flatten the union find trees
+    cnt = aflatten(uf);
+    // assign the final labels
+    lbl = labels.size();
+    for (size_t j = 0; j < lbl; ++ j)
+	labels[j] = uf[labels[j]];
+    LOGGER(ibis::gVerbose > 2)
+	<< "meshQuery::labelLinesN -- assigned " << cnt << " final label"
+	<< (cnt>1?"s":"") << " to " << lines.size()/ndp1 << " line segments";
+    return cnt;
+} // ibis::meshQuery::labelLinesN

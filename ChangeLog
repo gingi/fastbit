@@ -1,7 +1,22 @@
+2010-12-21 John Wu <John dot Wu at ACM dot org>
+	* src/table.h, src.tafel.h, src/tafel.cpp: add the 5th argument to
+	tablex::write and tablex::writeMetaData to write meta tags
+	* src/part.cpp: extract column shape from meta tags
+	* examples/ardea.cpp: add command line options -i and -tag for
+	indexing option and meta tags
+	* src/resource.cpp: modify ibis::resource::parseNameValuePairs to
+	respect grouping indicated by parentheses and quotes, which is
+	necessary to parse column shape which more than one dimension
+
 2010-12-20 John Wu <John dot Wu at ACM dot org>
 	* src/meshQuery.h, src/meshQuery.cpp: break toBlocks into
 	toBlocks1, toBlocks2, toBlocks3 and toBlocksN to make it possible
 	to compare toBlocksN with others for self-consistency check
+	* src/meshQuery.h, src/meshQuery.cpp: add functions to produce and
+	label query lines (also called line segments): getHitsAsLines and
+	labelLines
+	* src/ibis.cpp: update doMeshQuery to exercise the new labeling
+	functions
 
 2010-12-17 John Wu <John dot Wu at ACM dot org>
 	* src/meshQuery.cpp, src/meshQuery.h: rename lableNDSimple to

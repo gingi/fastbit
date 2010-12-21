@@ -24,6 +24,14 @@ class FASTBIT_CXX_DLLSPEC ibis::meshQuery : public ibis::query {
     /// Constructor for recoverying from crash.
     meshQuery(const char* dir, const ibis::partList& tl) : query(dir, tl) {};
 
+    int getHitsAsLines(std::vector<uint32_t>& lines) const {
+	return getHitsAsLines(lines, partition()->getMeshShape());}
+    int getHitsAsLines(std::vector<uint32_t>& lines,
+		       const std::vector<uint32_t>& dim) const;
+    static int labelLines(uint32_t nd,
+			  const std::vector<uint32_t>& lines,
+			  std::vector<uint32_t>& labels);
+
     int  getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
 			 const bool merge=false) const;
     int  getHitsAsBlocks(std::vector< std::vector<uint32_t> >& reg,
@@ -42,6 +50,28 @@ class FASTBIT_CXX_DLLSPEC ibis::meshQuery : public ibis::query {
 	 std::vector<uint32_t>& labels);
 
  protected:
+    int linesIn1D(std::vector<uint32_t>& lines) const;
+    int linesIn2D(std::vector<uint32_t>& lines,
+		  const std::vector<uint32_t>& dim) const;
+    int linesIn3D(std::vector<uint32_t>& lines,
+		  const std::vector<uint32_t>& dim) const;
+    int linesIn4D(std::vector<uint32_t>& lines,
+		  const std::vector<uint32_t>& dim) const;
+    int linesInND(std::vector<uint32_t>& lines,
+		  const std::vector<uint32_t>& dim) const;
+
+    static int labelLines1(const std::vector<uint32_t>& lines,
+			   std::vector<uint32_t>& labels);
+    static int labelLines2(const std::vector<uint32_t>& lines,
+			   std::vector<uint32_t>& labels);
+    static int labelLines3(const std::vector<uint32_t>& lines,
+			   std::vector<uint32_t>& labels);
+    static int labelLines4(const std::vector<uint32_t>& lines,
+			   std::vector<uint32_t>& labels);
+    static int labelLinesN(uint32_t nd,
+			   const std::vector<uint32_t>& lines,
+			   std::vector<uint32_t>& labels);
+
     int  toBlocks1(const ibis::bitvector& bv,
 		  std::vector< std::vector<uint32_t> >& reg) const;
     int  toBlocks2(const ibis::bitvector& bv,

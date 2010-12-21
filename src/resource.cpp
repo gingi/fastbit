@@ -10,6 +10,8 @@
 #endif
 #include "util.h"
 #include "resource.h"	// class ibis::resource
+
+#include <stack>	// std::stack
 #include <stdlib.h>	// getenv
 
 // delimiters allowed in the resource name string
@@ -311,6 +313,12 @@ void ibis::resource::clear(ibis::resource::vList &vl) {
 
 /// Parse a string of the form "name=vale, name=value, ..." into a simple
 /// list of name-value pairs.  Add the new ones to the incoming list, lst.
+/// @note The list is sparated by comas or blank spaces.  Each value can be
+/// a single non-empty string or collection of string values surrended by
+/// parentheses or quotes.  The parentheses and quotes may be nested, but
+/// has to match properly.  For example, the following strings are valid
+/// input strings: "pressure = 1.025E10, template = (10, 10, 5)" and
+/// "meshShape = (100, 100), creator = 'octave version 1.2'".
 void ibis::resource::parseNameValuePairs(const char *in,
 					 ibis::resource::vList &lst) {
     if (in == 0) return;
@@ -332,15 +340,29 @@ void ibis::resource::parseNameValuePairs(const char *in,
 	    while (*str && isspace(*str)) // skip space
 		++ str;
 	    if (*str) { // nonempty value string
-		tmp = strchr(str, ',');
-		if (tmp == 0)
-		    tmp = strchr(str, ';');
-		if (tmp == 0) {
-		    end = strchr(str, '=');
-		    if (end) {
-			tmp = strchr(str, ' ');
-			if (tmp == 0)
-			    tmp = strchr(str, '\t');
+		std::stack<char> parens;
+		for (tmp = str;
+		     *tmp != 0 &&
+			 ((! parens.empty()) ||
+			  (*tmp != ',' && *tmp != ';' && isspace(*tmp) == 0));
+		     ++ tmp) {
+		    if (! parens.empty() && parens.top() == *tmp) {
+			parens.pop();
+		    }
+		    else if (*tmp == '(') {
+			parens.push(')');
+		    }
+		    else if (*tmp == '[') {
+			parens.push(']');
+		    }
+		    else if (*tmp == '{') {
+			parens.push('}');
+		    }
+		    else if (*tmp == '"') {
+			parens.push('"');
+		    }
+		    else if (*tmp == '\'' || *tmp == '\`') {
+			parens.push('\'');
 		    }
 		}
 		if (tmp) {
@@ -377,7 +399,7 @@ void ibis::resource::parseNameValuePairs(const char *in,
     } // while ((tmp = strchr(str, '=')) != 0)
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
-	lg() << "resource::parseNameValuePairs() converted \""
+	lg() << "resource::parseNameValuePairs converted \""
 	     << in << "\" into " << lst.size() << " name-value pairs";
 	for (vList::const_iterator it = lst.begin();
 	     it != lst.end(); ++ it)

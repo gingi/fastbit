@@ -38,10 +38,12 @@ public:
     virtual int readSQLDump(const char* filename, std::string& tname,
 			    int maxrows, const char* outputdir);
 
-    virtual int write(const char* dir, const char* tname,
-		      const char* tdesc, const char* idx) const;
-    virtual int writeMetaData(const char* dir, const char* tname,
-			      const char* tdesc, const char* idx) const;
+    virtual int write(const char* dir, const char* tname=0,
+		      const char* tdesc=0, const char* idx=0,
+		      const char* nvpairs=0) const;
+    virtual int writeMetaData(const char* dir, const char* tname=0,
+			      const char* tdesc=0, const char* idx=0,
+			      const char* nvpairs=0) const;
 
     virtual void clearData();
     virtual int32_t reserveSpace(uint32_t);

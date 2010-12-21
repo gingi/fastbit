@@ -3605,6 +3605,12 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 // column shapes, i.e., they contain data computed on meshes.
 static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			const char* sstr) {
+    const std::vector<uint32_t>& dim = tbl->getMeshShape();
+    if (dim.empty()) {
+	doQuery(tbl, uid, wstr, sstr, 0, 0, 0, 0);
+	return;
+    }
+
     LOGGER(ibis::gVerbose > 0)
 	<< "doMeshQuery -- processing query " << wstr
 	<< " on partition " << tbl->name();
@@ -3671,7 +3677,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
     num2 = aQuery.evaluate();
     if (num2 < 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "doMeshQuery -- failed to evaluate \"" << wstr
+	    << "Warning -- doMeshQuery -- failed to evaluate \"" << wstr
 	    << "\", error code = " << num2;
 	return;
     }
@@ -3685,93 +3691,166 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	     << timer.realTime() << " elapsed seconds";
     }
 
-    std::vector< std::vector<uint32_t> > ranges;
-    num2 = aQuery.getHitsAsBlocks(ranges);
+    std::vector<uint32_t> lines;
+    num2 = aQuery.getHitsAsLines(lines);
     if (num2 < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "aQuery.getHitsAsBlocks() returned " << num2;
+	    << "Warning -- aQuery.getHitsAsLines returned " << num2;
+	return;
     }
-    else if (ranges.empty()) {
+    else if (lines.empty()) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "aQuery.getHitsAsBlocks() returned empty ranges";
+	    << "Warning -- aQuery.getHitsAsLines returned no lines";
+	return;
     }
-    else {
-	ibis::util::logger lg;
-	lg() << "aQuery.getHitsAsBlocks() returned " << ranges.size()
-	     << " range" << (ranges.size() > 1 ? "s" : "") << " in "
-	     << ranges[0].size()/2 << "-D space\n";
-	if (ibis::gVerbose > 3) { // print all the ranges
-	    uint32_t tot = (ibis::gVerbose >= 30 ? ranges.size() :
-			    (1U << ibis::gVerbose));
-	    if (tot > ranges.size())
-		tot = ranges.size();
-	    for (uint32_t i = 0; i < tot; ++i) {
-		lg() << i << "\t(";
-		for (uint32_t j = 0; j < ranges[i].size(); ++j) {
-		    if (j > 0)
-			lg() << ", ";
-		    lg() << ranges[i][j];
-		}
-		lg() << ")\n";
-	    }
-	    if (tot < ranges.size()) {
-		tot = ranges.size() - 1;
-		lg() << "...\n" << tot << "\t(";
-		for (uint32_t j = 0; j < ranges[tot].size(); ++j) {
-		    if (j > 0)
-			lg() << ", ";
-		    lg() << ranges[tot][j];
-		}
-		lg() << ")";
-	    }
-	}
+    std::vector<uint32_t> label1;
+    num2 = aQuery.labelLines(dim.size(), lines, label1);
+    if (num2 < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- aQuery.labelLines failed with error code " << num2;
+	return;
     }
 
-    num2 = aQuery.getPointsOnBoundary(ranges);
-    if (num2 < 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning ** aQuery.getPointsOnBoundary() returned " << num2;
-    }
-    else if (ranges.empty()) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning ** aQuery.getPointsOnBoundary() "
-	    "returned empty ranges";
-    }
-    else {
+    if (ibis::gVerbose > 1 || testing > 0) {
+	std::vector< std::vector<uint32_t> > blocks;
+	std::vector<uint32_t> label2;
+	num2 = aQuery.getHitsAsBlocks(blocks);
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- aQuery.getHitsAsBlocks returned " << num2;
+	    return;
+	}
+	else if (blocks.empty()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- aQuery.getHitsAsBlocks returned no blocks";
+	    return;
+	}
+
+	num2 = aQuery.labelBlocks(blocks, label2);
+	if (num2 < 0) {
+	    LOGGER(num2 < 0)
+		<< "Warning -- aQuery.labelBlocks failed with error code "
+		<< num2;
+	    return;
+	}
+	/// compare the output from labeling lines against those from labeling
+	/// the blocks
+	const unsigned ndim = dim.size();
+	const unsigned ndm1 = dim.size() - 1;
+	const unsigned ndp1 = dim.size() + 1;
+	size_t jb = 0;	// pointing to a block
+	size_t jl = 0;	// pointing to a line
+	num1 = 0;		// number of mismatches
 	ibis::util::logger lg;
-	lg() << "aQuery.getPointsOnBoundary() returned "
-	     << ranges.size() << " point"
-	     << (ranges.size() > 1 ? "s" : "") << " in "
-	     << ranges[0].size() << "-D space\n";
-	if (ibis::gVerbose > 3) { // print all the points
-	    uint32_t tot = (ibis::gVerbose >= 30 ? ranges.size() :
-			    (1U << ibis::gVerbose));
-	    if (tot > ranges.size())
-		tot = ranges.size();
-	    if (tot < ranges.size()) {
-		for (uint32_t i = 0; i < tot; ++i) {
-		    lg() << i << "\t(" << ranges[i][0];
-		    for (uint32_t j = 1; j < ranges[i].size(); ++j) {
-			lg() << ", " << ranges[i][j];
+	lg() << "\ndoMeshQuery -- Compare the two sets of labels";
+	while (jb < blocks.size() || jl < lines.size()) {
+	    if (jb < blocks.size()) { // has a valid block
+		if (jl < lines.size()) { // has a valid line
+		    int cmp = (lines[jl] < blocks[jb][0] ? -1 :
+			       lines[jl] >= blocks[jb][1] ? 1 : 0);
+		    for (unsigned j3 = 1; cmp == 0 && j3 < ndm1; ++ j3)
+			cmp = (lines[jl+j3] < blocks[jb][j3+j3] ? -1 :
+			       lines[jl+j3] >= blocks[jb][j3+j3+1] ? 1 : 0);
+		    if (cmp == 0)
+			cmp = (lines[jl+ndim] <= blocks[jb][ndm1+ndm1] ? -1 :
+			       lines[jl+ndm1] >= blocks[jb][ndm1+ndm1+1] ? 1 :
+			       0);
+		    if (cmp > 0) { // extra block?
+			lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
+			     << ", " << blocks[jb][1];
+			for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
+			    lg() << ", " << blocks[jb][j3];
+			lg() << "\tline[??]( )";
+			++ jb;
+			++ num1;
 		    }
-		    lg() << ")\n";
+		    else if (cmp < 0) { // extra line?
+			lg() << "\nblock[??]( )\tline[" << jl/ndp1 << "] ("
+			     << lines[jl];
+			for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
+			    lg() << ", " << lines[j4];
+			lg() << ")";
+			jl += ndp1;
+			++ num1;
+		    }
+		    else { // matching block and line
+			size_t j3;
+			unsigned linecount = 0;
+			unsigned labelcount = 0;
+			unsigned expectedcount = blocks[jb][1] - blocks[jb][0];
+			for (unsigned jj = 2; jj+3 < blocks[jb].size(); jj += 2)
+			    expectedcount *=
+				(blocks[jb][jj+1] - blocks[jb][jj]);
+			linecount = (blocks[jb][ndm1+ndm1] == lines[jl+ndm1] &&
+				     blocks[jb][ndm1+ndim] == lines[jl+ndim]);
+			labelcount = (label1[jb] == label2[jl/ndp1]);
+			for (j3 = jl+ndp1; j3 < lines.size(); j3 += ndp1) {
+			    bool match =
+				(blocks[jb][ndm1+ndm1] == lines[j3+ndm1] &&
+				 blocks[jb][ndm1+ndim] == lines[j3+ndim]);
+			    for (unsigned jj = 0;
+				 match && jj < ndm1;
+				 ++ jj) {
+				match = (blocks[jb][jj+jj] <= lines[j3+jj] &&
+					 blocks[jb][jj+jj+1] > lines[j3+jj]);
+			    }
+			    if (match) {
+				labelcount += (label1[jb] == label2[j3/ndp1]);
+				++ linecount;
+			    }
+			    else {
+				break;
+			    }
+			}
+			if (linecount != expectedcount ||
+			    labelcount != expectedcount || ibis::gVerbose > 6) {
+			    lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
+				 << ", " << blocks[jb][1];
+			    for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
+				lg() << ", " << blocks[jb][j3];
+			    lg() << ")\tline[" << jl << "] (" << lines[jl];
+			    for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
+				lg() << ", " << lines[j4];
+			    lg() << "),\tlabel1 = " << label1[jb]
+				 << "\tlabel2 = " << label2[jl/ndp1];
+			    if (expectedcount > 1)
+				lg() << "\t... expected " << expectedcount
+				     << " lines, found " << linecount
+				     << " matching line" << (linecount>1?"s":"")
+				     << " with " << labelcount
+				     << " correct label"
+				     << (labelcount>1?"s":"");
+			    if (linecount != expectedcount ||
+				labelcount != expectedcount) lg() << " ??";
+			}
+			num1 += (linecount != expectedcount ||
+				 labelcount != expectedcount);
+			jl = j3;
+			++ jb;
+		    }
 		}
-		tot = ranges.size() - 1;
-		lg() << "...\n" << tot << "\t(" << ranges[tot][0];
-		for (uint32_t j = 1; j < ranges[tot].size(); ++j) {
-		    lg() << ", " << ranges[tot][j];
+		else { // no more lines
+		    lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
+			 << ", " << blocks[jb][1];
+		    for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
+			lg() << ", " << blocks[jb][j3];
+		    lg() << ")\tline[??]( )";
+		    ++ jb;
+		    ++ num1;
 		}
-		lg() << ")";
 	    }
-	    else {
-		for (uint32_t i = 0; i < ranges.size(); ++ i) {
-		    lg() << "(" << ranges[i][0];
-		    for (uint32_t j = 1; j < ranges[i].size(); ++ j)
-			lg() << ", " << ranges[i][j];
-		    lg() << ")";
-		}
+	    else { // no more blocks
+		lg() << "\nblock[??]( )\tline[" << jl << "] ("
+		     << lines[jl];
+		for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
+		    lg() << ", " << lines[j4];
+		lg() << ")";
+		jl += ndp1;
+		++ num1;
 	    }
 	}
+	lg() << "\n" << (num1>0?"Warning (!__!) --":"(^o^)") << " found "
+	     << num1 << " mismatch" << (num1>1 ? "es" : "") << "\n";
     }
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 && ibis::gVerbose > 0) {
@@ -4451,12 +4530,14 @@ static void parseString(const char* uid, const char* qstr) {
 	    // go through each partition the user has specified
 	    for (unsigned j = 0; j < qtables.size(); ++ j) {
 		if (stricmp(ibis::datasets[k]->name(), qtables[j]) == 0 ||
-		    ibis::util::strMatch(ibis::datasets[k]->name(), qtables[j])) {
+		    ibis::util::strMatch(ibis::datasets[k]->name(),
+					 qtables[j])) {
 		    if (verify_rid || sequential_scan ||
 			ibis::datasets[k]->getMeshShape().empty()) {
 			try {
-			    doQuery(ibis::datasets[k], uid, wstr.c_str(), sstr.c_str(),
-				    ordkeys.c_str(), direction, limit, start);
+			    doQuery(ibis::datasets[k], uid, wstr.c_str(),
+				     sstr.c_str(), ordkeys.c_str(), direction,
+				    limit, start);
 			}
 			catch (...) {
 			    if (ibis::util::serialNumber() % 3 == 0) {
@@ -4467,8 +4548,9 @@ static void parseString(const char* uid, const char* qstr) {
 #endif
 			    }
 			    ibis::datasets[k]->emptyCache();
-			    doQuery(ibis::datasets[k], uid, wstr.c_str(), sstr.c_str(),
-				    ordkeys.c_str(), direction, limit, start);
+			    doQuery(ibis::datasets[k], uid, wstr.c_str(),
+				    sstr.c_str(), ordkeys.c_str(), direction,
+				    limit, start);
 			}
 		    }
 		    else {

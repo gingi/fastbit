@@ -731,14 +731,14 @@ protected:
     void readRIDs() const; ///< Read RIDs from file 'rids'.
     void freeRIDs() const; ///< Remove the rids list from memory.
 
-    // functions to deal with meta tags -- those attributes that are set of
-    // a whole partition but are expected to be processed like a categorical
-    // attribute in queries
+    // functions to deal with meta tags -- those attributes that are
+    // associated with a whole partition but are expected to be processed
+    // like a categorical attribute in queries
     void extendMetaTags();
     void setMetaTags(const ibis::resource::vList &mts);
     void setMetaTags(const std::vector<const char*> &mts);
 
-    /// Read shape of the mesh from tdc file.
+    /// Read shape of the mesh from the metadata file.
     void readMeshShape(const char* const dir);
     /// Convert the string describing the shape into internal storage format.
     void digestMeshShape(const char* shape);

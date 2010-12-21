@@ -68,8 +68,7 @@ namespace ibis {
 /// the table.  In many database systems this is known as a view of a
 /// table.  All data tables and views are logically treated as
 /// specialization of this class.  An example of using this class can be
-/// found in <A
-/// HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/thula_8cpp.html">examples/thula.cpp</A>.
+/// found in <A HREF="http://su.pr/20kDXd">examples/thula.cpp</A>.
 class FASTBIT_CXX_DLLSPEC ibis::table {
 public:
     /// Create a simple of container of a partition.  The objective is to
@@ -396,7 +395,7 @@ private:
 /// this type, the user must first add columns by calling addColumn.  New
 /// data records may be added one column at a time or one row at a time.
 /// An example of using this class is in <A
-/// HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/ardea_8cpp.html">examples/ardea.cpp</A>.
+/// HREF="http://goo.gl/pJDFw">examples/ardea.cpp</A>.
 ///
 /// @note Most functions that return an integer return 0 in case of
 /// success, a negative value in case error and a positive number as
@@ -540,8 +539,33 @@ public:
     /// table will overwrite the existing data type information.  If the
     /// index specification is not null, the existing index specification
     /// will be overwritten.
+    ///
+    /// @arg @c dir The output directory name.  Must be a valid directory
+    /// name.  The named directory will be created if it does not already
+    /// exist.
+    ///
+    /// @arg @c tname Table name.  Should be a valid string, otherwise, a
+    /// random name is generated as FastBit requires a name for each table.
+    ///
+    /// @arg @c tdesc Table description.  An optional description of the
+    /// table.  It can be an arbitrary string.
+    ///
+    /// @arg @c idx Indexing option for all columns of the table without
+    /// its own indexing option.  More information about <A
+    /// href="http://goo.gl/rmvsr">indexing options</A> is available
+    /// elsewhere.
+    ///
+    /// @arg @c nvpairs An arbitrary list of name-value pairs to be
+    /// associated with the data table.  An arbitrary number of name-value
+    /// pairs may be given here, however, FastBit may not be able to do
+    /// much about them.  One useful of the form "columnShape=(nd1, ...,
+    /// ndk)" can be used to tell FastBit that the table table is defined
+    /// on a simple regular k-dimensional mesh of size nd1 x ... x ndk.
+    /// Internally, these name-value pairs associated with a data table is
+    /// known as meta tags or simply tags.
     virtual int write(const char* dir, const char* tname=0,
-		      const char* tdesc=0, const char* idx=0) const =0;
+		      const char* tdesc=0, const char* idx=0,
+		      const char* nvpairs=0) const =0;
     /// Write out the information about the columns.  It will write the
     /// metadata file containing the column information and index
     /// specifications if no metadata file already exists.  It returns the
@@ -549,8 +573,15 @@ public:
     /// completion, returns 0 if a metadata file already exists, and
     /// returns a negative number to indicate errors.  If there is no
     /// column in memory, nothing is written to the output directory.
+    ///
+    /// @note The formal arguments of this function are exactly same as
+    /// those of ibis::tablex::write.
+    ///
+    /// @warning This function does not preserve the existing metadata!
+    /// Use with care.
     virtual int writeMetaData(const char* dir, const char* tname=0,
-			      const char* tdesc=0, const char* idx=0) const =0;
+			      const char* tdesc=0, const char* idx=0,
+			      const char* nvpairs=0) const =0;
 
     /// Remove all data recorded.  Keeps the information about columns.  It
     /// is intended to prepare for new rows after invoking the function
@@ -602,7 +633,7 @@ public:
     typedef std::map< const char*, ibis::table*, ibis::lessi > tableSet;
     typedef tableSet::const_iterator iterator;
 
-    /// Is the list empty? Returns true of the list is empty, otherwise
+    /// Is the list empty?  Returns true if the list is empty, otherwise
     /// returns false.
     bool empty() const {return tables.empty();}
     /// Return the number of tables in the list.
