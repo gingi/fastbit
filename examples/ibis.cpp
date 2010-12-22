@@ -3682,7 +3682,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	return;
     }
     num1 = aQuery.getNumHits();
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "doMeshQuery:: evaluate(" << aQuery.getWhereClause() 
@@ -3703,6 +3703,14 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    << "Warning -- aQuery.getHitsAsLines returned no lines";
 	return;
     }
+    if (ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "doMeshQuery:: turned " << num1 << " hit" << (num1>1?"s":"")
+	     << " into " << num2 << " query lines on a " << dim[0];
+	for (unsigned j = 1; j < dim.size(); ++ j)
+	    lg() << " x " << dim[j];
+	lg() << " mesh";
+    }
     std::vector<uint32_t> label1;
     num2 = aQuery.labelLines(dim.size(), lines, label1);
     if (num2 < 0) {
@@ -3710,8 +3718,11 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    << "Warning -- aQuery.labelLines failed with error code " << num2;
 	return;
     }
+    LOGGER(ibis::gVerbose > 0)
+	<< "doMeshQuery: identified " << num2 << " connected component"
+	<< (num2>1?"s":"") << " among the query lines";
 
-    if (ibis::gVerbose > 1 || testing > 0) {
+    if (ibis::gVerbose >= 0 || testing > 0) {
 	std::vector< std::vector<uint32_t> > blocks;
 	std::vector<uint32_t> label2;
 	num2 = aQuery.getHitsAsBlocks(blocks);
@@ -3733,6 +3744,12 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		<< num2;
 	    return;
 	}
+	LOGGER(ibis::gVerbose > 0)
+	    << "doMeshQuery:: converted " << num1 << " hit" << (num1>1?"s":"")
+	    << " into " << blocks.size() << " block" << (blocks.size()>1?"s":"")
+	    << " and identified " << num2 << " connected component"
+	    << (num2>1?"s":"") << " among the blocks";
+
 	/// compare the output from labeling lines against those from labeling
 	/// the blocks
 	const unsigned ndim = dim.size();
@@ -3740,7 +3757,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	const unsigned ndp1 = dim.size() + 1;
 	size_t jb = 0;	// pointing to a block
 	size_t jl = 0;	// pointing to a line
-	num1 = 0;		// number of mismatches
+	num1 = 0;	// number of mismatches
 	ibis::util::logger lg;
 	lg() << "\ndoMeshQuery -- Compare the two sets of labels";
 	while (jb < blocks.size() || jl < lines.size()) {
@@ -3783,7 +3800,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 				(blocks[jb][jj+1] - blocks[jb][jj]);
 			linecount = (blocks[jb][ndm1+ndm1] == lines[jl+ndm1] &&
 				     blocks[jb][ndm1+ndim] == lines[jl+ndim]);
-			labelcount = (label1[jb] == label2[jl/ndp1]);
+			labelcount = (label2[jb] == label1[jl/ndp1]);
 			for (j3 = jl+ndp1; j3 < lines.size(); j3 += ndp1) {
 			    bool match =
 				(blocks[jb][ndm1+ndm1] == lines[j3+ndm1] &&
@@ -3795,7 +3812,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 					 blocks[jb][jj+jj+1] > lines[j3+jj]);
 			    }
 			    if (match) {
-				labelcount += (label1[jb] == label2[j3/ndp1]);
+				labelcount += (label2[jb] == label1[j3/ndp1]);
 				++ linecount;
 			    }
 			    else {
@@ -3811,8 +3828,8 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			    lg() << ")\tline[" << jl << "] (" << lines[jl];
 			    for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
 				lg() << ", " << lines[j4];
-			    lg() << "),\tlabel1 = " << label1[jb]
-				 << "\tlabel2 = " << label2[jl/ndp1];
+			    lg() << "),\tlabelb = " << label2[jb]
+				 << "\tlabell = " << label1[jl/ndp1];
 			    if (expectedcount > 1)
 				lg() << "\t... expected " << expectedcount
 				     << " lines, found " << linecount

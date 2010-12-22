@@ -7,6 +7,9 @@
 	* src/resource.cpp: modify ibis::resource::parseNameValuePairs to
 	respect grouping indicated by parentheses and quotes, which is
 	necessary to parse column shape which more than one dimension
+	* src/ibis.cpp: label1 and label2 usage reversed in doMeshQuery
+	* tests/Makefile.am: add test case check-labeling to exercise the
+	new labeling functions
 
 2010-12-20 John Wu <John dot Wu at ACM dot org>
 	* src/meshQuery.h, src/meshQuery.cpp: break toBlocks into

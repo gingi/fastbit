@@ -601,7 +601,7 @@ check: clean-tmp check-am
 	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
 	$(MAKE) really-small && $(MAKE) check-maurel && \
-	$(MAKE) check-ibis && $(MAKE) check-join
+	$(MAKE) check-ibis && $(MAKE) check-join && $(MAKE) check-labeling
 more-check:
 	$(MAKE) check && $(MAKE) check-jrf && $(MAKE) small-tests && $(MAKE) check-sq1
 full-check:
@@ -741,6 +741,18 @@ check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $
 	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), sum(t.b) from t2a as s, t2c as t where s.a+0.5 <= t.a <= s.a+2.5 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-8 | if [ `fgrep ' produced a table with 3 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
 	@if [ -f $(TESTDIR)/join-8 -a -f vault/join-8 -a `diff -w $(TESTDIR)/join-8 vault/join-8 | wc -l` -eq 0 ]; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-join.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
+check-labeling: $(IBISEXE) $(TESTDIR)/m0/-part.txt $(TESTDIR)/m1/-part.txt
+	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<10" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<10" | if [ `fgrep " 1 connected component" - | wc -l` -eq 2 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<40 && c%2 > 0" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<40 && c%2 > 0" | if [ `fgrep " 20 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where b<75 && c%3 > 0" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where b<75 && c%3 > 0" | if [ `fgrep " 7 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a1<5" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a1<5" | if [ `fgrep " 35 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a2<5 && b1>10" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a2<5 && b1>10" | if [ `fgrep " 14 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/check-labeling.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-labeling.log; fi
 #
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
 	@rm -rf $(TESTDIR)/t0
@@ -761,19 +773,6 @@ $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv
 	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
-# really small data partitions (wee == very small)
-$(TESTDIR)/w1/-part.txt: $(ARDEAEXE)
-	@$(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.1," >> $(TESTDIR)/stdout.log 2>&1
-$(TESTDIR)/w2/-part.txt: $(ARDEAEXE)
-	@$(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:f, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/stdout.log 2>&1
-$(TESTDIR)/w3/-part.txt: $(ARDEAEXE)
-	@$(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
-$(TESTDIR)/w4/-part.txt: $(ARDEAEXE)
-	@$(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/stdout.log 2>&1
-	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt
-	@echo 'Berkeley: 5'    > $(TESTDIR)/w4/b.tdlist
-	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
-	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist
 # a simple internal sanity check
 sanity-check: $(TESTDIR)/stdout.log $(IBISEXE) $(TESTDIR)/append.log
 	@echo
@@ -910,6 +909,25 @@ $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT)
 	-./readcsv test0.csv $(TESTDIR)/0/test0 >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT)
 	-./readcsv test1.csv $(TESTDIR)/0/test1 >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/m0/-part.txt: $(ARDEAEXE) test0.csv
+	@rm -rf $(TESTDIR)/m0
+	@$(ARDEAEXE) -d $(TESTDIR)/m0 -m "a:b, b:f, c:s" -t test0.csv -tag "meshShape=(20,5)" >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/m1/-part.txt: $(ARDEAEXE) test1.csv
+	@rm -rf $(TESTDIR)/m1
+	@$(ARDEAEXE) -d $(TESTDIR)/m1 -m "a0:d, a1:b, a2:b, b0:f, b1:s, b2:s, c0:f, c1:i, c2:i" -t test1.csv -tag "meshShape=(10, 10, 10)" >> $(TESTDIR)/stdout.log 2>&1
+# really small data partitions (wee == very small)
+$(TESTDIR)/w1/-part.txt: $(ARDEAEXE)
+	@$(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.1," >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/w2/-part.txt: $(ARDEAEXE)
+	@$(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:f, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/w3/-part.txt: $(ARDEAEXE)
+	@$(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
+$(TESTDIR)/w4/-part.txt: $(ARDEAEXE)
+	@$(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/stdout.log 2>&1
+	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt
+	@echo 'Berkeley: 5'    > $(TESTDIR)/w4/b.tdlist
+	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
+	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist
 $(TESTDIR)/test.rc: $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt
 	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc
@@ -986,7 +1004,7 @@ $(TCAPIEXE):
 .PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
 .PHONY: check-marksdb check-maurel small-tests really-small check-sq1 check-sq2
-.PHONY: check-jrf TESTDIR
+.PHONY: check-jrf check-labeling TESTDIR
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
