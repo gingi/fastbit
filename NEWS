@@ -1,3 +1,23 @@
+Wed Dec 22 14:31:36 PST 2010
+Version ibis1.2.2
+-- add functions to output query lines from ibis::meshQuery and label
+   the query lines, add test functions for crosschecking the two
+   different sets of connected component labeling functions
+-- add functions to perform connected component labeling on the blocks
+   produced by ibis::meshQuery::getHitsAsBlocks
+-- update the visual studio project files to remove unnecessary
+   definitions to make them work better with newer visual studio
+   versions
+-- add a rudimentary parser to extract keywords for keyword indexes
+   as ibis::text::tokenizer class hierarchy
+-- allow embedded spaces in keywords of a keyword index to address a use
+   case from Justo Ruiz Ferrer, add jrf.cpp in tests directory to
+   replicate the test
+-- add function to update metadata information after modification of
+   datasets by other processes (at request of Chavdar Kopoev)
+-- add file map issues on windows machines raised by Chavdar Kopoev
+-- clean up print issues raised by Anderson Chaves
+
 Wed Nov  3 18:21:35 PDT 2010
 Version ibis1.2.1
 -- address the locking issues reported by Andreas Streichardt

@@ -185,6 +185,7 @@ check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $
 	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), sum(t.b) from t2a as s, t2c as t where s.a+0.5 <= t.a <= s.a+2.5 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-8 | if [ `fgrep ' produced a table with 3 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
 	@if [ -f $(TESTDIR)/join-8 -a -f vault/join-8 -a `diff -w $(TESTDIR)/join-8 vault/join-8 | wc -l` -eq 0 ]; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-join.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
+	@echo
 check-labeling: $(IBISEXE) $(TESTDIR)/m0/-part.txt $(TESTDIR)/m1/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<10" >> $(TESTDIR)/check-labeling.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<10" | if [ `fgrep " 1 connected component" - | wc -l` -eq 2 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
@@ -197,6 +198,7 @@ check-labeling: $(IBISEXE) $(TESTDIR)/m0/-part.txt $(TESTDIR)/m1/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a2<5 && b1>10" >> $(TESTDIR)/check-labeling.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a2<5 && b1>10" | if [ `fgrep " 14 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-labeling.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-labeling.log; fi
+	@echo
 #
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv
 	@rm -rf $(TESTDIR)/t0

@@ -217,19 +217,21 @@ int main(int argc, char** argv) {
     ibis::init(argc>4 ? argv[4] : (const char*)0);
     ibis::util::timer mytimer(*argv, 0);
     if (argc > 2) // user specified maxrow
-	maxrow = atof(argv[2]);
+	maxrow = (uint32_t)atof(argv[2]);
     if (maxrow <= 0) {
 	maxrow = ibis::fileManager::currentCacheSize();
-	maxrow = ibis::util::compactValue(maxrow / 120.0, maxrow / 80.0);
+	maxrow = (uint32_t)
+	    ibis::util::compactValue(maxrow / 120.0, maxrow / 80.0);
 	nrpd = maxrow;
     }
     if (maxrow < 10)
 	maxrow = 10;
     if (argc > 3) // user specified nrpd
-	nrpd = atof(argv[3]);
+	nrpd = (uint32_t) atof(argv[3]);
     if (nrpd <= 0) {
 	nrpd = ibis::fileManager::currentCacheSize();
-	nrpd = ibis::util::compactValue(nrpd / 120.0, nrpd / 80.0);
+	nrpd = (uint32_t)
+	    ibis::util::compactValue(nrpd / 120.0, nrpd / 80.0);
     }
     if (nrpd > maxrow) nrpd = maxrow;
 

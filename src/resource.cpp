@@ -313,12 +313,29 @@ void ibis::resource::clear(ibis::resource::vList &vl) {
 
 /// Parse a string of the form "name=vale, name=value, ..." into a simple
 /// list of name-value pairs.  Add the new ones to the incoming list, lst.
-/// @note The list is sparated by comas or blank spaces.  Each value can be
-/// a single non-empty string or collection of string values surrended by
-/// parentheses or quotes.  The parentheses and quotes may be nested, but
-/// has to match properly.  For example, the following strings are valid
-/// input strings: "pressure = 1.025E10, template = (10, 10, 5)" and
-/// "meshShape = (100, 100), creator = 'octave version 1.2'".
+///
+/// The list is sparated by comas or blank spaces.  Every character before
+/// the equal sign is treated as part of the name except the blank space
+/// surrounding the string.  Therefore, embedded blanks are allowed here,
+/// but this usage is not consistent of the SQL naming convention and is
+/// therefore discoveraged.  Each value can be a single non-empty string or
+/// collection of string values surrended by parentheses or quotes.  The
+/// parentheses and quotes may be nested, but has to match properly.  For
+/// example, the following strings are valid input strings: "pressure =
+/// 1.025E10, template = (10, 10, 5)" and "meshShape = (ny=100, nx=100),
+/// creator = 'octave version 1.2'".  Here is the list of special
+/// characters can contain compound values:
+///
+/// - ()
+/// - []
+/// - {}
+/// - ""
+/// - ''
+/// - `'
+///
+/// When the openning character of a pair is encountered, this function
+/// will not recognize the normal terminators untill the corresponding
+/// matching closing character is found or the end of the string is found.
 void ibis::resource::parseNameValuePairs(const char *in,
 					 ibis::resource::vList &lst) {
     if (in == 0) return;
@@ -361,7 +378,7 @@ void ibis::resource::parseNameValuePairs(const char *in,
 		    else if (*tmp == '"') {
 			parens.push('"');
 		    }
-		    else if (*tmp == '\'' || *tmp == '\`') {
+		    else if (*tmp == '\'' || *tmp == '`') {
 			parens.push('\'');
 		    }
 		}

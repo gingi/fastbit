@@ -244,7 +244,7 @@ int ibis::util::readString(std::string& str, const char *&buf,
     else if (*buf == '`') { // left quote
 	++ buf; // skip the openning quote
 	while (*buf) {
-	    if (*buf != '`')
+	    if (*buf != '`' && *buf != '\'')
 		str += *buf;
 	    else if (str.size() > 0 && str[str.size()-1] == '\\')
 		str[str.size()-1] = '`';

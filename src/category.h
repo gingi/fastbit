@@ -125,7 +125,7 @@ public:
 
     virtual long patternSearch(const char* pat) const;
     virtual long patternSearch(const char* pat, ibis::bitvector &hits) const;
-    using ibis::column::estimateCost;
+    using ibis::text::estimateCost;
     virtual double estimateCost(const ibis::qLike& cmp) const;
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;

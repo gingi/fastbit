@@ -1,3 +1,11 @@
+2010-12-22 John Wu <John dot Wu at ACM dot org>
+	* src/resources.cpp:381 remove backslash infront of ` to address a
+	complaint from PGI compiler
+	* src/category.h:128 use the function estimateCost from the
+	immediate base class instead of ibis::column
+	* tests/Makefile.am: add statements to print a blank statement
+	after the completion of check-labeling and check-join
+
 2010-12-21 John Wu <John dot Wu at ACM dot org>
 	* src/table.h, src.tafel.h, src/tafel.cpp: add the 5th argument to
 	tablex::write and tablex::writeMetaData to write meta tags
