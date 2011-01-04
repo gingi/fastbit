@@ -3191,29 +3191,29 @@ void ibis::bin::mapGranules(const array_t<E>& val,
 	    grn = new ibis::bin::granule;
 	    gmap[key] = grn;
 	    grn->loce = new ibis::bitvector;
-	    grn->loc0 = new ibis::bitvector;
-	    grn->loc1 = new ibis::bitvector;
+	    grn->locm = new ibis::bitvector;
+	    grn->locp = new ibis::bitvector;
 	}
 	else {
 	    grn = (*it).second;
 	}
 
 	if (val[i] < key) {
-	    grn->loc0->setBit(i, 1);
-	    if (grn->min0 > val[i])
-		grn->min0 = val[i];
-	    if (grn->max0 < val[i])
-		grn->max0 = val[i];
+	    grn->locm->setBit(i, 1);
+	    if (grn->minm > val[i])
+		grn->minm = val[i];
+	    if (grn->maxm < val[i])
+		grn->maxm = val[i];
 	}
 	else if (val[i] == key) {
 	    grn->loce->setBit(i, 1);
 	}
 	else { // assume the incoming value is larger, which may include NaN
-	    grn->loc1->setBit(i, 1);
-	    if (grn->min1 > val[i])
-		grn->min1 = val[i];
-	    if (grn->max1 < val[i])
-		grn->max1 = val[i];
+	    grn->locp->setBit(i, 1);
+	    if (grn->minp > val[i])
+		grn->minp = val[i];
+	    if (grn->maxp < val[i])
+		grn->maxp = val[i];
 	}
     }
 
@@ -3228,19 +3228,19 @@ void ibis::bin::mapGranules(const array_t<E>& val,
 	    delete (*it).second->loce;
 	    (*it).second->loce = 0;
 	}
-	if ((*it).second->loc0->cnt() > 0) {
-	    (*it).second->loc0->adjustSize(0, nev);
+	if ((*it).second->locm->cnt() > 0) {
+	    (*it).second->locm->adjustSize(0, nev);
 	}
 	else {
-	    delete (*it).second->loc0;
-	    (*it).second->loc0 = 0;
+	    delete (*it).second->locm;
+	    (*it).second->locm = 0;
 	}
-	if ((*it).second->loc1->cnt() > 0) {
-	    (*it).second->loc1->adjustSize(0, nev);
+	if ((*it).second->locp->cnt() > 0) {
+	    (*it).second->locp->adjustSize(0, nev);
 	}
 	else {
-	    delete (*it).second->loc1;
-	    (*it).second->loc1 = 0;
+	    delete (*it).second->locp;
+	    (*it).second->locp = 0;
 	}
     }
 
@@ -3279,17 +3279,19 @@ void ibis::bin::printGranules(std::ostream& out,
     if (prt+1 >= bmap.size()) { // print all
 	for (granuleMap::const_iterator it = bmap.begin();
 	     it != bmap.end(); ++ it) {
-	    out << (*it).first << ":\t" << (*it).second->loce->cnt() << ",\t";
-	    if ((*it).second->loc0)
-		out << (*it).second->loc0->cnt()
-		    << (*it).second->min0 << ",\t"
-		    << (*it).second->max0 << ",\t";
+	    out << (*it).first << ":\t";
+	    if ((*it).second->loce)
+		out << (*it).second->loce->cnt();
+	    if ((*it).second->locm)
+		out << ",\t" << (*it).second->locm->cnt()
+		    << ",\t" << (*it).second->minm
+		    << ",\t" << (*it).second->maxm;
 	    else
-		out << ",\t,\t";
-	    if ((*it).second->loc1)
-		out << ",\t" << (*it).second->loc1->cnt()
-		    << ",\t" << (*it).second->min1
-		    << ",\t" << (*it).second->max1 << "\n";
+		out << ",\t,\t,\t";
+	    if ((*it).second->locp)
+		out << ",\t" << (*it).second->locp->cnt()
+		    << ",\t" << (*it).second->minp
+		    << ",\t" << (*it).second->maxp << "\n";
 	    else
 		out << ",\t,\t,\t\n";
 	}
@@ -3297,17 +3299,19 @@ void ibis::bin::printGranules(std::ostream& out,
     else { // print some
 	granuleMap::const_iterator it = bmap.begin();
 	for (uint32_t i = 0; i < prt; ++i, ++it) {
-	    out << (*it).first << ":\t" << (*it).second->loce->cnt() << ",\t";
-	    if ((*it).second->loc0)
-		out << (*it).second->loc0->cnt()
-		    << (*it).second->min0 << ",\t"
-		    << (*it).second->max0 << ",\t";
+	    out << (*it).first << ":\t";
+	    if ((*it).second->loce)
+		out << (*it).second->loce->cnt();
+	    if ((*it).second->locm)
+		out << ",\t" << (*it).second->locm->cnt()
+		    << ",\t" << (*it).second->minm
+		    << ",\t" << (*it).second->maxm;
 	    else
-		out << ",\t,\t";
-	    if ((*it).second->loc1)
-		out << ",\t" << (*it).second->loc1->cnt()
-		    << ",\t" << (*it).second->min1
-		    << ",\t" << (*it).second->max1 << "\n";
+		out << ",\t,\t,\t";
+	    if ((*it).second->locp)
+		out << ",\t" << (*it).second->locp->cnt()
+		    << ",\t" << (*it).second->minp
+		    << ",\t" << (*it).second->maxp << "\n";
 	    else
 		out << ",\t,\t,\t\n";
 	}
@@ -3316,17 +3320,19 @@ void ibis::bin::printGranules(std::ostream& out,
 	-- it;
 	out << "...\n" << prt << (prt > 1 ? " entries" : " entry")
 	    << " omitted\n...\n";
-	out << (*it).first << ":\t" << (*it).second->loce->cnt() << ",\t";
-	if ((*it).second->loc0)
-	    out << (*it).second->loc0->cnt()
-		<< (*it).second->min0 << ",\t"
-		<< (*it).second->max0 << ",\t";
+	out << (*it).first << ":\t";
+	if ((*it).second->loce)
+	    out << (*it).second->loce->cnt();
+	if ((*it).second->locm)
+	    out << ",\t" << (*it).second->locm->cnt()
+		<< ",\t" << (*it).second->minm
+		<< ",\t" << (*it).second->maxm;
 	else
-	    out << ",\t,\t";
-	if ((*it).second->loc1)
-	    out << ",\t" << (*it).second->loc1->cnt()
-		<< ",\t" << (*it).second->min1
-		<< ",\t" << (*it).second->max1 << "\n";
+	    out << ",\t,\t,\t";
+	if ((*it).second->locp)
+	    out << ",\t" << (*it).second->locp->cnt()
+		<< ",\t" << (*it).second->minp
+		<< ",\t" << (*it).second->maxp << "\n";
 	else
 	    out << ",\t,\t,\t\n";
     }
@@ -3348,16 +3354,16 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 
     // copy the values
     for (granuleMap::iterator it = gmap.begin(); it != gmap.end(); ++it) {
-	if ((*it).second->loc0 != 0 && (*it).second->loc0->cnt() > 0) {
+	if ((*it).second->locm != 0 && (*it).second->locm->cnt() > 0) {
 	    if (maxval.size() > 0)
 		bounds.push_back(ibis::util::compactValue
-				 (maxval.back(), (*it).second->min0));
-	    if (nrows < (*it).second->loc0->size())
-		nrows = (*it).second->loc0->size();
-	    minval.push_back((*it).second->min0);
-	    maxval.push_back((*it).second->max0);
-	    bits.push_back((*it).second->loc0);
-	    (*it).second->loc0 = 0;
+				 (maxval.back(), (*it).second->minm));
+	    if (nrows < (*it).second->locm->size())
+		nrows = (*it).second->locm->size();
+	    minval.push_back((*it).second->minm);
+	    maxval.push_back((*it).second->maxm);
+	    bits.push_back((*it).second->locm);
+	    (*it).second->locm = 0;
 	}
 	if ((*it).second->loce != 0 && (*it).second->loce->cnt() > 0) {
 	    if (maxval.size() > 0)
@@ -3369,16 +3375,16 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 	    bits.push_back((*it).second->loce);
 	    (*it).second->loce = 0;
 	}
-	if ((*it).second->loc1 != 0 && (*it).second->loc1->cnt() > 0) {
+	if ((*it).second->locp != 0 && (*it).second->locp->cnt() > 0) {
 	    if (maxval.size() > 0)
 		bounds.push_back(ibis::util::compactValue
-				 (maxval.back(), (*it).second->min1));
-	    if (nrows < (*it).second->loc1->size())
-		nrows = (*it).second->loc1->size();
-	    minval.push_back((*it).second->min1);
-	    maxval.push_back((*it).second->max1);
-	    bits.push_back((*it).second->loc1);
-	    (*it).second->loc1 = 0;
+				 (maxval.back(), (*it).second->minp));
+	    if (nrows < (*it).second->locp->size())
+		nrows = (*it).second->locp->size();
+	    minval.push_back((*it).second->minp);
+	    maxval.push_back((*it).second->maxp);
+	    bits.push_back((*it).second->locp);
+	    (*it).second->locp = 0;
 	}
     }
     // append DBL_MAX as the bin boundary at the end

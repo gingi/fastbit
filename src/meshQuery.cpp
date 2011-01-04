@@ -6954,6 +6954,19 @@ int ibis::meshQuery::linesInND(std::vector<uint32_t>& lines,
     return lines.size() / (ndim+1);
 } // ibis::meshQuery::linesInND
 
+/// Assign each connected component a unique label.  This version works
+/// with query lines.  It assumes the underlying mesh is a simple
+/// nd-dimensional mesh with nearest neighbors on each dimension connected
+/// to each other.
+///
+/// The input lines are assumed to be produced by
+/// ibis::meshQuery::getHitsAsLines.  In particular, it assumes the query
+/// lines are in ascending order of their start coordinates.  Any violation
+/// of this ordering will treated as an input error.
+///
+/// It returns the number of connected components identified upon
+/// successful completion.  Otherwise, it returns a negative number to
+/// indicate error.
 int ibis::meshQuery::labelLines(uint32_t nd,
 				const std::vector<uint32_t>& lines,
 				std::vector<uint32_t>& labels) {

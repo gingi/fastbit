@@ -146,30 +146,32 @@ public:
 
     /// A data structure to assist the mapping of values to lower
     /// precisions.  Any integral or floating-point value may be mapped to
-    /// lower precision floating-point value.  This would produce a more
+    /// a lower precision floating-point value.  This would produce a more
     /// granular representation of the values.  The low precision
     /// floating-point value is called a target in this description.  To
     /// facilitate this type of dynamic binning, we device this simple data
     /// structure to record the position of all records mapped to a
-    /// particular target value.  It separates out the values that are
-    /// larger than or equal to the target from those that are smaller than
-    /// the target.  The variables min0 and max0 store the actual minimum
-    /// and maximum value among those that are smaller than the target.
-    /// The variables min1 and max1 store the actual minimum and maximum
-    /// value among those that are larger than or equal to the target
-    /// value.
+    /// particular target value.  For all values map to a target, it
+    /// further splits them according to whether the values actuallly are
+    /// larger than the target, equal to the target or smaller than the
+    /// target.  The locations of the values less than, greater than and
+    /// equal to the target is stored in locm, locp and loce.  The
+    /// variables minm and maxm store the actual minimum and maximum value
+    /// among those that are smaller than the target.  The variables minp
+    /// and maxp store the actual minimum and maximum value among those
+    /// that are larger than the target value.
     struct granule {
-	double min0, max0; // min and max of values less than the target
-	double min1, max1; // min and max of values greater than the target
+	double minm, maxm; // min and max of values less than the target
+	double minp, maxp; // min and max of values greater than the target
 	ibis::bitvector* loce; ///< Values equal to the target.
-	ibis::bitvector* loc0; ///< Values less than the target.
-	ibis::bitvector* loc1; ///< Values greater than the target.
+	ibis::bitvector* locm; ///< Values less than the target.
+	ibis::bitvector* locp; ///< Values greater than the target.
 
 	/// Construct.  User has to explicitly allocated the bitvectors.
-	granule() : min0(DBL_MAX), max0(-DBL_MAX), min1(DBL_MAX),
-		    max1(-DBL_MAX), loce(0), loc0(0), loc1(0) {};
+	granule() : minm(DBL_MAX), maxm(-DBL_MAX), minp(DBL_MAX),
+		    maxp(-DBL_MAX), loce(0), locm(0), locp(0) {};
 	/// Destructor.
-	~granule() {delete loce; delete loc0; delete loc1;};
+	~granule() {delete loce; delete locm; delete locp;};
     private:
 	granule(const granule&); // no copy constructor
 	granule& operator=(const granule&); // no assignment

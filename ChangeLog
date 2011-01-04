@@ -1,3 +1,11 @@
+2011-01-04 John Wu <John dot Wu at ACM dot org>
+	* src/util.h:1353 use function floor to extract the integer
+	portion from the log10 of incoming value instead of rounding with
+	static_cast<int>
+	* src/ibin.h, src/ibin.cpp: rename granule::loc0 to granule::locm,
+	granule::loc1 to granule::locp, update printGranules to check for
+	nil pointer of granule::loce
+
 2010-12-22 John Wu <John dot Wu at ACM dot org>
 	* src/resources.cpp:381 remove backslash infront of ` to address a
 	complaint from PGI compiler

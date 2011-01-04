@@ -1343,14 +1343,15 @@ inline double ibis::util::coarsen(const double in, unsigned prec) {
     }
     else {
 	ret = fabs(in);
-	if (ret < 1e-300) {
+	if (ret < DBL_MIN) { // denormalized number --> 0
 	    ret = 0.0;
 	}
-	else if (ret < 1e300) {
+	else if (ret < DBL_MAX) { // normal numbers
 	    ret = log10(ret);
 	    if (prec > 0)
 		-- prec;
-	    const int ixp = static_cast<int>(ret) - static_cast<int>(prec);
+	    const int ixp = static_cast<int>(floor(ret)) -
+		static_cast<int>(prec);
 	    ret = floor(0.5 + pow(1e1, ret-ixp));
 	    if (ixp > 0)
 		ret *= pow(1e1, ixp);
