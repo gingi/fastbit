@@ -1,6 +1,6 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2008-2010 the Regents of the University of California
+// Copyright 2008-2011 the Regents of the University of California
 #ifndef IBIS_JNATURAL_H
 #define IBIS_JNATURAL_H
 /**@file

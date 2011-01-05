@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2000-2010 the Regents of the University of California
+// Copyright 2000-2011 the Regents of the University of California
 #ifndef IBIS_CATEGORY_H
 #define IBIS_CATEGORY_H
 ///@file

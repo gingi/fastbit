@@ -1,6 +1,6 @@
 // File $Id$	
 // author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright 2007-2010 the Regents of the University of California
+// Copyright 2007-2011 the Regents of the University of California
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters

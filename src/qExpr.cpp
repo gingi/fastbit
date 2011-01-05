@@ -1,7 +1,7 @@
 // $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 1998-2010 the Regents of the University of California
+// Copyright 1998-2011 the Regents of the University of California
 //
 // implement the functions defined in qExpr.h
 //
@@ -1420,7 +1420,7 @@ void ibis::qExpr::extractDeprecatedJoins
     }
 } // ibis::qExpr::extractDeprecatedJoins
 
-// construct a qRange directly from a string representation of the constants
+/// Construct a qRange directly from a string representation of the constants.
 ibis::qContinuousRange::qContinuousRange
 (const char *lstr, qExpr::COMPARE lop, const char* prop,
  qExpr::COMPARE rop, const char *rstr)

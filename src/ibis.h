@@ -1,7 +1,7 @@
 // $Id$
 //	Author: John Wu <John.Wu at ACM.org>
 //              Lawrence Berkeley National Laboratory
-//	Copyright 2000-2010 the Regents of the University of California
+//	Copyright 2000-2011 the Regents of the University of California
 #ifndef IBIS_H
 #define IBIS_H
 /// @file ibis.h
@@ -36,7 +36,7 @@ and
 <A HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>.
 
 \section intro Introduction
-FastBit is an open-source data processing library following the spirit of
+FastBit is an open-source data processing library in the spirit of
 <A HREF="http://en.wikipedia.org/wiki/NoSQL">NoSQL movement</A>.  It offers
 a set of searching functions supported by compressed bitmap indexes.  It
 recognizes user data in the column-oriented fashion similar to

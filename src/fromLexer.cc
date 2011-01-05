@@ -463,7 +463,7 @@ static yyconst flex_int16_t yy_chk[199] =
 
    Author: John Wu <John.Wu at acm.org>
    Lawrence Berkeley National Laboratory
-   Copyright 2009-2010 the Regents of the University of California
+   Copyright 2009-2011 the Regents of the University of California
  */
 #line 9 "fromLexer.ll"
 /** \file Defines the tokenlizer using Flex C++ template. */

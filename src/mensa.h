@@ -1,7 +1,7 @@
 // File: $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 2007-2010 the Regents of the University of California
+// Copyright 2007-2011 the Regents of the University of California
 #ifndef IBIS_MENSA_H
 #define IBIS_MENSA_H
 #include "table.h"	// ibis::table

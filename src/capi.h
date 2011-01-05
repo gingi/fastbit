@@ -1,7 +1,7 @@
 // File: $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 2006-2010 the Regents of the University of California
+// Copyright 2006-2011 the Regents of the University of California
 #ifndef IBIS_CAPI_H
 #define IBIS_CAPI_H
 /// @file
