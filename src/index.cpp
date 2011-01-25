@@ -1456,6 +1456,10 @@ bool ibis::index::isIndex(const char* f, ibis::index::INDEX_TYPE t) {
 
 // generates data file name from "f"
 void ibis::index::dataFileName(const char* f, std::string& iname) const {
+    iname.clear();
+    if (col == 0) {
+	return;
+    }
     if (f == 0) {
 	if (col->partition() != 0) {
 	    iname = col->partition()->currentDataDir();
@@ -1504,6 +1508,8 @@ void ibis::index::dataFileName(const char* f, std::string& iname) const {
 
 // generates index file name from "f"
 void ibis::index::indexFileName(const char* f, std::string& iname) const {
+    iname.clear();
+    if (col == 0) return;
     if (f == 0 || *f == 0) {
 	if (col->partition() != 0) {
 	    iname = col->partition()->currentDataDir();
@@ -1611,6 +1617,8 @@ void ibis::index::computeMinMax(const char* f, double& min,
 				double& max) const {
     std::string fnm;
     dataFileName(f, fnm); // generate the correct data file name
+    if (fnm.empty()) return;
+
     switch (col->type()) {
     case ibis::UINT: {
 	array_t<uint32_t> val;
@@ -4203,7 +4211,7 @@ int ibis::index::initOffsets(ibis::fileManager::storage* st, size_t start,
 	offset32.swap(offs); // save the offsets
     }
     else {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 0 && col != 0)
 	    << "Warning -- index["
 	    << (col->partition() ? col->partition()->name() : "??") << '.'
 	    << col->name() << "]::initOffsets(" << static_cast<const void*>(st)
@@ -4225,7 +4233,7 @@ void ibis::index::initBitmaps(int fdes) {
     for (uint32_t i = 0; i < bits.size(); ++ i)
 	delete bits[i]; // free existing bitmaps
     if (nobs == 0) {
-	LOGGER(ibis::gVerbose > 3)
+	LOGGER(ibis::gVerbose > 3 && col != 0)
 	    << "Warning -- index["
 	    << (col->partition() ? col->partition()->name() : "??") << '.'
 	    << col->name() << "]::initBitmaps(" << fdes
@@ -4330,7 +4338,7 @@ void ibis::index::initBitmaps(int fdes) {
 #endif
     }
     else {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose > 1 && col != 0)
 	    << "Warning -- index[" << col->name() << "]::initBitmaps can not "
 	    "proceed because both offset32[" << offset32.size()
 	    << "] and offset64[" << offset64.size() << "] have less than "
@@ -4350,7 +4358,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
     const uint32_t nobs = (offset64.size() > 1 ? offset64.size()-1 :
 			   offset32.size() > 1 ? offset32.size()-1 : 0);
     if (nobs == 0U) {
-	LOGGER(ibis::gVerbose > 3)
+	LOGGER(ibis::gVerbose > 3 && col != 0)
 	    << "Warning -- index[" << col->name() << "]::initBitmaps("
 	    << static_cast<const void*>(st) << ") can not continue without "
 	    "a valid offset64 or offset32";
@@ -4440,6 +4448,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 
 /// Activate all bitvectors.
 void ibis::index::activate() const {
+    if (col == 0) return;
     std::string evt = "index";
     if (ibis::gVerbose > 0) {
 	evt += '[';
@@ -4618,7 +4627,7 @@ void ibis::index::activate() const {
 
 // activate the ith bitvector
 void ibis::index::activate(uint32_t i) const {
-    if (i >= bits.size()) return;	// index out of range
+    if (col == 0 || i >= bits.size()) return;	// index out of range
     std::string evt = "index";
     if (ibis::gVerbose > 0) {
 	evt += '[';
@@ -4752,7 +4761,7 @@ void ibis::index::activate(uint32_t i) const {
 void ibis::index::activate(uint32_t i, uint32_t j) const {
     if (j > bits.size())
 	j = bits.size();
-    if (i >= j || i >= bits.size()) // empty range
+    if (col == 0 || i >= j || i >= bits.size()) // empty range
 	return;
     std::string evt = "index";
     if (ibis::gVerbose > 0) {
@@ -5672,8 +5681,9 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 			  ibis::bitvector& res) const {
     LOGGER(ibis::gVerbose > 7)
-	<< "index[" << col->name() << "]::sumBins(" << ib << ", "
-	<< ie << ", res(" << res.cnt() << ", " << res.size() << ")) ...";
+	<< "index[" << (col != 0 ? col->name() : "") << "]::sumBins(" << ib
+	<< ", " << ie << ", res(" << res.cnt() << ", " << res.size()
+	<< ")) ...";
     const size_t nobs = bits.size();
     if (ie > nobs) ie = nobs;
     if (ib >= ie) {
@@ -6246,7 +6256,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 			  uint32_t ib0, uint32_t ie0) const {
     LOGGER(ibis::gVerbose > 7)
-	<< "index[" << col->name() << "]::sumBins(" << ib
+	<< "index[" << (col != 0 ? col->name() : "") << "]::sumBins(" << ib
 	<< ", " << ie << ", res(" << res.cnt() << ", " << res.size()
 	<< "), " << ib0 << ", " << ie0 << ") ...";
     if (offset32.size() <= bits.size() && offset64.size() <= bits.size()) {
@@ -7950,7 +7960,8 @@ void ibis::index::optionalUnpack(std::vector<ibis::bitvector*>& bts,
 	    uA = col->partition()->name();
 	    uA += ".";
 	}
-	uA += col->name();
+	if (col != 0)
+	    uA += col->name();
 	uA += ".uncompress";
 	std::string uL = uA;
 	uL += "LargeBitvector";

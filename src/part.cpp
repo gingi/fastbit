@@ -14403,9 +14403,9 @@ uint32_t ibis::part::vault::tellReal() const {
     return _roster[position];
 } // ibis::part::vault::tellReal
 
-/// Examining the given director to look for the metadata files and
-/// constructs ibis::part.  Can descend into subdirectories through opendir
-/// family of functions.
+/// Examining the given directory to look for the metadata files and to
+/// construct ibis::part.  Can only descend into subdirectories through
+/// opendir family of functions.
 ///
 /// Returns the number of data partitions found.
 unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
