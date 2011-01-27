@@ -379,8 +379,9 @@ protected:
 
     /// The default constructor.
     table() {};
-    /// Copy constructor.
-    table(const char* na, const char* de) : name_(na), desc_(de) {};
+    /// Constructor.  Use explicitly given name and description.
+    table(const char* na, const char* de)
+	: name_(na?na:""), desc_(de?de:na?na:"") {};
 
 private:
     // re-enforce the prohibitions on copying and assignment.

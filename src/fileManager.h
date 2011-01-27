@@ -232,10 +232,8 @@ public:
     storage& operator=(const storage& rhs);
     void copy(const storage& rhs);
 
-    /// Those storage not associated with files do not have names.  They
-    /// are not tracked by the file manager and should be immediately freed
-    /// after use.
-    bool unnamed() {return (name == 0);}
+    /// Pointer to the file name supporting this storage object.  It
+    /// returns nil for in-memory storage.
     const char* filename() const {return name;}
 
     /// Is the storage object empty?
@@ -261,12 +259,10 @@ public:
 
     virtual void beginUse();
     virtual void endUse();
-    unsigned inUse() const { ///< Number of current accesses to this object.
-	return nref();
-    }
-    unsigned pastUse() const { ///< Number of past accesses to this object.
-	return nacc;
-    }
+    /// Number of current accesses to this object.
+    unsigned inUse() const {return nref();}
+    /// Number of past accesses to this object.
+    unsigned pastUse() const {return nacc;}
 
     /// Is the storage a file map ?
     virtual bool isFileMap() const {return false;}
@@ -394,9 +390,9 @@ private:
 }; // class fileManager::roFile
 
 #if defined(HAVE_FILE_MAP)
-/// This class is used to store information a memory mapped portion of a
-/// file.  The main reason this is a derived class of roFile is to make
-/// this one not shareable.
+/// This class is used to store information about a portion of a memory
+/// mapped file.  The main reason this is a derived class of roFile is to
+/// make this one not shareable.
 class ibis::fileManager::rofSegment : public ibis::fileManager::roFile {
 public:
     rofSegment(const char *fn, off_t b, off_t e);

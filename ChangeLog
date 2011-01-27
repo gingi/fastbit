@@ -1,3 +1,9 @@
+2011-01-27 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.h, src/fileManager.cpp: remove function
+	ibis::fileManager::storage::unnamed
+	* src/array_t.h, src/array_t.cpp: add constructor taking a raw
+	pointer from the caller to avoid copying data
+
 2011-01-25 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: add checks for nil pointer col
 

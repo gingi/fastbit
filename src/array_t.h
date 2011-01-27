@@ -49,6 +49,7 @@ public:
     array_t<T>(const char *fn, const off_t begin, const off_t end);
     array_t<T>(const char *fn, const int fdes,
 	       const off_t begin, const off_t end);
+    array_t<T>(T* addr, size_t nelm);
 
     array_t<T>& operator=(const array_t<T>& rhs);
     void copy(const array_t<T>& rhs);
@@ -114,7 +115,7 @@ public:
     /// or read-only.
     void nosharing();
     /// Is the content of the array solely in memory?
-    bool incore() const {return(actual != 0 ? actual->unnamed() != 0 : false);}
+    bool incore() const {return(actual != 0 ? actual->filename() == 0 : false);}
 
     iterator insert(iterator pos, const T& val);
     void insert(iterator p, size_t n, const T& val);
@@ -125,7 +126,7 @@ public:
     iterator erase(iterator i, iterator j);
 
     // the IO functions
-    void read(const char*); ////< Read from the named file.
+    void  read(const char*); ////< Read from the named file.
     off_t read(const int fdes, const off_t begin,
 	       const off_t end); ///< Read a portion of an open file.
     void write(const char*) const; ///< write whole array to the named file

@@ -266,6 +266,7 @@ ibis::array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
 	<< fdes << " beginning at " << begin << " ending at " << end;
 }
 
+/// Constructor.  Reads a portion of the named file.
 template<class T>
 ibis::array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
     : actual(new ibis::fileManager::storage(fn, begin, end)),
@@ -289,6 +290,8 @@ ibis::array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
 	<< " beginning at " << begin << " ending at " << end;
 }
 
+/// Constructor.  Reads a portion of the named file through the specified
+/// file descriptor.
 template<class T>
 ibis::array_t<T>::array_t(const char *fn, const int fdes,
 			  const off_t begin, const off_t end)
@@ -311,6 +314,20 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
 	<< static_cast<void*>(actual) << " and m_begin="
 	<< static_cast<void*>(m_begin) << ", content from file " << fn
 	<< " beginning at " << begin << " ending at " << end;
+}
+
+/// Constructor.  Directly use the raw pointer provided.  Note that the
+/// second argument is the number of elements starting at the given
+/// address.
+template <class T>
+ibis::array_t<T>::array_t(T* addr, size_t nelm)
+    : actual(0), m_begin(addr), m_end(addr+nelm) {
+    LOGGER(ibis::gVerbose > 9)
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << " and m_begin="
+	<< static_cast<void*>(m_begin) << ", content from " << nelm
+	<< " element" << (nelm>1?"s":"") << " beginning at " << addr;
 }
 
 /// Assignment operator.  It performs a shallow copy.
@@ -384,9 +401,11 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 /// tracked by the file managers.
 template<class T>
 void ibis::array_t<T>::nosharing() {
-    if (actual != 0 && m_begin != 0 && m_end != 0 &&
-	(m_begin != (T*)actual->begin() || actual->inUse() > 1 ||
-	 actual->filename() != 0)) {
+    if (m_begin != 0 && m_end != 0 &&
+	(actual == 0 ||
+	 (m_begin != (T*)actual->begin() ||
+	  actual->filename() != 0 ||
+	  actual->inUse() > 1))) {
 	// follow copy-and-swap strategy
 	std::auto_ptr<ibis::fileManager::storage>
 	    tmp(new ibis::fileManager::storage
@@ -403,7 +422,8 @@ void ibis::array_t<T>::nosharing() {
 	tmp->beginUse();
 	m_begin = (T*)(tmp->begin());
 	m_end = (T*)(tmp->end());
-	actual->endUse();
+	if (actual != 0)
+	    actual->endUse();
 	actual = tmp.release();
     }
 } // ibis::array_t<T>::nosharing
@@ -420,7 +440,7 @@ void ibis::array_t<T>::freeMemory() {
 	    << " (active references: " << actual->inUse()
 	    << ", past references: " << actual->pastUse() << ')';
 
-	const bool doDelete = (actual->unnamed() && 1 >= actual->inUse());
+	const bool doDelete = (actual->filename() == 0 && 1 >= actual->inUse());
 	actual->endUse();//timer.CPUTime()
 	if (doDelete) {
 	    delete actual;

@@ -1748,7 +1748,7 @@ ibis::fileManager::storage::storage(size_t n)
     }
 } // ibis::fileManager::storage::storage
 
-/// Read part of a open file, from [begin, end).
+/// Constructor.  Read part of a file from [begin, end).
 ibis::fileManager::storage::storage(const char* fname,
 				    const off_t begin,
 				    const off_t end)
@@ -1766,7 +1766,7 @@ ibis::fileManager::storage::storage(const char* fname,
     }
 } // ibis::fileManager::storage::storage
 
-/// Read part of a open file, from [begin, end).
+/// Constructor.  Read part of a open file, from [begin, end).  The file 
 ibis::fileManager::storage::storage(const int fdes,
 				    const off_t begin,
 				    const off_t end)
@@ -1784,7 +1784,7 @@ ibis::fileManager::storage::storage(const int fdes,
     }
 } // ibis::fileManager::storage::storage
 
-/// Copy constructor.  Copy only the part between begin and end [begin, end).
+/// Copy constructor.  Copy the values between begin and end [begin, end).
 ibis::fileManager::storage::storage(const char* begin, const char* end)
     : name(0), m_begin(0), m_end(0), nacc(0), nref() {
     if (end <= begin) return;
@@ -1995,7 +1995,9 @@ void ibis::fileManager::storage::printStatus(std::ostream& out) const {
 	<< "\t# of active acc " << nref() << std::endl;
 } // ibis::fileManager::storage::printStatus
 
-/// Read part of a open file [begin, end).  Return the number of bytes read.
+/// Read part of a file.  The file name is given as the first argument
+/// fname, and the range [begin, end) is specified in bytes.  Return the
+/// number of bytes read.
 off_t ibis::fileManager::storage::read(const char* fname,
 				       const off_t begin,
 				       const off_t end) {

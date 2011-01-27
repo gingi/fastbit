@@ -877,7 +877,7 @@ int ibis::pack::read(ibis::fileManager::storage* st) {
     LOGGER(ibis::gVerbose > 3)
 	<< "pack[" << col->partition()->name() << "." << col->name()
 	<< "]::read completed reading the header from storage object "
-	<< st << " (" << (st->unnamed() ? "<NO NAME>" : st->filename()) << ')';
+	<< st << " (" << (st->filename() ? st->filename() : "<NO NAME>") << ')';
     return 0;
 } // ibis::pack::read
 

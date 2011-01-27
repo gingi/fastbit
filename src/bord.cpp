@@ -1060,8 +1060,8 @@ ibis::bord::part::part(const char *tn, const char *td, uint64_t nr,
 		       ibis::table::bufferList       &buf,
 		       const ibis::table::stringList *cdesc)
     : ibis::part("in-core") {
-    m_name = ibis::util::strnewdup(tn);
-    m_desc = td;
+    m_name = ibis::util::strnewdup(tn?tn:"unnamed");
+    m_desc = (td ? td : tn ? tn : "");
     nEvents = static_cast<uint32_t>(nr);
     if (nEvents != nr) {
 	LOGGER(ibis::gVerbose >= 0)
