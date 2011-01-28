@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright 2008-2010 the Regents of the University of California
+// Copyright 2008-2011 the Regents of the University of California
 /** @file rara.cpp
 
     This is a simple test program for the querying functions of ibis::query

@@ -24,7 +24,7 @@
 
 /*! \mainpage Overview of FastBit IBIS Implementation
 
-\date 2010
+\date 2011
 
 \author <A HREF="http://lbl.gov/~kwu/">John Wu</A>,
 <A HREF="http://sdm.lbl.gov/">Scientific Data Management</A>,

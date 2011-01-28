@@ -1,3 +1,8 @@
+2011-01-28 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp, src/column.cpp: add statements in
+	column::selectTypes to perform shallow copy when selecting all
+	elements of the data values
+
 2011-01-27 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.h, src/fileManager.cpp: remove function
 	ibis::fileManager::storage::unnamed
@@ -13,7 +18,7 @@
 2011-01-04 John Wu <John dot Wu at ACM dot org>
 	* src/util.h:1353 use function floor to extract the integer
 	portion from the log10 of incoming value instead of rounding with
-	static_cast<int>
+	static_cast<int>, to correct a problem identified by Jinoh Kim
 	* src/ibin.h, src/ibin.cpp: rename granule::loc0 to granule::locm,
 	granule::loc1 to granule::locp, update printGranules to check for
 	nil pointer of granule::loce

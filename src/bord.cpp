@@ -3360,11 +3360,17 @@ ibis::bord::column::selectBytes(const ibis::bitvector &mask) const {
     if (m_type == ibis::BYTE) {
 	const array_t<signed char> &prop =
 	    * static_cast<const array_t<signed char>*>(buffer);
-	uint32_t i = 0;
-	array->resize(tot);
 	const uint32_t nprop = prop.size();
+	uint32_t i = 0;
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) { // no need to check loop bounds
+	if (tot >= nprop) {
+	    ibis::array_t<signed char> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) { // no need to check loop bounds
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
@@ -3436,12 +3442,17 @@ ibis::bord::column::selectUBytes(const ibis::bitvector& mask) const {
     if (m_type == UBYTE) {
 	const array_t<unsigned char> &prop =
 	    * static_cast<const array_t<unsigned char>*>(buffer);
-
-	uint32_t i = 0;
-	array->resize(tot);
 	const uint32_t nprop = prop.size();
+	uint32_t i = 0;
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) {
+	if (tot >= nprop) {
+	    ibis::array_t<unsigned char> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) {
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
@@ -3514,10 +3525,16 @@ ibis::bord::column::selectShorts(const ibis::bitvector &mask) const {
     if (m_type == ibis::SHORT) {
 	const array_t<int16_t> &prop =
 	    * static_cast<const array_t<int16_t>*>(buffer);
-	uint32_t i = 0;
-	array->resize(tot);
 	const uint32_t nprop = prop.size();
+	uint32_t i = 0;
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (tot >= nprop) {
+	    ibis::array_t<int16_t> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
 	if (nprop >= mask.size()) { // no need to check loop bounds
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
@@ -3694,12 +3711,17 @@ ibis::bord::column::selectUShorts(const ibis::bitvector& mask) const {
     if (m_type == USHORT) {
 	const array_t<uint16_t> &prop =
 	    * static_cast<const array_t<uint16_t>*>(buffer);
-
-	uint32_t i = 0;
-	array->resize(tot);
 	const uint32_t nprop = prop.size();
+	uint32_t i = 0;
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) {
+	if (tot >= nprop) {
+	    ibis::array_t<uint16_t> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) {
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
@@ -3826,15 +3848,21 @@ ibis::bord::column::selectInts(const ibis::bitvector &mask) const {
     if (m_type == ibis::INT) {
 	const array_t<int32_t> &prop =
 	    * static_cast<const array_t<int32_t>*>(buffer);
-	uint32_t i = 0;
-	array->resize(tot);
 	const long unsigned nprop = prop.size();
+	uint32_t i = 0;
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectInts mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) { // no need to check loop bounds
+	if (tot >= nprop) {
+	    ibis::array_t<int32_t> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) { // no need to check loop bounds
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
@@ -4146,12 +4174,17 @@ ibis::bord::column::selectUInts(const ibis::bitvector& mask) const {
 	m_type == ibis::TEXT) {
 	const array_t<uint32_t> &prop =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
-
-	uint32_t i = 0;
-	array->resize(tot);
 	const uint32_t nprop = prop.size();
+	uint32_t i = 0;
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) {
+	if (tot >= nprop) {
+	    ibis::array_t<uint32_t> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) {
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
@@ -4336,16 +4369,21 @@ ibis::bord::column::selectLongs(const ibis::bitvector& mask) const {
     if (m_type == ibis::LONG) {
 	const array_t<int64_t> &prop =
 	    * static_cast<const array_t<int64_t>*>(buffer);
-
-	uint32_t i = 0;
-	array->resize(tot);
 	const long unsigned nprop = prop.size();
+	uint32_t i = 0;
+	if (tot < nprop)
+	    array->resize(tot);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectLongs mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) { // no need to check loop bounds
+	if (tot >= mask.size()) { // use shallow copy
+	    ibis::array_t<int64_t> tmp(prop);
+	    tmp.swap(*array);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) { // no need to check loop bounds
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
@@ -4831,16 +4869,21 @@ ibis::bord::column::selectULongs(const ibis::bitvector& mask) const {
     if (m_type == ibis::ULONG) {
 	const array_t<uint64_t> &prop =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
-
-	uint32_t i = 0;
-	array->resize(tot);
 	const long unsigned nprop = prop.size();
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	logMessage("DEBUG", "selectULongs mask.size(%lu) and nprop=%lu",
 		   static_cast<long unsigned>(mask.size()), nprop);
 #endif
+	uint32_t i = 0;
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) { // no need to check loop bounds
+	if (tot >= nprop) {
+	    ibis::array_t<uint64_t> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) { // no need to check loop bounds
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    logMessage("DEBUG", "entering unchecked loops");
 #endif
@@ -5327,12 +5370,18 @@ ibis::bord::column::selectFloats(const ibis::bitvector& mask) const {
     if (m_type == FLOAT) {
 	const array_t<float> &prop =
 	    * static_cast<const array_t<float>*>(buffer);
+	const uint32_t nprop = prop.size();
 
 	uint32_t i = 0;
-	array->resize(tot);
-	const uint32_t nprop = prop.size();
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) { // no need to check loop bounds
+	if (tot >= nprop) {
+	    ibis::array_t<float> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) { // no need to check loop bounds
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
@@ -6057,12 +6106,17 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
     case ibis::DOUBLE: {
 	const array_t<double> &prop =
 	    * static_cast<const array_t<double>*>(buffer);
-
-	uint32_t i = 0;
-	array->resize(tot);
 	const uint32_t nprop = prop.size();
+	uint32_t i = 0;
+	if (tot < nprop)
+	    array->resize(tot);
 	ibis::bitvector::indexSet index = mask.firstIndexSet();
-	if (nprop >= mask.size()) {
+	if (tot >= nprop) {
+	    ibis::array_t<double> tmp(prop);
+	    array->swap(tmp);
+	    i = nprop;
+	}
+	else if (nprop >= mask.size()) {
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
