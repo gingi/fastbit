@@ -15,7 +15,7 @@ Version ibis1.2.2
    replicate the test
 -- add function to update metadata information after modification of
    datasets by other processes (at request of Chavdar Kopoev)
--- add file map issues on windows machines raised by Chavdar Kopoev
+-- address file map issues on windows machines raised by Chavdar Kopoev
 -- clean up print issues raised by Anderson Chaves
 
 Wed Nov  3 18:21:35 PDT 2010

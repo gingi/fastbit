@@ -410,11 +410,11 @@ $(TESTDIR)/smallmem3.rc: $(TESTDIR)
 #
 clean: clean-am
 	-rm -f *~ core core.[0-9]*
-	-rm -rf $(TESTDIR) star2002*
+	-rm -rf $(TESTDIR) tmp .ibis star2002*
 clean-tmp:
-	-rm -rf $(TESTDIR) .ibis
+	-rm -rf tmp .ibis
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT}
+	-rm -rf ./$(DEPDIR) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} jrf${EXEEXT}
 	-rm -f Makefile
 #
 # append the data in test0.csv and test1.csv 10 times
