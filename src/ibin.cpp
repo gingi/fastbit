@@ -6191,12 +6191,13 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
     return ierr0;
 } // ibis::bin::evaluate
 
-// provide an estimation based on the current index
-// set bits in lower are hits for certain, set bits in upper are candidates
-// set bits in (upper - lower) should be checked to verifies which are
-// actually hits
-// if the bitvector upper contain less bits than bitvector lower, the content
-// of upper is assumed to be the same as lower.
+/// Provide an estimation based on the current index.  Set bits in lower
+/// are hits for certain, set bits in upper are candidates.  Set bits in
+/// (upper - lower) should be checked to verifies which ones are actually
+/// hits.  If the bitvector upper contain less bits than bitvector lower,
+/// the content of upper is assumed to be the same as lower.
+///
+/// @note This function will not do anything if the estimated cost is high.
 void ibis::bin::estimate(const ibis::qContinuousRange& expr,
 			 ibis::bitvector& lower,
 			 ibis::bitvector& upper) const {
@@ -6221,9 +6222,45 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     // reasonable choice compared to the alternative
     // see irelic.cpp for an example of the alternatives that have been
     // considered.
-    // May, 9, 2006 --
+    // May 9, 2006 --
     // changed to sumBins to take advantage of automatic activation
-    if (hit0 < hit1) {
+    // Feb. 8, 2011 -- check the cost first before operating on the bitmaps
+    double cost = 0.0; // an estimate of the total cost of resolving the expression
+    if (offset64.size() > bits.size()) {
+	if (cand0 < cand1 && cand1 < offset64.size()) {
+	    const int64_t tot = offset64.back() - offset64[0];
+	    const int64_t mid = offset64[cand1] - offset64[cand0];
+	    if ((tot >> 1) >= mid)
+		cost = mid;
+	    else
+		cost = tot - mid;
+	}
+    }
+    else if (offset32.size() > bits.size()) {
+	if (cand0 < cand1 && cand1 < offset32.size()) {
+	    const int32_t tot = offset32.back() - offset32[0];
+	    const int32_t mid = offset32[cand1] - offset32[cand0];
+	    if ((tot >> 1) >= mid)
+		cost = mid;
+	    else
+		cost = tot - mid;
+	}
+    }
+    if (hit0 > cand0 && cand1 > hit1) {
+	cost = (col->elementSize() * (double)nrows / nobs) * 2.0;
+    }
+    else if (hit0 > cand0 || cand1 > hit1) {
+	cost = (col->elementSize() * nrows / nobs);
+    }
+    if (cand0 >= cand1) {
+	lower.set(0, nrows);
+	upper.set(0, nrows);
+    }
+    else if (cost > nrows*0.5) { // don't do estimation
+	lower.set(0, nrows);
+	upper.set(1, nrows);
+    }
+    else if (hit0 < hit1) {
 	sumBins(hit0, hit1, lower);
 	if (cand0 < hit0 || (cand1 > hit1 && hit1 < nobs)) {
 	    upper.copy(lower);
@@ -6250,7 +6287,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     }
 #if DEBUG+0 > 0
     LOGGER(ibis::gVerbose >= 0)
-	<< "DEBUG -- bin::estimate("<< expr << ")\nlower = \n"
+	<< "DEBUG -- bin::estimate(" << expr << ")\nlower = \n"
 	<< lower << "upper = \n" << upper;
 #endif
 } // ibis::bin::estimate

@@ -1,11 +1,16 @@
 2011-02-08 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: change part::doCount to use column::getValuesArray
 	instead of directly attempting to read the underlying data files
+	* src/ibin.cpp: take into account of the total cost in
+	bin::estimate, do nothing if the total cost is higher than
+	scanning the base data
 
 2011-01-28 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp, src/column.cpp: add statements in
 	column::selectTypes to perform shallow copy when selecting all
 	elements of the data values
+	* tests/Makefile.am: add more files to be removed under the target
+	clean
 
 2011-01-27 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.h, src/fileManager.cpp: remove function
