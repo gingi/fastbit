@@ -1521,7 +1521,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    << " entr" << (cnt > 1 ? "ies" : "y") << " were found";
     }
 
-    if (isActive) {
+    if (isActive && nrows > 0) {
 	uint32_t mt = 0;
 	// deal with the meta tags
 	for (ibis::resource::vList::const_iterator mit = metaList.begin();

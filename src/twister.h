@@ -135,8 +135,8 @@ public:
     double operator()() {return next();}
     /// Next random number.
     double next() {
-	if (has_extra != 0) { /* has extra value from the previous run */
-	    has_extra = 0;
+	if (has_extra) { /* has extra value from the previous run */
+	    has_extra = false;
 	    return extra;
 	}
 	else { /* Box-Mueller transformation */
