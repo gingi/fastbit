@@ -1,3 +1,7 @@
+2011-02-09 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp: in ibis::bin::setBoundaries avoid casting bounds
+	to floats
+
 2011-02-08 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: change part::doCount to use column::getValuesArray
 	instead of directly attempting to read the underlying data files

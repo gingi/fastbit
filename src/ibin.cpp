@@ -15,8 +15,9 @@
 #include "bitvector64.h"
 
 #include <algorithm>	// std::sort
-#include <sstream> 	// std::ostringstream
 #include <typeinfo>	// typeid
+#include <sstream> 	// std::ostringstream
+#include <iomanip>	// std::setprecision
 
 // The default number of bins if nothing else is specified
 #ifndef IBIS_DEFAULT_NBINS
@@ -593,10 +594,11 @@ uint32_t ibis::bin::locate(const double& val) const {
 			static_cast<long unsigned>(i1), bounds[i1],
 			static_cast<long unsigned>(bounds.size()), val);
 #endif
-	if (ibis::gVerbose > 7)
-	    col->logMessage("bin::locate", "%g in [%g, %g) ==> %lu",
-			    val, bounds[i0], bounds[i1],
-			    static_cast<long unsigned>(i1));
+	LOGGER(ibis::gVerbose > 8)
+	    << "column[" << col->partition()->name() << "." << col->name()
+	    << "]::bin::locate -- " << std::setprecision(8) << val << " in ["
+	    << std::setprecision(8) << bounds[i0] << ", "
+	    << std::setprecision(8) << bounds[i1] << ") ==> " << i1;
 	return i1;
     }
     else { // do linear search
@@ -609,10 +611,12 @@ uint32_t ibis::bin::locate(const double& val) const {
 		     static_cast<long unsigned>(i), bounds[i],
 		     static_cast<long unsigned>(bounds.size()), val);
 #endif
-		if (ibis::gVerbose > 7)
-		    col->logMessage("bin::locate", "%g in [%g, %g) ==> %lu",
-				    val, bounds[i-1], bounds[i],
-				    static_cast<long unsigned>(i));
+		LOGGER(ibis::gVerbose > 8)
+		    << "column[" << col->partition()->name() << "."
+		    << col->name() << "]::bin::locate -- "
+		    << std::setprecision(8) << val << " in ["
+		    << std::setprecision(8) << bounds[i-1] << ", "
+		    << std::setprecision(8) << bounds[i] << ") ==> " << i;
 		return i;
 	    }
 	}
@@ -2946,28 +2950,9 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		lg() << bounds[i] << " ";
 	}
 #endif
-	if (col->type() == ibis::DOUBLE) {
+	if (col->type() == ibis::DOUBLE || col->type() == ibis::FLOAT) {
 	    unsigned i, j;
 	    for (i = 0, j = 1; j < nb1; ++ j) {
-		if (bounds[j] > bounds[i]) {
-		    if (j > i+1)
-			bounds[i+1] = bounds[j];
-		    ++ i;
-		}
-		else if (ibis::gVerbose > 6) {
-		    col->logMessage("setBoundaries", "skipping bounds[%u]"
-				    "(%g) because it is too close to bounds"
-				    "[%u](%g) (diff=%g)", j, bounds[j],
-				    i, bounds[i], bounds[j]-bounds[i]);
-		}
-	    }
-	    bounds.resize(i+1);
-	}
-	else if (col->type() == ibis::FLOAT) {
-	    unsigned i, j;
-	    bounds[0] = static_cast<float>(bounds[0]);
-	    for (i = 0, j = 1; j < nb1; ++ j) {
-		bounds[j] = static_cast<float>(bounds[j]);
 		if (bounds[j] > bounds[i]) {
 		    if (j > i+1)
 			bounds[i+1] = bounds[j];
@@ -3021,15 +3006,15 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		 col->type() != ibis::DOUBLE)
 	    bounds.push_back(ibis::util::compactValue(rbd, DBL_MAX));
 
-	if (col->type() == ibis::FLOAT) {
-	    // adjust the precision of boundaries to match the precision of
-	    // the attribute
-	    nobs = bounds.size();
-	    for (uint32_t i = 0; i < nobs; ++i)
-		if (bounds[i] < FLT_MAX && bounds[i] > -FLT_MAX)
-		    bounds[i] = static_cast<double>
-			(static_cast<float>(bounds[i]));
-	}
+	// if (col->type() == ibis::FLOAT) {
+	//     // adjust the precision of boundaries to match the precision of
+	//     // the attribute
+	//     nobs = bounds.size();
+	//     for (uint32_t i = 0; i < nobs; ++i)
+	// 	if (bounds[i] < FLT_MAX && bounds[i] > -FLT_MAX)
+	// 	    bounds[i] = static_cast<double>
+	// 		(static_cast<float>(bounds[i]));
+	// }
 
 	// add DBL_MAX as the last value
 	bounds.push_back(DBL_MAX);
@@ -4052,10 +4037,12 @@ void ibis::bin::addBounds(double lbd, double rbd, uint32_t nbins,
     }
     else { // simple equal length subdivision without rounding
 	diff = (diff + 1.0) / nbins;
+	if (diff < 1.0) diff = 1.0;
 	lbd = floor(lbd);
-	bounds.push_back(lbd);
-	for (uint32_t i = 1; i <= nbins; ++ i)
-	    bounds.push_back(lbd + i*diff);
+	while (lbd < rbd) {
+	    bounds.push_back(lbd);
+	    lbd += diff;
+	}
     }
 } // ibis::bin::addBounds
 
@@ -4332,7 +4319,7 @@ void ibis::bin::setBoundaries(const char* f) {
 			progress |= 1;
 		    }
 		    else if (isalpha(*ptr)) {
-			eqw = 0; // default to simple a linear scale
+			eqw = parseScale(str);
 			progress |= 8;
 		    }
 		    else { // bad options
@@ -4527,28 +4514,9 @@ void ibis::bin::setBoundaries(const char* f) {
 		lg() << bounds[i] << " ";
 	}
 #endif
-	if (col->type() == ibis::DOUBLE) {
+	if (col->type() == ibis::DOUBLE || col->type() == ibis::FLOAT) {
 	    unsigned i, j;
 	    for (i = 0, j = 1; j < nb1; ++ j) {
-		if (bounds[j] > bounds[i]) {
-		    if (j > i+1)
-			bounds[i+1] = bounds[j];
-		    ++ i;
-		}
-		else if (ibis::gVerbose > 6) {
-		    col->logMessage("setBoundaries", "skipping bounds[%u]"
-				    "(%g) because it is too close to bounds"
-				    "[%u](%g) (diff=%g)", j, bounds[j],
-				    i, bounds[i], bounds[j]-bounds[i]);
-		}
-	    }
-	    bounds.resize(i+1);
-	}
-	else if (col->type() == ibis::FLOAT) {
-	    unsigned i, j;
-	    bounds[0] = static_cast<float>(bounds[0]);
-	    for (i = 0, j = 1; j < nb1; ++ j) {
-		bounds[j] = static_cast<float>(bounds[j]);
 		if (bounds[j] > bounds[i]) {
 		    if (j > i+1)
 			bounds[i+1] = bounds[j];
@@ -4587,7 +4555,7 @@ void ibis::bin::setBoundaries(const char* f) {
 	    ibis::util::logger lg(4);
 	    lg() << "DEBUG -- bin bounds after duplicate removal\n";
 	    for (unsigned i = 0; i < bounds.size(); ++ i)
-		lg() << bounds[i] << " ";
+		lg() << std::setprecision(8) << bounds[i] << " ";
 	}
 #endif
     }
@@ -4602,15 +4570,15 @@ void ibis::bin::setBoundaries(const char* f) {
 	// 		 col->type() != ibis::DOUBLE)
 	// 	    bounds.push_back(ibis::util::compactValue(rbd, DBL_MAX));
 
-	if (col->type() == ibis::FLOAT) {
-	    // adjust the precision of boundaries to match the precision of
-	    // the attribute
-	    nobs = bounds.size();
-	    for (uint32_t i = 0; i < nobs; ++i)
-		if (bounds[i] < FLT_MAX && bounds[i] > -FLT_MAX)
-		    bounds[i] = static_cast<double>
-			(static_cast<float>(bounds[i]));
-	}
+	// if (col->type() == ibis::FLOAT) {
+	//     // adjust the precision of boundaries to match the precision of
+	//     // the attribute
+	//     nobs = bounds.size();
+	//     for (uint32_t i = 0; i < nobs; ++i)
+	// 	if (bounds[i] < FLT_MAX && bounds[i] > -FLT_MAX)
+	// 	    bounds[i] = static_cast<double>
+	// 		(static_cast<float>(bounds[i]));
+	// }
 
 	// add DBL_MAX as the last value
 	bounds.push_back(DBL_MAX);
@@ -6225,7 +6193,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     // May 9, 2006 --
     // changed to sumBins to take advantage of automatic activation
     // Feb. 8, 2011 -- check the cost first before operating on the bitmaps
-    double cost = 0.0; // an estimate of the total cost of resolving the expression
+    double cost = 0.0; // the total cost of resolving the expression
     if (offset64.size() > bits.size()) {
 	if (cand0 < cand1 && cand1 < offset64.size()) {
 	    const int64_t tot = offset64.back() - offset64[0];
@@ -6256,7 +6224,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
 	lower.set(0, nrows);
 	upper.set(0, nrows);
     }
-    else if (cost > nrows*0.5) { // don't do estimation
+    else if (cost > nrows*0.75) { // change to 0.75 based on a set of BP data
 	lower.set(0, nrows);
 	upper.set(1, nrows);
     }

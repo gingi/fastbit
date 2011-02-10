@@ -54,6 +54,7 @@ public:
 
     /// Return a floating-point value in the range of [0, 1).
     virtual double operator()() {return nextDouble();}
+    /// Next integer.
     int nextInt() {return next();}
     long nextLong() {return next();}
     float nextFloat() {return 2.3283064365386962890625e-10*next();}
@@ -129,8 +130,10 @@ class ibis::randomGaussian {
 public:
     /// Constructor.  Must be supplied with a uniform random number generator.
     randomGaussian(uniformRandomNumber& ur)
-	: urand(ur), has_extra(0), extra(0.0) {}
+	: urand(ur), has_extra(false), extra(0.0) {}
+    /// Operator that returns the next random numbers.
     double operator()() {return next();}
+    /// Next random number.
     double next() {
 	if (has_extra != 0) { /* has extra value from the previous run */
 	    has_extra = 0;
@@ -142,10 +145,10 @@ public:
 		v1 = 2.0 * urand() - 1.0;
 		v2 = 2.0 * urand() - 1.0;
 		r = v1 * v1 + v2 * v2;
-	    } while (r >= 1.0);
-	    fac = std::sqrt(-2.0 * std::log((double) r)/r);
+	    } while (r >= 1.0 || r <= 0.0);
+	    fac = std::sqrt((-2.0 * std::log(r))/r);
+	    has_extra = false;
 	    extra = v2 * fac;
-	    has_extra = 1;
 	    v1 *= fac;
 	    return v1;
 	}
@@ -153,7 +156,7 @@ public:
 
 private:
     uniformRandomNumber& urand;
-    int has_extra;
+    bool has_extra;
     double extra;
 }; // ibis::randomGaussian
 
@@ -163,7 +166,9 @@ class ibis::randomZipf {
 public:
     /// Constructor.  Must be supplied with a uniform random number generator.
     randomZipf(uniformRandomNumber& ur, double a=1) : urand(ur), alpha(a-1) {}
+    /// Operator that returns the next random number.
     double operator()() {return next();}
+    /// Next random number.
     double next() {
 	if (alpha > 0.0)
 	    return (std::exp(-std::log(1 - urand())/(alpha)) - 1);
