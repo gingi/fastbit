@@ -82,15 +82,11 @@ public:
     // use bv to replace part of the existing value, match the ith bit with
     // the first of bv, return reference to self
     //bitvector& copy(const word_t i, const bitvector& bv);
-    /// Replace a single bit at position @c i.
-    ///@note @c val must be either 0 or 1.
     void setBit(const word_t i, int val);
     inline void turnOnRawBit(const word_t i);
     /// Remove the bits in the range of [i, j).
     void erase(word_t i, word_t j);
 
-    /// Create a vector with @c n bits of value @c val (cf. memset()).
-    ///@note @c val must be either 0 or 1.
     void set(int val, word_t n);
     /// Remove the existing content of a bitvector.
     void clear();
@@ -142,7 +138,6 @@ public:
 
     void compress();	///< Merge fills into fill words.
     void decompress();	///< Turn all fill words into literal words.
-    /// Return the number of word saved if the function compress is called.
     word_t compressible() const;
 
     inline word_t size() const throw();

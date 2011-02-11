@@ -101,6 +101,7 @@ ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
 	<< " with m_begin at " << static_cast<const void*>(arr.begin());
 } // ctor from array_t
 
+/// Constructor.  Reconstruct a bitvector from a file.
 ibis::bitvector::bitvector(const char* file) : nbits(0), nset(0) {
     if (file == 0 || *file == 0) return;
 
@@ -121,7 +122,8 @@ ibis::bitvector::bitvector(const char* file) : nbits(0), nset(0) {
     }
 } // ctor from file
 
-// set a bitvector to contain n bits of val
+/// Create a vector with @c n bits of value @c val (cf. memset()).
+///@note @c val must be either 0 or 1.
 void ibis::bitvector::set(int val, ibis::bitvector::word_t n) {
     clear(); // clear the current content
     m_vec.nosharing(); // make sure the array is not shared
@@ -335,8 +337,8 @@ void ibis::bitvector::compress() {
     }
 } // ibis::bitvector::compress
 
-/// Decompress the currently compressed bitvector.  Throw ibis::bad_alloc
-/// exception if fails to allocate enough memory.
+/// Decompress the currently compressed bitvector.  Throw an
+/// ibis::bad_alloc exception if it fails to allocate enough memory.
 void ibis::bitvector::decompress() {
     if (nbits == 0 && m_vec.size() > 0)
 	nbits = do_cnt();
@@ -378,7 +380,7 @@ void ibis::bitvector::decompress() {
 	m_vec.swap(tmp);  // take on the new vector
 } // ibis::bitvector::decompress
 
-// decompress the current content to an array_t<word_t>
+/// Decompress the current content to an array_t<word_t>.
 void ibis::bitvector::decompress(array_t<ibis::bitvector::word_t>& tmp)
     const {
     const word_t nb = ((nbits == 0 && m_vec.size() > 0) ? do_cnt() : nbits);
@@ -406,8 +408,8 @@ void ibis::bitvector::decompress(array_t<ibis::bitvector::word_t>& tmp)
     }
 } // ibis::bitvector::decompress
 
-// decompress the current content to an array_t<word_t> and complement every
-// bit
+/// Decompress the current content to an array_t<word_t> and complement
+/// every bit.
 void ibis::bitvector::copy_comp(array_t<ibis::bitvector::word_t>& tmp) const {
     word_t cnt = (nbits == 0 && m_vec.size()>0 ? do_cnt() : nbits)/MAXBITS;
     tmp.resize(cnt);
@@ -433,7 +435,7 @@ void ibis::bitvector::copy_comp(array_t<ibis::bitvector::word_t>& tmp) const {
     }
 } // ibis::bitvector::copy_comp
 
-// determine the number of word that would be eliminated by compression
+/// Return the number of word saved if the function compress is called.
 ibis::bitvector::word_t ibis::bitvector::compressible() const {
     word_t cnt=0;
     for (word_t i=0; i<m_vec.size()-1; i++) {
@@ -465,19 +467,23 @@ ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
     return nb;
 } // ibis::bitvector::do_cnt
 
-// replace the ind'th bit with val.  val is assumed to be either 0 or 1.  If
-// val is not 0 or 1, it could cause serious problems.
-// This functioin can be used to extend the length of the bit sequence.
-// When the given index (ind) is beyond the end of the current sequence, the
-// unspecified bits in the range of [size(), ind) are assumed to be 0.
+/// Replace a single bit at position @c i with val.  If the value of val is
+/// not 0, it is assumed to be 1.  This functioin can be used to extend the
+/// length of the bit sequence.  When the given index (ind) is beyond the
+/// end of the current sequence, the unspecified bits in the range of
+/// [size(), ind) are assumed to be 0.
+///
+/// This function may uncompress the object if the bit to be changed is in
+/// the middle of a long bitvector.  This is to improve the speed of
+/// operation at the cost of some additional space.  The bitvector is
+/// considered long if the cube of the number of words is more than the
+/// number of bits in the bitvector.
 void ibis::bitvector::setBit(const ibis::bitvector::word_t ind, int val) {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-    {
-	ibis::util::logger lg(4);
-	lg() << "bitvector::setBit(" << ind << ", " << val << ") "
-	     << "-- " << nbits << " bit(s) in m_vec and "
-	     << active.nbits << " bit(s) in the active word";
-    }
+    LOGGER(ibis::gVerbose > 4)
+	<< "bitvector::setBit(" << ind << ", " << val << ") "
+	<< "-- " << nbits << " bit(s) in m_vec and "
+	<< active.nbits << " bit(s) in the active word";
 #endif
     m_vec.nosharing(); // make sure the array is not shared
     if (ind >= size()) {
@@ -549,7 +555,12 @@ void ibis::bitvector::setBit(const ibis::bitvector::word_t ind, int val) {
 	    nset += (val?1:-1);
 	return;
     }
-    else if (m_vec.size()*MAXBITS == nbits) { // uncompressed
+
+    if (m_vec.size() > 16 && m_vec.size()*MAXBITS < nbits &&
+	m_vec.size()*m_vec.size()*m_vec.size() >= nbits)
+	decompress();	// uncompress the large bitvector
+
+    if (m_vec.size()*MAXBITS == nbits) { // uncompressed
 	const word_t i = ind / MAXBITS;
 	const word_t u = m_vec[i];
 	const word_t w = (1 << (SECONDBIT - (ind % MAXBITS)));
@@ -559,126 +570,126 @@ void ibis::bitvector::setBit(const ibis::bitvector::word_t ind, int val) {
 	    m_vec[i] &= ~w;
 	if (nset && (m_vec[i] != u))
 	    nset += (val?1:-1);
-	return;
     }
-
-    // normal case, compressed bit vector -- 
-    // the bit to be modified is in m_vec
-    array_t<word_t>::iterator it = m_vec.begin();
-    word_t compressed = 0, cnt = 0, ind1 = 0, ind0 = ind;
-    int current = 0; // current bit value
-    while ((ind0>0) && (it<m_vec.end())) {
-	if (*it >= HEADER0) { // a fill
-	    cnt = ((*it) & MAXCNT) * MAXBITS;
-	    if (cnt > ind0) { // found the location
+    else {
+	// compressed bit vector -- 
+	// the bit to be modified is in m_vec
+	array_t<word_t>::iterator it = m_vec.begin();
+	word_t compressed = 0, cnt = 0, ind1 = 0, ind0 = ind;
+	int current = 0; // current bit value
+	while ((ind0>0) && (it<m_vec.end())) {
+	    if (*it >= HEADER0) { // a fill
+		cnt = ((*it) & MAXCNT) * MAXBITS;
+		if (cnt > ind0) { // found the location
+		    current = (*it >= HEADER1);
+		    compressed = 1;
+		    ind1 = ind0;
+		    ind0 = 0;
+		}
+		else {
+		    ind0 -= cnt;
+		    ind1 = ind0;
+		    ++ it;
+		}
+	    }
+	    else { // a literal word
+		cnt = MAXBITS;
+		if (MAXBITS > ind0) { // found the location
+		    current = (1 & ((*it) >> (SECONDBIT - ind0)));
+		    compressed = 0;
+		    ind1 = ind0;
+		    ind0 = 0;
+		}
+		else {
+		    ind0 -= MAXBITS;
+		    ind1 = ind0;
+		    ++ it;
+		}
+	    }
+	} // while (ind...
+	if (ind1 == 0) { // set current and compressed
+	    if (*it >= HEADER0) {
+		cnt = ((*it) & MAXCNT) * MAXBITS;
 		current = (*it >= HEADER1);
 		compressed = 1;
-		ind1 = ind0;
-		ind0 = 0;
 	    }
 	    else {
-		ind0 -= cnt;
-		ind1 = ind0;
-		++ it;
-	    }
-	}
-	else { // a literal word
-	    cnt = MAXBITS;
-	    if (MAXBITS > ind0) { // found the location
-		current = (1 & ((*it) >> (SECONDBIT - ind0)));
+		cnt = MAXBITS;
+		current = (*it >> SECONDBIT);
 		compressed = 0;
-		ind1 = ind0;
-		ind0 = 0;
+	    }
+	}
+
+	if (ind0>0) { // has not found the right location yet
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bitvector::setBit(" << ind << ", " << val
+		<< ") passed the end (" << size()
+		<< ") of bit sequence while searching for position " << ind;
+	    if (ind0 < active.nbits) { // in the active word
+		ind1 = (1 << (active.nbits - ind0 - 1));
+		if (val != 0) {
+		    active.val |= ind1;
+		}
+		else {
+		    active.val &= ~ind1;
+		}
+	    }
+	    else { // extends the current bit vector
+		ind1 = ind0 - active.nbits - 1;
+		appendWord(HEADER0 | (ind1/MAXBITS));
+		for (ind1%=MAXBITS; ind1>0; --ind1) operator+=(0);
+		operator+=(val != 0);
+	    }
+	    if (nset) nset += val?1:-1;
+	    return;
+	}
+
+	// locate the bit to be changed, lots of work hidden here
+	if (current == val) return; // nothing to do
+
+	// need to actually modify the bit
+	if (compressed == 0) { // toggle a single bit of a literal word
+	    *it ^= (1 << (SECONDBIT - ind1));
+	}
+	else if (ind1 < MAXBITS) {
+	    // bit to be modified is in the first word, two pieces
+	    -- (*it);
+	    if ((*it & MAXCNT) == 1)
+		*it = (current)?ALLONES:0;
+	    word_t w = 1 << (SECONDBIT-ind1);
+	    if (val == 0) w ^= ALLONES;
+	    it = m_vec.insert(it, w);
+	}
+	else if (cnt - ind1 <= MAXBITS) {
+	    // bit to be modified is in the last word, two pieces
+	    -- (*it);
+	    if ((*it & MAXCNT) == 1)
+		*it = (current)?ALLONES:0;
+	    word_t w = 1 << (cnt-ind1-1);
+	    if (val == 0) w ^= ALLONES;
+	    ++ it;
+	    it = m_vec.insert(it, w);
+	}
+	else { // the counter breaks into three pieces
+	    word_t u[2], w;
+	    u[0] = ind1 / MAXBITS;
+	    w = (*it & MAXCNT) - u[0] - 1;
+	    u[1] = 1 << (SECONDBIT-ind1+u[0]*MAXBITS);
+	    if (val==0) {
+		u[0] = (u[0]>1)?(HEADER1|u[0]):(ALLONES);
+		u[1] ^= ALLONES;
+		w = (w>1)?(HEADER1|w):(ALLONES);
 	    }
 	    else {
-		ind0 -= MAXBITS;
-		ind1 = ind0;
-		++ it;
+		u[0] = (u[0]>1)?(HEADER0|u[0]):static_cast<word_t>(0);
+		w = (w>1)?(HEADER0|w):static_cast<word_t>(0);
 	    }
+	    *it = w;
+	    m_vec.insert(it, u, u+2);
 	}
-    } // while (ind...
-    if (ind1 == 0) { // set current and compressed
-	if (*it >= HEADER0) {
-	    cnt = ((*it) & MAXCNT) * MAXBITS;
-	    current = (*it >= HEADER1);
-	    compressed = 1;
-	}
-	else {
-	    cnt = MAXBITS;
-	    current = (*it >> SECONDBIT);
-	    compressed = 0;
-	}
+	if (nset)
+	    nset += val?1:-1;
     }
-
-    if (ind0>0) { // has not found the right location yet
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bitvector::setBit(" << ind << ", " << val
-	    << ") passed the end (" << size()
-	    << ") of bit sequence while searching for position " << ind;
-	if (ind0 < active.nbits) { // in the active word
-	    ind1 = (1 << (active.nbits - ind0 - 1));
-	    if (val != 0) {
-		active.val |= ind1;
-	    }
-	    else {
-		active.val &= ~ind1;
-	    }
-	}
-	else { // extends the current bit vector
-	    ind1 = ind0 - active.nbits - 1;
-	    appendWord(HEADER0 | (ind1/MAXBITS));
-	    for (ind1%=MAXBITS; ind1>0; --ind1) operator+=(0);
-	    operator+=(val != 0);
-	}
-	if (nset) nset += val?1:-1;
-	return;
-    }
-
-    // locate the bit to be changed, lots of work hidden here
-    if (current == val) return; // nothing to do
-
-    // need to actually modify the bit
-    if (compressed == 0) { // toggle a single bit of a literal word
-	*it ^= (1 << (SECONDBIT - ind1));
-    }
-    else if (ind1 < MAXBITS) {
-	// bit to be modified is in the first word, two pieces
-	-- (*it);
-	if ((*it & MAXCNT) == 1)
-	    *it = (current)?ALLONES:0;
-	word_t w = 1 << (SECONDBIT-ind1);
-	if (val == 0) w ^= ALLONES;
-	it = m_vec.insert(it, w);
-    }
-    else if (cnt - ind1 <= MAXBITS) {
-	// bit to be modified is in the last word, two pieces
-	-- (*it);
-	if ((*it & MAXCNT) == 1)
-	    *it = (current)?ALLONES:0;
-	word_t w = 1 << (cnt-ind1-1);
-	if (val == 0) w ^= ALLONES;
-	++ it;
-	it = m_vec.insert(it, w);
-    }
-    else { // the counter breaks into three pieces
-	word_t u[2], w;
-	u[0] = ind1 / MAXBITS;
-	w = (*it & MAXCNT) - u[0] - 1;
-	u[1] = 1 << (SECONDBIT-ind1+u[0]*MAXBITS);
-	if (val==0) {
-	    u[0] = (u[0]>1)?(HEADER1|u[0]):(ALLONES);
-	    u[1] ^= ALLONES;
-	    w = (w>1)?(HEADER1|w):(ALLONES);
-	}
-	else {
-	    u[0] = (u[0]>1)?(HEADER0|u[0]):static_cast<word_t>(0);
-	    w = (w>1)?(HEADER0|w):static_cast<word_t>(0);
-	}
-	*it = w;
-	m_vec.insert(it, u, u+2);
-    }
-    if (nset)
-	nset += val?1:-1;
 } // ibis::bitvector::setBit
 
 /// Select a subset of the bits.  Bits whose positions are marked 1 in mask
