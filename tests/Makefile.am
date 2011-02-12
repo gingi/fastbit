@@ -47,9 +47,9 @@ check: clean-tmp check-am
 	$(MAKE) really-small && $(MAKE) check-maurel && \
 	$(MAKE) check-ibis && $(MAKE) check-join && $(MAKE) check-labeling
 more-check:
-	$(MAKE) check && $(MAKE) check-jrf && $(MAKE) small-tests && $(MAKE) check-sq1
+	$(MAKE) check && $(MAKE) check-jrf && $(MAKE) small-tests && $(MAKE) check-sq0
 full-check:
-	$(MAKE) more-check && $(MAKE) large-tests && $(MAKE) check-sq2
+	$(MAKE) more-check && $(MAKE) large-tests && $(MAKE) check-sq1 && $(MAKE) check-sq2
 #
 # small scale tests, may take about ten minutes on a typical Linux machine
 small-tests: append-test sanity-check match-counts
@@ -321,6 +321,15 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR); \
 	done;
 	@echo
+check-sq0: $(THULAEXE) $(TESTDIR)/sq0 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
+	@$(THULAEXE) -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -eq 0 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
+	@echo
+$(TESTDIR)/sq0: setqgen$(EXEEXT)
+	@./setqgen$(EXEEXT) $(TESTDIR)/sq0 2.5e6 1e6 >| $(TESTDIR)/check-sq0.log 2>&1
 # testing with enough rows to fill the disk cache, completing this set
 # of tests might take an hour on a typical machine with at least 4GB of
 # memory.  More memory will typlically reduce the test time, but not
@@ -461,5 +470,5 @@ $(TCAPIEXE):
 .PHONY: clean clean-tmp multilevel match-counts large-sanity-check large-tests
 .PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
-.PHONY: check-marksdb check-maurel small-tests really-small check-sq1 check-sq2
-.PHONY: check-jrf check-labeling TESTDIR
+.PHONY: check-marksdb check-maurel small-tests really-small
+.PHONY: check-jrf check-labeling TESTDIR check-sq0 check-sq1 check-sq2

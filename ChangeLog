@@ -1,6 +1,8 @@
 2011-02-11 John Wu <John dot Wu at ACM dot org>
 	* src/query.cpp: expand the function getNumHits to compute the
 	number of hits if there are certain inexpensive options
+	* tests/Makefile.am: add check-sq0 to reduce the amount of time
+	needed by more-check
 
 2011-02-10 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.cpp: modify bitvector::setBit to decompress the
