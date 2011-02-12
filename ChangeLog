@@ -1,3 +1,12 @@
+2011-02-11 John Wu <John dot Wu at ACM dot org>
+	* src/query.cpp: expand the function getNumHits to compute the
+	number of hits if there are certain inexpensive options
+
+2011-02-10 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.cpp: modify bitvector::setBit to decompress the
+	bitmap if the bit to be changed is in the middle of a fairly long
+	object
+
 2011-02-09 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp: in ibis::bin::setBoundaries avoid casting bounds
 	to floats

@@ -39,7 +39,7 @@
 #endif
 
 extern "C" {
-    /// A thread function to run the functioin queryTest or quickTest.
+    /// A thread function to run the function queryTest or quickTest.
     static void* ibis_part_threadedTestFun1(void* arg) {
 	if (arg == 0)
 	    return reinterpret_cast<void*>(-1L);
@@ -2017,7 +2017,7 @@ void ibis::part::freeRIDs() const {
     }
 } // ibis::part::freeRIDs
 
-// generate arbitrary RIDs to that we can functioin correctly
+// generate arbitrary RIDs to that we can function correctly
 void ibis::part::fillRIDs(const char* fn) const {
     if (nEvents == 0) return; // can not do anything
 
@@ -13512,7 +13512,7 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	if (ierr < (int64_t)selem) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "part::writeRaw failed to write " << bpos << " to file "
-		<< sdes << " for starting positioins, write returned " << ierr;
+		<< sdes << " for starting positions, write returned " << ierr;
 	    return -15;
 	}
     }
@@ -13550,7 +13550,7 @@ ibis::part::info::info(const char* na, const char* de, const uint64_t &nr,
 	cols.push_back(new ibis::column::info(*((*it).second)));
 }
 
-// Construct an info object from a partitioin of a table
+// Construct an info object from a partition of a table
 ibis::part::info::info(const part &tbl)
     : name(tbl.name()), description(tbl.description()),
       metaTags(tbl.metaTags().c_str()), nrows(tbl.nRows()) {

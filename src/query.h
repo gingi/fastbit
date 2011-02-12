@@ -28,7 +28,7 @@
 /// to one of the four aggregation functions: @c avg, @c var, @c max, @c
 /// min and @c sum.  For example, "temperature, pressure,
 /// average(ho2_concentration)" may be a select statement for a Chemistry
-/// application.  @note If one needs to include arithmetic expressions in
+/// application.  Note that If one needs to include arithmetic expressions in
 /// the select clause, use the function ibis::table::select instead of
 /// using this class.
 ///
@@ -113,72 +113,28 @@ public:
     /// Return the select clause string.
     virtual const char* getSelectClause() const {return *comps;}
 
-    /// Expands where clause to preferred bounds.  This is to make sure the
-    /// function estimate will give exact answer.  It does nothing if there
-    /// is no preferred bounds in the indices.
     void expandQuery();
-    /// Contracts where clause to preferred bounds. Similar to function
-    /// exandQuery, but makes the bounds of the range conditions narrower
-    /// rather than wider.
     void contractQuery();
+    std::string removeComplexConditions();
 
     /// Return a const pointer to the copy of the user supplied RID set.
     const RIDSet* getUserRIDs() const {return rids_in;}
 
-    /// Separate out the sub-expressions that are not simple.  This is
-    /// intended to allow the overall where clause to be evaluated in
-    /// separated steps, where the simple conditions are left for this
-    /// software to handle and the more complex ones are to be handled by
-    /// another software.  The set of conditions remain with this query
-    /// object and the conditions returned by this function are assumed to
-    /// be connected with the operator AND.  If the top-most operator in
-    /// the WHERE clause is not an AND operator, the whole clause will be
-    /// returned if it contains any conditions that is not simple,
-    /// otherwise, an empty string will be returned.
-    std::string removeComplexConditions();
-
     // Functions to perform estimation.
 
-    /// Functions to perform estimation and retrieve range of hits Computes
-    /// a lower and an upper bound of hits.  This is done by using the
-    /// indices.  If possible it will build new indices.  The lower bound
-    /// contains only records that are hits and the upper bound contains all
-    /// hits but may also contain some records that are not hits.
-    /// Returns 0 for success, a negative value for error.
     int estimate();
-    /// Return the number of records in the lower bound.
     long getMinNumHits() const;
-    /// Return the number of records in the upper bound.
     long getMaxNumHits() const;
 
     // Functions related to full evaluation.
 
-    /// Computes the exact hits.  The same answer shall be computed whether
-    /// there is any index or not.  The argument evalSelect indicates
-    /// whether the select clause should be evaluated at the same time.  If
-    /// its value is true, the columns specified in the select clause will
-    /// be retrieved from disk and stored in the temporary location for
-    /// this query.  If not, the qualified values will be retrieved from
-    /// disk when one of getRIDs, getQualifiedInts, getQualifiedFloats, and
-    /// getQualifiedDoubles is issued.  In the later case, only the
-    /// specified column is retrieved.  In addition, the values of column
-    /// at the time of the function are read, which can be potentially
-    /// different different from the time when the function evaluate was
-    /// called.
-    ///
-    /// Returns 0 for success, a negative value for error.
-    ///
-    /// @see getQualifiedInts
     int evaluate(const bool evalSelect=false);
     /// Return the pointer to the internal hit vector.  The user should NOT
-    /// attempt to free the returned pointer.
+    /// attempt to free the returned pointer.  It is intended to be called
+    /// after calling ibis::query::evaluate.
     const ibis::bitvector* getHitVector() const {return hits;}
-    /// Return the number of records in the exact solution.
     long getNumHits() const;
-    /// Get the row numbers of the hits.
     long getHitRows(std::vector<uint32_t> &rids) const;
-    /// Count the number of hits.  Don't generate the hit vector if not
-    /// already there.
     long countHits() const;
 
     int  orderby(const char *names, int direction) const;

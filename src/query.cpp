@@ -577,8 +577,13 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
     return 0;
 } // ibis::query::setRIDs
 
-// quick estimate returns two bitvectors pointed by hits and sup
-// where hits should contain no more set bits than that of sup
+/// Function to perform estimation.  It computes a lower and an upper bound
+/// of hits.  This is done by using the indexes.  If necessary it will
+/// build new indexes.  The lower bound contains only records that are hits
+/// and the upper bound contains all hits but may also contain some records
+/// that are not hits.
+///
+/// Returns 0 for success, a negative value for error.
 int ibis::query::estimate() {
     if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
 	return -1;
@@ -750,6 +755,7 @@ int ibis::query::estimate() {
     return 0;
 } // ibis::query::estimate
 
+/// Return the number of records in the lower bound.
 long ibis::query::getMinNumHits() const {
     readLock lck(this, "getMinNumHits");
     long nHits = (hits != 0 ? static_cast<long>(hits->cnt()) : -1);
@@ -759,6 +765,7 @@ long ibis::query::getMinNumHits() const {
     return nHits;
 }
 
+/// Return the number of records in the upper bound.
 long ibis::query::getMaxNumHits() const {
     readLock lck(this, "getMaxNumHits");
     long nHits = (sup != 0 ? static_cast<long>(sup->cnt()) :
@@ -768,10 +775,21 @@ long ibis::query::getMaxNumHits() const {
     return nHits;
 }
 
-// full estimate will generate the exact hit list (qualified events)
-// if evalSelect is true, it will compute the RIDs of the qualified rows and
-// the values of the columns specified in the select clause, and will write
-// the values to disk for later use.
+/// Computes the exact hits.  The same answer shall be computed whether
+/// there is any index or not.  The argument evalSelect indicates whether
+/// the select clause should be evaluated at the same time.  If its value
+/// is true, the columns specified in the select clause will be retrieved
+/// from disk and stored in the temporary location for this query.  If not,
+/// the qualified values will be retrieved from disk when one of getRIDs,
+/// getQualifiedInts, getQualifiedFloats, and getQualifiedDoubles is
+/// issued.  In the later case, only the specified column is retrieved.  In
+/// addition, the values of column at the time of the function are read,
+/// which can be potentially different different from the time when the
+/// function evaluate was called.
+///
+/// Returns 0 for success, a negative value for error.
+///
+/// @see getQualifiedInts
 int ibis::query::evaluate(const bool evalSelect) {
     if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
 	return -1;
@@ -997,22 +1015,37 @@ int ibis::query::evaluate(const bool evalSelect) {
 			   "%g pages during the execution of this function",
 			   pcnt);
 	}
- 	if ((rids_in != 0 || conds.getExpr() != 0) &&
-	    (ibis::gVerbose > 30 ||
-	     (ibis::gVerbose > 8 &&
-	      (1U<<ibis::gVerbose) >= hits->bytes()))) {
-	    LOGGER(ibis::gVerbose > 8) << "The hit vector" << *hits;
-	}
+ 	LOGGER((rids_in != 0 || conds.getExpr() != 0) &&
+	       (ibis::gVerbose > 30 ||
+		(ibis::gVerbose > 8 &&
+		 (1U<<ibis::gVerbose) >= hits->bytes())))
+	    << "The hit vector" << *hits;
     }
     return 0;
 } // ibis::query::evaluate
 
+/// Compute the number of records in the exact solution.  This function
+/// will return the number of hits based on the internally stored
+/// information or other inexpensive options.  It will not perform a full
+/// evaluation to compute the numbers of hits.  It is intended to be called
+/// after calling ibis::query::evaluate.  The return value will be -1 if it
+/// is not able to determine the number of hits.
 long int ibis::query::getNumHits() const {
-    readLock lock(this, "getNumHits");
-    long int nHits = (hits != 0 && (sup == 0 || sup == hits) ?
-		      static_cast<long int>(hits->cnt()) : -1);
-    if (ibis::gVerbose > 11)
-	logMessage("getNumHits", "nHits = %ld", nHits);
+    long int nHits = -1;
+    if (mypart != 0 && mypart->nRows() > 0) {
+	if (state < QUICK_ESTIMATE)
+	    const_cast<query*>(this)->estimate();
+
+	readLock lock(this, "getNumHits");
+	if (conds.empty())
+	    nHits = mypart->nRows();
+	else if (hits != 0 && (sup == 0 || sup == hits))
+	    nHits = static_cast<long int>(hits->cnt());
+	else if (conds.getExpr() != 0 &&
+		 dynamic_cast<const ibis::qRange*>(conds.getExpr()) != 0)
+	    nHits = mypart->countHits
+		(*static_cast<const ibis::qRange*>(conds.getExpr()));
+    }
     return nHits;
 } // ibis::query::getNumHits
 
@@ -1051,8 +1084,11 @@ long ibis::query::getHitRows(std::vector<uint32_t> &rids) const {
     }
 } // ibis::countQuery::getHitRows
 
-// Caution: This function does not obtain a read lock on the query or the
-// partition.  Call it at your own risk.
+/// Count the number of hits.  Don't generate the hit vector if not already
+/// there.  It only work for queries containing a single range condition.
+/// Furthermore, this function does not obtain a read lock on the query or
+/// the partition.  Therefore it is possible for another thread to modify
+/// the query object while the evaluation is in progress.
 long ibis::query::countHits() const {
     long int ierr = -1;
     if (hits != 0 && (sup == 0 || sup == hits))
@@ -1595,8 +1631,9 @@ ibis::query::QUERY_STATE ibis::query::getState() const {
     return state;
 } // ibis::query::getState
 
-// expand predicate clause so that the conditions are all on preferred
-// bounds
+/// Expands where clause to preferred bounds.  This is to make sure the
+/// function estimate will give exact answer.  It does nothing if there is
+/// no preferred bounds in the indices.
 void ibis::query::expandQuery() {
     if (conds.empty()) // no predicate clause specified
 	return;
@@ -1630,8 +1667,9 @@ void ibis::query::expandQuery() {
     }
 } // ibis::query::expandQuery
 
-// contract predicate clause so that the conditions are all on preferred
-// bounds
+/// Contracts where clause to preferred bounds. Similar to function
+/// exandQuery, but makes the bounds of the range conditions narrower
+/// rather than wider.
 void ibis::query::contractQuery() {
     if (conds.empty()) // no predicate clause specified
 	return;
@@ -1665,9 +1703,16 @@ void ibis::query::contractQuery() {
     }
 } // ibis::query::contractQuery
 
-/// Separate the simple range conditions from the more complex ones.  Reset
-/// the where clause to the contain only the simple conditions.  The more
-/// complex conditions are return in a string.
+/// Separate out the sub-expressions that are not simple.  This is
+/// intended to allow the overall where clause to be evaluated in
+/// separated steps, where the simple conditions are left for this
+/// software to handle and the more complex ones are to be handled by
+/// another software.  The set of conditions remain with this query
+/// object and the conditions returned by this function are assumed to
+/// be connected with the operator AND.  If the top-most operator in
+/// the WHERE clause is not an AND operator, the whole clause will be
+/// returned if it contains any conditions that is not simple,
+/// otherwise, an empty string will be returned.
 std::string ibis::query::removeComplexConditions() {
     std::string ret;
     if (conds.empty()) return ret;
@@ -4664,14 +4709,14 @@ int64_t ibis::query::processJoin() {
     if (idx1 != 0 && idx2 != 0 && terms.size() == 1 &&
 	idx1->type() == ibis::index::RELIC &&
 	idx2->type() == ibis::index::RELIC) {
-	// OPTION 2 -- using relic indices to count the number of hits only
+	// OPTION 2 -- using relic indexes to count the number of hits only
 	ibis::horometer tm1, tm2;
 	tm1.start();
 	int64_t cnt2 = reinterpret_cast<const ibis::relic*>(idx1)->
 	    estimate(*reinterpret_cast<const ibis::relic*>(idx2),
 		     *(terms.back()), mask);
 	tm1.stop();
-	// OPTION 3 -- use relic indices to count the number of hits only
+	// OPTION 3 -- use relic indexes to count the number of hits only
 	tm2.start();
 	int64_t cnt3 = reinterpret_cast<const ibis::relic*>(idx1)->
 	    estimate(*reinterpret_cast<const ibis::relic*>(idx2),
@@ -4714,7 +4759,7 @@ int64_t ibis::query::processJoin() {
     if (idx1 != 0 && idx2 != 0 && terms.size() > 1 &&
 	idx1->type() == ibis::index::RELIC &&
 	idx2->type() == ibis::index::RELIC) {
-	// OPTION 2 -- using relic indices to count the number of hits only
+	// OPTION 2 -- using relic indexes to count the number of hits only
 	// multiple join operators
 	ibis::horometer tm1, tm2;
 	ibis::bitvector64 low, high;
@@ -4758,7 +4803,7 @@ int64_t ibis::query::processJoin() {
 	}
 	int64_t cnt2 = low.cnt();
 	tm1.stop();
-	// OPTION 3 -- use relic indices to count the number of hits only
+	// OPTION 3 -- use relic indexes to count the number of hits only
 	// multiple join operators
 	tm2.start();
 	bool approx3 = false;
@@ -4823,14 +4868,14 @@ int64_t ibis::query::processJoin() {
     if (idx1 != 0 && idx2 != 0 && terms.size() == 1 &&
 	idx1->type() == ibis::index::BINNING &&
 	idx2->type() == ibis::index::BINNING) {
-	// OPTION 2 -- using binned indices to count the number of hits only
+	// OPTION 2 -- using binned indexes to count the number of hits only
 	ibis::horometer tm1, tm2;
 	tm1.start();
 	int64_t cnt2 = reinterpret_cast<const ibis::bin*>(idx1)->
 	    estimate(*reinterpret_cast<const ibis::bin*>(idx2),
 		     *(terms.back()), mask);
 	tm1.stop();
-	// OPTION 3 -- use the simple bin indices to count the number of hits
+	// OPTION 3 -- use the simple bin indexes to count the number of hits
 	tm2.start();
 	int64_t cnt3 = reinterpret_cast<const ibis::bin*>(idx1)->
 	    estimate(*reinterpret_cast<const ibis::bin*>(idx2),
@@ -4849,7 +4894,7 @@ int64_t ibis::query::processJoin() {
     if (idx1 != 0 && idx2 != 0 && terms.size() > 1 &&
 	idx1->type() == ibis::index::BINNING &&
 	idx2->type() == ibis::index::BINNING) {
-	// OPTION 2 -- using indices to count the number of hits for
+	// OPTION 2 -- using indexes to count the number of hits for
 	// multiple join operators
 	ibis::horometer tm1, tm2;
 	ibis::bitvector64 low, high;
@@ -4899,7 +4944,7 @@ int64_t ibis::query::processJoin() {
 	tm1.stop();
 	low.clear();
 	high.clear();
-	// OPTION 3 -- use binned indices to count the number of hits only,
+	// OPTION 3 -- use binned indexes to count the number of hits only,
 	// multiple join operators
 	tm2.start();
 	reinterpret_cast<const ibis::bin*>(idx1)->

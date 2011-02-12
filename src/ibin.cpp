@@ -5526,7 +5526,7 @@ void ibis::bin::print(std::ostream& out) const {
 	    cnt += bits[0]->cnt();
 	}
 	for (i = 1; i < nobs; ++i) {
-	    if (bits[i]) {
+	    if (bits[i] != 0) {
 		if (i < npr)
 		    out << i << ": " << bits[i]->cnt() << "\t["
 			<< bounds[i-1]
@@ -5596,7 +5596,7 @@ void ibis::bin::print(std::ostream& out, const uint32_t tot,
 	uint32_t i, cnt = 0;
 	out << "\trange [" << lbound << ", " << rbound
 	    << ") is subdivided into " << nobs << " bins\n";
-	if (bits[0]) {
+	if (bits[0] != 0) {
 	    out << "\t" << bits[0]->cnt() << "\t[" << lbound << ", "
 		<< bounds[0] << ")\t[" << minval[0] << ", " << maxval[0]
 		<< "]\n";
@@ -6223,10 +6223,15 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     if (cand0 >= cand1) {
 	lower.set(0, nrows);
 	upper.set(0, nrows);
+	LOGGER(ibis::gVerbose > 5)
+	    << "bin::estimate(" << expr << ") finds no hit";
     }
     else if (cost > nrows*0.75) { // change to 0.75 based on a set of BP data
 	lower.set(0, nrows);
 	upper.set(1, nrows);
+	LOGGER(ibis::gVerbose > 5)
+	    << "bin::estimate(" << expr << ") gives up to avoid costly "
+	    "operations involving the index";
     }
     else if (hit0 < hit1) {
 	sumBins(hit0, hit1, lower);
@@ -6260,7 +6265,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
 #endif
 } // ibis::bin::estimate
 
-// return an upper bound on the number of hits
+/// Compute an upper bound on the number of hits.
 uint32_t ibis::bin::estimate(const ibis::qContinuousRange& expr) const {
     uint32_t cand0, cand1, nhits=0;
     if (nobs <= 0) return 0;
@@ -6275,11 +6280,31 @@ uint32_t ibis::bin::estimate(const ibis::qContinuousRange& expr) const {
 	     || (offset32.size() > nobs && offset32[cand1] - offset32[cand0]
 		 <= (offset32[nobs] - offset32[0])/2)
 	     || 2*(cand1-cand0) <= nobs) {
-	activate(cand0, cand1);
-	for (uint32_t i=cand0; i < cand1; ++i) {
-	    if (bits[i])
-		nhits += bits[i]->cnt();
+	if ((offset64.size() > nobs &&
+	     offset64[cand1] - offset64[cand0] > 0.75*nrows) ||
+	    (offset32.size() > nobs &&
+	     offset32[cand1] - offset32[cand0] > 0.75*nrows)) {
+	    nhits = nrows; // give to avoid costly operations
+	    LOGGER(ibis::gVerbose > 5)
+		<< "bin::estimate(" << expr << ") gives up to avoid costly "
+		"operations";
 	}
+	else {
+	    activate(cand0, cand1);
+	    for (uint32_t i=cand0; i < cand1; ++i) {
+		if (bits[i])
+		    nhits += bits[i]->cnt();
+	    }
+	}
+    }
+    else if ((offset64.size() > nobs && offset64.back()-offset64.front()
+	      -offset64[cand1]+offset64[cand0] > 0.75*nrows) ||
+	     (offset32.size() > nobs && offset32.back()-offset32.front()
+	      -offset32[cand1]+offset32[cand0])) {
+	nhits = nrows;
+	LOGGER(ibis::gVerbose > 5)
+	    << "bin::estimate(" << expr << ") gives up to avoid costly "
+	    "operations";
     }
     else { // use complements
 	nhits = 0;
