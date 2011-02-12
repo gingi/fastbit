@@ -351,7 +351,7 @@ void ibis::dictionary::clear() {
     code_.clear();
     key_.clear();
     raw_.resize(1);
-} // ibis::dictioinary::clear
+} // ibis::dictionary::clear
 
 /// Convert a string to its integer code.  Returns 0 for empty (null)
 /// strings, 1:size() for strings in the dictionary, and

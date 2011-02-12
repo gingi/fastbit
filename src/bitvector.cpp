@@ -468,7 +468,7 @@ ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
 } // ibis::bitvector::do_cnt
 
 /// Replace a single bit at position @c i with val.  If the value of val is
-/// not 0, it is assumed to be 1.  This functioin can be used to extend the
+/// not 0, it is assumed to be 1.  This function can be used to extend the
 /// length of the bit sequence.  When the given index (ind) is beyond the
 /// end of the current sequence, the unspecified bits in the range of
 /// [size(), ind) are assumed to be 0.

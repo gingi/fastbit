@@ -718,7 +718,7 @@ void ibis::util::sort_heap(array_t<T1>& keys, array_t<T2>& vals) {
 		break;
 	    }
 	} // while (child < n)
-	// temporary values go into their final locatioins
+	// temporary values go into their final locations
 	keys[curr] = ktmp;
 	vals[curr] = vtmp;
     } // while (true)

@@ -1017,7 +1017,7 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
     return lower.cnt();
 } // ibis::zona::evaluate
 
-/// Write the content of the index to the specified locatioin.  The
+/// Write the content of the index to the specified location.  The
 /// argument can be the name of a directory or a file.  The actual index
 /// file name is determined by the function indexFileName.
 int ibis::zona::write(const char* dt) const {

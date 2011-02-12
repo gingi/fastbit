@@ -28,7 +28,7 @@ ibis::filter::filter(const ibis::whereClause* w)
 /// objects are copied if they are not empty.
 ///
 /// @note This constructor makes a copy of the container for the data
-/// partitions, but not the data partitioins themselves.  In the
+/// partitions, but not the data partitions themselves.  In the
 /// destructor, only the container is freed, not the data partitions.
 ibis::filter::filter(const ibis::selectClause* s, const ibis::partList* p,
 		     const ibis::whereClause* w)

@@ -3,7 +3,7 @@
 // Copyright 2000-2011 the Regents of the University of California
 //
 // This file contains the implementation of the classes defined in index.h
-// The primary function from the database point of view is a functioin
+// The primary function from the database point of view is a function
 // called estimate().  It evaluates a given range condition and produces
 // two bit vectors representing the range where the actual solution lies.
 // The bulk of the code is devoted to maintain and update the index called

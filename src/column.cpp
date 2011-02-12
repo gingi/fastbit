@@ -2,7 +2,7 @@
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2000-2011 the Regents of the University of California
 //
-// This file contains implementatioin of the functions defined in column.h
+// This file contains implementation of the functions defined in column.h
 //
 #include "resource.h"	// ibis::resource, ibis::gParameters()
 #include "category.h"	// ibis::text, ibis::category

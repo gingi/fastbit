@@ -4134,7 +4134,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
     if (strnicmp(fn, "<NULL>", 6))
 	setSelectClause(fn);
 
-    // data partitioin state (read as an integer)
+    // data partition state (read as an integer)
     int ierr;
     if (1 > fscanf(fptr, "%d", &ierr)) {
 	LOGGER(ibis::gVerbose > 0)

@@ -2,7 +2,7 @@
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2000-2011 the Regents of the University of California
 ///
-/// Implementatioin of the colValues class hierarchy.
+/// Implementation of the colValues class hierarchy.
 ///
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters

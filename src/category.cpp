@@ -4026,7 +4026,7 @@ int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
     catch (const char* s) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- blob::selectRawBytes (" << datafile
-	    << ") terminating due to a string exceptioin -- " << s;
+	    << ") terminating due to a string exception -- " << s;
 	ierr = -5;
     }
     catch (...) {
@@ -4446,7 +4446,7 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
 
 /// Extract a single binary object.  This function is only defined for
 /// ibis::blob, therefore the caller must explicitly case a column* to
-/// blob*.  It needs to access two files, a file for start positioins and
+/// blob*.  It needs to access two files, a file for start positions and
 /// another for raw binary data.  Thus it has a large startup cost
 /// associated with opening the files and seeking to the right places on
 /// disk.  If there is enough memory available, it will attempt to make

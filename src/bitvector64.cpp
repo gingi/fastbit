@@ -366,7 +366,7 @@ ibis::bitvector64::word_t ibis::bitvector64::do_cnt() const {
 
 // replace the ind'th bit with val.  val is assumed to be either 0 or 1.  If
 // val is not 0 or 1, it could cause serious problems.
-// This functioin can be used to extend the length of the bit sequence.
+// This function can be used to extend the length of the bit sequence.
 // When the given index (ind) is beyond the end of the current sequence, the
 // unspecified bits in the range of [size(), ind) are assumed to be 0.
 void ibis::bitvector64::setBit(const word_t ind, int val) {

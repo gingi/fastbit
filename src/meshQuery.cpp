@@ -1461,7 +1461,7 @@ void ibis::meshQuery::mergeNDBlocks
    mesh, the function @c getPointsOnBoundary computes all points that
    satisfy the conditions specified by function @c setWhereClause but have
    at least one neighboring mesh point that does not satisfy the
-   conditioins.
+   conditions.
 
    @param bdy The return value that contains the list of points.
 
@@ -4586,7 +4586,7 @@ void ibis::meshQuery::boundarynd
 			}
 		    }
 		    else if (first) { // covered on first sdim dimensions
-			// the first plane, need to check one additioinal
+			// the first plane, need to check one additional
 			// neighboring plane
 			covered = (bmp < emp);
 			for (uint32_t d = 0; d < ndm2 && covered; ++ d)
