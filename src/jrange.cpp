@@ -579,11 +579,15 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
     ibis::table::typeList   rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
     ibis::table::bufferList rbuff(ircol.size(), 0);
     ibis::util::guard       grbuff =
-	ibis::util::makeGuard(ibis::table::freeBuffers, rbuff, rtypes);
+	ibis::util::makeGuard(ibis::table::freeBuffers,
+			      ibis::util::ref(rbuff),
+			      ibis::util::ref(rtypes));
     ibis::table::typeList   stypes(iscol.size(), ibis::UNKNOWN_TYPE);
     ibis::table::bufferList sbuff(iscol.size(), 0);
     ibis::util::guard       gsbuff =
-	ibis::util::makeGuard(ibis::table::freeBuffers, sbuff, stypes);
+	ibis::util::makeGuard(ibis::table::freeBuffers,
+			      ibis::util::ref(sbuff),
+			      ibis::util::ref(stypes));
     bool sane = true;
 
     // retrieve values from r_
@@ -938,7 +942,9 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
     ibis::table::bufferList tbuff(tcname.size());
     ibis::table::typeList   ttypes(tcname.size());
     ibis::util::guard       gtbuff =
-	ibis::util::makeGuard(ibis::table::freeBuffers, tbuff, ttypes);
+	ibis::util::makeGuard(ibis::table::freeBuffers,
+			      ibis::util::ref(tbuff),
+			      ibis::util::ref(ttypes));
     try {
 	// allocate enough space for the output table
 	for (size_t j = 0; j < tcname.size(); ++ j) {

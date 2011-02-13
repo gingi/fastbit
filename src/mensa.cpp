@@ -3855,7 +3855,9 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 
     // create a guard after buff and tls has settled to their final sizes
     ibis::util::guard gbuff
-	= ibis::util::makeGuard(ibis::table::freeBuffers, buff, tls);
+	= ibis::util::makeGuard(ibis::table::freeBuffers,
+				ibis::util::ref(buff),
+				ibis::util::ref(tls));
     uint32_t nh = 0;
     // main loop through each data partition, fill the initial selection
     for (std::vector<const ibis::part*>::const_iterator it = mylist.begin();

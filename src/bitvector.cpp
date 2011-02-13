@@ -122,6 +122,19 @@ ibis::bitvector::bitvector(const char* file) : nbits(0), nset(0) {
     }
 } // ctor from file
 
+/// Remove the existing content of a bitvector.  The underlying storage is
+/// not released until the object is actual freed.
+void ibis::bitvector::clear() {
+    nset = 0;
+    nbits = 0;
+    m_vec.clear();
+    active.reset();
+    LOGGER(ibis::gVerbose > 9)
+	<< "bitvector (" << static_cast<void*>(this)
+	<< ") clear the content of bitvector with m_vec at "
+	<< static_cast<void*>(&m_vec);
+} // ibis::bitvector::clear
+
 /// Create a vector with @c n bits of value @c val (cf. memset()).
 ///@note @c val must be either 0 or 1.
 void ibis::bitvector::set(int val, ibis::bitvector::word_t n) {
@@ -1813,7 +1826,7 @@ void ibis::bitvector::write(const char * fn) const {
     }
 
     int ierr;
-    ibis::util::guard gout = ibis::util::makeGuard(fclose, out);
+    IBIS_BLOCK_GUARD(fclose, out);
 #if defined(WAH_CHECK_SIZE)
     word_t nb = (nbits > 0 ? do_cnt() : nbits);
     if (nb != nbits) {

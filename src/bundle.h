@@ -118,7 +118,7 @@ public:
     /// Truncate the list of bundle based on specified keys.
     virtual long truncate(const char *names, int direction, uint32_t keep) = 0;
 
-    virtual ~bundle() {delete rids; delete starts;}
+    virtual ~bundle();
     /// Write the bundle to the directory for the query @c q.
     virtual void write(const ibis::query& q) const = 0;
 
@@ -200,11 +200,7 @@ public:
     };
 
     virtual uint32_t size() const {return (rids ? rids->size() : 0);}
-    // print the bundle values to the specified output stream
-    virtual void print(std::ostream& out) const {
-	out << "bundle " << id << " is empty" << std::endl;
-    }
-    // print the bundle values along with the RIDs
+    virtual void print(std::ostream& out) const;
     virtual void printAll(std::ostream& out) const;
 
     // can not do anything
@@ -230,7 +226,7 @@ public:
     bundle1(const ibis::query& q, const ibis::bitvector& hits);
     bundle1(const ibis::part& tbl, const ibis::selectClause& sel,
 	    const ibis::table::bufferList& vals);
-    virtual ~bundle1() {delete col;}
+    virtual ~bundle1();
     virtual void write(const ibis::query&) const;
 
     virtual uint32_t size() const {return (col ? col->size() : 0);}

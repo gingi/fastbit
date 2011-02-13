@@ -117,7 +117,7 @@ public:
 	part(const char *tn, const char *td, uint64_t nr,
 	     const ibis::table::stringList &cn,
 	     const ibis::table::typeList   &ct,
-	     ibis::table::bufferList        &buf,
+	     ibis::table::bufferList       &buf,
 	     const ibis::table::stringList *cdesc=0);
 
 	ibis::table* groupby(const ibis::selectClause&) const;

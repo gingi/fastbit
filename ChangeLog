@@ -1,3 +1,18 @@
+2011-02-12 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.cpp: add statement to indicate initialization
+	has completed in two constructors of storage object to aid
+	debugging of memory leak related to check-sq1
+	* src/colValues.cpp: add try-catch block around array->resize in
+	the constructors
+	* src/util.h: add template classes ibis::util::refHolder and
+	ibis::util::guardObj0, template function ibis::util::ref and
+	ibis::util::ojbectGuard
+	* src/bundle.cpp: add try-catch block to clear resource in case
+	the constructors of bundle1 and bundles encounter exceptions.
+	These objects hold pointers that are lost in case of the
+	constructors receive exceptions.  This should be the root cause of
+	the problem with check-sq0, check-sq1 and check-sq2.
+
 2011-02-11 John Wu <John dot Wu at ACM dot org>
 	* src/query.cpp: expand the function getNumHits to compute the
 	number of hits if there are certain inexpensive options

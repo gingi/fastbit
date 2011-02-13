@@ -36,7 +36,7 @@ ibis::array_t<T>::array_t()
     : actual(new ibis::fileManager::storage), m_begin(0), m_end(0) {
     if (actual != 0) {
 	m_begin = reinterpret_cast<T*>(actual->begin());
-	m_end = m_begin;
+	m_end   = m_begin;
 	actual->beginUse();
 	LOGGER(ibis::gVerbose > 9)
 	    << "array_t<" << typeid(T).name() << "> constructed at "
@@ -60,7 +60,7 @@ ibis::array_t<T>::array_t(size_t n)
       m_begin(0), m_end(0) {
     if (actual != 0) {
 	m_begin = reinterpret_cast<T*>(actual->begin());
-	m_end = m_begin + n;
+	m_end   = m_begin + n;
 	actual->beginUse();
 	LOGGER(ibis::gVerbose > 9)
 	    << "array_t<" << typeid(T).name() << "> constructed at "
@@ -86,7 +86,7 @@ ibis::array_t<T>::array_t(size_t n, const T& val)
       m_begin(0), m_end(0){
     if (actual != 0) {
 	m_begin = reinterpret_cast<T*>(actual->begin());
-	m_end = m_begin + n;
+	m_end   = m_begin + n;
 	actual->beginUse();
 	for (size_t i = 0; i < n; ++ i) {
 	    m_begin[i] = val;
@@ -116,7 +116,7 @@ ibis::array_t<T>::array_t(const std::vector<T>& rhs)
     if (actual != 0) {
 	actual->beginUse();
 	m_begin = reinterpret_cast<T*>(actual->begin());
-	m_end = m_begin + rhs.size();
+	m_end   = m_begin + rhs.size();
 	std::copy(rhs.begin(), rhs.end(), m_begin);
     }
     LOGGER(ibis::gVerbose > 9)

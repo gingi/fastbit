@@ -1696,7 +1696,9 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     ibis::table::typeList    tps(nc);
     buf.resize(nc);
     ibis::util::guard gbuf
-	= ibis::util::makeGuard(ibis::table::freeBuffers, buf, tps);
+	= ibis::util::makeGuard(ibis::table::freeBuffers,
+				ibis::util::ref(buf),
+				ibis::util::ref(tps));
     uint32_t jbdl = 0;
     bool countstar = false;
     for (uint32_t i = 0; i < nc; ++ i) {
@@ -2422,7 +2424,9 @@ ibis::bord::part::evaluateTerms(const ibis::selectClause& sel,
     ibis::table::stringList  cd(sel.size());
     std::vector<std::string> cdesc(sel.size());
     ibis::util::guard gbuf =
-	ibis::util::makeGuard(ibis::table::freeBuffers, buf, ct);
+	ibis::util::makeGuard(ibis::table::freeBuffers,
+			      ibis::util::ref(buf),
+			      ibis::util::ref(ct));
     for (uint32_t j = 0; j < sel.size(); ++ j) {
 	const ibis::math::term* t = sel[j];
 
@@ -2741,8 +2745,20 @@ ibis::bord::column::~column() {
 	delete static_cast<std::vector<std::string>*>(buffer);
 	break;}
     default: {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- bord::column["
+	    << (thePart ? thePart->name() : "") << '.' << m_name
+	    << "] has an unexpected type "
+	    << ibis::TYPESTRING[(int)m_type] << " (" << (int)m_type
+	    << ')';
 	break;}
     }
+#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 5)
+	<< "DEBUG -- bord::column[" << (thePart ? thePart->name() : "")
+	<< '.' << m_name << "] freed buffer at " << buffer;
+#endif
+    buffer = 0;
 } // ibis::bord::column::~column
 
 /// Retrieve the raw data buffer as an ibis::fileManager::storage.  Since

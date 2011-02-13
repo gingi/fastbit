@@ -323,18 +323,7 @@ public:
 //  	}
 //      };
 protected:
-    roFile() : storage(), opened(0), lastUse(0), mapped(0) {
-#if defined(_WIN32) && defined(_MSC_VER)
-	fdescriptor = INVALID_HANDLE_VALUE;
-	fmap = INVALID_HANDLE_VALUE;
-	map_begin = 0;
-#elif (HAVE_MMAP+0 > 0)
-	fdescriptor = -1;
-	fsize = 0;
-	map_begin = 0;
-#endif
-    };
-
+    roFile();
     // Read the whole file into memory.
     void doRead(const char* file);
     // Read the specified segment of the file into memory.
@@ -506,22 +495,18 @@ inline void ibis::fileManager::recordPages(off_t start, off_t stop) {
 
 inline void
 ibis::fileManager::increaseUse(size_t inc, const char* evt) {
-    if (inc > 0) {
-	ibis::fileManager::totalBytes += inc;
-	LOGGER(evt != 0 && *evt != 0 && ibis::gVerbose > 9)
-	    << evt << " added " << inc << " bytes to increase totalBytes to "
-	    << ibis::util::groupby1000(ibis::fileManager::totalBytes());
-    }
+    ibis::fileManager::totalBytes += inc;
+    LOGGER(inc > 0 && evt != 0 && *evt != 0 && ibis::gVerbose > 9)
+	<< evt << " added " << inc << " bytes to increase totalBytes to "
+	<< ibis::fileManager::totalBytes();
 } // ibis::fileManager::increaseUse
 
 inline void
 ibis::fileManager::decreaseUse(size_t dec, const char* evt) {
-    if (dec > 0) {
-	ibis::fileManager::totalBytes -= dec;
-	LOGGER(evt != 0 && *evt != 0 && ibis::gVerbose > 9)
-	    << evt << " removed " << dec << " bytes to decrease totalBytes to "
-	    << ibis::util::groupby1000(ibis::fileManager::totalBytes());
-    }
+    ibis::fileManager::totalBytes -= dec;
+    LOGGER(dec > 0 && evt != 0 && *evt != 0 && ibis::gVerbose > 9)
+	<< evt << " removed " << dec << " bytes to decrease totalBytes to "
+	<< ibis::fileManager::totalBytes();
 } // ibis::fileManager::decreaseUse
 
 /// Swap the content of the storage objects.

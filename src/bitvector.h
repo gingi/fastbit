@@ -88,7 +88,6 @@ public:
     void erase(word_t i, word_t j);
 
     void set(int val, word_t n);
-    /// Remove the existing content of a bitvector.
     void clear();
 
     bitvector& operator+=(const bitvector& bv); ///< Append a bitvector.
@@ -1114,14 +1113,6 @@ inline void ibis::bitvector::turnOnRawBit(const word_t ind) {
 #endif
     }
 } // ibis::bitvector::turnOnRawBit
-
-inline void ibis::bitvector::clear() {
-    nbits = 0; nset = 0; active.reset(); m_vec.clear();
-    LOGGER(ibis::gVerbose > 9)
-	<< "bitvector (" << static_cast<void*>(this)
-	<< ") clear the content of bitvector with m_vec at "
-	<< static_cast<void*>(&m_vec);
-}
 
 std::ostream& operator<<(std::ostream&, const ibis::bitvector&);
 #endif // __BITVECTOR_H

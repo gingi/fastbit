@@ -151,7 +151,7 @@ void ibis::resource::read(const char* fn) {
     }
     fclose(conf);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-    ibis::util::logger lg(4);
+    ibis::util::logger lg;
     write(lg());
 #endif
 } // ibis::resource::read
@@ -504,7 +504,7 @@ void ibis::resource::write(const char* fn) const {
 	    write(lg());
 	}
     }
-    else if (ibis::gVerbose > -1) {
+    else if (ibis::gVerbose >= 0) {
 	ibis::util::logger lg;
 	write(lg());
     }

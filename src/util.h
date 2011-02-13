@@ -258,6 +258,8 @@ int truncate(const char*, uint32_t);
 
 #define LOGGER(v) \
 if (false == (v)) ; else ibis::util::logger(0)() 
+#define IBIS_BLOCK_GUARD \
+    ibis::util::guard guard##__LINE__ = ibis::util::makeGuard
 
 namespace std { // extend namespace std slightly
     // specialization of less<> to work with char*
@@ -1021,20 +1023,38 @@ namespace ibis {
 	    timer& operator=(const timer&); // no assignment
 	}; // timer
 
+	/// A template to hold a reference to an object.
+	template <class T> class refHolder {
+	public:
+	    refHolder(T& r) : ref_(r) {}
+	    operator T& () const {return ref_;}
+
+	private:
+	    T& ref_;
+
+	    refHolder();
+	}; // refHolder
+
+	/// A function template to produce refHolder.
+	template <class T>
+	inline refHolder<T> ref(T& r) {return refHolder<T>(r);}
+
 	/// A class hierarchy for cleaning up after durable resources.  It
-	/// is similar in spirit to Loki::ScopeGuard, but simpler.
+	/// follows the example set by Loki::ScopeGuard, but simpler.
 	class guardBase {
 	public:
-	    /// Tell the guard that the user has manually invoked the
-	    /// cleanup function.
+	    /// Tell the guard that it does not need to invoke clean up
+	    /// function any more.
 	    void dismiss() const {done_ = true;}
 
 	protected:
 	    mutable volatile bool done_;
 
-	    ~guardBase() {}; ///< Destructor.  No need to be virtual.
+	    /// Destructor.  No need to be virtual.
+	    ~guardBase() {};
 	    guardBase() : done_(false) {}; ///< Default constructor.
-	    /// Copy constructor.
+	    /// Copy constructor.  Allows all derived classes to use the
+	    /// compiler generated copy constructors.
 	    guardBase(const guardBase& rhs) : done_(rhs.done_) {
 		rhs.dismiss();
 	    }
@@ -1104,7 +1124,6 @@ namespace ibis {
 	    F fun_;
 
 	    guardImpl0();
-	    //guardImpl0(const guardImpl0&);
 	    guardImpl0& operator=(const guardImpl0&);
 	}; // guardImpl0
 
@@ -1139,7 +1158,6 @@ namespace ibis {
 	    A arg_;
 
 	    guardImpl1();
-	    //guardImpl1(const guardImpl1&);
 	    guardImpl1& operator=(const guardImpl1&);
 	}; // guardImpl1
 
@@ -1184,6 +1202,37 @@ namespace ibis {
 	template <typename F, typename A1, typename A2>
 	inline guardImpl2<F, A1, A2> makeGuard(F f, A1 a1, A2 a2) {
 	    return guardImpl2<F, A1, A2>::makeGuard(f, a1, a2);
+	}
+
+	/// A class to work with class member functions with no arguments.
+	template <class C, typename F>
+	class guardObj0 : public guardBase {
+	public:
+	    static guardObj0<C, F> makeGuard(C& o, F f) {
+		return guardObj0<C, F>(o, f);
+	    }
+
+	    /// Desutructor.
+	    ~guardObj0() {cleanup(*this);}
+
+	protected:
+	    friend class guardBase; // to call function execute
+	    void execute() {(obj_.*fun_)();}
+
+	    /// Constructor.
+	    guardObj0(C& o, F f) : obj_(o), fun_(f) {}
+
+	private:
+	    C& obj_; ///< A reference to the class object.
+	    F fun_;  ///< A pointer to the member function.
+
+	    guardObj0();
+	    guardObj0& operator=(const guardObj0&);
+	}; // guardObj0
+
+	template <class C, typename F>
+	inline guardObj0<C, F> objectGuard(C o, F f) {
+	    return guardObj0<C, F>::makeGuard(o, f);
 	}
     } // namespace util
 } // namespace ibis
