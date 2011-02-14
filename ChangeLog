@@ -1,3 +1,10 @@
+2011-02-13 John Wu <John dot Wu at ACM dot org>
+	* src/bundles.cpp: replace all calls to ibis::util::logMessage
+	with LOGGER macro, add some status messages in the constructors of
+	ibis::bundle and derivatives
+	* src/fileManager.cpp: add log messages whenever storage::m_begin
+	is 0
+
 2011-02-12 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.cpp: add statement to indicate initialization
 	has completed in two constructors of storage object to aid

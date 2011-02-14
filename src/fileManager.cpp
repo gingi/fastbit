@@ -22,7 +22,7 @@
 #include <typeinfo>	// typeid
 #include <string>	// std::string
 #include <stdio.h>	// fopen, fread, remove
-#include <stdlib.h>	// malloc, realloc, free
+#include <stdlib.h>	// malloc, free
 #include <sys/stat.h>	// stat, open
 #include <time.h>
 #include <stdexcept>	// std::runtime_error
@@ -1715,6 +1715,9 @@ ibis::fileManager::storage::storage(size_t n)
     }
     m_begin = static_cast<char*>(malloc(n));
     if (m_begin == 0) { // retry
+	LOGGER(ibis::gVerbose > 2)
+	    << "fileManager::storage::ctor failed malloc(" << n
+	    << "), will attempt to free some memory";
 	{
 	    ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
 				      "fileManager::storage::ctor");
@@ -1830,6 +1833,9 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
     }
     m_begin = static_cast<char*>(malloc(nbytes));
     if (m_begin == 0) { // retry
+	LOGGER(ibis::gVerbose > 2)
+	    << "fileManager::storage::ctor failed malloc(" << nbytes
+	    << "), will attempt to free some memory";
 	{
 	    ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
 				      "fileManager::storage::ctor");
@@ -1895,6 +1901,9 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
     }
     m_begin = static_cast<char*>(malloc(nbytes));
     if (m_begin == 0) { // retry
+	LOGGER(ibis::gVerbose > 2)
+	    << "fileManager::storage::ctor failed malloc(" << nbytes
+	    << "), will attempt to free some memory";
 	{
 	    ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
 				      "fileManager::storage::ctor");
