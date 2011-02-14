@@ -3862,6 +3862,9 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     // main loop through each data partition, fill the initial selection
     for (std::vector<const ibis::part*>::const_iterator it = mylist.begin();
 	 it != mylist.end(); ++ it) {
+	LOGGER(ibis::gVerbose > 2)
+	    << mesg << " -- processing query conditions \"" << *cond
+	    << "\" on data partition " << (*it)->name();
 	if (tmstouse.size() >= tms.size())
 	    ierr = tms.verify(**it);
 	else

@@ -1624,6 +1624,8 @@ ibis::bord::part::groupby(const ibis::selectClause& sel) const {
     td += " (";
     td += m_desc;
     td += ')';
+    LOGGER(ibis::gVerbose > 3) << "bord::part::groupby -- " << td;
+    readLock lock(this, td.c_str());
     std::string tn = ibis::util::shortName(td);
     if (nEvents == 0)
 	return new ibis::tabula(tn.c_str(), td.c_str(), nEvents);
@@ -1810,6 +1812,13 @@ long ibis::bord::part::reorder(const ibis::table::stringList& cols) {
     std::string evt = "part[";
     evt += m_name;
     evt += "]::reorder";
+    if (ibis::gVerbose > 3) {
+	ibis::util::logger lg;
+	lg() << evt << " -- reordering with " << cols[0];
+	for (unsigned j = 1; j < cols.size(); ++ j)
+	    lg() << ", " << cols[j];
+    }
+
     writeLock lock(this, evt.c_str()); // can't process other operations
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();

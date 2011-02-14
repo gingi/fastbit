@@ -359,6 +359,9 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
     // main loop through each data partition, fill the initial selection
     for (ibis::partList::const_iterator it = mylist.begin();
 	 it != mylist.end(); ++ it) {
+	LOGGER(ibis::gVerbose > 2)
+	    << mesg << " -- processing query conditions \"" << cond
+	    << "\" on data partition " << (*it)->name();
 	if (tmstouse.size() >= tms.size())
 	    ierr = tms.verify(**it);
 	else

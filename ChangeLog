@@ -4,6 +4,8 @@
 	ibis::bundle and derivatives
 	* src/fileManager.cpp: add log messages whenever storage::m_begin
 	is 0
+	* src/bord.cpp, src/filter.cpp, src/mensa.cpp: add a couple of
+	logging statments
 
 2011-02-12 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.cpp: add statement to indicate initialization
