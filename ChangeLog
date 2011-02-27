@@ -1,3 +1,6 @@
+2011-02-25 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: add option --without-getpwuid
+
 2011-02-13 John Wu <John dot Wu at ACM dot org>
 	* src/bundles.cpp: replace all calls to ibis::util::logMessage
 	with LOGGER macro, add some status messages in the constructors of
