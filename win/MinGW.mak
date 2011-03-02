@@ -2,14 +2,16 @@
 # Makefile for mingw32-make on windows using MinGW g++ port
 #
 CXX=g++.exe
-#OPT=-g -O0
-OPT=-O5
-INC=-I ../src -I "pthreads-w32-2-8-0-release" -I /mingw/include -I .
+OPT=-g -O0
+#OPT=-O5
+INC=-I "C:/MinGW/include" -I . -I ../src -I "pthreads-w32-2-8-0-release"
 DEF=-DFASTBIT_MAX_WAIT_TIME=3 -DWITHOUT_FASTBIT_CONFIG_H
 LIB=-Lpthreads-w32-2-8-0-release -lpthreadGC2 -lm
 TESTDIR=tmp
 
 CCFLAGS=$(DEF) $(INC) $(OPT)
+# use cmd.exe as the shell for spawning commands
+SHELL=cmd.exe
 #
 OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  array_t.o \
@@ -78,29 +80,25 @@ OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  util.o
 
 #
-ibis: ibis.exe
-all: ibis.exe ardea.exe rara.exe thula.exe tcapi.exe
-IBISEXE=./ibis.exe
-ARDEAEXE=./ardea.exe
+all: ibis ardea rara thula tcapi
+IBISEXE=ibis.exe
+ARDEAEXE=ardea.exe
 
 lib: libfastbit.a
 libfastbit.a: $(OBJ)
 	ar ruv libfastbit.a $(OBJ)
 
-ibis.exe: ibis.o libfastbit.a
+ibis: ibis.o libfastbit.a
 	$(CXX) $(OPT) -o $@ ibis.o libfastbit.a $(LIB)
 
-thula: thula.exe
-thula.exe: thula.o libfastbit.a
+thula: thula.o libfastbit.a
 	$(CXX) $(OPT) -o $@ thula.o libfastbit.a $(LIB)
 
-rara: rara.exe
-rara.exe: rara.o libfastbit.a
-	$(CXX) $(OPT) -o $@ rara.o libfastbit.a $(LIB)
+rara: rara.o libfastbit.a
+	$(CXX) $(OPT) -o rara rara.o libfastbit.a $(LIB)
 
-ardea: ardea.exe
-ardea.exe: ardea.o libfastbit.a
-	$(CXX) $(OPT) -o $@ ardea.o libfastbit.a $(LIB)
+ardea: ardea.o libfastbit.a
+	$(CXX) $(OPT) -o ardea ardea.o libfastbit.a $(LIB)
 
 dll: fastbit.dll
 fastbit.a: fastbit.dll
@@ -119,30 +117,34 @@ tcapi.exe: ../examples/tcapi.c ../src/capi.h fastbit.dll
 	$(CXX) $(OPT) -DCXX_USE_DLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
 
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
-	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = 0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 1; else echo $@ did NOT pass test 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = b and c < exp(log(9.5))" | if [ `fgrep " produced 20 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 2; else echo $@ did NOT pass test 2; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -y $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then echo $@ passed test 3; else echo $@ did NOT pass test 3; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 10" | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 4; else echo $@ did NOT pass test 4; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 5; else echo $@ did NOT pass test 5; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 2" | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then echo $@ passed test 6; else echo $@ did NOT pass test 6; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" > $(TESTDIR)/hist0 && perl -p -e 's/ in Partition .*//' $(TESTDIR)/hist0 > $(TESTDIR)/hist0-1 && if [ `diff -w ../tests/hist0 $(TESTDIR)/hist0-1 | wc -l` -eq 0 ] ; then echo $@ passed test 7; else echo $@ did NOT pass test 7; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w ../tests/hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then echo $@ passed test 8; else echo $@ did NOT pass test 8; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint c a b : c>50" > $(TESTDIR)/hist2 && if [ `diff -w ../tests/hist2 $(TESTDIR)/hist2 | wc -l` -eq 0 ] ; then echo $@ passed test 9; else echo $@ did NOT pass test 9; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 > $(TESTDIR)/check-ibis-10.log 2>&1 && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-10.log | wc -l` -eq 1 ] ; then echo $@ passed test 10; else echo $@ did NOT pass test 10; fi
+	@del /s /f $(TESTDIR)\hist0 $(TESTDIR)\hist1 $(TESTDIR)\hist2
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = 0"
+	@echo Expected 2 hits from the above query
+	@echo
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = b and c < exp(log(9.5))"
+	@echo Expected 20 hits from the above query
+	@echo
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 2"
+	@echo Expected 4 hits from the above query
+	@echo
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" > $(TESTDIR)/hist0
+	@echo Please compare the content in $(TESTDIR)/hist0 with ../tests/hist0
+	@echo
+	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5
+	@echo Expected no error from the above tests
 	@echo
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) ../tests/test0.csv
-	rm -rf $(TESTDIR)/t1
+	if exist $(TESTDIR)/t1 del /s /f $(TESTDIR)\t1
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:ushort" -t ../tests/test0.csv
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:ushort" -t ../tests/test0.csv
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 	echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
 
 clean:
-	rm -f *.o core b?_? *.dll *.lib *.exe *.a *.so *.suo *.ncb *.exp *.pdb
-	rm -rf $(TESTDIR)/t1
+	del /f /s *.o core b?_? *.dll *.lib *.exe *.a *.so *.suo *.ncb *.exp *.pdb
+	del /f /s $(TESTDIR)\t1
 clean-all: clean
-	rm -rf Debug Release dll tmp pthreads-w32-2-8-0-release pthreads-w32-2-8-0-release.tar.gz
+	del /f /s Debug Release dll tmp pthreads-w32-2-8-0-release pthreads-w32-2-8-0-release.tar.gz
 
 pthreads-w32: pthreads-w32-2-8-0-release/libpthreadGC2.a
 pthreads-w32-2-8-0-release.tar.gz:

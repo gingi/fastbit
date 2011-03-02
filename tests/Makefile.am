@@ -39,8 +39,7 @@ EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv \
 
 #
 # tests with different levels of thoroughness
-check: clean-tmp check-am
-	@$(MAKE) TESTDIR
+check: clean-tmp check-am TESTDIR
 	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} >> $(TESTDIR)/stdout.log 2>&1
 	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
@@ -254,7 +253,7 @@ BINNINGS="none" "nbins=10" "nbins=20 equal-weight" "nbins=23 scale=simple" \
 	"start=0, end=1000, nbins=100, scale=simple" \
 	"(start=0, end=100, nbins=10, scale=log)(start=100, end=1000, nbins=10, scale=linear)"
 #
-large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc
+large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(TESTDIR)/test.rc
 	@echo "starting $@ with 185 different combinations of indexing options"
 	@echo > $(TESTDIR)/large-sanity-check.log
 	@jcase=0; for e in $(ENCODINGS) ; do \
@@ -328,8 +327,8 @@ check-sq0: $(THULAEXE) $(TESTDIR)/sq0 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -eq 0 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
-$(TESTDIR)/sq0: setqgen$(EXEEXT)
-	@./setqgen$(EXEEXT) $(TESTDIR)/sq0 2.5e6 1e6 >| $(TESTDIR)/check-sq0.log 2>&1
+$(TESTDIR)/sq0: setqgen$(EXEEXT) TESTDIR
+	@./setqgen$(EXEEXT) $(TESTDIR)/sq0 1.6e6 7e5 >| $(TESTDIR)/check-sq0.log 2>&1
 # testing with enough rows to fill the disk cache, completing this set
 # of tests might take an hour on a typical machine with at least 4GB of
 # memory.  More memory will typlically reduce the test time, but not
@@ -342,7 +341,7 @@ check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -le 200 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
-$(TESTDIR)/sq1: setqgen$(EXEEXT) $(TESTDIR)/smallmem3.rc
+$(TESTDIR)/sq1: setqgen$(EXEEXT) $(TESTDIR)/smallmem3.rc TESTDIR
 	@./setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
 # testing with 1 billion rows, will encounter failures
 check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
@@ -352,11 +351,11 @@ check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
-$(TESTDIR)/sq2: setqgen$(EXEEXT)
+$(TESTDIR)/sq2: setqgen$(EXEEXT) TESTDIR
 	@./setqgen$(EXEEXT) $(TESTDIR)/sq2 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
 #
 TESTDIR:
-	@test -d $(TESTDIR) || (mkdir -p $(TESTDIR) && echo "File $@ started on " `/bin/date` >> $(TESTDIR)/stdout.log)
+	@test -d $(TESTDIR) || (mkdir -p $(TESTDIR) && echo "File $@/stdout.log started on " `/bin/date` >> $(TESTDIR)/stdout.log)
 $(TESTDIR)/0: $(TESTDIR)
 	@test -d $(TESTDIR)/0 || mkdir $(TESTDIR)/0
 $(TESTDIR)/1: $(TESTDIR)
@@ -395,10 +394,10 @@ $(TESTDIR)/w4/-part.txt: $(ARDEAEXE)
 	@echo 'Berkeley: 5'    > $(TESTDIR)/w4/b.tdlist
 	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
 	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist
-$(TESTDIR)/test.rc: $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt
+$(TESTDIR)/test.rc: TESTDIR
 	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc
-$(TESTDIR)/append.rc: $(TESTDIR)
+$(TESTDIR)/append.rc: TESTDIR
 	@echo "activeDir=$(TESTDIR)/1" > $(TESTDIR)/append.rc
 	@echo "backupDir=$(TESTDIR)/2" >> $(TESTDIR)/append.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/append.rc
@@ -409,11 +408,11 @@ $(TESTDIR)/append.rc: $(TESTDIR)
 # limiting the memory cache size cause different types of errors.  These
 # files allow us to trigger these errors and observe the response of the
 # FastBit software.
-$(TESTDIR)/smallmem1.rc: $(TESTDIR)
+$(TESTDIR)/smallmem1.rc: TESTDIR
 	@echo "fileManager.maxBytes=100MB" > $(TESTDIR)/smallmem1.rc
-$(TESTDIR)/smallmem2.rc: $(TESTDIR)
+$(TESTDIR)/smallmem2.rc: TESTDIR
 	@echo "fileManager.maxBytes=400MB" > $(TESTDIR)/smallmem2.rc
-$(TESTDIR)/smallmem3.rc: $(TESTDIR)
+$(TESTDIR)/smallmem3.rc: TESTDIR
 	@echo "fileManager.maxBytes=1.6GB" > $(TESTDIR)/smallmem3.rc
 #
 #
@@ -437,9 +436,9 @@ do-small-append: $(TESTDIR)/append.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/
 	done
 #
 # take the results of do-small-append, double them 10 times
-$(TESTDIR)/at0: $(TESTDIR)
+$(TESTDIR)/at0: TESTDIR
 	@test -d $(TESTDIR)/at0 || mkdir $(TESTDIR)/at0
-$(TESTDIR)/at1: $(TESTDIR)
+$(TESTDIR)/at1: TESTDIR
 	@test -d $(TESTDIR)/at1 || mkdir $(TESTDIR)/at1
 do-large-append: do-small-append $(TESTDIR)/at0 $(TESTDIR)/at1
 	@echo >> $(TESTDIR)/append.log

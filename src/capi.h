@@ -23,14 +23,14 @@
 #pragma once
 #endif // _MSC_VER >= 1000
 
-#if !defined(WITHOUT_FASTBIT_CONFIG_H) && !(defined(_WIN32)&&defined(_MSC_VER))
+#if !defined(WITHOUT_FASTBIT_CONFIG_H) && !defined(__MINGW32__) && !defined(_MSC_VER)
 #include "fastbit-config.h"
 #endif
-#if defined(HAVE_INTTYPES_H) || defined(sun) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(HAVE_INTTYPES_H) || defined(sun) || defined(__MINGW32__) || defined(__FreeBSD__)
 #include <inttypes.h>
 #elif defined(HAVE_STDINT_H) || defined(unix) || defined(__APPLE__)
 #include <stdint.h>
-#elif defined(_WIN32)
+#elif defined(_WIN32) && defined(_MSC_VER)
 // MS windows has its own exact-width types, use them
 #  ifndef int16_t
 #    define int16_t __int16

@@ -493,14 +493,16 @@ void ibis::selectClause::getNullMask(const ibis::part& part0,
     }
 } // ibis::selectClause::getNullMask
 
-/// Are all the variables are present in the specified data partition?
-/// Returns the number of variables that are not.  This function also
-/// simplifies the arithmetic expression if
+/// Verify the select clause is valid against the given data partition.
+/// Returns the number of variables that are not in the data partition.
+/// This function also simplifies the arithmetic expression if
 /// ibis::math::preserveInputExpression is not set.
 ///
 /// @note Simplifying the arithmetic expressions typically reduces the time
-/// needed for evaluations, but may introduces a different set of round-off
-/// erros in the evaluation process than the original expression.
+/// needed for evaluations, but may introduce a different set of round-off
+/// erros in the evaluation process than the original expression.  Set the
+/// variable ibis::math::preserveInputExpression to true to avoid this
+/// change in error round-off property.
 int ibis::selectClause::verify(const ibis::part& part0) const {
     int ierr = 0;
     for (uint32_t j = 0; j < terms_.size(); ++ j) {

@@ -377,9 +377,10 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	}
     }
     else if (readonly) { // missing directory or metadata
-	std::string msg(activeDir);
-	msg += " does not exist or missing metadata file -part.txt";
-	throw std::invalid_argument(msg);
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- part::ctor can not proceed because " << activeDir
+	    << " either does not exist or misses the metadata file -part.txt";
+	return;
     }
 
     if (m_name == 0) {
@@ -855,10 +856,11 @@ void ibis::part::init(const char* iname) {
 
     // read metadata file in activeDir
     int maxLength = readMetaData(nEvents, columns, activeDir);
-    if (maxLength <= 0 && readonly) {
-	std::string msg(activeDir);
-	msg += " does not exist or missing metadata file -part.txt";
-	throw std::invalid_argument(msg);
+    if (maxLength <= 0) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- part::init can not proceed because " << activeDir
+	    << " either does not exist or misses metadata file -part.txt";
+	if (readonly) return;
     }
     const char *tmp = strrchr(activeDir, FASTBIT_DIRSEP);
     // use the current activeDir if it contains a valid data partition, the
@@ -886,10 +888,11 @@ void ibis::part::init(const char* iname) {
 	    subdir.erase();
 	}
 	maxLength = readMetaData(nEvents, columns, activeDir);
-	if (maxLength <= 0 && readonly) {
-	    std::string msg(activeDir);
-	    msg += " does not exist or missing metadata file -part.txt";
-	    throw std::invalid_argument(msg);
+	if (maxLength <= 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- part::init can not proceed because " << activeDir
+		<< " either doesnot exist or misses metadata file -part.txt";
+	    if (readonly) return;
 	}
 	if (backupDir != 0) {
 	    if (verifyBackupDir() != 0) {
@@ -1059,9 +1062,12 @@ void ibis::part::init(const char* iname) {
 
 /// Read the meta tag entry in the header section of the metadata file in
 /// directory dir.  The meta tags are name-value pairs associated with a
-/// data partition.  It can be used to record information about about a
-/// data partition that one might want to search through matchNameValuePair
-/// or matchMetaTags.
+/// data partition.  They record information about about a data partition
+/// that one might want to search through matchNameValuePair or
+/// matchMetaTags or simply part of the regular query expressions.
+///
+/// @note This function only returns the first line of the meta tags in the
+/// metadata file.
 char* ibis::part::readMetaTags(const char* const dir) {
     char *s1;
     char* m_tags = 0;
@@ -1112,18 +1118,10 @@ char* ibis::part::readMetaTags(const char* const dir) {
 	    break;
 	}
 	else if (strnicmp(buf, "metaTags", 8) == 0 ||
-		 strnicmp(buf, "table.metaTags", 16) == 0 ||
-		 strnicmp(buf, "DataSet.metaTags", 16) == 0) {
-	    s1 = strchr(buf, '=');
-	    if (s1!=0) {
-		if (s1[1] != 0) {
-		    ++ s1;
-		    m_tags = ibis::util::getString(s1);
-		}
-	    }
-	    break;
-	}
-	else if (strnicmp(buf, "Event_Set.metaTags", 18) == 0) {
+		 strnicmp(buf, "part.metaTags", 13) == 0 ||
+		 strnicmp(buf, "table.metaTags", 14) == 0 ||
+		 strnicmp(buf, "DataSet.metaTags", 16) == 0 ||
+		 strnicmp(buf, "partition.metaTags", 18) == 0) {
 	    s1 = strchr(buf, '=');
 	    if (s1!=0) {
 		if (s1[1] != 0) {
@@ -1408,10 +1406,10 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		state = (ibis::part::TABLE_STATE)atoi(s1);
 	    }
 	    else if (strnicmp(buf, "metaTags", 8) == 0 ||
+		     strnicmp(buf, "Part.metaTags", 13) == 0 ||
 		     strnicmp(buf, "Table.metaTags", 14) == 0 ||
 		     strnicmp(buf, "DataSet.metaTags", 16) == 0 ||
-		     strnicmp(buf, "Partition.metaTags", 18) == 0 ||
-		     strnicmp(buf, "Part.metaTags", 13) == 0) {
+		     strnicmp(buf, "Partition.metaTags", 18) == 0) {
 		ibis::resource::parseNameValuePairs(s1, metaList);
 		ibis::resource::vList::const_iterator it =
 		    metaList.find("columnShape");

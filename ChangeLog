@@ -1,3 +1,21 @@
+2011-03-02 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: update part::readMetaTags to match the
+	part::readMetaData
+	* win/MinGW.mak: add SHELL=cmd.exe to remove the dependency on
+	MSYS (which provides bash), removed the use of rm and perl from
+	tests (now able to compile ibis and check-ibis with nuwen.net's
+	distribution of MinGW without MSYS)
+	* src/const.h: add conditional statement to include stdint.h when
+	compiling under MinGW
+	* src/part.cpp: replace the exception generated when missing
+	metadata file with an error message (to avoid a problem reported
+	by Andrew Olson)
+	* src/const.h, src/capi.h: update the conditional compilation
+	macros to compile under MinGW
+
+2011-02-28 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: add dependency on TESTDIR for some targets
+
 2011-02-25 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: add option --without-getpwuid
 

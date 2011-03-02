@@ -69,7 +69,7 @@
 #include <errno.h>	// errno
 #include <string.h>	// strerr, strcasecmp, strcmp, memcpy
 #include <pthread.h>	// mutex lock, rwlock, conditional variables
-#if !defined(WITHOUT_FASTBIT_CONFIG_H) && !(defined(_WIN32)&&defined(_MSC_VER))
+#if !defined(WITHOUT_FASTBIT_CONFIG_H) && !defined(__MINGW32__) && !defined(_MSC_VER)
 #  include "fastbit-config.h"	// macros defined by the configure script
 #  ifdef HAVE_SYS_TYPES_H
 #    include <sys/types.h>	// timespec, etc
@@ -78,12 +78,12 @@
 #    include <stdint.h>
 #  endif
 #else
-#  if defined(unix)||defined(linux)||defined(__APPLE__)||defined(__CYGWIN__)
+#  if defined(unix)||defined(linux)||defined(__APPLE__)||defined(__CYGWIN__)||defined(__FreeBSD__)
 #    define HAVE_VPRINTF 1
 #    define HAVE_DIRENT_H 1
 #  endif
 #  if !defined(_MSC_VER)
-#    include <sys/types.h>
+#    include <stdint.h>
 #  endif
 #endif
 #ifndef FASTBIT_STRING
@@ -129,19 +129,17 @@
 #endif
 
 #if defined(__SUNPRO_CC)
-#if (__SUNPRO_CC < 0x500)
-#  include <iostream.h>
-   typedef int bool;
-#  define false 0
-#  define true 1
-#  define std
-#  define mutable
-#  define explicit
-#else
-#  include <iosfwd>	// std::cout, std::clog
-#endif
-//#elif _MSC_VER <= 1200
-//#include <iostream.h>
+#  if (__SUNPRO_CC < 0x500)
+#    include <iostream.h>
+     typedef int bool;
+#    define false 0
+#    define true 1
+#    define std
+#    define mutable
+#    define explicit
+#  else
+#    include <iosfwd>	// std::cout, std::clog
+#  endif
 #else
 #  include <iosfwd>	// std::cout, std::clog
 #endif
@@ -198,24 +196,28 @@
 #    include <crtdbg.h>
 #  endif
 
-// MS windows has its own exact-width types, use them
-#  ifndef int16_t
-#    define int16_t __int16
-#  endif
-#  ifndef uint16_t
-#    define uint16_t unsigned __int16
-#  endif
-#  ifndef int32_t
-#    define int32_t __int32
-#  endif
-#  ifndef uint32_t
-#    define uint32_t unsigned __int32
-#  endif
-#  ifndef int64_t
-#    define int64_t __int64
-#  endif
-#  ifndef uint64_t
-#    define uint64_t unsigned __int64
+#  if defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__)
+#    include <stdint.h>
+#  else
+     // MS windows has its own exact-width types, use them
+#    ifndef int16_t
+#      define int16_t __int16
+#    endif
+#    ifndef uint16_t
+#      define uint16_t unsigned __int16
+#    endif
+#    ifndef int32_t
+#      define int32_t __int32
+#    endif
+#    ifndef uint32_t
+#      define uint32_t unsigned __int32
+#    endif
+#    ifndef int64_t
+#      define int64_t __int64
+#    endif
+#    ifndef uint64_t
+#      define uint64_t unsigned __int64
+#    endif
 #  endif
 
 #elif defined(__APPLE__)
@@ -229,7 +231,7 @@
 #endif
 
 // a hack to check for exact-width data types -- according the Open Group's
-// defiition of stdint.h, when the exact-width integer types are defined,
+// definition of stdint.h, when the exact-width integer types are defined,
 // their corresponding MAX values are also defined with #define.  Since the
 // types themselves may be typedefs, the corresponding INTx_MAX are more
 // reliable checks.
