@@ -761,13 +761,11 @@ long ibis::zona::evaluate(const ibis::qContinuousRange& expr,
     evt += "::evaluate";
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg() << evt << "(" << expr << ") hit0=" << hit0
-		    << ", hit1=" << hit1;
+	lg() << evt << "(" << expr << ") hit0=" << hit0 << ", hit1=" << hit1;
 	if (c0 < cbounds.size())
 	    lg() << ", cbounds[" << c0 << "]=" << cbounds[c0];
 	else
-	    lg() << ", cbounds[" << cbounds.size()-1 << "]="
-			<< cbounds.back();
+	    lg() << ", cbounds[" << cbounds.size()-1 << "]=" << cbounds.back();
 	if (c1 < cbounds.size())
 	    lg() << ", cbounds[" << c1 << "]=" << cbounds[c1];
 	else
@@ -1215,50 +1213,40 @@ int ibis::zona::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "Warning -- zona[" << col->partition()->name() << '.'
-		<< col->name() << "]::read the header from " << fnm
-		<< " (";
+	    lg() << "Warning -- zona[" << col->partition()->name() << '.'
+		 << col->name() << "]::read the header from " << fnm << " (";
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[0]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[0] << std::dec;
 	    if (isprint(header[1]) != 0)
 		lg() << header[1];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[1]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[1] << std::dec;
 	    if (isprint(header[2]) != 0)
 		lg() << header[2];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[2]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[2] << std::dec;
 	    if (isprint(header[3]) != 0)
 		lg() << header[3];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[3]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[3] << std::dec;
 	    if (isprint(header[4]) != 0)
 		lg() << header[4];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[4]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[4] << std::dec;
 	    if (isprint(header[5]) != 0)
 		lg() << header[5];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[5]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[5] << std::dec;
 	    if (isprint(header[6]) != 0)
 		lg() << header[6];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[6]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[6] << std::dec;
 	    if (isprint(header[7]) != 0)
 		lg() << header[7];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[7]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[7] << std::dec;
 	    lg() << ") does not contain the expected values";
 	}
 	return -3;
@@ -1293,9 +1281,9 @@ int ibis::zona::read(const char* f) {
 	    nprt = dim[1];
 	ibis::util::logger lg(4);
 	lg() << "DEBUG -- zona[" << col->partition()->name() << '.'
-		    << col->name() << "]::read(" << f
-		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
-		    << ", the offsets of the bit vectors are\n";
+	     << col->name() << "]::read(" << f
+	     << ") got nobs = " << dim[1] << ", card = " << dim[2]
+	     << ", the offsets of the bit vectors are\n";
 	if (offset64.size() > dim[1]) {
 	    for (unsigned i = 0; i < nprt; ++ i)
 		lg() << offset64[i] << " ";

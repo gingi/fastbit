@@ -885,7 +885,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	ibis::util::logger lg;
 	if (expr != 0) {
 	    lg() << "qExpr::simplify -- output expression "
-			<< "(@" << static_cast<const void*>(expr) << ") ";
+		 << "(@" << static_cast<const void*>(expr) << ") ";
 	    if (ibis::gVerbose > 8)
 		expr->printFull(lg());
 	    else
@@ -1144,7 +1144,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg(4);
 	    lg() << "DEBUG -- qExpr::reorder(" << *this
-			<< ") -- (expression:weight,...)\n";
+		 << ") -- (expression:weight,...)\n";
 	    for (i = 0; i < terms.size(); ++ i)
 		lg() << *(terms[i]) << ":" << wgt[i] << ", ";
 	}
@@ -1167,7 +1167,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "qExpr::reorder -- output (" << ret << ", @"
-		    << static_cast<const void*>(this) << "): ";
+	     << static_cast<const void*>(this) << "): ";
 	if (ibis::gVerbose > 8)
 	    printFull(lg());
 	else
@@ -2910,10 +2910,9 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     if (values.size() < val.size() && ibis::gVerbose > 1) {
 	unsigned j = val.size() - values.size();
 	ibis::util::logger lg;
-	lg()
-	    << "qDiscreteRange::ctor accepted incoming int array with "
-	    << val.size() << " elements, removed " << j
-	    << " duplicate value" << (j > 1 ? "s" : "");
+	lg() << "qDiscreteRange::ctor accepted incoming int array with "
+	     << val.size() << " elements, removed " << j
+	     << " duplicate value" << (j > 1 ? "s" : "");
     }
 } // qDiscreteRange ctor
 
@@ -2948,10 +2947,9 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
     if (values.size() < val.size() && ibis::gVerbose > 1) {
 	unsigned j = val.size() - values.size();
 	ibis::util::logger lg;
-	lg()
-	    << "qDiscreteRange::ctor accepted incoming int array with "
-	    << val.size() << " elements, removed " << j
-	    << " duplicate value" << (j > 1 ? "s" : "");
+	lg() << "qDiscreteRange::ctor accepted incoming int array with "
+	     << val.size() << " elements, removed " << j
+	     << " duplicate value" << (j > 1 ? "s" : "");
     }
 } // qDiscreteRange ctor
 

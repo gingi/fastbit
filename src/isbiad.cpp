@@ -36,12 +36,11 @@ ibis::sbiad::sbiad(const ibis::column* c, const char* f, const uint32_t nbase)
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "sbiad[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- construct a " << bases.size()
-		<< "-component interval index with "
-		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
-		<< " for " << nrows << " row" << (nrows>1?"s":"");
+	    lg() << "sbiad[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- construct a " << bases.size()
+		 << "-component interval index with "
+		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+		 << " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -76,13 +75,12 @@ ibis::sbiad::sbiad(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start) : ibis::fade(c, st, start) {
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()
-	    << "sbiad[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- construct a " << bases.size()
-	    << "-component interval index with "
-	    << bits.size() << " bitmap" << (bits.size()>1?"s":"")
-	    << " for " << nrows << " row" << (nrows>1?"s":"")
-	    << " from a storage object @ " << st;
+	lg() << "sbiad[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- construct a " << bases.size()
+	     << "-component interval index with "
+	     << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+	     << " for " << nrows << " row" << (nrows>1?"s":"")
+	     << " from a storage object @ " << st;
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());

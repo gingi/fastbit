@@ -165,13 +165,12 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()
-	    << "fuge[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- built an interval-equality index with "
-	    << nobs << " find bin" << (nobs>1?"s":"") << " and " << nc
-	    << " coarse bin" << (nc>1?"s":"") << " for "
-	    << nrows << " row" << (nrows>1?"s":"")
-	    << " from a storage object @ " << st;
+	lg() << "fuge[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- built an interval-equality index with "
+	     << nobs << " find bin" << (nobs>1?"s":"") << " and " << nc
+	     << " coarse bin" << (nc>1?"s":"") << " for "
+	     << nrows << " row" << (nrows>1?"s":"")
+	     << " from a storage object @ " << st;
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
@@ -275,50 +274,40 @@ int ibis::fuge::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "Warning -- fuge[" << col->partition()->name() << '.'
-		<< col->name() << "]::read the header from " << fnm
-		<< " (";
+	    lg() << "Warning -- fuge[" << col->partition()->name() << '.'
+		 << col->name() << "]::read the header from " << fnm << " (";
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[0]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[0] << std::dec;
 	    if (isprint(header[1]) != 0)
 		lg() << header[1];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[1]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[1] << std::dec;
 	    if (isprint(header[2]) != 0)
 		lg() << header[2];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[2]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[2] << std::dec;
 	    if (isprint(header[3]) != 0)
 		lg() << header[3];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[3]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[3] << std::dec;
 	    if (isprint(header[4]) != 0)
 		lg() << header[4];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[4]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[4] << std::dec;
 	    if (isprint(header[5]) != 0)
 		lg() << header[5];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[5]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[5] << std::dec;
 	    if (isprint(header[6]) != 0)
 		lg() << header[6];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[6]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[6] << std::dec;
 	    if (isprint(header[7]) != 0)
 		lg() << header[7];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[7]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[7] << std::dec;
 	    lg() << ") does not contain the expected values";
 	}
 	return -3;
@@ -696,12 +685,11 @@ void ibis::fuge::estimate(const ibis::qContinuousRange& expr,
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "fuge::evaluate(" << expr << ") hit0=" << hit0
-		  << ", hit1=" << hit1;
+	     << ", hit1=" << hit1;
 	if (c0 < cbounds.size())
 	    lg() << ", cbounds[" << c0 << "]=" << cbounds[c0];
 	else
-	    lg() << ", cbounds[" << cbounds.size()-1 << "]="
-		      << cbounds.back();
+	    lg() << ", cbounds[" << cbounds.size()-1 << "]=" << cbounds.back();
 	if (c1 < cbounds.size())
 	    lg() << ", cbounds[" << c1 << "]=" << cbounds[c1];
 	else
@@ -938,7 +926,7 @@ void ibis::fuge::coarsen() {
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "fuge::coarsen will divide " << bits.size()
-		  << " bitmaps into " << ncoarse << " groups\n";
+	     << " bitmaps into " << ncoarse << " groups\n";
 	for (unsigned i = 0; i < cbounds.size(); ++ i)
 	    lg() << cbounds[i] << " ";
 	lg() << "\n";

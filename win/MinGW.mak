@@ -108,13 +108,11 @@ fastbit.dll: $(FRC)
 	dlltool -z fastbit.def $(OBJ)
 	dlltool -k --dllname fastbit.dll --output-lib fastbit.a --def fastbit.def
 # -Wl,-soname,$@
-trydll: trydll.exe
-trydll.exe: trydll.cpp fastbit.dll
-	$(CXX) $(OPT) -DCXX_USE_DLL -o $@ trydll.cpp fastbit.a $(LIB)
+trydll: trydll.cpp fastbit.dll
+	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ trydll.cpp fastbit.a $(LIB)
 
-tcapi: tcapi.exe
-tcapi.exe: ../examples/tcapi.c ../src/capi.h fastbit.dll
-	$(CXX) $(OPT) -DCXX_USE_DLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
+tcapi: ../examples/tcapi.c ../src/capi.h fastbit.dll
+	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
 
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@del /s /f $(TESTDIR)\hist0 $(TESTDIR)\hist1 $(TESTDIR)\hist2

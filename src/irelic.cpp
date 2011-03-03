@@ -40,11 +40,10 @@ ibis::relic::relic(const ibis::column* c, const char* f)
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "relic[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- construct an equality index with "
-		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
-		<< " for " << nrows << " row" << (nrows>1?"s":"");
+	    lg() << "relic[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- construct an equality index with "
+		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+		 << " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -120,11 +119,10 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "relic[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- construct an equality index with "
-		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
-		<< " for " << nrows << " row" << (nrows>1?"s":"");
+	    lg() << "relic[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- construct an equality index with "
+		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+		 << " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -180,13 +178,12 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	    (ibis::gVerbose > 2 &&
 	     st->begin()[5] == (char)ibis::index::RELIC)) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "relic[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- extract an equality index with "
-		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
-		<< " for " << nrows << " row" << (nrows>1?"s":"")
-		<< " from a storage object @ " << st << " starting at "
-		<< start;
+	    lg() << "relic[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- extract an equality index with "
+		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+		 << " for " << nrows << " row" << (nrows>1?"s":"")
+		 << " from a storage object @ " << st << " starting at "
+		 << start;
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -497,10 +494,8 @@ int ibis::relic::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "Warning -- relic[" << col->partition()->name() << '.'
-		<< col->name() << "]::read the header from " << fnm
-		<< " (";
+	    lg() << "Warning -- relic[" << col->partition()->name() << '.'
+		 << col->name() << "]::read the header from " << fnm << " (";
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
 	    else
@@ -514,8 +509,7 @@ int ibis::relic::read(const char* f) {
 	    if (isprint(header[2]) != 0)
 		lg() << header[2];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[2]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[2] << std::dec;
 	    if (isprint(header[3]) != 0)
 		lg() << header[3];
 	    else
@@ -539,8 +533,7 @@ int ibis::relic::read(const char* f) {
 	    if (isprint(header[7]) != 0)
 		lg() << header[7];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[7]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[7] << std::dec;
 	    lg() << ") does not contain the expected values";
 	}
 	return -3;
@@ -581,9 +574,9 @@ int ibis::relic::read(const char* f) {
 	    nprt = dim[1];
 	ibis::util::logger lg(4);
 	lg() << "DEBUG -- relic[" << col->partition()->name() << '.'
-		    << col->name() << "]::read(" << f
-		    << ") got nobs = " << dim[1] << ", card = " << dim[2]
-		    << ", the offsets of the bit vectors are\n";
+	     << col->name() << "]::read(" << f
+	     << ") got nobs = " << dim[1] << ", card = " << dim[2]
+	     << ", the offsets of the bit vectors are\n";
 	if (header[6] == 8) {
 	    for (unsigned i = 0; i < nprt; ++ i)
 		lg() << offset64[i] << " ";
@@ -723,12 +716,11 @@ void ibis::relic::construct(const array_t<E>& arr) {
     // write out the current content
     if (ibis::gVerbose > 2) {
  	ibis::util::logger lg;
-	lg()
-	    << "relic[" << col->partition()->name() << '.' << col->name()
-	    << "]::construct<" << typeid(E).name() << "[" << arr.size()
-	    << "]> -- built an equality index with "
-	    << bits.size() << " bitmap" << (bits.size()>1?"s":"")
-	    << " for " << nrows << " row" << (nrows>1?"s":"");
+	lg() << "relic[" << col->partition()->name() << '.' << col->name()
+	     << "]::construct<" << typeid(E).name() << "[" << arr.size()
+	     << "]> -- built an equality index with "
+	     << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+	     << " for " << nrows << " row" << (nrows>1?"s":"");
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
@@ -1167,9 +1159,8 @@ long ibis::relic::append(const ibis::relic& tail) {
 
     if (ibis::gVerbose > 10) {
 	ibis::util::logger lg;
-	lg() << "\nNew combined index (append an index for "
-		    << tail.nrows
-		    << " objects to an index for " << n0 << " events\n" ;
+	lg() << "\nNew combined index (append an index for " << tail.nrows
+	     << " objects to an index for " << n0 << " events\n" ;
 	print(lg());
     }
     return 0;

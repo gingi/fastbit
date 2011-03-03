@@ -387,6 +387,14 @@ void ibis::resource::parseNameValuePairs(const char *in,
 		    while (end > str && isspace(end[-1]))
 			-- end;
 		    if (end > str) {
+			if (end > str + 2 &&
+			    ((*str == '"' && end[-1] == '"') ||
+			     ((*str == '\'' || *str == '`') &&
+			      end[-1] == '\''))) {
+			    // strip the outer quotes
+			    ++ str;
+			    -- end;
+			}
 			lst[name] = ibis::util::strnewdup(str, end-str);
 		    }
 		    else {

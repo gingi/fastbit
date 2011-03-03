@@ -483,50 +483,40 @@ int ibis::ambit::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "Warning -- ambit[" << col->partition()->name() << '.'
-		<< col->name() << "]::read the header from " << fnm
-		<< " (";
+	    lg() << "Warning -- ambit[" << col->partition()->name() << '.'
+		 << col->name() << "]::read the header from " << fnm << " (";
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[0]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[0] << std::dec;
 	    if (isprint(header[1]) != 0)
 		lg() << header[1];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[1]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[1] << std::dec;
 	    if (isprint(header[2]) != 0)
 		lg() << header[2];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[2]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[2] << std::dec;
 	    if (isprint(header[3]) != 0)
 		lg() << header[3];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[3]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[3] << std::dec;
 	    if (isprint(header[4]) != 0)
 		lg() << header[4];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[4]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[4] << std::dec;
 	    if (isprint(header[5]) != 0)
 		lg() << header[5];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[5]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[5] << std::dec;
 	    if (isprint(header[6]) != 0)
 		lg() << header[6];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[6]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[6] << std::dec;
 	    if (isprint(header[7]) != 0)
 		lg() << header[7];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[7]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[7] << std::dec;
 	    lg() << ") does not contain the expected values";
 	}
 	return -3;
@@ -618,13 +608,11 @@ int ibis::ambit::read(const char* f) {
 	lg() << ") got the starting positions of the fine levels\n";
 	if (header[6] == 8) {
 	    for (uint32_t i = 0; i <= nobs; ++ i)
-		lg() << "offset[" << i << "] = " << nextlevel64[i]
-			    << "\n";
+		lg() << "offset[" << i << "] = " << nextlevel64[i] << "\n";
 	}
 	else {
 	    for (uint32_t i = 0; i <= nobs; ++ i)
-		lg() << "offset[" << i << "] = " << nextlevel32[i]
-			    << "\n";
+		lg() << "offset[" << i << "] = " << nextlevel32[i] << "\n";
 	}
     }
 #endif
@@ -796,16 +784,14 @@ int ibis::ambit::read(int fdes, size_t start, const char *fn,
 	else
 	    lg() << fdes;
 	lg() << ", " << start
-		  << ") got the starting positions of the fine levels\n";
+	     << ") got the starting positions of the fine levels\n";
 	if (header[6] == 8) {
 	    for (uint32_t i = 0; i <= nobs; ++ i)
-		lg() << "offset[" << i << "] = " << nextlevel64[i]
-			    << "\n";
+		lg() << "offset[" << i << "] = " << nextlevel64[i] << "\n";
 	}
 	else {
 	    for (uint32_t i = 0; i <= nobs; ++ i)
-		lg() << "offset[" << i << "] = " << nextlevel32[i]
-			    << "\n";
+		lg() << "offset[" << i << "] = " << nextlevel32[i] << "\n";
 	}
     }
 #endif
@@ -1128,8 +1114,8 @@ int ibis::ambit::write32(int fdes) const {
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
 	lg() << "DEBUG -- from ambit[" << col->partition()->name() << "."
-		    << col->name() << "]::write(" << col->name() << ", "
-		    << start << ") -- offsets for subranges";
+	     << col->name() << "]::write(" << col->name() << ", "
+	     << start << ") -- offsets for subranges";
 	for (i=0; i<=nobs; ++i)
 	    lg() << "\noffset[" << i << "] = " << nextlevel[i];
     }
@@ -1282,8 +1268,8 @@ int ibis::ambit::write64(int fdes) const {
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg(4);
 	lg() << "DEBUG -- from ambit[" << col->partition()->name() << "."
-		    << col->name() << "]::write(" << col->name() << ", "
-		    << start << ") -- offsets for subranges";
+	     << col->name() << "]::write(" << col->name() << ", "
+	     << start << ") -- offsets for subranges";
 	for (i=0; i<=nobs; ++i)
 	    lg() << "\noffset[" << i << "] = " << nextlevel[i];
     }

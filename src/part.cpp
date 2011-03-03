@@ -31,7 +31,9 @@
 #include <ctype.h>	// tolower
 #include <float.h>	// DBL_MAX, _finite
 
-#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
+#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) \
+|| defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW32__) \
+|| defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
 #  include <dirent.h>
 #elif defined(_WIN32) && defined(_MSC_VER)
 #define popen _popen
@@ -14468,7 +14470,9 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
     catch (...) {
 	logMessage("gatherParts", "received an unexpected exception");
     }
-#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
+#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) \
+|| defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW32__) \
+|| defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
     // on unix machines, we know how to traverse the subdirectories
     // traverse the subdirectories to generate more tables
     char nm1[PATH_MAX];

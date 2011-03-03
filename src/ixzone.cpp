@@ -163,11 +163,10 @@ ibis::zone::zone(const ibis::bin& rhs) {
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "zone[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built a 2-level equality-equality index with "
-		<< nobs << " coarse bin" << (nobs>1?"s":"") << " for "
-		<< nrows << " row" << (nrows>1?"s":"");
+	    lg() << "zone[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- built a 2-level equality-equality index with "
+		 << nobs << " coarse bin" << (nobs>1?"s":"") << " for "
+		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -202,9 +201,9 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
 		lg() << "DEBUG -- zone[" << col->partition()->name()
-			    << "." << col->name() << "]::zone(0x"
-			    << static_cast<const void*>(st)
-			    << ", " << start << ") -- offsets of subranges\n";
+		     << "." << col->name() << "]::zone(0x"
+		     << static_cast<const void*>(st)
+		     << ", " << start << ") -- offsets of subranges\n";
 		for (uint32_t i=0; i<=nobs; ++i)
 		    lg() << "offset[" << i << "] = " << offs[i] << "\n";
 	    }
@@ -227,9 +226,9 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
 		lg() << "DEBUG -- zone[" << col->partition()->name()
-			    << "." << col->name() << "]::zone(0x"
-			    << static_cast<const void*>(st)
-			    << ", " << start << ") -- offsets of subranges\n";
+		     << "." << col->name() << "]::zone(0x"
+		     << static_cast<const void*>(st)
+		     << ", " << start << ") -- offsets of subranges\n";
 		for (uint32_t i=0; i<=nobs; ++i)
 		    lg() << "offset[" << i << "] = " << offs[i] << "\n";
 	    }
@@ -248,14 +247,13 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "zone[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built a"
-		<< (sub.size() == nobs ? " 2-level equality-" : "n ")
-		<< "equality index with " << nobs
-		<< (sub.size() == nobs ? " coarse" : "") << " bin"
-		<< (nobs>1?"s":"") << " for "
-		<< nrows << " row" << (nrows>1?"s":"");
+	    lg() << "zone[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- built a"
+		 << (sub.size() == nobs ? " 2-level equality-" : "n ")
+		 << "equality index with " << nobs
+		 << (sub.size() == nobs ? " coarse" : "") << " bin"
+		 << (nobs>1?"s":"") << " for "
+		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -468,7 +466,7 @@ int ibis::zone::write32(int fdes) const {
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
 	lg() << "DEBUG -- zone::write32(" << col->name() << ", "
-		    << start << ") -- offsets of the file levels\n";
+	     << start << ") -- offsets of the file levels\n";
 	for (i=0; i<=nobs; ++i)
 	    lg() << "offset[" << i << "] = " << nextlevel[i] << "\n";
     }
@@ -605,7 +603,7 @@ int ibis::zone::write64(int fdes) const {
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg(4);
 	lg() << "DEBUG -- zone::write64(" << col->name() << ", "
-		    << start << ") -- offsets of the file levels\n";
+	     << start << ") -- offsets of the file levels\n";
 	for (i=0; i<=nobs; ++i)
 	    lg() << "offset[" << i << "] = " << nextlevel[i] << "\n";
     }
@@ -643,50 +641,40 @@ int ibis::zone::read(const char* f) {
 	header[7] != static_cast<char>(0)) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "Warning -- pack[" << col->partition()->name() << '.'
-		<< col->name() << "]::read the header from " << fnm
-		<< " (";
+	    lg() << "Warning -- pack[" << col->partition()->name() << '.'
+		 << col->name() << "]::read the header from " << fnm << " (";
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[0]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[0] << std::dec;
 	    if (isprint(header[1]) != 0)
 		lg() << header[1];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[1]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[1] << std::dec;
 	    if (isprint(header[2]) != 0)
 		lg() << header[2];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[2]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[2] << std::dec;
 	    if (isprint(header[3]) != 0)
 		lg() << header[3];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[3]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[3] << std::dec;
 	    if (isprint(header[4]) != 0)
 		lg() << header[4];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[4]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[4] << std::dec;
 	    if (isprint(header[5]) != 0)
 		lg() << header[5];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[5]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[5] << std::dec;
 	    if (isprint(header[6]) != 0)
 		lg() << header[6];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[6]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[6] << std::dec;
 	    if (isprint(header[7]) != 0)
 		lg() << header[7];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[7]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[7] << std::dec;
 	    lg() << ") does not contain the expected values";
 	}
 	return -3;

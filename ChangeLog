@@ -12,6 +12,8 @@
 	by Andrew Olson)
 	* src/const.h, src/capi.h: update the conditional compilation
 	macros to compile under MinGW
+	* src/resource.cpp:390-397 add statements to strip away the outer
+	most quotes
 
 2011-02-28 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: add dependency on TESTDIR for some targets
