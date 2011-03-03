@@ -14,6 +14,8 @@
 	macros to compile under MinGW
 	* src/resource.cpp:390-397 add statements to strip away the outer
 	most quotes
+	* src/part.cpp:1538-1563 add a case in part::readMetaData to deal
+	with obviously bad values in meta tags
 
 2011-02-28 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: add dependency on TESTDIR for some targets

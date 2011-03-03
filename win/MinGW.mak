@@ -139,8 +139,7 @@ $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 	echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
 
 clean:
-	del /f /s *.o core b?_? *.dll *.lib *.exe *.a *.so *.suo *.ncb *.exp *.pdb
-	del /f /s $(TESTDIR)\t1
+	del /f *.o core b?_? *.dll *.lib *.exe *.a *.so *.suo *.ncb *.exp *.pdb
 clean-all: clean
 	del /f /s Debug Release dll tmp pthreads-w32-2-8-0-release pthreads-w32-2-8-0-release.tar.gz
 

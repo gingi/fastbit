@@ -1527,13 +1527,39 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	for (ibis::resource::vList::const_iterator mit = metaList.begin();
 	     mit != metaList.end();
 	     ++ mit) {
-	    columnList::const_iterator cit = plist.find((*mit).first);
+	    columnList::iterator cit = plist.find((*mit).first);
 	    if (cit == plist.end()) { // need to add a new column
 		ibis::category* prop =
 		    new ibis::category(this, (*mit).first, (*mit).second,
 				       dir, nrows);
 		plist[prop->name()] = prop;
 		++ mt;
+	    }
+	    else if (cit->second->type() != ibis::CATEGORY) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- part::readMetaData expected column "
+		    << cit->first << " to be a CATEGORY, but it is "
+		    << ibis::TYPESTRING[(int)cit->second->type()]
+		    << ", regenerate the column for meta tag";
+		plist.erase(cit);
+		ibis::category* prop =
+		    new ibis::category(this, (*mit).first, (*mit).second,
+				       dir, nrows);
+		plist[prop->name()] = prop;
+		++ mt;
+	    }
+	    else if (static_cast<ibis::category*>(cit->second)->getNumKeys()
+		     != 1) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- part::readMetaData expected meta tag "
+		    << cit->first << " to have only 1 value, but found "
+		    << static_cast<ibis::category*>(cit->second)->getNumKeys()
+		    << ", regenerating the column";
+		plist.erase(cit);
+		ibis::category* prop =
+		    new ibis::category(this, (*mit).first, (*mit).second,
+				       dir, nrows);
+		plist[prop->name()] = prop;
 	    }
 	}
 	// try to assign the directory name as the part name

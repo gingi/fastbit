@@ -137,7 +137,11 @@ void ibis::category::readDictionary(const char *dir) const {
     fnm += FASTBIT_DIRSEP;
     fnm += m_name;
     fnm += ".dic"; // suffix of the dictionary
-    dic.read(fnm.c_str());
+    int ierr = dic.read(fnm.c_str());
+    LOGGER(ierr < 0 && ibis::gVerbose > 1)
+	<< "Warning -- category[" << (thePart ? thePart->name() : "?") << '.'
+	<< m_name << "] failed to read dictionary file " << fnm << ", ierr = "
+	<< ierr;
 } // ibis::category::readDictionary
 
 /// Build an ibis::relic index using the existing primary data.
