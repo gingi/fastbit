@@ -66,12 +66,7 @@ inline void ibis::dictionary::swap(ibis::dictionary& rhs) {
 /// the valid range, i.e., i > size(), then a null pointer will be
 /// returned.
 inline const char* ibis::dictionary::operator[](uint32_t i) const {
-    if (i < raw_.size()) {
-	return raw_[i];
-    }
-    else {
-	return static_cast<const char*>(0);
-    }
+    return (i < raw_.size() ? raw_[i] : raw_[0]);
 } // int to string
 
 /// If the input string is found in the dictionary, it returns the string.

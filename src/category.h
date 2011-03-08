@@ -141,17 +141,12 @@ public:
 	return ibis::text::selectStrings(mask);}
     virtual void getString(uint32_t i, std::string &val) const;
 
-    /// Return the number of key values.
-    virtual uint32_t getNumKeys() const {return dic.size();}
-    /// Return the ith value in the dictionary.
-    virtual const char* getKey(uint32_t i) const {return dic[i];}
-    /// Is the given string one of the keys in the dictionary?  Return a
-    /// null pointer if not.
-    virtual const char* isKey(const char* str) const {
-	return dic.find(str);}
+    virtual uint32_t getNumKeys() const;
+    virtual const char* getKey(uint32_t i) const;
+    virtual const char* isKey(const char* str) const;
 
-    virtual void write(FILE* file) const; ///< Write the metadata entry.
-    virtual void print(std::ostream& out) const; ///< Print header info.
+    virtual void write(FILE* file) const;
+    virtual void print(std::ostream& out) const;
 
     ibis::relic* fillIndex(const char *dir=0) const;
 

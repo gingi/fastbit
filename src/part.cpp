@@ -1537,7 +1537,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    }
 	    else if (cit->second->type() != ibis::CATEGORY) {
 		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- part::readMetaData expected column "
+		    << "Warning -- part::readMetaData expects column "
 		    << cit->first << " to be a CATEGORY, but it is "
 		    << ibis::TYPESTRING[(int)cit->second->type()]
 		    << ", regenerate the column for meta tag";
@@ -1551,7 +1551,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    else if (static_cast<ibis::category*>(cit->second)->getNumKeys()
 		     != 1) {
 		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- part::readMetaData expected meta tag "
+		    << "Warning -- part::readMetaData expectd meta tag "
 		    << cit->first << " to have only 1 value, but found "
 		    << static_cast<ibis::category*>(cit->second)->getNumKeys()
 		    << ", regenerating the column";

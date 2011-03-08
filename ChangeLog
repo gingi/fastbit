@@ -1,3 +1,8 @@
+2011-03-07 John Wu <John dot Wu at ACM dot org>
+	* category.h, category.cpp: change the definition of getNumKeys,
+	getKey, and isKey to invoke prepareMembers when the dictionary is
+	empty
+
 2011-03-02 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: update part::readMetaTags to match the
 	part::readMetaData

@@ -970,6 +970,7 @@ void ibis::category::write(FILE* file) const {
     fputs("End Column\n", file);
 } // ibis::category::write
 
+/// Print header info.
 void ibis::category::print(std::ostream& out) const {
     out << m_name << ": " << m_desc << " (KEY) [";
     if (dic.size() > 21) {
@@ -984,6 +985,28 @@ void ibis::category::print(std::ostream& out) const {
     }
     out << "]";
 } // ibis::category::print
+
+/// Return the number of key values.
+uint32_t ibis::category::getNumKeys() const {
+    if (dic.size() == 0)
+	prepareMembers();
+    return dic.size();
+}
+
+/// Return the ith value in the dictionary.
+const char* ibis::category::getKey(uint32_t i) const {
+    if (dic.size() == 0)
+	prepareMembers();
+    return dic[i];
+}
+
+/// Is the given string one of the keys in the dictionary?  Return a
+/// null pointer if not.
+const char* ibis::category::isKey(const char* str) const {
+    if (dic.size() == 0)
+	prepareMembers();
+    return dic.find(str);
+}
 
 ////////////////////////////////////////////////////////////////////////
 // functions for ibis::text
