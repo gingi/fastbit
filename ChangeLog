@@ -1,3 +1,9 @@
+2011-03-10 John Wu <John dot Wu at ACM dot org>
+	* src/category.h, src/category.cpp: change the definition of
+	category::getStrings to take advantage of the case where the
+	dictionary has only one valid string (to address an issue reported
+	by Andrew Olson)
+
 2011-03-07 John Wu <John dot Wu at ACM dot org>
 	* category.h, category.cpp: change the definition of getNumKeys,
 	getKey, and isKey to invoke prepareMembers when the dictionary is

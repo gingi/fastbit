@@ -902,7 +902,7 @@ void ibis::relic::print(std::ostream& out) const {
     out << "\n";
 } // ibis::relic::print
 
-/// Convert the bitvector mask into bin indices.
+/// Convert the bitvector mask into bin numbers.
 ibis::array_t<uint32_t>*
 ibis::relic::keys(const ibis::bitvector& mask) const {
     if (mask.cnt() == 0) // nothing to do

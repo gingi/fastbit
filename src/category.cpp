@@ -93,7 +93,27 @@ ibis::category::selectUInts(const ibis::bitvector& mask) const {
 	return static_cast<ibis::relic*>(idx)->keys(mask);
     else
 	return 0;
-} // ibis::category::selectInts
+} // ibis::category::selectUInts
+
+/// Retrieve the string values from the rows marked 1 in mask.
+///
+/// @note FastBit does not track the memory usage of neither std::vector
+/// nor std::string.
+std::vector<std::string>*
+ibis::category::selectStrings(const ibis::bitvector& mask) const {
+    if (mask.cnt() == 0)
+	return new std::vector<std::string>();
+    if (dic.size() == 0)
+	prepareMembers();
+    if (dic.size() == 0)
+	return new std::vector<std::string>();
+
+    if (dic.size() == 1) {
+	return new std::vector<std::string>(mask.cnt(), dic[1]);
+    }
+
+    return ibis::text::selectStrings(mask);
+} // ibis::category::selectStrings
 
 /// A function to read the dictionary and load the index.  This is a const
 /// function because it only manipulates mutable data members.  This is

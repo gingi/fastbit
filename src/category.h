@@ -137,8 +137,7 @@ public:
     /// Return the integers corresponding to the select strings.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
     virtual std::vector<std::string>*
-    selectStrings(const bitvector& mask) const {
-	return ibis::text::selectStrings(mask);}
+    selectStrings(const bitvector& mask) const;
     virtual void getString(uint32_t i, std::string &val) const;
 
     virtual uint32_t getNumKeys() const;
