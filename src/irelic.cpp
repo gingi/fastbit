@@ -44,7 +44,7 @@ ibis::relic::relic(const ibis::column* c, const char* f)
 		 << "]::ctor -- intialized an equality index with "
 		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		 << " for " << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 8) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -174,9 +174,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	}
 
 	initBitmaps(st);
-	if (ibis::gVerbose > 8 ||
-	    (ibis::gVerbose > 2 &&
-	     st->begin()[5] == (char)ibis::index::RELIC)) {
+	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "relic[" << col->partition()->name() << '.' << col->name()
 		 << "]::ctor -- intialized an equality index with "
@@ -184,7 +182,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 		 << " for " << nrows << " row" << (nrows>1?"s":"")
 		 << " from a storage object @ " << st << " starting at "
 		 << start;
-	    if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 8) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -595,8 +593,7 @@ int ibis::relic::read(const char* f) {
 #endif
 
     initBitmaps(fdes);
-    LOGGER(ibis::gVerbose > 7 ||
-	   (ibis::gVerbose > 3 && header[5] == (char)ibis::index::RELIC))
+    LOGGER(ibis::gVerbose > 3)
 	<< "relic[" << col->partition()->name() << '.' << col->name()
 	<< "]::read finished reading the header from " << fnm;
     return 0;
@@ -622,8 +619,7 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
 	return ierr;
 
     initBitmaps(st);
-    LOGGER(ibis::gVerbose > 7 ||
-	   (ibis::gVerbose > 3 && st->begin()[5] == (char)ibis::index::RELIC))
+    LOGGER(ibis::gVerbose > 3)
 	<< "relic[" << col->partition()->name() << '.' << col->name()
 	<< "]::read finished reading the header from a storage object @ " << st;
     return 0;

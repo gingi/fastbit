@@ -27,9 +27,20 @@ ibis::fuzz::fuzz(const ibis::column *c, const char *f)
 	else
 	    coarsen();
     }
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
+	const size_t nobs = bits.size();
+	const size_t nc = cbits.size();
 	ibis::util::logger lg;
-	print(lg());
+	lg() << "fuzz[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- initialized an interval-equality index with "
+	     << nobs << " fine bin" << (nobs>1?"s":"") << " and " << nc
+	     << " coarse bin" << (nc>1?"s":"") << " for "
+	     << nrows << " row" << (nrows>1?"s":"")
+	     << " from file " << (fname ? fname : f ? f : c->name());
+	if (ibis::gVerbose > 6) {
+	    lg() << "\n";
+	    print(lg());
+	}
     }
 } // ibis::fuzz::fuzz
 
@@ -1505,12 +1516,14 @@ int ibis::fuzz::readCoarse(const char* fn) {
     }
     if (nc == 0) {
 	cbits.clear();
+	cbounds.clear();
 	coffset32.clear();
 	coffset64.clear();
 	return 0;
     }
 
-    if (offset64.size() > bits.size()) {
+    const uint32_t nb = nc + 1 - (nc+1)/2;
+    if (offset64.size() > bits.size()) { // 64-bit offsets
 	begin = offset64.back() + sizeof(nc);
 	end = begin + sizeof(uint32_t)*(nc+1);
 	{
@@ -1518,7 +1531,7 @@ int ibis::fuzz::readCoarse(const char* fn) {
 	    cbounds.swap(tmp);
 	}
 	begin = end;
-	end += sizeof(int64_t) * (nc+1);
+	end += sizeof(int64_t) * (nb+1);
 	{
 	    array_t<int64_t> tmp(fdes, begin, end);
 	    coffset64.swap(tmp);
@@ -1533,7 +1546,7 @@ int ibis::fuzz::readCoarse(const char* fn) {
 	    cbounds.swap(tmp);
 	}
 	begin = end;
-	end += sizeof(int32_t) * (nc+1);
+	end += sizeof(int32_t) * (nb+1);
 	{
 	    array_t<int32_t> tmp(fdes, begin, end);
 	    coffset32.swap(tmp);
@@ -1543,8 +1556,8 @@ int ibis::fuzz::readCoarse(const char* fn) {
 
     for (unsigned i = 0; i < cbits.size(); ++ i)
 	delete cbits[i];
-    cbits.resize(nc);
-    for (unsigned i = 0; i < nc; ++ i)
+    cbits.resize(nb);
+    for (unsigned i = 0; i < nb; ++ i)
 	cbits[i] = 0;
 
     LOGGER(ibis::gVerbose > 7)

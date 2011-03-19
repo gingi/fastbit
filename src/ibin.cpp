@@ -41,7 +41,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 		 << "]::ctor -- initialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 8) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -82,7 +82,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 		 << "]::ctor -- intialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 8) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -122,7 +122,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 		 << "]::ctor -- intialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 8) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -168,7 +168,7 @@ ibis::bin::bin(const ibis::bin& rhs)
 		 << "]::ctor -- initialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 8) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -244,7 +244,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"")
 		<< " from a storage object @ " << st << " offset " << start;
-	    if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 8) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -297,7 +297,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 	     << nobs << " bin" << (nobs>1?"s":"") << " for "
 	     << nrows << " row" << (nrows>1?"s":"")
 	     << " from a storage object @ " << st << " offset " << start;
-	if (ibis::gVerbose > 6) {
+	if (ibis::gVerbose > 8) {
 	    lg() << "\n";
 	    print(lg());
 	}
@@ -423,8 +423,7 @@ int ibis::bin::read(const char* f) {
     ibis::fileManager::instance().recordPages(0, end);
     initBitmaps(fdes);
 
-    LOGGER(ibis::gVerbose > 7 ||
-	   (ibis::gVerbose > 3 && header[5] == (char)ibis::index::BINNING))
+    LOGGER(ibis::gVerbose > 3)
 	<< "bin[" << col->partition()->name() << '.' << col->name()
 	<< "]::read(" << fnm << ") finished reading index header (type "
 	<< (int) header[5] << ") with nrows=" << nrows << " and nobs=" << nobs;
@@ -493,8 +492,7 @@ int ibis::bin::read(int fdes, size_t start,
     ibis::fileManager::instance().recordPages(start, end);
     initBitmaps(fdes);
 
-    LOGGER(ibis::gVerbose > 7 ||
-	   (ibis::gVerbose > 3 && header[5] == (char)ibis::index::BINNING))
+    LOGGER(ibis::gVerbose > 3)
 	<< "bin[" << col->partition()->name() << '.' << col->name()
 	<< "]::read(" << fdes << ", " << start
 	<< ") finished reading index header (type "
@@ -532,8 +530,7 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
 	return ierr;
     initBitmaps(st);
 
-    LOGGER(ibis::gVerbose > 7 ||
-	   (ibis::gVerbose > 3 && (*st)[5] == (char)ibis::index::BINNING))
+    LOGGER(ibis::gVerbose > 3)
 	<< "bin[" << col->partition()->name() << '.' << col->name()
 	<< "]::read(" << st << ") finished reading index header (type "
 	<< (int) (*st)[5] << ") with nrows=" << nrows << " and nobs="

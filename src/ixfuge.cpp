@@ -433,7 +433,7 @@ int ibis::fuge::read(const char* f) {
 	}
     }
 
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 3)
 	<< "fuge[" << col->partition()->name() << "." << col->name()
 	<< "]::read completed reading the header from " << fnm;
     return 0;

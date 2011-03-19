@@ -3,6 +3,8 @@
 	* src/i*.cpp: update the message from the constructors to say
 	"intialization completed" instead of "constructed" as the
 	suggestion from Jon Strabala
+	* src/ixfuzz.cpp: fuzz::readCoarse computed incorrect number of
+	elements for coffset32/coffset64 and cbits
 
 2011-03-17 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: when --enable-debug and --disable-xopt are both
