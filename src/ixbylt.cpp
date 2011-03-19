@@ -30,7 +30,7 @@ ibis::bylt::bylt(const ibis::column *c, const char *f)
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "bylt[" << col->partition()->name() << '.' << col->name()
-	     << "]::ctor -- construct a range-equality index with "
+	     << "]::ctor -- intialized a range-equality index with "
 	     << cbits.size() << " coarse bitmap" << (cbits.size()>1?"s":"")
 	     << " and " << bits.size() << " fine bitmap"
 	     << (bits.size()>1?"s":"") << " for " << nrows << " row"
@@ -122,7 +122,7 @@ ibis::bylt::bylt(const ibis::column* c, ibis::fileManager::storage* st,
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "bylt[" << col->partition()->name() << '.' << col->name()
-	     << "]::ctor -- construct a range-equality index with "
+	     << "]::ctor -- initialized a range-equality index with "
 	     << cbits.size() << " coarse bitmap" << (cbits.size()>1?"s":"")
 	     << " and " << bits.size() << " fine bitmap"
 	     << (bits.size()>1?"s":"") << " for " << nrows << " row"

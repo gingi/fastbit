@@ -155,7 +155,8 @@ ibis::pack::pack(const ibis::bin& rhs) {
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "pack[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- built a 2-level range-equality index with "
+		 << "]::ctor -- converted a one-level index into a 2-level "
+		"range-equality index with "
 		 << nobs << " coarse bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
@@ -250,7 +251,7 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 	    lg() << "pack[" << col->partition()->name()
 		 << "." << col->name() << "]::pack(0x"
 		 << static_cast<const void*>(st)
-		 << ", " << start << ") completed";
+		 << ", " << start << ") completed initialization";
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());

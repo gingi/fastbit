@@ -31,7 +31,7 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
 	    const uint32_t card = vals.size();
 	    const uint32_t nbits = bits.size();
 	    lg() << "slice[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- built a bit-sliced index with " << nbits
+		 << "]::ctor -- constructed a bit-sliced index with " << nbits
 		 << " bitmap" << (nbits>1?"s":"") << " on " << card
 		 << " distinct value" << (card>1?"s":"") << " and " << nrows
 		 << " row" << (nrows>1?"s":"");
@@ -78,7 +78,7 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
 	    const uint32_t card = vals.size();
 	    const uint32_t nbits = bits.size();
 	    lg() << "slice[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- built a bit-sliced index with " << nbits
+		 << "]::ctor -- intialized a bit-sliced index with " << nbits
 		 << " bitmap" << (nbits>1?"s":"") << " on " << card
 		 << " distinct value" << (card>1?"s":"") << " and " << nrows
 		 << " row" << (nrows>1?"s":"") << " from storage object @ "

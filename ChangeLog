@@ -1,3 +1,13 @@
+2011-03-18 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.cpp: print 12 digits from qContinuousRange::printFull
+	* src/i*.cpp: update the message from the constructors to say
+	"intialization completed" instead of "constructed" as the
+	suggestion from Jon Strabala
+
+2011-03-17 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: when --enable-debug and --disable-xopt are both
+	specified, remove -O options from CFLAGS and CXXFLAGS
+
 2011-03-10 John Wu <John dot Wu at ACM dot org>
 	* src/category.h, src/category.cpp: change the definition of
 	category::getStrings to take advantage of the case where the

@@ -37,7 +37,7 @@ ibis::sbiad::sbiad(const ibis::column* c, const char* f, const uint32_t nbase)
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "sbiad[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- construct a " << bases.size()
+		 << "]::ctor -- constructed a " << bases.size()
 		 << "-component interval index with "
 		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		 << " for " << nrows << " row" << (nrows>1?"s":"");
@@ -76,7 +76,7 @@ ibis::sbiad::sbiad(const ibis::column* c, ibis::fileManager::storage* st,
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "sbiad[" << col->partition()->name() << '.' << col->name()
-	     << "]::ctor -- construct a " << bases.size()
+	     << "]::ctor -- initialized a " << bases.size()
 	     << "-component interval index with "
 	     << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 	     << " for " << nrows << " row" << (nrows>1?"s":"")

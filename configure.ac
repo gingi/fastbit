@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.2.2.5],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.2.2.6],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -79,6 +79,24 @@ AC_ARG_ENABLE(xopt,
 	      [if test "$enableval" = "yes" ; then xopt="yes" ; else xopt="no" ; fi],[xopt="no"])
 AC_MSG_RESULT($xopt)
 if test "x$debug" = "xyes" ; then
+  if test "x$xopt" = "xno" ; then
+    if test `echo $CFLAGS | fgrep -- '-O' | wc -l` -gt 0 ; then
+      OIFS=$IFS
+      IFS=' '
+      newflags=""
+      for g in $CFLAGS ; do if test "x$g" != "x-O" -a "x$g" != "x-O2" -a "x$g" != "x-O3" ; then newflags="$newflags $g"; fi; done
+      CFLAGS=$newflags
+      IFS=$OIFS
+    fi
+    if test `echo $CXXFLAGS | fgrep -- '-O' | wc -l` -gt 0 ; then
+      OIFS=$IFS
+      IFS=' '
+      newflags=""
+      for g in $CXXFLAGS ; do if test "x$g" != "x-O" -a "x$g" != "x-O2" -a "x$g" != "x-O3" ; then newflags="$newflags $g"; fi; done
+      CXXFLAGS=$newflags
+      IFS=$OIFS
+    fi
+  fi
   if test `echo $CFLAGS | fgrep -- '-g' | wc -l` -eq 0 ; then
     CFLAGS="$CFLAGS -g"
   fi
@@ -90,7 +108,7 @@ elif test "x$debug" = "xno" ; then
     OIFS=$IFS
     IFS=' '
     newflags=""
-    for g in $CFLAGS ; do if test "x$g" != "x-g[0123]" -a "x$g" != "x-g" ; then newflags="$newflags $g"; fi; done
+    for g in $CFLAGS ; do if test "x$g" != "x-g" -a "x$g" != "x-g1" -a "x$g" != "x-g2" -a "x$g" != "x-g3" ; then newflags="$newflags $g"; fi; done
     CFLAGS=$newflags
     IFS=$OIFS
   fi
@@ -98,7 +116,7 @@ elif test "x$debug" = "xno" ; then
     OIFS=$IFS
     IFS=' '
     newflags=""
-    for g in $CXXFLAGS ; do if test "x$g" != "x-g[0123]" -a "x$g" != "x-g" ; then newflags="$newflags $g"; fi; done
+    for g in $CXXFLAGS ; do if test "x$g" != "x-g" -a "x$g" != "x-g1" -a "x$g" != "x-g2" -a "x$g" != "x-g3" ; then newflags="$newflags $g"; fi; done
     CXXFLAGS=$newflags
     IFS=$OIFS
   fi

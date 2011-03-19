@@ -43,7 +43,7 @@ ibis::fade::fade(const ibis::column* c, const char* f, const uint32_t nbase)
 	    ibis::util::logger lg;
 	    lg()
 		<< "fade[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- construct a " << bases.size()
+		<< "]::ctor -- constructed a " << bases.size()
 		<< "-component range index with "
 		<< bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		<< " for " << nrows << " row" << (nrows>1?"s":"");
@@ -102,13 +102,12 @@ ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
 	(ibis::gVerbose > 2 &&
 	 FADE == static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)))) {
 	ibis::util::logger lg;
-	lg()
-	    << "fade[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- construct a " << bases.size()
-	    << "-component range index with "
-	    << bits.size() << " bitmap" << (bits.size()>1?"s":"")
-	    << " for " << nrows << " row" << (nrows>1?"s":"")
-	    << " from a storage object @ " << st;
+	lg() << "fade[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- initialized a " << bases.size()
+	     << "-component range index with "
+	     << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+	     << " for " << nrows << " row" << (nrows>1?"s":"")
+	     << " from a storage object @ " << st;
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());

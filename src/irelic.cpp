@@ -41,7 +41,7 @@ ibis::relic::relic(const ibis::column* c, const char* f)
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "relic[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- construct an equality index with "
+		 << "]::ctor -- intialized an equality index with "
 		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		 << " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
@@ -120,7 +120,7 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "relic[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- construct an equality index with "
+		 << "]::ctor -- constructed an equality index with "
 		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		 << " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
@@ -179,7 +179,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 	     st->begin()[5] == (char)ibis::index::RELIC)) {
 	    ibis::util::logger lg;
 	    lg() << "relic[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- extract an equality index with "
+		 << "]::ctor -- intialized an equality index with "
 		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		 << " for " << nrows << " row" << (nrows>1?"s":"")
 		 << " from a storage object @ " << st << " starting at "

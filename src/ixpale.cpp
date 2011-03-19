@@ -161,7 +161,8 @@ ibis::pale::pale(const ibis::bin& rhs) {
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "pale[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- built a 2-level range-equality index with "
+		 << "]::ctor -- converted a 1-level index into a 2-level "
+		"range-equality index with "
 		 << nobs << " coarse bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
@@ -245,7 +246,7 @@ ibis::pale::pale(const ibis::column* c, ibis::fileManager::storage* st,
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "pale[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- built a 2-level range-equality index with "
+		 << "]::ctor -- intialized a 2-level range-equality index with "
 		 << nobs << " coarse bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {

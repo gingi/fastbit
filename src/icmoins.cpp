@@ -32,11 +32,10 @@ ibis::moins::moins(const ibis::column* c, const char* f,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()
-	    << "moins[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- constructed a "
-	    << nbases << "-component range index with "
-	    << nbits << " bitmap" << (nbits>1?"s":"");
+	lg() << "moins[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- initialized a "
+	     << nbases << "-component range index with "
+	     << nbits << " bitmap" << (nbits>1?"s":"");
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
@@ -58,11 +57,10 @@ ibis::moins::moins(const ibis::column* c, const char* f,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()
-	    << "moins[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- constructed a "
-	    << nbases << "-component range index with "
-	    << nbits << " bitmap" << (nbits>1?"s":"");
+	lg() << "moins[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- initialized a "
+	     << nbases << "-component range index with "
+	     << nbits << " bitmap" << (nbits>1?"s":"");
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
@@ -83,11 +81,10 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()
-	    << "moins[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- constructed a "
-	    << nbases << "-component range index with "
-	    << nbits << " bitmap" << (nbits>1?"s":"");
+	lg() << "moins[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- converted a 1-component index into a "
+	     << nbases << "-component range index with "
+	     << nbits << " bitmap" << (nbits>1?"s":"");
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
@@ -114,12 +111,11 @@ ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start) : ibis::egale(c, st, start) {
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()
-	    << "moins[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- constructed a " << nbases
-	    << "-component interval index with " << nbits << " bitmap"
-	    << (nbits>1?"s":"") << " from a storage object @ " << st
-	    << " starting from position " << start;
+	lg() << "moins[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- initialized a " << nbases
+	     << "-component interval index with " << nbits << " bitmap"
+	     << (nbits>1?"s":"") << " from a storage object @ " << st
+	     << " starting from position " << start;
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());

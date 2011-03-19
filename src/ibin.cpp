@@ -37,10 +37,10 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built an equality index with "
-		<< nobs << " bin" << (nobs>1?"s":"") << " for "
-		<< nrows << " row" << (nrows>1?"s":"");
+	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- initialization completed with "
+		 << nobs << " bin" << (nobs>1?"s":"") << " for "
+		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -78,10 +78,10 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built an equality index with "
-		<< nobs << " bin" << (nobs>1?"s":"") << " for "
-		<< nrows << " row" << (nrows>1?"s":"");
+	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- intialization completed with "
+		 << nobs << " bin" << (nobs>1?"s":"") << " for "
+		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -118,10 +118,10 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built an equality index with "
-		<< nobs << " bin" << (nobs>1?"s":"") << " for "
-		<< nrows << " row" << (nrows>1?"s":"");
+	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- intialization completed with "
+		 << nobs << " bin" << (nobs>1?"s":"") << " for "
+		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -164,10 +164,10 @@ ibis::bin::bin(const ibis::bin& rhs)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built an equality index with "
-		<< nobs << " bin" << (nobs>1?"s":"") << " for "
-		<< nrows << " row" << (nrows>1?"s":"");
+	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- initialization completed with "
+		 << nobs << " bin" << (nobs>1?"s":"") << " for "
+		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -240,7 +240,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built an equality index with "
+		<< "]::ctor -- initialization completed with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"")
 		<< " from a storage object @ " << st << " offset " << start;
@@ -292,11 +292,11 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- built an equality index with "
-	    << nobs << " bin" << (nobs>1?"s":"") << " for "
-	    << nrows << " row" << (nrows>1?"s":"")
-	    << " from a storage object @ " << st << " offset " << start;
+	lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- initialization completed with "
+	     << nobs << " bin" << (nobs>1?"s":"") << " for "
+	     << nrows << " row" << (nrows>1?"s":"")
+	     << " from a storage object @ " << st << " offset " << start;
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());

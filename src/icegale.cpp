@@ -47,7 +47,7 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 	    ibis::util::logger lg;
 	    lg()
 		<< "egale[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built a " << nbases
+		<< "]::ctor -- intialization completed for a " << nbases
 		<< "-component equality encoded index with " << nbits
 		<< " bitmap" << (nbits>1?"s":"") << " on " << nobs
 		<< " bin" << (nobs>1?"s":"");
@@ -86,7 +86,7 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 	    ibis::util::logger lg;
 	    lg()
 		<< "egale[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built a " << nbases
+		<< "]::ctor -- converted a 1-comp index to a " << nbases
 		<< "-component equality encoded index with " << nbits
 		<< " bitmap" << (nbits>1?"s":"") << " on " << nobs
 		<< " bin" << (nobs>1?"s":"");
@@ -115,11 +115,10 @@ ibis::egale::egale(const ibis::bin& rhs, uint32_t nb)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "egale[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- converted a simple equality index into a "
-		<< nbases << "-component equality index with "
-		<< nbits << " bitmap" << (nbits>1?"s":"");
+	    lg() << "egale[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- converted a simple equality index into a "
+		 << nbases << "-component equality index with "
+		 << nbits << " bitmap" << (nbits>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -166,13 +165,12 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 	(ibis::gVerbose > 2 &&
 	 static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == EGALE)) {
 	ibis::util::logger lg;
-	lg()
-	    << "egale[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- reconstructed a " << nbases
-	    << "-component " << (st->begin()[5]==(char)EGALE?" equality ":"")
-	    << "index with " << nbits << " bitmap" << (nbits>1?"s":"")
-	    << " on " << nobs << " bin" << (nobs>1?"s":"")
-	    << " from storage object " << st << " starting at " << start;
+	lg() << "egale[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- reconstructed a " << nbases
+	     << "-component " << (st->begin()[5]==(char)EGALE?" equality ":"")
+	     << "index with " << nbits << " bitmap" << (nbits>1?"s":"")
+	     << " on " << nobs << " bin" << (nobs>1?"s":"")
+	     << " from storage object " << st << " starting at " << start;
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());

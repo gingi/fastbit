@@ -20,6 +20,7 @@
 #include <set>		// std::set
 #include <iterator>	// std::ostream_iterator
 #include <algorithm>	// std::copy, std::sort
+#include <iomanip>	// std::setprecision
 
 // the names of the operators used in ibis::compRange
 const char* ibis::math::operator_name[] =
@@ -1572,6 +1573,59 @@ void ibis::qContinuousRange::print(std::ostream& out) const {
 	break;
     } // end of switch right_op
 } // ibis::qContinuousRange::print
+
+void ibis::qContinuousRange::printFull(std::ostream& out) const {
+    if (name == 0 || *name == 0 ||
+	(left_op == OP_UNDEFINED && right_op == OP_UNDEFINED)) {
+	out << "ILL-DEFINED-RANGE";
+	return;
+    }
+
+    switch (left_op) {
+    case OP_EQ: {
+	out << std::setprecision(12) << lower << " == ";
+	break;
+    }
+    case OP_LT: {
+	out << std::setprecision(12) << lower << " < ";
+	break;
+    } // case OP_LT
+    case OP_LE: {
+	out << std::setprecision(12) << lower << " <= ";
+	break;
+    } // case OP_LE
+    case OP_GT: {
+	out << std::setprecision(12) << lower << " > ";
+	break;
+    } // case OP_GT
+    case OP_GE: {
+	out << std::setprecision(12) << lower << " >= ";
+	break;
+    } // case OP_GE
+    default:
+	break;
+    } // switch (left_op)
+    out << name;
+    switch (right_op) {
+    case OP_EQ:
+	out << " == " << std::setprecision(12) << upper;
+	break;
+    case OP_LT:
+	out << " < " << std::setprecision(12) << upper;
+	break;
+    case OP_LE:
+	out << " <= " << std::setprecision(12) << upper;
+	break;
+    case OP_GT:
+	out << " > " << std::setprecision(12) << upper;
+	break;
+    case OP_GE:
+	out << " >= " << std::setprecision(12) << upper;
+	break;
+    default:
+	break;
+    } // end of switch right_op
+} // ibis::qContinuousRange::printFull
 
 /// Is val in the specified range?  Return true if the incoming value is in
 /// the specified range.

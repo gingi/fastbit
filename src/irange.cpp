@@ -50,7 +50,7 @@ ibis::range::range(const ibis::column* c, const char* f)
 	    ibis::util::logger lg;
 	    lg()
 		<< "range[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built a range index with "
+		<< "]::ctor -- constructed a range index with "
 		<< nobs << " bin" << (nobs>1?"s":"") << " for "
 		<< nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
@@ -107,12 +107,12 @@ ibis::range::range(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "range[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- built a range index with "
-		<< nobs << " bin" << (nobs>1?"s":"") << " for "
-		<< nrows << " row" << (nrows>1?"s":"")
-		<< " from an equality index @ " << &rhs;
+	    lg() << "range[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- converted an equality index into a range "
+		"index with "
+		 << nobs << " bin" << (nobs>1?"s":"") << " for "
+		 << nrows << " row" << (nrows>1?"s":"")
+		 << " from an equality index @ " << &rhs;
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -144,7 +144,7 @@ ibis::range::range(const ibis::column* c, ibis::fileManager::storage* st,
 	ibis::util::logger lg;
 	lg()
 	    << "range[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- built a range index with "
+	    << "]::ctor -- initialized a range index with "
 	    << nobs << " bin" << (nobs>1?"s":"") << " for "
 	    << nrows << " row" << (nrows>1?"s":"")
 	    << " from a storage object @ " << st << " offset " << start;

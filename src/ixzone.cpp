@@ -164,7 +164,8 @@ ibis::zone::zone(const ibis::bin& rhs) {
 	if (ibis::gVerbose > 4) {
 	    ibis::util::logger lg;
 	    lg() << "zone[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- built a 2-level equality-equality index with "
+		 << "]::ctor -- converted a 1-level index into a 2-level "
+		"equality-equality index with "
 		 << nobs << " coarse bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
@@ -248,7 +249,7 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "zone[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- built a"
+		 << "]::ctor -- intialized a"
 		 << (sub.size() == nobs ? " 2-level equality-" : "n ")
 		 << "equality index with " << nobs
 		 << (sub.size() == nobs ? " coarse" : "") << " bin"

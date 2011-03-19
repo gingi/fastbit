@@ -308,7 +308,7 @@ public:
     virtual bool empty() const;
 
     virtual void print(std::ostream&) const;
-    virtual void printFull(std::ostream& out) const {print(out);}
+    virtual void printFull(std::ostream& out) const;
     /// An operator for comparing two query expressions.
     inline bool operator<(const qContinuousRange& y) const;
 

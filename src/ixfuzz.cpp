@@ -6,7 +6,7 @@
 // unbinned version of interval-equality encoded index.
 //
 // In fuzzy clustering/classification, there are extensive use of interval
-// equality condition.  Hence the funny name.
+// equality condition, hence the funny name.
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifiers longer than 256 characters
@@ -115,9 +115,19 @@ ibis::fuzz::fuzz(const ibis::column* c, ibis::fileManager::storage* st,
     for (unsigned i = 0; i < ncb; ++ i)
 	cbits[i] = 0;
 
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 2) {
+	const size_t nobs = bits.size();
 	ibis::util::logger lg;
-	print(lg());
+	lg() << "fuzz[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- initialized an interval-equality index with "
+	     << nobs << " fine bin" << (nobs>1?"s":"") << " and " << nc
+	     << " coarse bin" << (nc>1?"s":"") << " for "
+	     << nrows << " row" << (nrows>1?"s":"")
+	     << " from a storage object @ " << st;
+	if (ibis::gVerbose > 6) {
+	    lg() << "\n";
+	    print(lg());
+	}
     }
 } // ibis::fuzz::fuzz
 

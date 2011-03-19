@@ -166,8 +166,8 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "fuge[" << col->partition()->name() << '.' << col->name()
-	     << "]::ctor -- built an interval-equality index with "
-	     << nobs << " find bin" << (nobs>1?"s":"") << " and " << nc
+	     << "]::ctor -- initialized an interval-equality index with "
+	     << nobs << " fine bin" << (nobs>1?"s":"") << " and " << nc
 	     << " coarse bin" << (nc>1?"s":"") << " for "
 	     << nrows << " row" << (nrows>1?"s":"")
 	     << " from a storage object @ " << st;
