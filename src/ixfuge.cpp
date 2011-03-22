@@ -1179,7 +1179,7 @@ int ibis::fuge::readCoarse(const char* fn) {
 	}
     }
 
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
 	<< "pack[" << col->partition()->name() << "." << col->name()
 	<< "]::read completed reading the header from " << fnm;
     return 0;

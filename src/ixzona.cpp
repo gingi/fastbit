@@ -1465,7 +1465,7 @@ int ibis::zona::readCoarse(const char* fn) {
     for (unsigned i = 0; i < nc; ++ i)
 	cbits[i] = 0;
 
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
 	<< "zona[" << col->partition()->name() << '.' << col->name()
 	<< "]::readCoarse(" << fnm
 	<< ") -- finished reading the metadta about the coarse bins";

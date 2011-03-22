@@ -18,6 +18,7 @@
 
    @author John Wu
  */
+import java.io.*;
 
 public class milky {
     public static void main(String args[]){
@@ -71,104 +72,15 @@ public class milky {
 	    System.out.println("FastBit.set_messsage_level(" + msglvl
 			       + ") returned " + exitCode);
 
-	if (args.length <= iarg) {
+	if (args.length > iarg) {
+	    String cmds[] = new String[args.length-iarg];
+	    for (int j = 0; j < args.length-iarg; ++ j)
+		cmds[j] = args[iarg+j];
+	    traverseDir(fb, cmds);
+	}
+	else {
 	    buildin(fb);
-	    return;
 	}
-
-	if (args.length == iarg+1) { // building index only
-	    exitCode = fb.build_indexes(args[iarg], "");
-	    if (msglvl > 0)
-		System.out.println("FastBit.build_indexex returned "
-				   + exitCode);
-	    return;
-	}
-
-	gov.lbl.fastbit.FastBit.QueryHandle h =
-	    fb.build_query(null, args[iarg], args[iarg+1]);
-	if (h == null) {
-	    System.out.println("failed to process query \"" + args[iarg+1]
-			       + "\" on data in " + args[iarg]);
-	    return;
-	}
-
-	int nhits = fb.get_result_size(h);
-	System.out.println("\napplying \"" + args[iarg+1] + "\" on data in "
-			   + args[iarg] + " produced " + nhits + " hits");
-
-	iarg += 2;
-	for (int i = iarg; i < args.length; i += 2) {
-	    char t = (i+1 < args.length ? args[i+1].charAt(0) : 'i');
-	    switch (t) {
-	    default:
-	    case 'i':
-	    case 'I': {
-		int tmp[] = fb.get_qualified_ints(h, args[i]);
-		if (tmp != null) {
-		    System.out.print(args[i] + "[" + nhits + "]:");
-		    for (int j = 0; j < nhits; ++ j)
-			System.out.print(" " + tmp[j]);
-		    System.out.println();
-		}
-		else {
-		    System.out.println("** failed to retrieve values for "
-				       + "column " + args[i]
-				       + " (requested type i)");
-		}
-		break;}
-	    case 'l':
-	    case 'L': {
-		long tmp[] = fb.get_qualified_longs(h, args[i]);
-		if (tmp != null) {
-		    System.out.print(args[i] + "[" + nhits + "]:");
-		    for (int j = 0; j < nhits; ++ j)
-			System.out.print(" " + tmp[j]);
-		    System.out.println();
-		}
-		else {
-		    System.out.println("** failed to retrieve values for "
-				       + "column " + args[i]
-				       + " (requested type i)");
-		}
-		break;}
-	    case 'f':
-	    case 'F':
-	    case 'r':
-	    case 'R': {
-		float tmp[] = fb.get_qualified_floats(h, args[i]);
-		if (tmp != null) {
-		    System.out.print(args[i] + "[" + nhits + "]:");
-		    for (int j = 0; j < nhits; ++ j)
-			System.out.print(" " + tmp[j]);
-		    System.out.println();
-		}
-		else {
-		    System.out.println("** failed to retrieve values for "
-				       + "column " + args[i]
-				       + " (requested type f)");
-		}
-		break;}
-	    case 'd':
-	    case 'D': {
-		double tmp[] = fb.get_qualified_doubles(h, args[i]);
-		if (tmp != null) {
-		    System.out.print(args[i] + "[" + nhits + "]:");
-		    for (int j = 0; j < nhits; ++ j)
-			System.out.print(" " + tmp[j]);
-		    System.out.println();
-		}
-		else {
-		    System.out.println("** failed to retrieve values for "
-				       + "column " + args[i]
-				       + " (requested type d)");
-		}
-		break;}
-	    }
-	}
-
-	exitCode = fb.destroy_query(h);
-	if (msglvl > 0)
-	    System.out.println("FastBit.destroy_query returned " + exitCode);
     }
 
     private static void usage() {
@@ -199,6 +111,7 @@ public class milky {
 	String[] conditions =
 	    {"a<5", "a+b>150", "a < 60 and c < 60", "c > 90", "c > a"};
 
+	System.out.println("milky -- starting built-in tests ...");
 	// prepare a sample data
 	for (int i = 0; i < 100; ++ i) {
 	    ivals[i] = i;
@@ -232,7 +145,181 @@ public class milky {
 	    }
 	    fb.destroy_query(h);
 	}
-	System.out.println("Build-in tests finished with nerrors = " +
+	System.out.println("milky -- built-in tests finished with nerrors = " +
 			   nerrors);
+    }
+
+    /** Traverse the specified directory recursively with java.io.File
+     * class.
+     */
+    private static int traverseDir(gov.lbl.fastbit.FastBit fb, String cmds[]) {
+	int ret = 0;
+	if (cmds.length == 0) return ret;
+	File fd = new java.io.File(cmds[0]);
+	Boolean hasparttxt = false;
+	String[] children = fd.list();
+	if (children == null) return ret;
+	if (children.length == 0) return ret;
+	for (int j = 0; j < children.length; ++ j) {
+	    String dname = fd.getName();
+	    dname += '/';
+	    dname += children[j];
+	    if (children[j].compareTo("-part.txt") != 0) {
+		cmds[0] = dname;
+		int ierr = traverseDir(fb, cmds);
+		if (ierr > 0) {
+		    ret += ierr;
+		}
+		else if (ierr < 0) {
+		    System.out.println("traverseDir(" + dname +
+				       ") failed with error code " + ierr);
+		}
+	    }
+	    else {
+		hasparttxt = true;
+	    }
+	}
+	if (hasparttxt) {
+	    cmds[0] = fd.getPath();
+	    int ierr = processQuery(fb, cmds);
+	    if (ierr > 0) {
+		++ ret;
+	    }
+	    else if (ierr < 0) {
+		System.out.println("processQuery(" + cmds[0] +
+				   ") failed with error code " + ierr);
+	    }
+	}
+	return ret;
+    }
+
+    /**  Process the user specified query.
+     */
+    private static int processQuery(gov.lbl.fastbit.FastBit fb, String cmds[]) {
+	if (cmds.length == 0) return 0;
+	int ierr, nhits, nprt;
+	int iarg = 0;
+	int msglvl = fb.get_message_level();
+	if (msglvl >= 0)
+	    System.out.println("\nstarting to process directory " + cmds[0]);
+	if (cmds.length == iarg+1) { // building index only
+	    ierr = fb.build_indexes(cmds[iarg], "");
+	    if (msglvl > 0)
+		System.out.println("FastBit.build_indexes returned "
+				   + ierr);
+	    return (ierr < 0 ? ierr : 1);
+	}
+
+	gov.lbl.fastbit.FastBit.QueryHandle h =
+	    fb.build_query(null, cmds[iarg], cmds[iarg+1]);
+	if (h == null) {
+	    System.out.println("failed to process query \"" + cmds[iarg+1]
+			       + "\" on data in " + cmds[iarg]);
+	    return -1;
+	}
+
+	nhits = fb.get_result_size(h);
+	System.out.println("\napplying \"" + cmds[iarg+1] + "\" on data in "
+			   + cmds[iarg] + " produced " + nhits + " hit"
+			   + (nhits>1?"s":""));
+	nprt = (msglvl > 30 ? nhits :
+		msglvl > 0 ? (1 << msglvl) : -1);
+	if (nprt+nprt > nhits)
+	    nprt = nhits;
+
+	iarg += 2;
+	for (int i = iarg; i < cmds.length; i += 2) {
+	    char t = (i+1 < cmds.length ? cmds[i+1].charAt(0) : 'i');
+	    switch (t) {
+	    default:
+	    case 'i':
+	    case 'I': {
+		int tmp[] = fb.get_qualified_ints(h, cmds[i]);
+		if (tmp != null) {
+		    if (nprt > 0) {
+			System.out.print(cmds[i] + "[" + nhits + "]:");
+			for (int j = 0; j < nprt; ++ j)
+			    System.out.print(" " + tmp[j]);
+			if (nprt < nhits)
+			    System.out.print(" ... (" + (nhits-nprt) +
+					     " skipped)");
+			System.out.println();
+		    }
+		}
+		else {
+		    System.out.println("** failed to retrieve values for "
+				       + "column " + cmds[i]
+				       + " (requested type i)");
+		}
+		break;}
+	    case 'l':
+	    case 'L': {
+		long tmp[] = fb.get_qualified_longs(h, cmds[i]);
+		if (tmp != null) {
+		    if (nprt > 0) {
+			System.out.print(cmds[i] + "[" + nhits + "]:");
+			for (int j = 0; j < nprt; ++ j)
+			    System.out.print(" " + tmp[j]);
+			if (nprt < nhits)
+			    System.out.print(" ... (" + (nhits-nprt) +
+					     " skipped)");
+			System.out.println();
+		    }
+		}
+		else {
+		    System.out.println("** failed to retrieve values for "
+				       + "column " + cmds[i]
+				       + " (requested type i)");
+		}
+		break;}
+	    case 'f':
+	    case 'F':
+	    case 'r':
+	    case 'R': {
+		float tmp[] = fb.get_qualified_floats(h, cmds[i]);
+		if (tmp != null) {
+		    if (nprt > 0) {
+			System.out.print(cmds[i] + "[" + nhits + "]:");
+			for (int j = 0; j < nprt; ++ j)
+			    System.out.print(" " + tmp[j]);
+			if (nprt < nhits)
+			    System.out.print(" ... (" + (nhits-nprt) +
+					     " skipped)");
+			System.out.println();
+		    }
+		}
+		else {
+		    System.out.println("** failed to retrieve values for "
+				       + "column " + cmds[i]
+				       + " (requested type f)");
+		}
+		break;}
+	    case 'd':
+	    case 'D': {
+		double tmp[] = fb.get_qualified_doubles(h, cmds[i]);
+		if (tmp != null) {
+		    if (nprt > 0) {
+			System.out.print(cmds[i] + "[" + nhits + "]:");
+			for (int j = 0; j < nprt; ++ j)
+			    System.out.print(" " + tmp[j]);
+			if (nprt < nhits)
+			    System.out.print(" ... (" + (nhits-nprt) +
+					     " skipped)");
+			System.out.println();
+		    }
+		}
+		else {
+		    System.out.println("** failed to retrieve values for "
+				       + "column " + cmds[i]
+				       + " (requested type d)");
+		}
+		break;}
+	    }
+	}
+
+	ierr = fb.destroy_query(h);
+	if (msglvl > 0)
+	    System.out.println("FastBit.destroy_query returned " + ierr);
+	return 1;
     }
 } // milky

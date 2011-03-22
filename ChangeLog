@@ -1,3 +1,12 @@
+2011-03-22 John Wu <John dot Wu at ACM dot org>
+	* src/ixfuzz.cpp: update the printing statement to use coffset32
+	and coffset64 in the right code block in function
+	fuzz::activeCoarse
+
+2011-03-19 John Wu <John dot Wu at ACM dot org>
+	* java/milky.java: add code to traverse the data directory
+	recursively
+
 2011-03-18 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.cpp: print 12 digits from qContinuousRange::printFull
 	* src/i*.cpp: update the message from the constructors to say

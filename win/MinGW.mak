@@ -112,7 +112,7 @@ trydll: trydll.cpp fastbit.dll
 	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ trydll.cpp fastbit.a $(LIB)
 
 tcapi: ../examples/tcapi.c ../src/capi.h fastbit.dll
-	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ ../examples/tcapi.c fastbit.a $(LIB)
+	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ ../examples/tcapi.c libfastbit.a $(LIB)
 
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@del /s /f $(TESTDIR)\hist0 $(TESTDIR)\hist1 $(TESTDIR)\hist2
@@ -234,11 +234,11 @@ countQuery.o: ../src/countQuery.cpp ../src/countQuery.h ../src/part.h \
   ../src/fileManager.h ../src/horometer.h ../src/resource.h \
   ../src/utilidor.h ../src/whereClause.h ../src/selectClause.h \
   ../src/query.h
-	$(CXX) $(CCFLAGS) -c ../src/dictionary.cpp
+	$(CXX) $(CCFLAGS) -c ../src/countQuery.cpp
 dictionary.o: ../src/dictionary.cpp ../src/dictionary.h ../src/util.h \
   ../src/const.h ../src/array_t.h ../src/fileManager.h ../src/horometer.h \
   ../src/utilidor.h
-	$(CXX) $(CCFLAGS) -c ../src/countQuery.cpp
+	$(CXX) $(CCFLAGS) -c ../src/dictionary.cpp
 fileManager.o: ../src/fileManager.cpp ../src/fileManager.h ../src/util.h \
   ../src/const.h  ../src/resource.h \
   ../src/array_t.h ../src/horometer.h

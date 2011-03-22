@@ -29,7 +29,7 @@ ibis::fuzz::fuzz(const ibis::column *c, const char *f)
     }
     if (ibis::gVerbose > 2) {
 	const size_t nobs = bits.size();
-	const size_t nc = cbits.size();
+	const size_t nc = cbounds.size();
 	ibis::util::logger lg;
 	lg() << "fuzz[" << col->partition()->name() << '.' << col->name()
 	     << "]::ctor -- initialized an interval-equality index with "
@@ -453,19 +453,25 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
 	    array_t<ibis::bitvector::word_t>
 		a0(fdes, coffset64[i], coffset64[i+1]);
 	    cbits[i] = new ibis::bitvector(a0);
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    LOGGER(ibis::gVerbose >= 0)
+		<< evt << " constructed bitvector " << i
+		<< " from range [" << coffset64[i]
+		<< ", "  << coffset64[i+1] << ") of file " << fname;
+#endif
 	}
 	else {
 	    array_t<ibis::bitvector::word_t>
 		a0(fdes, coffset32[i], coffset32[i+1]);
 	    cbits[i] = new ibis::bitvector(a0);
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    LOGGER(ibis::gVerbose >= 0)
+		<< evt << " constructed bitvector " << i
+		<< " from range [" << coffset32[i]
+		<< ", "  << coffset32[i+1] << ") of file " << fname;
+#endif
 	}
 	cbits[i]->sloppySize(nrows);
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
-	LOGGER(ibis::gVerbose >= 0)
-	    << evt << " constructed bitvector " << i
-	    << " from range [" << coffset32[i]
-	    << ", "  << coffset32[i+1] << ") of file " << fname;
-#endif
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
@@ -1560,7 +1566,7 @@ int ibis::fuzz::readCoarse(const char* fn) {
     for (unsigned i = 0; i < nb; ++ i)
 	cbits[i] = 0;
 
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
 	<< "fuzz[" << col->partition()->name() << '.' << col->name()
 	<< "]::readCoarse(" << fnm
 	<< ") -- finished reading the metadta about the coarse bins";
