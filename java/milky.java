@@ -161,7 +161,7 @@ public class milky {
 	if (children == null) return ret;
 	if (children.length == 0) return ret;
 	for (int j = 0; j < children.length; ++ j) {
-	    String dname = fd.getName();
+	    String dname = fd.getPath();
 	    dname += '/';
 	    dname += children[j];
 	    if (children[j].compareTo("-part.txt") != 0) {
@@ -198,13 +198,16 @@ public class milky {
     private static int processQuery(gov.lbl.fastbit.FastBit fb, String cmds[]) {
 	if (cmds.length == 0) return 0;
 	int ierr, nhits, nprt;
+	long starttime=0;
 	int iarg = 0;
 	int msglvl = fb.get_message_level();
-	if (msglvl >= 0)
+	if (msglvl > 0) {
 	    System.out.println("\nstarting to process directory " + cmds[0]);
+	    starttime = System.currentTimeMillis();
+	}
 	if (cmds.length == iarg+1) { // building index only
 	    ierr = fb.build_indexes(cmds[iarg], "");
-	    if (msglvl > 0)
+	    if (msglvl >= 0)
 		System.out.println("FastBit.build_indexes returned "
 				   + ierr);
 	    return (ierr < 0 ? ierr : 1);
@@ -318,8 +321,11 @@ public class milky {
 	}
 
 	ierr = fb.destroy_query(h);
-	if (msglvl > 0)
+	if (msglvl > 0) {
 	    System.out.println("FastBit.destroy_query returned " + ierr);
+	    System.out.println("Processing directory " + cmds[0] + " took " +
+			       (System.currentTimeMillis() - starttime) + " ms");
+	}
 	return 1;
     }
 } // milky
