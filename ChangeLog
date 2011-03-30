@@ -1,3 +1,7 @@
+2011-03-30 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: adjust the warning message about missing metadata
+	file from ibis::part::init to avoid tripping built-in test scripts
+
 2011-03-29 John Wu <John dot Wu at ACM dot org>
 	* java/milky.java: add call to System.currentTimeMillis to measure
 	the elapsed time in processQuery

@@ -22,7 +22,7 @@
 /* Set to 1 if getpwuid compiles and runs correctly */
 #undef HAVE_GETPWUID
 
-/* Define to 1 if you have the `getpwuid_r' function. */
+/* Set to 1 if getpwuid_r compiles and runs correctly */
 #undef HAVE_GETPWUID_R
 
 /* Define to 1 if you have the `gettimeofday' function. */

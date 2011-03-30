@@ -379,9 +379,10 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	}
     }
     else if (readonly) { // missing directory or metadata
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- part::ctor can not proceed because " << activeDir
-	    << " either does not exist or misses the metadata file -part.txt";
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part::ctor can not construct a part objet from "
+	    << activeDir << " because the directory does not exist or it does "
+	    "not have the metadata file -part.txt";
 	return;
     }
 
@@ -859,9 +860,10 @@ void ibis::part::init(const char* iname) {
     // read metadata file in activeDir
     int maxLength = readMetaData(nEvents, columns, activeDir);
     if (maxLength <= 0) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- part::init can not proceed because " << activeDir
-	    << " either does not exist or misses metadata file -part.txt";
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part::init failed to initialize the ibis::part "
+	    "object because " << activeDir
+	    << " does not exist or does not have the metadata file -part.txt";
 	if (readonly) return;
     }
     const char *tmp = strrchr(activeDir, FASTBIT_DIRSEP);
@@ -891,9 +893,10 @@ void ibis::part::init(const char* iname) {
 	}
 	maxLength = readMetaData(nEvents, columns, activeDir);
 	if (maxLength <= 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- part::init can not proceed because " << activeDir
-		<< " either doesnot exist or misses metadata file -part.txt";
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- part::init failed to initialize the object "
+		"because " << activeDir << " does not exist or does not "
+		"have the metadata file -part.txt";
 	    if (readonly) return;
 	}
 	if (backupDir != 0) {

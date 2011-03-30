@@ -1,3 +1,29 @@
+Wed Mar 30 13:14:35 PDT 2011
+Version ibis1.2.3
+-- clean up the implementation of low-precision binning option by
+   refactoring ibis::bin::granule (in response to questioins raised by
+   Jinoh Kim)
+-- reducing memory usage in handling selected values by allowing more
+   shallow copying with ibis::array_t
+-- adjust the cost estimation of ibis::bin::estimateCost to take into
+   account of anticipated candidate checking
+-- change ibis::bitvector::setBit to decompress the bitvector when
+   attempting to change a bit in the middle of a compressed one (faster
+   operation, but takes more memory)
+-- add util::refHolder to avoid copying objects in scope guards
+-- add more error handling statements to bundle.cpp
+-- add configure option --without-getpwuid to avoid invoking getpwuid on
+   compute node linux machines
+-- update operations with meta tags of data partitions by improving the
+   operations of category object with a single string value (to address
+   problem reported by Andrew Olson)
+-- fix problem with ibis::fuzz::readCoarse that computes the incorrect
+   number of elements for offset32/offset64 (to address a problem
+   reported by Jon Strabala)
+-- expand java/milky.java to traverse subdirectories and report
+   processing time in each subdirectory
+
+
 Wed Dec 22 14:31:36 PST 2010
 Version ibis1.2.2
 -- add functions to output query lines from ibis::meshQuery and label
