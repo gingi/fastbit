@@ -3870,7 +3870,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	     << num1 << " mismatch" << (num1>1 ? "es" : "") << "\n";
     }
 
-    if (asstr != 0 && *asstr != 0 && num1 > 0 && ibis::gVerbose > 0) {
+    if (asstr != 0 && *asstr != 0 && ibis::gVerbose > 0) {
 	if (outputfile != 0 && *outputfile != 0) {
 	    std::ofstream output(outputfile,
 				 std::ios::out | std::ios::app);

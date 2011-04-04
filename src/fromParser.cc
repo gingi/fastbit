@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 2.4.2.  */
+/* A Bison parser, made by GNU Bison 2.4.3.  */
 
 /* Skeleton implementation for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002-2010 Free Software Foundation, Inc.
+      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free
+   Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +32,7 @@
    version 2.2 of Bison.  */
 /* "%code top" blocks.  */
 
-/* Line 303 of lalr1.cc  */
+/* Line 304 of lalr1.cc  */
 #line 6 "fromParser.yy"
 
 /** \file Defines the parser for the from clause accepted by FastBit
@@ -41,8 +42,8 @@
 
 
 
-/* Line 303 of lalr1.cc  */
-#line 46 "fromParser.cc"
+/* Line 304 of lalr1.cc  */
+#line 47 "fromParser.cc"
 
 // Take the name prefix into account.
 #define yylex   ibislex
@@ -50,15 +51,15 @@
 /* First part of user declarations.  */
 
 
-/* Line 310 of lalr1.cc  */
-#line 55 "fromParser.cc"
+/* Line 311 of lalr1.cc  */
+#line 56 "fromParser.cc"
 
 
 #include "fromParser.hh"
 
 /* User implementation prologue.  */
 
-/* Line 316 of lalr1.cc  */
+/* Line 317 of lalr1.cc  */
 #line 80 "fromParser.yy"
 
 #include "fromLexer.h"
@@ -67,8 +68,8 @@
 #define yylex driver.lexer->lex
 
 
-/* Line 316 of lalr1.cc  */
-#line 72 "fromParser.cc"
+/* Line 317 of lalr1.cc  */
+#line 73 "fromParser.cc"
 
 #ifndef YY_
 # if defined YYENABLE_NLS && YYENABLE_NLS
@@ -133,8 +134,8 @@ do {					\
 
 namespace ibis {
 
-/* Line 379 of lalr1.cc  */
-#line 138 "fromParser.cc"
+/* Line 380 of lalr1.cc  */
+#line 139 "fromParser.cc"
 #if YYERROR_VERBOSE
 
   /* Return YYSTR after stripping away unnecessary quotes and
@@ -236,39 +237,39 @@ namespace ibis {
       {
         case 24: /* "\"name\"" */
 
-/* Line 479 of lalr1.cc  */
+/* Line 480 of lalr1.cc  */
 #line 77 "fromParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 479 of lalr1.cc  */
-#line 245 "fromParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 246 "fromParser.cc"
 	break;
       case 32: /* "compRange2" */
 
-/* Line 479 of lalr1.cc  */
+/* Line 480 of lalr1.cc  */
 #line 78 "fromParser.yy"
 	{ delete (yyvaluep->fromNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 254 "fromParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 255 "fromParser.cc"
 	break;
       case 33: /* "compRange3" */
 
-/* Line 479 of lalr1.cc  */
+/* Line 480 of lalr1.cc  */
 #line 78 "fromParser.yy"
 	{ delete (yyvaluep->fromNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 263 "fromParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 264 "fromParser.cc"
 	break;
       case 34: /* "mathExpr" */
 
-/* Line 479 of lalr1.cc  */
+/* Line 480 of lalr1.cc  */
 #line 78 "fromParser.yy"
 	{ delete (yyvaluep->fromNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 272 "fromParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 273 "fromParser.cc"
 	break;
 
 	default:
@@ -332,7 +333,7 @@ namespace ibis {
     /// Location of the lookahead.
     location_type yylloc;
     /// The locations where the error started and ended.
-    location_type yyerror_range[2];
+    location_type yyerror_range[3];
 
     /// $$.
     semantic_type yyval;
@@ -346,14 +347,14 @@ namespace ibis {
 
     /* User initialization code.  */
     
-/* Line 552 of lalr1.cc  */
+/* Line 559 of lalr1.cc  */
 #line 28 "fromParser.yy"
 { // initialize location object
     yylloc.begin.filename = yylloc.end.filename = &(driver.clause_);
 }
 
-/* Line 552 of lalr1.cc  */
-#line 357 "fromParser.cc"
+/* Line 559 of lalr1.cc  */
+#line 358 "fromParser.cc"
 
     /* Initialize the stacks.  The initial state will be pushed in
        yynewstate, since the latter expects the semantical and the
@@ -471,7 +472,7 @@ namespace ibis {
       {
 	  case 4:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 89 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -482,7 +483,7 @@ namespace ibis {
 
   case 5:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 94 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -493,7 +494,7 @@ namespace ibis {
 
   case 6:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 99 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -504,7 +505,7 @@ namespace ibis {
 
   case 7:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 104 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -515,7 +516,7 @@ namespace ibis {
 
   case 8:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 108 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -526,7 +527,7 @@ namespace ibis {
 
   case 9:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 113 "fromParser.yy"
     {
     const size_t pos = driver.names_.size();
@@ -537,7 +538,7 @@ namespace ibis {
 
   case 10:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 118 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(4) - (1)].stringVal));
@@ -549,7 +550,7 @@ namespace ibis {
 
   case 11:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 124 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(6) - (1)].stringVal));
@@ -561,7 +562,7 @@ namespace ibis {
 
   case 12:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 130 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
@@ -573,7 +574,7 @@ namespace ibis {
 
   case 13:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 136 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(6) - (1)].stringVal));
@@ -585,7 +586,7 @@ namespace ibis {
 
   case 14:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 142 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(6) - (1)].stringVal));
@@ -606,7 +607,7 @@ namespace ibis {
 
   case 15:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 157 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
@@ -627,7 +628,7 @@ namespace ibis {
 
   case 16:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 172 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(10) - (1)].stringVal));
@@ -648,7 +649,7 @@ namespace ibis {
 
   case 17:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 187 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
@@ -669,7 +670,7 @@ namespace ibis {
 
   case 18:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 202 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
@@ -690,7 +691,7 @@ namespace ibis {
 
   case 19:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 217 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(10) - (1)].stringVal));
@@ -711,7 +712,7 @@ namespace ibis {
 
   case 20:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 232 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(12) - (1)].stringVal));
@@ -732,7 +733,7 @@ namespace ibis {
 
   case 21:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 247 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(10) - (1)].stringVal));
@@ -753,7 +754,7 @@ namespace ibis {
 
   case 22:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 262 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(6) - (1)].stringVal));
@@ -766,7 +767,7 @@ namespace ibis {
 
   case 23:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 269 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
@@ -779,7 +780,7 @@ namespace ibis {
 
   case 24:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 276 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(10) - (1)].stringVal));
@@ -792,7 +793,7 @@ namespace ibis {
 
   case 25:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 283 "fromParser.yy"
     {
     driver.names_.push_back(*(yysemantic_stack_[(8) - (1)].stringVal));
@@ -805,7 +806,7 @@ namespace ibis {
 
   case 28:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 294 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
@@ -821,7 +822,7 @@ namespace ibis {
 
   case 29:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 304 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
@@ -838,7 +839,7 @@ namespace ibis {
 
   case 30:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 315 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
@@ -854,7 +855,7 @@ namespace ibis {
 
   case 31:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 325 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
@@ -870,7 +871,7 @@ namespace ibis {
 
   case 32:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 335 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
@@ -886,7 +887,7 @@ namespace ibis {
 
   case 33:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 345 "fromParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].fromNode));
@@ -902,7 +903,7 @@ namespace ibis {
 
   case 34:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 358 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -920,7 +921,7 @@ namespace ibis {
 
   case 35:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 370 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -938,7 +939,7 @@ namespace ibis {
 
   case 36:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 382 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -956,7 +957,7 @@ namespace ibis {
 
   case 37:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 394 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -974,7 +975,7 @@ namespace ibis {
 
   case 38:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 406 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -992,7 +993,7 @@ namespace ibis {
 
   case 39:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 418 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -1010,7 +1011,7 @@ namespace ibis {
 
   case 40:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 430 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -1028,7 +1029,7 @@ namespace ibis {
 
   case 41:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 442 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -1046,7 +1047,7 @@ namespace ibis {
 
   case 42:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 454 "fromParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].fromNode));
@@ -1064,7 +1065,7 @@ namespace ibis {
 
   case 43:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 469 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1082,7 +1083,7 @@ namespace ibis {
 
   case 44:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 481 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1100,7 +1101,7 @@ namespace ibis {
 
   case 45:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 493 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1118,7 +1119,7 @@ namespace ibis {
 
   case 46:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 505 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1136,7 +1137,7 @@ namespace ibis {
 
   case 47:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 517 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1154,7 +1155,7 @@ namespace ibis {
 
   case 48:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 529 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1172,7 +1173,7 @@ namespace ibis {
 
   case 49:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 541 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1190,7 +1191,7 @@ namespace ibis {
 
   case 50:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 553 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1208,7 +1209,7 @@ namespace ibis {
 
   case 51:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 565 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1226,7 +1227,7 @@ namespace ibis {
 
   case 52:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 577 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1245,7 +1246,7 @@ namespace ibis {
 
   case 53:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 590 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1261,7 +1262,7 @@ namespace ibis {
 
   case 54:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 600 "fromParser.yy"
     {
     (yyval.fromNode) = (yysemantic_stack_[(2) - (2)].fromNode);
@@ -1270,7 +1271,7 @@ namespace ibis {
 
   case 55:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 603 "fromParser.yy"
     {
     (yyval.fromNode) = (yysemantic_stack_[(3) - (2)].fromNode);
@@ -1279,7 +1280,7 @@ namespace ibis {
 
   case 56:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 606 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1293,7 +1294,7 @@ namespace ibis {
 
   case 57:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 614 "fromParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1306,8 +1307,8 @@ namespace ibis {
 
 
 
-/* Line 677 of lalr1.cc  */
-#line 1311 "fromParser.cc"
+/* Line 678 of lalr1.cc  */
+#line 1312 "fromParser.cc"
 	default:
           break;
       }
@@ -1341,7 +1342,7 @@ namespace ibis {
 	error (yylloc, yysyntax_error_ (yystate, yytoken));
       }
 
-    yyerror_range[0] = yylloc;
+    yyerror_range[1] = yylloc;
     if (yyerrstatus_ == 3)
       {
 	/* If just tried and failed to reuse lookahead token after an
@@ -1376,7 +1377,7 @@ namespace ibis {
     if (false)
       goto yyerrorlab;
 
-    yyerror_range[0] = yylocation_stack_[yylen - 1];
+    yyerror_range[1] = yylocation_stack_[yylen - 1];
     /* Do not reclaim the symbols of the rule which action triggered
        this YYERROR.  */
     yypop_ (yylen);
@@ -1408,7 +1409,7 @@ namespace ibis {
 	if (yystate_stack_.height () == 1)
 	YYABORT;
 
-	yyerror_range[0] = yylocation_stack_[0];
+	yyerror_range[1] = yylocation_stack_[0];
 	yydestruct_ ("Error: popping",
 		     yystos_[yystate],
 		     &yysemantic_stack_[0], &yylocation_stack_[0]);
@@ -1417,10 +1418,10 @@ namespace ibis {
 	YY_STACK_PRINT ();
       }
 
-    yyerror_range[1] = yylloc;
+    yyerror_range[2] = yylloc;
     // Using YYLLOC is tempting, but would change the location of
     // the lookahead.  YYLOC is available though.
-    YYLLOC_DEFAULT (yyloc, (yyerror_range - 1), 2);
+    YYLLOC_DEFAULT (yyloc, yyerror_range, 2);
     yysemantic_stack_.push (yylval);
     yylocation_stack_.push (yyloc);
 
@@ -1850,11 +1851,11 @@ namespace ibis {
 
 } // ibis
 
-/* Line 1053 of lalr1.cc  */
-#line 1855 "fromParser.cc"
+/* Line 1054 of lalr1.cc  */
+#line 1856 "fromParser.cc"
 
 
-/* Line 1055 of lalr1.cc  */
+/* Line 1056 of lalr1.cc  */
 #line 623 "fromParser.yy"
 
 void ibis::fromParser::error(const ibis::fromParser::location_type& l,

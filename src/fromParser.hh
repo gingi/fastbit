@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 2.4.2.  */
+/* A Bison parser, made by GNU Bison 2.4.3.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002-2010 Free Software Foundation, Inc.
+      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free
+   Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -37,15 +38,15 @@
 
 /* "%code requires" blocks.  */
 
-/* Line 34 of lalr1.cc  */
+/* Line 300 of lalr1.cc  */
 #line 12 "fromParser.yy"
 
 #include "fromClause.h"	// class fromClause
 
 
 
-/* Line 34 of lalr1.cc  */
-#line 49 "fromParser.hh"
+/* Line 300 of lalr1.cc  */
+#line 50 "fromParser.hh"
 
 
 #include <string>
@@ -55,15 +56,15 @@
 
 namespace ibis {
 
-/* Line 34 of lalr1.cc  */
-#line 60 "fromParser.hh"
+/* Line 300 of lalr1.cc  */
+#line 61 "fromParser.hh"
   class position;
   class location;
 
 } // ibis
 
-/* Line 34 of lalr1.cc  */
-#line 67 "fromParser.hh"
+/* Line 300 of lalr1.cc  */
+#line 68 "fromParser.hh"
 
 #include "location.hh"
 
@@ -107,8 +108,8 @@ do {							\
 
 namespace ibis {
 
-/* Line 34 of lalr1.cc  */
-#line 112 "fromParser.hh"
+/* Line 300 of lalr1.cc  */
+#line 113 "fromParser.hh"
 
   /// A Bison parser.
   class fromParser
@@ -119,7 +120,7 @@ namespace ibis {
     union semantic_type
     {
 
-/* Line 34 of lalr1.cc  */
+/* Line 300 of lalr1.cc  */
 #line 34 "fromParser.yy"
 
     int		integerVal;
@@ -129,8 +130,8 @@ namespace ibis {
 
 
 
-/* Line 34 of lalr1.cc  */
-#line 134 "fromParser.hh"
+/* Line 300 of lalr1.cc  */
+#line 135 "fromParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -337,8 +338,8 @@ namespace ibis {
 
 } // ibis
 
-/* Line 34 of lalr1.cc  */
-#line 342 "fromParser.hh"
+/* Line 300 of lalr1.cc  */
+#line 343 "fromParser.hh"
 
 
 

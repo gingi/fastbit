@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.2.3],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.2.3.1],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -172,9 +172,13 @@ AC_ARG_WITH(pthread,
 	     elif test -d $with_pthread; then
  	       if test -f $with_pthread/pthread.h; then
 	         CFLAGS="$CFLAGS -I$with_pthread";
+	         CPPFLAGS="$CPPFLAGS -I$with_pthread";
+	         CXXCPP="$CXXCPP -I$with_pthread";
 	         CXXFLAGS="$CXXFLAGS -I$with_pthread";
 	       elif test -f $with_pthread/include/pthread.h; then
 	         CFLAGS="$CFLAGS -I$with_pthread/include";
+	         CPPFLAGS="$CPPFLAGS -I$with_pthread/include";
+	         CXXCPP="$CXXCPP -I$with_pthread/include";
 	         CXXFLAGS="$CXXFLAGS -I$with_pthread/include";
 	       else
 	         AC_MSG_WARN([Can not find $with_pthread/pthread.h or $with_pthread/include/pthread.h])
@@ -426,22 +430,25 @@ rm -f whereLexer.o
 
 # check for java include directory
 AC_DEFUN([AC_JNI_INCLUDE_DIR],[
-
 JNI_INCLUDE_DIRS=""
-
-case "$host_os" in
-  darwin*) _JTOPDIR=`echo "$JAVA_HOME" | sed -e 's:/[[^/]]*$::'`
-           _JINC="$_JTOPDIR/Headers";;
-  *)       _JINC="$JAVA_HOME/include";;
-esac
-if test -f "$_JINC/jni.h"; then
-  JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JINC"
+dnl case "$host_os" in
+dnl   darwin*) _JTOPDIR=`echo "$JAVA_HOME" | sed -e 's:/[[^/]]*$::'`
+dnl            _JINC="$_JTOPDIR/Headers";;
+dnl   *)       _JINC="$JAVA_HOME/include";;
+dnl esac
+if test -f "$JAVA_HOME/include/jni.h"; then
+  JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $JAVA_HOME/include"
+elif test -f "$JAVA_HOME/Headers/jni.h"; then
+  JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $JAVA_HOME/Headers"
 else
+  AC_MSG_WARN([cannot find jni.h in $JAVA_HOME/Headers or $JAVA_HOME/include, try one directory up])
   JAVA_HOME=`echo "$JAVA_HOME" | sed -e 's:/[[^/]]*$::'`
   if test -f "$JAVA_HOME/include/jni.h"; then
     JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $JAVA_HOME/include"
+  elif test -f "$JAVA_HOME/Headers/jni.h"; then
+    JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $JAVA_HOME/Headers"
   else
-    AC_MSG_ERROR([cannot find java include files])
+    AC_MSG_ERROR([cannot find jni.h in $JAVA_HOME/Headers or $JAVA_HOME/include])
   fi
 fi
 
@@ -602,6 +609,7 @@ if test "x$with_java" != "xyes" ; then
   if test "x$with_java" = "xno" ; then
     JAVA_HOME="" # don't use JAVA
   elif ! test -d "$JAVA_HOME" -a -f "$JAVA_HOME/bin/javac$EXEEXT" ; then
+    AC_MSG_WARN([Can not find $JAVA_HOME/bin/javac$EXEEXT])
     JAVA_HOME="" # don't use JAVA
   fi
 elif test "x$JAVA_HOME" = "x" ; then # guess where is JDK
@@ -628,7 +636,7 @@ elif test "x$JAVA_HOME" = "x" ; then # guess where is JDK
 fi
 
 #AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
-if test ! "x$JAVA_HOME" = "x" -a -d "$JAVA_HOME"
+if test "x$JAVA_HOME" != "x" -a -d "$JAVA_HOME"
 then
   JAVAPREFIX="${JAVA_HOME}/bin"
   # Check for Java programs.  Order here is important: check first
@@ -642,6 +650,8 @@ then
     for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
     do
       CFLAGS="$CFLAGS -I$JNI_INCLUDE_DIR"
+      CPPFLAGS="$CPPFLAGS -I$JNI_INCLUDE_DIR"
+      CXXCPP="$CXXCPP -I$JNI_INCLUDE_DIR"
       CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR"
     done
 

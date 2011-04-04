@@ -1,3 +1,13 @@
+2011-04-04 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp:3873 remove  the condition "num1 > 0" to
+	overwrite output file with empty file when the result set is empty
+	(per request of Jon Strabala)
+
+2011-03-31 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: update the code for detecting jni.h to accomodate
+	the peculiarity of java on Mac OS, update CPPFLAGS and CXXCPP as
+	well as CFLAGS and CXXFLAGS
+
 2011-03-30 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: adjust the warning message about missing metadata
 	file from ibis::part::init to avoid tripping built-in test scripts
