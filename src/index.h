@@ -116,12 +116,8 @@ public:
 	EXTERN	///< externally defined index
     };
 
-    /// @brief Index factory.
     static index* create(const column* c, const char* name=0,
 			 const char* spec=0, int inEntirety=0);
-    /// Read the header of the named file to determine if it contains an
-    /// index of the specified type.  Returns true if the correct header is
-    /// found, else return false.
     static bool isIndex(const char* f, INDEX_TYPE t);
     /// The destructor.
     virtual ~index () {clear();};

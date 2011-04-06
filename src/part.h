@@ -48,17 +48,14 @@ public:
     /// Initialize a partition with given meta tags.
     part(const ibis::resource::vList &mtags, bool ro=false);
 
-    /// Return descriptive information about the data partition.
     inline info* getInfo() const;
     TABLE_STATE getState() const;
     /// Return the current state of data partition.
     TABLE_STATE getStateNoLocking() const {return state;}
 
-    virtual void buildIndexes(const char* opt=0, int nthr=1);
-    /// Build a sorted version of the specified column.
+    virtual void buildIndexes(const char* iopt=0, int nthr=1);
     void buildSorted(const char* colname) const;
-    /// Load indexes of all columns.
-    void loadIndexes(const char* opt=0, int readall=0) const;
+    void loadIndexes(const char* iopt=0, int ropt=0) const;
     void unloadIndexes() const;
     void purgeIndexFiles() const;
 

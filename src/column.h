@@ -98,7 +98,7 @@ public:
     virtual void computeMinMax(const char *dir,
 			       double& min, double &max) const;
 
-    virtual void loadIndex(const char* opt=0, int readall=0) const throw ();
+    virtual void loadIndex(const char* iopt=0, int ropt=0) const throw ();
     virtual void unloadIndex() const;
     /// Compute the index size (in bytes).
     virtual long indexSize() const;

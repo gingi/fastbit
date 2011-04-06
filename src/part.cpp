@@ -5087,8 +5087,8 @@ void ibis::part::computeMinMax() {
     }
 } // ibis::part::computeMinMax
 
-/// Will build the sorted version of the base data for the named column if
-/// it does not already exist.
+/// Build a sorted version of the specified column.  Will sort the
+/// base data of the named column if needed.
 void ibis::part::buildSorted(const char* cname) const {
     readLock lock(this, "buildSorted");
     if (cname == 0 || *cname == 0) return;
@@ -5111,11 +5111,11 @@ void ibis::part::buildSorted(const char* cname) const {
 } // ibis::part::buildSorted
 
 /// Make sure indexes for all columns are available.
-/// May use @c nthr threads to build indexes.  The argument opt is used to
+/// May use @c nthr threads to build indexes.  The argument iopt is used to
 /// build new indexes if the corresponding columns do not already have
 /// indexes.
 /// @sa ibis::part::loadIndexes
-void ibis::part::buildIndexes(const char* opt, int nthr) {
+void ibis::part::buildIndexes(const char* iopt, int nthr) {
     writeLock lock(this, "buildIndexes");
     ibis::horometer timer;
     timer.start();
@@ -5124,7 +5124,7 @@ void ibis::part::buildIndexes(const char* opt, int nthr) {
 		   "start to load indexes of this data partition");
     if (nthr > 1) {
 	-- nthr; // spawn one less thread than specified
-	indexBuilderPool pool(*this, opt);
+	indexBuilderPool pool(*this, iopt);
 	std::vector<pthread_t> tid(nthr);
 	pthread_attr_t tattr;
 	int ierr = pthread_attr_init(&tattr);
@@ -5182,7 +5182,7 @@ void ibis::part::buildIndexes(const char* opt, int nthr) {
 	     ++it) {
 	    if (! ((*it).second->upperBound() >= (*it).second->lowerBound()))
 		(*it).second->computeMinMax();
-	    (*it).second->loadIndex(opt);
+	    (*it).second->loadIndex(iopt);
 	    (*it).second->unloadIndex();
 	}
 	nthr = 1; // used only this thread
@@ -5208,20 +5208,22 @@ void ibis::part::buildIndexes(const char* opt, int nthr) {
     }
 } // ibis::part::buildIndexes
 
-/// This function iterates through all columns and load the index
-/// associated with each one of them.  If an index for a column does not
-/// exist, the index is built in memory and written to disk.  The argument
-/// opt is used as the index specification is a new index is to be built.
-/// If opt is nil, the index specifications for the individual columns or
-/// the data partition are used.  If the argument readall is greater than
-/// 0, the existing index will be read into memory in one-shot.  The pros
-/// and cons of doing so is explained in function ibis::index::create.
-void ibis::part::loadIndexes(const char* opt, int readall) const {
+/// Load indexes of all columns.  This function iterates through all
+/// columns and load the index associated with each one of them by
+/// call ibis::column::loadIndex.  If an index for a column does not
+/// exist, the index is built in memory and written to disk.  The
+/// argument iopt is used as the index specification if a new index is
+/// to be built.  If iopt is nil, the index specifications for the
+/// individual columns or the data partition are used.  The
+/// argument ropt is passed to ibis::index::create to regenerate an index
+/// object from the index file.  The default value of ropt is 0.
+/// @cf function ibis::index::create
+void ibis::part::loadIndexes(const char* iopt, int ropt) const {
     if (activeDir == 0) return;
 
     for (columnList::const_iterator it=columns.begin(); it!=columns.end();
 	 ++it) {
-	(*it).second->loadIndex(opt, readall);
+	(*it).second->loadIndex(iopt, ropt);
     }
     if (ibis::gVerbose > 6)
 	logMessage("loadIndexes",

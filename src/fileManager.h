@@ -57,9 +57,6 @@ public:
     const double& pageCount() const {return page_count;}
     /// Returns the page size (in bytes) used by the file system.
     static uint32_t pageSize() {return pagesize;}
-    /// Given the starting and ending addresses, this function computes the
-    /// number of pages involved.  Used by derived classes to record page
-    /// accesses.
     inline void recordPages(off_t start, off_t stop);
     static inline void increaseUse(size_t inc, const char* evt);
     static inline void decreaseUse(size_t dec, const char* evt);
@@ -483,7 +480,9 @@ inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
     }
 } // ibis::fileManager::gainWriteAccess
 
-// record the number of pages touched by the range specified [start, stop)
+/// Given the starting and ending addresses, this function computes the
+/// number of pages involved.  Used by derived classes to record page
+/// accesses.
 inline void ibis::fileManager::recordPages(off_t start, off_t stop) {
     if (start < stop) {
 	start -= (start % pagesize);

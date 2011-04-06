@@ -1381,9 +1381,14 @@ namespace std {
     inline ostream& operator<<(ostream&, const ibis::qExpr::COMPARE&);
 }
 
-/// Wrap the function print as operator<<.
+/// Wrap the function print as operator<<.  Print the full query expression
+/// when the global verbose level is higher than 5, otherwise print a
+/// shorter version of the query expression.
 inline std::ostream& std::operator<<(std::ostream& out, const ibis::qExpr& pn) {
-    pn.print(out);
+    if (ibis::gVerbose > 5)
+	pn.printFull(out);
+    else
+	pn.print(out);
     return out;
 } // std::operator<<
 

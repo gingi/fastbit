@@ -4907,16 +4907,14 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
 } // ibis::column::logMessage
 
 /// Load the index associated with the column.
-/// @param opt This option is passed to ibis::index::create to be used if a
+/// @param iopt This option is passed to ibis::index::create to be used if a
 /// new index is to be created.
-/// @param readall If this argument is greater than zero, all metadata and
-/// bitmaps associated with an index is read into memory; otherwise only
-/// the metadata about the index is loaded into memory.  The bitmaps
-/// associated with an index can be read into memory as needed.
+/// @param ropt This option is passed to ibis::index::create to control the
+/// reading operations for reconstitute the index object from an index file.
 ///
 /// @note Accesses to this function are serialized through a write lock on
 /// the column.
-void ibis::column::loadIndex(const char* opt, int readall) const throw () {
+void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     if (idx != 0 || thePart == 0 || thePart->nRows() == 0 ||
 	thePart->currentDataDir() == 0)
 	return;
@@ -4932,7 +4930,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 		       thePart->currentDataDir());
 	if (tmp == 0) {
 	    tmp = ibis::index::create(this, thePart->currentDataDir(),
-				      opt, readall);
+				      iopt, ropt);
 	}
 	if (tmp == 0) { // failed to create index
 	    purgeIndexFile(); // remove any left over index file
@@ -4964,7 +4962,7 @@ void ibis::column::loadIndex(const char* opt, int readall) const throw () {
 	    delete tmp;
 	    // create a brand new index from data in the current working
 	    // directory
-	    tmp = ibis::index::create(this, static_cast<const char*>(0), opt);
+	    tmp = ibis::index::create(this, static_cast<const char*>(0), iopt);
 	    if (tmp != 0 && tmp->getNRows() != thePart->nRows()) {
 		if (ibis::gVerbose > 0)
 		    logWarning("loadIndex",

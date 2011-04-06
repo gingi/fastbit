@@ -51,6 +51,7 @@ namespace std { // specialize the std::less struct
 ////////////////////////////////////////////////////////////////////////
 // functions from ibis::index
 
+/// Index factory.
 /// It creates a specific concrete index object.  If this function
 /// fails to read the specified index file, it attempts to create a
 /// new index based on the current data file and index specification.
@@ -104,16 +105,42 @@ namespace std { // specialize the std::less struct
 /// To override any general index specification, one must provide a
 /// complete index specification string.
 ///
-/// @param inEntirety If this value is greater than zero, this function
-/// will attempt to read the whole index file in one shot.  In cases where
-/// there is enough memory to hold all indexes in-memory, this option
-/// may reduce I/O overhead.  Additionally, it places all bitmaps in an
-/// index consecutively in memory, which may also speed up memory accesses
-/// when the bitmaps are used to answer queries.  Of course, the drawback
-/// is that this option requires more memory than necessary and may
-/// actually take more time to read the data files since many of the
-/// bitmaps may not be actually needed.  The default value of this argument
-/// is 0, which allows bitmaps to be read into memory as needed.
+/// @param readopt Depending on whether this value is positive, zero or
+/// negative, the index is read from the index file in three different
+/// ways.  (1) If this value is positive, the content of the index file is
+/// read into memory and there is no need for further I/O operation to use
+/// the index.  (2) If this value is zero, the content of a large index
+/// file is loaded into memory through memory map and the content of a
+/// small index file will be read into memory.  This is the default option.
+/// (3) If this value is negative, then only the metadata is read into
+/// memory.  This option requires the least amount of memory, but requires
+/// more I/O operations later when bitmaps are needed to answer queries.
+/// To use option (1) and (2), there must be enough memory to hold the
+/// index file in memory.  Furthermore, to use the memory map option,
+/// FastBit must be able to hold the index file open indefinitely and the
+/// operating system must support memory map function mmap.  Note that
+/// three options have different start up cost and different query
+/// processing cost.  Typically, reading the whole file in this function
+/// will take the longest, but since it requires no further I/O operations,
+/// its query processing cost is likely the lowest.  The memory map option
+/// only need to load the page table into memory and read part of the
+/// metadata, it is likely to be relatively inexpensive to reconstruct the
+/// index object this way.  Since the memory map option can read the
+/// necessary portion of the index file into memory pretty efficiently, the
+/// query processing cost should have reasonable performance.  The third of
+/// reading metadata only in this function requires the least amount of
+/// memory, but it might actually read more bytes in this function than the
+/// memory map option because this option actually needs to read all the
+/// bytes representing the metadata while the memory map option only need
+/// to create a memory map for the index file.  Later when the index is
+/// used, the needed bitmaps are read into memory, which is likely take
+/// more time than accessing the memory mapped bitmaps.  Additionally, the
+/// third option also causes the bitmaps to be placed in unpredictable
+/// memory locations, while the first two options place all bitmaps of an
+/// index consecutively in memory.  This difference in memory layout could
+/// cause the memory accesses to take different amounts of time; typically,
+/// accessing consecutive memory locations is more efficient.  The default
+/// value of this argument is 0, which prefers the memory map option.
 ///
 /// @note An index can not be built correctly if it does not fit in memory!
 /// This is the most likely reason for failure in this function.  If this
@@ -122,7 +149,7 @@ namespace std { // specialize the std::less struct
 /// ones.  Normally, we recommand one to not put much more than 100 million
 /// rows in a data partition.
 ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
-				 const char* spec, int inEntirety) {
+				 const char* spec, int readopt) {
     ibis::index* ind = 0;
     if (c == 0) // can not procede
 	return ind;
@@ -246,21 +273,34 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    char buf[12];
 	    const char* header = 0;
 	    {
-		bool useGetFile = (inEntirety != 0);
-		if (! useGetFile) {
+		bool useGetFile = (readopt >= 0);
+		ibis::fileManager::ACCESS_PREFERENCE prf =
+		    (readopt > 0 ? ibis::fileManager::PREFER_READ :
+		     ibis::fileManager::MMAP_LARGE_FILES);
+		if (readopt == 0) { // on default option, check parameters
 		    std::string key(c->partition()->name());
 		    key += ".";
 		    key += c->name();
 		    key += ".preferMMapIndex";
-		    useGetFile = ibis::gParameters().isTrue(key.c_str());
+		    if (ibis::gParameters().isTrue(key.c_str())) {
+			useGetFile = true;
+			prf = ibis::fileManager::PREFER_MMAP;
+		    }
+		    else {
+			key = c->partition()->name();
+			key += ".";
+			key += c->name();
+			key += ".preferReadIndex";
+			if (ibis::gParameters().isTrue(key.c_str())) {
+			    useGetFile = true;
+			    prf = ibis::fileManager::PREFER_READ;
+			}
+		    }
 		}
 		if (useGetFile) {
 		    // manage the index file as a whole
 		    ierr = ibis::fileManager::instance().tryGetFile
-			(file.c_str(), &st,
-			 (inEntirety > 0 ?
-			  ibis::fileManager::PREFER_READ :
-			  ibis::fileManager::MMAP_LARGE_FILES));
+			(file.c_str(), &st, prf);
 		    if (ierr != 0) {
 			LOGGER(ibis::gVerbose > 7)
 			    << "index::create tryGetFile(" << file
@@ -1416,8 +1456,9 @@ void ibis::index::clear() {
     // fileManager and can not be deleted
 } // ibis::index::clear
 
-// read the first eight bytes of the file and verify that it is the expected
-// header of an index file
+/// Is the named file an index file?  Read the header of the named
+/// file to determine if it contains an index of the specified type.
+/// Returns true if the correct header is found, else return false.
 bool ibis::index::isIndex(const char* f, ibis::index::INDEX_TYPE t) {
     char buf[12];
     char* header = 0;

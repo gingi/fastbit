@@ -1,6 +1,17 @@
+2011-04-05 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: change the 4th argument to ibis::index::create
+	from inEntirety to readopt, change the interpretation of the
+	default option from reading the metadata to attempting the memory
+	map option.  Note that this increase the memory usage, but
+	decrease the query response time in almost all cases.  (To address
+	a question raised by Michael Chong from sac.com)
+	* src/part.cpp: update the inline document for
+	ibis::part::loadIndexes to refer to ibis::column::loadIndex
+	* examples/ibis.cpp: update the usage print out
+
 2011-04-04 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp:3873 remove  the condition "num1 > 0" to
-	overwrite output file with empty file when the result set is empty
+	overwrite output file with an empty file when the result set is empty
 	(per request of Jon Strabala)
 
 2011-03-31 John Wu <John dot Wu at ACM dot org>
