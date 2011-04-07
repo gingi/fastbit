@@ -202,16 +202,17 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    return ind;}
 	}
     }
-    const bool usebin = (strstr(spec, "bin") != 0 &&
-			 strstr(spec, "none") == 0);
-    if (ibis::gVerbose > 3)
-	c->logMessage("index::create", "invoking the index "
-		      "factory with spec=`%s' and source=%s)", spec,
-		      (dfname ? dfname : c->partition()->currentDataDir()));
+    LOGGER(ibis::gVerbose > 3)
+	<< "index::create -- invoking the index factory with spec=`"
+	<< spec << "' and source="
+	<< (dfname ? dfname : c->partition()->currentDataDir())
+	<< " for column " << c->partition()->name() << '.' << c->name();
 
     int ierr;
     bool isRead = false;
     uint32_t ncomp = 0;
+    const bool usebin = (strstr(spec, "bin") != 0 &&
+			 strstr(spec, "none") == 0);
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start();
@@ -1403,18 +1404,19 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
     }
     else if (ibis::gVerbose > 1) {
 	timer.stop();
+	ibis::util::logger lg;
+	lg() << "index::create -- the " << ind->name() << " index for column "
+	     << c->partition()->name() << '.' << c->name();
 	if (isRead) {
-	    c->logMessage("readIndex", "the %s index was read (%s) in %g "
-			  "sec(CPU), %g sec(elapsed)", ind->name(), dfname,
-			  timer.CPUTime(), timer.realTime());
+	    lg() << " was read from " << dfname;
 	}
 	else {
-	    c->logMessage("createIndex", "creating a (%s) index took %g "
-			  "sec(CPU), %g sec(elapsed)", ind->name(),
-			  timer.CPUTime(), timer.realTime());
+	    lg() << " was created from data in "
+		 << c->partition()->currentDataDir();
 	}
+	lg() << " in " << timer.CPUTime() <<" sec(CPU), "<< timer.realTime()
+	     << " sec(elapsed)";
 	if (ibis::gVerbose > 3) {
-	    ibis::util::logger lg;
 	    ind->print(lg());
 	}
     }

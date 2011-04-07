@@ -214,16 +214,13 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 	     sizeof(double)*nobs*3) {
     try {
 	nrows = *(reinterpret_cast<uint32_t*>(st->begin()+start));
-	if (c->partition()->getState() == ibis::part::STABLE_STATE &&
-	    nrows != c->partition()->nRows() && ibis::gVerbose > 0) {
-	    errno = 0;
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- bin[" << col->partition()->name() << '.'
-		<< col->name() << "]::bin found nrows (" << nrows
-		<< ") to be different from that of the data partition "
-		<< c->partition()->name() << " ("
-		<< c->partition()->nRows() << ")";
-	}
+	LOGGER(c->partition()->getState() == ibis::part::STABLE_STATE &&
+	    nrows != c->partition()->nRows() && ibis::gVerbose > 2)
+	    << "Warning -- bin[" << col->partition()->name() << '.'
+	    << col->name() << "]::bin found nrows (" << nrows
+	    << ") to be different from that of the data partition "
+	    << c->partition()->name() << " ("
+	    << c->partition()->nRows() << ")";
 
 	int ierr = initOffsets(st, start+2*sizeof(uint32_t), nobs);
 	if (ierr < 0) {

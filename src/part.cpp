@@ -187,7 +187,10 @@ extern "C" {
 		    if (! (col->upperBound() >= col->lowerBound()))
 			col->computeMinMax();
 		    col->loadIndex(pool.opt);
-		    if (col->indexedRows() != pool.tbl.nRows()) {
+		    if (col->indexedRows() <= (pool.tbl.nRows() >> 1)) {
+			// rebuild the index if the existing covers less
+			// than half of the all rows.  Use this doubling to
+			// avoid excessive cost of repeated building indexes
 			col->unloadIndex();
 			col->purgeIndexFile();
 			std::auto_ptr<ibis::index>
@@ -5186,14 +5189,8 @@ void ibis::part::buildIndexes(const char* iopt, int nthr) {
 	++ nthr; // restore the original value
     }
     else { // do not spawn any new threads
-	for (columnList::iterator it=columns.begin();
-	     it!=columns.end();
-	     ++it) {
-	    if (! ((*it).second->upperBound() >= (*it).second->lowerBound()))
-		(*it).second->computeMinMax();
-	    (*it).second->loadIndex(iopt);
-	    (*it).second->unloadIndex();
-	}
+	indexBuilderPool pool(*this, iopt);
+	(void) ibis_part_build_indexes((void*)&pool);
 	nthr = 1; // used only this thread
     }
     if (ibis::gVerbose > 0) {
@@ -5208,8 +5205,8 @@ void ibis::part::buildIndexes(const char* iopt, int nthr) {
 
     if (activeDir == 0) return;
     writeMetaData(nEvents, columns, activeDir);
-    Stat_T tmp;
     if (backupDir != 0 && *backupDir != 0) {
+	Stat_T tmp;
 	if (UnixStat(backupDir, &tmp) == 0) {
 	    if ((tmp.st_mode&S_IFDIR) == S_IFDIR)
 		writeMetaData(nEvents, columns, backupDir);

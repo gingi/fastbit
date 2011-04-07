@@ -1,3 +1,17 @@
+2011-04-07 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: update test case 2 of check-ibis to match the
+	changes in printing formats in examples/ibis.cpp
+	* examples/ibis.cpp, examples/ardea.cpp: add calls to buildIndexes
+	before performinging queries in an attempt to reproduce the
+	problem reported by Chavdar Kopoev
+	* src/part.cpp, src/mensa.cpp: change mensa::buildIndexes to call
+	part::buildIndexes and part::buildIndexes to always use
+	ibis_part_build_indexes, only rebuild indexes in
+	ibis_part_build_indexes if the number of rows has doubled
+	* src/column.cpp: add call ibis::fileManager::flushFile before
+	removing files in ibis::column::purgeIndexFile (likely the real
+	cause of the deadlock reported by Chavdar Kopeov)
+
 2011-04-06 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: add function
 	ibis::column::indexedRows to report the number of rows in the

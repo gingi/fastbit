@@ -5114,19 +5114,23 @@ void ibis::column::purgeIndexFile(const char *dir) const {
     fnm += m_name;
     const unsigned len = fnm.size() + 1;
     fnm += ".idx";
+    ibis::fileManager::instance().flushFile(fnm.c_str());
     remove(fnm.c_str());
     fnm.erase(len);
     fnm += "bin";
+    ibis::fileManager::instance().flushFile(fnm.c_str());
     remove(fnm.c_str());
     if (m_type == ibis::TEXT) {
 	fnm.erase(len);
 	fnm += "terms";
+	ibis::fileManager::instance().flushFile(fnm.c_str());
 	remove(fnm.c_str());
 	fnm.erase(len);
     }
     else if (m_type == ibis::CATEGORY) {
 	fnm.erase(fnm.size() - 3);
 	fnm += "dic";
+	ibis::fileManager::instance().flushFile(fnm.c_str());
 	remove(fnm.c_str());
     }
 } // ibis::column::purgeIndexFile

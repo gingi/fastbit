@@ -2917,14 +2917,13 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	qq->roughCount(nhits, hmax);
 	if (nhits < hmax) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "doQuaere(" << sqlstring
-		<< ") is estimated to have between " << nhits << " and "
-		<< hmax << " hit" << (hmax>1?"s":"");
+		<< "doQuaere -- " << wstr << " --> [" << nhits << ", "
+		<< hmax << ']';
 	}
 	else {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "doQuaere(" << sqlstring
-		<< ") has " << nhits << " hit" << (hmax>1?"s":"");
+		<< "doQuaere -- " << wstr << " --> " << nhits
+		<< " hit" << (hmax>1?"s":"");
 	}
     }
 
@@ -2962,7 +2961,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	if (ibis::gVerbose >= 0) {
 	    timer.stop();
 	    ibis::util::logger lg;
-	    lg() << "doQuaere:: count(" << sqlstring << ") produced "
+	    lg() << "doQuaere:: count(" << wstr << ") produced "
 		 << nhits << " hit" << (nhits>1?"s":"") << ", took "
 		 << timer.CPUTime() << " CPU seconds, "
 		 << timer.realTime() << " elapsed seconds";
@@ -2987,7 +2986,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 
     timer.stop();
     LOGGER(ibis::gVerbose >= 0)
-	<< "doQuaere(" << sqlstring << ") produced a table with "
+	<< "doQuaere -- \"" << sqlstring << "\" produced a table with "
 	<< res->nRows() << " row" << (res->nRows() > 1 ? "s" : "")
 	<< " and " << res->nColumns() << " column"
 	<< (res->nColumns() > 1 ? "s" : "") << ", took "
@@ -3914,9 +3913,25 @@ static void doAppend(const char* dir) {
     long ierr = 0;
     ibis::part *tbl = 0;
     bool newtable = true;
-    if (appendto != 0) { // try to use the specified partition name
+    if (dir == 0 || *dir == 0) return;
+    {
 	Stat_T tmp;
-	if (UnixStat(appendto, &tmp) == 0) {
+	if (UnixStat(dir, &tmp) != 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- doAppend can not find the status of directory "
+		<< dir;
+	    return;
+	}
+	if ((tmp.st_mode & S_IFDIR) != S_IFDIR) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- doAppend expects the argument \"" << dir
+		<< "\" to be a directory name, but it is not";
+	    return;
+	}
+    }
+    if (appendto != 0) {
+	Stat_T tmp;
+	if (UnixStat(appendto, &tmp) == 0) { // appendto is a directory name
 	    tbl = new ibis::part(appendto, static_cast<const char*>(0));
 	    if (tbl != 0) {
 		for (unsigned i = 0; i < ibis::datasets.size(); ++ i) {
@@ -3929,7 +3944,7 @@ static void doAppend(const char* dir) {
 		}
 	    }
 	}
-	if (tbl == 0) {
+	if (tbl == 0) { // try appendto as a partition name
 	    for (unsigned i = 0; i < ibis::datasets.size(); ++ i) {
 		if (stricmp(appendto, ibis::datasets[i]->name()) == 0) {
 		    // found an existing partition
@@ -3982,7 +3997,7 @@ static void doAppend(const char* dir) {
     }
     if (tbl == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "doAppend(" << dir << ") failed to allocate an "
+	    << "Warning -- doAppend(" << dir << ") failed to allocate an "
 	    "ibis::part object. Can NOT continue.\n";
 	return;
     }
@@ -3993,8 +4008,9 @@ static void doAppend(const char* dir) {
     timer.stop();
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "doAppend(" << dir << "): appending to data partition \""
-	    << tbl->name() << "\" failed (ierr = " << ierr << ")\n";
+	    << "Warning -- doAppend(" << dir
+	    << "): failed to append to data partition \""
+	    << tbl->name() << "\", ierr = " << ierr;
 	if (newtable)
 	    delete tbl;
 	return;
@@ -4007,10 +4023,12 @@ static void doAppend(const char* dir) {
     }
     const long napp = ierr;
     if (tbl->getState() != ibis::part::STABLE_STATE) {
-	if (ibis::gVerbose > 2 || testing > 0) {// self test after append
+	if (ibis::gVerbose > 3 ||
+	    (ibis::gVerbose >= 0 && testing > 0)) {// self test after append
 	    int nth = static_cast<int>(ibis::gVerbose < 20
-				       ? ibis::gVerbose * 0.25
+				       ? 1+sqrt(ibis::gVerbose)
 				       : 3+log((double)ibis::gVerbose));
+	    tbl->buildIndexes();
 	    ierr = tbl->selfTest(nth);
 	}
 	else { // very quiet, skip self testing
@@ -4035,9 +4053,11 @@ static void doAppend(const char* dir) {
 	timer.stop();
 	if (ierr != napp) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "doAppend(" << dir << "): expected commit command to return "
+		<< "Warning -- doAppend(" << dir
+		<< "): expected commit to return "
 		<< napp << ", but it actually retruned " << ierr
 		<< ".  Unrecoverable error!\n";
+	    return;
 	}
 	else {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -4055,7 +4075,8 @@ static void doAppend(const char* dir) {
 	}
 
 	// self test after commit,
-	if (ibis::gVerbose > 3 || (ibis::gVerbose > 1 && testing > 0)) {
+	if (ibis::gVerbose > 4 || (ibis::gVerbose > 0 && testing > 0)) {
+	    tbl->buildIndexes();
 	    ierr = tbl->selfTest(0);
 	    LOGGER(ibis::gVerbose > 0)
 		<< "doAppend(" << dir << "): selfTest on partition \""
@@ -4065,10 +4086,11 @@ static void doAppend(const char* dir) {
 		<< (ierr > 1 ? " errors\n" : " error\n");
 	}
     }
-    else if (ibis::gVerbose > 3 || (ibis::gVerbose > 1 && testing > 0)) {
+    else if (ibis::gVerbose > 3 || (ibis::gVerbose >= 0 && testing > 0)) {
+	tbl->buildIndexes();
 	ierr = tbl->selfTest(0);
 	LOGGER(ibis::gVerbose > 0)
-	    << "doAppend(" << dir << "): selfTest on partition \""
+	    << "Warning -- doAppend(" << dir << "): selfTest on partition \""
 	    << tbl->name() << "\" (after appending " << napp
 	    << (napp > 1 ? " rows" : " row")
 	    << ") encountered " << ierr
@@ -4777,7 +4799,9 @@ int main(int argc, char** argv) {
 	parse_args(argc, argv, interactive, qlist, alist, slist,
 		   queff, joins);
 
-	// add new data if any
+	// append new data one directory at a time, the same directory map
+	// be used many times, all incoming directories appended to the
+	// same output directory specified by appendto
 	for (std::vector<const char*>::const_iterator it = alist.begin();
 	     it != alist.end();
 	     ++ it) { // add new data before doing anything else

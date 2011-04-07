@@ -35,6 +35,7 @@ ibis::tablex::appendRow for more information about NULL values.
 #endif
 #include "ibis.h"	// FastBit IBIS public header file
 #include <set>		// std::set
+#include <memory>	// std::auto_ptr
 #include <iomanip>	// std::setprecision
 
 // local data types
@@ -46,6 +47,7 @@ static const char* metadatafile = 0;
 static const char* indexing = 0;
 static std::string namestypes;
 static std::string metatags;
+static int build_indexes = 0;
 
 // printout the usage string
 static void usage(const char* name) {
@@ -119,10 +121,13 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		usage(*argv);
 		exit(0);
 	    case 'b':
-	    case 'B': // break/delimiters
-		if (i+1 < argc) {
+	    case 'B': // break/delimiters or build indexes
+		if (i+1 < argc && argv[i+1][0] != '-') {
 		    ++ i;
 		    del = argv[i];
+		}
+		else {
+		    build_indexes = 1;
 		}
 		break;
 	    case 'c':
@@ -146,9 +151,12 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		break;
 	    case 'i':
 	    case 'I':
-		if (i+1 < argc) {
+		if (i+1 < argc && argv[i+1][0] != '-') {
 		    ++ i;
 		    indexing = argv[i];
+		}
+		else {
+		    build_indexes = 1;
 		}
 		break;
 	    case 'm':
@@ -763,6 +771,11 @@ int main(int argc, char** argv) {
 		    return(ierr);
 		}
 		ta->clearData();
+		if (build_indexes > 0) { // build indexes
+		    std::auto_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    if (tbl.get() != 0)
+			tbl->buildIndexes();
+		}
 	    }
 	}
 
@@ -797,6 +810,11 @@ int main(int argc, char** argv) {
 		    return ierr;
 		}
 		ta->clearData();
+		if (build_indexes > 0) { // build indexes
+		    std::auto_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    if (tbl.get() != 0)
+			tbl->buildIndexes();
+		}
 	    }
 	}
 	for (size_t i = 0; i < inputrows.size(); ++ i) {
@@ -845,8 +863,8 @@ int main(int argc, char** argv) {
 	}
     }
 
-    ibis::table* tb = ibis::table::create(outdir);
-    if (tb == 0) {
+    std::auto_ptr<ibis::table> tb(ibis::table::create(outdir));
+    if (tb.get() == 0) {
 	std::cerr << *argv << " failed to reconstructure table from data "
 	    "files in " << outdir << std::endl;
 	return -10;
@@ -920,6 +938,5 @@ int main(int argc, char** argv) {
 	 qit != qcnd.end(); ++ qit) {
 	doQuery(*tb, *qit, sel);
     }
-    delete tb;
     return 0;
 } // main
