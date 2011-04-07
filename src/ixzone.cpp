@@ -193,11 +193,12 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 		 size_t start) : ibis::bin(c, st, start) {
     try {
 	const char offsetsize = st->begin()[6];
-	const off_t nloff =
+	const size_t nloff =
 	    8*((start+offsetsize*(nobs+1)+2*sizeof(uint32_t)+7)/8)
 	    +sizeof(double)*nobs*3;
+	const size_t end = nloff + offsetsize * (nobs + 1);
 	if (offsetsize == 8) {
-	    array_t<int64_t> offs(st, nloff, nobs+1);
+	    array_t<int64_t> offs(st, nloff, end);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
@@ -222,7 +223,7 @@ ibis::zone::zone(const ibis::column* c, ibis::fileManager::storage* st,
 	    }
 	}
 	else {
-	    array_t<int32_t> offs(st, nloff, nobs+1);
+	    array_t<int32_t> offs(st, nloff, end);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
@@ -796,8 +797,9 @@ int ibis::zone::read(ibis::fileManager::storage* st) {
     const off_t nloff = 
 	8*((offsetsize*(nobs+1)+2*sizeof(uint32_t)+15)/8)
 	+sizeof(double)*(nobs*3+2);
+    const off_t end = nloff + offsetsize * (nobs + 1);
     if (offsetsize == 8) {
-	array_t<int64_t> offs(st, nloff, nobs+1);
+	array_t<int64_t> offs(st, nloff, end);
 	if (offs.size() > nobs && offs.back() > offs.front()) {
 	    sub.resize(nobs);
 	    for (uint32_t i=0; i<nobs; ++i) {
@@ -811,7 +813,7 @@ int ibis::zone::read(ibis::fileManager::storage* st) {
 	}
     }
     else if (offsetsize == 4) {
-	array_t<int32_t> offs(st, nloff, nobs+1);
+	array_t<int32_t> offs(st, nloff, end);
 	if (offs.size() > nobs && offs.back() > offs.front()) {
 	    sub.resize(nobs);
 	    for (uint32_t i=0; i<nobs; ++i) {

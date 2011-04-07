@@ -51,7 +51,8 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
 ibis::roster::roster(const ibis::column* c,
 		     ibis::fileManager::storage* st,
 		     uint32_t offset)
-    : col(c), ind(st, offset, c->partition()->nRows()), inddes(-1) {
+    : col(c), ind(st, offset, offset+sizeof(uint32_t)*c->partition()->nRows()),
+      inddes(-1) {
     if (ibis::gVerbose > 8) {
 	ibis::util::logger lg;
 	print(lg());
@@ -606,7 +607,7 @@ int ibis::roster::read(const char* idxf) {
 
 int ibis::roster::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
-    array_t<uint32_t> tmp(st, 0, col->partition()->nRows());
+    array_t<uint32_t> tmp(st, 0, sizeof(uint32_t)*col->partition()->nRows());
     ind.swap(tmp);
     return 0;
 } // ibis::roster::read

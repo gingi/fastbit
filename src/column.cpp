@@ -5069,6 +5069,7 @@ void ibis::column::binWeights(std::vector<uint32_t>& tmp) const {
     }
 } // ibis::column::binWeights
 
+/// Compute the index size (in bytes).
 /// Return a negative value if the index file does not exist.
 long ibis::column::indexSize() const {
     std::string sname;
@@ -5079,6 +5080,21 @@ long ibis::column::indexSize() const {
     return ibis::util::getFileSize(sname.c_str());
 } // ibis::column::indexSize
 
+/// Compute the number of rows captured by the index of this column.  This
+/// function loads the metadata about the index into memory through
+/// ibis::column::indexLock.
+uint32_t ibis::column::indexedRows() const {
+    indexLock lock(this, "indexedRows");
+    if (idx != 0) {
+	return idx->getNRows();
+    }
+    else {
+	return 0;
+    }
+} // ibis::column::indexedRows
+
+/// Perform a set of built-in tests to determine the speed of common
+/// operations.
 void ibis::column::indexSpeedTest() const {
     indexLock lock(this, "indexSpeedTest");
     if (idx != 0) {
@@ -5087,6 +5103,7 @@ void ibis::column::indexSpeedTest() const {
     }
 } // ibis::column::indexSpeedTest
 
+/// Purge the index files assocated with the current column.
 void ibis::column::purgeIndexFile(const char *dir) const {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0))
 	return;

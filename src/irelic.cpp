@@ -156,8 +156,9 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start)
     : ibis::index(c, st),
       vals(st, 8*((3 * sizeof(uint32_t) + start + 7)/8),
-	   *(reinterpret_cast<uint32_t*>(st->begin() + start +
-					 2*sizeof(uint32_t)))) {
+	   8*((3 * sizeof(uint32_t) + start + 7)/8 +
+	      *(reinterpret_cast<uint32_t*>(st->begin() + start +
+					    2*sizeof(uint32_t))))) {
     try {
 	nrows = *(reinterpret_cast<uint32_t*>(st->begin()+start));
 	size_t pos = start + sizeof(uint32_t);
@@ -611,7 +612,7 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
     const uint32_t card = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t) + 7;
     {
-	array_t<double> dbl(st, 8*(pos/8), card);
+	array_t<double> dbl(st, 8*(pos/8), 8*(pos/8 + card));
 	vals.swap(dbl);
     }
     int ierr = initOffsets(st, 8*(pos/8) + sizeof(double)*card, nobs);

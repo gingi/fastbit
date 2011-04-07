@@ -158,9 +158,13 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 	      nobs*sizeof(uint32_t)+(nbits+1)*st->begin()[6]+
 	      3*nobs*sizeof(double)))),
     cnts(st, 8*((7+start+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]
-	 +3*nobs*sizeof(double), nobs),
+	 +3*nobs*sizeof(double),
+	 8*((7+start+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]
+	 +3*nobs*sizeof(double) + sizeof(uint32_t)*nobs),
     bases(st, 8*((7+start+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]+
-	  3*nobs*sizeof(double)+(nobs+1)*sizeof(int32_t), nbases) {
+	  3*nobs*sizeof(double)+(nobs+1)*sizeof(int32_t),
+	  8*((7+start+3*sizeof(uint32_t))/8)+(nbits+1)*st->begin()[6]+
+	  3*nobs*sizeof(double)+(nobs+1+nbases)*sizeof(int32_t)) {
     if (ibis::gVerbose > 8 ||
 	(ibis::gVerbose > 2 &&
 	 static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == EGALE)) {
@@ -609,29 +613,32 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
     clear(); // wipe out the existing content
     str = st;
 
-    size_t begin;
+    size_t begin, end;
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     begin = 8 + sizeof(uint32_t);
     nobs = *(reinterpret_cast<uint32_t*>(st->begin()+begin));
     begin += sizeof(uint32_t);
     nbits = *(reinterpret_cast<uint32_t*>(st->begin()+begin));
     begin = 8*((15 + 3 * sizeof(uint32_t))/8);
+    end = begin + sizeof(double)*nobs;
     {
-	array_t<double> dbl(st, begin, nobs);
+	array_t<double> dbl(st, begin, end);
 	bounds.swap(dbl);
     }
-    begin += nobs * sizeof(double);
+    begin = end;
+    end += nobs * sizeof(double);
     {
-	array_t<double> dbl(st, begin, nobs);
+	array_t<double> dbl(st, begin, end);
 	maxval.swap(dbl);
     }
-    begin += nobs * sizeof(double);
+    begin = end;
+    end += nobs * sizeof(double);
     {
-	array_t<double> dbl(st, begin, nobs);
+	array_t<double> dbl(st, begin, end);
 	minval.swap(dbl);
     }
 
-    begin += nobs * sizeof(double);
+    begin = end;
     int ierr = initOffsets(st, begin, nbits);
     if (ierr < 0) {
 	clear();
@@ -647,6 +654,7 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
     begin += sizeof(uint32_t) * nobs;
     nbases = *(reinterpret_cast<uint32_t*>(st->begin() + begin));
     begin += sizeof(uint32_t);
+    end = begin + sizeof(uint32_t)*nbases;
     {
 	array_t<uint32_t> szt(st, begin, nbases);
 	bases.swap(szt);

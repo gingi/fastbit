@@ -511,17 +511,17 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
     uint32_t begin;
     begin = 8*(((*st)[6]*(nobs+1)+2*sizeof(uint32_t)+15)/8);
     { // boundds
-	array_t<double> dbl(st, begin, nobs);
+	array_t<double> dbl(st, begin, begin+sizeof(double)*nobs);
 	bounds.swap(dbl);
     }
     begin += sizeof(double) * nobs;
     { // maxval
-	array_t<double> dbl(st, begin, nobs);
+	array_t<double> dbl(st, begin, begin+sizeof(double)*nobs);
 	maxval.swap(dbl);
     }
     begin += sizeof(double) * nobs;
     { // minval
-	array_t<double> dbl(st, begin, nobs);
+	array_t<double> dbl(st, begin, begin+sizeof(double)*nobs);
 	minval.swap(dbl);
     }
 

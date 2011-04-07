@@ -69,8 +69,11 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
       cnts(st, 8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(int32_t)*
 	   (ibis::relic::bits.size()+1)+
 	   sizeof(double)*ibis::relic::vals.size(),
-	   *(reinterpret_cast<uint32_t*>
-	     (st->begin()+start+sizeof(uint32_t)))) {
+	   8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(int32_t)*
+	   (ibis::relic::bits.size()+1)+
+	   sizeof(double)*ibis::relic::vals.size()+
+	   sizeof(uint32_t)*(*(reinterpret_cast<uint32_t*>
+			       (st->begin()+start+sizeof(uint32_t))))) {
     try {
 	activate(); // always activate all bitvectors
 	if (ibis::gVerbose > 2) {

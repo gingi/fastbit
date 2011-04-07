@@ -182,16 +182,16 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
     }
     else {
 	switch (c->type()) {
-	case ibis::ULONG:
-	case ibis::LONG:
 	case ibis::USHORT:
 	case ibis::SHORT:
-	case ibis::UINT:
-	case ibis::INT:
-	case ibis::FLOAT:
-	case ibis::DOUBLE:
 	case ibis::UBYTE:
 	case ibis::BYTE:
+	case ibis::UINT:
+	case ibis::INT:
+	case ibis::ULONG:
+	case ibis::LONG:
+	case ibis::FLOAT:
+	case ibis::DOUBLE:
 	case ibis::CATEGORY:
 	case ibis::TEXT: {
 	    spec = "default";
@@ -693,8 +693,6 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    switch (c->type()) {
 		    case ibis::ULONG:
 		    case ibis::LONG:
-		    case ibis::USHORT:
-		    case ibis::SHORT:
 		    case ibis::UINT:
 		    case ibis::INT: {
 			double amin = c->lowerBound();
@@ -720,6 +718,8 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    case ibis::DOUBLE: {
 			ind = new ibis::bin(c, file.c_str());
 			break;}
+		    case ibis::USHORT:
+		    case ibis::SHORT:
 		    case ibis::UBYTE:
 		    case ibis::BYTE: {
 			ind = new ibis::relic(c, file.c_str());
@@ -1037,8 +1037,6 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		switch (c->type()) {
 		case ibis::ULONG:
 		case ibis::LONG:
-		case ibis::USHORT:
-		case ibis::SHORT:
 		case ibis::UINT:
 		case ibis::INT: {
 		    double amin = c->lowerBound();
@@ -1064,6 +1062,8 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		case ibis::DOUBLE: {
 		    ind = new ibis::bin(c);
 		    break;}
+		case ibis::USHORT:
+		case ibis::SHORT:
 		case ibis::UBYTE:
 		case ibis::BYTE: {
 		    ind = new ibis::relic(c);
@@ -4434,14 +4434,11 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 		    ibis::bitvector* btmp = new ibis::bitvector(a);
 		    bits[i] = btmp;
 #if defined(WAH_CHECK_SIZE)
-		    if (btmp->size() != nrows) {
-			col->logWarning("regenerateBitmaps", "the length (%lu) "
-					"of the %lu-th bitvector differs from "
-					"that of the 1st one(%lu)",
-					static_cast<long unsigned>(btmp->size()),
-					static_cast<long unsigned>(i),
-					static_cast<long unsigned>(nrows));
-		    }
+		    LOGGER(btmp->size() != nrows)
+			<< "Warning -- index::initBitmaps for column "
+			<< (col!=0?col->name():"?") << " found the length ("
+			<< btmp->size() << ") of bitvector " << i
+			<< " differs from the expect value " << nrows;
 #else
 		    btmp->sloppySize(nrows);
 #endif

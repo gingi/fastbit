@@ -893,10 +893,10 @@ int ibis::ambit::read(ibis::fileManager::storage* st) {
     sub.clear();
     sub.resize(nobs);
 
+    const size_t begin = 8*((sizeof(int64_t)*(nobs+1)+sizeof(uint32_t)*2+15)/8)+
+	sizeof(double)*(nobs*3+2);
     if (st->begin()[6] == 8) {
-	array_t<uint32_t> nextlevel64
-	    (st, 8*((sizeof(int64_t)*(nobs+1)+sizeof(uint32_t)*2+15)/8)+
-	     sizeof(double)*(nobs*3+2), nobs+1);
+	array_t<uint32_t> nextlevel64(st, begin, begin+8*nobs+8);
 	for (uint32_t i=0; i < nobs; ++i) {
 	    if (nextlevel64[i+1] > nextlevel64[i]) {
 		sub[i] = new ambit(col, st, nextlevel64[i]);
@@ -918,9 +918,7 @@ int ibis::ambit::read(ibis::fileManager::storage* st) {
 	}
     }
     else {
-	array_t<uint32_t> nextlevel32
-	    (st, 8*((sizeof(int32_t)*(nobs+1)+sizeof(uint32_t)*2+15)/8)+
-	     sizeof(double)*(nobs*3+2), nobs+1);
+	array_t<uint32_t> nextlevel32(st, begin, begin+4*nobs+4);
 	for (uint32_t i=0; i < nobs; ++i) {
 	    if (nextlevel32[i+1] > nextlevel32[i]) {
 		sub[i] = new ambit(col, st, nextlevel32[i]);

@@ -280,7 +280,8 @@ public:
     /// is more efficient, it will return NaN immediately.
     virtual double getSum() const {
 	return std::numeric_limits<double>::quiet_NaN();}
-    virtual uint32_t getNRows() const {return nrows;}
+    /// Return the number of rows represented by this object.
+    uint32_t getNRows() const {return nrows;}
 
     /// The functions expandRange and contractRange expands or contracts the
     /// boundaries of a range condition so that the new range will have

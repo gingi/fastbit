@@ -1,3 +1,15 @@
+2011-04-06 John Wu <John dot Wu at ACM dot org>
+	* src/column.h, src/column.cpp: add function
+	ibis::column::indexedRows to report the number of rows in the
+	index associated with the column
+	* src/part.cpp: update function ibis_part_build_indexes to make
+	sure the new indexes have the same number of rows as the data
+	partition (at the request of Chavdar Kopoev)
+	* src/i*.cpp: catch up with the 2010-11-03 change to the
+	constructor of array_t that takes a pointer to storage object.
+	These errors causes the indexes to be regenerated incorrectly when
+	the whole index is read into memory
+
 2011-04-05 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: change the 4th argument to ibis::index::create
 	from inEntirety to readopt, change the interpretation of the

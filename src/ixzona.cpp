@@ -64,6 +64,7 @@ ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
     }
     if (st->size() <= start+12) return;
 
+    size_t end;
     const char offsetsize = st->begin()[6];
     uint32_t nc = *(reinterpret_cast<uint32_t*>(st->begin()+start));
     if (nc == 0 ||
@@ -71,13 +72,15 @@ ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
 	return;
 
     start += sizeof(uint32_t);
+    end = start + sizeof(uint32_t) * (nc+1);
     {
 	array_t<uint32_t> tmp(st, start, nc+1);
 	cbounds.swap(tmp);
     }
-    start += sizeof(uint32_t) * (nc+1);
+    start = end;
+    end += offsetsize * (nc+1);
     if (offsetsize == 8) {
-	array_t<int64_t> tmp(st, start, nc+1);
+	array_t<int64_t> tmp(st, start, end);
 	coffset64.swap(tmp);
 	if (coffset64.back() > static_cast<int64_t>(st->size())) {
 	    coffset64.swap(tmp);
@@ -87,7 +90,7 @@ ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
 	}
     }
     else if (offsetsize == 4) {
-	array_t<int32_t> tmp(st, start, nc+1);
+	array_t<int32_t> tmp(st, start, end);
 	coffset32.swap(tmp);
 	if (coffset32.back() > static_cast<int32_t>(st->size())) {
 	    coffset32.swap(tmp);
@@ -1479,14 +1482,16 @@ int ibis::zona::read(ibis::fileManager::storage* st) {
 
     const char offsetsize = st->begin()[6];
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
-    uint32_t pos = 8 + sizeof(uint32_t);
+    size_t end;
+    size_t pos = 8 + sizeof(uint32_t);
     const uint32_t nobs = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
     const uint32_t card = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t) + 7;
     pos = (pos / 8) * 8;
+    end = pos + sizeof(double) * card;
     {
-	array_t<double> dbl(st, pos, card);
+	array_t<double> dbl(st, pos, end);
 	vals.swap(dbl);
     }
     int ierr = initOffsets(st, pos + sizeof(double)*card, nobs);
@@ -1521,17 +1526,19 @@ int ibis::zona::read(ibis::fileManager::storage* st) {
 	start = offset64.back() + 4;
     else
 	start = offset32.back() + 4;
-    array_t<uint32_t> btmp(str, start, nc+1);
+    end = start + sizeof(uint32_t) * (nc+1);
+    array_t<uint32_t> btmp(str, start, end);
     cbounds.swap(btmp);
 
-    start += sizeof(uint32_t)*(nc+1);
+    start = end;
+    end += offsetsize*(nc+1);
     if (offsetsize == 8) {
-	array_t<int64_t> otmp(str, start, nc+1);
+	array_t<int64_t> otmp(str, start, end);
 	coffset64.swap(otmp);
 	coffset32.clear();
     }
     else {
-	array_t<int32_t> otmp(str, start, nc+1);
+	array_t<int32_t> otmp(str, start, end);
 	coffset32.swap(otmp);
 	coffset64.clear();
     }

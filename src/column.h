@@ -100,12 +100,10 @@ public:
 
     virtual void loadIndex(const char* iopt=0, int ropt=0) const throw ();
     virtual void unloadIndex() const;
-    /// Compute the index size (in bytes).
     virtual long indexSize() const;
-    /// Perform a set of built-in tests to determine the speed of common
-    /// operations.
+
+    uint32_t indexedRows() const;
     void indexSpeedTest() const;
-    /// Purge the index files assocated with the current column.
     void purgeIndexFile(const char *dir=0) const;
 
     const char* dataFileName(std::string& fname, const char *dir=0) const;

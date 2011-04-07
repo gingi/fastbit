@@ -745,14 +745,16 @@ int ibis::keywords::read(ibis::fileManager::storage* st) {
     const char offsetsize = st->begin()[6];
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     size_t pos = 8 + sizeof(uint32_t);
+    size_t end;
     const uint32_t nobs = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
+    end = pos + offsetsize * (nobs + 1);
     if (offsetsize == 8) {
-	array_t<int64_t> offs(st, pos, nobs+1);
+	array_t<int64_t> offs(st, pos, end);
 	offset64.copy(offs);
     }
     else if (offsetsize == 4) {
-	array_t<int32_t> offs(st, pos, nobs+1);
+	array_t<int32_t> offs(st, pos, end);
 	offset32.copy(offs);
     }
     else {

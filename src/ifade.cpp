@@ -84,18 +84,21 @@ ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
 			    (st->begin()+start+sizeof(uint32_t)));
     const uint32_t card = *(reinterpret_cast<uint32_t*>
 			    (st->begin()+start+sizeof(uint32_t)*2));
+    size_t end;
     size_t pos = 8*((start+sizeof(uint32_t)*3+7)/8)
 	+ sizeof(double)*card + (*st)[6]*(nobs+1);
     const uint32_t nbases =
 	*(reinterpret_cast<const uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
+    end = pos + sizeof(uint32_t) * card;
     {
-	ibis::array_t<uint32_t> tmp(st, pos, card);
+	ibis::array_t<uint32_t> tmp(st, pos, end);
 	cnts.swap(tmp);
     }
-    pos += sizeof(uint32_t) * card;
+    pos = end;
+    end += sizeof(uint32_t) * nbases;
     {
-	ibis::array_t<uint32_t> tmp(st, pos, nbases);
+	ibis::array_t<uint32_t> tmp(st, pos, end);
 	bases.swap(tmp);
     }
     if (ibis::gVerbose > 8 ||

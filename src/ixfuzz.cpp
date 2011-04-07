@@ -78,16 +78,19 @@ ibis::fuzz::fuzz(const ibis::column* c, ibis::fileManager::storage* st,
 	st->size() <= start + (sizeof(int32_t)+sizeof(uint32_t))*(nc+1))
 	return;
 
+    size_t end;
     const uint32_t ncb = nc - (nc+1)/2 + 1;
     start += sizeof(uint32_t);
+    end = start + sizeof(uint32_t) * (nc+1);
     if (start+sizeof(uint32_t)*(nc+1) < st->size()) {
-	array_t<uint32_t> tmp(st, start, nc+1);
+	array_t<uint32_t> tmp(st, start, end);
 	cbounds.swap(tmp);
     }
-    start += sizeof(uint32_t) * (nc+1);
+    start = end;
     if (offset64.size() > bits.size()) {
-	if (start+sizeof(int32_t)*(ncb+1) < st->size()) {
-	    array_t<int64_t> tmp(st, start, ncb+1);
+	end += sizeof(int64_t) * (ncb+1);
+	if (end < st->size()) {
+	    array_t<int64_t> tmp(st, start, end);
 	    coffset64.swap(tmp);
 	    if (coffset64.back() > static_cast<int64_t>(st->size())) {
 		coffset64.swap(tmp);
@@ -104,8 +107,9 @@ ibis::fuzz::fuzz(const ibis::column* c, ibis::fileManager::storage* st,
 	coffset32.clear();
     }
     else {
-	if (start+sizeof(int32_t)*(ncb+1) < st->size()) {
-	    array_t<int32_t> tmp(st, start, ncb+1);
+	end += sizeof(int32_t)*(ncb+1);
+	if (end < st->size()) {
+	    array_t<int32_t> tmp(st, start, end);
 	    coffset32.swap(tmp);
 	    if (coffset32.back() > static_cast<int32_t>(st->size())) {
 		coffset32.swap(tmp);
@@ -1580,14 +1584,16 @@ int ibis::fuzz::read(ibis::fileManager::storage* st) {
 
     const char offsetsize = st->begin()[6];
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
-    uint32_t pos = 8 + sizeof(uint32_t);
+    size_t end;
+    size_t pos = 8 + sizeof(uint32_t);
     const uint32_t nobs = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t);
     const uint32_t card = *(reinterpret_cast<uint32_t*>(st->begin()+pos));
     pos += sizeof(uint32_t) + 7;
     pos = (pos / 8) * 8;
+    end = pos + sizeof(double)*card;
     {
-	array_t<double> dbl(st, pos, card);
+	array_t<double> dbl(st, pos, end);
 	vals.swap(dbl);
     }
     int ierr = initOffsets(st, pos + sizeof(double)*card, nobs);
@@ -1622,25 +1628,28 @@ int ibis::fuzz::read(ibis::fileManager::storage* st) {
 	start = offset64.back() + 4;
     else
 	start = offset32.back() + 4;
-    array_t<uint32_t> btmp(str, start, nc+1);
+    end = start + sizeof(uint32_t) * (nc+1);
+    array_t<uint32_t> btmp(str, start, end);
     cbounds.swap(btmp);
 
-    start += sizeof(uint32_t)*(nc+1);
+    const uint32_t nb = nc + 1 - (nc+1)/2;
+    start = end;
+    end += offsetsize * (nb+1);
     if (offsetsize == 8) {
-	array_t<int64_t> otmp(str, start, nc+1);
+	array_t<int64_t> otmp(str, start, end);
 	coffset64.swap(otmp);
 	coffset32.clear();
     }
     else {
-	array_t<int32_t> otmp(str, start, nc+1);
+	array_t<int32_t> otmp(str, start, end);
 	coffset32.swap(otmp);
 	coffset64.clear();
     }
 
     for (unsigned j = 0; j < cbits.size(); ++ j)
 	delete cbits[j];
-    cbits.resize(nc);
-    for (unsigned i = 0; i < nc; ++ i)
+    cbits.resize(nb);
+    for (unsigned i = 0; i < nb; ++ i)
 	cbits[i] = 0;
     return 0;
 } // ibis::fuzz::read

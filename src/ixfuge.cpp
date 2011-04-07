@@ -91,15 +91,18 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	st->size() <= start + (sizeof(int32_t)+offsetsize)*(nc+1))
 	return;
 
+    size_t end;
     const uint32_t ncb = nc - (nc+1)/2 + 1;
     start += sizeof(uint32_t);
-    if (start+sizeof(uint32_t)*(nc+1) < st->size()) {
-	array_t<uint32_t> tmp(st, start, nc+1);
+    end = start + sizeof(uint32_t)*(nc+1);
+    if (end < st->size()) {
+	array_t<uint32_t> tmp(st, start, end);
 	cbounds.swap(tmp);
     }
-    start += sizeof(uint32_t) * (nc+1);
+    start = end;
+    end += offsetsize * (nc+1);
     if (offsetsize == 8) {
-	array_t<int64_t> tmp(st, start, ncb+1);
+	array_t<int64_t> tmp(st, start, end);
 	coffset64.swap(tmp);
 	coffset32.clear();
 	if (coffset64.back() > static_cast<int64_t>(st->size())) {
@@ -110,7 +113,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 	}
     }
     else {
-	array_t<int32_t> tmp(st, start, ncb+1);
+	array_t<int32_t> tmp(st, start, end);
 	coffset32.swap(tmp);
 	coffset64.clear();
 	if (coffset32.back() > static_cast<int32_t>(st->size())) {

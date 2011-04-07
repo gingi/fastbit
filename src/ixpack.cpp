@@ -195,7 +195,8 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 	    8*((start+offsetsize*(nobs+1)+2*sizeof(uint32_t)+7)/8)
 	    +sizeof(double)*(nobs*3+2);
 	if (offsetsize == 8) {
-	    array_t<int64_t> nextlevel(st, nloff, nobs+1);
+	    array_t<int64_t> nextlevel(st, nloff,
+				       nloff+sizeof(int64_t)*(nobs+1));
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
@@ -221,7 +222,8 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 	    }
 	}
 	else {
-	    array_t<int32_t> nextlevel(st, nloff, nobs+1);
+	    array_t<int32_t> nextlevel(st, nloff,
+				       nloff+sizeof(int32_t)*(nobs+1));
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 5) {
 		ibis::util::logger lg(4);
@@ -833,7 +835,7 @@ int ibis::pack::read(ibis::fileManager::storage* st) {
 	8*((offsetsize*(nobs+1)+sizeof(uint32_t)+15)/8)
 	+sizeof(double)*(nobs*3+2);
     if (offsetsize == 8) {
-	array_t<int64_t> offs(st, nloff, nobs+1);
+	array_t<int64_t> offs(st, nloff, nloff+sizeof(int64_t)*(nobs+1));
 	if (offs.size() > nobs && offs.back() > offs.front()) {
 	    sub.resize(nobs);
 	    for (uint32_t i = 0; i < sub.size(); ++ i) {
@@ -847,7 +849,7 @@ int ibis::pack::read(ibis::fileManager::storage* st) {
 	}
     }
     else {
-	array_t<int32_t> offs(st, nloff, nobs+1);
+	array_t<int32_t> offs(st, nloff, nloff+sizeof(int32_t)*(nobs+1));
 	if (offs.size() > nobs && offs.back() > offs.front()) {
 	    sub.resize(nobs);
 	    for (uint32_t i = 0; i < sub.size(); ++ i) {

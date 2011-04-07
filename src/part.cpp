@@ -17,6 +17,12 @@
 #include "part.h"
 #include "iroster.h"
 #include "twister.h"	// ibis::MersenneTwister
+#include <stdio.h>
+#include <stdlib.h>	// RAND_MAX, rand()
+#include <stdarg.h>	// vsprintf(), ...
+#include <signal.h>
+#include <ctype.h>	// tolower
+#include <float.h>	// DBL_MAX, _finite
 
 #include <fstream>
 #include <sstream>	// std::ostringstream
@@ -24,12 +30,7 @@
 #include <typeinfo>	// typeid
 #include <stdexcept>	// std::invalid_argument
 #include <cmath>	// std::floor, std::ceil
-#include <stdio.h>
-#include <stdlib.h>	// RAND_MAX, rand()
-#include <stdarg.h>	// vsprintf(), ...
-#include <signal.h>
-#include <ctype.h>	// tolower
-#include <float.h>	// DBL_MAX, _finite
+#include <memory>	// std::auto_ptr
 
 #if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) \
 || defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW32__) \
@@ -186,10 +187,18 @@ extern "C" {
 		    if (! (col->upperBound() >= col->lowerBound()))
 			col->computeMinMax();
 		    col->loadIndex(pool.opt);
-		    col->unloadIndex();
-		    std::string snm;
-		    const char *fnm = col->dataFileName(snm);
-		    ibis::fileManager::instance().flushFile(fnm);
+		    if (col->indexedRows() != pool.tbl.nRows()) {
+			col->unloadIndex();
+			col->purgeIndexFile();
+			std::auto_ptr<ibis::index>
+			    tmp(ibis::index::create(col, 0, pool.opt));
+		    }
+		    else {
+			col->unloadIndex();
+		    }
+		    // std::string snm;
+		    // const char *fnm = col->dataFileName(snm);
+		    // ibis::fileManager::instance().flushFile(fnm);
 		}
 	    }
 	    return 0;
