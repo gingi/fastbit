@@ -74,7 +74,7 @@ ibis::zona::zona(const ibis::column* c, ibis::fileManager::storage* st,
     start += sizeof(uint32_t);
     end = start + sizeof(uint32_t) * (nc+1);
     {
-	array_t<uint32_t> tmp(st, start, nc+1);
+	array_t<uint32_t> tmp(st, start, end);
 	cbounds.swap(tmp);
     }
     start = end;

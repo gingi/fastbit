@@ -11,6 +11,9 @@
 	* src/column.cpp: add call ibis::fileManager::flushFile before
 	removing files in ibis::column::purgeIndexFile (likely the real
 	cause of the deadlock reported by Chavdar Kopeov)
+	* src/ixzona.cpp:77 replace nc+1 with end to address the problem
+	with test case 166 of match-counts (a change required by
+	2010-11-03 modification to array_t)
 
 2011-04-06 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: add function
