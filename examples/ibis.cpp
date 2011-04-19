@@ -4026,7 +4026,7 @@ static void doAppend(const char* dir) {
 	if (ibis::gVerbose > 3 ||
 	    (ibis::gVerbose >= 0 && testing > 0)) {// self test after append
 	    int nth = static_cast<int>(ibis::gVerbose < 20
-				       ? 1+sqrt(ibis::gVerbose)
+				       ? 1+sqrt((double)ibis::gVerbose)
 				       : 3+log((double)ibis::gVerbose));
 	    tbl->buildIndexes();
 	    ierr = tbl->selfTest(nth);

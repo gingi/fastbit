@@ -5082,12 +5082,13 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
 /// Actually compute the min and max of each attribute and write out a new
 /// metadata file for the data partition.
 void ibis::part::computeMinMax() {
-    writeLock lock(this, "computeMinMax");
     for (columnList::iterator it=columns.begin(); it!=columns.end(); ++it) {
 	(*it).second->computeMinMax();
     }
 
     if (activeDir == 0) return;
+    // limit the scope of lock to write operation only
+    writeLock lock(this, "computeMinMax");
     writeMetaData(nEvents, columns, activeDir);
 
     Stat_T tmp;
@@ -5128,7 +5129,7 @@ void ibis::part::buildSorted(const char* cname) const {
 /// indexes.
 /// @sa ibis::part::loadIndexes
 void ibis::part::buildIndexes(const char* iopt, int nthr) {
-    writeLock lock(this, "buildIndexes");
+    readLock lock(this, "buildIndexes");
     ibis::horometer timer;
     timer.start();
     if (ibis::gVerbose > 5)
@@ -5326,7 +5327,7 @@ void ibis::part::unloadIndexes() const {
 /// function is useful after changing the index specification before
 /// rebuilding a set of new indices.
 void ibis::part::purgeIndexFiles() const {
-    writeLock lock(this, "purgeIndexFiles");
+    readLock lock(this, "purgeIndexFiles");
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();
 	 ++ it) {

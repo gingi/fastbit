@@ -746,11 +746,11 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 /// content of storage object.
 int ibis::fileManager::getFile(const char* name, storage** st,
 			       ACCESS_PREFERENCE pref) {
-    if (name == 0 || *name == 0) return -100;
+    if (name == 0 || *name == 0 || st == 0) return -100;
     int ierr = 0;
     uint64_t bytes = 0; // the file size in bytes
     std::string evt = "fileManager::getFile";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	evt += '(';
 	evt += name;
 	evt += ')';
@@ -922,9 +922,8 @@ int ibis::fileManager::getFile(const char* name, storage** st,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::getFile(" << name
-	    << ") failed retrieving " << bytes << " bytes (actually retrieved "
-	    << tmp->size() << ")";
+	    << "Warning -- " << evt << " failed retrieving " << bytes
+	    << " bytes (actually retrieved " << tmp->size() << ")";
 	delete tmp;
 	ierr = -104;
     }
@@ -944,6 +943,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 /// read the whole file into memory.
 int ibis::fileManager::tryGetFile(const char* name, storage** st,
 				  ACCESS_PREFERENCE pref) {
+    if (name == 0 || *name == 0 || st == 0) return -100;
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 5)
 	<< "DEBUG -- fileManager::tryGetFile -- attempt to retrieve \"" << name
@@ -952,8 +952,14 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 #endif
     int ierr = 0;
     uint64_t bytes = 0; // the file size in bytes
+    std::string evt = "fileManager::tryGetFile";
+    if (ibis::gVerbose > 0) {
+	evt += '(';
+	evt += name;
+	evt += ')';
+    }
     //20100922readLock rock("tryGetFile");
-    ibis::util::mutexLock lck(&mutex, "fileManager::tryGetFile");
+    ibis::util::mutexLock lck(&mutex, evt.c_str());
 
     // is the named file among those mapped ?
     fileList::iterator it = mapped.find(name);
@@ -975,8 +981,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	    bytes = tmp.st_size;
 	    if (bytes == 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "fileManager::tryGetFile(" << name
-		    << ") file is empty.";
+		    << "Warning -- " << evt << " can process an empty file";
 		ierr = -106;
 		return ierr;
 	    }
@@ -984,8 +989,9 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	else {
 	    if (ibis::gVerbose > 11 || errno != ENOENT) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "fileManager::tryGetFile(" << name
-		    << ") -- command stat failed: " << strerror(errno);
+		    << "Warning -- " << evt
+		    << " failed to find stat of the named file -- "
+		    << strerror(errno);
 	    }
 	    ierr = -101;
 	    return ierr;
@@ -1002,8 +1008,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
     }
     reading.insert(name); // record the name
     LOGGER(ibis::gVerbose > 5)
-	<< "fileManager::tryGetFile -- attempting to read " << name
-	<< "(" << bytes << " bytes)";
+	<< evt << " determined the file size to be " << bytes;
 
     //////////////////////////////////////////////////////////////////////
     // need to actually open it up -- need to modify the two lists
@@ -1041,7 +1046,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
     if (tmp->size() == bytes) {
 	recordFile(tmp);
 	LOGGER(ibis::gVerbose > 5)
-	    << "fileManager::tryGetFile(" << name << ") completed "
+	    << evt << " completed "
 	    << (tmp->isFileMap()?"mmapping":"retrieving") << " "
 	    << tmp->size() << " bytes";
 
@@ -1052,8 +1057,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
 	    double rt1 = tcpu > 0 ? (1e-6*tmp->size()/tcpu) : 0.0;
 	    double rt2 = treal > 0 ? (1e-6*tmp->size()/treal) : 0.0;
 	    ibis::util::logger lg;
-	    lg() << "fileManager -- tryGetFile(" << name
-		 << ") took " << treal << " sec(elapsed) ["
+	    lg() << evt << " took " << treal << " sec(elapsed) ["
 		 << tcpu  << " sec(CPU)] to "
 		 << (tmp->isFileMap()?"mmap ":"read ") << tmp->size()
 		 << " bytes at a speed of " << rt2
@@ -1069,9 +1073,8 @@ int ibis::fileManager::tryGetFile(const char* name, storage** st,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::tryGetFile(" << name
-	    << ") failed retrieving " << bytes << " bytes (actually retrieved "
-	    << tmp->size() << ")";
+	    << "Warning -- " << evt << " failed retrieving "
+	    << bytes << " bytes (actually retrieved " << tmp->size() << ")";
 	delete tmp;
 	ierr = -107;
     }

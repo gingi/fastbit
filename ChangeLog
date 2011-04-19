@@ -1,3 +1,11 @@
+2011-04-19 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: change part::buildIndexes and
+	part::purgeIndexFiles from using writeLock to using readLock
+
+2011-04-18 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.cpp:955 add variable evt to make the log
+	message more uniform in function fileManager::tryGetFile
+
 2011-04-07 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: update test case 2 of check-ibis to match the
 	changes in printing formats in examples/ibis.cpp

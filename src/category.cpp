@@ -158,7 +158,7 @@ void ibis::category::readDictionary(const char *dir) const {
     fnm += m_name;
     fnm += ".dic"; // suffix of the dictionary
     int ierr = dic.read(fnm.c_str());
-    LOGGER(ierr < 0 && ibis::gVerbose > 1)
+    LOGGER(ierr < 0 && ibis::gVerbose > 2)
 	<< "Warning -- category[" << (thePart ? thePart->name() : "?") << '.'
 	<< m_name << "] failed to read dictionary file " << fnm << ", ierr = "
 	<< ierr;
