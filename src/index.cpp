@@ -305,7 +305,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    if (ierr != 0) {
 			LOGGER(ibis::gVerbose > 7)
 			    << "index::create tryGetFile(" << file
-			    << " failed with return code " << ierr;
+			    << ") failed with return code " << ierr;
 			st = 0;
 		    }
 		    if (st)
@@ -590,10 +590,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			ind = new ibis::keywords(c, st);
 		    }
 		    else {
-			const ibis::column* idcol =
-			    reinterpret_cast<const ibis::text*>(c)->
-			    IDColumnForKeywordIndex();
-			ind = new ibis::keywords(c, idcol, file.c_str());
+			ind = new ibis::keywords(c, file.c_str());
 		    }
 		    break;
 		case ibis::index::DIREKTE:
@@ -664,10 +661,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		return ind;
 	    }
 	    else if (c->type() == ibis::TEXT) {
-		const ibis::column* idcol =
-		    reinterpret_cast<const ibis::text*>(c)->
-		    IDColumnForKeywordIndex();
-		ind = new ibis::keywords(c, idcol, file.c_str());
+		ind = new ibis::keywords(c, file.c_str());
 		return ind;
 	    }
 	    else { // need to build a new index from attribute values
@@ -730,10 +724,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			    fillIndex(file.c_str());
 			break;}
 		    case ibis::TEXT: {
-			const ibis::column* idcol =
-			    reinterpret_cast<const ibis::text*>(c)->
-			    IDColumnForKeywordIndex();
-			ind = new ibis::keywords(c, idcol, file.c_str());
+			ind = new ibis::keywords(c, file.c_str());
 			break;}
 		    default: {
 			c->logWarning("createIndex", "not able to "
@@ -1009,10 +1000,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    return reinterpret_cast<const ibis::category*>(c)->fillIndex();
 	}
 	else if (c->type() == ibis::TEXT) {
-	    const ibis::column* idcol =
-		reinterpret_cast<const ibis::text*>(c)->
-		IDColumnForKeywordIndex();
-	    ind = new ibis::keywords(c, idcol);
+	    ind = new ibis::keywords(c);
 	    return ind;
 	}
 	else { // build a new index from attribute values
@@ -1074,10 +1062,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			fillIndex();
 		    break;}
 		case ibis::TEXT: {
-		    const ibis::column* idcol =
-			reinterpret_cast<const ibis::text*>(c)->
-			IDColumnForKeywordIndex();
-		    ind = new ibis::keywords(c, idcol);
+		    ind = new ibis::keywords(c);
 		    break;}
 		default: {
 		    c->logWarning("createIndex", "no default index type for "

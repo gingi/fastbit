@@ -12,28 +12,73 @@
 #include "category.h"	// definitions of string-valued columns
 
 /// Class ibis::keywords defines a boolean term-document matrix.  The
-/// terms are stored in an ibis::dictionary and the bits are stored in a
+/// terms are stored in an ibis::dictionary and the bitmaps are stored in a
 /// series of bitvectors.
 ///
-/// The current implementation requires a @c .tdlist file alongside the
-/// binary string values.  In addition, it uses an entry in the ibis.rc
-/// file of the following form to specify the ids used in the @c .tdlist
-/// file.
+/// The current implementation can either read a term-document list or parse
+/// the binary string values with a list of delimiters for determining
+/// tokens.  It first checks for the presence of a term-document list which
+/// can be explicitly or implicitly specified.  Here are the options.
+/// @li Specifying tdlist in the indexing option, e.g.,
+/// @code
+/// index=keywords tdlist=filename
+/// @endcode
 ///
+/// @li Specifying tdlist in a configuration file, e.g.,
+/// @code
+/// <table-name>.<column-name>.tdlist=filename
+/// @endcode
+///
+/// @li Placing a file named <column-name.tdlist among the data files.
+/// This ithe implicit option.
+///
+/// Note that the filename given above can be either a fully qualified name
+/// or a name in the same directory as the data file.
+///
+/// If a term-document list is provided, the document id used in the list
+/// may be specified explicitly through docIdName either in the index
+/// specification or in a configuration file.  An example of index
+/// specification is as follows
+/// @code
+/// index=keywords tdlist=filename docidname=mid
+/// @endcode
+///
+/// In a configuration file, the syntax for specifying a docIdName is as
+/// follows.
+/// @code
 /// <table-name>.<column-name>.docIDName=<id-column-name>
-///
+/// @endcode
 /// For example,
-///
+/// @code
 /// enrondata.subject.docIDName=mid
 /// enrondata.body.docIDName=mid
-///
+/// @endcode
 /// If an ID column is not specified, the integer IDs in the @c .tdlist
-/// file is assumed to the row number.
+/// file is assumed to the row numbers.
+///
+/// If the term-document list is not explicitly specified, one may specify
+/// a list of delimiters for the tokenizer to parse the text values.  The
+/// list of delimiters can be specified in either the index option or
+/// through a configuration file.  Here is an example with indexing option
+/// @code
+/// index=keywords delimiters=" \t,;"
+/// @endcode
+///
+/// The following is an example line in a configuration file (say, ibis.rc)
+/// @code
+/// <table-name>.<column-name>.delimiters=" \t,;"
+/// @endcode
+///
+/// There are two different ways of building a keyword index and they can
+/// each be specified explicitly or implicitly.  The precedence is as
+/// follows: an explicitly specified option takes precedence over an
+/// implicitly option, the term-document list has precedence over built-in
+/// parser.
+///
 class ibis::keywords : public ibis::index {
 public:
     virtual ~keywords() {clear();}
-    keywords(const ibis::column* c,
-	     const ibis::column* idcol=0, const char* f=0);
+    explicit keywords(const ibis::column* c, const char* f=0);
     keywords(const ibis::column* c, ibis::text::tokenizer& tkn,
 	     const char* f=0);
     keywords(const ibis::column* c, ibis::fileManager::storage* st);
@@ -145,7 +190,7 @@ class ibis::keywords::tokenizer : public ibis::text::tokenizer {
 public:
     /// Constructor.  It takes a list of delimiters.  Any character in the
     /// list of delimiters will terminate a token.  If no delimiter is
-    /// given anything other than alphanumerical characters will terminate
+    /// given, anything other than alphanumerical characters will terminate
     /// a token.
     tokenizer(const char *d=0) : delim_(d) {}
     /// Destructor.

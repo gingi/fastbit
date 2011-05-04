@@ -1032,7 +1032,7 @@ const char* ibis::category::isKey(const char* str) const {
 // functions for ibis::text
 ibis::text::text(const part* tbl, FILE* file) : ibis::column(tbl, file) {
 #ifdef FASTBIT_EAGER_INIT_TEXT
-    if (thePart != 0 && thePart->nRows() > 0U)
+    if (thePart != 0)
 	startPositions(thePart->currentDataDir(), 0, 0);
 #endif
 }
@@ -1041,7 +1041,7 @@ ibis::text::text(const part* tbl, FILE* file) : ibis::column(tbl, file) {
 ibis::text::text(const part* tbl, const char* name, ibis::TYPE_T t)
     : ibis::column(tbl, t, name) {
 #ifdef FASTBIT_EAGER_INIT_TEXT
-    if (thePart != 0 && thePart->nRows() > 0U)
+    if (thePart != 0 && thePart->currentDataDir() != 0)
 	startPositions(thePart->currentDataDir(), 0, 0);
 #endif
 }
@@ -1052,7 +1052,7 @@ ibis::text::text(const ibis::column& col) : ibis::column(col) {
 	throw "Must be either TEXT or CATEGORY";
     }
 #ifdef FASTBIT_EAGER_INIT_TEXT
-    if (thePart != 0 && thePart->nRows() > 0U)
+    if (thePart != 0 && thePart->urrentDataDir() != 0)
 	startPositions(thePart->currentDataDir(), 0, 0);
 #endif
 } // copy constructor
@@ -2809,6 +2809,81 @@ const ibis::column* ibis::text::IDColumnForKeywordIndex() const {
     }
     return idcol;
 } // ibis::text::IDColumnForKeywordIndex
+
+const void ibis::text::TDListForKeywordIndex(std::string& fname) const {
+    fname.erase(); // erase existing content in fname
+    if (thePart != 0 && thePart->currentDataDir() != 0)
+	startPositions(thePart->currentDataDir(), 0, 0);
+
+    const char* spec = indexSpec();
+    if (spec != 0 && *spec != 0) {
+	const char* str = strstr(spec, "tdlist");
+	if (str == 0) {
+	    str = strstr(spec, "TDList");
+	    if (str == 0) {
+		str = strstr(spec, "tdList");
+		if (str == 0)
+		    str = strstr(spec, "TDLIST");
+	    }
+	}
+	if (str != 0 && *str != 0) {
+	    str += 5;
+	    str += strspn(str, " \t=");
+	    (void) ibis::util::readString(fname, str);
+	}
+    }
+    if (fname.empty()) {
+	std::string idcpar = partition()->name();
+	idcpar += '.';
+	idcpar += m_name;
+	idcpar += ".TDList";
+	const char* idname = ibis::gParameters()[idcpar.c_str()];
+	if (idname != 0)
+	    fname = idname;
+    }
+} // ibis::text::TDListForKeywordIndex
+
+const void ibis::text::delimitersForKeywordIndex(std::string& fname) const {
+    fname.erase(); // erase existing content in fname
+    const char* spec = indexSpec();
+    if (spec != 0 && *spec != 0) {
+	const char* str = strstr(spec, "delimiters");
+	if (str == 0) {
+	    str = strstr(spec, "Delimiters");
+	    if (str == 0) {
+		str = strstr(spec, "DELIMITERS");
+	    }
+	}
+	if (str != 0 && *str != 0) {
+	    str += 10;
+	    str += strspn(str, " \t=");
+	    (void) ibis::util::readString(fname, str);
+	}
+	else {
+	    str = strstr(spec, "delim");
+	    if (str == 0) {
+		str = strstr(spec, "Delim");
+		if (str == 0) {
+		    str = strstr(spec, "DELIM");
+		}
+	    }
+	    if (str != 0 && *str != 0) {
+		str += 5;
+		str += strspn(str, " \t=");
+		(void) ibis::util::readString(fname, str);
+	    }
+	}
+    }
+    if (fname.empty()) {
+	std::string idcpar = partition()->name();
+	idcpar += '.';
+	idcpar += m_name;
+	idcpar += ".delimiters";
+	const char* idname = ibis::gParameters()[idcpar.c_str()];
+	if (idname != 0)
+	    fname = idname;
+    }
+} // ibis::text::delimitersForKeywordIndex
 
 long ibis::text::keywordSearch(const char* str, ibis::bitvector& hits) const {
     long ierr = 0;

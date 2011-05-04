@@ -1,3 +1,12 @@
+2011-05-03 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: remove idcol from index::create
+	* src/ikeywords.h, src/ikeywords.cpp: refactor the default
+	constructor of ibis::keywords to make more consistent use of the
+	internal parser (to address a problem reported by Gunter Hick
+	<hick at scigames.at>)
+	* src/category.h, src/category.cpp: add functions
+	text::TDListForKeywordIndex and delimitersForKeywordIndex
+
 2011-04-19 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: change part::buildIndexes and
 	part::purgeIndexFiles from using writeLock to using readLock
