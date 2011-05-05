@@ -4,17 +4,17 @@
 // Copyright 2006-2011 the Regents of the University of California
 #ifndef IBIS_CAPI_H
 #define IBIS_CAPI_H
-/// @file
-/// This header file defines a C API for accessing functions of FastBit
-/// IBIS implementations.  It deals with data tables as directories and
-/// queries as pointers to struct FastBitQuery.
+/// @file This header file defines a C API for accessing the querying
+/// functionality of FastBit IBIS implementations.  It deals with data
+/// tables as directories and queries as pointers to the struct
+/// FastBitQuery.
 ///
 /// @note For functions that return integer error code, 0 always indicate
 /// success, a negative number indicate error, a positive number may also be
 /// returned to carry results, such as in fastbit_get_result_size.
 ///
-/// @note For functions that returns pointers, they return a nil
-/// pointer in case of error.
+/// @note For functions that returns pointers, a nil pointer is returned in
+/// case of error.
 ///
 /// An example of using these functions is in <A
 /// HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/tcapi_8c.html">examples/tcapi.c</A>.

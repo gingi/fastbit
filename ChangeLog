@@ -6,6 +6,8 @@
 	<hick at scigames.at>)
 	* src/category.h, src/category.cpp: add functions
 	text::TDListForKeywordIndex and delimitersForKeywordIndex
+	* configure.ac: add option --enable-static-pic to add options
+	"-static -fPIC".  These flags are needed for compute node linux
 
 2011-04-19 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: change part::buildIndexes and

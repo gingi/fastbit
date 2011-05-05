@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.2.3.1],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.2.3.2],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -67,6 +67,13 @@ AC_CHECK_FUNCS([gettimeofday mkdir] , ,)
 #AC_DEFINE_UNQUOTED(FASTBIT_VERSION, ${PACKAGE_VERSION}, [Define to the version of this package.])
 #AC_DEFINE_UNQUOTED(FASTBIT_STRING, ${PACKAGE_STRING}, [Define to the full name and version of this package.])
 #AC_DEFINE_UNQUOTED(FASTBIT_NAME, ${PACKAGE_NAME}, [Define to the full name of this package.])
+
+AC_ARG_ENABLE(static-pic,
+	[AS_HELP_STRING([--enable-static-pic],[add '-static -fPIC' for some systems such as compute node linux (default: no)])],
+	[if test "$enableval" = "yes" ; then
+	CFLAGS="${CFLAGS} -static -fPIC"
+	CXXFLAGS="${CXXFLAGS} -static -fPIC"
+	fi])
 
 AC_MSG_CHECKING(whether to enable debugging)
 AC_ARG_ENABLE(debug,
