@@ -37,7 +37,7 @@ pthread_mutex_t ibis::util::ioLock::mutex = PTHREAD_MUTEX_INITIALIZER;
 /// A list of 65 printable ASCII characters that are not special to most of
 /// the command interpreters.  The first 64 of them are basically the same
 /// as specified in RFC 3548 for base-64 numbers, but appear in different
-/// order.  A set of numbers represented using this base-64 representation
+/// order.  A set of numbers represented in this base-64 representation
 /// will be sorted in the same order as their decimal representations.
 const char* ibis::util::charTable =
 "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~";
@@ -398,7 +398,7 @@ int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
 	    }
 	    else if (val > 0) { // overflow
 		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- util::readUInt encounters an overflow: adding "
+		    << "Warning -- readUInt encounters an overflow: adding "
 		    << *str << " to " << val << " causes it to become " << tmp
 		    << ", reset val to 0";
 		val = 0;
@@ -416,7 +416,7 @@ int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
 	    }
 	    else if (val > 0) { // overflow
 		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- util::readUInt encounters an overflow: adding "
+		    << "Warning -- readUInt encounters an overflow: adding "
 		    << *str << " to " << val << " causes it to become " << tmp
 		    << ", reset val to 0";
 		val = 0;
@@ -565,13 +565,10 @@ int ibis::util::copy(const char* to, const char* from) {
     if (buf) { // got a sizeable buffer to use
 	while ((i = UnixRead(fdes, buf, nbuf))) {
 	    j = UnixWrite(tdes, buf, i);
-	    if (i != j) {
-		ibis::util::logMessage("Warning", "util::copy(%s, %s) "
-				       "failed to write %lu bytes, only %lu "
-				       "bytes are written", to, from,
-				       static_cast<long unsigned>(i),
-				       static_cast<long unsigned>(j));
-	    }
+	    LOGGER(i != j)
+		<< "Warning -- util::copy(" << to << ", " << from
+		<< ") failed to write " << i << " bytes, only " << j
+		<< " bytes are written";
 	}
 	delete [] buf;
     }
@@ -581,13 +578,10 @@ int ibis::util::copy(const char* to, const char* from) {
 	nbuf = 256;
 	while ((i = UnixRead(fdes, sbuf, nbuf))) {
 	    j = UnixWrite(tdes, sbuf, i);
-	    if (i != j) {
-		ibis::util::logMessage("Warning", "util::copy(%s, %s) "
-				       "failed to write %lu bytes, only %lu "
-				       "bytes are written", to, from,
-				       static_cast<long unsigned>(i),
-				       static_cast<long unsigned>(j));
-	    }
+	    LOGGER(i != j)
+		<< "Warning -- util::copy(" << to << ", " << from
+		<< ") failed to write " << i << " bytes, actually wrote "
+		<< j;
 	}
     }	
 

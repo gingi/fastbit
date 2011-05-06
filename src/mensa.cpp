@@ -2519,8 +2519,7 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 		      (buffer[j].cval))[il]);
 	    }
 	    else {
-		res.floatsvalues.push_back
-		    (std::numeric_limits<float>::quiet_NaN());
+		res.floatsvalues.push_back(FASTBIT_FLOAT_NULL);
 	    }
 	    break;}
 	case ibis::DOUBLE: {
@@ -2531,8 +2530,7 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 		      (buffer[j].cval))[il]);
 	    }
 	    else {
-		res.doublesvalues.push_back
-		    (std::numeric_limits<double>::quiet_NaN());
+		res.doublesvalues.push_back(FASTBIT_DOUBLE_NULL);
 	    }
 	    break;}
 	case ibis::BLOB: {
@@ -3925,8 +3923,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    array_t<double> tmp;
 		    ierr = (*it)->calculate(*aterm, *hits, tmp);
 		    ibis::util::addIncoreData
-			(buff[i], tmp, nh,
-			 std::numeric_limits<double>::quiet_NaN());
+			(buff[i], tmp, nh, FASTBIT_DOUBLE_NULL);
 		}
 	    }
 	    else {
@@ -4064,8 +4061,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    if (tmp.get() != 0) {
 			if (nh > 0) {
 			    ibis::util::addIncoreData
-				(buff[i], *tmp, nh,
-				 std::numeric_limits<float>::quiet_NaN());
+				(buff[i], *tmp, nh, FASTBIT_FLOAT_NULL);
 			}
 			else {
 			    buff[i] = tmp.release();
@@ -4078,8 +4074,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 		    if (tmp.get() != 0) {
 			if (nh > 0) {
 			    ibis::util::addIncoreData
-				(buff[i], *tmp, nh,
-				 std::numeric_limits<double>::quiet_NaN());
+				(buff[i], *tmp, nh, FASTBIT_DOUBLE_NULL);
 			}
 			else {
 			    buff[i] = tmp.release();

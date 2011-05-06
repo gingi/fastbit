@@ -761,6 +761,7 @@ enable_static_pic
 enable_debug
 enable_xopt
 with_getpwuid
+enable_quiet_nan
 with_pthread
 with_java
 '
@@ -1409,6 +1410,9 @@ Optional Features:
   --enable-debug          turn on debugging (default: set by autoconf)
   --enable-xopt           turn on extra optimization (default: no, leave the
                           default CXXFLAGS alone)
+  --enable-quiet-nan      attempt use std::numeric_limits<T>::quiet_NaN() as
+                          the null value, if not possible, use
+                          std::nueric_limits<T>::max() instead
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -15617,6 +15621,76 @@ fi
 fi
 
 
+# Check whether --enable-quiet-nan was given.
+if test "${enable_quiet_nan+set}" = set; then :
+  enableval=$enable_quiet_nan; if test "$enableval" = "no"; then try_quiet_nan=0;
+	else try_quiet_nan=1; fi
+else
+  try_quiet_nan=2
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for quiet_NaN" >&5
+$as_echo_n "checking for quiet_NaN... " >&6; }
+if test ${try_quiet_nan} -ne 0 ; then
+  if test "$cross_compiling" = yes; then :
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot run test program while cross compiling
+See \`config.log' for more details" "$LINENO" 5; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdlib.h>
+#include <limits>
+int
+main ()
+{
+try {
+     double tmp = std::numeric_limits<double>::quiet_NaN();
+     tmp *= 1.0 + rand();
+     return(tmp == tmp);
+     }
+     catch (...) {
+       return -1;
+     }
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, use quiet_NaN() as null values" >&5
+$as_echo "yes, use quiet_NaN() as null values" >&6; }
+
+$as_echo "#define FASTBIT_FLOAT_NULL std::numeric_limits<float>::quiet_NaN()" >>confdefs.h
+
+
+$as_echo "#define FASTBIT_DOUBLE_NULL std::numeric_limits<double>::quite_NaN()" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, use max() as null values" >&5
+$as_echo "no, use max() as null values" >&6; }
+
+$as_echo "#define FASTBIT_FLOAT_NULL std::numeric_limits<float>::max()" >>confdefs.h
+
+
+$as_echo "#define FASTBIT_DOUBLE_NULL std::numeric_limits<double>::max()" >>confdefs.h
+
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: use max() as null values based the user supplied option" >&5
+$as_echo "use max() as null values based the user supplied option" >&6; }
+
+$as_echo "#define FASTBIT_FLOAT_NULL std::numeric_limits<float>::max()" >>confdefs.h
+
+
+$as_echo "#define FASTBIT_DOUBLE_NULL std::numeric_limits<double>::max()" >>confdefs.h
+
+fi
+
 
 # Check whether --with-pthread was given.
 if test "${with_pthread+set}" = set; then :
@@ -16232,7 +16306,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16235 "configure" */
+/* #line 16309 "configure" */
 public class Test {
 }
 EOF
@@ -16363,7 +16437,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 16366: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 16440: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -16440,7 +16514,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16443 "configure" */
+/* #line 16517 "configure" */
 public class Test {
 }
 EOF
@@ -16475,7 +16549,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 16478 "configure" */
+/* [#]line 16552 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

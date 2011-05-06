@@ -733,12 +733,12 @@ int ibis::tafel::append(const char* cn, uint64_t begin, uint64_t end,
     case ibis::FLOAT:
 	append(static_cast<const float*>(values), be, en,
 	       *static_cast<array_t<float>*>(col.values),
-	       std::numeric_limits<float>::quiet_NaN(), col.mask);
+	       FASTBIT_FLOAT_NULL, col.mask);
 	break;
     case ibis::DOUBLE:
 	append(static_cast<const double*>(values), be, en,
 	       *static_cast<array_t<double>*>(col.values),
-	       std::numeric_limits<double>::quiet_NaN(), col.mask);
+	       FASTBIT_DOUBLE_NULL, col.mask);
 	break;
     case ibis::TEXT:
     case ibis::CATEGORY:
@@ -1083,7 +1083,7 @@ void ibis::tafel::normalize() {
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				std::numeric_limits<float>::quiet_NaN());
+				FASTBIT_FLOAT_NULL);
 		}
 	    }
 	    else if (vals.size() > mrows) {
@@ -1103,7 +1103,7 @@ void ibis::tafel::normalize() {
 		else {
 		    col.mask.adjustSize(vals.size(), mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
-				std::numeric_limits<double>::quiet_NaN());
+				FASTBIT_DOUBLE_NULL);
 		}
 	    }
 	    else if (vals.size() > mrows) {
@@ -2001,7 +2001,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     *static_cast<const array_t<float>*>(col.values),
-		     std::numeric_limits<float>::quiet_NaN(), msk, col.mask);
+		     FASTBIT_FLOAT_NULL, msk, col.mask);
 	    }
 	    break;
 	case ibis::DOUBLE:
@@ -2015,7 +2015,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, mrows,
 		     *static_cast<const array_t<double>*>(col.values), 
-		     std::numeric_limits<double>::quiet_NaN(), msk, col.mask);
+		     FASTBIT_DOUBLE_NULL, msk, col.mask);
 	    }
 	    break;
 	case ibis::TEXT:
@@ -2875,7 +2875,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    }
 	    else {
 		static_cast<array_t<float>*>(col.values)
-		    ->push_back(std::numeric_limits<float>::quiet_NaN());
+		    ->push_back(FASTBIT_FLOAT_NULL);
 		col.mask += 0;
 		LOGGER(ibis::gVerbose > 3)
 		    << "tafel::parseLine treating column " << i+1
@@ -2891,7 +2891,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    }
 	    else {
 		static_cast<array_t<double>*>(col.values)
-		    ->push_back(std::numeric_limits<double>::quiet_NaN());
+		    ->push_back(FASTBIT_DOUBLE_NULL);
 		col.mask += 0;
 		LOGGER(ibis::gVerbose > 3)
 		    << "tafel::parseLine treating column " << i+1

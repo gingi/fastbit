@@ -39,7 +39,7 @@ EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv \
 
 #
 # tests with different levels of thoroughness
-check: clean-tmp check-am
+check: clean-tmp check-am TESTDIR
 	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} >> $(TESTDIR)/stdout.log 2>&1
 	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
@@ -200,24 +200,28 @@ check-labeling: $(IBISEXE) $(TESTDIR)/m0/-part.txt $(TESTDIR)/m1/-part.txt
 	@echo
 #
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@rm -rf $(TESTDIR)/t0
-	@$(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/t0/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@rm -rf $(TESTDIR)/t1
-	@$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
-	@$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@if [ ! -f $(TESTDIR)/t1/-part.txt ] ; then \
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	fi
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt TESTDIR
-	@echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
+	@test -f $(TESTDIR)/rowlist || (echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;)
 $(TESTDIR)/t2/t2a/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/t2/t2a/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/t2/t2b/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@if [ ! -f $(TESTDIR)/t2/t2b/-part.txt ] ; then \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	fi
 $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
-	@$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@if [ ! -f $(TESTDIR)/t2/t2c/-part.txt ] ; then \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	fi
 # a simple internal sanity check
 sanity-check: $(TESTDIR)/stdout.log $(IBISEXE) $(TESTDIR)/append.log
 	@echo
@@ -329,7 +333,7 @@ check-sq0: $(THULAEXE) $(TESTDIR)/sq0 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -eq 0 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
 $(TESTDIR)/sq0: setqgen$(EXEEXT) TESTDIR
-	@./setqgen$(EXEEXT) $(TESTDIR)/sq0 1.6e6 7e5 >| $(TESTDIR)/check-sq0.log 2>&1
+	@test -d $(TESTDIR)/sq0 || ./setqgen$(EXEEXT) $(TESTDIR)/sq0 1.6e6 7e5 >| $(TESTDIR)/check-sq0.log 2>&1
 # testing with enough rows to fill the disk cache, completing this set
 # of tests might take an hour on a typical machine with at least 4GB of
 # memory.  More memory will typlically reduce the test time, but not
@@ -343,7 +347,7 @@ check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -le 200 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
 $(TESTDIR)/sq1: setqgen$(EXEEXT) $(TESTDIR)/smallmem3.rc TESTDIR
-	@./setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
+	@test -d $(TESTDIR)/sq1 || ./setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
 # testing with 1 billion rows, will encounter failures
 check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
@@ -353,7 +357,7 @@ check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallme
 	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
 $(TESTDIR)/sq2: setqgen$(EXEEXT) TESTDIR
-	@./setqgen$(EXEEXT) $(TESTDIR)/sq2 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
+	@test -d $(TESTDIR)/sq2 || ./setqgen$(EXEEXT) $(TESTDIR)/sq2 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
 #
 TESTDIR:
 	@test -d $(TESTDIR) || (mkdir -p $(TESTDIR) && echo "File $@/stdout.log started on " `/bin/date` >> $(TESTDIR)/stdout.log)
@@ -364,31 +368,26 @@ $(TESTDIR)/1: $(TESTDIR)
 $(TESTDIR)/2: $(TESTDIR)
 	@test -d $(TESTDIR)/2 || mkdir $(TESTDIR)/2
 $(TESTDIR)/marksdb/-part.txt: readcsv$(EXEEXT) marksdb.csv TESTDIR
-	-rm -rf $(TESTDIR)/marksdb
-	-./readcsv marksdb.csv $(TESTDIR)/marksdb >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/marksdb/-part.txt || ./readcsv marksdb.csv $(TESTDIR)/marksdb >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/maurel/-part.txt: readcsv$(EXEEXT) maurel.csv TESTDIR
-	-rm -rf $(TESTDIR)/maurel
-	-./readcsv maurel.csv $(TESTDIR)/maurel >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/maurel/-part.txt || ./readcsv maurel.csv $(TESTDIR)/maurel >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/jrf/-part.txt: jrf$(EXEEXT) TESTDIR
-	-rm -rf $(TESTDIR)/jrf
-	-./jrf$(EXEEXT) $(TESTDIR)/jrf 1e5 >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/jrf/-part.txt || ./jrf$(EXEEXT) $(TESTDIR)/jrf 1e5 >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT) TESTDIR
-	-./readcsv test0.csv $(TESTDIR)/0/test0 >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/0/test0/-part.txt || ./readcsv test0.csv $(TESTDIR)/0/test0 >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT) TESTDIR
-	-./readcsv test1.csv $(TESTDIR)/0/test1 >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/0/test1/-part.txt || ./readcsv test1.csv $(TESTDIR)/0/test1 >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/m0/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@rm -rf $(TESTDIR)/m0
-	@$(ARDEAEXE) -d $(TESTDIR)/m0 -m "a:b, b:f, c:s" -t test0.csv -tag "meshShape=(20,5)" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/m0/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/m0 -m "a:b, b:f, c:s" -t test0.csv -tag "meshShape=(20,5)" >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/m1/-part.txt: $(ARDEAEXE) test1.csv TESTDIR
-	@rm -rf $(TESTDIR)/m1
-	@$(ARDEAEXE) -d $(TESTDIR)/m1 -m "a0:d, a1:b, a2:b, b0:f, b1:s, b2:s, c0:f, c1:i, c2:i" -t test1.csv -tag "meshShape=(10, 10, 10)" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/m1/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/m1 -m "a0:d, a1:b, a2:b, b0:f, b1:s, b2:s, c0:f, c1:i, c2:i" -t test1.csv -tag "meshShape=(10, 10, 10)" >> $(TESTDIR)/stdout.log 2>&1
 # really small data partitions (wee == very small)
 $(TESTDIR)/w1/-part.txt: $(ARDEAEXE) TESTDIR
-	@$(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.1," >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.1," >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/w2/-part.txt: $(ARDEAEXE) TESTDIR
-	@$(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:f, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:f, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/w3/-part.txt: $(ARDEAEXE) TESTDIR
-	@$(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/w4/-part.txt: $(ARDEAEXE) TESTDIR
 	@$(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/stdout.log 2>&1
 	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt

@@ -7017,7 +7017,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 // #else
 // 	const int tmp = INT_MAX;	// likely also a NaN
 // #endif
-	const float tmp = std::numeric_limits<float>::quiet_NaN();
+	const float tmp = FASTBIT_FLOAT_NULL;
 	const unsigned int elem = sizeof(float);
 	if (ninfile != nold*elem) {
 	    logMessage("writeData", "file \"%s\" is expected to have %lu "
@@ -7082,7 +7082,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 // #else
 // 	const int tmp[2]={INT_MAX, INT_MAX};
 // #endif
-	const double tmp = std::numeric_limits<double>::quiet_NaN();
+	const double tmp = FASTBIT_DOUBLE_NULL;
 	const unsigned int elem = sizeof(double);
 	if (ninfile != nold*elem) {
 	    logMessage("writeData", "file \"%s\" is expected to have %lu "

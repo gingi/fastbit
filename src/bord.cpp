@@ -1505,8 +1505,7 @@ int ibis::bord::part::backup(const char* dir, const char* tname,
 	    array_t<float> *values = col.selectFloats(msk0);
 	    if (values != 0)
 		ierr = ibis::part::writeColumn
-		    (fdes, 0, nEvents, *values,
-		     std::numeric_limits<float>::quiet_NaN(), msk1, msk0);
+		    (fdes, 0, nEvents, *values, FASTBIT_FLOAT_NULL, msk1, msk0);
 	    else
 		ierr = -4;
 	    break;}
@@ -1514,8 +1513,8 @@ int ibis::bord::part::backup(const char* dir, const char* tname,
 	    array_t<double> *values = col.selectDoubles(msk0);
 	    if (values != 0)
 		ierr = ibis::part::writeColumn
-		    (fdes, 0, nEvents, *values, 
-		     std::numeric_limits<double>::quiet_NaN(), msk1, msk0);
+		    (fdes, 0, nEvents, *values, FASTBIT_DOUBLE_NULL,
+		     msk1, msk0);
 	    else
 		ierr = -4;
 	    break;}
@@ -7301,8 +7300,7 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 		      (buffer[j].cval))[curRow]);
 	    }
 	    else {
-		res.floatsvalues.push_back
-		    (std::numeric_limits<float>::quiet_NaN());
+		res.floatsvalues.push_back(FASTBIT_FLOAT_NULL);
 	    }
 	    break;}
 	case ibis::DOUBLE: {
@@ -7313,8 +7311,7 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 		      (buffer[j].cval))[curRow]);
 	    }
 	    else {
-		res.doublesvalues.push_back
-		    (std::numeric_limits<double>::quiet_NaN());
+		res.doublesvalues.push_back(FASTBIT_DOUBLE_NULL);
 	    }
 	    break;}
 	case ibis::CATEGORY: {

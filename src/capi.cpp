@@ -2278,23 +2278,28 @@ fastbit_flush_buffer(const char *dir) {
 
 /// All invocations of this function are adding data to a single in-memory
 /// buffer for a single data partition.
+///
 /// @arg colname Name of the column.  Must start with an alphabet and
 /// followed by a combination of alphanumerical characters.  Following the
-/// SQL standard, the column name is not case sensitive.
-/// @arg coltype The type of the values for the column.  The support types
-/// are: "text", "double", "float", "long", "int", "short", "byte", "ulong",
+/// SQL standard, the column name is not case sensitive.  @arg coltype The
+/// type of the values for the column.  The support types are: "category",
+/// "text", "double", "float", "long", "int", "short", "byte", "ulong",
 /// "uint", "ushort", and "ubyte".  Only the first non-space character is
-/// checked for the first seven types and only the first two characters are
-/// checked for the remaining types.  This string is not case sensitive.
+/// checked for the first eight types, and only the first two characters
+/// are checked for the remaining types.  This string is not case
+/// sensitive.
+///
 /// @arg vals The array containing the values.  It is expected to contain
 /// no less than @c nelem values, though only the first @c nelem values are
 /// used by this function.
+///
 /// @arg nelem The number of elements of the array @c vals to be added to
 /// the in-memory buffer.
-/// @arg start The position (row number) of the first element of the
-/// array.  Normally, this argument is zero (0) if all values are valid.
-/// One may use this argument to skip some rows and indicate to FastBit
-/// that the skipped rows contain NULL values.
+///
+/// @arg start The position (row number) of the first element of the array.
+/// Normally, this argument is zero (0) if all values are valid.  One may
+/// use this argument to skip some rows and indicate to FastBit that the
+/// skipped rows contain NULL values.
 extern "C" int
 fastbit_add_values(const char *colname, const char *coltype,
 		   void *vals, uint32_t nelem, uint32_t start) {
@@ -2321,6 +2326,10 @@ fastbit_add_values(const char *colname, const char *coltype,
     case 's': type = ibis::SHORT; break;
     case 'B':
     case 'b': type = ibis::BYTE; break;
+    case 'C':
+    case 'c':
+    case 'K':
+    case 'k': type = ibis::CATEGORY; break;
     case 'T':
     case 't': type = ibis::TEXT; break;
     case 'U':
@@ -2348,7 +2357,8 @@ fastbit_add_values(const char *colname, const char *coltype,
 	if (_capi_tablex == 0) return -3;
 
 	ierr = _capi_tablex->addColumn(colname, type);
-	if (coltype[0] == 't' || coltype[0] == 'T') {
+	if (type == ibis::TEXT || type == ibis::CATEGORY) {
+	    // copying incoming strings to a std::vector<std::string>
 	    std::vector<std::string> tvals(nelem);
 	    char **tmp = (char **)vals;
 	    for(int i=0; i<nelem; i++) {
@@ -2357,7 +2367,9 @@ fastbit_add_values(const char *colname, const char *coltype,
 	    }
 	    ierr = _capi_tablex->append(colname, start, start+nelem,
 					(void *)&tvals);
-	} else {
+	}
+	else {
+	    // pass the raw pointer
 	    ierr = _capi_tablex->append(colname, start, start+nelem, vals);
 	}
     }
@@ -2366,21 +2378,21 @@ fastbit_add_values(const char *colname, const char *coltype,
 	    << "Warning -- fastbit_add_values failed to add values to "
 	    << colname << " to an in-memory data partition due to exception: "
 	    << e.what();
-	ierr = -2;
+	ierr = -3;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fastbit_add_values failed to add values to "
 	    << colname << " to an in-memory data partition due to a string "
 	    "exception: " << s;
-	ierr = -3;
+	ierr = -4;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fastbit_add_values failed to add values to "
 	    << colname << " to an in-memory data partition due to a unknown "
 	    "exception";
-	ierr = -4;
+	ierr = -5;
     }
     return ierr;
 } // fastbit_add_values

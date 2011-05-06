@@ -966,14 +966,11 @@ public:
     virtual long truncate(uint32_t keep, uint32_t start);
 
     /// Compute the minimum.  NOT implemented.
-    virtual double getMin() const {
-	return std::numeric_limits<double>::quiet_NaN();}
+    virtual double getMin() const {return FASTBIT_DOUBLE_NULL;}
     /// Compute the maximum.  NOT implemented.
-    virtual double getMax() const {
-	return std::numeric_limits<double>::quiet_NaN();}
+    virtual double getMax() const {return FASTBIT_DOUBLE_NULL;}
     /// Compute the sum.  NOT implemented.
-    virtual double getSum() const {
-	return std::numeric_limits<double>::quiet_NaN();}
+    virtual double getSum() const {return FASTBIT_DOUBLE_NULL;}
     /// Return the ith value as int.  NOT implemented.
     virtual int32_t getInt(uint32_t) const {return 0;}
     /// Return the ith value as unsigned int.  NOT implemented.
@@ -983,11 +980,9 @@ public:
     /// Return the ith value as unsigned long.  NOT implemented.
     virtual uint64_t getULong(uint32_t) const {return 0;}
     /// Return the ith value as float.  NOT implemented.
-    virtual float getFloat(uint32_t) const {
-	return  std::numeric_limits<float>::quiet_NaN();}
+    virtual float getFloat(uint32_t) const {return  FASTBIT_FLOAT_NULL;}
     /// Return the ith value as double.  NOT implemented.
-    virtual double getDouble(uint32_t) const {
-	return std::numeric_limits<double>::quiet_NaN();}
+    virtual double getDouble(uint32_t) const {return FASTBIT_DOUBLE_NULL;}
 
 private:
     /// String values are internally stored as a vector of std::string.

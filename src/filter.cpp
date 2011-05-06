@@ -423,8 +423,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 		    ibis::array_t<double> tmp;
 		    ierr = (*it)->calculate(*aterm, *hits, tmp);
 		    ibis::util::addIncoreData
-			(buff[i], tmp, nh,
-			 std::numeric_limits<double>::quiet_NaN());
+			(buff[i], tmp, nh, FASTBIT_DOUBLE_NULL);
 		}
 		continue;
 	    }
@@ -509,8 +508,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 		if (tmp.get() != 0) {
 		    if (nh > 0) {
 			ibis::util::addIncoreData
-			    (buff[i], *tmp, nh,
-			     std::numeric_limits<float>::quiet_NaN());
+			    (buff[i], *tmp, nh, FASTBIT_FLOAT_NULL);
 		    }
 		    else {
 			buff[i] = tmp.release();
@@ -523,8 +521,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 		if (tmp.get() != 0) {
 		    if (nh > 0) {
 			ibis::util::addIncoreData
-			    (buff[i], *tmp, nh,
-			     std::numeric_limits<double>::quiet_NaN());
+			    (buff[i], *tmp, nh, FASTBIT_DOUBLE_NULL);
 		    }
 		    else {
 			buff[i] = tmp.release();

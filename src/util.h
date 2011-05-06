@@ -72,6 +72,13 @@ int truncate(const char*, uint32_t);
 #define DBL_EPSILON 2.2204460492503131e-16
 #endif
 
+#ifndef FASTBIT_FLOAT_NULL
+#define FASTBIT_FLOAT_NULL std::numeric_limits<float>::quiet_NaN()
+#endif
+#ifndef FASTBIT_DOUBLE_NULL
+#define FASTBIT_DOUBLE_NULL std::numeric_limits<double>::quiet_NaN()
+#endif
+
 /// Guess about GCC atomic operations
 #if !defined(HAVE_GCC_ATOMIC32) && defined(WITHOUT_FASTBIT_CONFIG_H)
 #if __GNUC__+0 >= 4 && !defined(__CYGWIN__) && !defined(__PATHCC__) && !defined(__APPLE__)

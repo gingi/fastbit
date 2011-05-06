@@ -1,5 +1,11 @@
 /* src/fastbit-config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* define the null values used */
+#undef FASTBIT_DOUBLE_NULL
+
+/* define the null values used */
+#undef FASTBIT_FLOAT_NULL
+
 /* Define an integer version of FastBit IBIS version number */
 #undef FASTBIT_IBIS_INT_VERSION
 

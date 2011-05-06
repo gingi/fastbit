@@ -1686,13 +1686,11 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
 				   vals.begin(), 0);
 	}
 	else {
-	    ierr = xcol->castAndWrite(vals, mask,
-				      std::numeric_limits<double>::quiet_NaN());
+	    ierr = xcol->castAndWrite(vals, mask, FASTBIT_DOUBLE_NULL);
 	}
 	break;}
     case ibis::FLOAT: {
-	ierr = xcol->castAndWrite(vals, mask,
-				  std::numeric_limits<float>::quiet_NaN());
+	ierr = xcol->castAndWrite(vals, mask, FASTBIT_FLOAT_NULL);
 	break;}
     case ibis::ULONG: {
 	ierr = xcol->castAndWrite(vals, mask,

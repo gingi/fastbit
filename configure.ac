@@ -170,6 +170,35 @@ else return -1;]])],
 AC_MSG_RESULT(yes)],
 [AC_MSG_RESULT(no)])])
 
+AC_ARG_ENABLE(quiet-nan,
+	AS_HELP_STRING([--enable-quiet-nan], [attempt use std::numeric_limits<T>::quiet_NaN() as the null value, if not possible, use std::nueric_limits<T>::max() instead]),
+	[if test "$enableval" = "no"; then try_quiet_nan=0;
+	else try_quiet_nan=1; fi],
+	[try_quiet_nan=2])
+AC_MSG_CHECKING([for quiet_NaN])
+if test ${try_quiet_nan} -ne 0 ; then
+  AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <stdlib.h>
+#include <limits>]],
+   [[try {
+     double tmp = std::numeric_limits<double>::quiet_NaN();
+     tmp *= 1.0 + rand();
+     return(tmp == tmp);
+     }
+     catch (...) {
+       return -1;
+     }]])],
+     [AC_MSG_RESULT([yes, use quiet_NaN() as null values])
+       AC_DEFINE(FASTBIT_FLOAT_NULL, std::numeric_limits<float>::quiet_NaN(), [define the null values used])
+       AC_DEFINE(FASTBIT_DOUBLE_NULL, std::numeric_limits<double>::quite_NaN(), [define the null values used])],
+     [AC_MSG_RESULT([no, use max() as null values])
+       AC_DEFINE(FASTBIT_FLOAT_NULL, std::numeric_limits<float>::max(), [define the null values used])
+       AC_DEFINE(FASTBIT_DOUBLE_NULL, std::numeric_limits<double>::max(), [define the null values used])])
+else
+  AC_MSG_RESULT([use max() as null values based the user supplied option])
+  AC_DEFINE(FASTBIT_FLOAT_NULL, std::numeric_limits<float>::max(), [define the null values used])
+  AC_DEFINE(FASTBIT_DOUBLE_NULL, std::numeric_limits<double>::max(), [define the null values used])
+fi
+
 AC_ARG_WITH(pthread,
 	    AS_HELP_STRING([--with-pthread=dir],[use dir as pthread root directory]),
             [if test -x $with_pthread/pthread-config; then
