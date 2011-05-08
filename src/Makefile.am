@@ -39,3 +39,11 @@ fromParser.hh: fromParser.yy
 fromLexer.cc: fromLexer.ll fromParser.hh
 	flex -o fromLexer.cc fromLexer.ll
 
+# an extra rule to replace macros prefixed with PACKAGE_ to FASTBIT_
+fastbit-config.h: FastBit-prefix
+FastBit-prefix: stamp-h1
+	@if [ "`fgrep ' PACKAGE_' fastbit-config.h | wc -l`" -gt 0 ]; then \
+	   sed -i .bak -e 's/ PACKAGE_/ FASTBIT_/' fastbit-config.h; \
+	fi
+
+.PHONY: FastBit-prefix

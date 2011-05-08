@@ -281,12 +281,6 @@ $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-fastbit-config.h: stamp-h1
-	@if test ! -f $@; then \
-	  rm -f stamp-h1; \
-	  $(MAKE) $(AM_MAKEFLAGS) stamp-h1; \
-	else :; fi
-
 stamp-h1: $(srcdir)/fastbit-config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status src/fastbit-config.h
@@ -708,6 +702,15 @@ fromParser.hh: fromParser.yy
 	bison -d -o fromParser.cc fromParser.yy
 fromLexer.cc: fromLexer.ll fromParser.hh
 	flex -o fromLexer.cc fromLexer.ll
+
+# an extra rule to replace macros prefixed with PACKAGE_ to FASTBIT_
+fastbit-config.h: FastBit-prefix
+FastBit-prefix: stamp-h1
+	@if [ "`fgrep ' PACKAGE_' fastbit-config.h | wc -l`" -gt 0 ]; then \
+	   sed -i .bak -e 's/ PACKAGE_/ FASTBIT_/' fastbit-config.h; \
+	fi
+
+.PHONY: FastBit-prefix
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

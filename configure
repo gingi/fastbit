@@ -15664,7 +15664,7 @@ $as_echo "yes, use quiet_NaN() as null values" >&6; }
 $as_echo "#define FASTBIT_FLOAT_NULL std::numeric_limits<float>::quiet_NaN()" >>confdefs.h
 
 
-$as_echo "#define FASTBIT_DOUBLE_NULL std::numeric_limits<double>::quite_NaN()" >>confdefs.h
+$as_echo "#define FASTBIT_DOUBLE_NULL std::numeric_limits<double>::quiet_NaN()" >>confdefs.h
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, use max() as null values" >&5
@@ -16693,8 +16693,9 @@ OBJDIR=$objdir
 
 ac_config_files="$ac_config_files Makefile src/Makefile examples/Makefile tests/Makefile java/Makefile contrib/fbmerge/Makefile tests/scripts/fastbit-config"
 
-ac_config_commands="$ac_config_commands FastBit_prefix"
-
+#AC_CONFIG_COMMANDS([FastBit-prefix],
+#[sed -i .bak -e 's/ PACKAGE_/ FASTBIT_/' src/fastbit-config.h;
+#touch src/stamp-h1])
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -17823,7 +17824,6 @@ do
     "java/Makefile") CONFIG_FILES="$CONFIG_FILES java/Makefile" ;;
     "contrib/fbmerge/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/fbmerge/Makefile" ;;
     "tests/scripts/fastbit-config") CONFIG_FILES="$CONFIG_FILES tests/scripts/fastbit-config" ;;
-    "FastBit_prefix") CONFIG_COMMANDS="$CONFIG_COMMANDS FastBit_prefix" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -19315,10 +19315,6 @@ compiler_lib_search_path=$lt_compiler_lib_search_path_CXX
 # ### END LIBTOOL TAG CONFIG: CXX
 _LT_EOF
 
- ;;
-    "FastBit_prefix":C)
-mv src/fastbit-config.h src/stamp-h1
-sed -e 's/^#define PACKAGE_/#define FASTBIT_/' src/stamp-h1 > src/fastbit-config.h
  ;;
 
   esac

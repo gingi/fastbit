@@ -189,7 +189,7 @@ if test ${try_quiet_nan} -ne 0 ; then
      }]])],
      [AC_MSG_RESULT([yes, use quiet_NaN() as null values])
        AC_DEFINE(FASTBIT_FLOAT_NULL, std::numeric_limits<float>::quiet_NaN(), [define the null values used])
-       AC_DEFINE(FASTBIT_DOUBLE_NULL, std::numeric_limits<double>::quite_NaN(), [define the null values used])],
+       AC_DEFINE(FASTBIT_DOUBLE_NULL, std::numeric_limits<double>::quiet_NaN(), [define the null values used])],
      [AC_MSG_RESULT([no, use max() as null values])
        AC_DEFINE(FASTBIT_FLOAT_NULL, std::numeric_limits<float>::max(), [define the null values used])
        AC_DEFINE(FASTBIT_DOUBLE_NULL, std::numeric_limits<double>::max(), [define the null values used])])
@@ -728,8 +728,7 @@ AC_SUBST(OBJDIR)
 AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile tests/Makefile
 	         java/Makefile contrib/fbmerge/Makefile
 		 tests/scripts/fastbit-config])
-AC_CONFIG_COMMANDS([FastBit_prefix], [
-mv src/fastbit-config.h src/stamp-h1
-sed -e 's/^#define PACKAGE_/#define FASTBIT_/' src/stamp-h1 > src/fastbit-config.h
-])
+#AC_CONFIG_COMMANDS([FastBit-prefix],
+#[sed -i .bak -e 's/ PACKAGE_/ FASTBIT_/' src/fastbit-config.h;
+#touch src/stamp-h1])
 AC_OUTPUT

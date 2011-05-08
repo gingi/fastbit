@@ -297,12 +297,12 @@ Known Issues
     visual studio and build DLL successfully, see
     <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2008-June/000127.html>.
 
-(9) The test 12 of check-ibis fails when the PGI compiler is used to
-    compile the code.  It encounters a segmentation violation at varying
-    locations.  We speculate that the PGI compiler might not be
-    producing a thread-safe operator new.  If you have any clue as what
-    is really going on or how to get around the problem, please send
-    your suggestions or corrections to <fastbit-users@hpcrdm.lbl.gov>.
+(9) The test case 12 of check-ibis fails when the PGI compiler is used
+    to compile the code.  This is most likely caused running the binary
+    excutable intended for compute node linux platform in the login
+    nodes.  Because the two platforms have different sets of run-time
+    libraries but nearly identical binary formats, the executable can
+    run but don't produce the correct results.
 
 (10) If the configure script finds a working version of javac, but fails
      to find a working version of java, it is likely that CLASSPATH is

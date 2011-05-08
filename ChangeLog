@@ -1,3 +1,10 @@
+2011-05-07 John Wu <John dot Wu at ACM dot org>
+	* configure.ac, src/Makefile.am: replace AC_CONFIG_COMMANDS for
+	modifying PACKAGE_ prefix with a rule in src/Makefile.am
+
+2011-05-06 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: quite_NaN should be quiet_NaN
+
 2011-05-05 John Wu <John dot Wu at ACM dot org>
 	* src/capi.cpp: add support for categorical values through
 	function fastbit_add_values (the patch from Mario D. Santana only
