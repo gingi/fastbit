@@ -707,7 +707,8 @@ fromLexer.cc: fromLexer.ll fromParser.hh
 fastbit-config.h: FastBit-prefix
 FastBit-prefix: stamp-h1
 	@if [ "`fgrep ' PACKAGE_' fastbit-config.h | wc -l`" -gt 0 ]; then \
-	   sed -i .bak -e 's/ PACKAGE_/ FASTBIT_/' fastbit-config.h; \
+	   mv fastbit-config.h fastbit-config.bak; \
+	   sed -e 's/ PACKAGE_/ FASTBIT_/' fastbit-config.bak > fastbit-config.h; \
 	fi
 
 .PHONY: FastBit-prefix

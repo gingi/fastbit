@@ -1,3 +1,15 @@
+2011-05-11 John Wu <John dot Wu at ACM dot org>
+	* src/utilidor.cpp: remove calls to nosharing from sortAll and
+	sortKeys.  These functions use shallow copying extensively to make
+	sure they are working on the same data.
+	* src/Makefile.am: remove -i option from sed command because -i is
+	not standardized
+
+2011-05-10 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.cpp:156 m_end was set incorrectly, which causes the
+	sort functions to behave incorrectly (a problem first reported by
+	Alexandre Maurel)
+
 2011-05-07 John Wu <John dot Wu at ACM dot org>
 	* configure.ac, src/Makefile.am: replace AC_CONFIG_COMMANDS for
 	modifying PACKAGE_ prefix with a rule in src/Makefile.am
@@ -14,7 +26,7 @@
 	* util.h: add macros FASTBIT_FLOAT_NULL and FASTBIT_DOUBLE_NULL to
 	denote the null values used for float and double.  this is an
 	attempt to get around the problem with STLPORT having an incorrect
-	value for quiet_NaN (a problem reported by Alexandre Maurel
+	value for quiet_NaN (a problem reported by Alexandre Maurel)
 	* configure.ac: add option --disable-quiet-nan to avoid using
 	quiet nan as null values
 

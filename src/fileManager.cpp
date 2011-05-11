@@ -1098,8 +1098,7 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 5)
 	<< "DEBUG -- fileManager::getFileSegment -- attempt to retrieve \""
-	<< name << "\", currently there are " << mapped.size()
-	<< " mapped files and " << incore.size() << " incore files";
+	<< name << "\" from " << b << " to " << e;
 #endif
     ibis::fileManager::storage *st = 0;
     if (((name == 0 || *name == 0) && fdes < 0) || b >= e)
@@ -1776,7 +1775,7 @@ ibis::fileManager::storage::storage(const char* fname,
 	LOGGER(ibis::gVerbose > 8)
 	    << "fileManager::storage(" << static_cast<void*>(this) << ", "
 	    << static_cast<void*>(m_begin)
-	    << ") initialization completed reading from " << fname
+	    << ") initialization completed by reading from " << fname
 	    << " [" << begin << ", " << end << ')';
     }
     else {
@@ -1801,7 +1800,7 @@ ibis::fileManager::storage::storage(const int fdes,
 	LOGGER(ibis::gVerbose > 8)
 	    << "fileManager::storage(" << static_cast<void*>(this) << ", "
 	    << static_cast<void*>(m_begin)
-	    << ") initialization completed reading from file descriptor "
+	    << ") initialization completed by reading from file descriptor "
 	    << fdes << " [" << begin << ", " << end << ')';
     }
     else {
@@ -1875,7 +1874,7 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 	}
 	ibis::fileManager::increaseUse(nbytes, evt.c_str());
 	LOGGER(ibis::gVerbose > 8)
-	    << evt << " initialization completed copying from "
+	    << evt << " initialization completed by copying from "
 	    << static_cast<const void*>(begin) << " to "
 	    << static_cast<const void*>(end);
     }
@@ -1943,7 +1942,7 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
 	}
 	ibis::fileManager::increaseUse(nbytes, evt.c_str());
 	LOGGER(ibis::gVerbose > 8)
-	    << evt << " initialization completed copying from storage object "
+	    << evt << " initialization completed by copying from storage object "
 	    << static_cast<const void*>(&rhs);
     }
 } // ibis::fileManager::storage::storage

@@ -145,20 +145,24 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
 }
 
 /// A shallow copy constructor.  It makes a new array out of a section of
-/// an existing array.  The values of begin and end are indices to the
-/// array rhs.  If end is less than or equal to begin, it is assume to
-/// extend all the way to the end of rhs.
+/// the existing array.  The values of begin and end are indices to the
+/// array rhs.
+///
+/// @note If end is less than to begin, the array section is assumed to
+/// extend to the end of rhs.
 template<class T>
 ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t begin,
 			  const size_t end)
-    : actual(rhs.actual), m_begin(rhs.m_begin+begin), m_end(m_begin+end) {
+    : actual(rhs.actual), m_begin(rhs.m_begin+begin), m_end(rhs.m_begin+end) {
 #if defined(DEBUG) || defined(_DEBUG)
     LOGGER(end < begin && end != 0 && ibis::gVerbose > 0)
 	<< "Warning -- array_t<" << typeid(T).name()
 	<< "> called with a suspicious looking section [" << begin
 	<< ", " << end << ')';
 #endif
-    if (m_end > rhs.m_end || m_end <= rhs.m_begin)
+    if (m_begin > rhs.m_end)
+	m_begin = rhs.m_end;
+    if (m_end > rhs.m_end || m_end < m_begin)
 	m_end = rhs.m_end;
     if (actual != 0)
 	actual->beginUse();
@@ -195,8 +199,9 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
 /// Construct an array from a section of the raw storage.  No new storage
 /// is allocated.
 ///
-/// The arguments @c start and @c end are offsets into the raw storage
-/// measured in number of bytes, NOT the number of element of type T!
+/// @note The arguments @c start and @c end are offsets into the raw
+/// storage measured in number of bytes, NOT the number of elements of type
+/// T!
 template<class T>
 ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs,
 			  const size_t start, const size_t end)
@@ -210,16 +215,16 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs,
 	<< ", " << end << ')';
 #endif
     if (actual != 0 && m_begin != 0 && m_end != 0) {
-	if ((const char*)(m_begin) >= rhs->end()) {
+	if ((const char*)(m_begin) > rhs->end()) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- the constructor of array_t<" << typeid(T).name()
 		<< "> has received an empty range of bytes (begin=" << start
 		<< ", end=" << end << "), please check the calling sequence";
 
-	    m_end = m_begin;
+	    m_begin = (T*)(rhs->end());
 	}
 	else if ((const char*)(m_end) > rhs->end()) {
-	    m_end = (T*)rhs->end();
+	    m_end = (T*)(rhs->end());
 	}
 	actual->beginUse();
     }
@@ -853,10 +858,27 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
     qsort(ind, 0, ni);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     ibis::util::logger lg(4);
-    lg() << "DEBUG -- sort(ind[" << ni << "])";
-    for (size_t i = 0; i < ni; ++i)
-	lg() << "\nind[" << i << "]=" << ind[i] << "\t"
-	     << m_begin[ind[i]];
+    bool sorted = true;
+    for (size_t i = 1; i < ni; ++ i) {
+	if (m_begin[ind[i]] < m_begin[ind[i-1]]) {
+	    sorted = false;
+	    break;
+	}
+    }
+    if (sorted) {
+	lg() << "DEBUG -- sort(ind[" << ni
+	     << "]) verified results to be in ascending order";
+    }
+    else {
+	lg() << "Warning -- sort(ind[" << ni << "]) did not sort correctly";
+	for (size_t i = 0; i < ni; ++i) {
+	    lg() << "\nind[" << i << "]=" << ind[i] << "\t"
+		 << m_begin[ind[i]];
+	    if (i > 0 && m_begin[ind[i]] < m_begin[ind[i-1]]) {
+		lg() << "\t*";
+	    }
+	}
+    }
 #endif
 } // ibis::array_t<T>::sort
 
@@ -1041,9 +1063,28 @@ void ibis::array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
     isort(ind, front, back);
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg(4);
-    lg() << "DEBUG -- qsort(" << front << ", " << back << ")\n";
-    for (size_t i = front; i < back; ++i)
-	lg() << ind[i] << "\t" << m_begin[ind[i]] << "\n";
+    bool sorted = true;
+    for (size_t i = front+1; i < back; ++ i) {
+	if (m_begin[ind[i]] < m_begin[ind[i-1]]) {
+	    sorted = false;
+	    break;
+	}
+    }
+    if (sorted) {
+	lg() << "DEBUG -- qsort(" << front << ", " << back
+	     << ") verified results to be in ascending order";
+    }
+    else {
+	lg() << "Warning -- qsort(" << front << ", " << back
+	     << ") did not sort correctly";
+	for (size_t i = front; i < back; ++i) {
+	    lg() << "\nind[" << i << "]=" << ind[i] << "\t"
+		 << m_begin[ind[i]];
+	    if (i > front && m_begin[ind[i]] < m_begin[ind[i-1]]) {
+		lg() << "\t*";
+	    }
+	}
+    }
 #endif
 } // qsort
 
