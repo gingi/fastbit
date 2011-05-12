@@ -21,7 +21,7 @@
 /// @ingroup FastBitIBIS
 /// This fileManager is intended to allow different objects to share the
 /// same open file.  It does not manage writing of files.
-class ibis::fileManager {
+class FASTBIT_CXX_DLLSPEC ibis::fileManager {
 public:
 
     /// Hint passed to the function @c getFile.  The main choice is whether
@@ -216,7 +216,7 @@ private:
 /// file manager, therefore the caller should not delete the object.  Of
 /// course, the object created through explicit call to a constructor is
 /// owned by the user code.
-class ibis::fileManager::storage {
+class FASTBIT_CXX_DLLSPEC ibis::fileManager::storage {
 public:
     storage();
     explicit storage(size_t n); // allocate n bytes
@@ -296,7 +296,8 @@ protected:
 /// ibis::fileManager.  If an object of this type is acquired through
 /// ibis::fileManager::getFile, the ownership of the object belongs to the
 /// file manager, therefore the caller should not delete the object.
-class ibis::fileManager::roFile : public ibis::fileManager::storage {
+class FASTBIT_CXX_DLLSPEC ibis::fileManager::roFile
+    : public ibis::fileManager::storage {
 public:
     virtual ~roFile() {clear();}
 
@@ -379,7 +380,8 @@ private:
 /// This class is used to store information about a portion of a memory
 /// mapped file.  The main reason this is a derived class of roFile is to
 /// make this one not shareable.
-class ibis::fileManager::rofSegment : public ibis::fileManager::roFile {
+class FASTBIT_CXX_DLLSPEC ibis::fileManager::rofSegment
+    : public ibis::fileManager::roFile {
 public:
     rofSegment(const char *fn, off_t b, off_t e);
     virtual ~rofSegment() {};

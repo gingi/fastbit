@@ -4202,6 +4202,11 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
+	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
@@ -4376,6 +4381,11 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
+	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
 	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
@@ -4553,6 +4563,11 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
+	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
@@ -4727,6 +4742,11 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
+	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
 	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
@@ -4904,6 +4924,11 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
+	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
@@ -5078,6 +5103,11 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
+	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
 	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
@@ -5255,6 +5285,11 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
+	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
@@ -5430,6 +5465,11 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
+	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {
 	    if (starts[i+1] > starts[i]+1) {
@@ -5601,13 +5641,18 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 			     ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
+    default: // only save the first few value
     case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
+	break;
     case ibis::selectClause::AVG: // average
-	for (uint32_t i = 0; i < nseg; ++i) {
+	for (uint32_t i = 0; i < nseg; ++ i) {
 	    if (starts[i+1] > starts[i]+1) {
 		double sum = (*array)[starts[i]];
 		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
@@ -5780,6 +5825,11 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::NIL:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
+	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    (*array)[i] = starts[i+1] - starts[i];
+	}
 	break;
     case ibis::selectClause::AVG: // average
 	for (uint32_t i = 0; i < nseg; ++i) {

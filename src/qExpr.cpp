@@ -12,10 +12,8 @@
 #ifdef sun
 #include <ieeefp.h>	// finite
 #endif
-#include <math.h>	// finite
 #include <stdlib.h>
 #include <limits.h>
-#include <float.h>	// DBL_MAX, _finite
 
 #include <set>		// std::set
 #include <iterator>	// std::ostream_iterator

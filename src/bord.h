@@ -25,7 +25,7 @@ namespace ibis {
 /// can store no more than 4 billion rows.
 ///
 /// @note Bord is a Danish word for "table."
-class ibis::bord : public ibis::table {
+class FASTBIT_CXX_DLLSPEC ibis::bord : public ibis::table {
 public:
     bord(const char *tn, const char *td, uint64_t nr,
 	 ibis::table::bufferList &buf,
@@ -252,7 +252,7 @@ protected:
     column& operator=(const column&); // no assignment
 }; // ibis::bord::column
 
-class ibis::bord::cursor : public ibis::table::cursor {
+class FASTBIT_CXX_DLLSPEC ibis::bord::cursor : public ibis::table::cursor {
 public:
     cursor(const ibis::bord& t);
     virtual ~cursor() {};

@@ -27,9 +27,9 @@
 
 // global variables
 #if defined(DEBUG)
-int ibis::gVerbose = 10;
+int FASTBIT_CXX_DLLSPEC ibis::gVerbose = 10;
 #else
-int ibis::gVerbose = 0;
+int FASTBIT_CXX_DLLSPEC ibis::gVerbose = 0;
 #endif
 // initialize the global variables of ibis::util
 pthread_mutex_t ibis::util::envLock = PTHREAD_MUTEX_INITIALIZER;

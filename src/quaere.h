@@ -32,7 +32,7 @@ namespace ibis {
 /// @note The word quaere is the latin equivalent of query.  Once the
 /// implementation of this class stablizes, we intend to swap the names
 /// quaere and query.
-class ibis::quaere {
+class FASTBIT_CXX_DLLSPEC ibis::quaere {
 public:
     static quaere* create(const char* sel, const char* from, const char* where);
     /// A natural join.

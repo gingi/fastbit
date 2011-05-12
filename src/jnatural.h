@@ -21,7 +21,7 @@ namespace ibis {
 /// design is very limited and is likely to go through major revisions
 /// frequently.  Feel free to express your opinions on the FastBit mailing
 /// list fastbit-users@hpcrdm.lbl.gov.
-class ibis::jNatural : public ibis::quaere {
+class FASTBIT_CXX_DLLSPEC ibis::jNatural : public ibis::quaere {
 public:
     jNatural(const ibis::part* partr, const ibis::part* parts,
 	     const char* colname, const char* condr, const char* conds,

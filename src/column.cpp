@@ -29,12 +29,12 @@
 #endif
 
 // constants defined for type name and type code used in the metadata file
-const char* ibis::TYPECODE   = "?OBAHGIULVRDCSQ";
+FASTBIT_CXX_DLLSPEC const char* ibis::TYPECODE   = "?OBAHGIULVRDCSQ";
 static const char* _ibis_TYPESTRING_local[] = {
     "UNKNOWN", "OID", "BYTE", "UBYTE", "SHORT", "USHORT", "INT", "UINT",
     "LONG", "ULONG", "FLOAT", "DOUBLE", "CATEGORY", "TEXT", "BLOB"
 };
-const char** ibis::TYPESTRING = _ibis_TYPESTRING_local;
+FASTBIT_CXX_DLLSPEC const char** ibis::TYPESTRING = _ibis_TYPESTRING_local;
 
 /// Construct a new column object based on type and name.
 ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,

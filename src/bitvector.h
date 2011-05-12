@@ -9,9 +9,7 @@
 
 #include "array_t.h"	// alternative to std::vector
 
-#include <stdio.h>	// sprintf
-#include <limits.h>	// INT_MAX
-#include <iomanip>	// setw()
+#include <iomanip>	// setw
 
 #if defined(_MSC_VER) && defined(_WIN32)
 //disable warnings on extern before template instantiation
@@ -328,7 +326,7 @@ private:
 /// consecutive ones.  If @c isRange returns false, there are @c nIndices
 /// bits that are one and the positions of these bits are stored in the
 /// array returned by function @c indices.
-class ibis::bitvector::indexSet {
+class FASTBIT_CXX_DLLSPEC ibis::bitvector::indexSet {
 public:
     // let the compiler define most of the canonical functions
 

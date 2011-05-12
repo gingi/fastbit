@@ -1629,7 +1629,7 @@ void ibis::bundles::sort() {
 
 /// Reorder the bundles according to the keys (names) given.  If the
 /// argument direction is a negative number, the rows are reversed after
-/// sorting.  If no sorting is done, the reversal of rows is still
+/// sorting.  Even if no sorting is done, the reversal of rows is still
 /// performed.
 void ibis::bundles::reorder(const char *names, int direction) {
     if (names == 0 || *names == 0) return;

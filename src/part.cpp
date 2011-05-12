@@ -22,7 +22,9 @@
 #include <stdarg.h>	// vsprintf(), ...
 #include <signal.h>
 #include <ctype.h>	// tolower
-#include <float.h>	// DBL_MAX, _finite
+#ifdef sun
+#include <ieeefp.h>	// finite
+#endif
 
 #include <fstream>
 #include <sstream>	// std::ostringstream

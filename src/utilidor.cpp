@@ -57,6 +57,36 @@ namespace ibis {
 	void sort_partition3(array_t<T1>& keys, array_t<T2>& vals,
 			     uint32_t& starteq, uint32_t& startgt);
 
+	/// Quicksort for strings.
+	void sortStrings_quick(std::vector<std::string>& keys,
+			       array_t<uint32_t>& vals, uint32_t begin,
+			       uint32_t end);
+	/// Shell sorting procedure.  To clean up after the quick sort
+	/// procedure.
+	void sortStrings_shell(std::vector<std::string>& keys,
+			       array_t<uint32_t>& vals,
+			       uint32_t begin, uint32_t end);
+	/// The partitioning procedure for quick sort.  It implements the
+	/// standard two-way partitioning with the median-of-three pivot.
+	uint32_t sortStrings_partition(std::vector<std::string>& keys,
+				       array_t<uint32_t>& vals,
+				       uint32_t begin, uint32_t end);
+
+	/// Quicksort for strings.
+	void sortStrings_quick(array_t<const char*>& keys,
+			       array_t<uint32_t>& vals, uint32_t begin,
+			       uint32_t end);
+	/// Shell sorting procedure.  To clean up after the quick sort
+	/// procedure.
+	void sortStrings_shell(array_t<const char*>& keys,
+			       array_t<uint32_t>& vals,
+			       uint32_t begin, uint32_t end);
+	/// The partitioning procedure for quick sort.  It implements the
+	/// standard two-way partitioning with the median-of-three pivot.
+	uint32_t sortStrings_partition(array_t<const char*>& keys,
+				       array_t<uint32_t>& vals,
+				       uint32_t begin, uint32_t end);
+
 	/// LSD Radix sort.  Allocates buffers needed for copying data.
 	/// @{
 	template <typename T>

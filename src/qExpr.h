@@ -30,7 +30,7 @@ namespace ibis { // additional names related to qExpr
 /// The top level query expression object.  It encodes the logical
 /// operations between two child expressions, serving as the interior nodes
 /// of an expression tree.  Leaf nodes are going to be derived later.
-class ibis::qExpr {
+class FASTBIT_CXX_DLLSPEC ibis::qExpr {
 public:
     /// Definition of node types.  Logical operators are listed in the
     /// front and leaf node types are listed at the end.
@@ -194,7 +194,7 @@ protected:
 /// class for qContinuousRange and qDiscreteRange.  The main virtual
 /// functions, colName and inRange are used by procedures that evaluate the
 /// conditions.
-class ibis::qRange : public ibis::qExpr {
+class FASTBIT_CXX_DLLSPEC ibis::qRange : public ibis::qExpr {
 public:
     /// Returns the name of the attribute involved.
     virtual const char* colName() const = 0;
@@ -239,7 +239,7 @@ private:
 /// "a", ibis::qExpr::OP_LT, 4.7);
 ///
 /// @endverbatim
-class ibis::qContinuousRange : public ibis::qRange {
+class FASTBIT_CXX_DLLSPEC ibis::qContinuousRange : public ibis::qRange {
 public:
     /// Construct an empty range expression.
     qContinuousRange()
@@ -323,7 +323,7 @@ private:
 
 /// A discrete range expression.  It is used to capture expression of the
 /// form "A in (aaa, bbb, ccc, ...)."
-class ibis::qDiscreteRange : public ibis::qRange {
+class FASTBIT_CXX_DLLSPEC ibis::qDiscreteRange : public ibis::qRange {
 public:
     /// Construct an empty dicrete range expression.
     qDiscreteRange() : qRange(DRANGE) {};
@@ -377,7 +377,7 @@ private:
 /// bricks, and so on.  We use it here as a short-hand for container.
 /// Since this class is not meant for user by others, this is a suitable
 /// obscure name for it.
-class ibis::qIntHod : public ibis::qRange {
+class FASTBIT_CXX_DLLSPEC ibis::qIntHod : public ibis::qRange {
 public:
     /// Default constructor.
     qIntHod() : qRange(INTHOD) {};
@@ -434,7 +434,7 @@ private:
 /// bricks, and so on.  We use it here as a short-hand for container.
 /// Since this class is not meant for user by others, this is a suitable
 /// obscure name for it.
-class ibis::qUIntHod : public ibis::qRange {
+class FASTBIT_CXX_DLLSPEC ibis::qUIntHod : public ibis::qRange {
 public:
     /// Default constructor.
     qUIntHod() : qRange(UINTHOD) {};
@@ -493,7 +493,7 @@ private:
 /// column to be searched and the left side will be the value to search
 /// against.  If neither matches the name of any column, the expression
 /// will evaluate to NULL (i.e., no hit).
-class ibis::qString : public ibis::qExpr {
+class FASTBIT_CXX_DLLSPEC ibis::qString : public ibis::qExpr {
 public:
     // construct the qString from two strings
     qString() : qExpr(STRING), lstr(0), rstr(0) {};
@@ -519,7 +519,7 @@ private:
 }; // ibis::qString
 
 /// Representing the operator 'LIKE'.
-class ibis::qLike : public ibis::qExpr {
+class FASTBIT_CXX_DLLSPEC ibis::qLike : public ibis::qExpr {
 public:
     /// Default constructor.
     qLike() : qExpr(LIKE), lstr(0), rpat(0) {};
@@ -553,7 +553,7 @@ private:
 /// The column contains one of the values in a list.  A data structure to
 /// hold the string-valued version of the IN expression, name IN ('aaa',
 /// 'bbb', ...).
-class ibis::qMultiString : public ibis::qExpr {
+class FASTBIT_CXX_DLLSPEC ibis::qMultiString : public ibis::qExpr {
 public:
     qMultiString() : qExpr(MSTRING) {};
     qMultiString(const char *col, const char *sval);
@@ -869,7 +869,7 @@ namespace ibis {
 
 /// The class compRange stores computed ranges.  It is for those
 /// comparisons involving nontrivial arithmetic expression.
-class ibis::compRange : public ibis::qExpr {
+class FASTBIT_CXX_DLLSPEC ibis::compRange : public ibis::qExpr {
 public:
 
     /// Default constructor.

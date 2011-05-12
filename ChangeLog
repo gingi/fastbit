@@ -1,9 +1,17 @@
+2011-05-12 John Wu <John dot Wu at ACM dot org>
+	* src/*.h: add FASTBIT_CXX_DLLSPEC to classes and global variables
+	at the request of Alexandre Maurel
+	* src/colValues.cpp: add code for handling ibis::selectClause::CNT
+	to function reduce
+
 2011-05-11 John Wu <John dot Wu at ACM dot org>
 	* src/utilidor.cpp: remove calls to nosharing from sortAll and
 	sortKeys.  These functions use shallow copying extensively to make
 	sure they are working on the same data.
 	* src/Makefile.am: remove -i option from sed command because -i is
-	not standardized
+	not standardized (this problem was first noticed by Jon Strabala)
+	* src/part.cpp: add a conditional include statement for ieeefp.h
+	when the macro sun is defined (at the request of Jon Strabala)
 
 2011-05-10 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.cpp:156 m_end was set incorrectly, which causes the

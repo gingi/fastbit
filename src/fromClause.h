@@ -18,7 +18,7 @@ namespace ibis {
 /// A class to represent the from clause.  It parses a string into a list
 /// of names, a list of aliases and a join expression if present.
 ///
-class ibis::fromClause {
+class FASTBIT_CXX_DLLSPEC ibis::fromClause {
 public:
     /// Parse a new string as a from clause.
     explicit fromClause(const char *cl=0);

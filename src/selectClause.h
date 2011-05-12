@@ -77,7 +77,7 @@ namespace ibis {
 /// also involves the column A, all of null values of A are excluded,
 /// therefore 'count(*)' in the second example may be different from that
 /// of the first example.
-class ibis::selectClause {
+class FASTBIT_CXX_DLLSPEC ibis::selectClause {
 public:
     /// Parse a new string as a select clause.
     explicit selectClause(const char *cl=0);

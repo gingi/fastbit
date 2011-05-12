@@ -155,6 +155,8 @@ public:
     };
     /// Return the pointer to all RIDs.
     const ibis::RIDSet* getRIDs() const {return rids;}
+    /// Return the pointer to array starts.
+    const ibis::array_t<uint32_t>* getStarts() const {return starts;}
 
 protected:
     const ibis::selectClause& comps;
