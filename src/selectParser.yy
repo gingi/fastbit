@@ -181,11 +181,11 @@ sterm: AVGOP '(' mathExpr ')' ',' {
 }
 | mathExpr ',' {
     driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
 | mathExpr END {
     driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
 | AVGOP '(' mathExpr ')' ASOP NOUNSTR ',' {
     driver.alias_[*$6] = driver.terms_.size();
@@ -250,12 +250,12 @@ sterm: AVGOP '(' mathExpr ')' ',' {
 | mathExpr ASOP NOUNSTR ',' {
     driver.alias_[*$3] = driver.terms_.size();
     driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
 | mathExpr ASOP NOUNSTR END {
     driver.alias_[*$3] = driver.terms_.size();
     driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
 | DISTINCTOP '(' mathExpr ')' ASOP NOUNSTR ',' {
     driver.alias_[*$6] = driver.terms_.size();

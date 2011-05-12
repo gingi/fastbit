@@ -55,13 +55,13 @@ namespace ibis {
 /// values will appear in the order they are in the data files, i.e., the
 /// same order as they are inputed.  Furthermore, all text values are
 /// treated as different because the actual string values are not examined
-/// during sorting.  Don't use text columns with aggregation functions!
+/// during sorting.  DO NOT use text columns with aggregation functions!
 ///
 /// @note When multiple components are selected, a generic version of the
 /// sorting algorithm is used.  It may be faster to handle special versions
 /// separately.  For example, if all the selected components are of the
 /// same type, it is possible to use a more compact array structure for
-/// comparisons.  It might be also useful to separate out the case where
+/// comparisons.  It might be also useful to separate out the cases where
 /// there are only two components.
 ///
 class FASTBIT_CXX_DLLSPEC ibis::bundle {
@@ -273,6 +273,7 @@ public:
 
 private:
     ibis::colValues* col;
+    ibis::selectClause::AGREGADO aggr;
 
     /// Sort all records.
     void sort();
@@ -321,6 +322,7 @@ public:
 
 private:
     colList cols;
+    std::vector<ibis::selectClause::AGREGADO> aggr;
 
     void sort();
     void clear();

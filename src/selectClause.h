@@ -125,7 +125,7 @@ public:
     uint32_t nPlain() const;
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
-    enum AGREGADO {NIL, AVG, CNT, MAX, MIN, SUM, DISTINCT,
+    enum AGREGADO {NIL_AGGR, AVG, CNT, MAX, MIN, SUM, DISTINCT,
 		   VARPOP, VARSAMP, STDPOP, STDSAMP, MEDIAN};
     /// Return the aggregation function used for the ith term.
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
@@ -180,7 +180,7 @@ protected:
 inline uint32_t ibis::selectClause::nPlain() const {
     uint32_t ret = 0;
     for (uint32_t j = 0; j < aggr_.size(); ++j)
-	ret += (aggr_[j] == NIL);
+	ret += (aggr_[j] == NIL_AGGR);
     return ret;
 } // ibis::selectClause::nPlain
 

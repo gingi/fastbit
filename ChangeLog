@@ -3,6 +3,15 @@
 	at the request of Alexandre Maurel
 	* src/colValues.cpp: add code for handling ibis::selectClause::CNT
 	to function reduce
+	* src/bundle.h, src/bundle.cpp: add member variable aggr to
+	ibis::bundle1 and ibis::bundles to record the aggregator
+	corresponding to each column to address the problem with ordering
+	of select clauses raised by Jon Strabala
+	* src/selectClause.h: rename NIL of AGREGADO to NIL_AGGR to make
+	it more explicit
+	* tests/Makefile.am: add test case 16, 17, 18, and 19 to
+	check-ibis to check for the placement of various terms in the
+	select clause
 
 2011-05-11 John Wu <John dot Wu at ACM dot org>
 	* src/utilidor.cpp: remove calls to nosharing from sortAll and

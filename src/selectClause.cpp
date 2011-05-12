@@ -300,7 +300,7 @@ void ibis::selectClause::fillNames() {
 	    names_[j] = oss.str();
 	}
 
-	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL &&
+	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL_AGGR &&
 	    terms_[j]->termType() == ibis::math::VARIABLE) {
 	    xnames_[j] = names_[j];
 	    for (unsigned i = 0; i < names_[j].size(); ++ i)

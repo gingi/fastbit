@@ -4198,7 +4198,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -4378,7 +4378,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -4559,7 +4559,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -4739,7 +4739,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -4920,7 +4920,7 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5100,7 +5100,7 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5281,7 +5281,7 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5461,7 +5461,7 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5642,7 +5642,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first few value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5822,7 +5822,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
-    case ibis::selectClause::NIL:
+    case ibis::selectClause::NIL_AGGR:
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;

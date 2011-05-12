@@ -3812,7 +3812,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    if (tms.getAggregator(i) != ibis::selectClause::CNT ||
 		strcmp(tms.argName(i), "*") != 0) {// not count(*)
 		const char* tname = tms.argName(i);
-		nplain += (tms.getAggregator(i) == ibis::selectClause::NIL);
+		nplain += (tms.getAggregator(i) == ibis::selectClause::NIL_AGGR);
 		if (uniquenames.find(tname) == uniquenames.end()) {
 		    uniquenames.insert(tname);
 		    tmstouse.push_back(i);

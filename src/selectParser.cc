@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 2.4.2.  */
+/* A Bison parser, made by GNU Bison 2.4.3.  */
 
 /* Skeleton implementation for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002-2010 Free Software Foundation, Inc.
+      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free
+   Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +32,7 @@
    version 2.2 of Bison.  */
 /* "%code top" blocks.  */
 
-/* Line 303 of lalr1.cc  */
+/* Line 304 of lalr1.cc  */
 #line 6 "selectParser.yy"
 
 /** \file Defines the parser for the select clause accepted by FastBit
@@ -41,8 +42,8 @@
 
 
 
-/* Line 303 of lalr1.cc  */
-#line 46 "selectParser.cc"
+/* Line 304 of lalr1.cc  */
+#line 47 "selectParser.cc"
 
 // Take the name prefix into account.
 #define yylex   ibislex
@@ -50,15 +51,15 @@
 /* First part of user declarations.  */
 
 
-/* Line 310 of lalr1.cc  */
-#line 55 "selectParser.cc"
+/* Line 311 of lalr1.cc  */
+#line 56 "selectParser.cc"
 
 
 #include "selectParser.hh"
 
 /* User implementation prologue.  */
 
-/* Line 316 of lalr1.cc  */
+/* Line 317 of lalr1.cc  */
 #line 77 "selectParser.yy"
 
 #include "selectLexer.h"
@@ -67,8 +68,8 @@
 #define yylex driver.lexer->lex
 
 
-/* Line 316 of lalr1.cc  */
-#line 72 "selectParser.cc"
+/* Line 317 of lalr1.cc  */
+#line 73 "selectParser.cc"
 
 #ifndef YY_
 # if defined YYENABLE_NLS && YYENABLE_NLS
@@ -133,8 +134,8 @@ do {					\
 
 namespace ibis {
 
-/* Line 379 of lalr1.cc  */
-#line 138 "selectParser.cc"
+/* Line 380 of lalr1.cc  */
+#line 139 "selectParser.cc"
 #if YYERROR_VERBOSE
 
   /* Return YYSTR after stripping away unnecessary quotes and
@@ -236,21 +237,21 @@ namespace ibis {
       {
         case 24: /* "\"name\"" */
 
-/* Line 479 of lalr1.cc  */
+/* Line 480 of lalr1.cc  */
 #line 74 "selectParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 479 of lalr1.cc  */
-#line 245 "selectParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 246 "selectParser.cc"
 	break;
       case 31: /* "mathExpr" */
 
-/* Line 479 of lalr1.cc  */
+/* Line 480 of lalr1.cc  */
 #line 75 "selectParser.yy"
 	{ delete (yyvaluep->selectNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 254 "selectParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 255 "selectParser.cc"
 	break;
 
 	default:
@@ -314,7 +315,7 @@ namespace ibis {
     /// Location of the lookahead.
     location_type yylloc;
     /// The locations where the error started and ended.
-    location_type yyerror_range[2];
+    location_type yyerror_range[3];
 
     /// $$.
     semantic_type yyval;
@@ -328,14 +329,14 @@ namespace ibis {
 
     /* User initialization code.  */
     
-/* Line 552 of lalr1.cc  */
+/* Line 559 of lalr1.cc  */
 #line 28 "selectParser.yy"
 { // initialize location object
     yylloc.begin.filename = yylloc.end.filename = &(driver.clause_);
 }
 
-/* Line 552 of lalr1.cc  */
-#line 339 "selectParser.cc"
+/* Line 559 of lalr1.cc  */
+#line 340 "selectParser.cc"
 
     /* Initialize the stacks.  The initial state will be pushed in
        yynewstate, since the latter expects the semantical and the
@@ -453,7 +454,7 @@ namespace ibis {
       {
 	  case 4:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 86 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -463,7 +464,7 @@ namespace ibis {
 
   case 5:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 90 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -473,7 +474,7 @@ namespace ibis {
 
   case 6:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 94 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -483,7 +484,7 @@ namespace ibis {
 
   case 7:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 98 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -493,7 +494,7 @@ namespace ibis {
 
   case 8:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 102 "selectParser.yy"
     {
     driver.terms_.push_back(new ibis::math::variable("*"));
@@ -503,7 +504,7 @@ namespace ibis {
 
   case 9:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 106 "selectParser.yy"
     {
     driver.terms_.push_back(new ibis::math::variable("*"));
@@ -513,7 +514,7 @@ namespace ibis {
 
   case 10:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 110 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -523,7 +524,7 @@ namespace ibis {
 
   case 11:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 114 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -533,7 +534,7 @@ namespace ibis {
 
   case 12:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 118 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -543,7 +544,7 @@ namespace ibis {
 
   case 13:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 122 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -553,7 +554,7 @@ namespace ibis {
 
   case 14:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 126 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -563,7 +564,7 @@ namespace ibis {
 
   case 15:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 130 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -573,7 +574,7 @@ namespace ibis {
 
   case 16:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 134 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -583,7 +584,7 @@ namespace ibis {
 
   case 17:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 138 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -593,7 +594,7 @@ namespace ibis {
 
   case 18:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 142 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -603,7 +604,7 @@ namespace ibis {
 
   case 19:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 146 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -613,7 +614,7 @@ namespace ibis {
 
   case 20:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 150 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -623,7 +624,7 @@ namespace ibis {
 
   case 21:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 154 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -633,7 +634,7 @@ namespace ibis {
 
   case 22:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 158 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -643,7 +644,7 @@ namespace ibis {
 
   case 23:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 162 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -653,7 +654,7 @@ namespace ibis {
 
   case 24:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 166 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -663,7 +664,7 @@ namespace ibis {
 
   case 25:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 170 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -673,7 +674,7 @@ namespace ibis {
 
   case 26:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 174 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -683,7 +684,7 @@ namespace ibis {
 
   case 27:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 178 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
@@ -693,27 +694,27 @@ namespace ibis {
 
   case 28:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 182 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
     break;
 
   case 29:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 186 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
     break;
 
   case 30:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 190 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -724,7 +725,7 @@ namespace ibis {
 
   case 31:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 195 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -735,7 +736,7 @@ namespace ibis {
 
   case 32:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 200 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -746,7 +747,7 @@ namespace ibis {
 
   case 33:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 205 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -757,7 +758,7 @@ namespace ibis {
 
   case 34:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 210 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -768,7 +769,7 @@ namespace ibis {
 
   case 35:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 215 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -779,7 +780,7 @@ namespace ibis {
 
   case 36:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 220 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -790,7 +791,7 @@ namespace ibis {
 
   case 37:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 225 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -801,7 +802,7 @@ namespace ibis {
 
   case 38:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 230 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -812,7 +813,7 @@ namespace ibis {
 
   case 39:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 235 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -823,7 +824,7 @@ namespace ibis {
 
   case 40:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 240 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -834,7 +835,7 @@ namespace ibis {
 
   case 41:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 245 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -845,29 +846,29 @@ namespace ibis {
 
   case 42:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 250 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(4) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
     break;
 
   case 43:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 255 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(4) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL);
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
     break;
 
   case 44:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 260 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -878,7 +879,7 @@ namespace ibis {
 
   case 45:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 265 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -889,7 +890,7 @@ namespace ibis {
 
   case 46:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 270 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -900,7 +901,7 @@ namespace ibis {
 
   case 47:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 275 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
@@ -911,7 +912,7 @@ namespace ibis {
 
   case 48:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 283 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -929,7 +930,7 @@ namespace ibis {
 
   case 49:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 295 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -947,7 +948,7 @@ namespace ibis {
 
   case 50:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 307 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -965,7 +966,7 @@ namespace ibis {
 
   case 51:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 319 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -983,7 +984,7 @@ namespace ibis {
 
   case 52:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 331 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1001,7 +1002,7 @@ namespace ibis {
 
   case 53:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 343 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1019,7 +1020,7 @@ namespace ibis {
 
   case 54:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 355 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1037,7 +1038,7 @@ namespace ibis {
 
   case 55:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 367 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1055,7 +1056,7 @@ namespace ibis {
 
   case 56:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 379 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1073,7 +1074,7 @@ namespace ibis {
 
   case 57:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 391 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1092,7 +1093,7 @@ namespace ibis {
 
   case 58:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 404 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1108,7 +1109,7 @@ namespace ibis {
 
   case 59:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 414 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(2) - (2)].selectNode);
@@ -1117,7 +1118,7 @@ namespace ibis {
 
   case 60:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 417 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(3) - (2)].selectNode);
@@ -1126,7 +1127,7 @@ namespace ibis {
 
   case 61:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 420 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1140,7 +1141,7 @@ namespace ibis {
 
   case 62:
 
-/* Line 677 of lalr1.cc  */
+/* Line 678 of lalr1.cc  */
 #line 428 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1153,8 +1154,8 @@ namespace ibis {
 
 
 
-/* Line 677 of lalr1.cc  */
-#line 1158 "selectParser.cc"
+/* Line 678 of lalr1.cc  */
+#line 1159 "selectParser.cc"
 	default:
           break;
       }
@@ -1188,7 +1189,7 @@ namespace ibis {
 	error (yylloc, yysyntax_error_ (yystate, yytoken));
       }
 
-    yyerror_range[0] = yylloc;
+    yyerror_range[1] = yylloc;
     if (yyerrstatus_ == 3)
       {
 	/* If just tried and failed to reuse lookahead token after an
@@ -1223,7 +1224,7 @@ namespace ibis {
     if (false)
       goto yyerrorlab;
 
-    yyerror_range[0] = yylocation_stack_[yylen - 1];
+    yyerror_range[1] = yylocation_stack_[yylen - 1];
     /* Do not reclaim the symbols of the rule which action triggered
        this YYERROR.  */
     yypop_ (yylen);
@@ -1255,7 +1256,7 @@ namespace ibis {
 	if (yystate_stack_.height () == 1)
 	YYABORT;
 
-	yyerror_range[0] = yylocation_stack_[0];
+	yyerror_range[1] = yylocation_stack_[0];
 	yydestruct_ ("Error: popping",
 		     yystos_[yystate],
 		     &yysemantic_stack_[0], &yylocation_stack_[0]);
@@ -1264,10 +1265,10 @@ namespace ibis {
 	YY_STACK_PRINT ();
       }
 
-    yyerror_range[1] = yylloc;
+    yyerror_range[2] = yylloc;
     // Using YYLLOC is tempting, but would change the location of
     // the lookahead.  YYLOC is available though.
-    YYLLOC_DEFAULT (yyloc, (yyerror_range - 1), 2);
+    YYLLOC_DEFAULT (yyloc, yyerror_range, 2);
     yysemantic_stack_.push (yylval);
     yylocation_stack_.push (yyloc);
 
@@ -1730,11 +1731,11 @@ namespace ibis {
 
 } // ibis
 
-/* Line 1053 of lalr1.cc  */
-#line 1735 "selectParser.cc"
+/* Line 1054 of lalr1.cc  */
+#line 1736 "selectParser.cc"
 
 
-/* Line 1055 of lalr1.cc  */
+/* Line 1056 of lalr1.cc  */
 #line 437 "selectParser.yy"
 
 void ibis::selectParser::error(const ibis::selectParser::location_type& l,

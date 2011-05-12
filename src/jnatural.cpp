@@ -1225,7 +1225,7 @@ ibis::table* ibis::jNatural::select() const {
 	    t->termType() != ibis::math::STRING) {
 	    features |= 1; // arithmetic operation
 	}
-	if (sel_->getAggregator(j) != ibis::selectClause::NIL) {
+	if (sel_->getAggregator(j) != ibis::selectClause::NIL_AGGR) {
 	    features |= 2; // aggregation
 	}
     }
