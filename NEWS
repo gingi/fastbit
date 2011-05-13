@@ -1,3 +1,19 @@
+Fri May 13 16:47:06 PDT 2011
+Version ibis1.2.4
+-- overwrite output file with an empty file when there is no output at
+     the request of Jon Strabla
+-- refactor ibis::index::create to allow for better control of I/O
+     options
+-- refactor the constructor of ibis::keywords to make more consistent
+     use of the internal parser for text
+-- enable the user to choose whether to use quiet NaN or maximum values
+     as the default NULL values
+-- fix a problem with shallow copy constructors of ibis::array_t to
+     address the problem with sorting functions (a problem reported by
+     Alexandre Maurel)
+-- fix a problem with ordering of select clause reported by Jon Strabala
+-- add runconfig and bin/fastbit-config
+
 Wed Mar 30 13:14:35 PDT 2011
 Version ibis1.2.3
 -- clean up the implementation of low-precision binning option by

@@ -16,9 +16,17 @@ parsers: whereLexer.cc whereParser.cc selectLexer.cc selectParser.cc fromLexer.c
 docs: Doxyfile
 	perl -pi -e 's/(PROJECT_NUMBER\s*=\s*).+/\1$(PACKAGE_VERSION)/' Doxyfile
 	doxygen
-# targets that are not files
-.PHONY: docs
-# # rules to generate .h and .cpp files from predicate.y and predicate.l
+
+# an extra rule to replace macros prefixed with PACKAGE_ to FASTBIT_
+fastbit-config.h: FastBit-prefix
+FastBit-prefix: stamp-h1
+	@if [ "`fgrep ' PACKAGE_' fastbit-config.h | wc -l`" -gt 0 ]; then \
+	mv fastbit-config.h fastbit-config.bak; \
+	sed -e 's/ PACKAGE_/ FASTBIT_/' fastbit-config.bak > fastbit-config.h; \
+	fi
+
+if MAINTAINER_MODE
+# # rules to generate .hh and .cc files from lex/yacc files
 location.hh position.hh stack.hh: whereParser.hh
 whereParser.cc: whereParser.hh
 	touch whereParser.cc
@@ -38,13 +46,8 @@ fromParser.hh: fromParser.yy
 	bison -d -o fromParser.cc fromParser.yy
 fromLexer.cc: fromLexer.ll fromParser.hh
 	flex -o fromLexer.cc fromLexer.ll
+endif
 
-# an extra rule to replace macros prefixed with PACKAGE_ to FASTBIT_
-fastbit-config.h: FastBit-prefix
-FastBit-prefix: stamp-h1
-	@if [ "`fgrep ' PACKAGE_' fastbit-config.h | wc -l`" -gt 0 ]; then \
-	   mv fastbit-config.h fastbit-config.bak; \
-	   sed -e 's/ PACKAGE_/ FASTBIT_/' fastbit-config.bak > fastbit-config.h; \
-	fi
-
+# targets that are not files
+.PHONY: docs
 .PHONY: FastBit-prefix

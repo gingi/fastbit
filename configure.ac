@@ -4,12 +4,13 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit],[ibis1.2.3.4],[fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit],[ibis1.2.4],[fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
 AC_DEFINE(PACKAGE_URL, "http://sdm.lbl.gov/fastbit/", [FastBit web site])
 AM_INIT_AUTOMAKE([no-define])
+AM_MAINTAINER_MODE([disable])
 
 LIB_VERSION_INFO=0:9:0
 # Checks for programs.

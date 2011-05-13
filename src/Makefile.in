@@ -159,6 +159,7 @@ LIB_VERSION_INFO = @LIB_VERSION_INFO@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
@@ -250,7 +251,7 @@ all: fastbit-config.h
 
 .SUFFIXES:
 .SUFFIXES: .cc .cpp .lo .o .obj
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -275,16 +276,16 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
 stamp-h1: $(srcdir)/fastbit-config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status src/fastbit-config.h
-$(srcdir)/fastbit-config.h.in:  $(am__configure_deps) 
+$(srcdir)/fastbit-config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
@@ -680,37 +681,38 @@ parsers: whereLexer.cc whereParser.cc selectLexer.cc selectParser.cc fromLexer.c
 docs: Doxyfile
 	perl -pi -e 's/(PROJECT_NUMBER\s*=\s*).+/\1$(PACKAGE_VERSION)/' Doxyfile
 	doxygen
-# targets that are not files
-.PHONY: docs
-# # rules to generate .h and .cpp files from predicate.y and predicate.l
-location.hh position.hh stack.hh: whereParser.hh
-whereParser.cc: whereParser.hh
-	touch whereParser.cc
-whereParser.hh: whereParser.yy
-	bison -d -o whereParser.cc whereParser.yy
-whereLexer.cc: whereLexer.ll whereParser.hh
-	flex -o whereLexer.cc whereLexer.ll
-selectParser.cc: selectParser.hh
-	touch selectParser.cc
-selectParser.hh: selectParser.yy
-	bison -d -o selectParser.cc selectParser.yy
-selectLexer.cc: selectLexer.ll selectParser.hh
-	flex -o selectLexer.cc selectLexer.ll
-fromParser.cc: fromParser.hh
-	touch fromParser.cc
-fromParser.hh: fromParser.yy
-	bison -d -o fromParser.cc fromParser.yy
-fromLexer.cc: fromLexer.ll fromParser.hh
-	flex -o fromLexer.cc fromLexer.ll
 
 # an extra rule to replace macros prefixed with PACKAGE_ to FASTBIT_
 fastbit-config.h: FastBit-prefix
 FastBit-prefix: stamp-h1
 	@if [ "`fgrep ' PACKAGE_' fastbit-config.h | wc -l`" -gt 0 ]; then \
-	   mv fastbit-config.h fastbit-config.bak; \
-	   sed -e 's/ PACKAGE_/ FASTBIT_/' fastbit-config.bak > fastbit-config.h; \
+	mv fastbit-config.h fastbit-config.bak; \
+	sed -e 's/ PACKAGE_/ FASTBIT_/' fastbit-config.bak > fastbit-config.h; \
 	fi
 
+# # rules to generate .hh and .cc files from lex/yacc files
+@MAINTAINER_MODE_TRUE@location.hh position.hh stack.hh: whereParser.hh
+@MAINTAINER_MODE_TRUE@whereParser.cc: whereParser.hh
+@MAINTAINER_MODE_TRUE@	touch whereParser.cc
+@MAINTAINER_MODE_TRUE@whereParser.hh: whereParser.yy
+@MAINTAINER_MODE_TRUE@	bison -d -o whereParser.cc whereParser.yy
+@MAINTAINER_MODE_TRUE@whereLexer.cc: whereLexer.ll whereParser.hh
+@MAINTAINER_MODE_TRUE@	flex -o whereLexer.cc whereLexer.ll
+@MAINTAINER_MODE_TRUE@selectParser.cc: selectParser.hh
+@MAINTAINER_MODE_TRUE@	touch selectParser.cc
+@MAINTAINER_MODE_TRUE@selectParser.hh: selectParser.yy
+@MAINTAINER_MODE_TRUE@	bison -d -o selectParser.cc selectParser.yy
+@MAINTAINER_MODE_TRUE@selectLexer.cc: selectLexer.ll selectParser.hh
+@MAINTAINER_MODE_TRUE@	flex -o selectLexer.cc selectLexer.ll
+@MAINTAINER_MODE_TRUE@fromParser.cc: fromParser.hh
+@MAINTAINER_MODE_TRUE@	touch fromParser.cc
+@MAINTAINER_MODE_TRUE@fromParser.hh: fromParser.yy
+@MAINTAINER_MODE_TRUE@	bison -d -o fromParser.cc fromParser.yy
+@MAINTAINER_MODE_TRUE@fromLexer.cc: fromLexer.ll fromParser.hh
+@MAINTAINER_MODE_TRUE@	flex -o fromLexer.cc fromLexer.ll
+
+# targets that are not files
+.PHONY: docs
 .PHONY: FastBit-prefix
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

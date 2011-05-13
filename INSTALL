@@ -37,6 +37,11 @@ located in various hidden directories selected by libtools.  For
 example, libfastbit.a is usually located in src/.libs and the
 executables in examples are in examples/.libs.
 
+----------
+For hopper.nersc.gov and other Cray XT machines, need options
+
+--disable-shared --without-getpwuid
+
 
 ----------
 Configuration Options

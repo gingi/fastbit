@@ -181,6 +181,7 @@ LIB_VERSION_INFO = @LIB_VERSION_INFO@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
@@ -265,8 +266,9 @@ AUTOMAKE_OPTIONS = gnu
 ACLOCAL_AMFLAGS = -I tests/m4
 SUBDIRS = src examples java tests
 bin_SCRIPTS = tests/scripts/fastbit-config
-EXTRA_DIST = tests/scripts/fastbit-config.in win/README win/Win.mak win/MinGW.mak \
-	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
+EXTRA_DIST = runconfig tests/scripts/fastbit-config.in \
+	win/README win/Win.mak win/MinGW.mak win/ibis.sln \
+	win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
 	win/ardea.vcproj win/setqgen.vcproj win/FlexLexer.h \
 	contrib/README contrib/fbmerge/fbmerge.cpp \
@@ -282,7 +284,7 @@ all: all-recursive
 .SUFFIXES:
 am--refresh:
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -309,9 +311,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	$(am__cd) $(srcdir) && $(AUTOCONF)
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
 tests/scripts/fastbit-config: $(top_builddir)/config.status $(top_srcdir)/tests/scripts/fastbit-config.in
@@ -811,9 +813,8 @@ docs:
 
 # three levels of thoroughness are available for checking the
 # correctness of FastBit functions: check, more-check, and full-check.
-# The normal check may take about a few seconds on a typical Linux machine,
-# more-check takes about ten to fifteen minutes, while full-check takes
-# several hours.
+# The normal check may take about a minute on a typical Linux machine,
+# more-check takes about an hour, while full-check takes several hours.
 more-check:
 	cd tests && $(MAKE) more-check
 
@@ -831,9 +832,6 @@ distclean: distclean-recursive
 maintainer-clean: maintainer-clean-am
 	-rm -rf ./$(DEPDIR) autom4te.cache
 	-rm -f Makefile
-
-#dist-hook:
-#	-rm -rf `find $(distdir) \( -name CVS -o \name .svn \)`
 
 .PHONY: docs more-check full-check
 

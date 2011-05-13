@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+# A script used by the authors of FastBit to configure the package.
+# Terse comments are provided in hoping they might be instructive for
+# configuring the page on other machines.
+#
+if (! ${HOSTNAME}) {
+    $HOSTNAME=`hostname`;
+}
+print "Configuring on ${HOSTNAME}\n";
+if (${HOSTNAME} eq "bit.local") {
+# on john's development machine, enable maintainer mode, use debug options
+    $cmd="./configure --prefix=${HOME}/Darwin --enable-maintainer-mode --enable-debug --disable-xopt";
+}
+elsif (${HOSTNAME} =~ m/^h\w+[.nersc.gov]?$/ ) {
+# on hopper at NERSC, use gcc/g++ by default, no debugging
+    $cmd="./configure --disable-shared --without-getpwuid --disable-debug --enable-xopt --without-java --prefix=/project/projectdirs/m1248/hopper/fastbit";
+}
+elsif (${HOSTNAME} =~ m/^f\w+[.nersc.gov]?$/ ) {
+# on franklin at NERSC, use gcc/g++ by default, no debugging
+    $cmd="./configure --disable-shared --without-getpwuid --disable-debug --enable-xopt --without-java --prefix=/project/projectdirs/m1248/franklin/fastbit";
+}
+elsif (${HOSTNAME} =~ m/^d\w+[.lbl.gov]?$/) {
+# on sdm group's linux machines, know where is java and where to install
+    $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.6.0_24 --prefix=/data/john/Linux";
+}
+else { # use all default options on generic linux/unix machines
+    $cmd="./configure";
+}
+print "$cmd\n\n";
+system($cmd);

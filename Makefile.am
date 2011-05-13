@@ -4,8 +4,9 @@ SUBDIRS = src examples java tests
 
 bin_SCRIPTS = tests/scripts/fastbit-config
 
-EXTRA_DIST = tests/scripts/fastbit-config.in win/README win/Win.mak win/MinGW.mak \
-	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
+EXTRA_DIST = runconfig tests/scripts/fastbit-config.in \
+	win/README win/Win.mak win/MinGW.mak win/ibis.sln \
+	win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
 	win/ardea.vcproj win/setqgen.vcproj win/FlexLexer.h \
 	contrib/README contrib/fbmerge/fbmerge.cpp \
@@ -21,9 +22,8 @@ docs:
 
 # three levels of thoroughness are available for checking the
 # correctness of FastBit functions: check, more-check, and full-check.
-# The normal check may take about a few seconds on a typical Linux machine,
-# more-check takes about ten to fifteen minutes, while full-check takes
-# several hours.
+# The normal check may take about a minute on a typical Linux machine,
+# more-check takes about an hour, while full-check takes several hours.
 more-check:
 	cd tests && $(MAKE) more-check
 
@@ -41,8 +41,5 @@ distclean: distclean-recursive
 maintainer-clean: maintainer-clean-am
 	-rm -rf ./$(DEPDIR) autom4te.cache
 	-rm -f Makefile
-
-#dist-hook:
-#	-rm -rf `find $(distdir) \( -name CVS -o \name .svn \)`
 
 .PHONY: docs more-check full-check
