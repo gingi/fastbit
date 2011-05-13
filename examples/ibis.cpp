@@ -181,7 +181,7 @@ namespace ibis {
 
 // printout the usage string
 static void usage(const char* name) {
-    std::cout << "\n\t\t"
+    std::cout << "\n"
 #ifdef FASTBIT_STRING
 	      << FASTBIT_STRING
 #else
@@ -213,8 +213,8 @@ static void usage(const char* name) {
 	"NOTE: multiple -c -d -f -q and -v options may be specified.  "
 	"Queries are applied to all data partitions by default.  "
 	"Verboseness levels are cumulated.\n\n"
-	"NOTE: options -n and -e are mutually exclusive, the one that appears, "
-	"a later one overwrites the earlier one on the same command line.\n"
+	"NOTE: options -n and -e are mutually exclusive, the one that appears "
+	"later overwrites the earlier ones on the same command line.\n\n"
 	"NOTE: option -t is interpreted as testing if specified alone, "
 	"however if any query is also specified, it is interpreted as "
 	"number of threads\n\n"
@@ -238,15 +238,15 @@ static void usage(const char* name) {
 // printout the help message
 static void help(const char* name) {
     std::cout << name << " accepts the following commands:\n"
-	"help, exit, quit, append\nand query of the form\n\n"
+	"help, exit, quit, append and query of the form\n\n"
 	"[SELECT column_names] [FROM dataset_names] WHERE ranges\n\n"
 	"The WHERE clause of a query must be specified.  "
-	"It is used to determine\nwhat records qualify the query.\n"
+	"It is used to determine what records qualify the query.\n"
 	"If SELECT clause is present in a query, the qualified "
-	"records named\ncolumns will be printed, otherwise only "
-	"information about number of\nhits will be printed.\n"
+	"records named columns will be printed, otherwise only "
+	"information about number of hits will be printed.\n"
 	"If FROM clause is present, the WHERE clause will be "
-	"only apply on the\nnamed datasets, otherwise, all "
+	"only apply on the named datasets, otherwise, all "
 	"available datasets will be used.\n\n"
 	"append dir -- add the data in dir to database.\n"
 	"print [Parts|Columns|Distributions|column-name [: conditions]]\n"

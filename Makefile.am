@@ -2,10 +2,12 @@ AUTOMAKE_OPTIONS=gnu
 ACLOCAL_AMFLAGS=-I tests/m4
 SUBDIRS = src examples java tests
 
-EXTRA_DIST = win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
+bin_SCRIPTS = tests/scripts/fastbit-config
+
+EXTRA_DIST = tests/scripts/fastbit-config.in win/README win/Win.mak win/MinGW.mak \
 	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
-	win/setqgen.vcproj win/FlexLexer.h \
+	win/ardea.vcproj win/setqgen.vcproj win/FlexLexer.h \
 	contrib/README contrib/fbmerge/fbmerge.cpp \
 	contrib/fbmerge/Makefile.am contrib/fbmerge/Makefile.in \
 	contrib/fbmerge/fbmerge.sln contrib/fbmerge/fbmerge.vcproj

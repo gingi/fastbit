@@ -16,7 +16,7 @@ usage()
 {
   cat <<EOF
 Usage: fastbit-config [OPTION]...
-Get FastBit compilation and linking information.
+Get @PACKAGE_STRING@ compilation and linking information.
 
 Options:
   --prefix               display \`--prefix' value used for building the

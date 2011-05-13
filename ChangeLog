@@ -1,3 +1,9 @@
+2011-05-13 John Wu <John dot Wu at ACM dot org>
+	* configure.ac, Makefile.am: add rules to output fastbit-config
+	for dynamically exporting the dependencies of FastBit
+	* tests/Makefile.am: regenerate the test cases 16, 17, 18 and 19
+	for check-ibis (they were somehow lost)
+
 2011-05-12 John Wu <John dot Wu at ACM dot org>
 	* src/*.h: add FASTBIT_CXX_DLLSPEC to classes and global variables
 	at the request of Alexandre Maurel

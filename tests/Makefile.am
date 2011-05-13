@@ -28,10 +28,10 @@ THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
 EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv \
-    scripts/fastbit-config.in scripts/hcompare.pl scripts/jrf-check.pl \
-    scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list \
+    scripts/hcompare.pl scripts/jrf-check.pl scripts/printWarning.pl \
+    scripts/matchCounts.pl scripts/query-count.list \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
-    vault/hist0 vault/hist1 vault/hist2 vault/hist3 vault/hist4 \
+    vault/hist0 vault/hist1 vault/hist2 vault/hist3 vault/hist4 vault/hist5 vault/hist6 \
     vault/text-0 vault/thula-0 vault/thula-1 vault/tcapi-3 vault/inRange-1 \
     vault/marksdb-1 vault/marksdb-3 vault/marksdb-4 vault/smatch-1 \
     vault/small-1 vault/small-2 vault/small-3 vault/small-4 vault/small-5 vault/small-6 vault/small-7 \
@@ -89,6 +89,10 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist $(TESTDIR)/t2/
 	@$(IBISEXE) -r $(TESTDIR)/t2/t2c -v 2 | if [ `fgrep 'reorder' - | fgrep 'completed successfully' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else  echo Did NOT pass $@ case 13; fi
 	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select floor(b/10) as sb, avg(c), countdistinct(c) where a < 25" -o $(TESTDIR)/hist4 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
 	@if [ ` diff -w vault/hist4 $(TESTDIR)/hist4 | wc -l ` -eq 0 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select count(*), avg(c), countdistinct(c), floor(b/10) as sb where a < 25" -o $(TESTDIR)/hist5 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi
+	@if [ ` diff -w vault/hist5 $(TESTDIR)/hist5 | wc -l ` -eq 0 ] ; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select countdistinct(c), sum(a), count(*), avg(b), floor(b/4) where c > 90" -o $(TESTDIR)/hist6 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
+	@if [ ` diff -w vault/hist6 $(TESTDIR)/hist6 | wc -l ` -eq 0 ] ; then echo Passed $@ case 19; else echo Did NOT pass $@ case 19; fi
 	@echo
 check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0/ -b -v -v > $(TESTDIR)/check-text.log 2>&1
