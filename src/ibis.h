@@ -46,6 +46,10 @@ a library, the users are free to build their own data processing system on
 top of it.  In particular, the user data is NOT required to be under the
 control of FastBit software.
 
+The source code of FastBit is available at <A
+HREF="https://codeforge.lbl.gov/projects/fastbit/">http://goo.gl/JYMzu</A>
+under <A HREF="http://crd.lbl.gov/~kewu/fastbit/src/license.txt">LGPL</A>.
+
 \section bitmap Bitmap Index
 An <A HREF="http://en.wikipedia.org/wiki/Index_%28database%29">index in a
 database system</A> is a data structure that utilizes redundant information

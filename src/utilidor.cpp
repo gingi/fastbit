@@ -14,6 +14,8 @@
 
 namespace ibis {
     namespace util {
+	template <typename T1, typename T2>
+	void sortAll_quick(array_t<T1>& arr1, array_t<T2>& arr2);
 	/// Shell sort.  Sort both arrays arr1 and arr2.
 	template <typename T1, typename T2>
 	void sortAll_shell(array_t<T1>& arr1, array_t<T2>& arr2);
@@ -291,20 +293,33 @@ void ibis::util::reorder(array_t<T*> &arr, const array_t<uint32_t>& ind) {
 
 template <typename T1, typename T2>
 void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
+    arr1.nosharing();
+    arr2.nosharing();
+    if (arr1.size() >= FASTBIT_QSORT_MIN) {
+	sortAll_quick(arr1, arr2);
+    }
+    else {
+	sortAll_shell(arr1, arr2);
+    }
+} // ibis::util::sortAll
+
+/// Quick sort.  Uses both arrays as keys and Moves all records of both arrays.
+template <typename T1, typename T2>
+void ibis::util::sortAll_quick(array_t<T1>& arr1, array_t<T2>& arr2) {
     const uint32_t nvals = (arr1.size() <= arr2.size() ?
 			    arr1.size() : arr2.size());
-    if (nvals >= 1024) {
+    if (nvals >= FASTBIT_QSORT_MIN) {
 	// split the arrays
 	uint32_t split = sortAll_split(arr1, arr2);
 	if (split < nvals) {
 	    if (split > 0) {
 		array_t<T1> front1(arr1, 0, split);
 		array_t<T2> front2(arr2, 0, split);
-		sortAll(front1, front2);
+		sortAll_quick(front1, front2);
 	    }
 	    array_t<T1> back1(arr1, split, nvals);
 	    array_t<T2> back2(arr2, split, nvals);
-	    sortAll(back1, back2);
+	    sortAll_quick(back1, back2);
 	}
     }
     else {
@@ -323,11 +338,11 @@ void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
 
     ibis::util::logger lg(4);
     if (sorted) {
-	lg() << "util::sortAll(arr1[" << arr1.size()
+	lg() << "util::sortAll_quick(arr1[" << arr1.size()
 	     << "], arr2[" << arr2.size() << "]) completed successfully";
     }
     else {
-	lg() << "Warning -- util::sortAll(arr1[" << arr1.size()
+	lg() << "Warning -- util::sortAll_quick(arr1[" << arr1.size()
 	     << "], arr2[" << arr2.size() << "]) completed with errors";
 	const uint32_t nprt = ((nvals >> ibis::gVerbose) > 0 ?
 			       (1 << ibis::gVerbose) : nvals);
@@ -342,11 +357,10 @@ void ibis::util::sortAll(array_t<T1>& arr1, array_t<T2>& arr2) {
 	    lg() << "\n... " << nvals-nprt << " ommitted\n";
     }
 #endif
-} // ibis::util::sortAll
+} // ibis::util::sortAll_quick
 
 template <typename T1, typename T2>
 void ibis::util::sortAll_shell(array_t<T1>& arr1, array_t<T2>& arr2) {
-    // gaps from http://www.cs.princeton.edu/~rs/shell/shell.c by R. Sedgewick
     const uint32_t nvals = (arr1.size() <= arr2.size() ?
 			    arr1.size() : arr2.size());
     uint32_t gap = nvals / 2;
@@ -560,6 +574,8 @@ template <typename T1, typename T2>
 void ibis::util::sortKeys(array_t<T1>& keys, array_t<T2>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
+    keys.nosharing();
+    vals.nosharing();
     if (nelm > 8192) {
 	try { // use radix sort only for large arrays
 	    sort_radix(keys, vals);
@@ -3151,12 +3167,15 @@ ibis::util::sortMerge(std::vector<std::string>& valR, array_t<uint32_t>& indR,
     if (valR.empty() || valS.empty()) return 0;
 
     try {
+	indR.nosharing();
 	if (valR.size() != indR.size()) {
 	    indR.resize(valR.size());
 	    for (uint32_t j = 0; j < valR.size(); ++ j)
 		indR[j] = j;
 	}
 	ibis::util::sortStrings(valR, indR);
+
+	indS.nosharing();
 	if (valS.size() != indS.size()) {
 	    indS.resize(valS.size());
 	    for (uint32_t j = 0; j < valS.size(); ++ j)
@@ -3208,12 +3227,17 @@ ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
     if (valR.empty() || valS.empty()) return 0;
 
     try {
+	valR.nosharing();
+	indR.nosharing();
 	if (valR.size() != indR.size()) {
 	    indR.resize(valR.size());
 	    for (uint32_t j = 0; j < valR.size(); ++ j)
 		indR[j] = j;
 	}
 	ibis::util::sortKeys(valR, indR);
+
+	valS.nosharing();
+	indS.nosharing();
 	if (valS.size() != indS.size()) {
 	    indS.resize(valS.size());
 	    for (uint32_t j = 0; j < valS.size(); ++ j)
@@ -3265,12 +3289,17 @@ ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
     if (valR.empty() || valS.empty()) return 0;
 
     try {
+	valR.nosharing();
+	indR.nosharing();
 	if (valR.size() != indR.size()) {
 	    indR.resize(valR.size());
 	    for (uint32_t j = 0; j < valR.size(); ++ j)
 		indR[j] = j;
 	}
 	ibis::util::sortKeys(valR, indR);
+
+	valS.nosharing();
+	indS.nosharing();
 	if (valS.size() != indS.size()) {
 	    indS.resize(valS.size());
 	    for (uint32_t j = 0; j < valS.size(); ++ j)

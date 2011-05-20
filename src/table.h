@@ -486,14 +486,14 @@ public:
     /// Append the records to this table.  If the argument maxrows is
     /// greater than 0, this function will reserve space to read this many
     /// records.  If the total number of records is more than maxrows and
-    /// the output director name is specified, then the records will be
+    /// the output directory name is specified, then the records will be
     /// written the outputdir and the memory is made available for later
     /// records.  If outputdir is not specified, this function attempts to
     /// expand the memory allocated, which may run out of memory.
     /// Furthermore, repeated allocations can be time-consuming.
     ///
     /// By default the records are delimited by comma (,) and blank space.
-    /// One may specify alternative delimiters using the second argument.
+    /// One may specify alternative delimiters using the last argument.
     ///
     /// Upon successful completion of this funciton, the return value is
     /// the number of rows processed.  However, not all of them may remain
@@ -502,8 +502,8 @@ public:
     /// @note Information about column names and types must be provided
     /// before calling this function.
     ///
-    /// @note The return value is intentionally left which limits the
-    /// maximum number of rows can be correctly returned.
+    /// @note The return value is intentionally left as 32-bit integer,
+    /// which limits the maximum number of rows can be correctly handled.
     virtual int readCSV(const char* inputfile, int maxrows=0,
 			const char* outputdir=0, const char* delimiters=0) =0;
     /// Read a SQL dump from database systems such as MySQL.  The entire

@@ -205,8 +205,13 @@ char* ibis::util::getString(const char* buf) {
 /// buffer.  If delim is not provided (i.e., is 0), and the 1st nonblank
 /// character is not a quote, then string will terminate at the 1st space
 /// character following the nonblank character.  A unquoted empty string
-/// is considered a null value which is indicated by return a negative
-/// error code.  A quoted empty string is a valid string.
+/// is considered a null value which is indicated by a negative
+/// return value.  A quoted empty string is a valid string.
+///
+/// @note This function uses backslash as the escape character for allowing
+/// quotes to be inside the quited strings.  Unfortunately, this also means
+/// to have a single backslash in a string, one has to input two of them
+/// right next to each other.
 int ibis::util::readString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content

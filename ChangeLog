@@ -1,3 +1,15 @@
+2011-05-19 John Wu <John dot Wu at ACM dot org>
+	* src/utilidor.cpp: add function sortAll_quick to allow sortAll to
+	call nosharing on the input arrays, add calls to nosharing to
+	sortKeys and sortMerge to make sure the arrays being sorted are
+	not shared with anything else (as the suggestion of Alexandre
+	Maurel)
+
+2011-05-14 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp: add a note in the documentation for
+	ibis::util::readString about the baskslash (Robert Wong from
+	openx.org was inquiring about the backslash)
+
 2011-05-13 John Wu <John dot Wu at ACM dot org>
 	* configure.ac, Makefile.am: add rules to output fastbit-config
 	for dynamically exporting the dependencies of FastBit

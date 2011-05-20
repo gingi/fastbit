@@ -3,6 +3,7 @@
 # Terse comments are provided in hoping they might be instructive for
 # configuring the page on other machines.
 #
+use Env qw(HOSTNAME PWD);
 if (! ${HOSTNAME}) {
     $HOSTNAME=`hostname`;
 }
@@ -24,7 +25,7 @@ elsif (${HOSTNAME} =~ m/^d\w+[.lbl.gov]?$/) {
     $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.6.0_24 --prefix=/data/john/Linux";
 }
 else { # use all default options on generic linux/unix machines
-    $cmd="./configure";
+    $cmd="./configure --prefix=${PWD}";
 }
 print "$cmd\n\n";
 system($cmd);
