@@ -1,3 +1,13 @@
+2011-05-22 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: add test cases 10, 11 and 12 to target
+	really-small for checking the join operations to verify the fixes
+	requested by Alexandre Maurel
+
+2011-05-21 John Wu <John dot Wu at ACM dot org>
+	* src/jNatural.cpp:219 the second maskR_ should have been maskS_
+	* src/jNatural.cpp:102,198 colR_ --> colS_
+	* src/joinin.cpp:80 colR_ --> colS_
+
 2011-05-19 John Wu <John dot Wu at ACM dot org>
 	* src/utilidor.cpp: add function sortAll_quick to allow sortAll to
 	call nosharing on the input arrays, add calls to nosharing to

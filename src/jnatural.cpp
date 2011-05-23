@@ -99,7 +99,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	maskS_.copy(*que.getHitVector());
     }
     else {
-	colR_.getNullMask(maskS_);
+	colS_.getNullMask(maskS_);
     }
 } // constructor
 
@@ -195,7 +195,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 	maskS_.copy(*que.getHitVector());
     }
     else {
-	colR_.getNullMask(maskS_);
+	colS_.getNullMask(maskS_);
     }
 
     LOGGER(ibis::gVerbose > 2)
@@ -216,7 +216,7 @@ ibis::jNatural::~jNatural() {
 /// Estimate the number of hits.  Don't do much right now, may change later.
 void ibis::jNatural::roughCount(uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;
-    nmax = (uint64_t)maskR_.cnt() * maskR_.cnt();
+    nmax = (uint64_t)maskR_.cnt() * maskS_.cnt();
 } // ibis::jNatural::roughCount
 
 /// Use sort-merge join.  This function sorts the qualified values and

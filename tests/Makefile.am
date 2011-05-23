@@ -147,7 +147,7 @@ check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-maurel.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-maurel.log; fi
 	@echo
 #
-really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTDIR)/w3/-part.txt $(TESTDIR)/w4/-part.txt
+really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTDIR)/w3/-part.txt $(TESTDIR)/w4/-part.txt $(TESTDIR)/w5/-part.txt
 	@date >| $(TESTDIR)/really-small.log
 	@$(IBISEXE) -d $(TESTDIR)/w1 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w2 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
@@ -156,6 +156,9 @@ really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTD
 	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2) where c_3 = '1010'" -output $(TESTDIR)/small-5 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2) where c_3 != '1010'" -output $(TESTDIR)/small-6 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -d $(TESTDIR)/w2 -v -q "select avg(w2.c_1), w3.c_2 where w2.c_1 = w3.c_1 and w3.c_1 > 0" -output $(TESTDIR)/small-10 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w5 -v -q "select a.c_2, sum(a.c_3) from w5 as a, w5 as b where a.c_1 = b.c_1" -output $(TESTDIR)/small-11 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -d $(TESTDIR)/w5 -v -q "select a.c_2, sum(a.c_3) from w5 as a, w3 as b where a.c_1 = w3.c_1 and a.c_3 > 1" -output $(TESTDIR)/small-12 >> $(TESTDIR)/really-small.log 2>&1
 	@if [ -f $(TESTDIR)/small-1 -a -f vault/small-1 -a `diff -w $(TESTDIR)/small-1 vault/small-1 | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@if [ -f $(TESTDIR)/small-2 -a -f vault/small-2 -a `diff -w $(TESTDIR)/small-2 vault/small-2 | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@if [ -f $(TESTDIR)/small-3 -a -f vault/small-3 -a `diff -w $(TESTDIR)/small-3 vault/small-3 | wc -l` -eq 0 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
@@ -165,6 +168,9 @@ really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTD
 	@if [ -f $(TESTDIR)/small-7 -a -f vault/small-7 -a `diff -w $(TESTDIR)/small-7 vault/small-7 | wc -l` -eq 0 ]; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='USA'" | fgrep 'produced 1 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
 	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='CA'" | fgrep 'The number of hits is 0' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@if [ -f $(TESTDIR)/small-10 -a -f vault/small-10 -a `diff -w $(TESTDIR)/small-10 vault/small-10 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
+	@if [ -f $(TESTDIR)/small-11 -a -f vault/small-11 -a `diff -w $(TESTDIR)/small-11 vault/small-11 | wc -l` -eq 0 ]; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
+	@if [ -f $(TESTDIR)/small-12 -a -f vault/small-12 -a `diff -w $(TESTDIR)/small-12 vault/small-12 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/really-small.log; fi
 	@echo
 check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
@@ -393,11 +399,13 @@ $(TESTDIR)/w2/-part.txt: $(ARDEAEXE) TESTDIR
 $(TESTDIR)/w3/-part.txt: $(ARDEAEXE) TESTDIR
 	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/w4/-part.txt: $(ARDEAEXE) TESTDIR
-	@$(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/stdout.log 2>&1
 	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt
 	@echo 'Berkeley: 5'    > $(TESTDIR)/w4/b.tdlist
 	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
 	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist
+$(TESTDIR)/w5/-part.txt: $(ARDEAEXE) TESTDIR
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w5 -m "c_1:s, c_2:f, c_3:i" -r "5, 1.0, 1" -r "75, 0.25, 3" -r "75, 0.5, 3" -r "105, 4, 1" -r "105, 8, 3" -r "105, 16, 5" >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/test.rc: TESTDIR
 	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc
