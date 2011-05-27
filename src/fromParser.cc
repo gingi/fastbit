@@ -1861,6 +1861,7 @@ namespace ibis {
 void ibis::fromParser::error(const ibis::fromParser::location_type& l,
 			     const std::string& m) {
     LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- ibis::fromParser encountered " << m << " at location " << l;
+	<< "Warning -- ibis::fromParser encountered " << m << " at location "
+	<< l;
 }
 

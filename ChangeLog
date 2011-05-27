@@ -1,3 +1,12 @@
+2011-05-27 John Wu <John dot Wu at ACM dot org>
+	* src/selectParser.yy: add support for aliases without the keyword
+	'AS' in the select clause (to match up with the from clause)
+	* src/fromClause.h: add documentation about the from clauses
+	* src/bord.h, src/bord.cpp: refactor ibis::bord to absorb
+	ibis::bord::part.  The class ibis::bord now inherents from both
+	ibis::part and ibis::table, which makes it possible to be listed
+	in ibis::datasets and available for other queries.
+
 2011-05-22 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: add test cases 10, 11 and 12 to target
 	really-small for checking the join operations to verify the fixes

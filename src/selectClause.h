@@ -18,7 +18,7 @@ namespace ibis {
 /// A class to represent the select clause.  It parses a string into a list
 /// of arithmetic expressions and aggregation functions.
 ///
-/// The terms in a select clause are to be separated by coma ',' and each
+/// The terms in a select clause are to be separated by comas ',' and each
 /// term may be an arithmetic expression or an aggregation function over an
 /// arithmetic expression, e.g., "age, avg(income)" and "temperature,
 /// sqrt(vx*vx+vy*vy+vz*vz) as speed, max(duration * speed)".  An
@@ -28,19 +28,20 @@ namespace ibis {
 /// supported aggregation functions are:
 ///
 /// - count(*): count the number of rows in each group.
-/// - countdistinct(expression): count the number of distinct values.
-///   computed by the expression, equivalent to SQL expression
-///   'count(distinct expression)'.
-/// - avg(expression): compute the average of the expression, (note that
+/// - countdistinct(expression): count the number of distinct values
+///   computed by the expression.  It is equivalent to SQL expression
+///   'count(distinct expression)'.  It can be shorted to
+///   distinct(expression).
+/// - avg(expression): compute the average of the expression.  Note that
 ///   the computation is always performed in double-precision
-///   floating-point values).
+///   floating-point values.
 /// - sum(expression): compute the sum of the expression.
 /// - max(expression): compute the maximum value of the expression.
 /// - min(expression): compute the minimum value of the expression.
 /// - median(expression): compute the median of the expression.  Note that
 ///   if the arithmetic expression is a simple column name, the value
 ///   retuned by this function has the same type as the column.  In cases
-///   requires the computation of the average of two values, the average is
+///   that require the computation of the average of two values, the average is
 ///   computed using the arithmetic in the type of the column.  This means
 ///   the median of a set of integers is always an integer, which can be
 ///   slightly different from what one might expect.  Arithmetic
@@ -63,7 +64,12 @@ namespace ibis {
 ///   divided by the number of rows.  This function name may also appears
 ///   as stdpop.
 ///
-/// @note All select operations excludes null values.  In most SQL
+/// Each term may optionally be followed by an alias for the term.  The
+/// alias must be a valid SQL name.  The alias may optionally be preceded
+/// by the keyword 'AS'.  The aliases can be used in the other part of the
+/// query.
+///
+/// @note All select operations excludes null values!  In most SQL
 /// implementations, the function 'count(*)' includes the null values.
 /// However, in FastBit, null values are always excluded.  For example, the
 /// return value for 'count(*)' in the following two select statements may
@@ -75,7 +81,7 @@ namespace ibis {
 /// In the first case, the number reported is purely determined by the
 /// where clause.  However, in the second case, because the select clause
 /// also involves the column A, all of null values of A are excluded,
-/// therefore 'count(*)' in the second example may be different from that
+/// therefore 'count(*)' in the second example may be smaller than that
 /// of the first example.
 class FASTBIT_CXX_DLLSPEC ibis::selectClause {
 public:

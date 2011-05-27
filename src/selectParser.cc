@@ -477,388 +477,795 @@ namespace ibis {
 /* Line 678 of lalr1.cc  */
 #line 94 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::AVG);
 }
     break;
 
   case 7:
 
 /* Line 678 of lalr1.cc  */
-#line 98 "selectParser.yy"
+#line 99 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::AVG);
 }
     break;
 
   case 8:
 
 /* Line 678 of lalr1.cc  */
-#line 102 "selectParser.yy"
+#line 104 "selectParser.yy"
     {
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::AVG);
 }
     break;
 
   case 9:
 
 /* Line 678 of lalr1.cc  */
-#line 106 "selectParser.yy"
+#line 109 "selectParser.yy"
     {
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::AVG);
 }
     break;
 
   case 10:
 
 /* Line 678 of lalr1.cc  */
-#line 110 "selectParser.yy"
+#line 114 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MAX);
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 11:
 
 /* Line 678 of lalr1.cc  */
-#line 114 "selectParser.yy"
+#line 118 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MAX);
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 12:
 
 /* Line 678 of lalr1.cc  */
-#line 118 "selectParser.yy"
+#line 122 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MIN);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 13:
 
 /* Line 678 of lalr1.cc  */
-#line 122 "selectParser.yy"
+#line 127 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MIN);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 14:
 
 /* Line 678 of lalr1.cc  */
-#line 126 "selectParser.yy"
+#line 132 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::SUM);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 15:
 
 /* Line 678 of lalr1.cc  */
-#line 130 "selectParser.yy"
+#line 137 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::SUM);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 16:
 
 /* Line 678 of lalr1.cc  */
-#line 134 "selectParser.yy"
+#line 142 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::VARPOP);
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 17:
 
 /* Line 678 of lalr1.cc  */
-#line 138 "selectParser.yy"
+#line 146 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::VARPOP);
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 18:
 
 /* Line 678 of lalr1.cc  */
-#line 142 "selectParser.yy"
+#line 150 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 19:
 
 /* Line 678 of lalr1.cc  */
-#line 146 "selectParser.yy"
+#line 155 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 20:
 
 /* Line 678 of lalr1.cc  */
-#line 150 "selectParser.yy"
+#line 160 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 21:
 
 /* Line 678 of lalr1.cc  */
-#line 154 "selectParser.yy"
+#line 165 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back(new ibis::math::variable("*"));
+    driver.aggr_.push_back(ibis::selectClause::CNT);
 }
     break;
 
   case 22:
 
 /* Line 678 of lalr1.cc  */
-#line 158 "selectParser.yy"
+#line 170 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+    driver.aggr_.push_back(ibis::selectClause::MAX);
 }
     break;
 
   case 23:
 
 /* Line 678 of lalr1.cc  */
-#line 162 "selectParser.yy"
+#line 174 "selectParser.yy"
     {
     driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+    driver.aggr_.push_back(ibis::selectClause::MAX);
 }
     break;
 
   case 24:
 
 /* Line 678 of lalr1.cc  */
-#line 166 "selectParser.yy"
+#line 178 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MAX);
 }
     break;
 
   case 25:
 
 /* Line 678 of lalr1.cc  */
-#line 170 "selectParser.yy"
+#line 183 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MAX);
 }
     break;
 
   case 26:
 
 /* Line 678 of lalr1.cc  */
-#line 174 "selectParser.yy"
+#line 188 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MAX);
 }
     break;
 
   case 27:
 
 /* Line 678 of lalr1.cc  */
-#line 178 "selectParser.yy"
+#line 193 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MAX);
 }
     break;
 
   case 28:
 
 /* Line 678 of lalr1.cc  */
-#line 182 "selectParser.yy"
+#line 198 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MIN);
 }
     break;
 
   case 29:
 
 /* Line 678 of lalr1.cc  */
-#line 186 "selectParser.yy"
+#line 202 "selectParser.yy"
     {
-    driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MIN);
 }
     break;
 
   case 30:
 
 /* Line 678 of lalr1.cc  */
-#line 190 "selectParser.yy"
+#line 206 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::AVG);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MIN);
 }
     break;
 
   case 31:
 
 /* Line 678 of lalr1.cc  */
-#line 195 "selectParser.yy"
+#line 211 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::AVG);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MIN);
 }
     break;
 
   case 32:
 
 /* Line 678 of lalr1.cc  */
-#line 200 "selectParser.yy"
+#line 216 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.aggr_.push_back(ibis::selectClause::MIN);
 }
     break;
 
   case 33:
 
 /* Line 678 of lalr1.cc  */
-#line 205 "selectParser.yy"
+#line 221 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.aggr_.push_back(ibis::selectClause::MIN);
 }
     break;
 
   case 34:
 
 /* Line 678 of lalr1.cc  */
-#line 210 "selectParser.yy"
+#line 226 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::SUM);
 }
     break;
 
   case 35:
 
 /* Line 678 of lalr1.cc  */
-#line 215 "selectParser.yy"
+#line 230 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::SUM);
 }
     break;
 
   case 36:
 
 /* Line 678 of lalr1.cc  */
-#line 220 "selectParser.yy"
+#line 234 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MAX);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::SUM);
 }
     break;
 
   case 37:
 
 /* Line 678 of lalr1.cc  */
-#line 225 "selectParser.yy"
+#line 239 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MAX);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::SUM);
 }
     break;
 
   case 38:
 
 /* Line 678 of lalr1.cc  */
-#line 230 "selectParser.yy"
+#line 244 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MIN);
+    driver.aggr_.push_back(ibis::selectClause::SUM);
 }
     break;
 
   case 39:
 
 /* Line 678 of lalr1.cc  */
-#line 235 "selectParser.yy"
+#line 249 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MIN);
+    driver.aggr_.push_back(ibis::selectClause::SUM);
 }
     break;
 
   case 40:
 
 /* Line 678 of lalr1.cc  */
-#line 240 "selectParser.yy"
+#line 254 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::SUM);
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARPOP);
 }
     break;
 
   case 41:
 
 /* Line 678 of lalr1.cc  */
-#line 245 "selectParser.yy"
+#line 258 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::SUM);
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARPOP);
 }
     break;
 
   case 42:
 
 /* Line 678 of lalr1.cc  */
-#line 250 "selectParser.yy"
+#line 262 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(4) - (1)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARPOP);
 }
     break;
 
   case 43:
 
 /* Line 678 of lalr1.cc  */
-#line 255 "selectParser.yy"
+#line 267 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARPOP);
+}
+    break;
+
+  case 44:
+
+/* Line 678 of lalr1.cc  */
+#line 272 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARPOP);
+}
+    break;
+
+  case 45:
+
+/* Line 678 of lalr1.cc  */
+#line 277 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARPOP);
+}
+    break;
+
+  case 46:
+
+/* Line 678 of lalr1.cc  */
+#line 282 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+}
+    break;
+
+  case 47:
+
+/* Line 678 of lalr1.cc  */
+#line 286 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+}
+    break;
+
+  case 48:
+
+/* Line 678 of lalr1.cc  */
+#line 290 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+}
+    break;
+
+  case 49:
+
+/* Line 678 of lalr1.cc  */
+#line 295 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+}
+    break;
+
+  case 50:
+
+/* Line 678 of lalr1.cc  */
+#line 300 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+}
+    break;
+
+  case 51:
+
+/* Line 678 of lalr1.cc  */
+#line 305 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
+}
+    break;
+
+  case 52:
+
+/* Line 678 of lalr1.cc  */
+#line 310 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+}
+    break;
+
+  case 53:
+
+/* Line 678 of lalr1.cc  */
+#line 314 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+}
+    break;
+
+  case 54:
+
+/* Line 678 of lalr1.cc  */
+#line 318 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+}
+    break;
+
+  case 55:
+
+/* Line 678 of lalr1.cc  */
+#line 323 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+}
+    break;
+
+  case 56:
+
+/* Line 678 of lalr1.cc  */
+#line 328 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+}
+    break;
+
+  case 57:
+
+/* Line 678 of lalr1.cc  */
+#line 333 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDPOP);
+}
+    break;
+
+  case 58:
+
+/* Line 678 of lalr1.cc  */
+#line 338 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+}
+    break;
+
+  case 59:
+
+/* Line 678 of lalr1.cc  */
+#line 342 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+}
+    break;
+
+  case 60:
+
+/* Line 678 of lalr1.cc  */
+#line 346 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+}
+    break;
+
+  case 61:
+
+/* Line 678 of lalr1.cc  */
+#line 351 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+}
+    break;
+
+  case 62:
+
+/* Line 678 of lalr1.cc  */
+#line 356 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+}
+    break;
+
+  case 63:
+
+/* Line 678 of lalr1.cc  */
+#line 361 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
+}
+    break;
+
+  case 64:
+
+/* Line 678 of lalr1.cc  */
+#line 366 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+    break;
+
+  case 65:
+
+/* Line 678 of lalr1.cc  */
+#line 370 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+    break;
+
+  case 66:
+
+/* Line 678 of lalr1.cc  */
+#line 374 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+    break;
+
+  case 67:
+
+/* Line 678 of lalr1.cc  */
+#line 379 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+    break;
+
+  case 68:
+
+/* Line 678 of lalr1.cc  */
+#line 384 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+    break;
+
+  case 69:
+
+/* Line 678 of lalr1.cc  */
+#line 389 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+}
+    break;
+
+  case 70:
+
+/* Line 678 of lalr1.cc  */
+#line 394 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
+    break;
+
+  case 71:
+
+/* Line 678 of lalr1.cc  */
+#line 398 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(5) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
+    break;
+
+  case 72:
+
+/* Line 678 of lalr1.cc  */
+#line 402 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
+    break;
+
+  case 73:
+
+/* Line 678 of lalr1.cc  */
+#line 407 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(6) - (5)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(6) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
+    break;
+
+  case 74:
+
+/* Line 678 of lalr1.cc  */
+#line 412 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
+    break;
+
+  case 75:
+
+/* Line 678 of lalr1.cc  */
+#line 417 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
+}
+    break;
+
+  case 76:
+
+/* Line 678 of lalr1.cc  */
+#line 422 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+}
+    break;
+
+  case 77:
+
+/* Line 678 of lalr1.cc  */
+#line 426 "selectParser.yy"
+    {
+    driver.terms_.push_back((yysemantic_stack_[(2) - (1)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+}
+    break;
+
+  case 78:
+
+/* Line 678 of lalr1.cc  */
+#line 430 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(3) - (2)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(3) - (1)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+}
+    break;
+
+  case 79:
+
+/* Line 678 of lalr1.cc  */
+#line 435 "selectParser.yy"
+    {
+    driver.alias_[*(yysemantic_stack_[(3) - (2)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(3) - (1)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+}
+    break;
+
+  case 80:
+
+/* Line 678 of lalr1.cc  */
+#line 440 "selectParser.yy"
     {
     driver.alias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.terms_.size();
     driver.terms_.push_back((yysemantic_stack_[(4) - (1)].selectNode));
@@ -866,54 +1273,21 @@ namespace ibis {
 }
     break;
 
-  case 44:
+  case 81:
 
 /* Line 678 of lalr1.cc  */
-#line 260 "selectParser.yy"
+#line 445 "selectParser.yy"
     {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
+    driver.alias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.terms_.size();
+    driver.terms_.push_back((yysemantic_stack_[(4) - (1)].selectNode));
+    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
 }
     break;
 
-  case 45:
+  case 82:
 
 /* Line 678 of lalr1.cc  */
-#line 265 "selectParser.yy"
-    {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
-}
-    break;
-
-  case 46:
-
-/* Line 678 of lalr1.cc  */
-#line 270 "selectParser.yy"
-    {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
-}
-    break;
-
-  case 47:
-
-/* Line 678 of lalr1.cc  */
-#line 275 "selectParser.yy"
-    {
-    driver.alias_[*(yysemantic_stack_[(7) - (6)].stringVal)] = driver.terms_.size();
-    driver.terms_.push_back((yysemantic_stack_[(7) - (3)].selectNode));
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
-}
-    break;
-
-  case 48:
-
-/* Line 678 of lalr1.cc  */
-#line 283 "selectParser.yy"
+#line 453 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -928,10 +1302,10 @@ namespace ibis {
 }
     break;
 
-  case 49:
+  case 83:
 
 /* Line 678 of lalr1.cc  */
-#line 295 "selectParser.yy"
+#line 465 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -946,10 +1320,10 @@ namespace ibis {
 }
     break;
 
-  case 50:
+  case 84:
 
 /* Line 678 of lalr1.cc  */
-#line 307 "selectParser.yy"
+#line 477 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -964,10 +1338,10 @@ namespace ibis {
 }
     break;
 
-  case 51:
+  case 85:
 
 /* Line 678 of lalr1.cc  */
-#line 319 "selectParser.yy"
+#line 489 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -982,10 +1356,10 @@ namespace ibis {
 }
     break;
 
-  case 52:
+  case 86:
 
 /* Line 678 of lalr1.cc  */
-#line 331 "selectParser.yy"
+#line 501 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1000,10 +1374,10 @@ namespace ibis {
 }
     break;
 
-  case 53:
+  case 87:
 
 /* Line 678 of lalr1.cc  */
-#line 343 "selectParser.yy"
+#line 513 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1018,10 +1392,10 @@ namespace ibis {
 }
     break;
 
-  case 54:
+  case 88:
 
 /* Line 678 of lalr1.cc  */
-#line 355 "selectParser.yy"
+#line 525 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1036,10 +1410,10 @@ namespace ibis {
 }
     break;
 
-  case 55:
+  case 89:
 
 /* Line 678 of lalr1.cc  */
-#line 367 "selectParser.yy"
+#line 537 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1054,10 +1428,10 @@ namespace ibis {
 }
     break;
 
-  case 56:
+  case 90:
 
 /* Line 678 of lalr1.cc  */
-#line 379 "selectParser.yy"
+#line 549 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1072,10 +1446,10 @@ namespace ibis {
 }
     break;
 
-  case 57:
+  case 91:
 
 /* Line 678 of lalr1.cc  */
-#line 391 "selectParser.yy"
+#line 561 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1091,10 +1465,10 @@ namespace ibis {
 }
     break;
 
-  case 58:
+  case 92:
 
 /* Line 678 of lalr1.cc  */
-#line 404 "selectParser.yy"
+#line 574 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1107,28 +1481,28 @@ namespace ibis {
 }
     break;
 
-  case 59:
+  case 93:
 
 /* Line 678 of lalr1.cc  */
-#line 414 "selectParser.yy"
+#line 584 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(2) - (2)].selectNode);
 }
     break;
 
-  case 60:
+  case 94:
 
 /* Line 678 of lalr1.cc  */
-#line 417 "selectParser.yy"
+#line 587 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(3) - (2)].selectNode);
 }
     break;
 
-  case 61:
+  case 95:
 
 /* Line 678 of lalr1.cc  */
-#line 420 "selectParser.yy"
+#line 590 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1139,10 +1513,10 @@ namespace ibis {
 }
     break;
 
-  case 62:
+  case 96:
 
 /* Line 678 of lalr1.cc  */
-#line 428 "selectParser.yy"
+#line 598 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1155,7 +1529,7 @@ namespace ibis {
 
 
 /* Line 678 of lalr1.cc  */
-#line 1159 "selectParser.cc"
+#line 1533 "selectParser.cc"
 	default:
           break;
       }
@@ -1364,21 +1738,26 @@ namespace ibis {
   const short int
   selectParser::yypact_[] =
   {
-       102,   -23,   -22,   -20,   -19,   -18,    -1,     0,     1,    59,
-      72,    77,   280,   280,   -24,    79,   280,    45,   102,    20,
-     280,   276,   280,   280,   280,   280,   280,   280,   280,   280,
-     280,    57,    57,   280,   126,   -24,   -24,   -24,    75,   280,
-     280,   280,   280,   280,   280,   280,   280,   -24,   138,    91,
-     150,   162,   174,   186,   198,   210,   222,   234,   246,   258,
-     113,   -24,    43,   290,   296,   300,   300,    57,    57,    57,
-      57,    19,    48,    49,    50,    54,    55,    44,    61,    62,
-      64,    56,    60,   -24,   280,   -24,   -24,   -24,    94,   -24,
-     -24,    97,   -24,   -24,    98,   -24,   -24,    99,   -24,   -24,
-     100,   -24,   -24,   112,   -24,   -24,   -24,   -24,   -24,   -24,
-     -24,   -24,   -24,   -24,   114,   -24,   -24,   125,   -24,   270,
-      65,    66,    67,    68,    69,    73,    74,    78,   -24,   -24,
+       143,   -23,   -22,   -20,   -19,   -18,     0,     1,    95,   133,
+     134,   137,   321,   321,   -24,   138,   321,   121,   143,    20,
+     321,   317,   321,   321,   321,   321,   321,   321,   321,   321,
+     321,   122,   122,   321,   167,   -24,   -24,   -24,   140,   321,
+     321,   321,   321,   321,   321,   321,   321,    24,   -24,   179,
+     139,   191,   203,   215,   227,   239,   251,   263,   275,   287,
+     299,   154,   -24,    66,   331,   337,   341,   341,   122,   122,
+     122,   122,   -24,   -24,    19,    45,    49,    50,    54,    55,
+      56,    60,    61,    62,    67,    68,   -24,   321,   -24,   -24,
+     -24,   153,    90,   -24,   -24,   155,    96,   -24,   -24,   166,
+      97,   -24,   -24,   168,    98,   -24,   -24,   178,    99,   -24,
+     -24,   180,   100,   -24,   -24,   190,   101,   -24,   -24,   192,
+     102,   -24,   -24,   202,   103,   -24,   -24,   204,   104,   -24,
+     -24,   214,   105,   -24,   -24,   216,   106,   -24,   311,   107,
+     -24,   -24,   108,   -24,   -24,   109,   -24,   -24,   110,   -24,
+     -24,   111,   -24,   -24,   112,   -24,   -24,   113,   -24,   -24,
+     114,   -24,   -24,   115,   -24,   -24,   116,   -24,   -24,   118,
+     -24,   -24,   119,   -24,   -24,   -24,   -24,   -24,   -24,   -24,
      -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24,
-     -24,   -24,   -24,   -24,   -24
+     -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24,   -24
   };
 
   /* YYDEFACT[S] -- default rule to reduce with in state S when YYTABLE
@@ -1388,27 +1767,32 @@ namespace ibis {
   selectParser::yydefact_[] =
   {
          0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    62,    61,     0,     0,     2,     0,
+       0,     0,     0,     0,    96,    95,     0,     0,     2,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,    59,    58,     0,     0,     1,     3,    29,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,    28,     0,     0,
+       0,    93,    92,     0,     0,     1,     3,    77,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,    76,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,    60,     0,    55,    54,    48,    49,    50,    51,    52,
-      53,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,    56,     0,    43,    42,     5,     0,     4,
-       9,     0,     8,     7,     0,     6,    13,     0,    12,    11,
-       0,    10,    15,     0,    14,    17,    16,    19,    18,    21,
-      20,    23,    22,    25,     0,    24,    27,     0,    26,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,    57,    31,
-      30,    35,    34,    33,    32,    39,    38,    37,    36,    41,
-      40,    45,    44,    47,    46
+       0,     0,    94,     0,    89,    88,    82,    83,    84,    85,
+      86,    87,    79,    78,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    90,     0,    81,    80,
+       5,     0,     0,     4,    17,     0,     0,    16,    11,     0,
+       0,    10,    29,     0,     0,    28,    23,     0,     0,    22,
+      35,     0,     0,    34,    41,     0,     0,    40,    47,     0,
+       0,    46,    53,     0,     0,    52,    59,     0,     0,    58,
+      65,     0,     0,    64,    71,     0,     0,    70,     0,     0,
+       7,     6,     0,    19,    20,     0,    13,    12,     0,    31,
+      30,     0,    25,    24,     0,    37,    36,     0,    43,    42,
+       0,    49,    48,     0,    55,    54,     0,    61,    60,     0,
+      67,    66,     0,    73,    72,    91,     9,     8,    21,    18,
+      15,    14,    33,    32,    27,    26,    39,    38,    45,    44,
+      51,    50,    57,    56,    63,    62,    69,    68,    75,    74
   };
 
   /* YYPGOTO[NTERM-NUM].  */
-  const signed char
+  const short int
   selectParser::yypgoto_[] =
   {
-       -24,    80,   -24,   -12
+       -24,   160,   -24,   -12
   };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -1425,39 +1809,43 @@ namespace ibis {
   const unsigned char
   selectParser::yytable_[] =
   {
-        31,    32,    20,    21,    34,    22,    23,    24,    48,    50,
-      51,    52,    53,    54,    55,    56,    57,    58,    59,    87,
-      37,    60,    88,    38,    25,    26,    27,    63,    64,    65,
-      66,    67,    68,    69,    70,    39,    40,    41,    42,    43,
-      44,    45,    46,    85,   105,    35,    89,    47,    90,    93,
-      96,    91,    94,    97,    99,   102,   113,   100,   103,   114,
-     116,   107,   109,   117,   111,   129,   131,   133,   135,   137,
-      86,   106,   119,   139,   141,    92,    95,    98,   143,    46,
-       0,   101,   104,   115,    28,     0,     0,   118,   108,   110,
-       0,   112,   130,   132,   134,   136,   138,    29,    36,    62,
-     140,   142,    30,     0,    33,   144,     1,     2,     3,     4,
-       5,     6,     7,     8,     9,    10,    11,    72,   120,    12,
-      13,   121,   122,   123,   124,    14,    15,    16,    39,    40,
-      41,    42,    43,    44,    45,    46,   125,     0,   126,    83,
-      84,    39,    40,    41,    42,    43,    44,    45,    46,   127,
-       0,     0,    61,    39,    40,    41,    42,    43,    44,    45,
-      46,     0,     0,     0,    71,    39,    40,    41,    42,    43,
-      44,    45,    46,     0,     0,     0,    73,    39,    40,    41,
-      42,    43,    44,    45,    46,     0,     0,     0,    74,    39,
-      40,    41,    42,    43,    44,    45,    46,     0,     0,     0,
-      75,    39,    40,    41,    42,    43,    44,    45,    46,     0,
-       0,     0,    76,    39,    40,    41,    42,    43,    44,    45,
-      46,     0,     0,     0,    77,    39,    40,    41,    42,    43,
-      44,    45,    46,     0,     0,     0,    78,    39,    40,    41,
-      42,    43,    44,    45,    46,     0,     0,     0,    79,    39,
-      40,    41,    42,    43,    44,    45,    46,     0,     0,     0,
-      80,    39,    40,    41,    42,    43,    44,    45,    46,     0,
-       0,     0,    81,    39,    40,    41,    42,    43,    44,    45,
-      46,     0,     0,     0,    82,    39,    40,    41,    42,    43,
-      44,    45,    46,    12,    13,    49,   128,    12,    13,    14,
-      15,    16,     0,    14,    15,    16,    40,    41,    42,    43,
-      44,    45,    46,    41,    42,    43,    44,    45,    46,    43,
-      44,    45,    46
+        31,    32,    20,    21,    34,    22,    23,    24,    49,    51,
+      52,    53,    54,    55,    56,    57,    58,    59,    60,    90,
+      37,    61,    91,    38,    72,    25,    26,    64,    65,    66,
+      67,    68,    69,    70,    71,    39,    40,    41,    42,    43,
+      44,    45,    46,    92,    47,    94,    93,    48,    95,    98,
+     102,    73,    99,   103,   106,   110,   114,   107,   111,   115,
+     118,   122,   126,   119,   123,   127,    88,   130,   134,    96,
+     131,   135,    97,   100,   104,   138,   101,   105,   108,   112,
+     116,   109,   113,   117,   120,   124,   128,   121,   125,   129,
+     140,   132,   136,    89,   133,   137,   143,   146,   149,   152,
+     155,   158,   161,   164,   167,   170,   173,   176,   178,   180,
+     182,   184,   186,   188,   190,   192,   194,   141,   196,   198,
+      27,    35,     0,   144,   147,   150,   153,   156,   159,   162,
+     165,   168,   171,   174,   177,   179,   181,   183,   185,   187,
+     189,   191,   193,   195,    46,   197,   199,     1,     2,     3,
+       4,     5,     6,     7,     8,     9,    10,    11,    28,    29,
+      12,    13,    30,    33,    63,    75,    14,    15,    16,    39,
+      40,    41,    42,    43,    44,    45,    46,   139,    36,   142,
+      86,    87,    39,    40,    41,    42,    43,    44,    45,    46,
+     145,     0,   148,    62,    39,    40,    41,    42,    43,    44,
+      45,    46,   151,     0,   154,    74,    39,    40,    41,    42,
+      43,    44,    45,    46,   157,     0,   160,    76,    39,    40,
+      41,    42,    43,    44,    45,    46,   163,     0,   166,    77,
+      39,    40,    41,    42,    43,    44,    45,    46,   169,     0,
+     172,    78,    39,    40,    41,    42,    43,    44,    45,    46,
+       0,     0,     0,    79,    39,    40,    41,    42,    43,    44,
+      45,    46,     0,     0,     0,    80,    39,    40,    41,    42,
+      43,    44,    45,    46,     0,     0,     0,    81,    39,    40,
+      41,    42,    43,    44,    45,    46,     0,     0,     0,    82,
+      39,    40,    41,    42,    43,    44,    45,    46,     0,     0,
+       0,    83,    39,    40,    41,    42,    43,    44,    45,    46,
+       0,     0,     0,    84,    39,    40,    41,    42,    43,    44,
+      45,    46,     0,     0,     0,    85,    39,    40,    41,    42,
+      43,    44,    45,    46,    12,    13,    50,   175,    12,    13,
+      14,    15,    16,     0,    14,    15,    16,    40,    41,    42,
+      43,    44,    45,    46,    41,    42,    43,    44,    45,    46,
+      43,    44,    45,    46
   };
 
   /* YYCHECK.  */
@@ -1466,37 +1854,41 @@ namespace ibis {
   {
         12,    13,    25,    25,    16,    25,    25,    25,    20,    21,
       22,    23,    24,    25,    26,    27,    28,    29,    30,     0,
-       0,    33,     3,     3,    25,    25,    25,    39,    40,    41,
+       0,    33,     3,     3,     0,    25,    25,    39,    40,    41,
       42,    43,    44,    45,    46,    15,    16,    17,    18,    19,
-      20,    21,    22,     0,     0,     0,    27,    27,     0,     0,
-       0,     3,     3,     3,     0,     0,     0,     3,     3,     3,
-       0,     0,     0,     3,     0,     0,     0,     0,     0,     0,
-      27,    27,    84,     0,     0,    27,    27,    27,     0,    22,
-      -1,    27,    27,    27,    25,    -1,    -1,    27,    27,    27,
-      -1,    27,    27,    27,    27,    27,    27,    25,    18,    24,
-      27,    27,    25,    -1,    25,    27,     4,     5,     6,     7,
-       8,     9,    10,    11,    12,    13,    14,    26,    24,    17,
-      18,    24,    24,    24,    24,    23,    24,    25,    15,    16,
+      20,    21,    22,    24,    24,     0,    27,    27,     3,     0,
+       0,    27,     3,     3,     0,     0,     0,     3,     3,     3,
+       0,     0,     0,     3,     3,     3,     0,     0,     0,    24,
+       3,     3,    27,    24,    24,    87,    27,    27,    24,    24,
+      24,    27,    27,    27,    24,    24,    24,    27,    27,    27,
+       0,    24,    24,    27,    27,    27,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    27,     0,     0,
+      25,     0,    -1,    27,    27,    27,    27,    27,    27,    27,
+      27,    27,    27,    27,    27,    27,    27,    27,    27,    27,
+      27,    27,    27,    27,    22,    27,    27,     4,     5,     6,
+       7,     8,     9,    10,    11,    12,    13,    14,    25,    25,
+      17,    18,    25,    25,    24,    26,    23,    24,    25,    15,
+      16,    17,    18,    19,    20,    21,    22,    24,    18,    24,
+      26,    27,    15,    16,    17,    18,    19,    20,    21,    22,
+      24,    -1,    24,    26,    15,    16,    17,    18,    19,    20,
+      21,    22,    24,    -1,    24,    26,    15,    16,    17,    18,
+      19,    20,    21,    22,    24,    -1,    24,    26,    15,    16,
       17,    18,    19,    20,    21,    22,    24,    -1,    24,    26,
-      27,    15,    16,    17,    18,    19,    20,    21,    22,    24,
-      -1,    -1,    26,    15,    16,    17,    18,    19,    20,    21,
-      22,    -1,    -1,    -1,    26,    15,    16,    17,    18,    19,
-      20,    21,    22,    -1,    -1,    -1,    26,    15,    16,    17,
-      18,    19,    20,    21,    22,    -1,    -1,    -1,    26,    15,
-      16,    17,    18,    19,    20,    21,    22,    -1,    -1,    -1,
-      26,    15,    16,    17,    18,    19,    20,    21,    22,    -1,
-      -1,    -1,    26,    15,    16,    17,    18,    19,    20,    21,
-      22,    -1,    -1,    -1,    26,    15,    16,    17,    18,    19,
-      20,    21,    22,    -1,    -1,    -1,    26,    15,    16,    17,
-      18,    19,    20,    21,    22,    -1,    -1,    -1,    26,    15,
-      16,    17,    18,    19,    20,    21,    22,    -1,    -1,    -1,
-      26,    15,    16,    17,    18,    19,    20,    21,    22,    -1,
-      -1,    -1,    26,    15,    16,    17,    18,    19,    20,    21,
-      22,    -1,    -1,    -1,    26,    15,    16,    17,    18,    19,
-      20,    21,    22,    17,    18,    19,    26,    17,    18,    23,
-      24,    25,    -1,    23,    24,    25,    16,    17,    18,    19,
-      20,    21,    22,    17,    18,    19,    20,    21,    22,    19,
-      20,    21,    22
+      15,    16,    17,    18,    19,    20,    21,    22,    24,    -1,
+      24,    26,    15,    16,    17,    18,    19,    20,    21,    22,
+      -1,    -1,    -1,    26,    15,    16,    17,    18,    19,    20,
+      21,    22,    -1,    -1,    -1,    26,    15,    16,    17,    18,
+      19,    20,    21,    22,    -1,    -1,    -1,    26,    15,    16,
+      17,    18,    19,    20,    21,    22,    -1,    -1,    -1,    26,
+      15,    16,    17,    18,    19,    20,    21,    22,    -1,    -1,
+      -1,    26,    15,    16,    17,    18,    19,    20,    21,    22,
+      -1,    -1,    -1,    26,    15,    16,    17,    18,    19,    20,
+      21,    22,    -1,    -1,    -1,    26,    15,    16,    17,    18,
+      19,    20,    21,    22,    17,    18,    19,    26,    17,    18,
+      23,    24,    25,    -1,    23,    24,    25,    16,    17,    18,
+      19,    20,    21,    22,    17,    18,    19,    20,    21,    22,
+      19,    20,    21,    22
   };
 
   /* STOS_[STATE-NUM] -- The (internal number of the) accessing
@@ -1508,17 +1900,22 @@ namespace ibis {
       13,    14,    17,    18,    23,    24,    25,    29,    30,    31,
       25,    25,    25,    25,    25,    25,    25,    25,    25,    25,
       25,    31,    31,    25,    31,     0,    29,     0,     3,    15,
-      16,    17,    18,    19,    20,    21,    22,    27,    31,    19,
-      31,    31,    31,    31,    31,    31,    31,    31,    31,    31,
-      31,    26,    24,    31,    31,    31,    31,    31,    31,    31,
-      31,    26,    26,    26,    26,    26,    26,    26,    26,    26,
-      26,    26,    26,    26,    27,     0,    27,     0,     3,    27,
-       0,     3,    27,     0,     3,    27,     0,     3,    27,     0,
-       3,    27,     0,     3,    27,     0,    27,     0,    27,     0,
-      27,     0,    27,     0,     3,    27,     0,     3,    27,    31,
-      24,    24,    24,    24,    24,    24,    24,    24,    26,     0,
-      27,     0,    27,     0,    27,     0,    27,     0,    27,     0,
-      27,     0,    27,     0,    27
+      16,    17,    18,    19,    20,    21,    22,    24,    27,    31,
+      19,    31,    31,    31,    31,    31,    31,    31,    31,    31,
+      31,    31,    26,    24,    31,    31,    31,    31,    31,    31,
+      31,    31,     0,    27,    26,    26,    26,    26,    26,    26,
+      26,    26,    26,    26,    26,    26,    26,    27,     0,    27,
+       0,     3,    24,    27,     0,     3,    24,    27,     0,     3,
+      24,    27,     0,     3,    24,    27,     0,     3,    24,    27,
+       0,     3,    24,    27,     0,     3,    24,    27,     0,     3,
+      24,    27,     0,     3,    24,    27,     0,     3,    24,    27,
+       0,     3,    24,    27,     0,     3,    24,    27,    31,    24,
+       0,    27,    24,     0,    27,    24,     0,    27,    24,     0,
+      27,    24,     0,    27,    24,     0,    27,    24,     0,    27,
+      24,     0,    27,    24,     0,    27,    24,     0,    27,    24,
+       0,    27,    24,     0,    27,    26,     0,    27,     0,    27,
+       0,    27,     0,    27,     0,    27,     0,    27,     0,    27,
+       0,    27,     0,    27,     0,    27,     0,    27,     0,    27
   };
 
 #if YYDEBUG
@@ -1541,22 +1938,28 @@ namespace ibis {
       30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
       30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
       30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
-      30,    30,    30,    30,    30,    30,    30,    30,    31,    31,
-      31,    31,    31,    31,    31,    31,    31,    31,    31,    31,
-      31,    31,    31
+      30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
+      30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
+      30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
+      30,    30,    30,    30,    30,    30,    30,    30,    30,    30,
+      30,    30,    31,    31,    31,    31,    31,    31,    31,    31,
+      31,    31,    31,    31,    31,    31,    31
   };
 
   /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
   const unsigned char
   selectParser::yyr2_[] =
   {
-         0,     2,     1,     2,     5,     5,     5,     5,     5,     5,
-       5,     5,     5,     5,     5,     5,     5,     5,     5,     5,
-       5,     5,     5,     5,     5,     5,     5,     5,     2,     2,
-       7,     7,     7,     7,     7,     7,     7,     7,     7,     7,
-       7,     7,     4,     4,     7,     7,     7,     7,     3,     3,
-       3,     3,     3,     3,     3,     3,     4,     6,     2,     2,
-       3,     1,     1
+         0,     2,     1,     2,     5,     5,     6,     6,     7,     7,
+       5,     5,     6,     6,     7,     7,     5,     5,     7,     6,
+       6,     7,     5,     5,     6,     6,     7,     7,     5,     5,
+       6,     6,     7,     7,     5,     5,     6,     6,     7,     7,
+       5,     5,     6,     6,     7,     7,     5,     5,     6,     6,
+       7,     7,     5,     5,     6,     6,     7,     7,     5,     5,
+       6,     6,     7,     7,     5,     5,     6,     6,     7,     7,
+       5,     5,     6,     6,     7,     7,     2,     2,     3,     3,
+       4,     4,     3,     3,     3,     3,     3,     3,     3,     3,
+       4,     6,     2,     2,     3,     1,     1
   };
 
 #if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
@@ -1581,34 +1984,58 @@ namespace ibis {
   {
         29,     0,    -1,    30,    -1,    30,    29,    -1,     4,    25,
       31,    26,    27,    -1,     4,    25,    31,    26,     0,    -1,
+       4,    25,    31,    26,    24,    27,    -1,     4,    25,    31,
+      26,    24,     0,    -1,     4,    25,    31,    26,     3,    24,
+      27,    -1,     4,    25,    31,    26,     3,    24,     0,    -1,
        5,    25,    31,    26,    27,    -1,     5,    25,    31,    26,
+       0,    -1,     5,    25,    31,    26,    24,    27,    -1,     5,
+      25,    31,    26,    24,     0,    -1,     5,    25,    31,    26,
+       3,    24,    27,    -1,     5,    25,    31,    26,     3,    24,
        0,    -1,     5,    25,    19,    26,    27,    -1,     5,    25,
-      19,    26,     0,    -1,     7,    25,    31,    26,    27,    -1,
-       7,    25,    31,    26,     0,    -1,     6,    25,    31,    26,
-      27,    -1,     6,    25,    31,    26,     0,    -1,     8,    25,
-      31,    26,    27,    -1,     8,    25,    31,    26,     0,    -1,
-       9,    25,    31,    26,    27,    -1,     9,    25,    31,    26,
-       0,    -1,    10,    25,    31,    26,    27,    -1,    10,    25,
-      31,    26,     0,    -1,    11,    25,    31,    26,    27,    -1,
-      11,    25,    31,    26,     0,    -1,    12,    25,    31,    26,
-      27,    -1,    12,    25,    31,    26,     0,    -1,    13,    25,
-      31,    26,    27,    -1,    13,    25,    31,    26,     0,    -1,
-      14,    25,    31,    26,    27,    -1,    14,    25,    31,    26,
-       0,    -1,    31,    27,    -1,    31,     0,    -1,     4,    25,
-      31,    26,     3,    24,    27,    -1,     4,    25,    31,    26,
-       3,    24,     0,    -1,     5,    25,    31,    26,     3,    24,
-      27,    -1,     5,    25,    31,    26,     3,    24,     0,    -1,
-       5,    25,    19,    26,     3,    24,    27,    -1,     5,    25,
-      19,    26,     3,    24,     0,    -1,     7,    25,    31,    26,
-       3,    24,    27,    -1,     7,    25,    31,    26,     3,    24,
+      19,    26,     0,    -1,     5,    25,    19,    26,     3,    24,
+      27,    -1,     5,    25,    19,    26,    24,     0,    -1,     5,
+      25,    19,    26,    24,    27,    -1,     5,    25,    19,    26,
+       3,    24,     0,    -1,     7,    25,    31,    26,    27,    -1,
+       7,    25,    31,    26,     0,    -1,     7,    25,    31,    26,
+      24,    27,    -1,     7,    25,    31,    26,    24,     0,    -1,
+       7,    25,    31,    26,     3,    24,    27,    -1,     7,    25,
+      31,    26,     3,    24,     0,    -1,     6,    25,    31,    26,
+      27,    -1,     6,    25,    31,    26,     0,    -1,     6,    25,
+      31,    26,    24,    27,    -1,     6,    25,    31,    26,    24,
        0,    -1,     6,    25,    31,    26,     3,    24,    27,    -1,
        6,    25,    31,    26,     3,    24,     0,    -1,     8,    25,
-      31,    26,     3,    24,    27,    -1,     8,    25,    31,    26,
-       3,    24,     0,    -1,    31,     3,    24,    27,    -1,    31,
-       3,    24,     0,    -1,    13,    25,    31,    26,     3,    24,
+      31,    26,    27,    -1,     8,    25,    31,    26,     0,    -1,
+       8,    25,    31,    26,    24,    27,    -1,     8,    25,    31,
+      26,    24,     0,    -1,     8,    25,    31,    26,     3,    24,
+      27,    -1,     8,    25,    31,    26,     3,    24,     0,    -1,
+       9,    25,    31,    26,    27,    -1,     9,    25,    31,    26,
+       0,    -1,     9,    25,    31,    26,    24,    27,    -1,     9,
+      25,    31,    26,    24,     0,    -1,     9,    25,    31,    26,
+       3,    24,    27,    -1,     9,    25,    31,    26,     3,    24,
+       0,    -1,    10,    25,    31,    26,    27,    -1,    10,    25,
+      31,    26,     0,    -1,    10,    25,    31,    26,    24,    27,
+      -1,    10,    25,    31,    26,    24,     0,    -1,    10,    25,
+      31,    26,     3,    24,    27,    -1,    10,    25,    31,    26,
+       3,    24,     0,    -1,    11,    25,    31,    26,    27,    -1,
+      11,    25,    31,    26,     0,    -1,    11,    25,    31,    26,
+      24,    27,    -1,    11,    25,    31,    26,    24,     0,    -1,
+      11,    25,    31,    26,     3,    24,    27,    -1,    11,    25,
+      31,    26,     3,    24,     0,    -1,    12,    25,    31,    26,
+      27,    -1,    12,    25,    31,    26,     0,    -1,    12,    25,
+      31,    26,    24,    27,    -1,    12,    25,    31,    26,    24,
+       0,    -1,    12,    25,    31,    26,     3,    24,    27,    -1,
+      12,    25,    31,    26,     3,    24,     0,    -1,    13,    25,
+      31,    26,    27,    -1,    13,    25,    31,    26,     0,    -1,
+      13,    25,    31,    26,    24,    27,    -1,    13,    25,    31,
+      26,    24,     0,    -1,    13,    25,    31,    26,     3,    24,
       27,    -1,    13,    25,    31,    26,     3,    24,     0,    -1,
-      14,    25,    31,    26,     3,    24,    27,    -1,    14,    25,
-      31,    26,     3,    24,     0,    -1,    31,    17,    31,    -1,
+      14,    25,    31,    26,    27,    -1,    14,    25,    31,    26,
+       0,    -1,    14,    25,    31,    26,    24,    27,    -1,    14,
+      25,    31,    26,    24,     0,    -1,    14,    25,    31,    26,
+       3,    24,    27,    -1,    14,    25,    31,    26,     3,    24,
+       0,    -1,    31,    27,    -1,    31,     0,    -1,    31,    24,
+      27,    -1,    31,    24,     0,    -1,    31,     3,    24,    27,
+      -1,    31,     3,    24,     0,    -1,    31,    17,    31,    -1,
       31,    18,    31,    -1,    31,    19,    31,    -1,    31,    20,
       31,    -1,    31,    21,    31,    -1,    31,    22,    31,    -1,
       31,    16,    31,    -1,    31,    15,    31,    -1,    24,    25,
@@ -1622,26 +2049,32 @@ namespace ibis {
   const unsigned short int
   selectParser::yyprhs_[] =
   {
-         0,     0,     3,     5,     8,    14,    20,    26,    32,    38,
-      44,    50,    56,    62,    68,    74,    80,    86,    92,    98,
-     104,   110,   116,   122,   128,   134,   140,   146,   152,   155,
-     158,   166,   174,   182,   190,   198,   206,   214,   222,   230,
-     238,   246,   254,   259,   264,   272,   280,   288,   296,   300,
-     304,   308,   312,   316,   320,   324,   328,   333,   340,   343,
-     346,   350,   352
+         0,     0,     3,     5,     8,    14,    20,    27,    34,    42,
+      50,    56,    62,    69,    76,    84,    92,    98,   104,   112,
+     119,   126,   134,   140,   146,   153,   160,   168,   176,   182,
+     188,   195,   202,   210,   218,   224,   230,   237,   244,   252,
+     260,   266,   272,   279,   286,   294,   302,   308,   314,   321,
+     328,   336,   344,   350,   356,   363,   370,   378,   386,   392,
+     398,   405,   412,   420,   428,   434,   440,   447,   454,   462,
+     470,   476,   482,   489,   496,   504,   512,   515,   518,   522,
+     526,   531,   536,   540,   544,   548,   552,   556,   560,   564,
+     568,   573,   580,   583,   586,   590,   592
   };
 
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
   const unsigned short int
   selectParser::yyrline_[] =
   {
-         0,    85,    85,    85,    86,    90,    94,    98,   102,   106,
-     110,   114,   118,   122,   126,   130,   134,   138,   142,   146,
-     150,   154,   158,   162,   166,   170,   174,   178,   182,   186,
-     190,   195,   200,   205,   210,   215,   220,   225,   230,   235,
-     240,   245,   250,   255,   260,   265,   270,   275,   283,   295,
-     307,   319,   331,   343,   355,   367,   379,   391,   404,   414,
-     417,   420,   428
+         0,    85,    85,    85,    86,    90,    94,    99,   104,   109,
+     114,   118,   122,   127,   132,   137,   142,   146,   150,   155,
+     160,   165,   170,   174,   178,   183,   188,   193,   198,   202,
+     206,   211,   216,   221,   226,   230,   234,   239,   244,   249,
+     254,   258,   262,   267,   272,   277,   282,   286,   290,   295,
+     300,   305,   310,   314,   318,   323,   328,   333,   338,   342,
+     346,   351,   356,   361,   366,   370,   374,   379,   384,   389,
+     394,   398,   402,   407,   412,   417,   422,   426,   430,   435,
+     440,   445,   453,   465,   477,   489,   501,   513,   525,   537,
+     549,   561,   574,   584,   587,   590,   598
   };
 
   // Print the state stack on the debug stream.
@@ -1717,7 +2150,7 @@ namespace ibis {
   }
 
   const int selectParser::yyeof_ = 0;
-  const int selectParser::yylast_ = 322;
+  const int selectParser::yylast_ = 363;
   const int selectParser::yynnts_ = 4;
   const int selectParser::yyempty_ = -2;
   const int selectParser::yyfinal_ = 35;
@@ -1732,15 +2165,16 @@ namespace ibis {
 } // ibis
 
 /* Line 1054 of lalr1.cc  */
-#line 1736 "selectParser.cc"
+#line 2169 "selectParser.cc"
 
 
 /* Line 1056 of lalr1.cc  */
-#line 437 "selectParser.yy"
+#line 607 "selectParser.yy"
 
 void ibis::selectParser::error(const ibis::selectParser::location_type& l,
 			       const std::string& m) {
     LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- ibis::selectParser encountered " << m << " at location " << l;
+	<< "Warning -- ibis::selectParser encountered " << m << " at location "
+	<< l;
 }
 

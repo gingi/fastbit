@@ -25,7 +25,7 @@ namespace ibis {
 /// can store no more than 4 billion rows.
 ///
 /// @note Bord is a Danish word for "table."
-class FASTBIT_CXX_DLLSPEC ibis::bord : public ibis::table {
+class FASTBIT_CXX_DLLSPEC ibis::bord : public ibis::table, public ibis::part {
 public:
     bord(const char *tn, const char *td, uint64_t nr,
 	 ibis::table::bufferList &buf,
@@ -34,8 +34,8 @@ public:
 	 const ibis::table::stringList *cdesc=0);
     virtual ~bord() {clear();}
 
-    virtual uint64_t nRows() const {return mypart.nRows();}
-    virtual uint32_t nColumns() const {return mypart.nColumns();}
+    virtual uint64_t nRows() const {return nEvents;}
+    virtual uint32_t nColumns() const {return ibis::part::nColumns();}
 
     virtual ibis::table::stringList columnNames() const;
     virtual ibis::table::typeList columnTypes() const;
@@ -99,68 +99,44 @@ public:
     virtual void indexSpec(const char*, const char*) {return;}
     virtual int getPartitions(std::vector<const ibis::part*> &) const;
 
+    int restoreCategoriesAsStrings(const char*);
+    ibis::table* groupby(const ibis::selectClause&) const;
+    ibis::table* evaluateTerms(const ibis::selectClause&,
+			       const char*) const;
+
+    virtual long reorder(const ibis::table::stringList&);
+    virtual long reorder() {return ibis::part::reorder();}
+
+    int limit(uint32_t);
+
+    template <typename T>
+	long sortValues(array_t<T>& vals,
+			const array_t<uint32_t>& indin,
+			array_t<uint32_t>& indout,
+			array_t<uint32_t>& starts) const;
+    template <typename T>
+	long reorderValues(array_t<T>& vals,
+			   const array_t<uint32_t>& ind) const;
+    long sortStrings(std::vector<std::string>& vals,
+		     const array_t<uint32_t>& idxin,
+		     array_t<uint32_t>& idxout,
+		     array_t<uint32_t>& starts) const;
+    long reorderStrings(std::vector<std::string>& vals,
+			const array_t<uint32_t>& ind) const;
+
+
+    static void copyValue(ibis::TYPE_T type,
+			  void* outbuf, size_t outpos,
+			  const void* inbuf, size_t inpos);
+
     // Cursor class for row-wise data accesses.
     class cursor;
     /// Create a @c cursor object to perform row-wise data access.
     virtual ibis::table::cursor* createCursor() const;
 
-    int restoreCategoriesAsStrings(const ibis::part&, const char*);
-    ibis::table* groupby(const ibis::selectClause&) const;
-    ibis::table* evaluateTerms(const ibis::selectClause&,
-			       const char*) const;
-
+    // forward declarations
     class column;
     class text;
-    /// An in-memory data partition.
-    class part : public ibis::part {
-    public:
-	part(const char *tn, const char *td, uint64_t nr,
-	     const ibis::table::stringList &cn,
-	     const ibis::table::typeList   &ct,
-	     ibis::table::bufferList       &buf,
-	     const ibis::table::stringList *cdesc=0);
-
-	ibis::table* groupby(const ibis::selectClause&) const;
-	ibis::table* evaluateTerms(const ibis::selectClause&,
-				   const char*) const;
-	virtual long reorder(const ibis::table::stringList&);
-	virtual long reorder() {return ibis::part::reorder();}
-
-	int dump(std::ostream&, uint32_t, const char*) const;
-	int dump(std::ostream&, uint32_t, uint32_t, const char*) const;
-	int backup(const char*, const char*, const char*) const;
-
-	void describe(std::ostream&) const;
-	void dumpNames(std::ostream&, const char*) const;
-	void reverseRows();
-	int limit(uint32_t);
-
-	template <typename T>
-	long sortValues(array_t<T>& vals,
-			const array_t<uint32_t>& indin,
-			array_t<uint32_t>& indout,
-			array_t<uint32_t>& starts) const;
-	template <typename T>
-	long reorderValues(array_t<T>& vals,
-			   const array_t<uint32_t>& ind) const;
-	long sortStrings(std::vector<std::string>& vals,
-			 const array_t<uint32_t>& idxin,
-			 array_t<uint32_t>& idxout,
-			 array_t<uint32_t>& starts) const;
-	long reorderStrings(std::vector<std::string>& vals,
-			    const array_t<uint32_t>& ind) const;
-
-	int restoreCategoriesAsStrings(const ibis::part&, const char*);
-
-    private:
-	part();
-	part(const part&);
-	part& operator=(const part&);
-    }; // ibis::bord::part
-
-    static void copyValue(ibis::TYPE_T type,
-			  void* outbuf, size_t outpos,
-			  const void* inbuf, size_t inpos);
 
 protected:
     part mypart; ///< The data partition for an in-memory table.
@@ -378,84 +354,6 @@ inline void ibis::bord::copyValue(ibis::TYPE_T type,
 	break;}
     }
 } //ibis::bord::copyValue
-
-inline void ibis::bord::describe(std::ostream &out) const {
-    mypart.describe(out);
-} // ibis::bord::describe
-
-inline void ibis::bord::dumpNames(std::ostream &out, const char* del) const {
-    mypart.dumpNames(out, del);
-} // ibis::bord::dumpNames
-
-inline int ibis::bord::dump(std::ostream &out, const char* del) const {
-    return mypart.dump(out, mypart.nRows(), del);
-} // ibis::bord::dump
-
-inline int ibis::bord::dump(std::ostream &out, uint64_t nr,
-			    const char* del) const {
-    if (nr == static_cast<uint32_t>(nr))
-	return mypart.dump(out, static_cast<uint32_t>(nr), del);
-    else
-	return -5;
-} // ibis::bord::dump
-
-inline int ibis::bord::dump(std::ostream &out, uint64_t off, uint64_t nr,
-			    const char* del) const {
-    if (off == static_cast<uint32_t>(off) &&
-	nr == static_cast<uint32_t>(nr))
-	return mypart.dump(out, static_cast<uint32_t>(off),
-			   static_cast<uint32_t>(nr), del);
-    else
-	return -5;
-} // ibis::bord::dump
-
-inline int ibis::bord::backup(const char* dir, const char* tname,
-			      const char* tdesc) const {
-    return mypart.backup(dir, tname, tdesc);
-} // ibis::bord::backup
-
-inline ibis::table* ibis::bord::groupby(const ibis::selectClause &sc) const {
-    return mypart.groupby(sc);
-} // ibis::bord::groupby
-
-inline void ibis::bord::orderby(const ibis::table::stringList& keys) {
-    mypart.reorder(keys);
-} // ibis::bord::orderby
-
-inline void ibis::bord::reverseRows() {
-    mypart.reverseRows();
-} // ibis::bord::reverseRows
-
-inline ibis::table::cursor* ibis::bord::createCursor() const {
-    return new ibis::bord::cursor(*this);
-} // ibis::bord::createCursor
-
-/// Evaluate the arithmetic expressions in the select clause to produce a
-/// new table object.
-inline ibis::table*
-ibis::bord::evaluateTerms(const ibis::selectClause& sel,
-			  const char* desc) const {
-    return mypart.evaluateTerms(sel, desc);
-} // ibis::bord::evaluateTerms
-
-/// Convert the integer representation to string representation.
-inline int 
-ibis::bord::restoreCategoriesAsStrings(const ibis::part& prt, const char* nm) {
-    return mypart.restoreCategoriesAsStrings(prt, nm);
-} // ibis::bord::restoreCategoriesAsStrings
-
-/// Convert the integer representation to string representation.
-inline int
-ibis::bord::part::restoreCategoriesAsStrings(const ibis::part& prt,
-					     const char* nm) {
-    if (nm == 0 || *nm == 0)
-	return -1;
-    ibis::bord::column *col = static_cast<ibis::bord::column*>(getColumn(nm));
-    if (col != 0)
-	return col->restoreCategoriesAsStrings(prt);
-    else
-	return -2;
-} // ibis::bord::part::restoreCategoriesAsStrings
 
 inline int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
     int ierr = -1;

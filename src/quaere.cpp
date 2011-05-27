@@ -9,9 +9,13 @@
 
 #include <memory>	// std::auto_ptr
 
-/// Generate a query expression.  This function expects a valid where
-/// clause, but the select clause and the from clause could be unspecified
-/// or left as nil pointers.
+/// Generate a query expression.  This function takes three arguments known
+/// as the select clause, the from clause and the where clause.  It expects
+/// a valid where clause, but the select clause and the from clause could
+/// be blank strings or left as nil pointers.  If the select clause is
+/// undefined, the default operation is to count the number of hits.  If
+/// the from clause is not specified, it will attempt to use all the data
+/// partitions stored in the global variable ibis::datasets.
 ibis::quaere* ibis::quaere::create(const char* sel,
 				   const char* fr,
 				   const char* wh) {
@@ -1019,7 +1023,7 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 /// for parts only.  If no conditions are specified, all valid records in
 /// the partition will participate in the natural join.
 ///
-/// Note 2: the select clause must have fully qualified column names.
+/// Note 2: the select clause should have fully qualified column names.
 /// Unqualified column names will assumed to be searched in partr first and
 /// then in parts.
 ibis::quaere*

@@ -379,7 +379,7 @@ protected:
 
     /// The default constructor.
     table() {};
-    /// Constructor.  Use explicitly given name and description.
+    /// Constructor.  Use the user-supplied name and description.
     table(const char* na, const char* de)
 	: name_(na?na:""), desc_(de?de:na?na:"") {};
 

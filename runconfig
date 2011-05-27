@@ -10,7 +10,7 @@ if (! ${HOSTNAME}) {
 print "Configuring on ${HOSTNAME}\n";
 if (${HOSTNAME} eq "bit.local") {
 # on john's development machine, enable maintainer mode, use debug options
-    $cmd="./configure --prefix=${HOME}/Darwin --enable-maintainer-mode --enable-debug --disable-xopt";
+    $cmd="./configure --prefix=${HOME}/Darwin --enable-maintainer-mode --with-java CFLAGS='-g -O0 -m64' CXXFLAGS='-g -O0 -m64'";
 }
 elsif (${HOSTNAME} =~ m/^h\w+[.nersc.gov]?$/ ) {
 # on hopper at NERSC, use gcc/g++ by default, no debugging

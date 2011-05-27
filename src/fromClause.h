@@ -18,6 +18,25 @@ namespace ibis {
 /// A class to represent the from clause.  It parses a string into a list
 /// of names, a list of aliases and a join expression if present.
 ///
+/// The alias may optionally be preceded by the keyword "AS".  For example,
+/// "FROM table_a as a" and "FROM table_a a" mean the same thing.
+///
+/// The join expression is in the from clause can be of the form
+/// @code
+/// table_a JOIN table_b USING join_column
+/// @endcode
+/// or
+/// @code
+/// table_a JOIN table_b ON arithmetic_expression
+/// @endcode
+///
+/// Note that the first form is equivalent to
+/// @code
+/// table_a JOIN table_b ON table_a.join_column = table_b.join_column
+/// @endcode
+///
+/// @warning The current version of FastBit only supports join operating on
+/// two data tables.
 class FASTBIT_CXX_DLLSPEC ibis::fromClause {
 public:
     /// Parse a new string as a from clause.
