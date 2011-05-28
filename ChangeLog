@@ -1,3 +1,7 @@
+2011-05-28 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h: remove mypart (which was left over from yesterday's
+	modifications to ibis::bord)
+
 2011-05-27 John Wu <John dot Wu at ACM dot org>
 	* src/selectParser.yy: add support for aliases without the keyword
 	'AS' in the select clause (to match up with the from clause)
@@ -6,6 +10,10 @@
 	ibis::bord::part.  The class ibis::bord now inherents from both
 	ibis::part and ibis::table, which makes it possible to be listed
 	in ibis::datasets and available for other queries.
+	* src/part.h: add function gatherSortKeys
+	* src/parti.cpp: replace the implementation of part::reorder()
+	with a call to gatherSortKeys and the other version of reorder
+	(consolidate the reorder functions to a single version)
 
 2011-05-22 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: add test cases 10, 11 and 12 to target

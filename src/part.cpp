@@ -259,7 +259,7 @@ ibis::part::part(const char* name, bool ro) :
     // for the special "in-core" data partition, there is no need to call
     // the function init, note that a valid data partition name can not
     // contain a dash
-    if (stricmp(name, "in-core") != 0)
+    if (name == 0 || stricmp(name, "in-core") != 0)
 	init(name);
 } // the default constructor of ibis::part
 

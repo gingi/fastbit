@@ -641,6 +641,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		sel->dump(xfile);
 	    }
 	    else {
+		printValues2(*sel);
 		try {
 		    size_t nprt = 10;
 		    if (ibis::gVerbose > 30) {

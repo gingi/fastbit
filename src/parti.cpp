@@ -24,17 +24,18 @@
 long ibis::part::reorder() {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0 ||
 	amask.cnt() != amask.size()) return 0;
-    std::string evt = "part[";
-    evt += m_name;
-    evt += "]::reorder";
-    ibis::util::timer mytimer(evt.c_str(), 1);
+    ibis::table::stringList keys;
+    gatherSortKeys(keys);
+    if (keys.empty())
+	return -1;
+    else
+	return reorder(keys);
+} // ibis::part::reorder
 
-    long ierr = purgeInactive();
-    if (ierr <= 0) return ierr;
-
+void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
     // first gather all integer-valued columns
     typedef std::vector<column*> colVector;
-    colVector keys, load; // sort according to the keys
+    colVector keys; // sort according to the keys
     array_t<uint64_t> ranges;
     for (columnList::iterator it = columns.begin(); it != columns.end();
 	 ++ it) {
@@ -54,222 +55,21 @@ long ibis::part::reorder() {
 		    keys.push_back((*it).second);
 		    ranges.push_back(width);
 		}
-		else {
-		    load.push_back((*it).second);
-		}
 	    }
-	}
-	else {
-	    load.push_back((*it).second);
 	}
     }
 
-    if (keys.empty() || ranges.empty()) {
-	LOGGER(ibis::gVerbose > 1)
-	    << evt << " no keys found for sorting, stop ...";
-	return 0;
-    }
     if (keys.size() > 1) {
-	const colVector tmp(keys);
+	names.resize(keys.size());
 	array_t<uint32_t> ind;
 	ranges.stableSort(ind);
-	for (unsigned i = 0; i < tmp.size(); ++ i)
-	    keys[i] = tmp[ind[i]];
+	for (unsigned i = 0; i < ind.size(); ++ i)
+	    names[i] = keys[ind[i]]->name();
     }
-    if (ibis::gVerbose > 0) {
-	std::ostringstream oss;
-	oss << evt << '(' << keys[0]->name();
-	for (unsigned i = 1; i < keys.size(); ++ i)
-	    oss << ", " << keys[i]->name();
-	oss << ')';
-	evt = oss.str();
+    else if (keys.size() == 1) {
+	names.push_back(keys.front()->name());
     }
-    LOGGER(ibis::gVerbose > 2)
-	<< evt << " start sorting ...";
-
-    writeLock lock(this, evt.c_str()); // can't process other operations
-    for (columnList::const_iterator it = columns.begin();
-	 it != columns.end();
-	 ++ it) { // purge all index files
-	if (! it->second->isNumeric()) return -1L;
-	ibis::bitvector msk;
-	it->second->getNullMask(msk);
-	if (msk.cnt() != msk.size()) return -2L;
-
-	(*it).second->unloadIndex();
-	(*it).second->purgeIndexFile();
-    }
-    if (backupDir != 0 && *backupDir != 0)
-	ibis::fileManager::instance().flushDir(backupDir);
-    if (activeDir != 0 && *activeDir != 0)
-	ibis::fileManager::instance().flushDir(activeDir);
-
-    // the sorting loop
-    ierr = nRows();
-    array_t<uint32_t> ind1;
-    { // use a block to limit the scope of starts and ind0
-	array_t<uint32_t> starts, ind0;
-	for (uint32_t i = 0; i < keys.size(); ++ i) {
-	    std::string sname;
-	    const char *fname = keys[i]->dataFileName(sname);
-	    switch (keys[i]->type()) {
-	    case ibis::DOUBLE:
-		ierr = reorderValues<double>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::FLOAT:
-		ierr = reorderValues<float>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::ULONG:
-		ierr = reorderValues<uint64_t>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::LONG:
-		ierr = reorderValues<int64_t>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::UINT:
-		ierr = reorderValues<uint32_t>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::INT:
-		ierr = reorderValues<int32_t>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::USHORT:
-		ierr = reorderValues<uint16_t>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::SHORT:
-		ierr = reorderValues<int16_t>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::UBYTE:
-		ierr = reorderValues<unsigned char>(fname, ind1, ind0, starts);
-		break;
-	    case ibis::BYTE:
-		ierr = reorderValues<char>(fname, ind1, ind0, starts);
-		break;
-	    default:
-		logWarning("reorder", "column %s type %d can not be used as "
-			   "sort key",
-			   keys[i]->name(), static_cast<int>(keys[i]->type()));
-		continue;
-	    }
-
-	    if (ierr == static_cast<long>(nRows())) {
-		ind1.swap(ind0);
-	    }
-	    else {
-		logError("reorder", "failed to reorder column %s, ierr=%ld.  "
-			 "data files are no longer consistent!",
-			 keys[i]->name(), ierr);
-	    }
-	}
-    }
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
-    {
-	ibis::util::logger lg(4);
-	lg() << "DEBUG -- part[" << m_name << "]::reorder --\n";
-	std::vector<bool> marks(ind1.size(), false);
-	for (uint32_t i = 0; i < ind1.size(); ++ i) {
-	    if (ibis::gVerbose > 6)
-		lg() << "ind[" << i << "]=" << ind1[i] << "\n";
-	    if (ind1[i] < marks.size())
-		marks[ind1[i]] = true;
-	}
-	bool isperm = true;
-	for (uint32_t i = 0; isperm && i < marks.size(); ++ i)
-	    isperm = marks[i];
-	if (isperm)
-	    lg() << "array ind IS a permutation\n";
-	else
-	    lg() << "array ind is NOT a permutation\n";
-    }
-#endif
-    for (columnList::const_iterator it = columns.begin();
-	 it != columns.end();
-	 ++ it) { // update the m_sorted flag of each column
-	(*it).second->isSorted((*it).second == keys[0]);
-    }
-
-    LOGGER(ibis::gVerbose > 2 && load.size() > 0)
-	<< evt << " start moving unsorted columns ...";
-    for (uint32_t i = 0; i < load.size(); ++ i) {
-	std::string sname;
-	const char *fname = load[i]->dataFileName(sname);
-	switch (load[i]->type()) {
-// 	case ibis::TEXT:
-// 	case ibis::CATEGORY:
-// 	    ierr = writeValues<uint32_t>(fname, ind1);
-// 	    break;
-	case ibis::DOUBLE:
-	    ierr = writeValues<double>(fname, ind1);
-	    break;
-	case ibis::FLOAT:
-	    ierr = writeValues<float>(fname, ind1);
-	    break;
-	case ibis::ULONG:
-	    ierr = writeValues<uint64_t>(fname, ind1);
-	    break;
-	case ibis::LONG:
-	    ierr = writeValues<int64_t>(fname, ind1);
-	    break;
-	case ibis::UINT:
-	    ierr = writeValues<uint32_t>(fname, ind1);
-	    break;
-	case ibis::INT:
-	    ierr = writeValues<int32_t>(fname, ind1);
-	    break;
-	case ibis::USHORT:
-	    ierr = writeValues<uint16_t>(fname, ind1);
-	    break;
-	case ibis::SHORT:
-	    ierr = writeValues<int16_t>(fname, ind1);
-	    break;
-	case ibis::UBYTE:
-	    ierr = writeValues<unsigned char>(fname, ind1);
-	    break;
-	case ibis::BYTE:
-	    ierr = writeValues<char>(fname, ind1);
-	    break;
-	default:
-	    logWarning("reorder", "column %s type %d can not be moved safely "
-		       "in this implementation",
-		       keys[i]->name(), static_cast<int>(keys[i]->type()));
-	    continue;
-	}
-	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << "Warning -- "<< evt << " failed to write data to " << fname
-	    << " for column " << load[i]->name() << " (type "
-	    << ibis::TYPESTRING[load[i]->type()] << "), ierr = " << ierr;
-    }
-
-    if (rids != 0 && rids->size() == nEvents) {
-	delete rids;
-	rids = 0;
-	std::string fname(activeDir);
-	fname += FASTBIT_DIRSEP;
-	fname += "-rids";
-	ierr = writeValues<uint64_t>(fname.c_str(), ind1);
-	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << "Warning -- " << evt << " failed to write data to " << fname
-	    << ", ierr = " << ierr;
-	if (ierr > 0 && static_cast<unsigned>(ierr) == nEvents) {
-	    rids = new ibis::RIDSet;
-	    ierr = ibis::fileManager::instance().getFile(fname.c_str(), *rids);
-	    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-		<< "Warning -- " << evt << " failed to read " << fname
-		<< " after reordering, ierr = " << ierr;
-	}
-    }
-
-    m_desc += " -- ";
-    m_desc += evt;
-    if (ibis::gVerbose >= 0) {
-	char currtime[30];
-	ibis::util::getLocalTime(currtime);
-	m_desc += " on ";
-	m_desc += currtime;
-    }
-    writeMetaData(nEvents, columns, activeDir);
-    LOGGER(ibis::gVerbose > 1 && ierr >= 0)
-	<< evt << " completed successfully";
-    return ierr;
-} // ibis::part::reorder
+} // ibis::part::getherSortKeys
 
 /// Sort rows according the values of the columns specified in @c names.
 long ibis::part::reorder(const ibis::table::stringList& names) {

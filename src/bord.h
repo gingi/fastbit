@@ -88,9 +88,6 @@ public:
     virtual table* groupby(const ibis::table::stringList&) const;
     virtual table* groupby(const char* str) const;
     virtual void orderby(const ibis::table::stringList&);
-    virtual void orderby(const char* str) {
-	ibis::table::orderby(str);
-    }
     virtual void reverseRows();
 
     virtual int buildIndex(const char*, const char*) {return -1;}
@@ -105,7 +102,6 @@ public:
 			       const char*) const;
 
     virtual long reorder(const ibis::table::stringList&);
-    virtual long reorder() {return ibis::part::reorder();}
 
     int limit(uint32_t);
 
@@ -139,8 +135,6 @@ public:
     class text;
 
 protected:
-    part mypart; ///< The data partition for an in-memory table.
-
     /// Clear the existing content.
     void clear();
     /// Compute the number of hits.

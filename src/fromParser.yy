@@ -199,6 +199,51 @@ fterm: NOUNSTR ',' {
     ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
     driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
+| NOUNSTR NOUNSTR JOINOP NOUNSTR USINGOP NOUNSTR END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back(*$2);
+    driver.names_.push_back(*$4);
+    driver.aliases_.push_back("");
+    std::string nm1 = *$2;
+    std::string nm2 = *$4;
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *$6;
+    nm2 += *$6;
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
+}
+| NOUNSTR NOUNSTR JOINOP NOUNSTR NOUNSTR USINGOP NOUNSTR END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back(*$2);
+    driver.names_.push_back(*$4);
+    driver.aliases_.push_back(*$5);
+    std::string nm1 = *$2;
+    std::string nm2 = *$5;
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *$7;
+    nm2 += *$7;
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
+}
+| NOUNSTR JOINOP NOUNSTR NOUNSTR USINGOP NOUNSTR END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back("");
+    driver.names_.push_back(*$3);
+    driver.aliases_.push_back(*$4);
+    std::string nm1 = *$1;
+    std::string nm2 = *$4;
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *$6;
+    nm2 += *$6;
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
+}
 | NOUNSTR JOINOP NOUNSTR USINGOP '(' NOUNSTR ')' END {
     driver.names_.push_back(*$1);
     driver.aliases_.push_back("");
@@ -259,6 +304,51 @@ fterm: NOUNSTR ',' {
     ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
     driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
 }
+| NOUNSTR NOUNSTR JOINOP NOUNSTR USINGOP '(' NOUNSTR ')' END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back(*$2);
+    driver.names_.push_back(*$4);
+    driver.aliases_.push_back("");
+    std::string nm1 = *$2;
+    std::string nm2 = *$4;
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *$7;
+    nm2 += *$7;
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
+}
+| NOUNSTR NOUNSTR JOINOP NOUNSTR NOUNSTR USINGOP '(' NOUNSTR ')' END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back(*$2);
+    driver.names_.push_back(*$4);
+    driver.aliases_.push_back(*$5);
+    std::string nm1 = *$2;
+    std::string nm2 = *$5;
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *$8;
+    nm2 += *$8;
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
+}
+| NOUNSTR JOINOP NOUNSTR NOUNSTR USINGOP '(' NOUNSTR ')' END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back("");
+    driver.names_.push_back(*$3);
+    driver.aliases_.push_back(*$4);
+    std::string nm1 = *$1;
+    std::string nm2 = *$4;
+    nm1 += '.';
+    nm2 += '.';
+    nm1 += *$7;
+    nm2 += *$7;
+    ibis::math::variable* var1 = new ibis::math::variable(nm1.c_str());
+    ibis::math::variable* var2 = new ibis::math::variable(nm2.c_str());
+    driver.jcond_ = new ibis::compRange(var1, ibis::qExpr::OP_EQ, var2);
+}
 | NOUNSTR JOINOP NOUNSTR ONOP compRange END {
     driver.names_.push_back(*$1);
     driver.aliases_.push_back("");
@@ -286,6 +376,27 @@ fterm: NOUNSTR ',' {
     driver.names_.push_back(*$3);
     driver.aliases_.push_back(*$5);
     driver.jcond_ = dynamic_cast<ibis::compRange*>($7);
+}
+| NOUNSTR NOUNSTR JOINOP NOUNSTR ONOP compRange END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back(*$2);
+    driver.names_.push_back(*$4);
+    driver.aliases_.push_back("");
+    driver.jcond_ = dynamic_cast<ibis::compRange*>($6);
+}
+| NOUNSTR NOUNSTR JOINOP NOUNSTR NOUNSTR ONOP compRange END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back(*$2);
+    driver.names_.push_back(*$4);
+    driver.aliases_.push_back(*$5);
+    driver.jcond_ = dynamic_cast<ibis::compRange*>($7);
+}
+| NOUNSTR JOINOP NOUNSTR NOUNSTR ONOP compRange END {
+    driver.names_.push_back(*$1);
+    driver.aliases_.push_back("");
+    driver.names_.push_back(*$3);
+    driver.aliases_.push_back(*$4);
+    driver.jcond_ = dynamic_cast<ibis::compRange*>($6);
 }
 ;
 

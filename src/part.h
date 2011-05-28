@@ -593,8 +593,8 @@ public:
 		   const char* cname, ibis::TYPE_T ctype=ibis::DOUBLE);
 
     /******************************************************************/
-    long reorder();
-    long reorder(const ibis::table::stringList &names);
+    virtual long reorder();
+    virtual long reorder(const ibis::table::stringList &names);
 
     long deactivate(const std::vector<uint32_t> &rows);
     long deactivate(const char* conds);
@@ -1254,6 +1254,7 @@ protected:
 			       std::vector<double> &bounds,
 			       std::vector<ibis::bitvector> &detail);
 
+    void gatherSortKeys(ibis::table::stringList& names);
     void composeQueryString(std::string &str,
 			    const ibis::column* col1, const ibis::column* col2,
 			    const double &lower1, const double &upper1,
