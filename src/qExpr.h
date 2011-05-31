@@ -166,7 +166,7 @@ public:
     /// Find the first range condition involving the named variable.
     qRange* findRange(const char* vname);
 
-    /// Attempt to convert simplify the query expressions.
+    /// Attempt to simplify the query expressions.
     static void simplify(ibis::qExpr*&);
 
     static std::string extractTableName(const char*);
@@ -581,14 +581,14 @@ namespace ibis {
     /// A namespace for arithmetic expressions.
     namespace math {
 	/// Types of terms allowed in the mathematical expressions.
-	enum TERM_TYPE {UNDEFINED, VARIABLE, NUMBER, STRING, OPERATOR,
+	enum TERM_TYPE {UNDEF_TERM, VARIABLE, NUMBER, STRING, OPERATOR,
 			STDFUNCTION1, STDFUNCTION2,
 			CUSTOMFUNCTION1, CUSTOMFUNCTION2};
 	/// All supported arithmetic operators.  The word operador is
 	/// Spainish for operator.
 	enum OPERADOR {UNKNOWN=0, BITOR, BITAND,
 		       PLUS, MINUS, MULTIPLY, DIVIDE, REMAINDER, NEGATE, POWER};
-	/// List standard 1-argument and 2-argument functions.
+	/// Standard 1-argument and 2-argument functions.
 	enum STDFUN1 {ACOS=0, ASIN, ATAN, CEIL, COS, COSH, EXP, FABS, FLOOR,
 		      FREXP, LOG10, LOG, MODF, SIN, SINH, SQRT, TAN, TANH};
 	enum STDFUN2 {ATAN2=0, FMOD, LDEXP, POW};
@@ -725,11 +725,12 @@ namespace ibis {
 		}
 	    }
 
-	private:
+	protected:
 	    char* name;	// the variable name
 	    mutable barrel* myBar;// the barrel containing it
 	    mutable uint32_t varind;// the token to retrieve value from myBar
 
+	private:
 	    variable& operator=(const variable&);
 	}; // the variable term
 

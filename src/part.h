@@ -651,7 +651,7 @@ public:
     void testRangeOperators(const ibis::column* col,
 			    long* nerrors) const;
 
-    // These functions are in used classes barrel and vault
+    // These functions are used in classes barrel and vault
     void logWarning(const char* event, const char* fmt, ...) const;
     void logMessage(const char* event, const char* fmt, ...) const;
 

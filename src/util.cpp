@@ -1186,6 +1186,140 @@ std::string ibis::util::groupby1000(uint64_t val) {
     }
 } // ibis::util::groupby1000
 
+/// Turn the incoming integer into a 64-bit representation.  The resulting
+/// string is stored in the output variable buf.  The return value of this
+/// function is buf.c_str() if this function completes successfully,
+/// otherwise, a nil pointer is returned.
+void ibis::util::encode64(uint64_t input, std::string &buf) {
+    buf.clear();
+    do {
+	buf += ibis::util::charTable[input & 64];
+	input >>= 6;
+    } while (input > 0);
+
+    const size_t end = buf.size()-1;
+    for (size_t j = 0; j < end-j; ++ j) {
+	char tmp = buf[j];
+	buf[j] = buf[end-j];
+	buf[end-j] = tmp;
+    }
+} // ibis::util::encode64
+
+/// Decode a number encoded using ibis::util::encode64.
+int ibis::util::decode64(uint64_t &output, const std::string &buf) {
+    output = 0;
+    if (buf.empty() || buf.size() > 11 ||
+	(buf.size()==11 && ibis::util::charIndex[buf[10]] >= 16)) return -1;
+
+    output = ibis::util::charIndex[buf[0]];
+    if (output >= 64) return -2;
+    if (buf.size() == 1) return 0;
+
+    for (size_t j = 1; j < buf.size(); ++ j) {
+	output <<= 6;
+	unsigned short tmp = ibis::util::charIndex[buf[j]];
+	if (tmp < 64) {
+	    output = output | tmp;
+	}
+	else {
+	    output = 0;
+	    return -3;
+	}
+    }
+    return 0;
+} // ibis::util::decode64
+
+/// Convert a string of hexadecimal digits back to an integer.
+/// The return values are:
+/// - 0: successful completion of the this function.
+/// - -1: incoming string is empty or a nil pointer.
+/// - -2: incoming string contaings something not hexadecimal.  The string
+///       may contain '0x' or '0X' as prefix and 'h' or 'H' as suffix.
+/// - -3: incoming string has more than 16 hexadecimal digits.
+int ibis::util::decode16(uint64_t &output, const char* buf) {
+    output = 0;
+    if (buf == 0 || *buf == 0) return -1;
+    while (isspace(*buf)) ++ buf; // skip leading space
+    if (*buf == '0' && (buf[1] == 'x' || buf[1] == 'X')) buf += 2;
+
+    uint16_t sz;
+    for (sz = 0; *buf != 0 && sz < 16; ++ buf, ++ sz) {
+	output <<= 4;
+	switch (*buf) {
+	default:
+	    return -2;
+	case '0':
+	    break;
+	case '1':
+	    ++ output;
+	    break;
+	case '2':
+	    output |= 2;
+	    break;
+	case '3':
+	    output |= 3;
+	    break;
+	case '4':
+	    output |= 4;
+	    break;
+	case '5':
+	    output |= 5;
+	    break;
+	case '6':
+	    output |= 6;
+	    break;
+	case '7':
+	    output |= 7;
+	    break;
+	case '8':
+	    output |= 8;
+	    break;
+	case '9':
+	    output |= 9;
+	    break;
+	case 'a':
+	case 'A':
+	    output |= 10;
+	    break;
+	case 'b':
+	case 'B':
+	    output |= 11;
+	    break;
+	case 'c':
+	case 'C':
+	    output |= 12;
+	    break;
+	case 'd':
+	case 'D':
+	    output |= 13;
+	    break;
+	case 'e':
+	case 'E':
+	    output |= 14;
+	    break;
+	case 'f':
+	case 'F':
+	    output |= 15;
+	    break;
+	case 'h':
+	case 'H':
+	    output >>= 4;
+	    for (++ buf; isspace(*buf); ++ buf);
+	    if (*buf == 0) {
+		return 0;
+	    }
+	    else {
+		return -2;
+	    }
+	}
+    }
+
+    for (++ buf; isspace(*buf); ++ buf);
+    if (sz <= 16 && *buf == 0) // ok
+	return 0;
+    else // string too long
+	return -3;
+} // ibis::util::decode16
 
 /// It attempts to retrieve the user name from the system and store it
 /// locally.  A global mutex lock is used to ensure that only one thread

@@ -102,20 +102,20 @@ public:
     /// Dereferences to the string form of the select clause.
     const char* operator*(void) const {return clause_.c_str();}
 
-    bool empty() const {return terms_.empty();}
-    uint32_t size() const {return terms_.size();}
+    bool empty() const {return atms_.empty();}
+    uint32_t size() const {return atms_.size();}
     /// A vector of arithematic expressions.
     typedef std::vector<ibis::math::term*> mathTerms;
-    const mathTerms& getTerms() const {return terms_;}
+    //const mathTerms& getTerms() const {return atms_;}
     /// Fetch the ith term of the select clause, with array bound checking.
     const ibis::math::term* operator[](unsigned i) const {
-	if (i < terms_.size())
-	    return terms_[i];
+	if (i < atms_.size())
+	    return atms_[i];
 	else
 	    return 0;
     }
     /// Fetch the ith term of the select clause, without array bound checking.
-    const ibis::math::term* at(unsigned i) const {return terms_[i];}
+    const ibis::math::term* at(unsigned i) const {return atms_[i];}
 
     /// Print the content.
     void print(std::ostream&) const;
@@ -136,6 +136,9 @@ public:
     /// Return the aggregation function used for the ith term.
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 
+    typedef std::map<std::string, unsigned> StringToInt;
+    const StringToInt& getOrdered() const {return ordered_;}
+
     int verify(const ibis::part&) const;
     int verifySome(const std::vector<uint32_t>&, const ibis::part&) const;
     static int verifyTerm(const ibis::math::term&, const ibis::part&,
@@ -151,25 +154,33 @@ public:
     }
     /// Swap the content of two select clauses.
     void swap(selectClause& rhs) {
-	terms_.swap(rhs.terms_);
+	atms_.swap(rhs.atms_);
 	aggr_.swap(rhs.aggr_);
-	alias_.swap(rhs.alias_);
 	names_.swap(rhs.names_);
+	xtms_.swap(rhs.xtms_);
+	xalias_.swap(rhs.xalias_);
 	xnames_.swap(rhs.xnames_);
 	clause_.swap(rhs.clause_);
     }
 
+    // forward declaration
+    class variable;
+    friend class variable;
+
 protected:
-    /// Arithmetic expressions.
-    mathTerms terms_;
-    /// Aggregation functions.
+    /// Arithmetic expressions used by aggregators.
+    mathTerms atms_;
+    /// Aggregators.
     std::vector<AGREGADO> aggr_;
-    typedef std::map<std::string, unsigned> StringToInt;
-    /// Aliases.
-    StringToInt alias_;
-    /// Names of given to the variables inside the aggregation functions.
+    /// Names of the variables inside the aggregation functions.
     std::vector<std::string> names_;
-    /// Names of given to the aggregation operations.
+    /// A ordered version of names_.
+    StringToInt ordered_;
+    /// Top-level terms.  Externally visible arithmetic expressions.
+    mathTerms xtms_;
+    /// Aliases.
+    StringToInt xalias_;
+    /// Names of the top-level terms.
     std::vector<std::string> xnames_;
 
     std::string clause_;	///< String version of the select clause.
@@ -178,9 +189,30 @@ protected:
 
     friend class ibis::selectParser;
 
-    /// Sort out the names for the terms.
     void fillNames();
+    ibis::math::variable*
+	addAgregado(ibis::selectClause::AGREGADO, ibis::math::term*);
+    uint64_t decodeAName(const char*) const;
+    void addTerm(ibis::math::term*);
+    ibis::math::term* addRecursive(ibis::math::term*&);
+    bool hasAggregation(const ibis::math::term *tm) const;
 }; // class ibis::selectClause
+
+/// A specialization of ibis::math::variable.  It represents a name that
+/// refers to an aggregation function inside a select clause.
+class ibis::selectClause::variable : public ibis::math::variable {
+public:
+    variable(const char* s, const ibis::selectClause &c)
+	: ibis::math::variable(s), sc_(c) {};
+    variable(const variable &v) : ibis::math::variable(v), sc_(v.sc_) {};
+    virtual variable* dup() const {return new variable(*this);}
+    virtual void print(std::ostream&) const;
+
+private:
+    const ibis::selectClause &sc_;
+
+    variable();
+}; // class ibis::selectClause::variable
 
 /// Number of terms without aggregation functions.
 inline uint32_t ibis::selectClause::nPlain() const {

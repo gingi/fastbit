@@ -9,100 +9,38 @@
 
 ibis::selectClause::selectClause(const char *cl) : lexer(0) {
     if (cl == 0 || *cl == 0) return;
-    LOGGER(ibis::gVerbose > 5)
-	<< "selectClause::ctor creating a new select clause with \"" << cl
-	<< "\"";
-
-    int ierr = 0;
-    clause_ = cl;
-    std::istringstream iss(clause_);
-    ibis::util::logger lg;
-    selectLexer lx(&iss, &(lg()));
-    selectParser parser(*this);
-    lexer = &lx;
-#if DEBUG+0 > 2
-    parser.set_debug_level(DEBUG-1);
-#elif _DEBUG+0 > 2
-    parser.set_debug_level(_DEBUG-1);
-#endif
-    parser.set_debug_stream(lg());
-    ierr = parser.parse();
-    lexer = 0;
-
-    if (ierr == 0) {
-	for (uint32_t it = 0; it < terms_.size(); ++ it) {
-	    ibis::qExpr *tmp = terms_[it];
-	    ibis::qExpr::simplify(tmp);
-	    if (tmp != terms_[it]) {
-		delete terms_[it];
-		terms_[it] = static_cast<ibis::math::term*>(tmp);
-	    }
-	}
-	fillNames();
-    }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- selectClause::ctor failed to parse string \""
-	    << clause_ << "\"";
-	clear();
-    }
+    int ierr = parse(cl);
+    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+	<< "selectClause::ctor failed to parse \"" << cl
+	<< "\", function parse returned " << ierr;
 } // ibis::selectClause::selectClause
 
 ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
+    std::string cl;
     for (size_t j = 0; j < sl.size(); ++ j) {
 	if (sl[j] != 0 && *(sl[j]) != 0) {
 	    if (! clause_.empty())
-		clause_ += ", ";
-	    clause_ += sl[j];
+		cl += ", ";
+	    cl += sl[j];
 	}
     }
-    if (clause_.empty()) return;
-    LOGGER(ibis::gVerbose > 5)
-	<< "selectClause::ctor creating a new select clause with \"" << clause_
-	<< "\"";
-
-    int ierr = 0;
-    std::istringstream iss(clause_);
-    ibis::util::logger lg;
-    selectLexer lx(&iss, &(lg()));
-    selectParser parser(*this);
-    lexer = &lx;
-#if DEBUG+0 > 2
-    parser.set_debug_level(DEBUG-1);
-#elif _DEBUG+0 > 2
-    parser.set_debug_level(_DEBUG-1);
-#endif
-    parser.set_debug_stream(lg());
-    ierr = parser.parse();
-    lexer = 0;
-
-    if (ierr == 0) {
-	for (uint32_t it = 0; it < terms_.size(); ++ it) {
-	    ibis::qExpr *tmp = terms_[it];
-	    ibis::qExpr::simplify(tmp);
-	    if (tmp != terms_[it]) {
-		delete terms_[it];
-		terms_[it] = static_cast<ibis::math::term*>(tmp);
-	    }
-	}
-	fillNames();
-    }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- selectClause::ctor failed to parse string \""
-	    << clause_ << "\"";
-	clear();
-    }
+    if (cl.empty()) return;
+    int ierr = parse(cl.c_str());
+    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+	<< "selectClause::ctor failed to parse \"" << cl
+	<< "\", function parse returned " << ierr;
 } // ibis::selectClause::selectClause
 
 ibis::selectClause::selectClause(const ibis::selectClause& rhs)
-    : terms_(rhs.terms_.size()), aggr_(rhs.aggr_), alias_(rhs.alias_),
+    : atms_(rhs.atms_.size()), aggr_(rhs.aggr_), xtms_(rhs.xtms_.size()),
       names_(rhs.names_), xnames_(rhs.xnames_), clause_(rhs.clause_), lexer(0) {
-    for (uint32_t i = 0; i < rhs.terms_.size(); ++ i) {
-	terms_[i] = rhs.terms_[i]->dup();
+    for (uint32_t i = 0; i < rhs.atms_.size(); ++ i) {
+	atms_[i] = rhs.atms_[i]->dup();
 	aggr_[i] = rhs.aggr_[i];
     }
-    alias_.insert(rhs.alias_.begin(), rhs.alias_.end());
+    for (uint32_t j = 0; j < rhs.xtms_.size(); ++ j)
+	xtms_[j] = rhs.xtms_[j]->dup();
+    xalias_.insert(rhs.xalias_.begin(), rhs.xalias_.end());
 } // ibis::selectClause::selectClause
 
 ibis::selectClause::~selectClause() {
@@ -110,21 +48,24 @@ ibis::selectClause::~selectClause() {
 }
 
 void ibis::selectClause::clear() {
-    for (uint32_t i = 0; i < terms_.size(); ++ i)
-	delete terms_[i];
-    terms_.clear();
+    for (uint32_t j = 0; j < xtms_.size(); ++ j)
+	delete xtms_[j];
+    xtms_.clear();
+    for (uint32_t i = 0; i < atms_.size(); ++ i)
+	delete atms_[i];
+    atms_.clear();
     aggr_.clear();
-    alias_.clear();
+    xalias_.clear();
 } // ibis::selectClause::clear
 
 int ibis::selectClause::parse(const char *cl) {
     int ierr = 0;
     if (cl != 0 && *cl != 0) {
+	clear();
 	LOGGER(ibis::gVerbose > 5)
 	    << "selectClause::parse cleared existing content before parsing \""
 	    << cl << "\"";
 
-	clear();
 	clause_ = cl;
 	std::istringstream iss(clause_);
 	ibis::util::logger lg;
@@ -139,14 +80,14 @@ int ibis::selectClause::parse(const char *cl) {
 	parser.set_debug_stream(lg());
 	ierr = parser.parse();
 	if (ierr == 0) {
-	    for (uint32_t it = 0; it < terms_.size(); ++ it) {
-		ibis::qExpr *tmp = terms_[it];
-		ibis::qExpr::simplify(tmp);
-		if (tmp != terms_[it]) {
-		    delete terms_[it];
-		    terms_[it] = static_cast<ibis::math::term*>(tmp);
-		}
-	    }
+	    // for (uint32_t it = 0; it < atms_.size(); ++ it) {
+	    // 	ibis::qExpr *tmp = atms_[it];
+	    // 	ibis::qExpr::simplify(tmp);
+	    // 	if (tmp != atms_[it]) {
+	    // 	    delete atms_[it];
+	    // 	    atms_[it] = static_cast<ibis::math::term*>(tmp);
+	    // 	}
+	    // }
 	    fillNames();
 	}
 	lexer = 0;
@@ -160,44 +101,45 @@ int ibis::selectClause::parse(const char *cl) {
     return ierr;
 } // ibis::selectClause::parse
 
-/// Write the string form of the ith term into str.
+/// Write the string form of the ith term.  The result is placed in the
+/// second argument str.
 void ibis::selectClause::describe(unsigned i, std::string &str) const {
-    if (i >= terms_.size()) return;
-    if (terms_[i] != 0) {
+    if (i >= xtms_.size()) return;
+    if (atms_[i] != 0) {
 	std::ostringstream oss;
 	switch (aggr_[i]) {
 	default:
-	    oss << *(terms_[i]);
+	    oss << *(atms_[i]);
 	    break;
 	case AVG:
-	    oss << "AVG(" << *(terms_[i]) << ')';
+	    oss << "AVG(" << *(atms_[i]) << ')';
 	    break;
 	case CNT:
-	    oss << "COUNT(" << *(terms_[i]) << ')';
+	    oss << "COUNT(" << *(atms_[i]) << ')';
 	    break;
 	case MAX:
-	    oss << "MAX(" << *(terms_[i]) << ')';
+	    oss << "MAX(" << *(atms_[i]) << ')';
 	    break;
 	case MIN:
-	    oss << "MIN(" << *(terms_[i]) << ')';
+	    oss << "MIN(" << *(atms_[i]) << ')';
 	    break;
 	case SUM:
-	    oss << "SUM(" << *(terms_[i]) << ')';
+	    oss << "SUM(" << *(atms_[i]) << ')';
 	    break;
 	case VARPOP:
-	    oss << "VARPOP(" << *(terms_[i]) << ')';
+	    oss << "VARPOP(" << *(atms_[i]) << ')';
 	    break;
 	case VARSAMP:
-	    oss << "VARSAMP(" << *(terms_[i]) << ')';
+	    oss << "VARSAMP(" << *(atms_[i]) << ')';
 	    break;
 	case STDPOP:
-	    oss << "STDPOP(" << *(terms_[i]) << ')';
+	    oss << "STDPOP(" << *(atms_[i]) << ')';
 	    break;
 	case STDSAMP:
-	    oss << "STDSAMP(" << *(terms_[i]) << ')';
+	    oss << "STDSAMP(" << *(atms_[i]) << ')';
 	    break;
 	case DISTINCT:
-	    oss << "COUNTDISTINCT(" << *(terms_[i]) << ')';
+	    oss << "COUNTDISTINCT(" << *(atms_[i]) << ')';
 	    break;
 	}
 
@@ -270,38 +212,32 @@ void ibis::selectClause::describe(unsigned i, std::string &str) const {
 /// resolves all external names first to establish all aliases, and then
 /// resolve the names of the arguments to the aggregation functions.  The
 /// arithmetic expressions without external names are given names of the
-/// form "shhh", where "hhh" is the hexadecimal number.
+/// form "__hhh", where "hhh" is a hexadecimal number.
 void ibis::selectClause::fillNames() {
     names_.clear();
     xnames_.clear();
-    if (terms_.empty()) return;
+    if (atms_.empty()) return;
 
-    uint32_t prec = 0; // number of hexadecimal to use
-    for (uint32_t j = terms_.size(); j > 0; j >>= 4)
-	++ prec;
-
-    names_.resize(terms_.size());
-    xnames_.resize(terms_.size());
+    names_.resize(atms_.size());
+    xnames_.resize(atms_.size());
     // go through the aliases first to assign xnames_
-    for (StringToInt::const_iterator it = alias_.begin();
-	 it != alias_.end(); ++ it)
+    for (StringToInt::const_iterator it = xalias_.begin();
+	 it != xalias_.end(); ++ it)
 	xnames_[it->second] = it->first;
 
     // fill the argument name and then the external name
-    for (uint32_t j = 0; j < terms_.size(); ++ j) {
-	if (terms_[j]->termType() == ibis::math::VARIABLE) {
-	    names_[j] = static_cast<const ibis::math::variable*>(terms_[j])
+    for (uint32_t j = 0; j < atms_.size(); ++ j) {
+	if (atms_[j]->termType() == ibis::math::VARIABLE) {
+	    names_[j] = static_cast<const ibis::math::variable*>(atms_[j])
 		->variableName();
 	}
 	else {
 	    std::ostringstream oss;
-	    oss << 's' << std::hex << std::setprecision(prec)
-		<< std::setfill('0') << j+1;
+	    oss << "__" << std::hex << j;
 	    names_[j] = oss.str();
 	}
 
-	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL_AGGR &&
-	    terms_[j]->termType() == ibis::math::VARIABLE) {
+	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL_AGGR) {
 	    xnames_[j] = names_[j];
 	    for (unsigned i = 0; i < names_[j].size(); ++ i)
 		if (! isalnum(xnames_[j][i]))
@@ -329,6 +265,9 @@ void ibis::selectClause::fillNames() {
 	    case SUM:
 		oss << "sum";
 		break;
+	    case DISTINCT:
+		oss << "distinct";
+		break;
 	    case VARPOP:
 		oss << "var";
 		break;
@@ -341,29 +280,178 @@ void ibis::selectClause::fillNames() {
 	    case STDSAMP:
 		oss << "std";
 		break;
-	    case DISTINCT:
-		oss << "count";
+	    case MEDIAN:
+		oss << "med";
 		break;
 	    }
-	    oss << std::hex << std::setprecision(prec) << std::setfill('0')
-		<< j+1;
+	    oss << std::hex << j;
 	    xnames_[j] = oss.str();
 	}
     }
 } // ibis::selectClause::fillNames
 
+/// Record an aggregation function.  Return a math term of the type
+/// variable to caller so the caller can continue to build up a larger
+/// expression.  For simplicity, the variable name is simply "__hhh", where
+/// "hhh" is the size of aggr_ in hexadecimal.
+ibis::math::variable*
+ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
+				ibis::math::term *expr) {
+    const unsigned pos = atms_.size();
+    aggr_.push_back(agr);
+    atms_.push_back(expr);
+    if (expr->termType() != ibis::math::VARIABLE) {
+	std::ostringstream oss;
+	oss << "__" << std::hex << pos;
+	ordered_[oss.str()] = pos;
+	return new ibis::selectClause::variable(oss.str().c_str(), *this);
+    }
+    else {
+	ibis::math::variable *var = static_cast<ibis::math::variable*>(expr);
+	ordered_[var->variableName()] = pos;
+	return var->dup();
+    }
+} // ibis::selectClause::addAgregado
+
+/// Determine if the name refers to a term in the list of aggregation
+/// functions.  A name to a aggregation function will be named by
+/// ibis::selctClause::addAgregado.  If the return value is less than the
+/// size of atms_, then the name is considered referring to a aggregation
+/// function, otherwise, it is a literal name from the user.
+uint64_t ibis::selectClause::decodeAName(const char* nm) const {
+    uint64_t ret = std::numeric_limits<uint64_t>::max();
+    if (nm == 0) return ret;
+    if (nm[0] != '_' || nm[1] != '_') return ret;
+
+    int ierr = ibis::util::decode16(ret, nm+2);
+    if (ierr < 0)
+	return atms_.size();
+    return ret;
+} // ibis::selectClause::decodeAName
+
+/// Add a top-level term.  It invokes ibis::selectClause::addRecursive to
+/// do the actual work.  The final expression returned by addRecursive is
+/// added to  xtms_.
+void ibis::selectClause::addTerm(ibis::math::term *tm) {
+    if (tm == 0) return;
+
+    xtms_.push_back(addRecursive(tm));
+} // ibis::selectClause::addTerm
+
+/// Does the math expression contain any aggregation operations?
+bool ibis::selectClause::hasAggregation(const ibis::math::term *tm) const {
+    switch (tm->termType()) {
+    default:
+    case ibis::math::NUMBER:
+    case ibis::math::STRING:
+	return false;
+    case ibis::math::VARIABLE:
+	return (dynamic_cast<const ibis::selectClause::variable *>(tm) != 0);
+    case ibis::math::STDFUNCTION1:
+    case ibis::math::CUSTOMFUNCTION1:
+	return hasAggregation(reinterpret_cast<const ibis::math::term*>(tm->getLeft()));
+    case ibis::math::OPERATOR:
+    case ibis::math::STDFUNCTION2:
+    case ibis::math::CUSTOMFUNCTION2:
+	bool res = hasAggregation(reinterpret_cast<const ibis::math::term*>(tm->getLeft()));
+	if (! res)
+	    res = hasAggregation(reinterpret_cast<const ibis::math::term*>(tm->getRight()));
+	return res;
+    }
+} // ibis::selectClause::hasAggregation
+
+ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
+    if (tm == 0) return tm;
+
+    switch (tm->termType()) {
+    default:
+    case ibis::math::NUMBER:
+    case ibis::math::STRING:
+	break; // nothing to do
+    case ibis::math::VARIABLE: {
+	ibis::selectClause::variable *var =
+	    dynamic_cast<ibis::selectClause::variable *>(tm);
+	if (var == 0) { // a bare variable
+	    const char* vname =
+		static_cast<ibis::math::variable*>(tm)->variableName();
+	    if (ordered_.find(vname) == ordered_.end()) {
+		const unsigned pos = atms_.size();
+		aggr_.push_back(ibis::selectClause::NIL_AGGR);
+		atms_.push_back(tm->dup());
+		ordered_[vname] = pos;
+	    }
+	}
+	break;}
+    case ibis::math::STDFUNCTION1:
+    case ibis::math::CUSTOMFUNCTION1: {
+	ibis::math::term *nxt =
+	    reinterpret_cast<ibis::math::term*>(tm->getLeft());
+	if (nxt == 0) {
+	    return nxt;
+	}
+	else if (hasAggregation(nxt)) {
+	    ibis::math::term *tmp = addRecursive(nxt);
+	    if (tmp != nxt)
+		tm->getLeft() = tmp;
+	}
+	else {
+	    const unsigned pos = atms_.size();
+	    aggr_.push_back(ibis::selectClause::NIL_AGGR);
+	    atms_.push_back(tm);
+	    std::ostringstream oss;
+	    oss << "__" << pos;
+	    ordered_[oss.str()] = pos;
+	    return new ibis::selectClause::variable(oss.str().c_str(), *this);
+	}
+	break;}
+    case ibis::math::OPERATOR:
+    case ibis::math::STDFUNCTION2:
+    case ibis::math::CUSTOMFUNCTION2: {
+	ibis::math::term *left =
+	    reinterpret_cast<ibis::math::term*>(tm->getLeft());
+	ibis::math::term *right =
+	    reinterpret_cast<ibis::math::term*>(tm->getRight());
+	if (left == 0 || right == 0) {
+	    return 0;
+	}
+	else if (dynamic_cast<ibis::selectClause::variable*>(left) != 0) {
+	    if (dynamic_cast<ibis::selectClause::variable*>(right) == 0) {
+		tm->getRight() = addRecursive(right);
+	    }
+	}
+	else if (dynamic_cast<ibis::selectClause::variable*>(right) != 0) {
+	    tm->getLeft() = addRecursive(left);
+	}
+	else if (hasAggregation(tm)) {
+	    tm->getLeft() = addRecursive(left);
+	    tm->getRight() = addRecursive(right);
+	}
+	else {
+	    const unsigned pos = atms_.size();
+	    aggr_.push_back(ibis::selectClause::NIL_AGGR);
+	    atms_.push_back(tm);
+	    std::ostringstream oss;
+	    oss << "__" << pos;
+	    ordered_[oss.str()] = pos;
+	    return new ibis::selectClause::variable(oss.str().c_str(), *this);
+	}
+	break;}
+    }
+    return tm;
+} // ibis::selectClause::addRecursive
+
 /// Locate the position of the string.  Upon successful completion, it
 /// returns the position of the term with the matching name, otherwise, it
 /// returns -1.  The incoming argument may be an alias, a column name, or
-/// the exact form of the arithmetic expression.  In case, it is the whole
+/// the exact form of the arithmetic expression.  In case it is an
 /// arithmetic expression, it must be exactly the same as the original term
 /// passed to the constructor of this class including spaces.  The
 /// comparison is done with case-insensitive string comparison.
 int ibis::selectClause::find(const char* key) const {
     int ret = -1;
     if (key != 0 && *key != 0) {
-	StringToInt::const_iterator it = alias_.find(key);
-	if (it != alias_.end()) {
+	StringToInt::const_iterator it = xalias_.find(key);
+	if (it != xalias_.end()) {
 	    ret = it->second;
 	}
 	else {
@@ -374,41 +462,41 @@ int ibis::selectClause::find(const char* key) const {
 	    }
 	    // try to match the string version of each arithmetic expression
 	    if (ret >= static_cast<int>(names_.size())) {
-		for (unsigned int i = 0; i < terms_.size(); ++ i) {
+		for (unsigned int i = 0; i < atms_.size(); ++ i) {
 		    std::ostringstream oss;
 		    switch (aggr_[i]) {
 		    default:
-			oss << *(terms_[i]);
+			oss << *(atms_[i]);
 			break;
 		    case AVG:
-			oss << "AVG(" << *(terms_[i]) << ')';
+			oss << "AVG(" << *(atms_[i]) << ')';
 			break;
 		    case CNT:
-			oss << "COUNT(" << *(terms_[i]) << ')';
+			oss << "COUNT(" << *(atms_[i]) << ')';
 			break;
 		    case MAX:
-			oss << "MAX(" << *(terms_[i]) << ')';
+			oss << "MAX(" << *(atms_[i]) << ')';
 			break;
 		    case MIN:
-			oss << "MIN(" << *(terms_[i]) << ')';
+			oss << "MIN(" << *(atms_[i]) << ')';
 			break;
 		    case SUM:
-			oss << "SUM(" << *(terms_[i]) << ')';
+			oss << "SUM(" << *(atms_[i]) << ')';
 			break;
 		    case VARPOP:
-			oss << "VARPOP(" << *(terms_[i]) << ')';
+			oss << "VARPOP(" << *(atms_[i]) << ')';
 			break;
 		    case VARSAMP:
-			oss << "VARSAMP(" << *(terms_[i]) << ')';
+			oss << "VARSAMP(" << *(atms_[i]) << ')';
 			break;
 		    case STDPOP:
-			oss << "STDPOP(" << *(terms_[i]) << ')';
+			oss << "STDPOP(" << *(atms_[i]) << ')';
 			break;
 		    case STDSAMP:
-			oss << "STDSAMP(" << *(terms_[i]) << ')';
+			oss << "STDSAMP(" << *(atms_[i]) << ')';
 			break;
 		    case DISTINCT:
-			oss << "COUNTDISTINCT(" << *(terms_[i]) << ')';
+			oss << "COUNTDISTINCT(" << *(atms_[i]) << ')';
 			break;
 		    }
 		    if (stricmp(oss.str().c_str(), key) == 0) {
@@ -426,61 +514,27 @@ int ibis::selectClause::find(const char* key) const {
 
 /// Write a string version of the select clause to the specified output stream.
 void ibis::selectClause::print(std::ostream& out) const {
-    std::vector<const std::string*> aliases(terms_.size(), 0);
-    for (StringToInt::const_iterator it = alias_.begin();
-	 it != alias_.end(); ++ it) {
+    std::vector<const std::string*> aliases(xtms_.size(), 0);
+    for (StringToInt::const_iterator it = xalias_.begin();
+	 it != xalias_.end(); ++ it) {
 	aliases[(*it).second] = &(it->first);
     }
 
-    for (uint32_t i = 0; i < terms_.size(); ++ i) {
-	switch (aggr_[i]) {
-	default:
-	    out << *(terms_[i]);
-	    break;
-	case AVG:
-	    out << "AVG(" << *(terms_[i]) << ')';
-	    break;
-	case CNT:
-	    out << "COUNT(" << *(terms_[i]) << ')';
-	    break;
-	case MAX:
-	    out << "MAX(" << *(terms_[i]) << ')';
-	    break;
-	case MIN:
-	    out << "MIN(" << *(terms_[i]) << ')';
-	    break;
-	case SUM:
-	    out << "SUM(" << *(terms_[i]) << ')';
-	    break;
-	case VARPOP:
-	    out << "VARPOP(" << *(terms_[i]) << ')';
-	    break;
-	case VARSAMP:
-	    out << "VARSAMP(" << *(terms_[i]) << ')';
-	    break;
-	case STDPOP:
-	    out << "STDPOP(" << *(terms_[i]) << ')';
-	    break;
-	case STDSAMP:
-	    out << "STDSAMP(" << *(terms_[i]) << ')';
-	    break;
-	case DISTINCT:
-	    out << "COUNTDISTINCT(" << *(terms_[i]) << ')';
-	    break;
-	}
+    for (uint32_t i = 0; i < xtms_.size(); ++ i) {
+	if (i > 0)
+	    out << ", ";
+	out << *(atms_[i]);
 	if (aliases[i] != 0)
 	    out << " AS " << *(aliases[i]);
-	if (i+1 < terms_.size())
-	    out << ", ";
     }
 } // ibis::selectClause::print
 
 void ibis::selectClause::getNullMask(const ibis::part& part0,
 				     ibis::bitvector& mask) const {
-    if (terms_.size() > 0) {
+    if (atms_.size() > 0) {
 	ibis::part::barrel bar(&part0);
-	for (uint32_t j = 0; j < terms_.size(); ++ j)
-	    bar.recordVariable(terms_[j]);
+	for (uint32_t j = 0; j < atms_.size(); ++ j)
+	    bar.recordVariable(atms_[j]);
 	if (bar.size() > 0) {
 	    bar.getNullMask(mask);
 	}
@@ -505,15 +559,15 @@ void ibis::selectClause::getNullMask(const ibis::part& part0,
 /// change in error round-off property.
 int ibis::selectClause::verify(const ibis::part& part0) const {
     int ierr = 0;
-    for (uint32_t j = 0; j < terms_.size(); ++ j) {
+    for (uint32_t j = 0; j < atms_.size(); ++ j) {
 	if (ibis::math::preserveInputExpressions == false) {
-	    ibis::math::term *tmp = terms_[j]->reduce();
-	    if (tmp != terms_[j]) {
-		delete const_cast<ibis::math::term*>(terms_[j]);
-		const_cast<mathTerms&>(terms_)[j] = tmp;
+	    ibis::math::term *tmp = atms_[j]->reduce();
+	    if (tmp != atms_[j]) {
+		delete const_cast<ibis::math::term*>(atms_[j]);
+		const_cast<mathTerms&>(atms_)[j] = tmp;
 	    }
 	}
-	ierr += verifyTerm(*(terms_[j]), part0, this);
+	ierr += verifyTerm(*(atms_[j]), part0, this);
     }
     return ierr;
 } // ibis::selectClause::verify
@@ -525,13 +579,13 @@ int ibis::selectClause::verifySome(const std::vector<uint32_t>& touse,
     int ierr = 0;
     for (uint32_t j = 0; j < touse.size(); ++ j) {
 	if (ibis::math::preserveInputExpressions == false) {
-	    ibis::math::term *tmp = terms_[touse[j]]->reduce();
-	    if (tmp != terms_[touse[j]]) {
-		delete const_cast<ibis::math::term*>(terms_[touse[j]]);
-		const_cast<mathTerms&>(terms_)[touse[j]] = tmp;
+	    ibis::math::term *tmp = atms_[touse[j]]->reduce();
+	    if (tmp != atms_[touse[j]]) {
+		delete const_cast<ibis::math::term*>(atms_[touse[j]]);
+		const_cast<mathTerms&>(atms_)[touse[j]] = tmp;
 	    }
 	}
-	ierr += verifyTerm(*(terms_[touse[j]]), part0, this);
+	ierr += verifyTerm(*(atms_[touse[j]]), part0, this);
     }
     return ierr;
 } // ibis::selectClause::verifySome
@@ -564,7 +618,7 @@ int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
 	    }
 	}
     }
-    else if (xp0.termType() == ibis::math::UNDEFINED) {
+    else if (xp0.termType() == ibis::math::UNDEF_TERM) {
 	++ ierr;
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- selectClause::verifyTerm can not work with a "
@@ -581,3 +635,49 @@ int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
 
     return ierr;
 } // ibis::selectClause::verifyTerm
+
+void ibis::selectClause::variable::print(std::ostream& out) const {
+    const uint64_t itrm = sc_.decodeAName(name);
+    if (itrm >= sc_.atms_.size()) {
+	// assume to be a bare arithmetic expression
+	out << *(sc_.atms_[itrm]);
+	return;
+    }
+
+    switch (sc_.aggr_[itrm]) {
+    default:
+    case ibis::selectClause::NIL_AGGR:
+	out << *(sc_.atms_[itrm]);
+	break;
+    case ibis::selectClause::AVG:
+	out << "AVG(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::CNT:
+	out << "COUNT(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::MAX:
+	out << "MAX(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::MIN:
+	out << "MIN(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::SUM:
+	out << "SUM(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::VARPOP:
+	out << "VARPOP(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::VARSAMP:
+	out << "VARSAMP(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::STDPOP:
+	out << "STDPOP(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::STDSAMP:
+	out << "STDSAMP(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::DISTINCT:
+	out << "COUNTDISTINCT(" << *(sc_.atms_[itrm]) << ')';
+	break;
+    }
+} // ibis::selectClause::variable::print

@@ -145,27 +145,16 @@ namespace ibis {
    enum yytokentype {
      END = 0,
      ASOP = 258,
-     AVGOP = 259,
-     CNTOP = 260,
-     MINOP = 261,
-     MAXOP = 262,
-     SUMOP = 263,
-     VARPOPOP = 264,
-     VARSAMPOP = 265,
-     STDPOPOP = 266,
-     STDSAMPOP = 267,
-     DISTINCTOP = 268,
-     MEDIANOP = 269,
-     BITOROP = 270,
-     BITANDOP = 271,
-     ADDOP = 272,
-     MINUSOP = 273,
-     MULTOP = 274,
-     DIVOP = 275,
-     REMOP = 276,
-     EXPOP = 277,
-     NUMBER = 278,
-     NOUNSTR = 279
+     BITOROP = 259,
+     BITANDOP = 260,
+     ADDOP = 261,
+     MINUSOP = 262,
+     MULTOP = 263,
+     DIVOP = 264,
+     REMOP = 265,
+     EXPOP = 266,
+     NUMBER = 267,
+     NOUNSTR = 268
    };
 
     };
@@ -243,7 +232,7 @@ namespace ibis {
     typedef unsigned char token_number_type;
     /* Tables.  */
     /// For a state, the index in \a yytable_ of its portion.
-    static const short int yypact_[];
+    static const signed char yypact_[];
     static const signed char yypact_ninf_;
 
     /// For a state, default rule to reduce.
@@ -251,7 +240,7 @@ namespace ibis {
     /// Zero means the default is an error.
     static const unsigned char yydefact_[];
 
-    static const short int yypgoto_[];
+    static const signed char yypgoto_[];
     static const signed char yydefgoto_[];
 
     /// What to do in a state.
@@ -288,7 +277,7 @@ namespace ibis {
     /// A `-1'-separated list of the rules' RHS.
     static const rhs_number_type yyrhs_[];
     /// For each rule, the index of the first RHS symbol in \a yyrhs_.
-    static const unsigned short int yyprhs_[];
+    static const unsigned char yyprhs_[];
     /// For each rule, its source line number.
     static const unsigned short int yyrline_[];
     /// For each scanner token number, its symbol number.
@@ -339,7 +328,7 @@ namespace ibis {
 } // ibis
 
 /* Line 300 of lalr1.cc  */
-#line 343 "selectParser.hh"
+#line 332 "selectParser.hh"
 
 
 

@@ -460,6 +460,9 @@ namespace ibis {
 	void int2string(std::string &str, unsigned v1,
 			unsigned v2, unsigned v3);
 	void int2string(std::string &str, const std::vector<unsigned>& val);
+	void encode64(uint64_t, std::string&);
+	int  decode64(uint64_t&, const std::string&);
+	int  decode16(uint64_t&, const char*);
 	std::string groupby1000(uint64_t);
 	///@}
 

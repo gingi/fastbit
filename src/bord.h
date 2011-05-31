@@ -32,6 +32,8 @@ public:
 	 const ibis::table::typeList &ct,
 	 const ibis::table::stringList &cn,
 	 const ibis::table::stringList *cdesc=0);
+    bord(const char *tn, const char *td,
+	 const ibis::selectClause &sc, const ibis::part &ref);
     virtual ~bord() {clear();}
 
     virtual uint64_t nRows() const {return nEvents;}
@@ -103,6 +105,8 @@ public:
 
     virtual long reorder(const ibis::table::stringList&);
 
+    int append(const ibis::selectClause&, const ibis::part&,
+	       const ibis::bitvector&);
     int limit(uint32_t);
 
     template <typename T>
@@ -125,6 +129,13 @@ public:
 			  void* outbuf, size_t outpos,
 			  const void* inbuf, size_t inpos);
 
+    /// Append new data (in @c from) to a larger array (pointed to by
+    /// @c to).
+    template <typename T> void 
+	addIncoreData(void*& to, const array_t<T>& from,
+		      uint32_t nold, const T special);
+    void addStrings(void*&, const std::vector<std::string>&, uint32_t);
+
     // Cursor class for row-wise data accesses.
     class cursor;
     /// Create a @c cursor object to perform row-wise data access.
@@ -132,7 +143,6 @@ public:
 
     // forward declarations
     class column;
-    class text;
 
 protected:
     /// Clear the existing content.
@@ -159,10 +169,9 @@ private:
 /// developers welcome suggestions for a replacement.
 class ibis::bord::column : public ibis::column {
 public:
-    column(const ibis::bord::part* tbl, ibis::TYPE_T t,
-	   const char* name, void *buf,
+    column(const ibis::bord* tbl, ibis::TYPE_T t, const char* name, void *buf=0,
 	   const char* desc="", double low=DBL_MAX, double high=-DBL_MAX);
-    column(const ibis::bord::part*, const ibis::column&, void *buf);
+    column(const ibis::bord*, const ibis::column&, void *buf);
     column(const column& rhs);
     virtual ~column();
 
@@ -209,7 +218,8 @@ public:
     void reverseRows();
     int  limit(uint32_t nr);
 
-    void* getArray() const {return buffer;}
+    void*& getArray() {return buffer;}
+    void*  getArray() const {return buffer;}
     int dump(std::ostream& out, uint32_t i) const;
 
     int restoreCategoriesAsStrings(const ibis::part&);

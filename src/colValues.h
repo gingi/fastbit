@@ -23,7 +23,7 @@ public:
 			     ibis::fileManager::storage* store,
 			     const uint32_t start, const uint32_t nelm);
     /// Construct from content of an array_t.
-    static colValues* create(const ibis::column* c, void* vals);
+    static colValues* create(const ibis::column* c);
 
     /// Provide a pointer to the column containing the selected values.
     virtual const ibis::column* operator->() const {return col;};
@@ -111,7 +111,7 @@ public:
     colInts(const ibis::column* c, ibis::fileManager::storage* store,
 	    const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<int32_t>(store, start, nelm)) {}
-    colInts(const ibis::column* c, void* vals);
+    colInts(const ibis::column* c);
     virtual ~colInts() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -190,7 +190,7 @@ public:
     colUInts(const ibis::column* c, ibis::fileManager::storage* store,
 	    const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<uint32_t>(store, start, nelm)) {}
-    colUInts(const ibis::column* c, void* vals);
+    colUInts(const ibis::column* c);
     virtual ~colUInts() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -282,7 +282,7 @@ public:
     colLongs(const ibis::column* c, ibis::fileManager::storage* store,
 	    const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<int64_t>(store, start, nelm)) {}
-    colLongs(const ibis::column* c, void* vals);
+    colLongs(const ibis::column* c);
     virtual ~colLongs() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -361,7 +361,7 @@ public:
     colULongs(const ibis::column* c, ibis::fileManager::storage* store,
 	    const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<uint64_t>(store, start, nelm)) {}
-    colULongs(const ibis::column* c, void* vals);
+    colULongs(const ibis::column* c);
     virtual ~colULongs() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -453,7 +453,7 @@ public:
     colShorts(const ibis::column* c, ibis::fileManager::storage* store,
 	      const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<int16_t>(store, start, nelm)) {}
-    colShorts(const ibis::column* c, void* vals);
+    colShorts(const ibis::column* c);
     virtual ~colShorts() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -532,7 +532,7 @@ public:
     colUShorts(const ibis::column* c, ibis::fileManager::storage* store,
 	    const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<uint16_t>(store, start, nelm)) {}
-    colUShorts(const ibis::column* c, void* vals);
+    colUShorts(const ibis::column* c);
     virtual ~colUShorts() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -612,7 +612,7 @@ public:
     colBytes(const ibis::column* c, ibis::fileManager::storage* store,
 	    const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<signed char>(store, start, nelm)) {}
-    colBytes(const ibis::column* c, void* vals);
+    colBytes(const ibis::column* c);
     virtual ~colBytes() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -691,7 +691,7 @@ public:
     colUBytes(const ibis::column* c, ibis::fileManager::storage* store,
 	    const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<unsigned char>(store, start, nelm)) {}
-    colUBytes(const ibis::column* c, void* vals);
+    colUBytes(const ibis::column* c);
     virtual ~colUBytes() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -771,7 +771,7 @@ public:
     colFloats(const ibis::column* c, ibis::fileManager::storage* store,
 	      const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<float>(store, start, nelm)) {}
-    colFloats(const ibis::column* c, void* vals);
+    colFloats(const ibis::column* c);
     virtual ~colFloats() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -850,7 +850,7 @@ public:
     colDoubles(const ibis::column* c, ibis::fileManager::storage* store,
 	       const uint32_t start, const uint32_t nelm)
 	: colValues(c), array(new array_t<double>(store, start, nelm)) {}
-    colDoubles(const ibis::column* c, void* vals);
+    colDoubles(const ibis::column* c);
     virtual ~colDoubles() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -926,7 +926,7 @@ public:
     colStrings() : colValues(), array(0) {};
     colStrings(const ibis::column* c, const ibis::bitvector& hits)
 	: colValues(c), array(c->selectStrings(hits)) {}
-    colStrings(const ibis::column* c, void* vals);
+    colStrings(const ibis::column* c);
     virtual ~colStrings() {delete array;}
 
     virtual bool         empty() const {return (col==0 || array==0);}

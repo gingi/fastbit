@@ -299,73 +299,28 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	return 0;
     }
 
-    // produce a list of names, types, and buffers to hold the initial selection
-    std::vector<std::string> nls;
-    ibis::table::typeList    tls;
-    ibis::table::bufferList  buff;
-    std::vector<uint32_t>    tmstouse;
-    uint32_t                 nplain = 0;
-    if (tms.size() > 0) { // sort the names of variables to compute
-	std::set<const char*, ibis::lessi> uniquenames;
-	for (uint32_t i = 0; i < tms.size(); ++ i) {
-	    if (tms.getAggregator(i) != ibis::selectClause::CNT ||
-		strcmp(tms.argName(i), "*") != 0) {// not count(*)
-		const char* tname = tms.argName(i);
-		nplain += (tms.getAggregator(i) == ibis::selectClause::NIL_AGGR);
-		if (uniquenames.find(tname) == uniquenames.end()) {
-		    uniquenames.insert(tname);
-		    tmstouse.push_back(i);
-		    nls.push_back(tname);
-		}
-	    }
-	}
-	if (! uniquenames.empty()) {
-	    tls.resize(nls.size());
-	    buff.resize(nls.size());
-	    for (uint32_t i = 0; i < nls.size(); ++ i) {
-		tls[i] = ibis::UNKNOWN_TYPE;
-		buff[i] = 0;
-	    }
-#if _DEBUG+0>1 || DEBUG+0>0
-	    if (ibis::gVerbose > 5) {
-		ibis::util::logger lg;
-		lg() << "DEBUG: " << mesg << " uniquenames["
-			    << uniquenames.size() << "]=";
-		for (std::set<const char*, ibis::lessi>::const_iterator it =
-			 uniquenames.begin(); it != uniquenames.end(); ++ it) {
-		    lg() << (it != uniquenames.begin() ? ", " : "")
-				<< *it;
-		}
-	    }
-#endif
-	}
-    }
+    std::string tn = ibis::util::shortName(mesg);
+    std::auto_ptr<ibis::bord> brd1
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(mylist.front())));
+    const uint32_t nplain = tms.nPlain();
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.size()
 	     << " term" << (tms.size()>1?"s":"") << ", " << nplain
 	     << " of which " << (nplain>1?"are":"is") << " plain";
-	if (ibis::gVerbose > 3)
-	    lg() << " (buff[" << buff.size() << "] and tls[" << tls.size()
-		 << ")";
+	if (ibis::gVerbose > 4) {
+	    lg() << "\nTemporary data will be stored in the following:\n";
+	    brd1->describe(lg());
+	}
     }
 
-    // create the guard after buff and tls have got their correct sizes
-    ibis::util::guard gbuff
-	= ibis::util::makeGuard(ibis::table::freeBuffers,
-				ibis::util::ref(buff),
-				ibis::util::ref(tls));
-    uint32_t nh = 0;
     // main loop through each data partition, fill the initial selection
     for (ibis::partList::const_iterator it = mylist.begin();
 	 it != mylist.end(); ++ it) {
 	LOGGER(ibis::gVerbose > 2)
 	    << mesg << " -- processing query conditions \"" << cond
 	    << "\" on data partition " << (*it)->name();
-	if (tmstouse.size() >= tms.size())
-	    ierr = tms.verify(**it);
-	else
-	    ierr = tms.verifySome(tmstouse, **it);
+	ierr = tms.verify(**it);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- select clause (" << tms
@@ -405,168 +360,16 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	const ibis::bitvector* hits = qq.getHitVector();
 	if (hits == 0 || hits->cnt() == 0) continue;
 
-	const uint32_t nqq = hits->cnt();
-	for (uint32_t i = 0; i < tmstouse.size(); ++ i) {
-	    const uint32_t itm = tmstouse[i];
-	    const ibis::math::term *aterm = tms.at(itm);
-	    if (aterm->termType() != ibis::math::VARIABLE) {
-		if (aterm->termType() == ibis::math::UNDEFINED) {
-		    LOGGER(ibis::gVerbose > 1)
-			<< mesg << " -- can not handle a math::term "
-			"of undefined type";
-		    ierr = -15;
-		}
-		else {
-		    if (tls[i] == ibis::UNKNOWN_TYPE)
-			tls[i] = ibis::DOUBLE;
-
-		    ibis::array_t<double> tmp;
-		    ierr = (*it)->calculate(*aterm, *hits, tmp);
-		    ibis::util::addIncoreData
-			(buff[i], tmp, nh, FASTBIT_DOUBLE_NULL);
-		}
-		continue;
-	    }
-
-	    const ibis::column* col = (*it)->getColumn(tms.argName(itm));
-	    if (col == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << mesg << " -- \"" << tms.argName(itm)
-		    << "\" is not a column of partition " << (*it)->name();
-		ierr = -16;
-		continue;
-	    }
-
-	    if (tls[i] == ibis::UNKNOWN_TYPE)
-		tls[i] = col->type();
-	    LOGGER(ibis::gVerbose > 3)
-		<< mesg << " -- adding " << nqq << " element"
-		<< (nqq>1?"s":"") << " from column " << col->name()
-		<< " of partition " << (*it)->name() << ", nh = " << nh;
-	    switch (col->type()) {
-	    case ibis::BYTE:
-	    case ibis::UBYTE: {
-		std::auto_ptr< ibis::array_t<signed char> >
-		    tmp(col->selectBytes(*hits));
-		if (tmp.get() != 0) {
-		    if (nh > 0) {
-			ibis::util::addIncoreData
-			    (buff[i], *tmp, nh, static_cast<signed char>(0x7F));
-		    }
-		    else {
-			buff[i] = tmp.release();
-		    }
-		}
-		break;}
-	    case ibis::SHORT:
-	    case ibis::USHORT: {
-		std::auto_ptr< ibis::array_t<int16_t> >
-		    tmp(col->selectShorts(*hits));
-		if (tmp.get() != 0) {
-		    if (nh > 0) {
-			ibis::util::addIncoreData(buff[i], *tmp, nh,
-						  static_cast<int16_t>(0x7FFF));
-		    }
-		    else {
-			buff[i] = tmp.release();
-		    }
-		}
-		break;}
-	    case ibis::UINT:
-	    case ibis::INT: {
-		std::auto_ptr< ibis::array_t<int32_t> >
-		    tmp(col->selectInts(*hits));
-		if (tmp.get() != 0) {
-		    if (nh > 0) {
-			ibis::util::addIncoreData
-			    (buff[i], *tmp, nh,
-			     static_cast<int32_t>(0x7FFFFFFF));
-		    }
-		    else {
-			buff[i] = tmp.release();
-		    }
-		}
-		break;}
-	    case ibis::LONG:
-	    case ibis::ULONG: {
-		std::auto_ptr<ibis::array_t<int64_t> >
-		    tmp(col->selectLongs(*hits));
-		if (tmp.get() != 0) {
-		    if (nh != 0) {
-			ibis::util::addIncoreData
-			    (buff[i], *tmp, nh, static_cast<int64_t>
-			     (0x7FFFFFFFFFFFFFFFLL));
-		    }
-		    else {
-			buff[i] = tmp.release();
-		    }
-		}
-		break;}
-	    case ibis::FLOAT: {
-		std::auto_ptr< ibis::array_t<float> >
-		    tmp(col->selectFloats(*hits));
-		if (tmp.get() != 0) {
-		    if (nh > 0) {
-			ibis::util::addIncoreData
-			    (buff[i], *tmp, nh, FASTBIT_FLOAT_NULL);
-		    }
-		    else {
-			buff[i] = tmp.release();
-		    }
-		}
-		break;}
-	    case ibis::DOUBLE: {
-		std::auto_ptr< ibis::array_t<double> >
-		    tmp(col->selectDoubles(*hits));
-		if (tmp.get() != 0) {
-		    if (nh > 0) {
-			ibis::util::addIncoreData
-			    (buff[i], *tmp, nh, FASTBIT_DOUBLE_NULL);
-		    }
-		    else {
-			buff[i] = tmp.release();
-		    }
-		}
-		break;}
-	    case ibis::TEXT: {
-		std::auto_ptr< std::vector<std::string> >
-		    tmp(col->selectStrings(*hits));
-		if (tmp.get() != 0) {
-		    if (nh > 0) {
-			ibis::util::addStrings(buff[i], *tmp, nh);
-		    }
-		    else {
-			buff[i] = tmp.release();
-		    }
-		}
-		break;}
-	    case ibis::CATEGORY: {
-		std::auto_ptr< std::vector<std::string> >
-		    tmp(col->selectStrings(*hits));
-		if (tmp.get() != 0) {
-		    if (nh > 0) {
-			ibis::util::addStrings(buff[i], *tmp, nh);
-		    }
-		    else {
-			buff[i] = tmp.release();
-		    }
-		}
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 1)
-		    << mesg << " -- unable to process column " << tms[itm]
-		    << " (type " << ibis::TYPESTRING[(int)tls[i]] << ")";
-		ierr = -17;
-		break;}
-	    }
-	}
-	nh += nqq;
+	ierr = brd1->append(tms, **it, *hits);
+	LOGGER(ierr < 0 && ibis::gVerbose > 0)
+	    << "Warning -- " << mesg << " failed to append " << hits->cnt()
+	    << " row" << (hits->cnt() > 1 ? "s" : "") << " from "
+	    << (*it)->name();
     }
 
-    std::string tn = ibis::util::shortName(mesg);
-    if (nh == 0) {
+    if (brd1->nRows() == 0) {
 	if (ierr >= 0) { // return an empty table of type tabula
-	    return new ibis::tabula(tn.c_str(), mesg.c_str(), nh);
+	    return new ibis::tabula(tn.c_str(), mesg.c_str(), brd1->nRows());
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
@@ -575,30 +378,11 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	    return 0;
 	}
     }
-    else if (tmstouse.empty()) { // count(*)
-	return new ibis::tabele(tn.c_str(), mesg.c_str(), nh, tms.termName(0));
+    else if (brd1->nColumns() == 0) { // count(*)
+	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
+				tms.termName(0));
     }
 
-    // convert the selection into a in-memory data partition
-    ibis::table::stringList  nlsptr(nls.size());
-    std::vector<std::string> desc(nls.size());
-    ibis::table::stringList  cdesc(nls.size());
-    for (uint32_t i = 0; i < nls.size(); ++ i) {
-	const uint32_t itm = tmstouse[i];
-	desc[i] = tms.termName(itm);
-	cdesc[i] = desc[i].c_str();
-	// if nplain >= tms.size(), then use the external names, otherwise
-	// use the internal names
-	nlsptr[i] = (nplain >= tms.size() ? desc[i].c_str() : nls[i].c_str());
-    }
-
-    std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), nh, buff, tls, nlsptr,
-			&cdesc));
-    // need to dismiss the guard after buff has been transfered to the new
-    // table object
-    if (brd1.get() != 0)
-	gbuff.dismiss();
     if (nplain >= tms.size() || brd1.get() == 0)
 	return brd1.release();
 

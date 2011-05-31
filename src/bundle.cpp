@@ -64,20 +64,16 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
     return bdl;
 } // ibis::bundle::create
 
-/// Create a bundle using the values passed in through vals.  It assumes
-/// that the caller has processed the select clause and provided all the
-/// necessary values in vals.  Currently, the only column that does not
-/// require any actual input value is count(*).
+/// Create a bundle using the all values of the partition.
 ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
-				   const ibis::selectClause& sel,
-				   const ibis::table::bufferList& vals) {
-    const uint32_t nc = (vals.size() <= sel.size() ? vals.size() : sel.size());
+				   const ibis::selectClause& sel) {
+    const uint32_t nc = sel.size();
     ibis::bundle* res = 0;
     if (nc > 1) {
-	res = new ibis::bundles(tbl, sel, vals);
+	res = new ibis::bundles(tbl, sel);
     }
     else if (nc == 1) {
-	res = new ibis::bundle1(tbl, sel, vals);
+	res = new ibis::bundle1(tbl, sel);
     }
     return res;
 } // ibis::bundle::create
@@ -598,13 +594,10 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
     }
 } // ibis::bundle1::bundle1
 
-/// Constructor.  It creates the bundle using the values passed in through
-/// vals.  It will use the values in vals[0] and take on the first column
-/// name in cmps that is not '*'.
-ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
-		       const ibis::table::bufferList& vals)
+/// Constructor.  It creates the bundle using all rows of tbl.
+ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
     : bundle(cmps), aggr(comps.getAggregator(0)) {
-    if (comps.size() == 0 || vals.size() == 0)
+    if (comps.size() == 0)
 	return;
 
     id = tbl.name();
@@ -621,43 +614,41 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	c = tbl.getColumn(comps.termName(icol));
 
     try {
-	if (c != 0 && vals[0] != 0) {
-	    aggr = comps.getAggregator(icol);
-	    if (aggr == ibis::selectClause::NIL_AGGR) {
-		// use column type
+	if (c == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- bundle1 constructor skipping a unknown column "
+		<< comps.argName(0);
+	    return;
+	}
+
+	aggr = comps.getAggregator(icol);
+	if (aggr == ibis::selectClause::NIL_AGGR) {
+	    // use column type
+	    LOGGER(ibis::gVerbose > 4)
+		<< "bundle1::ctor initializing a colValues for "
+		<< *(comps[0]);
+	    col = ibis::colValues::create(c);
+	}
+	else { // a function, treat AVG and SUM as double
+	    switch (aggr) {
+	    case ibis::selectClause::AVG:
+	    case ibis::selectClause::SUM:
+	    case ibis::selectClause::VARPOP:
+	    case ibis::selectClause::VARSAMP:
+	    case ibis::selectClause::STDPOP:
+	    case ibis::selectClause::STDSAMP:
+		LOGGER(ibis::gVerbose > 4)
+		    << "bundle1::ctor initializing a colDoubles for "
+		    << *(comps[icol]);
+		col = new ibis::colDoubles(c);
+		break;
+	    default:
 		LOGGER(ibis::gVerbose > 4)
 		    << "bundle1::ctor initializing a colValues for "
-		    << *(comps[0]);
-		col = ibis::colValues::create(c, vals[0]);
+		    << *(comps[icol]);
+		col = ibis::colValues::create(c);
+		break;
 	    }
-	    else { // a function, treat AVG and SUM as double
-		switch (aggr) {
-		case ibis::selectClause::AVG:
-		case ibis::selectClause::SUM:
-		case ibis::selectClause::VARPOP:
-		case ibis::selectClause::VARSAMP:
-		case ibis::selectClause::STDPOP:
-		case ibis::selectClause::STDSAMP:
-		    LOGGER(ibis::gVerbose > 4)
-			<< "bundle1::ctor initializing a colDoubles for "
-			<< *(comps[icol]);
-		    col = new ibis::colDoubles(c, vals[0]);
-		    break;
-		default:
-		    LOGGER(ibis::gVerbose > 4)
-			<< "bundle1::ctor initializing a colValues for "
-			<< *(comps[icol]);
-		    col = ibis::colValues::create(c, vals[0]);
-		    break;
-		}
-	    }
-	}
-	else {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "bundle1 constructor skipping a unknown column ("
-		<< comps.argName(0) << ") or a column without data ("
-		<< vals[0] << ")";
-	    return;
 	}
 	sort();
 
@@ -1305,62 +1296,47 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
     }
 } // ibis::bundles::bundles
 
-/// Constructor.  It creates a bundle from the values provided by the
-/// caller.
-ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
-		       const ibis::table::bufferList& vals)
+/// Constructor.  It creates a bundle from all rows of tbl.
+ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
     : bundle(cmps) {
     id = tbl.name();
     try {
-	for (unsigned ic = 0,  iv = 0; ic < comps.size() && iv < vals.size();
-	     ++ ic) {
+	for (unsigned ic = 0; ic < comps.size(); ++ ic) {
 	    const char* cn = comps.argName(ic);
 	    ibis::column* c = tbl.getColumn(cn);
 	    if (c == 0)
 		c = tbl.getColumn(comps.termName(ic));
 	    if (c != 0) {
-		if (vals[iv] != 0) {
-		    LOGGER(ibis::gVerbose > 4)
-			<< "bundles::ctor to create a colValues for "
-			<< *(comps[ic]) << " as cols[" << cols.size() << ']';
-		    ibis::colValues* cv = 0;
-		    switch (comps.getAggregator(ic)) {
-		    case ibis::selectClause::AVG:
-		    case ibis::selectClause::SUM:
-		    case ibis::selectClause::VARPOP:
-		    case ibis::selectClause::VARSAMP:
-		    case ibis::selectClause::STDPOP:
-		    case ibis::selectClause::STDSAMP:
-			cv = new ibis::colDoubles(c, vals[iv]);
-			break;
-		    default:
-			cv = ibis::colValues::create(c, vals[iv]);
-			break;
-		    }
-		    if (cv != 0) {
-			cols.push_back(cv);
-			aggr.push_back(comps.getAggregator(ic));
-		    }
-		    LOGGER(cv == 0 && ibis::gVerbose > 1)
-			<< "Warning -- bundles(" << tbl.name() << ", "
-			<< comps << ", vals[" << vals.size()
-			<< "]) failed to create colValues object from column "
-			<< c->name() << " and vals[" << iv << "]";
+		LOGGER(ibis::gVerbose > 4)
+		    << "bundles::ctor to create a colValues for "
+		    << *(comps[ic]) << " as cols[" << cols.size() << ']';
+		ibis::colValues* cv = 0;
+		switch (comps.getAggregator(ic)) {
+		case ibis::selectClause::AVG:
+		case ibis::selectClause::SUM:
+		case ibis::selectClause::VARPOP:
+		case ibis::selectClause::VARSAMP:
+		case ibis::selectClause::STDPOP:
+		case ibis::selectClause::STDSAMP:
+		    cv = new ibis::colDoubles(c);
+		    break;
+		default:
+		    cv = ibis::colValues::create(c);
+		    break;
 		}
-		else {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "Warning -- bundles(" << tbl.name() << ", "
-			<< comps << ", vals[" << vals.size()
-			<< "]) can not associate column " << c->name()
-			<< " with a nil pointer for values";
+		if (cv != 0) {
+		    cols.push_back(cv);
+		    aggr.push_back(comps.getAggregator(ic));
 		}
-		++ iv;
+		LOGGER(cv == 0 && ibis::gVerbose > 1)
+		    << "Warning -- bundles(" << tbl.name() << ", " << comps
+		    << ") failed to create colValues object from column "
+		    << c->name();
 	    }
 	    else if (*cn != '*') {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- bundles(" << tbl.name() << ", " << comps
-		    << ", vals[" << vals.size()
-		    << "]) can not find a column named " << (cn ? cn : "");
+		    << ") can not find a column named " << (cn ? cn : "");
 	    }
 	}
 	if (cols.size() > 0)

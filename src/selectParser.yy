@@ -40,17 +40,6 @@
 
 %token              END       0 "end of input"
 %token <integerVal> ASOP	"as"
-%token <integerVal> AVGOP	"avg"
-%token <integerVal> CNTOP	"count"
-%token <integerVal> MINOP	"min"
-%token <integerVal> MAXOP	"max"
-%token <integerVal> SUMOP	"sum"
-%token <integerVal> VARPOPOP	"varpop"
-%token <integerVal> VARSAMPOP	"varsamp"
-%token <integerVal> STDPOPOP	"stdpop"
-%token <integerVal> STDSAMPOP	"stdsamp"
-%token <integerVal> DISTINCTOP	"distinct"
-%token <integerVal> MEDIANOP	"median"
 %token <integerVal> BITOROP	"|"
 %token <integerVal> BITANDOP	"&"
 %token <integerVal> ADDOP	"+"
@@ -83,369 +72,27 @@
 
 %% /* Grammar rules */
 slist: sterm | sterm slist;
-sterm: AVGOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::AVG);
-}
-| AVGOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::AVG);
-}
-| AVGOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::AVG);
-}
-| AVGOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::AVG);
-}
-| AVGOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::AVG);
-}
-| AVGOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::AVG);
-}
-| CNTOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' MULTOP ')' ',' {
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' MULTOP ')' END {
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' MULTOP ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' MULTOP ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' MULTOP ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| CNTOP '(' MULTOP ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back(new ibis::math::variable("*"));
-    driver.aggr_.push_back(ibis::selectClause::CNT);
-}
-| MAXOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MAX);
-}
-| MAXOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MAX);
-}
-| MAXOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MAX);
-}
-| MAXOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MAX);
-}
-| MAXOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MAX);
-}
-| MAXOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MAX);
-}
-| MINOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MIN);
-}
-| MINOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MIN);
-}
-| MINOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MIN);
-}
-| MINOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MIN);
-}
-| MINOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MIN);
-}
-| MINOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MIN);
-}
-| SUMOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::SUM);
-}
-| SUMOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::SUM);
-}
-| SUMOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::SUM);
-}
-| SUMOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::SUM);
-}
-| SUMOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::SUM);
-}
-| SUMOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::SUM);
-}
-| VARPOPOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARPOP);
-}
-| VARPOPOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARPOP);
-}
-| VARPOPOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARPOP);
-}
-| VARPOPOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARPOP);
-}
-| VARPOPOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARPOP);
-}
-| VARPOPOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARPOP);
-}
-| VARSAMPOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
-}
-| VARSAMPOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
-}
-| VARSAMPOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
-}
-| VARSAMPOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
-}
-| VARSAMPOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
-}
-| VARSAMPOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::VARSAMP);
-}
-| STDPOPOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDPOP);
-}
-| STDPOPOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDPOP);
-}
-| STDPOPOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDPOP);
-}
-| STDPOPOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDPOP);
-}
-| STDPOPOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDPOP);
-}
-| STDPOPOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDPOP);
-}
-| STDSAMPOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
-}
-| STDSAMPOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
-}
-| STDSAMPOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
-}
-| STDSAMPOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
-}
-| STDSAMPOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
-}
-| STDSAMPOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::STDSAMP);
-}
-| DISTINCTOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
-}
-| DISTINCTOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
-}
-| DISTINCTOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
-}
-| DISTINCTOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
-}
-| DISTINCTOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
-}
-| DISTINCTOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::DISTINCT);
-}
-| MEDIANOP '(' mathExpr ')' ',' {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
-}
-| MEDIANOP '(' mathExpr ')' END {
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
-}
-| MEDIANOP '(' mathExpr ')' NOUNSTR ',' {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
-}
-| MEDIANOP '(' mathExpr ')' NOUNSTR END {
-    driver.alias_[*$5] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
-}
-| MEDIANOP '(' mathExpr ')' ASOP NOUNSTR ',' {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
-}
-| MEDIANOP '(' mathExpr ')' ASOP NOUNSTR END {
-    driver.alias_[*$6] = driver.terms_.size();
-    driver.terms_.push_back($3);
-    driver.aggr_.push_back(ibis::selectClause::MEDIAN);
-}
-| mathExpr ',' {
-    driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+sterm: mathExpr ',' {
+    driver.addTerm($1);
 }
 | mathExpr END {
-    driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+    driver.addTerm($1);
 }
 | mathExpr NOUNSTR ',' {
-    driver.alias_[*$2] = driver.terms_.size();
-    driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+    driver.xalias_[*$2] = driver.xtms_.size();
+    driver.addTerm($1);
 }
 | mathExpr NOUNSTR END {
-    driver.alias_[*$2] = driver.terms_.size();
-    driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+    driver.xalias_[*$2] = driver.xtms_.size();
+    driver.addTerm($1);
 }
 | mathExpr ASOP NOUNSTR ',' {
-    driver.alias_[*$3] = driver.terms_.size();
-    driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+    driver.xalias_[*$3] = driver.xtms_.size();
+    driver.addTerm($1);
 }
 | mathExpr ASOP NOUNSTR END {
-    driver.alias_[*$3] = driver.terms_.size();
-    driver.terms_.push_back($1);
-    driver.aggr_.push_back(ibis::selectClause::NIL_AGGR);
+    driver.xalias_[*$3] = driver.xtms_.size();
+    driver.addTerm($1);
 }
 ;
 
@@ -552,10 +199,52 @@ mathExpr ADDOP mathExpr {
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
 	<< *$3 << ")";
 #endif
-    ibis::math::stdFunction1 *fun =
-	new ibis::math::stdFunction1($1->c_str());
+    ibis::math::term *fun = 0;
+    if (stricmp($1->c_str(), "avg") == 0) { // aggregation avg
+	fun = driver.addAgregado(ibis::selectClause::AVG, $3);
+    }
+    else if (stricmp($1->c_str(), "count") == 0) { // aggregation count
+	fun = driver.addAgregado(ibis::selectClause::CNT, $3);
+    }
+    else if (stricmp($1->c_str(), "max") == 0) { // aggregation max
+	fun = driver.addAgregado(ibis::selectClause::MAX, $3);
+    }
+    else if (stricmp($1->c_str(), "min") == 0) { // aggregation min
+	fun = driver.addAgregado(ibis::selectClause::MIN, $3);
+    }
+    else if (stricmp($1->c_str(), "sum") == 0) { // aggregation sum
+	fun = driver.addAgregado(ibis::selectClause::SUM, $3);
+    }
+    else if (stricmp($1->c_str(), "median") == 0) { // aggregation median
+	fun = driver.addAgregado(ibis::selectClause::MEDIAN, $3);
+    }
+    else if (stricmp($1->c_str(), "distinct") == 0 ||
+	     stricmp($1->c_str(), "countdistinct") == 0) { // count distinct values
+	fun = driver.addAgregado(ibis::selectClause::DISTINCT, $3);
+    }
+    else if (stricmp($1->c_str(), "varp") == 0 ||
+	     stricmp($1->c_str(), "varpop") == 0) { // population variance
+	fun = driver.addAgregado(ibis::selectClause::VARPOP, $3);
+    }
+    else if (stricmp($1->c_str(), "var") == 0 ||
+	     stricmp($1->c_str(), "varsamp") == 0 ||
+	     stricmp($1->c_str(), "variance") == 0) { // sample variance
+	fun = driver.addAgregado(ibis::selectClause::VARSAMP, $3);
+    }
+    else if (stricmp($1->c_str(), "stdevp") == 0 ||
+	     stricmp($1->c_str(), "stdpop") == 0) { // population standard deviation
+	fun = driver.addAgregado(ibis::selectClause::STDPOP, $3);
+    }
+    else if (stricmp($1->c_str(), "std") == 0 ||
+	     stricmp($1->c_str(), "stdev") == 0 ||
+	     stricmp($1->c_str(), "stdsamp") == 0) { // sample standard deviation
+	fun = driver.addAgregado(ibis::selectClause::STDSAMP, $3);
+    }
+    else { // standard math function
+	fun = new ibis::math::stdFunction1($1->c_str());
+	fun->setLeft($3);
+    }
     delete $1;
-    fun->setLeft($3);
     $$ = fun;
 }
 | NOUNSTR '(' mathExpr ',' mathExpr ')' {

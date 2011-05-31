@@ -1,6 +1,20 @@
+2011-05-31 John Wu <John dot Wu at ACM dot org>
+	* src/filter.cpp: replace filter::filt with new bord functions
+	* src/bundle.h, src/bundle.cpp: remove bufferList from the
+	argument list of constructors
+	* src/colValues.h, src/colValues.cpp: remove the argument of type
+	void* from the constructor of colValues
+
+2011-05-30 John Wu <John dot Wu at ACM dot org>
+	* src/mensa.cpp, src/bord.cpp, src/bord.h: refactor
+	ibis::table::select to make direct use of ibis::bord
+
 2011-05-28 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h: remove mypart (which was left over from yesterday's
 	modifications to ibis::bord)
+	* src/selectLexer.ll, src/selectParser.yy, src/selectClause.h,
+	src/selectClause.cpp: modify the grammar for the select clauses to
+	allow arithmetic expressions on top of aggregations
 
 2011-05-27 John Wu <John dot Wu at ACM dot org>
 	* src/selectParser.yy: add support for aliases without the keyword

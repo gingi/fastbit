@@ -240,18 +240,6 @@ private:
     liga& operator=(const liga&);
 }; // ibis::liga
 
-namespace ibis {
-    namespace util {
-	/// Append new data (in @c from) to a larger array (pointed to by
-	/// @c to).
-	template <typename T> void 
-	addIncoreData(void*& to, const array_t<T>& from,
-		      uint32_t nold, const T special);
-	void
-	addStrings(void*&, const std::vector<std::string>&, uint32_t);
-    }
-}
-
 inline int
 ibis::mensa::cursor::getColumnAsByte(const char* cn, char& val) const {
     if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)

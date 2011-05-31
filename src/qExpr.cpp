@@ -852,7 +852,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 // 	ibis::qContinuousRange *cr =
 // 	    reinterpret_cast<ibis::qContinuousRange*>(expr);
 // 	if (cr->empty()) {
-// 	    expr = new ibis::math::numer((double)0.0);
+// 	    expr = new ibis::math::number((double)0.0);
 // 	    delete cr;
 // 	}
 	break;}
