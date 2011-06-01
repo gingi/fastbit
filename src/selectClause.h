@@ -103,19 +103,15 @@ public:
     const char* operator*(void) const {return clause_.c_str();}
 
     bool empty() const {return atms_.empty();}
+    /// The number of arithmetic expressions inside the select clause.
     uint32_t size() const {return atms_.size();}
+    /// Fetch the ith term of inside the select clause.  No array bound checking.
+    const ibis::math::term* at(unsigned i) const {return atms_[i];}
+
     /// A vector of arithematic expressions.
     typedef std::vector<ibis::math::term*> mathTerms;
-    //const mathTerms& getTerms() const {return atms_;}
-    /// Fetch the ith term of the select clause, with array bound checking.
-    const ibis::math::term* operator[](unsigned i) const {
-	if (i < atms_.size())
-	    return atms_[i];
-	else
-	    return 0;
-    }
-    /// Fetch the ith term of the select clause, without array bound checking.
-    const ibis::math::term* at(unsigned i) const {return atms_[i];}
+    /// Retrieve all top-level arithmetic expressions.
+    const mathTerms& getTerms() const {return xtms_;}
 
     /// Print the content.
     void print(std::ostream&) const;
@@ -123,9 +119,10 @@ public:
     void clear();
 
     int find(const char*) const;
-    /// Name inside the aggregation function.
+    /// Name inside the aggregation function.  To be used together with
+    /// size() and at().
     const char* argName(unsigned i) const {return names_[i].c_str();}
-    /// Name given to the whole aggregation function.
+    /// Name given to the top-level function.  To be used with getTerms().
     const char* termName(unsigned i) const {return xnames_[i].c_str();}
     void describe(unsigned i, std::string &str) const;
     uint32_t nPlain() const;

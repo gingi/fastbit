@@ -1314,7 +1314,7 @@ int ibis::util::decode16(uint64_t &output, const char* buf) {
 	}
     }
 
-    for (++ buf; isspace(*buf); ++ buf);
+    while (isspace(*buf)) ++ buf;
     if (sz <= 16 && *buf == 0) // ok
 	return 0;
     else // string too long

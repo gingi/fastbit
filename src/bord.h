@@ -125,6 +125,7 @@ public:
 			const array_t<uint32_t>& ind) const;
 
 
+    void copyColumn(const char*, ibis::TYPE_T&, void*&) const;
     static void copyValue(ibis::TYPE_T type,
 			  void* outbuf, size_t outpos,
 			  const void* inbuf, size_t inpos);

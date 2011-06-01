@@ -363,7 +363,7 @@ ibis::table* ibis::jRange::select() const {
     // use a barrel to collect all unique names
     ibis::math::barrel brl;
     for (uint32_t j = 0; j < sel_->size(); ++ j) {
-	const ibis::math::term* t = (*sel_)[j];
+	const ibis::math::term* t = sel_->at(j);
 	brl.recordVariable(t);
 	if (t->termType() != ibis::math::VARIABLE &&
 	    t->termType() != ibis::math::NUMBER &&

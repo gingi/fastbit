@@ -4,6 +4,8 @@
 	argument list of constructors
 	* src/colValues.h, src/colValues.cpp: remove the argument of type
 	void* from the constructor of colValues
+	* src/bord.cpp: add function copyColumn, complete the second round
+	of evaluations in ibis::bord::groupby
 
 2011-05-30 John Wu <John dot Wu at ACM dot org>
 	* src/mensa.cpp, src/bord.cpp, src/bord.h: refactor

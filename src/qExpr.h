@@ -780,7 +780,7 @@ namespace ibis {
 
 	    virtual uint32_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << str;}
-	    operator char* () const {return str;}
+	    operator const char* () const {return str;}
 
 	private:
 	    char* str;

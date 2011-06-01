@@ -1447,7 +1447,7 @@ long ibis::part::addColumn(const char* aexpr, const char* cname,
 
     ibis::bitvector mask;
     xpr.getNullMask(*this, mask);
-    return addColumn(xpr[0], mask, cname, ctype);
+    return addColumn(xpr.at(0), mask, cname, ctype);
 } // ibis::part::addColumn
 
 /// Add a column computed with the given arithmetic expression.
