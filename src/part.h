@@ -74,8 +74,8 @@ public:
     std::string metaTags()	const;
     ibis::table::stringList columnNames() const;
     ibis::table::typeList   columnTypes() const;
-    inline column* getColumn(const char* name) const;
-    inline column* getColumn(uint32_t ind) const;
+    column* getColumn(const char* name) const;
+    column* getColumn(uint32_t ind) const;
 
     /// Return the name of the active data directory.
     const char* currentDataDir() const {return activeDir;}
@@ -605,6 +605,7 @@ public:
     /// Return a reference to the mask of active rows.
     const ibis::bitvector &getNullMask() const {return amask;}
 
+    static const char* skipPrefix(const char*);
     /// A class function to read the meta tags in the tdc file.
     static char* readMetaTags(const char* const dir);
     /// Generate name for a partition based on the meta tags.
@@ -1632,30 +1633,6 @@ namespace ibis {
 inline ibis::part::info* ibis::part::getInfo() const {
     return new info(*this);
 }
-
-/// Given a name, return the associated column.  Return nil pointer if
-/// the name is not found.  If the name contains a period, it skips the
-/// characters up to the first period.
-inline ibis::column* ibis::part::getColumn(const char* prop) const {
-    ibis::column *ret = 0;
-    if (prop != 0 && *prop != 0) {
-	const char *str = strchr(prop, '.');
-	columnList::const_iterator it = columns.end();
-	if (str != 0) {
-	    ++ str; // skip '.'
-	    it = columns.find(str);
-	    if (it == columns.end()) // try the whole name
-		it = columns.find(prop);
-	}
-	else {
-	    it = columns.find(prop);
-	}
-	if (it != columns.end()) {
-	    ret = (*it).second;
-	}
-    }
-    return ret;
-} // ibis::part::getColumn
 
 /// Returns the pointer to the ith column.  If an external order has been
 /// established, that order is used, otherwise, the alphabetical order is

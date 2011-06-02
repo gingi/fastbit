@@ -1298,45 +1298,59 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 	for (unsigned ic = 0; ic < comps.size(); ++ ic) {
 	    const ibis::math::term& expr = *comps.at(ic);
 	    const char* cn = comps.argName(ic);
-	    ibis::column* c = tbl.getColumn(cn);
-	    bool iscountstar = (expr.termType() == ibis::math::VARIABLE &&
-				cmps.getAggregator(ic) == ibis::selectClause::CNT);
+	    bool iscountstar =
+		(expr.termType() == ibis::math::VARIABLE &&
+		 cmps.getAggregator(ic) == ibis::selectClause::CNT);
 	    if (iscountstar)
 		iscountstar = (*(static_cast<const ibis::math::variable&>
 				 (expr).variableName()) == '*');
-	    if (c != 0) {
-		LOGGER(ibis::gVerbose > 4)
-		    << "bundles::ctor to create a colValues for "
-		    << *(comps.at(ic)) << " as cols[" << cols.size() << ']';
-		ibis::colValues* cv = 0;
-		switch (comps.getAggregator(ic)) {
-		case ibis::selectClause::AVG:
-		case ibis::selectClause::SUM:
-		case ibis::selectClause::VARPOP:
-		case ibis::selectClause::VARSAMP:
-		case ibis::selectClause::STDPOP:
-		case ibis::selectClause::STDSAMP:
-		    cv = new ibis::colDoubles(c);
-		    break;
-		default:
-		    cv = ibis::colValues::create(c);
-		    break;
-		}
-		cols.push_back(cv);
-		aggr.push_back(comps.getAggregator(ic));
+	    if (iscountstar) continue;
+
+	    ibis::column* c = tbl.getColumn(cn);
+	    if (c == 0 && expr.termType() == ibis::math::VARIABLE) {
+		c = tbl.getColumn(static_cast<const ibis::math::variable&>
+				  (expr).variableName());
 	    }
-	    else if (! iscountstar) {
+	    if (c == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- bundles(" << tbl.name() << ", "
 		    << comps << ") can not find a column named "
 		    << (cn ? cn : "");
+		continue;
+	    }
+
+	    LOGGER(ibis::gVerbose > 4)
+		<< "bundles::ctor to create a colValues for "
+		<< *(comps.at(ic)) << " as cols[" << cols.size() << ']';
+	    ibis::colValues* cv = 0;
+	    switch (comps.getAggregator(ic)) {
+	    case ibis::selectClause::AVG:
+	    case ibis::selectClause::SUM:
+	    case ibis::selectClause::VARPOP:
+	    case ibis::selectClause::VARSAMP:
+	    case ibis::selectClause::STDPOP:
+	    case ibis::selectClause::STDSAMP:
+		cv = new ibis::colDoubles(c);
+		break;
+	    default:
+		cv = ibis::colValues::create(c);
+		break;
+	    }
+	    if (cv != 0) {
+		cols.push_back(cv);
+		aggr.push_back(comps.getAggregator(ic));
 	    }
 	}
 
 	if (cols.size() > 0)
 	    sort();
 
-	if (ibis::gVerbose > 5) {
+	if (cols.size() < comps.size()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bundles::ctor expected " << comps.size()
+		<< " columns, but got only " << cols.size();
+	}
+	else if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
 	    lg() << "bundles -- generated the bundle for \"" << *comps << "\"\n";
 	    if ((1U << ibis::gVerbose) > cols.size() || ibis::gVerbose > 30)

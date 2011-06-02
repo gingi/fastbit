@@ -186,6 +186,8 @@ void ibis::fromClause::print(std::ostream& out) const {
 /// from clause.
 const char* ibis::fromClause::realName(const char* al) const {
     if (al == 0 || *al == 0) return 0;
+    if (ordered_.empty()) return al;
+
     std::map<const char*, size_t, ibis::lessi>::const_iterator it
 	= ordered_.find(al);
     if (it != ordered_.end()) {
@@ -202,9 +204,9 @@ const char* ibis::fromClause::realName(const char* al) const {
 	}
     }
     else {
-	LOGGER(ibis::gVerbose > 4)
+	LOGGER(ibis::gVerbose > 5)
 	    << "Warning -- fromClause::realName(" << al
-	    << ") failed to find a name for " << al;
+	    << ") finds no other name for " << al;
 	return al;
     }
 } // ibis::fromClause::realName
@@ -214,6 +216,8 @@ const char* ibis::fromClause::realName(const char* al) const {
 /// clause.
 const char* ibis::fromClause::alias(const char* al) const {
     if (al == 0 || *al == 0) return 0;
+    if (ordered_.empty()) return al;
+
     std::map<const char*, size_t, ibis::lessi>::const_iterator it
 	= ordered_.find(al);
     if (it != ordered_.end()) {
@@ -233,9 +237,9 @@ const char* ibis::fromClause::alias(const char* al) const {
 	}
     }
     else {
-	LOGGER(ibis::gVerbose > 4)
+	LOGGER(ibis::gVerbose > 5)
 	    << "Warning -- fromClause::alias(" << al
-	    << ") failed to find an alias for " << al;
+	    << ") finds no alias for " << al;
 	return al;
     }
 } // ibis::fromClause::alias

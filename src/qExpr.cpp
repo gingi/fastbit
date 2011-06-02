@@ -1734,9 +1734,9 @@ void ibis::math::variable::getTableNames(std::set<std::string>& plist) const {
     }
 } // ibis::math::variable::getTableNames
 
-/// Record all variables in @c term recursively.
-void
-ibis::math::barrel::recordVariable(const ibis::math::term* const t) {
+/// Record all variables in the math term recursively.
+void ibis::math::barrel::recordVariable(const ibis::math::term* const t) {
+    const size_t oldsize = namelist.size();
     if (t != 0) {
 	if (t->termType() == ibis::math::VARIABLE) {
 	    static_cast<const ibis::math::variable*>(t)
@@ -1751,7 +1751,7 @@ ibis::math::barrel::recordVariable(const ibis::math::term* const t) {
 			       (t->getRight()));
 	}
     }
-    if (ibis::gVerbose > 6 && namelist.size() > 0) {
+    if (ibis::gVerbose > 5 && namelist.size() > oldsize) {
 	ibis::util::logger lg;
 	lg() << "barrel::recordVariable -- namelist[" << namelist.size()
 	     << "] = (" << namelist[0];

@@ -30,6 +30,7 @@ ibis::bord::bord(const char *tn, const char *td,
 	const char* cname = it->first.c_str();
 	const ibis::math::term* ctrm = sc.at(it->second);
 	if (cname == 0 || *cname == 0 || ctrm == 0) continue;
+	cname = ibis::part::skipPrefix(cname);
 
 	switch (ctrm->termType()) {
 	case ibis::math::UNDEF_TERM:
@@ -44,8 +45,8 @@ ibis::bord::bord(const char *tn, const char *td,
 	    const ibis::column* refcol = ref.getColumn(var.variableName());
 	    if (refcol != 0) {
 		ibis::TYPE_T t = refcol->type();
-		ibis::bord::column *col =
-		    new ibis::bord::column(this, t, cname);
+		ibis::bord::column *col = new ibis::bord::column
+		    (this, t, cname, 0, it->first.c_str());
 		if (col != 0) {
 		    columns[col->name()] = col;
 		    colorder.push_back(col);
@@ -66,8 +67,8 @@ ibis::bord::bord(const char *tn, const char *td,
 	    }
 	    break;}
 	default: {
-	    ibis::bord::column *col =
-		new ibis::bord::column(this, ibis::DOUBLE, cname);
+	    ibis::bord::column *col = new ibis::bord::column
+		(this, ibis::DOUBLE, cname, 0, it->first.c_str());
 	    if (col != 0) {
 		columns[col->name()] = col;
 		colorder.push_back(col);
@@ -2412,6 +2413,8 @@ int ibis::bord::limit(uint32_t nr) {
     return ierr;
 } // ibis::bord::limit
 
+/// Evaluate the arithmetic expressions in the select clause to derive an
+/// in-memory data table.
 ibis::table*
 ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 			  const char* desc) const {
@@ -2430,44 +2433,46 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
     long ierr;
     ibis::bitvector msk;
     msk.set(1, nEvents);
-    ibis::table::bufferList  buf(sel.size(), 0);
-    ibis::table::typeList    ct(sel.size(), ibis::UNKNOWN_TYPE);
-    ibis::table::stringList  cn(sel.size());
-    ibis::table::stringList  cd(sel.size());
-    std::vector<std::string> cdesc(sel.size());
+    ibis::table::bufferList  buf;
+    ibis::table::typeList    ct;
+    ibis::table::stringList  cn;
+    ibis::table::stringList  cd;
+    std::vector<std::string> cdesc;
     ibis::util::guard gbuf =
 	ibis::util::makeGuard(ibis::table::freeBuffers,
 			      ibis::util::ref(buf),
 			      ibis::util::ref(ct));
     for (uint32_t j = 0; j < sel.size(); ++ j) {
 	const ibis::math::term* t = sel.at(j);
+	std::string desc;
+	sel.describe(j, desc);
 
 	switch (t->termType()) {
 	default: {
-	    sel.describe(j, cdesc[j]);
-	    cn[j] = sel.termName(j);
-	    ct[j] = ibis::DOUBLE;
-	    buf[j] = new ibis::array_t<double>(nEvents);
-	    ierr = calculate(*t, msk,
-			     *static_cast< ibis::array_t<double>* >(buf[j]));
+	    cdesc.push_back(desc);
+	    cn.push_back(sel.argName(j));
+	    ct.push_back(ibis::DOUBLE);
+	    buf.push_back(new ibis::array_t<double>(nEvents));
+	    ierr = calculate
+		(*t, msk, *static_cast< ibis::array_t<double>* >(buf.back()));
 	    if (ierr != (long)nEvents) {
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- bord::evaluateTerms(" << desc
-		    << ") failed to evaluate term " << j << " (" << cdesc[j]
-		    << "), ierr = " << ierr;
+		    << ") failed to evaluate term " << j << " ("
+		    << cdesc.back() << "), ierr = " << ierr;
 		return 0;
 	    }
 	    break;}
 	case ibis::math::NUMBER: { // a fixed number
-	    sel.describe(j, cdesc[j]);
-	    cn[j] = sel.termName(j);
-	    ct[j] = ibis::DOUBLE;
-	    buf[j] = new ibis::array_t<double>(nEvents, t->eval());
+	    cn.push_back(sel.argName(j));
+	    ct.push_back(ibis::DOUBLE);
+	    cdesc.push_back(desc);
+	    buf.push_back(new ibis::array_t<double>(nEvents, t->eval()));
 	    break;}
 	case ibis::math::STRING: { // a string literal
-	    sel.describe(j, cdesc[j]);
-	    cn[j] = sel.termName(j);
-	    ct[j] = ibis::CATEGORY;
+	    cn.push_back(sel.argName(j));
+	    ct.push_back(ibis::CATEGORY);
+	    cdesc.push_back(desc);
 	    buf[j] = new std::vector<std::string>
 		(nEvents, (const char*)*
 		 static_cast<const ibis::math::literal*>(t));
@@ -2475,177 +2480,180 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	case ibis::math::VARIABLE: {
 	    const char* cn1 = static_cast<const ibis::math::variable*>
 		(t)->variableName();
-	    cn[j] = cn1;
-	    cdesc[j] = cn1;
-	    ibis::part::columnList::const_iterator it = columns.find(cn1);
-	    if (it != columns.end()) {
-		ct[j] = it->second->type();
-		switch (ct[j]) {
-		default: {
-		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- bord::evaluateTerms(" << desc
-			<< ") can not handle column " << j << " type "
-			<< ibis::TYPESTRING[(int)ct[j]];
-		    return 0;}
-		case ibis::BYTE:
-		    buf[j] = new ibis::array_t<signed char>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values for column " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::UBYTE:
-		    buf[j] = new ibis::array_t<unsigned char>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::SHORT:
-		    buf[j] = new ibis::array_t<int16_t>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values for column " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::USHORT:
-		    buf[j] = new ibis::array_t<uint16_t>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::INT:
-		    buf[j] = new ibis::array_t<int32_t>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values for column " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::UINT:
-		    buf[j] = new ibis::array_t<uint32_t>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::LONG:
-		    buf[j] = new ibis::array_t<int64_t>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values for column " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::ULONG:
-		    buf[j] = new ibis::array_t<uint64_t>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::FLOAT:
-		    buf[j] = new ibis::array_t<float>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values for column " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::DOUBLE:
-		    buf[j] = new ibis::array_t<double>;
-		    ierr = it->second->selectValues(msk, buf[j]);
-		    if (ierr < 0) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got " << ierr;
-			return 0;
-		    }
-		    break;
-		case ibis::TEXT:
-		case ibis::CATEGORY:
-		    buf[j] = it->second->selectStrings(msk);
-		    if (buf[j] == 0 || static_cast<std::vector<std::string>*>
-			(buf[j])->size() != nEvents) {
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- bord::evaluateTerms(" << desc
-			    << ") expected to retrieve " << nEvents
-			    << " values " << j << " (" << cn1
-			    << ", " << ibis::TYPESTRING[(int)ct[j]]
-			    << "), but got "
-			    << (buf[j] != 0 ?
-				static_cast<std::vector<std::string>*>
-				(buf[j])->size() : 0U);
-			return 0;
-		    }
-		    break;
-		}
+	    if (*cn1 == '*') { // must be count(*)
+		continue;
 	    }
-	    else {
+
+	    ibis::part::columnList::const_iterator it = columns.find(cn1);
+	    if (it == columns.end()) {
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- bord::evaluateTerms(" << desc
 		    << ") failed to find a column " << j << " named " << cn1;
-		return 0;
+		continue;
+	    }
+
+	    cn.push_back(cn1);
+	    cdesc.push_back(desc);
+	    ct.push_back(it->second->type());
+	    switch (ct.back()) {
+	    default: {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- bord::evaluateTerms(" << desc
+		    << ") can not handle column " << j << " type "
+		    << ibis::TYPESTRING[(int)ct.back()];
+		return 0;}
+	    case ibis::BYTE:
+		buf.push_back(new ibis::array_t<signed char>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values for column " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::UBYTE:
+		buf.push_back(new ibis::array_t<unsigned char>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::SHORT:
+		buf.push_back(new ibis::array_t<int16_t>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values for column " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::USHORT:
+		buf.push_back(new ibis::array_t<uint16_t>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::INT:
+		buf.push_back(new ibis::array_t<int32_t>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values for column " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::UINT:
+		buf.push_back(new ibis::array_t<uint32_t>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::LONG:
+		buf.push_back(new ibis::array_t<int64_t>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values for column " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::ULONG:
+		buf.push_back(new ibis::array_t<uint64_t>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::FLOAT:
+		buf.push_back(new ibis::array_t<float>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values for column " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::DOUBLE:
+		buf.push_back(new ibis::array_t<double>);
+		ierr = it->second->selectValues(msk, buf.back());
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got " << ierr;
+		    return 0;
+		}
+		break;
+	    case ibis::TEXT:
+	    case ibis::CATEGORY:
+		buf.push_back(it->second->selectStrings(msk));
+		if (buf[j] == 0 || static_cast<std::vector<std::string>*>
+		    (buf[j])->size() != nEvents) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- bord::evaluateTerms(" << desc
+			<< ") expected to retrieve " << nEvents
+			<< " values " << j << " (" << cn1
+			<< ", " << ibis::TYPESTRING[(int)ct.back()]
+			<< "), but got "
+			<< (buf.back() != 0 ?
+			    static_cast<std::vector<std::string>*>
+			    (buf.back())->size() : 0U);
+		    return 0;
+		}
+		break;
 	    }
 	    break;}
 	} // switch (t->termType())
 
-	cd[j] = cdesc[j].c_str();
+	cd.push_back(cdesc[j].c_str());
     } // for (uint32_t j...
 
     return new
@@ -2776,20 +2784,47 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
     const ibis::selectClause::StringToInt& colmap = sc.getOrdered();
     const uint32_t nh = nEvents;
     const uint32_t nqq = mask.cnt();
-    std::string mesg = "bord::append";
-    if (ibis::gVerbose > 0) {
-	std::ostringstream oss;
-	oss << "(with " << nqq << " row" << (nqq>1?"s":"") << " from "
-	    << prt.name() << ")";
-	mesg += oss.str();
+    std::string mesg = "bord[";
+    mesg += m_name;
+    mesg += "]::append";
+    LOGGER(ibis::gVerbose > 3)
+	<< " -- to process " << nqq << " row" << (nqq>1?"s":"") << " from "
+	<< prt.name() << ", # of existing rows = " << nh;
+    if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg() << "colmap[" << colmap.size() << "]";
+	for (ibis::selectClause::StringToInt::const_iterator it
+		 = colmap.begin(); it != colmap.end(); ++ it) {
+	    lg() << "\n\t" << it->first << " --> " << it->second;
+	    if (it->second < sc.size())
+		lg() << " (" << *(sc.at(it->second)) << ")";
+	}
     }
 
-    for (columnList::iterator it = columns.begin();
-	 it != columns.end() && ierr == 0; ++ it) {
+    for (columnList::iterator cit = columns.begin();
+	 cit != columns.end() && ierr == 0; ++ cit) {
 	ibis::bord::column& col =
-	    *(static_cast<ibis::bord::column*>(it->second));
-	const uint32_t itm = colmap.find(it->first)->second;
+	    *(static_cast<ibis::bord::column*>(cit->second));
+	ibis::selectClause::StringToInt::const_iterator mit =
+	    colmap.find(cit->first);
+	if (mit == colmap.end()) {
+	    mit = colmap.find(col.description());
+	    if (mit == colmap.end()) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << mesg << " failed to locate "
+		    << cit->first << " in the list of names in " << sc;
+		return -13;
+	    }
+	}
+	const uint32_t itm = mit->second;
+	if (itm >= sc.size()) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << mesg << " mapped " << col.name()
+		<< " into term " << itm << " which is outside of " << sc;
+	    return -14;
+	}
 	const ibis::math::term *aterm = sc.at(itm);
+
 	if (aterm->termType() != ibis::math::VARIABLE) {
 	    if (aterm->termType() == ibis::math::UNDEF_TERM) {
 		LOGGER(ibis::gVerbose > 1)
@@ -2801,6 +2836,10 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		array_t<double> tmp;
 		ierr = prt.calculate(*aterm, mask, tmp);
 		if (ierr > 0) {
+		    LOGGER(ibis::gVerbose > 5)
+			<< mesg << " -- adding " << tmp.size() << " element"
+			<< (tmp.size()>1?"s":"") << " to column " << cit->first
+			<< " from " << *aterm;
 		    addIncoreData(col.getArray(), tmp, nh, FASTBIT_DOUBLE_NULL);
 		    ierr = 0;
 		}
@@ -2820,10 +2859,11 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		continue;
 	    }
 
-	    LOGGER(ibis::gVerbose > 3)
+	    LOGGER(ibis::gVerbose > 5)
 		<< mesg << " -- adding " << nqq << " element"
-		<< (nqq>1?"s":"") << " from column " << refcol->name()
-		<< " of partition " << prt.name() << ", nh = " << nh;
+		<< (nqq>1?"s":"") << " to column " << cit->first
+		<< " from column " << refcol->name()
+		<< " of partition " << prt.name();
 	    switch (refcol->type()) {
 	    case ibis::BYTE: {
 		std::auto_ptr< array_t<signed char> >

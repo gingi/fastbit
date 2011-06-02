@@ -5355,7 +5355,48 @@ ibis::part::TABLE_STATE ibis::part::getState() const {
     return state;
 } // ibis::part::getState
 
-// perform predefined set of tests and return the number of failures
+/// Given a name, return the associated column.  Return nil pointer if
+/// the name is not found.  If the name contains a period, it skips the
+/// characters up to the first period.
+ibis::column* ibis::part::getColumn(const char* prop) const {
+    ibis::column *ret = 0;
+    if (prop != 0 && *prop != 0) {
+	const char *str = strchr(prop, '.');
+	columnList::const_iterator it = columns.end();
+	if (str != 0) {
+	    ++ str; // skip '.'
+	    it = columns.find(str);
+	    if (it == columns.end()) // try the whole name
+		it = columns.find(prop);
+	}
+	else {
+	    it = columns.find(prop);
+	}
+	if (it != columns.end()) {
+	    ret = (*it).second;
+	}
+    }
+    return ret;
+} // ibis::part::getColumn
+
+/// Skip pass all the dots in the given string.  The pointer returned from
+/// this function points to the first character after the last dot (.).  If
+/// the incoming string ends with a dot, the return value would be null
+/// terminator.  If there is not dot at all, the return value is the same
+/// as the input value.
+const char* ibis::part::skipPrefix(const char* name) {
+    const char* ptr = name;
+    while (*ptr != 0) {
+	while (*ptr != 0 && *ptr != '.') ++ ptr;
+	if (*ptr == '.') {
+	    ++ ptr;
+	    name = ptr;
+	}
+    }
+    return name;
+} // ibis::part::skipPrefix
+
+/// Perform predefined set of tests and return the number of failures.
 long ibis::part::selfTest(int nth, const char* pref) const {
     long nerr = 0;
     if (activeDir == 0) return nerr;

@@ -4,6 +4,13 @@
 	* src/bord.cpp: initialize colorder in the constructors and in
 	function renameColumns
 	* tests/Makefile.am: fixed most test cases except joins
+	* src/bord.cpp: in fillNames, add code to deal with part.column
+	style of names (which is needed to deal with joins)
+	* src/selectClause.h, src/selectClause.cpp: add function to update
+	the internal references to the selectClause from
+	selectClause::variable
+	* src/bord.cpp: update evaluateTerms to compute the terms in atms_
+	instead of xtms_ of selectClause
 
 2011-06-01 John Wu <John dot Wu at ACM dot org>
 	* src/selectParser.yy: add back support for "count(*)" which was

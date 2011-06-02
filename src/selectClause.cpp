@@ -37,8 +37,15 @@ ibis::selectClause::selectClause(const ibis::selectClause& rhs)
       xnames_(rhs.xnames_), clause_(rhs.clause_), lexer(0) {
     for (uint32_t i = 0; i < rhs.atms_.size(); ++ i)
 	atms_[i] = rhs.atms_[i]->dup();
-    for (uint32_t j = 0; j < rhs.xtms_.size(); ++ j)
+
+    varMap vmap;
+    for (uint32_t j = 0; j < rhs.xtms_.size(); ++ j) {
 	xtms_[j] = rhs.xtms_[j]->dup();
+	gatherVariables(vmap, xtms_[j]);
+    }
+    for (varMap::iterator it = vmap.begin(); it != vmap.end(); ++ it)
+	it->second->updateReference(this);
+
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "selectClause copied the content of " << rhs
@@ -197,6 +204,10 @@ void ibis::selectClause::fillNames() {
 		xnames_[j] = names_[jv];
 	    else
 		xnames_[j] = vn;
+
+	    size_t pos = xnames_[j].rfind('.');
+	    if (pos < xnames_[j].size())
+		xnames_[j].erase(0, pos+1);
 	}
 
 	if (xnames_[j].empty()) {
@@ -214,8 +225,12 @@ void ibis::selectClause::fillNames() {
 	    aggr_[j] == ibis::selectClause::NIL_AGGR) {
 	    names_[j] = static_cast<const ibis::math::variable*>(atms_[j])
 		->variableName();
+
+	    size_t pos = names_[j].rfind('.');
+	    if (pos < names_[j].size())
+		names_[j].erase(0, pos+1);
 	}
-	else {
+	if (names_[j].empty()) {
 	    std::ostringstream oss;
 	    oss << "__" << std::hex << j;
 	    names_[j] = oss.str();
@@ -257,6 +272,14 @@ int ibis::selectClause::getAliases(ibis::selectClause::nameMap& nmap) const {
 ibis::math::variable*
 ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
 				ibis::math::term *expr) {
+    if (agr != ibis::selectClause::NIL_AGGR &&
+	hasAggregation(expr)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- selectClause can not have aggregations inside "
+	    "another aggregation operation (" << *expr << ')';
+	throw "nested aggregations";
+    }
+
     const unsigned pos = atms_.size();
     aggr_.push_back(agr);
     atms_.push_back(expr);
@@ -271,7 +294,7 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
 	std::ostringstream oss;
 	oss << "__" << std::hex << pos;
 	ordered_[oss.str()] = pos;
-	return new ibis::selectClause::variable(oss.str().c_str(), *this);
+	return new ibis::selectClause::variable(oss.str().c_str(), this);
     }
     else if (agr != ibis::selectClause::NIL_AGGR) {
 	ibis::math::variable *var = static_cast<ibis::math::variable*>(expr);
@@ -279,8 +302,7 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
 	    ordered_[var->variableName()] = pos;
 	std::ostringstream oss;
 	oss << "__" << std::hex << pos;
-	ordered_[oss.str()] = pos;
-	return new ibis::selectClause::variable(oss.str().c_str(), *this);
+	return new ibis::selectClause::variable(oss.str().c_str(), this);
     }
     else {
 	ibis::math::variable *var = static_cast<ibis::math::variable*>(expr);
@@ -404,7 +426,7 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 	    std::ostringstream oss;
 	    oss << "__" << pos;
 	    ordered_[oss.str()] = pos;
-	    return new ibis::selectClause::variable(oss.str().c_str(), *this);
+	    return new ibis::selectClause::variable(oss.str().c_str(), this);
 	}
 	break;}
     case ibis::math::OPERATOR:
@@ -449,7 +471,7 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 	    std::ostringstream oss;
 	    oss << "__" << pos;
 	    ordered_[oss.str()] = pos;
-	    return new ibis::selectClause::variable(oss.str().c_str(), *this);
+	    return new ibis::selectClause::variable(oss.str().c_str(), this);
 	}
 	break;}
     }
@@ -720,55 +742,82 @@ int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
     return ierr;
 } // ibis::selectClause::verifyTerm
 
+void ibis::selectClause::gatherVariables(ibis::selectClause::varMap &vmap,
+					 ibis::math::term *t) const {
+    if (t == 0) return;
+
+    switch (t->termType()) {
+    default: break; // do nothing
+    case ibis::math::VARIABLE: {
+	ibis::selectClause::variable *var =
+	    dynamic_cast<ibis::selectClause::variable*>(t);
+	if (var != 0)
+	    vmap[var->variableName()] = var;
+	break;}
+    case ibis::math::OPERATOR:
+    case ibis::math::STDFUNCTION1:
+    case ibis::math::STDFUNCTION2:
+    case ibis::math::CUSTOMFUNCTION1:
+    case ibis::math::CUSTOMFUNCTION2: {
+	if (t->getLeft() != 0)
+	    gatherVariables(vmap, static_cast<ibis::math::term*>
+			    (t->getLeft()));
+	if (t->getRight() != 0)
+	    gatherVariables(vmap, static_cast<ibis::math::term*>
+			    (t->getRight()));
+	break;}
+    }
+} // ibis::selectClause::gatherVariables
+
 void ibis::selectClause::variable::print(std::ostream& out) const {
-    const uint64_t itrm = sc_.decodeAName(name);
-    if (itrm >= sc_.atms_.size()) {
+    const uint64_t itrm = sc_->decodeAName(name);
+    if (itrm >= sc_->atms_.size()) {
 	out << name;
 	return;
     }
-    if (itrm >= sc_.aggr_.size()) {
+    if (itrm >= sc_->aggr_.size()) {
 	// assume to be a bare arithmetic expression
-	out << *(sc_.atms_[itrm]);
+	out << *(sc_->atms_[itrm]);
 	return;
     }
 
-    switch (sc_.aggr_[itrm]) {
+    switch (sc_->aggr_[itrm]) {
     default:
     case ibis::selectClause::NIL_AGGR:
-	out << *(sc_.atms_[itrm]);
+	out << *(sc_->atms_[itrm]);
 	break;
     case ibis::selectClause::AVG:
-	out << "AVG(" << *(sc_.atms_[itrm]) << ')';
+	out << "AVG(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::CNT:
-	out << "COUNT(" << *(sc_.atms_[itrm]) << ')';
+	out << "COUNT(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::MAX:
-	out << "MAX(" << *(sc_.atms_[itrm]) << ')';
+	out << "MAX(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::MIN:
-	out << "MIN(" << *(sc_.atms_[itrm]) << ')';
+	out << "MIN(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::SUM:
-	out << "SUM(" << *(sc_.atms_[itrm]) << ')';
+	out << "SUM(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::VARPOP:
-	out << "VARPOP(" << *(sc_.atms_[itrm]) << ')';
+	out << "VARPOP(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::VARSAMP:
-	out << "VAR(" << *(sc_.atms_[itrm]) << ')';
+	out << "VAR(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::STDPOP:
-	out << "STDPOP(" << *(sc_.atms_[itrm]) << ')';
+	out << "STDPOP(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::STDSAMP:
-	out << "STD(" << *(sc_.atms_[itrm]) << ')';
+	out << "STD(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::DISTINCT:
-	out << "COUNTDISTINCT(" << *(sc_.atms_[itrm]) << ')';
+	out << "COUNTDISTINCT(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::MEDIAN:
-	out << "MEDIAN(" << *(sc_.atms_[itrm]) << ')';
+	out << "MEDIAN(" << *(sc_->atms_[itrm]) << ')';
 	break;
     }
 } // ibis::selectClause::variable::print

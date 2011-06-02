@@ -195,20 +195,25 @@ protected:
     void addTerm(ibis::math::term*, const std::string*);
     ibis::math::term* addRecursive(ibis::math::term*&);
     bool hasAggregation(const ibis::math::term *tm) const;
+
+    typedef std::map<const char*, ibis::selectClause::variable*,
+		     ibis::lessi> varMap;
+    void gatherVariables(varMap &vmap, ibis::math::term* t) const;
 }; // class ibis::selectClause
 
 /// A specialization of ibis::math::variable.  It represents a name that
 /// refers to an aggregation function inside a select clause.
 class ibis::selectClause::variable : public ibis::math::variable {
 public:
-    variable(const char* s, const ibis::selectClause &c)
+    variable(const char* s, const ibis::selectClause *c)
 	: ibis::math::variable(s), sc_(c) {};
     variable(const variable &v) : ibis::math::variable(v), sc_(v.sc_) {};
     virtual variable* dup() const {return new variable(*this);}
     virtual void print(std::ostream&) const;
+    void updateReference(const ibis::selectClause *c) {sc_=c;}
 
 private:
-    const ibis::selectClause &sc_;
+    const ibis::selectClause *sc_;
 
     variable();
 }; // class ibis::selectClause::variable
