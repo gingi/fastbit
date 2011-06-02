@@ -1751,6 +1751,14 @@ ibis::math::barrel::recordVariable(const ibis::math::term* const t) {
 			       (t->getRight()));
 	}
     }
+    if (ibis::gVerbose > 6 && namelist.size() > 0) {
+	ibis::util::logger lg;
+	lg() << "barrel::recordVariable -- namelist[" << namelist.size()
+	     << "] = (" << namelist[0];
+	for (unsigned j = 1; j < namelist.size(); ++ j)
+	    lg() << ", " << namelist[j];
+	lg() << ")";
+    }
 } // ibis::math::barrel::recordVariable
 
 /// Return true if the two @c barrels contain the same set of variables,

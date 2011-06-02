@@ -107,6 +107,7 @@ public:
 
     int append(const ibis::selectClause&, const ibis::part&,
 	       const ibis::bitvector&);
+    int renameColumns(const ibis::selectClause&);
     int limit(uint32_t);
 
     template <typename T>

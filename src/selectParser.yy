@@ -73,26 +73,26 @@
 %% /* Grammar rules */
 slist: sterm | sterm slist;
 sterm: mathExpr ',' {
-    driver.addTerm($1);
+    driver.addTerm($1, 0);
 }
 | mathExpr END {
-    driver.addTerm($1);
+    driver.addTerm($1, 0);
 }
 | mathExpr NOUNSTR ',' {
-    driver.xalias_[*$2] = driver.xtms_.size();
-    driver.addTerm($1);
+    driver.addTerm($1, $2);
+    delete $2;
 }
 | mathExpr NOUNSTR END {
-    driver.xalias_[*$2] = driver.xtms_.size();
-    driver.addTerm($1);
+    driver.addTerm($1, $2);
+    delete $2;
 }
 | mathExpr ASOP NOUNSTR ',' {
-    driver.xalias_[*$3] = driver.xtms_.size();
-    driver.addTerm($1);
+    driver.addTerm($1, $3);
+    delete $3;
 }
 | mathExpr ASOP NOUNSTR END {
-    driver.xalias_[*$3] = driver.xtms_.size();
-    driver.addTerm($1);
+    driver.addTerm($1, $3);
+    delete $3;
 }
 ;
 
@@ -192,6 +192,25 @@ mathExpr ADDOP mathExpr {
     opr->setRight($3);
     opr->setLeft($1);
     $$ = opr;
+}
+| NOUNSTR '(' MULTOP ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "(*)";
+#endif
+    ibis::math::term *fun = 0;
+    if (stricmp($1->c_str(), "count") == 0) { // aggregation count
+	ibis::math::variable *var = new ibis::math::variable("*");
+	fun = driver.addAgregado(ibis::selectClause::CNT, var);
+    }
+    else {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- only operator COUNT supports * as the argument, "
+	    "but received " << *$1;
+	throw "invalid use of (*) as an argument";
+    }
+    delete $1;
+    $$ = fun;
 }
 | NOUNSTR '(' mathExpr ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1

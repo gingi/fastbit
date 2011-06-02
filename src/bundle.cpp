@@ -400,14 +400,16 @@ ibis::bundle1::bundle1(const ibis::query& q)
 			    << "bundle1::ctor reconstructing a colDoubles for "
 			    << *(comps.at(0));
 			col = new ibis::colDoubles
-			    (c, bdlstore, 3*sizeof(uint32_t), sizes[0]);
+			    (c, bdlstore, 3*sizeof(uint32_t),
+			     3*sizeof(uint32_t)+8*sizes[0]);
 			break;
 		    default:
 			LOGGER(ibis::gVerbose > 4)
 			    << "bundle1::ctor reconstructing a colValues for "
 			    << *(comps.at(0));
 			col = ibis::colValues::create
-			    (c, bdlstore, 3*sizeof(uint32_t), sizes[0]);
+			    (c, bdlstore, 3*sizeof(uint32_t),
+			     3*sizeof(uint32_t)+sizes[0]*c->elementSize());
 			break;
 		    }
 		}
@@ -1092,11 +1094,13 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 			case ibis::selectClause::STDPOP:
 			case ibis::selectClause::STDSAMP:
 			    tmp = new ibis::colDoubles
-				(cptr, bdlstore, start, sizes[0]);
+				(cptr, bdlstore, start,
+				 start+8*sizes[0]);
 			    break;
 			default:
 			    tmp = ibis::colValues::create
-				(cptr, bdlstore, start, sizes[0]);
+				(cptr, bdlstore, start,
+				 start+sizes[0]*cptr->elementSize());
 			    break;
 			}
 			cols.push_back(tmp);
@@ -1289,9 +1293,17 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
     : bundle(cmps) {
     id = tbl.name();
     try {
+	ibis::bitvector msk;
+	msk.set(1, tbl.nRows());
 	for (unsigned ic = 0; ic < comps.size(); ++ ic) {
+	    const ibis::math::term& expr = *comps.at(ic);
 	    const char* cn = comps.argName(ic);
 	    ibis::column* c = tbl.getColumn(cn);
+	    bool iscountstar = (expr.termType() == ibis::math::VARIABLE &&
+				cmps.getAggregator(ic) == ibis::selectClause::CNT);
+	    if (iscountstar)
+		iscountstar = (*(static_cast<const ibis::math::variable&>
+				 (expr).variableName()) == '*');
 	    if (c != 0) {
 		LOGGER(ibis::gVerbose > 4)
 		    << "bundles::ctor to create a colValues for "
@@ -1310,21 +1322,17 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 		    cv = ibis::colValues::create(c);
 		    break;
 		}
-		if (cv != 0) {
-		    cols.push_back(cv);
-		    aggr.push_back(comps.getAggregator(ic));
-		}
-		LOGGER(cv == 0 && ibis::gVerbose > 1)
-		    << "Warning -- bundles(" << tbl.name() << ", " << comps
-		    << ") failed to create colValues object from column "
-		    << c->name();
+		cols.push_back(cv);
+		aggr.push_back(comps.getAggregator(ic));
 	    }
-	    else if (*cn != '*') {
+	    else if (! iscountstar) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- bundles(" << tbl.name() << ", " << comps
-		    << ") can not find a column named " << (cn ? cn : "");
+		    << "Warning -- bundles(" << tbl.name() << ", "
+		    << comps << ") can not find a column named "
+		    << (cn ? cn : "");
 	    }
 	}
+
 	if (cols.size() > 0)
 	    sort();
 

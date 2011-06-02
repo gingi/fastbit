@@ -3729,16 +3729,16 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 /// It expects the arguments sel and cond to be valid and non-trivial.  It
 /// will return a nil pointer if those arguments are nil pointers or empty
 /// strings or blank spaces.
-ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
+ibis::table* ibis::table::select(const std::vector<const ibis::part*>& plist,
 				 const char *sel, const ibis::qExpr *cond) {
-    if (sel == 0 || cond == 0 || *sel == 0 || mylist.empty())
+    if (sel == 0 || cond == 0 || *sel == 0 || plist.empty())
 	return 0;
 
     std::string mesg = "table::select";
-    if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose > 1) {
 	std::ostringstream oss;
-	oss << "(" << mylist.size() << " data partition"
-	    << (mylist.size() > 1 ? "s" : "") << ", " << sel
+	oss << "(" << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "") << ", " << sel
 	    << ", qExpr @" << static_cast<const void*>(cond) << ')';
 	mesg += oss.str();
     }
@@ -3768,7 +3768,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    << "Warning -- " << mesg << " translated select clause \"" << sel
 	    << "\" into an empty internal expression list";
 
-	int64_t nhits = ibis::table::computeHits(mylist, cond);
+	int64_t nhits = ibis::table::computeHits(plist, cond);
 	if (nhits < 0) {
 	    return 0;
 	}
@@ -3776,9 +3776,9 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    std::ostringstream oss;
 	    oss << "select count(*) from ";
 	    for (std::vector<const ibis::part*>::const_iterator it =
-		     mylist.begin();
-		 it != mylist.end(); ++ it) {
-		if (it != mylist.begin())
+		     plist.begin();
+		 it != plist.end(); ++ it) {
+		if (it != plist.begin())
 		    oss << ", ";
 		oss << (*it)->name();
 	    }
@@ -3796,13 +3796,13 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to assign externally "
 	    "provided query expression \"" << *cond
-	    << "\" to a ibis::countQuery object, ierr=" << ierr;
+	    << "\" to a countQuery object, ierr=" << ierr;
 	return 0;
     }
 
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(mylist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.nPlain();
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
@@ -3816,8 +3816,8 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
     }
 
     // main loop through each data partition, fill the initial selection
-    for (std::vector<const ibis::part*>::const_iterator it = mylist.begin();
-	 it != mylist.end(); ++ it) {
+    for (std::vector<const ibis::part*>::const_iterator it = plist.begin();
+	 it != plist.end(); ++ it) {
 	LOGGER(ibis::gVerbose > 2)
 	    << mesg << " -- processing query conditions \"" << *cond
 	    << "\" on data partition " << (*it)->name();
@@ -3841,7 +3841,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	}
 
 	ierr = qq.setPartition(*it);
-	if (ierr != 0) {
+	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- query.setPartition(" << (*it)->name()
 		<< ") failed with error code " << ierr;
@@ -3850,7 +3850,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	}
 
 	ierr = qq.evaluate();
-	if (ierr != 0) {
+	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< mesg << " -- failed to process query on data partition "
 		<< (*it)->name();
@@ -3868,14 +3868,26 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 	    << (*it)->name();
     }
 
+    if (brd1.get() == 0) return 0;
+    if (ibis::gVerbose > 2 && brd1.get() != 0) {
+	ibis::util::logger lg;
+	lg() << mesg << " -- creates an in-memory data partition with "
+	     << brd1->nRows() << " row" << (brd1->nRows()>1?"s":"")
+	     << " and " << brd1->nColumns() << " column"
+	     << (brd1->nColumns()>1?"s":"");
+	if (ibis::gVerbose > 4) {
+	    lg() << "\n";
+	    brd1->describe(lg());
+	}
+    }
     if (brd1->nRows() == 0) { // return an empty table of type tabula
 	if (ierr >= 0) { // at least succeeded on the last data partition
-	    return new ibis::tabula(tn.c_str(), mesg.c_str(), brd1->nRows());
+	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << mesg << " failed to produce any result "
-		"due to error, last error code was " << ierr;
+		<< "Warning -- " << mesg << " failed to produce any result, "
+		"the last error code was " << ierr;
 	    return 0;
 	}
     }
@@ -3884,10 +3896,23 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 				tms.termName(0));
     }
 
-    if (nplain >= tms.size() || brd1.get() == 0)
+    if (nplain >= tms.size()) {
+	brd1->renameColumns(tms);
 	return brd1.release();
+    }
 
     std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
+    if (ibis::gVerbose > 2 && brd2.get() != 0) {
+	ibis::util::logger lg;
+	lg() << mesg << " -- produces an in-memory data partition with "
+	     << brd2->nRows() << " row" << (brd2->nRows()>1?"s":"")
+	     << " and " << brd1->nColumns() << " column"
+	     << (brd1->nColumns()>1?"s":"");
+	if (ibis::gVerbose > 4) {
+	    lg() << "\n";
+	    brd2->describe(lg());
+	}
+    }
     return brd2.release();
 } // ibis::table::select
 

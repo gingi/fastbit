@@ -56,30 +56,30 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 ibis::colValues* ibis::colValues::create(const ibis::column* c,
 					 ibis::fileManager::storage* store,
 					 const uint32_t start,
-					 const uint32_t nelm) {
+					 const uint32_t end) {
     if (c == 0) return 0;
     switch (c->type()) {
     case ibis::UBYTE:
-	return new colUBytes(c, store, start, nelm);
+	return new colUBytes(c, store, start, end);
     case ibis::BYTE:
-	return new colBytes(c, store, start, nelm);
+	return new colBytes(c, store, start, end);
     case ibis::USHORT:
-	return new colUShorts(c, store, start, nelm);
+	return new colUShorts(c, store, start, end);
     case ibis::SHORT:
-	return new colShorts(c, store, start, nelm);
+	return new colShorts(c, store, start, end);
     case ibis::UINT:
     case ibis::CATEGORY:
-	return new colUInts(c, store, start, nelm);
+	return new colUInts(c, store, start, end);
     case ibis::INT:
-	return new colInts(c, store, start, nelm);
+	return new colInts(c, store, start, end);
     case ibis::ULONG:
-	return new colULongs(c, store, start, nelm);
+	return new colULongs(c, store, start, end);
     case ibis::LONG:
-	return new colLongs(c, store, start, nelm);
+	return new colLongs(c, store, start, end);
     case ibis::FLOAT:
-	return new colFloats(c, store, start, nelm);
+	return new colFloats(c, store, start, end);
     case ibis::DOUBLE:
-	return new colDoubles(c, store, start, nelm);
+	return new colDoubles(c, store, start, end);
     default:
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- colValues does not yet support type "

@@ -457,7 +457,7 @@ namespace ibis {
 /* Line 678 of lalr1.cc  */
 #line 75 "selectParser.yy"
     {
-    driver.addTerm((yysemantic_stack_[(2) - (1)].selectNode));
+    driver.addTerm((yysemantic_stack_[(2) - (1)].selectNode), 0);
 }
     break;
 
@@ -466,7 +466,7 @@ namespace ibis {
 /* Line 678 of lalr1.cc  */
 #line 78 "selectParser.yy"
     {
-    driver.addTerm((yysemantic_stack_[(2) - (1)].selectNode));
+    driver.addTerm((yysemantic_stack_[(2) - (1)].selectNode), 0);
 }
     break;
 
@@ -475,8 +475,8 @@ namespace ibis {
 /* Line 678 of lalr1.cc  */
 #line 81 "selectParser.yy"
     {
-    driver.xalias_[*(yysemantic_stack_[(3) - (2)].stringVal)] = driver.xtms_.size();
-    driver.addTerm((yysemantic_stack_[(3) - (1)].selectNode));
+    driver.addTerm((yysemantic_stack_[(3) - (1)].selectNode), (yysemantic_stack_[(3) - (2)].stringVal));
+    delete (yysemantic_stack_[(3) - (2)].stringVal);
 }
     break;
 
@@ -485,8 +485,8 @@ namespace ibis {
 /* Line 678 of lalr1.cc  */
 #line 85 "selectParser.yy"
     {
-    driver.xalias_[*(yysemantic_stack_[(3) - (2)].stringVal)] = driver.xtms_.size();
-    driver.addTerm((yysemantic_stack_[(3) - (1)].selectNode));
+    driver.addTerm((yysemantic_stack_[(3) - (1)].selectNode), (yysemantic_stack_[(3) - (2)].stringVal));
+    delete (yysemantic_stack_[(3) - (2)].stringVal);
 }
     break;
 
@@ -495,8 +495,8 @@ namespace ibis {
 /* Line 678 of lalr1.cc  */
 #line 89 "selectParser.yy"
     {
-    driver.xalias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.xtms_.size();
-    driver.addTerm((yysemantic_stack_[(4) - (1)].selectNode));
+    driver.addTerm((yysemantic_stack_[(4) - (1)].selectNode), (yysemantic_stack_[(4) - (3)].stringVal));
+    delete (yysemantic_stack_[(4) - (3)].stringVal);
 }
     break;
 
@@ -505,8 +505,8 @@ namespace ibis {
 /* Line 678 of lalr1.cc  */
 #line 93 "selectParser.yy"
     {
-    driver.xalias_[*(yysemantic_stack_[(4) - (3)].stringVal)] = driver.xtms_.size();
-    driver.addTerm((yysemantic_stack_[(4) - (1)].selectNode));
+    driver.addTerm((yysemantic_stack_[(4) - (1)].selectNode), (yysemantic_stack_[(4) - (3)].stringVal));
+    delete (yysemantic_stack_[(4) - (3)].stringVal);
 }
     break;
 
@@ -661,6 +661,31 @@ namespace ibis {
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *(yysemantic_stack_[(4) - (1)].stringVal) << "(*)";
+#endif
+    ibis::math::term *fun = 0;
+    if (stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "count") == 0) { // aggregation count
+	ibis::math::variable *var = new ibis::math::variable("*");
+	fun = driver.addAgregado(ibis::selectClause::CNT, var);
+    }
+    else {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- only operator COUNT supports * as the argument, "
+	    "but received " << *(yysemantic_stack_[(4) - (1)].stringVal);
+	throw "invalid use of (*) as an argument";
+    }
+    delete (yysemantic_stack_[(4) - (1)].stringVal);
+    (yyval.selectNode) = fun;
+}
+    break;
+
+  case 19:
+
+/* Line 678 of lalr1.cc  */
+#line 215 "selectParser.yy"
+    {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *(yysemantic_stack_[(4) - (1)].stringVal) << "("
 	<< *(yysemantic_stack_[(4) - (3)].selectNode) << ")";
 #endif
@@ -714,10 +739,10 @@ namespace ibis {
 }
     break;
 
-  case 19:
+  case 20:
 
 /* Line 678 of lalr1.cc  */
-#line 250 "selectParser.yy"
+#line 269 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -733,10 +758,10 @@ namespace ibis {
 }
     break;
 
-  case 20:
+  case 21:
 
 /* Line 678 of lalr1.cc  */
-#line 263 "selectParser.yy"
+#line 282 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -749,28 +774,28 @@ namespace ibis {
 }
     break;
 
-  case 21:
-
-/* Line 678 of lalr1.cc  */
-#line 273 "selectParser.yy"
-    {
-    (yyval.selectNode) = (yysemantic_stack_[(2) - (2)].selectNode);
-}
-    break;
-
   case 22:
 
 /* Line 678 of lalr1.cc  */
-#line 276 "selectParser.yy"
+#line 292 "selectParser.yy"
     {
-    (yyval.selectNode) = (yysemantic_stack_[(3) - (2)].selectNode);
+    (yyval.selectNode) = (yysemantic_stack_[(2) - (2)].selectNode);
 }
     break;
 
   case 23:
 
 /* Line 678 of lalr1.cc  */
-#line 279 "selectParser.yy"
+#line 295 "selectParser.yy"
+    {
+    (yyval.selectNode) = (yysemantic_stack_[(3) - (2)].selectNode);
+}
+    break;
+
+  case 24:
+
+/* Line 678 of lalr1.cc  */
+#line 298 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -781,10 +806,10 @@ namespace ibis {
 }
     break;
 
-  case 24:
+  case 25:
 
 /* Line 678 of lalr1.cc  */
-#line 287 "selectParser.yy"
+#line 306 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -797,7 +822,7 @@ namespace ibis {
 
 
 /* Line 678 of lalr1.cc  */
-#line 801 "selectParser.cc"
+#line 826 "selectParser.cc"
 	default:
           break;
       }
@@ -1006,11 +1031,11 @@ namespace ibis {
   const signed char
   selectParser::yypact_[] =
   {
-        68,    68,    68,   -14,   -13,    68,     3,    68,    24,    -2,
-      -2,    68,    49,   -14,   -14,   -14,     0,    68,    68,    68,
-      68,    68,    68,    68,    68,    11,   -14,    36,   -14,    12,
-      79,    85,    -3,    -3,    -2,    -2,    -2,    -2,   -14,   -14,
-      68,   -14,   -14,   -14,    62,   -14
+        80,    80,    80,   -14,   -13,    80,     3,    80,    24,    -2,
+      -2,    70,    51,   -14,   -14,   -14,     0,    80,    80,    80,
+      80,    80,    80,    80,    80,    11,   -14,    20,    38,   -14,
+      12,    91,    97,    -3,    -3,    -2,    -2,    -2,    -2,   -14,
+     -14,   -14,    80,   -14,   -14,   -14,    64,   -14
   };
 
   /* YYDEFACT[S] -- default rule to reduce with in state S when YYTABLE
@@ -1019,11 +1044,11 @@ namespace ibis {
   const unsigned char
   selectParser::yydefact_[] =
   {
-         0,     0,     0,    24,    23,     0,     0,     2,     0,    21,
-      20,     0,     0,     1,     3,     5,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     4,     0,    22,     0,
-      17,    16,    10,    11,    12,    13,    14,    15,     7,     6,
-       0,    18,     9,     8,     0,    19
+         0,     0,     0,    25,    24,     0,     0,     2,     0,    22,
+      21,     0,     0,     1,     3,     5,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     4,     0,     0,    23,
+       0,    17,    16,    10,    11,    12,    13,    14,    15,     7,
+       6,    18,     0,    19,     9,     8,     0,    20
   };
 
   /* YYPGOTO[NTERM-NUM].  */
@@ -1048,15 +1073,16 @@ namespace ibis {
   selectParser::yytable_[] =
   {
          9,    10,    11,    13,    12,    21,    22,    23,    24,    24,
-      27,    38,    42,    29,    14,     0,    30,    31,    32,    33,
-      34,    35,    36,    37,    15,    39,    43,    16,    17,    18,
-      19,    20,    21,    22,    23,    24,     0,    25,    26,    44,
-      17,    18,    19,    20,    21,    22,    23,    24,     0,     0,
-      40,     0,    41,    17,    18,    19,    20,    21,    22,    23,
-      24,     0,     0,     0,     0,    28,    17,    18,    19,    20,
-      21,    22,    23,    24,     1,     2,     0,     0,    45,     0,
-       3,     4,     0,     5,    18,    19,    20,    21,    22,    23,
-      24,    19,    20,    21,    22,    23,    24
+      28,    39,    44,    30,    14,     0,    31,    32,    33,    34,
+      35,    36,    37,    38,    15,    40,    45,    16,    17,    18,
+      19,    20,    21,    22,    23,    24,    41,    25,    26,     0,
+       0,    46,    17,    18,    19,    20,    21,    22,    23,    24,
+       0,     0,    42,     0,    43,    17,    18,    19,    20,    21,
+      22,    23,    24,     0,     0,     0,     0,    29,    17,    18,
+      19,    20,    21,    22,    23,    24,     1,     2,    27,     0,
+      47,     0,     3,     4,     0,     5,     1,     2,     0,     0,
+       0,     0,     3,     4,     0,     5,    18,    19,    20,    21,
+      22,    23,    24,    19,    20,    21,    22,    23,    24
   };
 
   /* YYCHECK.  */
@@ -1066,13 +1092,14 @@ namespace ibis {
          1,     2,    15,     0,     5,     8,     9,    10,    11,    11,
       11,     0,     0,    13,     7,    -1,    17,    18,    19,    20,
       21,    22,    23,    24,     0,    14,    14,     3,     4,     5,
-       6,     7,     8,     9,    10,    11,    -1,    13,    14,    40,
-       4,     5,     6,     7,     8,     9,    10,    11,    -1,    -1,
-      14,    -1,    16,     4,     5,     6,     7,     8,     9,    10,
-      11,    -1,    -1,    -1,    -1,    16,     4,     5,     6,     7,
-       8,     9,    10,    11,     6,     7,    -1,    -1,    16,    -1,
-      12,    13,    -1,    15,     5,     6,     7,     8,     9,    10,
-      11,     6,     7,     8,     9,    10,    11
+       6,     7,     8,     9,    10,    11,    16,    13,    14,    -1,
+      -1,    42,     4,     5,     6,     7,     8,     9,    10,    11,
+      -1,    -1,    14,    -1,    16,     4,     5,     6,     7,     8,
+       9,    10,    11,    -1,    -1,    -1,    -1,    16,     4,     5,
+       6,     7,     8,     9,    10,    11,     6,     7,     8,    -1,
+      16,    -1,    12,    13,    -1,    15,     6,     7,    -1,    -1,
+      -1,    -1,    12,    13,    -1,    15,     5,     6,     7,     8,
+       9,    10,    11,     6,     7,     8,     9,    10,    11
   };
 
   /* STOS_[STATE-NUM] -- The (internal number of the) accessing
@@ -1082,9 +1109,9 @@ namespace ibis {
   {
          0,     6,     7,    12,    13,    15,    18,    19,    20,    20,
       20,    15,    20,     0,    18,     0,     3,     4,     5,     6,
-       7,     8,     9,    10,    11,    13,    14,    20,    16,    13,
-      20,    20,    20,    20,    20,    20,    20,    20,     0,    14,
-      14,    16,     0,    14,    20,    16
+       7,     8,     9,    10,    11,    13,    14,     8,    20,    16,
+      13,    20,    20,    20,    20,    20,    20,    20,    20,     0,
+      14,    16,    14,    16,     0,    14,    20,    16
   };
 
 #if YYDEBUG
@@ -1104,7 +1131,7 @@ namespace ibis {
   {
          0,    17,    18,    18,    19,    19,    19,    19,    19,    19,
       20,    20,    20,    20,    20,    20,    20,    20,    20,    20,
-      20,    20,    20,    20,    20
+      20,    20,    20,    20,    20,    20
   };
 
   /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -1112,8 +1139,8 @@ namespace ibis {
   selectParser::yyr2_[] =
   {
          0,     2,     1,     2,     2,     2,     3,     3,     4,     4,
-       3,     3,     3,     3,     3,     3,     3,     3,     4,     6,
-       2,     2,     3,     1,     1
+       3,     3,     3,     3,     3,     3,     3,     3,     4,     4,
+       6,     2,     2,     3,     1,     1
   };
 
 #if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
@@ -1140,9 +1167,10 @@ namespace ibis {
        0,    -1,    20,     6,    20,    -1,    20,     7,    20,    -1,
       20,     8,    20,    -1,    20,     9,    20,    -1,    20,    10,
       20,    -1,    20,    11,    20,    -1,    20,     5,    20,    -1,
-      20,     4,    20,    -1,    13,    15,    20,    16,    -1,    13,
-      15,    20,    14,    20,    16,    -1,     7,    20,    -1,     6,
-      20,    -1,    15,    20,    16,    -1,    13,    -1,    12,    -1
+      20,     4,    20,    -1,    13,    15,     8,    16,    -1,    13,
+      15,    20,    16,    -1,    13,    15,    20,    14,    20,    16,
+      -1,     7,    20,    -1,     6,    20,    -1,    15,    20,    16,
+      -1,    13,    -1,    12,    -1
   };
 
   /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
@@ -1152,7 +1180,7 @@ namespace ibis {
   {
          0,     0,     3,     5,     8,    11,    14,    18,    22,    27,
       32,    36,    40,    44,    48,    52,    56,    60,    64,    69,
-      76,    79,    82,    86,    88
+      74,    81,    84,    87,    91,    93
   };
 
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
@@ -1160,8 +1188,8 @@ namespace ibis {
   selectParser::yyrline_[] =
   {
          0,    74,    74,    74,    75,    78,    81,    85,    89,    93,
-     100,   112,   124,   136,   148,   160,   172,   184,   196,   250,
-     263,   273,   276,   279,   287
+     100,   112,   124,   136,   148,   160,   172,   184,   196,   215,
+     269,   282,   292,   295,   298,   306
   };
 
   // Print the state stack on the debug stream.
@@ -1236,7 +1264,7 @@ namespace ibis {
   }
 
   const int selectParser::yyeof_ = 0;
-  const int selectParser::yylast_ = 96;
+  const int selectParser::yylast_ = 108;
   const int selectParser::yynnts_ = 4;
   const int selectParser::yyempty_ = -2;
   const int selectParser::yyfinal_ = 13;
@@ -1251,11 +1279,11 @@ namespace ibis {
 } // ibis
 
 /* Line 1054 of lalr1.cc  */
-#line 1255 "selectParser.cc"
+#line 1283 "selectParser.cc"
 
 
 /* Line 1056 of lalr1.cc  */
-#line 296 "selectParser.yy"
+#line 315 "selectParser.yy"
 
 void ibis::selectParser::error(const ibis::selectParser::location_type& l,
 			       const std::string& m) {

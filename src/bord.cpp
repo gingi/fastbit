@@ -39,6 +39,8 @@ ibis::bord::bord(const char *tn, const char *td,
 	case ibis::math::VARIABLE: {
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(ctrm);
+	    if (*(var.variableName()) == '*') continue; // special name
+
 	    const ibis::column* refcol = ref.getColumn(var.variableName());
 	    if (refcol != 0) {
 		ibis::TYPE_T t = refcol->type();
@@ -46,6 +48,7 @@ ibis::bord::bord(const char *tn, const char *td,
 		    new ibis::bord::column(this, t, cname);
 		if (col != 0) {
 		    columns[col->name()] = col;
+		    colorder.push_back(col);
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 1)
@@ -54,7 +57,7 @@ ibis::bord::bord(const char *tn, const char *td,
 		    throw "bord::ctor failed to allocate a column";
 		}
 	    }
-	    else {
+	    else if (*(var.variableName()) != '*') {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- bord::ctor failed to locate column "
 		    << var.variableName() << " in data partition "
@@ -67,6 +70,7 @@ ibis::bord::bord(const char *tn, const char *td,
 		new ibis::bord::column(this, ibis::DOUBLE, cname);
 	    if (col != 0) {
 		columns[col->name()] = col;
+		colorder.push_back(col);
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 1)
@@ -1573,7 +1577,7 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	return 0;
     }
 
-    const uint32_t nc1 = bdl->width();
+    const uint32_t nc1 = sel.size();
     // convert bundle back into a partition, first generate the name and
     // description for the new table
     if (nc1 == 0)
@@ -1602,19 +1606,35 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	nmc[i] = nms[i].c_str();
 	sel.describe(i, des[i]);
 	dec[i] = des[i].c_str();
-	if (*(sel.argName(i)) == '*' &&
-	    sel.getAggregator(i) == ibis::selectClause::CNT) {
+	bool iscstar = (sel.at(i)->termType() == ibis::math::VARIABLE &&
+			sel.getAggregator(i) == ibis::selectClause::CNT);
+	if (iscstar)
+	    iscstar = (*(static_cast<const ibis::math::variable*>
+			 (sel.at(i))->variableName()));
+	if (iscstar) {
 	    countstar = true;
 	    array_t<uint32_t>* cnts = new array_t<uint32_t>;
 	    bdl->rowCounts(*cnts);
 	    tps[i] = ibis::UINT;
 	    buf[i] = cnts;
+	    if (! onerun) {
+		std::ostringstream oss;
+		oss << "__" << std::hex << i;
+		nms[i] = oss.str();
+		nmc[i] = nms[i].c_str();
+	    }
 	    continue;
 	}
-	else {
+	else if (jbdl < bdl->width()) {
 	    tps[i] = bdl->columnType(jbdl);
 	    bptr = bdl->columnArray(jbdl);
 	    ++ jbdl;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- bord::groupby exhausted all columns in bundle, "
+		"not enough information to construct the result table";
+	    return 0;
 	}
 
 	if (bptr == 0) {
@@ -1696,13 +1716,24 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	brd1(new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec));
     if (brd1.get() == 0)
 	return 0;
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg() << "bord::groupby -- creates an in-memory data partition with "
+	     << brd1->nRows() << " row" << (brd1->nRows()>1?"s":"")
+	     << " and " << brd1->nColumns() << " column"
+	     << (brd1->nColumns()>1?"s":"");
+	if (ibis::gVerbose > 4) {
+	    lg() << "\n";
+	    brd1->describe(lg());
+	}
+    }
 
     if (onerun) {
 	gbuf.dismiss();
 	return brd1.release();
     }
 
-    // no quite done yet, evaluate 
+    // not quite done yet, evaluate the top-level arithmetic expressions
     delete bdl.release(); // free the bundle
     ibis::bitvector msk;
     const unsigned nc2 = xtms.size();
@@ -1714,6 +1745,11 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
     buf.resize(nc2);
     tps.resize(nc2);
     for (unsigned j = 0; j < nc2; ++ j) {
+	tps[j] = ibis::UNKNOWN_TYPE;
+	buf[j] = 0;
+    }
+
+    for (unsigned j = 0; j < nc2; ++ j) {
 	const ibis::math::term* tm = xtms[j];
 	nms[j] = sel.termName(j);
 	nmc[j] = nms[j].c_str();
@@ -1722,17 +1758,18 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	des[j] = oss.str();
 	dec[j] = des[j].c_str();
 	if (tm == 0 || tm->termType() == ibis::math::UNDEF_TERM) {
-	    tps[j] = ibis::UNKNOWN_TYPE;
-	    buf[j] = 0;
-	    continue;
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord[" << m_name << "]::groupby(" << sel
+		<< ") failed to process term " << j << " named \"" << nms[j]
+		<< '"';
+	    return 0;
 	}
 
 	switch (tm->termType()) {
 	default: {
 	    tps[j] = ibis::DOUBLE;
 	    buf[j] = new ibis::array_t<double>;
-	    brd1->calculate
-		(*tm, msk, *static_cast<array_t<double>*>(buf[j]));
+	    brd1->calculate(*tm, msk, *static_cast<array_t<double>*>(buf[j]));
 	    break;}
 	case ibis::math::NUMBER: {
 	    tps[j] = ibis::DOUBLE;
@@ -1805,6 +1842,11 @@ long ibis::bord::reorder(const ibis::table::stringList& cols) {
 		else
 		    load.push_back((*it).second);
 	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " can not find a column named "
+		<< *nit;
 	}
     }
 
@@ -2686,6 +2728,48 @@ void ibis::bord::copyColumn(const char* nm, ibis::TYPE_T& t, void*& buf) const {
     }
 } // ibis::bord::copyColumn
 
+int ibis::bord::renameColumns(const ibis::selectClause& sel) {
+    ibis::selectClause::nameMap nmap;
+    int ierr = sel.getAliases(nmap);
+    if (ierr <= 0) return ierr;
+
+    for (ibis::selectClause::nameMap::const_iterator it = nmap.begin();
+	 it != nmap.end(); ++ it) {
+	ibis::part::columnList::iterator cit = columns.find(it->first);
+	if (cit != columns.end()) {
+	    ibis::column *col = cit->second;
+	    columns.erase(cit);
+	    col->name(it->second);
+	    columns[col->name()] = col;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- bord::renameColumns can not find a column named "
+		<< it->first << " to change it to " << it->second;
+	}
+    }
+
+    ierr = 0;
+    // re-establish the order of columns according to xtrms_
+    colorder.clear();
+    const unsigned ntrms = sel.getTerms().size();
+    for (unsigned j = 0; j < ntrms; ++ j) {
+	const char *tn = sel.termName(j);
+	const ibis::column *col = getColumn(tn);
+	if (col != 0) {
+	    colorder.push_back(col);
+	}
+	else {
+	    -- ierr;
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- bord::renameColumns can not find a column named "
+		<< tn << ", but the select clause contains the name at term "
+		<< j;
+	}
+    }
+    return ierr;
+} // ibis::bord::renameColumns
+
 int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		       const ibis::bitvector &mask) {
     int ierr = 0;
@@ -2717,8 +2801,7 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		array_t<double> tmp;
 		ierr = prt.calculate(*aterm, mask, tmp);
 		if (ierr > 0) {
-		    addIncoreData
-			(col.getArray(), tmp, nh, FASTBIT_DOUBLE_NULL);
+		    addIncoreData(col.getArray(), tmp, nh, FASTBIT_DOUBLE_NULL);
 		    ierr = 0;
 		}
 	    }
@@ -2726,6 +2809,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	else {
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(aterm);
+	    if (*(var.variableName()) == '*') continue; // special variable name
+
 	    const ibis::column* refcol = prt.getColumn(var.variableName());
 	    if (refcol == 0) {
 		LOGGER(ibis::gVerbose > 1)
@@ -2745,9 +2830,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    tmp(refcol->selectBytes(mask));
 		if (tmp.get() != 0) {
 		    if (col.getArray() != 0) {
-			addIncoreData
-			    (col.getArray(), *tmp, nh,
-			     static_cast<signed char>(0x7F));
+			addIncoreData(col.getArray(), *tmp, nh,
+				      static_cast<signed char>(0x7F));
 		    }
 		    else {
 			col.getArray() = tmp.release();
@@ -2759,9 +2843,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    tmp(refcol->selectUBytes(mask));
 		if (tmp.get() != 0) {
 		    if (col.getArray() != 0) {
-			addIncoreData
-			    (col.getArray(), *tmp, nh,
-			     static_cast<unsigned char>(0xFF));
+			addIncoreData(col.getArray(), *tmp, nh,
+				      static_cast<unsigned char>(0xFF));
 		    }
 		    else {
 			col.getArray() = tmp.release();
@@ -2773,9 +2856,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    tmp(refcol->selectShorts(mask));
 		if (tmp.get() != 0) {
 		    if (col.getArray() != 0) {
-			addIncoreData
-			    (col.getArray(), *tmp, nh,
-			     static_cast<int16_t>(0x7FFF));
+			addIncoreData(col.getArray(), *tmp, nh,
+				      static_cast<int16_t>(0x7FFF));
 		    }
 		    else {
 			col.getArray() = tmp.release();
@@ -2787,8 +2869,7 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    tmp(refcol->selectUShorts(mask));
 		if (tmp.get() != 0) {
 		    if (col.getArray() != 0) {
-			addIncoreData
-			    (col.getArray(), *tmp, nh,
+			addIncoreData(col.getArray(), *tmp, nh,
 			     static_cast<uint16_t>(0xFFFF));
 		    }
 		    else {
@@ -2801,9 +2882,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    tmp(refcol->selectInts(mask));
 		if (tmp.get() != 0) {
 		    if (col.getArray() != 0) {
-			addIncoreData
-			    (col.getArray(), *tmp, nh,
-			     static_cast<int32_t>(0x7FFFFFFF));
+			addIncoreData(col.getArray(), *tmp, nh,
+				      static_cast<int32_t>(0x7FFFFFFF));
 		    }
 		    else {
 			col.getArray() = tmp.release();
@@ -2815,9 +2895,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    tmp(refcol->selectUInts(mask));
 		if (tmp.get() != 0) {
 		    if (col.getArray() != 0) {
-			addIncoreData
-			    (col.getArray(), *tmp, nh,
-			     static_cast<uint32_t>(0xFFFFFFFF));
+			addIncoreData(col.getArray(), *tmp, nh,
+				      static_cast<uint32_t>(0xFFFFFFFF));
 		    }
 		    else {
 			col.getArray() = tmp.release();
@@ -2857,8 +2936,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    tmp(refcol->selectFloats(mask));
 		if (tmp.get() != 0) {
 		    if (col.getArray() != 0) {
-			addIncoreData
-			    (col.getArray(), *tmp, nh, FASTBIT_FLOAT_NULL);
+			addIncoreData(col.getArray(), *tmp, nh,
+				      FASTBIT_FLOAT_NULL);
 		    }
 		    else {
 			col.getArray() = tmp.release();
@@ -2870,8 +2949,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    tmp(refcol->selectDoubles(mask));
 		if (tmp.get() != 0) {
 		    if (col.getArray() != 0) {
-			addIncoreData
-			    (col.getArray(), *tmp, nh, FASTBIT_DOUBLE_NULL);
+			addIncoreData(col.getArray(), *tmp, nh,
+				      FASTBIT_DOUBLE_NULL);
 		    }
 		    else {
 			col.getArray() = tmp.release();

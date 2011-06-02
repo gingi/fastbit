@@ -634,6 +634,8 @@ namespace ibis {
 	    virtual term* dup() const = 0;
 	    /// Print a human readable version of the expression.
 	    virtual void print(std::ostream& out) const = 0;
+	    /// Same as print.
+	    virtual void printFull(std::ostream& out) const {print(out);}
 	    /// Shorten the expression by evaluating the constants.  Return
 	    /// a new pointer if the expression is changed, otherwise
 	    /// return the pointer this.
@@ -716,6 +718,7 @@ namespace ibis {
 
 	    virtual uint32_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << name;}
+	    virtual void printFull(std::ostream& out) const {out << name;}
 	    const char* variableName() const {return name;}
 
 	    void recordVariable(barrel& bar) const {
@@ -747,6 +750,7 @@ namespace ibis {
 
 	    virtual uint32_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << val;}
+	    virtual void printFull(std::ostream& out) const {out << val;}
 	    virtual bool isConstant() const {return true;}
 	    virtual bool isTrue() const {return(val != 0);}
 
@@ -780,6 +784,7 @@ namespace ibis {
 
 	    virtual uint32_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << str;}
+	    virtual void printFull(std::ostream& out) const {out << str;}
 	    operator const char* () const {return str;}
 
 	private:
@@ -806,6 +811,7 @@ namespace ibis {
 	    }
 	    virtual double eval() const;
 	    virtual void print(std::ostream& out) const;
+	    virtual void printFull(std::ostream& out) const {print(out);}
 	    virtual term* reduce();
 	    OPERADOR getOperator() const {return operador;}
 
@@ -838,6 +844,7 @@ namespace ibis {
 	    virtual TERM_TYPE termType() const {return STDFUNCTION1;}
 	    virtual double eval() const;
 	    virtual void print(std::ostream& out) const;
+	    virtual void printFull(std::ostream& out) const {print(out);}
 	    virtual term* reduce();
 
 	private:
@@ -860,6 +867,7 @@ namespace ibis {
 	    virtual TERM_TYPE termType() const {return STDFUNCTION2;}
 	    virtual double eval() const;
 	    virtual void print(std::ostream& out) const;
+	    virtual void printFull(std::ostream& out) const {print(out);}
 	    virtual term* reduce();
 
 	private:

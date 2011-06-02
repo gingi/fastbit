@@ -437,6 +437,7 @@ void ibis::array_t<T>::nosharing() {
 template<class T>
 void ibis::array_t<T>::freeMemory() {
     if (actual) {
+	actual->endUse();//timer.CPUTime()
 	LOGGER(ibis::gVerbose > 9)
 	    << "array_t<" << typeid(T).name()
 	    << ">::freeMemory this=" << static_cast<void*>(this)
@@ -445,9 +446,7 @@ void ibis::array_t<T>::freeMemory() {
 	    << " (active references: " << actual->inUse()
 	    << ", past references: " << actual->pastUse() << ')';
 
-	const bool doDelete = (actual->filename() == 0 && 1 >= actual->inUse());
-	actual->endUse();//timer.CPUTime()
-	if (doDelete) {
+	if (0 == actual->filename() && 0 == actual->inUse()) {
 	    delete actual;
 	}
 	actual = 0;

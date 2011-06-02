@@ -1,3 +1,22 @@
+2011-06-02 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.cpp: comment out the use of ordered_ in
+	selectClause::fillNames
+	* src/bord.cpp: initialize colorder in the constructors and in
+	function renameColumns
+	* tests/Makefile.am: fixed most test cases except joins
+
+2011-06-01 John Wu <John dot Wu at ACM dot org>
+	* src/selectParser.yy: add back support for "count(*)" which was
+	deleted by error
+	* src/bord.cpp: need to deal with special column name "*"
+	* src/colValues.h, src/colValues.cpp: add constructors that takes
+	a constant value
+	* src/selectClause.h, src/selectClause.cpp: constructors and swap
+	function neglected to handle some of the recently added member
+	variables, add function getAliases
+	* src/bord.h, src/bord.cpp, src/column.h, src/column.cpp: add
+	functions to rename columns
+
 2011-05-31 John Wu <John dot Wu at ACM dot org>
 	* src/filter.cpp: replace filter::filt with new bord functions
 	* src/bundle.h, src/bundle.cpp: remove bufferList from the

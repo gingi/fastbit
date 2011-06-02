@@ -102,6 +102,8 @@ public:
     /// Dereferences to the string form of the select clause.
     const char* operator*(void) const {return clause_.c_str();}
 
+    void describe(unsigned i, std::string &str) const;
+    uint32_t nPlain() const;
     bool empty() const {return atms_.empty();}
     /// The number of arithmetic expressions inside the select clause.
     uint32_t size() const {return atms_.size();}
@@ -113,10 +115,8 @@ public:
     /// Retrieve all top-level arithmetic expressions.
     const mathTerms& getTerms() const {return xtms_;}
 
-    /// Print the content.
     void print(std::ostream&) const;
-    /// Remove the current content.
-    void clear();
+    void printDetails(std::ostream&) const;
 
     int find(const char*) const;
     /// Name inside the aggregation function.  To be used together with
@@ -124,8 +124,6 @@ public:
     const char* argName(unsigned i) const {return names_[i].c_str();}
     /// Name given to the top-level function.  To be used with getTerms().
     const char* termName(unsigned i) const {return xnames_[i].c_str();}
-    void describe(unsigned i, std::string &str) const;
-    uint32_t nPlain() const;
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
     enum AGREGADO {NIL_AGGR, AVG, CNT, MAX, MIN, SUM, DISTINCT,
@@ -135,6 +133,8 @@ public:
 
     typedef std::map<std::string, unsigned> StringToInt;
     const StringToInt& getOrdered() const {return ordered_;}
+    typedef std::map<const char*, const char*, ibis::lessi> nameMap;
+    int getAliases(nameMap&) const;
 
     int verify(const ibis::part&) const;
     int verifySome(const std::vector<uint32_t>&, const ibis::part&) const;
@@ -142,6 +142,7 @@ public:
 			  const ibis::selectClause* =0);
 
     void getNullMask(const ibis::part&, ibis::bitvector&) const;
+    void clear();
 
     /// Assignment operator.
     selectClause& operator=(const selectClause& rhs) {
@@ -154,6 +155,7 @@ public:
 	atms_.swap(rhs.atms_);
 	aggr_.swap(rhs.aggr_);
 	names_.swap(rhs.names_);
+	ordered_.swap(rhs.ordered_);
 	xtms_.swap(rhs.xtms_);
 	xalias_.swap(rhs.xalias_);
 	xnames_.swap(rhs.xnames_);
@@ -190,7 +192,7 @@ protected:
     ibis::math::variable*
 	addAgregado(ibis::selectClause::AGREGADO, ibis::math::term*);
     uint64_t decodeAName(const char*) const;
-    void addTerm(ibis::math::term*);
+    void addTerm(ibis::math::term*, const std::string*);
     ibis::math::term* addRecursive(ibis::math::term*&);
     bool hasAggregation(const ibis::math::term *tm) const;
 }; // class ibis::selectClause

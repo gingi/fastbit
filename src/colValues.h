@@ -21,7 +21,7 @@ public:
     /// Construct from content of the file (pointed by @c store).
     static colValues* create(const ibis::column* c,
 			     ibis::fileManager::storage* store,
-			     const uint32_t start, const uint32_t nelm);
+			     const uint32_t start, const uint32_t end);
     /// Construct from content of an array_t.
     static colValues* create(const ibis::column* c);
 
@@ -848,9 +848,10 @@ public:
     colDoubles(const ibis::column* c, const ibis::bitvector& hits)
 	: colValues(c), array(c->selectDoubles(hits)) {}
     colDoubles(const ibis::column* c, ibis::fileManager::storage* store,
-	       const uint32_t start, const uint32_t nelm)
-	: colValues(c), array(new array_t<double>(store, start, nelm)) {}
+	       const uint32_t start, const uint32_t end)
+	: colValues(c), array(new array_t<double>(store, start, end)) {}
     colDoubles(const ibis::column* c);
+    colDoubles(size_t n, double v) : array(new array_t<double>(n, v)) {}
     virtual ~colDoubles() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
@@ -927,6 +928,8 @@ public:
     colStrings(const ibis::column* c, const ibis::bitvector& hits)
 	: colValues(c), array(c->selectStrings(hits)) {}
     colStrings(const ibis::column* c);
+    colStrings(size_t n, const std::string& v)
+	: array(new std::vector<std::string>(n, v)) {}
     virtual ~colStrings() {delete array;}
 
     virtual bool         empty() const {return (col==0 || array==0);}

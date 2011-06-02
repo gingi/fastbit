@@ -57,13 +57,20 @@ public:
 	   const char* desc="", double low=DBL_MAX, double high=-DBL_MAX);
     column(const column& rhs); ///< copy constructor
 
-    // simple access functions
-    ///@note Name and type can not be changed.
+    /// Type of the data.
+    ///@note The type shall not be changed.
     ibis::TYPE_T type() const {return m_type;}
+    /// Name of the column.
     const char* name() const {return m_name.c_str();}
+    /// Rename the column.
+    void name(const char* nm) {m_name = nm;}
+    /// Description of the column.  Can be an arbitrary string.
     const char* description() const {return m_desc.c_str();}
+    /// The lower bound of the values.
     const double& lowerBound() const {return lower;}
+    /// The upper bound of the values.
     const double& upperBound() const {return upper;}
+
     int elementSize() const;
     bool isFloat() const;
     bool isInteger() const;
