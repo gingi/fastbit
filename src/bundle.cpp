@@ -594,25 +594,39 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 
 /// Constructor.  It creates the bundle using all rows of tbl.
 ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
-    : bundle(cmps), aggr(comps.getAggregator(0)) {
+    : bundle(cmps), col(0), aggr(comps.getAggregator(0)) {
     if (comps.size() == 0)
 	return;
 
     id = tbl.name();
     uint32_t icol = 0;
-    while (icol < comps.size() && *(comps.argName(icol)) == '*') ++ icol;
-    if (icol >= comps.size()) {
+    const ibis::math::term* tm = 0;
+    while (tm == 0 && icol < comps.size()) {
+	tm = comps.at(icol);
+	if (tm->termType() == ibis::math::VARIABLE) {
+	    if (*(static_cast<const ibis::math::variable*>(tm)->variableName()) == '*') {
+		tm = 0;
+		++ icol;
+	    }
+	}
+    }
+    if (tm == 0 || icol >= comps.size()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- bundle1::ctor failed to locate a valid column "
 	    "name in " << comps;
 	throw "bundle1::ctor can not find a column name";
     }
-    ibis::column* c = tbl.getColumn(comps.argName(icol));
+
+    ibis::column* c = 0;
+    if (tm->termType() == ibis::math::VARIABLE)
+	c = tbl.getColumn(static_cast<const ibis::math::variable*>(tm)->variableName());
+    if (c == 0)
+	c = tbl.getColumn(comps.argName(icol));
     if (c == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- bundle1 constructor skipping a unknown column "
-	    << comps.argName(0);
-	return;
+	    << "Warning -- bundle1 constructor failed to find column "
+	    << comps.argName(icol) << " in " << tbl.name();
+	throw "bundle1::ctor can find the named column";
     }
 
     try {
@@ -621,7 +635,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
 	    // use column type
 	    LOGGER(ibis::gVerbose > 4)
 		<< "bundle1::ctor initializing a colValues for "
-		<< *(comps.at(0));
+		<< *(comps.at(icol));
 	    col = ibis::colValues::create(c);
 	}
 	else { // a function, treat AVG and SUM as double
@@ -647,7 +661,13 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
 	}
 	sort();
 
-	if (ibis::gVerbose > 5) {
+	if (col == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bundle1::ctor failed to create an in-memory "
+		"representation for " << *comps;
+	    throw "bundle1::ctor failed to create a bundle";
+	}
+	else if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
 	    lg() << "bundle1 -- generated the bundle for \"" << *comps << "\"\n";
 	    if ((1U << ibis::gVerbose) > col->size() || ibis::gVerbose > 30)

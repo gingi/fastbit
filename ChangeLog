@@ -11,6 +11,7 @@
 	selectClause::variable
 	* src/bord.cpp: update evaluateTerms to compute the terms in atms_
 	instead of xtms_ of selectClause
+	* src/bundle.cpp: use atms_ and aggr_ consistently in bundle1::bundle1
 
 2011-06-01 John Wu <John dot Wu at ACM dot org>
 	* src/selectParser.yy: add back support for "count(*)" which was
