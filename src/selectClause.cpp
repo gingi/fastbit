@@ -178,17 +178,12 @@ void ibis::selectClause::fillNames() {
     if (atms_.empty()) return;
 
     names_.resize(atms_.size());
-    xnames_.resize(atms_.size());
+    xnames_.resize(xtms_.size());
 
     // go through the aliases first before making up names
     for (StringToInt::const_iterator it = xalias_.begin();
 	 it != xalias_.end(); ++ it)
 	xnames_[it->second] = it->first;
-    // for (StringToInt::const_iterator it = ordered_.begin();
-    // 	 it != ordered_.end(); ++ it) {
-    // 	if (it->first[0] != '_' && it->first[1] != '_')
-    // 	    names_[it->second] = it->first;
-    // }
 
     // fill the external names
     for (uint32_t j = 0; j < xtms_.size(); ++ j) {

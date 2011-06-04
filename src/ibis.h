@@ -319,11 +319,11 @@ namespace ibis {
 		std::cerr << "ibis::init failed to register the function "
 		    "ibis::util::closeLogFile with atexit" << std::endl;
 	}
-	if (0 != atexit(ibis::util::clearDatasets)) {
-	    if (ibis::gVerbose >= 0)
-		std::cerr << "ibis::init failed to register the function "
-		    "ibis::util::clearDatasets with atexit" << std::endl;
-	}
+	// if (0 != atexit(ibis::util::clearDatasets)) {
+	//     if (ibis::gVerbose >= 0)
+	// 	std::cerr << "ibis::init failed to register the function "
+	// 	    "ibis::util::clearDatasets with atexit" << std::endl;
+	// }
 
 	if (rcfile != 0 && *rcfile != 0)
 	    ibis::gParameters().read(rcfile);

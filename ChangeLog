@@ -1,3 +1,19 @@
+2011-06-04 John Wu <John dot Wu at ACM dot org>
+	* src/jnatural.cpp: use auto_ptr to make sure the memory is freed
+	in fillResults
+	* src/bord.cpp: add code block to try the column name without any
+	prefixes
+
+2011-06-03 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/util.h: comment out ibis::util::clearDatasets
+	* src/ibis.h: remove ibis::util::clearDatasets from atexit
+	registration, invoke the equivalent function in the destructor of
+	ibis::fileManager instead.  The avoids the problem of attempting
+	to free data partitions after the file manager has been freed
+	* src/category.cpp: print out dic.size() as the upper bound
+	instead of the content of upper which can become stale (a problem
+	spotted in a -part.txt file sent out by Anderson Carniel)
+
 2011-06-02 John Wu <John dot Wu at ACM dot org>
 	* src/selectClause.cpp: comment out the use of ordered_ in
 	selectClause::fillNames

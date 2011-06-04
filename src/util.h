@@ -555,8 +555,9 @@ namespace ibis {
 		       std::vector<ibis::bitvector> &res);
 	/// Deallocate the bit vectors.
 	void clean(std::vector<ibis::bitvector*> &bv) throw();
-	/// Deallocate the list of data partitions.
 	void clean(ibis::partList &pl) throw();
+	// void clearDatasets(void);
+	void updateDatasets(void);
 
 	/// Return a pointer to the string designating the version of this
 	/// software.

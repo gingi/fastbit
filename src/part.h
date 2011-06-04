@@ -1364,10 +1364,6 @@ namespace ibis {
 	unsigned int FASTBIT_CXX_DLLSPEC
 	gatherParts(ibis::partList &parts, const ibis::resource &res,
 		    bool ro=false);
-	/// Cleanup the data partitions.
-	void clearDatasets(void);
-	/// Update the metadata about the data partitions.
-	void updateDatasets(void);
     } // namespace util
 } // namespace ibis
 

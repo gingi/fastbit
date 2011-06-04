@@ -604,7 +604,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
     while (tm == 0 && icol < comps.size()) {
 	tm = comps.at(icol);
 	if (tm->termType() == ibis::math::VARIABLE) {
-	    if (*(static_cast<const ibis::math::variable*>(tm)->variableName()) == '*') {
+	    if (*(static_cast<const ibis::math::variable*>(tm)->variableName())
+		== '*') {
 		tm = 0;
 		++ icol;
 	    }
@@ -1320,7 +1321,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 	    const char* cn = comps.argName(ic);
 	    bool iscountstar =
 		(expr.termType() == ibis::math::VARIABLE &&
-		 cmps.getAggregator(ic) == ibis::selectClause::CNT);
+		 comps.getAggregator(ic) == ibis::selectClause::CNT);
 	    if (iscountstar)
 		iscountstar = (*(static_cast<const ibis::math::variable&>
 				 (expr).variableName()) == '*');
@@ -1360,17 +1361,18 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 		cols.push_back(cv);
 		aggr.push_back(comps.getAggregator(ic));
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- bundles(" << tbl.name() << ", " << comps
+		    << ") failed to create an in-memory column for "
+		    << *(comps.at(ic));
+	    }
 	}
 
 	if (cols.size() > 0)
 	    sort();
 
-	if (cols.size() < comps.size()) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- bundles::ctor expected " << comps.size()
-		<< " columns, but got only " << cols.size();
-	}
-	else if (ibis::gVerbose > 5) {
+	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
 	    lg() << "bundles -- generated the bundle for \"" << *comps << "\"\n";
 	    if ((1U << ibis::gVerbose) > cols.size() || ibis::gVerbose > 30)

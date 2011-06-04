@@ -24,6 +24,22 @@
 ibis::bord::bord(const char *tn, const char *td,
 		 const ibis::selectClause &sc, const ibis::part &ref)
     : ibis::part("in-core") {
+    if (td != 0 && *td != 0) {
+	m_desc = td;
+    }
+    else {
+	std::ostringstream oss;
+	oss << "in-memory data partition for select clause " << sc;
+	m_desc = oss.str();
+    }
+    if (tn != 0 && *tn != 0) {
+	m_name = ibis::util::strnewdup(tn);
+    }
+    else {
+	m_name = ibis::util::strnewdup(ibis::util::shortName(m_desc).c_str());
+    }
+    desc_ = m_desc;
+    name_ = m_name;
     const ibis::selectClause::StringToInt& colnames = sc.getOrdered();
     for (ibis::selectClause::StringToInt::const_iterator it = colnames.begin();
 	 it != colnames.end(); ++ it) {
@@ -83,22 +99,6 @@ ibis::bord::bord(const char *tn, const char *td,
 	}
     }
 
-    if (td != 0 && *td != 0) {
-	m_desc = td;
-    }
-    else {
-	std::ostringstream oss;
-	oss << "in-memory data partition for select clause " << sc;
-	m_desc = oss.str();
-    }
-    if (tn != 0 && *tn != 0) {
-	m_name = ibis::util::strnewdup(tn);
-    }
-    else {
-	m_name = ibis::util::strnewdup(ibis::util::shortName(m_desc).c_str());
-    }
-    desc_ = m_desc;
-    name_ = m_name;
     state = ibis::part::STABLE_STATE;
     LOGGER(ibis::gVerbose > 0)
 	<< "bord::ctor constructed in-memory data partition "
@@ -122,6 +122,9 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 	    << " rows in an in-memory table";
 	throw "Too many rows for an in-memory table";
     }
+    m_name = ibis::util::strnewdup(tn?tn:ibis::util::shortName(m_desc).c_str());
+    name_ = m_name; // make sure the name of part and table are the same
+    desc_ = m_desc;
 
     const uint32_t nc = (cn.size()<=ct.size() ? cn.size() : ct.size());
     for (uint32_t i = 0; i < nc; ++ i) {
@@ -160,9 +163,6 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 	m_desc = "unnamed in-memory data partition constructed at ";
 	m_desc += buf;
     }
-    m_name = ibis::util::strnewdup(tn?tn:ibis::util::shortName(m_desc).c_str());
-    name_ = m_name; // make sure the name of part and table are the same
-    desc_ = m_desc;
     LOGGER(ibis::gVerbose > 0)
 	<< "bord::ctor constructed in-memory data partition "
 	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
@@ -1691,7 +1691,7 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	    std::vector<std::string> *tmp =
 		new std::vector<std::string>(bstr.size());
 	    for (uint32_t j = 0; j < bstr.size(); ++ j)
-		bstr[j].swap((*tmp)[j]);
+		(*tmp)[j] = bstr[j];
 	    buf[i] = tmp;
 	    break;}
 	default:
@@ -1729,13 +1729,13 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	}
     }
 
+    delete bdl.release(); // free the bundle
     if (onerun) {
 	gbuf.dismiss();
 	return brd1.release();
     }
 
     // not quite done yet, evaluate the top-level arithmetic expressions
-    delete bdl.release(); // free the bundle
     ibis::bitvector msk;
     const unsigned nc2 = xtms.size();
     msk.set(1, brd1->nRows());
@@ -1751,13 +1751,9 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
     }
 
     for (unsigned j = 0; j < nc2; ++ j) {
-	const ibis::math::term* tm = xtms[j];
 	nms[j] = sel.termName(j);
 	nmc[j] = nms[j].c_str();
-	std::ostringstream oss;
-	oss << *tm;
-	des[j] = oss.str();
-	dec[j] = des[j].c_str();
+	const ibis::math::term* tm = xtms[j];
 	if (tm == 0 || tm->termType() == ibis::math::UNDEF_TERM) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- bord[" << m_name << "]::groupby(" << sel
@@ -1765,6 +1761,11 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 		<< '"';
 	    return 0;
 	}
+
+	std::ostringstream oss;
+	oss << *tm;
+	des[j] = oss.str();
+	dec[j] = des[j].c_str();
 
 	switch (tm->termType()) {
 	default: {
@@ -2653,6 +2654,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	    break;}
 	} // switch (t->termType())
 
+	cn.back() = skipPrefix(cn.back());
 	cd.push_back(cdesc[j].c_str());
     } // for (uint32_t j...
 
@@ -2676,6 +2678,13 @@ int ibis::bord::restoreCategoriesAsStrings(const char* nm) {
 void ibis::bord::copyColumn(const char* nm, ibis::TYPE_T& t, void*& buf) const {
     columnList::const_iterator it = columns.find(nm);
     if (it == columns.end()) {
+	nm = skipPrefix(nm);
+	it = columns.find(nm);
+    }
+    if (it == columns.end()) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- bord[" << m_name << "]::copyColumn failed to find "
+	    "a column named " << nm;
 	t = ibis::UNKNOWN_TYPE;
 	buf = 0;
 	return;
@@ -3267,8 +3276,8 @@ void ibis::table::freeBuffers(ibis::table::bufferList& buf,
 } // ibis::table::freeBuffers
 
 ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
-			   const char *cn, void *st,
-			   const char *de, double lo, double hi)
+			   const char *cn, void *st, const char *de,
+			   double lo, double hi)
     : ibis::column(tbl, t, cn, de, lo, hi), buffer(st) {
     if (buffer == 0) { // allocate buffer
 	switch (m_type) {

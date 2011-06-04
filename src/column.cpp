@@ -308,7 +308,8 @@ ibis::column::~column() {
 	writeLock wk(this, "~column");
 	delete idx;
 	LOGGER(ibis::gVerbose > 5 && !m_name.empty() && thePart != 0)
-	    << "clearing column " << thePart->name() << '.' << m_name;
+	    << "clearing column " << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name;
     }
 
     pthread_mutex_destroy(&mutex);
@@ -660,7 +661,8 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 		ibis::fileManager::instance().flushFile(fnm);
 		mask.write(fnm);
 		LOGGER(ibis::gVerbose > 1)
-		    << "column[" << thePart->name() << '.' << m_name
+		    << "column[" << (thePart->name()?thePart->name():"?")
+		    << '.' << m_name
 		    << "]::getNullMask constructed a new mask with "
 		    << mask.cnt() << " out of " << mask.size()
 		    << " set bits, wrote to " << fnm;
@@ -4268,14 +4270,15 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	(void)_setmode(fdes, _O_BINARY);
 #endif
 	LOGGER(ibis::gVerbose > 5)
-	    << "column[" << thePart->name() << '.' << m_name
-	    << "]::selectValuesT opened file " << dfn
+	    << "column[" << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name << "]::selectValuesT opened file " << dfn
 	    << " with file descriptor " << fdes << " for reading "
 	    << typeid(T).name();
 	int32_t pos = UnixSeek(fdes, 0L, SEEK_END) / sizeof(T);
 	if (pos < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "column[" << thePart->name() << '.' << m_name
+		<< "column[" << (thePart->name()?thePart->name():"?")
+		<< '.' << m_name
 		<< "]::selectValuesT failed to seek to the end of file "
 		<< dfn;
 	    UnixClose(fdes);
@@ -4451,14 +4454,15 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	(void)_setmode(fdes, _O_BINARY);
 #endif
 	LOGGER(ibis::gVerbose > 5)
-	    << "column[" << thePart->name() << '.' << m_name
-	    << "]::selectValuesT opened file " << dfn
+	    << "column[" << (thePart->name()?thePart->name():"")
+	    << '.' << m_name << "]::selectValuesT opened file " << dfn
 	    << " with file descriptor " << fdes << " for reading "
 	    << typeid(T).name();
 	int32_t pos = UnixSeek(fdes, 0L, SEEK_END) / sizeof(T);
 	if (pos < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "column[" << thePart->name() << '.' << m_name
+		<< "column[" << (thePart->name()?thePart->name():"?")
+		<< '.' << m_name
 		<< "]::selectValuesT failed to seek to the end of file "
 		<< dfn;
 	    UnixClose(fdes);
@@ -4649,10 +4653,10 @@ long ibis::column::selectToStrings(const bitvector& mask,
 	return ierr;
     }
     LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
-	<< "Warning -- column[" << thePart->name() << '.' << m_name
-	<< "]::selectToStrings<" << typeid(T).name() << "> retrieved "
-	<< tmp.size() << " value" << (tmp.size()>1?"s":"") << ", but expected "
-	<< mask.cnt();
+	<< "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	<< '.' << m_name << "]::selectToStrings<" << typeid(T).name()
+	<< "> retrieved " << tmp.size() << " value" << (tmp.size()>1?"s":"")
+	<< ", but expected " << mask.cnt();
 
     try {
 	str.resize(tmp.size());
@@ -4665,8 +4669,8 @@ long ibis::column::selectToStrings(const bitvector& mask,
     catch (...) {
 	ierr = -5;
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << thePart->name() << '.' << m_name
-	    << "]::selectToStrings<" << typeid(T).name()
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name << "]::selectToStrings<" << typeid(T).name()
 	    << "> failed to convert " << tmp.size() << " value"
 	    << (tmp.size()>1?"s":"") << " into string" << (tmp.size()>1?"s":"");
     }
@@ -4682,8 +4686,8 @@ template <> long ibis::column::selectToStrings<signed char>
 	return ierr;
     }
     LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
-	<< "Warning -- column[" << thePart->name() << '.' << m_name
-	<< "]::selectToStrings<char> retrieved "
+	<< "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	<< '.' << m_name << "]::selectToStrings<char> retrieved "
 	<< tmp.size() << " value" << (tmp.size()>1?"s":"") << ", but expected "
 	<< mask.cnt();
 
@@ -4698,8 +4702,8 @@ template <> long ibis::column::selectToStrings<signed char>
     catch (...) {
 	ierr = -5;
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << thePart->name() << '.' << m_name
-	    << "]::selectToStrings<char> failed to convert "
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name << "]::selectToStrings<char> failed to convert "
 	    << tmp.size() << " value" << (tmp.size()>1?"s":"")
 	    << " into string" << (tmp.size()>1?"s":"");
     }
@@ -4715,8 +4719,8 @@ template <> long ibis::column::selectToStrings<unsigned char>
 	return ierr;
     }
     LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
-	<< "Warning -- column[" << thePart->name() << '.' << m_name
-	<< "]::selectToStrings<unsigned char> retrieved "
+	<< "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	<< '.' << m_name << "]::selectToStrings<unsigned char> retrieved "
 	<< tmp.size() << " value" << (tmp.size()>1?"s":"") << ", but expected "
 	<< mask.cnt();
 
@@ -4731,7 +4735,8 @@ template <> long ibis::column::selectToStrings<unsigned char>
     catch (...) {
 	ierr = -5;
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << thePart->name() << '.' << m_name
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name
 	    << "]::selectToStrings<unsigned char> failed to convert "
 	    << tmp.size() << " value" << (tmp.size()>1?"s":"")
 	    << " into string" << (tmp.size()>1?"s":"");
@@ -5291,8 +5296,8 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     }
 
     LOGGER(ibis::gVerbose > 3)
-	<< "column[" << thePart->name() << "." << name()
-	<< "]::evaluateRange(" << cmp
+	<< "column[" << (thePart->name()?thePart->name():"?") << "."
+	<< name() << "]::evaluateRange(" << cmp
 	<< ") completed the fallback option with low.size() = "
 	<< low.size() << ", low.cnt() = " << low.cnt()
 	<< ", and ierr = " << ierr;
@@ -5309,9 +5314,9 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     }
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << thePart->name() << "." << m_name
-	    << "]::evaluateRange(" << cmp.colName() << " IN ...) -- "
-	    << "the range condition is not applicable on the column type "
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "." << m_name << "]::evaluateRange(" << cmp.colName()
+	    << " IN ...) -- condition is not applicable on the column type "
 	    << ibis::TYPESTRING[(int)m_type];
 	ierr = -4;
 	return ierr;
@@ -5372,7 +5377,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    else { // index::evaluate failed
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose > 2)
-		    << "INFO -- column[" << thePart->name()
+		    << "INFO -- column[" << (thePart->name()?thePart->name():"?")
 		    << "." << name() << "]::evaluateRange(" << cmp.colName()
 		    << " IN ...) -- idx(" << idx->name()
 		    << ")->evaluate returned " << ierr
@@ -5435,8 +5440,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	}
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "column[" << thePart->name() << "." << name()
-	    << "]::evaluateRange(" << cmp.colName() << " IN ...) "
+	    << "column[" << (thePart->name()?thePart->name():"?") << "."
+	    << name() << "]::evaluateRange(" << cmp.colName() << " IN ...) "
 	    << "completed with low.size() = " << low.size()
 	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
 	return ierr;
@@ -5488,10 +5493,10 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "column[" << thePart->name() << "." << name()
-		<< "]::evaluateRange(" << cmp.colName() << "IN ...) receied "
-		"an exception from doScan in the exception handling code, "
-		"giving up...";
+		<< "column[" << (thePart->name()?thePart->name():"?") << "."
+		<< name() << "]::evaluateRange(" << cmp.colName()
+		<< "IN ...) receied an exception from doScan in the exception "
+		"handling code, giving up...";
 	    low.clear();
 	    ierr = -2;
 	}
@@ -5501,7 +5506,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     }
 
     LOGGER(ibis::gVerbose > 3)
-	<< "column[" << thePart->name() << "." << name()
+	<< "column[" << (thePart->name()?thePart->name():"?") << "." << name()
 	<< "]::evaluateRange(" << cmp.colName() << " IN ...) "
 	<< "completed the fallback option with low.size() = "
 	<< low.size() << ", low.cnt() = " << low.cnt()
@@ -5538,8 +5543,8 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 	}
 
 	LOGGER(ibis::gVerbose > 4)
-	    << "column[" << thePart->name() << "." << name()
-	    << "]::estimateRange(" << cmp
+	    << "column[" << (thePart->name()?thePart->name():"?")
+	    << "." << name() << "]::estimateRange(" << cmp
 	    << ") completed with low.size() = " << low.size()
 	    << ", low.cnt() = " << low.cnt() << ", high.size() = "
 	    << high.size() << ", high.cnt() = " << high.cnt()
@@ -5739,9 +5744,9 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
     }
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << thePart->name() << "." << m_name
-	    << "]::evaluateRange(" << cmp.colName() << " IN ...) -- "
-	    << "the range condition is not applicable on the column type "
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "." << m_name << "]::evaluateRange(" << cmp.colName()
+	    << " IN ...) -- condition is not applicable on the column type "
 	    << ibis::TYPESTRING[(int)m_type];
 	ierr = -4;
 	return ierr;
@@ -5771,8 +5776,8 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
 	}
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "column[" << thePart->name() << "." << name()
-	    << "]::evaluateRange(" << cmp.colName() << " IN ...) "
+	    << "column[" << (thePart->name()?thePart->name():"?") << "."
+	    << name() << "]::evaluateRange(" << cmp.colName() << " IN ...) "
 	    << "completed with low.size() = " << low.size()
 	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
 	return ierr;
@@ -5840,9 +5845,9 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
     }
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << thePart->name() << "." << m_name
-	    << "]::evaluateRange(" << cmp.colName() << " IN ...) -- "
-	    << "the range condition is not applicable on the column type "
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "." << m_name << "]::evaluateRange(" << cmp.colName()
+	    << " IN ...) -- condition is not applicable on the column type "
 	    << ibis::TYPESTRING[(int)m_type];
 	ierr = -4;
 	return ierr;
@@ -5872,8 +5877,8 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 	}
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "column[" << thePart->name() << "." << name()
-	    << "]::evaluateRange(" << cmp.colName() << " IN ...) "
+	    << "column[" << (thePart->name()?thePart->name():"?") << "."
+	    << name() << "]::evaluateRange(" << cmp.colName() << " IN ...) "
 	    << "completed with low.size() = " << low.size()
 	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
 	return ierr;
@@ -5994,7 +5999,7 @@ long ibis::column::append(const char* dt, const char* df,
 	df == dt || strcmp(dt, df) == 0)
 	return 0;
     std::string evt = "column[";
-    if (thePart != 0)
+    if (thePart != 0 && thePart->name() != 0)
 	evt += thePart->name();
     else
 	evt += "?";
@@ -6455,9 +6460,9 @@ long ibis::column::append(const void* vals, const ibis::bitvector& msk) {
     default:
 	ierr = -3L;
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << thePart->name() << '.' << m_name
-	    << "]::append can not handle type " << (int) m_type << " ("
-	    << ibis::TYPESTRING[(int)m_type] << ')';
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name << "]::append can not handle type " << (int) m_type
+	    << " (" << ibis::TYPESTRING[(int)m_type] << ')';
 	break;
     } // siwthc (m_type)
     return ierr;
@@ -6470,7 +6475,10 @@ template <typename T>
 long ibis::column::appendValues(const array_t<T>& vals,
 				const ibis::bitvector& msk) {
     std::string evt = "column[";
-    evt += thePart->name();
+    if (thePart != 0 && thePart->name() != 0)
+	evt += thePart->name();
+    else
+	evt += '?';
     evt += '.';
     evt += m_name;
     evt += "]::appendValues<";
@@ -6550,7 +6558,10 @@ long ibis::column::appendValues(const array_t<T>& vals,
 long ibis::column::appendStrings(const std::vector<std::string>& vals,
 				 const ibis::bitvector& msk) {
     std::string evt = "column[";
-    evt += thePart->name();
+    if (thePart != 0 && thePart->name() != 0)
+	evt += thePart->name();
+    else
+	evt += '?';
     evt += '.';
     evt += m_name;
     evt += "]::appendStrings";
@@ -7227,10 +7238,10 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     if (ibis::gVerbose > 8) {
 	ibis::util::logger lg;
 	lg() << "column[" << (thePart != 0 ? thePart->name() : "")
-		    << '.' << m_name << "](" << ibis::TYPESTRING[(int)m_type]
-		    << ")::writeData -- wrote " << nact << " entr"
-		    << (nact>1?"ies":"y") << " (expected " << nnew
-		    << ") to " << fn << "\n";
+	     << '.' << m_name << "](" << ibis::TYPESTRING[(int)m_type]
+	     << ")::writeData -- wrote " << nact << " entr"
+	     << (nact>1?"ies":"y") << " (expected " << nnew
+	     << ") to " << fn << "\n";
 	if (ibis::gVerbose > 16)
 	    lg() << *this;
     }
@@ -7241,11 +7252,11 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     mask.adjustSize(nact+nold, nnew+nold);
     if (mask.cnt() < mask.size()) {
 	mask.write(fn);
-	if (ibis::gVerbose > 6)
-	    logMessage("writeData", "null mask in \"%s\" contains %lu set "
-		       "bits and %lu total bits",
-		       fn, static_cast<long unsigned>(mask.cnt()),
-		       static_cast<long unsigned>(mask.size()));
+	LOGGER(ibis::gVerbose > 6)
+	    << "column[" << (thePart != 0 ? thePart->name() : "")
+	    << '.' << m_name << "](" << ibis::TYPESTRING[(int)m_type]
+	    << ")::writeData -- null mask in \"" << fn << "\" contains "
+	    << mask.cnt() << " set bits and " << mask.size() << " total bits";
     }
     else if (ibis::util::getFileSize(fn) > 0) {
 	(void) remove(fn);
@@ -7846,9 +7857,9 @@ T ibis::column::computeMin(const array_t<T>& vals,
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "column[" << (thePart!=0 ? thePart->name() : "") << "."
-		    << m_name << "]::computeMin -- vals.size() = "
-		    << vals.size() << ", mask.cnt() = " << mask.cnt()
-		    << ", min = ";
+	     << m_name << "]::computeMin -- vals.size() = "
+	     << vals.size() << ", mask.cnt() = " << mask.cnt()
+	     << ", min = ";
 	if (strstr(typeid(T).name(), "char") != 0)
 	    lg() << (int)res;
 	else
@@ -7884,9 +7895,8 @@ T ibis::column::computeMax(const array_t<T>& vals,
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "column[" << (thePart!=0 ? thePart->name() : "") << "."
-		    << m_name << "]::computeMax -- vals.size() = "
-		    << vals.size() << ", mask.cnt() = " << mask.cnt()
-		    << ", max = ";
+	     << m_name << "]::computeMax -- vals.size() = "
+	     << vals.size() << ", mask.cnt() = " << mask.cnt() << ", max = ";
 	if (strstr(typeid(T).name(), "char") != 0)
 	    lg() << (int)res << std::endl;
 	else
@@ -7921,8 +7931,8 @@ double ibis::column::computeSum(const array_t<T>& vals,
 
     LOGGER(ibis::gVerbose > 5)
 	<< "column[" << (thePart!=0 ? thePart->name() : "") << "." << m_name
-	<< "]::computeSum -- vals.size() = "
-	<< vals.size() << ", mask.cnt() = " << mask.cnt() << ", sum = " << res;
+	<< "]::computeSum -- vals.size() = " << vals.size()
+	<< ", mask.cnt() = " << mask.cnt() << ", sum = " << res;
     return res;
 } // ibis::column::computeSum
 
@@ -10673,11 +10683,6 @@ int ibis::column::searchSortedOOCD(const char* fname,
 /// Constructor of index lock.
 ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
     : theColumn(col), mesg(m) {
-#if DEBUG+0 > 1 || _DEBUG+0 > 1
-    ibis::util::logMessage("column::indexLock",
-			   "locking column %s for %s", col->name(),
-			   (m ? m : "?"));
-#endif
     bool toload = false;
     { // only attempt to build the index if idxcnt is zero and idx is zero
 	ibis::column::readLock lk(col, m);
@@ -10687,18 +10692,24 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
 	theColumn->loadIndex();
     if (theColumn->idx != 0) {
 	int ierr = pthread_rwlock_rdlock(&(col->rwlock));
+	std::string evt = "column[";
+	if (theColumn->partition() != 0 && theColumn->partition()->name() != 0)
+	    evt += theColumn->partition()->name();
+	else
+	    evt += '?';
+	evt += '.';
+	evt += theColumn->name();
+	evt += "]::indexLock";
 	if (0 != ierr) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- column[" << theColumn->partition()->name() << '.'
-		<< theColumn->name() << "]::indexLock -- pthread_rwlock_rdlock("
+		<< "Warning -- " << evt << " -- pthread_rwlock_rdlock("
 		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 		<< mesg << " returned " << ierr << " (" << strerror(ierr)
 		<< ')';
 	}
-	else if (ibis::gVerbose > 9) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "column[" << theColumn->partition()->name() << '.'
-		<< theColumn->name() << "]::indexLock -- pthread_rwlock_rdlock("
+	else {
+	    LOGGER(ibis::gVerbose > 9)
+		<< evt << " -- pthread_rwlock_rdlock("
 		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 		<< mesg;
 	}
@@ -10709,27 +10720,28 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
 
 /// Destructor of index lock.
 ibis::column::indexLock::~indexLock() {
-#if DEBUG+0 > 1 || _DEBUG+0 > 1
-    ibis::util::logMessage("column::indexLock",
-			   "unlocking column %s (%s)", theColumn->name(),
-			   (mesg ? mesg : "?"));
-#endif
     if (theColumn->idx != 0) {
 	-- (theColumn->idxcnt); // decrement counter
 
 	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
+	std::string evt = "column[";
+	if (theColumn->partition() != 0 && theColumn->partition()->name() != 0)
+	    evt += theColumn->partition()->name();
+	else
+	    evt += '?';
+	evt += '.';
+	evt += theColumn->name();
+	evt += "]::~indexLock";
 	if (0 != ierr) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- column[" << theColumn->partition()->name() << '.'
-		<< theColumn->name() << "]::indexLock -- pthread_rwlock_unlock("
+		<< "Warning -- " << evt << " -- pthread_rwlock_unlock("
 		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 		<< mesg << " returned " << ierr << " (" << strerror(ierr)
 		<< ')';
 	}
-	else if (ibis::gVerbose > 9) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "column[" << theColumn->partition()->name() << '.'
-		<< theColumn->name() << "]::indexLock -- pthread_rwlock_unlock("
+	else {
+	    LOGGER(ibis::gVerbose > 9)
+		<< evt << " -- pthread_rwlock_unlock("
 		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 		<< mesg;
 	}

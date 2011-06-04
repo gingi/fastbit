@@ -14769,6 +14769,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tables,
     return cnt;
 } // ibis::util::gatherParts
 
+/// Deallocate the list of data partitions.
 void ibis::util::clean(ibis::partList &pl) throw() {
     const uint32_t npl = pl.size();
     for (uint32_t j = 0; j < npl; ++ j)
@@ -14776,15 +14777,25 @@ void ibis::util::clean(ibis::partList &pl) throw() {
     pl.clear();
 } // ibis::util::clean
 
-/// It conforms to the prototype of function can be registered with atexit
-/// and is registered with atexit in ibis::init.  The caller is responsible
-/// to ensure only one thread is invoking this function.
-void ibis::util::clearDatasets(void) {
+// /// Cleanup the data partitions.
+// /// It conforms to the prototype of function can be registered with atexit
+// /// and is registered with atexit in ibis::init.  The caller is responsible
+// /// to ensure only one thread is invoking this function.
+// void ibis::util::clearDatasets(void) {
+//     const uint32_t npt = ibis::datasets.size();
+//     for (uint32_t j = 0; j < npt; ++ j)
+// 	delete ibis::datasets[j];
+//     ibis::datasets.clear();
+// } // ibis::util::clearDatasets
+
+/// Update the metadata about the data partitions.
+/// Loop through all known data partitions and check for any update in the
+/// metadata files.
+void ibis::util::updateDatasets() {
     const uint32_t npt = ibis::datasets.size();
     for (uint32_t j = 0; j < npt; ++ j)
-	delete ibis::datasets[j];
-    ibis::datasets.clear();
-} // ibis::util::clearDatasets
+	ibis::datasets[j]->updateData();
+} // ibis::util::updateDatasets
 
 /// Find a dataset with the given name.  If the named data partition is
 /// found, a point to the data partition is returned, otherwise, a nil
@@ -14812,13 +14823,6 @@ ibis::part* ibis::findDataset(const char* pn) {
     }
 } // ibis::findDataset
 
-/// Loop through all known data partitions and check for any update in the
-/// metadata files.
-void ibis::util::updateDatasets() {
-    const uint32_t npt = ibis::datasets.size();
-    for (uint32_t j = 0; j < npt; ++ j)
-	ibis::datasets[j]->updateData();
-} // ibis::util::updateDatasets
 
 // explicit instantiations of the templated functions
 template long

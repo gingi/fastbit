@@ -650,6 +650,7 @@ ibis::fileManager::fileManager()
 
 /// Destructor.
 ibis::fileManager::~fileManager() {
+    ibis::util::clean(ibis::datasets);
     clear();
     (void)pthread_rwlock_destroy(&lock);
     (void)pthread_mutex_destroy(&mutex);

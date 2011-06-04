@@ -9,6 +9,7 @@
 #include "fromClause.h"
 #include "selectClause.h"
 
+#include <memory>	// std::auto_ptr
 #include <stdexcept>	// std::exception
 
 /// Constructor.  This constructor handles a join expression equivalent to
@@ -598,8 +599,11 @@ ibis::jNatural::fillResult(size_t nrows,
 	return 0;
     }
 
-    return new ibis::bord(tn.c_str(), desc.c_str(), nrows,
-			  tbuff, ttypes, tcname);
+    std::auto_ptr<ibis::bord> res(new ibis::bord(tn.c_str(), desc.c_str(), nrows,
+						 tbuff, ttypes, tcname));
+    if (res.get() != 0)
+	gtbuff.dismiss();
+    return res.release();
 } // ibis::jNatural::fillResult
 
 /// Form the joined table for string valued join columns.  The caller
@@ -711,19 +715,12 @@ ibis::jNatural::fillResult(size_t nrows,
     }
 
     std::string tn = ibis::util::shortName(desc.c_str());
-    try {
-	ibis::bord* res = new ibis::bord(tn.c_str(), desc.c_str(), nrows,
-					 tbuff, ttypes, tcname);
-	if (res != 0)
-	    gtbuff.dismiss();
-	return res;
-    }
-    catch (...) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- jNatural::fillResult failed to create the output "
-	    "data structure";
-    }
-    return 0;
+    std::auto_ptr<ibis::bord> res
+	(new ibis::bord(tn.c_str(), desc.c_str(), nrows,
+			tbuff, ttypes, tcname));
+    if (res.get() != 0)
+	gtbuff.dismiss();
+    return res.release();
 } // ibis::jNatural::fillResult
 
 ibis::table*

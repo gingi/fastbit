@@ -983,8 +983,8 @@ void ibis::category::write(FILE* file) const {
 	    (const char*)m_desc.c_str());
     }
     fprintf(file, "data_type = \"%s\"\n", TYPESTRING[m_type]);
-    fprintf(file, "minimum = %lu\n", static_cast<long unsigned>(lower));
-    fprintf(file, "maximum = %lu\n", static_cast<long unsigned>(upper));
+    fprintf(file, "minimum = 1\nmaximum = %lu\n",
+	    static_cast<long unsigned>(dic.size()));
     if (! m_bins.empty())
 	fprintf(file, "index=%s\n", m_bins.c_str());
     fputs("End Column\n", file);
