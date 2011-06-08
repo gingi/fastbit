@@ -1,8 +1,15 @@
+2011-06-07 John Wu <John dot Wu at ACM dot org>
+	* src/colValues.cpp:4048 remove the extra statement that
+	increments j (and causes a problem with segmenting string values
+	reported by Anderson Carniel)
+
 2011-06-04 John Wu <John dot Wu at ACM dot org>
 	* src/jnatural.cpp: use auto_ptr to make sure the memory is freed
 	in fillResults
 	* src/bord.cpp: add code block to try the column name without any
 	prefixes
+	* src/selectParser.yy: add back support of using keyword stddev
+	for standard deviation (in addition to stdev, and stdsamp)
 
 2011-06-03 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/util.h: comment out ibis::util::clearDatasets

@@ -256,6 +256,7 @@ mathExpr ADDOP mathExpr {
     }
     else if (stricmp($1->c_str(), "std") == 0 ||
 	     stricmp($1->c_str(), "stdev") == 0 ||
+	     stricmp($1->c_str(), "stddev") == 0 ||
 	     stricmp($1->c_str(), "stdsamp") == 0) { // sample standard deviation
 	fun = driver.addAgregado(ibis::selectClause::STDSAMP, $3);
     }

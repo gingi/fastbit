@@ -858,7 +858,7 @@ void doTest(const ibis::table& tbl) {
 	sel << "floor(" << cols[(int)(ibis::util::rand() * cols.size())]
 	    << "/80), sum("
 	    << cols[(int)(ibis::util::rand() * cols.size())]
-	    << "), stddev(" << cols[(int)(ibis::util::rand() * cols.size())]
+	    << "), stdev(" << cols[(int)(ibis::util::rand() * cols.size())]
 	    << "), countdistinct("
 	    << cols[(int)(ibis::util::rand() * cols.size())] << ")";
 	std::auto_ptr<ibis::table>

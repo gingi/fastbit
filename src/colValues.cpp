@@ -3045,7 +3045,7 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
-		    << col->name() << "]::sort existing with the following:";
+		    << col->name() << "]::sort exiting with the following:";
 	for (uint32_t ii = istart; ii < jend; ++ ii)
 	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
@@ -3146,7 +3146,7 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
-		    << col->name() << "]::sort existing with the following:";
+		    << col->name() << "]::sort exiting with the following:";
 	for (uint32_t ii = istart; ii < jend; ++ ii)
 	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
@@ -3996,8 +3996,8 @@ ibis::colDoubles::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colDoubles::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -4043,10 +4043,8 @@ ibis::colStrings::segment(const array_t<uint32_t>* old) const {
 		       (*array)[target].compare((*array)[j]) == 0)
 		    ++ j;
 		res->push_back(j);
-		if (j < (*old)[i+1]) {
+		if (j < (*old)[i+1])
 		    target = j;
-		    ++ j;
-		}
 	    }
 	}
     }
@@ -4067,6 +4065,35 @@ ibis::colStrings::segment(const array_t<uint32_t>* old) const {
     }
     if (res->back() < nelm)
 	res->push_back(nelm);
+#if _DEBUG+0>1 || DEBUG+0>1
+    unsigned jold = 0, jnew = 0;
+    ibis::util::logger lg(4);
+    lg() << "DEBUG -- colStrings::segment: old groups "
+	 << (old != 0 ? old->size()-1 : 0) << ", new groups "
+	 << res->size()-1;
+    if (old->size() > 2) {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
+	    if (i == (*old)[jold]) {
+		lg() << "++";
+		++ jold;
+	    }
+	    if (i == (*res)[jnew]) {
+		lg() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+    else {
+	for (unsigned i = 0; i < nelm; ++ i) {
+	    lg() << "\n" << i << "\t" << (*array)[i];
+	    if (i == (*res)[jnew]) {
+		lg() << "\t--";
+		++ jnew;
+	    }
+	}
+    }
+#endif
     return res;
 } // ibis::colStrings::segment
 
@@ -4275,7 +4302,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -4456,7 +4483,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -4636,7 +4663,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -4817,7 +4844,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -4997,7 +5024,7 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -5178,7 +5205,7 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -5358,7 +5385,7 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -5539,7 +5566,7 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -5720,7 +5747,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
@@ -5899,7 +5926,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
     case ibis::selectClause::STDPOP:
     case ibis::selectClause::STDSAMP:
     	// we can use the same functionality for all functions as sample &
-    	// population functions are similar, and stddev can be derived from
+    	// population functions are similar, and stdev can be derived from
     	// variance 
 	// - population standard variance =  sum of squared differences from
     	//   mean/avg, divided by number of rows.
