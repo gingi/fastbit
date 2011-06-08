@@ -39,6 +39,7 @@ NAME	[_a-zA-Z]((->)?[_a-zA-Z0-9.:\[\]]+)*
 */
 WS	[ \t\v\n]
 SEP	[ \t\v\n,;]
+STRSEP	{WS}*[,;]{WS}*
 UNSIGNED	([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 NUMBER	[-+]?([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 QUOTED	\"([^\"\\]*(\\.[^\"\\]*)*)\"|\'([^\'\\]*(\\.[^\'\\]*)*)\'
@@ -176,7 +177,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
     return token::NUMSEQ;
 }
 
-\({WS}*({QUOTED}|{NAME}){SEP}+({QUOTED}|{NAME})({SEP}+({QUOTED}|{NAME}))+{WS}*\) {
+\({WS}*({QUOTED}|{NAME}){STRSEP}({QUOTED}|{NAME})({STRSEP}({QUOTED}|{NAME}))+{WS}*\) {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
  	<< __FILE__ << ':' << __LINE__ << " got a string sequence: " << yytext;

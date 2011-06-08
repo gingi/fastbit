@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 2.4.2.  */
+/* A Bison parser, made by GNU Bison 2.4.3.  */
 
 /* Skeleton implementation for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002-2010 Free Software Foundation, Inc.
+      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free
+   Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +32,7 @@
    version 2.2 of Bison.  */
 /* "%code top" blocks.  */
 
-/* Line 303 of lalr1.cc  */
+/* Line 304 of lalr1.cc  */
 #line 6 "whereParser.yy"
 
 /** \file Defines the parser for the where clause accepted by FastBit IBIS.
@@ -42,8 +43,8 @@
 
 
 
-/* Line 303 of lalr1.cc  */
-#line 47 "whereParser.cc"
+/* Line 304 of lalr1.cc  */
+#line 48 "whereParser.cc"
 
 // Take the name prefix into account.
 #define yylex   ibislex
@@ -51,16 +52,16 @@
 /* First part of user declarations.  */
 
 
-/* Line 310 of lalr1.cc  */
-#line 56 "whereParser.cc"
+/* Line 311 of lalr1.cc  */
+#line 57 "whereParser.cc"
 
 
 #include "whereParser.hh"
 
 /* User implementation prologue.  */
 
-/* Line 316 of lalr1.cc  */
-#line 97 "whereParser.yy"
+/* Line 317 of lalr1.cc  */
+#line 96 "whereParser.yy"
 
 #include "whereLexer.h"
 
@@ -68,8 +69,8 @@
 #define yylex driver.lexer->lex
 
 
-/* Line 316 of lalr1.cc  */
-#line 73 "whereParser.cc"
+/* Line 317 of lalr1.cc  */
+#line 74 "whereParser.cc"
 
 #ifndef YY_
 # if defined YYENABLE_NLS && YYENABLE_NLS
@@ -134,8 +135,8 @@ do {					\
 
 namespace ibis {
 
-/* Line 379 of lalr1.cc  */
-#line 139 "whereParser.cc"
+/* Line 380 of lalr1.cc  */
+#line 140 "whereParser.cc"
 #if YYERROR_VERBOSE
 
   /* Return YYSTR after stripping away unnecessary quotes and
@@ -237,102 +238,102 @@ namespace ibis {
       {
         case 29: /* "\"signed integer sequence\"" */
 
-/* Line 479 of lalr1.cc  */
-#line 94 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 93 "whereParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 479 of lalr1.cc  */
-#line 246 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 247 "whereParser.cc"
 	break;
       case 30: /* "\"unsigned integer sequence\"" */
 
-/* Line 479 of lalr1.cc  */
-#line 94 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 93 "whereParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 479 of lalr1.cc  */
-#line 255 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 256 "whereParser.cc"
 	break;
       case 31: /* "\"name string\"" */
 
-/* Line 479 of lalr1.cc  */
-#line 94 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 93 "whereParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 479 of lalr1.cc  */
-#line 264 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 265 "whereParser.cc"
 	break;
       case 32: /* "\"number sequence\"" */
 
-/* Line 479 of lalr1.cc  */
-#line 94 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 93 "whereParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 479 of lalr1.cc  */
-#line 273 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 274 "whereParser.cc"
 	break;
       case 33: /* "\"string sequence\"" */
 
-/* Line 479 of lalr1.cc  */
-#line 94 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 93 "whereParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 479 of lalr1.cc  */
-#line 282 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 283 "whereParser.cc"
 	break;
       case 34: /* "\"string literal\"" */
 
-/* Line 479 of lalr1.cc  */
-#line 94 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 93 "whereParser.yy"
 	{ delete (yyvaluep->stringVal); };
 
-/* Line 479 of lalr1.cc  */
-#line 291 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 292 "whereParser.cc"
 	break;
       case 40: /* "qexpr" */
 
-/* Line 479 of lalr1.cc  */
-#line 95 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 94 "whereParser.yy"
 	{ delete (yyvaluep->whereNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 300 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 301 "whereParser.cc"
 	break;
       case 41: /* "simpleRange" */
 
-/* Line 479 of lalr1.cc  */
-#line 95 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 94 "whereParser.yy"
 	{ delete (yyvaluep->whereNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 309 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 310 "whereParser.cc"
 	break;
       case 42: /* "compRange2" */
 
-/* Line 479 of lalr1.cc  */
-#line 95 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 94 "whereParser.yy"
 	{ delete (yyvaluep->whereNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 318 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 319 "whereParser.cc"
 	break;
       case 43: /* "compRange3" */
 
-/* Line 479 of lalr1.cc  */
-#line 95 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 94 "whereParser.yy"
 	{ delete (yyvaluep->whereNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 327 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 328 "whereParser.cc"
 	break;
       case 44: /* "mathExpr" */
 
-/* Line 479 of lalr1.cc  */
-#line 95 "whereParser.yy"
+/* Line 480 of lalr1.cc  */
+#line 94 "whereParser.yy"
 	{ delete (yyvaluep->whereNode); };
 
-/* Line 479 of lalr1.cc  */
-#line 336 "whereParser.cc"
+/* Line 480 of lalr1.cc  */
+#line 337 "whereParser.cc"
 	break;
 
 	default:
@@ -396,7 +397,7 @@ namespace ibis {
     /// Location of the lookahead.
     location_type yylloc;
     /// The locations where the error started and ended.
-    location_type yyerror_range[2];
+    location_type yyerror_range[3];
 
     /// $$.
     semantic_type yyval;
@@ -410,14 +411,14 @@ namespace ibis {
 
     /* User initialization code.  */
     
-/* Line 552 of lalr1.cc  */
+/* Line 559 of lalr1.cc  */
 #line 29 "whereParser.yy"
 { // initialize location object
     yylloc.begin.filename = yylloc.end.filename = &(driver.clause_);
 }
 
-/* Line 552 of lalr1.cc  */
-#line 421 "whereParser.cc"
+/* Line 559 of lalr1.cc  */
+#line 422 "whereParser.cc"
 
     /* Initialize the stacks.  The initial state will be pushed in
        yynewstate, since the latter expects the semantical and the
@@ -535,8 +536,8 @@ namespace ibis {
       {
 	  case 2:
 
-/* Line 677 of lalr1.cc  */
-#line 106 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 105 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -551,8 +552,8 @@ namespace ibis {
 
   case 3:
 
-/* Line 677 of lalr1.cc  */
-#line 116 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 115 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -567,8 +568,8 @@ namespace ibis {
 
   case 4:
 
-/* Line 677 of lalr1.cc  */
-#line 126 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 125 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -583,8 +584,8 @@ namespace ibis {
 
   case 5:
 
-/* Line 677 of lalr1.cc  */
-#line 136 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 135 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -599,8 +600,8 @@ namespace ibis {
 
   case 6:
 
-/* Line 677 of lalr1.cc  */
-#line 146 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 145 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -613,8 +614,8 @@ namespace ibis {
 
   case 7:
 
-/* Line 677 of lalr1.cc  */
-#line 154 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 153 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(3) - (2)].whereNode);
 }
@@ -622,8 +623,8 @@ namespace ibis {
 
   case 11:
 
-/* Line 677 of lalr1.cc  */
-#line 163 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 162 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -638,8 +639,8 @@ namespace ibis {
 
   case 12:
 
-/* Line 677 of lalr1.cc  */
-#line 173 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 172 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -656,8 +657,8 @@ namespace ibis {
 
   case 13:
 
-/* Line 677 of lalr1.cc  */
-#line 185 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 184 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -671,8 +672,8 @@ namespace ibis {
 
   case 14:
 
-/* Line 677 of lalr1.cc  */
-#line 194 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 193 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -688,8 +689,8 @@ namespace ibis {
 
   case 15:
 
-/* Line 677 of lalr1.cc  */
-#line 205 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 204 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -707,8 +708,8 @@ namespace ibis {
 
   case 16:
 
-/* Line 677 of lalr1.cc  */
-#line 218 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 217 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -723,8 +724,8 @@ namespace ibis {
 
   case 17:
 
-/* Line 677 of lalr1.cc  */
-#line 228 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 227 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -739,8 +740,8 @@ namespace ibis {
 
   case 18:
 
-/* Line 677 of lalr1.cc  */
-#line 238 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 237 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -762,8 +763,8 @@ namespace ibis {
 
   case 19:
 
-/* Line 677 of lalr1.cc  */
-#line 255 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 254 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -785,8 +786,8 @@ namespace ibis {
 
   case 20:
 
-/* Line 677 of lalr1.cc  */
-#line 272 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 271 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -808,8 +809,8 @@ namespace ibis {
 
   case 21:
 
-/* Line 677 of lalr1.cc  */
-#line 289 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 288 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -831,8 +832,8 @@ namespace ibis {
 
   case 22:
 
-/* Line 677 of lalr1.cc  */
-#line 306 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 305 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -851,8 +852,8 @@ namespace ibis {
 
   case 23:
 
-/* Line 677 of lalr1.cc  */
-#line 320 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 319 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -871,13 +872,13 @@ namespace ibis {
 
   case 24:
 
-/* Line 677 of lalr1.cc  */
-#line 334 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 333 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *(yysemantic_stack_[(3) - (1)].stringVal) << " LIKE ("
-	<< *(yysemantic_stack_[(3) - (3)].stringVal) << ")";
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *(yysemantic_stack_[(3) - (1)].stringVal) << " LIKE "
+	<< *(yysemantic_stack_[(3) - (3)].stringVal);
 #endif
     (yyval.whereNode) = new ibis::qLike((yysemantic_stack_[(3) - (1)].stringVal)->c_str(), (yysemantic_stack_[(3) - (3)].stringVal)->c_str());
     delete (yysemantic_stack_[(3) - (3)].stringVal);
@@ -887,13 +888,13 @@ namespace ibis {
 
   case 25:
 
-/* Line 677 of lalr1.cc  */
-#line 344 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 343 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *(yysemantic_stack_[(3) - (1)].stringVal) << " LIKE ("
-	<< *(yysemantic_stack_[(3) - (3)].stringVal) << ")";
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *(yysemantic_stack_[(3) - (1)].stringVal) << " LIKE "
+	<< *(yysemantic_stack_[(3) - (3)].stringVal);
 #endif
     (yyval.whereNode) = new ibis::qLike((yysemantic_stack_[(3) - (1)].stringVal)->c_str(), (yysemantic_stack_[(3) - (3)].stringVal)->c_str());
     delete (yysemantic_stack_[(3) - (3)].stringVal);
@@ -903,8 +904,8 @@ namespace ibis {
 
   case 26:
 
-/* Line 677 of lalr1.cc  */
-#line 354 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 353 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -920,8 +921,8 @@ namespace ibis {
 
   case 27:
 
-/* Line 677 of lalr1.cc  */
-#line 365 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 364 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -944,8 +945,8 @@ namespace ibis {
 
   case 28:
 
-/* Line 677 of lalr1.cc  */
-#line 383 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 382 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -968,8 +969,8 @@ namespace ibis {
 
   case 29:
 
-/* Line 677 of lalr1.cc  */
-#line 401 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 400 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -992,8 +993,8 @@ namespace ibis {
 
   case 30:
 
-/* Line 677 of lalr1.cc  */
-#line 419 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 418 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1016,8 +1017,8 @@ namespace ibis {
 
   case 31:
 
-/* Line 677 of lalr1.cc  */
-#line 437 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 436 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1037,8 +1038,8 @@ namespace ibis {
 
   case 32:
 
-/* Line 677 of lalr1.cc  */
-#line 452 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 451 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1058,8 +1059,8 @@ namespace ibis {
 
   case 33:
 
-/* Line 677 of lalr1.cc  */
-#line 467 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 466 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1073,8 +1074,8 @@ namespace ibis {
 
   case 34:
 
-/* Line 677 of lalr1.cc  */
-#line 476 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 475 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1089,8 +1090,8 @@ namespace ibis {
 
   case 35:
 
-/* Line 677 of lalr1.cc  */
-#line 486 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 485 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1105,8 +1106,8 @@ namespace ibis {
 
   case 36:
 
-/* Line 677 of lalr1.cc  */
-#line 496 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 495 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1122,8 +1123,8 @@ namespace ibis {
 
   case 37:
 
-/* Line 677 of lalr1.cc  */
-#line 507 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 506 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1138,8 +1139,8 @@ namespace ibis {
 
   case 38:
 
-/* Line 677 of lalr1.cc  */
-#line 517 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 516 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1155,8 +1156,8 @@ namespace ibis {
 
   case 39:
 
-/* Line 677 of lalr1.cc  */
-#line 528 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 527 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1169,8 +1170,8 @@ namespace ibis {
 
   case 40:
 
-/* Line 677 of lalr1.cc  */
-#line 536 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 535 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1184,8 +1185,8 @@ namespace ibis {
 
   case 41:
 
-/* Line 677 of lalr1.cc  */
-#line 545 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 544 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1198,8 +1199,8 @@ namespace ibis {
 
   case 42:
 
-/* Line 677 of lalr1.cc  */
-#line 553 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 552 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1213,8 +1214,8 @@ namespace ibis {
 
   case 43:
 
-/* Line 677 of lalr1.cc  */
-#line 562 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 561 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1229,8 +1230,8 @@ namespace ibis {
 
   case 44:
 
-/* Line 677 of lalr1.cc  */
-#line 572 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 571 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1246,8 +1247,8 @@ namespace ibis {
 
   case 45:
 
-/* Line 677 of lalr1.cc  */
-#line 583 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 582 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1262,8 +1263,8 @@ namespace ibis {
 
   case 46:
 
-/* Line 677 of lalr1.cc  */
-#line 593 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 592 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1279,8 +1280,8 @@ namespace ibis {
 
   case 47:
 
-/* Line 677 of lalr1.cc  */
-#line 604 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 603 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1302,8 +1303,8 @@ namespace ibis {
 
   case 48:
 
-/* Line 677 of lalr1.cc  */
-#line 621 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 620 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1328,8 +1329,8 @@ namespace ibis {
 
   case 49:
 
-/* Line 677 of lalr1.cc  */
-#line 644 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 643 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1344,8 +1345,8 @@ namespace ibis {
 
   case 50:
 
-/* Line 677 of lalr1.cc  */
-#line 654 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 653 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1361,8 +1362,8 @@ namespace ibis {
 
   case 51:
 
-/* Line 677 of lalr1.cc  */
-#line 665 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 664 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1377,8 +1378,8 @@ namespace ibis {
 
   case 52:
 
-/* Line 677 of lalr1.cc  */
-#line 675 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 674 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1393,8 +1394,8 @@ namespace ibis {
 
   case 53:
 
-/* Line 677 of lalr1.cc  */
-#line 685 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 684 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1409,8 +1410,8 @@ namespace ibis {
 
   case 54:
 
-/* Line 677 of lalr1.cc  */
-#line 695 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 694 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1425,8 +1426,8 @@ namespace ibis {
 
   case 55:
 
-/* Line 677 of lalr1.cc  */
-#line 757 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 756 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1443,8 +1444,8 @@ namespace ibis {
 
   case 56:
 
-/* Line 677 of lalr1.cc  */
-#line 769 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 768 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1461,8 +1462,8 @@ namespace ibis {
 
   case 57:
 
-/* Line 677 of lalr1.cc  */
-#line 781 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 780 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1479,8 +1480,8 @@ namespace ibis {
 
   case 58:
 
-/* Line 677 of lalr1.cc  */
-#line 793 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 792 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1497,8 +1498,8 @@ namespace ibis {
 
   case 59:
 
-/* Line 677 of lalr1.cc  */
-#line 805 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 804 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1515,8 +1516,8 @@ namespace ibis {
 
   case 60:
 
-/* Line 677 of lalr1.cc  */
-#line 817 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 816 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1533,8 +1534,8 @@ namespace ibis {
 
   case 61:
 
-/* Line 677 of lalr1.cc  */
-#line 829 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 828 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1551,8 +1552,8 @@ namespace ibis {
 
   case 62:
 
-/* Line 677 of lalr1.cc  */
-#line 841 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 840 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1569,8 +1570,8 @@ namespace ibis {
 
   case 63:
 
-/* Line 677 of lalr1.cc  */
-#line 853 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 852 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1587,8 +1588,8 @@ namespace ibis {
 
   case 64:
 
-/* Line 677 of lalr1.cc  */
-#line 868 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 867 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1605,8 +1606,8 @@ namespace ibis {
 
   case 65:
 
-/* Line 677 of lalr1.cc  */
-#line 880 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 879 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1623,8 +1624,8 @@ namespace ibis {
 
   case 66:
 
-/* Line 677 of lalr1.cc  */
-#line 892 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 891 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1641,8 +1642,8 @@ namespace ibis {
 
   case 67:
 
-/* Line 677 of lalr1.cc  */
-#line 904 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 903 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1659,8 +1660,8 @@ namespace ibis {
 
   case 68:
 
-/* Line 677 of lalr1.cc  */
-#line 916 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 915 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1677,8 +1678,8 @@ namespace ibis {
 
   case 69:
 
-/* Line 677 of lalr1.cc  */
-#line 928 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 927 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1695,8 +1696,8 @@ namespace ibis {
 
   case 70:
 
-/* Line 677 of lalr1.cc  */
-#line 940 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 939 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1713,8 +1714,8 @@ namespace ibis {
 
   case 71:
 
-/* Line 677 of lalr1.cc  */
-#line 952 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 951 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1731,8 +1732,8 @@ namespace ibis {
 
   case 72:
 
-/* Line 677 of lalr1.cc  */
-#line 964 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 963 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1749,8 +1750,8 @@ namespace ibis {
 
   case 73:
 
-/* Line 677 of lalr1.cc  */
-#line 976 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 975 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1768,8 +1769,8 @@ namespace ibis {
 
   case 74:
 
-/* Line 677 of lalr1.cc  */
-#line 989 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 988 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1784,8 +1785,8 @@ namespace ibis {
 
   case 75:
 
-/* Line 677 of lalr1.cc  */
-#line 999 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 998 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(2) - (2)].whereNode);
 }
@@ -1793,8 +1794,8 @@ namespace ibis {
 
   case 76:
 
-/* Line 677 of lalr1.cc  */
-#line 1002 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 1001 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(3) - (2)].whereNode);
 }
@@ -1802,8 +1803,8 @@ namespace ibis {
 
   case 77:
 
-/* Line 677 of lalr1.cc  */
-#line 1005 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 1004 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1818,8 +1819,8 @@ namespace ibis {
 
   case 78:
 
-/* Line 677 of lalr1.cc  */
-#line 1015 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 1014 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1832,8 +1833,8 @@ namespace ibis {
 
   case 79:
 
-/* Line 677 of lalr1.cc  */
-#line 1025 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 1024 "whereParser.yy"
     { /* pass qexpr to the driver */
     driver.expr_ = (yysemantic_stack_[(2) - (1)].whereNode);
 }
@@ -1841,8 +1842,8 @@ namespace ibis {
 
   case 80:
 
-/* Line 677 of lalr1.cc  */
-#line 1028 "whereParser.yy"
+/* Line 678 of lalr1.cc  */
+#line 1027 "whereParser.yy"
     { /* pass qexpr to the driver */
     driver.expr_ = (yysemantic_stack_[(2) - (1)].whereNode);
 }
@@ -1850,8 +1851,8 @@ namespace ibis {
 
 
 
-/* Line 677 of lalr1.cc  */
-#line 1855 "whereParser.cc"
+/* Line 678 of lalr1.cc  */
+#line 1856 "whereParser.cc"
 	default:
           break;
       }
@@ -1885,7 +1886,7 @@ namespace ibis {
 	error (yylloc, yysyntax_error_ (yystate, yytoken));
       }
 
-    yyerror_range[0] = yylloc;
+    yyerror_range[1] = yylloc;
     if (yyerrstatus_ == 3)
       {
 	/* If just tried and failed to reuse lookahead token after an
@@ -1920,7 +1921,7 @@ namespace ibis {
     if (false)
       goto yyerrorlab;
 
-    yyerror_range[0] = yylocation_stack_[yylen - 1];
+    yyerror_range[1] = yylocation_stack_[yylen - 1];
     /* Do not reclaim the symbols of the rule which action triggered
        this YYERROR.  */
     yypop_ (yylen);
@@ -1952,7 +1953,7 @@ namespace ibis {
 	if (yystate_stack_.height () == 1)
 	YYABORT;
 
-	yyerror_range[0] = yylocation_stack_[0];
+	yyerror_range[1] = yylocation_stack_[0];
 	yydestruct_ ("Error: popping",
 		     yystos_[yystate],
 		     &yysemantic_stack_[0], &yylocation_stack_[0]);
@@ -1961,10 +1962,10 @@ namespace ibis {
 	YY_STACK_PRINT ();
       }
 
-    yyerror_range[1] = yylloc;
+    yyerror_range[2] = yylloc;
     // Using YYLLOC is tempting, but would change the location of
     // the lookahead.  YYLOC is available though.
-    YYLLOC_DEFAULT (yyloc, (yyerror_range - 1), 2);
+    YYLLOC_DEFAULT (yyloc, yyerror_range, 2);
     yysemantic_stack_.push (yylval);
     yylocation_stack_.push (yyloc);
 
@@ -2346,15 +2347,15 @@ namespace ibis {
   const unsigned short int
   whereParser::yyrline_[] =
   {
-         0,   106,   106,   116,   126,   136,   146,   154,   157,   158,
-     159,   163,   173,   185,   194,   205,   218,   228,   238,   255,
-     272,   289,   306,   320,   334,   344,   354,   365,   383,   401,
-     419,   437,   452,   467,   476,   486,   496,   507,   517,   528,
-     536,   545,   553,   562,   572,   583,   593,   604,   621,   644,
-     654,   665,   675,   685,   695,   757,   769,   781,   793,   805,
-     817,   829,   841,   853,   868,   880,   892,   904,   916,   928,
-     940,   952,   964,   976,   989,   999,  1002,  1005,  1015,  1025,
-    1028
+         0,   105,   105,   115,   125,   135,   145,   153,   156,   157,
+     158,   162,   172,   184,   193,   204,   217,   227,   237,   254,
+     271,   288,   305,   319,   333,   343,   353,   364,   382,   400,
+     418,   436,   451,   466,   475,   485,   495,   506,   516,   527,
+     535,   544,   552,   561,   571,   582,   592,   603,   620,   643,
+     653,   664,   674,   684,   694,   756,   768,   780,   792,   804,
+     816,   828,   840,   852,   867,   879,   891,   903,   915,   927,
+     939,   951,   963,   975,   988,   998,  1001,  1004,  1014,  1024,
+    1027
   };
 
   // Print the state stack on the debug stream.
@@ -2445,12 +2446,12 @@ namespace ibis {
 
 } // ibis
 
-/* Line 1053 of lalr1.cc  */
-#line 2450 "whereParser.cc"
+/* Line 1054 of lalr1.cc  */
+#line 2451 "whereParser.cc"
 
 
-/* Line 1055 of lalr1.cc  */
-#line 1033 "whereParser.yy"
+/* Line 1056 of lalr1.cc  */
+#line 1032 "whereParser.yy"
 
 void ibis::whereParser::error(const ibis::whereParser::location_type& l,
 			      const std::string& m) {

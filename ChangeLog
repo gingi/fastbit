@@ -1,3 +1,9 @@
+2011-06-08 John Wu <John dot Wu at ACM dot org>
+	* src/whereLexer.ll: enforce the need for coma as separator in
+	string sequences (to avoid the problem of treating a LIKE
+	expression as a string sequence by the lexer, a problem reported
+	by Jon Strabala)
+
 2011-06-07 John Wu <John dot Wu at ACM dot org>
 	* src/colValues.cpp:4048 remove the extra statement that
 	increments j (and causes a problem with segmenting string values
