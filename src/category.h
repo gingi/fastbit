@@ -65,8 +65,8 @@ public:
     virtual void print(std::ostream& out) const; ///< Print header info.
 
     const column* IDColumnForKeywordIndex() const;
-    const void TDListForKeywordIndex(std::string&) const;
-    const void delimitersForKeywordIndex(std::string&) const;
+    void TDListForKeywordIndex(std::string&) const;
+    void delimitersForKeywordIndex(std::string&) const;
 
     /// A tokenizer class to turn a string buffer into tokens.  Used by
     /// ibis::keywords to build a term-document index.

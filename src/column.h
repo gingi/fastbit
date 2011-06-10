@@ -126,38 +126,21 @@ public:
     virtual const char* findString(const char*) const
     {return static_cast<const char*>(0);}
 
-    /// Return all rows of the column as an array_t object.  Caller is
-    /// responsible for deleting the returned object.
     array_t<int32_t>* getIntArray() const;
-    /// Return all rows of the column as an array_t object.
     array_t<float>*   getFloatArray() const;
-    /// Return all rows of the column as an array_t object.
     array_t<double>*  getDoubleArray() const;
-    /// Return all rows of the column as an array_t object.
     virtual int getValuesArray(void* vals) const;
-    /// Return the content of base data file as storage object.
     virtual ibis::fileManager::storage* getRawData() const;
 
-    /// Return selected rows of the column in an array_t object.  Caller is
-    /// responsible for deleting the returned object.
     virtual array_t<signed char>*   selectBytes(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<unsigned char>* selectUBytes(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<int16_t>*  selectShorts(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<uint16_t>* selectUShorts(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<int32_t>*  selectInts(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<int64_t>*  selectLongs(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<uint64_t>* selectULongs(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<float>*    selectFloats(const bitvector& mask) const;
-    /// Return selected rows of the column in an array_t object.
     virtual array_t<double>*   selectDoubles(const bitvector& mask) const;
     virtual std::vector<std::string>*
 	selectStrings(const bitvector& mask) const;

@@ -44,7 +44,7 @@ ibis::bord::bord(const char *tn, const char *td,
     for (ibis::selectClause::StringToInt::const_iterator it = colnames.begin();
 	 it != colnames.end(); ++ it) {
 	const char* cname = it->first.c_str();
-	const ibis::math::term* ctrm = sc.at(it->second);
+	const ibis::math::term* ctrm = sc.aggExpr(it->second);
 	if (cname == 0 || *cname == 0 || ctrm == 0) continue;
 	cname = ibis::part::skipPrefix(cname);
 
@@ -183,48 +183,61 @@ ibis::table::typeList ibis::bord::columnTypes() const {
     return ibis::part::columnTypes();
 } // ibis::bord::columnTypes
 
-int64_t ibis::bord::getColumnAsBytes(const char *cn, char *vals) const {
+int64_t ibis::bord::getColumnAsBytes(const char *cn, char *vals,
+				     uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
 	return -1;
 
-    if (col->type() == ibis::BYTE || col->type() == ibis::UBYTE) {
-	const array_t<signed char>* arr =
-	    static_cast<const array_t<signed char>*>(col->getArray());
-	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;
-    }
-    else {
+    if (col->type() != ibis::BYTE && col->type() != ibis::UBYTE)
 	return -2;
-    }
+
+    const array_t<signed char>* arr =
+	static_cast<const array_t<signed char>*>(col->getArray());
+    if (arr == 0) return -3;
+
+    uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+    if (begin >= sz)
+	return 0;
+
+    if (end > begin)
+	sz = end - begin;
+    else
+	sz = sz - begin;
+    std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+    return sz;
 } // ibis::bord::getColumnAsBytes
 
 int64_t
-ibis::bord::getColumnAsUBytes(const char *cn, unsigned char *vals) const {
+ibis::bord::getColumnAsUBytes(const char *cn, unsigned char *vals,
+			      uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
 	return -1;
 
-    if (col->type() == ibis::BYTE || col->type() == ibis::UBYTE) {
-	const array_t<unsigned char>* arr =
-	    static_cast<const array_t<unsigned char>*>(col->getArray());
-	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;
-    }
-    else {
+    if (col->type() != ibis::BYTE && col->type() != ibis::UBYTE)
 	return -2;
-    }
+
+    const array_t<unsigned char>* arr =
+	static_cast<const array_t<unsigned char>*>(col->getArray());
+    if (arr == 0) return -3;
+
+    uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+    if (begin >= sz)
+	return 0;
+
+    if (end > begin)
+	sz = end - begin;
+    else
+	sz = sz - begin;
+    std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+    return sz;
 } // ibis::bord::getColumnAsUBytes
 
-int64_t ibis::bord::getColumnAsShorts(const char *cn, int16_t *vals) const {
+int64_t ibis::bord::getColumnAsShorts(const char *cn, int16_t *vals,
+				      uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -234,27 +247,48 @@ int64_t ibis::bord::getColumnAsShorts(const char *cn, int16_t *vals) const {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::BYTE) {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::UBYTE) {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else {
@@ -262,7 +296,8 @@ int64_t ibis::bord::getColumnAsShorts(const char *cn, int16_t *vals) const {
     }
 } // ibis::bord::getColumnAsShorts
 
-int64_t ibis::bord::getColumnAsUShorts(const char *cn, uint16_t *vals) const {
+int64_t ibis::bord::getColumnAsUShorts(const char *cn, uint16_t *vals,
+				       uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -272,18 +307,32 @@ int64_t ibis::bord::getColumnAsUShorts(const char *cn, uint16_t *vals) const {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::BYTE || col->type() == ibis::UBYTE) {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else {
@@ -291,7 +340,8 @@ int64_t ibis::bord::getColumnAsUShorts(const char *cn, uint16_t *vals) const {
     }
 } // ibis::bord::getColumnAsUShorts
 
-int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
+int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals,
+				    uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -301,45 +351,80 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
 	const array_t<int32_t>* arr =
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::SHORT) {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::USHORT) {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::BYTE) {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::UBYTE) {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			     nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else {
@@ -347,7 +432,8 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals) const {
     }
 } // ibis::bord::getColumnAsInts
 
-int64_t ibis::bord::getColumnAsUInts(const char *cn, uint32_t *vals) const {
+int64_t ibis::bord::getColumnAsUInts(const char *cn, uint32_t *vals,
+				     uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -357,27 +443,48 @@ int64_t ibis::bord::getColumnAsUInts(const char *cn, uint32_t *vals) const {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::SHORT || col->type() == ibis::USHORT) {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::BYTE || col->type() == ibis::UBYTE) {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else {
@@ -385,7 +492,8 @@ int64_t ibis::bord::getColumnAsUInts(const char *cn, uint32_t *vals) const {
     }
 } // ibis::bord::getColumnAsUInts
 
-int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
+int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals,
+				     uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -395,63 +503,112 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
 	const array_t<int64_t>* arr =
 	    static_cast<const array_t<int64_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::INT) {
 	const array_t<int32_t>* arr =
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::UINT) {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::SHORT) {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::USHORT) {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::BYTE) {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::UBYTE) {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else {
@@ -459,7 +616,8 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals) const {
     }
 } // ibis::bord::getColumnAsLongs
 
-int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals) const {
+int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals,
+				      uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -469,36 +627,64 @@ int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals) const {
 	const array_t<uint64_t>* arr =
 	    static_cast<const array_t<uint64_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::INT || col->type() == ibis::UINT) {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::SHORT || col->type() == ibis::USHORT) {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else if (col->type() == ibis::BYTE || col->type() == ibis::UBYTE) {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
 	return sz;
     }
     else {
@@ -506,7 +692,8 @@ int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals) const {
     }
 } // ibis::bord::getColumnAsULongs
 
-int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals) const {
+int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals,
+				      uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -517,49 +704,90 @@ int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals) const {
 	const array_t<float>* arr =
 	    static_cast<const array_t<float>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::SHORT: {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     default:
 	break;
     }
     return -2;
 } // ibis::bord::getColumnAsFloats
 
-int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
+int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals,
+				       uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -570,66 +798,130 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 	const array_t<double>* arr =
 	    static_cast<const array_t<double>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::FLOAT: {
 	const array_t<float>* arr =
 	    static_cast<const array_t<float>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::INT: {
 	const array_t<int32_t>* arr =
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::UINT: {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::SHORT: {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
-	std::copy(arr->begin(), arr->begin()+sz, vals);
-	return sz;}
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals);
+	return sz;
+    }
     default:
 	break;
     }
@@ -637,7 +929,8 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals) const {
 } // ibis::bord::getColumnAsDoubles
 
 int64_t ibis::bord::getColumnAsDoubles(const char* cn,
-				       std::vector<double>& vals) const {
+				       std::vector<double>& vals,
+				       uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<const ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -648,74 +941,138 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 	const array_t<double>* arr =
 	    static_cast<const array_t<double>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     case ibis::FLOAT: {
 	const array_t<float>* arr =
 	    static_cast<const array_t<float>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     case ibis::INT: {
 	const array_t<int32_t>* arr =
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     case ibis::UINT: {
 	const array_t<uint32_t>* arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     case ibis::SHORT: {
 	const array_t<int16_t>* arr =
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     case ibis::USHORT: {
 	const array_t<uint16_t>* arr =
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     case ibis::BYTE: {
 	const array_t<signed char>* arr =
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     case ibis::UBYTE: {
 	const array_t<unsigned char>* arr =
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
-	const uint32_t sz = (nEvents <= arr->size() ? 
-			   nEvents : arr->size());
+
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->begin()+sz, vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     default:
 	break;
     }
@@ -723,7 +1080,8 @@ int64_t ibis::bord::getColumnAsDoubles(const char* cn,
 } // ibis::bord::getColumnAsDoubles
 
 int64_t ibis::bord::getColumnAsStrings(const char *cn,
-				       std::vector<std::string> &vals) const {
+				       std::vector<std::string> &vals,
+				       uint64_t begin, uint64_t end) const {
     const ibis::bord::column *col =
 	dynamic_cast<ibis::bord::column*>(getColumn(cn));
     if (col == 0)
@@ -736,10 +1094,18 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const std::vector<std::string>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
+	if (end > begin)
+	    sz = end - begin;
+	else
+	    sz = sz - begin;
 	vals.resize(sz);
-	std::copy(arr->begin(), arr->end(), vals.begin());
-	return sz;}
+	std::copy(arr->begin()+begin, arr->begin()+sz, vals.begin());
+	return sz;
+    }
     case ibis::DOUBLE: {
 	const array_t<double> *arr =
 	    static_cast<const array_t<double>*>(col->getArray());
@@ -749,7 +1115,7 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << (*arr)[i];
+	    oss << (*arr)[i+begin];
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -758,11 +1124,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<float>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << (*arr)[i];
+	    oss << (*arr)[i+begin];
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -771,11 +1140,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<int64_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << (*arr)[i];
+	    oss << (*arr)[i+begin];
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -784,11 +1156,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<uint64_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << (*arr)[i];
+	    oss << (*arr)[i+begin];
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -797,11 +1172,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<int32_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << (*arr)[i];
+	    oss << (*arr)[i+begin];
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -810,11 +1188,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << (*arr)[i];
+	    oss << (*arr)[i+begin];
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -823,11 +1204,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<int16_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << (*arr)[i];
+	    oss << (*arr)[i+begin];
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -836,11 +1220,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<uint16_t>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << (*arr)[i];
+	    oss << (*arr)[i+begin];
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -849,11 +1236,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<signed char>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << static_cast<int>((*arr)[i]);
+	    oss << static_cast<int>((*arr)[i+begin]);
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -862,11 +1252,14 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	    static_cast<const array_t<unsigned char>*>(col->getArray());
 	if (arr == 0) return -3;
 
-	const uint32_t sz = arr->size();
+	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+	if (begin >= sz)
+	    return 0;
+
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
 	    std::ostringstream oss;
-	    oss << static_cast<int>((*arr)[i]);
+	    oss << static_cast<int>((*arr)[i+begin]);
 	    vals[i] = oss.str();
 	}
 	return sz;}
@@ -874,7 +1267,7 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	break;
     }
     return -2;
-} // ibis::bord::getColumnAsDoubles
+} // ibis::bord::getColumnAsStrings
 
 long ibis::bord::getHistogram(const char *constraints,
 			     const char *cname,
@@ -1578,7 +1971,7 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	return 0;
     }
 
-    const uint32_t nc1 = sel.size();
+    const uint32_t nc1 = sel.aggSize();
     // convert bundle back into a partition, first generate the name and
     // description for the new table
     if (nc1 == 0)
@@ -1586,7 +1979,7 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 
     // can we finish this in one run?
     const ibis::selectClause::mathTerms& xtms(sel.getTerms());
-    bool onerun = (xtms.size() == sel.size());
+    bool onerun = (xtms.size() == sel.aggSize());
     for (unsigned j = 0; j < xtms.size() && onerun; ++ j)
 	onerun = (xtms[j]->termType() == ibis::math::VARIABLE);
 
@@ -1600,20 +1993,24 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 				ibis::util::ref(buf),
 				ibis::util::ref(tps));
     uint32_t jbdl = 0;
+#ifdef FASTBIT_ALWAYS_OUTPUT_COUNTS
     bool countstar = false;
+#endif
     for (uint32_t i = 0; i < nc1; ++ i) {
 	void *bptr = 0;
-	nms[i] = (onerun ? sel.termName(i) : sel.argName(i));
+	nms[i] = (onerun ? sel.termName(i) : sel.aggName(i));
 	nmc[i] = nms[i].c_str();
-	sel.describe(i, des[i]);
+	sel.aggDescription(i, des[i]);
 	dec[i] = des[i].c_str();
-	bool iscstar = (sel.at(i)->termType() == ibis::math::VARIABLE &&
+	bool iscstar = (sel.aggExpr(i)->termType() == ibis::math::VARIABLE &&
 			sel.getAggregator(i) == ibis::selectClause::CNT);
 	if (iscstar)
 	    iscstar = (*(static_cast<const ibis::math::variable*>
-			 (sel.at(i))->variableName()));
+			 (sel.aggExpr(i))->variableName()));
 	if (iscstar) {
+#ifdef FASTBIT_ALWAYS_OUTPUT_COUNTS
 	    countstar = true;
+#endif
 	    array_t<uint32_t>* cnts = new array_t<uint32_t>;
 	    bdl->rowCounts(*cnts);
 	    tps[i] = ibis::UINT;
@@ -2443,15 +2840,15 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	ibis::util::makeGuard(ibis::table::freeBuffers,
 			      ibis::util::ref(buf),
 			      ibis::util::ref(ct));
-    for (uint32_t j = 0; j < sel.size(); ++ j) {
-	const ibis::math::term* t = sel.at(j);
+    for (uint32_t j = 0; j < sel.aggSize(); ++ j) {
+	const ibis::math::term* t = sel.aggExpr(j);
 	std::string desc;
-	sel.describe(j, desc);
+	sel.aggDescription(j, desc);
 
 	switch (t->termType()) {
 	default: {
 	    cdesc.push_back(desc);
-	    cn.push_back(sel.argName(j));
+	    cn.push_back(sel.aggName(j));
 	    ct.push_back(ibis::DOUBLE);
 	    buf.push_back(new ibis::array_t<double>(nEvents));
 	    ierr = calculate
@@ -2465,13 +2862,13 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	    }
 	    break;}
 	case ibis::math::NUMBER: { // a fixed number
-	    cn.push_back(sel.argName(j));
+	    cn.push_back(sel.aggName(j));
 	    ct.push_back(ibis::DOUBLE);
 	    cdesc.push_back(desc);
 	    buf.push_back(new ibis::array_t<double>(nEvents, t->eval()));
 	    break;}
 	case ibis::math::STRING: { // a string literal
-	    cn.push_back(sel.argName(j));
+	    cn.push_back(sel.aggName(j));
 	    ct.push_back(ibis::CATEGORY);
 	    cdesc.push_back(desc);
 	    buf[j] = new std::vector<std::string>
@@ -2805,8 +3202,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	for (ibis::selectClause::StringToInt::const_iterator it
 		 = colmap.begin(); it != colmap.end(); ++ it) {
 	    lg() << "\n\t" << it->first << " --> " << it->second;
-	    if (it->second < sc.size())
-		lg() << " (" << *(sc.at(it->second)) << ")";
+	    if (it->second < sc.aggSize())
+		lg() << " (" << *(sc.aggExpr(it->second)) << ")";
 	}
     }
 
@@ -2826,13 +3223,13 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	    }
 	}
 	const uint32_t itm = mit->second;
-	if (itm >= sc.size()) {
+	if (itm >= sc.aggSize()) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << mesg << " mapped " << col.name()
 		<< " into term " << itm << " which is outside of " << sc;
 	    return -14;
 	}
-	const ibis::math::term *aterm = sc.at(itm);
+	const ibis::math::term *aterm = sc.aggExpr(itm);
 
 	if (aterm->termType() != ibis::math::VARIABLE) {
 	    if (aterm->termType() == ibis::math::UNDEF_TERM) {

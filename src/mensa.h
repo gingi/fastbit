@@ -48,20 +48,32 @@ public:
     virtual int backup(const char* dir, const char* tname=0,
 		       const char* tdesc=0) const;
 
-    virtual int64_t getColumnAsBytes(const char*, char*) const;
-    virtual int64_t getColumnAsUBytes(const char*, unsigned char*) const;
-    virtual int64_t getColumnAsShorts(const char*, int16_t*) const;
-    virtual int64_t getColumnAsUShorts(const char*, uint16_t*) const;
-    virtual int64_t getColumnAsInts(const char*, int32_t*) const;
-    virtual int64_t getColumnAsUInts(const char*, uint32_t*) const;
-    virtual int64_t getColumnAsLongs(const char*, int64_t*) const;
-    virtual int64_t getColumnAsULongs(const char*, uint64_t*) const;
-    virtual int64_t getColumnAsFloats(const char*, float*) const;
-    virtual int64_t getColumnAsDoubles(const char*, double*) const;
-    virtual int64_t getColumnAsDoubles(const char*,
-				       std::vector<double>&) const;
-    virtual int64_t getColumnAsStrings(const char*,
-				       std::vector<std::string>&) const;
+    virtual int64_t
+    getColumnAsBytes(const char*, char*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsUBytes(const char*, unsigned char*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsShorts(const char*, int16_t*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsUShorts(const char*, uint16_t*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsInts(const char*, int32_t*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsUInts(const char*, uint32_t*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsLongs(const char*, int64_t*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsULongs(const char*, uint64_t*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsFloats(const char*, float*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsDoubles(const char*, double*, uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsDoubles(const char*, std::vector<double>&,
+		       uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsStrings(const char*, std::vector<std::string>&,
+		       uint64_t =0, uint64_t =0) const;
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,

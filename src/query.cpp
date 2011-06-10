@@ -162,7 +162,7 @@ int ibis::query::setPartition(const part* tbl) {
     }
 
     mypart = tbl;
-    if (comps.size() != 0) {
+    if (! comps.empty()) {
 	if (rids_in != 0 || conds.getExpr() != 0) {
 	    state = SPECIFIED;
 	    writeQuery();
@@ -294,7 +294,7 @@ int ibis::query::setWhereClause(const char* str) {
 	}
 
 
-	if (comps.size()) {
+	if (! comps.empty()) {
 	    state = SPECIFIED;
 	    writeQuery();
 	}
@@ -400,7 +400,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 		<< "Warning -- query[" << myID << "]::setWhereClause failed "
 		"to find some variable names in data partition "
 		<< mypart->name() << ", the function verify returned " << ierr;
-	    if (comps.size())
+	    if (! comps.empty())
 		state = SET_COMPONENTS;
 	    else
 		state = UNINITIALIZED;
@@ -413,7 +413,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 		"to simplify " << names.size() << " range condition"
 		<< (names.size() > 1 ? "s" : "")
 		<< " into a valid query expression";
-	    if (comps.size())
+	    if (! comps.empty())
 		state = SET_COMPONENTS;
 	    else
 		state = UNINITIALIZED;
@@ -443,7 +443,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
     conds.setExpr(expr);
     delete expr;
 
-    if (comps.size()) {
+    if (! comps.empty()) {
 	state = SPECIFIED;
 	writeQuery();
     }
@@ -471,7 +471,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 		"to find some names used in the input qExpr "
 		<< static_cast<const void*>(qx) << " in data partition "
 		<< mypart->name() << ", the function verify returned " << ierr;
-	    if (comps.size())
+	    if (! comps.empty())
 		state = SET_COMPONENTS;
 	    else
 		state = UNINITIALIZED;
@@ -482,7 +482,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 		<< "Warning -- query[" << myID << "]::setWhereClause failed "
 		"to simplify the input qExpr " << static_cast<const void*>(qx)
 		<< " into a valid query expression";
-	    if (comps.size())
+	    if (! comps.empty())
 		state = SET_COMPONENTS;
 	    else
 		state = UNINITIALIZED;
@@ -514,7 +514,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 	removeFiles();
     }
 
-    if (comps.size()) {
+    if (! comps.empty()) {
 	state = SPECIFIED;
 	writeQuery();
     }
@@ -564,7 +564,7 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
 	removeFiles();
     }
 
-    if (comps.size()) {
+    if (! comps.empty()) {
 	writeQuery();
 	state = SPECIFIED;
     }
@@ -986,7 +986,7 @@ int ibis::query::evaluate(const bool evalSelect) {
     }
     else if (ibis::gVerbose > 0) {
 	if (conds.getExpr() != 0) {
-	    if (comps.size() > 0)
+	    if (! comps.empty())
 		logMessage("evaluate", "user %s SELECT %s FROM %s WHERE "
 			   "%s ==> %lu hit%s.", user, *comps, mypart->name(),
 			   (conds.getString() ? conds.getString() :
@@ -1661,7 +1661,7 @@ void ibis::query::expandQuery() {
 	removeFiles();
 	dstime = 0;
     }
-    else if (comps.size()) {
+    else if (! comps.empty()) {
 	state = SPECIFIED;
 	writeQuery();
     }
@@ -1697,7 +1697,7 @@ void ibis::query::contractQuery() {
 	removeFiles();
 	dstime = 0;
     }
-    else if (comps.size()) {
+    else if (! comps.empty()) {
 	state = SPECIFIED;
 	writeQuery();
     }
@@ -1849,9 +1849,9 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
 	    if (hits != 0) delete hits;
 	    hits = 0;
 	    sup = 0;
-	    if (comps.size() && (conds.getExpr() != 0 || rids_in != 0))
+	    if (!comps.empty() && (conds.getExpr() != 0 || rids_in != 0))
 		state = SPECIFIED;
-	    else if (comps.size())
+	    else if (! comps.empty())
 		state = SET_COMPONENTS;
 	    else if (conds.getExpr() != 0)
 		state = SET_PREDICATE;
@@ -2411,7 +2411,7 @@ void ibis::query::getBounds() {
 	logMessage("getBounds", "compute upper and lower bounds of hits");
 
     ibis::bitvector mask;
-    if (comps.size() > 0) {
+    if (! comps.empty()) {
 	comps.getNullMask(*mypart, mask);
     }
     else {
@@ -2741,7 +2741,7 @@ int ibis::query::computeHits() {
     int ierr = 0;
     if (hits == 0) { // have not performed an estimate
 	ibis::bitvector mask;
-	if (comps.size() > 0) {
+	if (! comps.empty()) {
 	    comps.getNullMask(*mypart, mask);
 	}
 	else {
@@ -4202,7 +4202,7 @@ void ibis::query::writeQuery() {
 	return;
     }
 
-    if (comps.size() > 0)
+    if (! comps.empty())
 	fprintf(fptr, "%s\n%s\n%s\n%d\n", user, mypart->name(),
 		*comps, (int)state);
     else

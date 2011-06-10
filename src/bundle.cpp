@@ -27,7 +27,7 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q,
     ibis::bundle* bdl = 0;
     if (q.components().empty())
 	bdl = new ibis::bundle0(q, hits);
-    else if (q.components().size() == 1)
+    else if (q.components().aggSize() == 1)
 	bdl = new ibis::bundle1(q, hits);
     else
 	bdl = new ibis::bundles(q, hits);
@@ -50,7 +50,7 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
     ibis::bundle* bdl = 0;
     if (q.components().empty())
 	bdl = new ibis::bundle0(q);
-    else if (q.components().size() == 1)
+    else if (q.components().aggSize() == 1)
 	bdl = new ibis::bundle1(q);
     else
 	bdl = new ibis::bundles(q);
@@ -67,7 +67,7 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
 /// Create a bundle using the all values of the partition.
 ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
 				   const ibis::selectClause& sel) {
-    const uint32_t nc = sel.size();
+    const uint32_t nc = sel.aggSize();
     ibis::bundle* res = 0;
     if (nc > 1) {
 	res = new ibis::bundles(tbl, sel);
@@ -343,13 +343,13 @@ ibis::bundle1::bundle1(const ibis::query& q)
 	    "select clause";
 	throw "bundle1 can not work with empty select clauses";
     }
-    LOGGER(comps.size() != 1 && ibis::gVerbose > 0)
+    LOGGER(comps.aggSize() != 1 && ibis::gVerbose > 0)
 	<< "Warning -- bundle1 will only use the 1st term out of "
-	<< comps.size() << " (" << *comps << ')';
-    ibis::column* c = tbl->getColumn(comps.argName(0));
+	<< comps.aggSize() << " (" << *comps << ')';
+    ibis::column* c = tbl->getColumn(comps.aggName(0));
     if (c == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bundle1::ctor name " << comps.argName(0)
+	    << "Warning -- bundle1::ctor name " << comps.aggName(0)
 	    << " is not a column in table ";
 	return;
     }
@@ -384,7 +384,7 @@ ibis::bundle1::bundle1(const ibis::query& q)
 		if (aggr == ibis::selectClause::NIL_AGGR) {
 		    LOGGER(ibis::gVerbose > 4)
 			<< "bundle1::ctor reconstructing a colValues for "
-			<< comps.argName(0);
+			<< comps.aggName(0);
 		    col = ibis::colValues::create
 			(c, bdlstore, 3*sizeof(uint32_t), sizes[0]);
 		}
@@ -398,7 +398,7 @@ ibis::bundle1::bundle1(const ibis::query& q)
 		    case ibis::selectClause::STDSAMP:
 			LOGGER(ibis::gVerbose > 4)
 			    << "bundle1::ctor reconstructing a colDoubles for "
-			    << *(comps.at(0));
+			    << *(comps.aggExpr(0));
 			col = new ibis::colDoubles
 			    (c, bdlstore, 3*sizeof(uint32_t),
 			     3*sizeof(uint32_t)+8*sizes[0]);
@@ -406,7 +406,7 @@ ibis::bundle1::bundle1(const ibis::query& q)
 		    default:
 			LOGGER(ibis::gVerbose > 4)
 			    << "bundle1::ctor reconstructing a colValues for "
-			    << *(comps.at(0));
+			    << *(comps.aggExpr(0));
 			col = ibis::colValues::create
 			    (c, bdlstore, 3*sizeof(uint32_t),
 			     3*sizeof(uint32_t)+sizes[0]*c->elementSize());
@@ -439,7 +439,7 @@ ibis::bundle1::bundle1(const ibis::query& q)
 		if (aggr == ibis::selectClause::NIL_AGGR) {
 		    LOGGER(ibis::gVerbose > 4)
 			<< "bundle1::ctor initializing a colValues for "
-			<< *(comps.at(0));
+			<< *(comps.aggExpr(0));
 		    col = ibis::colValues::create(c, *hits);
 		}
 		else {
@@ -452,13 +452,13 @@ ibis::bundle1::bundle1(const ibis::query& q)
 		    case ibis::selectClause::STDSAMP:
 			LOGGER(ibis::gVerbose > 4)
 			    << "bundle1::ctor initializing a colDoubles for "
-			    << *(comps.at(0));
+			    << *(comps.aggExpr(0));
 			col = new ibis::colDoubles(c, *hits);
 			break;
 		    default:
 			LOGGER(ibis::gVerbose > 4)
 			    << "bundle1::ctor initializing a colValues for "
-			    << *(comps.at(0));
+			    << *(comps.aggExpr(0));
 			col = ibis::colValues::create(c, *hits);
 			break;
 		    }
@@ -516,14 +516,14 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 	    rids = 0;
 	}
     }
-    ibis::column* c = tbl->getColumn(comps.argName(0));
+    ibis::column* c = tbl->getColumn(comps.aggName(0));
     try {
 	if (c != 0) {
 	    if (aggr == ibis::selectClause::NIL_AGGR) {
 		// use column type
 		LOGGER(ibis::gVerbose > 4)
 		    << "bundle1::ctor initializing a colValues for "
-		    << *(comps.at(0));
+		    << *(comps.aggExpr(0));
 		col = ibis::colValues::create(c, hits);
 	    }
 	    else { // a function, treat AVG and SUM as double
@@ -536,13 +536,13 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 		case ibis::selectClause::STDSAMP:
 		    LOGGER(ibis::gVerbose > 4)
 			<< "bundle1::ctor initializing a colDoubles for "
-			<< *(comps.at(0));
+			<< *(comps.aggExpr(0));
 		    col = new ibis::colDoubles(c, hits);
 		    break;
 		default:
 		    LOGGER(ibis::gVerbose > 4)
 			<< "bundle1::ctor initializing a colValues for "
-			<< *(comps.at(0));
+			<< *(comps.aggExpr(0));
 		    col = ibis::colValues::create(c, hits);
 		    break;
 		}
@@ -560,7 +560,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 	}
 	else {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Error -- bundle1::ctor name \"" << comps.argName(0)
+		<< "Error -- bundle1::ctor name \"" << comps.aggName(0)
 		<< "\" is not a column in table " << tbl->name();
 	    throw ibis::bad_alloc("not a valid column name");
 	}
@@ -595,14 +595,14 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 /// Constructor.  It creates the bundle using all rows of tbl.
 ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
     : bundle(cmps), col(0), aggr(comps.getAggregator(0)) {
-    if (comps.size() == 0)
+    if (comps.empty())
 	return;
 
     id = tbl.name();
     uint32_t icol = 0;
     const ibis::math::term* tm = 0;
-    while (tm == 0 && icol < comps.size()) {
-	tm = comps.at(icol);
+    while (tm == 0 && icol < comps.aggSize()) {
+	tm = comps.aggExpr(icol);
 	if (tm->termType() == ibis::math::VARIABLE) {
 	    if (*(static_cast<const ibis::math::variable*>(tm)->variableName())
 		== '*') {
@@ -611,7 +611,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
 	    }
 	}
     }
-    if (tm == 0 || icol >= comps.size()) {
+    if (tm == 0 || icol >= comps.aggSize()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- bundle1::ctor failed to locate a valid column "
 	    "name in " << comps;
@@ -622,11 +622,11 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
     if (tm->termType() == ibis::math::VARIABLE)
 	c = tbl.getColumn(static_cast<const ibis::math::variable*>(tm)->variableName());
     if (c == 0)
-	c = tbl.getColumn(comps.argName(icol));
+	c = tbl.getColumn(comps.aggName(icol));
     if (c == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- bundle1 constructor failed to find column "
-	    << comps.argName(icol) << " in " << tbl.name();
+	    << comps.aggName(icol) << " in " << tbl.name();
 	throw "bundle1::ctor can find the named column";
     }
 
@@ -636,7 +636,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
 	    // use column type
 	    LOGGER(ibis::gVerbose > 4)
 		<< "bundle1::ctor initializing a colValues for "
-		<< *(comps.at(icol));
+		<< *(comps.aggExpr(icol));
 	    col = ibis::colValues::create(c);
 	}
 	else { // a function, treat AVG and SUM as double
@@ -649,13 +649,13 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
 	    case ibis::selectClause::STDSAMP:
 		LOGGER(ibis::gVerbose > 4)
 		    << "bundle1::ctor initializing a colDoubles for "
-		    << *(comps.at(icol));
+		    << *(comps.aggExpr(icol));
 		col = new ibis::colDoubles(c);
 		break;
 	    default:
 		LOGGER(ibis::gVerbose > 4)
 		    << "bundle1::ctor initializing a colValues for "
-		    << *(comps.at(icol));
+		    << *(comps.aggExpr(icol));
 		col = ibis::colValues::create(c);
 		break;
 	    }
@@ -1069,7 +1069,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	    bdlfile[0] = 0;
 	}
 
-	const uint32_t ncol = comps.size();
+	const uint32_t ncol = comps.aggSize();
 	if (q.dir() != 0 && ibis::util::getFileSize(bdlfile) > 0) {
 	    // file bundles exists, attempt to read in its content
 	    if (rids == 0) {
@@ -1100,11 +1100,11 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		// go through every selected column to construct the colValues
 		uint32_t start = sizeof(uint32_t)*(ncol+2);
 		for (uint32_t i=0; i < ncol; ++i) {
-		    const ibis::column* cptr = tbl->getColumn(comps.argName(i));
+		    const ibis::column* cptr = tbl->getColumn(comps.aggName(i));
 		    if (cptr != 0) {
 			LOGGER(ibis::gVerbose > 4)
 			    << "bundles::ctor to recreate a colValues for "
-			    << *(comps.at(i)) << " as cols[" << cols.size()
+			    << *(comps.aggExpr(i)) << " as cols[" << cols.size()
 			    << ']';
 			ibis::colValues* tmp;
 			switch (comps.getAggregator(i)) {
@@ -1130,7 +1130,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Error -- bundles::ctor \"" << comps.argName(i)
+			    << "Error -- bundles::ctor \"" << comps.aggName(i)
 			    << "\" is not the name of a column in table "
 			    << tbl->name();
 			throw ibis::bad_alloc("unknown column name");
@@ -1168,12 +1168,12 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		throw ibis::bad_alloc("bundles::ctor -- no hit vector");
 	    }
 	    for (uint32_t i=0; i < ncol; ++i) {
-		const ibis::column* cptr = tbl->getColumn(comps.argName(i));
+		const ibis::column* cptr = tbl->getColumn(comps.aggName(i));
 		if (cptr != 0) {
 		    ibis::colValues* tmp;
 		    LOGGER(ibis::gVerbose > 4)
 			<< "bundles::ctor to create a colValues for "
-			<< *(comps.at(i)) << " as cols[" << cols.size() << ']';
+			<< *(comps.aggExpr(i)) << " as cols[" << cols.size() << ']';
 		    switch (comps.getAggregator(i)) {
 		    case ibis::selectClause::AVG:
 		    case ibis::selectClause::SUM:
@@ -1192,7 +1192,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		}
 		else {
 		    LOGGER(ibis::gVerbose >= 0)
-			<< "Error -- bundles::ctor \"" << comps.argName(i)
+			<< "Error -- bundles::ctor \"" << comps.aggName(i)
 			<< "\" is not the name of a column in table "
 			<< tbl->name();
 		    throw ibis::bad_alloc("unknown column name");
@@ -1240,13 +1240,13 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
     try {
 	// need to retrieve the named columns
 	const ibis::part* tbl = q.partition();
-	const uint32_t ncol = comps.size();
+	const uint32_t ncol = comps.aggSize();
 	for (uint32_t i=0; i < ncol; ++i) {
-	    const ibis::column* cptr = tbl->getColumn(comps.argName(i));
+	    const ibis::column* cptr = tbl->getColumn(comps.aggName(i));
 	    if (cptr != 0) {
 		LOGGER(ibis::gVerbose > 4)
 		    << "bundles::ctor to create a colValues for "
-		    << *(comps.at(i)) << " as cols[" << cols.size() << ']';
+		    << *(comps.aggExpr(i)) << " as cols[" << cols.size() << ']';
 		ibis::colValues* tmp;
 		switch (comps.getAggregator(i)) {
 		case ibis::selectClause::AVG:
@@ -1266,7 +1266,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	    }
 	    else {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Error -- bundles::ctr \"" << comps.at(i)
+		    << "Error -- bundles::ctr \"" << comps.aggExpr(i)
 		    << "\" is not the name of a column in table "
 		    << tbl->name();
 		throw ibis::bad_alloc("unknown column name");
@@ -1316,9 +1316,9 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
     try {
 	ibis::bitvector msk;
 	msk.set(1, tbl.nRows());
-	for (unsigned ic = 0; ic < comps.size(); ++ ic) {
-	    const ibis::math::term& expr = *comps.at(ic);
-	    const char* cn = comps.argName(ic);
+	for (unsigned ic = 0; ic < comps.aggSize(); ++ ic) {
+	    const ibis::math::term& expr = *comps.aggExpr(ic);
+	    const char* cn = comps.aggName(ic);
 	    bool iscountstar =
 		(expr.termType() == ibis::math::VARIABLE &&
 		 comps.getAggregator(ic) == ibis::selectClause::CNT);
@@ -1342,7 +1342,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 
 	    LOGGER(ibis::gVerbose > 4)
 		<< "bundles::ctor to create a colValues for "
-		<< *(comps.at(ic)) << " as cols[" << cols.size() << ']';
+		<< *(comps.aggExpr(ic)) << " as cols[" << cols.size() << ']';
 	    ibis::colValues* cv = 0;
 	    switch (comps.getAggregator(ic)) {
 	    case ibis::selectClause::AVG:
@@ -1365,7 +1365,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- bundles(" << tbl.name() << ", " << comps
 		    << ") failed to create an in-memory column for "
-		    << *(comps.at(ic));
+		    << *(comps.aggExpr(ic));
 	    }
 	}
 
@@ -1482,7 +1482,7 @@ void ibis::bundles::sort() {
     const uint32_t ncol = cols.size();
     if (ncol == 0) return;
 
-    const uint32_t nplain = comps.nPlain();
+    const uint32_t nplain = comps.numGroupbyKeys();
     const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
     uint32_t nGroups = nHits;
     if (ibis::gVerbose > 5) {
@@ -1646,7 +1646,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 
     bool nosort = true;
     for (unsigned j = 0; nosort && j < sortkeys.size() && j < cols.size(); ++ j)
-	nosort = (stricmp(sortkeys[j], comps.argName(j)) == 0);
+	nosort = (stricmp(sortkeys[j], comps.aggName(j)) == 0);
     if (nosort) { // no need to sort
 	if (direction < 0)
 	    reverse();
@@ -1679,7 +1679,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		 i < sortkeys.size() && gb.size() <= ngroups;
 		 ++ i) {
 		const uint32_t j = comps.find(sortkeys[i]);
-		if (j >= comps.size()) continue;
+		if (j >= comps.aggSize()) continue;
 
 		array_t<uint32_t> ind0; // indices over all ngroups
 		ind0.reserve(ngroups);
@@ -1718,7 +1718,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	}
 	else { // a single key
 	    const uint32_t j = comps.find(sortkeys[0]);
-	    if (j < comps.size()) {
+	    if (j < comps.aggSize()) {
 		array_t<uint32_t> ind;
 		cols[j]->sort(0, ngroups, ind);
 		if (direction < 0) { // reverse the order of ind
@@ -1758,7 +1758,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		 i < sortkeys.size() && gb.size() <= ngroups;
 		 ++ i) {
 		const uint32_t j = comps.find(sortkeys[i]);
-		if (j >= comps.size()) continue;
+		if (j >= comps.aggSize()) continue;
 
 		ibis::array_t<uint32_t> ind0; // indices over all ngroups
 		ind0.reserve(ngroups);
@@ -1797,7 +1797,7 @@ void ibis::bundles::reorder(const char *names, int direction) {
 	}
 	else {
 	    const uint32_t j = comps.find(sortkeys[0]);
-	    if (j < comps.size()) {
+	    if (j < comps.aggSize()) {
 		ibis::array_t<uint32_t> ind;
 		cols[j]->sort(0, ngroups, ind);
 		if (direction < 0) { // reverse the order of ind
@@ -1989,7 +1989,7 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	    array_t<uint32_t> gb;
 	    uint32_t i = 0;
 	    uint32_t j = comps.find(sortkeys[0]);
-	    while (j >= comps.size() && i < sortkeys.size()) {
+	    while (j >= comps.aggSize() && i < sortkeys.size()) {
 		++ i;
 		j = comps.find(sortkeys[i]);
 	    }
@@ -2017,7 +2017,7 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 		 i < sortkeys.size() && gb.size() <= ngroups;
 		 ++ i) {
 		j = comps.find(sortkeys[i]);
-		if (j >= comps.size()) continue;
+		if (j >= comps.aggSize()) continue;
 
 		for (uint32_t g = 0; g < gb.size()-1; ++ g) {
 		    if (gb[g+1] > gb[g]+1) { // more than one group
@@ -2042,7 +2042,7 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	}
 	else {
 	    const uint32_t j = comps.find(sortkeys[0]);
-	    if (j < comps.size()) {
+	    if (j < comps.aggSize()) {
 		array_t<uint32_t> ind;
 		if (direction >= 0)
 		    cols[j]->bottomk(keep, ind);
@@ -2086,7 +2086,7 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	    array_t<uint32_t> gb;
 	    uint32_t i = 0;
 	    uint32_t j0 = comps.find(sortkeys[0]);
-	    while (j0 >= comps.size() && i < sortkeys.size()) {
+	    while (j0 >= comps.aggSize() && i < sortkeys.size()) {
 		++ i;
 		j0 = comps.find(sortkeys[i]);
 	    }
@@ -2114,7 +2114,7 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 		 i < sortkeys.size() && gb.size() <= ngroups;
 		 ++ i) {
 		const uint32_t j1 = comps.find(sortkeys[i]);
-		if (j1 >= comps.size()) continue;
+		if (j1 >= comps.aggSize()) continue;
 
 		for (uint32_t g = 0; g < gb.size()-1; ++ g) {
 		    if (gb[g+1] > gb[g]+1) { // more than one group
@@ -2139,7 +2139,7 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	}
 	else {
 	    const uint32_t j = comps.find(sortkeys[0]);
-	    if (j < comps.size()) {
+	    if (j < comps.aggSize()) {
 		array_t<uint32_t> ind;
 		if (direction >= 0)
 		    cols[j]->bottomk(keep, ind);
@@ -2340,7 +2340,7 @@ ibis::query::result::result(ibis::query& q)
 	throw ibis::bad_alloc("Can not construct query::result on "
 			      "an incomplete query");
     }
-    if (sel.size() == 0) {
+    if (sel.empty()) {
 	throw ibis::bad_alloc("Can not construct query::result on "
 			      "a query without a select clause");
     }

@@ -102,28 +102,38 @@ public:
     /// Dereferences to the string form of the select clause.
     const char* operator*(void) const {return clause_.c_str();}
 
-    void describe(unsigned i, std::string &str) const;
-    uint32_t nPlain() const;
+    /// Returns true if this select clause is empty.
     bool empty() const {return atms_.empty();}
-    /// The number of arithmetic expressions inside the select clause.
-    uint32_t size() const {return atms_.size();}
-    /// Fetch the ith term of inside the select clause.  No array bound checking.
-    const ibis::math::term* at(unsigned i) const {return atms_[i];}
+    uint32_t numGroupbyKeys() const;
+    int getGroupbyKeys(std::vector<std::string>& keys) const;
+
+    void print(std::ostream&) const;
+    void printDetails(std::ostream&) const;
+    int find(const char*) const;
 
     /// A vector of arithematic expressions.
     typedef std::vector<ibis::math::term*> mathTerms;
     /// Retrieve all top-level arithmetic expressions.
     const mathTerms& getTerms() const {return xtms_;}
+    /// Fetch the ith term visible to the outside.  No array bound checking.
+    const ibis::math::term* termExpr(unsigned i) const {return xtms_[i];}
 
-    void print(std::ostream&) const;
-    void printDetails(std::ostream&) const;
-
-    int find(const char*) const;
-    /// Name inside the aggregation function.  To be used together with
-    /// size() and at().
-    const char* argName(unsigned i) const {return names_[i].c_str();}
-    /// Name given to the top-level function.  To be used with getTerms().
+    /// Number of terms visible to the outside.
+    uint32_t numTerms() const {return xtms_.size();}
+    /// Name given to the top-level function.  This is the external name
+    /// assigned to termExpr(i) (which is also getTerms()[i]).  To produce
+    /// a string version of the term use termDescription.
     const char* termName(unsigned i) const {return xnames_[i].c_str();}
+    void termDescription(unsigned i, std::string &str) const;
+
+    /// The number of arithmetic expressions inside the select clause.
+    uint32_t aggSize() const {return atms_.size();}
+    /// Fetch the ith term of inside the select clause.  No array bound checking.
+    const ibis::math::term* aggExpr(unsigned i) const {return atms_[i];}
+    /// Name inside the aggregation function.  To be used together with
+    /// aggSize() and aggExpr().
+    const char* aggName(unsigned i) const {return names_[i].c_str();}
+    void aggDescription(unsigned i, std::string &str) const;
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
     enum AGREGADO {NIL_AGGR, AVG, CNT, MAX, MIN, SUM, DISTINCT,
@@ -218,13 +228,17 @@ private:
     variable();
 }; // class ibis::selectClause::variable
 
-/// Number of terms without aggregation functions.
-inline uint32_t ibis::selectClause::nPlain() const {
-    uint32_t ret = 0;
+/// Number of terms without aggregation functions.  They are implicitly
+/// used as sort keys for group by operations.  However, if the select
+/// clause does not contain any aggregation function, the sorting operation
+/// might be skipped.
+inline uint32_t ibis::selectClause::numGroupbyKeys() const {
+    uint32_t ret = (atms_.size() > aggr_.size() ?
+		    atms_.size() - aggr_.size() : 0);
     for (uint32_t j = 0; j < aggr_.size(); ++j)
 	ret += (aggr_[j] == NIL_AGGR);
     return ret;
-} // ibis::selectClause::nPlain
+} // ibis::selectClause::numGroupbyKeys
 
 namespace std {
     inline ostream& operator<<(ostream& out, const ibis::selectClause& sel) {

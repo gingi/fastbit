@@ -322,11 +322,11 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
-    const uint32_t nplain = tms.nPlain();
+    const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << mesg << " -- processing a select clause with " << tms.size()
-	     << " term" << (tms.size()>1?"s":"") << ", " << nplain
+	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
+	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
 	     << " of which " << (nplain>1?"are":"is") << " plain";
 	if (ibis::gVerbose > 4) {
 	    lg() << "\nTemporary data will be stored in the following:\n";
@@ -415,7 +415,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 				tms.termName(0));
     }
 
-    if (nplain >= tms.size()) {
+    if (nplain >= tms.aggSize()) {
 	brd1->renameColumns(tms);
 	return brd1.release();
     }

@@ -249,8 +249,8 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0 && sel != 0) {
 		int isel = sel->find(range->colName());
-		if (isel >= 0 && (unsigned)isel < sel->size()) {
-		    const ibis::math::term *tm = sel->at(isel);
+		if (isel >= 0 && (unsigned)isel < sel->aggSize()) {
+		    const ibis::math::term *tm = sel->aggExpr(isel);
 		    switch (tm->termType()) {
 		    default: break; // can not do anything
 		    case ibis::math::VARIABLE: {
@@ -358,8 +358,8 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 		part0.getColumn(var->variableName());
 	    if (col == 0 && sel != 0) {
 		int isel = sel->find(var->variableName());
-		if (isel >= 0 && (unsigned)isel < sel->size()) {
-		    const ibis::math::term *tm = sel->at(isel);
+		if (isel >= 0 && (unsigned)isel < sel->aggSize()) {
+		    const ibis::math::term *tm = sel->aggExpr(isel);
 		    switch (tm->termType()) {
 		    default: break; // can not do anything
 		    case ibis::math::VARIABLE: {
@@ -572,7 +572,7 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0 && sel != 0) {
 		int isel = sel->find(range->colName());
-		if (isel >= 0 && (unsigned)isel < sel->size()) {
+		if (isel >= 0 && (unsigned)isel < sel->aggSize()) {
 		    col = part0.getColumn(0U);
 		}
 	    }

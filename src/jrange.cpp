@@ -362,8 +362,8 @@ ibis::table* ibis::jRange::select() const {
     uint32_t features=0; // 1: arithmetic operation, 2: aggregation
     // use a barrel to collect all unique names
     ibis::math::barrel brl;
-    for (uint32_t j = 0; j < sel_->size(); ++ j) {
-	const ibis::math::term* t = sel_->at(j);
+    for (uint32_t j = 0; j < sel_->aggSize(); ++ j) {
+	const ibis::math::term* t = sel_->aggExpr(j);
 	brl.recordVariable(t);
 	if (t->termType() != ibis::math::VARIABLE &&
 	    t->termType() != ibis::math::NUMBER &&

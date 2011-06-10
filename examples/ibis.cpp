@@ -2432,11 +2432,11 @@ static void printQueryResults(std::ostream &out, ibis::query &q) {
 	<< q.getNumHits() << ")\n"
 	<< q.getSelectClause() << std::endl;
     const ibis::selectClause& sel = q.components();
-    if (sel.size() == 0) return;
+    if (sel.empty()) return;
 
     while (cursor.next()) {
 	out << cursor.getString(static_cast<uint32_t>(0U));
-	for (uint32_t i = 1; i < sel.size(); ++ i)
+	for (uint32_t i = 1; i < sel.numTerms(); ++ i)
 	    out << ", " << cursor.getString(i);
 	out << "\n";
     }

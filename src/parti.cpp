@@ -1436,18 +1436,18 @@ long ibis::part::addColumn(const char* aexpr, const char* cname,
 	return -1L;
 
     ibis::selectClause xpr(aexpr);
-    if (xpr.size() != 1) {
+    if (xpr.aggSize() != 1) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- part[" << m_name
 	    << "]::addColumn expects to parse \"" << aexpr
 	    << "\" into a single arithmetic expression, but it got "
-	    << xpr.size();
+	    << xpr.aggSize();
 	return -2L;
     }
 
     ibis::bitvector mask;
     xpr.getNullMask(*this, mask);
-    return addColumn(xpr.at(0), mask, cname, ctype);
+    return addColumn(xpr.aggExpr(0), mask, cname, ctype);
 } // ibis::part::addColumn
 
 /// Add a column computed with the given arithmetic expression.

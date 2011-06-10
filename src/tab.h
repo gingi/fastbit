@@ -51,24 +51,42 @@ public:
     virtual int backup(const char*, const char* =0,
 		       const char* =0) const {return 0;}
 
-    virtual int64_t getColumnAsBytes(const char*, char*) const {return -1;}
-    virtual int64_t getColumnAsUBytes(const char*,
-				      unsigned char*) const {return -1;}
-    virtual int64_t getColumnAsShorts(const char*, int16_t*) const {return -1;}
-    virtual int64_t getColumnAsUShorts(const char*, 
-				       uint16_t*) const {return -1;}
-    virtual int64_t getColumnAsInts(const char*, int32_t*) const {return -1;}
-    virtual int64_t getColumnAsUInts(const char*, uint32_t*) const {return -1;}
-    virtual int64_t getColumnAsLongs(const char*, int64_t*) const {return -1;}
-    virtual int64_t getColumnAsULongs(const char*,
-				      uint64_t*) const {return -1;}
-    virtual int64_t getColumnAsFloats(const char*, float*) const {return -1;}
-    virtual int64_t getColumnAsDoubles(const char*, double*) const {return -1;}
-    virtual int64_t getColumnAsDoubles(const char*,
-				       std::vector<double>&) const {return -1;}
-    virtual int64_t getColumnAsStrings(const char*,
-				       std::vector<std::string>&) const {
-	return -1;}
+    virtual int64_t
+    getColumnAsBytes(const char*, char*, uint64_t =0,
+		     uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsUBytes(const char*, unsigned char*, uint64_t =0,
+		      uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsShorts(const char*, int16_t*, uint64_t =0,
+		      uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsUShorts(const char*, uint16_t*, uint64_t =0,
+		       uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsInts(const char*, int32_t*, uint64_t =0,
+		    uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsUInts(const char*, uint32_t*, uint64_t =0,
+		     uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsLongs(const char*, int64_t*, uint64_t =0,
+		     uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsULongs(const char*, uint64_t*, uint64_t =0,
+		      uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsFloats(const char*, float*, uint64_t =0,
+		      uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsDoubles(const char*, double*, uint64_t =0,
+		       uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsDoubles(const char*, std::vector<double>&, uint64_t =0,
+		       uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsStrings(const char*, std::vector<std::string>&, uint64_t =0,
+		       uint64_t =0) const {return -1;}
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,
@@ -147,42 +165,74 @@ public:
     virtual int backup(const char*, const char* =0,
 		       const char* =0) const {return 0;}
 
-    virtual int64_t getColumnAsBytes(const char*, char*) const {return -1;}
+    virtual int64_t getColumnAsBytes(const char*, char*, uint64_t =0,
+				     uint64_t =0) const {return -1;}
     virtual int64_t getColumnAsUBytes(const char*,
-				      unsigned char*) const {return -1;}
+				      unsigned char*, uint64_t =0,
+				      uint64_t =0) const {return -1;}
     virtual int64_t getColumnAsShorts(const char*,
-				      int16_t*) const {return -1;}
+				      int16_t*, uint64_t =0,
+				      uint64_t =0) const {return -1;}
     virtual int64_t getColumnAsUShorts(const char*,
-				       uint16_t*) const {return -1;}
-    virtual int64_t getColumnAsInts(const char*, int32_t*) const {return -1;}
-    virtual int64_t getColumnAsUInts(const char* cn, uint32_t* vals) const {
+				       uint16_t*, uint64_t =0,
+				       uint64_t =0) const {return -1;}
+    virtual int64_t getColumnAsInts(const char*, int32_t*, uint64_t =0,
+				    uint64_t =0) const {return -1;}
+    virtual int64_t getColumnAsUInts(const char* cn, uint32_t* vals,
+				     uint64_t begin =0, uint64_t =0) const {
 	if (stricmp(col.c_str(), cn) == 0) {
-	    *vals = static_cast<uint32_t>(nrows);
-	    return 1;}
+	    if (begin == 0) {
+		*vals = static_cast<uint32_t>(nrows);
+		return 1;
+	    }
+	    else {
+		return 0;
+	    }
+	}
 	else {
 	    return -1;
-	}}
-    virtual int64_t getColumnAsLongs(const char* cn, int64_t* vals) const {
+	}
+    }
+    virtual int64_t getColumnAsLongs(const char* cn, int64_t* vals,
+				     uint64_t begin =0, uint64_t =0) const {
 	if (stricmp(col.c_str(), cn) == 0) {
-	    *vals = nrows;
-	    return 1;}
+	    if (begin == 0) {
+		*vals = nrows;
+		return 1;
+	    }
+	    else {
+		return 0;
+	    }
+	}
 	else {
 	    return -1;
-	}}
-    virtual int64_t getColumnAsULongs(const char* cn, uint64_t* vals) const {
+	}
+    }
+    virtual int64_t getColumnAsULongs(const char* cn, uint64_t* vals,
+				      uint64_t begin =0, uint64_t =0) const {
 	if (stricmp(col.c_str(), cn) == 0) {
-	    *vals = nrows;
-	    return 1;}
+	    if (begin == 0) {
+		*vals = nrows;
+		return 1;
+	    }
+	    else {
+		return 0;
+	    }
+	}
 	else {
 	    return -1;
-	}}
-    virtual int64_t getColumnAsFloats(const char*, float*) const {return -1;}
-    virtual int64_t getColumnAsDoubles(const char*, double*) const {return -1;}
-    virtual int64_t getColumnAsDoubles(const char*,
-				       std::vector<double>&) const {return -1;}
-    virtual int64_t getColumnAsStrings(const char*,
-				       std::vector<std::string>&) const {
-	return -1;}
+	}
+    }
+    virtual int64_t getColumnAsFloats(const char*, float*, uint64_t =0,
+				      uint64_t =0) const {return -1;}
+    virtual int64_t getColumnAsDoubles(const char*, double*, uint64_t =0,
+				     uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsDoubles(const char*, std::vector<double>&, uint64_t =0,
+		       uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsStrings(const char*, std::vector<std::string>&, uint64_t =0,
+		       uint64_t =0) const {return -1;}
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,

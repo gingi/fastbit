@@ -252,7 +252,7 @@ public:
 protected:
     char* user; 	///< Name of the user who specified the query
     whereClause conds;	///< Query conditions
-    selectClause comps;	///< Names of selected components
+    selectClause comps;	///< Select clause
     QUERY_STATE state;	///< Status of the query
     ibis::bitvector* hits;///< Solution in bitvector form (or lower bound)
     ibis::bitvector* sup;///< Estimated upper bound

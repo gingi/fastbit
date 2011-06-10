@@ -1,8 +1,15 @@
+2011-06-09 John Wu <John dot Wu at ACM dot org>
+	* src/table.h: add two optional arguments to functions of the form
+	ibis::table::getColumnAsTypes at the request of Jon Strabala
+
 2011-06-08 John Wu <John dot Wu at ACM dot org>
 	* src/whereLexer.ll: enforce the need for coma as separator in
 	string sequences (to avoid the problem of treating a LIKE
 	expression as a string sequence by the lexer, a problem reported
 	by Jon Strabala)
+	* src/selectClause.h, src/selectClause.cpp: rename the functions
+	to separate the internal terms and external expressions more
+	cleanly.   Add function getGroupbyKeys.
 
 2011-06-07 John Wu <John dot Wu at ACM dot org>
 	* src/colValues.cpp:4048 remove the extra statement that

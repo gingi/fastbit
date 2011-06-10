@@ -112,7 +112,7 @@ int ibis::selectClause::parse(const char *cl) {
 
 /// Write the string form of the ith (internal) term.  The result is placed
 /// in the second argument str.
-void ibis::selectClause::describe(unsigned i, std::string &str) const {
+void ibis::selectClause::aggDescription(unsigned i, std::string &str) const {
     if (i >= atms_.size()) return;
     if (atms_[i] != 0) {
 	std::ostringstream oss;
@@ -164,7 +164,7 @@ void ibis::selectClause::describe(unsigned i, std::string &str) const {
     else if (! names_[i].empty()) {
 	str = names_[i];
     }
-} // ibis::selectClause::describe
+} // ibis::selectClause::aggDescription
 
 /// Fill array names_ and xnames_.  An alias for an aggregation operation
 /// is used as the external name for the whole term.  This function
@@ -280,7 +280,7 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
     atms_.push_back(expr);
     if (ibis::gVerbose > 5) {
 	std::string tmp;
-	describe(pos, tmp);
+	aggDescription(pos, tmp);
 	ibis::util::logger lg;
 	lg() << "selectClause::addAgregado -- adding term "
 	     << pos << ": " << tmp;
@@ -412,7 +412,7 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 	    atms_.push_back(tm);
 	    if (ibis::gVerbose > 5) {
 		std::string tmp;
-		describe(pos, tmp);
+		aggDescription(pos, tmp);
 		ibis::util::logger lg;
 		lg() << "selectClause::addRecursive -- adding term "
 		     << pos << ": " << tmp;
@@ -457,7 +457,7 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 	    atms_.push_back(tm);
 	    if (ibis::gVerbose > 5) {
 		std::string tmp;
-		describe(pos, tmp);
+		aggDescription(pos, tmp);
 		ibis::util::logger lg;
 		lg() << "selectClause::addRecursive -- adding term "
 		     << pos << ": " << tmp;
@@ -472,6 +472,36 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
     }
     return tm;
 } // ibis::selectClause::addRecursive
+
+/// Produce a string for the jth term of the select clause.  The string
+/// shows the actual expression, not the alias.  To see the final name to
+/// be used, call ibis::selectClause::termName(j).
+void ibis::selectClause::termDescription(unsigned j, std::string &str) const {
+    if (j < xtms_.size()) {
+	std::ostringstream oss;
+	oss << *(xtms_[j]);
+	str = oss.str();
+    }
+    else {
+	str.clear();
+    }
+} // ibis::selectClause::termDescription
+
+/// Gather the implicit group-by keys into a vector.
+/// @note Uses std::vector<std::string> because the string values may not
+/// existing inside the select clause, such as the string representation
+/// for arithmetic experssions.
+int ibis::selectClause::getGroupbyKeys(std::vector<std::string>& keys) const {
+    keys.clear();
+    for (unsigned j = 0; j < atms_.size(); ++ j) {
+	if (j >= aggr_.size() || aggr_[j] == ibis::selectClause::NIL_AGGR) {
+	    std::ostringstream oss;
+	    oss << *(atms_[j]);
+	    keys.push_back(oss.str());
+	}
+    }
+    return keys.size();
+} // ibis::selectClause::getGroupbyKeys
 
 /// Locate the position of the string.  Upon successful completion, it
 /// returns the position of the term with the matching name, otherwise, it
@@ -706,8 +736,8 @@ int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
 		bool alias = false;
 		if (sel0 != 0) {
 		    int as = sel0->find(var.variableName());
-		    if (as >= 0 && (unsigned)as < sel0->size())
-			alias = (part0.getColumn(sel0->argName(as)) != 0);
+		    if (as >= 0 && (unsigned)as < sel0->aggSize())
+			alias = (part0.getColumn(sel0->aggName(as)) != 0);
 		}
 		if (! alias) {
 		    ++ ierr;

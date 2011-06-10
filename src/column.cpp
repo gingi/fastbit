@@ -689,6 +689,8 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
     }
 } // ibis::column::getNullMask
 
+/// Return all rows of the column as an array_t object.  Caller is
+/// responsible for deleting the returned object.
 ibis::array_t<int32_t>* ibis::column::getIntArray() const {
     ibis::array_t<int32_t>* array = 0;
     if (m_type == INT || m_type == UINT) {
@@ -711,6 +713,7 @@ ibis::array_t<int32_t>* ibis::column::getIntArray() const {
     return array;
 } // ibis::column::getIntArray
 
+/// Return all rows of the column as an array_t object.
 ibis::array_t<float>* ibis::column::getFloatArray() const {
     ibis::array_t<float>* array = 0;
     if (m_type == FLOAT) {
@@ -733,6 +736,7 @@ ibis::array_t<float>* ibis::column::getFloatArray() const {
     return array;
 } // ibis::column::getFloatArray
 
+/// Return all rows of the column as an array_t object.
 ibis::array_t<double>* ibis::column::getDoubleArray() const {
     ibis::array_t<double>* array = 0;
     if (m_type == DOUBLE) {
@@ -755,6 +759,7 @@ ibis::array_t<double>* ibis::column::getDoubleArray() const {
     return array;
 } // ibis::column::getDoubleArray
 
+/// Return all rows of the column as an array_t object.
 /// The incoming argument must be array_t<Type>*.  This function will
 /// explicitly cast vals into one of the ten supported numerical data
 /// types.
@@ -826,6 +831,7 @@ int ibis::column::getValuesArray(void* vals) const {
     return ierr;
 } // ibis::column::getValuesArray
 
+/// Return the content of base data file as storage object.
 ibis::fileManager::storage* ibis::column::getRawData() const {
     std::string sname;
     const char *fnm = dataFileName(sname);
@@ -955,6 +961,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
     return array.release();
 } // ibis::column::selectBytes
 
+/// Return selected rows of the column in an array_t object.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
 ibis::array_t<unsigned char>*
@@ -1065,6 +1072,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
     return array.release();
 } // ibis::column::selectUBytes
 
+/// Return selected rows of the column in an array_t object.
 /// Can convert all integers 2-byte or less in length.  Note that unsigned
 /// integers are simply treated as signed integers.  Shoter types
 /// of signed integers are treated correctly as positive values.
@@ -1306,6 +1314,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
     return array.release();
 } // ibis::column::selectShorts
 
+/// Return selected rows of the column in an array_t object.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
 ibis::array_t<uint16_t>*
@@ -1544,6 +1553,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
     return array.release();
 } // ibis::column::selectUShorts
 
+/// Return selected rows of the column in an array_t object.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
 ibis::array_t<int32_t>*
@@ -1946,6 +1956,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     return array.release();
 } // ibis::column::selectInts
 
+/// Return selected rows of the column in an array_t object.
 /// Can be called on columns of unsigned integral types, UINT, CATEGORY,
 /// USHORT, and UBYTE.
 /// @note The caller is responsible for freeing the returned array from any
@@ -2190,6 +2201,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
     return array.release();
 } // ibis::column::selectUInts
 
+/// Return selected rows of the column in an array_t object.
 /// Can be called on all integral types.  Note that 64-byte unsigned
 /// integers are simply treated as signed integers.  This may cause the
 /// values to be interperted incorrectly.  Shorter version of unsigned
@@ -2793,6 +2805,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
     return array.release();
 } // ibis::column::selectLongs
 
+/// Return selected rows of the column in an array_t object.
 /// Can be called on all unsigned integral types.
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.

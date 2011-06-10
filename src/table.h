@@ -237,38 +237,61 @@ public:
     /// @}
 
     /// Retrieve all values of the named column.  The member functions of
-    /// this class only support access to whole column at a time.  Use @c
-    /// table::cursor class for row-wise accesses.  For fixed-width data
-    /// types, the raw pointers are used to point to the values to be
-    /// returned.  In these cases, the caller is responsible for allocating
-    /// enough storage for the values to be returned.
-    /// @{
-    virtual int64_t getColumnAsBytes(const char* cname, char* vals) const =0;
-    virtual int64_t getColumnAsUBytes(const char* cname,
-				      unsigned char* vals) const =0;
-    virtual int64_t getColumnAsShorts(const char* cname,
-				      int16_t* vals) const =0;
-    virtual int64_t getColumnAsUShorts(const char* cname,
-				       uint16_t* vals) const =0;
-    virtual int64_t getColumnAsInts(const char* cname,
-				    int32_t* vals) const =0;
-    virtual int64_t getColumnAsUInts(const char* cname,
-				     uint32_t* vals) const =0;
-    virtual int64_t getColumnAsLongs(const char* cname,
-				     int64_t* vals) const =0;
-    virtual int64_t getColumnAsULongs(const char* cname,
-				      uint64_t* vals) const =0;
-    virtual int64_t getColumnAsFloats(const char* cname,
-				      float* vals) const =0;
-    virtual int64_t getColumnAsDoubles(const char* cname,
-				       double* vals) const =0;
-    virtual int64_t getColumnAsDoubles(const char* cname,
-				       std::vector<double>& vals) const =0;
+    /// this class only support access to one column at a time.  Use @c
+    /// table::cursor class for row-wise accesses.
+    ///
+    /// The arguments begin and end are given in row numbers starting from
+    /// 0.  If begin < end, then rows begin till end-1 are packed into the
+    /// output array.  If begin >= end, then the values from begin till end
+    /// of the table is packed into the output array.  The default values
+    /// where both begin and end are 0 define a range covering all rows of
+    /// the table.
+    ///
+    /// @note For fixed-width data types, the raw pointers are used to
+    /// point to the values to be returned.  In these cases, the caller is
+    /// responsible for allocating enough storage for the values to be
+    /// returned.
+    ///
+    ///  @{
+    virtual int64_t
+	getColumnAsBytes(const char* cname, char* vals,
+			 uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsUBytes(const char* cname, unsigned char* vals,
+			  uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsShorts(const char* cname, int16_t* vals,
+			  uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsUShorts(const char* cname, uint16_t* vals,
+			   uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsInts(const char* cname, int32_t* vals,
+			uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsUInts(const char* cname, uint32_t* vals,
+			 uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsLongs(const char* cname, int64_t* vals,
+			 uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsULongs(const char* cname, uint64_t* vals,
+			  uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsFloats(const char* cname, float* vals,
+			  uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsDoubles(const char* cname, double* vals,
+			   uint64_t begin=0, uint64_t end=0) const =0;
+    virtual int64_t
+	getColumnAsDoubles(const char* cname, std::vector<double>& vals,
+			   uint64_t begin=0, uint64_t end=0) const =0;
     /// Retrieve the null-terminated strings as a vector of std::string
     /// objects.  Both ibis::CATEGORY and ibis::TEXT types can be retrieved
     /// using this function.
-    virtual int64_t getColumnAsStrings(const char* cname,
-				       std::vector<std::string>& vals) const =0;
+    virtual int64_t
+	getColumnAsStrings(const char* cname, std::vector<std::string>& vals,
+			   uint64_t begin=0, uint64_t end=0) const =0;
     /// @}
 
     /// @{

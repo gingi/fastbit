@@ -645,7 +645,7 @@ fastbit_get_result_columns(FastBitQueryHandle qhandle) {
     int ret = -1;
     if (qhandle == 0)
 	return ret;
-    ret = qhandle->q.components().size();
+    ret = qhandle->q.components().numTerms();
     return ret;
 } // fastbit_get_result_columns
 
@@ -1832,7 +1832,7 @@ fastbit_build_result_set(FastBitQueryHandle qhandle) {
 	return ret;
     if (qhandle->q.getSelectClause() == 0)
 	return ret;
-    if (qhandle->q.components().size() == 0)
+    if (qhandle->q.components().empty())
 	return ret;
     if (qhandle->t == 0 ||
 	qhandle->q.getState() != ibis::query::FULL_EVALUATE) {
@@ -1845,7 +1845,7 @@ fastbit_build_result_set(FastBitQueryHandle qhandle) {
     try {
 	ret = new FastBitResultSet;
 	ret->results = new ibis::query::result(qhandle->q);
-	ret->strbuf.resize(qhandle->q.components().size());
+	ret->strbuf.resize(qhandle->q.components().aggSize());
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)

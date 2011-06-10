@@ -2810,7 +2810,7 @@ const ibis::column* ibis::text::IDColumnForKeywordIndex() const {
     return idcol;
 } // ibis::text::IDColumnForKeywordIndex
 
-const void ibis::text::TDListForKeywordIndex(std::string& fname) const {
+void ibis::text::TDListForKeywordIndex(std::string& fname) const {
     fname.erase(); // erase existing content in fname
     if (thePart != 0 && thePart->currentDataDir() != 0)
 	startPositions(thePart->currentDataDir(), 0, 0);
@@ -2843,7 +2843,7 @@ const void ibis::text::TDListForKeywordIndex(std::string& fname) const {
     }
 } // ibis::text::TDListForKeywordIndex
 
-const void ibis::text::delimitersForKeywordIndex(std::string& fname) const {
+void ibis::text::delimitersForKeywordIndex(std::string& fname) const {
     fname.erase(); // erase existing content in fname
     const char* spec = indexSpec();
     if (spec != 0 && *spec != 0) {
