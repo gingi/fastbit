@@ -112,8 +112,8 @@ int ibis::selectClause::parse(const char *cl) {
 
 /// Write the string form of the ith (internal) term.  The result is placed
 /// in the second argument str.
-void ibis::selectClause::aggDescription(unsigned i, std::string &str) const {
-    if (i >= atms_.size()) return;
+std::string ibis::selectClause::aggDescription(unsigned i) const {
+    if (i >= atms_.size()) return std::string();
     if (atms_[i] != 0) {
 	std::ostringstream oss;
 	if (aggr_.size() <= i) {
@@ -159,10 +159,13 @@ void ibis::selectClause::aggDescription(unsigned i, std::string &str) const {
 		break;
 	    }
 	}
-	str = oss.str();
+	return oss.str();
     }
     else if (! names_[i].empty()) {
-	str = names_[i];
+	return names_[i];
+    }
+    else {
+	return std::string();
     }
 } // ibis::selectClause::aggDescription
 
@@ -278,13 +281,9 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
     const unsigned pos = atms_.size();
     aggr_.push_back(agr);
     atms_.push_back(expr);
-    if (ibis::gVerbose > 5) {
-	std::string tmp;
-	aggDescription(pos, tmp);
-	ibis::util::logger lg;
-	lg() << "selectClause::addAgregado -- adding term "
-	     << pos << ": " << tmp;
-    }
+    LOGGER(ibis::gVerbose > 5)
+	<< "selectClause::addAgregado -- adding term "
+	<< pos << ": " << aggDescription(pos);
     if (expr->termType() != ibis::math::VARIABLE) {
 	std::ostringstream oss;
 	oss << "__" << std::hex << pos;
@@ -410,13 +409,9 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 	    const unsigned pos = atms_.size();
 	    aggr_.push_back(ibis::selectClause::NIL_AGGR);
 	    atms_.push_back(tm);
-	    if (ibis::gVerbose > 5) {
-		std::string tmp;
-		aggDescription(pos, tmp);
-		ibis::util::logger lg;
-		lg() << "selectClause::addRecursive -- adding term "
-		     << pos << ": " << tmp;
-	    }
+	    LOGGER(ibis::gVerbose > 5)
+		<< "selectClause::addRecursive -- adding term "
+		<< pos << ": " << aggDescription(pos);
 
 	    std::ostringstream oss;
 	    oss << "__" << pos;
@@ -455,13 +450,9 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 	    const unsigned pos = atms_.size();
 	    aggr_.push_back(ibis::selectClause::NIL_AGGR);
 	    atms_.push_back(tm);
-	    if (ibis::gVerbose > 5) {
-		std::string tmp;
-		aggDescription(pos, tmp);
-		ibis::util::logger lg;
-		lg() << "selectClause::addRecursive -- adding term "
-		     << pos << ": " << tmp;
-	    }
+	    LOGGER(ibis::gVerbose > 5)
+		<< "selectClause::addRecursive -- adding term "
+		<< pos << ": " << aggDescription(pos);
 
 	    std::ostringstream oss;
 	    oss << "__" << pos;
@@ -476,14 +467,14 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 /// Produce a string for the jth term of the select clause.  The string
 /// shows the actual expression, not the alias.  To see the final name to
 /// be used, call ibis::selectClause::termName(j).
-void ibis::selectClause::termDescription(unsigned j, std::string &str) const {
+std::string ibis::selectClause::termDescription(unsigned j) const {
     if (j < xtms_.size()) {
 	std::ostringstream oss;
 	oss << *(xtms_[j]);
-	str = oss.str();
+	return oss.str();
     }
     else {
-	str.clear();
+	return std::string();
     }
 } // ibis::selectClause::termDescription
 

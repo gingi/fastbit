@@ -2000,7 +2000,7 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	void *bptr = 0;
 	nms[i] = (onerun ? sel.termName(i) : sel.aggName(i));
 	nmc[i] = nms[i].c_str();
-	sel.aggDescription(i, des[i]);
+	des[i] = sel.aggDescription(i);
 	dec[i] = des[i].c_str();
 	bool iscstar = (sel.aggExpr(i)->termType() == ibis::math::VARIABLE &&
 			sel.getAggregator(i) == ibis::selectClause::CNT);
@@ -2842,8 +2842,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 			      ibis::util::ref(ct));
     for (uint32_t j = 0; j < sel.aggSize(); ++ j) {
 	const ibis::math::term* t = sel.aggExpr(j);
-	std::string desc;
-	sel.aggDescription(j, desc);
+	std::string desc = sel.aggDescription(j);
 
 	switch (t->termType()) {
 	default: {

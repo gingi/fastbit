@@ -104,13 +104,14 @@ public:
 
     /// Returns true if this select clause is empty.
     bool empty() const {return atms_.empty();}
-    uint32_t numGroupbyKeys() const;
-    int getGroupbyKeys(std::vector<std::string>& keys) const;
 
     void print(std::ostream&) const;
     void printDetails(std::ostream&) const;
     int find(const char*) const;
 
+    /// Functions related to extenally visible portion of the select
+    /// clause.
+    ///@{
     /// A vector of arithematic expressions.
     typedef std::vector<ibis::math::term*> mathTerms;
     /// Retrieve all top-level arithmetic expressions.
@@ -124,8 +125,15 @@ public:
     /// assigned to termExpr(i) (which is also getTerms()[i]).  To produce
     /// a string version of the term use termDescription.
     const char* termName(unsigned i) const {return xnames_[i].c_str();}
-    void termDescription(unsigned i, std::string &str) const;
+    std::string termDescription(unsigned i) const;
+    typedef std::map<const char*, const char*, ibis::lessi> nameMap;
+    int getAliases(nameMap&) const;
+    uint32_t numGroupbyKeys() const;
+    int getGroupbyKeys(std::vector<std::string>& keys) const;
+    ///@}
 
+    /// Functions related to internal aggregation operations.
+    ///@{
     /// The number of arithmetic expressions inside the select clause.
     uint32_t aggSize() const {return atms_.size();}
     /// Fetch the ith term of inside the select clause.  No array bound checking.
@@ -133,7 +141,7 @@ public:
     /// Name inside the aggregation function.  To be used together with
     /// aggSize() and aggExpr().
     const char* aggName(unsigned i) const {return names_[i].c_str();}
-    void aggDescription(unsigned i, std::string &str) const;
+    std::string aggDescription(unsigned i) const;
 
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
     enum AGREGADO {NIL_AGGR, AVG, CNT, MAX, MIN, SUM, DISTINCT,
@@ -143,8 +151,7 @@ public:
 
     typedef std::map<std::string, unsigned> StringToInt;
     const StringToInt& getOrdered() const {return ordered_;}
-    typedef std::map<const char*, const char*, ibis::lessi> nameMap;
-    int getAliases(nameMap&) const;
+    ///@}
 
     int verify(const ibis::part&) const;
     int verifySome(const std::vector<uint32_t>&, const ibis::part&) const;

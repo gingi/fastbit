@@ -1,3 +1,7 @@
+2011-06-10 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.h, src/selectClause.cpp: group the functions in
+	select clause according to the visibility of the expressions
+
 2011-06-09 John Wu <John dot Wu at ACM dot org>
 	* src/table.h: add two optional arguments to functions of the form
 	ibis::table::getColumnAsTypes at the request of Jon Strabala
