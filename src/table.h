@@ -641,6 +641,12 @@ public:
     /// Print a description of the table to the specified output stream.
     virtual void describe(std::ostream&) const =0;
 
+    /// Stop expanding the current data records.  Convert a tablex object
+    /// into a table object, so that they can participate in queries.  The
+    /// data records held by the tablex object is transfered to the table
+    /// object.
+    virtual table* freeze(const char* nm=0, const char* de=0) = 0;
+
 protected:
     tablex() {}; // Derived classes need this.
 

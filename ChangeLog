@@ -1,3 +1,8 @@
+2011-06-18 John Wu <John dot Wu at ACM dot org>
+	* src/table.h, src/tafel.h, src/tafel.cpp: add function freeze to
+	ibis::tablex and ibis::tafel
+	* src/column.h, src/column.cpp: add function setNullMask
+
 2011-06-10 John Wu <John dot Wu at ACM dot org>
 	* src/selectClause.h, src/selectClause.cpp: group the functions in
 	select clause according to the visibility of the expressions

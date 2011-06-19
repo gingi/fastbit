@@ -689,6 +689,25 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
     }
 } // ibis::column::getNullMask
 
+/// Change the null mask to the user specified one.  The incoming mask
+/// should have as many bits as the number of rows in the data partition.
+/// Upon a successful completion of this function, the return value is >=
+/// 0, otherwise it is less than 0.
+int ibis::column::setNullMask(const ibis::bitvector& msk) {
+    if (thePart == 0 || msk.size() == thePart->nRows()) {
+	ibis::util::mutexLock lock(&mutex, "column::setNullMask");
+	mask_.copy(msk);
+	return mask_.cnt();
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning - column::setNullMask expects msk.size to be "
+	    << thePart->nRows() << " but the actual size is "
+	    << msk.size();
+	return -1;
+    }
+} // ibis::column::setNullMask
+
 /// Return all rows of the column as an array_t object.  Caller is
 /// responsible for deleting the returned object.
 ibis::array_t<int32_t>* ibis::column::getIntArray() const {
@@ -5198,7 +5217,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    if (idx != 0) {
 		double cost = idx->estimateCost(cmp);
 		// use index only if the cost of using its estimate cost is
-		// less than N bytes
+		// less than N/2 bytes
 		if (cost < thePart->nRows() * 0.5) {
 		    idx->estimate(cmp, low, high);
 		}

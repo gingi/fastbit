@@ -15,10 +15,13 @@ namespace ibis {
 
 /// An expandable table.  It inherents from ibis::tablex only, therefore
 /// does not support any querying functions.  It stores all its content in
-/// memory before the function write is called, therefore, it can only
-/// handle relatively small number of rows.
+/// memory, therefore it can only handle relatively small number of rows.
 ///
-///@note The word tafel is a German word for table.
+/// To perform queries on the underlying data, convert this object into a
+/// table object.  Call function write to make the in memory data
+/// persistent.
+///
+///@note The word tafel is a German word for "table."
 class ibis::tafel : public ibis::tablex {
 public:
     tafel() : mrows(0U) {}
@@ -52,6 +55,7 @@ public:
     virtual uint32_t mRows() const {return mrows;}
     virtual uint32_t mColumns() const {return cols.size();}
     virtual void describe(std::ostream&) const;
+    virtual table* freeze(const char* nm=0, const char* de=0);
 
     /// In-memory version of a column.
     struct column {

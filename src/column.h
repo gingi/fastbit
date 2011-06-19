@@ -115,7 +115,8 @@ public:
 
     const char* dataFileName(std::string& fname, const char *dir=0) const;
     const char* nullMaskName(std::string& fname) const;
-    void  getNullMask(bitvector& mask) const;
+    void getNullMask(bitvector& mask) const;
+    int  setNullMask(const bitvector&);
 
     /// Return the string value for the <code>i</code>th row.  Only
     /// implemented for ibis::text and ibis::category.  @sa ibis::text

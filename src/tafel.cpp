@@ -7,11 +7,13 @@
 #endif
 
 #include "tafel.h"	// ibis::tafel
-#include "part.h"	// ibis::part
+#include "bord.h"	// ibis::part, ibis::bord
 
 #include <fstream>	// std::ofstream
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
+#include <memory>	// std::auto_ptr
+
 #include <stdlib.h>	// strtol strtoul [strtoll strtoull]
 // This file definte does not use the min and max macro.  Their presence
 // could cause the calls to numeric_limits::min and numeric_limits::max to
@@ -3447,6 +3449,60 @@ void ibis::tafel::describe(std::ostream &out) const {
     }
     out << std::endl;
 } // ibis::tafel::describe
+
+ibis::table* ibis::tafel::freeze(const char *nm, const char *de) {
+    ibis::table::bufferList databuf;
+    ibis::table::stringList cname;
+    ibis::table::typeList ctype;
+    if (mrows == 0 || cols.empty())
+	return new ibis::bord(nm, de, 0, databuf, ctype, cname);
+
+    normalize();
+    const uint32_t ncol = colorder.size();
+    LOGGER(ibis::gVerbose > 2)
+	<< "tafel::freeze -- preparing " << mrows << " row" << (mrows>1?"s":"")
+	<< " and " << ncol << " column" << (ncol>1?"s":"")
+	<< " for transferring";
+    databuf.resize(ncol);
+    cname.resize(ncol);
+    ctype.resize(ncol);
+    for (unsigned j = 0; j < ncol; ++ j) {
+	const column* col = colorder[j];
+	if (col == 0 || col->name.empty() ||
+	    col->type == ibis::UNKNOWN_TYPE) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- tafel::freeze can not process column " << j
+		<< " because it has no name or an invalid type";
+	    return 0;
+	}
+	cname[j] = col->name.c_str();
+	ctype[j] = col->type;
+	databuf[j] = col->values;
+    }
+    std::auto_ptr<ibis::bord>
+	brd(new ibis::bord(nm, de, mrows, databuf, ctype, cname));
+    if (brd.get() == 0) return 0;
+
+    mrows = 0;
+    // complete the transfer of content, reset the pointers
+    for (unsigned j = 0; j < ncol; ++ j) {
+	colorder[j]->values = 0;
+
+	ibis::column *col = brd->getColumn(colorder[j]->name.c_str());
+	if (col == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- tafel::freeze failed to locate column "
+		<< colorder[j]->name << " in the new table object";
+	}
+	else if (0 > col->setNullMask(colorder[j]->mask)) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- tafel::freeze failed to set the null mask for "
+		<< colorder[j]->name;
+	}
+	colorder[j]->mask.clear();
+    }
+    return brd.release();
+} // ibis::tafel::freeze
 
 /// Default constructor.  The name and type are assigned later.
 ibis::tafel::column::column() : type(ibis::UNKNOWN_TYPE), values(0), defval(0) {
