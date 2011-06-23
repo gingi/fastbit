@@ -11,6 +11,7 @@
 #include "query.h"	// ibis::query
 #include "countQuery.h"	// ibis::countQuery
 #include "bundle.h"	// ibis::bundle
+#include "ikeywords.h"	// ibis::keyword::tokenizer
 
 #include <limits>	// std::numeric_limits
 #include <sstream>	// std::ostringstream
@@ -122,6 +123,20 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 	    << " rows in an in-memory table";
 	throw "Too many rows for an in-memory table";
     }
+
+    switchTime = time(0);
+    if (td != 0 && *td != 0) {
+	m_desc = td;
+    }
+    else if (tn != 0 && *tn != 0) {
+	m_desc = tn;
+    }
+    else {
+	char buf[32];
+	ibis::util::secondsToString(switchTime, buf);
+	m_desc = "unnamed in-memory data partition constructed at ";
+	m_desc += buf;
+    }
     m_name = ibis::util::strnewdup(tn?tn:ibis::util::shortName(m_desc).c_str());
     name_ = m_name; // make sure the name of part and table are the same
     desc_ = m_desc;
@@ -150,19 +165,6 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 
     amask.set(1, nEvents);
     state = ibis::part::STABLE_STATE;
-    switchTime = time(0);
-    if (td != 0 && *td != 0) {
-	m_desc = td;
-    }
-    else if (tn != 0 && *tn != 0) {
-	m_desc = tn;
-    }
-    else {
-	char buf[32];
-	ibis::util::secondsToString(switchTime, buf);
-	m_desc = "unnamed in-memory data partition constructed at ";
-	m_desc += buf;
-    }
     LOGGER(ibis::gVerbose > 0)
 	<< "bord::ctor constructed in-memory data partition "
 	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
@@ -4363,20 +4365,83 @@ ibis::bord::column::stringSearch(const std::vector<std::string>& str) const {
     return vals.size();
 } // ibis::bord::column::stringSearch
 
-long ibis::bord::column::keywordSearch(const char*, ibis::bitvector&) const {
-    LOGGER(ibis::gVerbose > 0)
-	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	<< m_name << "]::keywordSearch is not supported on column type "
-	<< ibis::TYPESTRING[(int)m_type];
-    return -1;
+/// Find the given keyword and return the rows.
+long ibis::bord::column::keywordSearch(const char* key,
+				       ibis::bitvector& hits) const {
+    std::string evt = "bord::column[";
+    evt += (thePart ? thePart->name() : "");
+    evt += '.';
+    evt += m_name;
+    evt += "]::keywordSearch";
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -1;
+    }
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt
+	    << "]::keywordSearch can not proceed with a nil buffer";
+	return -2;
+    }
+    hits.clear();
+    if (key == 0 || *key == 0) return 0;
+
+    const std::vector<std::string>&
+	vals(*static_cast<const std::vector<std::string>*>(buffer));
+    ibis::fileManager::buffer<char> buf(1024);
+    ibis::keywords::tokenizer tknz;
+    std::vector<const char*> ks;
+    ibis::util::timer mytimer(evt.c_str(), 3);
+    for (unsigned j = 0; j < vals.size(); ++ j) {
+	if (vals[j].empty()) continue;
+
+	if (buf.size() < vals[j].size()) {
+	    if (buf.resize(vals[j].size()+buf.size()) < vals[j].size()) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to allocate space "
+		    "for storing string value in row " << j;
+		hits.clear();
+		return -3;
+	    }
+	}
+	(void) memcpy(buf.address(), vals[j].c_str(), vals[j].size());
+	(void) tknz(ks, buf.address());
+	LOGGER(ks.empty() && ibis::gVerbose > 2)
+	    << evt << " could not extract any token from string \""
+	    << vals[j] << "\"";
+
+	bool hit = false;
+	for (unsigned i = 0; i < ks.size() && !hit; ++ i)
+	    hit = (0 == strcmp(key, ks[i]));
+	if (hit)
+	    hits.setBit(j, 1);
+    }
+    hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    return hits.cnt();
 } // ibis::bord::column::keywordSearch
 
-long ibis::bord::column::keywordSearch(const char*) const {
-    LOGGER(ibis::gVerbose > 0)
-	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	<< m_name << "]::keywordSearch is not supported on column type "
-	<< ibis::TYPESTRING[(int)m_type];
-    return -1;
+/// Return an upper bound on the number of matches.
+long ibis::bord::column::keywordSearch(const char* str) const {
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	    << m_name << "]::keywordSearch is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	return -1;
+    }
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	    << m_name << "]::keywordSearch can not proceed with a nil buffer";
+	return -2;
+    }
+    if (str == 0) return 0;
+
+    const std::vector<std::string>&
+	vals(*static_cast<const std::vector<std::string>*>(buffer));
+    return vals.size();
 } // ibis::bord::column::keywordSearch
 
 /// Compute an estimate of the maximum number of possible matches.  This is
@@ -4394,7 +4459,7 @@ long ibis::bord::column::patternSearch(const char* pat) const {
     if (buffer == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	    << m_name << "]::stringSearch can not proceed with a nil buffer";
+	    << m_name << "]::patternSearch can not proceed with a nil buffer";
 	return -2;
     }
     if (pat == 0) return 0;

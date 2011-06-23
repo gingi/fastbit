@@ -2922,12 +2922,12 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
     if (! skip_estimation) {
 	qq->roughCount(nhits, hmax);
 	if (nhits < hmax) {
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "doQuaere -- " << wstr << " --> [" << nhits << ", "
 		<< hmax << ']';
 	}
 	else {
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "doQuaere -- " << wstr << " --> " << nhits
 		<< " hit" << (hmax>1?"s":"");
 	}

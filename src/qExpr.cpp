@@ -1893,6 +1893,8 @@ ibis::math::stdFunction1::stdFunction1(const char* name) {
 	ftype = ibis::math::LOG;
     else if (0 == stricmp(name, "MODF"))
 	ftype = ibis::math::MODF;
+    else if (0 == stricmp(name, "ROUND"))
+	ftype = ibis::math::ROUND;
     else if (0 == stricmp(name, "SIN"))
 	ftype = ibis::math::SIN;
     else if (0 == stricmp(name, "SINH"))
@@ -1947,6 +1949,7 @@ ibis::math::term* ibis::math::stdFunction1::reduce() {
 	case LOG: ret = new ibis::math::number(log(arg)); break;
 	case MODF: {double intptr;
 	ret = new ibis::math::number(modf(arg, &intptr)); break;}
+	case ROUND: ret = new ibis::math::number(round(arg)); break;
 	case SIN: ret = new ibis::math::number(sin(arg)); break;
 	case SINH: ret = new ibis::math::number(sinh(arg)); break;
 	case SQRT: ret = new ibis::math::number(sqrt(arg)); break;
@@ -2054,6 +2057,7 @@ double ibis::math::stdFunction1::eval() const {
     case ibis::math::LOG10: arg = log10(arg); break;
     case ibis::math::LOG: arg = log(arg); break;
     case ibis::math::MODF: {double intptr; arg = modf(arg, &intptr); break;}
+    case ibis::math::ROUND: arg = round(arg); break;
     case ibis::math::SIN: arg = sin(arg); break;
     case ibis::math::SINH: arg = sinh(arg); break;
     case ibis::math::SQRT: arg = sqrt(arg); break;
@@ -2073,6 +2077,8 @@ ibis::math::stdFunction2::stdFunction2(const char* name) {
 	ftype = ibis::math::LDEXP;
     else if (0 == stricmp(name, "POW") || 0 == stricmp(name, "POWER"))
 	ftype = ibis::math::POW;
+    else if (0 == stricmp(name, "ROUND"))
+	ftype = ibis::math::ROUND2;
     else {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "math::stdFunction2::stdFunction2(" << name
@@ -2110,17 +2116,23 @@ ibis::math::term* ibis::math::stdFunction2::reduce() {
 	rhs->termType() == ibis::math::NUMBER) {
 	switch (ftype) {
 	case ATAN2:
-	    ret = new ibis::math::number
-		(atan2(lhs->eval(), rhs->eval())); break;
+	    ret = new ibis::math::number(atan2(lhs->eval(), rhs->eval()));
+	    break;
 	case FMOD:
-	    ret = new ibis::math::number
-		(fmod(lhs->eval(), rhs->eval())); break;
+	    ret = new ibis::math::number(fmod(lhs->eval(), rhs->eval()));
+	    break;
 	case LDEXP:
 	    ret = new ibis::math::number
-		(ldexp(lhs->eval(), static_cast<int>(rhs->eval()))); break;
+		(ldexp(lhs->eval(), static_cast<int>(rhs->eval())));
+	    break;
 	case POW:
-	    ret = new ibis::math::number
-		(pow(lhs->eval(), rhs->eval())); break;
+	    ret = new ibis::math::number(pow(lhs->eval(), rhs->eval()));
+	    break;
+	case ROUND2: {
+	    double scale = round(rhs->eval());
+	    scale = (scale > 0 ? pow(1.0e1, scale) : 1.0);
+	    ret = new ibis::math::number(round(lhs->eval()*scale)/scale);
+	    break;}
 	default: break;
 	}
     }
@@ -2138,6 +2150,11 @@ double ibis::math::stdFunction2::eval() const {
     case ibis::math::FMOD: lhs = fmod(lhs, rhs); break;
     case ibis::math::LDEXP: lhs = ldexp(lhs, static_cast<int>(rhs)); break;
     case ibis::math::POW: lhs = pow(lhs, rhs); break;
+    case ROUND2: {
+	rhs = round(rhs);
+	const double scale = (rhs>0 ? pow(1.0e1, rhs) : 1.0);
+	lhs = round(lhs*scale)/scale;
+	break;}
     default: break;
     }
     return lhs;

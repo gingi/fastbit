@@ -152,10 +152,10 @@ really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTD
 	@$(IBISEXE) -d $(TESTDIR)/w1 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w2 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-3 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2), count(*) where c_1 > 0" -output $(TESTDIR)/small-4 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), round(stdev(c_2)/avg(c_2), 6), count(*) where c_1 > 0" -output $(TESTDIR)/small-4 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2), count(*) where c_3 = '1010'" -output $(TESTDIR)/small-5 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2), count(*) where c_3 != '1010'" -output $(TESTDIR)/small-6 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2), count(*) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), round(stdev(c_2)/var(c_2)), count(*) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -d $(TESTDIR)/w2 -v -q "select avg(w2.c_1), w3.c_2, count(*) where w2.c_1 = w3.c_1 and w3.c_1 > 0" -output $(TESTDIR)/small-10 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w5 -v -q "select a.c_2, sum(a.c_3)/count(*), avg(a.c_3) from w5 as a, w5 as b where a.c_1 = b.c_1" -output $(TESTDIR)/small-11 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -d $(TESTDIR)/w5 -v -q "select a.c_2, sum(a.c_3), avg(a.c_3)/median(a.c_3) from w5 as a, w3 as b where a.c_1 = w3.c_1 and a.c_3 > 1" -output $(TESTDIR)/small-12 >> $(TESTDIR)/really-small.log 2>&1
@@ -393,11 +393,11 @@ $(TESTDIR)/m1/-part.txt: $(ARDEAEXE) test1.csv TESTDIR
 	@test -f $(TESTDIR)/m1/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/m1 -m "a0:d, a1:b, a2:b, b0:f, b1:s, b2:s, c0:f, c1:i, c2:i" -t test1.csv -tag "meshShape=(10, 10, 10)" >> $(TESTDIR)/stdout.log 2>&1
 # really small data partitions (wee == very small)
 $(TESTDIR)/w1/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.1," >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:d, c_3:k" -r "105, 1.1," >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/w2/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:f, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:d, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/w3/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:f, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:d, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
 $(TESTDIR)/w4/-part.txt: $(ARDEAEXE) TESTDIR
 	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/stdout.log 2>&1
 	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt

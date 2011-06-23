@@ -1,3 +1,30 @@
+2011-06-22 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: change type of c_2 from float to double to
+	make sure queries involving floating-point values are answered
+	exactly (because the query strings are parsed as doubles not
+	floats)
+	* runconfig: import environment variable HOME, expand the test
+	condition involving bit
+	* src/qExpr.h, src/qExpr.cpp: add support of function round
+	(the single-argument version rounds to nearest integer while the
+	two-argument version rounds to the number decimal digits
+	specified by the second argument)
+
+2011-06-21 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: implement function
+	ibis::bord::column::keywordSearch
+
+2011-06-20 John Wu <John dot Wu at ACM dot org>
+	* src/table.h, src/tafel.h, src/tafel.cpp: rename freeze to
+	toTable
+	* examples/ardea.cpp: modify the default value of outdir to be an
+	empty string and all the data to be held in memory when the output
+	directory is an empty string
+	* src/bord.cpp: move the definition of m_desc to the earlier part
+	of ibis::bord::bord
+	* src/mensa.cpp: add default select clause to function
+	ibis::table::select
+
 2011-06-18 John Wu <John dot Wu at ACM dot org>
 	* src/table.h, src/tafel.h, src/tafel.cpp: add function freeze to
 	ibis::tablex and ibis::tafel

@@ -225,9 +225,13 @@ Scientific Computing Center</A>.
 
 \section additional Additional Information
 
-Additional information available on the web at
-<http://sdm.lbl.gov/fastbit/> or <http://lbl.gov/~kwu/fastbit/>.  Send any
-comments, bug reports, and patches to <fastbit-users@hpcrdm.lbl.gov>.
+A general overview of FastBit work can be found at <http://su.pr/2vfyBE>.
+More technical information is available on the web at
+<http://sdm.lbl.gov/fastbit/> or <http://lbl.gov/~kwu/fastbit/>.
+
+Send any comments, bug reports, and patches to
+<fastbit-users@hpcrdm.lbl.gov>.
+
 */
 
 

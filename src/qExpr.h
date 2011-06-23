@@ -590,8 +590,9 @@ namespace ibis {
 		       PLUS, MINUS, MULTIPLY, DIVIDE, REMAINDER, NEGATE, POWER};
 	/// Standard 1-argument and 2-argument functions.
 	enum STDFUN1 {ACOS=0, ASIN, ATAN, CEIL, COS, COSH, EXP, FABS, FLOOR,
-		      FREXP, LOG10, LOG, MODF, SIN, SINH, SQRT, TAN, TANH};
-	enum STDFUN2 {ATAN2=0, FMOD, LDEXP, POW};
+		      FREXP, LOG10, LOG, MODF, ROUND, SIN, SINH, SQRT, TAN,
+		      TANH};
+	enum STDFUN2 {ATAN2=0, FMOD, LDEXP, ROUND2, POW};
 
 	/// String form of the operators.
 	extern const char* operator_name[];

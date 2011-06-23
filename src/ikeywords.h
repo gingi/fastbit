@@ -191,8 +191,9 @@ public:
     /// Constructor.  It takes a list of delimiters.  Any character in the
     /// list of delimiters will terminate a token.  If no delimiter is
     /// given, anything other than alphanumerical characters will terminate
-    /// a token.
-    tokenizer(const char *d=0) : delim_(d) {}
+    /// a token.  By default, the delimiters defined in
+    /// ibis::util::delimiters are used.
+    tokenizer(const char *d=ibis::util::delimiters) : delim_(d) {}
     /// Destructor.
     virtual ~tokenizer() {}
 

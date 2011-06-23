@@ -3843,7 +3843,7 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
 /// strings or blank spaces.
 ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 				 const char *sel, const char *cond) {
-    if (sel == 0 || cond == 0 || *sel == 0 || *cond == 0 || mylist.empty())
+    if (cond == 0 || *cond == 0 || mylist.empty())
 	return 0;
 
     try {
@@ -3900,7 +3900,7 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
 /// strings or blank spaces.
 ibis::table* ibis::table::select(const std::vector<const ibis::part*>& plist,
 				 const char *sel, const ibis::qExpr *cond) {
-    if (sel == 0 || cond == 0 || *sel == 0 || plist.empty())
+    if (cond == 0 || plist.empty())
 	return 0;
 
     std::string mesg = "table::select";
@@ -3912,7 +3912,27 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& plist,
 	mesg += oss.str();
     }
 
+    std::string tn = ibis::util::shortName(mesg);
     ibis::util::timer atimer(mesg.c_str(), 2);
+    if (sel == 0 || *sel == 0) {
+	int64_t nhits = ibis::table::computeHits(plist, cond);
+	if (nhits < 0) {
+	    return 0;
+	}
+	else {
+	    return new ibis::tabula(tn.c_str(), mesg.c_str(), nhits);
+	}
+    }
+    else if (stricmp(sel, "count(*)") == 0) { // count(*)
+	int64_t nhits = ibis::table::computeHits(plist, cond);
+	if (nhits < 0) {
+	    return 0;
+	}
+	else {
+	    return new ibis::tabele(tn.c_str(), mesg.c_str(), nhits, sel);
+	}
+    }
+
     ibis::selectClause tms;
     long int ierr;
     try {
@@ -3969,7 +3989,6 @@ ibis::table* ibis::table::select(const std::vector<const ibis::part*>& plist,
 	return 0;
     }
 
-    std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();

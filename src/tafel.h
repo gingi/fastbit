@@ -55,7 +55,7 @@ public:
     virtual uint32_t mRows() const {return mrows;}
     virtual uint32_t mColumns() const {return cols.size();}
     virtual void describe(std::ostream&) const;
-    virtual table* freeze(const char* nm=0, const char* de=0);
+    virtual table* toTable(const char* nm=0, const char* de=0);
 
     /// In-memory version of a column.
     struct column {

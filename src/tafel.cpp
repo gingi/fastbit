@@ -3450,7 +3450,7 @@ void ibis::tafel::describe(std::ostream &out) const {
     out << std::endl;
 } // ibis::tafel::describe
 
-ibis::table* ibis::tafel::freeze(const char *nm, const char *de) {
+ibis::table* ibis::tafel::toTable(const char *nm, const char *de) {
     ibis::table::bufferList databuf;
     ibis::table::stringList cname;
     ibis::table::typeList ctype;
@@ -3460,7 +3460,7 @@ ibis::table* ibis::tafel::freeze(const char *nm, const char *de) {
     normalize();
     const uint32_t ncol = colorder.size();
     LOGGER(ibis::gVerbose > 2)
-	<< "tafel::freeze -- preparing " << mrows << " row" << (mrows>1?"s":"")
+	<< "tafel::toTable -- preparing " << mrows << " row" << (mrows>1?"s":"")
 	<< " and " << ncol << " column" << (ncol>1?"s":"")
 	<< " for transferring";
     databuf.resize(ncol);
@@ -3471,7 +3471,7 @@ ibis::table* ibis::tafel::freeze(const char *nm, const char *de) {
 	if (col == 0 || col->name.empty() ||
 	    col->type == ibis::UNKNOWN_TYPE) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- tafel::freeze can not process column " << j
+		<< "Warning -- tafel::toTable can not process column " << j
 		<< " because it has no name or an invalid type";
 	    return 0;
 	}
@@ -3491,18 +3491,18 @@ ibis::table* ibis::tafel::freeze(const char *nm, const char *de) {
 	ibis::column *col = brd->getColumn(colorder[j]->name.c_str());
 	if (col == 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- tafel::freeze failed to locate column "
+		<< "Warning -- tafel::toTable failed to locate column "
 		<< colorder[j]->name << " in the new table object";
 	}
 	else if (0 > col->setNullMask(colorder[j]->mask)) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- tafel::freeze failed to set the null mask for "
+		<< "Warning -- tafel::toTable failed to set the null mask for "
 		<< colorder[j]->name;
 	}
 	colorder[j]->mask.clear();
     }
     return brd.release();
-} // ibis::tafel::freeze
+} // ibis::tafel::toTable
 
 /// Default constructor.  The name and type are assigned later.
 ibis::tafel::column::column() : type(ibis::UNKNOWN_TYPE), values(0), defval(0) {

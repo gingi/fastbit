@@ -722,7 +722,7 @@ static void doQuery(const ibis::table& tbl, const char* wstr,
 } // doQuery
 
 int main(int argc, char** argv) {
-    const char* outdir = "tmp";
+    const char* outdir = ""; // default to keep data in memory
     const char* sel;
     const char* dsn = 0;
     const char* del = ","; // delimiters
@@ -736,11 +736,11 @@ int main(int argc, char** argv) {
 
     ibis::init();
     parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
-    bool usersupplied = (! sqlfiles.empty()) ||
+    const bool usersupplied = (! sqlfiles.empty()) ||
 	((! namestypes.empty() || metadatafile != 0) &&
 	 (inputrows.size() > 0 || csvfiles.size() > 0));
     // create a new table that does not support querying
-    ibis::tablex* ta = ibis::tablex::create();
+    std::auto_ptr<ibis::tablex> ta(ibis::tablex::create());
     if (usersupplied) { // use user-supplied data
 	// process the SQL dump files first just in case the CSV files
 	// require the metadata from them
@@ -755,7 +755,7 @@ int main(int argc, char** argv) {
 			  << sqlfiles[i] << "\", readSQLDump returned "
 			  << ierr << std::endl;
 	    }
-	    else {
+	    else if (outdir != 0 && *outdir != 0) {
 		if (ibis::gVerbose >= 0)
 		    std::cout << *argv << " read " << ierr << " row"
 			      << (ierr>1?"s":"") << " from " << csvfiles[i]
@@ -795,7 +795,7 @@ int main(int argc, char** argv) {
 		std::clog << *argv << " failed to parse file \""
 			  << csvfiles[i] << "\", readCSV returned "
 			  << ierr << std::endl;
-	    else {
+	    else if (outdir != 0 && *outdir != 0) {
 		if (ibis::gVerbose >= 0)
 		    std::cout << *argv << " read " << ierr << " row"
 			      << (ierr>1?"s":"") << " from " << csvfiles[i]
@@ -824,7 +824,7 @@ int main(int argc, char** argv) {
 			  << " failed to parse text (appendRow returned "
 			  << ierr << ")\n" << inputrows[i] << std::endl;
 	}
-	if (! inputrows.empty()) {
+	if (! inputrows.empty() && outdir != 0 && *outdir != 0) {
 	    ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
 			     metatags.c_str());
 	    if (ierr < 0) {
@@ -833,7 +833,6 @@ int main(int argc, char** argv) {
 		return(ierr);
 	    }
 	}
-	delete ta;
     }
     else { // use hard-coded data and queries
 	int64_t buf[] = {10, -21, 32, -43, 54, -65, 76, -87, 98, -127};
@@ -853,25 +852,36 @@ int main(int argc, char** argv) {
 	ta->append("i2", 4, 10, buf+3);
 	ta->append("b3", 10, 90, buf);
 	ta->appendRow("10,11,12,13,14,15,16");
-	ierr = ta->write(outdir, dsn,
-			 "hard-coded test data written by ardea.cpp");
-	delete ta;
-	if (ierr < 0) {
-	    std::clog << *argv << " failed to write data to " << outdir
-		      << ", error code = " << ierr << std::endl;
-	    return(ierr);
+
+	if (! inputrows.empty() && outdir != 0 && *outdir != 0) {
+	    ierr = ta->write(outdir, dsn,
+			     "hard-coded test data written by ardea.cpp");
+	    if (ierr < 0) {
+		std::clog << "Warning -- " << *argv
+			  << " failed to write data to " << outdir
+			  << ", error code = " << ierr << std::endl;
+		return(ierr);
+	    }
 	}
     }
 
-    std::auto_ptr<ibis::table> tb(ibis::table::create(outdir));
+    std::auto_ptr<ibis::table> tb(outdir!=0 && *outdir != 0 ?
+				  ibis::table::create(outdir) :
+				  ta->toTable());
+    delete ta.release(); // no long need the tablex object
     if (tb.get() == 0) {
-	std::cerr << *argv << " failed to reconstructure table from data "
-	    "files in " << outdir << std::endl;
+	std::cerr << "Warning -- " << *argv
+		  << " failed to constructure a table from";
+	if (outdir != 0 && *outdir != 0)
+	    std::cerr << " data files in " << outdir << std::endl;
+	else
+	    std::cerr << " data in memory" << std::endl;
 	return -10;
     }
     else if (! usersupplied && (tb->nRows() == 0 || tb->nColumns() != 8 ||
 				tb->nRows() % 91 != 0)) {
-	std::cerr << *argv << " data in " << outdir
+	std::cerr << "Warning -- " << *argv << " data in "
+		  << (outdir!=0&&*outdir!=0 ? outdir : "memory")
 		  << " is expected to have 8 "
 	    "columns and a multiple of 91 rows, but it does not"
 		  << std::endl;
@@ -880,7 +890,8 @@ int main(int argc, char** argv) {
 	// use a logger object to hold the print out in memory to avoid it
 	// be interrupted by other log messages
 	ibis::util::logger lg;
-	lg() << "-- begin printing table in " << outdir << " --\n";
+	lg() << "-- begin printing table in "
+	     << (outdir!=0&&*outdir!=0 ? outdir : "memory") << " --\n";
 	tb->describe(lg());
 	if (tb->nRows() > 0 && tb->nColumns() > 0) {
 	    uint64_t nprint;
@@ -894,9 +905,10 @@ int main(int argc, char** argv) {
 	    }
 	    tb->dump(lg(), nprint);
 	}
-	lg() << "--  end  printing table in " << outdir << " --\n";
+	lg() << "--  end  printing table in "
+	     << (outdir!=0&&*outdir!=0 ? outdir : "memory") << " --\n";
     }
-    if (usersupplied == false) {
+    if (usersupplied == false && qcnd.empty()) {
 	// check the number of hits of built-in queries
 	const char* arq[] = {"s1=1", "i2<=3", "l4<4",
 			     "b3 between 10 and 100", "b3 > 0 && i2 < 0", 
@@ -909,11 +921,13 @@ int main(int argc, char** argv) {
 	for (size_t i = 0; i < 10; ++ i) {
 	    ibis::table* res = tb->select(static_cast<const char*>(0), arq[i]);
 	    if (res == 0) {
-		std::clog << "Query \"" << arq[i] << "\" on " << tb->name()
-			  << " produced a null table" << std::endl;
+		std::clog << "Warning -- " << "Query \"" << arq[i] << "\" on "
+			  << tb->name() << " produced a null table"
+			  << std::endl;
+		++ ierr;
 	    }
 	    else if (res->nRows() != multi*arc[i]) {
-		std::clog << "Query \"" << arq[i]
+		std::clog << "Warning -- " << "Query \"" << arq[i]
 			  << "\" is expected to produce "
 			  << multi*arc[i] << " hit" << (multi*arc[i]>1?"s":"")
 			  << ", but actual found " << res->nRows()
@@ -927,6 +941,8 @@ int main(int argc, char** argv) {
 	    }
 	    delete res;
 	}
+	if (ierr > 0)
+	    std::cout << "Warning -- ";
 	std::cout << *argv << " processed 10 hard-coded queries on " << multi
 		  << " cop" << (multi > 1 ? "ies" : "y")
 		  << " of hard-coded data, found " << ierr

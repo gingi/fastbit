@@ -52,7 +52,8 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     if (m_desc.empty()) m_desc = name;
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg() << "initialized column " << m_name;
+	lg() << "initialized column " << m_name << " ("
+	     << ibis::TYPESTRING[(int)m_type] << ')';
 	if (tbl != 0 && tbl->name() != 0)
 	    lg() << " for partition " << tbl->name();
     }
@@ -275,7 +276,8 @@ ibis::column::column(const part* tbl, FILE* file)
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg() << "read info about column " << m_name;
+	lg() << "read info about column " << m_name << " ("
+	     << ibis::TYPESTRING[(int)m_type] << ')';
 	if (tbl != 0 && tbl->name() != 0)
 	    lg() << " for partition " << tbl->name();
     }
@@ -297,7 +299,8 @@ ibis::column::column(const ibis::column& rhs) :
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg() << "made a new copy of column " << m_name;
+	lg() << "made a new copy of column " << m_name << " ("
+	     << ibis::TYPESTRING[(int)m_type] << ')';
 	if (thePart != 0 && thePart->name() != 0)
 	    lg() << " for partition " << thePart->name();
     }
@@ -5995,8 +5998,8 @@ long ibis::column::stringSearch(const std::vector<std::string>&) const {
 long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
     LOGGER(ibis::gVerbose > 0)
 	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	<< m_name << "]::keywordSearch is not supported on column type "
-	<< ibis::TYPESTRING[(int)m_type];
+	<< m_name << "]::keywordSearch is not supported by the plain old "
+	"column class";
     return -1;
 }
 
@@ -6011,8 +6014,8 @@ long ibis::column::patternSearch(const char*) const {
 long ibis::column::patternSearch(const char*, ibis::bitvector &) const {
     LOGGER(ibis::gVerbose > 0)
 	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
-	<< m_name << "]::patternSearch is not supported on column type "
-	<< ibis::TYPESTRING[(int)m_type];
+	<< m_name << "]::patternSearch is not supported by the plain old "
+	"column class";
     return -1;
 }
 

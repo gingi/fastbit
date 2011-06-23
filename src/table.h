@@ -645,7 +645,7 @@ public:
     /// into a table object, so that they can participate in queries.  The
     /// data records held by the tablex object is transfered to the table
     /// object.
-    virtual table* freeze(const char* nm=0, const char* de=0) = 0;
+    virtual table* toTable(const char* nm=0, const char* de=0) = 0;
 
 protected:
     tablex() {}; // Derived classes need this.

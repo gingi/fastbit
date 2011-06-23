@@ -3,12 +3,12 @@
 # Terse comments are provided in hoping they might be instructive for
 # configuring the page on other machines.
 #
-use Env qw(HOSTNAME PWD);
+use Env qw(HOME HOSTNAME PWD);
 if (! ${HOSTNAME}) {
     $HOSTNAME=`hostname`;
 }
 print "Configuring on ${HOSTNAME}\n";
-if (${HOSTNAME} eq "bit.local") {
+if (${HOSTNAME} =~ m/bit\.[lbl.gov|local]/) {
 # on john's development machine, enable maintainer mode, use debug options
     $cmd="./configure --prefix=${HOME}/Darwin --enable-maintainer-mode --with-java CFLAGS='-g -O0 -m64' CXXFLAGS='-g -O0 -m64'";
 }
