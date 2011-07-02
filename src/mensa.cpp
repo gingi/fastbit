@@ -2076,6 +2076,48 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
     return ival;
 } // ibis::mensa::getColumnAsStrings
 
+double ibis::mensa::getColumnMin(const char* cn) const {
+    if (cn == 0 || *cn == 0)
+	return (std::isfinite(FASTBIT_DOUBLE_NULL) ?
+		DBL_MAX : FASTBIT_DOUBLE_NULL);
+    if (naty.find(cn) == naty.end())
+	return (std::isfinite(FASTBIT_DOUBLE_NULL) ?
+		DBL_MAX : FASTBIT_DOUBLE_NULL);
+
+    double ret = DBL_MAX;
+    for (ibis::partList::const_iterator it = parts.end();
+	 it != parts.end(); ++ it) {
+	const ibis::column *col = (*it)->getColumn(cn);
+	if (col != 0) {
+	    double tmp = col->getActualMin();
+	    if (tmp < ret)
+		ret = tmp;
+	}
+    }
+    return ret;
+} // ibis::mensa::getColumnMin
+
+double ibis::mensa::getColumnMax(const char* cn) const {
+    if (cn == 0 || *cn == 0)
+	return (std::isfinite(FASTBIT_DOUBLE_NULL) ?
+		-DBL_MAX : FASTBIT_DOUBLE_NULL);
+    if (naty.find(cn) == naty.end())
+	return (std::isfinite(FASTBIT_DOUBLE_NULL) ?
+		-DBL_MAX : FASTBIT_DOUBLE_NULL);
+
+    double ret = -DBL_MAX;
+    for (ibis::partList::const_iterator it = parts.end();
+	 it != parts.end(); ++ it) {
+	const ibis::column *col = (*it)->getColumn(cn);
+	if (col != 0) {
+	    double tmp = col->getActualMax();
+	    if (tmp > ret)
+		ret = tmp;
+	}
+    }
+    return ret;
+} // ibis::mensa::getColumnMax
+
 long ibis::mensa::getHistogram(const char* constraints,
 			       const char* cname,
 			       double begin, double end, double stride,

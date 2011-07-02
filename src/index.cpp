@@ -2563,8 +2563,7 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 	    ibis::util::logger lg;
 	    lg() << "value, count (extracted from the bitvector)\n";
 	    for (it = bmap.begin(); it != bmap.end(); ++it)
-		lg() << (*it).first << ",\t" << (*it).second->cnt()
-			    << "\n";
+		lg() << (*it).first << ",\t" << (*it).second->cnt() << "\n";
 	}
     }
     else if (ibis::gVerbose > 2) {
@@ -2627,8 +2626,7 @@ void ibis::index::mapValues(const array_t<E>& val, VMap& bmap) {
 	    ibis::util::logger lg;
 	    lg() << "value, count (extracted from the bitvector)\n";
 	    for (it = bmap.begin(); it != bmap.end(); ++it)
-		lg() << (*it).first << ",\t" << (*it).second->cnt()
-			    << "\n";
+		lg() << (*it).first << ",\t" << (*it).second->cnt() << "\n";
 	}
     }
     else if (ibis::gVerbose > 2) {
@@ -3808,7 +3806,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 		array_t<uint32_t>::const_iterator it;
 		ibis::util::logger lg;
 		lg() << "divideCounts(): smoothing --\n bounds("
-			    << bdry.size() << ") = [";
+		     << bdry.size() << ") = [";
 		for (it = bdry.begin(); it != bdry.end(); ++it)
 		    lg() << " " << *it;
 		lg() << "]\nweights(" << bdry.size() << ") = [";
@@ -3925,12 +3923,9 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 	    if (cnt[i] >= avg) {
 		weight[j] = i; // mark the position of the heavy counts
 		++ j;
-		if (ibis::gVerbose > 4)
-		    ibis::util::logMessage
-			("index::divideCounts", "treating bin %lu "
-			 "as heavy (weight = %lu)",
-			 static_cast<long unsigned>(i),
-			 static_cast<long unsigned>(cnt[i]));
+		LOGGER(ibis::gVerbose > 4)
+		    << "index::divideCounts -- treating bin " << i
+		    << " as heavy (weight = " << cnt[i] << ")";
 	    }
 	}
 	if (i < ncnt || j >= nb) {
@@ -4063,11 +4058,9 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 	if (nb2[0] > 1) {
 	    bdry.resize(nb2[0]);
 	    const array_t<uint32_t> tmp(cnt, 0, weight[0]);
-	    if (ibis::gVerbose > 7)
-		ibis::util::logMessage
-		    ("divideCounts", "attempting to divide [0, %lu) into %lu "
-		     "bins", static_cast<long unsigned>(weight[0]),
-		     static_cast<long unsigned>(nb2[0]));
+	    LOGGER(ibis::gVerbose > 7)
+		<< "index::divideCounts -- attempting to divide [0, "
+		<< weight[0] << ") into " << nb2[0] << " bins";
 	    divideCounts(bdry, tmp);
 	}
 	else if (nb2[0] == 1) {
@@ -4084,12 +4077,10 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 		const array_t<uint32_t> tmp(cnt, off,
 					    (i+1<j?weight[i+1]:ncnt));
 		array_t<uint32_t> bnd(nb2[i+1]);
-		if (ibis::gVerbose > 7)
-		    ibis::util::logMessage
-			("divideCounts", "attempting to divide [%lu, %lu) "
-			 "into %lu bins", static_cast<long unsigned>(off),
-			 static_cast<long unsigned>(i+1<j?weight[i+1]:ncnt),
-			 static_cast<long unsigned>(nb2[i+1]));
+		LOGGER(ibis::gVerbose > 7)
+		    << "index::divideCounts -- attempting to divide [" << off
+		    <<", " << (i+1<j?weight[i+1]:ncnt) << ") into "
+		    << nb2[i+1] << " bins";
 		divideCounts(bnd, tmp);
 		for (array_t<uint32_t>::const_iterator it = bnd.begin();
 		     it != bnd.end(); ++it)
@@ -4103,8 +4094,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 
     if (ibis::gVerbose > 8) {
 	ibis::util::logger lg;
-	lg()
-	    << "divideCounts() binning result (i, cnt[i], sum cnt[i])\n";
+	lg() << "index::divideCounts results (i, cnt[i], sum cnt[i])\n";
 	for (i = 0, top=0; i < bdry[0]; ++i) {
 	    top += cnt[i];
 	    lg() << i << "\t" << cnt[i] << "\t" << top << "\n";
@@ -4113,7 +4103,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 	    lg() << "-^- bin 0 -^-\n";
 	}
 	else {
-	    lg() << "WARNING: divideCounts() bin: 0 is empty\n";
+	    lg() << "index::divideCounts -- bin 0 is empty\n";
 	}
 	for (j = 1; j < bdry.size(); ++j) {
 	    for (i = bdry[j-1], top = 0; i < bdry[j]; ++i) {
@@ -4131,8 +4121,8 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 		lg() << "-^- bin " << j << "\n";
 	    }
 	    else {
-		lg() << "WARNING: divideCounts() bin: " << j << " ["
-			    << bdry[j-1] << ", " << bdry[j] << ") is empty\n";
+		lg() << "index::divideCounts -- bin: " << j << " ["
+		     << bdry[j-1] << ", " << bdry[j] << ") is empty\n";
 	    }
 	}
     }
@@ -4142,20 +4132,15 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
 	    weight[i] = 0;
 	    for (j = (i==0 ? 0 : bdry[i-1]); j < bdry[i]; ++j)
 		weight[i] += cnt[j];
-	    if (weight[i] == 0) {
-		ibis::util::logMessage("divideCounts",
-				       "bin:%lu [%lu, %lu) is empty",
-				       static_cast<long unsigned>(i),
-				       static_cast<long unsigned>(i==0 ? 0 :
-								  bdry[i-1]),
-				       static_cast<long unsigned>(bdry[i]));
-	    }
+	    LOGGER(ibis::gVerbose > 2 && weight[i] == 0)
+		<< "index::divideCounts -- bin:" << i << " ["
+		<< (i==0 ? 0 : bdry[i-1]) << ", " << bdry[i] << ") is empty";
 	}
 
 	if (ibis::gVerbose > 6) {
 	    array_t<uint32_t>::const_iterator it;
 	    ibis::util::logger lg;
-	    lg() << "divideCounts():\n    cnt(" << ncnt << ") = [";
+	    lg() << "index::divideCounts\n    cnt(" << ncnt << ") = [";
 	    if (ncnt < 256) {
 		for (it = cnt.begin(); it != cnt.end(); ++it)
 		    lg() << " " << *it;
@@ -5036,12 +5021,9 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
     // is less than or equal to the size of an uncompressed
     // bitmap, use option 3, else use option 4.
     if (ibis::gVerbose > 4) {
-	ibis::util::logMessage("index", "addBins(%lu, %lu) will operate on "
-			       "%lu out of %lu bitmaps using the combined "
-			       "option", static_cast<long unsigned>(ib),
-			       static_cast<long unsigned>(ie),
-			       static_cast<long unsigned>(na),
-			       static_cast<long unsigned>(nobs));
+	LOGGER(ibis::gVerbose > 4)
+	    << "index::addBins(" << ib << ", " << ie << ") will operate on "
+	    << na << " out of " << nobs << " bitmaps using the combined option";
 	timer.start();
     }
     const uint32_t uncomp = (ibis::bitvector::bitsPerLiteral() == 8 ?
@@ -5160,13 +5142,11 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("index", "addBins operated on %u bitmap%s "
-			       "(%lu in %lu out) took %g sec(CPU), "
-			       "%g sec(elapsed).",
-			       static_cast<unsigned>(na), (na>1?"s":""),
-			       static_cast<long unsigned>(bytes),
-			       static_cast<long unsigned>(res.bytes()),
-			       timer.CPUTime(), timer.realTime());
+	LOGGER(ibis::gVerbose > 4)
+	    << "index::addBins operated on " << na << " bitmap"
+	    << (na>1?"s":"") << " (" << bytes << " in " << res.bytes()
+	    << " out) took " << timer.CPUTime() << " sec(CPU), "
+	    << timer.realTime() << "%g sec(elapsed)";
     }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
@@ -5311,12 +5291,9 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
     // is less than or equal to the size of an uncompressed
     // bitmap, use option 3, else use option 4.
     if (ibis::gVerbose > 4) {
-	ibis::util::logMessage("index", "addBins(%lu, %lu) will operate on "
-			       "%lu out of %lu bitmaps using the combined "
-			       "option", static_cast<long unsigned>(ib),
-			       static_cast<long unsigned>(ie),
-			       static_cast<long unsigned>(na),
-			       static_cast<long unsigned>(nobs));
+	LOGGER(ibis::gVerbose > 4)
+	    << "index::addBins(" << ib << ", " << ie << ") will operate on "
+	    << na << " out of " << nobs << " bitmaps using the combined option";
 	timer.start();
 	if (straight) {
 	    for (uint32_t i = ib; i < ie; ++i) {
@@ -5676,13 +5653,11 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("index", "addBins operated on %u bitmap%s "
-			       "(%lu in %lu out) took %g sec(CPU), "
-			       "%g sec(elapsed).",
-			       static_cast<unsigned>(na), (na>1?"s":""),
-			       static_cast<long unsigned>(bytes),
-			       static_cast<long unsigned>(res.bytes()),
-			       timer.CPUTime(), timer.realTime());
+	LOGGER(ibis::gVerbose > 4)
+	    << "index::addBins operated on " << na << " bitmap"
+	    << (na>1?"s":"") << " (" << bytes << " in " << res.bytes()
+	    << " out) took " << timer.CPUTime() << " sec(CPU), "
+	    << timer.realTime() << " sec(elapsed)";
     }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {

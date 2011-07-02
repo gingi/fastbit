@@ -12,11 +12,11 @@ if (${HOSTNAME} =~ m/bit\.[lbl.gov|local]/) {
 # on john's development machine, enable maintainer mode, use debug options
     $cmd="./configure --prefix=${HOME}/Darwin --enable-maintainer-mode --with-java CFLAGS='-g -O0 -m64' CXXFLAGS='-g -O0 -m64'";
 }
-elsif (${HOSTNAME} =~ m/^h\w+[.nersc.gov]?$/ ) {
+elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/ ) {
 # on hopper at NERSC, use gcc/g++ by default, no debugging
     $cmd="./configure --disable-shared --without-getpwuid --disable-debug --enable-xopt --without-java --prefix=/project/projectdirs/m1248/hopper/fastbit";
 }
-elsif (${HOSTNAME} =~ m/^f\w+[.nersc.gov]?$/ ) {
+elsif (${HOSTNAME} =~ m/^fr\w+[.nersc.gov]?$/ ) {
 # on franklin at NERSC, use gcc/g++ by default, no debugging
     $cmd="./configure --disable-shared --without-getpwuid --disable-debug --enable-xopt --without-java --prefix=/project/projectdirs/m1248/franklin/fastbit";
 }

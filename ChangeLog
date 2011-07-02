@@ -1,3 +1,15 @@
+2011-07-01 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: clean up the messages printed out from
+	divideCounts based on a suggestion from Andrew Olson
+	* examples/ardeap.cpp:827,856 change the tests to use ta->mRows()
+
+2011-06-30 John Wu <John dot Wu at ACM dot org>
+	* src/table.h: add functions getColumnMin and getColumnMax based
+	on comments from Andrew Olson
+	* src/bord.cpp: add code to use mask_ in
+	ibis::bord::column::comptueMinMax and
+	ibis::bord::column::evaluateRange
+
 2011-06-22 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: change type of c_2 from float to double to
 	make sure queries involving floating-point values are answered

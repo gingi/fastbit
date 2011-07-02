@@ -77,6 +77,8 @@ public:
     virtual int64_t
 	getColumnAsStrings(const char*, std::vector<std::string>&,
 			   uint64_t =0, uint64_t =0) const;
+    virtual double getColumnMin(const char*) const;
+    virtual double getColumnMax(const char*) const;
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,

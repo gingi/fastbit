@@ -700,6 +700,10 @@ int ibis::column::setNullMask(const ibis::bitvector& msk) {
     if (thePart == 0 || msk.size() == thePart->nRows()) {
 	ibis::util::mutexLock lock(&mutex, "column::setNullMask");
 	mask_.copy(msk);
+	LOGGER(ibis::gVerbose > 5)
+	    << "column[" << (thePart->name()?thePart->name():"?") << '.'
+	    << m_name << "]::setNullMask -- mask_.size()=" << mask_.size()
+	    << ", mask_.cnt()=" << mask_.cnt();
 	return mask_.cnt();
     }
     else {

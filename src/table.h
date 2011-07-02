@@ -292,6 +292,19 @@ public:
     virtual int64_t
 	getColumnAsStrings(const char* cname, std::vector<std::string>& vals,
 			   uint64_t begin=0, uint64_t end=0) const =0;
+
+    /// Compute the minimum of all valid values in the name column.  In
+    /// case of error, such as an invalid column name or an empty table,
+    /// this function will return FASTBIT_DOUBLE_NULL or
+    /// DBL_MAX to ensure that the following test fails
+    /// getColumnMin <= getColumnMax.
+    virtual double getColumnMin(const char* cname) const =0;
+    /// Compute the maximum of all valid values in the name column.  In
+    /// case of error, such as an invalid column name or an empty table,
+    /// this function will return FASTBIT_DOUBLE_NULL or
+    /// -DBL_MAX to ensure that the following test fails
+    /// getColumnMin <= getColumnMax.
+    virtual double getColumnMax(const char* cname) const =0;
     /// @}
 
     /// @{
@@ -641,11 +654,12 @@ public:
     /// Print a description of the table to the specified output stream.
     virtual void describe(std::ostream&) const =0;
 
-    /// Stop expanding the current data records.  Convert a tablex object
-    /// into a table object, so that they can participate in queries.  The
-    /// data records held by the tablex object is transfered to the table
+    /// Stop expanding the current set of data records.  Convert a tablex
+    /// object into a table object, so that they can participate in
+    /// queries.  The data records held by the tablex object is transfered
+    /// to the table object, however, the metadata remains with this
     /// object.
-    virtual table* toTable(const char* nm=0, const char* de=0) = 0;
+    virtual table* toTable(const char* nm=0, const char* de=0) =0;
 
 protected:
     tablex() {}; // Derived classes need this.

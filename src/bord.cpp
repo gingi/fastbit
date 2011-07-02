@@ -1271,10 +1271,18 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
     return -2;
 } // ibis::bord::getColumnAsStrings
 
+double ibis::bord::getColumnMin(const char* cn) const {
+    return getActualMin(cn);
+} // ibis::bord::getColumnMin
+
+double ibis::bord::getColumnMax(const char* cn) const {
+    return getActualMax(cn);
+} // ibis::bord::getColumnMax
+
 long ibis::bord::getHistogram(const char *constraints,
-			     const char *cname,
-			     double begin, double end, double stride,
-			     std::vector<uint32_t>& counts) const {
+			      const char *cname,
+			      double begin, double end, double stride,
+			      std::vector<uint32_t>& counts) const {
     if (sizeof(uint32_t) == sizeof(uint32_t)) {
 	return get1DDistribution
 	    (constraints, cname, begin, end, stride,
@@ -3901,200 +3909,68 @@ void ibis::bord::column::computeMinMax(const char *,
 	const array_t<unsigned char> &val =
 	    * static_cast<const array_t<unsigned char>*>(buffer);
 
-	unsigned char imin = val[0];
-	unsigned char imax = val[0];
-	long unsigned nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %u, max = %u",
-		       nelm, static_cast<unsigned>(imin),
-		       static_cast<unsigned>(imax));
-	min = imin;
-	max = imax;
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char> &val =
 	    * static_cast<const array_t<signed char>*>(buffer);
 
-	signed char imin = val[0];
-	signed char imax = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %d, max = %d",
-		       nelm, static_cast<int>(imin), static_cast<int>(imax));
-	min = imin;
-	max = imax;
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t> &val = 
 	    * static_cast<const array_t<uint16_t>*>(buffer);
 
-	uint16_t imin = val[0];
-	uint16_t imax = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %u, max = %u",
-		       nelm, static_cast<unsigned>(imin),
-		       static_cast<unsigned>(imax));
-	min = imin;
-	max = imax;
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t> &val =
 	    * static_cast<const array_t<int16_t>*>(buffer);
 
-	int16_t imin = val[0];
-	int16_t imax = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %d, max = %d",
-		       nelm, static_cast<int>(imin), static_cast<int>(imax));
-	min = imin;
-	max = imax;
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::UINT: {
 	const array_t<uint32_t> &val =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
 
-	uint32_t imin = val[0];
-	uint32_t imax = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %lu, max = %lu",
-		       nelm, static_cast<long unsigned>(imin),
-		       static_cast<long unsigned>(imax));
-	min = imin;
-	max = imax;
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::INT: {
 	const array_t<int32_t> &val =
 	    *static_cast<const array_t<int32_t>*>(buffer);
 
-	int32_t imin = val[0];
-	int32_t imax = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %ld, max = %ld",
-		       nelm, static_cast<long>(imin), static_cast<long>(imax));
-	min = imin;
-	max = imax;
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
 
-	uint64_t imin = val[0];
-	uint64_t imax = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %llu, max = %llu",
-		       nelm, static_cast<long long unsigned>(imin),
-		       static_cast<long long unsigned>(imax));
-	min = static_cast<double>(imin);
-	max = static_cast<double>(imax);
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t> &val =
 	    *static_cast<const array_t<int64_t>*>(buffer);
 
-	int64_t imin = val[0];
-	int64_t imax = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %lld, max = %lld",
-		       nelm, static_cast<long long>(imin),
-		       static_cast<long long>(imax));
-	min = static_cast<double>(imin);
-	max = static_cast<double>(imax);
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float> &val =
 	    * static_cast<const array_t<float>*>(buffer);
 
-	float imin = val[0];
-	float imax = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (imin > val[i])
-		imin = val[i];
-	    if (imax < val[i])
-		imax = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %g, max = %g",
-		       nelm, imin, imax);
-	min = imin;
-	max = imax;
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double> &val =
 	    * static_cast<const array_t<double>*>(buffer);
 
-	min = val[0];
-	max = val[0];
-	uint32_t nelm = val.size();
-	for (uint32_t i = 1; i < nelm; ++i) {
-	    if (min > val[i])
-		min = val[i];
-	    if (max < val[i])
-		max = val[i];
-	}
-	if (ibis::gVerbose > 5)
-	    logMessage("computeMinMax", "nelm = %lu, min = %lg, max = %lg",
-		       nelm, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     default:
-	if (ibis::gVerbose > 2)
-	    logMessage("computeMinMax", "column type %s is not one of the "
-		       "supported types (int, uint, float, double)",
-		       TYPESTRING[static_cast<int>(m_type)]);
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "")
+	    << '.' << m_name << "]::computeMinMax -- column type "
+	    << TYPESTRING[static_cast<int>(m_type)] << " is not one of the "
+	    "supported types (int, uint, float, double)";
 	min = 0;
 	max = (thePart != 0) ? thePart->nRows() : -DBL_MAX;
     } // switch(m_type)
@@ -4104,57 +3980,62 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
 				       const ibis::bitvector& mask,
 				       ibis::bitvector& res) const {
     long ierr = -1;
-
+    ibis::bitvector mymask(mask);
+    if (mask_.size() > 0)
+	mymask &= mask_;
+    if (thePart != 0)
+	mymask.adjustSize(0, thePart->nRows());
+	
     switch (m_type) {
     case ibis::UBYTE: {
 	const array_t<unsigned char> &val =
 	    * static_cast<const array_t<unsigned char>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char> &val =
 	    * static_cast<const array_t<signed char>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t> &val =
 	    * static_cast<const array_t<uint16_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t> &val =
 	    * static_cast<const array_t<int16_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::UINT: {
 	const array_t<uint32_t> &val =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::INT: {
 	const array_t<int32_t> &val =
 	    * static_cast<const array_t<int32_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t> &val =
 	    * static_cast<const array_t<int64_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float> &val =
 	    * static_cast<const array_t<float>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double> &val =
 	    * static_cast<const array_t<double>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 2)
@@ -4171,57 +4052,62 @@ long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 				       const ibis::bitvector& mask,
 				       ibis::bitvector& res) const {
     long ierr = -1;
+    ibis::bitvector mymask(mask);
+    if (mask_.size() > 0)
+	mymask &= mask_;
+    if (thePart != 0)
+	mymask.adjustSize(0, thePart->nRows());
 
     switch (m_type) {
     case ibis::UBYTE: {
 	const array_t<unsigned char> &val =
 	    * static_cast<const array_t<unsigned char>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char> &val =
 	    * static_cast<const array_t<signed char>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t> &val =
 	    * static_cast<const array_t<uint16_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t> &val =
 	    * static_cast<const array_t<int16_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::UINT: {
 	const array_t<uint32_t> &val =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::INT: {
 	const array_t<int32_t> &val =
 	    * static_cast<const array_t<int32_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t> &val =
 	    * static_cast<const array_t<int64_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float> &val =
 	    * static_cast<const array_t<float>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double> &val =
 	    * static_cast<const array_t<double>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 2)

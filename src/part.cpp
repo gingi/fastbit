@@ -13327,16 +13327,20 @@ double ibis::part::getActualMin(const char *name) const {
     const ibis::column* col = getColumn(name);
     if (col != 0)
 	return col->getActualMin();
-    else
+    else if (std::isfinite(FASTBIT_DOUBLE_NULL))
 	return DBL_MAX;
+    else
+	return FASTBIT_DOUBLE_NULL;
 } // ibis::part::getActualMin
 
 double ibis::part::getActualMax(const char *name) const {
     const ibis::column* col = getColumn(name);
     if (col != 0)
 	return col->getActualMax();
-    else
+    else if (std::isfinite(FASTBIT_DOUBLE_NULL))
 	return -DBL_MAX;
+    else
+	return FASTBIT_DOUBLE_NULL;
 } // ibis::part::getActualMax
 
 double ibis::part::getColumnSum(const char *name) const {

@@ -586,8 +586,8 @@ namespace ibis {
 			CUSTOMFUNCTION1, CUSTOMFUNCTION2};
 	/// All supported arithmetic operators.  The word operador is
 	/// Spainish for operator.
-	enum OPERADOR {UNKNOWN=0, BITOR, BITAND,
-		       PLUS, MINUS, MULTIPLY, DIVIDE, REMAINDER, NEGATE, POWER};
+	enum OPERADOR {UNKNOWN=0, BITOR, BITAND, PLUS, MINUS, MULTIPLY,
+		       DIVIDE, REMAINDER, NEGATE, POWER};
 	/// Standard 1-argument and 2-argument functions.
 	enum STDFUN1 {ACOS=0, ASIN, ATAN, CEIL, COS, COSH, EXP, FABS, FLOOR,
 		      FREXP, LOG10, LOG, MODF, ROUND, SIN, SINH, SQRT, TAN,

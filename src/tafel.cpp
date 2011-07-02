@@ -3484,7 +3484,7 @@ ibis::table* ibis::tafel::toTable(const char *nm, const char *de) {
     if (brd.get() == 0) return 0;
 
     mrows = 0;
-    // complete the transfer of content, reset the pointers
+    // completed the transfer of content, reset the pointers
     for (unsigned j = 0; j < ncol; ++ j) {
 	colorder[j]->values = 0;
 

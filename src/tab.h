@@ -28,7 +28,7 @@ namespace ibis {
 
 /// A trivial class for a table with no columns.  This type of table is
 /// generated when the select clause is blank or not specified.  It is also
-/// use to represent an empty table with zero rows.
+/// used to represent an empty table with zero rows.
 class ibis::tabula : public ibis::table {
 public:
     tabula(const char* na, const char* de, uint64_t nr) :
@@ -87,6 +87,12 @@ public:
     virtual int64_t
     getColumnAsStrings(const char*, std::vector<std::string>&, uint64_t =0,
 		       uint64_t =0) const {return -1;}
+    virtual double getColumnMin(const char*) const {
+	return (isfinite(FASTBIT_DOUBLE_NULL) ?
+		DBL_MAX : FASTBIT_DOUBLE_NULL);}
+    virtual double getColumnMax(const char*) const {
+	return (isfinite(FASTBIT_DOUBLE_NULL) ?
+		-DBL_MAX : FASTBIT_DOUBLE_NULL);}
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,
@@ -142,8 +148,13 @@ private:
 /// table is closer to the ODBC/JDBC convention.
 class ibis::tabele : public ibis::table {
 public:
+    /// Constructor.  If the name of the sole column is not given, it is
+    /// assumed to be "nrows".
     tabele(const char* na, const char* de, uint64_t nr, const char* nm=0) :
 	table(na, de), nrows(nr), col(nm && *nm ? nm : "nrows") {};
+    /// Constructor.  A table name will be generated automatically based on
+    /// the current time.  If the name of the sole column is not specified,
+    /// it is assumed to be "nrows".
     explicit tabele(uint64_t nr=0, const char* nm=0) :
 	nrows(nr), col(nm && *nm ? nm : "nrows") {};
     virtual ~tabele() {};
@@ -233,6 +244,20 @@ public:
     virtual int64_t
     getColumnAsStrings(const char*, std::vector<std::string>&, uint64_t =0,
 		       uint64_t =0) const {return -1;}
+    virtual double getColumnMin(const char* cn) const {
+	if (stricmp(cn, col.c_str()) == 0)
+	    return nrows;
+	else
+	    return (isfinite(FASTBIT_DOUBLE_NULL) ?
+		    DBL_MAX : FASTBIT_DOUBLE_NULL);
+    }
+    virtual double getColumnMax(const char* cn) const {
+	if (stricmp(cn, col.c_str()) == 0)
+	    return nrows;
+	else
+	    return (isfinite(FASTBIT_DOUBLE_NULL) ?
+		    -DBL_MAX : FASTBIT_DOUBLE_NULL);
+    }
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,

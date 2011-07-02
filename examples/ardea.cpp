@@ -824,7 +824,7 @@ int main(int argc, char** argv) {
 			  << " failed to parse text (appendRow returned "
 			  << ierr << ")\n" << inputrows[i] << std::endl;
 	}
-	if (! inputrows.empty() && outdir != 0 && *outdir != 0) {
+	if (ta->mRows() > 0 && outdir != 0 && *outdir != 0) {
 	    ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
 			     metatags.c_str());
 	    if (ierr < 0) {
@@ -853,7 +853,7 @@ int main(int argc, char** argv) {
 	ta->append("b3", 10, 90, buf);
 	ta->appendRow("10,11,12,13,14,15,16");
 
-	if (! inputrows.empty() && outdir != 0 && *outdir != 0) {
+	if (ta->mRows() > 0 && outdir != 0 && *outdir != 0) {
 	    ierr = ta->write(outdir, dsn,
 			     "hard-coded test data written by ardea.cpp");
 	    if (ierr < 0) {
@@ -930,7 +930,7 @@ int main(int argc, char** argv) {
 		std::clog << "Warning -- " << "Query \"" << arq[i]
 			  << "\" is expected to produce "
 			  << multi*arc[i] << " hit" << (multi*arc[i]>1?"s":"")
-			  << ", but actual found " << res->nRows()
+			  << ", but actually found " << res->nRows()
 			  << std::endl;
 		++ ierr;
 	    }
