@@ -1,8 +1,8 @@
 #! /bin/sh
 
 # libtool - Provide generalized library-building support services.
-# Generated automatically by config.status (fastbit) ibis1.2.4.9
-# Libtool was configured on host bit.local:
+# Generated automatically by config.status (fastbit) ibis1.2.4.10
+# Libtool was configured on host bit.lbl.gov:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
 #   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
@@ -63,13 +63,13 @@ ECHO="printf %s\\n"
 
 # The host system.
 host_alias=
-host=i386-apple-darwin10.7.0
-host_os=darwin10.7.0
+host=i386-apple-darwin10.8.0
+host_os=darwin10.8.0
 
 # The build system.
 build_alias=
-build=i386-apple-darwin10.7.0
-build_os=darwin10.7.0
+build=i386-apple-darwin10.8.0
+build_os=darwin10.8.0
 
 # A sed program that does not truncate output.
 SED="/opt/local/bin/gsed"

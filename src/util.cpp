@@ -54,7 +54,7 @@ const short unsigned ibis::util::charIndex[] = {
     53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 64, 64, 64, 64,
 };
 // delimiters that can be used to separate names in a name list
-const char* ibis::util::delimiters = ";, \b\f\r\t\n'\"";
+const char* ibis::util::delimiters = ";, \v\b\f\r\t\n'\"";
 
 /// Initialize the global variable for holding all the datasets.
 ibis::partList ibis::datasets;

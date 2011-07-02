@@ -135,7 +135,7 @@ int ibis::tafel::SQLCreateTable(const char *stmt, std::string &tname) {
     clear(); // clear all existing content
     std::string colname, tmp;
     ibis::tafel::column *col;
-    const char *delim = " ,\t\n\v";
+    const char *delim = " ,;\t\n\v";
     while (*buf != 0 && *buf != ')') { // loop till closing )
 	ierr = ibis::util::readString(colname, buf, 0);
 	if (colname.empty()) {
@@ -2653,6 +2653,8 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
     int64_t itmp;
     double dtmp;
     std::string stmp;
+    if (del == 0 || *del == 0)
+	del = " ,;\t\n\v";
     const uint32_t ncol = colorder.size();
     for (uint32_t i = 0; i < ncol; ++ i) {
 	column& col = *(colorder[i]);
@@ -2959,10 +2961,9 @@ int ibis::tafel::appendRow(const char* line, const char* del) {
     std::string id = "string ";
     id.append(line, 10);
     id += " ...";
-    std::string delimiters = (del != 0 && *del != 0 ? del : ",");
 
     normalize();
-    int ierr = parseLine(line, delimiters.c_str(), id.c_str());
+    int ierr = parseLine(line, del, id.c_str());
     LOGGER(ierr < static_cast<int>(cols.size()) && ibis::gVerbose > 1)
 	<< "tafel::appendRow expects to extract " << cols.size() << " value"
 	<< (cols.size()>1?"s":"") << ", but got " << ierr;
@@ -2983,7 +2984,6 @@ int ibis::tafel::readCSV(const char* filename, int maxrows,
 	    "improper initialization (colorder is empty)";
 	return -2;
     }
-    std::string delimiters = (del != 0 && *del != 0 ? del : ",");
     ibis::horometer timer;
     timer.start();
 
@@ -3003,8 +3003,8 @@ int ibis::tafel::readCSV(const char* filename, int maxrows,
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::readCSV(" << filename << ", " << maxrows << ", "
-		<< delimiters << ") -- failed to reserve space for "
+		<< "tafel::readCSV(" << filename << ", " << maxrows
+		<< ") -- failed to reserve space for "
 		<< maxrows << " rows for reading, continue anyway";
 	}
     }
@@ -3066,7 +3066,7 @@ int ibis::tafel::readCSV(const char* filename, int maxrows,
 	if (0 < cnt && cnt < ncol)
 	    normalize();
 	try {
-	    cnt = parseLine(str, delimiters.c_str(), filename);
+	    cnt = parseLine(str, del, filename);
 	}
 	catch (...) {
 	    if (outdir != 0 && *outdir != 0 && mrows > 0) {
@@ -3130,7 +3130,7 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 	    << "tafel::readSQLDump needs a filename to proceed";
 	return -1;
     }
-    const char* delimiters = ",";
+    const char* delimiters = " ,;\t\n\v";
     ibis::horometer timer;
     timer.start();
 
@@ -3152,8 +3152,8 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "tafel::readSQLDump(" << filename << ", " << maxrows << ", "
-		<< delimiters << ") -- failed to reserve space for "
+		<< "tafel::readSQLDump(" << filename << ", " << maxrows
+		<< ") -- failed to reserve space for "
 		<< maxrows << " rows for reading, continue anyway";
 	}
     }
