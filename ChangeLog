@@ -1,3 +1,7 @@
+2011-07-18 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp, doc/ibisCommandLine.html: add description
+	about -f option at the suggestion of thiago.mosqueiro at gmail.com
+
 2011-07-02 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.cpp: change the default delimiters into the same list
 	of  " ,;\t\n\v" when extracting fields from text verson of data.

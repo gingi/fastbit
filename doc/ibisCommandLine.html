@@ -227,12 +227,13 @@ of hits.
 <li><code>-h[elp]</code>
 <Br>Print a short usage statement.
 
-<li><code>-i[nteractive]]</code>
-<br>Tell ibis to enter an interactive mode after finishing processing
-the command line arguments.  In the interactive mode, the user may
-directly use the SELECT statement described below with the leading
-option <code>-q</code>.  There are also a small number of other commands
-that can be used in the interactive mode.  Type "help" in the
+<li><code>-i[nteractive]]</code> <br>Tell ibis to enter an interactive
+mode after finishing processing the command line arguments.  In the
+interactive mode, the user may directly use the SELECT statement
+described below with the option <code>-q</code> or use a query file
+containing the select statements followed by ';' in a query file using
+the option <code>-f</code>.  There are also a small number of other
+commands that can be used in the interactive mode.  Type "help" in the
 interactive mode to see a list.
 
 <li><code>-l[logfile] logfilename</code>
@@ -282,6 +283,13 @@ conditions]]</code>
 <li><A name="query"></A><code>-q[uery] [SELECT ...] [FROM ...] WHERE ...</code>
 <br>On most systems the strings following <code>-q</code> must be quoted in
 order for them to be perceived as one argument.
+
+<li><code>-f query-file-name</code><br> A list of select statements can
+be placed in a file, where each select statement is followed by a
+semi-column ';' per SQL standard.  This option take the query file name
+and read the queries into an internal list of queries.  It is possible
+to execute the queries using multiple threads with the option
+<code>-t</code>.
 
 <li><code>-r[id-check] [filename]</code>
 

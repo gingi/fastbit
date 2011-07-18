@@ -73,6 +73,7 @@
     -conf conf_file
     -datadir data_dir
     -estimation-only
+    -f query-file-name
     -help
     -interactive
     -join part1 part2 join-column conditions1 conditions2 [columns ...]
