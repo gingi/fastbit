@@ -5146,11 +5146,11 @@ ibis::part::adaptive3DBins(const array_t<T1> &vals1,
     const uint32_t nfine3 = static_cast<uint32_t>(0.5 + tmp * nb3);
     // try to make sure the 2nd bin boundary do not round down to a value
     // that is actually included in the 1st bin
-    const double scale1 = ibis::util::decrDouble
+    const double scale1 = (1.0 - nfine1 * DBL_EPSILON) *
 	((double) nfine1 / (double)(vmax1 - vmin1));
-    const double scale2 = ibis::util::decrDouble
+    const double scale2 = (1.0 - nfine2 * DBL_EPSILON) *
 	((double)nfine2 / (double)(vmax2 - vmin2));
-    const double scale3 = ibis::util::decrDouble
+    const double scale3 = (1.0 - nfine3 * DBL_EPSILON) *
 	((double)nfine3 / (double)(vmax3 - vmin3));
     LOGGER(ibis::gVerbose > 3)
 	<< mesg << " internally uses "<< nfine1 << " x " << nfine2 << " x " 

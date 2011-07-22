@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # A script used by the authors of FastBit to configure the package.
 # Terse comments are provided in hoping they might be instructive for
-# configuring the page on other machines.
+# configuring the package on other machines.
 #
 use Env qw(HOME HOSTNAME PWD);
 if (! ${HOSTNAME}) {

@@ -2963,14 +2963,15 @@ ibis::part::adaptive2DBins(const array_t<T1> &vals1,
     if (tmp < 2.0) tmp = 2.0;
     const uint32_t nfine1 = static_cast<uint32_t>(0.5 + tmp * nb1);
     const uint32_t nfine2 = static_cast<uint32_t>(0.5 + tmp * nb2);
-    const double scale1 = ibis::util::decrDouble
+    const double scale1 = (1.0 - nfine1 * DBL_EPSILON) *
 	((double)nfine1 / (double)(vmax1 - vmin1));
-    const double scale2 = ibis::util::decrDouble
+    const double scale2 = (1.0 - nfine2 * DBL_EPSILON) *
 	((double)nfine2 / (double)(vmax2 - vmin2));
     LOGGER(ibis::gVerbose > 3)
 	<< mesg << " internally uses " << nfine1 << " x " << nfine2
 	<< " uniform bins for " << nrows << " records in the range of ["
-	<< vmin1 << ", " << vmax1 << "] x [" << vmin2 << ", " << vmax2 << "]";
+	<< vmin1 << ", " << vmax1 << "] x [" << vmin2 << ", " << vmax2
+	<< "], expected final bins to be [" << nb1 << "] x [" << nb2 << ']';
 
     array_t<uint32_t> cnts1(nfine1,0), cnts2(nfine2,0), cntsa(nfine1*nfine2,0);
     // loop to count values in fine bins
@@ -2985,12 +2986,12 @@ ibis::part::adaptive2DBins(const array_t<T1> &vals1,
 	    ibis::util::logger lg;
 	    if (j1 >= nfine1)
 		lg() << "DEBUG -- Warning -- j1 (" << j1
-			    << ") is out of bound (>=" << nfine1
-			    << ") in part::adaptive2DBins";
+		     << ") is out of bound (>=" << nfine1
+		     << ") in " << mesg;
 	    if (j2 >= nfine2)
 		lg() << "DEBUG -- Warning -- j2 (" << j2
-			    << ") is out of bound (>=" << nfine2
-			    << ") in part::adaptive2DBins";
+		     << ") is out of bound (>=" << nfine2
+		     << ") in " << mesg;
 	}
 #endif
     }
@@ -3050,6 +3051,9 @@ ibis::part::adaptive2DBins(const array_t<T1> &vals1,
 	}
     }
 
+    LOGGER(ibis::gVerbose > 5)
+	<< "DEBUG -- " << mesg << " completed with bnds1(" << bnds1.size()
+	<< ") and bnds2(" << bnds2.size() << "), ready for clean up";
     return counts.size();
 } // ibis::part::adaptive2DBins
 

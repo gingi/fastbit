@@ -263,6 +263,19 @@ int truncate(const char*, uint32_t);
 #endif
 #endif
 
+// The function isfinite is a macro defined in math.h according to
+// opengroup.org.  As of 2011, only MS visual studio does not have a
+// definition for isfinite, but it has _finite in float,h.
+#ifndef isfinite
+inline int isfinite(double x) {
+#if defined(_MSC_VER) && defined(_WIN32)
+    return _finite(x);
+#else
+    return finite(x);
+#endif
+}
+#endif
+
 #define LOGGER(v) \
 if (false == (v)) ; else ibis::util::logger(0)() 
 #define IBIS_BLOCK_GUARD \

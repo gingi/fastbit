@@ -3,28 +3,18 @@
 // Copyright 2000-2011 the Regents of the University of California
 //
 // Implementation of the ibis::part functions except those that modify the
-// content of a partition (which are in parti.cpp), or perform self join
-// (in party.cpp), or histogram functions (in parth.cpp).
+// content of a partition (which are in parti.cpp), or perform self joins
+// (in party.cpp), or compute histograms (in parth*.cpp).
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 
-#include "qExpr.h"
 #include "category.h"
 #include "query.h"
 #include "countQuery.h"	// ibis::countQuery
-#include "part.h"
 #include "iroster.h"
 #include "twister.h"	// ibis::MersenneTwister
-#include <stdio.h>
-#include <stdlib.h>	// RAND_MAX, rand()
-#include <stdarg.h>	// vsprintf(), ...
-#include <signal.h>
-#include <ctype.h>	// tolower
-#ifdef sun
-#include <ieeefp.h>	// finite
-#endif
 
 #include <fstream>
 #include <sstream>	// std::ostringstream
@@ -34,13 +24,31 @@
 #include <cmath>	// std::floor, std::ceil
 #include <memory>	// std::auto_ptr
 
+#include <signal.h>	// SIGINT
+#include <stdlib.h>	// rand
+#include <stdarg.h>	// vsprintf, ...
+#include <ctype.h>	// tolower
+
 #if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) \
 || defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW32__) \
 || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
-#  include <dirent.h>
+#include <dirent.h>
 #elif defined(_WIN32) && defined(_MSC_VER)
 #define popen _popen
 #define pclose _pclose
+#endif
+
+// The function isfinite is a macro defined in math.h according to
+// opengroup.org.  As of 2011, only MS visual studio does not have a
+// definition for isfinite, but it has _finite in float,h.
+#ifndef isfinite
+inline int isfinite(double x) {
+#if defined(_MSC_VER) && defined(_WIN32)
+    return _finite(x);
+#else
+    return finite(x);
+#endif
+}
 #endif
 
 extern "C" {
@@ -5669,18 +5677,10 @@ void ibis::part::queryTest(const char* pref, long* nerrors) const {
 	upper = (*it).second->upperBound();
     }
     if (! (lower < upper)) {
-#if defined(_WIN32) && !defined(__CYGWIN__)
-	if (_finite(lower))
-#else
-	    if (finite(lower))
-#endif
-		upper = ibis::util::compactValue(lower, DBL_MAX);
-#if defined(_WIN32) && !defined(__CYGWIN__)
-	    else if (_finite(upper))
-#else
-	    else if (finite(upper))
-#endif
-		lower = ibis::util::compactValue(-DBL_MAX, upper);
+	if (isfinite(lower) != 0)
+	    upper = ibis::util::compactValue(lower, DBL_MAX);
+	if (isfinite(upper) != 0)
+	    lower = ibis::util::compactValue(-DBL_MAX, upper);
 
 	if (! (lower < upper)) { // force min/max to be 0/1
 	    lower = 0.0;
@@ -5787,18 +5787,10 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	upper = att->upperBound();
     }
     if (! (lower < upper)) {
-#if defined(_WIN32) && !defined(__CYGWIN__)
-	if (_finite(lower))
-#else
-	    if (finite(lower))
-#endif
-		upper = ibis::util::compactValue(lower, DBL_MAX);
-#if defined(_WIN32) && !defined(__CYGWIN__)
-	    else if (_finite(upper))
-#else
-	    else if (finite(upper))
-#endif
-		lower = ibis::util::compactValue(-DBL_MAX, upper);
+	if (isfinite(lower) != 0)
+	    upper = ibis::util::compactValue(lower, DBL_MAX);
+	if (isfinite(upper) != 0)
+	    lower = ibis::util::compactValue(-DBL_MAX, upper);
 
 	if (! (lower < upper)) { // force min/max to 0/1
 	    lower = 0.0;
@@ -13327,7 +13319,7 @@ double ibis::part::getActualMin(const char *name) const {
     const ibis::column* col = getColumn(name);
     if (col != 0)
 	return col->getActualMin();
-    else if (std::isfinite(FASTBIT_DOUBLE_NULL))
+    else if (isfinite(FASTBIT_DOUBLE_NULL) != 0)
 	return DBL_MAX;
     else
 	return FASTBIT_DOUBLE_NULL;
@@ -13337,7 +13329,7 @@ double ibis::part::getActualMax(const char *name) const {
     const ibis::column* col = getColumn(name);
     if (col != 0)
 	return col->getActualMax();
-    else if (std::isfinite(FASTBIT_DOUBLE_NULL))
+    else if (isfinite(FASTBIT_DOUBLE_NULL) != 0)
 	return -DBL_MAX;
     else
 	return FASTBIT_DOUBLE_NULL;

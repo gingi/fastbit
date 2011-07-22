@@ -436,7 +436,7 @@ void ibis::array_t<T>::nosharing() {
 /// Free the memory associated with the fileManager::storage.
 template<class T>
 void ibis::array_t<T>::freeMemory() {
-    if (actual) {
+    if (actual != 0) {
 	actual->endUse();//timer.CPUTime()
 	LOGGER(ibis::gVerbose > 9)
 	    << "array_t<" << typeid(T).name()

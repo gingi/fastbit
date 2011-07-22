@@ -2152,7 +2152,7 @@ ibis::part::adaptiveFloats(const array_t<T> &vals, const T vmin,
 	(std::sqrt(static_cast<double>(vals.size()) * nbins)) : 8*nbins;
     // try to make sure the 2nd bin boundary do not round down to a value
     // that is actually included in the 1st bin
-    double scale = ibis::util::decrDouble
+    double scale = (1.0 - nfine * DBL_EPSILON) *
 	((double)nfine / (double)(vmax - vmin));
     LOGGER(ibis::gVerbose > 4)
 	<< "part::adaptiveFloats<" << typeid(T).name() << "> using "

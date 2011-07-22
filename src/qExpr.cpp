@@ -1949,7 +1949,7 @@ ibis::math::term* ibis::math::stdFunction1::reduce() {
 	case LOG: ret = new ibis::math::number(log(arg)); break;
 	case MODF: {double intptr;
 	ret = new ibis::math::number(modf(arg, &intptr)); break;}
-	case ROUND: ret = new ibis::math::number(round(arg)); break;
+	case ROUND: ret = new ibis::math::number(floor(arg+0.5)); break;
 	case SIN: ret = new ibis::math::number(sin(arg)); break;
 	case SINH: ret = new ibis::math::number(sinh(arg)); break;
 	case SQRT: ret = new ibis::math::number(sqrt(arg)); break;
@@ -2057,7 +2057,7 @@ double ibis::math::stdFunction1::eval() const {
     case ibis::math::LOG10: arg = log10(arg); break;
     case ibis::math::LOG: arg = log(arg); break;
     case ibis::math::MODF: {double intptr; arg = modf(arg, &intptr); break;}
-    case ibis::math::ROUND: arg = round(arg); break;
+    case ibis::math::ROUND: arg = floor(arg+0.5); break;
     case ibis::math::SIN: arg = sin(arg); break;
     case ibis::math::SINH: arg = sinh(arg); break;
     case ibis::math::SQRT: arg = sqrt(arg); break;
@@ -2129,9 +2129,9 @@ ibis::math::term* ibis::math::stdFunction2::reduce() {
 	    ret = new ibis::math::number(pow(lhs->eval(), rhs->eval()));
 	    break;
 	case ROUND2: {
-	    double scale = round(rhs->eval());
+	    double scale = floor(0.5+rhs->eval());
 	    scale = (scale > 0 ? pow(1.0e1, scale) : 1.0);
-	    ret = new ibis::math::number(round(lhs->eval()*scale)/scale);
+	    ret = new ibis::math::number(floor(0.5+lhs->eval()*scale)/scale);
 	    break;}
 	default: break;
 	}
@@ -2151,9 +2151,9 @@ double ibis::math::stdFunction2::eval() const {
     case ibis::math::LDEXP: lhs = ldexp(lhs, static_cast<int>(rhs)); break;
     case ibis::math::POW: lhs = pow(lhs, rhs); break;
     case ROUND2: {
-	rhs = round(rhs);
+	rhs = floor(0.5+rhs);
 	const double scale = (rhs>0 ? pow(1.0e1, rhs) : 1.0);
-	lhs = round(lhs*scale)/scale;
+	lhs = floor(0.5+lhs*scale)/scale;
 	break;}
     default: break;
     }
@@ -2913,11 +2913,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)
 	char *stmp;
 	double dtmp = strtod(str, &stmp);
 	if (stmp > str) {// get a value, maybe HUGE_VAL, INF, NAN
-#if defined(_WIN32) && !defined(__CYGWIN__)
-	    if (_finite(dtmp))
-#else
-	    if (finite(dtmp))
-#endif
+	    if (isfinite(dtmp) != 0)
 		dset.insert(dtmp);
 	    str = stmp + strspn(stmp, "\n\v\t, ");
 	}
@@ -3512,11 +3508,7 @@ ibis::qAnyAny::qAnyAny(const char *pre, const char *val)
 	char *stmp;
 	double dtmp = strtod(str, &stmp);
 	if (stmp > str) {// get a value, maybe HUGE_VAL, INF, NAN
-#if defined(_WIN32) && !defined(__CYGWIN__)
-	    if (_finite(dtmp))
-#else
-	    if (finite(dtmp))
-#endif
+	    if (isfinite(dtmp) != 0)
 		dset.insert(dtmp);
 	    str = stmp + strspn(stmp, "\n\v\t, ");
 	}

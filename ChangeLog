@@ -1,3 +1,18 @@
+2011-07-21 John Wu <John dot Wu at ACM dot org>
+	* src/mensa.cpp, src/part.cpp: addd conditional definition for an
+	inline version of isfinite to overcome the problem with missing
+	definition from math.h
+
+2011-07-20 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: add definition of isfinite if it is not defined
+	already (in order to overcome the problem on MS visual studio)
+	* src/qExpr.cpp: replace the calls to round with calls to floor
+	(MS visual studio does not support round in math.h)
+	* src/parth.cpp, src/parth2d.cpp, src/parth3d.cpp: compute the
+	scaling factors to leave more room bin boundaries to ensure the
+	largest value falls in the valid bin (to address a problem
+	reported by Andrew Olson)
+
 2011-07-18 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp, doc/ibisCommandLine.html: add description
 	about -f option at the suggestion of thiago.mosqueiro at gmail.com
