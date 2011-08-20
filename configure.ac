@@ -201,12 +201,12 @@ else
 fi
 
 AC_ARG_WITH(pthread,
-	    AS_HELP_STRING([--with-pthread=dir],[use dir as pthread root directory]),
-            [if test -x $with_pthread/pthread-config; then
+	AS_HELP_STRING([--with-pthread=dir],[use dir as pthread root directory]),
+        [if test -x $with_pthread/pthread-config; then
 	       CFLAGS="$CFLAGS `$with_pthread/pthread-config --cflags"
 	       CXXFLAGS="$CXXFLAGS `$with_pthread/pthread-config --cflags"
 	       LIBS="$LIBS `pthread-config --ldflags` `pthread-config --libs`"
-	     elif test -d $with_pthread; then
+	 elif test -d $with_pthread; then
  	       if test -f $with_pthread/pthread.h; then
 	         CFLAGS="$CFLAGS -I$with_pthread";
 	         CPPFLAGS="$CPPFLAGS -I$with_pthread";
@@ -228,10 +228,10 @@ AC_ARG_WITH(pthread,
 	         LIBS="$LIBS $with_pthread/lib/libpthread.a"
 	       elif test -f $with_pthread/lib/libpthreadGC2.a; then
 	         LIBS="$LIBS $with_pthread/lib/libpthreadGC2.a"
-	       else
+	 else
 	         AC_MSG_WARN([Can not find $with_pthread/libpthread.a, $with_pthread/libpthreadGC2.a, $with_pthread/lib/libpthread.a, or $with_pthread/lib/libpthreadGC2.a])
-	       fi;
-	     fi])
+	 fi;
+fi])
 
 # function to check for pthread library
 AC_DEFUN([Z_CHECK_PTHREAD], [
@@ -485,7 +485,8 @@ else
   elif test -f "$JAVA_HOME/Headers/jni.h"; then
     JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $JAVA_HOME/Headers"
   else
-    AC_MSG_ERROR([cannot find jni.h in $JAVA_HOME/Headers or $JAVA_HOME/include])
+    AC_MSG_WARN([cannot find jni.h in $JAVA_HOME/Headers or $JAVA_HOME/include])
+    JNI_INCLUDE_DIRS=""
   fi
 fi
 
@@ -549,9 +550,9 @@ rm -f Test.uue])
 fi
 if test "x$ac_cv_prog_uudecode_base64" != xyes; then
         rm -f Test.class
-        AC_MSG_WARN([I have to compile Test.class from scratch])
+        #AC_MSG_WARN([I have to compile Test.class from scratch])
         if test "x$ac_cv_prog_javac_works" = xno; then
-                AC_MSG_ERROR([Cannot compile java source. $JAVAC does not work properly])
+                AC_MSG_WARN([Cannot compile java source. $JAVAC does not work properly])
         fi
         if test "x$ac_cv_prog_javac_works" = x; then
                 AC_PROG_JAVAC
@@ -576,7 +577,8 @@ if test "x$ac_cv_prog_uudecode_base64" != xyes; then
         else
           echo "configure: failed program was:" >&AS_MESSAGE_LOG_FD
           cat $JAVA_TEST >&AS_MESSAGE_LOG_FD
-          AC_MSG_ERROR(The Java compiler $JAVAC failed (see config.log, check the CLASSPATH?))
+          AC_MSG_WARN(The Java compiler $JAVAC failed (see config.log, check the CLASSPATH?))
+	  JAVAC="no" # reset to empty string
         fi
 fi
 if AC_TRY_COMMAND($JAVA $JAVAFLAGS $TEST) >/dev/null 2>&1; then
@@ -584,7 +586,8 @@ if AC_TRY_COMMAND($JAVA $JAVAFLAGS $TEST) >/dev/null 2>&1; then
 else
   echo "configure: failed program was:" >&AS_MESSAGE_LOG_FD
   cat $JAVA_TEST >&AS_MESSAGE_LOG_FD
-  AC_MSG_ERROR(The Java VM $JAVA failed (see config.log, check the CLASSPATH?))
+  AC_MSG_WARN(The Java VM $JAVA failed (see config.log, check the CLASSPATH?))
+  JAVA="no"
 fi
 rm -fr $JAVA_TEST $CLASS_TEST Test.uue
 ])

@@ -27,8 +27,8 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
 	throw ibis::bad_alloc("wrong column type for ibis::keywords");
     }
 
+    // try to read an existing keyword index
     int ierr;
-    // try to read an existing term-document matrix
     std::string fdic, fmat;
     dataFileName(f, fdic);
     fmat = fdic;
@@ -46,10 +46,16 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
 	}
     }
 
+    std::string delim;
+    reinterpret_cast<const ibis::text*>(c)->delimitersForKeywordIndex(delim);
+    // fmat = name of the default tdlist file
+    fmat.erase(fmat.size()-3);
+    fmat += "tdlist";
+    // fdic = name of the externally specified tdlist file
     reinterpret_cast<const ibis::text*>(c)->TDListForKeywordIndex(fdic);
     if (! fdic.empty()) {
-	// read a tdlist file generated externally, first check that id
-	// column is a valid one
+	// read a tdlist file with an externally provided file name, first
+	// check that id column is a valid one
 	const ibis::column* idcol =
 	    reinterpret_cast<const ibis::text*>(c)->IDColumnForKeywordIndex();
 	if (idcol->type() != ibis::INT &&
@@ -60,55 +66,47 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
 	    throw ibis::bad_alloc("keywords can only use 4-byte "
 				  "integers as ids");
 	}
-	int ierr = readTermDocFile(idcol, fdic.c_str());
+	ierr = readTermDocFile(idcol, fdic.c_str());
 	if (ierr == -1 && f != 0 && *f != 0)
 	    ierr = readTermDocFile(idcol, f);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- keywords::keywords -- readTermDocFile failed "
 		"with error code " << ierr;
-	    throw ibis::bad_alloc("keywords::ctor failed to read tdlist file");
+	    ibis::index::clear();
 	}
     }
-    else {
-	std::string delim;
-	reinterpret_cast<const ibis::text*>(c)->
-	    delimitersForKeywordIndex(delim);
-	fmat.erase(fmat.size()-3);
-	fmat += "tdlist";
-	if (delim.empty() && ibis::util::getFileSize(fmat.c_str()) > 0) {
-	    // read a tdlist file generated externally, first check that id
-	    // column is a valid one
-	    const ibis::column* idcol =
-		reinterpret_cast<const ibis::text*>(c)->
-		IDColumnForKeywordIndex();
-	    if (idcol->type() != ibis::INT &&
-		idcol->type() != ibis::UINT) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- keywords::keywords -- the id column of "
-		    "keywords can only be 4-byte integers";
-		throw ibis::bad_alloc("keywords can only use 4-byte "
-				      "integers as ids");
-	    }
+    else if (delim.empty() && ibis::util::getFileSize(fmat.c_str()) > 0) {
+	// read a tdlist file with the default file name, first check that
+	// id column is a valid one
+	const ibis::column* idcol =
+	    reinterpret_cast<const ibis::text*>(c)->
+	    IDColumnForKeywordIndex();
+	if (idcol->type() == ibis::INT || idcol->type() == ibis::UINT) {
 	    ierr = readTermDocFile(idcol, fmat.c_str());
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- keywords::keywords -- readTermDocFile "
 		    "failed with error code " << ierr;
-		throw ibis::bad_alloc("keywords::ctor failed to read tdlist "
-				      "file");
+		clear();
 	    }
 	}
 	else {
-	    ibis::keywords::tokenizer tkn(delim.c_str());
-	    int ierr = parseTextFile(tkn, f);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- keywords::keywords failed to parse text "
-		    "file to build a keyword index, parseTextFile returned "
-		    << ierr;
-		throw ibis::bad_alloc("keywords::ctr failed to parse text");
-	    }
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- keywords::keywords -- the id column of "
+		"keywords can only be 4-byte integers";
+	    ibis::index::clear();
+	}
+    }
+    if (bits.empty()) { // still don't have an index already, try this
+	ibis::keywords::tokenizer tkn(delim.c_str());
+	ierr = parseTextFile(tkn, f);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- keywords::keywords failed to parse text "
+		"file to build a keyword index, parseTextFile returned "
+		<< ierr;
+	    throw ibis::bad_alloc("keywords::ctr failed to parse text");
 	}
     }
 
@@ -460,11 +458,16 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
     for (size_t j = 0; j < bits.size(); ++ j)
 	if (bits[j] != 0)
 	    bits[j]->adjustSize(0, nrows);
-    if (col->partition() != 0) {
-	LOGGER(col->partition()->nRows() != nrows && ibis::gVerbose > 0)
-	    << "Warning -- parseTextFile read " << nrows << " string value"
-	    << (nrows>1?"s":"") << " from " << tfname << ", but expected "
-	    << col->partition()->nRows();
+
+    if (col->partition() != 0 && ibis::gVerbose > 1) {
+	ibis::util::logger lg;
+	if (col->partition()->nRows() != nrows)
+	    lg() << "Warning -- ";
+	lg() << "keywords[" << col->partition()->name() << "." << col->name()
+	     << "]::parseTextFile read " << nrows << " string value"
+	     << (nrows>1?"s":"") << " from " << tfname;
+	if (col->partition()->nRows() != nrows)
+	    lg() << ", but expected " << col->partition()->nRows();
     }
     return 0;
 } // ibis::keywords::parseTextFile
@@ -480,9 +483,11 @@ void ibis::keywords::print(std::ostream& out) const {
     if (ibis::gVerbose < 0) return;
     const uint32_t nobs = bits.size();
     if (terms.size()+1 == bits.size() && terms.size() > 0) {
-	out << "The boolean term-document matrix for " << col->name()
-	    << " contains the following terms (optionally followed "
-	    "by term frequencies)\n";
+	out << "The boolean term-document matrix for column ";
+	if (col->partition() != 0)
+	    out << col->partition()->name() << '.';
+	out << col->name() << " contains the following terms (optionally "
+	    "followed by term frequencies)\n";
 	uint32_t skip = 0;
 	if (ibis::gVerbose <= 0) {
 	    skip = nobs;

@@ -63,13 +63,13 @@ ECHO="printf %s\\n"
 
 # The host system.
 host_alias=
-host=i386-apple-darwin10.8.0
-host_os=darwin10.8.0
+host=i386-apple-darwin11.1.0
+host_os=darwin11.1.0
 
 # The build system.
 build_alias=
-build=i386-apple-darwin10.8.0
-build_os=darwin10.8.0
+build=i386-apple-darwin11.1.0
+build_os=darwin11.1.0
 
 # A sed program that does not truncate output.
 SED="/opt/local/bin/gsed"
@@ -161,7 +161,7 @@ lock_old_archive_extraction=yes
 LTCC="gcc"
 
 # LTCC compiler flags.
-LTCFLAGS="-g -O0 -m64 -D_THREAD_SAFE  -I/Library/Java/Home/include"
+LTCFLAGS="-g -O0 -m64 -D_THREAD_SAFE "
 
 # Take the output of nm and produce a listing of raw symbols and C names.
 global_symbol_pipe="sed -n -e 's/^.*[	 ]\\([BCDEGRST][BCDEGRST]*\\)[	 ][	 ]*_\\([_A-Za-z][_A-Za-z0-9]*\\)\$/\\1 _\\2 \\2/p' | sed '/ __gnu_lto/d'"
@@ -269,7 +269,7 @@ finish_eval=""
 hardcode_into_libs=no
 
 # Compile-time system search path for libraries.
-sys_lib_search_path_spec="/usr/lib/gcc/i686-apple-darwin10/4.2.1/x86_64 /usr/lib/i686-apple-darwin10/4.2.1 /usr/lib  /usr/local/lib"
+sys_lib_search_path_spec="/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/x86_64 /Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/x86_64 /usr/lib/gcc/i686-apple-darwin11/4.2.1/x86_64 /usr/lib/i686-apple-darwin11/4.2.1 /usr/lib /usr/llvm-gcc-4.2/lib/gcc /usr/llvm-gcc-4.2/lib /Developer/usr/llvm-gcc-4.2/lib  /usr/local/lib"
 
 # Run-time system search path for libraries.
 sys_lib_dlsearch_path_spec="/usr/local/lib /lib /usr/lib"
@@ -289,7 +289,7 @@ striplib="strip -x"
 
 
 # The linker used to build libraries.
-LD="/usr/libexec/gcc/i686-apple-darwin10/4.2.1/ld"
+LD="/usr/llvm-gcc-4.2/libexec/gcc/i686-apple-darwin11/4.2.1/ld"
 
 # How to create reloadable object files.
 reload_flag=" -r"
@@ -10123,7 +10123,7 @@ build_old_libs=`case $build_libtool_libs in yes) echo no;; *) echo yes;; esac`
 # ### BEGIN LIBTOOL TAG CONFIG: CXX
 
 # The linker used to build libraries.
-LD="/usr/libexec/gcc/i686-apple-darwin10/4.2.1/ld"
+LD="/usr/llvm-gcc-4.2/libexec/gcc/i686-apple-darwin11/4.2.1/ld"
 
 # How to create reloadable object files.
 reload_flag=" -r"

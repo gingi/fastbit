@@ -1943,8 +1943,10 @@ static void parse_args(int argc, char** argv, int& mode,
 	    break;
 	    case 'b':
 	    case 'B': { // build indexes,
-		// it also accepts an optional argument to indicate the
-		// number of threads to use
+		// if this argument is followed by an integer, the integer
+		// is taken to be the number of threads to use for building
+		// indexes; if this argument is followed by anything else,
+		// it is assumed to be an index speicification.
 		char *ptr = strchr(argv[i], '=');
 		if (ptr == 0) {
 		    if (i+1 < argc) {

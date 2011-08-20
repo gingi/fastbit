@@ -658,11 +658,11 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		// special handling
 		ind = reinterpret_cast<const ibis::category*>(c)->
 		    fillIndex(file.c_str());
-		return ind;
+		//return ind;
 	    }
 	    else if (c->type() == ibis::TEXT) {
 		ind = new ibis::keywords(c, file.c_str());
-		return ind;
+		//return ind;
 	    }
 	    else { // need to build a new index from attribute values
 		file.erase(file.size()-4); // remove ".idx" extension
@@ -997,11 +997,12 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    }
 	} // if (dfname != 0)
 	else if (c->type() == ibis::CATEGORY) {
-	    return reinterpret_cast<const ibis::category*>(c)->fillIndex();
+	    ind = reinterpret_cast<const ibis::category*>(c)->fillIndex();
+	    //return ind;
 	}
 	else if (c->type() == ibis::TEXT) {
 	    ind = new ibis::keywords(c);
-	    return ind;
+	    //return ind;
 	}
 	else { // build a new index from attribute values
 	    bool dflt = false;
@@ -1402,6 +1403,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	lg() << " in " << timer.CPUTime() <<" sec(CPU), "<< timer.realTime()
 	     << " sec(elapsed)";
 	if (ibis::gVerbose > 3) {
+	    lg() << "\n";
 	    ind->print(lg());
 	}
     }

@@ -1,3 +1,11 @@
+2011-08-19 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: Change AC_MSG_ERROR to AC_MSG_WARN to avoid abrupt
+	termination of the configuration script
+	* src/index.cpp: remove the return statements from cases dealing
+	with string values columns in the function ibis::index::create,
+	they prevent the newly created index from being written to disk
+	(a problem reported by Teryl Taylor)
+
 2011-07-21 John Wu <John dot Wu at ACM dot org>
 	* src/mensa.cpp, src/part.cpp: addd conditional definition for an
 	inline version of isfinite to overcome the problem with missing
