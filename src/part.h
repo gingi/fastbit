@@ -53,7 +53,7 @@ public:
     /// Return the current state of data partition.
     TABLE_STATE getStateNoLocking() const {return state;}
 
-    virtual void buildIndexes(const char* iopt=0, int nthr=1);
+    virtual int buildIndexes(const char* iopt=0, int nthr=1);
     void buildSorted(const char* colname) const;
     void loadIndexes(const char* iopt=0, int ropt=0) const;
     void unloadIndexes() const;
@@ -595,6 +595,8 @@ public:
     /******************************************************************/
     virtual long reorder();
     virtual long reorder(const ibis::table::stringList &names);
+    virtual long reorder(const ibis::table::stringList &names,
+			 const std::vector<bool> &directions);
 
     long deactivate(const std::vector<uint32_t> &rows);
     long deactivate(const char* conds);
@@ -754,8 +756,11 @@ protected:
     long writeValues(const char *fname, const array_t<uint32_t> &ind);
     /// Write the named data file in a segmented sorted order.
     template <typename T>
-    long reorderValues(const char *fname, const array_t<uint32_t> &indin,
-		       array_t<uint32_t> &indout, array_t<uint32_t> &starts);
+    long reorderValues(const char *fname,
+		       array_t<uint32_t> &starts,
+		       array_t<uint32_t> &indout,
+		       const array_t<uint32_t> &indin,
+		       bool ascending);
     long append1(const char* dir);
     long append2(const char* dir);
 

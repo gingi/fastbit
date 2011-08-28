@@ -102,6 +102,7 @@ public:
     virtual table* select2(const char* sel, const char* cond,
 			   const char* pts) const;
 
+    virtual void orderby(const stringList&, const std::vector<bool>&);
     virtual void orderby(const stringList&);
     virtual void orderby(const char *str) {ibis::table::orderby(str);}
     /// Reversing the ordering of the rows on disk requires too much work

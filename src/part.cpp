@@ -40,8 +40,8 @@
 
 // The function isfinite is a macro defined in math.h according to
 // opengroup.org.  As of 2011, only MS visual studio does not have a
-// definition for isfinite, but it has _finite in float,h.
-#ifndef isfinite
+// definition for isfinite, but it has _finite in float.h.
+#if !(_POSIX_C_SOURCE+0 >= 200112 || defined(isfinite))
 inline int isfinite(double x) {
 #if defined(_MSC_VER) && defined(_WIN32)
     return _finite(x);
@@ -5138,7 +5138,7 @@ void ibis::part::buildSorted(const char* cname) const {
 /// build new indexes if the corresponding columns do not already have
 /// indexes.
 /// @sa ibis::part::loadIndexes
-void ibis::part::buildIndexes(const char* iopt, int nthr) {
+int ibis::part::buildIndexes(const char* iopt, int nthr) {
     readLock lock(this, "buildIndexes");
     ibis::horometer timer;
     timer.start();
@@ -5214,7 +5214,7 @@ void ibis::part::buildIndexes(const char* iopt, int nthr) {
 	     << timer.realTime() << " elapsed seconds";
     }
 
-    if (activeDir == 0) return;
+    if (activeDir == 0) return 0;
     writeMetaData(nEvents, columns, activeDir);
     if (backupDir != 0 && *backupDir != 0) {
 	Stat_T tmp;
@@ -5223,6 +5223,7 @@ void ibis::part::buildIndexes(const char* iopt, int nthr) {
 		writeMetaData(nEvents, columns, backupDir);
 	}
     }
+    return 0;
 } // ibis::part::buildIndexes
 
 /// Load indexes of all columns.  This function iterates through all

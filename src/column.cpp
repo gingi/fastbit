@@ -785,12 +785,12 @@ ibis::array_t<double>* ibis::column::getDoubleArray() const {
     return array;
 } // ibis::column::getDoubleArray
 
-/// Return all rows of the column as an array_t object.
+/// Copy all rows of the column into an array_t object.
 /// The incoming argument must be array_t<Type>*.  This function will
 /// explicitly cast vals into one of the ten supported numerical data
 /// types.
 /// 
-/// It return 0 to indicate success, and a negative number to indicate
+/// It returns 0 to indicate success, and a negative number to indicate
 /// error.
 int ibis::column::getValuesArray(void* vals) const {
     if (vals == 0) return -1;

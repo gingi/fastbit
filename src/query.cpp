@@ -239,6 +239,7 @@ int ibis::query::setWhereClause(const char* str) {
     if (conds.getString() != 0 && stricmp(conds.getString(), str) == 0)
 	return 0; // no change in where clause
 
+    int ierr = 0;
     try {
 	ibis::whereClause tmp(str);
 	if (tmp.getExpr() == 0) {
@@ -254,7 +255,7 @@ int ibis::query::setWhereClause(const char* str) {
 		    "failed to verify the where clause \"" << str
 		    << "\" with partition " << mypart->name()
 		    << ", the function verify returned " << ierr;
-		return -6;
+		ierr = -6;
 	    }
 	    if (tmp.getExpr() == 0) {
 		LOGGER(ibis::gVerbose >= 0)
@@ -301,23 +302,23 @@ int ibis::query::setWhereClause(const char* str) {
 	else {
 	    state = SET_PREDICATE;
 	}
+
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg() << "query[" << myID << "]::setWhereClause -- where \""
+		 << str << "\"";
+	    if (ibis::gVerbose > 3) {
+		lg() << "\n  Translated the WHERE clause into: ";
+		conds.getExpr()->printFull(lg());
+	    }
+	}
     }
     catch (...) {
 	logWarning("setWhereClause", "failed to parse the where clause "
 		   "\"%s\"", str);
-	return -5;
+	ierr = -5;
     }
-
-    if (ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "query[" << myID << "]::setWhereClause -- where \""
-	     << str << "\"";
-	if (ibis::gVerbose > 3) {
-	    lg() << "\n  Translated the WHERE clause into: ";
-	    conds.getExpr()->printFull(lg());
-	}
-    }
-    return 0;
+    return ierr;
 } // ibis::query::setWhereClause
 
 /// This function accepts a set of range conditions expressed by the three
@@ -391,6 +392,8 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 	}
 	expr->setRight(tmp);
     }
+
+    int ierr = 0;
     if (mypart != 0) {
 	ibis::whereClause wc;
 	wc.setExpr(expr);
@@ -400,12 +403,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 		<< "Warning -- query[" << myID << "]::setWhereClause failed "
 		"to find some variable names in data partition "
 		<< mypart->name() << ", the function verify returned " << ierr;
-	    if (! comps.empty())
-		state = SET_COMPONENTS;
-	    else
-		state = UNINITIALIZED;
-	    delete expr;
-	    return -6;
+	    ierr = -6;
 	}
 	if (wc.getExpr() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -417,6 +415,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 		state = SET_COMPONENTS;
 	    else
 		state = UNINITIALIZED;
+	    delete expr;
 	    return -5;
 	}
     }
@@ -453,7 +452,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
     LOGGER(ibis::gVerbose > 1)
 	<< "query[" << myID << "]::setWhereClause converted three arrays to \""
 	<< *(conds.getExpr()) << "\"";
-    return 0;
+    return ierr;
 } // ibis::query::setWhereClause
 
 /// This function accepts a user constructed query expression object.  It
@@ -461,6 +460,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     if (qx == 0) return -4;
 
+    int ierr = 0;
     ibis::whereClause wc;
     wc.setExpr(qx);
     if (mypart != 0) {
@@ -471,11 +471,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 		"to find some names used in the input qExpr "
 		<< static_cast<const void*>(qx) << " in data partition "
 		<< mypart->name() << ", the function verify returned " << ierr;
-	    if (! comps.empty())
-		state = SET_COMPONENTS;
-	    else
-		state = UNINITIALIZED;
-	    return -6;
+	    ierr = -6;
 	}
 	if (wc.getExpr() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -526,7 +522,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 	<< "]::setWhereClause accepted new query conditions \""
 	<< (conds.getString() ? conds.getString() : "<long expression>")
 	<< "\"";
-    return 0;
+    return ierr;
 } // ibis::query::setWhereClause
 
 /// Select the records with an RID in the list of RIDs.

@@ -23,7 +23,7 @@
 // The function isfinite is a macro defined in math.h according to
 // opengroup.org.  As of 2011, only MS visual studio does not have a
 // definition for isfinite, but it has _finite in float,h.
-#ifndef isfinite
+#if !(_POSIX_C_SOURCE+0 >= 200112 || defined(isfinite))
 inline int isfinite(double x) {
 #if defined(_MSC_VER) && defined(_WIN32)
     return _finite(x);
@@ -512,6 +512,21 @@ void ibis::mensa::orderby(const ibis::table::stringList& names) {
     for (ibis::partList::iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	long ierr = (*it)->reorder(names);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "mensa::orderby -- reordering partition "
+		<< (*it)->name() << " encountered error " << ierr;
+	}
+    }
+} // ibis::mensa::orderby
+
+/// Reordering the rows using the specified columns.  Each data partition
+/// is reordered separately.
+void ibis::mensa::orderby(const ibis::table::stringList& names,
+			  const std::vector<bool>& asc) {
+    for (ibis::partList::iterator it = parts.begin();
+	 it != parts.end(); ++ it) {
+	long ierr = (*it)->reorder(names, asc);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "mensa::orderby -- reordering partition "
@@ -3749,6 +3764,93 @@ ibis::table* ibis::table::create(const char* dir1, const char* dir2) {
 	return new ibis::mensa(dir1, dir2);
 } // ibis::table::create
 
+/// Parse the incoming string into a set of names.  Some bytes in the
+/// incoming string may be turned into nil (0) to mark the end of names or
+/// functions.  Each name is allowed to be followed by an optional keyword
+/// ASC or DESC.  The corresponding element of direc is set true for ASC
+/// and false for DESC.  The unspecified elements are assumed to be ASC per
+/// SQL convention.
+void ibis::table::parseNames(char* in, ibis::table::stringList& out,
+			     std::vector<bool>& direc) {
+    char* ptr1 = in;
+    char* ptr2;
+    while (*ptr1 != 0 && isspace(*ptr1) != 0) ++ ptr1; // leading space
+    // since SQL names can not contain space, quotes must be for the whole
+    // list of names
+    if (*ptr1 == '\'') {
+	++ ptr1; // skip opening quote
+	ptr2 = strchr(ptr1, '\'');
+	if (ptr2 > ptr1)
+	    *ptr2 = 0; // string terminates here
+    }
+    else if (*ptr1 == '"') {
+	++ ptr1;
+	ptr2 = strchr(ptr1, '"');
+	if (ptr2 > ptr1)
+	    *ptr2 = 0;
+    }
+
+    while (*ptr1 != 0) {
+	for (ptr2 = ptr1; *ptr2 == '_' || isalnum(*ptr2) != 0; ++ ptr2);
+	while (*ptr2 == '(') {
+	    int nesting = 1;
+	    for (++ ptr2; *ptr2 != 0 && nesting > 0; ++ ptr2) {
+		nesting -= (*ptr2 == ')');
+		nesting += (*ptr2 == '(');
+	    }
+	    while (*ptr2 != 0 && *ptr2 != ',' && *ptr2 != ';' && *ptr2 != '(')
+		++ ptr2;
+	}
+	if (*ptr2 == 0) {
+	    out.push_back(ptr1);
+	    direc.push_back(true);
+	}
+	else if (ispunct(*ptr2)) {
+	    *ptr2 = 0;
+	    out.push_back(ptr1);
+	    direc.push_back(true);
+	    ++ ptr2;
+	}
+	else if (isspace(*ptr2)) {
+	    // skip over spaces
+	    *ptr2 = 0;
+	    out.push_back(ptr1);
+	    for (++ ptr2; isspace(*ptr2); ++ ptr2);
+	    if ((ptr2[0] == 'a' || ptr2[0] == 'A') &&
+		(ptr2[1] == 's' || ptr2[1] == 'S') &&
+		(ptr2[2] == 'c' || ptr2[2] == 'c') &&
+		(ptr2[3] == 0 || isspace(ptr2[3]) || ispunct(ptr2[3]))) {
+		direc.push_back(true);
+		ptr2 += 3;
+	    }
+	    else if ((ptr2[0] == 'd' || ptr2[0] == 'D') &&
+		     (ptr2[1] == 'e' || ptr2[1] == 'E') &&
+		     (ptr2[2] == 's' || ptr2[2] == 'S') &&
+		     (ptr2[3] == 'c' || ptr2[3] == 'C') &&
+		     (ptr2[4] == 0 || isspace(ptr2[4]) || ispunct(ptr2[4]))) {
+		direc.push_back(false);
+		ptr2 += 4;
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- table::parseNames can not part string \"" << ptr1
+		<< "\" into a column name or a function, skip till first "
+		"character after the next comma or space";
+
+	    while (*ptr2 != 0 && ispunct(*ptr2) == 0 && isspace(*ptr2) == 0)
+		++ ptr2;
+	    if (*ptr2 != 0) ++ ptr2;
+	    while (*ptr2 != 0 && isspace(*ptr2) != 0) ++ ptr2;
+	}
+	// skip spaces and punctuations
+	for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
+    }
+} // ibis::table::parseNames
+
+/// Parse the incoming string into a set of names.  Some bytes in the
+/// incoming string may be turned into nil (0) to mark the end of names or
+/// functions.
 void ibis::table::parseNames(char* in, ibis::table::stringList& out) {
     char* ptr1 = in;
     char* ptr2;

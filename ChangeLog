@@ -1,3 +1,30 @@
+2011-08-27 John Wu <John dot Wu at ACM dot org>
+	* bord.h, bord.cpp: implement bord::column::append to deal with
+	the column mask
+
+2011-08-26 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: initialize mask_ in the constructor of
+	ibis::bord::column.  The new implementation of
+	ibis::bord::column::actualMinMax makes used of the mask, but the
+	mask was not initialized, which causes the columns to be
+	considered to have no data in some operations
+	* src/countQuery.cpp, src/query.cpp: change other three versions
+	of setWhereClause to match the behavior suggested by Robert's
+	changes
+
+2011-08-25 Robert Wong <robert.wong at openx.com>
+	* src/countQuery.cpp: change the version of setWhereClause that
+	accepts the string version of a where clause to continue after
+	encountering unknown column names.  Note that the conditions on
+	unknown columns will result in zero answers.
+
+2011-08-25 John Wu <John dot Wu at ACM dot org>
+	* src/mensa.cpp, src.part.cpp: add more conditions before
+	attempting to define our own isfinite
+2011-08-23 John Wu <John dot Wu at ACM dot org>
+	* src/table.h, src/part.h: add function to reorder columns with
+	each column in a different direction
+
 2011-08-19 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: Change AC_MSG_ERROR to AC_MSG_WARN to avoid abrupt
 	termination of the configuration script

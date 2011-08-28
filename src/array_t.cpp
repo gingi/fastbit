@@ -128,7 +128,7 @@ ibis::array_t<T>::array_t(const std::vector<T>& rhs)
 	<< static_cast<const void*>(&rhs);
 }
 
-/// Shallow copy.  Should not throw any exception.
+/// Copy constructor.  Shallow copy.  Should not throw any exception.
 template<class T>
 ibis::array_t<T>::array_t(const array_t<T>& rhs)
     : actual(rhs.actual), m_begin(rhs.m_begin), m_end(rhs.m_end) {

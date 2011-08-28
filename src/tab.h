@@ -119,6 +119,7 @@ public:
 
     virtual table* groupby(const stringList&) const {return 0;}
     virtual table* groupby(const char*) const {return 0;}
+    virtual void orderby(const stringList&, const std::vector<bool>&) {};
     virtual void orderby(const stringList&) {};
     virtual void orderby(const char*) {};
     virtual void reverseRows() {};
@@ -284,6 +285,7 @@ public:
 
     virtual table* groupby(const stringList&) const {return 0;}
     virtual table* groupby(const char*) const {return 0;}
+    virtual void orderby(const stringList&, const std::vector<bool>&) {};
     virtual void orderby(const stringList&) {};
     virtual void orderby(const char*) {};
     virtual void reverseRows() {};

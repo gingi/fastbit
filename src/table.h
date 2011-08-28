@@ -180,12 +180,13 @@ public:
     virtual table* groupby(const char*) const;
     /// Reorder the rows.  Sort the rows in ascending order of the columns
     /// specified in the list of column names.  This function is not
-    /// designated @c const because though it does not change the content
+    /// designated @c const even though it does not change the content
     /// in SQL logic, but it may change internal representations.
     /// @note If an empty list is passed to this function, it will reorder
     /// rows using all columns with the column having the smallest number
     /// of distinct values first.
     virtual void orderby(const stringList&)=0;
+    virtual void orderby(const stringList&, const std::vector<bool>&)=0;
     /// Reorder the rows.  The column names are separated by commas.
     virtual void orderby(const char*);
     /// Reverse the order of the rows.
@@ -400,9 +401,8 @@ public:
     /// Create a @c cursor object to perform row-wise data access.
     virtual cursor* createCursor() const =0;
 
-    /// Parse a string into a set of names.  Some bytes may be turned into
-    /// 0 to mark the end of names or functions.
     static void parseNames(char* in, stringList& out);
+    static void parseNames(char* in, stringList& out, std::vector<bool>& direc);
 
     static void* allocateBuffer(ibis::TYPE_T, size_t);
     static void freeBuffer(void* buffer, ibis::TYPE_T type);

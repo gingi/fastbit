@@ -79,7 +79,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	return -4; // invalid input where clause
     if (conds.getString() != 0 && stricmp(conds.getString(), str) == 0)
 	return 0; // no change in where clause
-
+    int ret = 0;
     try {
 	ibis::whereClause tmp(str);
 	if (tmp.getExpr() == 0) {
@@ -95,7 +95,11 @@ int ibis::countQuery::setWhereClause(const char* str) {
 		    << "Warning -- countQuery::setWhereClause detected "
 		    "error " << ierr << " in the WHERE clause \""
 		    << str << "\"";
-		return -6;
+               /**
+                * accepted a suggestion from Robert Wong to allow the
+                * condition to be accepted even if some columns are not found.
+                **/ 
+                ret = -6;
 	    }
 	}
 	
@@ -125,9 +129,9 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- countQuery::setWhereClause failed to parse \""
 	    << str << "\"";
-	return -5;
+	ret = -5;
     }
-    return 0;
+    return ret;
 } // ibis::countQuery::setWhereClause
 
 /// This function accepts a user constructed query expression object.  It
@@ -136,6 +140,7 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
     if (qx == 0) return -4;
 
     ibis::whereClause wc;
+    int ierr = 0;
     wc.setExpr(qx);
     if (mypart != 0) {
 	int ierr = wc.verify(*mypart);
@@ -145,7 +150,7 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
 		<< ") found the qExpr object with " << ierr << " incorrect name"
 		<< (ierr > 1 ? "s" : "")
 		<< ".  Keeping the existing where clause ";
-	    return -6;
+	    ierr = -6;
 	}
     }
     if (ibis::gVerbose > 0 &&
@@ -154,7 +159,6 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
     }
 
     wc.swap(conds);
-
     if (hits == cand) {
 	delete hits;
 	hits = 0;
@@ -169,7 +173,7 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
     LOGGER(ibis::gVerbose > 1)
 	<< "countQuery::setWhereClause accepted new query conditions \""
 	<< *conds.getExpr() << "\"";
-    return 0;
+    return ierr;
 } // ibis::countQuery::setWhereClause
 
 /// Compute the possible hits expressed as hits and cand, where hits

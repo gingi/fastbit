@@ -14,6 +14,7 @@
 #include <sstream>	// std::ostringstream
 #include <typeinfo>	// typeid
 #include <limits>	// std::numeric_limits
+#include <algorithm>	// std::reverse
 
 /// Sort rows with the lowest cardinality column first.  The lowest
 /// cardinality column is ordered first.  Only integer-valued columns are
@@ -26,10 +27,13 @@ long ibis::part::reorder() {
 	amask.cnt() != amask.size()) return 0;
     ibis::table::stringList keys;
     gatherSortKeys(keys);
-    if (keys.empty())
+    if (keys.empty()) {
 	return -1;
-    else
-	return reorder(keys);
+    }
+    else {
+	std::vector<bool> direc;
+	return reorder(keys, direc);
+    }
 } // ibis::part::reorder
 
 void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
@@ -71,8 +75,14 @@ void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
     }
 } // ibis::part::getherSortKeys
 
-/// Sort rows according the values of the columns specified in @c names.
 long ibis::part::reorder(const ibis::table::stringList& names) {
+    std::vector<bool> direc;
+    return reorder(names, direc);
+} // ibis::part::reorder
+
+/// Sort rows according the values of the columns specified in @c names.
+long ibis::part::reorder(const ibis::table::stringList& names,
+			 const std::vector<bool>& directions) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;
     std::string evt = "part[";
     evt += m_name;
@@ -171,37 +181,39 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 	array_t<uint32_t> starts, ind0;
 	for (uint32_t i = 0; i < keys.size(); ++ i) {
 	    std::string sname;
+	    const bool asc = (directions.size()>i?directions[i]:true);
 	    const char *fname = keys[i]->dataFileName(sname);
 	    switch (keys[i]->type()) {
 	    case ibis::DOUBLE:
-		ierr = reorderValues<double>(fname, ind1, ind0, starts);
+		ierr = reorderValues<double>(fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::FLOAT:
-		ierr = reorderValues<float>(fname, ind1, ind0, starts);
+		ierr = reorderValues<float>(fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::ULONG:
-		ierr = reorderValues<uint64_t>(fname, ind1, ind0, starts);
+		ierr = reorderValues<uint64_t>(fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::LONG:
-		ierr = reorderValues<int64_t>(fname, ind1, ind0, starts);
+		ierr = reorderValues<int64_t>(fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::UINT:
-		ierr = reorderValues<uint32_t>(fname, ind1, ind0, starts);
+		ierr = reorderValues<uint32_t>(fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::INT:
-		ierr = reorderValues<int32_t>(fname, ind1, ind0, starts);
+		ierr = reorderValues<int32_t>(fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::USHORT:
-		ierr = reorderValues<uint16_t>(fname, ind1, ind0, starts);
+		ierr = reorderValues<uint16_t>(fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::SHORT:
-		ierr = reorderValues<int16_t>(fname, ind1, ind0, starts);
+		ierr = reorderValues<int16_t>(fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::UBYTE:
-		ierr = reorderValues<unsigned char>(fname, ind1, ind0, starts);
+		ierr = reorderValues<unsigned char>
+		    (fname, starts, ind0, ind1, asc);
 		break;
 	    case ibis::BYTE:
-		ierr = reorderValues<char>(fname, ind1, ind0, starts);
+		ierr = reorderValues<char>(fname, starts, ind0, ind1, asc);
 		break;
 	    default:
 		logWarning("reorder", "column %s type %d is not supported as "
@@ -385,11 +397,14 @@ long ibis::part::writeValues(const char *fname,
 } // ibis::part::writeValues
 
 /// Reorders elementary data types.  Can not handle string valued data.
+/// This function opens the data file in read-write mode and modify the
+/// content of the underlying data file.
 template <typename T>
 long ibis::part::reorderValues(const char *fname,
-			       const array_t<uint32_t>& indin,
+			       array_t<uint32_t>& starts,
 			       array_t<uint32_t>& indout,
-			       array_t<uint32_t>& starts) {
+			       const array_t<uint32_t>& indin,
+			       bool ascending) {
     const long unsigned nrows = nRows();
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
@@ -409,18 +424,18 @@ long ibis::part::reorderValues(const char *fname,
 	    << " for writing reordered values";
 	return -1; // couldn't open file for writing
     }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
     long pos = UnixSeek(fdes, 0L, SEEK_END);
     if (pos != static_cast<long>(nrows * sizeof(T))) {
 	LOGGER(ibis::gVerbose > 1)
 	    << evt << " -- expected size of " << fname << " is "
 	    << nrows * sizeof(T) << ", actual size is " << pos;
-	UnixClose(fdes);
 	return -2;
     }
 
-#if defined(_WIN32) && defined(_MSC_VER)
-    (void)_setmode(fdes, _O_BINARY);
-#endif
     array_t<T> vals;
     vals.read(fdes, 0, pos);
     if (vals.size() != nrows || (indin.size() != vals.size() &&
@@ -428,7 +443,6 @@ long ibis::part::reorderValues(const char *fname,
 	LOGGER(ibis::gVerbose > 1)
 	    << evt << " -- failed to read " << nrows << " elements from "
 	    << fname << ", actually read " << vals.size();
-	UnixClose(fdes);
 	return -3;
     }
     if (indin.empty() || starts.size() < 2 || starts[0] != 0
@@ -456,11 +470,13 @@ long ibis::part::reorderValues(const char *fname,
 	    const uint32_t segstart = starts[iseg];
 	    const uint32_t segsize = starts[iseg+1]-starts[iseg];
 	    if (segsize > 1) { // segment has move than one element
-		array_t<T> tmp(segsize); // copy segement to his array
+		array_t<T> tmp(segsize); // copy segement to this array
 		array_t<uint32_t> ind0;
 		for (unsigned i = 0; i < segsize; ++ i)
 		    tmp[i] = vals[indin[i+segstart]];
 		tmp.sort(ind0); // sort segment
+		if (! ascending)
+		    std::reverse(ind0.begin(), ind0.end());
 
 		starts2.push_back(segstart);
 		T last = tmp[ind0[0]];
@@ -483,6 +499,8 @@ long ibis::part::reorderValues(const char *fname,
     }
     else { // all in one block
 	vals.sort(indout);
+	if (! ascending)
+	    std::reverse(indout.begin(), indout.end());
 
 	starts.clear();
 	starts.push_back(0U);
@@ -512,6 +530,7 @@ long ibis::part::reorderValues(const char *fname,
 	    << typeid(T).name();
     }
     UnixClose(fdes);
+    gfdes.dismiss(); // no longer need the guard on fdes
     if (ibis::gVerbose > 2) {
 	timer.stop();
 	LOGGER(ibis::gVerbose > 2)

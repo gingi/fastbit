@@ -105,10 +105,13 @@ public:
     virtual table* groupby(const ibis::table::stringList&) const;
     virtual table* groupby(const char* str) const;
     virtual void orderby(const ibis::table::stringList&);
+    virtual void orderby(const ibis::table::stringList&,
+			 const std::vector<bool>&);
     virtual void reverseRows();
 
     virtual int buildIndex(const char*, const char*) {return -1;}
     virtual int buildIndexes(const char*) {return -1;}
+    virtual int buildIndexes(const char*, int) {return -1;}
     virtual const char* indexSpec(const char*) const {return 0;}
     virtual void indexSpec(const char*, const char*) {return;}
     virtual int getPartitions(std::vector<const ibis::part*> &) const;
@@ -118,7 +121,10 @@ public:
     ibis::table* evaluateTerms(const ibis::selectClause&,
 			       const char*) const;
 
+    virtual long reorder();
     virtual long reorder(const ibis::table::stringList&);
+    virtual long reorder(const ibis::table::stringList&,
+			 const std::vector<bool>&);
 
     int append(const ibis::selectClause&, const ibis::part&,
 	       const ibis::bitvector&);
@@ -127,16 +133,18 @@ public:
 
     template <typename T>
 	long sortValues(array_t<T>& vals,
-			const array_t<uint32_t>& indin,
+			array_t<uint32_t>& starts,
 			array_t<uint32_t>& indout,
-			array_t<uint32_t>& starts) const;
+			const array_t<uint32_t>& indin,
+			bool ascending) const;
     template <typename T>
 	long reorderValues(array_t<T>& vals,
 			   const array_t<uint32_t>& ind) const;
     long sortStrings(std::vector<std::string>& vals,
-		     const array_t<uint32_t>& idxin,
+		     array_t<uint32_t>& starts,
 		     array_t<uint32_t>& idxout,
-		     array_t<uint32_t>& starts) const;
+		     const array_t<uint32_t>& idxin,
+		     bool ascending) const;
     long reorderStrings(std::vector<std::string>& vals,
 			const array_t<uint32_t>& ind) const;
 
@@ -145,13 +153,6 @@ public:
     static void copyValue(ibis::TYPE_T type,
 			  void* outbuf, size_t outpos,
 			  const void* inbuf, size_t inpos);
-
-    /// Append new data (in @c from) to a larger array (pointed to by
-    /// @c to).
-    template <typename T> void 
-	addIncoreData(void*& to, const array_t<T>& from,
-		      uint32_t nold, const T special);
-    void addStrings(void*&, const std::vector<std::string>&, uint32_t);
 
     // Cursor class for row-wise data accesses.
     class cursor;
@@ -224,6 +225,10 @@ public:
     virtual std::vector<std::string>*
 	selectStrings(const bitvector& mask) const;
 
+    virtual long append(const char* dt, const char* df, const uint32_t nold,
+			const uint32_t nnew, uint32_t nbuf, char* buf);
+    virtual long append(const void* vals, const ibis::bitvector& msk);
+
     virtual void computeMinMax() {
 	computeMinMax(thePart->currentDataDir(), lower, upper);}
     virtual void computeMinMax(const char *dir) {
@@ -240,6 +245,14 @@ public:
     int dump(std::ostream& out, uint32_t i) const;
 
     int restoreCategoriesAsStrings(const ibis::part&);
+    /// Append new data (in @c from) to a larger array (pointed to by
+    /// @c to).
+    template <typename T> static void 
+	addIncoreData(array_t<T>*& to, uint32_t nold, const array_t<T>& from,
+		      const T special);
+    static void addStrings(std::vector<std::string>*&, uint32_t,
+			   const std::vector<std::string>&);
+
 
 protected:
     /// The in-memory storage.  A pointer to an array<T> or
