@@ -1,6 +1,10 @@
+2011-08-28 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src/bord.cpp: add one more version of
+	bord::column::append to deal with the in-memory data
+
 2011-08-27 John Wu <John dot Wu at ACM dot org>
-	* bord.h, bord.cpp: implement bord::column::append to deal with
-	the column mask
+	* src/bord.h, src/bord.cpp: implement bord::column::append to deal
+	with the column mask
 
 2011-08-26 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: initialize mask_ in the constructor of

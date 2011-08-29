@@ -228,6 +228,7 @@ public:
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);
     virtual long append(const void* vals, const ibis::bitvector& msk);
+    virtual long append(const ibis::column& scol, const ibis::bitvector& msk);
 
     virtual void computeMinMax() {
 	computeMinMax(thePart->currentDataDir(), lower, upper);}

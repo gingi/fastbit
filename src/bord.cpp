@@ -3324,10 +3324,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		*static_cast<const ibis::math::variable*>(aterm);
 	    if (*(var.variableName()) == '*') continue; // special variable name
 
-	    const ibis::bord::column* refcol =
-		dynamic_cast<const ibis::bord::column*>
-		(prt.getColumn(var.variableName()));
-	    if (refcol == 0) {
+	    const ibis::column* scol = prt.getColumn(var.variableName());
+	    if (scol == 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg << " -- \"" << var.variableName()
 		    << "\" is not a column of partition " << prt.name();
@@ -3338,9 +3336,9 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	    LOGGER(ibis::gVerbose > 5)
 		<< mesg << " -- adding " << nqq << " element"
 		<< (nqq>1?"s":"") << " to column " << cit->first
-		<< " from column " << refcol->name()
+		<< " from column " << scol->name()
 		<< " of partition " << prt.name();
-	    ierr = col.append(refcol->getArray(), newseg);
+	    ierr = col.append(*scol, mask);
 	}
     }
     if (ierr >= 0) {
@@ -8076,6 +8074,10 @@ long ibis::bord::column::append(const char* dt, const char* df, const uint32_t n
     return ibis::column::append(dt, df, nold, nnew, nbuf, buf);
 } // ibis::bord::column::append
 
+/// Append user supplied data to the current column.  The incoming values
+/// is carried by a void* which is cast to the same type as the buffer used
+/// by the column.  The mask is used to indicate which values in the
+/// incoming array are valid.
 long ibis::bord::column::append(const void* vals, const ibis::bitvector& msk) {
     if (vals == 0 || msk.size() == 0 || msk.cnt() == 0) return 0;
     int ierr = 0;
@@ -8159,6 +8161,142 @@ long ibis::bord::column::append(const void* vals, const ibis::bitvector& msk) {
     if (ierr == 0) {
 	mask_.adjustSize(0, thePart->nRows());
 	mask_ += msk;
+    }
+    return ierr;
+} // ibis::bord::column::append
+
+/// Append selected values from the given column to the current column.
+/// This function extracts the values using the given mask from scol, and
+/// then append the values to the current column.  The type of scol must be
+/// ligitimately converted to the type of this column.  It returns 0 to
+/// indicate success, a negative number to indicate error.
+long ibis::bord::column::append(const ibis::column& scol,
+				const ibis::bitvector& msk) {
+    if (msk.size() == 0 || msk.cnt() == 0) return 0;
+    int ierr = 0;
+    switch (m_type) {
+    case ibis::BYTE: {
+	std::auto_ptr< array_t<signed char> > vals(scol.selectBytes(msk));
+	if (vals.get() != 0)
+	    ibis::bord::column::addIncoreData<signed char>
+		(reinterpret_cast<array_t<signed char>*&>(buffer),
+		 thePart->nRows(),
+		 *vals,
+		 static_cast<signed char>(0x7F));
+	else
+	    ierr = -18;
+	break;}
+    case ibis::UBYTE: {
+	std::auto_ptr< array_t<unsigned char> > vals(scol.selectUBytes(msk));
+	if (vals.get() != 0)
+	    ibis::bord::column::addIncoreData<unsigned char>
+		(reinterpret_cast<array_t<unsigned char>*&>(buffer),
+		 thePart->nRows(),
+		 *vals,
+		 static_cast<unsigned char>(0xFF));
+        else
+	    ierr = -18;
+	break;}
+    case ibis::SHORT: {
+	std::auto_ptr< array_t<int16_t> > vals(scol.selectShorts(msk));
+	if (vals.get() != 0)
+	    addIncoreData(reinterpret_cast<array_t<int16_t>*&>(buffer),
+			  thePart->nRows(),
+			  *vals,
+			  static_cast<int16_t>(0x7FFF));
+	else
+	    ierr = -18;
+	break;}
+    case ibis::USHORT: {
+	std::auto_ptr< array_t<uint16_t> > vals(scol.selectUShorts(msk));
+	if (vals.get() != 0)
+	    addIncoreData(reinterpret_cast<array_t<uint16_t>*&>(buffer),
+			  thePart->nRows(),
+			  *vals,
+			  static_cast<uint16_t>(0xFFFF));
+        else
+	    ierr = -18;
+	break;}
+    case ibis::INT: {
+	std::auto_ptr< array_t<int32_t> > vals(scol.selectInts(msk));
+	if (vals.get() != 0)
+	    addIncoreData(reinterpret_cast<array_t<int32_t>*&>(buffer),
+			  thePart->nRows(),
+			  *vals,
+			  static_cast<int32_t>(0x7FFFFFFF));
+    else
+	ierr = -18;
+	break;}
+    case ibis::UINT: {
+	std::auto_ptr< array_t<uint32_t> > vals(scol.selectUInts(msk));
+	if (vals.get() != 0)
+	    addIncoreData(reinterpret_cast<array_t<uint32_t>*&>(buffer),
+			  thePart->nRows(),
+			  *vals,
+			  static_cast<uint32_t>(0xFFFFFFFF));
+        else
+	    ierr = -18;
+	break;}
+    case ibis::LONG: {
+	std::auto_ptr< array_t<int64_t> > vals(scol.selectLongs(msk));
+	if (vals.get() != 0)
+	    addIncoreData(reinterpret_cast<array_t<int64_t>*&>(buffer),
+			  thePart->nRows(),
+			  *vals,
+			  static_cast<int64_t>(0x7FFFFFFFFFFFFFFFLL));
+        else
+	    ierr = -18;
+	break;}
+    case ibis::ULONG: {
+	std::auto_ptr< array_t<uint64_t> > vals(scol.selectULongs(msk));
+	if (vals.get() != 0)
+	    addIncoreData(reinterpret_cast<array_t<uint64_t>*&>(buffer),
+			  thePart->nRows(),
+			  *vals,
+			  static_cast<uint64_t>(0xFFFFFFFFFFFFFFFFLL));
+    else
+	ierr = -18;
+	break;}
+    case ibis::FLOAT: {
+	std::auto_ptr< array_t<float> > vals(scol.selectFloats(msk));
+	if (vals.get() != 0)
+	    addIncoreData(reinterpret_cast<array_t<float>*&>(buffer),
+			  thePart->nRows(),
+			  *vals,
+			  FASTBIT_FLOAT_NULL);
+	else
+	    ierr = -18;
+	break;}
+    case ibis::DOUBLE: {
+	std::auto_ptr< array_t<double> > vals(scol.selectDoubles(msk));
+	if (vals.get() != 0)
+	    addIncoreData(reinterpret_cast<array_t<double>*&>(buffer),
+			  thePart->nRows(),
+			  *vals,
+			  FASTBIT_DOUBLE_NULL);
+	else
+	    ierr = -18;
+	break;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	std::auto_ptr< std::vector<std::string> > vals(scol.selectStrings(msk));
+	if (vals.get() != 0)
+	    addStrings(reinterpret_cast<std::vector<std::string>*&>(buffer),
+		       thePart->nRows(), *vals);
+	else
+	    ierr = -18;
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column[" << thePart->name() << '.' << m_name
+	    << "]::append -- unable to process column " << m_name
+	    << " (type " << ibis::TYPESTRING[(int)m_type] << ")";
+	ierr = -17;
+	break;}
+    }
+    if (ierr == 0) {
+	const ibis::bitvector::word_t sz = thePart->nRows() + msk.cnt();
+	mask_.adjustSize(sz, sz);
     }
     return ierr;
 } // ibis::bord::column::append
