@@ -1107,7 +1107,7 @@ long ibis::query::countHits() const {
 /// already ordered according to the columns specified in the select
 /// clause.  One only needs to call this function to re-order the results
 /// differently.
-int ibis::query::orderby(const char *names, int direction) const {
+int ibis::query::orderby(const char *names) const {
     if (myDir == 0)
 	return -10;
     if (state != FULL_EVALUATE || state != BUNDLES_TRUNCATED
@@ -1118,7 +1118,7 @@ int ibis::query::orderby(const char *names, int direction) const {
 	timer.start();
     ibis::bundle *bdl = ibis::bundle::create(*this);
     if (bdl != 0) {
-	bdl->reorder(names, direction);
+	bdl->reorder(names);
 	bdl->write(*this);
 	delete bdl;
     }
@@ -1146,8 +1146,7 @@ int ibis::query::orderby(const char *names, int direction) const {
 /// good idea to update the hit vector.  On the other hand, one may
 /// wish to avoid this update if the hit vector is to be kept for some
 /// purpose.
-long ibis::query::limit(const char *names, int direction, uint32_t keep,
-			bool updateHits) {
+long ibis::query::limit(const char *names, uint32_t keep, bool updateHits) {
     if (keep == 0)
 	return -13L;
     if (myDir == 0)
@@ -1176,7 +1175,7 @@ long ibis::query::limit(const char *names, int direction, uint32_t keep,
     ibis::bundle *bdl = ibis::bundle::create(*this);
     if (bdl != 0) {
 	const uint32_t oldsize = bdl->size();
-	ierr = bdl->truncate(names, direction, keep);
+	ierr = bdl->truncate(names, keep);
 	if (ierr >= 0 && oldsize >= static_cast<long unsigned>(ierr)) {
 	    if (updateHits) {
 		ierr = mypart->evaluateRIDSet(*(bdl->getRIDs()), *hits);

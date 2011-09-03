@@ -402,7 +402,7 @@ public:
     virtual cursor* createCursor() const =0;
 
     static void parseNames(char* in, stringList& out);
-    static void parseNames(char* in, stringList& out, std::vector<bool>& direc);
+    static void parseOrderby(char* in, stringList& out, std::vector<bool>& direc);
 
     static void* allocateBuffer(ibis::TYPE_T, size_t);
     static void freeBuffer(void* buffer, ibis::TYPE_T type);

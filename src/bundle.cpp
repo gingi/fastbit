@@ -922,6 +922,14 @@ long ibis::bundle1::truncate(uint32_t keep, uint32_t start) {
     return col->truncate(keep, start);
 } // ibis::bundle1::truncate
 
+long ibis::bundle1::truncate(const char *, uint32_t keep) {
+    // if (direction < 0) {
+    // 	reverse();
+    // 	infile = false;
+    // }
+    return truncate(keep);
+}
+
 void ibis::bundle1::write(const ibis::query& theQ) const {
     if (theQ.dir() == 0) return;
     if (col == 0) return;
@@ -1636,7 +1644,7 @@ void ibis::bundles::sort() {
 /// argument direction is a negative number, the rows are reversed after
 /// sorting.  Even if no sorting is done, the reversal of rows is still
 /// performed.
-void ibis::bundles::reorder(const char *names, int direction) {
+void ibis::bundles::reorder(const char *names) {
     if (names == 0 || *names == 0) return;
     if (starts == 0 || cols.size() == 0) return;
     if (starts->size() <= 2) return; // one group, no need to sort
@@ -1648,8 +1656,8 @@ void ibis::bundles::reorder(const char *names, int direction) {
     for (unsigned j = 0; nosort && j < sortkeys.size() && j < cols.size(); ++ j)
 	nosort = (stricmp(sortkeys[j], comps.aggName(j)) == 0);
     if (nosort) { // no need to sort
-	if (direction < 0)
-	    reverse();
+	// if (direction < 0)
+	//     reverse();
 	return;
     }
     // make sure all columns are ready for modification
@@ -1704,30 +1712,30 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		}
 	    }
 
-	    if (direction < 0) { // reverse the order
-		for (uint32_t j = 0; j < cols.size(); ++ j)
-		    for (uint32_t i = 0; i < ngroups/2; ++ i)
-			cols[j]->swap(i, ngroups-1-i);
-		for (uint32_t i = 0; i < ngroups/2; ++ i) {
-		    const uint32_t j = ngroups - 1 - i;
-		    ibis::RIDSet *tmp = rid2[i];
-		    rid2[i] = rid2[j];
-		    rid2[j] = tmp;
-		}
-	    }
+	    // if (direction < 0) { // reverse the order
+	    // 	for (uint32_t j = 0; j < cols.size(); ++ j)
+	    // 	    for (uint32_t i = 0; i < ngroups/2; ++ i)
+	    // 		cols[j]->swap(i, ngroups-1-i);
+	    // 	for (uint32_t i = 0; i < ngroups/2; ++ i) {
+	    // 	    const uint32_t j = ngroups - 1 - i;
+	    // 	    ibis::RIDSet *tmp = rid2[i];
+	    // 	    rid2[i] = rid2[j];
+	    // 	    rid2[j] = tmp;
+	    // 	}
+	    // }
 	}
 	else { // a single key
 	    const uint32_t j = comps.find(sortkeys[0]);
 	    if (j < comps.aggSize()) {
 		array_t<uint32_t> ind;
 		cols[j]->sort(0, ngroups, ind);
-		if (direction < 0) { // reverse the order of ind
-		    for (uint32_t i = 0; i < ngroups/2; ++ i) {
-			const uint32_t itmp = ind[i];
-			ind[i] = ind[ngroups-1-i];
-			ind[ngroups-1-i] = itmp;
-		    }
-		}
+		// if (direction < 0) { // reverse the order of ind
+		//     for (uint32_t i = 0; i < ngroups/2; ++ i) {
+		// 	const uint32_t itmp = ind[i];
+		// 	ind[i] = ind[ngroups-1-i];
+		// 	ind[ngroups-1-i] = itmp;
+		//     }
+		// }
 		for (uint32_t i = 0; i < cols.size(); ++ i)
 		    cols[i]->reorder(ind);
 		ibis::util::reorder(rid2, ind);
@@ -1783,30 +1791,30 @@ void ibis::bundles::reorder(const char *names, int direction) {
 		}
 	    }
 
-	    if (direction < 0) { // reverse the order
-		for (uint32_t j = 0; j < cols.size(); ++ j)
-		    for (uint32_t i = 0; i < ngroups/2; ++ i)
-			cols[j]->swap(i, ngroups-1-i);
-		for (uint32_t i = 0; i < ngroups/2; ++ i) {
-		    const uint32_t j = ngroups - 1 - i;
-		    const uint32_t tmp = (*starts)[i];
-		    (*starts)[i] = (*starts)[j];
-		    (*starts)[j] = tmp;
-		}
-	    }
+	    // if (direction < 0) { // reverse the order
+	    // 	for (uint32_t j = 0; j < cols.size(); ++ j)
+	    // 	    for (uint32_t i = 0; i < ngroups/2; ++ i)
+	    // 		cols[j]->swap(i, ngroups-1-i);
+	    // 	for (uint32_t i = 0; i < ngroups/2; ++ i) {
+	    // 	    const uint32_t j = ngroups - 1 - i;
+	    // 	    const uint32_t tmp = (*starts)[i];
+	    // 	    (*starts)[i] = (*starts)[j];
+	    // 	    (*starts)[j] = tmp;
+	    // 	}
+	    // }
 	}
 	else {
 	    const uint32_t j = comps.find(sortkeys[0]);
 	    if (j < comps.aggSize()) {
 		ibis::array_t<uint32_t> ind;
 		cols[j]->sort(0, ngroups, ind);
-		if (direction < 0) { // reverse the order of ind
-		    for (uint32_t i = 0; i < ngroups/2; ++ i) {
-			const uint32_t itmp = ind[i];
-			ind[i] = ind[ngroups-1-i];
-			ind[ngroups-1-i] = itmp;
-		    }
-		}
+		// if (direction < 0) { // reverse the order of ind
+		//     for (uint32_t i = 0; i < ngroups/2; ++ i) {
+		// 	const uint32_t itmp = ind[i];
+		// 	ind[i] = ind[ngroups-1-i];
+		// 	ind[ngroups-1-i] = itmp;
+		//     }
+		// }
 		for (uint32_t i = 0; i < cols.size(); ++ i)
 		    cols[i]->reorder(ind);
 		ibis::util::reorder(*(starts), ind);
@@ -1954,7 +1962,7 @@ long ibis::bundles::truncate(uint32_t keep, uint32_t start) {
 /// Reorder the bundles according to the keys (names) given.  Keep only the
 /// first @c keep elements.  If @c direction < 0, keep the largest ones,
 /// otherwise keep the smallest ones.
-long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
+long ibis::bundles::truncate(const char *names, uint32_t keep) {
     if (names == 0 || *names == 0) return -1L;
     if (starts == 0 || cols.empty()) return -2L;
     if (starts->size() <= 2) return -3L;
@@ -1963,8 +1971,8 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
     ibis::nameList sortkeys; // the new keys for sorting
     sortkeys.select(names); // preserve the order of the sort keys
     if (sortkeys.size() == 0) {
-	if (direction < 0)
-	    reverse();
+	// if (direction < 0)
+	//     reverse();
 	return size();
     }
 
@@ -1999,10 +2007,10 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	    array_t<uint32_t> ind0; // indices over all ngroups
 	    ind0.reserve(keep);
 	    // deal with the first sort key
-	    if (direction >= 0)
+	    // if (direction >= 0)
 		cols[j]->bottomk(keep, ind0);
-	    else
-		cols[j]->topk(keep, ind0);
+	    // else
+	    // 	cols[j]->topk(keep, ind0);
 	    for (uint32_t ii = 0; ii < cols.size(); ++ ii)
 		cols[ii]->reorder(ind0);
 	    ibis::util::reorder(rid2, ind0);
@@ -2044,10 +2052,10 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	    const uint32_t j = comps.find(sortkeys[0]);
 	    if (j < comps.aggSize()) {
 		array_t<uint32_t> ind;
-		if (direction >= 0)
+		// if (direction >= 0)
 		    cols[j]->bottomk(keep, ind);
-		else
-		    cols[j]->topk(keep, ind);
+		// else
+		//     cols[j]->topk(keep, ind);
 		for (uint32_t i = 0; i < cols.size(); ++ i)
 		    cols[i]->reorder(ind);
 		ibis::util::reorder(rid2, ind);
@@ -2055,17 +2063,17 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	    }
 	}
 
-	if (direction < 0) { // reverse the order
-	    for (uint32_t j = 0; j < cols.size(); ++ j)
-		for (uint32_t i = 0; i < ngroups/2; ++ i)
-		    cols[j]->swap(i, ngroups-1-i);
-	    for (uint32_t i = 0; i < ngroups/2; ++ i) {
-		const uint32_t j = ngroups - 1 - i;
-		ibis::RIDSet *tmp = rid2[i];
-		rid2[i] = rid2[j];
-		rid2[j] = tmp;
-	    }
-	}
+	// if (direction < 0) { // reverse the order
+	//     for (uint32_t j = 0; j < cols.size(); ++ j)
+	// 	for (uint32_t i = 0; i < ngroups/2; ++ i)
+	// 	    cols[j]->swap(i, ngroups-1-i);
+	//     for (uint32_t i = 0; i < ngroups/2; ++ i) {
+	// 	const uint32_t j = ngroups - 1 - i;
+	// 	ibis::RIDSet *tmp = rid2[i];
+	// 	rid2[i] = rid2[j];
+	// 	rid2[j] = tmp;
+	//     }
+	// }
 
 	// time to put the smaller lists together again, also updates starts
 	ibis::RIDSet rid1;
@@ -2096,10 +2104,10 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	    array_t<uint32_t> ind0; // indices over all ngroups
 	    ind0.reserve(keep);
 	    // deal with the first sort key
-	    if (direction >= 0)
+	    // if (direction >= 0)
 		cols[j0]->bottomk(keep, ind0);
-	    else
-		cols[j0]->topk(keep, ind0);
+	    // else
+	    // 	cols[j0]->topk(keep, ind0);
 	    for (uint32_t ii = 0; ii < cols.size(); ++ ii)
 		cols[ii]->reorder(ind0);
 	    ibis::util::reorder(*starts, ind0);
@@ -2141,10 +2149,10 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	    const uint32_t j = comps.find(sortkeys[0]);
 	    if (j < comps.aggSize()) {
 		array_t<uint32_t> ind;
-		if (direction >= 0)
+		// if (direction >= 0)
 		    cols[j]->bottomk(keep, ind);
-		else
-		    cols[j]->topk(keep, ind);
+		// else
+		//     cols[j]->topk(keep, ind);
 		for (uint32_t i = 0; i < cols.size(); ++ i)
 		    cols[i]->reorder(ind);
 		ibis::util::reorder(*(starts), ind);
@@ -2152,17 +2160,17 @@ long ibis::bundles::truncate(const char *names, int direction, uint32_t keep) {
 	    }
 	}
 
-	if (direction < 0) { // reverse the order
-	    for (uint32_t j = 0; j < cols.size(); ++ j)
-		for (uint32_t i = 0; i < ngroups/2; ++ i)
-		    cols[j]->swap(i, ngroups-1-i);
-	    for (uint32_t i = 0; i < ngroups/2; ++ i) {
-		const uint32_t j = ngroups - 1 - i;
-		const uint32_t tmp = (*starts)[i];
-		(*starts)[i] = (*starts)[j];
-		(*starts)[j] = tmp;
-	    }
-	}
+	// if (direction < 0) { // reverse the order
+	//     for (uint32_t j = 0; j < cols.size(); ++ j)
+	// 	for (uint32_t i = 0; i < ngroups/2; ++ i)
+	// 	    cols[j]->swap(i, ngroups-1-i);
+	//     for (uint32_t i = 0; i < ngroups/2; ++ i) {
+	// 	const uint32_t j = ngroups - 1 - i;
+	// 	const uint32_t tmp = (*starts)[i];
+	// 	(*starts)[i] = (*starts)[j];
+	// 	(*starts)[j] = tmp;
+	//     }
+	// }
 
 	/// turn counts back into starting positions (starts)
 	uint32_t cumu = 0;

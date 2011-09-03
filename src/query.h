@@ -137,8 +137,8 @@ public:
     long getHitRows(std::vector<uint32_t> &rids) const;
     long countHits() const;
 
-    int  orderby(const char *names, int direction) const;
-    long limit(const char *names, int direction, uint32_t keep,
+    int  orderby(const char *names) const;
+    long limit(const char *names, uint32_t keep,
 	       bool updateHits = true);
 
     /// The functions @c getQualifiedTTT return the values of selected

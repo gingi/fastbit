@@ -1,6 +1,18 @@
+2011-09-02 John Wu <John dot Wu at ACM dot org>
+	* src/capi.h: add conditional statement to include sys/types.h to
+	deal with a problem with uint64_t inconsistency between PGI and
+	GNU compilers (PGI bug 775993).  FastBit now compiles with PGI
+	compiler version 11.7.0 on hopper.nersc.gov, however, it still
+	fails check-ibis case 12!
+
 2011-08-28 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h, src/bord.cpp: add one more version of
 	bord::column::append to deal with the in-memory data
+	* src/table.h, src/mensa.cpp: add function
+	ibis::table::parseOrderby
+	* examples/ibis.cpp: remove variable direction to let the
+	underlying orderby function to deal with directions which may be
+	different for each column
 
 2011-08-27 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h, src/bord.cpp: implement bord::column::append to deal
@@ -25,6 +37,7 @@
 2011-08-25 John Wu <John dot Wu at ACM dot org>
 	* src/mensa.cpp, src.part.cpp: add more conditions before
 	attempting to define our own isfinite
+
 2011-08-23 John Wu <John dot Wu at ACM dot org>
 	* src/table.h, src/part.h: add function to reorder columns with
 	each column in a different direction

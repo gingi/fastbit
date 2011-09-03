@@ -3764,14 +3764,16 @@ ibis::table* ibis::table::create(const char* dir1, const char* dir2) {
 	return new ibis::mensa(dir1, dir2);
 } // ibis::table::create
 
-/// Parse the incoming string into a set of names.  Some bytes in the
-/// incoming string may be turned into nil (0) to mark the end of names or
-/// functions.  Each name is allowed to be followed by an optional keyword
-/// ASC or DESC.  The corresponding element of direc is set true for ASC
-/// and false for DESC.  The unspecified elements are assumed to be ASC per
-/// SQL convention.
-void ibis::table::parseNames(char* in, ibis::table::stringList& out,
-			     std::vector<bool>& direc) {
+/// Parse the incoming string as an order-by clause.  An order-by clause is
+/// a list of column names where each name is optionally followed by a
+/// keyword ASC or DESC.  The corresponding element of direc is set true
+/// for ASC and false for DESC.  The unspecified elements are assumed to be
+/// ASC per SQL convention.
+///
+/// @note Some bytes in the incoming string may be turned into nil (0) to
+/// mark the end of names.
+void ibis::table::parseOrderby(char* in, ibis::table::stringList& out,
+			       std::vector<bool>& direc) {
     char* ptr1 = in;
     char* ptr2;
     while (*ptr1 != 0 && isspace(*ptr1) != 0) ++ ptr1; // leading space
@@ -3834,7 +3836,7 @@ void ibis::table::parseNames(char* in, ibis::table::stringList& out,
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- table::parseNames can not part string \"" << ptr1
+		<< "Warning -- table::parseOrderby can not part string \"" << ptr1
 		<< "\" into a column name or a function, skip till first "
 		"character after the next comma or space";
 
@@ -3846,7 +3848,7 @@ void ibis::table::parseNames(char* in, ibis::table::stringList& out,
 	// skip spaces and punctuations
 	for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
     }
-} // ibis::table::parseNames
+} // ibis::table::parseOrderby
 
 /// Parse the incoming string into a set of names.  Some bytes in the
 /// incoming string may be turned into nil (0) to mark the end of names or
@@ -3920,13 +3922,14 @@ ibis::table* ibis::table::groupby(const char* str) const {
 
 void ibis::table::orderby(const char* str) {
     stringList lst;
+    std::vector<bool> direc;
     char* buf = 0;
     if (str != 0 && *str != 0) {
 	buf = new char[strlen(str)+1];
 	strcpy(buf, str);
-	parseNames(buf, lst);
+	parseOrderby(buf, lst, direc);
     }
-    orderby(lst);
+    orderby(lst, direc);
     delete [] buf;
 } // ibis::table::orderby
 

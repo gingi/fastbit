@@ -26,6 +26,9 @@
 #if !defined(WITHOUT_FASTBIT_CONFIG_H) && !defined(__MINGW32__) && !defined(_MSC_VER)
 #include "fastbit-config.h"
 #endif
+#if defined(HAVE_SYS_TYPES_H) || defined(__PGI)
+#  include <sys/types.h>	// required by PGI compilers (bug 775993)
+#endif
 #if defined(HAVE_INTTYPES_H) || defined(sun) || defined(__MINGW32__) || defined(__FreeBSD__)
 #include <inttypes.h>
 #elif defined(HAVE_STDINT_H) || defined(unix) || defined(__APPLE__)

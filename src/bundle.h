@@ -109,13 +109,13 @@ public:
     virtual void* columnArray(uint32_t) const {return 0;}
 
     /// Re-order the bundles according to the new keys.
-    virtual void reorder(const char *, int) = 0;
+    virtual void reorder(const char *) = 0;
     /// Truncate the list of bundles.
     virtual long truncate(uint32_t keep) = 0;
     /// Truncate the list of bundles.
     virtual long truncate(uint32_t keep, uint32_t start) = 0;
     /// Truncate the list of bundle based on specified keys.
-    virtual long truncate(const char *names, int direction, uint32_t keep) = 0;
+    virtual long truncate(const char *names, uint32_t keep) = 0;
 
     virtual ~bundle();
     /// Write the bundle to the directory for the query @c q.
@@ -205,12 +205,11 @@ public:
     virtual void printAll(std::ostream& out) const;
 
     // can not do anything
-    virtual void reorder(const char *, int) {};
+    virtual void reorder(const char *) {};
     // only one bundle.
     virtual long truncate(uint32_t) {return 1;}
     virtual long truncate(uint32_t, uint32_t) {return 1;}
-    virtual long truncate(const char *, int, uint32_t)
-    {return 1;}
+    virtual long truncate(const char *, uint32_t) {return 1;}
 
     virtual void write(const ibis::query& q) const {
 	if (rids != 0 && infile == false) {
@@ -253,21 +252,15 @@ public:
     /// column.  Because the bundle is already sorted according to this
     /// column, there is nothing to do expect to reverse the order of the
     /// values based on the second argument.
-    virtual void reorder(const char *, int direction) {
-	if (direction < 0) {
-	    reverse();
-	    infile = false;
-	}
+    virtual void reorder(const char *) {
+	// if (direc.size() > 0 && direc[0] == false) {
+	//     reverse();
+	//     infile = false;
+	// }
     }
     virtual long truncate(uint32_t);
     virtual long truncate(uint32_t, uint32_t);
-    virtual long truncate(const char *, int direction, uint32_t keep) {
-	if (direction < 0) {
-	    reverse();
-	    infile = false;
-	}
-	return truncate(keep);
-    }
+    virtual long truncate(const char *, uint32_t keep);
 
 private:
     ibis::colValues* col;
@@ -312,10 +305,10 @@ public:
     virtual void* columnArray(uint32_t j) const {
 	return (j < cols.size() ? cols[j]->getArray() : 0);}
 
-    virtual void reorder(const char *names, int direction);
+    virtual void reorder(const char *);
     virtual long truncate(uint32_t keep);
     virtual long truncate(uint32_t keep, uint32_t start);
-    virtual long truncate(const char *names, int direction, uint32_t keep);
+    virtual long truncate(const char *names, uint32_t keep);
 
 private:
     colList cols;

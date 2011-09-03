@@ -15,7 +15,7 @@
 
     The queries are specified in a simplified SQL statement of the form:
     <pre>
-    [SELECT ...] [FROM ...] WHERE ... [ORDER BY ... [ASC | DESC]] [LIMIT ...]
+    [SELECT ...] [FROM ...] WHERE ... [ORDER BY colname [ASC | DESC] [colname [ASC | DESC]]] [LIMIT ...]
     </pre>
 
     The SELECT clause contains a list of column names and some of the
@@ -2666,7 +2666,7 @@ static void findMissingValues(const ibis::part &pt, const char *cnm,
 // Execute a query using the new ibis::table interface
 static void tableSelect(const ibis::partList &pl, const char* uid,
 			const char* wstr, const char* sstr,
-			const char* ordkeys, int direction,
+			const char* ordkeys,
 			uint32_t limit, uint32_t start) {
     std::auto_ptr<ibis::table> tbl(ibis::table::create(pl));
     std::string sqlstring; //
@@ -2704,10 +2704,6 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	}
 	if (ordkeys && *ordkeys) {
 	    ostr << " ORDER BY " << ordkeys;
-	    if (direction >= 0)
-		ostr << " ASC";
-	    else
-		ostr << " DESC";
 	}
 	if (limit > 0) {
 	    ostr << " LIMIT ";
@@ -2761,8 +2757,6 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
     if (sel1->nRows() > 1 && ((ordkeys && *ordkeys) || limit > 0)) {
 	// top-K query
 	sel1->orderby(ordkeys);
-	if (direction < 0)
-	    sel1->reverseRows();
     }
 
     if (outputfile != 0 && *outputfile != 0) {
@@ -2885,8 +2879,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 
 // New style query.
 static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
-		     const char *ordkeys, int direction, uint32_t limit,
-		     uint32_t start) {
+		     const char *ordkeys, uint32_t limit, uint32_t start) {
     ibis::horometer timer;
     timer.start();
     std::string sqlstring; //
@@ -2900,10 +2893,6 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	    ostr << " WHERE " << wstr;
 	if (ordkeys && *ordkeys) {
 	    ostr << " ORDER BY " << ordkeys;
-	    if (direction >= 0)
-		ostr << " ASC";
-	    else
-		ostr << " DESC";
 	}
 	if (limit > 0) {
 	    ostr << " LIMIT ";
@@ -2989,8 +2978,6 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
     if (res->nRows() > 1 && ((ordkeys && *ordkeys) || limit > 0)) {
 	// top-K query
 	res->orderby(ordkeys);
-	if (direction < 0)
-	    res->reverseRows();
     }
 
     timer.stop();
@@ -3206,7 +3193,7 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 
 // evaluate a single query -- print selected columns through ibis::bundle
 static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
-		    const char* sstr, const char* ordkeys, int direction,
+		    const char* sstr, const char* ordkeys,
 		    uint32_t limit, uint32_t start) {
     std::string sqlstring; //
     {
@@ -3218,10 +3205,6 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    ostr << " WHERE " << wstr;
 	if (ordkeys && *ordkeys) {
 	    ostr << " ORDER BY " << ordkeys;
-	    if (direction >= 0)
-		ostr << " ASC";
-	    else
-		ostr << " DESC";
 	}
 	if (limit > 0) {
 	    ostr << " LIMIT ";
@@ -3373,8 +3356,8 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    return;
 	}
 
-	if ((ordkeys && *ordkeys) || direction < 0) { // top-K query
-	    bdl->reorder(ordkeys, direction);
+	if (ordkeys && *ordkeys) { // top-K query
+	    bdl->reorder(ordkeys);
 	}
 	if (limit > 0 || start > 0) {
 	    num2 = bdl->truncate(limit, start);
@@ -3618,7 +3601,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 			const char* sstr) {
     const std::vector<uint32_t>& dim = tbl->getMeshShape();
     if (dim.empty()) {
-	doQuery(tbl, uid, wstr, sstr, 0, 0, 0, 0);
+	doQuery(tbl, uid, wstr, sstr, 0, 0, 0);
 	return;
     }
 
@@ -4304,7 +4287,6 @@ static void parseString(const char* uid, const char* qstr) {
     std::string sstr; // select clause
     std::string wstr; // where clause
     std::string ordkeys; // order by clause (the order keys)
-    int direction = 0; // direction of the order by clause
     uint32_t start = 0; // the 1st row to print
     uint32_t limit = 0; // the limit on the number of output rows
     ibis::nameList qtables;
@@ -4427,24 +4409,12 @@ static void parseString(const char* uid, const char* qstr) {
     }
 
     if (str != 0 && 0 == strnicmp(str, "order by ", 9)) { // order by clause
-	// the order by clause may be terminated by key words "ASC", "DESC"
-	// or "LIMIT"
+	// the order by clause may be the last clause or followed by the key word
+	// "LIMIT"
 	str += 9;
-	end = strstr(str, "desc");
+	end = strstr(str, "limit");
 	if (end == 0) {
-	    end = strstr(str, "Desc");
-	    if (end == 0)
-		end = strstr(str, "DESC");
-	    if (end == 0)
-		end = strstr(str, "asc");
-	    if (end == 0)
-		end = strstr(str, "Asc");
-	    if (end == 0)
-		end = strstr(str, "ASC");
-	    if (end == 0)
-		end = strstr(str, "limit");
-	    if (end == 0)
-		end = strstr(str, "Limit");
+	    end = strstr(str, "Limit");
 	    if (end == 0)
 		end = strstr(str, "LIMIT");
 	}
@@ -4452,23 +4422,6 @@ static void parseString(const char* uid, const char* qstr) {
 	    while (str < end) {
 		ordkeys += *str;
 		++ str;
-	    }
-
-	    if (0 == strnicmp(str, "desc ", 5)) {
-		direction = -1;
-		str += 5;
-	    }
-	    else if (0 == strnicmp(str, "asc ", 4)) {
-		direction = 1;
-		str += 4;
-	    }
-	    else if (0 == stricmp(str, "desc")) {
-		direction = -1;
-		str += 4;
-	    }
-	    else if (0 == stricmp(str, "asc")) {
-		direction = 1;
-		str += 3;
 	    }
 	}
 	else {
@@ -4517,7 +4470,7 @@ static void parseString(const char* uid, const char* qstr) {
 
     if (hasdot) {
 	doQuaere(sstr.c_str(), fstr.c_str(), wstr.c_str(),
-		 ordkeys.c_str(), direction, limit, start);
+		 ordkeys.c_str(), limit, start);
     }
     else if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
 				sstr.find(" as ") < sstr.size())) {
@@ -4537,7 +4490,7 @@ static void parseString(const char* uid, const char* qstr) {
 	    }
 	    try {
 		tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit, start);
+			    ordkeys.c_str(), limit, start);
 	    }
 	    catch (...) {
 		if (ibis::util::serialNumber() % 3 == 0) {
@@ -4551,13 +4504,13 @@ static void parseString(const char* uid, const char* qstr) {
 		    (*it)->emptyCache();
 		}
 		tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit, start);
+			    ordkeys.c_str(), limit, start);
 	    }
 	}
 	else {
 	    try {
 		tableSelect(ibis::datasets, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit, start);
+			    ordkeys.c_str(), limit, start);
 	    }
 	    catch (...) {
 		if (ibis::util::serialNumber() % 3 == 0) {
@@ -4571,7 +4524,7 @@ static void parseString(const char* uid, const char* qstr) {
 		    (*it)->emptyCache();
 		}
 		tableSelect(ibis::datasets, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit, start);
+			    ordkeys.c_str(), limit, start);
 	    }
 	}
     }
@@ -4587,7 +4540,7 @@ static void parseString(const char* uid, const char* qstr) {
 			ibis::datasets[k]->getMeshShape().empty()) {
 			try {
 			    doQuery(ibis::datasets[k], uid, wstr.c_str(),
-				     sstr.c_str(), ordkeys.c_str(), direction,
+				     sstr.c_str(), ordkeys.c_str(),
 				    limit, start);
 			}
 			catch (...) {
@@ -4600,7 +4553,7 @@ static void parseString(const char* uid, const char* qstr) {
 			    }
 			    ibis::datasets[k]->emptyCache();
 			    doQuery(ibis::datasets[k], uid, wstr.c_str(),
-				    sstr.c_str(), ordkeys.c_str(), direction,
+				    sstr.c_str(), ordkeys.c_str(),
 				    limit, start);
 			}
 		    }
@@ -4651,7 +4604,7 @@ static void parseString(const char* uid, const char* qstr) {
 		(*tit)->getMeshShape().empty()) {
 		try {
 		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit, start);
+			    ordkeys.c_str(), limit, start);
 		}
 		catch (...) {
 		    if (ibis::util::serialNumber() % 3 == 0) {
@@ -4662,7 +4615,7 @@ static void parseString(const char* uid, const char* qstr) {
 		    }
 		    (*tit)->emptyCache();
 		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), direction, limit, start);
+			    ordkeys.c_str(), limit, start);
 		}
 	    }
 	    else {
@@ -4958,7 +4911,7 @@ int main(int argc, char** argv) {
 	    for (ibis::partList::iterator itt = ibis::datasets.begin();
 		 itt != ibis::datasets.end();
 		 ++ itt)
-		doQuery((*itt), uid, 0, 0, 0, 0, 0, 0);
+		doQuery((*itt), uid, 0, 0, 0, 0, 0);
 	}
 	ridfile = 0;
 
