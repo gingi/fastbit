@@ -1,3 +1,9 @@
+2011-09-12 John Wu <John dot Wu at ACM dot org>
+	* tests/vault/text-0, tests/vault/marksdb-3, tests/Makefile.am:
+	interpret the keywords DESC and ASC to be associated with the
+	column name just before them to conform to SQL standard (a problem
+	pointed out by Jon Strabala)
+
 2011-09-02 John Wu <John dot Wu at ACM dot org>
 	* src/capi.h: add conditional statement to include sys/types.h to
 	deal with a problem with uint64_t inconsistency between PGI and
