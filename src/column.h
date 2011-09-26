@@ -166,31 +166,6 @@ public:
     /// on the bin boundaries.
     int contractRange(ibis::qContinuousRange& rng) const;
 
-    /// Compute a lower bound and an upper bound on the number of hits
-    /// using the bitmap index.  If no index is available a new one will be
-    /// built.  If no index can be built, the lower bound will contain
-    /// nothing and the the upper bound will contain everything.  The two
-    /// bounds are returned as bitmaps which marked the qualified rows as
-    /// one, where the lower bound is stored in 'low' and the upper bound
-    /// is stored in 'high'.  If the bitvector 'high' has less bits than
-    /// 'low', the bitvector 'low' is assumed to have an exact solution.
-    /// This function always returns zero (0).
-    virtual long estimateRange(const ibis::qContinuousRange& cmp,
-			       ibis::bitvector& low,
-			       ibis::bitvector& high) const;
-    /// Compute a lower bound and an upper bound for hits.
-    virtual long estimateRange(const ibis::qDiscreteRange& cmp,
-			       ibis::bitvector& low,
-			       ibis::bitvector& high) const;
-    /// Compute a lower bound and an upper bound for hits.
-    virtual long estimateRange(const ibis::qIntHod& cmp,
-			       ibis::bitvector& low,
-			       ibis::bitvector& high) const;
-    /// Compute a lower bound and an upper bound for hits.
-    virtual long estimateRange(const ibis::qUIntHod& cmp,
-			       ibis::bitvector& low,
-			       ibis::bitvector& high) const;
-
     /// Compute the exact answer.  If successful, return the number of
     /// hits, otherwise return a negative value.
     virtual long evaluateRange(const ibis::qContinuousRange& cmp,
@@ -219,11 +194,36 @@ public:
     virtual long patternSearch(const char*) const;
     virtual long patternSearch(const char*, ibis::bitvector &) const;
 
-    /// Use an index to compute an upper bound on the number of hits.  If
-    /// no index can be computed, it will return the number of rows as the
-    /// upper bound.
+    virtual long evaluateAndSelect(const ibis::qContinuousRange& cmp,
+				   const ibis::bitvector& mask,
+				   ibis::bitvector& res, void* vals) const;
+
+    /// Compute a lower bound and an upper bound on the number of hits
+    /// using the bitmap index.  If no index is available a new one will be
+    /// built.  If no index can be built, the lower bound will contain
+    /// nothing and the the upper bound will contain everything.  The two
+    /// bounds are returned as bitmaps which marked the qualified rows as
+    /// one, where the lower bound is stored in 'low' and the upper bound
+    /// is stored in 'high'.  If the bitvector 'high' has less bits than
+    /// 'low', the bitvector 'low' is assumed to have an exact solution.
+    /// This function always returns zero (0).
+    virtual long estimateRange(const ibis::qContinuousRange& cmp,
+			       ibis::bitvector& low,
+			       ibis::bitvector& high) const;
+    /// Compute a lower bound and an upper bound for hits.
+    virtual long estimateRange(const ibis::qDiscreteRange& cmp,
+			       ibis::bitvector& low,
+			       ibis::bitvector& high) const;
+    /// Compute a lower bound and an upper bound for hits.
+    virtual long estimateRange(const ibis::qIntHod& cmp,
+			       ibis::bitvector& low,
+			       ibis::bitvector& high) const;
+    /// Compute a lower bound and an upper bound for hits.
+    virtual long estimateRange(const ibis::qUIntHod& cmp,
+			       ibis::bitvector& low,
+			       ibis::bitvector& high) const;
+
     virtual long estimateRange(const ibis::qContinuousRange& cmp) const;
-    /// Compute an upper bound on the number of hits.
     virtual long estimateRange(const ibis::qDiscreteRange& cmp) const;
     /// Compute an upper bound on the number of hits.
     virtual long estimateRange(const ibis::qIntHod& cmp) const;

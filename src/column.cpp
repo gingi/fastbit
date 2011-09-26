@@ -5203,9 +5203,6 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 				 const ibis::bitvector& mask,
 				 ibis::bitvector& low) const {
     long ierr = 0;
-    ibis::bitvector mymask;
-    getNullMask(mymask);
-    mymask &= mask;
     low.clear(); // clear the existing content
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -5233,6 +5230,12 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		    if (ierr < 0)
 			low.clear();
 		}
+		else if (ibis::gVerbose > 1) {
+		    ibis::util::logger lg;
+		    lg() << "column[" << thePart->name() << "." << name()
+			 << "]::evaluateRange(" << cmp << ") will not use the "
+			"index because the cost (" << cost << ") is too high";
+		}
 	    }
 	    else if (m_sorted) {
 		ierr = searchSorted(cmp, low);
@@ -5240,16 +5243,16 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		    low.clear();
 	    }
 	}
-	if (low.size() != mymask.size()) { // short index
+	if (low.size() != mask.size()) { // short index
 	    if (high.size() != low.size())
 		high.copy(low);
-	    high.adjustSize(mymask.size(), mymask.size());
-	    low.adjustSize(0, mymask.size());
+	    high.adjustSize(mask.size(), mask.size());
+	    low.adjustSize(0, mask.size());
 	}
-	low &= mymask;
+	low &= mask;
 	if (low.size() == high.size()) { // need scan
 	    ibis::bitvector b2;
-	    high &= mymask;
+	    high &= mask;
 	    high -= low;
 	    if (high.cnt() > 0) {
 		ierr = thePart->doScan(cmp, high, b2);
@@ -5261,7 +5264,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		}
 	    }
 	}
-	if (low.size() == mymask.size())
+	if (low.size() == mask.size())
 	    ierr = low.cnt();
 
 	LOGGER(ibis::gVerbose > 3)
@@ -5303,17 +5306,17 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		indexLock lock(this, "evaluateRange");
 		if (idx != 0) {
 		    idx->evaluate(cmp, low);
-		    if (low.size() < mymask.size()) {
+		    if (low.size() < mask.size()) {
 			ibis::bitvector high, delta;
-			high.adjustSize(low.size(), mymask.size());
+			high.adjustSize(low.size(), mask.size());
 			high.flip();
 			ierr = thePart->doScan(cmp, high, delta);
 			low |= delta;
 		    }
-		    low &= mymask;
+		    low &= mask;
 		}
 		else {
-		    ierr = thePart->doScan(cmp, mymask, low);
+		    ierr = thePart->doScan(cmp, mask, low);
 		}
 	    }
 	}
@@ -5329,7 +5332,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- column[" << m_name
+	    << "Warning -- column[" << thePart->name() << "." << m_name
 	    << "] does not belong to a data partition, but need one";
 	ierr = -3;
     }
@@ -5342,6 +5345,14 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	<< ", and ierr = " << ierr;
     return ierr;
 } // ibis::column::evaluateRange
+
+/// Evaluate a range condition and retrieve the selected values.  This is a
+/// combination of evaluateRange and selectTypes.  This combination allows
+/// some optimizations to reduce the I/O operations.
+long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
+				     const ibis::bitvector& mask,
+				     ibis::bitvector& low, void* vals) const {
+} // ibis::column::evaluateAndSelect
 
 long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 				 const ibis::bitvector& mask,
@@ -5370,29 +5381,26 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	return evaluateRange(cr, mask, low);
     }
 
-    ibis::bitvector mymask;
-    getNullMask(mymask);
-    mymask &= mask;
     try {
 	indexLock lock(this, "evaluateRange");
 	if (idx != 0) {
 	    double idxcost = idx->estimateCost(cmp) *
 		(1.0 + std::log((double)cmp.getValues().size()));
-	    if (m_sorted && idxcost > mymask.size()) {
+	    if (m_sorted && idxcost > mask.size()) {
 		ierr = searchSorted(cmp, low);
 		if (ierr == 0) {
-		    low &= mymask;
+		    low &= mask;
 		    return low.cnt();
 		}
 	    }
-	    if (idxcost > (elementSize()+4.0) * mymask.size() &&
+	    if (idxcost > (elementSize()+4.0) * mask.size() &&
 		thePart->currentDataDir() != 0) {
 		// using a sorted list may be faster
 		ibis::roster ros(this);
 		if (ros.size() == thePart->nRows()) {
 		    ierr = ros.locate(cmp.getValues(), low);
 		    if (ierr >= 0) {
-			low &= mymask;
+			low &= mask;
 			return low.cnt();
 		    }
 		}
@@ -5401,17 +5409,17 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    // fall back to the normal indexing option
 	    ierr = idx->evaluate(cmp, low);
 	    if (ierr >= 0) {
-		if (low.size() < mymask.size()) { // short index, scan
+		if (low.size() < mask.size()) { // short index, scan
 		    ibis::bitvector b1, b2;
 		    b1.appendFill(0, low.size());
-		    b1.appendFill(1, mymask.size()-low.size());
+		    b1.appendFill(1, mask.size()-low.size());
 		    ierr = thePart->doScan(cmp, b1, b2);
 		    if (ierr >= 0) {
-			low.adjustSize(0, mymask.size());
+			low.adjustSize(0, mask.size());
 			low |= b2;
 		    }
 		}
-		low &= mymask;
+		low &= mask;
 	    }
 	    else { // index::evaluate failed
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -5425,26 +5433,26 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		if (m_sorted) {
 		    ierr = searchSorted(cmp, low);
 		    if (ierr >= 0) {
-			low &= mymask;
+			low &= mask;
 		    }
 		}
 
 		if (ierr < 0) {
 		    ibis::bitvector high;
 		    idx->estimate(cmp, low, high);
-		    if (low.size() != mymask.size()) {
+		    if (low.size() != mask.size()) {
 			if (high.size() == low.size()) {
-			    high.adjustSize(mymask.size(), mymask.size());
+			    high.adjustSize(mask.size(), mask.size());
 			}
 			else if (high.size() == 0) {
 			    high.copy(low);
-			    high.adjustSize(mymask.size(), mymask.size());
+			    high.adjustSize(mask.size(), mask.size());
 			}
-			low.adjustSize(0, mymask.size());
+			low.adjustSize(0, mask.size());
 		    }
-		    low &= mymask;
+		    low &= mask;
 		    if (high.size() == low.size()) {
-			high &= mymask;
+			high &= mask;
 			if (high.cnt() > low.cnt()) {
 			    high -= low;
 			    ibis::bitvector delta;
@@ -5470,11 +5478,11 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		if (ros.size() == thePart->nRows()) {
 		    ierr = ros.locate(cmp.getValues(), low);
 		    if (ierr >= 0) {
-			low &= mymask;
+			low &= mask;
 		    }
 		}
 		if (ierr < 0)
-		    ierr = thePart->doScan(cmp, mymask, low);
+		    ierr = thePart->doScan(cmp, mask, low);
 	    }
 	}
 
@@ -5516,17 +5524,17 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		indexLock lock(this, "evaluateRange");
 		if (idx != 0) {
 		    idx->evaluate(cmp, low);
-		    if (low.size() < mymask.size()) {
+		    if (low.size() < mask.size()) {
 			ibis::bitvector high, delta;
-			high.adjustSize(low.size(), mymask.size());
+			high.adjustSize(low.size(), mask.size());
 			high.flip();
 			ierr = thePart->doScan(cmp, high, delta);
 			low |= delta;
 		    }
-		    low &= mymask;
+		    low &= mask;
 		}
 		else {
-		    ierr = thePart->doScan(cmp, mymask, low);
+		    ierr = thePart->doScan(cmp, mask, low);
 		}
 	    }
 	}
@@ -5615,7 +5623,9 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
     return -ierr;
 } // ibis::column::estimateRange
 
-// use the index to compute a maximum hit
+/// Use the index of the column to compute an upper bound on the number of
+/// hits.  If no index can be computed, it will return the number of rows
+/// as the upper bound.
 long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
     long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
     try {
@@ -5641,6 +5651,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
     return ret;
 } // ibis::column::estimateRange
 
+/// Compute an upper bound on the number of hits.
 /// Estimating hits for a discrete range is actually done with
 /// evaluateRange.
 long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp,
@@ -5791,9 +5802,6 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
 	return ierr;
     }
 
-    ibis::bitvector mymask;
-    getNullMask(mymask);
-    mymask &= mask;
     try {
 	ierr = -1;
 	if (m_sorted) {
@@ -5805,13 +5813,13 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
 	    if (ros.size() == thePart->nRows()) {
 		ierr = ros.locate(cmp.getValues(), low);
 		if (ierr >= 0) {
-		    low &= mymask;
+		    low &= mask;
 		    ierr = low.cnt();
 		}
 	    }
 	}
 	if (ierr < 0 && thePart != 0) {
-	    ierr = thePart->doScan(cmp, mymask, low);
+	    ierr = thePart->doScan(cmp, mask, low);
 	}
 
 	LOGGER(ibis::gVerbose > 3)
@@ -5892,9 +5900,6 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 	return ierr;
     }
 
-    ibis::bitvector mymask;
-    getNullMask(mymask);
-    mymask &= mask;
     try {
 	ierr = -1;
 	if (m_sorted) {
@@ -5906,13 +5911,13 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 	    if (ros.size() == thePart->nRows()) {
 		ierr = ros.locate(cmp.getValues(), low);
 		if (ierr >= 0) {
-		    low &= mymask;
+		    low &= mask;
 		    ierr = low.cnt();
 		}
 	    }
 	}
 	if (ierr < 0 && thePart != 0) {
-	    ierr = thePart->doScan(cmp, mymask, low);
+	    ierr = thePart->doScan(cmp, mask, low);
 	}
 
 	LOGGER(ibis::gVerbose > 3)

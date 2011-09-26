@@ -1,3 +1,8 @@
+2011-09-26 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp, src/part.cpp: change evaluateRange to take into
+	account of the column mask in part.cpp so that the column version
+	can be repeatedly called with repeat invocation of null mask
+
 2011-09-12 John Wu <John dot Wu at ACM dot org>
 	* tests/vault/text-0, tests/vault/marksdb-3, tests/Makefile.am:
 	interpret the keywords DESC and ASC to be associated with the

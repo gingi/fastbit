@@ -3251,17 +3251,20 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 
     const ibis::column* col = getColumn(cmp.colName());
     if (col != 0) {
-	ierr = col->evaluateRange(cmp, mask, hits);
+	ibis::bitvector mymask;
+	col->getNullMask(mymask);
+	mymask &= mask;
+	ierr = col->evaluateRange(cmp, mymask, hits);
 	if (ierr < 0) {
 	    ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 	    unloadIndexes();
-	    ierr = col->evaluateRange(cmp, mask, hits);
+	    ierr = col->evaluateRange(cmp, mymask, hits);
 	}
     }
     else {
 	logWarning("evaluateRange", "unable to find a column named %s",
 		   cmp.colName());
-	hits.set(0, nEvents);
+	hits.copy(mask);
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -3377,17 +3380,19 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
     else {
 	const ibis::column* col = getColumn(cmp.colName());
 	if (col != 0) {
-	    ierr = col->evaluateRange(cmp, mask, hits);
+	    ibis::bitvector mymask;
+	    col->getNullMask(mymask);
+	    ierr = col->evaluateRange(cmp, mymask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 		unloadIndexes();
-		ierr = col->evaluateRange(cmp, mask, hits);
+		ierr = col->evaluateRange(cmp, mymask, hits);
 	    }
 	}
 	else {
 	    logWarning("evaluateRange", "unable to find a column "
 		       "named %s", cmp.colName());
-	    hits.set(0, nEvents);
+	    hits.copy(mask);
 	}
     }
 
@@ -3498,17 +3503,19 @@ long ibis::part::evaluateRange(const ibis::qIntHod &cmp,
     else {
 	const ibis::column* col = getColumn(cmp.colName());
 	if (col != 0) {
-	    ierr = col->evaluateRange(cmp, mask, hits);
+	    ibis::bitvector mymask;
+	    col->getNullMask(mymask);
+	    ierr = col->evaluateRange(cmp, mymask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 		unloadIndexes();
-		ierr = col->evaluateRange(cmp, mask, hits);
+		ierr = col->evaluateRange(cmp, mymask, hits);
 	    }
 	}
 	else {
 	    logWarning("evaluateRange", "unable to find a column "
 		       "named %s", cmp.colName());
-	    hits.set(0, nEvents);
+	    hits.copy(mask);
 	}
     }
 
@@ -3619,17 +3626,19 @@ long ibis::part::evaluateRange(const ibis::qUIntHod &cmp,
     else {
 	const ibis::column* col = getColumn(cmp.colName());
 	if (col != 0) {
-	    ierr = col->evaluateRange(cmp, mask, hits);
+	    ibis::bitvector mymask;
+	    col->getNullMask(mymask);
+	    ierr = col->evaluateRange(cmp, mymask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 		unloadIndexes();
-		ierr = col->evaluateRange(cmp, mask, hits);
+		ierr = col->evaluateRange(cmp, mymask, hits);
 	    }
 	}
 	else {
 	    logWarning("evaluateRange", "unable to find a column "
 		       "named %s", cmp.colName());
-	    hits.set(0, nEvents);
+	    hits.copy(mask);
 	}
     }
 
