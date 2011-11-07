@@ -186,52 +186,45 @@ public:
     virtual float getUndecidable(const ibis::qUIntHod &cmp,
 				 ibis::bitvector &iffy) const;
 
-    /// Evaluate the range condition.  Scan the base data to resolve the
-    /// range condition.
     virtual long doScan(const ibis::qRange &cmp,
 			ibis::bitvector &hits) const;
-    /// Evalute the range condition on the records that are marked 1 in the
-    /// mask.
     virtual long doScan(const ibis::qRange &cmp,
 			const ibis::bitvector &mask,
 			ibis::bitvector &hits) const;
-    /// Compute the records (marked 1 in the mask) that does not satisfy
-    /// the range condition.
+    virtual long doScan(const ibis::qRange &cmp,
+			const ibis::bitvector &mask,
+			void *res) const;
+
     virtual long negativeScan(const ibis::qRange &cmp,
 			      const ibis::bitvector &mask,
 			      ibis::bitvector &hits) const;
 
-    long doScan(const ibis::math::term&, const ibis::bitvector&,
-		ibis::bitvector&) const;
-    /// Locate the records that satisfy the complex range condition.
+    virtual long doScan(const ibis::math::term&, const ibis::bitvector&,
+			ibis::bitvector&) const;
     virtual long doScan(const ibis::compRange &cmp,
 			ibis::bitvector &hits) const;
-    /// Locate the records that have mark value 1 and satisfy the complex
-    /// range conditions.
     virtual long doScan(const ibis::compRange &cmp,
 			const ibis::bitvector &mask,
 			ibis::bitvector &hits) const;
 
-    /// Locate the records that satisfy the range condition.
-    template <typename E>
-	static long doScan(const array_t<E> &varr,
-			   const ibis::qRange &cmp,
-			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits);
-    /// Locate the records that satisfy the range condition.
-    template <typename E>
-	static long doScan(const array_t<E> &varr,
-			   const ibis::qContinuousRange &cmp,
-			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits);
+    template <typename E> static long
+	doScan(const array_t<E> &varr,
+	       const ibis::qRange &cmp,
+	       const ibis::bitvector &mask,
+	       ibis::bitvector &hits);
+    template <typename E> static long
+	doScan(const array_t<E> &varr,
+	       const ibis::qContinuousRange &cmp,
+	       const ibis::bitvector &mask,
+	       ibis::bitvector &hits);
+    template <typename E> static long
+	doScan(const array_t<E> &varr,
+	       const ibis::qContinuousRange &cmp,
+	       const ibis::bitvector &mask,
+	       array_t<E> &res);
 
-    /// Count the number of hits for a single range condition.
     long countHits(const ibis::qRange &cmp) const;
 
-    /// Estimate a lower bound and an upper bound on the records that are
-    /// hits.  The bitvector @c low contains records that are hits (for
-    /// sure) and the bitvector @c high contains records that are possible
-    /// hits.
     virtual long estimateMatchAny(const ibis::qAnyAny &cmp,
 				  ibis::bitvector &low,
 				  ibis::bitvector &high) const;
@@ -318,7 +311,10 @@ public:
     /// Retrieve values of the name column as strings.
     std::vector<std::string>*
 	selectStrings(const char* name, const ibis::bitvector &mask) const;
-    /// Calculate the values of an arithmetic expression.
+
+    long selectValues(const char* cname, const ibis::bitvector &mask,
+		      void* vals) const;
+    long selectValues(const ibis::qContinuousRange& cond, void* vals) const;
     long calculate(const ibis::math::term&, const ibis::bitvector&,
 		   array_t<double>&) const;
 
@@ -773,68 +769,85 @@ protected:
 			    ibis::bitvector&) const;
     void stringToBitvector(const char*, ibis::bitvector&) const;
 
-    template <typename T>
-    long doCompare(const array_t<T> &array,
-		   const ibis::bitvector &mask,
- 		   ibis::bitvector &hits,
-		   const ibis::qRange &cmp) const;
-    template <typename T>
-    long doCompare(const char *file,
-		   const ibis::bitvector &mask,
- 		   ibis::bitvector &hits,
-		   const ibis::qRange &cmp) const;
-    template <typename T>
-    long negativeCompare(const array_t<T> &array,
-			 const ibis::bitvector &mask,
-			 ibis::bitvector &hits,
-			 const ibis::qRange &cmp) const;
-    template <typename T>
-    long negativeCompare(const char *file,
-			 const ibis::bitvector &mask,
-			 ibis::bitvector &hits,
-			 const ibis::qRange &cmp) const;
+    template <typename T> static long
+	doCompare(const array_t<T> &array,
+		  const ibis::qRange &cmp,
+		  const ibis::bitvector &mask,
+		  ibis::array_t<T> &res);
+    template <typename T> static long
+	doCompare(const char *file,
+		  const ibis::qRange &cmp,
+		  const ibis::bitvector &mask,
+		  ibis::array_t<T> &res);
 
-    template <typename T>
-    long doCompare(const array_t<T> &array,
-		   const ibis::bitvector &mask,
- 		   ibis::bitvector &hits,
-		   const ibis::qIntHod &cmp) const;
-    template <typename T>
-    long doCompare(const char *file,
-		   const ibis::bitvector &mask,
- 		   ibis::bitvector &hits,
-		   const ibis::qIntHod &cmp) const;
-    template <typename T>
-    long negativeCompare(const array_t<T> &array,
-			 const ibis::bitvector &mask,
-			 ibis::bitvector &hits,
-			 const ibis::qIntHod &cmp) const;
-    template <typename T>
-    long negativeCompare(const char *file,
-			 const ibis::bitvector &mask,
-			 ibis::bitvector &hits,
-			 const ibis::qIntHod &cmp) const;
+    template <typename T> static long
+	doCompare(const array_t<T> &array,
+		  const ibis::qRange &cmp,
+		  const ibis::bitvector &mask,
+		  ibis::bitvector &hits);
+    template <typename T> static long
+	doCompare(const char *file,
+		  const ibis::qRange &cmp,
+		  const ibis::bitvector &mask,
+		  ibis::bitvector &hits);
 
-    template <typename T>
-    long doCompare(const array_t<T> &array,
-		   const ibis::bitvector &mask,
- 		   ibis::bitvector &hits,
-		   const ibis::qUIntHod &cmp) const;
-    template <typename T>
-    long doCompare(const char *file,
-		   const ibis::bitvector &mask,
- 		   ibis::bitvector &hits,
-		   const ibis::qUIntHod &cmp) const;
-    template <typename T>
-    long negativeCompare(const array_t<T> &array,
-			 const ibis::bitvector &mask,
-			 ibis::bitvector &hits,
-			 const ibis::qUIntHod &cmp) const;
-    template <typename T>
-    long negativeCompare(const char *file,
-			 const ibis::bitvector &mask,
-			 ibis::bitvector &hits,
-			 const ibis::qUIntHod &cmp) const;
+    template <typename T> static long
+	negativeCompare(const array_t<T> &array,
+			const ibis::qRange &cmp,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits);
+    template <typename T> static long
+	negativeCompare(const char *file,
+			const ibis::qRange &cmp,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits);
+
+    template <typename T> static long
+	doCompare(const array_t<T> &array,
+		  const ibis::qIntHod &cmp,
+		  const ibis::bitvector &mask,
+		  ibis::bitvector &hits);
+    template <typename T> static long
+	doCompare(const char *file,
+		  const ibis::qIntHod &cmp,
+		  const ibis::bitvector &mask,
+		  ibis::bitvector &hits);
+    template <typename T> static long
+	negativeCompare(const array_t<T> &array,
+			const ibis::qIntHod &cmp,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits);
+    template <typename T> static long
+	negativeCompare(const char *file,
+			const ibis::qIntHod &cmp,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits);
+
+    template <typename T> static long
+	doCompare(const array_t<T> &array,
+		  const ibis::qUIntHod &cmp,
+		  const ibis::bitvector &mask,
+		  ibis::bitvector &hits);
+    template <typename T> static long
+	doCompare(const char *file,
+		  const ibis::qUIntHod &cmp,
+		  const ibis::bitvector &mask,
+		  ibis::bitvector &hits);
+    template <typename T> static long
+	negativeCompare(const array_t<T> &array,
+			const ibis::qUIntHod &cmp,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits);
+    template <typename T> static long
+	negativeCompare(const char *file,
+			const ibis::qUIntHod &cmp,
+			const ibis::bitvector &mask,
+			ibis::bitvector &hits);
+
+    template <typename T, typename F>
+	static long doCompare(const array_t<T> &vals, F cmp,
+			      const ibis::bitvector &mask,
+			      array_t<T> &res);
 
     template <typename T, typename F>
 	static long doCompare(const array_t<T> &vals, F cmp,
@@ -845,6 +858,11 @@ protected:
 	static long doCompare0(const array_t<T> &vals, F cmp,
 			       const ibis::bitvector &mask,
 			       ibis::bitvector &hits);
+
+    template <typename T, typename F1, typename F2>
+	static long doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
+			      const ibis::bitvector &mask,
+			      array_t<T> &res);
 
     template <typename T, typename F1, typename F2>
 	static long doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
@@ -1623,6 +1641,15 @@ namespace ibis {
     part::doScan(const array_t<double> &,
 		 const ibis::qContinuousRange &,
 		 const ibis::bitvector &, ibis::bitvector &);
+
+    template <> long
+    part::doScan(const array_t<float> &,
+		 const ibis::qContinuousRange &,
+		 const ibis::bitvector &, ibis::array_t<float> &);
+    template <> long
+    part::doScan(const array_t<double> &,
+		 const ibis::qContinuousRange &,
+		 const ibis::bitvector &, ibis::array_t<double> &);
 
     template <> long
     part::doCount<float>(const ibis::qRange&) const;

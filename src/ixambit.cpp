@@ -1994,7 +1994,7 @@ long ibis::ambit::append(const ibis::ambit& tail) {
 	if (tail.bounds[i] != bounds[i]) return -5;
 
     array_t<double> max2, min2;
-    std::vector<ibis::bitvector*> bin2;
+    array_t<bitvector*> bin2;
     max2.resize(nobs);
     min2.resize(nobs);
     bin2.resize(nobs);

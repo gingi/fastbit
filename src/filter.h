@@ -27,7 +27,7 @@ public:
     /// Constructor.
     explicit filter(const ibis::whereClause* w);
     /// Constructor.
-    filter(const ibis::selectClause* s, const ibis::partList* p,
+    filter(const ibis::selectClause* s, const ibis::constPartList* p,
 	   const ibis::whereClause* w);
     /// Destructor.
     virtual ~filter();
@@ -37,15 +37,20 @@ public:
     virtual table*  select() const;
     virtual table*  select(const ibis::table::stringList& colnames) const;
 
-    static table*   filt(const ibis::selectClause &sel,
-			 const ibis::partList &pl,
-			 const ibis::whereClause &wc);
+    static table*   filt (const ibis::selectClause &sel,
+			  const ibis::constPartList &pl,
+			  const ibis::whereClause &wc);
+    static table*   filt0(const ibis::selectClause &sel,
+			  const ibis::constPartList &pl);
+    static table*   filt1(const ibis::selectClause &sel,
+			  const ibis::constPartList &pl,
+			  const ibis::whereClause &sel);
 
 protected:
     /// The where clause.
     const ibis::whereClause *wc_;
     /// A list of data partitions to query.
-    const ibis::partList *parts_;
+    const ibis::constPartList *parts_;
     /// The select clause.  Also used to spply aliases.  If the
     /// function select is called with an empty select clause, then this
     /// variable will be used as the substitute.

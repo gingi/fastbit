@@ -7,7 +7,7 @@
 #include "countQuery.h"	// ibis::countQuery
 #include "part.h"
 
-#include <cmath>	// std::ceil, std::log, ...
+#include <math.h>	// ceil, sqrt
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
 #include <memory>	// auto_ptr
@@ -76,7 +76,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	timer.start();
     }
     const uint32_t nbins = 1 + 
-	static_cast<uint32_t>(std::floor((end - begin) / stride));
+	static_cast<uint32_t>(floor((end - begin) / stride));
     if (counts.size() != nbins) {
 	counts.resize(nbins);
 	for (uint32_t i = 0; i < nbins; ++i)
@@ -247,7 +247,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 	timer.start();
     }
     const uint32_t nbins = 1 + 
-	static_cast<uint32_t>(std::floor((end - begin) / stride));
+	static_cast<uint32_t>(floor((end - begin) / stride));
     if (weights.size() != nbins) {
 	weights.resize(nbins);
 	for (uint32_t i = 0; i < nbins; ++ i)
@@ -1564,7 +1564,7 @@ long ibis::part::get1DDistribution(const ibis::column &col, uint32_t nbin,
 		for (int i = 0; i < ierr; ++ i)
 		    bounds[i+1] = pbbs[i];
 		bounds[ierr] = (col.isFloat() ? ibis::util::incrDouble(amax) :
-				std::floor(amax)+1.0);
+				floor(amax)+1.0);
 		counts.resize(ierr);
 		for (int i = 0; i < ierr; ++ i)
 		    counts[i] = pcts[i];
@@ -1599,7 +1599,7 @@ long ibis::part::get1DDistribution(const ibis::column &col, uint32_t nbin,
 		bounds.push_back(tmp);
 	    }
 	    else {
-		bounds.push_back(std::floor(amax) + 1.0);
+		bounds.push_back(floor(amax) + 1.0);
 	    }
 	}
 	else {
@@ -2149,7 +2149,7 @@ ibis::part::adaptiveFloats(const array_t<T> &vals, const T vmin,
     else if (nbins > 2048 && nbins > (vals.size() >> 2))
 	nbins = (vals.size() >> 2);
     const uint32_t nfine = (vals.size()>8*nbins) ? static_cast<uint32_t>
-	(std::sqrt(static_cast<double>(vals.size()) * nbins)) : 8*nbins;
+	(sqrt(static_cast<double>(vals.size()) * nbins)) : 8*nbins;
     // try to make sure the 2nd bin boundary do not round down to a value
     // that is actually included in the 1st bin
     double scale = (1.0 - nfine * DBL_EPSILON) *
@@ -2374,7 +2374,7 @@ ibis::part::adaptiveFloatsDetailed(const ibis::bitvector &mask,
     else if (nbins > 2048 && nbins > (vals.size() >> 2))
 	nbins = (vals.size() >> 2);
     const uint32_t nfine = (vals.size()>8*nbins) ? static_cast<uint32_t>
-	(std::sqrt(static_cast<double>(vals.size()) * nbins)) : 8*nbins;
+	(sqrt(static_cast<double>(vals.size()) * nbins)) : 8*nbins;
     // try to make sure the 2nd bin boundary do not round down to a value
     // that is actually included in the 1st bin
     double scale = 1.0 /
@@ -3028,7 +3028,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	    ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
 					  bounds, bins);
 	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bounds[i] = std::ceil(bounds[i]);
+		bounds[i] = ceil(bounds[i]);
 	}
 	delete vals;
 	break;}
@@ -3117,7 +3117,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	    ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
 					  bounds, bins);
 	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bounds[i] = std::ceil(bounds[i]);
+		bounds[i] = ceil(bounds[i]);
 	}
 	delete vals;
 	break;}
@@ -3205,7 +3205,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	    ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
 					  bounds, bins);
 	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bounds[i] = std::ceil(bounds[i]);
+		bounds[i] = ceil(bounds[i]);
 	}
 	delete vals;
 	break;}
@@ -3293,7 +3293,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 	    ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
 					  bounds, bins);
 	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bounds[i] = std::ceil(bounds[i]);
+		bounds[i] = ceil(bounds[i]);
 	}
 	delete vals;
 	break;}

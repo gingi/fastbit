@@ -829,7 +829,7 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(T
 	@if [ `scripts/printWarning.pl $(TESTDIR)/large-sanity-check.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/large-sanity-check.log; fi
 	@echo
 #
-match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc
+match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt
 	@ncases=0; npassed=0; for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
 	ncases=`expr 1 + $$ncases`; echo; echo "$@ case # $${ncases}"; \
@@ -848,7 +848,7 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTD
 	fi
 	@echo
 #
-multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc
+multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt
 	@for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" "none" ; do \
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/0/test?/-part.txt; \
 	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \

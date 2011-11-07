@@ -1069,7 +1069,7 @@ long ibis::range::append(const ibis::range& tail) {
 
     // generate the new maxval and bits
     array_t<double> max2, min2;
-    std::vector<ibis::bitvector*> bin2;
+    array_t<bitvector*> bin2;
     max2.resize(nobs);
     min2.resize(nobs);
     bin2.resize(nobs);

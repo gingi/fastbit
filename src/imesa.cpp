@@ -25,7 +25,7 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
     }
 
     // b2 is the temporary storage for the bitvectors of ibis::bin object
-    std::vector<ibis::bitvector*> b2(nobs);
+    array_t<bitvector*> b2(nobs);
     for (uint32_t i=0; i<nobs; ++i) {// copy the pointers
 	b2[i] = bits[i];
 	bits[i] = 0;
@@ -223,7 +223,7 @@ void ibis::mesa::construct(const char* df) {
     ibis::bin::construct(df); // initial binning
 
     // b2 is the temporary storage for the bitvectors of ibis::bin object
-    std::vector<ibis::bitvector*> b2(nobs);
+    array_t<bitvector*> b2(nobs);
     for (uint32_t i=0; i<nobs; ++i) {// copy the pointers
 	b2[i] = bits[i];
 	bits[i] = 0;
@@ -469,7 +469,7 @@ long ibis::mesa::append(const ibis::mesa& tail) {
     // generate the new minval, maxval and bits
     uint32_t n=0;
     array_t<double> min2, max2;
-    std::vector<ibis::bitvector*> bin2;
+    array_t<bitvector*> bin2;
     min2.resize(nobs);
     max2.resize(nobs);
     bin2.resize(nobs);

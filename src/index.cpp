@@ -6351,7 +6351,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 /// words, bts[ib:ie-1] must be in memory.
 /// @note If bts[i] is a null pointer, it is skipped, which is equivalent
 /// to it being a bitvector of all 0s.
-void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
+void ibis::index::addBits(const array_t<bitvector*>& bts,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
     LOGGER(ibis::gVerbose > 7)
 	<< "index::addBits(" << bts.size()
@@ -6513,7 +6513,7 @@ void ibis::index::addBits(const std::vector<ibis::bitvector*>& bts,
 ///
 /// @note This function always uses the operator |=.
 /// Tests show that using the function @c setBit is always slower.
-void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
+void ibis::index::sumBits(const array_t<bitvector*>& bts,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
     LOGGER(ibis::gVerbose > 7)
 	<< "index::sumBits(" << bts.size()
@@ -6657,7 +6657,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 	}
 	break;
     case 2: {// compressed or, sort input bitmap according to size
-	std::vector<ibis::bitvector*> ind;
+	array_t<bitvector*> ind;
 	ind.reserve(na);
 	if (straight) {
 	    for (uint32_t i = ib; i < ie; ++i)
@@ -7706,7 +7706,7 @@ void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
 /// bts[ie:nobs-1]) are based on the number of bit vectors.  The caller is
 /// responsible to ensuring the necessary bitmaps are already in memory
 /// before calling this function.
-void ibis::index::sumBits(const std::vector<ibis::bitvector*>& bts,
+void ibis::index::sumBits(const array_t<bitvector*>& bts,
 			  const ibis::bitvector& tot, uint32_t ib,
 			  uint32_t ie, ibis::bitvector& res) {
     LOGGER(ibis::gVerbose > 7)
@@ -7892,7 +7892,7 @@ void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 } // ibis::index::setBases
 
 /// Decide whether to uncompress the bitmaps.
-void ibis::index::optionalUnpack(std::vector<ibis::bitvector*>& bts,
+void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 				 const char *opt) {
     const uint32_t nobs = bts.size();
     const char *ptr = 0;

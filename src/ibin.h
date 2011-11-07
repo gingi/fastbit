@@ -50,6 +50,8 @@ public:
 			  ibis::bitvector& hits) const {
 	return ibis::index::evaluate(expr, hits);
     }
+    virtual long select(const ibis::qContinuousRange& expr,
+			ibis::bitvector& hits, void* vals) const {return -1;}
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -254,7 +256,7 @@ protected:
     virtual size_t getSerialSize() const throw();
     /// Partition the bitmaps into groups of takes about the same amount of
     /// storage.
-    void divideBitmaps(const std::vector<ibis::bitvector*>& bms,
+    void divideBitmaps(const array_t<bitvector*>& bms,
 		       std::vector<unsigned>& parts) const;
 
     /// Compute the sum of values from the information in the index.
@@ -845,7 +847,7 @@ protected:
 
 private:
     // private member variable
-    mutable std::vector<ibis::bitvector*> cbits;
+    mutable array_t<bitvector*> cbits;
     array_t<uint32_t> cbounds;
     mutable array_t<int32_t> coffset32;
     mutable array_t<int64_t> coffset64;

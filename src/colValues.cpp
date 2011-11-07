@@ -8,7 +8,7 @@
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 
-#include <cmath>	// std::ceil, std::log, ...
+#include <math.h>	// sqrt
 #include <vector>
 #include <algorithm>
 #include "bundle.h"
@@ -4346,7 +4346,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -4358,7 +4358,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -4527,7 +4527,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -4539,7 +4539,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -4707,7 +4707,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -4719,7 +4719,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -4888,7 +4888,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -4900,7 +4900,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -5068,7 +5068,7 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -5080,7 +5080,7 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -5249,7 +5249,7 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -5261,7 +5261,7 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -5429,7 +5429,7 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -5441,7 +5441,7 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -5610,7 +5610,7 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -5622,7 +5622,7 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -5791,7 +5791,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<float>
-			(std::sqrt(variance/count));
+			(sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -5802,7 +5802,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] = static_cast<float>
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }
@@ -5969,7 +5969,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 		    (*array)[i] = variance/count;
 		}
 		else {
-		    (*array)[i] = (std::sqrt(variance/count));
+		    (*array)[i] = (sqrt(variance/count));
 		}
 	    }
 	    else {
@@ -5980,7 +5980,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 		}
 		else {
 		    (*array)[i] =
-			(std::sqrt(((*array)[starts[i]]-avg)
+			(sqrt(((*array)[starts[i]]-avg)
 				   *((*array)[starts[i]]-avg)/count));
 		}
 	    }

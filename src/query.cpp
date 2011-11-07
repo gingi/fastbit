@@ -831,7 +831,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		ierr = hits->cnt();
 	    }
 	    else {
-		if (dslock == 0) { // acquire read lock on the mypart
+		if (dslock == 0) { // acquire read lock on mypart
 		    dslock = new ibis::part::readLock(mypart, myID);
 		    dstime = mypart->timestamp();
 		}
@@ -839,25 +839,25 @@ int ibis::query::evaluate(const bool evalSelect) {
 		ierr = computeHits(); // do actual computation here
 		if (ierr < 0) return ierr;
 	    }
-	    if (hits != 0 && hits->cnt() > 0 && ! conds.empty()) {
-		if (ibis::gVerbose > 3) {
-		    const unsigned nb = hits->size();
-		    const unsigned nc = hits->cnt();
-		    const unsigned sz = hits->bytes();
-		    double cf = ibis::bitvector::clusteringFactor(nb, nc, sz);
-		    double rw = ibis::bitvector::randomSize(nb, nc);
-		    double eb = static_cast<double>(countPages(4))
-			* ibis::fileManager::pageSize();
-		    logMessage("evaluate", "the hit vector contains %u bit%s "
-			       "with %u bit%s set(=1) taking %u byte%s; the "
-			       "estimated clustering factor is %g; had the "
-			       "bits been randomly spread out, the expected "
-			       "size would be %g bytes; estimated number of "
-			       "bytes to be read in order to access 4-byte "
-			       "values is %g", nb, (nb>1 ? "s" : ""),
-			       nc, (nc>1 ? "s" : ""), sz, (sz>1 ? "s" : ""),
-			       cf, rw, eb);
-		}
+	    if (hits != 0 && hits->cnt() > 0 && ! conds.empty()
+		&& ibis::gVerbose > 3) {
+		const unsigned nb = hits->size();
+		const unsigned nc = hits->cnt();
+		const unsigned sz = hits->bytes();
+		double cf = ibis::bitvector::clusteringFactor(nb, nc, sz);
+		double rw = ibis::bitvector::randomSize(nb, nc);
+		double eb = static_cast<double>(countPages(4))
+		    * ibis::fileManager::pageSize();
+		LOGGER(1)
+		    << "query["<< myID << "]::evaluate -- the hit contains "
+		    << nb << " bit" << (nb>1 ? "s" : "") << "with " << nc
+		    << " bit" << (nc>1 ? "s" : "") << " set(=1) taking up "
+		    << sz << " byte" << (sz>1 ? "s" : "")
+		    << "; the estimated clustering factor is " << cf
+		    << "; had the bits been randomly spread out, the expected "
+		    "size would be " << rw << " bytes; estimated number of "
+		    "bytes to be read in order to access 4-byte values is "
+		    << eb;
 	    }
 	}
 	catch (...) {
@@ -878,7 +878,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		    dslock = 0;
 		}
 		LOGGER(ibis::gVerbose >= 0)
-		    << " Error *** ibis::query[" << myID << "]::evaluate("
+		    << " Error *** query[" << myID << "]::evaluate("
 		    << (conds.getString() ? conds.getString() :
 			conds.getExpr() ? "<long expression>" : "<RID query>")
 		    << ") failed due to a memory allocation problem -- "

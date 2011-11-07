@@ -105,8 +105,8 @@ public:
     /// Returns true if this select clause is empty.
     bool empty() const {return atms_.empty();}
 
-    void print(std::ostream&) const;
     void printDetails(std::ostream&) const;
+    void print(std::ostream&) const;
     int find(const char*) const;
 
     /// Functions related to extenally visible portion of the select

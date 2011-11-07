@@ -1,3 +1,45 @@
+2011-11-07 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: relax the print of warning about unknown columns
+	to allow 'more-check' to complete without warning messages
+
+2011-11-05 John Wu <John dot Wu at ACM dot org>
+	* src/mensa.cpp, src/filter.cpp: move the static versions of
+	ibis::table::select from mensa.cpp to filter.cpp, change them to
+	use filter::filt (to consolidate operations)
+	* src/filter.h, src/filter.cpp: add functions filt0 and filt1 to
+	deal with special cases with a unspecified where clause and single
+	column appearing in both the select clause and the where clause
+
+2011-11-04 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.cpp: add "round" and "round2" to the name of the list
+	of standard function names (they have been added to qExpr.h
+	already, so the printing is wrong in some cases)
+
+2011-11-03 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src/bord.cpp: add function append to work with the
+	special case that selects the same column as the range condition
+
+2011-11-02 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/column.h, src/part.cpp, src/column.cpp: add
+	function to retrieve values directly based on range condition
+	(without using a bitmap mask)
+	* src.part.h, src/part.cpp: change templates doCompare and friends
+	to be static members of ibis::part as they were not using anything
+	specific to ibis::part anyway
+
+2011-11-01 John Wu <John dot Wu at ACM dot org>
+	* src/index.h, src/irelic.h, src/irelic.cpp: add function select
+	to retrieve values that satisfy user specified range conditions.
+
+2011-10-30 John Wu <John dot Wu at ACM dot org>
+	* src/index.h: replace vector<bitvector*> with array_t<bitvector*>
+	to better track the memory usage
+
+2011-10-15 John Wu <John dot Wu at ACM dot org>
+	* src/twister.h, src/colValues.cpp, ...: replace cmath with math.h
+	to avoid confusion on openSUSE (a problem reported by thorgrin at
+	gmail.com)
+
 2011-09-26 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp, src/part.cpp: change evaluateRange to take into
 	account of the column mask in part.cpp so that the column version

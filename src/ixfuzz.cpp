@@ -14,7 +14,6 @@
 #include "irelic.h"
 #include "part.h"
 
-#include <cmath>	// std::fabs
 #include <sstream>	// std::ostringstream
 
 ////////////////////////////////////////////////////////////////////////

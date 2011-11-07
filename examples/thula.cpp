@@ -636,7 +636,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	sel->describe(std::cout); // ask the table to describe itself
 
 	if (n0 > 0 && sel->nColumns() > 0) {
-	    sel->orderby(sstr);
+	    //sel->orderby(sstr);
 	    if (xfile.is_open() && xfile.good()) {
 		sel->dump(xfile);
 	    }

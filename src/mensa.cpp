@@ -178,7 +178,7 @@ int ibis::mensa::addPartition(const char* dir) {
     return newparts;
 } // ibis::mensa::addPartition
 
-int ibis::mensa::getPartitions(std::vector<const ibis::part*> &lst) const {
+int ibis::mensa::getPartitions(ibis::constPartList &lst) const {
     lst.resize(parts.size());
     for (uint32_t i = 0; i < parts.size(); ++ i)
 	lst[i] = parts[i];
@@ -423,7 +423,7 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
     else {
 	// handle the non-trivial case in a separate function
 	return ibis::table::select
-	    (reinterpret_cast<const std::vector<const ibis::part*>&>(parts),
+	    (reinterpret_cast<const ibis::constPartList&>(parts),
 	     sel, cond);
     }
 } // ibis::mensa::select
@@ -452,7 +452,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 	return 0;
     }
 
-    std::vector<const ibis::part*> mylist;
+    ibis::constPartList mylist;
     for (unsigned k = 0; k < parts.size(); ++ k) {
 	for (unsigned j = 0; j < patterns.size(); ++ j) {
 	    const char* pat = patterns[j];
@@ -3942,7 +3942,7 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
     if (sel == 0 || *sel == 0 || cond == 0 || nRows() == 0 || nColumns() == 0)
 	return 0;
 
-    std::vector<const ibis::part*> parts;
+    ibis::constPartList parts;
     int ierr = getPartitions(parts);
     if (ierr <= 0) {
 	LOGGER(ibis::gVerbose > 0)
@@ -3993,279 +3993,8 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
     return 0;
 } // ibis::table::select
 
-/// Upon successful completion of this function, it produces an in-memory
-/// data partition holding the selected data records.  It will fail in a
-/// unpredictable way if the selected records can not fit in the available
-/// memory.
-///
-/// It expects the arguments sel and cond to be valid and non-trivial.  It
-/// will return a nil pointer if those arguments are nil pointers or empty
-/// strings or blank spaces.
-ibis::table* ibis::table::select(const std::vector<const ibis::part*>& mylist,
-				 const char *sel, const char *cond) {
-    if (cond == 0 || *cond == 0 || mylist.empty())
-	return 0;
-
-    try {
-	ibis::whereClause wc(cond);
-	if (wc.empty()) return 0; // failed to parse the where clause
-	return ibis::table::select(mylist, sel, wc.getExpr());
-    }
-    catch (const ibis::bad_alloc &e) {
-	if (ibis::gVerbose >= 0) {
-	    ibis::util::logger lg;
-	    lg() << "Warning -- table::select absorbed a bad_alloc exception ("
-		 << e.what() << "), will return a nil pointer";
-	    if (ibis::gVerbose > 0)
-		ibis::fileManager::instance().printStatus(lg());
-	}
-    }
-    catch (const std::exception &e) {
-	if (ibis::gVerbose >= 0) {
-	    ibis::util::logger lg;
-	    lg() << "Warning -- table::select absorbed a std::exception ("
-		 << e.what() << "), will return a nil pointer";
-	    if (ibis::gVerbose > 0)
-		ibis::fileManager::instance().printStatus(lg());
-	}
-    }
-    catch (const char *s) {
-	if (ibis::gVerbose >= 0) {
-	    ibis::util::logger lg;
-	    lg() << "Warning -- table::select absorbed a string exception ("
-		 << s << "), will return a nil pointer";
-	    if (ibis::gVerbose > 0)
-		ibis::fileManager::instance().printStatus(lg());
-	}
-    }
-    catch (...) {
-	if (ibis::gVerbose >= 0) {
-	    ibis::util::logger lg;
-	    lg() << "Warning -- table::select absorbed an unknown exception, "
-		"will return a nil pointer";
-	    if (ibis::gVerbose > 0)
-		ibis::fileManager::instance().printStatus(lg());
-	}
-    }
-    return 0;
-} // ibis::table::select
-
-/// Upon successful completion of this function, it produce an in-memory
-/// data partition holding the selected data records.  It will fail in an
-/// unpredictable way if the selected records can not fit in available
-/// memory.
-///
-/// It expects the arguments sel and cond to be valid and non-trivial.  It
-/// will return a nil pointer if those arguments are nil pointers or empty
-/// strings or blank spaces.
-ibis::table* ibis::table::select(const std::vector<const ibis::part*>& plist,
-				 const char *sel, const ibis::qExpr *cond) {
-    if (cond == 0 || plist.empty())
-	return 0;
-
-    std::string mesg = "table::select";
-    if (ibis::gVerbose > 1) {
-	std::ostringstream oss;
-	oss << "(" << plist.size() << " data partition"
-	    << (plist.size() > 1 ? "s" : "") << ", " << sel
-	    << ", qExpr @" << static_cast<const void*>(cond) << ')';
-	mesg += oss.str();
-    }
-
-    std::string tn = ibis::util::shortName(mesg);
-    ibis::util::timer atimer(mesg.c_str(), 2);
-    if (sel == 0 || *sel == 0) {
-	int64_t nhits = ibis::table::computeHits(plist, cond);
-	if (nhits < 0) {
-	    return 0;
-	}
-	else {
-	    return new ibis::tabula(tn.c_str(), mesg.c_str(), nhits);
-	}
-    }
-    else if (stricmp(sel, "count(*)") == 0) { // count(*)
-	int64_t nhits = ibis::table::computeHits(plist, cond);
-	if (nhits < 0) {
-	    return 0;
-	}
-	else {
-	    return new ibis::tabele(tn.c_str(), mesg.c_str(), nhits, sel);
-	}
-    }
-
-    ibis::selectClause tms;
-    long int ierr;
-    try {
-	ierr = tms.parse(sel);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- " << mesg << " failed to parse \""
-		<< sel << "\" (ierr=" << ierr
-		<< "), return a nil pointer to indicate error";
-	    return 0;
-	}
-	    
-    }
-    catch (...) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << mesg << " failed to parse \""
-	    << sel << "\", return a nil pointer to indicate error";
-	return 0;
-    }
-    if (tms.empty()) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << mesg << " translated select clause \"" << sel
-	    << "\" into an empty internal expression list";
-
-	int64_t nhits = ibis::table::computeHits(plist, cond);
-	if (nhits < 0) {
-	    return 0;
-	}
-	else {
-	    std::ostringstream oss;
-	    oss << "select count(*) from ";
-	    for (std::vector<const ibis::part*>::const_iterator it =
-		     plist.begin();
-		 it != plist.end(); ++ it) {
-		if (it != plist.begin())
-		    oss << ", ";
-		oss << (*it)->name();
-	    }
-	    oss << " where ";
-	    cond->printFull(oss);
-	    std::string nm = ibis::util::shortName(oss.str());
-	    return new ibis::tabula(nm.c_str(), oss.str().c_str(), nhits);
-	}
-    }
-
-    // a single query object is used for different data partitions
-    ibis::countQuery qq;
-    ierr = qq.setWhereClause(cond);
-    if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << mesg << " failed to assign externally "
-	    "provided query expression \"" << *cond
-	    << "\" to a countQuery object, ierr=" << ierr;
-	return 0;
-    }
-
-    std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
-    const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
-	ibis::util::logger lg;
-	lg() << mesg << " parsed " << sel << " into " << tms.aggSize() << " term"
-	     << (tms.aggSize()>1?"s":"") << ", " << nplain << " of which do"
-	     << (nplain>1?"":"es") << " not contain aggregation functions";
-	if (ibis::gVerbose > 4) {
-	    lg() << "\nTemporary data will be stored in the following:\n";
-	    brd1->describe(lg());
-	}
-    }
-
-    // main loop through each data partition, fill the initial selection
-    for (std::vector<const ibis::part*>::const_iterator it = plist.begin();
-	 it != plist.end(); ++ it) {
-	LOGGER(ibis::gVerbose > 2)
-	    << mesg << " -- processing query conditions \"" << *cond
-	    << "\" on data partition " << (*it)->name();
-	ierr = tms.verify(**it);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Waring -- " << mesg << " -- select clause (" << sel
-		<< ") contains variables that are not in data partition "
-		<< (*it)->name();
-	    ierr = -11;
-	    continue;
-	}
-	ierr = qq.setSelectClause(&tms);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- failed to modify the select clause of "
-		<< "the countQuery object (" << qq.getWhereClause()
-		<< ") on data partition " << (*it)->name();
-	    ierr = -12;
-	    continue;
-	}
-
-	ierr = qq.setPartition(*it);
-	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- query.setPartition(" << (*it)->name()
-		<< ") failed with error code " << ierr;
-	    ierr = -13;
-	    continue;
-	}
-
-	ierr = qq.evaluate();
-	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< mesg << " -- failed to process query on data partition "
-		<< (*it)->name();
-	    ierr = -14;
-	    continue;
-	}
-
-	const ibis::bitvector* hits = qq.getHitVector();
-	if (hits == 0 || hits->cnt() == 0) continue;
-
-	ierr = brd1->append(tms, **it, *hits);
-	LOGGER(ierr < 0 && ibis::gVerbose > 0)
-	    << "Warning -- " << mesg << " failed to append " << hits->cnt()
-	    << " row" << (hits->cnt() > 1 ? "s" : "") << " from "
-	    << (*it)->name();
-    }
-
-    if (brd1.get() == 0) return 0;
-    if (ibis::gVerbose > 2 && brd1.get() != 0) {
-	ibis::util::logger lg;
-	lg() << mesg << " -- creates an in-memory data partition with "
-	     << brd1->nRows() << " row" << (brd1->nRows()>1?"s":"")
-	     << " and " << brd1->nColumns() << " column"
-	     << (brd1->nColumns()>1?"s":"");
-	if (ibis::gVerbose > 4) {
-	    lg() << "\n";
-	    brd1->describe(lg());
-	}
-    }
-    if (brd1->nRows() == 0) { // return an empty table of type tabula
-	if (ierr >= 0) { // at least succeeded on the last data partition
-	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << mesg << " failed to produce any result, "
-		"the last error code was " << ierr;
-	    return 0;
-	}
-    }
-    else if (brd1->nColumns() == 0) { // count(*)
-	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
-				tms.termName(0));
-    }
-
-    if (nplain >= tms.aggSize()) {
-	brd1->renameColumns(tms);
-	return brd1.release();
-    }
-
-    std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
-    if (ibis::gVerbose > 2 && brd2.get() != 0) {
-	ibis::util::logger lg;
-	lg() << mesg << " -- produces an in-memory data partition with "
-	     << brd2->nRows() << " row" << (brd2->nRows()>1?"s":"")
-	     << " and " << brd1->nColumns() << " column"
-	     << (brd1->nColumns()>1?"s":"");
-	if (ibis::gVerbose > 4) {
-	    lg() << "\n";
-	    brd2->describe(lg());
-	}
-    }
-    return brd2.release();
-} // ibis::table::select
-
 /// It iterates through all data partitions to compute the number of hits.
-int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
+int64_t ibis::table::computeHits(const ibis::constPartList& pts,
 				 const char* cond) {
     if (cond == 0 || *cond == 0)
 	return -1;
@@ -4277,7 +4006,7 @@ int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
     if (ierr < 0)
 	return ierr;
 
-    for (std::vector<const ibis::part*>::const_iterator it = pts.begin();
+    for (ibis::constPartList::const_iterator it = pts.begin();
 	 it != pts.end(); ++ it) {
 	ierr = qq.setPartition(*it);
 	if (ierr < 0) continue;
@@ -4296,7 +4025,7 @@ int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
 } // ibis::table::computeHits
 
 /// It iterates through all data partitions to compute the number of hits.
-int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
+int64_t ibis::table::computeHits(const ibis::constPartList& pts,
 				 const ibis::qExpr* cond) {
     if (cond == 0)
 	return -1;
@@ -4308,7 +4037,7 @@ int64_t ibis::table::computeHits(const std::vector<const ibis::part*>& pts,
     if (ierr < 0)
 	return ierr;
 
-    for (std::vector<const ibis::part*>::const_iterator it = pts.begin();
+    for (ibis::constPartList::const_iterator it = pts.begin();
 	 it != pts.end(); ++ it) {
 	ierr = qq.setPartition(*it);
 	if (ierr < 0) continue;

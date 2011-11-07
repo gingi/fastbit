@@ -62,7 +62,8 @@ public:
     /// lookup proceeds from the list of data partitions one at a time.  A
     /// nil pointer will be returned if any name is not associated with a
     /// known column.
-    virtual ibis::table* select(const ibis::table::stringList& colnames) const = 0;
+    virtual ibis::table* 
+	select(const ibis::table::stringList& colnames) const = 0;
 
     virtual ~quaere() {};
 

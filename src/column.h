@@ -146,9 +146,9 @@ public:
     virtual std::vector<std::string>*
 	selectStrings(const bitvector& mask) const;
 
-    long selectValues(const bitvector& mask, void* vals) const;
-    long selectValues(const bitvector& mask,
-		      void* vals, array_t<uint32_t>& inds) const;
+    long selectValues(const bitvector&, void*) const;
+    long selectValues(const bitvector&, void*, array_t<uint32_t>&) const;
+    long selectValues(const ibis::qContinuousRange&, void*) const;
 
     /// Write the metadata entry.
     virtual void write(FILE* file) const;

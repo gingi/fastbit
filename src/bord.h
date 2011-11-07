@@ -50,32 +50,29 @@ public:
     virtual int backup(const char* dir, const char* tname=0,
 		       const char* tdesc=0) const;
 
-    virtual int64_t
-	getColumnAsBytes(const char*, char*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsUBytes(const char*, unsigned char*, uint64_t =0,
-			  uint64_t =0) const;
-    virtual int64_t
-	getColumnAsShorts(const char*, int16_t*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsUShorts(const char*, uint16_t*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsInts(const char*, int32_t*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsUInts(const char*, uint32_t*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsLongs(const char*, int64_t*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsULongs(const char*, uint64_t*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsFloats(const char*, float*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsDoubles(const char*, double*, uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsDoubles(const char*, std::vector<double>&,
-			   uint64_t =0, uint64_t =0) const;
-    virtual int64_t
-	getColumnAsStrings(const char*, std::vector<std::string>&,
+    virtual int64_t getColumnAsBytes(const char*, char*,
+				     uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsUBytes(const char*, unsigned char*,
+				      uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsShorts(const char*, int16_t*,
+				      uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsUShorts(const char*, uint16_t*,
+				       uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsInts(const char*, int32_t*,
+				    uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsUInts(const char*, uint32_t*,
+				     uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsLongs(const char*, int64_t*,
+				     uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsULongs(const char*, uint64_t*,
+				      uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsFloats(const char*, float*,
+				      uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsDoubles(const char*, double*,
+				       uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsDoubles(const char*, std::vector<double>&,
+				       uint64_t =0, uint64_t =0) const;
+    virtual int64_t getColumnAsStrings(const char*, std::vector<std::string>&,
 			   uint64_t =0, uint64_t =0) const;
     virtual double getColumnMin(const char*) const;
     virtual double getColumnMax(const char*) const;
@@ -114,7 +111,7 @@ public:
     virtual int buildIndexes(const char*, int) {return -1;}
     virtual const char* indexSpec(const char*) const {return 0;}
     virtual void indexSpec(const char*, const char*) {return;}
-    virtual int getPartitions(std::vector<const ibis::part*> &) const;
+    virtual int getPartitions(constPartList&) const;
 
     int restoreCategoriesAsStrings(const char*);
     ibis::table* groupby(const ibis::selectClause&) const;
@@ -128,6 +125,8 @@ public:
 
     int append(const ibis::selectClause&, const ibis::part&,
 	       const ibis::bitvector&);
+    int append(const ibis::selectClause&, const ibis::part&,
+	       const ibis::qContinuousRange&);
     int renameColumns(const ibis::selectClause&);
     int limit(uint32_t);
 
@@ -229,6 +228,8 @@ public:
 			const uint32_t nnew, uint32_t nbuf, char* buf);
     virtual long append(const void* vals, const ibis::bitvector& msk);
     virtual long append(const ibis::column& scol, const ibis::bitvector& msk);
+    virtual long append(const ibis::column& scol,
+			const ibis::qContinuousRange& cnd);
 
     virtual void computeMinMax() {
 	computeMinMax(thePart->currentDataDir(), lower, upper);}
@@ -248,11 +249,11 @@ public:
     int restoreCategoriesAsStrings(const ibis::part&);
     /// Append new data (in @c from) to a larger array (pointed to by
     /// @c to).
-    template <typename T> static void 
+    template <typename T> static int 
 	addIncoreData(array_t<T>*& to, uint32_t nold, const array_t<T>& from,
 		      const T special);
-    static void addStrings(std::vector<std::string>*&, uint32_t,
-			   const std::vector<std::string>&);
+    static int addStrings(std::vector<std::string>*&, uint32_t,
+			  const std::vector<std::string>&);
 
 
 protected:
@@ -401,62 +402,112 @@ inline int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
     case ibis::BYTE: {
 	const array_t<signed char>* vals =
 	    static_cast<const array_t<signed char>*>(buffer);
-	out << (int)((*vals)[i]);
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << (int)((*vals)[i]);
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::UBYTE: {
 	const array_t<unsigned char>* vals =
 	    static_cast<const array_t<unsigned char>*>(buffer);
-	out << (unsigned)((*vals)[i]);
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << (unsigned)((*vals)[i]);
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t>* vals =
 	    static_cast<const array_t<int16_t>*>(buffer);
-	out << (*vals)[i];
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t>* vals =
 	    static_cast<const array_t<uint16_t>*>(buffer);
-	out << (*vals)[i];
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::INT: {
 	const array_t<int32_t>* vals =
 	    static_cast<const array_t<int32_t>*>(buffer);
-	out << (*vals)[i];
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::UINT: {
 	const array_t<uint32_t>* vals =
 	    static_cast<const array_t<uint32_t>*>(buffer);
-	out << (*vals)[i];
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t>* vals =
 	    static_cast<const array_t<int64_t>*>(buffer);
-	out << (*vals)[i];
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::ULONG: {
 	const array_t<uint64_t>* vals =
 	    static_cast<const array_t<uint64_t>*>(buffer);
-	out << (*vals)[i];
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::FLOAT: {
 	const array_t<float>* vals =
 	    static_cast<const array_t<float>*>(buffer);
-	out << std::setprecision(7) << (*vals)[i];
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << std::setprecision(7) << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double>* vals =
 	    static_cast<const array_t<double>*>(buffer);
-	out << std::setprecision(15) << (*vals)[i];
-	ierr = 0;
+	if (i < vals->size()) {
+	    out << std::setprecision(15) << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
 	break;}
     case ibis::TEXT:
     case ibis::CATEGORY: {

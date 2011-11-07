@@ -12,9 +12,10 @@
 
 #include <stdarg.h>	// vsprintf
 #include <ctype.h>	// tolower
+#include <math.h>	// log
+
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
-#include <cmath>	// std::log
 #include <memory>	// std::auto_ptr
 
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -4785,10 +4786,9 @@ template <> long ibis::column::selectToStrings<unsigned char>
 
 /// Return the selected rows as strings.  This version returns a
 /// std::vector<std::string>, which provides wholly self-contained string
-/// values.  The drawback is that it may take too much memory and the
-/// memory usage of std::string is not tracked by FastBit.  The advantage
-/// is that it should work regardless of the actual data type of the
-/// column.
+/// values.  It may take more memory than necessary, and the memory usage
+/// of std::string is not tracked by FastBit.  The advantage is that it
+/// should work regardless of the actual data type of the column.
 std::vector<std::string>*
 ibis::column::selectStrings(const bitvector& mask) const {
     std::vector<std::string> *res = 0;
@@ -4850,6 +4850,25 @@ ibis::column::selectStrings(const bitvector& mask) const {
     }
     return res;
 } // ibis::column::selectStrings
+
+/// Select the values satisfying the specified range condition.
+long ibis::column::selectValues(const ibis::qContinuousRange& cond,
+				void* vals) const {
+    if (thePart == 0) return -2;
+    if (thePart->nRows() == 0) return 0;
+
+    ibis::bitvector nm;
+    getNullMask(nm);
+    long ierr = -1;
+    if (idx != 0 || indexSize() < thePart->nRows()) {
+	ibis::column::indexLock lock(this, "selectValues");
+	if (idx->estimateCost(cond) < (thePart->nRows() >> 2))
+	    ierr = idx->select(cond, nm, vals);
+    }
+    if (ierr < 0)
+	ierr = thePart->doScan(cond, nm, vals);
+    return ierr;
+} // ibis::column::selectValues
 
 // only write some information about the column
 void ibis::column::print(std::ostream& out) const {
@@ -5204,11 +5223,26 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 				 ibis::bitvector& low) const {
     long ierr = 0;
     low.clear(); // clear the existing content
+    if (thePart == 0)
+	return -9;
+
+    std::string evt = "column[";
+    evt += thePart->name();
+    evt += ".";
+    evt += m_name;
+    evt += "]::evaluateRange";
+    if (ibis::gVerbose >= 0) {
+	std::ostringstream oss;
+	oss << '(' << cmp;
+	if (ibis::gVerbose > 3)
+	    oss << ", mask(" << mask.cnt() << ", " << mask.size() << ')';
+	oss << ')';
+	evt += oss.str();
+    }
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << thePart->name() << "." << m_name
-	    << "]::evaluateRange(" << cmp
-	    << ") -- the range condition is not applicable on the column type "
+	    << "Warning -- " << evt
+	    << " -- the range condition is not applicable on the column type "
 	    << ibis::TYPESTRING[(int)m_type];
 	ierr = -4;
 	return ierr;
@@ -5232,9 +5266,8 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		}
 		else if (ibis::gVerbose > 1) {
 		    ibis::util::logger lg;
-		    lg() << "column[" << thePart->name() << "." << name()
-			 << "]::evaluateRange(" << cmp << ") will not use the "
-			"index because the cost (" << cost << ") is too high";
+		    lg() << evt << ") will not use the index because the cost ("
+			 << cost << ") is too high";
 		}
 	    }
 	    else if (m_sorted) {
@@ -5268,79 +5301,65 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ierr = low.cnt();
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "column[" << thePart->name() << "." << name()
-	    << "]::evaluateRange(" << cmp << ", mask(" << mask.cnt()
-	    << ", " << mask.size() << ")) completed with low.size() = "
-	    << low.size() << ", low.cnt() = " << low.cnt()
-	    << ", and ierr = " << ierr;
+	    << evt << " completed with low.size() = " << low.size()
+	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
-	logWarning("evaluateRange", "received a std::exception -- %s",
-		   se.what());
+	LOGGER(ibis::gVerbose > 0)
+	    << evt << " received a std::exception -- " << se.what();
     }
     catch (const char* str) {
-	logWarning("evaluateRange", "received a string exception -- %s",
-		   str);
+	LOGGER(ibis::gVerbose > 0)
+	    << evt << " received a string exception -- " << str;
     }
     catch (...) {
-	logWarning("evaluateRange", "received a unanticipated excetpion");
+	LOGGER(ibis::gVerbose > 0)
+	    << evt << " received a unanticipated excetpion";
     }
 
     // Common exception handling -- retry the basic options
     low.clear();
     unloadIndex();
-    if (thePart != 0) {
-	try {
-	    if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
-		ibis::util::quietLock lock(&ibis::util::envLock);
+    try {
+	if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
+	    ibis::util::quietLock lock(&ibis::util::envLock);
 #if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
-		sleep(1);
+	    sleep(1);
 #endif
-	    }
-	    thePart->emptyCache();
-	    if (m_sorted) {
-		ierr = searchSorted(cmp, low);
+	}
+	thePart->emptyCache();
+	if (m_sorted) {
+	    ierr = searchSorted(cmp, low);
+	}
+	else {
+	    indexLock lock(this, evt.c_str());
+	    if (idx != 0) {
+		idx->evaluate(cmp, low);
+		if (low.size() < mask.size()) {
+		    ibis::bitvector high, delta;
+		    high.adjustSize(low.size(), mask.size());
+		    high.flip();
+		    ierr = thePart->doScan(cmp, high, delta);
+		    low |= delta;
+		}
+		low &= mask;
 	    }
 	    else {
-		indexLock lock(this, "evaluateRange");
-		if (idx != 0) {
-		    idx->evaluate(cmp, low);
-		    if (low.size() < mask.size()) {
-			ibis::bitvector high, delta;
-			high.adjustSize(low.size(), mask.size());
-			high.flip();
-			ierr = thePart->doScan(cmp, high, delta);
-			low |= delta;
-		    }
-		    low &= mask;
-		}
-		else {
-		    ierr = thePart->doScan(cmp, mask, low);
-		}
+		ierr = thePart->doScan(cmp, mask, low);
 	    }
 	}
-	catch (...) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "column[" << thePart->name() << "." << name()
-		<< "]::evaluateRange(" << cmp << ") receied an "
-		"exception from doScan in the exception handling code, "
-		"giving up...";
-	    low.clear();
-	    ierr = -2;
-	}
     }
-    else {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- column[" << thePart->name() << "." << m_name
-	    << "] does not belong to a data partition, but need one";
-	ierr = -3;
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " receied an exception from doScan in the "
+	    "exception handling code, giving up...";
+	low.clear();
+	ierr = -2;
     }
 
     LOGGER(ibis::gVerbose > 3)
-	<< "column[" << (thePart->name()?thePart->name():"?") << "."
-	<< name() << "]::evaluateRange(" << cmp
-	<< ") completed the fallback option with low.size() = "
+	<< evt << " completed the fallback option with low.size() = "
 	<< low.size() << ", low.cnt() = " << low.cnt()
 	<< ", and ierr = " << ierr;
     return ierr;
@@ -5349,9 +5368,89 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 /// Evaluate a range condition and retrieve the selected values.  This is a
 /// combination of evaluateRange and selectTypes.  This combination allows
 /// some optimizations to reduce the I/O operations.
+///
+/// Note the fourth argument vals must be valid pointer to the correct
+/// type.  The acceptable types are as follows (same as required by
+/// in-memory data partitions):
+/// - if the column type has a fixed size such as integers and
+///   floating-point values, vals must be a pointer to an ibis::array_t
+///   with the matching integer type or floating-point type
+/// - if the column type is one of the string values, such as TEXT or
+///   CATEGORY, vals must be a pointer to std::vector<std::string>.
+///
+/// If vals is a nil pointer, this function simply calls evaluateRange.
 long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
 				     const ibis::bitvector& mask,
 				     ibis::bitvector& low, void* vals) const {
+    if (vals == 0)
+	return evaluateRange(cmp, mask, low);
+    if (thePart == 0)
+	return -9;
+
+    std::string evt = "column[";
+    evt += thePart->name();
+    evt += ".";
+    evt += m_name;
+    evt += "]::evaluateAndSelect";
+    if (ibis::gVerbose >= 0) {
+	std::ostringstream oss;
+	oss << '(' << cmp;
+	if (ibis::gVerbose > 3)
+	    oss << ", mask(" << mask.cnt() << ", " << mask.size() << ')';
+	oss << ')';
+	evt += oss.str();
+    }
+
+    long ierr = 0;
+    low.clear(); // clear the existing content
+    if (m_type == ibis::OID || m_type == ibis::TEXT) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt
+	    << " -- the range condition is not applicable on the column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -4;
+	return ierr;
+    }
+
+    try {
+	if (mask.size() == mask.cnt()) { // directly use index
+	    indexLock lock(this, "evaluateAndSelect");
+	    if (idx != 0 && idx->getNRows() == thePart->nRows()) {
+		double cost = idx->estimateCost(cmp);
+		// use index only if the cost is less than N/2 bytes
+		if (cost < thePart->nRows() * 0.5)
+		    ierr = idx->select(cmp, low, vals);
+	    }
+	}
+	if (low.size() != mask.size()) { // separate evaluate and select
+	    ierr = evaluateRange(cmp, mask, low);
+	    if (low.cnt() > 0)
+		ierr = selectValues(low, vals);
+	}
+
+	LOGGER(ibis::gVerbose > 3)
+	    << evt << " completed with low.size() = "
+	    << low.size() << ", low.cnt() = " << low.cnt()
+	    << ", and ierr = " << ierr;
+    }
+    catch (std::exception &se) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " received a std::exception -- "
+	    << se.what();
+	ierr = -3;
+    }
+    catch (const char* str) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " received a string exception -- "
+	    << str;
+	ierr = -2;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " received a unanticipated excetpion";
+	ierr = -1;
+    }
+    return ierr;
 } // ibis::column::evaluateAndSelect
 
 long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
@@ -5362,6 +5461,9 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	low.set(0, mask.size());
 	return 0;
     }
+    if (thePart == 0)
+	return -9;
+
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
@@ -5385,7 +5487,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	indexLock lock(this, "evaluateRange");
 	if (idx != 0) {
 	    double idxcost = idx->estimateCost(cmp) *
-		(1.0 + std::log((double)cmp.getValues().size()));
+		(1.0 + log((double)cmp.getValues().size()));
 	    if (m_sorted && idxcost > mask.size()) {
 		ierr = searchSorted(cmp, low);
 		if (ierr == 0) {
@@ -5566,6 +5668,9 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 				 ibis::bitvector& low,
 				 ibis::bitvector& high) const {
     long ierr = 0;
+    if (thePart == 0)
+	return -9;
+
     try {
 	indexLock lock(this, "estimateRange");
 	if (idx != 0) {
@@ -5792,6 +5897,8 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
 	low.set(0, mask.size());
 	return 0;
     }
+    if (thePart == 0)
+	return -9;
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
@@ -5890,6 +5997,9 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 	low.set(0, mask.size());
 	return 0;
     }
+    if (thePart == 0)
+	return -9;
+
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
@@ -10354,7 +10464,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
     hits.reserve(vals.size(), u.size()); // reserve space
-    if ((uint32_t)(u.size()*(1.0+std::log((double)vals.size()))) >=
+    if ((uint32_t)(u.size()*(1.0+log((double)vals.size()))) >=
 	(u.size()+vals.size())) {
 	// go through the two lists to find matches
 	LOGGER(ibis::gVerbose >= 5)
@@ -10478,7 +10588,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
     hits.reserve(vals.size(), u.size()); // reserve space
-    if ((uint32_t)(u.size()*(1.0+std::log((double)vals.size()))) >=
+    if ((uint32_t)(u.size()*(1.0+log((double)vals.size()))) >=
 	(u.size()+vals.size())) {
 	// go through the two lists to find matches
 	LOGGER(ibis::gVerbose >= 5)
@@ -10609,7 +10719,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
     hits.reserve(vals.size(), u.size()); // reserve space
-    if ((uint32_t)(u.size()*(1.0+std::log((double)vals.size()))) >=
+    if ((uint32_t)(u.size()*(1.0+log((double)vals.size()))) >=
 	(u.size()+vals.size())) {
 	// go through the two lists to find matches
 	LOGGER(ibis::gVerbose >= 5)

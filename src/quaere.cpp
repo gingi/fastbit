@@ -49,7 +49,10 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		return new ibis::filter(&wc);
 	    }
 	    else {
-		return new ibis::filter(&sc, &ibis::datasets, &wc);
+		return new ibis::filter
+		    (&sc,
+		     reinterpret_cast<const constPartList*>(&ibis::datasets),
+		     &wc);
 	    }
 	}
 	else if (plist.size() == 1) { // one table name
@@ -62,7 +65,7 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 		return 0;
 	    }
 	    else {
-		ibis::partList pl(1);
+		ibis::constPartList pl(1);
 		pl[0] = pt;
 		return new ibis::filter(&sc, &pl, &wc);
 	    }
@@ -312,7 +315,7 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 	    else if (condj.get() == 0) {
 		if (partr == parts) {
 		    // actually the same table
-		    ibis::partList pl(1);
+		    ibis::constPartList pl(1);
 		    pl[0] = partr;
 		    return new ibis::filter(&sc, &pl, &wc);
 		}

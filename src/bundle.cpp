@@ -670,7 +670,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
 	}
 	else if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
-	    lg() << "bundle1 -- generated the bundle for \"" << *comps << "\"\n";
+	    lg() << "bundle1 -- generated the bundle for \"" << *comps
+		 << "\"\n";
 	    if ((1U << ibis::gVerbose) > col->size() || ibis::gVerbose > 30)
 		print(lg());
 	}
@@ -1181,7 +1182,8 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		    ibis::colValues* tmp;
 		    LOGGER(ibis::gVerbose > 4)
 			<< "bundles::ctor to create a colValues for "
-			<< *(comps.aggExpr(i)) << " as cols[" << cols.size() << ']';
+			<< *(comps.aggExpr(i)) << " as cols[" << cols.size()
+			<< ']';
 		    switch (comps.getAggregator(i)) {
 		    case ibis::selectClause::AVG:
 		    case ibis::selectClause::SUM:
@@ -1348,9 +1350,9 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 		continue;
 	    }
 
-	    LOGGER(ibis::gVerbose > 4)
-		<< "bundles::ctor to create a colValues for "
-		<< *(comps.aggExpr(ic)) << " as cols[" << cols.size() << ']';
+	    LOGGER(ibis::gVerbose > 6)
+		<< "bundles::ctor is to start a colValues for "
+		<< *(comps.aggExpr(ic)) << " as cols[" << ic << ']';
 	    ibis::colValues* cv = 0;
 	    switch (comps.getAggregator(ic)) {
 	    case ibis::selectClause::AVG:
@@ -1368,6 +1370,10 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 	    if (cv != 0) {
 		cols.push_back(cv);
 		aggr.push_back(comps.getAggregator(ic));
+		LOGGER(ibis::gVerbose > 2)
+		    << "bundles::ctor created a colValues for "
+		    << *(comps.aggExpr(ic)) << " as cols[" << ic
+		    << "] with size " << cv->size();
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
@@ -1382,7 +1388,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
-	    lg() << "bundles -- generated the bundle for \"" << *comps << "\"\n";
+	    lg() << "bundles -- generated the bundle for \"" << *comps
+		 << "\"\n";
 	    if ((1U << ibis::gVerbose) > cols.size() || ibis::gVerbose > 30)
 		print(lg());
 	}
@@ -1616,7 +1623,7 @@ void ibis::bundles::sort() {
 	    sortRIDs((*starts)[i1-1], (*starts)[i1]);
     }
     for (uint32_t i1 = 0; i1 < ncol; ++i1) {
-	LOGGER(cols[i1]->size() != nGroups && ibis::gVerbose > 0)
+	LOGGER(cols[i1]->size() != nGroups && ibis::gVerbose >= 0)
 	    << "Warning -- bundles::sort -- column # " << i1
 	    << " (" << (*(cols[i1]))->name()
 	    << ") is expected to have " << nGroups << " value"

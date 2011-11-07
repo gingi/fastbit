@@ -351,6 +351,8 @@ namespace ibis { // forward definition of all the classes in IBIS
     template<class T> class array_t;
     /// A simple list of data partitions.
     typedef FASTBIT_CXX_DLLSPEC std::vector< part* > partList;
+    /// A simple list of data partitions.
+    typedef FASTBIT_CXX_DLLSPEC std::vector< const part* > constPartList;
 
     /// The object identifiers used to distinguish records.
     union FASTBIT_CXX_DLLSPEC rid_t {

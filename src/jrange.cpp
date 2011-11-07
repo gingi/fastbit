@@ -10,7 +10,6 @@
 #include "selectClause.h"
 
 #include <stdexcept>	// std::exception
-#include <cmath>	// std::ceil, std::floor
 #include <typeinfo>	// std::typeid
 
 /// Constructor.

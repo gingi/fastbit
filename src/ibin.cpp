@@ -540,7 +540,7 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
 void ibis::bin::adjustLength(uint32_t nr) {
     if (nr == nrows) return;
     nrows = nr;
-    std::vector<ibis::bitvector*>::iterator it;
+    array_t<bitvector*>::iterator it;
     for (it = bits.begin(); it != bits.end(); ++it) {
 	if (*it) {
 	    (*it)->adjustSize(0, nr);
@@ -5018,7 +5018,7 @@ void ibis::bin::setBoundaries(array_t<double>& bnds,
 // In keeping with the practice of leaving two extreme bins, the minimal
 // number of bins useful is assumed to be 4.  If the size of array parts is
 // less than 4, it will default to 15.
-void ibis::bin::divideBitmaps(const std::vector<ibis::bitvector*>& bms,
+void ibis::bin::divideBitmaps(const array_t<bitvector*>& bms,
 			      std::vector<unsigned>& parts) const {
     const uint32_t nbms = bms.size();
     unsigned nparts = (parts.size() < 4 ? 15 : parts.size());
@@ -5904,7 +5904,7 @@ long ibis::bin::append(const ibis::bin& tail) {
 
     // deal with the bit vectors
     const uint32_t nb = bits.size();
-    std::vector<ibis::bitvector*> bin2;
+    array_t<bitvector*> bin2;
     bin2.resize(nobs);
 
     activate();

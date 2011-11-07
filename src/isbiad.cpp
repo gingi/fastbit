@@ -252,7 +252,7 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
     }
 #endif
     // sum up the bitvectors according to the interval-encoding
-    std::vector<ibis::bitvector*> beq(bits);
+    array_t<bitvector*> beq(bits);
     try { // use a try block to ensure the bitvectors in beq are freed
 	uint32_t ke = 0;
 	bits.clear();
@@ -886,7 +886,7 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	bits[i]->adjustSize(0, nrows);
     }
     // sum up the bitvectors according to interval-encoding
-    std::vector<ibis::bitvector*> beq(bits);
+    array_t<bitvector*> beq(bits);
     try {    
 	uint32_t ke = 0;
 	bits.clear();

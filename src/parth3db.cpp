@@ -5,7 +5,7 @@
 // Implements ibis::part::get3DBins that returns vector<bitvector>.
 #include "countQuery.h"	// ibis::countQuery
 #include "part.h"
-#include <cmath>	// std::floor
+#include <math.h>	// floor
 #include <typeinfo>	// typeid
 
 /// The three triplets, (begin1, end1, stride1), (begin2, end2, stride2),
@@ -48,11 +48,11 @@ long ibis::part::fill3DBins(const ibis::bitvector &mask,
 	<< ", vals3[" << vals3.size() << "], " << begin3 << ", "
 	<< end3 << ", " << stride3 << ", bins[" << bins.size()
 	<< "]) ... ("
-	<< 1 + static_cast<uint32_t>(std::floor((end1-begin1)/stride1))
+	<< 1 + static_cast<uint32_t>(floor((end1-begin1)/stride1))
 	<< ", "
-	<< 1 + static_cast<uint32_t>(std::floor((end2-begin2)/stride2))
+	<< 1 + static_cast<uint32_t>(floor((end2-begin2)/stride2))
 	<< ", "
-	<< 1 + static_cast<uint32_t>(std::floor((end3-begin3)/stride3))
+	<< 1 + static_cast<uint32_t>(floor((end3-begin3)/stride3))
 	<< ")";
     const uint32_t nbin3 = (1 + static_cast<uint32_t>((end3-begin3)/stride3));
     const uint32_t nbin23 = (1 + static_cast<uint32_t>((end2-begin2)/stride2)) *

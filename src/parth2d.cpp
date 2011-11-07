@@ -7,7 +7,7 @@
 #include "countQuery.h"	// ibis::countQuery
 #include "part.h"
 
-#include <cmath>	// std::ceil, std::log, ...
+#include <math.h>	// ceil, log, exp
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
 
@@ -26,7 +26,7 @@ long ibis::part::count2DBins(array_t<T1> &vals1,
 			     const double &stride2,
 			     std::vector<uint32_t> &counts) const {
     const uint32_t dim2 = 1+
-	static_cast<uint32_t>(std::floor((end2-begin2)/stride2));
+	static_cast<uint32_t>(floor((end2-begin2)/stride2));
     const uint32_t nr = (vals1.size() <= vals2.size() ?
 		       vals1.size() : vals2.size());
 #if defined(SORT_VALUES_BEFORE_COUNT)
@@ -78,8 +78,8 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	timer.start();
     }
     const uint32_t nbins =
-	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
-	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
+	(1 + static_cast<uint32_t>(floor((end1 - begin1) / stride1))) *
+	(1 + static_cast<uint32_t>(floor((end2 - begin2) / stride2)));
     if (counts.size() != nbins) {
 	counts.resize(nbins);
 	for (uint32_t i = 0; i < nbins; ++i)
@@ -521,7 +521,7 @@ long ibis::part::count2DWeights(array_t<T1> &vals1,
 				array_t<double> &wts,
 				std::vector<double> &weights) const {
     const uint32_t dim2 = 1+
-	static_cast<uint32_t>(std::floor((end2-begin2)/stride2));
+	static_cast<uint32_t>(floor((end2-begin2)/stride2));
     const uint32_t nr = (vals1.size() <= vals2.size() ?
 		       vals1.size() : vals2.size());
 #if defined(SORT_VALUES_BEFORE_COUNT)
@@ -577,8 +577,8 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	timer.start();
     }
     const uint32_t nbins =
-	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
-	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
+	(1 + static_cast<uint32_t>(floor((end1 - begin1) / stride1))) *
+	(1 + static_cast<uint32_t>(floor((end2 - begin2) / stride2)));
     if (weights.size() != nbins) {
 	weights.resize(nbins);
 	for (uint32_t i = 0; i < nbins; ++i)
@@ -2946,7 +2946,7 @@ ibis::part::adaptive2DBins(const array_t<T1> &vals1,
     ibis::util::timer atimer(mesg.c_str(), 3);
     if (nb1 <= 1) nb1 = 100;
     if (nb2 <= 1) nb2 = 100;
-    double tmp = std::exp(std::log((double)nrows)/3.0);
+    double tmp = exp(log((double)nrows)/3.0);
     if (nb1 > 2048 && (double)nb1 > tmp) {
 	if (nrows > 10000000)
 	    nb1 = static_cast<uint32_t>(0.5 + tmp);
@@ -2959,7 +2959,7 @@ ibis::part::adaptive2DBins(const array_t<T1> &vals1,
 	else
 	    nb2 = 2048;
     }
-    tmp = std::exp(std::log((double)nrows/(double)(nb1*nb2))/3.0);
+    tmp = exp(log((double)nrows/(double)(nb1*nb2))/3.0);
     if (tmp < 2.0) tmp = 2.0;
     const uint32_t nfine1 = static_cast<uint32_t>(0.5 + tmp * nb1);
     const uint32_t nfine2 = static_cast<uint32_t>(0.5 + tmp * nb2);
@@ -3215,7 +3215,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
@@ -3230,7 +3230,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
@@ -3243,7 +3243,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2.selectFloats(mask);
@@ -3276,7 +3276,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	}
 	delete vals1;
 	for (uint32_t i = 0; i < bounds1.size(); ++ i)
-	    bounds1[i] = std::ceil(bounds1[i]);
+	    bounds1[i] = ceil(bounds1[i]);
 	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
@@ -3301,7 +3301,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
@@ -3316,7 +3316,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
@@ -3328,7 +3328,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    delete vals2;
 	    break;}
 	case ibis::FLOAT: {
@@ -3362,7 +3362,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	}
 	delete vals1;
 	for (uint32_t i = 0; i < bounds1.size(); ++ i)
-	    bounds1[i] = std::ceil(bounds1[i]);
+	    bounds1[i] = ceil(bounds1[i]);
 	break;}
     case ibis::ULONG:
     case ibis::LONG: {
@@ -3385,7 +3385,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
@@ -3400,7 +3400,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
@@ -3413,7 +3413,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2.selectFloats(mask);
@@ -3446,7 +3446,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	}
 	delete vals1;
 	for (uint32_t i = 0; i < bounds1.size(); ++ i)
-	    bounds1[i] = std::ceil(bounds1[i]);
+	    bounds1[i] = ceil(bounds1[i]);
 	break;}
     case ibis::FLOAT: {
 	array_t<float>* vals1 = col1.selectFloats(mask);
@@ -3468,7 +3468,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
@@ -3483,7 +3483,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
@@ -3496,7 +3496,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2.selectFloats(mask);
@@ -3549,7 +3549,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::UBYTE:
 	case ibis::USHORT:
@@ -3564,7 +3564,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG:
 	case ibis::LONG: {
@@ -3577,7 +3577,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 				  bounds1, bounds2, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float>* vals2 = col2.selectFloats(mask);
@@ -3720,8 +3720,8 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	stride2 = 1.0;
     }
     const uint32_t nbins =
-	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
-	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2)));
+	(1 + static_cast<uint32_t>(floor((end1 - begin1) / stride1))) *
+	(1 + static_cast<uint32_t>(floor((end2 - begin2) / stride2)));
     if (nbins != nb1 * nb2) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- part[" << m_name
@@ -4564,7 +4564,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
 	case ibis::UBYTE:
@@ -4580,7 +4580,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t> *val2 = col2->selectLongs(mask);
@@ -4593,7 +4593,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
@@ -4606,7 +4606,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
@@ -4639,7 +4639,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	}
 	delete val1;
 	for (uint32_t i = 0; i < bounds1.size(); ++ i)
-	    bounds1[i] = std::ceil(bounds1[i]);
+	    bounds1[i] = ceil(bounds1[i]);
 	break;}
     case ibis::USHORT:
     case ibis::UBYTE:
@@ -4666,7 +4666,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
 	case ibis::UBYTE:
@@ -4682,7 +4682,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t> *val2 = col2->selectLongs(mask);
@@ -4695,7 +4695,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
@@ -4708,7 +4708,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
@@ -4740,7 +4740,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	}
 	delete val1;
 	for (uint32_t i = 0; i < bounds1.size(); ++ i)
-	    bounds1[i] = std::ceil(bounds1[i]);
+	    bounds1[i] = ceil(bounds1[i]);
 	break;}
     case ibis::LONG: {
 	array_t<int64_t> *val1 = col1->selectLongs(mask);
@@ -4763,7 +4763,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
 	case ibis::UBYTE:
@@ -4779,7 +4779,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t> *val2 = col2->selectLongs(mask);
@@ -4792,7 +4792,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
@@ -4805,7 +4805,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
@@ -4838,7 +4838,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	}
 	delete val1;
 	for (uint32_t i = 0; i < bounds1.size(); ++ i)
-	    bounds1[i] = std::ceil(bounds1[i]);
+	    bounds1[i] = ceil(bounds1[i]);
 	break;}
     case ibis::ULONG: {
 	array_t<uint64_t> *val1 = col1->selectULongs(mask);
@@ -4862,7 +4862,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
 	case ibis::UBYTE:
@@ -4878,7 +4878,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t> *val2 = col2->selectLongs(mask);
@@ -4891,7 +4891,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
@@ -4904,7 +4904,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
@@ -4936,7 +4936,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	}
 	delete val1;
 	for (uint32_t i = 0; i < bounds1.size(); ++ i)
-	    bounds1[i] = std::ceil(bounds1[i]);
+	    bounds1[i] = ceil(bounds1[i]);
 	break;}
     case ibis::FLOAT: {
 	array_t<float> *val1 = col1->selectFloats(mask);
@@ -4960,7 +4960,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
 	case ibis::UBYTE:
@@ -4975,7 +4975,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
 				  bounds1, bounds2, counts);
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    delete val2;
 	    break;}
 	case ibis::LONG: {
@@ -4989,7 +4989,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
@@ -5002,7 +5002,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
@@ -5056,7 +5056,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::USHORT:
 	case ibis::UBYTE:
@@ -5072,7 +5072,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t> *val2 = col2->selectLongs(mask);
@@ -5085,7 +5085,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
@@ -5098,7 +5098,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 				  bounds1, bounds2, counts);
 	    delete val2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> *val2 = col2->selectFloats(mask);
@@ -5676,7 +5676,7 @@ long ibis::part::get2DBins(const char *constraints,
 	if (nb1 <= 1) nb1 = 100;
 	if (nb2 <= 1) nb2 = 100;
 	const uint32_t nrows = mask.cnt();
-	double tmp = std::exp(std::log((double)nrows)/3.0);
+	double tmp = exp(log((double)nrows)/3.0);
 	if (nb1 > 2048 && (double)nb1 > tmp) {
 	    if (nrows > 10000000)
 		nb1 = static_cast<uint32_t>(0.5 + tmp);

@@ -179,7 +179,7 @@ int ibis::entre::write(const char* dt) const {
 void ibis::entre::convert() {
     //activate();
     // store the current bitvectors in simple
-    std::vector<ibis::bitvector*> simple(bits);
+    array_t<bitvector*> simple(bits);
     LOGGER(ibis::gVerbose > 4)
 	<< "entre[" << col->partition()->name() << '.' << col->name()
 	<< "]::convert -- converting " << nobs << "-bin "

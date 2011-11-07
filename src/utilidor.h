@@ -76,6 +76,44 @@ namespace ibis {
 	/// Sorting function with string as keys and uint32_t as payload.
 	void FASTBIT_CXX_DLLSPEC sortStrings(array_t<const char*>& keys,
 			 array_t<uint32_t>& vals);
+
+	/// A simple heap based on std::push_heap and std::pop_heap.
+	template <typename T, class C>
+	struct heap {
+	    /// A vector to hold pointers to the underlying data.
+	    std::vector<T*> data_;
+	    /// An object of the comparator type.
+	    const C comp_;
+
+	    /// The default constructor.  It creates an empty vector with
+	    /// the specified type and a comparator object.
+	    heap<T, C>() : data_(), comp_() {}
+
+	    /// Is the heap empty.  Returns true if yes.
+	    bool empty() const {return data_.empty();}
+
+	    /// The number of elements in the heap.
+	    size_t size() const {return data_.size();}
+
+	    /// Reserve space.
+	    void reserve(size_t n) {data_.reserve(n);}
+
+	    /// The top element.  No error checking!
+	    T* top() const {return data_[0];}
+
+	    /// Add a new element to the heap.
+	    void push(T* v) {
+		data_.push_back(v);
+		std::push_heap(data_.begin(), data_.end(), comp_);
+	    }
+
+	    /// Remove the top element from the heap.
+	    void pop() {
+		const size_t oldsize = data_.size();
+		std::pop_heap(data_.begin(), data_.end(), comp_);
+		data_.resize(oldsize-1);
+	    }
+	}; // minheap
     } // namespace util
 } // namespace ibis
 #endif

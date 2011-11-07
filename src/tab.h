@@ -47,7 +47,7 @@ public:
     virtual int dump(std::ostream&, uint64_t, const char*) const {return 0;}
     virtual int dump(std::ostream&, uint64_t, uint64_t, const char*) const {
 	return 0;}
-    /// The backup operation.  It does nothing.
+    /// The backup function.  It does nothing.
     virtual int backup(const char*, const char* =0,
 		       const char* =0) const {return 0;}
 

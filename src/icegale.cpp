@@ -673,7 +673,7 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
 void ibis::egale::convert() {
     //activate(); // make sure all bitvectors are here
     // store the current bitvectors in simple
-    std::vector<ibis::bitvector*> simple(bits);
+    array_t<bitvector*> simple(bits);
 
     // count the number of bitvectors to genreate
     uint32_t i;
@@ -792,7 +792,7 @@ void ibis::egale::construct(const char* f) {
 	nbits += bases[i];
 
     // clear the current content of the bits and allocate space for new ones
-    for (std::vector<ibis::bitvector*>::iterator it = bits.begin();
+    for (array_t<bitvector*>::iterator it = bits.begin();
 	 it != bits.end(); ++it)
 	delete *it;
     bits.resize(nbits);

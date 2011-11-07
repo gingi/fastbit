@@ -156,16 +156,16 @@ public:
     virtual table* select(const char* sel, const ibis::qExpr* cond) const;
 
     /// Perform the select operation on a list of data partitions.
-    static table* select(const std::vector<const ibis::part*>& parts,
+    static table* select(const ibis::constPartList& parts,
 			 const char* sel, const char* cond);
     /// Perform select operation using a user-supplied query expression.
-    static table* select(const std::vector<const ibis::part*>& parts,
+    static table* select(const ibis::constPartList& parts,
 			 const char* sel, const ibis::qExpr* cond);
     /// Compute the number of rows satisfying the specified conditions.
-    static int64_t computeHits(const std::vector<const ibis::part*>& parts,
+    static int64_t computeHits(const ibis::constPartList& parts,
 			       const char* cond);
     /// Compute the number of rows satisfying the specified query expression.
-    static int64_t computeHits(const std::vector<const ibis::part*>& parts,
+    static int64_t computeHits(const ibis::constPartList& parts,
 			       const ibis::qExpr* cond);
 
     /// Perform aggregate functions on the current table.  It produces a
@@ -206,7 +206,7 @@ public:
     /// number of data partitions.
     virtual int addPartition(const char*) {return -1;}
     /// Retrieve the list of partitions.
-    virtual int getPartitions(std::vector<const ibis::part*>&) const {
+    virtual int getPartitions(ibis::constPartList&) const {
 	return -1;}
 
     /// The following functions deal with auxillary data for accelerating

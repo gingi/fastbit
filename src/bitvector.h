@@ -315,38 +315,7 @@ private:
     /// Count the number of bits and number of ones in m_vec.
     /// Return the number of bits.
     word_t do_cnt() const throw ();
-}; // end class bitvector
-
-/// @brief The indexSet stores positions of bits that are one.
-///
-/// It decodes one word of the bitvector at a time.  For a fill of ones,
-/// the function @c isRange returns true, otherwise it returns false.  If
-/// isRange returns true, the position of the first bit is pointed by the
-/// pointer returned by function @c indices, and there are @c nIndices
-/// consecutive ones.  If @c isRange returns false, there are @c nIndices
-/// bits that are one and the positions of these bits are stored in the
-/// array returned by function @c indices.
-class FASTBIT_CXX_DLLSPEC ibis::bitvector::indexSet {
-public:
-    // let the compiler define most of the canonical functions
-
-    // allow bitvector::firstIndexSet() to access private member variables
-    friend indexSet ibis::bitvector::firstIndexSet() const;
-
-    //int operator!=(const indexSet& rhs) const {return (it != rhs.it);};
-    bool isRange() const {return (nind>=ibis::bitvector::MAXBITS);}
-    const word_t* indices() const {return ind;};
-    word_t nIndices() const {return nind;}
-    const word_t& currentWord() const {return *it;}
-    indexSet& operator++();
-
-private:
-    array_t<word_t>::const_iterator it;
-    array_t<word_t>::const_iterator end;
-    const active_word* active; // points back to the active word
-    word_t nind; // number of indices
-    word_t ind[32];
-}; // class ibis::bitvector::indexSet
+}; // class bitvector
 
 /// The const_iterator class.  It iterates on the individual bits.
 class ibis::bitvector::const_iterator {
@@ -390,7 +359,7 @@ private:
     friend const_iterator ibis::bitvector::begin() const;
     friend const_iterator ibis::bitvector::end() const;
     friend class ibis::bitvector::iterator;
-}; // end class ibis::bitvector::const_iterator
+}; // class ibis::bitvector::const_iterator
 
 /// The iterator that allows modification of bits.  It provides only one
 /// additional function (operator=) than const_iterator to allow
@@ -438,7 +407,119 @@ private:
 
     friend iterator ibis::bitvector::begin();
     friend iterator ibis::bitvector::end();
-}; // end class ibis::bitvector::iterator
+}; // class ibis::bitvector::iterator
+
+/// @brief The indexSet stores positions of bits that are one.
+///
+/// It decodes one word of the bitvector at a time.  For a fill of ones,
+/// the function @c isRange returns true, otherwise it returns false.  If
+/// isRange returns true, the position of the first bit is pointed by the
+/// pointer returned by function @c indices, and there are @c nIndices
+/// consecutive ones.  If @c isRange returns false, there are @c nIndices
+/// bits that are one and the positions of these bits are stored in the
+/// array returned by function @c indices.
+class FASTBIT_CXX_DLLSPEC ibis::bitvector::indexSet {
+public:
+    /// Default constructor.
+    indexSet() : it(0), end(0), active(0), nind(0) {}
+    /// Copy constructor.
+    indexSet(const indexSet& rhs)
+	: it(rhs.it), end(rhs.end), active(rhs.active), nind(rhs.nind) {
+	ind[0] = rhs.ind[0];
+	ind[1] = rhs.ind[1];
+	ind[2] = rhs.ind[2];
+	ind[3] = rhs.ind[3];
+	ind[4] = rhs.ind[4];
+	ind[5] = rhs.ind[5];
+	ind[6] = rhs.ind[6];
+	ind[7] = rhs.ind[7];
+	ind[8] = rhs.ind[8];
+	ind[9] = rhs.ind[9];
+	ind[10] = rhs.ind[10];
+	ind[11] = rhs.ind[11];
+	ind[12] = rhs.ind[12];
+	ind[13] = rhs.ind[13];
+	ind[14] = rhs.ind[14];
+	ind[15] = rhs.ind[15];
+	ind[16] = rhs.ind[16];
+	ind[17] = rhs.ind[17];
+	ind[18] = rhs.ind[18];
+	ind[19] = rhs.ind[19];
+	ind[20] = rhs.ind[20];
+	ind[21] = rhs.ind[21];
+	ind[22] = rhs.ind[22];
+	ind[23] = rhs.ind[23];
+	ind[24] = rhs.ind[24];
+	ind[25] = rhs.ind[25];
+	ind[26] = rhs.ind[26];
+	ind[27] = rhs.ind[27];
+	ind[28] = rhs.ind[28];
+	ind[29] = rhs.ind[29];
+	ind[30] = rhs.ind[30];
+	ind[31] = rhs.ind[31];
+    }
+    /// Assignment operator.
+    indexSet& operator=(const indexSet& rhs) {
+	it = rhs.it;
+	end = rhs.end;
+	active = rhs.active;
+	nind = rhs.nind;
+	ind[0] = rhs.ind[0];
+	ind[1] = rhs.ind[1];
+	ind[2] = rhs.ind[2];
+	ind[3] = rhs.ind[3];
+	ind[4] = rhs.ind[4];
+	ind[5] = rhs.ind[5];
+	ind[6] = rhs.ind[6];
+	ind[7] = rhs.ind[7];
+	ind[8] = rhs.ind[8];
+	ind[9] = rhs.ind[9];
+	ind[10] = rhs.ind[10];
+	ind[11] = rhs.ind[11];
+	ind[12] = rhs.ind[12];
+	ind[13] = rhs.ind[13];
+	ind[14] = rhs.ind[14];
+	ind[15] = rhs.ind[15];
+	ind[16] = rhs.ind[16];
+	ind[17] = rhs.ind[17];
+	ind[18] = rhs.ind[18];
+	ind[19] = rhs.ind[19];
+	ind[20] = rhs.ind[20];
+	ind[21] = rhs.ind[21];
+	ind[22] = rhs.ind[22];
+	ind[23] = rhs.ind[23];
+	ind[24] = rhs.ind[24];
+	ind[25] = rhs.ind[25];
+	ind[26] = rhs.ind[26];
+	ind[27] = rhs.ind[27];
+	ind[28] = rhs.ind[28];
+	ind[29] = rhs.ind[29];
+	ind[30] = rhs.ind[30];
+	ind[31] = rhs.ind[31];
+	return *this;
+    }
+
+    //int operator!=(const indexSet& rhs) const {return (it != rhs.it);};
+    /// Is the index set a consecutive range?
+    bool isRange() const {return (nind>=ibis::bitvector::MAXBITS);}
+    /// Pointer to the indices.
+    const word_t* indices() const {return ind;};
+    /// Number of indices.
+    word_t nIndices() const {return nind;}
+    /// The value of the current compressed word.
+    const word_t& currentWord() const {return *it;}
+    indexSet& operator++();
+
+    // allow bitvector::firstIndexSet() to access private member variables
+    friend indexSet ibis::bitvector::firstIndexSet() const;
+
+private:
+    array_t<word_t>::const_iterator it;
+    array_t<word_t>::const_iterator end;
+    const active_word* active; // points back to the active word
+    word_t nind; // number of indices
+    word_t ind[32];
+}; // class ibis::bitvector::indexSet
 
 /// Explicitly set the size of the bitvector.  This is intended to be used
 /// by indexing functions to avoid counting the number of bits.  Caller is
@@ -1054,7 +1135,7 @@ inline ibis::bitvector::indexSet ibis::bitvector::firstIndexSet() const {
     is.nind = 0;
     ++is;
     return is;
-} // end ibis::bitvector::firstIndexSet;
+} // ibis::bitvector::firstIndexSet;
 
 /// Compute the expected number of bytes required to store a random
 /// sequence.   The random bit sequence is to have @c nb total bits
@@ -1069,7 +1150,7 @@ inline double ibis::bitvector::randomSize(word_t nb, word_t nc) {
 			      + pow(den, static_cast<int>(2*MAXBITS)));
     }
     return sz*sizeof(word_t);
-} // end ibis::bitvector::randomSize
+} // ibis::bitvector::randomSize
 
 /// Compute the expected size (number of bytes) of a random sequence
 /// generated from a Markov process.  The bit sequence is to have @c nb
@@ -1091,7 +1172,7 @@ inline double ibis::bitvector::markovSize(word_t nb, word_t nc, double f) {
 	sz = 3.0 + nw * (1.0 - sz);
     }
     return sz*sizeof(word_t);
-} // end ibis::bitvector::markovSize
+} // ibis::bitvector::markovSize
 
 /// Turn on a single bit in a uncompressed bitvector.
 inline void ibis::bitvector::turnOnRawBit(const word_t ind) {

@@ -43,7 +43,7 @@ while (<QH>) {
 	$match = `fgrep "==> $hits " $tmp | wc -l`;
 	if ($match) {
 	    ++$nmatches;
-	    if (`egrep "Error|Warning|warning|failed" $tmp | wc -l` > 0) {
+	    if (`egrep "Error|Warning|warning" $tmp | wc -l` > 0) {
 		system("cp", $tmp, "$bak");
 		print "Query \"$cond\" completed with errors, output file saved to $bak\n";
 	    }

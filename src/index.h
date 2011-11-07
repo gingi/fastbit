@@ -132,6 +132,9 @@ public:
     /// otherwise a negative value is returned.
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const = 0;
+    /// Evaluate the range condition and select values.
+    virtual long select(const ibis::qContinuousRange&,
+			ibis::bitvector&, void*) const {return -1;}
     /// To evaluate the exact hits.  On success, return the number of hits,
     /// otherwise a negative value is returned.
     virtual long evaluate(const ibis::qDiscreteRange&,
@@ -218,9 +221,10 @@ public:
 			     const ibis::qRange* const range1,
 			     const ibis::qRange* const range2) const;
 
-    /// Estimate the code of evaluate a range condition.
+    /// Estimate the cost of evaluating a range condition.
     virtual double estimateCost(const ibis::qContinuousRange&) const {
 	return (offset32.empty() ? (nrows<<3) : offset32.back());}
+    /// Estimate the cost of evaluating a range condition.
     virtual double estimateCost(const ibis::qDiscreteRange&) const {
 	return (offset32.empty() ? (nrows<<3) : offset32.back());}
 
@@ -311,11 +315,11 @@ public:
 			     const array_t<uint32_t>& cnt);
 
     // three static functions to perform the task of summing up bit sequences
-    static void addBits(const std::vector<ibis::bitvector*>& bits,
+    static void addBits(const array_t<bitvector*>& bits,
 			uint32_t ib, uint32_t ie, ibis::bitvector& res);
-    static void sumBits(const std::vector<ibis::bitvector*>& bits,
+    static void sumBits(const array_t<bitvector*>& bits,
 			uint32_t ib, uint32_t ie, ibis::bitvector& res);
-    static void sumBits(const std::vector<ibis::bitvector*>& bits,
+    static void sumBits(const array_t<bitvector*>& bits,
 			const ibis::bitvector& tot, uint32_t ib, uint32_t ie,
 			ibis::bitvector& res);
     // a static function to assign bases for multicomponent schemes
@@ -338,7 +342,7 @@ protected:
     /// requires these offsets will attempt to use the 64-bit first.
     mutable array_t<int64_t> offset64;
     /// A list of bitvectors.
-    mutable std::vector<ibis::bitvector*> bits;
+    mutable array_t<ibis::bitvector*> bits;
     /// The number of rows represented by the index.  Can not take more
     /// than 2^32 rows because the bitvector class can not hold more than
     /// 2^32 bits.
@@ -377,7 +381,7 @@ protected:
     void mapValues(const char* f, histogram& hist, uint32_t count=0) const;
     void computeMinMax(const char* f, double& min, double& max) const;
     /// A function to decide whether to uncompress the bitvectors.
-    void optionalUnpack(std::vector<ibis::bitvector*>& bits,
+    void optionalUnpack(array_t<ibis::bitvector*>& bits,
 			const char* opt);
     /// Add the sum of @c bits[ib] through @c bits[ie-1] to @c res.  Always
     /// explicitly use @c bits[ib] through @c bits[ie-1].

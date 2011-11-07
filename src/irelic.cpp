@@ -16,7 +16,7 @@
 #include "irelic.h"
 #include "part.h"
 
-#include <cmath>	// std::fabs
+#include <math.h>	// fabs
 #include <sstream>	// std::ostringstream
 #include <typeinfo>	// std::typeid
 
@@ -498,8 +498,7 @@ int ibis::relic::read(const char* f) {
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[0]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[0] << std::dec;
 	    if (isprint(header[1]) != 0)
 		lg() << header[1];
 	    else
@@ -1616,6 +1615,14 @@ void ibis::relic::locate(const ibis::qContinuousRange& expr, uint32_t& hit0,
 			static_cast<long unsigned>(hit1));
     }
 } // ibis::relic::locate
+
+long ibis::relic::select(const ibis::qContinuousRange& expr,
+			 ibis::bitvector& hits, void* vals) const {
+    uint32_t h0, h1;
+    locate(expr, h0, h1);
+    sumBins(h0, h1, hits);
+    return mergeValues(h0, h1, vals);
+} // ibis::relic::select
 
 /// Compute the hits as a @c bitvector.
 long ibis::relic::evaluate(const ibis::qContinuousRange& expr,
@@ -2845,7 +2852,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 	if (tmp1.cnt() == 0) continue;
 
 	bar.value(0) = vals[ib1];
-	const double dt = std::fabs(delta.eval());
+	const double dt = fabs(delta.eval());
 	const double lo = vals[ib1] - dt;
 	const double hi = ibis::util::incrDouble(vals[ib1] + dt);
 	uint32_t ib2s = idx2.vals.find(lo);
@@ -2909,7 +2916,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 	if (tmp1.cnt() == 0) continue;
 
 	bar.value(0) = vals[ib1];
-	const double dt = std::fabs(delta.eval());
+	const double dt = fabs(delta.eval());
 	const double lo = vals[ib1] - dt;
 	const double hi = ibis::util::incrDouble(vals[ib1] + dt);
 	uint32_t ib2s = idx2.vals.find(lo);
@@ -2942,3 +2949,236 @@ size_t ibis::relic::getSerialSize() const throw() {
 	    res += bits[j]->getSerialSize();
     return res;
 } // ibis::relic::getSerialSize
+
+/// Merge the values in different bitmaps into a single list.  The values
+/// in the list appears in the order of original rows where they came from.
+/// This function returns the number of elements in the output array upon
+/// successful completion.
+long ibis::relic::mergeValues(uint32_t ib, uint32_t je, void* res) const {
+    long ierr = -1;
+    if (je > bits.size()) je = bits.size();
+    if (ib >= je) return 0;
+
+    const size_t nv = je - ib;
+    activate(ib, je); // activate all necessary bitmaps
+    ibis::array_t<const ibis::bitvector*> ps(nv);
+    for (unsigned j = 0; j < nv; ++ j)
+	ps[j] = bits[ib+j];
+
+    switch (col->type()) {
+    default:
+	break;
+    case ibis::BYTE: {
+	array_t<signed char> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<signed char>*>(res));
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<unsigned char>*>(res));
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<int16_t>*>(res));
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<uint16_t>*>(res));
+	break;}
+    case ibis::INT:{
+	array_t<int32_t> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<int32_t>*>(res));
+	break;}
+    case ibis::UINT:{
+	array_t<uint32_t> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<uint32_t>*>(res));
+	break;}
+    case ibis::LONG:{
+	array_t<int64_t> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<int64_t>*>(res));
+	break;}
+    case ibis::ULONG:{
+	array_t<uint64_t> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<uint64_t>*>(res));
+	break;}
+    case ibis::FLOAT:{
+	array_t<float> vs(nv);
+	for (unsigned j = ib; j < je; ++ j)
+	    vs[j-ib] = vals[j];
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<float>*>(res));
+	break;}
+    case ibis::DOUBLE:{
+	array_t<double> vs(vals, ib, je);
+	ierr = mergeValuesT(vs, ps, *static_cast<array_t<double>*>(res));
+	break;}
+    }
+    return ierr;
+} // ibis::relic::mergeValues
+
+/// A template function to merge list of values and a list of positions.
+/// Return the number of elements in the results or an error number.
+template<typename T> long
+ibis::relic::mergeValuesT(const array_t<T>& vs,
+			  const array_t<const bitvector*>& ps,
+			  array_t<T>& res) {
+    res.clear();
+    const size_t nv = (vs.size() <= ps.size() ? vs.size() : ps.size());
+    long ierr = 0;
+    if (nv == 0) {
+	; // nothing to do
+    }
+    else if (nv == 1) { // all values are the same
+	const unsigned nres = ps[0]->cnt();
+	const T v = vs[0];
+	res.resize(nres);
+	for (unsigned i = 0; i < nres; ++ i)
+	    res[i] = v;
+    }
+    else if (nv == 2) { // two different values
+	const unsigned nres = ps[0]->cnt() + ps[1]->cnt();
+	res.reserve(nres);
+
+	const T v0 = vs[0];
+	const T v1 = vs[1];
+	ibis::bitvector::indexSet idx0 = ps[0]->firstIndexSet();
+	ibis::bitvector::indexSet idx1 = ps[1]->firstIndexSet();
+	while (idx0.nIndices() > 0 && idx1.nIndices() > 0) {
+	    const ibis::bitvector::word_t* iptr0 = idx0.indices();
+	    const ibis::bitvector::word_t* iptr1 = idx1.indices();
+	    if (idx0.isRange()) {
+		if (*iptr0 < *iptr1) {
+		    for (unsigned j = 0; j < idx0.nIndices(); ++ j)
+			res.push_back(v0);
+		    ++ idx0;
+		}
+		else {
+		    for (unsigned j = 0; j < idx1.nIndices(); ++ j)
+			res.push_back(v1);
+		    ++ idx1;
+		}
+	    }
+	    else if (idx1.isRange()) {
+		if (*iptr0 < *iptr1) {
+		    for (unsigned j = 0; j < idx0.nIndices(); ++ j)
+			res.push_back(v0);
+		    ++ idx0;
+		}
+		else {
+		    for (unsigned j = 0; j < idx1.nIndices(); ++ j)
+			res.push_back(v1);
+		    ++ idx1;
+		}
+	    }
+	    else if (iptr0[idx0.nIndices()-1] < *iptr1) {
+		for (unsigned j = 0; j < idx0.nIndices(); ++ j)
+		    res.push_back(v0);
+		++ idx0;
+	    }
+	    else if (*iptr0 > iptr1[idx1.nIndices()-1]) {
+		for (unsigned j = 0; j < idx1.nIndices(); ++ j)
+		    res.push_back(v1);
+		++ idx1;
+	    }
+	    else {
+		unsigned j0 = 0;
+		unsigned j1 = 0;
+		while (j0 < idx0.nIndices() && j1 < idx1.nIndices()) {
+		    if (iptr0[j0] < iptr1[j1]) {
+			res.push_back(v0);
+			++ j0;
+		    }
+		    else {
+			res.push_back(v1);
+			++ j1;
+		    }
+		}
+		while (j0 < idx0.nIndices()) {
+		    res.push_back(v0);
+		    ++ j0;
+		}
+		while (j1 < idx1.nIndices()) {
+		    res.push_back(v1);
+		    ++ j1;
+		}
+		++ idx0;
+		++ idx1;
+	    }
+	}
+	while (idx0.nIndices() > 0) {
+	    for (unsigned j = 0; j < idx0.nIndices(); ++ j)
+		res.push_back(v0);
+	    ++ idx0;
+	}
+	while (idx1.nIndices() > 0) {
+	    for (unsigned j = 0; j < idx1.nIndices(); ++ j)
+		res.push_back(v1);
+	    ++ idx1;
+	}
+	ierr = res.size();
+    }
+    else { // the general case with arbitray number of values
+	// vp holds the actual values and their associated positions
+	// hp organize the values according to their positions using a min-heap
+	std::vector< ibis::relic::valpos<T> > vp(nv);
+	ibis::util::heap< ibis::relic::valpos<T>,
+			  ibis::relic::comparevalpos<T> > hp;
+	hp.reserve(nv); // reserve enough space for every value
+	for (unsigned iv = 0; iv < nv; ++ iv) {
+	    if (ps[iv] != 0 && ps[iv]->cnt() > 0) {
+		vp[iv].ind = ps[iv]->firstIndexSet();
+		vp[iv].val = vs[iv];
+		hp.push(&(vp[iv]));
+	    }
+	}
+	// use the heap to pick the next value as long as there are more
+	// than one value
+	while (hp.size() > 1) {
+	    ibis::relic::valpos<T>*const t = hp.top();
+	    if (t->ind.isRange()) { // add a consecutive range of rows
+		for (t->j = t->ind.indices()[0]; t->j < t->ind.indices()[1];
+		     ++ t->j)
+		    res.push_back(t->val);
+	    }
+	    else { // add one value
+		res.push_back(t->val);
+	    }
+
+	    t->next();
+	    hp.pop(); // remove the current value from the heap
+	    if (t->ind.nIndices() > 0) { // add it back to the heap
+		hp.push(t);
+	    }
+	} // while (hp.size() > 1)
+
+	if (hp.size() > 0) {
+	    ibis::relic::valpos<T>*const t = hp.top();
+	    ibis::bitvector::indexSet& s = t->ind;
+	    while (s.nIndices() > 0) {
+		for (t->j = 0; t->j < s.nIndices(); ++ t->j)
+		    res.push_back(t->val);
+	    }
+	}
+    }
+
+    ierr = res.size();
+    LOGGER(ibis::gVerbose > 3)
+	<< "relic::mergeValuesT<" << typeid(T).name()
+	<< "> -- merged " << nv << " value" << (nv > 1 ? "s" : "")
+	<< ", produced a result array of size " << ierr;
+    return ierr;
+} // ibis::relic::mergeValuesT

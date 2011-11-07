@@ -33,6 +33,8 @@ public:
     virtual int  read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    virtual long select(const ibis::qContinuousRange& expr,
+			ibis::bitvector& hits, void* vals) const;
     using ibis::index::estimate;
     using ibis::index::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
@@ -114,6 +116,65 @@ public:
     long append(const array_t<uint32_t>& ind);
     array_t<uint32_t>* keys(const ibis::bitvector& mask) const;
 
+    /// A single value with known positions.
+    template <typename T>
+    struct valpos {
+	/// The value.
+	T val;
+	/// The index set representing the positions with the given value.
+	bitvector::indexSet ind;
+	/// The current index value inside the index set.  If the index set
+	/// is a range, this is the actual position (RID), otherwise the
+	/// positions()[j] holds the position (RID).
+	bitvector::word_t j;
+
+	/// Default constrtuctor.
+	valpos<T>() : val(0), j(0) {}
+	/// Specifying the values.
+	valpos<T>(const T v, const bitvector& b)
+	: val(v), ind(b.firstIndexSet()), j(0) {
+	    if (ind.nIndices() > 0 && ind.isRange())
+		j = ind.indices()[0];
+	}
+
+	/// Current position (RID).
+	bitvector::word_t position() const {
+	    if (ind.isRange())
+		return j;
+	    else
+		return ind.indices()[j];
+	}
+
+	/// Move to the next row.
+	void next() {
+	    ++ j;
+	    if (ind.isRange()) {
+		if (j >= ind.indices()[1]) {
+		    ++ ind;
+		    if (ind.nIndices() > 0 && ind.isRange())
+			j = ind.indices()[0];
+		    else
+			j = 0;
+		}
+	    }
+	    else if (j >= ind.nIndices()) {
+		++ ind;
+		if (ind.nIndices() > 0 && ind.isRange())
+		    j = ind.indices()[0];
+		else
+		    j = 0;
+	    }
+	}
+    }; // valpos
+
+    /// The comparator used to build a min-heap based on positions.
+    template<typename T>
+    struct comparevalpos {
+	bool operator()(const valpos<T>* x, const valpos<T>* y) {
+	    return (x->position() > y->position());
+	}
+    }; // comparevalpos
+
 protected:
     // protected member variables
     array_t<double> vals;
@@ -138,6 +199,14 @@ protected:
     void construct(const array_t<E>& arr);
     /// Construct a new index in memory.
     void construct(const char* f = 0);
+
+    long mergeValues(uint32_t, uint32_t, void*) const;
+    template <typename T> static long
+    mergeValuesT(const array_t<T>& vs,
+		 const array_t<const bitvector*>& ps,
+		 array_t<T>& res);
+
+    template <typename T> struct mappedValues;
 
 private:
     // private member functions
@@ -448,7 +517,7 @@ private:
     /// The fine level is stored in ibis::relic, the parent class, only
     /// the coarse bins are stored here.  The coarse bins use integer bin
     /// boundaries; these integers are indices to the array vals and bits.
-    mutable std::vector<ibis::bitvector*> cbits;
+    mutable array_t<bitvector*> cbits;
     array_t<uint32_t> cbounds;
     mutable array_t<int32_t> coffset32;
     mutable array_t<int64_t> coffset64;
@@ -509,7 +578,7 @@ private:
     // the fine level is stored in ibis::relic, the parent class, only the
     // coarse bins are stored here.  The coarse bins use integer bin
     // boundaries; these integers are indices to the array vals and bits.
-    mutable std::vector<ibis::bitvector*> cbits;
+    mutable array_t<bitvector*> cbits;
     array_t<uint32_t> cbounds;
     mutable array_t<int32_t> coffset32;
     mutable array_t<int64_t> coffset64;
@@ -564,7 +633,7 @@ private:
     // the fine level is stored in ibis::relic, the parent class, only the
     // coarse bins are stored here.  The coarse bins use integer bin
     // boundaries; these integers are indices to the array vals and bits.
-    mutable std::vector<ibis::bitvector*> cbits;
+    mutable array_t<bitvector*> cbits;
     array_t<uint32_t> cbounds;
     mutable array_t<int32_t> coffset32;
     mutable array_t<int64_t> coffset64;
@@ -581,4 +650,10 @@ private:
     zona(const zona&);
     zona& operator=(const zona&);
 }; // ibis::zona
+
+/// A struct to hold a set of values and their positions.  The values are
+/// held in a heap according to their first positions.
+template <typename T>
+struct ibis::relic::mappedValues {
+}; // ibis::relic::mappedValues
 #endif // IBIS_IRELIC_H

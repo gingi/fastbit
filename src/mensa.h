@@ -119,7 +119,7 @@ public:
     virtual int buildIndexes(const char*);
     virtual const char* indexSpec(const char*) const;
     virtual void indexSpec(const char*, const char*);
-    virtual int getPartitions(std::vector<const ibis::part*> &) const;
+    virtual int getPartitions(ibis::constPartList &) const;
 
     // Cursor class for row-wise data accesses.
     class cursor;
@@ -138,7 +138,7 @@ protected:
     /// Compute the number of hits.
     int64_t computeHits(const char* cond) const {
 	return ibis::table::computeHits
-	    (reinterpret_cast<const std::vector<const ibis::part*>&>(parts),
+	    (reinterpret_cast<const ibis::constPartList&>(parts),
 	     cond);}
 
 private:

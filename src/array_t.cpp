@@ -128,7 +128,8 @@ ibis::array_t<T>::array_t(const std::vector<T>& rhs)
 	<< static_cast<const void*>(&rhs);
 }
 
-/// Copy constructor.  Shallow copy.  Should not throw any exception.
+/// Copy constructor.  Makes a shallow copy.  Should not throw any
+/// exception.
 template<class T>
 ibis::array_t<T>::array_t(const array_t<T>& rhs)
     : actual(rhs.actual), m_begin(rhs.m_begin), m_end(rhs.m_end) {
@@ -148,7 +149,7 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
 /// the existing array.  The values of begin and end are indices to the
 /// array rhs.
 ///
-/// @note If end is less than to begin, the array section is assumed to
+/// @note If end is less than begin, the array section is assumed to
 /// extend to the end of rhs.
 template<class T>
 ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t begin,
@@ -1734,4 +1735,6 @@ template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::TYPE_T>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<void*>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<char*>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<const char*>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::bitvector*>;
+template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::bitvector const*>;
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<ibis::array_t<ibis::rid_t>*>;

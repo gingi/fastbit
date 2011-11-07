@@ -24,10 +24,11 @@
 const char* ibis::math::operator_name[] =
     {"?", "|", "&", "+", "-", "*", "/", "%", "-", "**"};
 const char* ibis::math::stdfun1_name[] =
-    {"acos", "asin", "atan", "ceil", "cos", "cosh", "exp", "fabs",
-     "floor", "frexp", "log10", "log", "modf", "sin", "sinh", "sqrt",
-     "tan", "tanh"};
-const char* ibis::math::stdfun2_name[] = {"atan2", "fmod", "ldexp", "pow"};
+    {"acos", "asin", "atan", "ceil", "cos", "cosh", "exp", "fabs", "floor",
+     "frexp", "log10", "log", "modf", "round", "sin", "sinh", "sqrt", "tan",
+     "tanh"};
+const char* ibis::math::stdfun2_name[] =
+    {"atan2", "fmod", "ldexp", "round2", "pow"};
 bool ibis::math::preserveInputExpressions = false;
 
 /// Operations performed include converting compRanges into qRanges,

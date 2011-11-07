@@ -190,7 +190,7 @@ int ibis::moins::write(const char* dt) const {
 void ibis::moins::convert() {
     //activate();
     // store the current bitvectors in simple
-    std::vector<ibis::bitvector*> simple(bits);
+    array_t<bitvector*> simple(bits);
 
     // count the number of bitvectors to genreate
     uint32_t i;

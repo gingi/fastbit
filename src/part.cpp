@@ -21,7 +21,6 @@
 #include <algorithm>	// std::find, std::less, ...
 #include <typeinfo>	// typeid
 #include <stdexcept>	// std::invalid_argument
-#include <cmath>	// std::floor, std::ceil
 #include <memory>	// std::auto_ptr
 
 #include <signal.h>	// SIGINT
@@ -426,12 +425,11 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	}
 	else { // restore the backupDir read from metadata file
 	    backupDir = tmp;
-	    if (ibis::gVerbose > 0)
-		ibis::util::logMessage
-		    ("Warning", "user provided directory \"%s\" doesn't match "
-		     "the active data directory \"%s\"; use the alternative "
-		     "directory \"%s\" stored in the metadata file",
-		     bdir, activeDir, tmp);
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- user provided directory \"" << bdir
+		<< "\" doesn't match the active data directory \""
+		<< activeDir << "\"; use the alternative directory \""
+		<< tmp << "\" stored in the metadata file";
 	}
     }
     if (backupDir == 0) {
@@ -1107,8 +1105,9 @@ char* ibis::part::readMetaTags(const char* const dir) {
     long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir,
 			     FASTBIT_DIRSEP);
     if (ierr < 2 || ierr > MAX_LINE) {
-	ibis::util::logMessage("Warning", "part::readMetaTags failed "
-			       "to generate the metadata file name");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::readMetaTags failed "
+	    "to generate the metadata file name";
 	return m_tags;
     }
 
@@ -1134,11 +1133,9 @@ char* ibis::part::readMetaTags(const char* const dir) {
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
-	if (strlen(buf) + 1 >= MAX_LINE) {
-	    ibis::util::logMessage("Warning", "readMetaTags may have "
-				   "encountered a line that has more than "
-				   "%d characters.", MAX_LINE);
-	}
+	LOGGER(strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 1)
+	    << "Warning -- part::readMetaTags may have encountered a line "
+	    "that has more than " << MAX_LINE << " characters";
 	LOGGER(ibis::gVerbose > 14) << buf;
 
 	if (strnicmp(buf, "END HEADER", 10) == 0) {
@@ -1206,7 +1203,7 @@ void ibis::part::readMeshShape(const char* const dir) {
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
-	LOGGER(strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose >= 0)
+	LOGGER(strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
 	    << "Warning -- part::readMeshShape may have encountered a line "
 	    "with more than " << MAX_LINE << " characters";
 	LOGGER(ibis::gVerbose > 14) << buf;
@@ -1293,7 +1290,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, fptr))) {
-	LOGGER(strlen(buf) + 1 >= MAX_LINE)
+	LOGGER(strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
 	    << "Warning -- part::readMetaData(" << tdcname
 	    << ") may have encountered a line that has more than "
 	    << MAX_LINE << " characters";
@@ -1369,11 +1366,9 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		if (s2 != 0) {
 		    s1 = s2 + 1;
 		    int j = atoi(s1);
-		    if (j < i) {
-			ibis::util::logMessage
-			    ("Warning", "readMetaData encounters "
-			     "an illformed range:\n%d%s", i, s2);
-		    }
+		    LOGGER(j < i && ibis::gVerbose > 0)
+			<< "Warning -- readMetaData encounters "
+			"an illformed range: " << i << s2;
 		    while (i<j) {
 			++i;
 			selected.insert(i);
@@ -3062,6 +3057,39 @@ std::vector<std::string>* ibis::part::selectStrings
     return res;
 } // ibis::part::selectStrings
 
+/// Select values of a column based on the given mask.
+long ibis::part::selectValues(const char* cname, const ibis::bitvector &mask,
+			      void* vals) const {
+    const ibis::column* col = getColumn(cname);
+    if (col == 0) {
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << (m_name ? m_name : "")
+	    << "]::selectValues failed to find a column named \""
+	    << (cname ? cname : "") << '"';
+	return -1;
+    }
+
+    return col->selectValues(mask, vals);
+} // ibis::part::selectValues
+
+/// Select values of the column based on the range condition.
+/// The column to be selected is also the column subject to the
+/// range condition.
+long ibis::part::selectValues(const ibis::qContinuousRange& cond,
+			      void* vals) const {
+    const char* cname = cond.colName();
+    const ibis::column* col = getColumn(cname);
+    if (col == 0) {
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << (m_name ? m_name : "")
+	    << "]::selectValues failed to find a column named \""
+	    << (cname ? cname : "") << '"';
+	return -1;
+    }
+
+    return col->selectValues(cond, vals);
+} // ibis::part::selectValues
+
 /// Convert a list of RIDs into a bitvector.  If an list of external RIDs
 /// is available, sort those RIDS and search through them, otherwise,
 /// assume the incoming numbers are row numbers and mark the corresponding
@@ -3262,8 +3290,10 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 	}
     }
     else {
-	logWarning("evaluateRange", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::evaluateRangeun failed to find a column named "
+	    << cmp.colName();
 	hits.copy(mask);
     }
 
@@ -3300,8 +3330,10 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
 	}
     }
     else {
-	logWarning("estimateRange", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warnign -- part[" << name()
+	    << "]::estimateRange failed to find a column named "
+	    << cmp.colName();
 	high.set(0, nEvents);
 	low.set(0, nEvents);
     }
@@ -3337,8 +3369,10 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp) const {
 	}
     }
     else {
-	logWarning("estimateRange", "unable to find a "
-		   "column named %s", cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateRange failed to find a column named "
+	    << cmp.colName();
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -3361,8 +3395,10 @@ double ibis::part::estimateCost(const ibis::qContinuousRange &cmp) const {
 	ret = col->estimateCost(cmp);
     }
     else {
-	logWarning("estimateCost", "unable to find a column named %s ",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
     }
     return ret;
 } // ibis::part::estimateCost
@@ -3390,8 +3426,10 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 	    }
 	}
 	else {
-	    logWarning("evaluateRange", "unable to find a column "
-		       "named %s", cmp.colName());
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- part[" << name()
+		<< "]::evaluateRange failed to find a column named "
+		<< cmp.colName();
 	    hits.copy(mask);
 	}
     }
@@ -3424,8 +3462,10 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp,
 	    }
 	}
 	else {
-	    logWarning("estimateRange", "unable to find a column "
-		       "named %s", cmp.colName());
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- part["<< name() 
+		<< "]::estimateRange failed to find a column named "
+		<< cmp.colName();
 	    high.set(0, nEvents);
 	    low.set(0, nEvents);
 	}
@@ -3462,8 +3502,10 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp) const {
 	}
     }
     else {
-	logWarning("estimateRange", "unable to find a column "
-		   "named %s", cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateRange failed to find a column named "
+	    << cmp.colName();
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -3484,8 +3526,10 @@ double ibis::part::estimateCost(const ibis::qDiscreteRange &cmp) const {
 	ret = col->estimateCost(cmp);
     }
     else {
-	logWarning("estimateCost", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part["<< name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
     }
     return ret;
 } // ibis::part::estimateCost
@@ -3513,8 +3557,10 @@ long ibis::part::evaluateRange(const ibis::qIntHod &cmp,
 	    }
 	}
 	else {
-	    logWarning("evaluateRange", "unable to find a column "
-		       "named %s", cmp.colName());
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- part[" << name()
+		<< "]::evaluateRange failed to find a column named "
+		<< cmp.colName();
 	    hits.copy(mask);
 	}
     }
@@ -3547,8 +3593,10 @@ long ibis::part::estimateRange(const ibis::qIntHod &cmp,
 	    }
 	}
 	else {
-	    logWarning("estimateRange", "unable to find a column "
-		       "named %s", cmp.colName());
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- part[" << name()
+		<< "]::estimateRange failed to find a column named "
+		<< cmp.colName();
 	    high.set(0, nEvents);
 	    low.set(0, nEvents);
 	}
@@ -3585,8 +3633,10 @@ long ibis::part::estimateRange(const ibis::qIntHod &cmp) const {
 	}
     }
     else {
-	logWarning("estimateRange", "unable to find a column "
-		   "named %s", cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateRange failed to find a column named "
+	    << cmp.colName();
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -3607,8 +3657,10 @@ double ibis::part::estimateCost(const ibis::qIntHod &cmp) const {
 	ret = col->estimateCost(cmp);
     }
     else {
-	logWarning("estimateCost", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
     }
     return ret;
 } // ibis::part::estimateCost
@@ -3636,8 +3688,10 @@ long ibis::part::evaluateRange(const ibis::qUIntHod &cmp,
 	    }
 	}
 	else {
-	    logWarning("evaluateRange", "unable to find a column "
-		       "named %s", cmp.colName());
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- part[" << name()
+		<< "]::evaluateRange failed to find a column named "
+		<< cmp.colName();
 	    hits.copy(mask);
 	}
     }
@@ -3670,8 +3724,10 @@ long ibis::part::estimateRange(const ibis::qUIntHod &cmp,
 	    }
 	}
 	else {
-	    logWarning("estimateRange", "unable to find a column "
-		       "named %s", cmp.colName());
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- part[" << name()
+		<< "]::estimateRange to find a column named "
+		<< cmp.colName();
 	    high.set(0, nEvents);
 	    low.set(0, nEvents);
 	}
@@ -3708,8 +3764,10 @@ long ibis::part::estimateRange(const ibis::qUIntHod &cmp) const {
 	}
     }
     else {
-	logWarning("estimateRange", "unable to find a column "
-		   "named %s", cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateRange failed to find a column named "
+	    << cmp.colName();
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -3730,8 +3788,10 @@ double ibis::part::estimateCost(const ibis::qUIntHod &cmp) const {
 	ret = col->estimateCost(cmp);
     }
     else {
-	logWarning("estimateCost", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
     }
     return ret;
 } // ibis::part::estimateCost
@@ -3750,8 +3810,10 @@ double ibis::part::estimateCost(const ibis::qString &cmp) const {
 	ret = col->estimateCost(cmp);
     }
     else {
-	logWarning("estimateCost", "unable to find a column named %s or %s",
-		   cmp.leftString(), cmp.rightString());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    <<  cmp.leftString() << " or " << cmp.rightString();
     }
     return ret;
 } // ibis::part::estimateCost
@@ -3768,14 +3830,18 @@ double ibis::part::estimateCost(const ibis::qMultiString &cmp) const {
 	ret = col->estimateCost(cmp);
     }
     else {
-	logWarning("estimateCost", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
     }
     return ret;
 } // ibis::part::estimateCost
 
-/// Estimate the entries that matches a qAnyAny condition.  The actual
-/// operations are performed as two types of range queries.
+/// Estimate a lower bound and an upper bound on the records that are
+/// hits.  The bitvector @c low contains records that are hits (for
+/// sure) and the bitvector @c high contains records that are possible
+/// hits.
 long ibis::part::estimateMatchAny(const ibis::qAnyAny &cmp,
 				  ibis::bitvector &low,
 				  ibis::bitvector &high) const {
@@ -3877,8 +3943,9 @@ void ibis::part::stringToBitvector(const char* conds,
     }
 } // ibis::part::stringToBitvector
 
-// sequential scan without a mask -- the default mask is the NULL mask, in
-// other word, all non-null entries are scaned
+/// Evaluate the range condition.  Scan the base data to resolve the
+/// range condition.
+/// Without a user specified mask, all non-NULL values are examined.
 long ibis::part::doScan(const ibis::qRange &cmp,
 			ibis::bitvector &hits) const {
     if (columns.empty() || nEvents == 0)
@@ -3888,8 +3955,10 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
-	logWarning("doScan", "unable to find column %s "
-		   "in the data partition", cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::doScan failed to find column "
+	    << cmp.colName();
 	hits.clear();
 	return 0;
     }
@@ -3901,8 +3970,9 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     return doScan(cmp, mask, hits);
 } // ibis::part::doScan
 
-// sequential scan with a mask -- perform comparison on the i'th element if
-// mask[i] is set (mask[i] == 1)
+/// Evalute the range condition on the records that are marked 1 in the
+/// mask.  The i'th element of the column is examined if mask[i] is set
+/// (mask[i] == 1).
 long ibis::part::doScan(const ibis::qRange &cmp,
 			const ibis::bitvector &mask,
 			ibis::bitvector &hits) const {
@@ -3912,8 +3982,10 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
-	logWarning("doScan", "unable to find named column %s "
-		   "in the data partition", cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::doScan failed to find named column "
+	    << cmp.colName();
 	return -1;
     }
 
@@ -4005,7 +4077,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		switch (cmp.getType()) {
 		default: {
-		    ierr = doCompare(intarray, mask, hits, cmp);
+		    ierr = doCompare(intarray, cmp, mask, hits);
 		    break;}
 		case ibis::qExpr::RANGE: {
 		    const ibis::qContinuousRange& rng =
@@ -4015,29 +4087,29 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		case ibis::qExpr::INTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare(intarray, mask, hits, qih);
+		    ierr = doCompare(intarray, qih, mask, hits);
 		    break;}
 		case ibis::qExpr::UINTHOD: {
 		    const ibis::qUIntHod& qih =
 			static_cast<const ibis::qUIntHod&>(cmp);
-		    ierr = doCompare(intarray, mask, hits, qih);
+		    ierr = doCompare(intarray, qih, mask, hits);
 		    break;}
 		}
 	    }
 	    else {
 		switch (cmp.getType()) {
 		default:
-		    ierr = doCompare<int64_t>(file, mask, hits, cmp);
+		    ierr = doCompare<int64_t>(file, cmp, mask, hits);
 		    break;
 		case ibis::qExpr::INTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare<int64_t>(file, mask, hits, qih);
+		    ierr = doCompare<int64_t>(file, qih, mask, hits);
 		    break;}
 		case ibis::qExpr::UINTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare<int64_t>(file, mask, hits, qih);
+		    ierr = doCompare<int64_t>(file, qih, mask, hits);
 		    break;}
 		}
 	    }
@@ -4045,17 +4117,17 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	catch (const std::bad_alloc&) {
 	    switch (cmp.getType()) {
 	    default:
-		ierr = doCompare<int64_t>(file, mask, hits, cmp);
+		ierr = doCompare<int64_t>(file, cmp, mask, hits);
 		break;
 	    case ibis::qExpr::INTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = doCompare<int64_t>(file, mask, hits, qih);
+		ierr = doCompare<int64_t>(file, qih, mask, hits);
 		break;}
 	    case ibis::qExpr::UINTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = doCompare<int64_t>(file, mask, hits, qih);
+		ierr = doCompare<int64_t>(file, qih, mask, hits);
 		break;}
 	    }
 	}
@@ -4070,7 +4142,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 		switch (cmp.getType()) {
 		default: {
-		    ierr = doCompare(intarray, mask, hits, cmp);
+		    ierr = doCompare(intarray, cmp, mask, hits);
 		    break;}
 		case ibis::qExpr::RANGE: {
 		    const ibis::qContinuousRange& rng =
@@ -4080,29 +4152,29 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		case ibis::qExpr::INTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare(intarray, mask, hits, qih);
+		    ierr = doCompare(intarray, qih, mask, hits);
 		    break;}
 		case ibis::qExpr::UINTHOD: {
 		    const ibis::qUIntHod& qih =
 			static_cast<const ibis::qUIntHod&>(cmp);
-		    ierr = doCompare(intarray, mask, hits, qih);
+		    ierr = doCompare(intarray, qih, mask, hits);
 		    break;}
 		}
 	    }
 	    else {
 		switch (cmp.getType()) {
 		default:
-		    ierr = doCompare<uint64_t>(file, mask, hits, cmp);
+		    ierr = doCompare<uint64_t>(file, cmp, mask, hits);
 		    break;
 		case ibis::qExpr::INTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare<uint64_t>(file, mask, hits, qih);
+		    ierr = doCompare<uint64_t>(file, qih, mask, hits);
 		    break;}
 		case ibis::qExpr::UINTHOD: {
 		    const ibis::qIntHod& qih =
 			static_cast<const ibis::qIntHod&>(cmp);
-		    ierr = doCompare<uint64_t>(file, mask, hits, qih);
+		    ierr = doCompare<uint64_t>(file, qih, mask, hits);
 		    break;}
 		}
 	    }
@@ -4110,17 +4182,17 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	catch (const std::bad_alloc&) {
 	    switch (cmp.getType()) {
 	    default:
-		ierr = doCompare<uint64_t>(file, mask, hits, cmp);
+		ierr = doCompare<uint64_t>(file, cmp, mask, hits);
 		break;
 	    case ibis::qExpr::INTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = doCompare<uint64_t>(file, mask, hits, qih);
+		ierr = doCompare<uint64_t>(file, qih, mask, hits);
 		break;}
 	    case ibis::qExpr::UINTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = doCompare<uint64_t>(file, mask, hits, qih);
+		ierr = doCompare<uint64_t>(file, qih, mask, hits);
 		break;}
 	    }
 	}
@@ -4139,15 +4211,15 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
-		    ierr = doCompare(intarray, mask, hits, cmp);
+		    ierr = doCompare(intarray, cmp, mask, hits);
 		}
 	    }
 	    else {
-		ierr = doCompare<int32_t>(file, mask, hits, cmp);
+		ierr = doCompare<int32_t>(file, cmp, mask, hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<int32_t>(file, mask, hits, cmp);
+	    ierr = doCompare<int32_t>(file, cmp, mask, hits);
 	}
 	catch (...) {
 	    throw;
@@ -4164,15 +4236,15 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
-		    ierr = doCompare(intarray, mask, hits, cmp);
+		    ierr = doCompare(intarray, cmp, mask, hits);
 		}
 	    }
 	    else {
-		ierr = doCompare<uint32_t>(file, mask, hits, cmp);
+		ierr = doCompare<uint32_t>(file, cmp, mask, hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<uint32_t>(file, mask, hits, cmp);
+	    ierr = doCompare<uint32_t>(file, cmp, mask, hits);
 	}
 	catch (...) {
 	    throw;
@@ -4189,15 +4261,15 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
-		    ierr = doCompare(intarray, mask, hits, cmp);
+		    ierr = doCompare(intarray, cmp, mask, hits);
 		}
 	    }
 	    else {
-		ierr = doCompare<int16_t>(file, mask, hits, cmp);
+		ierr = doCompare<int16_t>(file, cmp, mask, hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<int16_t>(file, mask, hits, cmp);
+	    ierr = doCompare<int16_t>(file, cmp, mask, hits);
 	}
 	catch (...) {
 	    throw;
@@ -4214,15 +4286,15 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
-		    ierr = doCompare(intarray, mask, hits, cmp);
+		    ierr = doCompare(intarray, cmp, mask, hits);
 		}
 	    }
 	    else {
-		ierr = doCompare<uint16_t>(file, mask, hits, cmp);
+		ierr = doCompare<uint16_t>(file, cmp, mask, hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<uint16_t>(file, mask, hits, cmp);
+	    ierr = doCompare<uint16_t>(file, cmp, mask, hits);
 	}
 	catch (...) {
 	    throw;
@@ -4239,15 +4311,15 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
-		    ierr = doCompare(intarray, mask, hits, cmp);
+		    ierr = doCompare(intarray, cmp, mask, hits);
 		}
 	    }
 	    else {
-		ierr = doCompare<signed char>(file, mask, hits, cmp);
+		ierr = doCompare<signed char>(file, cmp, mask, hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<signed char>(file, mask, hits, cmp);
+	    ierr = doCompare<signed char>(file, cmp, mask, hits);
 	}
 	catch (...) {
 	    throw;
@@ -4264,15 +4336,15 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    ierr = doScan(intarray, rng, mask, hits);
 		}
 		else {
-		    ierr = doCompare(intarray, mask, hits, cmp);
+		    ierr = doCompare(intarray, cmp, mask, hits);
 		}
 	    }
 	    else {
-		ierr = doCompare<unsigned char>(file, mask, hits, cmp);
+		ierr = doCompare<unsigned char>(file, cmp, mask, hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<unsigned char>(file, mask, hits, cmp);
+	    ierr = doCompare<unsigned char>(file, cmp, mask, hits);
 	}
 	catch (...) {
 	    throw;
@@ -4289,14 +4361,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 			 static_cast<const ibis::qContinuousRange&>(cmp),
 			 mask, hits);
 		else
-		    ierr = doCompare(floatarray, mask, hits, cmp);
+		    ierr = doCompare(floatarray, cmp, mask, hits);
 	    }
 	    else {
-		ierr = doCompare<float>(file, mask, hits, cmp);
+		ierr = doCompare<float>(file, cmp, mask, hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<float>(file, mask, hits, cmp);
+	    ierr = doCompare<float>(file, cmp, mask, hits);
 	}
 	catch (...) {
 	    throw;
@@ -4313,14 +4385,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 			 static_cast<const ibis::qContinuousRange&>(cmp),
 			 mask, hits);
 		else
-		    ierr = doCompare(doublearray, mask, hits, cmp);
+		    ierr = doCompare(doublearray, cmp, mask, hits);
 	    }
 	    else {
-		ierr = doCompare<double>(file, mask, hits, cmp);
+		ierr = doCompare<double>(file, cmp, mask, hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<double>(file, mask, hits, cmp);
+	    ierr = doCompare<double>(file, cmp, mask, hits);
 	}
 	catch (...) {
 	    throw;
@@ -4342,6 +4414,367 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     return ierr;
 } // ibis::part::doScan
 
+/// Evalute the range condition and record the values satisfying the
+/// condition in res.  The tests are only performed on the records that are
+/// marked 1 in the mask (mask[i] == 1).  This function only works for
+/// integers and floating-point numbers.
+long ibis::part::doScan(const ibis::qRange &cmp,
+			const ibis::bitvector &mask,
+			void *res) const {
+    if (columns.empty() || nEvents == 0 || cmp.colName() == 0 ||
+	mask.size() == 0 || mask.cnt() == 0)
+	return 0;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::doScan failed to find named column " << cmp.colName();
+	return -1;
+    }
+
+    std::string sname;
+    const char* file = col->dataFileName(sname);
+    if (file == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::doScan failed to locate the data file for column "
+	    << col->name();
+	return -2;
+    }
+    if (col->elementSize() > 0) {
+	off_t fsize = ibis::util::getFileSize(file);
+	if (fsize <= 0 || (unsigned long)fsize !=
+	    col->elementSize() * nEvents) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- part[" << (m_name?m_name:"?")
+		<< "]::doScan(" << cmp
+		<< ") can not proceed because of missing data file \""
+		<< file << "\" or unexpected file size (actual " << fsize
+		<< ", expected " << col->elementSize() * nEvents << ")";
+	    return -3;
+	}
+    }
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::doScan(" << cmp
+	    << ") can not process the condition on column type "
+	    << ibis::TYPESTRING[(int)col->type()];
+	return -4;
+    }
+
+    long ierr = 0;
+    switch (col->type()) {
+    default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::doScan can not process data type " << col->type() << " ("
+	    << ibis::TYPESTRING[(int)col->type()] << ")";
+	ierr = -5;
+	break;
+
+    case ibis::LONG: {
+	try {
+	    ibis::array_t<int64_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		switch (cmp.getType()) {
+		default: {
+		    ierr = doCompare(intarray, cmp, mask,
+				     *static_cast<array_t<int64_t>*>(res));
+		    break;}
+		case ibis::qExpr::RANGE: {
+		    const ibis::qContinuousRange& rng =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ierr = doScan(intarray, rng, mask,
+				  *static_cast<array_t<int64_t>*>(res));
+		    break;}
+		}
+	    }
+	    else {
+		ierr = doCompare<int64_t>
+		    (file, cmp, mask, *static_cast<array_t<int64_t>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<int64_t>
+		(file, cmp, mask, *static_cast<array_t<int64_t>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::ULONG: {
+	try {
+	    ibis::array_t<uint64_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		switch (cmp.getType()) {
+		default: {
+		    ierr = doCompare
+			(intarray, cmp, mask,
+			 *static_cast<array_t<uint64_t>*>(res));
+		    break;}
+		case ibis::qExpr::RANGE: {
+		    const ibis::qContinuousRange& rng =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ierr = doScan(intarray, rng, mask,
+				  *static_cast<array_t<uint64_t>*>(res));
+		    break;}
+		}
+	    }
+	    else {
+		ierr = doCompare<uint64_t>
+		    (file, cmp, mask, *static_cast<array_t<uint64_t>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<uint64_t>
+		(file, cmp, mask, *static_cast<array_t<uint64_t>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::INT: {
+	try {
+	    ibis::array_t<int32_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange &rng =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ierr = doScan(intarray, rng, mask,
+				  *static_cast<array_t<int32_t>*>(res));
+		}
+		else {
+		    ierr = doCompare(intarray, cmp, mask,
+				     *static_cast<array_t<int32_t>*>(res));
+		}
+	    }
+	    else {
+		ierr = doCompare<int32_t>
+		    (file, cmp, mask, *static_cast<array_t<int32_t>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<int32_t>
+		(file, cmp, mask, *static_cast<array_t<int32_t>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::UINT: {
+	try {
+	    ibis::array_t<uint32_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange &rng =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ierr = doScan(intarray, rng, mask,
+				  *static_cast<array_t<uint32_t>*>(res));
+		}
+		else {
+		    ierr = doCompare(intarray, cmp, mask,
+				     *static_cast<array_t<uint32_t>*>(res));
+		}
+	    }
+	    else {
+		ierr = doCompare<uint32_t>
+		    (file, cmp, mask, *static_cast<array_t<uint32_t>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<uint32_t>
+		(file, cmp, mask, *static_cast<array_t<uint32_t>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::SHORT: {
+	try {
+	    ibis::array_t<int16_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange &rng =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ierr = doScan(intarray, rng, mask,
+				  *static_cast<array_t<int16_t>*>(res));
+		}
+		else {
+		    ierr = doCompare(intarray, cmp, mask,
+				     *static_cast<array_t<int16_t>*>(res));
+		}
+	    }
+	    else {
+		ierr = doCompare<int16_t>
+		    (file, cmp, mask, *static_cast<array_t<int16_t>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<int16_t>
+		(file, cmp, mask, *static_cast<array_t<int16_t>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::USHORT: {
+	try {
+	    ibis::array_t<uint16_t> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange &rng =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ierr = doScan(intarray, rng, mask,
+				  *static_cast<array_t<uint16_t>*>(res));
+		}
+		else {
+		    ierr = doCompare(intarray, cmp, mask,
+				     *static_cast<array_t<uint16_t>*>(res));
+		}
+	    }
+	    else {
+		ierr = doCompare<uint16_t>(file, cmp, mask,
+					   *static_cast<array_t<uint16_t>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<uint16_t>
+		(file, cmp, mask, *static_cast<array_t<uint16_t>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::BYTE: {
+	try {
+	    ibis::array_t<signed char> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange &rng =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ierr = doScan(intarray, rng, mask,
+				  *static_cast<array_t<signed char>*>(res));
+		}
+		else {
+		    ierr = doCompare(intarray, cmp, mask,
+				     *static_cast<array_t<signed char>*>(res));
+		}
+	    }
+	    else {
+		ierr = doCompare<signed char>
+		    (file, cmp, mask, *static_cast<array_t<signed char>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<signed char>
+		(file, cmp, mask, *static_cast<array_t<signed char>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::UBYTE: {
+	try {
+	    ibis::array_t<unsigned char> intarray;
+	    if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE) {
+		    const ibis::qContinuousRange &rng =
+			static_cast<const ibis::qContinuousRange&>(cmp);
+		    ierr = doScan(intarray, rng, mask,
+				  *static_cast<array_t<unsigned char>*>(res));
+		}
+		else {
+		    ierr = doCompare(intarray, cmp, mask,
+				     *static_cast<array_t<unsigned char>*>(res));
+		}
+	    }
+	    else {
+		ierr = doCompare<unsigned char>
+		    (file, cmp, mask, *static_cast<array_t<unsigned char>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<unsigned char>
+		(file, cmp, mask, *static_cast<array_t<unsigned char>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::FLOAT: {
+	try {
+	    ibis::array_t<float> floatarray;
+	    if (ibis::fileManager::instance().getFile(file, floatarray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE)
+		    ierr = doScan
+			(floatarray,
+			 static_cast<const ibis::qContinuousRange&>(cmp),
+			 mask,
+			 *static_cast<array_t<float>*>(res));
+		else
+		    ierr = doCompare(floatarray, cmp, mask,
+				     *static_cast<array_t<float>*>(res));
+	    }
+	    else {
+		ierr = doCompare<float>
+		    (file, cmp, mask, *static_cast<array_t<float>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<float>
+		(file, cmp, mask, *static_cast<array_t<float>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+
+    case ibis::DOUBLE: {
+	try {
+	    ibis::array_t<double> doublearray;
+	    if (ibis::fileManager::instance().getFile(file, doublearray) == 0) {
+		if (cmp.getType() == ibis::qExpr::RANGE)
+		    ierr = doScan
+			(doublearray,
+			 static_cast<const ibis::qContinuousRange&>(cmp),
+			 mask, *static_cast<array_t<double>*>(res));
+		else
+		    ierr = doCompare(doublearray, cmp, mask,
+				     *static_cast<array_t<double>*>(res));
+	    }
+	    else {
+		ierr = doCompare<double>
+		    (file, cmp, mask, *static_cast<array_t<double>*>(res));
+	    }
+	}
+	catch (const std::bad_alloc&) {
+	    ierr = doCompare<double>(file, cmp, mask,
+				     *static_cast<array_t<double>*>(res));
+	}
+	catch (...) {
+	    throw;
+	}
+	break;}
+    }
+
+    LOGGER(ibis::gVerbose > 11)
+	<< "part[" << name() << "]: comparison " << cmp
+	<< " is evaluated to have " << ierr
+	<< " hits out of " << mask.cnt() << " candidates";
+    return ierr;
+} // ibis::part::doScan
+
+/// Locate the records that satisfy the range condition.
 /// A generic scan function that rely on the virtual function
 /// ibis::range::inRange.
 /// This static member function works on an array provided by the
@@ -4402,8 +4835,9 @@ long ibis::part::doScan(const array_t<E> &varr,
     return hits.cnt();
 } // ibis::part::doScan
 
-// sequential scan with a mask -- perform the negative comparison on the
-// i'th element if mask[i] is set (mask[i] == 1)
+/// Compute the records (marked 1 in the mask) that does not satisfy the
+/// range condition.  Only the entries with mask[i] == 1 are examined,
+/// those with mask[i] == 0 will never be hits.
 long ibis::part::negativeScan(const ibis::qRange &cmp,
 			      const ibis::bitvector &mask,
 			      ibis::bitvector &hits) const {
@@ -4413,8 +4847,10 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
-	logWarning("negativeScan", "unable to find named column %s "
-		   "in the data partition", cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::negativeScan failed to find named column "
+	    << cmp.colName();
 	return -1;
     }
 
@@ -4468,34 +4904,34 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 	    switch (cmp.getType()) {
 	    default:
-		ierr = negativeCompare(intarray, mask, hits, cmp);
+		ierr = negativeCompare(intarray, cmp, mask, hits);
 		break;
 	    case ibis::qExpr::INTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = negativeCompare(intarray, mask, hits, qih);
+		ierr = negativeCompare(intarray, qih, mask, hits);
 		break;}
 	    case ibis::qExpr::UINTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = negativeCompare(intarray, mask, hits, qih);
+		ierr = negativeCompare(intarray, qih, mask, hits);
 		break;}
 	    }
 	}
 	else {
 	    switch (cmp.getType()) {
 	    default:
-		ierr = negativeCompare<int64_t>(file, mask, hits, cmp);
+		ierr = negativeCompare<int64_t>(file, cmp, mask, hits);
 		break;
 	    case ibis::qExpr::INTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = negativeCompare<int64_t>(file, mask, hits, qih);
+		ierr = negativeCompare<int64_t>(file, qih, mask, hits);
 		break;}
 	    case ibis::qExpr::UINTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = negativeCompare<int64_t>(file, mask, hits, qih);
+		ierr = negativeCompare<int64_t>(file, qih, mask, hits);
 		break;}
 	    }
 	}
@@ -4506,34 +4942,34 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
 	    switch (cmp.getType()) {
 	    default:
-		ierr = negativeCompare(intarray, mask, hits, cmp);
+		ierr = negativeCompare(intarray, cmp, mask, hits);
 		break;
 	    case ibis::qExpr::INTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = negativeCompare(intarray, mask, hits, qih);
+		ierr = negativeCompare(intarray, qih, mask, hits);
 		break;}
 	    case ibis::qExpr::UINTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = negativeCompare(intarray, mask, hits, qih);
+		ierr = negativeCompare(intarray, qih, mask, hits);
 		break;}
 	    }
 	}
 	else {
 	    switch (cmp.getType()) {
 	    default:
-		ierr = negativeCompare<uint64_t>(file, mask, hits, cmp);
+		ierr = negativeCompare<uint64_t>(file, cmp, mask, hits);
 		break;
 	    case ibis::qExpr::INTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = negativeCompare<uint64_t>(file, mask, hits, qih);
+		ierr = negativeCompare<uint64_t>(file, qih, mask, hits);
 		break;}
 	    case ibis::qExpr::UINTHOD: {
 		const ibis::qIntHod& qih =
 		    static_cast<const ibis::qIntHod&>(cmp);
-		ierr = negativeCompare<uint64_t>(file, mask, hits, qih);
+		ierr = negativeCompare<uint64_t>(file, qih, mask, hits);
 		break;}
 	    }
 	}
@@ -4542,10 +4978,10 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
     case ibis::INT: {
 	array_t<int32_t> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    ierr = negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
 	else {
-	    ierr = negativeCompare<int32_t>(file, mask, hits, cmp);
+	    ierr = negativeCompare<int32_t>(file, cmp, mask, hits);
 	}
 	break;}
 
@@ -4553,70 +4989,70 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
     case ibis::UINT: {
 	array_t<uint32_t> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    ierr = negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
 	else {
-	    ierr = negativeCompare<uint32_t>(file, mask, hits, cmp);
+	    ierr = negativeCompare<uint32_t>(file, cmp, mask, hits);
 	}
 	break;}
 
     case ibis::SHORT: {
 	array_t<int16_t> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    ierr = negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
 	else {
-	    ierr = negativeCompare<int16_t>(file, mask, hits, cmp);
+	    ierr = negativeCompare<int16_t>(file, cmp, mask, hits);
 	}
 	break;}
 
     case ibis::USHORT: {
 	array_t<uint16_t> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    ierr = negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
 	else {
-	    ierr = negativeCompare<uint16_t>(file, mask, hits, cmp);
+	    ierr = negativeCompare<uint16_t>(file, cmp, mask, hits);
 	}
 	break;}
 
     case ibis::BYTE: {
 	array_t<signed char> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    ierr = negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
 	else {
-	    ierr = negativeCompare<signed char>(file, mask, hits, cmp);
+	    ierr = negativeCompare<signed char>(file, cmp, mask, hits);
 	}
 	break;}
 
     case ibis::UBYTE: {
 	array_t<unsigned char> intarray;
 	if (ibis::fileManager::instance().getFile(file, intarray) == 0) {
-	    ierr = negativeCompare(intarray, mask, hits, cmp);
+	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
 	else {
-	    ierr = negativeCompare<unsigned char>(file, mask, hits, cmp);
+	    ierr = negativeCompare<unsigned char>(file, cmp, mask, hits);
 	}
 	break;}
 
     case ibis::FLOAT: {
 	array_t<float> floatarray;
 	if (ibis::fileManager::instance().getFile(file, floatarray) == 0) {
-	    ierr = negativeCompare(floatarray, mask, hits, cmp);
+	    ierr = negativeCompare(floatarray, cmp, mask, hits);
 	}
 	else {
-	    ierr = negativeCompare<float>(file, mask, hits, cmp);
+	    ierr = negativeCompare<float>(file, cmp, mask, hits);
 	}
 	break;}
 
     case ibis::DOUBLE: {
 	array_t<double> doublearray;
 	if (ibis::fileManager::instance().getFile(file, doublearray) == 0) {
-	    ierr = negativeCompare(doublearray, mask, hits, cmp);
+	    ierr = negativeCompare(doublearray, cmp, mask, hits);
 	}
 	else {
-	    ierr = negativeCompare<double>(file, mask, hits, cmp);
+	    ierr = negativeCompare<double>(file, cmp, mask, hits);
 	}
 	break;}
     }
@@ -4651,8 +5087,10 @@ float ibis::part::getUndecidable(const ibis::qContinuousRange &cmp,
 	ret = col->getUndecidable(cmp, iffy);
     }
     else {
-	logWarning("getUndecidable", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::getUndecidable failed to find a column named "
+	    << cmp.colName();
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -4674,8 +5112,10 @@ float ibis::part::getUndecidable(const ibis::qDiscreteRange &cmp,
 	ret = col->getUndecidable(cmp, iffy);
     }
     else {
-	logWarning("getUndecidable", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::getUndecidable failed to find a column named "
+	    << cmp.colName();
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -4697,8 +5137,10 @@ float ibis::part::getUndecidable(const ibis::qIntHod &cmp,
 	ret = col->getUndecidable(cmp, iffy);
     }
     else {
-	logWarning("getUndecidable", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::getUndecidable failed to find a column named "
+	    << cmp.colName();
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -4720,8 +5162,10 @@ float ibis::part::getUndecidable(const ibis::qUIntHod &cmp,
 	ret = col->getUndecidable(cmp, iffy);
     }
     else {
-	logWarning("getUndecidable", "unable to find a column named %s",
-		   cmp.colName());
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::getUndecidable failed to find a column named "
+	    << cmp.colName();
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -4732,8 +5176,8 @@ float ibis::part::getUndecidable(const ibis::qUIntHod &cmp,
     return ret;
 } // ibis::part::getUndecidable
 
-/// Sequential scan without a mask.  It assumes that every row is to be
-/// examined.
+/// Sequential scan without a mask.  It assumes that every valid row is to
+/// be examined.
 long ibis::part::doScan(const ibis::compRange &cmp,
 			ibis::bitvector &hits) const {
     if (columns.empty() || nEvents == 0)
@@ -4744,6 +5188,8 @@ long ibis::part::doScan(const ibis::compRange &cmp,
     return doScan(cmp, mask, hits);
 } // ibis::part::doScan
 
+/// Locate the records that have mark value 1 and satisfy the complex
+/// range conditions.
 /// This implementation uses ibis::part::barrel for handling actual values
 /// needed.
 long ibis::part::doScan(const ibis::compRange &cmp,
@@ -4788,7 +5234,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 
     ierr = vlist.open();
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 2)
 	    << "Warning -- part[" << (m_name ? m_name : "?")
 	    << "]::doScan -- failed to prepare data for " << cmp;
 	return ierr;
@@ -4854,6 +5300,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
     return ierr;
 } // ibis::part::doScan
 
+/// Calculate the values of an arithmetic expression.
 /// The arithmetic expression is applied to each row that are marked 1 in
 /// the mask, msk, with names in the arithmetic expression interpretted as
 /// column names.  The resulting values are packed into the array res as
@@ -5672,8 +6119,9 @@ void ibis::part::queryTest(const char* pref, long* nerrors) const {
 	    it = columns.begin();
     }
     if (static_cast<unsigned>(i) >= columns.size()) {
-	logWarning("queryTest",
-		   "unable to find a non-string attribute for testing");
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::queryTest needs a non-string attribute to proceed";
 	return;
     }
 
@@ -5729,8 +6177,8 @@ void ibis::part::queryTest(const char* pref, long* nerrors) const {
 	ibis::TYPE_T type = (*it).second->type();
 	if (type != ibis::FLOAT && type != ibis::DOUBLE) {
 	    // remove the fractional part for consistent printing
-	    lower = std::floor(lower);
-	    upper = std::ceil(upper);
+	    lower = floor(lower);
+	    upper = ceil(upper);
 	}
     }
 
@@ -5768,8 +6216,9 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 		it = columns.begin();
 	}
 	if (static_cast<unsigned>(i) >= columns.size()) {
-	    logWarning("quickTest",
-		       "unable to find a non-string attribute for testing");
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- part[" << name()
+		<< "]::quickTest needs a non-string attribute to proceed";
 	    return;
 	}
     }
@@ -5835,8 +6284,8 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	ibis::TYPE_T type = att->type();
 	if (type != ibis::FLOAT && type == ibis::DOUBLE) {
 	    // remove the fractional part for consistent printing
-	    lower = std::floor(lower);
-	    upper = std::ceil(upper);
+	    lower = floor(lower);
+	    upper = ceil(upper);
 	}
     }
 
@@ -6415,8 +6864,8 @@ uint32_t ibis::part::recursiveQuery(const char* pref, const column* att,
 	    // get rid of the fractional parts for consistent printing --
 	    // query processing automatically truncates floating-point
 	    // values to integers
-	    mid1 = std::ceil(mid1);
-	    mid2 = std::floor(mid2);
+	    mid1 = ceil(mid1);
+	    mid2 = floor(mid2);
 	}
 	if (mid1 < mid2) {
 	    cnt1 = recursiveQuery(pref, att, low, mid1, nerrors);
@@ -6847,15 +7296,358 @@ ibis::part::softWriteLock::softWriteLock(const part* tbl, const char* m)
 /// The function that performs the actual comparison for range queries.
 /// The size of array may either match the number of bits in @c mask or the
 /// number of set bits in @c mask.  This allows one to either use the whole
+/// array or the only the elements need for this operation.  The values
+/// satisfying the query condition is stored in res.
+///
+/// The return value is the number of elements in res or a negative number
+/// to indicate error.
+template <typename T>
+long ibis::part::doCompare(const array_t<T> &array,
+			   const ibis::qRange &cmp,
+			   const ibis::bitvector &mask,
+			   ibis::array_t<T> &res) {
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1) timer.start(); // start the timer
+
+    res.clear();
+    res.nosharing();
+    long ierr = 0;
+    uint32_t i=0, j=0;
+    if (res.capacity() < mask.cnt())
+	res.reserve(mask.cnt() >> 1);
+
+    ibis::bitvector::indexSet idx = mask.firstIndexSet();
+    if (array.size() == mask.size()) { // full array available
+	while (idx.nIndices() > 0) { // the outer loop
+	    const ibis::bitvector::word_t *ii = idx.indices();
+	    if (idx.isRange()) {
+		for (j = *ii; j < ii[1]; ++j) {
+		    if (cmp.inRange(array[j])) {
+			res.push_back(array[j]);
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+			LOGGER(ibis::gVerbose >= 0)
+			    << "DEBUG -- doCompare" << array[j] << " is in "
+			    << cmp;
+#endif
+		    }
+		}
+	    }
+	    else {
+		for (i = 0; i < idx.nIndices(); ++i) {
+		    j = ii[i];
+		    if (cmp.inRange(array[j])) {
+			res.push_back(array[j]);
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+			LOGGER(ibis::gVerbose >= 0)
+			    << "DEBUG -- doCompare " << array[j] << " is in "
+			    << cmp;
+#endif
+		    }
+		}
+	    }
+
+	    ++ idx; // next set of selected entries
+	}
+	ierr = res.size();
+    }
+    else if (array.size() == mask.cnt()) { // packed array available
+	while (idx.nIndices() > 0) {
+	    const ibis::bitvector::word_t *ii = idx.indices();
+	    if (idx.isRange()) {
+		for (unsigned k = *ii; k < ii[1]; ++ k) {
+		    if (cmp.inRange(array[j])) {
+			res.push_back(array[j]);
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+			LOGGER(ibis::gVerbose >= 0)
+			    << "DEBUG -- doCompare" << array[j] << " is in "
+			    << cmp << ", setting position " << k
+			    << " of hit vector to 1";
+#endif
+		    }
+		    ++ j;
+		}
+	    }
+	    else {
+		for (uint32_t k = 0; k < idx.nIndices(); ++ k) {
+		    if (cmp.inRange(array[j])) {
+			res.push_back(array[j]);
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+			LOGGER(ibis::gVerbose >= 0)
+			    << "DEBUG -- doCompare " << array[j] << " is in "
+			    << cmp << ", setting position " << ii[k]
+			    << " of hit vector to 1";
+#endif
+		    }
+		    ++ j;
+		}
+	    }
+	    ++ idx;
+	}
+	ierr = res.size();
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare requires the input data array size ("
+	    << array.size() << ") to be either " << mask.size() << " or "
+	    << mask.cnt();
+	ierr = -6;
+    }
+
+    if (ibis::gVerbose > 1 && ierr >= 0) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg() << "part::doCompare -- performing comparison with column "
+	     << cmp.colName() << " on " << mask.cnt() << " element"
+	     << (mask.cnt() > 1 ? "s" : "") << " of a "
+	     << typeid(T).name() << "-array[" << array.size()
+	     << "] took " << timer.realTime()
+	     << " sec elapsed time and produced " << ierr
+	     << " hit" << (ierr>1?"s":"") << "\n";
+    }
+    return ierr;
+} // ibis::part::doCompare
+
+/// Perform comparisons with data in the named file.  Place the values
+/// satisfying the specified condition into res.  This function attempts to
+/// allocate a buffer so the reading can be done in relatively large-size
+/// chunks.  If it is unable to allocate a useful buffer, it will read one
+/// value at a time.
+template <typename T>
+long ibis::part::doCompare(const char* file,
+			   const ibis::qRange &cmp,
+			   const ibis::bitvector &mask,
+			   ibis::array_t<T> &res) {
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1)
+	timer.start(); // start the timer
+
+    res.clear();
+    int fdes = UnixOpen(file, OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare failed to open file \"" << file
+	    << '"';
+	return -1;
+    }
+    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+
+    res.nosharing();
+    if (res.capacity() < mask.cnt())
+	res.reserve(mask.cnt() >> 1);
+
+    const unsigned elem = sizeof(T);
+    // attempt to allocate a decent sized buffer for operations
+    ibis::fileManager::buffer<T> mybuf;
+    uint32_t nbuf = mybuf.size();
+    T *buf = mybuf.address();
+
+    uint32_t i=0, j=0;
+    long diff, ierr=0;
+    const ibis::bitvector::word_t *ii;
+    ibis::bitvector::indexSet idx = mask.firstIndexSet();
+
+    if (buf) { // has a good size buffer to read data into
+	while (idx.nIndices() > 0) { // the outer loop
+	    ii = idx.indices();
+	    if (idx.isRange()) {
+		diff = *ii * elem;
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- part::doCompare(" << file
+			<< ") failed to seek to " << diff;
+		    res.clear();
+		    return -2;
+		}
+		ibis::fileManager::instance().recordPages
+		    (diff, elem*ii[1]);
+		j = ii[1];
+		for (i = *ii; i < ii[1]; i += diff) {
+		    diff = nbuf;
+		    if (i+diff > ii[1])
+			diff = ii[1] - i;
+		    ierr = UnixRead(fdes, buf, elem*diff) / elem;
+		    if (diff == ierr && ierr >= 0) {
+			j = ierr;
+		    }
+		    else {
+			j = 0;
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare expected to read "
+			    << diff << "values from \"" << file
+			    << "\" but got only " << ierr;
+		    }
+		    for (uint32_t k = 0; k < j; ++k) {
+			if (cmp.inRange(buf[k])) {
+			    res.push_back(buf[k]);
+			}
+		    }
+		}
+	    }
+	    else if (idx.nIndices() > 1) {
+		diff = ii[idx.nIndices()-1] - *ii + 1;
+		if (static_cast<uint32_t>(diff) < nbuf) {
+		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
+		    if (ierr != static_cast<long>(*ii * elem)) {
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare(" << file
+			    << ") failed to seek to " << *ii *elem;
+			res.clear();
+			return -3;
+		    }
+		    ierr = UnixRead(fdes, buf, elem*diff) / elem;
+		    if (diff == ierr && ierr >= 0) {
+			j = idx.nIndices();
+		    }
+		    else {
+			j = 0;
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare expected to read "
+			    << diff << "values from \"" << file
+			    << "\" but got only " << ierr;
+		    }
+		    for (i = 0; i < j; ++i) {
+			uint32_t k0 = ii[i] - *ii;
+			if (cmp.inRange(buf[k0])) {
+			    res.push_back(buf[k0]);
+			}
+		    }
+		}
+		else if (diff > 0) { // read one element at a time
+		    for (i = 0; i < idx.nIndices(); ++i) {
+			j = ii[i];
+			diff = j * elem;
+			ierr = UnixSeek(fdes, diff, SEEK_SET);
+			if (ierr != diff) {
+			    LOGGER(ibis::gVerbose > 0)
+				<< "Warning -- part::doCompare(" << file
+				<< ") failed to seek to " << diff;
+			    res.clear();
+			    return -4;
+			}
+			ierr = UnixRead(fdes, buf, elem);
+			if (ierr > 0) {
+			    if (cmp.inRange(*buf)) {
+				res.push_back(*buf);
+			    }
+			}
+			else {
+			    LOGGER(ibis::gVerbose > 0)
+				<< "Warning -- part::doCompare(" << file
+				<< ") failed to read a value at " << diff;
+			}
+		    }
+		}
+		ibis::fileManager::instance().recordPages
+		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
+	    }
+	    else { // read a single value
+		j = *ii;
+		diff = j * elem;
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- part::doCompare(" << file
+			<< ") failed to seek to " << diff;
+		    res.clear();
+		    return -4;
+		}
+		ierr = UnixRead(fdes, buf, elem);
+		if (ierr > 0) {
+		    ibis::fileManager::instance().recordPages(diff, diff+elem);
+		    if (cmp.inRange(*buf)) {
+			res.push_back(*buf);
+		    }
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- part::doCompare(" << file
+			<< ") failed to read a value at " << diff;
+		}
+	    }
+
+	    ++idx; // next set of selected entries
+	} // while (idx.nIndices() > 0)
+    }
+    else { // no user buffer to use, read a single value at a time
+	T tmp;
+	while (idx.nIndices() > 0) { // the outer loop
+	    ii = idx.indices();
+	    if (idx.isRange()) {
+		diff = *ii * elem;
+		ierr = UnixSeek(fdes, diff, SEEK_SET);
+		if (ierr != diff) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- part::doCompare(" << file
+			<< ") failed to seek to " << diff;
+		    res.clear();
+		    return -5;
+		}
+
+		ibis::fileManager::instance().recordPages(diff, elem*ii[1]);
+		j = ii[1];
+		for (i = *ii; i < j; ++i) {
+		    ierr = UnixRead(fdes, &tmp, elem);
+		    if (ierr > 0 && cmp.inRange(tmp)) {
+			res.push_back(tmp);
+		    }
+		}
+	    }
+	    else {
+		for (i = 0; i < idx.nIndices(); ++i) {
+		    j = ii[1];
+		    diff = j * elem;
+		    ierr = UnixSeek(fdes, diff, SEEK_SET);
+		    if (ierr != diff) {
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare(" << file
+			    << ") failed to seek to " << diff;
+			res.clear();
+			return -6;
+		    }
+
+		    ierr = UnixRead(fdes, &tmp, elem);
+		    if (ierr > 0 && cmp.inRange(tmp)) {
+			res.push_back(tmp);
+		    }
+		}
+		ibis::fileManager::instance().recordPages
+		    (elem*ii[0], elem*ii[idx.nIndices()-1]);
+	    }
+
+	    ++idx; // next set of selected entries
+	} // while (idx.nIndices() > 0)
+    }
+
+    ierr = res.size();
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg() << "part::doCompare -- performing comparison with column "
+	     << cmp.colName() << " on " << mask.cnt() << " element"
+	     << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
+	     << " from file \"" << file << "\" took "
+	     << timer.realTime() << " sec elapsed time and produced "
+	     << ierr << " hit" << (ierr > 1 ? "s" : "") << "\n";
+    }
+    return ierr;
+} // ibis::part::doCompare
+
+/// The function that performs the actual comparison for range queries.
+/// The size of array may either match the number of bits in @c mask or the
+/// number of set bits in @c mask.  This allows one to either use the whole
 /// array or the only the elements need for this operation.  In either
 /// case, only mask.cnt() elements of array are checked but position of the
 /// bits that need to be set in the output bitvector @c hits have to be
 /// handled differently.
 template <typename T>
 long ibis::part::doCompare(const array_t<T> &array,
+			   const ibis::qRange &cmp,
 			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits,
-			   const ibis::qRange &cmp) const {
+			   ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) timer.start(); // start the timer
 
@@ -6941,24 +7733,22 @@ long ibis::part::doCompare(const array_t<T> &array,
 	}
     }
     else {
-	logWarning("doCompare", "the input data array size (%lu) has to be "
-		   "either %lu or %lu",
-		   static_cast<long unsigned>(array.size()),
-		   static_cast<long unsigned>(mask.size()),
-		   static_cast<long unsigned>(mask.cnt()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare requires the input data array size ("
+	    << array.size() << ") to be either " << mask.size() << " or "
+	    << mask.cnt();
 	ierr = -6;
     }
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
+    else if (hits.size() != mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::doCompare -- performing comparison with column "
+	lg() << "part::doCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt() << " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of a "
 	     << typeid(T).name() << "-array[" << array.size()
@@ -6972,18 +7762,24 @@ long ibis::part::doCompare(const array_t<T> &array,
     return ierr;
 } // ibis::part::doCompare
 
+/// Perform comparisons with data in the named file.  It attempts to
+/// allocate a buffer so the reading can be done in relatively large-size
+/// chunks.  If it is unable to allocate a useful buffer, it will read one
+/// value at a time.
 template <typename T>
 long ibis::part::doCompare(const char* file,
+			   const ibis::qRange &cmp,
 			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits,
-			   const ibis::qRange &cmp) const {
+			   ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start(); // start the timer
 
     int fdes = UnixOpen(file, OPEN_READONLY);
     if (fdes < 0) {
-	logWarning("doCompare", "unable to open file \"%s\"", file);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare failed to open file \"" << file
+	    << '"';
 	hits.set(0, mask.size());
 	return -1;
     }
@@ -7039,9 +7835,10 @@ long ibis::part::doCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("doCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare expected to read "
+			    << diff << "values from \"" << file
+			    << "\" but got only " << ierr;
 		    }
 		    for (uint32_t k = 0; k < j; ++k) {
 			if (cmp.inRange(buf[k])) {
@@ -7056,9 +7853,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::doCompare(" << file
+			    << "Warning -- part::doCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
 			hits.clear();
 			return -3;
@@ -7069,9 +7864,10 @@ long ibis::part::doCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("doCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare expected to read "
+			    << diff << "values from \"" << file
+			    << "\" but got only " << ierr;
 		    }
 		    for (i = 0; i < j; ++i) {
 			uint32_t k0 = ii[i] - *ii;
@@ -7087,9 +7883,7 @@ long ibis::part::doCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::doCompare(" << file
+				<< "Warning -- part::doCompare(" << file
 				<< ") failed to seek to " << diff;
 			    hits.clear();
 			    return -4;
@@ -7102,9 +7896,7 @@ long ibis::part::doCompare(const char* file,
 			}
 			else {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::doCompare(" << file
+				<< "Warning -- part::doCompare(" << file
 				<< ") failed to read a value at " << diff;
 			}
 		    }
@@ -7118,9 +7910,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -4;
@@ -7134,8 +7924,7 @@ long ibis::part::doCompare(const char* file,
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to read a value at " << diff;
 		}
 	    }
@@ -7152,8 +7941,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -5;
@@ -7175,9 +7963,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::doCompare(" << file
+			    << "Warning -- part::doCompare(" << file
 			    << ") failed to seek to " << diff;
 			hits.clear();
 			return -6;
@@ -7198,14 +7984,13 @@ long ibis::part::doCompare(const char* file,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
+    else if (hits.size() != mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::doCompare -- performing comparison with column "
+	lg() << "part::doCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt() << " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
 	     << " from file \"" << file << "\" took "
@@ -7221,15 +8006,16 @@ long ibis::part::doCompare(const char* file,
 // hits are those do not satisfy the speficied range condition
 template <typename T>
 long ibis::part::negativeCompare(const array_t<T> &array,
+				 const ibis::qRange &cmp,
 				 const ibis::bitvector &mask,
-				 ibis::bitvector &hits,
-				 const ibis::qRange &cmp) const {
+				 ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) timer.start(); // start the timer
 
     uint32_t i=0, j=0;
     long ierr=0;
-    const uint32_t nelm = (array.size() <= nEvents ? array.size() : nEvents);
+    const uint32_t nelm = (array.size() <= mask.size() ?
+			   array.size() : mask.size());
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
 	hits.set(0, mask.size());
@@ -7277,14 +8063,13 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::negativeCompare -- performing comparison with column "
+	lg() << "part::negativeCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt()<< " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of a "
 	     << typeid(T).name() << "-array[" << array.size()
@@ -7300,9 +8085,9 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 
 template <typename T>
 long ibis::part::negativeCompare(const char* file,
+				 const ibis::qRange &cmp,
 				 const ibis::bitvector &mask,
-				 ibis::bitvector &hits,
-				 const ibis::qRange &cmp) const {
+				 ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start(); // start the timer
@@ -7310,8 +8095,9 @@ long ibis::part::negativeCompare(const char* file,
     hits.clear(); // clear the existing content
     int fdes = UnixOpen(file, OPEN_READONLY);
     if (fdes < 0) {
-	logWarning("negativeCompare", "unable to open file \"%s\"",
-		   file);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warnign -- part::negativeCompare failed to open file \""
+	    << file << '"';
 	hits.set(0, mask.size());
 	return -1;
     }
@@ -7349,8 +8135,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -3;
@@ -7369,9 +8154,10 @@ long ibis::part::negativeCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("negativeCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::negativeCompare expected "
+			    "to read " << diff << " values from \""
+			    << file << "\" but got only " << ierr;
 		    }
 		    for (uint32_t k = 0; k < j; ++k) {
 			if (! cmp.inRange(buf[k])) {
@@ -7387,9 +8173,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
 			hits.clear();
 			return -4;
@@ -7402,9 +8186,7 @@ long ibis::part::negativeCompare(const char* file,
 		    else {
 			j = 0;
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") expected to read " << diff
 			    << " elements of " << elem << "-byte each, "
 			    << "but got " << ierr;
@@ -7423,9 +8205,7 @@ long ibis::part::negativeCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::negativeCompare(" << file
+				<< "Warning -- part::negativeCompare(" << file
 				<< ") failed to seek to " << diff;
 			    hits.clear();
 			    return -5;
@@ -7447,9 +8227,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -6;
@@ -7475,9 +8253,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -7;
@@ -7500,9 +8276,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") failed to seek to " << diff;
 			hits.clear();
 			return -8;
@@ -7524,15 +8298,14 @@ long ibis::part::negativeCompare(const char* file,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg()
-	    << "part[" << (m_name ? m_name : "?")
-	    << "]::negativeCompare -- performing comparison with column "
+	    << "part::negativeCompare -- performing comparison with column "
 	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
 	    << "s from file \"" << file << "\" took " << timer.realTime()
 	    << " sec elapsed time and produced " << hits.cnt() << " hits";
@@ -7554,9 +8327,9 @@ long ibis::part::negativeCompare(const char* file,
 /// handled differently.
 template <typename T>
 long ibis::part::doCompare(const array_t<T> &array,
+			   const ibis::qIntHod &cmp,
 			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits,
-			   const ibis::qIntHod &cmp) const {
+			   ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) timer.start(); // start the timer
 
@@ -7642,24 +8415,22 @@ long ibis::part::doCompare(const array_t<T> &array,
 	}
     }
     else {
-	logWarning("doCompare", "the input data array size (%lu) has to be "
-		   "either %lu or %lu",
-		   static_cast<long unsigned>(array.size()),
-		   static_cast<long unsigned>(mask.size()),
-		   static_cast<long unsigned>(mask.cnt()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warnign -- part::doCompare requires the input data array size ("
+	    << array.size() << ") to be either " << mask.size() << " or "
+	    << mask.cnt();
 	ierr = -6;
     }
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::doCompare -- performing comparison with column "
+	lg() << "part::doCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt() << " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of a "
 	     << typeid(T).name() << "-array[" << array.size()
@@ -7677,16 +8448,18 @@ long ibis::part::doCompare(const array_t<T> &array,
 /// only applied on rows with mask == 1.
 template <typename T>
 long ibis::part::doCompare(const char* file,
+			   const ibis::qIntHod &cmp,
 			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits,
-			   const ibis::qIntHod &cmp) const {
+			   ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start(); // start the timer
 
     int fdes = UnixOpen(file, OPEN_READONLY);
     if (fdes < 0) {
-	logWarning("doCompare", "unable to open file \"%s\"", file);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare failed to open file \""
+	    << file << '"';
 	hits.set(0, mask.size());
 	return -1;
     }
@@ -7742,9 +8515,10 @@ long ibis::part::doCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("doCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare expected to read "
+			    << diff << " values from \"" << file
+			    << "\" but got only " << ierr;
 		    }
 		    for (uint32_t k = 0; k < j; ++k) {
 			if (cmp.inRange((int64_t)buf[k])) {
@@ -7759,9 +8533,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::doCompare(" << file
+			    << "Warning -- part::doCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
 			hits.clear();
 			return -3;
@@ -7772,9 +8544,10 @@ long ibis::part::doCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("doCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare expected to read "
+			    << diff << " values from \"" << file 
+			    << "\" but got only " << ierr;
 		    }
 		    for (i = 0; i < j; ++i) {
 			uint32_t k0 = ii[i] - *ii;
@@ -7790,9 +8563,7 @@ long ibis::part::doCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::doCompare(" << file
+				<< "Warning -- part::doCompare(" << file
 				<< ") failed to seek to " << diff;
 			    hits.clear();
 			    return -4;
@@ -7805,9 +8576,7 @@ long ibis::part::doCompare(const char* file,
 			}
 			else {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::doCompare(" << file
+				<< "Warning -- part::doCompare(" << file
 				<< ") failed to read a value at " << diff;
 			}
 		    }
@@ -7821,9 +8590,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -4;
@@ -7837,8 +8604,7 @@ long ibis::part::doCompare(const char* file,
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to read a value at " << diff;
 		}
 	    }
@@ -7855,8 +8621,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -5;
@@ -7878,9 +8643,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::doCompare(" << file
+			    << "Warning -- part::doCompare(" << file
 			    << ") failed to seek to " << diff;
 			hits.clear();
 			return -6;
@@ -7901,14 +8664,13 @@ long ibis::part::doCompare(const char* file,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::doCompare -- performing comparison with column "
+	lg() << "part::doCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt() << " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
 	     << " from file \"" << file << "\" took "
@@ -7926,15 +8688,15 @@ long ibis::part::doCompare(const char* file,
 /// those rows with mask == 1.
 template <typename T>
 long ibis::part::negativeCompare(const array_t<T> &array,
+				 const ibis::qIntHod &cmp,
 				 const ibis::bitvector &mask,
-				 ibis::bitvector &hits,
-				 const ibis::qIntHod &cmp) const {
+				 ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) timer.start(); // start the timer
 
     uint32_t i=0, j=0;
     long ierr=0;
-    const uint32_t nelm = (array.size() <= nEvents ? array.size() : nEvents);
+    const uint32_t nelm = (array.size() <= mask.size() ? array.size() : mask.size());
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
 	hits.set(0, mask.size());
@@ -7982,14 +8744,13 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::negativeCompare -- performing comparison with column "
+	lg() << "part::negativeCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt()<< " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of a "
 	     << typeid(T).name() << "-array[" << array.size()
@@ -8008,9 +8769,9 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 /// those rows with mask == 1.
 template <typename T>
 long ibis::part::negativeCompare(const char* file,
+				 const ibis::qIntHod &cmp,
 				 const ibis::bitvector &mask,
-				 ibis::bitvector &hits,
-				 const ibis::qIntHod &cmp) const {
+				 ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start(); // start the timer
@@ -8018,8 +8779,9 @@ long ibis::part::negativeCompare(const char* file,
     hits.clear(); // clear the existing content
     int fdes = UnixOpen(file, OPEN_READONLY);
     if (fdes < 0) {
-	logWarning("negativeCompare", "unable to open file \"%s\"",
-		   file);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::negativeCompare failed to open file \""
+	    << file << '"';
 	hits.set(0, mask.size());
 	return -1;
     }
@@ -8057,8 +8819,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -3;
@@ -8077,9 +8838,10 @@ long ibis::part::negativeCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("negativeCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::negativeCompare expected "
+			    "to read " << diff << " values from \""
+			    << file << "\", but got only " << ierr;
 		    }
 		    for (uint32_t k = 0; k < j; ++k) {
 			if (! cmp.inRange((int64_t)buf[k])) {
@@ -8095,9 +8857,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
 			hits.clear();
 			return -4;
@@ -8110,9 +8870,7 @@ long ibis::part::negativeCompare(const char* file,
 		    else {
 			j = 0;
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") expected to read " << diff
 			    << " elements of " << elem << "-byte each, "
 			    << "but got " << ierr;
@@ -8131,9 +8889,7 @@ long ibis::part::negativeCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::negativeCompare(" << file
+				<< "Warning -- part::negativeCompare(" << file
 				<< ") failed to seek to " << diff;
 			    hits.clear();
 			    return -5;
@@ -8155,9 +8911,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -6;
@@ -8183,9 +8937,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -7;
@@ -8208,9 +8960,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") failed to seek to " << diff;
 			hits.clear();
 			return -8;
@@ -8232,15 +8982,14 @@ long ibis::part::negativeCompare(const char* file,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg()
-	    << "part[" << (m_name ? m_name : "?")
-	    << "]::negativeCompare -- performing comparison with column "
+	    << "part::negativeCompare -- performing comparison with column "
 	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
 	    << "s from file \"" << file << "\" took " << timer.realTime()
 	    << " sec elapsed time and produced " << hits.cnt() << " hits";
@@ -8262,9 +9011,9 @@ long ibis::part::negativeCompare(const char* file,
 /// handled differently.
 template <typename T>
 long ibis::part::doCompare(const array_t<T> &array,
+			   const ibis::qUIntHod &cmp,
 			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits,
-			   const ibis::qUIntHod &cmp) const {
+			   ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) timer.start(); // start the timer
 
@@ -8350,24 +9099,22 @@ long ibis::part::doCompare(const array_t<T> &array,
 	}
     }
     else {
-	logWarning("doCompare", "the input data array size (%lu) has to be "
-		   "either %lu or %lu",
-		   static_cast<long unsigned>(array.size()),
-		   static_cast<long unsigned>(mask.size()),
-		   static_cast<long unsigned>(mask.cnt()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare requires the input data array size ("
+	    << array.size() << ") to be either " << mask.size() << " or "
+	    << mask.cnt();
 	ierr = -6;
     }
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::doCompare -- performing comparison with column "
+	lg() << "part::doCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt() << " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of a "
 	     << typeid(T).name() << "-array[" << array.size()
@@ -8383,16 +9130,18 @@ long ibis::part::doCompare(const array_t<T> &array,
 
 template <typename T>
 long ibis::part::doCompare(const char* file,
+			   const ibis::qUIntHod &cmp,
 			   const ibis::bitvector &mask,
-			   ibis::bitvector &hits,
-			   const ibis::qUIntHod &cmp) const {
+			   ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start(); // start the timer
 
     int fdes = UnixOpen(file, OPEN_READONLY);
     if (fdes < 0) {
-	logWarning("doCompare", "unable to open file \"%s\"", file);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare failed to open file \""
+	    << file << '"';
 	hits.set(0, mask.size());
 	return -1;
     }
@@ -8448,9 +9197,10 @@ long ibis::part::doCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("doCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare expected to read "
+			    << diff <<  " values from \"" << file
+			    << "\" but got only " << ierr;
 		    }
 		    for (uint32_t k = 0; k < j; ++k) {
 			if (cmp.inRange((uint64_t)buf[k])) {
@@ -8465,9 +9215,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::doCompare(" << file
+			    << "Warning -- part::doCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
 			hits.clear();
 			return -3;
@@ -8478,9 +9226,10 @@ long ibis::part::doCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("doCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::doCompare expected to read "
+			    << diff << " values from \"" << file
+			    << "\" but got only " << ierr;
 		    }
 		    for (i = 0; i < j; ++i) {
 			uint32_t k0 = ii[i] - *ii;
@@ -8496,9 +9245,7 @@ long ibis::part::doCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::doCompare(" << file
+				<< "Warning -- part::doCompare(" << file
 				<< ") failed to seek to " << diff;
 			    hits.clear();
 			    return -4;
@@ -8511,9 +9258,7 @@ long ibis::part::doCompare(const char* file,
 			}
 			else {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::doCompare(" << file
+				<< "Warning -- part::doCompare(" << file
 				<< ") failed to read a value at " << diff;
 			}
 		    }
@@ -8527,9 +9272,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -4;
@@ -8543,8 +9286,7 @@ long ibis::part::doCompare(const char* file,
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to read a value at " << diff;
 		}
 	    }
@@ -8561,8 +9303,7 @@ long ibis::part::doCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::doCompare(" << file
+			<< "Warning -- part::doCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -5;
@@ -8584,9 +9325,7 @@ long ibis::part::doCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::doCompare(" << file
+			    << "Warning -- part::doCompare(" << file
 			    << ") failed to seek to " << diff;
 			hits.clear();
 			return -6;
@@ -8607,14 +9346,13 @@ long ibis::part::doCompare(const char* file,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.adjustSize(0, nEvents);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::doCompare -- performing comparison with column "
+	lg() << "part::doCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt() << " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
 	     << " from file \"" << file << "\" took "
@@ -8630,15 +9368,15 @@ long ibis::part::doCompare(const char* file,
 // hits are those do not satisfy the speficied range condition
 template <typename T>
 long ibis::part::negativeCompare(const array_t<T> &array,
+				 const ibis::qUIntHod &cmp,
 				 const ibis::bitvector &mask,
-				 ibis::bitvector &hits,
-				 const ibis::qUIntHod &cmp) const {
+				 ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) timer.start(); // start the timer
 
     uint32_t i=0, j=0;
     long ierr=0;
-    const uint32_t nelm = (array.size() <= nEvents ? array.size() : nEvents);
+    const uint32_t nelm = (array.size() <= mask.size() ? array.size() : mask.size());
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
 	hits.set(0, mask.size());
@@ -8686,14 +9424,13 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::negativeCompare -- performing comparison with column "
+	lg() << "part::negativeCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt()<< " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of a "
 	     << typeid(T).name() << "-array[" << array.size()
@@ -8709,9 +9446,9 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 
 template <typename T>
 long ibis::part::negativeCompare(const char* file,
+				 const ibis::qUIntHod &cmp,
 				 const ibis::bitvector &mask,
-				 ibis::bitvector &hits,
-				 const ibis::qUIntHod &cmp) const {
+				 ibis::bitvector &hits) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start(); // start the timer
@@ -8719,8 +9456,9 @@ long ibis::part::negativeCompare(const char* file,
     hits.clear(); // clear the existing content
     int fdes = UnixOpen(file, OPEN_READONLY);
     if (fdes < 0) {
-	logWarning("negativeCompare", "unable to open file \"%s\"",
-		   file);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::negativeCompare failed to open file \""
+	    << file << '"';
 	hits.set(0, mask.size());
 	return -1;
     }
@@ -8758,8 +9496,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part[" << (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -3;
@@ -8778,9 +9515,10 @@ long ibis::part::negativeCompare(const char* file,
 		    }
 		    else {
 			j = 0;
-			logWarning("negativeCompare", "expected to read %ld "
-				   "integers from \"%s\" but got only %ld",
-				   diff, file, ierr);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- part::negativeCompare expected "
+			    "to read " << diff << " values from \""
+			    << file << "\" but got only " << ierr;
 		    }
 		    for (uint32_t k = 0; k < j; ++k) {
 			if (! cmp.inRange((uint64_t)buf[k])) {
@@ -8796,9 +9534,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, *ii * elem, SEEK_SET);
 		    if (ierr != static_cast<long>(*ii * elem)) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") failed to seek to " << *ii *elem;
 			hits.clear();
 			return -4;
@@ -8811,9 +9547,7 @@ long ibis::part::negativeCompare(const char* file,
 		    else {
 			j = 0;
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") expected to read " << diff
 			    << " elements of " << elem << "-byte each, "
 			    << "but got " << ierr;
@@ -8832,9 +9566,7 @@ long ibis::part::negativeCompare(const char* file,
 			ierr = UnixSeek(fdes, diff, SEEK_SET);
 			if (ierr != diff) {
 			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- part["
-				<< (m_name ? m_name : "?")
-				<< "]::negativeCompare(" << file
+				<< "Warning -- part::negativeCompare(" << file
 				<< ") failed to seek to " << diff;
 			    hits.clear();
 			    return -5;
@@ -8856,9 +9588,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -6;
@@ -8884,9 +9614,7 @@ long ibis::part::negativeCompare(const char* file,
 		ierr = UnixSeek(fdes, diff, SEEK_SET);
 		if (ierr != diff) {
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- part["
-			<< (m_name ? m_name : "?")
-			<< "]::negativeCompare(" << file
+			<< "Warning -- part::negativeCompare(" << file
 			<< ") failed to seek to " << diff;
 		    hits.clear();
 		    return -7;
@@ -8909,9 +9637,7 @@ long ibis::part::negativeCompare(const char* file,
 		    ierr = UnixSeek(fdes, diff, SEEK_SET);
 		    if (ierr != diff) {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- part["
-			    << (m_name ? m_name : "?")
-			    << "]::negativeCompare(" << file
+			    << "Warning -- part::negativeCompare(" << file
 			    << ") failed to seek to " << diff;
 			hits.clear();
 			return -8;
@@ -8933,15 +9659,14 @@ long ibis::part::negativeCompare(const char* file,
 
     if (uncomp)
 	hits.compress();
-    else if (hits.size() < nEvents)
-	hits.setBit(nEvents-1, 0);
+    else if (hits.size() < mask.size())
+	hits.adjustSize(0, mask.size());
 
     if (ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg()
-	    << "part[" << (m_name ? m_name : "?")
-	    << "]::negativeCompare -- performing comparison with column "
+	    << "part::negativeCompare -- performing comparison with column "
 	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
 	    << "s from file \"" << file << "\" took " << timer.realTime()
 	    << " sec elapsed time and produced " << hits.cnt() << " hits";
@@ -8954,6 +9679,7 @@ long ibis::part::negativeCompare(const char* file,
     return ierr;
 } // ibis::part::negativeCompare
 
+/// Evalue the range condition on the in memory values.
 /// This static member function works on an array that is provided by the
 /// caller.  Since the values are provided, this function does not check
 /// the name of the variable involved in the range condition.
@@ -9822,6 +10548,7 @@ long ibis::part::doScan(const array_t<T> &vals,
     return ierr;
 } // ibis::part::doScan
 
+/// Examine the range condition with in memory values.
 /// A specialization of the template for float arrays.  All comparisons are
 /// performed as doubles.
 template <>
@@ -10563,6 +11290,7 @@ long ibis::part::doScan(const array_t<float> &vals,
     return ierr;
 } // ibis::part::doScan
 
+/// Examine the range condition with in memory values.
 /// A specialization of the template for double values.
 template <>
 long ibis::part::doScan(const array_t<double> &vals,
@@ -11303,6 +12031,1523 @@ long ibis::part::doScan(const array_t<double> &vals,
     return ierr;
 } // ibis::part::doScan
 
+/// Evalue the range condition on the in memory values.  This static member
+/// function works on integer data provided by the caller.  Since the
+/// values are provided, this function does not check the name of the
+/// variable involved in the range condition.
+template <typename T>
+long ibis::part::doScan(const array_t<T> &vals,
+			const ibis::qContinuousRange &rng,
+			const ibis::bitvector &mask,
+			array_t<T>& res) {
+    long ierr = -2;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1)
+	timer.start();
+    T leftBound, rightBound;
+    ibis::qExpr::COMPARE lop = rng.leftOperator();
+    ibis::qExpr::COMPARE rop = rng.rightOperator();
+    switch (rng.leftOperator()) {
+    case ibis::qExpr::OP_UNDEFINED:
+	leftBound = 0;
+	break;
+    case ibis::qExpr::OP_LT:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_LE;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	}
+	break;
+    case ibis::qExpr::OP_LE:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_LE;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	    lop = ibis::qExpr::OP_LT;
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	    if (leftBound != rng.leftBound())
+		lop = ibis::qExpr::OP_LT;
+	}
+	break;
+    case ibis::qExpr::OP_GE:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	    lop = ibis::qExpr::OP_GT;
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	}
+	break;
+    case ibis::qExpr::OP_GT:
+	if (rng.leftBound() < std::numeric_limits<T>::min()) {
+	    leftBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.leftBound() > std::numeric_limits<T>::max()) {
+	    leftBound = std::numeric_limits<T>::max();
+	    lop = ibis::qExpr::OP_GE;
+	}
+	else {
+	    leftBound = (T) rng.leftBound();
+	    if (leftBound != rng.leftBound())
+		lop = ibis::qExpr::OP_GE;
+	}
+	break;
+    default:
+	ibis::util::round_down(rng.leftBound(), leftBound);
+	break;
+    }
+    switch (rng.rightOperator()) {
+    case ibis::qExpr::OP_UNDEFINED:
+	rightBound = 0;
+	break;
+    case ibis::qExpr::OP_LE:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	    rop = ibis::qExpr::OP_LT;
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	}
+	break;
+    case ibis::qExpr::OP_LT:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	    rop = ibis::qExpr::OP_LE;
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	    if (rightBound < rng.rightBound())
+		rop = ibis::qExpr::OP_LE;
+	}
+	break;
+    case ibis::qExpr::OP_GE:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	    rop = ibis::qExpr::OP_GT;
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	    if (rightBound < rng.rightBound())
+		rop = ibis::qExpr::OP_GT;
+	}
+	break;
+    case ibis::qExpr::OP_GT:
+	if (rng.rightBound() < std::numeric_limits<T>::min()) {
+	    rightBound = std::numeric_limits<T>::min();
+	    rop = ibis::qExpr::OP_GE;
+	}
+	else if (rng.rightBound() > std::numeric_limits<T>::max()) {
+	    rightBound = std::numeric_limits<T>::max();
+	}
+	else {
+	    rightBound = (T) rng.rightBound();
+	}
+	break;
+    default:
+	ibis::util::round_down(rng.rightBound(), rightBound);
+	break;
+    }
+
+    switch (lop) {
+    case ibis::qExpr::OP_LT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<T> >
+				 (std::less<T>(), leftBound),
+				 std::binder2nd<std::less<T> >
+				 (std::less<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<T> >
+				 (std::less<T>(), leftBound),
+				 std::binder2nd<std::less_equal<T> >
+				 (std::less_equal<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<T> >
+				 (std::less<T>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater<T> >
+				 (std::greater<T>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<T> >
+				 (std::less<T>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater_equal<T> >
+				 (std::greater_equal<T>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound() && leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<T> >
+				 (std::equal_to<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st<std::less<T> >
+			     (std::less<T>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<T> >
+				 (std::less_equal<T>(), leftBound),
+				 std::binder2nd<std::less<T> >
+				 (std::less<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<T> >
+				 (std::less_equal<T>(), leftBound),
+				 std::binder2nd<std::less_equal<T> >
+				 (std::less_equal<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<T> >
+				 (std::less_equal<T>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater<T> >
+				 (std::greater<T>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<T> >
+				 (std::less_equal<T>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater_equal<T> >
+				 (std::greater_equal<T>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound() && leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<T> >
+				 (std::equal_to<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st<std::less_equal<T> >
+			     (std::less_equal<T>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<T> >
+				 (std::greater<T>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less<T> >
+				 (std::less<T>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<T> >
+				 (std::greater<T>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less_equal<T> >
+				 (std::less_equal<T>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<T> >
+				 (std::greater<T>(), leftBound),
+				 std::binder2nd<std::greater<T> >
+				 (std::greater<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<T> >
+				 (std::greater<T>(), leftBound),
+				 std::binder2nd<std::greater_equal<T> >
+				 (std::greater_equal<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound() && rightBound < leftBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<T> >
+				 (std::equal_to<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st< std::greater<T> >
+			     (std::greater<T>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater_equal<T> >
+				 (std::greater_equal<T>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less<T> >
+				 (std::less<T>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater_equal<T> >
+				 (std::greater_equal<T>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less_equal<T> >
+				 (std::less_equal<T>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater_equal<T> >
+				 (std::greater_equal<T>(), leftBound),
+				 std::binder2nd<std::greater<T> >
+				 (std::greater<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater_equal<T> >
+				 (std::greater_equal<T>(), leftBound),
+				 std::binder2nd<std::greater_equal<T> >
+				 (std::greater_equal<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound() && rightBound <= leftBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater_equal<T> >
+				 (std::greater_equal<T>(), leftBound),
+				 std::binder2nd<std::equal_to<T> >
+				 (std::equal_to<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st< std::greater_equal<T> >
+			     (std::greater_equal<T>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	if (leftBound == rng.leftBound()) {
+	    switch (rop) {
+	    case ibis::qExpr::OP_LT: {
+		if (leftBound < rightBound) {
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<T> >
+				     (std::equal_to<T>(), leftBound),
+				     mask, res);
+		}
+		else {
+		    res.clear();
+		    ierr = 0;
+		}
+		break;}
+	    case ibis::qExpr::OP_LE: {
+		if (leftBound <= rightBound) {
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<T> >
+				     (std::equal_to<T>(), leftBound),
+				     mask, res);
+		}
+		else {
+		    res.clear();
+		    ierr = 0;
+		}
+		break;}
+	    case ibis::qExpr::OP_GT: {
+		if (leftBound > rightBound) {
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<T> >
+				     (std::equal_to<T>(), leftBound),
+				     mask, res);
+		}
+		else {
+		    res.clear();
+		    ierr = 0;
+		}
+		break;}
+	    case ibis::qExpr::OP_GE: {
+		if (leftBound >= rightBound) {
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<T> >
+				     (std::equal_to<T>(), leftBound),
+				     mask, res);
+		}
+		else {
+		    res.clear();
+		    ierr = 0;
+		}
+		break;}
+	    case ibis::qExpr::OP_EQ: {
+		if (leftBound == rightBound && rightBound == rng.rightBound()) {
+		    ierr = doCompare(vals,
+				     std::binder1st< std::equal_to<T> >
+				     (std::equal_to<T>(), leftBound),
+				     mask, res);
+		}
+		else {
+		    res.clear();
+		    ierr = 0;
+		}
+		break;}
+	    default: {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<T> >
+				 (std::equal_to<T>(), leftBound),
+				 mask, res);
+		break;}
+	    }
+	}
+	else {
+	    res.clear();
+	    ierr = 0;
+	}
+	break;}
+    default: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::less<T> >
+			     (std::less<T>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::less_equal<T> >
+			     (std::less_equal<T>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::greater<T> >
+			     (std::greater<T>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::greater_equal<T> >
+			     (std::greater_equal<T>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound()) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<T> >
+				 (std::equal_to<T>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    res.clear();
+	    ierr = 0;
+	    break;}
+	}
+	break;}
+    }
+
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg() << "part::doScan -- evaluating " << rng
+	     << " on " << mask.cnt() << " " << typeid(T).name()
+	     << (mask.cnt() > 1 ? " values" : " value") << " (total: "
+	     << mask.size() << ") took " << timer.realTime()
+	     << " sec elapsed time and produced " << res.size()
+	     << (res.size() > 1 ? " hits" : " hit");
+    }
+    return ierr;
+} // ibis::part::doScan
+
+/// Examine the range condition with in memory values.
+/// A specialization of the template for float arrays.  All comparisons are
+/// performed as doubles.
+template <>
+long ibis::part::doScan(const array_t<float> &vals,
+			const ibis::qContinuousRange &rng,
+			const ibis::bitvector &mask,
+			array_t<float> &res) {
+    long ierr = -2;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1)
+	timer.start();
+    const double leftBound = rng.leftBound();
+    const double rightBound = rng.rightBound();
+    const ibis::qExpr::COMPARE lop = rng.leftOperator();
+    const ibis::qExpr::COMPARE rop = rng.rightOperator();
+
+    switch (lop) {
+    case ibis::qExpr::OP_LT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater<double> >
+				 (std::greater<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater_equal<double> >
+				 (std::greater_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st<std::less<double> >
+			     (std::less<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater<double> >
+				 (std::greater<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater_equal<double> >
+				 (std::greater_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st<std::less_equal<double> >
+			     (std::less_equal<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 std::binder2nd<std::greater<double> >
+				 (std::greater<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 std::binder2nd<std::greater_equal<double> >
+				 (std::greater_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound < leftBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st< std::greater<double> >
+			     (std::greater<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     std::binder2nd<std::greater<double> >
+		     (std::greater<double>(), rightBound),
+		     mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     std::binder2nd<std::greater_equal<double> >
+		     (std::greater_equal<double>(), rightBound),
+		     mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound <= leftBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     std::binder2nd<std::equal_to<double> >
+		     (std::equal_to<double>(), rightBound),
+		     mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st< std::greater_equal<double> >
+			     (std::greater_equal<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound == rightBound && rightBound == rng.rightBound()) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st< std::equal_to<double> >
+			     (std::equal_to<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    default: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::less<double> >
+			     (std::less<double>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::less_equal<double> >
+			     (std::less_equal<double>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::greater<double> >
+			     (std::greater<double>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::greater_equal<double> >
+			     (std::greater_equal<double>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound()) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    res.clear();
+	    ierr = 0;
+	    break;}
+	}
+	break;}
+    }
+
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg() << "part::doScan -- evaluating " << rng
+	     << " on " << mask.cnt() << " float "
+	     << (mask.cnt() > 1 ? " values" : " value") << " (total: "
+	     << mask.size() << ") took " << timer.realTime()
+	     << " sec elapsed time and produced " << res.size()
+	     << (res.size() > 1 ? " hits" : " hit");
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+	lg() << "\nmask\n" << mask;
+	lg() << "\nhit vector\n" << hits << "\n";
+#endif
+    }
+    return ierr;
+} // ibis::part::doScan
+
+/// Examine the range condition with in memory values.
+/// A specialization of the template for double values.
+template <>
+long ibis::part::doScan(const array_t<double> &vals,
+			const ibis::qContinuousRange &rng,
+			const ibis::bitvector &mask,
+			array_t<double> &res) {
+    long ierr = -2;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 1)
+	timer.start();
+    const double leftBound = rng.leftBound();
+    const double rightBound = rng.rightBound();
+    const ibis::qExpr::COMPARE lop = rng.leftOperator();
+    const ibis::qExpr::COMPARE rop = rng.rightOperator();
+
+    switch (lop) {
+    case ibis::qExpr::OP_LT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater<double> >
+				 (std::greater<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less<double> >
+				 (std::less<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater_equal<double> >
+				 (std::greater_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st<std::less<double> >
+			     (std::less<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_LE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater<double> >
+				 (std::greater<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st<std::less_equal<double> >
+				 (std::less_equal<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::greater_equal<double> >
+				 (std::greater_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st<std::less_equal<double> >
+			     (std::less_equal<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GT: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 std::binder2nd<std::greater<double> >
+				 (std::greater<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::greater<double> >
+				 (std::greater<double>(), leftBound),
+				 std::binder2nd<std::greater_equal<double> >
+				 (std::greater_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound < leftBound) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st< std::greater<double> >
+			     (std::greater<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_GE: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less<double> >
+				 (std::less<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     mask, res);
+	    }
+	    else {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::less_equal<double> >
+				 (std::less_equal<double>(), rightBound),
+				 mask, res);
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     std::binder2nd<std::greater<double> >
+		     (std::greater<double>(), rightBound),
+		     mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     std::binder2nd<std::greater_equal<double> >
+		     (std::greater_equal<double>(), rightBound),
+		     mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound <= leftBound) {
+		ierr = doCompare
+		    (vals, std::binder1st< std::greater_equal<double> >
+		     (std::greater_equal<double>(), leftBound),
+		     std::binder2nd<std::equal_to<double> >
+		     (std::equal_to<double>(), rightBound),
+		     mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st< std::greater_equal<double> >
+			     (std::greater_equal<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    case ibis::qExpr::OP_EQ: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    if (leftBound < rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    if (leftBound <= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    if (leftBound > rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    if (leftBound >= rightBound) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (leftBound == rightBound && rightBound == rng.rightBound()) {
+		ierr = doCompare(vals,
+				 std::binder1st< std::equal_to<double> >
+				 (std::equal_to<double>(), leftBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    ierr = doCompare(vals,
+			     std::binder1st< std::equal_to<double> >
+			     (std::equal_to<double>(), leftBound),
+			     mask, res);
+	    break;}
+	}
+	break;}
+    default: {
+	switch (rop) {
+	case ibis::qExpr::OP_LT: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::less<double> >
+			     (std::less<double>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::less_equal<double> >
+			     (std::less_equal<double>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::greater<double> >
+			     (std::greater<double>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    ierr = doCompare(vals,
+			     std::binder2nd<std::greater_equal<double> >
+			     (std::greater_equal<double>(), rightBound),
+			     mask, res);
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (rightBound == rng.rightBound()) {
+		ierr = doCompare(vals,
+				 std::binder2nd<std::equal_to<double> >
+				 (std::equal_to<double>(), rightBound),
+				 mask, res);
+	    }
+	    else {
+		res.clear();
+		ierr = 0;
+	    }
+	    break;}
+	default: {
+	    res.clear();
+	    ierr = 0;
+	    break;}
+	}
+	break;}
+    }
+
+    if (ibis::gVerbose > 1) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg() << "part::doScan -- evaluating " << rng
+	     << " on " << mask.cnt() << " double "
+	     << (mask.cnt() > 1 ? " values" : " value") << " (total: "
+	     << mask.size() << ") took " << timer.realTime()
+	     << " sec elapsed time and produced " << res.size()
+	     << (res.size() > 1 ? " hits" : " hit");
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+	lg() << "\nmask\n" << mask;
+	lg() << "\nhit vector\n" << hits << "\n";
+#endif
+    }
+    return ierr;
+} // ibis::part::doScan
+
 /// Evaluate the range condition.  Accepts an externally passed comparison
 /// operator.  It chooses whether the bitvector @c hits will be compressed
 /// internally based on the number of set bits in the @c mask.
@@ -11383,7 +13628,7 @@ long ibis::part::doCompare(const array_t<T> &vals, F cmp,
 
 /// Evaluate the range condition.  The actual comparison function is
 /// only applied on rows with mask == 1.
-/// This version uses an uncompressed bitvector to store the scan results
+/// This version uses a uncompressed bitvector to store the scan results
 /// internally.
 template <typename T, typename F>
 long ibis::part::doCompare0(const array_t<T> &vals, F cmp,
@@ -11597,6 +13842,148 @@ long ibis::part::doCompare0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
     return ierr;
 } // ibis::part::doCompare0
 
+/// Evaluate the range condition.  Accepts an externally passed comparison
+/// operator.  It chooses whether the bitvector @c hits will be compressed
+/// internally based on the number of set bits in the @c mask.
+template <typename T, typename F>
+long ibis::part::doCompare(const array_t<T> &vals, F cmp,
+			   const ibis::bitvector &mask,
+			   array_t<T> &res) {
+    res.clear();
+    long ierr = 0;
+    if (mask.size() == 0 || mask.cnt() == 0)
+	return ierr;
+
+    if (vals.size() != mask.size() && vals.size() != mask.cnt()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare<" << typeid(T).name() << ", "
+	    << typeid(F).name() << ">(vals[" << vals.size()
+	    << "]) -- vals.size() must be either mask.size(" << mask.size()
+	    << ") or mask.cnt(" << mask.cnt() << ")";
+	ierr = -1;
+	return ierr;
+    }
+
+    res.nosharing();
+    if (res.capacity() < mask.cnt())
+	res.reserve(mask.cnt() >> 1); // reserve space
+    if (vals.size() == mask.size()) { // full list of values
+	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	     ix.nIndices() > 0; ++ ix) {
+	    const ibis::bitvector::word_t *iix = ix.indices();
+	    if (ix.isRange()) {
+		for (unsigned j = *iix; j < iix[1]; ++ j) {
+		    if (cmp(vals[j]))
+			res.push_back(vals[j]);
+		}
+	    }
+	    else {
+		for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		    if (cmp(vals[iix[j]]))
+			res.push_back(vals[iix[j]]);
+		}
+	    }
+	}
+    }
+    else { // compacted values
+	unsigned ival = 0; // vals[ival]
+	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	     ix.nIndices() > 0; ++ ix) {
+	    const ibis::bitvector::word_t *iix = ix.indices();
+	    if (ix.isRange()) {
+		for (unsigned j = *iix; j < iix[1]; ++ j) {
+		    if (cmp(vals[ival]))
+			res.push_back(vals[ival]);
+		    ++ ival;
+		}
+	    }
+	    else {
+		for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		    if (cmp(vals[ival]))
+			res.push_back(vals[ival]);
+		    ++ ival;
+		}
+	    }
+	}
+    }
+
+    ierr = res.size();
+    return ierr;
+} // ibis::part::doCompare
+
+/// Evaluate the range condition.  The actual comparison functions are only
+/// applied on rows with mask == 1.  The values satisfying the comparison
+/// operators are stored in res.  This function reserves enough space in
+/// res for about half of the set bits in mask to avoid repeat reallocation
+/// of space for res.  This space reservation will likely increase memory
+/// usage.
+template <typename T, typename F1, typename F2>
+long ibis::part::doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
+			   const ibis::bitvector &mask,
+			   array_t<T> &res) {
+    res.clear();
+    long ierr = 0;
+    if (mask.size() == 0 || mask.cnt() == 0)
+	return ierr;
+
+    if (vals.size() != mask.size() && vals.size() != mask.cnt()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::doCompare<" << typeid(T).name() << ", "
+	    << typeid(F1).name() << ", " << typeid(F2).name() << ">(vals["
+	    << vals.size() << "]) -- vals.size() must be either mask.size("
+	    << mask.size() << ") or mask.cnt(" << mask.cnt() << ")";
+	ierr = -1;
+	return ierr;
+    }
+
+    res.nosharing();
+    if (res.capacity() < mask.cnt())
+	res.reserve(mask.cnt() >> 1); // reserve space
+    if (vals.size() == mask.size()) { // full list of values
+	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	     ix.nIndices() > 0; ++ ix) {
+	    const ibis::bitvector::word_t *iix = ix.indices();
+	    if (ix.isRange()) {
+		for (unsigned j = *iix; j < iix[1]; ++ j) {
+		    if (cmp1(vals[j]) && cmp2(vals[j]))
+			res.push_back(vals[j]);
+		}
+	    }
+	    else {
+		for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		    if (cmp1(vals[iix[j]]) && cmp2(vals[iix[j]]))
+			res.push_back(vals[iix[j]]);
+		}
+	    }
+	}
+    }
+    else { // compacted values
+	unsigned ival = 0; // position in the compacted vals
+	for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+	     ix.nIndices() > 0; ++ ix) {
+	    const ibis::bitvector::word_t *iix = ix.indices();
+	    if (ix.isRange()) {
+		for (unsigned j = *iix; j < iix[1]; ++ j) {
+		    if (cmp1(vals[ival]) && cmp2(vals[ival]))
+			res.push_back(vals[ival]);
+		    ++ ival;
+		}
+	    }
+	    else {
+		for (unsigned j = 0; j < ix.nIndices(); ++ j) {
+		    if (cmp1(vals[ival]) && cmp2(vals[ival]))
+			res.push_back(vals[ival]);
+		    ++ ival;
+		}
+	    }
+	}
+    }
+
+    ierr = res.size();
+    return ierr;
+} // ibis::part::doCompare
+
+/// Count the number of hits for a single range condition.
 long ibis::part::countHits(const ibis::qRange &cmp) const {
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
@@ -13669,8 +16056,10 @@ void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
 	    if (col)
 		col->getNullMask(tmp);
 	    else if (nm != 0 && *nm != 0 && *nm != '*')
-		_tbl->logWarning("barrell::getNullMask",
-				 "can not find a column named \"%s\"", nm);
+		LOGGER(ibis::gVerbose > 2)
+		    << "Warning -- barrel::getNullMask failed to find a "
+		    "column named \"" << nm << "\" in partition "
+		    << _tbl->name();
 	}
 	if (tmp.size() == _tbl->nRows()) {
 	    if (mask.size() == _tbl->nRows())
@@ -13727,9 +16116,10 @@ long ibis::part::barrel::open(const ibis::part *t) {
 		fdes.resize(i);
 		close();
 		ierr = -2;
-		t->logWarning("barrel::open",
-			      "failed to find a column named \"%s\"",
-			      name(i));
+		LOGGER(ibis::gVerbose > 2)
+		    << "Warning -- barrel::open failed to find a column "
+		    "named \"" << name(i) << "\" in data partition "
+		    << t->name();
 		return ierr;
 	    }
 	    // use the name from col to ensure the case is correct
@@ -13743,8 +16133,9 @@ long ibis::part::barrel::open(const ibis::part *t) {
 	    else { // getFile failed, open the name file
 		fdes[i] = UnixOpen(dfn.c_str(), OPEN_READONLY);
 		if (fdes[i] < 0) {
-		    t->logWarning("barrel::open",
-				  "failed to open file \"%s\"", dfn.c_str());
+		    LOGGER(ibis::gVerbose > 2)
+			<< "Warning -- barrel::open failed to open file \""
+			<< dfn.c_str() << "\"";
 		    fdes.resize(i);
 		    close();
 		    ierr = -3;
@@ -13782,9 +16173,9 @@ long ibis::part::barrel::open(const ibis::part *t) {
 	}
     }
     if (ibis::gVerbose > 5) {
+	ibis::util::logger lg;
+	lg() << "part[" << t->name() << "]::barrel::open -- ";
 	if (size() > 1) {
-	    ibis::util::logger lg;
-	    lg() << "part[" << t->name() << "::barrel::open -- ";
 	    if (t->currentDataDir() != 0)
 		lg() << "opened " << size() << " files from "
 		     << t->currentDataDir();
@@ -13805,14 +16196,16 @@ long ibis::part::barrel::open(const ibis::part *t) {
 		}
 	    }
 	}
+	else if (fdes[0]) {
+	    lg() << "successfully opened file " << name(0)
+		 << " with descriptor " << fdes[0];
+	}
 	else if (cols[0]) {
-	    t->logMessage("barrel::open", "successfully read %s into memory "
-			  "at 0x%.8x", name(0),
-			  static_cast<void*>(stores[0]->begin()));
+	    lg() << "successfully read " << name(0) << " into memory at "
+		 << static_cast<void*>(stores[0]->begin());
 	}
 	else {
-	    t->logWarning("barrel::open", "failed to locate a column named %s",
-			  name(0));
+	    lg() << "failed to locate a column named " << name(0);
 	    ierr = -5;
 	}
     }
@@ -14876,11 +17269,11 @@ ibis::part::doScan(const array_t<double>&,
 		   const ibis::qRange&, const ibis::bitvector&,
 		   ibis::bitvector&);
 template long
-ibis::part::doCompare(const array_t<signed char>&, const ibis::bitvector&,
-		      ibis::bitvector&, const ibis::qRange&) const;
+ibis::part::doCompare(const array_t<signed char>&, const ibis::qRange&,
+		      const ibis::bitvector&, ibis::bitvector&) const;
 template long
-ibis::part::doCompare<signed char>(const char*, const ibis::bitvector&,
-				   ibis::bitvector&, const ibis::qRange&) const;
+ibis::part::doCompare<signed char>(const char*, const ibis::qRange&,
+				   const ibis::bitvector&, ibis::bitvector&) const;
 
 template int ibis::part::writeColumn<ibis::rid_t>
 (int, ibis::bitvector::word_t, ibis::bitvector::word_t,

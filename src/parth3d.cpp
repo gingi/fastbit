@@ -7,7 +7,7 @@
 #include "countQuery.h"	// ibis::countQuery
 #include "part.h"
 
-#include <cmath>	// std::ceil, std::log, ...
+#include <math.h>	// ceil, floor, log, ...
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
 
@@ -38,16 +38,16 @@ long ibis::part::count3DBins(const array_t<T1> &vals1,
 	<< ", vals3[" << vals3.size() << "], " << begin3 << ", "
 	<< end3 << ", " << stride3 << ", counts[" << counts.size()
 	<< "]) ... ("
-	<< 1 + static_cast<uint32_t>(std::floor((end1-begin1)/stride1))
+	<< 1 + static_cast<uint32_t>(floor((end1-begin1)/stride1))
 	<< ", "
-	<< 1 + static_cast<uint32_t>(std::floor((end2-begin2)/stride2))
+	<< 1 + static_cast<uint32_t>(floor((end2-begin2)/stride2))
 	<< ", "
-	<< 1 + static_cast<uint32_t>(std::floor((end3-begin3)/stride3))
+	<< 1 + static_cast<uint32_t>(floor((end3-begin3)/stride3))
 	<< ")";
     const uint32_t dim3 = 1 +
-	static_cast<uint32_t>(std::floor((end3 - begin3)/stride3));
+	static_cast<uint32_t>(floor((end3 - begin3)/stride3));
     const uint32_t dim2 = 1 +
-	static_cast<uint32_t>(std::floor((end2 - begin2)/stride2));
+	static_cast<uint32_t>(floor((end2 - begin2)/stride2));
     const uint32_t nr = (vals1.size() <= vals2.size() ?
 		       (vals1.size() <= vals3.size() ?
 			vals1.size() : vals3.size()) :
@@ -121,9 +121,9 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	timer.start();
     }
     const uint32_t nbins =
-	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
-	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2))) *
-	(1 + static_cast<uint32_t>(std::floor((end3 - begin3) / stride3)));
+	(1 + static_cast<uint32_t>(floor((end1 - begin1) / stride1))) *
+	(1 + static_cast<uint32_t>(floor((end2 - begin2) / stride2))) *
+	(1 + static_cast<uint32_t>(floor((end3 - begin3) / stride3)));
     if (counts.size() != nbins) {
 	counts.resize(nbins);
 	for (uint32_t i = 0; i < nbins; ++i)
@@ -2454,16 +2454,16 @@ long ibis::part::count3DWeights(const array_t<T1> &vals1,
 	<< ", vals3[" << vals3.size() << "], " << begin3 << ", "
 	<< end3 << ", " << stride3 << ", weights[" << weights.size()
 	<< "]) ... ("
-	<< 1 + static_cast<uint32_t>(std::floor((end1-begin1)/stride1))
+	<< 1 + static_cast<uint32_t>(floor((end1-begin1)/stride1))
 	<< ", "
-	<< 1 + static_cast<uint32_t>(std::floor((end2-begin2)/stride2))
+	<< 1 + static_cast<uint32_t>(floor((end2-begin2)/stride2))
 	<< ", "
-	<< 1 + static_cast<uint32_t>(std::floor((end3-begin3)/stride3))
+	<< 1 + static_cast<uint32_t>(floor((end3-begin3)/stride3))
 	<< ")";
     const uint32_t dim3 = 1 +
-	static_cast<uint32_t>(std::floor((end3 - begin3)/stride3));
+	static_cast<uint32_t>(floor((end3 - begin3)/stride3));
     const uint32_t dim2 = 1 +
-	static_cast<uint32_t>(std::floor((end2 - begin2)/stride2));
+	static_cast<uint32_t>(floor((end2 - begin2)/stride2));
     const uint32_t nr = (vals1.size() <= vals2.size() ?
 		       (vals1.size() <= vals3.size() ?
 			vals1.size() : vals3.size()) :
@@ -2537,9 +2537,9 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	timer.start();
     }
     const uint32_t nbins =
-	(1 + static_cast<uint32_t>(std::floor((end1 - begin1) / stride1))) *
-	(1 + static_cast<uint32_t>(std::floor((end2 - begin2) / stride2))) *
-	(1 + static_cast<uint32_t>(std::floor((end3 - begin3) / stride3)));
+	(1 + static_cast<uint32_t>(floor((end1 - begin1) / stride1))) *
+	(1 + static_cast<uint32_t>(floor((end2 - begin2) / stride2))) *
+	(1 + static_cast<uint32_t>(floor((end3 - begin3) / stride3)));
     if (weights.size() != nbins) {
 	weights.resize(nbins);
 	for (uint32_t i = 0; i < nbins; ++i)
@@ -5120,7 +5120,7 @@ ibis::part::adaptive3DBins(const array_t<T1> &vals1,
     if (nb1 <= 1) nb1 = 32;
     if (nb2 <= 1) nb2 = 32;
     if (nb3 <= 1) nb2 = 32;
-    double tmp = std::exp(std::log((double)nrows)*0.25);
+    double tmp = exp(log((double)nrows)*0.25);
     if (nb1 > 128 && nb1 > (uint32_t)tmp) {
 	if (nrows > 10000000)
 	    nb1 = static_cast<uint32_t>(0.5 + tmp);
@@ -5139,7 +5139,7 @@ ibis::part::adaptive3DBins(const array_t<T1> &vals1,
 	else
 	    nb3 = 128;
     }
-    tmp = std::exp(std::log((double)nrows/((double)nb1*nb2*nb3))*0.25);
+    tmp = exp(log((double)nrows/((double)nb1*nb2*nb3))*0.25);
     if (tmp < 2.0) tmp = 2.0;
     const uint32_t nfine1 = static_cast<uint32_t>(0.5 + tmp * nb1);
     const uint32_t nfine2 = static_cast<uint32_t>(0.5 + tmp * nb2);
@@ -5429,7 +5429,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 				       bounds1, bounds2, bounds3, counts);
 	    delete vals1;
 	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
-		bounds1[i] = std::ceil(bounds1[i]);
+		bounds1[i] = ceil(bounds1[i]);
 	}
 	else {
 	    ierr = -2;
@@ -5442,7 +5442,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 				       bounds1, bounds2, bounds3, counts);
 	    delete vals1;
 	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
-		bounds1[i] = std::ceil(bounds1[i]);
+		bounds1[i] = ceil(bounds1[i]);
 	}
 	else {
 	    ierr = -3;
@@ -5455,7 +5455,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 				       bounds1, bounds2, bounds3, counts);
 	    delete vals1;
 	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
-		bounds1[i] = std::ceil(bounds1[i]);
+		bounds1[i] = ceil(bounds1[i]);
 	}
 	else {
 	    ierr = -4;
@@ -5468,7 +5468,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 				       bounds1, bounds2, bounds3, counts);
 	    delete vals1;
 	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
-		bounds1[i] = std::ceil(bounds1[i]);
+		bounds1[i] = ceil(bounds1[i]);
 	}
 	else {
 	    ierr = -5;
@@ -5486,7 +5486,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 				       bounds1, bounds2, bounds3, counts);
 	    delete vals1;
 	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
-		bounds1[i] = std::ceil(bounds1[i]);
+		bounds1[i] = ceil(bounds1[i]);
 	}
 	else {
 	    ierr = -6;
@@ -5504,7 +5504,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 				       bounds1, bounds2, bounds3, counts);
 	    delete vals1;
 	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
-		bounds1[i] = std::ceil(bounds1[i]);
+		bounds1[i] = ceil(bounds1[i]);
 	}
 	else {
 	    ierr = -7;
@@ -5519,7 +5519,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 				       bounds1, bounds2, bounds3, counts);
 	    delete vals1;
 	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
-		bounds1[i] = std::ceil(bounds1[i]);
+		bounds1[i] = ceil(bounds1[i]);
 	}
 	else {
 	    ierr = -9;
@@ -5533,7 +5533,7 @@ long ibis::part::get3DDistributionA(const ibis::bitvector &mask,
 				       bounds1, bounds2, bounds3, counts);
 	    delete vals1;
 	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
-		bounds1[i] = std::ceil(bounds1[i]);
+		bounds1[i] = ceil(bounds1[i]);
 	}
 	else {
 	    ierr = -8;
@@ -5597,7 +5597,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 				       nb3, bounds1, bounds2, bounds3, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	}
 	else {
 	    ierr = -21;
@@ -5610,7 +5610,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 				       nb3, bounds1, bounds2, bounds3, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	}
 	else {
 	    ierr = -22;
@@ -5623,7 +5623,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 				       nb3, bounds1, bounds2, bounds3, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	}
 	else {
 	    ierr = -23;
@@ -5636,7 +5636,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 				       nb3, bounds1, bounds2, bounds3, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	}
 	else {
 	    ierr = -24;
@@ -5654,7 +5654,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 				       nb3, bounds1, bounds2, bounds3, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	}
 	else {
 	    ierr = -25;
@@ -5672,7 +5672,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 				       nb3, bounds1, bounds2, bounds3, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	}
 	else {
 	    ierr = -26;
@@ -5687,7 +5687,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 				       nb3, bounds1, bounds2, bounds3, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	}
 	else {
 	    ierr = -28;
@@ -5701,7 +5701,7 @@ long ibis::part::get3DDistributionA1(const ibis::bitvector &mask,
 				       nb3, bounds1, bounds2, bounds3, counts);
 	    delete vals2;
 	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
-		bounds2[i] = std::ceil(bounds2[i]);
+		bounds2[i] = ceil(bounds2[i]);
 	}
 	else {
 	    ierr = -27;
@@ -5765,7 +5765,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,
 				      bounds1, bounds2, bounds3, counts);
 		for (uint32_t i = 0; i < bounds3.size(); ++ i)
-		    bounds3[i] = std::ceil(bounds3[i]);
+		    bounds3[i] = ceil(bounds3[i]);
 	    }
 	    catch (...) {
 		ierr = -51;
@@ -5783,7 +5783,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,
 				      bounds1, bounds2, bounds3, counts);
 		for (uint32_t i = 0; i < bounds3.size(); ++ i)
-		    bounds3[i] = std::ceil(bounds3[i]);
+		    bounds3[i] = ceil(bounds3[i]);
 	    }
 	    catch (...) {
 		ierr = -52;
@@ -5801,7 +5801,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,
 				      bounds1, bounds2, bounds3, counts);
 		for (uint32_t i = 0; i < bounds3.size(); ++ i)
-		    bounds3[i] = std::ceil(bounds3[i]);
+		    bounds3[i] = ceil(bounds3[i]);
 	    }
 	    catch (...) {
 		ierr = -53;
@@ -5819,7 +5819,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,
 				      bounds1, bounds2, bounds3, counts);
 		for (uint32_t i = 0; i < bounds3.size(); ++ i)
-		    bounds3[i] = std::ceil(bounds3[i]);
+		    bounds3[i] = ceil(bounds3[i]);
 	    }
 	    catch (...) {
 		ierr = -54;
@@ -5842,7 +5842,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,
 			       bounds1, bounds2, bounds3, counts);
 		for (uint32_t i = 0; i < bounds3.size(); ++ i)
-		    bounds3[i] = std::ceil(bounds3[i]);
+		    bounds3[i] = ceil(bounds3[i]);
 	    }
 	    catch (...) {
 		ierr = -55;
@@ -5865,7 +5865,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,
 				      bounds1, bounds2, bounds3, counts);
 		for (uint32_t i = 0; i < bounds3.size(); ++ i)
-		    bounds3[i] = std::ceil(bounds3[i]);
+		    bounds3[i] = ceil(bounds3[i]);
 	    }
 	    catch (...) {
 		ierr = -56;
@@ -5885,7 +5885,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,
 				      bounds1, bounds2, bounds3, counts);
 		for (uint32_t i = 0; i < bounds3.size(); ++ i)
-		    bounds3[i] = std::ceil(bounds3[i]);
+		    bounds3[i] = ceil(bounds3[i]);
 	    }
 	    catch (...) {
 		ierr = -58;
@@ -5904,7 +5904,7 @@ long ibis::part::get3DDistributionA2(const ibis::bitvector &mask,
 		ierr = adaptive3DBins(vals1, vals2, *vals3, nb1, nb2, nb3,
 				      bounds1, bounds2, bounds3, counts);
 		for (uint32_t i = 0; i < bounds3.size(); ++ i)
-		    bounds3[i] = std::ceil(bounds3[i]);
+		    bounds3[i] = ceil(bounds3[i]);
 	    }
 	    catch (...) {
 		ierr = -57;
@@ -6018,7 +6018,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	if (nb1 <= 1) nb1 = 32;
 	if (nb2 <= 1) nb2 = 32;
 	if (nb3 <= 1) nb2 = 32;
-	double tmp = std::exp(std::log((double)nrows)*0.25);
+	double tmp = exp(log((double)nrows)*0.25);
 	if (nb1 > 128 && nb1 > (uint32_t)tmp) {
 	    if (nrows > 10000000)
 		nb1 = static_cast<uint32_t>(0.5 + tmp);

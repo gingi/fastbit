@@ -19,8 +19,8 @@
 #include <time.h>	// time_t time clock_t clock
 #include <limits.h>	// DBL_MIN, ULONG_MAX
 #include <float.h>	// DBL_MIN
+#include <math.h>	// sqrt, log, exp, pow
 
-#include <cmath>	// std::sqrt, std::log
 #include <vector>	// std::vector<double> used by discrateZip1
 
 namespace ibis {
@@ -117,7 +117,7 @@ public:
     /// Constructor.  Must be supplied with a uniform random number generator.
     randomPoisson(uniformRandomNumber& ur) : urand(ur) {}
     double operator()() {return next();}
-    double next() {return -std::log(urand());}
+    double next() {return -log(urand());}
 
 private:
     uniformRandomNumber& urand;
@@ -146,7 +146,7 @@ public:
 		v2 = 2.0 * urand() - 1.0;
 		r = v1 * v1 + v2 * v2;
 	    } while (r >= 1.0 || r <= 0.0);
-	    fac = std::sqrt((-2.0 * std::log(r))/r);
+	    fac = sqrt((-2.0 * log(r))/r);
 	    has_extra = false;
 	    extra = v2 * fac;
 	    v1 *= fac;
@@ -171,7 +171,7 @@ public:
     /// Next random number.
     double next() {
 	if (alpha > 0.0)
-	    return (std::exp(-std::log(1 - urand())/(alpha)) - 1);
+	    return (exp(-log(1 - urand())/(alpha)) - 1);
 	else
 	    return (1.0 / (1.0 - urand()) - 1.0);
     }
@@ -195,11 +195,11 @@ public:
 	double u, x;
 	while (true) {
 	    u = ym * (urand)();
-	    x = - lambda * std::log(u * laminv);
+	    x = - lambda * log(u * laminv);
 	    k = static_cast<long>(x + 0.5);
 	    if (k <= k0 && k-x <= xm)
 		return k;
-	    else if (u >= -std::exp(laminv*k+laminv2)*lambda-std::exp(laminv*k))
+	    else if (u >= -exp(laminv*k+laminv2)*lambda-exp(laminv*k))
 		return k;
 	}
     } // next integer random number
@@ -216,9 +216,9 @@ private:
 	    lambda = 1.0;
 	laminv = -1.0 / lambda;
 	laminv2 = 0.5*laminv;
-	k0 = static_cast<long>(1.0+min0+1.0/(1.0-std::exp(laminv)));
-	ym = -std::exp((min0+0.5)*laminv)*lambda - std::exp(min0*laminv);
-	xm = min0 - std::log(ym*laminv);
+	k0 = static_cast<long>(1.0+min0+1.0/(1.0-exp(laminv)));
+	ym = -exp((min0+0.5)*laminv)*lambda - exp(min0*laminv);
+	xm = min0 - log(ym*laminv);
     }
 }; // class discretePoisson
 
@@ -233,12 +233,12 @@ public:
 	double u, x;
 	while (true) {
 	    u = ym * (urand)();
-	    x = - std::log(-u);
+	    x = - log(-u);
 	    k = static_cast<long>(x + 0.5);
 	    if (k <= k0 && k-x <= xm)
 		return k;
-	    else if (u >= -std::exp(-static_cast<double>(k)-0.5) -
-		     std::exp(-static_cast<double>(k)))
+	    else if (u >= -exp(-static_cast<double>(k)-0.5) -
+		     exp(-static_cast<double>(k)))
 		return k;
 	}
     } // next integer random number
@@ -251,9 +251,9 @@ private:
 
     // private functions
     void init() { // check input parameters and initialize three constants
-	k0 = static_cast<long>(1.0+1.0/(1.0-std::exp(-1.0)));
-	ym = - std::exp(-0.5) - 1.0;
-	xm = - std::log(-ym);
+	k0 = static_cast<long>(1.0+1.0/(1.0-exp(-1.0)));
+	ym = - exp(-0.5) - 1.0;
+	xm = - log(-ym);
     }
 }; // class discretePoisson1
 
@@ -278,16 +278,16 @@ public:
 		unsigned long k = static_cast<unsigned long>(0.5+x);
 		if (k - x <= ss)
 		    return k;
-		else if (ur >= H(0.5+k) - std::exp(-std::log(k+1.0)*alpha))
+		else if (ur >= H(0.5+k) - exp(-log(k+1.0)*alpha))
 		    return k;
 	    }
 	}
 	else { // simple rejection
 	    unsigned long k = ((long) (urand() * max0)) % max0;
-	    double freq = std::pow((1.0+k), -alpha);
+	    double freq = pow((1.0+k), -alpha);
 	    while (urand() >= freq) {
 		k = ((long) (urand() * max0)) % max0;
-		freq = std::pow((1.0+k), -alpha);
+		freq = pow((1.0+k), -alpha);
 	    }
 	    return k;
 	}
@@ -300,8 +300,8 @@ private:
     double alpha, alpha1, alphainv, hx0, hxm, ss;
 
     // private member function
-    double H(double x) {return (std::exp(alpha1*std::log(1.0+x)) * alphainv);}
-    double Hinv(double x) {return std::exp(alphainv*std::log(alpha1*x)) - 1.0;}
+    double H(double x) {return (exp(alpha1*log(1.0+x)) * alphainv);}
+    double Hinv(double x) {return exp(alphainv*log(alpha1*x)) - 1.0;}
     void init() {
 	// enforce the condition that alpha >= 0 and max0 > 1
 	if (max0 <= 1)
@@ -315,7 +315,7 @@ private:
 	    alphainv = 1.0 / alpha1;
 	    hxm = H(max0 + 0.5);
 	    hx0 = H(0.5) - 1.0 - hxm;
-	    ss = 1 - Hinv(H(1.5)-std::exp(-alpha*std::log(2.0)));
+	    ss = 1 - Hinv(H(1.5)-exp(-alpha*log(2.0)));
 	}
 	else { // use a simple rejection scheme
 	    alpha1 = 0.0;
