@@ -1770,6 +1770,7 @@ void ibis::bin::binningT(const char* f) {
     }
 } // ibis::bin::binningT
 
+/// Write bin-ordered values.
 long ibis::bin::binOrder(const char* basename) const {
     long ierr = 0;
     switch (col->type()) { // binning with reordering
@@ -1812,6 +1813,7 @@ long ibis::bin::binOrder(const char* basename) const {
     return ierr;
 } // ibis::bin::binOrder
 
+/// Write bin-ordered values.
 template <typename E>
 long ibis::bin::binOrderT(const char* basename) const {
     long ierr = 0;
@@ -11214,3 +11216,400 @@ size_t ibis::bin::getSerialSize() const throw () {
 	    res += bits[j]->getSerialSize();
     return res;
 } // ibis::bin::getSerialSize
+
+/// Extract values only.  This function requires the clustered version of
+/// values to be present.  The clustered version is created with the option
+/// 'reorder' in the binning specification.  Currently, the clustered
+/// values are stored in a file with .bin extension.
+template <typename T>
+long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
+			    ibis::array_t<T>& vals) const {
+    uint32_t c0, c1, h0, h1;
+    locate(cmp, c0, c1, h0, h1);
+    vals.clear();
+    if (c0 >= c1)
+	return 0;
+
+    std::string fnm; // data file name
+    dataFileName(0, fnm);
+    fnm += ".bin";
+
+    int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mergeValues failed to open \""
+	    << fnm << " of column " << col->name();
+	return -3;
+    }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
+    uint32_t nbs;
+    long ierr = UnixRead(fdes, &nbs, sizeof(nbs));
+    if (ierr != (long)sizeof(nbs)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mergeValues failed to read the first "
+	    "4-byte integer from \"" << fnm << "\"";
+	return -4;
+    }
+    if (nbs != nobs) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mergeValues expects the number of bins in "
+	    << fnm << " to be " << nobs << ", but it is " << nbs;
+	return -5;
+    }
+    if (c1 > nbs) c1 = nbs;
+    if (h0 < c0) h0 = c0;
+    if (h1 > c1) h1 = c1;
+
+    ibis::array_t<uint32_t> offsets(fdes, 4*c0+4, 4*c1+8);
+    if (offsets.size()+c0 <= c1) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mergeValues failed to read offsets from \""
+	    << fnm << "\" of column " << col->name() << " to evaluate \""
+	    << cmp << '"';
+	return -6;
+    }
+
+    const unsigned elm = sizeof(T);
+    const uint32_t start = offsets.front();
+    vals.reserve((offsets.back() - start)/elm);
+    ierr = vals.read(fdes, start, offsets.back());
+    if (ierr+start != offsets.back()) {
+	return -7;
+    }
+
+    uint32_t jv = 0; // position to store the next value
+    for (uint32_t j = 0; j < (offsets[h0-c0] - start)/elm; ++ j) {
+	if (cmp.inRange(vals[j])) {
+	    vals[jv] = vals[j];
+	    ++ jv;
+	}
+    }
+    if (jv < offsets[h0-c0]-start) { // need to copy values in the middle
+	for (uint32_t j = (offsets[h0-c0]-start)/elm;
+	     j < (offsets[h1-c0]-start)/elm; ++ j, ++ jv)
+	    vals[jv] = vals[j];
+    }
+    else {
+	jv += (offsets[h1-c0] - offsets[h0-c0]) / elm;
+    }
+    for (uint32_t j = (offsets[h1-c0]-start)/elm;
+	 j < (offsets.back()-start)/elm; ++ j) {
+	if (cmp.inRange(vals[j])) {
+	    vals[jv] = vals[j];
+	    ++ jv;
+	}
+    }
+    vals.resize(jv);
+    return jv;
+} // ibis::bin::mergeValues
+
+/// Extract values and record the positions.  In order to generate the
+/// output bit vector, this version requires effectively two copies of the
+/// data because it has to place the values in the their original row
+/// order.
+template <typename T>
+long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
+			    ibis::array_t<T>& vals,
+			    ibis::bitvector& hits) const {
+    uint32_t c0, c1, h0, h1;
+    locate(cmp, c0, c1, h0, h1);
+    vals.clear();
+    hits.clear();
+    if (c0 >= c1)
+	return 0;
+
+    std::string fnm; // data file name
+    dataFileName(0, fnm);
+    fnm += ".bin";
+
+    int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
+    if (fdes < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mergeValues failed to open \""
+	    << fnm << " of column " << col->name();
+	return -3;
+    }
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdes, _O_BINARY);
+#endif
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
+    uint32_t nbs;
+    long ierr = UnixRead(fdes, &nbs, sizeof(nbs));
+    if (ierr != (long)sizeof(nbs)) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mergeValues failed to read the first "
+	    "4-byte integer from \"" << fnm << "\"";
+	return -4;
+    }
+    if (nbs != nobs) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mergeValues expects the number of bins in "
+	    << fnm << " to be " << nobs << ", but it is " << nbs;
+	return -5;
+    }
+    if (c1 > nbs) c1 = nbs;
+    if (h0 < c0) h0 = c0;
+    if (h1 > c1) h1 = c1;
+
+    ibis::array_t<uint32_t> offsets(fdes, 4*c0+4, 4*c1+8);
+    if (offsets.size()+c0 <= c1) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mergeValues failed to read offsets from \""
+	    << fnm << "\" of column " << col->name() << " to evaluate \""
+	    << cmp << '"';
+	return -6;
+    }
+    const unsigned elm = sizeof(T);
+    const uint32_t start = offsets.front();
+    vals.reserve((offsets.back() - start)/elm);
+    ibis::array_t<T> buffer(fdes, start, offsets.back());
+    if (buffer.size()*sizeof(T)+start != offsets.back()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::mgergeValues expected to read "
+	    << (offsets.back()-start)/sizeof(T) << " elements, but got "
+	    << buffer.size();
+	return -7;
+    }
+
+    activate(c0, c1); // make sure all necessar bitmaps are in memory
+
+    // a heap to organize the values
+    ibis::util::heap< ibis::bin::valpos<T>,
+		      ibis::bin::comparevalpos<T> > hp;
+    // values in the edge bins that satisfying the range condition
+    ibis::array_t<T> v0, v1; 
+    // position of the values in the edge bins
+    ibis::bitvector p0, p1;
+    if (c0 < h0 && offsets[1] > offsets[0] && bits[c0] != 0 &&
+	bits[c0]->cnt() > 0) { // edge bin 0
+	unsigned j = 0;
+	for (ibis::bitvector::indexSet is = bits[c0]->firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *ix = is.indices();
+	    if (is.isRange()) {
+		for (unsigned i = *ix; i < ix[1]; ++ i, ++ j) {
+		    if (cmp.inRange(buffer[j])) {
+			v0.push_back(buffer[j]);
+			p0.setBit(i, 1);
+		    }
+		}
+	    }
+	    else {
+		for (unsigned i = 0; i < is.nIndices(); ++ i, ++ j) {
+		    if (cmp.inRange(buffer[j])) {
+			v0.push_back(buffer[j]);
+			p0.setBit(ix[i], 1);
+		    }
+		}
+	    }
+	}
+
+	if (p0.cnt() > 0)
+	    hp.push(new bin::valpos<T>(v0, p0));
+    }
+    if (c1 > h1 && offsets[c1-c0] > offsets[h1-c0] &&
+	bits[h1] != 0 && bits[h1]->cnt() > 0) { // edge bin 1
+	unsigned j = (offsets[h1-c0] - start) / elm;
+	for (ibis::bitvector::indexSet is = bits[h1]->firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *ix = is.indices();
+	    if (is.isRange()) {
+		for (unsigned i = *ix; i < ix[1]; ++ i, ++ j) {
+		    if (cmp.inRange(buffer[j])) {
+			v1.push_back(buffer[j]);
+			p1.setBit(i, 1);
+		    }
+		}
+	    }
+	    else {
+		for (unsigned i = 0; i < is.nIndices(); ++ i, ++ j) {
+		    if (cmp.inRange(buffer[j])) {
+			v1.push_back(buffer[j]);
+			p1.setBit(ix[i], 1);
+		    }
+		}
+	    }
+	}
+
+	if (p1.cnt() > 0)
+	    hp.push(new bin::valpos<T>(v1, p1));
+    }
+
+    // add the middle bins to the heap
+    uint32_t offset = (offsets[h0-c0] - start) / elm;
+    for (unsigned ib = h0; ib < h1; ++ ib) {
+	if (bits[ib] != 0 && bits[ib]->cnt() > 0) {
+	    bin::valpos<T> *vp = new bin::valpos<T>;
+	    vp->vals = &(buffer[offset]);
+	    vp->ind = bits[ib]->firstIndexSet();
+	    hp.push(vp);
+	}
+    }
+
+    // use the heap to pick the next value
+    while (hp.size() > 1) {
+	bin::valpos<T>*const t = hp.top();
+	if (t->ind.isRange()) { // add consecutive rows
+	    for (t->ji = t->ind.indices()[0];
+		 t->ji < t->ind.indices()[1];
+		 ++ t->ji, ++ t->jv)
+		vals.push_back(t->vals[t->jv]);
+	    hits.adjustSize(0, t->ind.indices()[0]);
+	    hits.appendFill(1, t->ind.nIndices());
+
+	    ++ t->ind;
+	    if (t->ind.isRange())
+		t->ji = *(t->ind.indices());
+	    else
+		t->ji = 0;
+	}
+	else { // add one value
+	    vals.push_back(t->value());
+	    hits.setBit(t->ind.indices()[t->ji], 1);
+	    t->next();
+	}
+
+	hp.pop();
+	if (t->ind.nIndices() > 0) {
+	    hp.push(t);
+	}
+	else {
+	    delete t;
+	}
+    } // while (hp.size() > 1)
+
+    if (hp.size() > 0) { // one bitmap left
+	bin::valpos<T>*const t = hp.top();
+	ibis::bitvector::indexSet &s = t->ind;
+	const ibis::bitvector::word_t *ix = s.indices();
+	while (s.nIndices() > 0) {
+	    if (s.isRange()) {
+		for (t->ji = *ix; t->ji < ix[1]; ++ t->ji, ++ t->jv)
+		    vals.push_back(t->vals[t->jv]);
+		hits.adjustSize(0, *ix);
+		hits.appendFill(0, s.nIndices());
+	    }
+	    else {
+		while (t->ji < s.nIndices()) {
+		    vals.push_back(t->value());
+		    hits.setBit(s.indices()[t->ji], 1);
+		    ++ t->ji;
+		    ++ t->jv;
+		}
+	    }
+	    ++ s;
+	}
+
+	delete t;
+    }
+
+    hits.compress();
+    hits.adjustSize(0, col->partition()->nRows());
+    ierr = hits.size();
+    return ierr;
+} // ibis::bin::mergeValues
+
+/// Select the rows that satisfy the range condition.  Output the values in
+/// vals.  The values are in unspecified order to reduce the amount of
+/// processing needed in this function -- this follows the spirit of SQL
+/// standard.
+///
+/// @note This function only works with integers and floating-point values.
+long ibis::bin::select(const ibis::qContinuousRange& cmp, void* vals) const {
+    long ierr = -1;
+    switch (col->type()) {
+    case ibis::BYTE:
+	ierr = mergeValues(cmp, *static_cast<array_t<signed char>*>(vals));
+	break;
+    case ibis::UBYTE:
+	ierr = mergeValues(cmp, *static_cast<array_t<unsigned char>*>(vals));
+	break;
+    case ibis::SHORT:
+	ierr = mergeValues(cmp, *static_cast<array_t<int16_t>*>(vals));
+	break;
+    case ibis::USHORT:
+	ierr = mergeValues(cmp, *static_cast<array_t<uint16_t>*>(vals));
+	break;
+    case ibis::INT:
+	ierr = mergeValues(cmp, *static_cast<array_t<int32_t>*>(vals));
+	break;
+    case ibis::UINT:
+	ierr = mergeValues(cmp, *static_cast<array_t<uint32_t>*>(vals));
+	break;
+    case ibis::LONG:
+	ierr = mergeValues(cmp, *static_cast<array_t<int64_t>*>(vals));
+	break;
+    case ibis::ULONG:
+	ierr = mergeValues(cmp, *static_cast<array_t<uint64_t>*>(vals));
+	break;
+    case ibis::FLOAT:
+	ierr = mergeValues(cmp, *static_cast<array_t<float>*>(vals));
+	break;
+    case ibis::DOUBLE:
+	ierr = mergeValues(cmp, *static_cast<array_t<double>*>(vals));
+	break;
+    default:
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- bin::select(" << cmp << ") can not work on "
+	    "column type " << ibis::TYPESTRING[(int)col->type()];
+	break;
+    }
+    return ierr;
+} // ibis::bin::select
+
+/// Select the rows that satisfy the range condition.  Output the rows in
+/// the bit vector hits and the corresponding values in vals.
+/// @note This function only works with integers and floating-point values.
+long ibis::bin::select(const ibis::qContinuousRange& cmp, void* vals,
+		       ibis::bitvector& hits) const {
+    std::string iname, bname;
+    dataFileName(0, iname);
+    bname = iname;
+    bname += ".bin"; // bin file name
+    iname += ".idx"; // index file name
+
+    long ierr = -1;
+    switch (col->type()) {
+    case ibis::BYTE:
+	ierr = mergeValues(cmp, *static_cast<array_t<signed char>*>(vals),
+			   hits);
+	break;
+    case ibis::UBYTE:
+	ierr = mergeValues(cmp, *static_cast<array_t<unsigned char>*>(vals),
+			   hits);
+	break;
+    case ibis::SHORT:
+	ierr = mergeValues(cmp, *static_cast<array_t<int16_t>*>(vals), hits);
+	break;
+    case ibis::USHORT:
+	ierr = mergeValues(cmp, *static_cast<array_t<uint16_t>*>(vals), hits);
+	break;
+    case ibis::INT:
+	ierr = mergeValues(cmp, *static_cast<array_t<int32_t>*>(vals), hits);
+	break;
+    case ibis::UINT:
+	ierr = mergeValues(cmp, *static_cast<array_t<uint32_t>*>(vals), hits);
+	break;
+    case ibis::LONG:
+	ierr = mergeValues(cmp, *static_cast<array_t<int64_t>*>(vals), hits);
+	break;
+    case ibis::ULONG:
+	ierr = mergeValues(cmp, *static_cast<array_t<uint64_t>*>(vals), hits);
+	break;
+    case ibis::FLOAT:
+	ierr = mergeValues(cmp, *static_cast<array_t<float>*>(vals), hits);
+	break;
+    case ibis::DOUBLE:
+	ierr = mergeValues(cmp, *static_cast<array_t<double>*>(vals), hits);
+	break;
+    default:
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- bin::select(" << cmp << ") can not work on "
+	    "column type " << ibis::TYPESTRING[(int)col->type()];
+	break;
+    }
+    return ierr;
+} // ibis::bin::select

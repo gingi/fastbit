@@ -62,6 +62,9 @@ public:
     /// Return the pointer to the internal hit vector.  The user should NOT
     /// attempt to free the returned pointer.
     const ibis::bitvector* getHitVector() const {return hits;}
+    /// Return the pointer to the candidates vector.  The user should NOT
+    /// attempt to free the returned pointer.
+    const ibis::bitvector* getCandVector() const {return cand;}
 
     /// Releases the resources held by the query object and re-initialize
     /// the select clause and the where clause to blank.

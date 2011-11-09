@@ -248,7 +248,7 @@ void ibis::fileManager::flushFile(const char* name) {
 	}
     }
     else {
-	LOGGER(ibis::gVerbose > 5)
+	LOGGER(ibis::gVerbose > 7)
 	    << "fileManager::flushFile will do nothing because \"" << name
 	    << "\" is not tracked by the file manager";
     }

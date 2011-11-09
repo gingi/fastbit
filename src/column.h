@@ -194,9 +194,9 @@ public:
     virtual long patternSearch(const char*) const;
     virtual long patternSearch(const char*, ibis::bitvector &) const;
 
-    virtual long evaluateAndSelect(const ibis::qContinuousRange& cmp,
-				   const ibis::bitvector& mask,
-				   ibis::bitvector& res, void* vals) const;
+    virtual long evaluateAndSelect(const ibis::qContinuousRange&,
+				   const ibis::bitvector&, void*,
+				   ibis::bitvector&) const;
 
     /// Compute a lower bound and an upper bound on the number of hits
     /// using the bitmap index.  If no index is available a new one will be

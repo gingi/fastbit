@@ -850,7 +850,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		    * ibis::fileManager::pageSize();
 		LOGGER(1)
 		    << "query["<< myID << "]::evaluate -- the hit contains "
-		    << nb << " bit" << (nb>1 ? "s" : "") << "with " << nc
+		    << nb << " bit" << (nb>1 ? "s" : "") << " with " << nc
 		    << " bit" << (nc>1 ? "s" : "") << " set(=1) taking up "
 		    << sz << " byte" << (sz>1 ? "s" : "")
 		    << "; the estimated clustering factor is " << cf

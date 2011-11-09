@@ -2901,6 +2901,8 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	}
 	sqlstring = ostr.str();
     }
+    LOGGER(ibis::gVerbose > 1)
+	<< "doQuaere -- processing \"" << sqlstring << '\"';
 
     std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(sstr, fstr, wstr));
     if (qq.get() == 0) {
@@ -2925,7 +2927,9 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	}
     }
 
-    const int64_t cnts = (nhits == hmax ? (int64_t)nhits : qq->count());
+    int64_t cnts = nhits;
+    if (nhits < hmax)
+	cnts = qq->count();
     if (cnts < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- doQuaere(" << sqlstring

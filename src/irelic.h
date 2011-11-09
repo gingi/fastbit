@@ -33,8 +33,10 @@ public:
     virtual int  read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
-    virtual long select(const ibis::qContinuousRange& expr,
-			ibis::bitvector& hits, void* vals) const;
+    virtual long select(const ibis::qContinuousRange&, void*) const;
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const;
+
     using ibis::index::estimate;
     using ibis::index::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
@@ -134,7 +136,7 @@ public:
 	valpos<T>(const T v, const bitvector& b)
 	: val(v), ind(b.firstIndexSet()), j(0) {
 	    if (ind.nIndices() > 0 && ind.isRange())
-		j = ind.indices()[0];
+		j = *(ind.indices());
 	}
 
 	/// Current position (RID).
@@ -279,6 +281,12 @@ public:
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     using ibis::relic::estimate;
     using ibis::relic::estimateCost;
     virtual long evaluate(const ibis::qContinuousRange& expr,
@@ -356,6 +364,12 @@ public:
     virtual int read(ibis::fileManager::storage* st);
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
+
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
 
     using ibis::relic::estimate;
     using ibis::relic::estimateCost;

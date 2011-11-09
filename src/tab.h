@@ -33,7 +33,7 @@ class ibis::tabula : public ibis::table {
 public:
     tabula(const char* na, const char* de, uint64_t nr) :
 	table(na, de), nrows(nr) {};
-    explicit tabula(uint32_t nr=0) : nrows(nr) {};
+    explicit tabula(uint64_t nr=0) : nrows(nr) {};
     virtual ~tabula() {};
     virtual uint64_t nRows() const {return nrows;}
     virtual uint32_t nColumns() const {return 0;}

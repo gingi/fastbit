@@ -4857,16 +4857,17 @@ long ibis::column::selectValues(const ibis::qContinuousRange& cond,
     if (thePart == 0) return -2;
     if (thePart->nRows() == 0) return 0;
 
-    ibis::bitvector nm;
-    getNullMask(nm);
     long ierr = -1;
     if (idx != 0 || indexSize() < thePart->nRows()) {
 	ibis::column::indexLock lock(this, "selectValues");
 	if (idx->estimateCost(cond) < (thePart->nRows() >> 2))
-	    ierr = idx->select(cond, nm, vals);
+	    ierr = idx->select(cond, vals);
     }
-    if (ierr < 0)
+    if (ierr < 0) {
+	ibis::bitvector nm;
+	getNullMask(nm);
 	ierr = thePart->doScan(cond, nm, vals);
+    }
     return ierr;
 } // ibis::column::selectValues
 
@@ -5381,7 +5382,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 /// If vals is a nil pointer, this function simply calls evaluateRange.
 long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
 				     const ibis::bitvector& mask,
-				     ibis::bitvector& low, void* vals) const {
+				     void* vals, ibis::bitvector& low) const {
     if (vals == 0)
 	return evaluateRange(cmp, mask, low);
     if (thePart == 0)
@@ -5419,7 +5420,7 @@ long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
 		double cost = idx->estimateCost(cmp);
 		// use index only if the cost is less than N/2 bytes
 		if (cost < thePart->nRows() * 0.5)
-		    ierr = idx->select(cmp, low, vals);
+		    ierr = idx->select(cmp, vals, low);
 	    }
 	}
 	if (low.size() != mask.size()) { // separate evaluate and select

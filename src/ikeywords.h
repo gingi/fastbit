@@ -120,6 +120,12 @@ public:
     virtual double estimateCost(const ibis::qContinuousRange& expr) const;
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const;
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     class tokenizer;
 
 protected:

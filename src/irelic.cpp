@@ -1617,7 +1617,14 @@ void ibis::relic::locate(const ibis::qContinuousRange& expr, uint32_t& hit0,
 } // ibis::relic::locate
 
 long ibis::relic::select(const ibis::qContinuousRange& expr,
-			 ibis::bitvector& hits, void* vals) const {
+			 void* vals) const {
+    uint32_t h0, h1;
+    locate(expr, h0, h1);
+    return mergeValues(h0, h1, vals);
+} // ibis::relic::select
+
+long ibis::relic::select(const ibis::qContinuousRange& expr, void* vals,
+			 ibis::bitvector& hits) const {
     uint32_t h0, h1;
     locate(expr, h0, h1);
     sumBins(h0, h1, hits);
@@ -3150,15 +3157,18 @@ ibis::relic::mergeValuesT(const array_t<T>& vs,
 	while (hp.size() > 1) {
 	    ibis::relic::valpos<T>*const t = hp.top();
 	    if (t->ind.isRange()) { // add a consecutive range of rows
-		for (t->j = t->ind.indices()[0]; t->j < t->ind.indices()[1];
-		     ++ t->j)
-		    res.push_back(t->val);
+		res.insert(res.end(), t->ind.nIndices(), t->val);
+		++ t->ind;
+		if (t->ind.isRange())
+		    t->j = *(t->ind.indices());
+		else
+		    t->j = 0;
 	    }
 	    else { // add one value
 		res.push_back(t->val);
+		t->next();
 	    }
 
-	    t->next();
 	    hp.pop(); // remove the current value from the heap
 	    if (t->ind.nIndices() > 0) { // add it back to the heap
 		hp.push(t);
@@ -3168,9 +3178,17 @@ ibis::relic::mergeValuesT(const array_t<T>& vs,
 	if (hp.size() > 0) {
 	    ibis::relic::valpos<T>*const t = hp.top();
 	    ibis::bitvector::indexSet& s = t->ind;
+	    const ibis::bitvector::word_t *ix = s.indices();
 	    while (s.nIndices() > 0) {
-		for (t->j = 0; t->j < s.nIndices(); ++ t->j)
-		    res.push_back(t->val);
+		if (s.isRange()) {
+		    res.insert(res.end(), s.nIndices(), t->val);
+		    ++ s;
+		}
+		else {
+		    res.insert(res.end(), s.nIndices() - t->j, t->val);
+		    ++ s;
+		    t->j = 0;
+		}
 	    }
 	}
     }

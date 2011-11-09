@@ -1,6 +1,14 @@
+2011-11-08 John Wu <John dot Wu at ACM dot org>
+	* src/index.h: add a second version of index::select to accomodate
+	the case where the positions are not needed
+	* src/ibin.h, src/ibin.cpp: add two versions of select and two
+	versions of mergeValues, add bin::valpos and bin::comparevalpos
+
 2011-11-07 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: relax the print of warning about unknown columns
 	to allow 'more-check' to complete without warning messages
+	* src/filter.h, src/filter.cpp: add member variables to record the
+	intermediate solutions
 
 2011-11-05 John Wu <John dot Wu at ACM dot org>
 	* src/mensa.cpp, src/filter.cpp: move the static versions of

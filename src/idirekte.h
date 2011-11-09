@@ -45,6 +45,12 @@ public:
     virtual double estimateCost(const ibis::qContinuousRange& expr) const;
     virtual double estimateCost(const ibis::qDiscreteRange& expr) const;
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     virtual void print(std::ostream& out) const;
     virtual int write(const char* name) const;
     virtual int read(const char* name);

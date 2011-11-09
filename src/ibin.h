@@ -50,8 +50,10 @@ public:
 			  ibis::bitvector& hits) const {
 	return ibis::index::evaluate(expr, hits);
     }
-    virtual long select(const ibis::qContinuousRange& expr,
-			ibis::bitvector& hits, void* vals) const {return -1;}
+
+    virtual long select(const ibis::qContinuousRange&, void*) const;
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const;
 
     virtual void estimate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& lower,
@@ -181,6 +183,71 @@ public:
     // key = target value
     typedef std::map< double, granule* > granuleMap;
 
+    /// A list of values and their positions.
+    template <typename T>
+    struct valpos {
+	/// The list of values
+	const T *vals;
+	/// The index set representing the positions.
+	ibis::bitvector::indexSet ind;
+	/// The current index in vals.
+	ibis::bitvector::word_t jv;
+	/// The current index value inside the index set.
+	ibis::bitvector::word_t ji;
+
+	/// Default constructor.
+	valpos<T>() : vals(0), jv(0), ji(0) {}
+	/// Constructor.
+	valpos<T>(const array_t<T>& v, const bitvector& b)
+	: vals(v.begin()), ind(b.firstIndexSet()), jv(0), ji(0) {
+	    if (ind.nIndices() > 0 && ind.isRange())
+		ji = *(ind.indices());
+	}
+
+	/// The current position (RID).
+	bitvector::word_t position() const {
+	    if (ind.isRange())
+		return ji;
+	    else
+		return ind.indices()[ji];
+	}
+
+	/// The current value.
+	T value() const {
+	    return vals[jv];
+	}
+
+	/// Move to the next row.
+	void next() {
+	    ++ jv;
+	    ++ ji;
+	    if (ind.isRange()) {
+		if (ji >= ind.indices()[1]) {
+		    ++ ind;
+		    if (ind.nIndices() > 0 && ind.isRange())
+			ji = ind.indices()[0];
+		    else
+			ji = 0;
+		}
+	    }
+	    else if (ji >= ind.nIndices()) {
+		++ ind;
+		if (ind.nIndices() > 0 && ind.isRange())
+		    ji = ind.indices()[0];
+		else
+		    ji = 0;
+	    }
+	}
+    }; // valpos
+
+    /// The comparator used to build a min-heap based on positions.
+    template<typename T>
+    struct comparevalpos {
+	bool operator()(const valpos<T>* x, const valpos<T>* y) {
+	    return (x->position() > y->position());
+	}
+    }; // comparevalpos
+
 protected:
     // member variables shared by all derived classes -- the derived classes
     // are allowed to interpret the actual content differently.
@@ -211,7 +278,6 @@ protected:
     template <typename E>
     long checkBin1(const ibis::qRange& cmp, uint32_t jbin,
 		   const ibis::bitvector& mask, ibis::bitvector& res) const;
-    /// Write bin-ordered values.
     template <typename E>
     long binOrderT(const char* fname) const;
     long binOrder(const char* fname) const;
@@ -292,6 +358,12 @@ protected:
     virtual void clear();
     int write32(int fptr) const;
     int write64(int fptr) const;
+
+    template <typename T> long
+    mergeValues(const ibis::qContinuousRange&, ibis::array_t<T>&) const;
+    template <typename T> long
+    mergeValues(const ibis::qContinuousRange&, ibis::array_t<T>&,
+		ibis::bitvector&) const;
 
 private:
     // private member functions
@@ -443,6 +515,12 @@ public:
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
@@ -521,6 +599,12 @@ public:
     virtual int write(const char* dt) const; // write to the named file
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
@@ -577,6 +661,12 @@ public:
     virtual int write(const char* dt) const;
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
+
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
 
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
@@ -644,6 +734,12 @@ public:
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
@@ -701,12 +797,17 @@ public:
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
 			  ibis::bitvector& hits) const {
-	return ibis::index::evaluate(expr, hits);
-    }
+	return ibis::index::evaluate(expr, hits);}
 
     using ibis::bin::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
@@ -960,12 +1061,17 @@ public:
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
 			  ibis::bitvector& hits) const {
-	return ibis::index::evaluate(expr, hits);
-    }
+	return ibis::index::evaluate(expr, hits);}
 
     using ibis::egale::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,
@@ -1021,12 +1127,17 @@ public:
     virtual void print(std::ostream& out) const;
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
+    virtual long select(const ibis::qContinuousRange&, void*) const {
+	return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const {
+	return -1;}
+
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const;
     virtual long evaluate(const ibis::qDiscreteRange& expr,
 			  ibis::bitvector& hits) const {
-	return ibis::index::evaluate(expr, hits);
-    }
+	return ibis::index::evaluate(expr, hits);}
 
     using ibis::egale::estimate;
     virtual void estimate(const ibis::qContinuousRange& expr,

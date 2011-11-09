@@ -1645,10 +1645,30 @@ void ibis::array_t<T>::read(const char* file) {
     }
 } // ibis::array_t<T>::read
 
+/// Read an array from a port of the named file.
+template<class T>
+off_t ibis::array_t<T>::read(const char* fname, const off_t begin,
+			     const off_t end) {
+    if (fname == 0 || *fname == 0) return -2;
+    off_t nread = actual->read(fname, begin, end);
+    if (begin+nread == end) {
+	m_begin = (T*)(actual->begin());
+	m_end = (T*)(actual->begin()+nread);
+    }
+    else {
+	LOGGER(ibis::gVerbose > 3)
+	    << "Warning -- array_t<" << typeid(T).name() << ">::read("
+	    << fname << ", " << begin << ", " << end << ") expected to read "
+	    << (end-begin) << " bytes, but acutally read " << nread;
+    }
+    return nread;
+} // ibis::array_t<T>::read
+
 /// Read an array from a file already open.
 template<class T>
 off_t ibis::array_t<T>::read(const int fdes, const off_t begin,
 			     const off_t end) {
+    if (fdes < 0) return -2;
     off_t nread = actual->read(fdes, begin, end);
     if (begin+nread == end) {
 	m_begin = (T*)(actual->begin());
@@ -1656,7 +1676,7 @@ off_t ibis::array_t<T>::read(const int fdes, const off_t begin,
     }
     else {
 	LOGGER(ibis::gVerbose > 3)
-	    << "array_t<" << typeid(T).name() << ">::read("
+	    << "Warning -- array_t<" << typeid(T).name() << ">::read("
 	    << fdes << ", " << begin << ", " << end << ") expected to read "
 	    << (end-begin) << " bytes, but acutally read " << nread;
     }

@@ -133,12 +133,15 @@ public:
     virtual long evaluate(const ibis::qContinuousRange& expr,
 			  ibis::bitvector& hits) const = 0;
     /// Evaluate the range condition and select values.
-    virtual long select(const ibis::qContinuousRange&,
-			ibis::bitvector&, void*) const {return -1;}
+    virtual long select(const ibis::qContinuousRange&, void*) const =0;
+    /// Evaluate the range condition, select values, and record the positions.
+    virtual long select(const ibis::qContinuousRange&, void*,
+			ibis::bitvector&) const =0;
     /// To evaluate the exact hits.  On success, return the number of hits,
     /// otherwise a negative value is returned.
     virtual long evaluate(const ibis::qDiscreteRange&,
-    			  ibis::bitvector&) const {return -1;}
+    			  ibis::bitvector&) const {
+	return -1;}
 
     /// Computes an approximation of hits as a pair of lower and upper
     /// bounds.

@@ -40,11 +40,18 @@ public:
     static table*   filt (const ibis::selectClause &sel,
 			  const ibis::constPartList &pl,
 			  const ibis::whereClause &wc);
-    static table*   filt0(const ibis::selectClause &sel,
-			  const ibis::constPartList &pl);
-    static table*   filt1(const ibis::selectClause &sel,
-			  const ibis::constPartList &pl,
-			  const ibis::whereClause &sel);
+    static table*   filt0(const ibis::selectClause &,
+			  const ibis::constPartList &);
+    static table*   filt1(const ibis::selectClause &,
+			  const ibis::constPartList &,
+			  const ibis::whereClause &);
+    static table*   filt2(const ibis::selectClause &,
+			  const ibis::constPartList &,
+			  const ibis::array_t<ibis::bitvector*> &);
+    static table*   filt3(const ibis::selectClause &,
+			  const ibis::constPartList &,
+			  const ibis::whereClause &,
+			  ibis::array_t<ibis::bitvector*> &);
 
 protected:
     /// The where clause.
@@ -55,6 +62,11 @@ protected:
     /// function select is called with an empty select clause, then this
     /// variable will be used as the substitute.
     const ibis::selectClause *sel_;
+    /// Solution in bitvector form.  If cand is no nil, then this bit
+    /// vector is a lower bound.
+    mutable array_t<ibis::bitvector*> hits_;
+    /// Candidate query results.
+    mutable array_t<ibis::bitvector*> cand_;
 
     /// Default constructor.  Nothing can be done without explicitly
     /// accessing the member variables.

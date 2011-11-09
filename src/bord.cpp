@@ -2269,14 +2269,14 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 	    }
 	}
 	else {
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "Warning -- " << evt << " can not find a column named "
 		<< *nit;
 	}
     }
 
     if (keys.empty()) { // use all integral values
-	if (ibis::gVerbose > 2) {
+	if (ibis::gVerbose > 0) {
 	    if (cols.empty()) {
 		LOGGER(true)
 		    << evt << " user did not specify ordering keys, will "
@@ -3260,8 +3260,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
     mesg += m_name;
     mesg += "]::append";
     LOGGER(ibis::gVerbose > 3)
-	<< " -- to process " << nqq << " row" << (nqq>1?"s":"") << " from "
-	<< prt.name() << ", # of existing rows = " << nh;
+	<< mesg << " -- to process " << nqq << " row" << (nqq>1?"s":"")
+	<< " from " << prt.name() << ", # of existing rows = " << nh;
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "colmap[" << colmap.size() << "]";
@@ -3370,8 +3370,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
     mesg += m_name;
     mesg += "]::append";
     LOGGER(ibis::gVerbose > 3)
-	<< " -- to process " << nqq << " row" << (nqq>1?"s":"") << " from "
-	<< prt.name() << ", # of existing rows = " << nh;
+	<< mesg << " -- to process " << nqq << " row" << (nqq>1?"s":"")
+	<< " from " << prt.name() << ", # of existing rows = " << nh;
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "colmap[" << colmap.size() << "]";
@@ -8408,17 +8408,17 @@ long ibis::bord::column::append(const ibis::column& scol,
 } // ibis::bord::column::append
 
 /// Append selected values from the given column to the current column.
-/// This function extracts the values using the given range condition on scol, and
-/// then append the values to the current column.  The type of scol must be
-/// ligitimately converted to the type of this column.  It returns 0 to
-/// indicate success, a negative number to indicate error.
+/// This function extracts the values using the given range condition on
+/// scol, and then append the values to the current column.  The type of
+/// scol must be ligitimately converted to the type of this column.  It
+/// returns 0 to indicate success, a negative number to indicate error.
 long ibis::bord::column::append(const ibis::column& scol,
 				const ibis::qContinuousRange& cnd) {
     int ierr = 0;
     switch (m_type) {
     case ibis::BYTE: {
 	array_t<signed char> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    ibis::bord::column::addIncoreData<signed char>
 		(reinterpret_cast<array_t<signed char>*&>(buffer),
@@ -8427,7 +8427,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	break;}
     case ibis::UBYTE: {
 	array_t<unsigned char> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    ibis::bord::column::addIncoreData<unsigned char>
 		(reinterpret_cast<array_t<unsigned char>*&>(buffer),
@@ -8436,7 +8436,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	break;}
     case ibis::SHORT: {
 	array_t<int16_t> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    addIncoreData(reinterpret_cast<array_t<int16_t>*&>(buffer),
 			  thePart->nRows(), vals,
@@ -8444,7 +8444,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	break;}
     case ibis::USHORT: {
 	array_t<uint16_t> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    addIncoreData(reinterpret_cast<array_t<uint16_t>*&>(buffer),
 			  thePart->nRows(), vals,
@@ -8452,7 +8452,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	break;}
     case ibis::INT: {
 	array_t<int32_t> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    addIncoreData(reinterpret_cast<array_t<int32_t>*&>(buffer),
 			  thePart->nRows(), vals,
@@ -8460,7 +8460,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	break;}
     case ibis::UINT: {
 	array_t<uint32_t> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    addIncoreData(reinterpret_cast<array_t<uint32_t>*&>(buffer),
 			  thePart->nRows(), vals,
@@ -8468,7 +8468,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	break;}
     case ibis::LONG: {
 	array_t<int64_t> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    addIncoreData(reinterpret_cast<array_t<int64_t>*&>(buffer),
 			  thePart->nRows(), vals,
@@ -8476,7 +8476,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	break;}
     case ibis::ULONG: {
 	array_t<uint64_t> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    addIncoreData(reinterpret_cast<array_t<uint64_t>*&>(buffer),
 			  thePart->nRows(), vals,
@@ -8484,14 +8484,14 @@ long ibis::bord::column::append(const ibis::column& scol,
 	break;}
     case ibis::FLOAT: {
 	array_t<float> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    addIncoreData(reinterpret_cast<array_t<float>*&>(buffer),
 			  thePart->nRows(), vals, FASTBIT_FLOAT_NULL);
 	break;}
     case ibis::DOUBLE: {
 	array_t<double> vals;
-	ierr = selectValues(cnd, &vals);
+	ierr = scol.selectValues(cnd, &vals);
 	if (ierr > 0)
 	    addIncoreData(reinterpret_cast<array_t<double>*&>(buffer),
 			  thePart->nRows(), vals, FASTBIT_DOUBLE_NULL);

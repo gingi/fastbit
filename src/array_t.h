@@ -126,11 +126,11 @@ public:
     iterator erase(iterator i, iterator j);
 
     // the IO functions
-    void  read(const char*); ////< Read from the named file.
-    off_t read(const int fdes, const off_t begin,
-	       const off_t end); ///< Read a portion of an open file.
-    void write(const char*) const; ///< write whole array to the named file
-    void write(FILE* fptr) const;  ///< write whole array to an opened file
+    void  read(const char*);
+    off_t read(const char*, const off_t, const off_t);
+    off_t read(const int, const off_t, const off_t);
+    void write(const char*) const;
+    void write(FILE* fptr) const;
 
     // print internal pointer addresses
     void printStatus(std::ostream& out) const;
