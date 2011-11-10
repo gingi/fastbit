@@ -114,9 +114,15 @@ public:
     virtual int getPartitions(constPartList&) const;
 
     int restoreCategoriesAsStrings(const char*);
-    ibis::table* groupby(const ibis::selectClause&) const;
     ibis::table* evaluateTerms(const ibis::selectClause&,
 			       const char*) const;
+
+    ibis::table* xgroupby(const ibis::selectClause&) const;
+    ibis::table* groupby(const ibis::selectClause&) const;
+    static ibis::bord*
+	groupbya(const ibis::bord&, const ibis::selectClause&);
+    static ibis::bord*
+	groupbyc(const ibis::bord&, const ibis::selectClause&);
 
     virtual long reorder();
     virtual long reorder(const ibis::table::stringList&);

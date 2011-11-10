@@ -1,3 +1,10 @@
+2011-11-10 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src/bord.cpp: add static function
+	ibis::bord::groupbya and ibis::bord::groupbyc to separate out the
+	aggregation operations from the final arithmetic operations in the
+	select clause.  This creates the opportunity for performing
+	aggregations on the partial results from different data partitions
+
 2011-11-08 John Wu <John dot Wu at ACM dot org>
 	* src/index.h: add a second version of index::select to accomodate
 	the case where the positions are not needed

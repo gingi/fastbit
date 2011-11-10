@@ -136,7 +136,8 @@ public:
     ///@{
     /// The number of arithmetic expressions inside the select clause.
     uint32_t aggSize() const {return atms_.size();}
-    /// Fetch the ith term of inside the select clause.  No array bound checking.
+    /// Fetch the ith term of inside the select clause.  No array bound
+    /// checking.
     const ibis::math::term* aggExpr(unsigned i) const {return atms_[i];}
     /// Name inside the aggregation function.  To be used together with
     /// aggSize() and aggExpr().

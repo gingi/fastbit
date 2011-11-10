@@ -1943,7 +1943,7 @@ ibis::bord::groupby(const ibis::table::stringList& keys) const {
 /// aggregation functions with column names arguments.  No futher
 /// arithmetic operations are allowed!
 ibis::table*
-ibis::bord::groupby(const ibis::selectClause& sel) const {
+ibis::bord::xgroupby(const ibis::selectClause& sel) const {
     if (sel.empty())
 	return 0;
 
@@ -1982,8 +1982,6 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
     }
 
     const uint32_t nc1 = sel.aggSize();
-    // convert bundle back into a partition, first generate the name and
-    // description for the new table
     if (nc1 == 0)
 	return new ibis::tabula(tn.c_str(), td.c_str(), nr);
 
@@ -2204,7 +2202,296 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	// buf has been successfully transferred to the new table object
 	gbuf.dismiss();
     return brd2.release();
+} // ibis::bord::xgroupby
+
+ibis::table*
+ibis::bord::groupby(const ibis::selectClause& sel) const {
+    std::auto_ptr<ibis::bord> brd1(ibis::bord::groupbya(*this, sel));
+
+    // can we finish this in one run?
+    const ibis::selectClause::mathTerms& xtms(sel.getTerms());
+    bool onerun = (xtms.size() == sel.aggSize());
+    for (unsigned j = 0; j < xtms.size() && onerun; ++ j)
+	onerun = (xtms[j]->termType() == ibis::math::VARIABLE);
+    if (onerun) {
+	brd1->renameColumns(sel);
+	if (ibis::gVerbose > 2) {
+	    ibis::util::logger lg;
+	    lg() << "bord::groupby -- completed ";
+	    brd1->describe(lg());
+	}
+
+	return brd1.release();
+    }
+
+    std::auto_ptr<ibis::bord> brd2(ibis::bord::groupbyc(*brd1, sel));
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg() << "bord::groupby -- completed ";
+	brd1->describe(lg());
+    }
+
+    return brd2.release();
 } // ibis::bord::groupby
+
+/// Perform the aggregation operations specified in the select clause.  If
+/// there is any further computation on the aggregated values, the user
+/// need to call groupbyc to complete those operations.  This separation
+/// allows one to possibly conduct group by operations on multiple data
+/// partitions on partition at a time, which should reduce the memory
+/// requirement.
+ibis::bord*
+ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
+    if (sel.empty() || sel.aggSize() == 0 || src.nRows() == 0)
+	return 0;
+
+    std::string td = "GROUP BY ";
+    td += sel.aggDescription(0);
+    for (unsigned j = 1; j < sel.aggSize(); ++ j) {
+	td += ", ";
+	td += sel.aggDescription(j);
+    }
+    td += " on table ";
+    td += src.part::name();
+    td += " (";
+    td += src.part::description();
+    td += ')';
+    LOGGER(ibis::gVerbose > 3) << "Starting " << td;
+    readLock lock(&src, td.c_str());
+    std::string tn = ibis::util::shortName(td);
+
+    // create bundle
+    std::auto_ptr<ibis::bundle> bdl(ibis::bundle::create(src, sel));
+    if (bdl.get() == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::groupby failed to create bundle for \""
+	    << td << "\"";
+	return 0;
+    }
+    const uint32_t nr = bdl->size();
+    if (nr == 0) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- bord::groupby produced no answer for " << td;
+	return 0;
+    }
+
+    const uint32_t nca = sel.aggSize();
+
+    // prepare the types and values for the new table
+    std::vector<std::string> nms(nca), des(nca);
+    ibis::table::stringList  nmc(nca), dec(nca);
+    ibis::table::bufferList  buf(nca);
+    ibis::table::typeList    tps(nca);
+    IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(buf),
+		     ibis::util::ref(tps));
+    uint32_t jbdl = 0;
+#ifdef FASTBIT_ALWAYS_OUTPUT_COUNTS
+    bool countstar = false;
+#endif
+    for (uint32_t i = 0; i < nca; ++ i) {
+	void *bptr = 0;
+	nms[i] = sel.aggName(i);
+	nmc[i] = nms[i].c_str();
+	des[i] = sel.aggDescription(i);
+	dec[i] = des[i].c_str();
+	bool iscstar = (sel.aggExpr(i)->termType() == ibis::math::VARIABLE &&
+			sel.getAggregator(i) == ibis::selectClause::CNT);
+	if (iscstar)
+	    iscstar = (*(static_cast<const ibis::math::variable*>
+			 (sel.aggExpr(i))->variableName()));
+	if (iscstar) {
+#ifdef FASTBIT_ALWAYS_OUTPUT_COUNTS
+	    countstar = true;
+#endif
+	    array_t<uint32_t>* cnts = new array_t<uint32_t>;
+	    bdl->rowCounts(*cnts);
+	    tps[i] = ibis::UINT;
+	    buf[i] = cnts;
+	    std::ostringstream oss;
+	    oss << "__" << std::hex << i;
+	    nms[i] = oss.str();
+	    nmc[i] = nms[i].c_str();
+	    continue;
+	}
+	else if (jbdl < bdl->width()) {
+	    tps[i] = bdl->columnType(jbdl);
+	    bptr = bdl->columnArray(jbdl);
+	    ++ jbdl;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- bord::groupby exhausted all columns in bundle, "
+		"not enough information to construct the result table";
+	    return 0;
+	}
+
+	if (bptr == 0) {
+	    buf[i] = 0;
+	    continue;
+	}
+
+	switch (tps[i]) {
+	case ibis::BYTE:
+	    buf[i] = new array_t<signed char>
+		(* static_cast<const array_t<signed char>*>(bptr));
+	    break;
+	case ibis::UBYTE:
+	    buf[i] = new array_t<unsigned char>
+		(* static_cast<const array_t<unsigned char>*>(bptr));
+	    break;
+	case ibis::SHORT:
+	    buf[i] = new array_t<int16_t>
+		(* static_cast<const array_t<int16_t>*>(bptr));
+	    break;
+	case ibis::USHORT:
+	    buf[i] = new array_t<uint16_t>
+		(* static_cast<const array_t<uint16_t>*>(bptr));
+	    break;
+	case ibis::INT:
+	    buf[i] = new array_t<int32_t>
+		(* static_cast<const array_t<int32_t>*>(bptr));
+	    break;
+	case ibis::UINT:
+	    buf[i] = new array_t<uint32_t>
+		(* static_cast<const array_t<uint32_t>*>(bptr));
+	    break;
+	case ibis::LONG:
+	    buf[i] = new array_t<int64_t>
+		(* static_cast<const array_t<int64_t>*>(bptr));
+	    break;
+	case ibis::ULONG:
+	    buf[i] = new array_t<uint64_t>
+		(* static_cast<const array_t<uint64_t>*>(bptr));
+	    break;
+	case ibis::FLOAT:
+	    buf[i] = new array_t<float>
+		(* static_cast<const array_t<float>*>(bptr));
+	    break;
+	case ibis::DOUBLE:
+	    buf[i] = new array_t<double>
+		(* static_cast<const array_t<double>*>(bptr));
+	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY: {
+	    std::vector<std::string> &bstr =
+		* static_cast<std::vector<std::string>*>(bptr);
+	    std::vector<std::string> *tmp =
+		new std::vector<std::string>(bstr.size());
+	    for (uint32_t j = 0; j < bstr.size(); ++ j)
+		(*tmp)[j] = bstr[j];
+	    buf[i] = tmp;
+	    break;}
+	default:
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << td << " can not process column "
+		<< nms[i] << " (" << des[i] << ") of type "
+		<< ibis::TYPESTRING[static_cast<int>(tps[i])];
+	    buf[i] = 0;
+	    break;
+	}
+    }
+#ifdef FASTBIT_ALWAYS_OUTPUT_COUNTS
+    if (! countstar) {// if count(*) is not already there, add it
+	array_t<uint32_t>* cnts = new array_t<uint32_t>;
+	bdl->rowCounts(*cnts);
+	nmc.push_back("count0");
+	dec.push_back("COUNT(*)");
+	tps.push_back(ibis::UINT);
+	buf.push_back(cnts);
+    }
+#endif
+    return (new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec));
+} // ibis::bord::groupbya
+
+/// The function to perform the final computations specified by the select
+/// clause.  This is to be called after all the aggregation operations have
+/// been performed.  The objective to separate the aggregation operations
+/// and the final arithmetic operations is to allow the aggregation
+/// operations to be performed on different data partitions separately.
+///
+/// @note The incoming ibis::bord object must be the output from
+/// ibis::bord::groupbya.
+ibis::bord*
+ibis::bord::groupbyc(const ibis::bord& src, const ibis::selectClause& sel) {
+    if (sel.empty())
+	return 0;
+
+    const unsigned nr = src.nRows();
+    const unsigned ncx = sel.numTerms();
+    if (nr == 0 || ncx == 0)
+	return 0;
+
+    std::string td = "GROUP BY ";
+    td += *sel;
+    td += " on table ";
+    td += src.part::name();
+    td += " (";
+    td += src.part::description();
+    td += ')';
+    LOGGER(ibis::gVerbose > 3)
+	<< "Entering bord::groupbyc to perform thefinal computations for "
+	<< td;
+    readLock lock(&src, td.c_str());
+    std::string tn = ibis::util::shortName(td);
+
+    // prepare the types and values for the new table
+    const ibis::selectClause::mathTerms& xtms(sel.getTerms());
+    std::vector<std::string> nms(ncx), des(ncx);
+    ibis::table::stringList  nmc(ncx), dec(ncx);
+    ibis::table::bufferList  buf(ncx);
+    ibis::table::typeList    tps(ncx);
+    IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(buf),
+		     ibis::util::ref(tps));
+    ibis::bitvector msk;
+    msk.set(1, src.nRows());
+    for (unsigned j = 0; j < ncx; ++ j) {
+	tps[j] = ibis::UNKNOWN_TYPE;
+	buf[j] = 0;
+    }
+
+    for (unsigned j = 0; j < ncx; ++ j) {
+	nms[j] = sel.termName(j);
+	nmc[j] = nms[j].c_str();
+	const ibis::math::term* tm = xtms[j];
+	if (tm == 0 || tm->termType() == ibis::math::UNDEF_TERM) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::groupby(" << td
+		<< ") failed to process term " << j << " named \"" << nms[j]
+		<< '"';
+	    return 0;
+	}
+
+	std::ostringstream oss;
+	oss << *tm;
+	des[j] = oss.str();
+	dec[j] = des[j].c_str();
+
+	switch (tm->termType()) {
+	default: {
+	    tps[j] = ibis::DOUBLE;
+	    buf[j] = new ibis::array_t<double>;
+	    src.calculate(*tm, msk, *static_cast<array_t<double>*>(buf[j]));
+	    break;}
+	case ibis::math::NUMBER: {
+	    tps[j] = ibis::DOUBLE;
+	    buf[j] = new ibis::array_t<double>(nr, tm->eval());
+	    break;}
+	case ibis::math::STRING: {
+	    tps[j] = ibis::CATEGORY;
+	    const std::string val = (const char*)*
+		(static_cast<const ibis::math::literal*>(tm));
+	    buf[j] = new std::vector<std::string>(nr, val);
+	    break;}
+	case ibis::math::VARIABLE: {
+	    const char* var =
+		static_cast<const ibis::math::variable*>(tm)->variableName();
+	    src.copyColumn(var, tps[j], buf[j]);
+	    break;}
+	}
+    }
+
+    return(new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec));
+} // ibis::bord::groupbyc
 
 void ibis::bord::orderby(const ibis::table::stringList& keys) {
     std::vector<bool> directions;
@@ -3243,7 +3530,7 @@ int ibis::bord::renameColumns(const ibis::selectClause& sel) {
 	    -- ierr;
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- bord::renameColumns can not find a column named "
-		<< tn << ", but the select clause contains the name at term "
+		<< tn << ", but the select clause contains the name as term "
 		<< j;
 	}
     }
