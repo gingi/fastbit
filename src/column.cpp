@@ -256,9 +256,9 @@ ibis::column::column(const part* tbl, FILE* file)
 		m_type = ibis::BLOB;
 		break;}
 	    default: {
-		ibis::util::logMessage("Warning",
-				       "column::ctor encountered "
-				       "unknown data type \'%s\'", s1);
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- column::ctor encountered "
+		    "unknown data type \"" << s1 << "\"";
 		badType = true;
 		break;}
 	    }
@@ -544,10 +544,10 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	actualMinMax(val, mask, min, max);
 	break;}
     default:
-	if (ibis::gVerbose > 2)
-	    logMessage("actualMinMax", "column type %s is not one of the "
-		       "supported types (int, uint, float, double)",
-		       ibis::TYPESTRING[static_cast<int>(m_type)]);
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- column::actualMinMax can not handle column type "
+	    << ibis::TYPESTRING[static_cast<int>(m_type)]
+	    << ", only support int, uint, float, double";
 	min = 0;
 	max = (thePart != 0) ? thePart->nRows() : -DBL_MAX;
     } // switch(m_type)
@@ -844,8 +844,8 @@ int ibis::column::getValuesArray(void* vals) const {
 	    static_cast<array_t<ibis::rid_t>*>(vals)->swap(ta);
 	    break;}
         default: {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "column::getValuesArray(" << vals
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- column::getValuesArray(" << vals
 		<< ") does not support data type "
 		<< ibis::TYPESTRING[static_cast<int>(m_type)];
 	    ierr = -2;
@@ -4619,7 +4619,7 @@ long ibis::column::selectValues(const bitvector& mask, void* vals) const {
     case ibis::OID:
 	return selectValuesT(mask, *static_cast<array_t<ibis::rid_t>*>(vals));
     default:
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 	    << "]::selectValues is not able to handle data type "
@@ -4673,7 +4673,7 @@ long ibis::column::selectValues(const bitvector& mask, void* vals,
 	return selectValuesT(mask, *static_cast<array_t<ibis::rid_t>*>(vals),
 			     inds);
     default:
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 	    << "]::selectValues is not able to handle data type "
@@ -4831,7 +4831,7 @@ ibis::column::selectStrings(const bitvector& mask) const {
 	ierr = selectToStrings<ibis::rid_t>(mask, *res);
 	break;
     default:
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column["
 	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
 	    << "]::selectStrings is not able to handle data type "
@@ -6614,7 +6614,7 @@ long ibis::column::append(const void* vals, const ibis::bitvector& msk) {
 	break;
     default:
 	ierr = -3L;
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
 	    << '.' << m_name << "]::append can not handle type " << (int) m_type
 	    << " (" << ibis::TYPESTRING[(int)m_type] << ')';
@@ -8207,7 +8207,10 @@ double ibis::column::computeMin() const {
 	}
 	break;}
     default:
-	logMessage("computeMin", "not able to compute min");
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name << "]::computeMin can not work with column type "
+	    << ibis::TYPESTRING[(int)m_type];
     } // switch(m_type)
 
     return ret;
@@ -8329,7 +8332,10 @@ double ibis::column::computeMax() const {
 	}
 	break;}
     default:
-	logMessage("computeMax", "not able to compute max");
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name << "]::computeMax can not work with column type "
+	    << ibis::TYPESTRING[(int)m_type];
     } // switch(m_type)
 
     return res;
@@ -8459,7 +8465,10 @@ double ibis::column::computeSum() const {
 	}
 	break;}
     default:
-	logMessage("computeSum", "not able to compute sum");
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << '.' << m_name << "]::computeSum can not work with column type "
+	    << ibis::TYPESTRING[(int)m_type];
     } // switch(m_type)
 
     return ret;
@@ -8654,7 +8663,7 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
 	}
 	break;}
     default: {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSorted(" << rng
 	    << ") does not yet support column type "
@@ -8779,7 +8788,7 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
 	}
 	break;}
     default: {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSorted(" << rng.colName() << " IN ...) "
 	    << "does not yet support column type "
@@ -8904,7 +8913,7 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
 	}
 	break;}
     default: {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSorted(" << rng.colName() << " IN ...) "
 	    << "does not yet support column type "
@@ -9029,7 +9038,7 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
 	}
 	break;}
     default: {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSorted(" << rng.colName() << " IN ...) "
 	    << "does not yet support column type "

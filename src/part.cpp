@@ -546,7 +546,7 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	    if (backupDir != 0)
 		lg() << "\nbackupDir = \"" << backupDir << "\"";
 	}
-	if (nEvents > 0 && ! columns.empty()) {
+	if (ibis::gVerbose > 1 && nEvents > 0 && ! columns.empty()) {
 	    lg() << "\n";
 	    if (ibis::gVerbose > 3) {
 		print(lg());
@@ -1073,7 +1073,7 @@ void ibis::part::init(const char* iname) {
 	    if (backupDir != 0 && *backupDir != 0)
 		lg() << "\nbackupDir = \"" << backupDir << "\"";
 	}
-	if (columns.size() > 0 && nEvents > 0) {
+	if (ibis::gVerbose > 1 && columns.size() > 0 && nEvents > 0) {
 	    lg() << "\n";
 	    if (ibis::gVerbose > 3)
 		print(lg());

@@ -1672,7 +1672,7 @@ ibis::util::timer::timer(const char* msg, int lvl) :
     if (chrono_ != 0) {
 	chrono_->start();
 	if (ibis::gVerbose > lvl+1)
-	    ibis::util::logger(2)()
+	    ibis::util::logger(0)()
 		<< mesg_ << " -- start timer ...";
     }
 } // ibis::util::timer::timer
@@ -1683,7 +1683,7 @@ ibis::util::timer::timer(const char* msg, int lvl) :
 ibis::util::timer::~timer() {
     if (chrono_ != 0) {
 	chrono_->stop();
-	ibis::util::logger(2)()
+	ibis::util::logger(0)()
 	    << mesg_ << " -- duration: " << chrono_->CPUTime()
 	    << " sec(CPU), " << chrono_->realTime() << " sec(elapsed)";
 	delete chrono_;

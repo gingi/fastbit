@@ -1939,7 +1939,7 @@ ibis::bord::groupby(const ibis::table::stringList& keys) const {
 
 /// The actual function to perform the group by operation.
 ///
-/// @note The input argument can only contain column names and support
+/// @note The input argument can only contain column names and supported
 /// aggregation functions with column names arguments.  No futher
 /// arithmetic operations are allowed!
 ibis::table*
@@ -2279,7 +2279,7 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 	if (ibis::gVerbose > 0) {
 	    if (cols.empty()) {
 		LOGGER(true)
-		    << evt << " user did not specify ordering keys, will "
+		    << evt << " -- user did not specify ordering keys, will "
 		    "attempt to use all integer columns as ordering keys";
 	    }
 	    else {
@@ -2288,7 +2288,7 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 		for (unsigned i = 1; i < cols.size(); ++ i)
 		    oss << ", " << cols[i];
 		LOGGER(true)
-		    << evt << " user specified ordering keys \"" << oss.str()
+		    << evt << " -- user specified ordering keys \"" << oss.str()
 		    << "\" does not match any numerical columns with more "
 		    "than one distinct value, will attempt to use "
 		    "all integer columns as ordering keys";

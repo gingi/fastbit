@@ -201,7 +201,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 	exit(-2);
     }
 
-    if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose > 1) {
 	tbl->describe(std::cout);
     }
     if (ibis::gVerbose >= 0 && ! qcnd.empty()) {

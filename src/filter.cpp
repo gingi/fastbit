@@ -483,7 +483,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
     ibis::countQuery qq;
     ierr = qq.setWhereClause(cond.getExpr());
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- " << mesg << " failed to assign externally "
 	    "provided query expression \"" << cond
 	    << "\" to a countQuery object, ierr=" << ierr;
@@ -552,7 +552,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	if (hits == 0 || hits->cnt() == 0) continue;
 
 	ierr = brd1->append(tms, **it, *hits);
-	LOGGER(ierr < 0 && ibis::gVerbose > 0)
+	LOGGER(ierr < 0 && ibis::gVerbose > 1)
 	    << "Warning -- " << mesg << " failed to append " << hits->cnt()
 	    << " row" << (hits->cnt() > 1 ? "s" : "") << " from "
 	    << (*it)->name();
@@ -575,7 +575,7 @@ ibis::table* ibis::filter::filt(const ibis::selectClause &tms,
 	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
 	}
 	else {
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << mesg << " failed to produce any result, "
 		"the last error code was " << ierr;
 	    return 0;
@@ -679,7 +679,7 @@ ibis::table* ibis::filter::filt0(const ibis::selectClause &tms,
 
 	const ibis::bitvector& msk = (*it)->getNullMask();
 	ierr = brd1->append(tms, **it, msk);
-	LOGGER(ierr < 0 && ibis::gVerbose > 0)
+	LOGGER(ierr < 0 && ibis::gVerbose > 1)
 	    << "Warning -- " << mesg << " failed to append " << msk.cnt()
 	    << " row" << (msk.cnt() > 1 ? "s" : "") << " from "
 	    << (*it)->name();
@@ -702,7 +702,7 @@ ibis::table* ibis::filter::filt0(const ibis::selectClause &tms,
 	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
 	}
 	else {
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << mesg << " failed to produce any result, "
 		"the last error code was " << ierr;
 	    return 0;
@@ -817,7 +817,7 @@ ibis::table* ibis::filter::filt1(const ibis::selectClause &tms,
 	ierr = brd1->append(tms, **it,
 			    *static_cast<const ibis::qContinuousRange*>
 			    (cond.getExpr()));
-	LOGGER(ierr < 0 && ibis::gVerbose > 0)
+	LOGGER(ierr < 0 && ibis::gVerbose > 1)
 	    << "Warning -- " << mesg << " failed to append rows satisfying "
 	    << cond << " from " << (*it)->name();
     }
@@ -839,7 +839,7 @@ ibis::table* ibis::filter::filt1(const ibis::selectClause &tms,
 	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
 	}
 	else {
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << mesg << " failed to produce any result, "
 		"the last error code was " << ierr;
 	    return 0;
@@ -946,7 +946,7 @@ ibis::table* ibis::filter::filt2(const ibis::selectClause &tms,
 	}
 
 	ierr = brd1->append(tms, *plist[j], *hv);
-	LOGGER(ierr < 0 && ibis::gVerbose > 0)
+	LOGGER(ierr < 0 && ibis::gVerbose > 1)
 	    << "Warning -- " << mesg << " failed to append " << hv->cnt()
 	    << " row" << (hv->cnt() > 1 ? "s" : "") << " from "
 	    << plist[j]->name();
@@ -969,7 +969,7 @@ ibis::table* ibis::filter::filt2(const ibis::selectClause &tms,
 	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
 	}
 	else {
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << mesg << " failed to produce any result, "
 		"the last error code was " << ierr;
 	    return 0;
@@ -1059,7 +1059,7 @@ ibis::table* ibis::filter::filt3(const ibis::selectClause &tms,
     ibis::countQuery qq;
     ierr = qq.setWhereClause(cond.getExpr());
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- " << mesg << " failed to assign externally "
 	    "provided query expression \"" << cond
 	    << "\" to a countQuery object, ierr=" << ierr;
@@ -1224,7 +1224,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& mylist,
 	return ibis::filter::filt(sc, mylist, wc);
     }
     catch (const ibis::bad_alloc &e) {
-	if (ibis::gVerbose >= 0) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::select absorbed a bad_alloc exception ("
 		 << e.what() << "), will return a nil pointer";
@@ -1233,7 +1233,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& mylist,
 	}
     }
     catch (const std::exception &e) {
-	if (ibis::gVerbose >= 0) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::select absorbed a std::exception ("
 		 << e.what() << "), will return a nil pointer";
@@ -1242,7 +1242,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& mylist,
 	}
     }
     catch (const char *s) {
-	if (ibis::gVerbose >= 0) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::select absorbed a string exception ("
 		 << s << "), will return a nil pointer";
@@ -1251,7 +1251,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& mylist,
 	}
     }
     catch (...) {
-	if (ibis::gVerbose >= 0) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::select absorbed an unknown exception, "
 		"will return a nil pointer";
@@ -1291,7 +1291,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& plist,
 	return ibis::filter::filt(sc, plist, wc);
     }
     catch (const ibis::bad_alloc &e) {
-	if (ibis::gVerbose >= 0) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::select absorbed a bad_alloc exception ("
 		 << e.what() << "), will return a nil pointer";
@@ -1300,7 +1300,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& plist,
 	}
     }
     catch (const std::exception &e) {
-	if (ibis::gVerbose >= 0) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::select absorbed a std::exception ("
 		 << e.what() << "), will return a nil pointer";
@@ -1309,7 +1309,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& plist,
 	}
     }
     catch (const char *s) {
-	if (ibis::gVerbose >= 0) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::select absorbed a string exception ("
 		 << s << "), will return a nil pointer";
@@ -1318,7 +1318,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& plist,
 	}
     }
     catch (...) {
-	if (ibis::gVerbose >= 0) {
+	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- table::select absorbed an unknown exception, "
 		"will return a nil pointer";
