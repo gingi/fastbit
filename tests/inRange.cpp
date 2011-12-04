@@ -158,30 +158,33 @@ void tester::query(const char *datadir, const char *where) {
     std::auto_ptr<ibis::table> select(inmemory->select(sel1.c_str(), where));
     if (select.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "failed to select \"" << where << "\" on memory table";
+	    << "failed to select \"" << where << "\" on table"
+	    << inmemory->name();
 	return;
     }
 
-    std::cout << "Number of rows produced by \"SELECT " << sel1 << " WHERE "
-	      << where << "\": "
+    std::cout << "Number of rows produced by \"SELECT " << sel1
+	      << " WHERE " << where << "\": "
 	      << select->nRows() << std::endl;
     select->dump(std::cout);
 } // tester::query
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-	printf("\nUsage:\n\t%s <datadir> [where_1 [where_2...]]\n\n", *argv);
+	printf("\nUsage:\n%s <datadir> [where_clause1] [where_clause2...]\n\n",
+	       *argv);
 	return 0;
     }
 
     char *datadir = argv[1];
     tester test0r;
     test0r.load(datadir);
+    //ibis::gVerbose = 6;
     if (argc == 2) { // try some built-in tests
-	test0r.query(datadir, "l IN(1,2)");
-	test0r.query(datadir, "l IN(1)");
-	test0r.query(datadir, "l IN(3)");
-	test0r.query(datadir, "l IN(1,3)");
+	test0r.query(datadir, "l IN (1,2)");
+	test0r.query(datadir, "l IN (1)");
+	test0r.query(datadir, "l IN (3)");
+	test0r.query(datadir, "l IN (1,3)");
     }
     for (int iarg = 2; iarg < argc; ++ iarg)
 	test0r.query(datadir, argv[iarg]);
