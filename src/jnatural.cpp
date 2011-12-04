@@ -32,7 +32,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
 			 const char* desc)
     : sel_(sel ? new ibis::selectClause(*sel) : 0),
       frm_(frm ? new ibis::fromClause(*frm) : 0), R_(*partr), S_(*parts),
-      colR_(*colr), colS_(*cols), valR_(0), valS_(0), nrows(-1) {
+      colR_(*colr), colS_(*cols), orderR_(0), orderS_(0),
+      valR_(0), valS_(0), nrows(-1) {
     int ierr;
     if (desc == 0 || *desc == 0) { // build a description string
 	desc_ = "From ";
@@ -723,13 +724,21 @@ ibis::jNatural::fillResult(size_t nrows,
     return res.release();
 } // ibis::jNatural::fillResult
 
+/// Select values for a list of column names.
+///
+/// @note The incoming argument MUST be a list of column names.  Can not be
+/// any aggregation functions!
 ibis::table*
 ibis::jNatural::select(const ibis::table::stringList& colnames) const {
     ibis::table *res = 0;
     if (nrows < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- must call jNatural::count before calling select";
-	return res;
+	int64_t ierr = count();
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jNatural::count failed with error code "
+		<< ierr;
+	    return res;
+	}
     }
     if (valR_ == 0 || orderR_ == 0 || valS_ == 0 || orderS_ == 0 ||
 	orderR_->size() != maskR_.cnt() || orderS_->size() != maskS_.cnt()) {
@@ -802,9 +811,10 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- " << evt << " can not find column named \""
-		    << colnames[j] << "\" in data partition \"" << R_.name()
-		    << "\"";
+		    << "Warning -- " << evt
+		    << " can not find column named \""
+		    << colnames[j] << "\" in data partition \""
+		    << R_.name() << "\"";
 		return res;
 	    }
 	}
@@ -817,7 +827,8 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- " << evt << " can not find column named \""
+		    << "Warning -- " << evt
+		    << " can not find column named \""
 		    << colnames[j] << "\" in data partition \""
 		    << S_.name() << "\"";
 		return res;
@@ -832,7 +843,8 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 		LOGGER(ibis::gVerbose > 3)
 		    << evt << " encountered a column name ("
 		    << colnames[j] << ") that does not start with a data "
-		    "partition name, assume it is for \"" << R_.name() << "\"";
+		    "partition name, assume it is for \""
+		    << R_.name() << "\"";
 	    }
 	    else {
 		col = S_.getColumn(cn);
@@ -840,15 +852,16 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 		    ipToPos[j] = ncols - iscol.size();
 		    iscol.push_back(col);
 		    LOGGER(ibis::gVerbose > 1)
-			<< evt << " encountered a column name (" << colnames[j]
-			<< ") that does not start with a data partition name, "
-			"assume it is for \"" << S_.name() << "\"";
+			<< evt << " encountered a column name ("
+			<< colnames[j] << ") that does not start with a "
+			"data partition name, assume it is for \""
+			<< S_.name() << "\"";
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- " << evt << " encountered a name ("
-			<< colnames[j] << ") that does not start with a data "
-			"partition name";
+			<< colnames[j] << ") that doesnot start with a "
+			"data partition name";
 		    return res;
 		}
 	    }
@@ -1104,7 +1117,8 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- jNatural::select does not support column "
 		"type " << ibis::TYPESTRING[(int)iscol[j]->type()]
-		<< " (name = " << S_.name() << "." << iscol[j]->name() << ")";
+		<< " (name = " << S_.name() << "."
+		<< iscol[j]->name() << ')';
 	    break;
 	}
     }
@@ -1194,7 +1208,7 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	break;
     default:
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not handle join column of type "
+	    << "Warning -- " << evt << " cannot handle join column of type "
 	    << ibis::TYPESTRING[(int)colR_.type()];
     }
     return res;
@@ -1202,6 +1216,15 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 
 /// Evaluate the select clause specified in the constructor.
 ibis::table* ibis::jNatural::select() const {
+    if (nrows < 0) {
+	int64_t ierr = count();
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jNatural::count failed with error code "
+		<< ierr;
+	    return 0;
+	}
+    }
     if (sel_ == 0 || sel_->empty()) { // default
 	std::string tn = ibis::util::shortName(desc_.c_str());
 	return new ibis::tabula(tn.c_str(), desc_.c_str(), nrows);
@@ -1230,7 +1253,7 @@ ibis::table* ibis::jNatural::select() const {
     if (res1 != 0 && ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "jNatural::select(" << *sel_ << ", " << desc_
-		    << ") produced the first intermediate table:\n";
+	     << ") produced the first intermediate table:\n";
 	res1->describe(lg());
     }
     if (res1 == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
@@ -1245,7 +1268,7 @@ ibis::table* ibis::jNatural::select() const {
 	    if (ibis::gVerbose > 2) {
 		ibis::util::logger lg;
 		lg() << "jNatural::select(" << *sel_ << ", " << desc_
-			    << ") produced the second intermediate table:\n";
+		     << ") produced the second intermediate table:\n";
 		res2->describe(lg());
 	    }
 	    delete res1;
@@ -1266,7 +1289,7 @@ ibis::table* ibis::jNatural::select() const {
 	    if (ibis::gVerbose > 2) {
 		ibis::util::logger lg;
 		lg() << "jNatural::select(" << *sel_ << ", " << desc_
-			    << ") produced the third intermediate table:\n";
+		     << ") produced the third intermediate table:\n";
 		res3->describe(lg());
 	    }
 	    delete res1;

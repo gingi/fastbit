@@ -2902,16 +2902,14 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 
     std::auto_ptr<ibis::table> res;
     if (estimate_opt < 0) { // directly evaluate the 
-	std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(0, fstr, wstr));
+	std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(sstr, fstr, wstr));
 	if (qq.get() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- doQuaere(" << sqlstring
 		<< ") failed to create an ibis::quaere object";
 	    return;
 	}
-	ibis::table::stringList sel(1);
-	sel[0] = sstr;
-	res.reset(qq->select(sel));
+	res.reset(qq->select());
     }
     else {
 	std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(sstr, fstr, wstr));

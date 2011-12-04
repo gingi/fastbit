@@ -22,7 +22,8 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
     : sel_(sel ? new ibis::selectClause(*sel) : 0),
       frm_(frm ? new ibis::fromClause(*frm) : 0),
       partr_(partr), parts_(parts), colr_(colr), cols_(cols),
-      delta1_(delta1), delta2_(delta2), valr_(0), vals_(0), nrows(-1) {
+      delta1_(delta1), delta2_(delta2), orderr_(0), orders_(0),
+      valr_(0), vals_(0), nrows(-1) {
     if (desc == 0 || *desc == 0) { // build a description string
 	std::ostringstream oss;
 	oss << "From " << partr.name() << " Join " << parts.name()
@@ -353,6 +354,15 @@ int64_t ibis::jRange::count() const {
 } // ibis::jRange::count
 
 ibis::table* ibis::jRange::select() const {
+    if (nrows < 0) {
+	int64_t ierr = count();
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jRange::count failed with error code"
+		<< ierr;
+	    return 0;
+	}
+    }
     if (sel_ == 0 || sel_->empty()) { // default
 	std::string tn = ibis::util::shortName(desc_.c_str());
 	return new ibis::tabula(tn.c_str(), desc_.c_str(), nrows);
@@ -436,9 +446,13 @@ ibis::table*
 ibis::jRange::select(const ibis::table::stringList& colnames) const {
     ibis::table *res = 0;
     if (nrows < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- must call jRange::count before calling select";
-	return res;
+	int64_t ierr = count();
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jRange::count failed with error code"
+		<< ierr;
+	    return res;
+	}
     }
     if (valr_ == 0 || orderr_ == 0 || vals_ == 0 || orders_ == 0 ||
 	orderr_->size() != maskr_.cnt() || orders_->size() != masks_.cnt()) {

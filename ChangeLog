@@ -1,3 +1,10 @@
+2011-12-03 John Wu <John dot Wu at ACM dot org>
+	* src/jnatural.cpp: initialize pointers to 0 in the constructors,
+	add calls to count in select (to accomodate the changes in the
+	default in ibis.cpp that now skips the estimation step)
+	* src/jrange.cpp: update the constructor and the select function
+	as jNatural
+
 2011-12-02 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/part.cpp: rename some version of doCompare to
 	doComp to avoid confusion in template parameter matching reported
