@@ -16,6 +16,7 @@
    above the ground surface to protect the contained water, steam, sewage,
    and fire lines from freezing.
 */
+#include <algorithm>
 #include "array_t.h"	// array_t
 
 namespace ibis {

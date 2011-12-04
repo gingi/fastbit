@@ -87,31 +87,25 @@
 %% /* Grammar rules */
 flist: fterm | fterm flist;
 fterm: NOUNSTR ',' {
-    const size_t pos = driver.names_.size();
     driver.names_.push_back(*$1);
     driver.aliases_.push_back("");
 }
 | NOUNSTR END {
-    const size_t pos = driver.names_.size();
     driver.names_.push_back(*$1);
     driver.aliases_.push_back("");
 }
 | NOUNSTR NOUNSTR ',' {
-    const size_t pos = driver.names_.size();
     driver.names_.push_back(*$1);
     driver.aliases_.push_back(*$2);
 }
 | NOUNSTR NOUNSTR END {
-    const size_t pos = driver.names_.size();
     driver.names_.push_back(*$1);
     driver.aliases_.push_back(*$2);
 }| NOUNSTR ASOP NOUNSTR ',' {
-    const size_t pos = driver.names_.size();
     driver.names_.push_back(*$1);
     driver.aliases_.push_back(*$3);
 }
 | NOUNSTR ASOP NOUNSTR END {
-    const size_t pos = driver.names_.size();
     driver.names_.push_back(*$1);
     driver.aliases_.push_back(*$3);
 }

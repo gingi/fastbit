@@ -60,7 +60,7 @@ public:
     void purgeIndexFiles() const;
 
     /// Return the name of the partition.
-    const char* name()		const {return m_name;}
+    const char* name()		const {return (m_name?m_name:"?");}
     /// Return a text description of the partition.
     const char* description()	const {return m_desc.c_str();}
     /// Return the current index specification.
@@ -688,10 +688,10 @@ public:
 			const ibis::bitvector& newmask);
 
 protected:
-    class cleaner;	///< Cleaner for the file manager.
-    class writeLock;	///< A write lock on the partition.
-    class softWriteLock; ///< A non-block version of writeLock.
-    class mutexLock;    ///< A mutual exclusion lock.
+    class cleaner;
+    class mutexLock;
+    class writeLock;
+    class softWriteLock;
 
     friend struct info;
     friend class cleaner;
@@ -864,44 +864,44 @@ protected:
 			ibis::bitvector &hits);
 
     template <typename T, typename F> static long
-	doCompare(const array_t<T> &vals, F cmp,
-		  const ibis::bitvector &mask,
-		  array_t<T> &res, ibis::bitvector &hits);
+	doComp(const array_t<T> &vals, F cmp,
+	       const ibis::bitvector &mask,
+	       array_t<T> &res, ibis::bitvector &hits);
 
     template <typename T, typename F> static long
-	doCompare(const array_t<T> &vals, F cmp,
-		  const ibis::bitvector &mask,
-		  array_t<T> &res);
+	doComp(const array_t<T> &vals, F cmp,
+	       const ibis::bitvector &mask,
+	       array_t<T> &res);
 
     template <typename T, typename F> static long
-	doCompare(const array_t<T> &vals, F cmp,
-		  const ibis::bitvector &mask,
-		  ibis::bitvector &hits);
+	doComp(const array_t<T> &vals, F cmp,
+	       const ibis::bitvector &mask,
+	       ibis::bitvector &hits);
 
     template <typename T, typename F1, typename F2> static long
-	doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
-		  const ibis::bitvector &mask,
-		  array_t<T> &res, ibis::bitvector &hits);
+	doComp(const array_t<T> &vals, F1 cmp1, F2 cmp2,
+	       const ibis::bitvector &mask,
+	       array_t<T> &res, ibis::bitvector &hits);
 
     template <typename T, typename F1, typename F2> static long
-	doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
-		  const ibis::bitvector &mask,
-		  array_t<T> &res);
+	doComp(const array_t<T> &vals, F1 cmp1, F2 cmp2,
+	       const ibis::bitvector &mask,
+	       array_t<T> &res);
 
     template <typename T, typename F1, typename F2> static long
-	doCompare(const array_t<T> &vals, F1 cmp1, F2 cmp2,
-		  const ibis::bitvector &mask,
-		  ibis::bitvector &hits);
+	doComp(const array_t<T> &vals, F1 cmp1, F2 cmp2,
+	       const ibis::bitvector &mask,
+	       ibis::bitvector &hits);
 
     template <typename T, typename F> static long
-	doCompare0(const array_t<T> &vals, F cmp,
-		   const ibis::bitvector &mask,
-		   ibis::bitvector &hits);
+	doComp0(const array_t<T> &vals, F cmp,
+		const ibis::bitvector &mask,
+		ibis::bitvector &hits);
 
     template <typename T, typename F1, typename F2> static long
-	doCompare0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
-		   const ibis::bitvector &mask,
-		   ibis::bitvector &hits);
+	doComp0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
+		const ibis::bitvector &mask,
+		ibis::bitvector &hits);
 
     template <typename T>
 	long doCount(const ibis::qRange &cmp) const;

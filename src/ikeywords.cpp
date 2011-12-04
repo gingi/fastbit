@@ -366,7 +366,7 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
 	return -3;
     }
 
-    ibis::util::guard tfdguard = ibis::util::makeGuard(UnixClose, tfdesc);
+    IBIS_BLOCK_GUARD(UnixClose, tfdesc);
     int spdesc = UnixOpen(spname.c_str(), OPEN_READONLY);
     if (spdesc < 0) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -375,7 +375,7 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
 	return -4;
     }
 
-    ibis::util::guard spdguard = ibis::util::makeGuard(UnixClose, spdesc);
+    IBIS_BLOCK_GUARD(UnixClose, spdesc);
     int64_t start, end;
     int64_t ierr = UnixRead(spdesc, &start, sizeof(start));
     if (ierr < 8) {
@@ -542,7 +542,7 @@ int ibis::keywords::write(const char* dt) const {
 	    return -1;
 	}
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -639,7 +639,7 @@ int ibis::keywords::read(const char* f) {
     if (fdes < 0) return -1;
 
     char header[8];
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif

@@ -204,7 +204,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
     if (ibis::gVerbose > 1) {
 	tbl->describe(std::cout);
     }
-    if (ibis::gVerbose >= 0 && ! qcnd.empty()) {
+    if (ibis::gVerbose > 1 && ! qcnd.empty()) {
 	std::cout << argv[0] << "\nSelect " << (sel ? sel : "count(*)")
 		  << "\nFrom " << (frm ? frm : tbl->name()) << "\nWhere -- ";
 	for (qList::const_iterator it = qcnd.begin(); it != qcnd.end(); ++it)

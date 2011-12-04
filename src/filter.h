@@ -37,30 +37,48 @@ public:
     virtual table*  select() const;
     virtual table*  select(const ibis::table::stringList& colnames) const;
 
-    static table*   filt (const ibis::selectClause &sel,
-			  const ibis::constPartList &pl,
-			  const ibis::whereClause &wc);
-    static table*   filt0(const ibis::selectClause &,
+    static table*   sift(const ibis::selectClause  &sel,
+			 const ibis::constPartList &pl,
+			 const ibis::whereClause   &wc);
+    static table*   sift0(const ibis::selectClause  &,
 			  const ibis::constPartList &);
-    static table*   filt1(const ibis::selectClause &,
+    static table*   sift0S(const ibis::selectClause  &,
+			   const ibis::constPartList &);
+    static table*   sift1(const ibis::selectClause  &,
 			  const ibis::constPartList &,
-			  const ibis::whereClause &);
-    static table*   filt2(const ibis::selectClause &,
+			  const ibis::whereClause   &);
+    static table*   sift1S(const ibis::selectClause  &,
+			   const ibis::constPartList &,
+			   const ibis::whereClause   &);
+    static table*   sift2(const ibis::selectClause  &,
+			  const ibis::constPartList &,
+			  const ibis::whereClause   &);
+    static table*   sift2(const ibis::selectClause  &,
 			  const ibis::constPartList &,
 			  const ibis::array_t<ibis::bitvector*> &);
-    static table*   filt3(const ibis::selectClause &,
+    static table*   sift2(const ibis::selectClause  &,
 			  const ibis::constPartList &,
-			  const ibis::whereClause &,
+			  const ibis::whereClause   &,
 			  ibis::array_t<ibis::bitvector*> &);
+    static table*   sift2S(const ibis::selectClause  &,
+			   const ibis::constPartList &,
+			   const ibis::whereClause   &);
+    static table*   sift2S(const ibis::selectClause  &,
+			   const ibis::constPartList &,
+			   const ibis::array_t<ibis::bitvector*> &);
+    static table*   sift2S(const ibis::selectClause  &,
+			   const ibis::constPartList &,
+			   const ibis::whereClause   &,
+			   ibis::array_t<ibis::bitvector*> &);
 
 protected:
     /// The where clause.
     const ibis::whereClause *wc_;
     /// A list of data partitions to query.
     const ibis::constPartList *parts_;
-    /// The select clause.  Also used to spply aliases.  If the
-    /// function select is called with an empty select clause, then this
-    /// variable will be used as the substitute.
+    /// The select clause.  Also used to spply aliases.  If the function
+    /// select is called with an empty select clause, then this variable
+    /// will be used as the substitute.
     const ibis::selectClause *sel_;
     /// Solution in bitvector form.  If cand is no nil, then this bit
     /// vector is a lower bound.
@@ -69,7 +87,7 @@ protected:
     mutable array_t<ibis::bitvector*> cand_;
 
     /// Default constructor.  Nothing can be done without explicitly
-    /// accessing the member variables.
+    /// initializing the member variables.
     filter() : wc_(0), parts_(0), sel_(0) {}
 
 private:

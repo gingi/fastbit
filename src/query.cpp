@@ -4068,7 +4068,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	return;
     }
 
-    ibis::util::guard gfptr = ibis::util::makeGuard(fclose, fptr);
+    IBIS_BLOCK_GUARD(fclose, fptr);
     // user id
     if (0 == fgets(fn, MAX_LINE, fptr)) {
 	LOGGER(ibis::gVerbose > 0)

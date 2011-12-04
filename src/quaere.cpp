@@ -15,37 +15,43 @@
 /// be blank strings or left as nil pointers.  If the select clause is
 /// undefined, the default operation is to count the number of hits.  If
 /// the from clause is not specified, it will attempt to use all the data
-/// partitions stored in the global variable ibis::datasets.
-ibis::quaere* ibis::quaere::create(const char* sel,
-				   const char* fr,
-				   const char* wh) {
-    if (wh == 0 || *wh == 0)
-	return 0;
-
+/// partitions stored in the global variable ibis::datasets.  If the where
+/// clause is not specified, the query is assumed to select every row
+/// (following the SQL convension).
+///
+/// @note If more than one data partition was used in specifying the
+/// query, the column names should be fully qualified in the form of
+/// "part-name.column-name".  If a dot ('.') is not present or the
+/// string before the dot is not the name of a data partition, the
+/// whole string is taken to be a column name.  In which case, the
+/// lookup proceeds from the list of data partitions one at a time.  A
+/// nil pointer will be returned if any name is not associated with a
+/// known column.
+ibis::quaere*
+ibis::quaere::create(const char* sel, const char* fr, const char* wh) {
     std::string sql;
     if (fr != 0 && *fr != 0) {
 	sql += "From ";
 	sql += fr;
     }
-    sql += " Where ";
-    sql += wh;
+    if (wh != 0 && *wh != 0) {
+	sql += " Where ";
+	sql += wh;
+    }
 
     int ierr;
     try {
 	ibis::selectClause sc(sel);
 	ibis::fromClause fc(fr);
 	ibis::whereClause wc(wh);
-	if (wc.empty()) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- quaere::create(" << sql
-		<< ") failed to parse the where clause";
-	    return 0;
-	}
+	LOGGER(wc.empty() && ibis::gVerbose >= 2)
+	    << "Warning -- quaere::create(" << sql
+	    << ") has an empty where clause";
 
 	std::set<std::string> plist;
 	wc.getExpr()->getTableNames(plist);
 	if (plist.empty() || (plist.size() == 1 && plist.begin()->empty())) {
-	    if (sc.empty()) {
+	    if (sc.empty() || wc.empty()) {
 		return new ibis::filter(&wc);
 	    }
 	    else {
@@ -1022,11 +1028,11 @@ ibis::quaere* ibis::quaere::create(const char* sel,
 ///
 /// "From partr Join parts Using(colname) Where condr And conds"
 ///
-/// Note 1: conditions specified in condr is for partr only, and conds is
-/// for parts only.  If no conditions are specified, all valid records in
-/// the partition will participate in the natural join.
+/// @note Conditions specified in condr is for partr only, and conds is for
+/// parts only.  If no conditions are specified, all valid records in the
+/// partition will participate in the natural join.
 ///
-/// Note 2: the select clause should have fully qualified column names.
+/// @note The select clause should have fully qualified column names.
 /// Unqualified column names will assumed to be searched in partr first and
 /// then in parts.
 ibis::quaere*

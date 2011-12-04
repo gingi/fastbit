@@ -20,19 +20,6 @@
 #include <limits>	// std::numeric_limits
 #include <cmath>	// std::floor
 
-// The function isfinite is a macro defined in math.h according to
-// opengroup.org.  As of 2011, only MS visual studio does not have a
-// definition for isfinite, but it has _finite in float,h.
-#if !(_POSIX_C_SOURCE+0 >= 200112 || defined(isfinite))
-inline int isfinite(double x) {
-#if defined(_MSC_VER) && defined(_WIN32)
-    return _finite(x);
-#else
-    return finite(x);
-#endif
-}
-#endif
-
 /// This function expects a valid data directory to find data partitions.
 /// If the incoming directory is not a valid string, it will use
 /// ibis::gParameter() to find data partitions.
@@ -504,6 +491,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
     else {
 	return ibis::table::select(mylist, sel, cond);
     }
+    return 0;
 } // ibis::mensa::select2
 
 /// Reordering the rows using the specified columns.  Each data partition
@@ -2105,14 +2093,12 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 } // ibis::mensa::getColumnAsStrings
 
 double ibis::mensa::getColumnMin(const char* cn) const {
-    if (cn == 0 || *cn == 0)
-	return (isfinite(FASTBIT_DOUBLE_NULL) ?
-		DBL_MAX : FASTBIT_DOUBLE_NULL);
-    if (naty.find(cn) == naty.end())
-	return (isfinite(FASTBIT_DOUBLE_NULL) ?
-		DBL_MAX : FASTBIT_DOUBLE_NULL);
-
     double ret = DBL_MAX;
+    if (cn == 0 || *cn == 0)
+	return ret;
+    if (naty.find(cn) == naty.end())
+	return ret;
+
     for (ibis::partList::const_iterator it = parts.end();
 	 it != parts.end(); ++ it) {
 	const ibis::column *col = (*it)->getColumn(cn);
@@ -2126,14 +2112,12 @@ double ibis::mensa::getColumnMin(const char* cn) const {
 } // ibis::mensa::getColumnMin
 
 double ibis::mensa::getColumnMax(const char* cn) const {
-    if (cn == 0 || *cn == 0)
-	return (isfinite(FASTBIT_DOUBLE_NULL) ?
-		-DBL_MAX : FASTBIT_DOUBLE_NULL);
-    if (naty.find(cn) == naty.end())
-	return (isfinite(FASTBIT_DOUBLE_NULL) ?
-		-DBL_MAX : FASTBIT_DOUBLE_NULL);
-
     double ret = -DBL_MAX;
+    if (cn == 0 || *cn == 0)
+	return ret;
+    if (naty.find(cn) == naty.end())
+	return ret;
+
     for (ibis::partList::const_iterator it = parts.end();
 	 it != parts.end(); ++ it) {
 	const ibis::column *col = (*it)->getColumn(cn);
@@ -3688,7 +3672,7 @@ ibis::liga::liga(ibis::part& p) : ibis::mensa() {
 	ibis::util::int2string(tmp, p.nRows(), v2);
 	desc_ += oss.str();
     }
-    LOGGER(ibis::gVerbose > 0)
+    LOGGER(ibis::gVerbose > 1)
 	<< "liga -- constructed table " << name_ << " (" << desc_
 	<< ") from a partition " << oss.str();
 } // ibis::liga::liga
@@ -3733,7 +3717,7 @@ ibis::liga::liga(const ibis::partList &l) : ibis::mensa() {
 	    }
 	}
     }
-    LOGGER(ibis::gVerbose > 0 && ! name_.empty())
+    LOGGER(ibis::gVerbose > 1 && ! name_.empty())
 	<< "liga -- constructed table " << name_ << " (" << desc_
 	<< ") from a list of " << l.size() << " data partition"
 	<< (l.size()>1 ? "s" : "") << ", with " << naty.size() << " column"

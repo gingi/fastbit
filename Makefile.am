@@ -8,7 +8,7 @@ EXTRA_DIST = runconfig tests/scripts/fastbit-config.in \
 	win/README win/Win.mak win/MinGW.mak win/ibis.sln \
 	win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
-	win/ardea.vcproj win/setqgen.vcproj win/FlexLexer.h \
+	win/ardea.vcproj win/setqgen.vcproj win/rara.vcproj win/FlexLexer.h \
 	contrib/README contrib/fbmerge/fbmerge.cpp \
 	contrib/fbmerge/Makefile.am contrib/fbmerge/Makefile.in \
 	contrib/fbmerge/fbmerge.sln contrib/fbmerge/fbmerge.vcproj

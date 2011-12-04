@@ -1042,7 +1042,7 @@ int ibis::zona::write(const char* dt) const {
 	    return -2;
 	}
     }
-    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1199,7 +1199,7 @@ int ibis::zona::read(const char* f) {
     if (fdes < 0) return -1;
 
     char header[8];
-    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1390,7 +1390,7 @@ int ibis::zona::readCoarse(const char* fn) {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -1;
-    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif

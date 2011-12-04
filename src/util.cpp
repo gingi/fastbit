@@ -536,7 +536,7 @@ int ibis::util::copy(const char* to, const char* from) {
 		 (errno ? strerror(errno) : "no free stdio stream"));
 	return -1;
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -549,7 +549,7 @@ int ibis::util::copy(const char* to, const char* from) {
 	     (errno ? strerror(errno) : "no free stdio stream"));
 	return -2;
     }
-    ibis::util::guard gtdes = ibis::util::makeGuard(UnixClose, tdes);
+    IBIS_BLOCK_GUARD(UnixClose, tdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(tdes, _O_BINARY);
 #endif

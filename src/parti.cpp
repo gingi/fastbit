@@ -236,7 +236,7 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     {
 	ibis::util::logger lg(4);
-	lg() << "part[" << m_name << "]::reorder --\n";
+	lg() << "part[" << name() << "]::reorder --\n";
 	std::vector<bool> marks(ind1.size(), false);
 	for (uint32_t i = 0; i < ind1.size(); ++ i) {
 	    if (ibis::gVerbose > 6)
@@ -1457,7 +1457,7 @@ long ibis::part::addColumn(const char* aexpr, const char* cname,
     ibis::selectClause xpr(aexpr);
     if (xpr.aggSize() != 1) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- part[" << m_name
+	    << "Warning -- part[" << name()
 	    << "]::addColumn expects to parse \"" << aexpr
 	    << "\" into a single arithmetic expression, but it got "
 	    << xpr.aggSize();
@@ -1480,21 +1480,21 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
     long ierr = calculate(*xpr, mask, vals);
     if (ierr <= 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- part[" << m_name << "]::addColumn(" << xpr
+	    << "Warning -- part[" << name() << "]::addColumn(" << xpr
 	    << ") failed to evaluate the arithmetic expression, ierr = "
 	    << ierr;
 	return -3L;
     }
     else if (static_cast<unsigned long>(ierr) != mask.cnt()) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << m_name << "]::addColumn(" << xpr
+	    << "Warning -- part[" << name() << "]::addColumn(" << xpr
 	    << ") expected to receive " << mask.cnt() << " values, but got "
 	    << ierr;
 	return -4L;
     }
 
     std::ostringstream oss;
-    oss << "Select " << *xpr << " From " << m_name;
+    oss << "Select " << *xpr << " From " << name();
     ibis::column *xcol =
 	new ibis::column(this, ctype, cname, oss.str().c_str());
     switch (ctype) {
@@ -1545,7 +1545,7 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
     } // switch
     if (ierr == static_cast<long>(mask.size())) { // success
 	LOGGER(ibis::gVerbose > 2)
-	    << "part[" << m_name << "]::addColumn successfully wrote "
+	    << "part[" << name() << "]::addColumn successfully wrote "
 	    << ierr << " value" << (ierr > 1 ? "s" : "") << " for "
 	    << cname << "(" << oss.str() << ")";
 	ibis::util::mutexLock lock(&mutex, "part::addColumn");
@@ -1554,7 +1554,7 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- part[" << m_name
+	    << "Warning -- part[" << name()
 	    << "]::addColumn failed to write" << mask.size() << " values for "
 	    << cname << ", only wrote " << ierr;
 	delete xcol;
@@ -1569,7 +1569,7 @@ int ibis::part::updateData() {
     emptyCache();
     if (activeDir == 0 || *activeDir == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << m_name << "]::updateData can not proceed "
+	    << "Warning -- part[" << name() << "]::updateData can not proceed "
 	    "because the activeDir is not defined";
 	return -1;
     }
@@ -1577,12 +1577,12 @@ int ibis::part::updateData() {
     softWriteLock lock(this, "updateData");
     if (lock.isLocked() == false) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << m_name << "]::updateData can not proceed, "
+	    << "Warning -- part[" << name() << "]::updateData can not proceed, "
 	    "must free all queries and stop other accesses before continuing";
 	return -2;
     }
     LOGGER(ibis::gVerbose > 3)
-	<< "part[" << m_name << "]::updateData to check time stamps on "
+	<< "part[" << name() << "]::updateData to check time stamps on "
 	<< activeDir << "/-part.txt and " << activeDir << "/-part.msk";
 
     int ierr;
@@ -1599,7 +1599,7 @@ int ibis::part::updateData() {
     }
     if (ierr != 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << m_name << "]::updateData failed to "
+	    << "Warning -- part[" << name() << "]::updateData failed to "
 	    "determine the status of -part.txt, errno = " << errno
 	    << " (" << strerror(errno) << ')';
 	return -3;

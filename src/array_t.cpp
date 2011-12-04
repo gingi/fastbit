@@ -53,7 +53,7 @@ ibis::array_t<T>::array_t()
     }
 }
 
-/// Construct an array with n elements.
+/// Constructor.  Construct an array with n elements.
 template<class T>
 ibis::array_t<T>::array_t(size_t n)
     : actual(new ibis::fileManager::storage(n*sizeof(T))),
@@ -79,7 +79,7 @@ ibis::array_t<T>::array_t(size_t n)
     }
 }
 
-/// Construct an array with @c n elements of value @c val.
+/// Constructor.  Construct an array with @c n elements of value @c val.
 template<class T>
 ibis::array_t<T>::array_t(size_t n, const T& val)
     : actual(new ibis::fileManager::storage(n*sizeof(T))),
@@ -108,7 +108,7 @@ ibis::array_t<T>::array_t(size_t n, const T& val)
     }
 }
 
-/// Copy the values from a vector to array_t.
+/// Constructor.  Copy the values from a vector to array_t.
 template<class T>
 ibis::array_t<T>::array_t(const std::vector<T>& rhs)
     : actual(new ibis::fileManager::storage(rhs.size()*sizeof(T))),
@@ -397,6 +397,8 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 #endif
 } // ibis::array_t<T>::deepCopy
 
+/// Make a not-shared copy of the array if it is currently shared
+/// or read-only.
 /// This function makes a copy of the current content if the content is
 /// shared by two or more clients.  This does not guarantee that it would
 /// not become shared later.  The complete solution is to implement
@@ -541,8 +543,9 @@ size_t ibis::array_t<T>::find_upper(const T& val) const {
     return j;
 } // ibis::array_t<T>::find_upper
 
-/// Merge sort algorithm.  This array is sorted.  The argument @c tmp is
-/// only used as temporary storage.
+/// A stable sort using the provided workspace.  The current content is
+/// modified to be in ascending order.  The argument @c tmp is only used as
+/// temporary storage.  It uses the merge sort algorithm.
 template<class T>
 void ibis::array_t<T>::stableSort(array_t<T>& tmp) {
     const size_t n = size();
@@ -604,8 +607,10 @@ void ibis::array_t<T>::stableSort(array_t<T>& tmp) {
     }
 } // ibis::array_t<T>::stableSort
 
-/// Use merge sort algorithm to produce an index array so that
-/// array[ind[i]] would in ascending order.
+/// A stable sort that does not modify the current array.  It uses two
+/// additional arrays for temporary storage.  It uses the merge sort
+/// algorithm to produce an index array so that array[ind[i]] would in
+/// ascending order.
 template<class T>
 void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind) const {
     if (size() > 2) {
@@ -642,6 +647,8 @@ void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind) const {
     }
 } // stableSort
 
+/// A stable sort.  It does not change this array, but produces a
+/// sorted version in @c sorted.
 /// The content of array @c ind will be simply moved together with @ this
 /// array if it is the same size as this array.  Otherwise, it is
 /// initialized to consecutive integers starting from 0 before the actual
@@ -787,6 +794,17 @@ void ibis::array_t<T>::stableSort(array_t<T>& val, array_t<uint32_t>& ind,
     }
 } // ibis::array_t<T>::stableSort
 
+/// Does this array have the same content as the other?  Return true is
+/// yes, otherwise false.
+template <typename T> bool
+ibis::array_t<T>::equal_to(const ibis::array_t<T>& other) const {
+    if (size() != other.size()) return false;
+    for (size_t j = 0; j < size(); ++ j)
+	if (m_begin[j] != other.m_begin[j])
+	    return false;
+    return true;
+} // ibis::array_t<T>::equal_to
+
 /// Remove the duplicate values.  It sorts the values first and remove any
 /// entry that is not in strictly assending order.
 ///
@@ -827,6 +845,7 @@ void ibis::array_t<T>::deduplicate() {
     resize(sz+1);
 } // ibis::array_t<T>::deduplicate
 
+/// Produce index for ascending order.
 /// Sort the array to produce @c ind so that array_t[ind[i]] is in
 /// ascending order.  Uses the quicksort algorithm with introspection.  On
 /// entering this function, if the values in ind are less than size(), then
@@ -882,6 +901,7 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 #endif
 } // ibis::array_t<T>::sort
 
+/// Return the positions of the @c k largest elements.
 /// Sort the @c k largest elements of the array.  Return the indices of the
 /// in sorted values.
 ///
@@ -948,6 +968,7 @@ void ibis::array_t<T>::topk(uint32_t k, array_t<uint32_t>& ind) const {
 #endif
 } // ibis::array_t<T>::topk
 
+/// Return the positions of the @c k smallest elements.
 /// Sort the first @c k elemnent of the array.  Return the indices of the
 /// smallest values in array @c ind.
 ///
@@ -1346,10 +1367,10 @@ uint32_t ibis::array_t<T>::partition(array_t<uint32_t>& ind, uint32_t front,
 /// numbered from 0.
 template<class T>
 void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
-    if (nnew == 0 || start >= (m_end-m_begin)) {
+    if (nnew == 0U || start >= static_cast<size_t>(m_end-m_begin)) {
 	m_end = m_begin;
     }
-    else if (start == 0) {
+    else if (start == 0U) {
 	if (m_begin+nnew < m_end) {
 	    nosharing();
 	    m_end = m_begin + nnew;
@@ -1357,7 +1378,7 @@ void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
     }
     else {
 	nosharing();
-	if (nnew+start > m_end-m_begin)
+	if (nnew+start > static_cast<size_t>(m_end-m_begin))
 	    nnew = (m_end-m_begin) - start;
 	for (size_t j = 0; j < nnew; ++ j)
 	    m_begin[j] = m_begin[j+start];

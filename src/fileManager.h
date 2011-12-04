@@ -16,7 +16,6 @@
 
 #include <set>		// std::set
 #include <map>		// std::map
-#include <math.h>	// sqrt
 
 /// @ingroup FastBitIBIS
 /// This fileManager is intended to allow different objects to share the

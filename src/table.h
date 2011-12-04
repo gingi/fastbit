@@ -7,7 +7,7 @@
 
    @brief FastBit Table Interface
 
-   This is a facade to provide a high-level view of operations are on
+   This is a facade to provide a high-level view of operations on
    relational tables.  Two main classes are defined here, @c table and @c
    tablex.  The class @c table is for read-only data and it provides mostly
    querying functions.  The class @c tablex is for users to add new records
@@ -402,7 +402,8 @@ public:
     virtual cursor* createCursor() const =0;
 
     static void parseNames(char* in, stringList& out);
-    static void parseOrderby(char* in, stringList& out, std::vector<bool>& direc);
+    static void parseOrderby(char* in, stringList& out,
+			     std::vector<bool>& direc);
 
     static void* allocateBuffer(ibis::TYPE_T, size_t);
     static void freeBuffer(void* buffer, ibis::TYPE_T type);

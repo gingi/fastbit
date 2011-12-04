@@ -2361,7 +2361,7 @@ fastbit_add_values(const char *colname, const char *coltype,
 	    // copying incoming strings to a std::vector<std::string>
 	    std::vector<std::string> tvals(nelem);
 	    char **tmp = (char **)vals;
-	    for(int i=0; i<nelem; i++) {
+	    for(unsigned i = 0; i < nelem; ++ i) {
 		std::cout.flush();
 		tvals[i] = tmp[i];
 	    }

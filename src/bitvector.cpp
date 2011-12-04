@@ -4362,9 +4362,10 @@ long ibis::util::intersect(const std::vector<ibis::bitvector> &bits1,
     return res.size();
 } // ibis::util::intersect
 
-void ibis::util::clean(std::vector<ibis::bitvector*> &bv) throw() {
+/// Clear an array of bit vectors.
+void ibis::util::clear(ibis::array_t<ibis::bitvector*> &bv) throw() {
     const uint32_t nbv = bv.size();
     for (uint32_t i = 0; i < nbv; ++ i)
 	delete bv[i];
     bv.clear();
-} // ibis::util::clean
+} // ibis::util::clear

@@ -137,8 +137,8 @@ struct thArg {
 static unsigned testing = 0;
 static unsigned threading = 0;
 static unsigned build_index = 0;
-static bool estimate_only = false;
-static bool skip_estimation = false;
+// <0 skip estimate, =0 do estimation, >0 estimation only
+static int estimate_opt = -1;
 static bool sequential_scan = false;
 static bool verify_rid = false;
 static bool zapping = false;
@@ -193,7 +193,7 @@ static void usage(const char* name) {
 	"\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
 	"\n\t[-c[onf] conf_file]"
 	"\n\t[-d[atadir] data_dir]"
-	"\n\t[-e[stimation-only]]"
+	"\n\t[-e[stimation]]"
 	"\n\t[-f query-file]"
 	"\n\t[-h[elp]]"
 	"\n\t[-i[nteractive]]"
@@ -658,7 +658,7 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
 	    lg() << "matching arrays weights and bins produces "
 		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
 	}
-	ibis::util::clean(bins);
+	ibis::util::clearVec(bins);
     }
 } // print1DDistribution
 
@@ -839,7 +839,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *cond,
 	    lg() << "matching arrays weights and bins produces "
 		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
 	}
-	ibis::util::clean(bins);
+	ibis::util::clearVec(bins);
     }
 } // print2DDistribution
 
@@ -1042,7 +1042,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
 	    lg() << "matching arrays weights and bins produces "
 		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
 	}
-	ibis::util::clean(bins);
+	ibis::util::clearVec(bins);
     }
 } // print3DDistribution
 
@@ -1214,7 +1214,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	    lg() << "matching arrays cnts and bins produces "
 		 << ierr << " error" << (ierr > 1 ? "s" : "");
 	}
-	ibis::util::clean(bins);
+	ibis::util::clearVec(bins);
 #endif
     }
 } // print2DDistribution
@@ -1565,7 +1565,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	    lg() << "matching arrays cnts and bins produces "
 		 << ierr << " error" << (ierr > 1 ? "s" : "");
 	}
-	ibis::util::clean(bins);
+	ibis::util::clearVec(bins);
 #endif
     }
 } // print3DDistribution
@@ -1995,10 +1995,8 @@ static void parse_args(int argc, char** argv, int& mode,
 		}
 	    break;
 	    case 'e':
-	    case 'E': // estiamtion only
-		estimate_only = true;
-	    if (skip_estimation)
-		skip_estimation = false;
+	    case 'E': // estiamtion option
+		estimate_opt += 1;
 	    break;
 	    case 'f':
 	    case 'F': // query file, multiple files allowed
@@ -2101,17 +2099,13 @@ static void parse_args(int argc, char** argv, int& mode,
 	    case 'n':
 	    case 'N': {
 		// skip estimation, directly call function evaluate
-		skip_estimation = true;
-		if (estimate_only)
-		    estimate_only = false;
+		estimate_opt = -1;
 		break;}
 	    case 'o':
 	    case 'O':
 		if (argv[i][2] == 'n' || argv[i][2] == 'N') {
 		    // skip estimation, directly call function evaluate
-		    skip_estimation = true;
-		    if (estimate_only)
-			estimate_only = false;
+		    estimate_opt = -1;
 		}
 		else if (i+1 < argc && argv[i+1][0] != '-') {
 		    // output file specified
@@ -2302,7 +2296,7 @@ static void parse_args(int argc, char** argv, int& mode,
 	    std::clog << *argv << " will write messages to " << mesgfile
 		      << std::endl;
     }
-    if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose > 1) {
 	ibis::util::logger lg;
 	lg() << "\n" << argv[0] << ": "
 	     << (mode ? "interactive mode" : "batch mode")
@@ -2316,10 +2310,12 @@ static void parse_args(int argc, char** argv, int& mode,
 	    lg() << ", performing self test";
 	if (threading > 0)
 	    lg() << ", threading " << threading;
-	if (skip_estimation)
+	if (estimate_opt < 0)
 	    lg() << ", skipping estimation";
-	else if (estimate_only)
+	else if (estimate_opt > 0)
 	    lg() << ", computing only bounds";
+	else
+	    lg() << ", with estimation";
 	if (! alist.empty()) {
 	    lg() << "\nappending data in the following director"
 		 << (alist.size()>1 ? "ies" : "y");
@@ -2479,7 +2475,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	asstr = aQuery.getSelectClause();
     }
 
-    if (! skip_estimation) {
+    if (estimate_opt >= 0) {
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -2496,7 +2492,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg() << "between " << num1 << " and ";
 	    lg() << num2;
 	}
-	if (estimate_only)
+	if (estimate_opt > 0)
 	    return;
     }
 
@@ -2718,7 +2714,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
     ibis::horometer timer;
     timer.start();
 
-    if (! skip_estimation) {
+    if (estimate_opt >= 0) {
 	uint64_t num1, num2;
 	tbl->estimate(wstr, num1, num2);
 	if (ibis::gVerbose > 0) {
@@ -2728,7 +2724,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		lg() << "between " << num1 << " and ";
 	    lg() << num2;
 	}
-	if (estimate_only || num2 == 0) {
+	if (estimate_opt > 0 || num2 == 0) {
 	    if (ibis::gVerbose >= 0) {
 		timer.stop();
 		ibis::util::logger lg;
@@ -2904,16 +2900,29 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
     LOGGER(ibis::gVerbose > 1)
 	<< "doQuaere -- processing \"" << sqlstring << '\"';
 
-    std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(sstr, fstr, wstr));
-    if (qq.get() == 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- doQuaere(" << sqlstring
-	    << ") failed to create an ibis::quaere object";
-	return;
+    std::auto_ptr<ibis::table> res;
+    if (estimate_opt < 0) { // directly evaluate the 
+	std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(0, fstr, wstr));
+	if (qq.get() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to create an ibis::quaere object";
+	    return;
+	}
+	ibis::table::stringList sel(1);
+	sel[0] = sstr;
+	res.reset(qq->select(sel));
     }
+    else {
+	std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(sstr, fstr, wstr));
+	if (qq.get() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to create an ibis::quaere object";
+	    return;
+	}
 
-    uint64_t nhits=1, hmax=0;
-    if (! skip_estimation) {
+	uint64_t nhits=1, hmax=0;
 	qq->roughCount(nhits, hmax);
 	if (nhits < hmax) {
 	    LOGGER(ibis::gVerbose > 0)
@@ -2925,21 +2934,15 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 		<< "doQuaere -- " << wstr << " --> " << nhits
 		<< " hit" << (hmax>1?"s":"");
 	}
-    }
+	if (estimate_opt > 0) return;
 
-    int64_t cnts = nhits;
-    if (nhits < hmax)
-	cnts = qq->count();
-    if (cnts < 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- doQuaere(" << sqlstring
-	    << ") failed to produce a count of the number of hits"
-	    << ", ierr = " << cnts;
-	return;
-    }
-    else {
-	if (skip_estimation) {
-	    nhits = cnts;
+	int64_t cnts = qq->count();
+	if (cnts < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to produce a count of the number of hits"
+		<< ", ierr = " << cnts;
+	    return;
 	}
 	else if (nhits < hmax) {
 	    LOGGER(ibis::gVerbose >= 0 &&
@@ -2957,21 +2960,9 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 		<< ", but the actual return value is " << cnts;
 	    nhits = cnts;
 	}
-    }
 
-    if (sstr == 0 || *sstr == 0) {
-	if (ibis::gVerbose >= 0) {
-	    timer.stop();
-	    ibis::util::logger lg;
-	    lg() << "doQuaere:: count(" << wstr << ") produced "
-		 << nhits << " hit" << (nhits>1?"s":"") << ", took "
-		 << timer.CPUTime() << " CPU seconds, "
-		 << timer.realTime() << " elapsed seconds";
-	}
-	return;
+	res.reset(qq->select());
     }
-
-    std::auto_ptr<ibis::table> res(qq->select());
     if (res.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- doQuaere(" << sqlstring
@@ -3307,7 +3298,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	return;
     }
 
-    if (! skip_estimation) {
+    if (estimate_opt >= 0) {
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -3324,7 +3315,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg() << "between " << num1 << " and ";
 	    lg() << num2;
 	}
-	if (estimate_only || num2 == 0) {
+	if (estimate_opt > 0 || num2 == 0) {
 	    if (ibis::gVerbose >= 0) {
 		timer.stop();
 		ibis::util::logger lg;
@@ -3642,7 +3633,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	aQuery.setSelectClause(sstr);
 	asstr = aQuery.getSelectClause();
     }
-    if (! skip_estimation) {
+    if (estimate_opt >= 0) {
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -3659,7 +3650,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg() << "between " << num1 << " and ";
 	    lg() << num2;
 	}
-	if (estimate_only) {
+	if (estimate_opt > 0 || num2 == 0) {
 	    if (ibis::gVerbose >= 0) {
 		timer.stop();
 		ibis::util::logger lg;

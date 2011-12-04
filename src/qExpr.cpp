@@ -2914,7 +2914,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)
 	char *stmp;
 	double dtmp = strtod(str, &stmp);
 	if (stmp > str) {// get a value, maybe HUGE_VAL, INF, NAN
-	    if (isfinite(dtmp) != 0)
+	    if (dtmp < DBL_MAX && dtmp > -DBL_MAX)
 		dset.insert(dtmp);
 	    str = stmp + strspn(stmp, "\n\v\t, ");
 	}
@@ -3509,7 +3509,7 @@ ibis::qAnyAny::qAnyAny(const char *pre, const char *val)
 	char *stmp;
 	double dtmp = strtod(str, &stmp);
 	if (stmp > str) {// get a value, maybe HUGE_VAL, INF, NAN
-	    if (isfinite(dtmp) != 0)
+	    if (dtmp < DBL_MAX && dtmp > -DBL_MAX)
 		dset.insert(dtmp);
 	    str = stmp + strspn(stmp, "\n\v\t, ");
 	}

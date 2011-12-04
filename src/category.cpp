@@ -664,14 +664,13 @@ long ibis::category::append(const char* dt, const char* df,
 	// copy the raw bytes to dt
 	int fptr = UnixOpen(src.c_str(), OPEN_READONLY);
 	if (fptr >= 0) {
-	    ibis::util::guard gfptr = ibis::util::makeGuard(UnixClose, fptr);
+	    IBIS_BLOCK_GUARD(UnixClose, fptr);
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fptr, _O_BINARY);
 #endif
 	    int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	    if (fdest >= 0) { // copy raw bytes without any sanity check
-		ibis::util::guard gfdest =
-		    ibis::util::makeGuard(UnixClose, fdest);
+		IBIS_BLOCK_GUARD(UnixClose, fdest);
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdest, _O_BINARY);
 #endif
@@ -706,7 +705,7 @@ long ibis::category::append(const char* dt, const char* df,
 	// first time accessing these strings, need to parse them
 	int fptr = UnixOpen(src.c_str(), OPEN_READONLY);
 	if (fptr >= 0) {
-	    ibis::util::guard gfptr = ibis::util::makeGuard(UnixClose, fptr);
+	    IBIS_BLOCK_GUARD(UnixClose, fptr);
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(fptr, _O_BINARY);
 #endif
@@ -788,8 +787,7 @@ long ibis::category::append(const char* dt, const char* df,
 
 	    int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	    if (fdest >= 0) { // copy raw bytes without any sanity check
-		ibis::util::guard gfdest =
-		    ibis::util::makeGuard(UnixClose, fdest);
+		IBIS_BLOCK_GUARD(UnixClose, fdest);
 #if defined(_WIN32) && defined(_MSC_VER)
 		(void)_setmode(fdest, _O_BINARY);
 #endif
@@ -2015,7 +2013,7 @@ long ibis::text::patternSearch(const char* pat, ibis::bitvector& hits) const {
 	return -2L;
     }
 
-    ibis::util::guard gfdata = ibis::util::makeGuard(fclose, fdata);
+    IBIS_BLOCK_GUARD(fclose, fdata);
 #if defined(DEBUG) || defined(_DEBUG) // DEBUG+0 > 0 || _DEBUG+0 > 0
     ibis::fileManager::buffer<char> mybuf(5000);
 #else
@@ -2061,7 +2059,7 @@ long ibis::text::patternSearch(const char* pat, ibis::bitvector& hits) const {
 	    return -5L;
 	}
     }
-    ibis::util::guard gfsp = ibis::util::makeGuard(fclose, fsp);
+    IBIS_BLOCK_GUARD(fclose, fsp);
     if (spbuf.size() > 1)  { // use the second buffer, spbuf
 	uint32_t jsp, nsp;
 	ierr = fread(spbuf.address(), sizeof(int64_t), spbuf.size(), fsp);
@@ -2524,7 +2522,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	}
 
 	ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
-	if (ierr != (long) i*sizeof(int64_t)) {
+	if (ierr != (long) (i*sizeof(int64_t))) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- text::readString(" << i << ") failed to seek to "
 		<< i*sizeof(int64_t) << " in " << fnm;
@@ -3045,7 +3043,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
 	    << " for reading";
 	return -11;
     }
-    ibis::util::guard grffile = ibis::util::makeGuard(UnixClose, rffile);
+    IBIS_BLOCK_GUARD(UnixClose, rffile);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(rffile, _O_BINARY);
 #endif
@@ -3057,7 +3055,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
 	    << " for reading";
 	return -12;
     }
-    ibis::util::guard gsffile = ibis::util::makeGuard(UnixClose, sffile);
+    IBIS_BLOCK_GUARD(UnixClose, sffile);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(sffile, _O_BINARY);
 #endif
@@ -3069,7 +3067,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
 	    << " for writing";
 	return -13;
     }
-    ibis::util::guard grtfile = ibis::util::makeGuard(UnixClose, rtfile);
+    IBIS_BLOCK_GUARD(UnixClose, rtfile);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(rtfile, _O_BINARY);
 #endif
@@ -3081,7 +3079,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
 	    << " for writing";
 	return -14;
     }
-    ibis::util::guard gstfile = ibis::util::makeGuard(UnixClose, stfile);
+    IBIS_BLOCK_GUARD(UnixClose, stfile);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(stfile, _O_BINARY);
 #endif
@@ -3828,7 +3826,7 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     }
     // this statement guarantees UnixClose will be called on ddest upon
     // termination of this function
-    ibis::util::guard gddest = ibis::util::makeGuard(UnixClose, ddest);
+    IBIS_BLOCK_GUARD(UnixClose, ddest);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(ddest, _O_BINARY);
 #endif
@@ -3939,7 +3937,7 @@ long ibis::blob::countRawBytes(const ibis::bitvector& mask) const {
 		<< (errno ? strerror(errno) : "no free stdio stream");
 	    return -4;
 	}
-	ibis::util::guard gfsp = ibis::util::makeGuard(UnixClose, fsp);
+	IBIS_BLOCK_GUARD(UnixClose, fsp);
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fsp, _O_BINARY);
 #endif
@@ -4109,7 +4107,7 @@ int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
 		    << "blob::countRawBytes getFile(" << datafile
 		    << ") returned " << ierr << ", will explicit read the file";
 	    }
-	    else if (raw.size() < starts.back()) {
+	    else if (raw.size() < (unsigned) starts.back()) {
 		raw.clear();
 		LOGGER(ibis::gVerbose > 3)
 		    << "blob::countRawBytes getFile(" << datafile
@@ -4118,14 +4116,14 @@ int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
 		    << " are expected, will try explicitly reading the file";
 	    }
 	    if (smll) {
-		if (raw.size() >= starts.back())
+		if (raw.size() >= (unsigned) starts.back())
 		    ierr = extractAll(mask, buffer, positions, raw, starts);
 		else
 		    ierr = extractAll(mask, buffer, positions,
 				      datafile.c_str(), starts);
 	    }
 	    else {
-		if (raw.size() >= starts.back())
+		if (raw.size() >= (unsigned) starts.back())
 		    ierr = extractSome(mask, buffer, positions, raw, starts,
 				       sum);
 		else
@@ -4251,7 +4249,7 @@ int ibis::blob::extractAll(const ibis::bitvector& mask,
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -11;
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -4340,7 +4338,7 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -11;
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -4432,7 +4430,7 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -11;
     }
-    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
+    IBIS_BLOCK_GUARD(UnixClose, sdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(sdes, _O_BINARY);
 #endif
@@ -4446,7 +4444,7 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -12;
     }
-    ibis::util::guard grdes = ibis::util::makeGuard(UnixClose, rdes);
+    IBIS_BLOCK_GUARD(UnixClose, rdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(rdes, _O_BINARY);
 #endif
@@ -4615,7 +4613,7 @@ int ibis::blob::getBlob(uint32_t ind, unsigned char *&buf, uint32_t &size)
 	array_t<unsigned char> bytes;
 	ierr = ibis::fileManager::instance().getFile(datafile.c_str(), bytes);
 	if (ierr >= 0) {
-	    if (bytes.size() >= starts[ind+1]) {
+	    if (bytes.size() >= (size_t)starts[ind+1]) {
 		std::copy(bytes.begin()+starts[ind],
 			  bytes.begin()+starts[ind+1], buf);
 	    }
@@ -4659,7 +4657,7 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -11;
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -4703,7 +4701,7 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -15;
     }
-    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
+    IBIS_BLOCK_GUARD(UnixClose, sdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(sdes, _O_BINARY);
 #endif
@@ -4743,7 +4741,7 @@ int ibis::blob::readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -11;
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif

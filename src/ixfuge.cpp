@@ -202,7 +202,7 @@ int ibis::fuge::write(const char* dt) const {
 	    return -2;
 	}
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1108,7 +1108,7 @@ int ibis::fuge::readCoarse(const char* fn) {
     const bool useoffset64 = (offset64.size() > bits.size());
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -2;
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif

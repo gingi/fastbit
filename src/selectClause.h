@@ -136,8 +136,8 @@ public:
     ///@{
     /// The number of arithmetic expressions inside the select clause.
     uint32_t aggSize() const {return atms_.size();}
-    /// Fetch the ith term of inside the select clause.  No array bound
-    /// checking.
+    /// Fetch the ith term inside the select clause.  No array bound
+    /// checking!
     const ibis::math::term* aggExpr(unsigned i) const {return atms_[i];}
     /// Name inside the aggregation function.  To be used together with
     /// aggSize() and aggExpr().
@@ -149,6 +149,8 @@ public:
 		   VARPOP, VARSAMP, STDPOP, STDSAMP, MEDIAN};
     /// Return the aggregation function used for the ith term.
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
+    bool isSeparable() const;
+    const char* isUnivariate() const;
 
     typedef std::map<std::string, unsigned> StringToInt;
     const StringToInt& getOrdered() const {return ordered_;}
@@ -235,18 +237,6 @@ private:
 
     variable();
 }; // class ibis::selectClause::variable
-
-/// Number of terms without aggregation functions.  They are implicitly
-/// used as sort keys for group by operations.  However, if the select
-/// clause does not contain any aggregation function, the sorting operation
-/// might be skipped.
-inline uint32_t ibis::selectClause::numGroupbyKeys() const {
-    uint32_t ret = (atms_.size() > aggr_.size() ?
-		    atms_.size() - aggr_.size() : 0);
-    for (uint32_t j = 0; j < aggr_.size(); ++j)
-	ret += (aggr_[j] == NIL_AGGR);
-    return ret;
-} // ibis::selectClause::numGroupbyKeys
 
 namespace std {
     inline ostream& operator<<(ostream& out, const ibis::selectClause& sel) {

@@ -392,7 +392,7 @@ int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
 /// write lock in the file manager object.
 void ibis::fileManager::clear() {
     if (ibis::fileManager::totalBytes() == 0) {
-	LOGGER(ibis::gVerbose > 5)
+	LOGGER(ibis::gVerbose > 6)
 	    << "fileManager::clear has nothing to do";
 	return;
     }
@@ -650,13 +650,13 @@ ibis::fileManager::fileManager()
 
 /// Destructor.
 ibis::fileManager::~fileManager() {
-    ibis::util::clean(ibis::datasets);
+    ibis::util::clear(ibis::datasets);
     clear();
     (void)pthread_rwlock_destroy(&lock);
     (void)pthread_mutex_destroy(&mutex);
     (void)pthread_cond_destroy(&cond);
     LOGGER(ibis::gVerbose > 3)
-	<< "fileManager::~fileManager -- decommissioned";
+	<< "fileManager decommissioned";
 } // ibis::fileManager::~fileManager
 
 /// Record a newly allocated storage in the two lists.
@@ -2054,7 +2054,7 @@ off_t ibis::fileManager::storage::read(const char* fname,
 	    << "Warning -- " << evt << " failed to open the named file";
 	return -2;
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif

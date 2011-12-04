@@ -80,29 +80,19 @@ public:
     inline void push_back(const T& elm);///< Add one element.
 
     void deduplicate();
-    /// Produce index for ascending order.
     void sort(array_t<uint32_t> &ind) const;
-    /// Return the positions of the @c k largest elements.
     void topk(uint32_t k, array_t<uint32_t> &ind) const;
-    /// Return the positions of the @c k smallest elements.
     void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
     uint32_t find(const array_t<uint32_t>& ind, const T& val) const;
-    /// Return the smallest i such that [i] >= val.
     size_t find(const T& val) const;
-    /// Return the smallest i such that [i] > val.
     size_t find_upper(const T& val) const;
-    /// A stable sort using the provided workspace.  The current content is
-    /// modified to be in ascending order.  The argument @c tmp is only
-    /// used as temporary storage.
     void stableSort(array_t<T>& tmp);
-    /// A stable sort that does not modify the current array.  It uses two
-    /// additional arrays for temporary storage.
     void stableSort(array_t<uint32_t>& ind) const;
-    /// A stable sort.  It does not change this array, but produces a
-    /// sorted version in @c sorted.
     void stableSort(array_t<uint32_t>& ind, array_t<T>& sorted) const;
     static void stableSort(array_t<T>& val, array_t<uint32_t>& ind,
 			   array_t<T>& tmp, array_t<uint32_t>& itmp);
+
+    bool equal_to(const array_t<T>&) const;
 
     /// Non-modifiable reference to an element of the array.
     const T& operator[](size_t i) const {return m_begin[i];}
@@ -111,8 +101,6 @@ public:
     /// implementation!  The caller has to call the function @c nosharing
     /// to make sure the underlying data is not shared with others.
     T& operator[](size_t i) {return m_begin[i];};
-    /// Make a not-shared copy of the array if it is currently shared
-    /// or read-only.
     void nosharing();
     /// Is the content of the array solely in memory?
     bool incore() const {return(actual != 0 ? actual->filename() == 0 : false);}
@@ -153,7 +141,7 @@ private:
 
     /// Standard two-way partitioning function to quicksort function qsort.
     uint32_t partition(array_t<uint32_t>& ind, uint32_t front,
-		     uint32_t back) const;
+		       uint32_t back) const;
     /// Insertionsort.
     void isort(array_t<uint32_t>& ind, uint32_t front, uint32_t back) const;
     /// Heapsort.
@@ -161,7 +149,7 @@ private:
     /// Quicksort with introspection.
     void qsort(array_t<uint32_t>& ind, uint32_t front, uint32_t back,
 	       uint32_t lvl=0) const;
-};
+}; // ibis::array_t
 
 /// Reset the size to zero.
 template<class T>

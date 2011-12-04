@@ -89,7 +89,7 @@ int ibis::dictionary::write(const char* name) const {
 	return -3;
     }
 
-    ibis::util::guard gfptr = ibis::util::makeGuard(fclose, fptr);
+    IBIS_BLOCK_GUARD(fclose, fptr);
     int ierr = fwrite(_fastbit_dictionary_header, 1, 20, fptr);
     if (ierr != 20) {
 	LOGGER(ibis::gVerbose > 1)
@@ -171,7 +171,7 @@ int ibis::dictionary::read(const char* name) {
     }
 
     ibis::util::timer mytimer(evt.c_str(), 4);
-    ibis::util::guard gfptr = ibis::util::makeGuard(fclose, fptr);
+    IBIS_BLOCK_GUARD(fclose, fptr);
     ierr = fseek(fptr, 0, SEEK_END); // to the end
     if (ierr != 0) {
 	LOGGER(ibis::gVerbose > 1)

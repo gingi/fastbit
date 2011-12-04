@@ -1,3 +1,64 @@
+2011-12-02 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/part.cpp: rename some version of doCompare to
+	doComp to avoid confusion in template parameter matching reported
+	by PGI compilers
+	* src/tab.h, src/qExpr.cpp, src/part.cpp: remove call to isfinite
+	to avoid problems on solaris with gcc 3.4.3
+	* src/filter.cpp:24 initialize sel_ to 0!
+	* src/column.cpp:4863 add test for idx != 0 to prevent a nil
+	pointer to be used
+	* src/part.cpp: change all version of doScan and negative to use
+	column::getRawData before attempting to use the file name directly
+	to accomodate the cases with in-memory data partitions
+	* tests/Makefile.am: update case 9 of really-small to reflect the
+	changes in examples/ibis.cpp
+
+2011-12-01 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: vary the name of the data partition returned from
+	ibis::bord::groupbya because it will be applied on many data
+	partitions within a loop
+	* src/mensa.cpp: remove the calls to isfinite, somehow they have
+	problems
+	* src/bord.cpp: make sure ibis::bord::append generate the same
+	number fo columns as the number of select clause terms
+
+2011-11-30 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.h, src/selectClause.cpp: add function
+	isUnivariate
+	* src/filter.cpp: use selectClause::isUnivariate to detect the
+	univariate case with consistency
+	* src/ibis.cpp: combine the options of estimate_only and
+	skip_estimation into one, change the default option to skipping
+	estimation
+	* Makefile.am: add rara.vcproj into the list of extra files for
+	distribution
+
+2011-11-29 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp, ...: change scope guards to use IBIS_BLOCK_GUARD
+	macro, address all warning messages printed by -Wall
+
+2011-11-28 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src/bord.cpp: add merge1, merge1T, merge12, merge12S
+	and merge12T to handle different cases of merge operations
+	* src/quaere.cpp: update quaere::create to accept empty where
+	clause according to SQL convension
+
+2011-11-23 John Wu <John dot Wu at ACM dot org>
+	* src/filter.cpp: add implementations of sift1S and sift2S
+	* tests/vault/inRange-1: update the output values, the previous
+	output were wrong
+	* src/bord.h, src/bord.cpp: add merge11 and merge11T
+
+2011-11-22 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: add IBIS_GUARD_NAME and supporting macros to make
+	sure __LINE__ is evaluated before incorperated as the name of a
+	scope guard
+
+2011-11-20 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src/bord.cpp: add function bord::merge,
+	bord::merge0, bord::merge0T and bord::merger to merge partial
+	results generated from bord::groupbya
+
 2011-11-10 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h, src/bord.cpp: add static function
 	ibis::bord::groupbya and ibis::bord::groupbyc to separate out the

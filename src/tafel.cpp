@@ -1161,10 +1161,10 @@ void ibis::tafel::normalize() {
 		col.starts.resize(mrows+1);
 		ibis::array_t<unsigned char>& bytes =
 		    *static_cast<array_t<unsigned char>*>(col.values);
-		if (bytes.size() > col.starts[mrows]) {
+		if (bytes.size() > (size_t)col.starts[mrows]) {
 		    bytes.resize(col.starts.back());
 		}
-		else if (bytes.size() < col.starts[mrows]) {
+		else if (bytes.size() < (size_t)col.starts[mrows]) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- tafel::normalize expects column "
 			<< col.name
@@ -1865,7 +1865,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		<< cnm << " for writing";
 	    return -4;
 	}
-	ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -2045,7 +2045,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		    << spname << " for writing the starting positions";
 		return -4;
 	    }
-	    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
+	    IBIS_BLOCK_GUARD(UnixClose, sdes);
 #if defined(_WIN32) && defined(_MSC_VER)
 	    (void)_setmode(sdes, _O_BINARY);
 #endif

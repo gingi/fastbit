@@ -322,7 +322,7 @@ void ibis::fuzz::activateCoarse() const {
 
 	LOGGER(ibis::gVerbose > 8)
 	    << evt << " retrieving data from file \"" << fname << "\"";
-	ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -448,7 +448,7 @@ void ibis::fuzz::activateCoarse(uint32_t i) const {
 	LOGGER(ibis::gVerbose > 8)
 	    << evt << " retrieving bitvector " << i
 	    << " from file \"" << fname << "\"";
-	ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -550,7 +550,7 @@ void ibis::fuzz::activateCoarse(uint32_t i, uint32_t j) const {
 	LOGGER(ibis::gVerbose > 8)
 	    << evt << "(" << i << ", " << j
 	    << ") retrieving data from file \"" << fname << "\"";
-	ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1118,7 +1118,7 @@ int ibis::fuzz::write(const char* dt) const {
 	    return -2;
 	}
     }
-    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1301,7 +1301,7 @@ int ibis::fuzz::read(const char* f) {
     if (fdes < 0) return -1;
 
     char header[8];
-    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -1490,7 +1490,7 @@ int ibis::fuzz::readCoarse(const char* fn) {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -1;
-    ibis::util::guard gdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif

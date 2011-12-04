@@ -237,7 +237,7 @@ int ibis::relic::write(const char* dt) const {
 	    return -2;
 	}
     }
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -474,7 +474,7 @@ int ibis::relic::read(const char* f) {
     if (fdes < 0) return -1;
 
     char header[8];
-    ibis::util::guard gfdes = ibis::util::makeGuard(UnixClose, fdes);
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
@@ -3178,7 +3178,6 @@ ibis::relic::mergeValuesT(const array_t<T>& vs,
 	if (hp.size() > 0) {
 	    ibis::relic::valpos<T>*const t = hp.top();
 	    ibis::bitvector::indexSet& s = t->ind;
-	    const ibis::bitvector::word_t *ix = s.indices();
 	    while (s.nIndices() > 0) {
 		if (s.isRange()) {
 		    res.insert(res.end(), s.nIndices(), t->val);

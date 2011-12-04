@@ -5035,7 +5035,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 	(bits[ib+1] ? bits[ib+1]->bytes() : 0U);
     if (sum2 >= uncomp) {
 	LOGGER(ibis::gVerbose > 5)
-	    << "inex::addBins(" << ib << ", " << ie
+	    << "index::addBins(" << ib << ", " << ie
 	    << ") takes a simple loop to OR the bitmaps";
 	for (uint32_t i = ib; i < ie; ++i) {
 	    if (bits[i])
@@ -5044,7 +5044,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
     }
     else if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 	LOGGER(ibis::gVerbose > 5)
-	    << "inex::addBins(" << ib << ", " << ie
+	    << "index::addBins(" << ib << ", " << ie
 	    << ") uses a priority queue to OR the bitmaps";
 	typedef std::pair<ibis::bitvector*, bool> _elem;
 	// put all bitmaps in a priority queue
@@ -5117,7 +5117,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
     }
     else if (sum2 <= (uncomp >> 2)) {
 	LOGGER(ibis::gVerbose > 5)
-	    << "inex::addBins(" << ib << ", " << ie
+	    << "index::addBins(" << ib << ", " << ie
 	    << ") decompresses the result bitmap before ORing the bitmaps";
 	// use uncompressed res
 	while (ib < ie && bits[ib] == 0)
@@ -5135,7 +5135,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
     }
     else {
 	LOGGER(ibis::gVerbose > 5)
-	    << "inex::addBins(" << ib << ", " << ie
+	    << "index::addBins(" << ib << ", " << ie
 	    << ") takes a simple loop to OR the bitmaps";
 	for (uint32_t i = ib; i < ie; ++ i)
 	    if (bits[i])
@@ -5321,7 +5321,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	    (bits[ib+1] ? bits[ib+1]->bytes() : 0U);
 	if (sum2 >= uncomp) { // let the automatic decompression work
 	    LOGGER(ibis::gVerbose > 5)
-		<< "inex::addBins(" << ib << ", " << ie
+		<< "index::addBins(" << ib << ", " << ie
 		<< ") takes a simple loop to OR the bitmaps";
 	    for (uint32_t i = ib; i < ie; ++i) {
 		if (bits[i])
@@ -5338,7 +5338,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	    }
 	    if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::addBins(" << ib << ", " << ie
+		    << "index::addBins(" << ib << ", " << ie
 		    << ") uses a priority queue to OR the bitmaps";
 		// put all bitmaps in a priority queue
 		std::priority_queue<_elem> que;
@@ -5408,7 +5408,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::addBins(" << ib << ", " << ie
+		    << "index::addBins(" << ib << ", " << ie
 		    << ") decompresses the result before ORing the bitmaps";
 		res.decompress(); // explicit decompression needed
 		for (uint32_t i = ib; i < ie; ++i) {
@@ -5452,7 +5452,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	}
 	if (sum2 >= uncomp) { // take advantage of built-in decopression
 	    LOGGER(ibis::gVerbose > 5)
-		<< "inex::addBins(" << ib << ", " << ie
+		<< "index::addBins(" << ib << ", " << ie
 		<< ") takes a simple loop to OR the bitmaps (complement)";
 	    if (ib > 1) {
 		if (bits[0])
@@ -5494,7 +5494,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	    }
 	    if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::addBins(" << ib << ", " << ie
+		    << "index::addBins(" << ib << ", " << ie
 		    << ") uses a priority queue to OR the bitmaps (complement)";
 		// use priority queue for all bitmaps
 		std::priority_queue<_elem> que;
@@ -5571,7 +5571,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	    }
 	    else if (sum2 <= (uncomp >> 2)){
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::addBins(" << ib << ", " << ie
+		    << "index::addBins(" << ib << ", " << ie
 		    << ") decompresses the result before ORing the "
 		    "bitmaps (complement)";
 		// uncompress the first bitmap generated
@@ -5613,7 +5613,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	    }
 	    else if (ib > 0) {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::addBins(" << ib << ", " << ie
+		    << "index::addBins(" << ib << ", " << ie
 		    << ") decompresses the result before ORing the "
 		    "bitmaps (complement)";
 		if (bits[0])
@@ -5630,7 +5630,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::addBins(" << ib << ", " << ie
+		    << "index::addBins(" << ib << ", " << ie
 		    << ") decompresses the result before ORing the "
 		    "bitmaps (complement)";
 		for (; bits[ie] == 0 && ie < nobs; ++ ie);
@@ -5877,7 +5877,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	    (bits[ib+1] ? bits[ib+1]->bytes() : 0U);
 	if (sum2 >= uncomp) {
 	    LOGGER(ibis::gVerbose > 5)
-		<< "inex::sumBins(" << ib << ", " << ie
+		<< "index::sumBins(" << ib << ", " << ie
 		<< ") performs bitwise OR with a simple loop";
 	    if (bits[ib]) {
 		res.copy(*(bits[ib]));
@@ -5905,7 +5905,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	    }
 	    if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::sumBins(" << ib << ", " << ie
+		    << "index::sumBins(" << ib << ", " << ie
 		    << ") performs bitwise OR with a priority queue";
 		// put all bitmaps in a priority queue
 		std::priority_queue<_elem> que;
@@ -5976,7 +5976,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	    else if (sum2 <= (uncomp >> 2)) {
 		// use uncompressed res
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::sumBins(" << ib << ", " << ie
+		    << "index::sumBins(" << ib << ", " << ie
 		    << ") performs bitwise OR with a decompressed result";
 		if (bits[ib]) {
 		    res.copy(*(bits[ib]));
@@ -5997,7 +5997,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::sumBins(" << ib << ", " << ie
+		    << "index::sumBins(" << ib << ", " << ie
 		    << ") performs bitwise OR with a simple loop";
 		uint32_t i = ib;
 		for (; bits[i] == 0 && i < ie; ++ i); // skip leading nulls
@@ -6031,7 +6031,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	}
 	if (sum2 >= uncomp) { // take advantage of automate decopression
 	    LOGGER(ibis::gVerbose > 5)
-		<< "inex::sumBins(" << ib << ", " << ie
+		<< "index::sumBins(" << ib << ", " << ie
 		<< ") performs bitwise OR with a simple loop (complement)";
 	    if (ib > 1) {
 		if (bits[0])
@@ -6073,7 +6073,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	    }
 	    if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::sumBins(" << ib << ", " << ie
+		    << "index::sumBins(" << ib << ", " << ie
 		    << ") performs bitwise OR with a priority queue "
 		    "(complement)";
 		// use priority queue for all bitmaps
@@ -6151,7 +6151,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	    }
 	    else if (sum2 <= (uncomp >> 2)){
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::sumBins(" << ib << ", " << ie
+		    << "index::sumBins(" << ib << ", " << ie
 		    << ") performs bitwise OR with a decompressed result "
 		    "(complement)";
 		// uncompress the first bitmap generated
@@ -6196,7 +6196,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	    }
 	    else if (ib > 0) {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::sumBins(" << ib << ", " << ie
+		    << "index::sumBins(" << ib << ", " << ie
 		    << ") performs bitwise OR with a decompressed result "
 		    "(complement)";
 		if (bits[0])
@@ -6213,7 +6213,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 5)
-		    << "inex::sumBins(" << ib << ", " << ie
+		    << "index::sumBins(" << ib << ", " << ie
 		    << ") performs bitwise OR with a decompressed result "
 		    "(complement)";
 		for (; bits[ie] == 0 && ie < nobs; ++ ie);

@@ -35,7 +35,6 @@ namespace ibis {
 class FASTBIT_CXX_DLLSPEC ibis::quaere {
 public:
     static quaere* create(const char* sel, const char* from, const char* where);
-    /// A natural join.
     static quaere* create(const ibis::part* partr, const ibis::part* parts,
 			  const char* colname, const char* condr = 0,
 			  const char* conds = 0, const char* sel = 0);
@@ -49,19 +48,21 @@ public:
     /// indicate error.
     virtual int64_t count() const = 0;
 
-    /// Produce a projection of the joined table.
+    /// Produce a projection of the joined table.  The select clause
+    /// associated with the query object is evaluated.  If no select clause
+    /// is provided, it returns a table with no columns.  This is different
+    /// from having a 'count(*)' as the select clause, which produce a
+    /// table with one row and one column.
+    ///
+    /// @note We assume that this query object might be reused later and
+    /// therefore store partial results associated with the query object.
     virtual table* select() const = 0;
     /// Produce a projection of the joined table.  This function selects
     /// values using the column names provided instead of the select clause
-    /// specified when the query is constructed.  Note that if more than
-    /// one data partition was used in specifying the query, the column
-    /// names should be fully qualified in the form of
-    /// "part-name.column-name".  If a dot ('.') is not present or the
-    /// string before the dot is not the name of a data partition, the
-    /// whole string is taken to be a column name.  In which case, the
-    /// lookup proceeds from the list of data partitions one at a time.  A
-    /// nil pointer will be returned if any name is not associated with a
-    /// known column.
+    /// specified when the query is constructed.
+    ///
+    /// @note This function assumes that the select clause is used only
+    /// once and therefore avoids caching the results.
     virtual ibis::table* 
 	select(const ibis::table::stringList& colnames) const = 0;
 

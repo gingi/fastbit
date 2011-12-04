@@ -8,14 +8,24 @@
 #include "selectClause.h"
 
 ibis::selectClause::selectClause(const char *cl) : lexer(0) {
+    //#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 3)
+	<< "Constructing selectClause @ " << this;
+    //#endif
     if (cl == 0 || *cl == 0) return;
+
     int ierr = parse(cl);
     LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	<< "selectClause::ctor failed to parse \"" << cl
+	<< "Warning -- selectClause::ctor failed to parse \"" << cl
 	<< "\", function parse returned " << ierr;
 } // ibis::selectClause::selectClause
 
-ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
+ibis::selectClause::selectClause(const ibis::table::stringList &sl)
+    : lexer(0) {
+    //#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 3)
+	<< "Constructing selectClause @ " << this;
+    //#endif
     std::string cl;
     for (size_t j = 0; j < sl.size(); ++ j) {
 	if (sl[j] != 0 && *(sl[j]) != 0) {
@@ -25,9 +35,10 @@ ibis::selectClause::selectClause(const ibis::table::stringList &sl) : lexer(0) {
 	}
     }
     if (cl.empty()) return;
+
     int ierr = parse(cl.c_str());
     LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	<< "selectClause::ctor failed to parse \"" << cl
+	<< "Warning -- selectClause::ctor failed to parse \"" << cl
 	<< "\", function parse returned " << ierr;
 } // ibis::selectClause::selectClause
 
@@ -35,6 +46,13 @@ ibis::selectClause::selectClause(const ibis::selectClause& rhs)
     : atms_(rhs.atms_.size()), aggr_(rhs.aggr_), names_(rhs.names_),
       ordered_(rhs.ordered_), xtms_(rhs.xtms_.size()), xalias_(rhs.xalias_),
       xnames_(rhs.xnames_), clause_(rhs.clause_), lexer(0) {
+    //#if defined(DEBUG) || defined(_DEBUG)
+    if (ibis::gVerbose > 3) {
+	ibis::util::logger lg;
+	lg() << "Coping selectClause @ " << this << " from content @ "
+	     << static_cast<const void*>(&rhs);
+    }
+    //#endif
     for (uint32_t i = 0; i < rhs.atms_.size(); ++ i)
 	atms_[i] = rhs.atms_[i]->dup();
 
@@ -45,29 +63,19 @@ ibis::selectClause::selectClause(const ibis::selectClause& rhs)
     }
     for (varMap::iterator it = vmap.begin(); it != vmap.end(); ++ it)
 	it->second->updateReference(this);
-
-    if (ibis::gVerbose > 5) {
-	ibis::util::logger lg;
-	lg() << "selectClause copied the content of " << rhs
-	     << "\nold select clause -- ";
-	rhs.printDetails(lg());
-	lg() << "\nnew select clause -- ";
-	printDetails(lg());
-    }
 } // ibis::selectClause::selectClause
 
 ibis::selectClause::~selectClause() {
+    //#if defined(DEBUG) || defined(_DEBUG)
+    LOGGER(ibis::gVerbose > 3)
+	<< "Freeing selectClause @ " << this;
+    //#endif
     clear();
 }
 
 void ibis::selectClause::clear() {
-    for (uint32_t j = 0; j < xtms_.size(); ++ j)
-	delete xtms_[j];
-    xtms_.clear();
-    for (uint32_t i = 0; i < atms_.size(); ++ i)
-	delete atms_[i];
-    atms_.clear();
-    aggr_.clear();
+    ibis::util::clearVec(xtms_);
+    ibis::util::clearVec(atms_);
     names_.clear();
     ordered_.clear();
     xalias_.clear();
@@ -305,6 +313,49 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
 	return var->dup();
     }
 } // ibis::selectClause::addAgregado
+
+/// Number of terms without aggregation functions.  They are implicitly
+/// used as sort keys for group by operations.  However, if the select
+/// clause does not contain any aggregation function, the sorting operation
+/// might be skipped.
+uint32_t ibis::selectClause::numGroupbyKeys() const {
+    uint32_t ret = (atms_.size() > aggr_.size() ?
+		    atms_.size() - aggr_.size() : 0);
+    for (uint32_t j = 0; j < aggr_.size(); ++j)
+	ret += (aggr_[j] == NIL_AGGR);
+    return ret;
+} // ibis::selectClause::numGroupbyKeys
+
+/// Can the select clause be evaluated in separate parts?  Return true if
+/// there is at least one aggregator and all aggregation operations are
+/// separable operations.  Otherwise return false.
+bool ibis::selectClause::isSeparable() const {
+    unsigned nplains = 0;
+    bool separable = true;
+    for (unsigned j = 0; separable && j < aggr_.size(); ++ j) {
+	nplains += (aggr_[j] == NIL_AGGR);
+	separable = (aggr_[j] == NIL_AGGR ||
+		     aggr_[j] == CNT || aggr_[j] == SUM ||
+		     aggr_[j] == MAX || aggr_[j] == MIN);
+    }
+    if (separable)
+	separable = (nplains < aggr_.size());
+    return separable;
+} // ibis::selectClause::isSeparable
+
+/// Is the select caluse univariate?  If yes, return the pointer to the
+/// string value, otherwise return a nil pointer.
+const char* ibis::selectClause::isUnivariate() const {
+    ibis::math::barrel bar;
+    for (size_t j = 0; j < atms_.size(); ++ j)
+	bar.recordVariable(atms_[j]);
+    if (bar.size() == 1) {
+	return bar.name(0);
+    }
+    else {
+	return static_cast<const char*>(0);
+    }
+} // ibis::selectClause::isUnivariate
 
 /// Determine if the name refers to a term in the list of aggregation
 /// functions.  A name to a aggregation function will be named by

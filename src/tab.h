@@ -88,11 +88,9 @@ public:
     getColumnAsStrings(const char*, std::vector<std::string>&, uint64_t =0,
 		       uint64_t =0) const {return -1;}
     virtual double getColumnMin(const char*) const {
-	return (isfinite(FASTBIT_DOUBLE_NULL) ?
-		DBL_MAX : FASTBIT_DOUBLE_NULL);}
+	return DBL_MAX;}
     virtual double getColumnMax(const char*) const {
-	return (isfinite(FASTBIT_DOUBLE_NULL) ?
-		-DBL_MAX : FASTBIT_DOUBLE_NULL);}
+	return -DBL_MAX;}
 
     virtual long getHistogram(const char*, const char*,
 			      double, double, double,
@@ -249,15 +247,13 @@ public:
 	if (stricmp(cn, col.c_str()) == 0)
 	    return nrows;
 	else
-	    return (isfinite(FASTBIT_DOUBLE_NULL) ?
-		    DBL_MAX : FASTBIT_DOUBLE_NULL);
+	    return DBL_MAX;
     }
     virtual double getColumnMax(const char* cn) const {
 	if (stricmp(cn, col.c_str()) == 0)
 	    return nrows;
 	else
-	    return (isfinite(FASTBIT_DOUBLE_NULL) ?
-		    -DBL_MAX : FASTBIT_DOUBLE_NULL);
+	    return -DBL_MAX;
     }
 
     virtual long getHistogram(const char*, const char*,

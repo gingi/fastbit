@@ -7,6 +7,7 @@
 #include "table.h"	// ibis::table
 #include "util.h"	// ibis::partList
 #include "part.h"	// ibis::part
+#include "selectClause.h"// ibis::selectClause
 
 ///@file
 /// Defines ibis::bord.  This is an in-memory data table, with a single
@@ -101,22 +102,24 @@ public:
     virtual table* select(const char* sel, const char* cond) const;
     virtual table* groupby(const ibis::table::stringList&) const;
     virtual table* groupby(const char* str) const;
-    virtual void orderby(const ibis::table::stringList&);
-    virtual void orderby(const ibis::table::stringList&,
-			 const std::vector<bool>&);
+    using table::orderby;
+    virtual void   orderby(const ibis::table::stringList&);
+    virtual void   orderby(const ibis::table::stringList&,
+			   const std::vector<bool>&);
     virtual void reverseRows();
 
     virtual int buildIndex(const char*, const char*) {return -1;}
     virtual int buildIndexes(const char*) {return -1;}
     virtual int buildIndexes(const char*, int) {return -1;}
-    virtual const char* indexSpec(const char*) const {return 0;}
-    virtual void indexSpec(const char*, const char*) {return;}
     virtual int getPartitions(constPartList&) const;
+    virtual void indexSpec(const char*, const char*) {return;}
+    virtual const char* indexSpec(const char*) const {return 0;}
 
     int restoreCategoriesAsStrings(const char*);
     ibis::table* evaluateTerms(const ibis::selectClause&,
 			       const char*) const;
 
+    int merge(const ibis::bord&, const ibis::selectClause&);
     ibis::table* xgroupby(const ibis::selectClause&) const;
     ibis::table* groupby(const ibis::selectClause&) const;
     static ibis::bord*
@@ -168,10 +171,82 @@ public:
     class column;
 
 protected:
-    /// Clear the existing content.
+    /// Default constructor.  Creates a empty unnamed data partition.
+    bord() : ibis::part("in-core") {}
     void clear();
-    /// Compute the number of hits.
     int64_t computeHits(const char* cond) const;
+
+    int merger(std::vector<ibis::bord::column*>&,
+	       std::vector<ibis::bord::column*>&,
+	       const std::vector<ibis::bord::column*>&,
+	       const std::vector<ibis::bord::column*>&,
+	       const std::vector<ibis::selectClause::AGREGADO>&);
+
+    static int merge0(std::vector<ibis::bord::column*>&,
+		      const std::vector<ibis::bord::column*>&,
+		      const std::vector<ibis::selectClause::AGREGADO>&);
+    template <typename T> static int
+	merge0T(ibis::array_t<T>&, const ibis::array_t<T>&,
+		ibis::selectClause::AGREGADO);
+
+    static int merge1(ibis::bord::column&,
+		      std::vector<ibis::bord::column*>&,
+		      const ibis::bord::column&,
+		      const std::vector<ibis::bord::column*>&,
+		      const std::vector<ibis::selectClause::AGREGADO>&);
+    template <typename Tk> static int
+	merge1T(ibis::array_t<Tk> &kout,
+		std::vector<ibis::bord::column*>& vout,
+		const ibis::array_t<Tk> &kin1,
+		const std::vector<ibis::bord::column*> &vin1,
+		const ibis::array_t<Tk> &kin2,
+		const std::vector<ibis::bord::column*> &vin2,
+		const std::vector<ibis::selectClause::AGREGADO>& agg);
+
+    static int merge11(ibis::bord::column&,
+		       ibis::bord::column&,
+		       const ibis::bord::column&,
+		       const ibis::bord::column&,
+		       ibis::selectClause::AGREGADO);
+    template <typename Tk, typename Tv> static int
+	merge11T(ibis::array_t<Tk> &kout,
+		 ibis::array_t<Tv> &vout,
+		 const ibis::array_t<Tk> &kin1,
+		 const ibis::array_t<Tv> &vin1,
+		 const ibis::array_t<Tk> &kin2,
+		 const ibis::array_t<Tv> &vin2,
+		 ibis::selectClause::AGREGADO agg);
+
+    static int merge12(ibis::bord::column&,
+		       ibis::bord::column&,
+		       ibis::bord::column&,
+		       const ibis::bord::column&,
+		       const ibis::bord::column&,
+		       const ibis::bord::column&,
+		       ibis::selectClause::AGREGADO,
+		       ibis::selectClause::AGREGADO);
+    template <typename Tk> static int
+	merge12S(ibis::array_t<Tk> &kout,
+		 const ibis::array_t<Tk> &kin1,
+		 const ibis::array_t<Tk> &kin2,
+		 ibis::bord::column&,
+		 ibis::bord::column&,
+		 const ibis::bord::column&,
+		 const ibis::bord::column&,
+		 ibis::selectClause::AGREGADO,
+		 ibis::selectClause::AGREGADO);
+    template <typename Tk, typename Tu, typename Tv> static int
+	merge12T(ibis::array_t<Tk> &kout,
+		 ibis::array_t<Tu> &uout,
+		 ibis::array_t<Tv> &vout,
+		 const ibis::array_t<Tk> &kin1,
+		 const ibis::array_t<Tu> &uin1,
+		 const ibis::array_t<Tv> &vin1,
+		 const ibis::array_t<Tk> &kin2,
+		 const ibis::array_t<Tu> &uin2,
+		 const ibis::array_t<Tv> &vin2,
+		 ibis::selectClause::AGREGADO au,
+		 ibis::selectClause::AGREGADO av);
 
 private:
     // disallow copying.
@@ -192,8 +267,9 @@ private:
 /// developers welcome suggestions for a replacement.
 class ibis::bord::column : public ibis::column {
 public:
-    column(const ibis::bord* tbl, ibis::TYPE_T t, const char* name, void *buf=0,
-	   const char* desc="", double low=DBL_MAX, double high=-DBL_MAX);
+    column(const ibis::bord* tbl, ibis::TYPE_T t, const char* name,
+	   void *buf=0, const char* desc="", double low=DBL_MAX,
+	   double high=-DBL_MAX);
     column(const ibis::bord*, const ibis::column&, void *buf);
     column(const column& rhs);
     virtual ~column();
@@ -251,6 +327,13 @@ public:
     void*& getArray() {return buffer;}
     void*  getArray() const {return buffer;}
     int dump(std::ostream& out, uint32_t i) const;
+
+    bool equal_to(const column&) const;
+    inline bool equal_to(const column&, uint32_t, uint32_t) const;
+    inline bool less_than(const column&, uint32_t, uint32_t) const;
+    inline void append(const void*, uint32_t);
+    inline void append(const void*, uint32_t, const void*, uint32_t,
+		       ibis::selectClause::AGREGADO);
 
     int restoreCategoriesAsStrings(const ibis::part&);
     /// Append new data (in @c from) to a larger array (pointed to by
@@ -338,9 +421,9 @@ private:
 /// Copy a single value from inbuf to outbuf.  The output buffer must have
 /// the correct size on entry; this function does not attempt to resize the
 /// output buffer.
-inline void ibis::bord::copyValue(ibis::TYPE_T type,
-				  void* outbuf, size_t outpos,
-				  const void* inbuf, size_t inpos) {
+inline void
+ibis::bord::copyValue(ibis::TYPE_T type, void* outbuf, size_t outpos,
+		      const void* inbuf, size_t inpos) {
     switch (type) {
     default:
 	break;
@@ -359,11 +442,6 @@ inline void ibis::bord::copyValue(ibis::TYPE_T type,
     case ibis::USHORT: {
 	(*static_cast<array_t<uint16_t>*>(outbuf))[outpos]
 	    = (*static_cast<const array_t<uint16_t>*>(inbuf))[inpos];
-	LOGGER(ibis::gVerbose > 5)
-	    << "DEBUG -- copied inbuf[" << inpos << "] (="
-	    << (*static_cast<const array_t<uint16_t>*>(inbuf))[inpos]
-	    << ") to outbuf[" << outpos << "] (="
-	    << (*static_cast<array_t<uint16_t>*>(outbuf))[outpos] << ')';
 	break;}
     case ibis::INT: {
 	(*static_cast<array_t<int32_t>*>(outbuf))[outpos]
@@ -389,6 +467,7 @@ inline void ibis::bord::copyValue(ibis::TYPE_T type,
 	(*static_cast<array_t<double>*>(outbuf))[outpos]
 	    = (*static_cast<const array_t<double>*>(inbuf))[inpos];
 	break;}
+    case ibis::BLOB:
     case ibis::TEXT:
     case ibis::CATEGORY: {
 	(*static_cast<std::vector<std::string>*>(outbuf))[outpos]
@@ -396,6 +475,485 @@ inline void ibis::bord::copyValue(ibis::TYPE_T type,
 	break;}
     }
 } //ibis::bord::copyValue
+
+/// Does the ith value of this column equal to the jth value of other?
+inline bool
+ibis::bord::column::equal_to(const ibis::bord::column &other,
+			     uint32_t i, uint32_t j) const {
+    if (m_type != other.m_type) return false;
+    if (buffer == 0 || other.buffer == 0) return false;
+    if (buffer == other.buffer && i == j) return true;
+
+    switch (m_type) {
+    default:
+	return false;
+    case ibis::BYTE: {
+	const ibis::array_t<signed char> &v0 =
+	    *static_cast<const ibis::array_t<signed char>*>(buffer);
+	const ibis::array_t<signed char> &v1 =
+	    *static_cast<const ibis::array_t<signed char>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::UBYTE: {
+	const ibis::array_t<unsigned char> &v0 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(buffer);
+	const ibis::array_t<unsigned char> &v1 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::SHORT: {
+	const ibis::array_t<int16_t> &v0 =
+	    *static_cast<const ibis::array_t<int16_t>*>(buffer);
+	const ibis::array_t<int16_t> &v1 =
+	    *static_cast<const ibis::array_t<int16_t>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::USHORT: {
+	const ibis::array_t<uint16_t> &v0 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(buffer);
+	const ibis::array_t<uint16_t> &v1 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::INT: {
+	const ibis::array_t<int32_t> &v0 =
+	    *static_cast<const ibis::array_t<int32_t>*>(buffer);
+	const ibis::array_t<int32_t> &v1 =
+	    *static_cast<const ibis::array_t<int32_t>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::UINT: {
+	const ibis::array_t<uint32_t> &v0 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(buffer);
+	const ibis::array_t<uint32_t> &v1 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::LONG: {
+	const ibis::array_t<int64_t> &v0 =
+	    *static_cast<const ibis::array_t<int64_t>*>(buffer);
+	const ibis::array_t<int64_t> &v1 =
+	    *static_cast<const ibis::array_t<int64_t>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::ULONG: {
+	const ibis::array_t<uint64_t> &v0 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(buffer);
+	const ibis::array_t<uint64_t> &v1 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::FLOAT: {
+	const ibis::array_t<float> &v0 =
+	    *static_cast<const ibis::array_t<float>*>(buffer);
+	const ibis::array_t<float> &v1 =
+	    *static_cast<const ibis::array_t<float>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    case ibis::DOUBLE: {
+	const ibis::array_t<double> &v0 =
+	    *static_cast<const ibis::array_t<double>*>(buffer);
+	const ibis::array_t<double> &v1 =
+	    *static_cast<const ibis::array_t<double>*>(other.buffer);
+	return (v0[i] == v1[j]);}
+    }
+} // ibis::bord::column::equal_to
+
+/// Is the ith value of this column less than the jth value of other?
+inline bool
+ibis::bord::column::less_than(const ibis::bord::column &other,
+			      uint32_t i, uint32_t j) const {
+    if (m_type != other.m_type) return false;
+    if (buffer == 0 || other.buffer == 0) return false;
+    if (buffer == other.buffer && i == j) return true;
+
+    switch (m_type) {
+    default:
+	return false;
+    case ibis::BYTE: {
+	const ibis::array_t<signed char> &v0 =
+	    *static_cast<const ibis::array_t<signed char>*>(buffer);
+	const ibis::array_t<signed char> &v1 =
+	    *static_cast<const ibis::array_t<signed char>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::UBYTE: {
+	const ibis::array_t<unsigned char> &v0 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(buffer);
+	const ibis::array_t<unsigned char> &v1 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::SHORT: {
+	const ibis::array_t<int16_t> &v0 =
+	    *static_cast<const ibis::array_t<int16_t>*>(buffer);
+	const ibis::array_t<int16_t> &v1 =
+	    *static_cast<const ibis::array_t<int16_t>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::USHORT: {
+	const ibis::array_t<uint16_t> &v0 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(buffer);
+	const ibis::array_t<uint16_t> &v1 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::INT: {
+	const ibis::array_t<int32_t> &v0 =
+	    *static_cast<const ibis::array_t<int32_t>*>(buffer);
+	const ibis::array_t<int32_t> &v1 =
+	    *static_cast<const ibis::array_t<int32_t>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::UINT: {
+	const ibis::array_t<uint32_t> &v0 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(buffer);
+	const ibis::array_t<uint32_t> &v1 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::LONG: {
+	const ibis::array_t<int64_t> &v0 =
+	    *static_cast<const ibis::array_t<int64_t>*>(buffer);
+	const ibis::array_t<int64_t> &v1 =
+	    *static_cast<const ibis::array_t<int64_t>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::ULONG: {
+	const ibis::array_t<uint64_t> &v0 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(buffer);
+	const ibis::array_t<uint64_t> &v1 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::FLOAT: {
+	const ibis::array_t<float> &v0 =
+	    *static_cast<const ibis::array_t<float>*>(buffer);
+	const ibis::array_t<float> &v1 =
+	    *static_cast<const ibis::array_t<float>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    case ibis::DOUBLE: {
+	const ibis::array_t<double> &v0 =
+	    *static_cast<const ibis::array_t<double>*>(buffer);
+	const ibis::array_t<double> &v1 =
+	    *static_cast<const ibis::array_t<double>*>(other.buffer);
+	return (v0[i] < v1[j]);}
+    }
+} // ibis::bord::column::less_than
+
+/// Append a value.
+inline void
+ibis::bord::column::append(const void* c1, uint32_t i1) {
+    switch (m_type) {
+    default:
+	break;
+    case ibis::BYTE: {
+	ibis::array_t<signed char>& v0 =
+	    *(static_cast<array_t<signed char>*>(buffer));
+	const ibis::array_t<signed char>& v1 =
+	    *(static_cast<const array_t<signed char>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::UBYTE: {
+	ibis::array_t<unsigned char>& v0 =
+	    *(static_cast<array_t<unsigned char>*>(buffer));
+	const ibis::array_t<unsigned char>& v1 =
+	    *(static_cast<const array_t<unsigned char>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::SHORT: {
+	ibis::array_t<int16_t>& v0 =
+	    *(static_cast<array_t<int16_t>*>(buffer));
+	const ibis::array_t<int16_t>& v1 =
+	    *(static_cast<const array_t<int16_t>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::USHORT: {
+	ibis::array_t<uint16_t>& v0 =
+	    *(static_cast<array_t<uint16_t>*>(buffer));
+	const ibis::array_t<uint16_t>& v1 =
+	    *(static_cast<const array_t<uint16_t>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::INT: {
+	ibis::array_t<int32_t>& v0 =
+	    *(static_cast<array_t<int32_t>*>(buffer));
+	const ibis::array_t<int32_t>& v1 =
+	    *(static_cast<const array_t<int32_t>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::UINT: {
+	ibis::array_t<uint32_t>& v0 =
+	    *(static_cast<array_t<uint32_t>*>(buffer));
+	const ibis::array_t<uint32_t>& v1 =
+	    *(static_cast<const array_t<uint32_t>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::LONG: {
+	ibis::array_t<int64_t>& v0 =
+	    *(static_cast<array_t<int64_t>*>(buffer));
+	const ibis::array_t<int64_t>& v1 =
+	    *(static_cast<const array_t<int64_t>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::ULONG: {
+	ibis::array_t<uint64_t>& v0 =
+	    *(static_cast<array_t<uint64_t>*>(buffer));
+	const ibis::array_t<uint64_t>& v1 =
+	    *(static_cast<const array_t<uint64_t>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::FLOAT: {
+	ibis::array_t<float>& v0 =
+	    *(static_cast<array_t<float>*>(buffer));
+	const ibis::array_t<float>& v1 =
+	    *(static_cast<const array_t<float>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::DOUBLE: {
+	ibis::array_t<double>& v0 =
+	    *(static_cast<array_t<double>*>(buffer));
+	const ibis::array_t<double>& v1 =
+	    *(static_cast<const array_t<double>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    }
+} // ibis::bord::column::append
+
+/// Append the value genenerated from the the operation on the incoming
+/// columns.
+inline void
+ibis::bord::column::append(const void* c1, uint32_t i1,
+			   const void* c2, uint32_t i2,
+			   ibis::selectClause::AGREGADO agg) {
+    switch (m_type) {
+    default:
+	return;
+    case ibis::BYTE: {
+	ibis::array_t<signed char>& v0 =
+	    *(static_cast<array_t<signed char>*>(buffer));
+	const ibis::array_t<signed char>& v1 =
+	    *(static_cast<const array_t<signed char>*>(c1));
+	const ibis::array_t<signed char>& v2 =
+	    *(static_cast<const array_t<signed char>*>(c2));
+	signed char tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::UBYTE: {
+	ibis::array_t<unsigned char>& v0 =
+	    *(static_cast<array_t<unsigned char>*>(buffer));
+	const ibis::array_t<unsigned char>& v1 =
+	    *(static_cast<const array_t<unsigned char>*>(c1));
+	const ibis::array_t<unsigned char>& v2 =
+	    *(static_cast<const array_t<unsigned char>*>(c2));
+	unsigned char tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::SHORT: {
+	ibis::array_t<int16_t>& v0 =
+	    *(static_cast<array_t<int16_t>*>(buffer));
+	const ibis::array_t<int16_t>& v1 =
+	    *(static_cast<const array_t<int16_t>*>(c1));
+	const ibis::array_t<int16_t>& v2 =
+	    *(static_cast<const array_t<int16_t>*>(c2));
+	int16_t tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::USHORT: {
+	ibis::array_t<uint16_t>& v0 =
+	    *(static_cast<array_t<uint16_t>*>(buffer));
+	const ibis::array_t<uint16_t>& v1 =
+	    *(static_cast<const array_t<uint16_t>*>(c1));
+	const ibis::array_t<uint16_t>& v2 =
+	    *(static_cast<const array_t<uint16_t>*>(c2));
+	uint16_t tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::INT: {
+	ibis::array_t<int32_t>& v0 =
+	    *(static_cast<array_t<int32_t>*>(buffer));
+	const ibis::array_t<int32_t>& v1 =
+	    *(static_cast<const array_t<int32_t>*>(c1));
+	const ibis::array_t<int32_t>& v2 =
+	    *(static_cast<const array_t<int32_t>*>(c2));
+	int32_t tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::UINT: {
+	ibis::array_t<uint32_t>& v0 =
+	    *(static_cast<array_t<uint32_t>*>(buffer));
+	const ibis::array_t<uint32_t>& v1 =
+	    *(static_cast<const array_t<uint32_t>*>(c1));
+	const ibis::array_t<uint32_t>& v2 =
+	    *(static_cast<const array_t<uint32_t>*>(c2));
+	uint32_t tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::LONG: {
+	ibis::array_t<int64_t>& v0 =
+	    *(static_cast<array_t<int64_t>*>(buffer));
+	const ibis::array_t<int64_t>& v1 =
+	    *(static_cast<const array_t<int64_t>*>(c1));
+	const ibis::array_t<int64_t>& v2 =
+	    *(static_cast<const array_t<int64_t>*>(c2));
+	int64_t tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::ULONG: {
+	ibis::array_t<uint64_t>& v0 =
+	    *(static_cast<array_t<uint64_t>*>(buffer));
+	const ibis::array_t<uint64_t>& v1 =
+	    *(static_cast<const array_t<uint64_t>*>(c1));
+	const ibis::array_t<uint64_t>& v2 =
+	    *(static_cast<const array_t<uint64_t>*>(c2));
+	uint64_t tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::FLOAT: {
+	ibis::array_t<float>& v0 =
+	    *(static_cast<array_t<float>*>(buffer));
+	const ibis::array_t<float>& v1 =
+	    *(static_cast<const array_t<float>*>(c1));
+	const ibis::array_t<float>& v2 =
+	    *(static_cast<const array_t<float>*>(c2));
+	float tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    case ibis::DOUBLE: {
+	ibis::array_t<double>& v0 =
+	    *(static_cast<array_t<double>*>(buffer));
+	const ibis::array_t<double>& v1 =
+	    *(static_cast<const array_t<double>*>(c1));
+	const ibis::array_t<double>& v2 =
+	    *(static_cast<const array_t<double>*>(c2));
+	double tmp = 0;
+	switch (agg) {
+	default:
+	    break;
+	case ibis::selectClause::CNT:
+	case ibis::selectClause::SUM:
+	    tmp = v1[i1] + v2[i2];
+	    break;
+	case ibis::selectClause::MIN:
+	    tmp = (v1[i1] <= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	case ibis::selectClause::MAX:
+	    tmp = (v1[i1] >= v2[i2] ? v1[i1] : v2[i2]);
+	    break;
+	}
+	v0.push_back(tmp);
+	break;}
+    }
+} // ibis::bord::column::append
 
 inline int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
     int ierr = -1;

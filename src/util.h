@@ -263,23 +263,28 @@ int truncate(const char*, uint32_t);
 #endif
 #endif
 
-// The function isfinite is a macro defined in math.h according to
-// opengroup.org.  As of 2011, only MS visual studio does not have a
-// definition for isfinite, but it has _finite in float,h.
-#ifndef isfinite
-inline int isfinite(double x) {
-#if defined(_MSC_VER) && defined(_WIN32)
-    return _finite(x);
-#else
-    return finite(x);
-#endif
-}
-#endif
+// // The function isfinite is a macro defined in math.h according to
+// // opengroup.org.  As of 2011, only MS visual studio does not have a
+// // definition for isfinite, but it has _finite in float,h.
+// #if defined(_MSC_VER) && defined(_WIN32)
+// inline int isfinite(double x) {return _finite(x);}
+// #elif !defined(isfinite)
+// #define isfinite finite
+// #endif
 
 #define LOGGER(v) \
 if (false == (v)) ; else ibis::util::logger(0)() 
+// need these silly intermediate macro functions to force the arguments to
+// be evaluated before ## is applied
+#define IBIS_JOIN_MACRO2(X, Y) X##Y
+#define IBIS_JOIN_MACRO(X, Y) IBIS_JOIN_MACRO2(X, Y)
+#ifdef __GNUC__
+#define IBIS_GUARD_NAME IBIS_JOIN_MACRO(_guard, __LINE__) __attribute__( ( unused ) )
+#else
+#define IBIS_GUARD_NAME IBIS_JOIN_MACRO(_guard, __LINE__)
+#endif
 #define IBIS_BLOCK_GUARD \
-    ibis::util::guard guard##__LINE__ = ibis::util::makeGuard
+    ibis::util::guard IBIS_GUARD_NAME = ibis::util::makeGuard
 
 namespace std { // extend namespace std slightly
     // specialization of less<> to work with char*
@@ -464,6 +469,7 @@ namespace ibis {
 	/// Fletcher's arithmetic checksum with 32-bit result.
 	FASTBIT_CXX_DLLSPEC uint32_t checksum(const char* str, uint32_t sz);
 	inline uint32_t checksum(uint32_t a, uint32_t b);
+	inline std::string randName(const std::string& longname);
 	inline std::string shortName(const std::string& longname);
 	///@}
 
@@ -566,10 +572,8 @@ namespace ibis {
 		       const std::vector<ibis::bitvector> &bits2,
 		       const std::vector<ibis::bitvector> &bits3,
 		       std::vector<ibis::bitvector> &res);
-	/// Deallocate the bit vectors.
-	void clean(std::vector<ibis::bitvector*> &bv) throw();
-	void clean(ibis::partList &pl) throw();
-	// void clearDatasets(void);
+	void clear(ibis::array_t<ibis::bitvector*> &bv) throw();
+	void clear(ibis::partList &pl) throw();
 	void updateDatasets(void);
 
 	/// Return a pointer to the string designating the version of this
@@ -602,6 +606,15 @@ namespace ibis {
 	    return str;
 	}
 #endif
+
+	/// A template to clean up a vector of pointers.
+	template <typename T> inline void
+	clearVec(std::vector<T*> &v) {
+            const size_t nv = v.size();
+	    for (size_t j = 0; j < nv; ++j)
+		delete v[j];
+	    v.clear();
+	} // clearVec
 
 	/// A class for logging messages.  The caller writes message to a
 	/// std::ostream returned by the function buffer as if to
@@ -1444,13 +1457,20 @@ inline double ibis::util::coarsen(const double in, unsigned prec) {
 /// The result is often used as name of temporary table objects.
 inline std::string ibis::util::shortName(const std::string& de) {
     std::string tn;
-    uint32_t tmp = ibis::util::checksum(de.c_str(), de.size());
-    ibis::util::int2string(tn, tmp);
-    std::swap(tn[0], tn[5]);
-    if (! isalpha(tn[0]))
-	tn[0] = 'A' + (tn[0] % 26);
+    ibis::util::int2string(tn, ibis::util::checksum(de.c_str(), de.size()));
+    if (0 == isalpha(tn[0]))
+	tn[0] = '_';
     return tn;
 } // ibis::util::shortName
+
+inline std::string ibis::util::randName(const std::string& de) {
+    std::string tn;
+    ibis::util::int2string(tn, ibis::util::checksum(de.c_str(), de.size()) ^
+			   ibis::util::serialNumber());
+    if (0 == isalpha(tn[0]))
+	tn[0] = '_';
+    return tn;
+} // ibis::util::randName
 
 /// Print a rid_t to an output stream.
 inline std::ostream& operator<<(std::ostream& out, const ibis::rid_t& rid) {

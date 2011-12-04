@@ -491,7 +491,7 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 	int match = -1; // 0 ==> partr_, 1 ==> parts_
 	if (! tname.empty()) {
 	    match = frm_->position(tname.c_str());
-	    if (match >= frm_->size()) {
+	    if (match >= static_cast<long>(frm_->size())) {
 		if (stricmp(tname.c_str(), partr_.name()) == 0) {
 		    match = 0;
 		}
@@ -577,16 +577,12 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
     }
     ibis::table::typeList   rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
     ibis::table::bufferList rbuff(ircol.size(), 0);
-    ibis::util::guard       grbuff =
-	ibis::util::makeGuard(ibis::table::freeBuffers,
-			      ibis::util::ref(rbuff),
-			      ibis::util::ref(rtypes));
+    IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(rbuff),
+		     ibis::util::ref(rtypes));
     ibis::table::typeList   stypes(iscol.size(), ibis::UNKNOWN_TYPE);
     ibis::table::bufferList sbuff(iscol.size(), 0);
-    ibis::util::guard       gsbuff =
-	ibis::util::makeGuard(ibis::table::freeBuffers,
-			      ibis::util::ref(sbuff),
-			      ibis::util::ref(stypes));
+    IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(sbuff),
+		     ibis::util::ref(stypes));
     bool sane = true;
 
     // retrieve values from r_
@@ -940,10 +936,8 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 
     ibis::table::bufferList tbuff(tcname.size());
     ibis::table::typeList   ttypes(tcname.size());
-    ibis::util::guard       gtbuff =
-	ibis::util::makeGuard(ibis::table::freeBuffers,
-			      ibis::util::ref(tbuff),
-			      ibis::util::ref(ttypes));
+    IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(tbuff),
+		     ibis::util::ref(ttypes));
     try {
 	// allocate enough space for the output table
 	for (size_t j = 0; j < tcname.size(); ++ j) {

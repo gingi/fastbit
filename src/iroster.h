@@ -155,7 +155,7 @@ inline uint32_t ibis::roster::operator[](uint32_t i) const {
 	tmp = ind[i];
     }
     else if (inddes >= 0) {
-	if (i*sizeof(uint32_t) !=
+	if (static_cast<off_t>(i*sizeof(uint32_t)) !=
 	    UnixSeek(inddes, i*sizeof(uint32_t), SEEK_SET))
 	    return tmp;
 	if (sizeof(uint32_t) != UnixRead(inddes, &tmp, sizeof(uint32_t)))

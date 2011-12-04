@@ -858,7 +858,7 @@ int ibis::column::getValuesArray(void* vals) const {
     return ierr;
 } // ibis::column::getValuesArray
 
-/// Return the content of base data file as storage object.
+/// Return the content of base data file as a storage object.
 ibis::fileManager::storage* ibis::column::getRawData() const {
     std::string sname;
     const char *fnm = dataFileName(sname);
@@ -4858,9 +4858,10 @@ long ibis::column::selectValues(const ibis::qContinuousRange& cond,
     if (thePart->nRows() == 0) return 0;
 
     long ierr = -1;
-    if (idx != 0 || indexSize() < thePart->nRows()) {
+    if (idx != 0 || (indexSize() >> 2) < thePart->nRows()) {
 	ibis::column::indexLock lock(this, "selectValues");
-	if (idx->estimateCost(cond) < (thePart->nRows() >> 2))
+	if (idx != 0 &&
+	    idx->estimateCost(cond) < (thePart->nRows() >> 2))
 	    ierr = idx->select(cond, vals);
     }
     if (ierr < 0) {
@@ -4891,10 +4892,10 @@ void ibis::column::logError(const char* event, const char* fmt, ...) const {
 	{ // make sure the message is written before throwing
 	    ibis::util::logger lg;
 	    lg() << " Error *** column["
-			<< (thePart != 0 ? thePart->name() : "")
-			<< '.' << m_name.c_str() << "]("
-			<< ibis::TYPESTRING[(int)m_type] << ")::" << event
-			<< " -- " << s;
+		 << (thePart != 0 ? thePart->name() : "")
+		 << '.' << m_name.c_str() << "]("
+		 << ibis::TYPESTRING[(int)m_type] << ")::" << event
+		 << " -- " << s;
 	    if (errno != 0)
 		lg() << " ... " << strerror(errno);
 	}
@@ -4905,10 +4906,10 @@ void ibis::column::logError(const char* event, const char* fmt, ...) const {
 	{
 	    ibis::util::logger lg;
 	    lg() <<  " Error *** column["
-			<< (thePart != 0 ? thePart->name() : "")
-			<< '.' << m_name.c_str() << "]("
-			<< ibis::TYPESTRING[(int)m_type] << ")::" << event
-			<< " -- " << fmt;
+		 << (thePart != 0 ? thePart->name() : "")
+		 << '.' << m_name.c_str() << "]("
+		 << ibis::TYPESTRING[(int)m_type] << ")::" << event
+		 << " -- " << fmt;
 	    if (errno != 0)
 		lg() << " ... " << strerror(errno);
 	}
@@ -4956,7 +4957,7 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
     fprintf(fptr, "%s   ", tstr);
 #endif
     fprintf(fptr, "column[%s.%s](%s)::%s -- ",
-	   (thePart != 0 ? thePart->name() : ""),
+	    (thePart != 0 ? thePart->name() : ""),
 	    m_name.c_str(), ibis::TYPESTRING[(int)m_type], event);
 #if (defined(HAVE_VPRINTF) || defined(_WIN32)) && ! defined(DISABLE_VPRINTF)
     va_list args;
@@ -5064,16 +5065,16 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	logWarning("loadIndex", "index::ceate(%s) throw "
 		   "the following exception\n%s", name(), s);
 	delete tmp;
-// 	    std::string key = thePart->name();
-// 	    key += '.';
-// 	    key += m_name;
-// 	    key += ".disableIndexOnFailure";
-// 	    if (ibis::gParameters().isTrue(key.c_str())) {
-// 		// don't try to build index any more
-// 		const_cast<column*>(this)->m_bins = "noindex";
-// 		thePart->updateMetaData();
-// 	    }
-// 	    purgeIndexFile();
+	// 	    std::string key = thePart->name();
+	// 	    key += '.';
+	// 	    key += m_name;
+	// 	    key += ".disableIndexOnFailure";
+	// 	    if (ibis::gParameters().isTrue(key.c_str())) {
+	// 		// don't try to build index any more
+	// 		const_cast<column*>(this)->m_bins = "noindex";
+	// 		thePart->updateMetaData();
+	// 	    }
+	// 	    purgeIndexFile();
     }
     catch (const std::exception& e) {
 	logWarning("loadIndex", "index::create(%s) failed "
@@ -6664,8 +6665,9 @@ long ibis::column::appendValues(const array_t<T>& vals,
     if (static_cast<uint32_t>(oldsz) < thePart->nRows()) {
 	mask_.adjustSize(oldsz, thePart->nRows());
 	while (static_cast<uint32_t>(oldsz) < thePart->nRows()) {
-	    const uint32_t nw = (thePart->nRows()-oldsz <= vals.size() ?
-			       thePart->nRows()-oldsz : vals.size());
+	    const uint32_t nw =
+		((uint32_t)(thePart->nRows()-oldsz) <= vals.size() ?
+		 (uint32_t)(thePart->nRows()-oldsz) : vals.size());
 	    ierr = UnixWrite(curr, vals.begin(), nw*elem);
 	    if (ierr < static_cast<long>(nw*elem)) {
 		LOGGER(ibis::gVerbose >= 0)
@@ -7178,11 +7180,11 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     }
     else if (m_type == ibis::FLOAT) {
 	// data type is float -- single precision floating-point values
-// #if INT_MAX == 0x7FFFFFFFL
-// 	const int tmp = 0x7F800001; // NaN on a SUN workstation
-// #else
-// 	const int tmp = INT_MAX;	// likely also a NaN
-// #endif
+	// #if INT_MAX == 0x7FFFFFFFL
+	// 	const int tmp = 0x7F800001; // NaN on a SUN workstation
+	// #else
+	// 	const int tmp = INT_MAX;	// likely also a NaN
+	// #endif
 	const float tmp = FASTBIT_FLOAT_NULL;
 	const unsigned int elem = sizeof(float);
 	if (ninfile != nold*elem) {
@@ -7243,11 +7245,11 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     }
     else if (m_type == ibis::DOUBLE) {
 	// data type is double -- double precision floating-point values
-// #if INT_MAX == 0x7FFFFFFFL
-// 	const int tmp[2]={0x7FFF0000, 0x00000001}; // NaN on a SUN workstation
-// #else
-// 	const int tmp[2]={INT_MAX, INT_MAX};
-// #endif
+	// #if INT_MAX == 0x7FFFFFFFL
+	// 	const int tmp[2]={0x7FFF0000, 0x00000001}; // NaN on a SUN workstation
+	// #else
+	// 	const int tmp[2]={INT_MAX, INT_MAX};
+	// #endif
 	const double tmp = FASTBIT_DOUBLE_NULL;
 	const unsigned int elem = sizeof(double);
 	if (ninfile != nold*elem) {
@@ -10623,7 +10625,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 	    const T tmp = static_cast<T>(u[j]);
 	    if ((int64_t)tmp == u[j]) {
 		uint32_t jloc = vals.find(static_cast<T>(u[j]));
-		if (vals[jloc] == u[j]) {
+		if (vals[jloc] == static_cast<const T>(u[j])) {
 		    hits.setBit(jloc, 1);
 		}
 	    }
@@ -10754,7 +10756,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 	    const T tmp = static_cast<T>(u[j]);
 	    if ((uint64_t)tmp == u[j]) {
 		uint32_t jloc = vals.find(static_cast<T>(u[j]));
-		if (vals[jloc] == u[j]) {
+		if (vals[jloc] == static_cast<const T>(u[j])) {
 		    hits.setBit(jloc, 1);
 		}
 	    }
