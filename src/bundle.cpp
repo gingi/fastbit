@@ -68,12 +68,24 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
 ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
 				   const ibis::selectClause& sel) {
     const uint32_t nc = sel.aggSize();
+    bool cs = (nc == 1 && sel.getAggregator(0) == ibis::selectClause::CNT);
+    if (cs) {
+	const ibis::math::term *tm = sel.aggExpr(0);
+	if (tm->termType() == ibis::math::VARIABLE)
+	    cs = ('*' == *(static_cast<const ibis::math::variable*>(tm)->
+			   variableName()));
+	else
+	    cs = false;
+    }
     ibis::bundle* res = 0;
-    if (nc > 1) {
-	res = new ibis::bundles(tbl, sel);
+    if (nc == 0 || cs) {
+	res = new ibis::bundle0(tbl, sel);
     }
     else if (nc == 1) {
 	res = new ibis::bundle1(tbl, sel);
+    }
+    else {
+	res = new ibis::bundles(tbl, sel);
     }
     return res;
 } // ibis::bundle::create
@@ -293,6 +305,25 @@ ibis::bundle::~bundle() {
 
 //////////////////////////////////////////////////////////////////////
 // functions for ibis::bundle0
+
+/// Constructor.
+ibis::bundle0::bundle0(const ibis::query& q) : bundle(q) {
+    q.writeRIDs(rids);
+}
+
+/// Constructor.
+ibis::bundle0::bundle0(const ibis::query& q, const ibis::bitvector& hits)
+    : bundle(q, hits) {
+    if (rids != 0 && static_cast<long>(rids->size()) != q.getNumHits()) {
+	delete rids;
+	rids = 0;
+    }
+}
+
+/// Constructor.
+ibis::bundle0::bundle0(const ibis::part &t, const ibis::selectClause &s)
+    : bundle(t, s) {
+}
 
 /// Print the bundle values to the specified output stream.
 void ibis::bundle0::print(std::ostream& out) const {

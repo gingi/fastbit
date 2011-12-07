@@ -75,7 +75,7 @@ public:
 
     /// Return the number of bundles.
     virtual uint32_t size() const {
-	return (starts != 0 ? (starts->size()>0 ? starts->size()-1 : 0) : 0);}
+	return (starts != 0 && starts->size()>0 ? starts->size()-1 : 0);}
     /// Return the width of the bundles.
     virtual uint32_t width() const {return 0;}
     /// Print the bundle values to the specified output stream.
@@ -169,7 +169,7 @@ protected:
 	: comps(c), starts(0), rids(0), id(""), infile(false) {};
     // use ibis::query::getRIDs(const ibis::bitvector&) const to avoid the
     // read lock required by ibis::query::getRIDs() const.
-    explicit bundle(const ibis::query& q)
+    explicit bundle(const ibis::query &q)
 	: comps(q.components()), starts(0),
 	  rids(q.getRIDs(*(q.getHitVector()))), id(q.id()),
 	  infile(false) {
@@ -178,9 +178,16 @@ protected:
 	    rids = 0;
 	}
     };
-    bundle(const ibis::query& q, const ibis::bitvector& hits)
+    bundle(const ibis::query &q, const ibis::bitvector& hits)
 	: comps(q.components()), starts(0), rids(q.getRIDs(hits)),
 	  id(q.id()), infile(false) {};
+    bundle(const ibis::part &t, const ibis::selectClause &s)
+	: comps(s), starts(new array_t<uint32_t>), rids(t.getRIDs()),
+	id(t.name()), infile(false) {
+	starts->resize(2);
+	(*starts)[0] = 0;
+	(*starts)[1] = t.nRows();
+    }
 
 private:
     bundle(); // no default constructor
@@ -191,16 +198,10 @@ private:
 /// The null bundle.  It contains only a list of RIDs.
 class FASTBIT_CXX_DLLSPEC ibis::bundle0 : public ibis::bundle {
 public:
-    explicit bundle0(const ibis::query& q) : bundle(q) {q.writeRIDs(rids);};
-    bundle0(const ibis::query& q, const ibis::bitvector& hits)
-	: bundle(q, hits) {
-	if (rids != 0 && static_cast<long>(rids->size()) != q.getNumHits()) {
-	    delete rids;
-	    rids = 0;
-	}
-    };
+    explicit bundle0(const ibis::query& q);
+    bundle0(const ibis::query& q, const ibis::bitvector& hits);
+    bundle0(const ibis::part& t, const ibis::selectClause &s);
 
-    virtual uint32_t size() const {return (rids ? rids->size() : 0);}
     virtual void print(std::ostream& out) const;
     virtual void printAll(std::ostream& out) const;
 

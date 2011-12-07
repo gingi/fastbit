@@ -298,7 +298,7 @@ ibis::table* ibis::filter::select() const {
     try {
 	const bool sep = sel_->isSeparable();
 	if (wc_ == 0 || wc_->empty()) {
-	    if (sep)
+	    if (sep && myparts.size() > 1)
 		return ibis::filter::sift0S(*sel_, myparts);
 	    else
 		return ibis::filter::sift0(*sel_, myparts);
@@ -310,7 +310,7 @@ ibis::table* ibis::filter::select() const {
 		exact = (cand_[j] == 0);
 	    if (exact) {
 		cand_.clear();
-		if (sep)
+		if (sep && myparts.size() > 1)
 		    return ibis::filter::sift2S(*sel_, myparts, hits_);
 		else
 		    return ibis::filter::sift2(*sel_, myparts, hits_);
@@ -320,10 +320,87 @@ ibis::table* ibis::filter::select() const {
 	for (size_t j = 0; j < cand_.size(); ++ j)
 	    delete cand_[j];
 	cand_.clear();
-	if (sep)
+	if (sep && myparts.size() > 1)
 	    return ibis::filter::sift2S(*sel_, myparts, *wc_, hits_);
 	else
 	    return ibis::filter::sift2(*sel_, myparts, *wc_, hits_);
+    }
+    catch (const ibis::bad_alloc &e) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a bad_alloc ("
+		 << e.what() << "), will return a nil pointer";
+	    if (ibis::gVerbose > 0)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (const std::exception &e) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a std::exception ("
+		 << e.what() << "), will return a nil pointer";
+	    if (ibis::gVerbose > 1)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (const char *s) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed a string exception ("
+		 << s << "), will return a nil pointer";
+	    if (ibis::gVerbose > 1)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    catch (...) {
+	if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- filter::select absorbed an unknown exception, "
+		"will return a nil pointer";
+	    if (ibis::gVerbose > 1)
+		ibis::fileManager::instance().printStatus(lg());
+	}
+    }
+    return 0;
+} // ibis::filter::select
+
+ibis::table* ibis::filter::select(const char* sstr) const {
+    const ibis::constPartList &myparts =
+	(parts_ != 0 ? *parts_ :
+	 reinterpret_cast<const ibis::constPartList&>(ibis::datasets));
+    if (sstr == 0 || *sstr == 0) {
+	return new ibis::tabula(count());
+    }
+    try {
+	ibis::selectClause sel(sstr);
+	const bool sep = sel.isSeparable();
+	if (wc_ == 0 || wc_->empty()) {
+	    if (sep && myparts.size() > 1)
+		return ibis::filter::sift0S(sel, myparts);
+	    else
+		return ibis::filter::sift0(sel, myparts);
+	}
+
+	if (hits_.size() == myparts.size()) {
+	    bool exact = true;
+	    for (size_t j = 0; j < cand_.size() && exact; ++ j)
+		exact = (cand_[j] == 0);
+	    if (exact) {
+		cand_.clear();
+		if (sep && myparts.size() > 1)
+		    return ibis::filter::sift2S(sel, myparts, hits_);
+		else
+		    return ibis::filter::sift2(sel, myparts, hits_);
+	    }
+	}
+
+	for (size_t j = 0; j < cand_.size(); ++ j)
+	    delete cand_[j];
+	cand_.clear();
+	if (sep && myparts.size() > 1)
+	    return ibis::filter::sift2S(sel, myparts, *wc_, hits_);
+	else
+	    return ibis::filter::sift2(sel, myparts, *wc_, hits_);
     }
     catch (const ibis::bad_alloc &e) {
 	if (ibis::gVerbose >= 0) {
@@ -376,7 +453,7 @@ ibis::filter::select(const ibis::table::stringList& colnames) const {
     try {
 	const bool sep = sc.isSeparable();
 	if (wc_ == 0 || wc_->empty()) {
-	    if (sep)
+	    if (sep && myparts.size() > 1)
 		return ibis::filter::sift0S(sc, myparts);
 	    else
 		return ibis::filter::sift0(sc, myparts);
@@ -388,7 +465,7 @@ ibis::filter::select(const ibis::table::stringList& colnames) const {
 		exact = (cand_[j] == 0);
 	    if (exact) {
 		cand_.clear();
-		if (sep)
+		if (sep && myparts.size() > 1)
 		    return ibis::filter::sift2S(*sel_, myparts, hits_);
 		else
 		    return ibis::filter::sift2(*sel_, myparts, hits_);
@@ -522,7 +599,7 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -651,7 +728,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -813,7 +890,7 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -951,7 +1028,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -1037,7 +1114,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd0->groupby(tms));
+    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produced an in-memory data partition with "
@@ -1117,7 +1194,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -1277,7 +1354,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -1423,7 +1500,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -1607,7 +1684,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -1723,7 +1800,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd0->groupby(tms));
+    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produced an in-memory data partition with "
@@ -1787,7 +1864,7 @@ ibis::table* ibis::filter::sift2S
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -1873,7 +1950,7 @@ ibis::table* ibis::filter::sift2S
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd0->groupby(tms));
+    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produces an in-memory data partition with "
@@ -1952,7 +2029,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
     const uint32_t nplain = tms.numGroupbyKeys();
-    if (ibis::gVerbose > 2) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- processing a select clause with " << tms.aggSize()
 	     << " term" << (tms.aggSize()>1?"s":"") << ", " << nplain
@@ -2079,7 +2156,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd0->groupby(tms));
+    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produces an in-memory data partition with "

@@ -18633,7 +18633,7 @@ long ibis::part::barrel::open(const ibis::part *t) {
 		}
 	    }
 	}
-	else if (fdes[0]) {
+	else if (fdes[0] >= 0) {
 	    lg() << "successfully opened file " << name(0)
 		 << " with descriptor " << fdes[0];
 	}

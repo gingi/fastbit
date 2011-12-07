@@ -45,19 +45,20 @@ int testing = 0;
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
-	      << "[-d directory_containing_a_dataset] [-s select-clause] "
-	      << "[-w where-clause] [-f from-clause] [-v[=| ]verbose_level] [-t[=| ]test cases]"
-	      << "\nPerforms a projection of rows satisfying the specified "
-	"conditions, a very limited version of SQL SELECT select-cuase "
-	"FROM from-clause WHERE where-clause.  Each where-clause will "
-	"be used in turn.\n"
-	      << "\n-- both select clause and where clause may contain "
+	"[-d directory_containing_a_dataset] [-s select-clause] "
+	"[-w where-clause] [-o order-by-clasue] [-f from-clause] "
+	"[-v[=| ]verbose_level] [-t[=| ]#-of-cases]"
+	"\n\nPerforms a projection of rows satisfying the specified "
+	"conditions, a very limited version of SQL"
+	"\n  SELECT select-clause FROM from-clause WHERE where-clause."
+	"\nEach where-clause will be used in turn."
+	"\n\n-- both select clause and where clause may contain "
 	"arithmetic expressions."
-	      << "\n-- data in all directories specified by -c and -d "
+	"\n-- data in all directories specified by -c and -d "
 	"options are considered as one table!"
-	      << "\n-- when multiple select clauses are specified, only "
+	"\n-- when multiple select clauses are specified, only "
 	"the last one is used."
-	      << "\n-- a from clause specifies what data partitions "
+	"\n-- a from clause specifies what data partitions "
 	"participate in the query.  It may contain wild characters '_' and '%'."
 	"  When multiple from clauses are specified, only the last one is used."
 	      << std::endl;
@@ -65,7 +66,8 @@ static void usage(const char* name) {
 
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, ibis::table*& tbl,
-		       qList& qcnd, const char*& sel, const char*& frm) {
+		       qList& qcnd, const char*& sel, const char*& frm,
+		       const char*& ord) {
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
     ibis::gVerbose = INT_MAX;
@@ -81,6 +83,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 
     sel = 0;
     frm = 0;
+    ord = 0;
     for (int i=1; i<argc; ++i) {
 	if (*argv[i] == '-') { // normal arguments starting with -
 	    switch (argv[i][1]) {
@@ -117,6 +120,13 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		if (i+1 < argc) {
 		    ++ i;
 		    qcnd.insert(argv[i]);
+		}
+		break;
+	    case 'o':
+	    case 'O':
+		if (i+1 < argc) {
+		    ++ i;
+		    ord = argv[i];
 		}
 		break;
 	    case 's':
@@ -582,7 +592,7 @@ static void printValues(const ibis::table& tbl) {
 
 // evaluate a single query, print out the number of hits
 void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
-	     const char* fstr) {
+	     const char* fstr, const char* ostr) {
     if (wstr == 0 || *wstr == 0) return;
 
     std::string mesg;
@@ -636,7 +646,9 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	sel->describe(std::cout); // ask the table to describe itself
 
 	if (n0 > 0 && sel->nColumns() > 0) {
-	    //sel->orderby(sstr);
+	    if (ostr != 0) {
+	        sel->orderby(ostr);
+	    }
 	    if (xfile.is_open() && xfile.good()) {
 		sel->dump(xfile);
 	    }
@@ -901,9 +913,10 @@ int main(int argc, char** argv) {
     ibis::table* tbl = 0;
     const char* sel; // only one select clause
     const char* frm; // only one string to select different data partitions
+    const char* ord; // only one order clause
     qList qcnd; // list of query conditions (where clauses)
 
-    parse_args(argc, argv, tbl, qcnd, sel, frm);
+    parse_args(argc, argv, tbl, qcnd, sel, frm, ord);
     if (tbl == 0) {
 	std::clog << *argv << " must have at least one data table."
 		  << std::endl;
@@ -933,7 +946,7 @@ int main(int argc, char** argv) {
 
     for (qList::const_iterator qit = qcnd.begin();
 	 qit != qcnd.end(); ++ qit) {
-	doQuery(*tbl, *qit, sel, frm);
+	doQuery(*tbl, *qit, sel, frm, ord);
     }
 
     delete tbl;

@@ -35,6 +35,7 @@ public:
     virtual void    roughCount(uint64_t& nmin, uint64_t& nmax) const;
     virtual int64_t count() const;
     virtual table*  select() const;
+    virtual table*  select(const char*) const;
     virtual table*  select(const ibis::table::stringList& colnames) const;
 
     static table*   sift(const ibis::selectClause  &sel,

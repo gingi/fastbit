@@ -57,6 +57,10 @@ public:
     /// @note We assume that this query object might be reused later and
     /// therefore store partial results associated with the query object.
     virtual table* select() const = 0;
+    /// Produce a project based on the given select clause.  The joined
+    /// data table is defined by the where clause and the from clause given
+    /// to the constructor of this object.
+    virtual table* select(const char*) const = 0;
     /// Produce a projection of the joined table.  This function selects
     /// values using the column names provided instead of the select clause
     /// specified when the query is constructed.

@@ -1,9 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.4.3.  */
+/* A Bison parser, made by GNU Bison 2.5.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free
-   Software Foundation, Inc.
+      Copyright (C) 2002-2011 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,34 +37,20 @@
 
 /* "%code requires" blocks.  */
 
-/* Line 300 of lalr1.cc  */
+/* Line 35 of lalr1.cc  */
 #line 12 "selectParser.yy"
 
 #include "selectClause.h"	// class selectClause
 
 
 
-/* Line 300 of lalr1.cc  */
-#line 50 "selectParser.hh"
+/* Line 35 of lalr1.cc  */
+#line 49 "selectParser.hh"
 
 
 #include <string>
 #include <iostream>
 #include "stack.hh"
-
-
-namespace ibis {
-
-/* Line 300 of lalr1.cc  */
-#line 61 "selectParser.hh"
-  class position;
-  class location;
-
-} // ibis
-
-/* Line 300 of lalr1.cc  */
-#line 68 "selectParser.hh"
-
 #include "location.hh"
 
 /* Enabling traces.  */
@@ -86,30 +71,11 @@ namespace ibis {
 # define YYTOKEN_TABLE 0
 #endif
 
-/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
-   If N is 0, then set CURRENT to the empty location which ends
-   the previous symbol: RHS[0] (always defined).  */
-
-#ifndef YYLLOC_DEFAULT
-# define YYLLOC_DEFAULT(Current, Rhs, N)		\
-do {							\
-  if (N)						\
-    {							\
-      (Current).begin = (Rhs)[1].begin;			\
-      (Current).end   = (Rhs)[N].end;			\
-    }							\
-  else							\
-    {							\
-      (Current).begin = (Current).end = (Rhs)[0].end;	\
-    }							\
-} while (false)
-#endif
-
 
 namespace ibis {
 
-/* Line 300 of lalr1.cc  */
-#line 113 "selectParser.hh"
+/* Line 35 of lalr1.cc  */
+#line 79 "selectParser.hh"
 
   /// A Bison parser.
   class selectParser
@@ -120,7 +86,7 @@ namespace ibis {
     union semantic_type
     {
 
-/* Line 300 of lalr1.cc  */
+/* Line 35 of lalr1.cc  */
 #line 34 "selectParser.yy"
 
     int			integerVal;
@@ -130,8 +96,8 @@ namespace ibis {
 
 
 
-/* Line 300 of lalr1.cc  */
-#line 135 "selectParser.hh"
+/* Line 35 of lalr1.cc  */
+#line 101 "selectParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -228,6 +194,14 @@ namespace ibis {
     /// The location stack.
     location_stack_type yylocation_stack_;
 
+    /// Whether the given \c yypact_ value indicates a defaulted state.
+    /// \param yyvalue   the value to check
+    static bool yy_pact_value_is_default_ (int yyvalue);
+
+    /// Whether the given \c yytable_ value indicates a syntax error.
+    /// \param yyvalue   the value to check
+    static bool yy_table_value_is_error_ (int yyvalue);
+
     /// Internal symbol numbers.
     typedef unsigned char token_number_type;
     /* Tables.  */
@@ -235,7 +209,7 @@ namespace ibis {
     static const signed char yypact_[];
     static const signed char yypact_ninf_;
 
-    /// For a state, default rule to reduce.
+    /// For a state, default reduction number.
     /// Unless\a  yytable_ specifies something else to do.
     /// Zero means the default is an error.
     static const unsigned char yydefact_[];
@@ -266,10 +240,8 @@ namespace ibis {
     static const char* const yytname_[];
 #endif
 
-#if YYERROR_VERBOSE
     /// Convert the symbol name \a n to a form suitable for a diagnostic.
-    virtual std::string yytnamerr_ (const char *n);
-#endif
+    static std::string yytnamerr_ (const char *n);
 
 #if YYDEBUG
     /// A type to store symbol numbers and -1.
@@ -327,8 +299,8 @@ namespace ibis {
 
 } // ibis
 
-/* Line 300 of lalr1.cc  */
-#line 332 "selectParser.hh"
+/* Line 35 of lalr1.cc  */
+#line 304 "selectParser.hh"
 
 
 

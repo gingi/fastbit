@@ -384,54 +384,56 @@ ibis::table* ibis::jRange::select() const {
 	}
     }
     // convert the barrel into a stringList for processing
-    ibis::table::stringList sl(brl.size());
-    for (unsigned j = 0; j < brl.size(); ++ j)
-	sl[j] = brl.name(j);
-    ibis::table* res1 = select(sl);
-    if (res1 != 0 && ibis::gVerbose > 2) {
+    ibis::table::stringList sl;
+    sl.reserve(brl.size());
+    for (unsigned j = 0; j < brl.size(); ++ j) {
+	const char *str = brl.name(j);
+	if (*str != 0) {
+	    if (str[0] != '_' || str[1] != '_')
+		sl.push_back(str);
+	}
+    }
+
+    std::auto_ptr<ibis::table> res1(select(sl));
+    if (res1.get() == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
+	features == 0)
+	return res1.release();
+
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "jRange::select(" << *sel_ << ", " << desc_
-		    << ") produced the first intermediate table:\n";
+	     << ") produced the first intermediate table:\n";
 	res1->describe(lg());
     }
-    if (res1 == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
-	features == 0)
-	return res1;
 
     if ((features & 1) != 0) { // arithmetic computations
-	ibis::table* res2 =
-	    static_cast<const ibis::bord*>(res1)->evaluateTerms
-	    (*sel_, desc_.c_str());
-	if (res2 != 0) {
+	res1.reset(static_cast<const ibis::bord*>(res1.get())->evaluateTerms
+		   (*sel_, desc_.c_str()));
+	if (res1.get() != 0) {
 	    if (ibis::gVerbose > 2) {
 		ibis::util::logger lg;
 		lg() << "jRange::select(" << *sel_ << ", " << desc_
-			    << ") produced the second intermediate table:\n";
-		res2->describe(lg());
+		     << ") produced the second intermediate table:\n";
+		res1->describe(lg());
 	    }
-	    delete res1;
-	    res1 = res2;
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- jRange::select(" << *sel_
 		<< ") failed to evaluate the arithmetic expressions";
-	    return res1;
+	    return 0;
 	}
     }
 
     if ((features & 2) != 0) { // aggregation operations
-	ibis::table *res3 =
-	    static_cast<const ibis::bord*>(res1)->groupby(*sel_);
-	if (res3 != 0) {
+	res1.reset(static_cast<const ibis::bord*>(res1.get())->groupby(*sel_));
+	if (res1.get() != 0) {
 	    if (ibis::gVerbose > 2) {
 		ibis::util::logger lg;
 		lg() << "jRange::select(" << *sel_ << ", " << desc_
-			    << ") produced the third intermediate table:\n";
-		res3->describe(lg());
+		     << ") produced the third intermediate table:\n";
+		res1->describe(lg());
 	    }
-	    delete res1;
-	    res1 = res3;
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
@@ -439,7 +441,99 @@ ibis::table* ibis::jRange::select() const {
 		<< ") failed to evaluate the aggregations";
 	}
     }
-    return res1;
+    return res1.release();
+} // ibis::jRange::select
+
+ibis::table* ibis::jRange::select(const char *sstr) const {
+    if (nrows < 0) {
+	int64_t ierr = count();
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jRange::count failed with error code"
+		<< ierr;
+	    return 0;
+	}
+    }
+    if (sstr == 0 || *sstr == 0) { // default
+	std::string tn = ibis::util::shortName(desc_.c_str());
+	return new ibis::tabula(tn.c_str(), desc_.c_str(), nrows);
+    }
+
+    ibis::selectClause sel(sstr);
+    uint32_t features=0; // 1: arithmetic operation, 2: aggregation
+    // use a barrel to collect all unique names
+    ibis::math::barrel brl;
+    for (uint32_t j = 0; j < sel.aggSize(); ++ j) {
+	const ibis::math::term* t = sel.aggExpr(j);
+	brl.recordVariable(t);
+	if (t->termType() != ibis::math::VARIABLE &&
+	    t->termType() != ibis::math::NUMBER &&
+	    t->termType() != ibis::math::STRING) {
+	    features |= 1; // arithmetic operation
+	}
+	if (sel.getAggregator(j) != ibis::selectClause::NIL_AGGR) {
+	    features |= 2; // aggregation
+	}
+    }
+    // convert the barrel into a stringList for processing
+    ibis::table::stringList sl;
+    sl.reserve(brl.size());
+    for (unsigned j = 0; j < brl.size(); ++ j) {
+	const char* str = brl.name(j);
+	if (*str != 0) {
+	    if (str[0] != '_' || str[1] != '_')
+		sl.push_back(str);
+	}
+    }
+
+    std::auto_ptr<ibis::table> res1(select(sl));
+    if (res1.get() == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
+	features == 0)
+	return res1.release();
+
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg() << "jRange::select(" << sstr << ", " << desc_
+	     << ") produced the first intermediate table:\n";
+	res1->describe(lg());
+    }
+
+    if ((features & 1) != 0) { // arithmetic computations
+	res1.reset(static_cast<const ibis::bord*>(res1.get())->evaluateTerms
+		   (sel, desc_.c_str()));
+	if (res1.get() != 0) {
+	    if (ibis::gVerbose > 2) {
+		ibis::util::logger lg;
+		lg() << "jRange::select(" << sel << ", " << desc_
+		     << ") produced the second intermediate table:\n";
+		res1->describe(lg());
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jRange::select(" << sel
+		<< ") failed to evaluate the arithmetic expressions";
+	    return 0;
+	}
+    }
+
+    if ((features & 2) != 0) { // aggregation operations
+	res1.reset(static_cast<const ibis::bord*>(res1.get())->groupby(sel));
+	if (res1.get() != 0) {
+	    if (ibis::gVerbose > 2) {
+		ibis::util::logger lg;
+		lg() << "jRange::select(" << *sel_ << ", " << desc_
+		     << ") produced the third intermediate table:\n";
+		res1->describe(lg());
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jRange::select(" << *sel_
+		<< ") failed to evaluate the aggregations";
+	}
+    }
+    return res1.release();
 } // ibis::jRange::select
 
 ibis::table*
@@ -957,11 +1051,12 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
 	for (size_t j = 0; j < tcname.size(); ++ j) {
 	    if (tcnpos[j] < rtypes.size()) {
 		ttypes[j] = rtypes[tcnpos[j]];
-		tbuff[j] = ibis::bord::allocateBuffer(rtypes[tcnpos[j]], nrows);
+		tbuff[j] = ibis::table::allocateBuffer
+		    (rtypes[tcnpos[j]], nrows);
 	    }
 	    else if (tcnpos[j] < rtypes.size()+stypes.size()) {
 		ttypes[j] = stypes[tcnpos[j]-rtypes.size()];
-		tbuff[j] = ibis::bord::allocateBuffer
+		tbuff[j] = ibis::table::allocateBuffer
 		    (stypes[tcnpos[j]-rtypes.size()], nrows);
 	    }
 	    else { // tcnpos is out of valid range

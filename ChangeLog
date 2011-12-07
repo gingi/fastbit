@@ -1,3 +1,32 @@
+2011-12-07 John Wu <John dot Wu at ACM dot org>
+	* src/filter.cpp: siftdS mistakenly used groupby when they should
+	have called groupbyc, invoke siftdS only if there are more than
+	one data partition
+	* src/bundle.h, src/bundle.cpp: add new constructor of bundle0 to
+	create a bundle for count(*), remove bundle0::size() (which was
+	based on rids only)
+
+2011-12-06 Jon Strabala <Jon dot Strabala at QuantumSI dot com>
+	* examples/thula.cpp: add -o option for order by clause
+	* src/qExpr.h, src/qExpr.cpp: add functions is_zero, is_nonzero,
+	is_eql, is_gte, is_lte, trunc to list of functions supported
+
+2011-12-06 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: add code to produce values for count(*) in
+	evaluateTerms
+	* src/selectClause.cpp: avoid adding duplicate terms in
+	addAgregado
+	* src/bord.cpp: make sure the column for 'count(*)' is generated,
+	previously it is skipped and only added after everything is done
+
+2011-12-05 John Wu <John dot Wu at ACM dot org>
+	* src/selectParser.yy: to convert AVG, STDDEV, and STDVAR to SUMs
+	and COUNTs to take advantage of computation by parts
+
+2011-12-04 John Wu <John dot Wu at ACM dot org>
+	* src/quaere.h: add select(const char*) to ibis::quaere class
+	hierarchy
+
 2011-12-03 John Wu <John dot Wu at ACM dot org>
 	* src/jnatural.cpp: initialize pointers to 0 in the constructors,
 	add calls to count in select (to accomodate the changes in the
@@ -95,8 +124,8 @@
 
 2011-11-04 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.cpp: add "round" and "round2" to the name of the list
-	of standard function names (they have been added to qExpr.h
-	already, so the printing is wrong in some cases)
+	of standard function names (they had been added to qExpr.h
+	already, so the printing was wrong in some cases)
 
 2011-11-03 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h, src/bord.cpp: add function append to work with the

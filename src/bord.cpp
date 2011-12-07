@@ -41,11 +41,10 @@ ibis::bord::bord(const char *tn, const char *td,
     }
     desc_ = m_desc;
     name_ = m_name;
-    const ibis::selectClause::StringToInt& colnames = sc.getOrdered();
-    for (ibis::selectClause::StringToInt::const_iterator it = colnames.begin();
-	 it != colnames.end(); ++ it) {
-	const char* cname = it->first.c_str();
-	const ibis::math::term* ctrm = sc.aggExpr(it->second);
+    const size_t nagg = sc.aggSize();
+    for (size_t j = 0; j < nagg; ++ j) {
+	const char* cname = sc.aggName(j);
+	const ibis::math::term* ctrm = sc.aggExpr(j);
 	if (cname == 0 || *cname == 0 || ctrm == 0) continue;
 	cname = ibis::part::skipPrefix(cname);
 
@@ -57,13 +56,10 @@ ibis::bord::bord(const char *tn, const char *td,
 	case ibis::math::VARIABLE: {
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(ctrm);
-	    if (*(var.variableName()) == '*') continue; // special name
-
 	    const ibis::column* refcol = ref.getColumn(var.variableName());
-	    if (refcol != 0) {
-		ibis::TYPE_T t = refcol->type();
+	    if (*(var.variableName()) == '*') { // special name
 		ibis::bord::column *col = new ibis::bord::column
-		    (this, t, cname, 0, it->first.c_str());
+		    (this, ibis::UINT, "*", 0, "count(*)");
 		if (col != 0) {
 		    columns[col->name()] = col;
 		    colorder.push_back(col);
@@ -75,7 +71,22 @@ ibis::bord::bord(const char *tn, const char *td,
 		    throw "bord::ctor failed to allocate a column";
 		}
 	    }
-	    else if (*(var.variableName()) != '*') {
+	    else if (refcol != 0) {
+		ibis::TYPE_T t = refcol->type();
+		ibis::bord::column *col = new ibis::bord::column
+		    (this, t, cname, 0, sc.aggName(j));
+		if (col != 0) {
+		    columns[col->name()] = col;
+		    colorder.push_back(col);
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- bord::ctor failed to allocate column "
+			<< cname << " for in-memory partition " << tn;
+		    throw "bord::ctor failed to allocate a column";
+		}
+	    }
+	    else {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- bord::ctor failed to locate column "
 		    << var.variableName() << " in data partition "
@@ -85,7 +96,7 @@ ibis::bord::bord(const char *tn, const char *td,
 	    break;}
 	default: {
 	    ibis::bord::column *col = new ibis::bord::column
-		(this, ibis::DOUBLE, cname, 0, it->first.c_str());
+		(this, ibis::DOUBLE, cname, 0, sc.aggName(j));
 	    if (col != 0) {
 		columns[col->name()] = col;
 		colorder.push_back(col);
@@ -132,10 +143,10 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 	m_desc = tn;
     }
     else {
-	char buf[32];
-	ibis::util::secondsToString(switchTime, buf);
+	char abuf[32];
+	ibis::util::secondsToString(switchTime, abuf);
 	m_desc = "unnamed in-memory data partition constructed at ";
-	m_desc += buf;
+	m_desc += abuf;
     }
     m_name = ibis::util::strnewdup(tn?tn:ibis::util::shortName(m_desc).c_str());
     name_ = m_name; // make sure the name of part and table are the same
@@ -165,11 +176,22 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 
     amask.set(1, nEvents);
     state = ibis::part::STABLE_STATE;
-    LOGGER(ibis::gVerbose > 1)
-	<< "Constructed in-memory data partition "
-	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
-	<< " -- with " << nr << " row" << (nr > 1U ? "s" : "") << " and "
-	<< columns.size() << " column" << (columns.size() > 1U ? "s" : "");
+    if (ibis::gVerbose > 1) {
+	ibis::util::logger lg;
+	lg() << "Constructed in-memory data partition "
+	     << (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
+	     << " -- with " << nr << " row" << (nr > 1U ? "s" : "") << " and "
+	     << columns.size() << " column" << (columns.size() > 1U ? "s" : "");
+	if (ibis::gVerbose > 4) {
+	    lg() << "\n";
+	    dumpNames(lg(), ",\t");
+	    if (ibis::gVerbose > 6) {
+		uint64_t npr = (1ULL << (ibis::gVerbose - 4));
+		lg() << "\n";
+		dump(lg(), npr, ",\t");
+	    }
+	}
+    }
 } // ibis::bord::bord
 
 /// Clear the existing content.
@@ -1461,6 +1483,7 @@ void ibis::bord::describe(std::ostream& out) const {
 
 void ibis::bord::dumpNames(std::ostream& out, const char* del) const {
     if (columns.empty()) return;
+    if (del == 0) del = ", ";
 
     if (colorder.empty()) {
 	for (ibis::part::columnList::const_iterator it = columns.begin();
@@ -2209,6 +2232,8 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
 ibis::table*
 ibis::bord::groupby(const ibis::selectClause& sel) const {
     std::auto_ptr<ibis::bord> brd1(ibis::bord::groupbya(*this, sel));
+    if (brd1.get() == 0)
+	return 0;
 
     // can we finish this in one run?
     const ibis::selectClause::mathTerms& xtms(sel.getTerms());
@@ -2230,7 +2255,7 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "bord::groupby -- completed ";
-	brd1->describe(lg());
+	brd2->describe(lg());
     }
 
     return brd2.release();
@@ -2255,30 +2280,28 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
     }
     td += " on table ";
     td += src.part::name();
-    LOGGER(ibis::gVerbose > 3) << "Starting " << td;
+    LOGGER(ibis::gVerbose > 3)
+	<< "bord::groupbya -- processing aggregations for " << td;
     std::string tn = ibis::util::randName(td);
-    if (0 == isalpha(tn[0]))
-	tn[0] = '_';
 
     readLock lock(&src, td.c_str());
     // create bundle
     std::auto_ptr<ibis::bundle> bdl(ibis::bundle::create(src, sel));
     if (bdl.get() == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bord::groupby failed to create bundle for \""
+	    << "Warning -- bord::groupbya failed to create bundle for \""
 	    << td << "\"";
 	return 0;
     }
     const uint32_t nr = bdl->size();
     if (nr == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- bord::groupby produced no answer for " << td;
+	    << "Warning -- bord::groupbya produced no answer for " << td;
 	return 0;
     }
 
-    const uint32_t nca = sel.aggSize();
-
     // prepare the types and values for the new table
+    const uint32_t nca = sel.aggSize();
     std::vector<std::string> nms(nca), des(nca);
     ibis::table::stringList  nmc(nca), dec(nca);
     ibis::table::bufferList  buf(nca);
@@ -2299,7 +2322,7 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
 			sel.getAggregator(i) == ibis::selectClause::CNT);
 	if (iscstar)
 	    iscstar = (*(static_cast<const ibis::math::variable*>
-			 (sel.aggExpr(i))->variableName()));
+			 (sel.aggExpr(i))->variableName()) == '*');
 	if (iscstar) {
 #ifdef FASTBIT_ALWAYS_OUTPUT_COUNTS
 	    countstar = true;
@@ -2308,10 +2331,6 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
 	    bdl->rowCounts(*cnts);
 	    tps[i] = ibis::UINT;
 	    buf[i] = cnts;
-	    std::ostringstream oss;
-	    oss << "__" << std::hex << i;
-	    nms[i] = oss.str();
-	    nmc[i] = nms[i].c_str();
 	    continue;
 	}
 	else if (jbdl < bdl->width()) {
@@ -2321,7 +2340,7 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- bord::groupby exhausted all columns in bundle, "
+		<< "Warning -- bord::groupbya exhausted columns in bundle, "
 		"not enough information to construct the result table";
 	    return 0;
 	}
@@ -2430,7 +2449,7 @@ ibis::bord::groupbyc(const ibis::bord& src, const ibis::selectClause& sel) {
     td += src.part::description();
     td += ')';
     LOGGER(ibis::gVerbose > 3)
-	<< "Entering bord::groupbyc to perform thefinal computations for "
+	<< "bord::groupbyc -- starting the final computations for "
 	<< td;
     readLock lock(&src, td.c_str());
     std::string tn = ibis::util::shortName(td);
@@ -2456,7 +2475,7 @@ ibis::bord::groupbyc(const ibis::bord& src, const ibis::selectClause& sel) {
 	const ibis::math::term* tm = xtms[j];
 	if (tm == 0 || tm->termType() == ibis::math::UNDEF_TERM) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- bord::groupby(" << td
+		<< "Warning -- bord::groupbyc(" << td
 		<< ") failed to process term " << j << " named \"" << nms[j]
 		<< '"';
 	    return 0;
@@ -6122,11 +6141,15 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
     ibis::table::stringList  cn;
     ibis::table::stringList  cd;
     std::vector<std::string> cdesc;
-    IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(buf),
-		     ibis::util::ref(ct));
+    ibis::util::guard gbuf =
+	ibis::util::makeGuard(ibis::table::freeBuffers, ibis::util::ref(buf),
+			      ibis::util::ref(ct));
     for (uint32_t j = 0; j < sel.aggSize(); ++ j) {
 	const ibis::math::term* t = sel.aggExpr(j);
 	std::string desc = sel.aggDescription(j);
+	LOGGER(ibis::gVerbose > 4)
+	    << "bord[" << ibis::part::name() << "] -- evaluating \""
+	    << desc << '"';
 
 	switch (t->termType()) {
 	default: {
@@ -6162,6 +6185,18 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	    const char* cn1 = static_cast<const ibis::math::variable*>
 		(t)->variableName();
 	    if (*cn1 == '*') { // must be count(*)
+		cn.push_back(cn1);
+		cdesc.push_back(desc);
+		ct.push_back(ibis::UINT);
+		cd.push_back(cdesc.back().c_str());
+		ibis::part::columnList::const_iterator it = columns.find("*");
+		if (it == columns.end()) { // new values
+		    buf.push_back(new ibis::array_t<uint32_t>(nEvents, 1U));
+		}
+		else { // copy existing values
+		    buf.push_back(new ibis::array_t<uint32_t>
+				  (it->second->getRawData()));
+		}
 		continue;
 	    }
 
@@ -6338,8 +6373,11 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	cd.push_back(cdesc[j].c_str());
     } // for (uint32_t j...
 
-    return new
-	ibis::bord(tn.c_str(), desc, (uint64_t)nEvents, buf, ct, cn, &cd);
+    std::auto_ptr<ibis::bord> brd1
+	(new ibis::bord(tn.c_str(), desc, (uint64_t)nEvents, buf, ct, cn, &cd));
+    if (brd1.get() != 0)
+	gbuf.dismiss();
+    return brd1.release();
 } // ibis::bord::evaluateTerms
 
 /// Convert the integer representation to string representation.
@@ -6438,6 +6476,9 @@ int ibis::bord::renameColumns(const ibis::selectClause& sel) {
 	    columns.erase(cit);
 	    col->name(it->second);
 	    columns[col->name()] = col;
+	    LOGGER(ibis::gVerbose > 5)
+		<< "bord::renameColumns -- " << it->first << " --> "
+		<< col->name();
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 1)
@@ -6479,9 +6520,10 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
     if (mask.cnt() == 0) return ierr;
 
     const ibis::selectClause::StringToInt& colmap = sc.getOrdered();
-    const uint32_t nh = nEvents;
-    const uint32_t nqq = mask.cnt();
-    std::string mesg = "bord[";
+    const uint32_t nagg = sc.aggSize();
+    const uint32_t nh   = nEvents;
+    const uint32_t nqq  = mask.cnt();
+    std::string mesg    = "bord[";
     mesg += m_name;
     mesg += "]::append";
     if (ibis::gVerbose > 3) {
@@ -6489,13 +6531,13 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	lg() << mesg << " -- to process " << nqq << " row" << (nqq>1?"s":"")
 	     << " from " << prt.name() << ", # of existing rows = " << nh;
 	if (ibis::gVerbose > 5) {
-	    lg() << "colmap[" << colmap.size() << "]";
+	    lg() << "\n    colmap[" << colmap.size() << "]";
 	    for (ibis::selectClause::StringToInt::const_iterator it
-		     = colmap.begin(); it != colmap.end(); ++ it) {
-		lg() << "\n\t" << it->first << " --> " << it->second;
-		if (it->second < sc.aggSize())
-		    lg() << " (" << *(sc.aggExpr(it->second)) << ")";
-	    }
+                     = colmap.begin(); it != colmap.end(); ++ it) {
+                lg() << "\n\t" << it->first << " --> " << it->second;
+                if (it->second < nagg)
+                    lg() << " (" << *(sc.aggExpr(it->second)) << ")";
+            }
 	}
     }
 
@@ -6518,7 +6560,7 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	    }
 	}
 	const uint32_t itm = mit->second;
-	if (itm >= sc.aggSize()) {
+	if (itm >= nagg) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << mesg << " mapped " << col.name()
 		<< " into term " << itm << " which is outside of " << sc;
@@ -6548,23 +6590,28 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	else {
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(aterm);
-	    if (*(var.variableName()) == '*') continue; // special variable
 
 	    const ibis::column* scol = prt.getColumn(var.variableName());
 	    if (scol == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " -- \"" << var.variableName()
-		    << "\" is not a column of partition " << prt.name();
-		ierr = -16;
-		continue;
+		if (*(var.variableName()) == '*') { // counts
+		    col.addCounts(nEvents+nqq);
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg << " -- \""
+			<< var.variableName()
+			<< "\" is not a column of partition " << prt.name();
+		    ierr = -16;
+		}
 	    }
-
-	    LOGGER(ibis::gVerbose > 4)
-		<< mesg << " -- adding " << nqq << " element"
-		<< (nqq>1?"s":"") << " to column " << cit->first
-		<< " from column " << scol->name()
-		<< " of partition " << prt.name();
-	    ierr = col.append(*scol, mask);
+	    else {
+		LOGGER(ibis::gVerbose > 4)
+		    << mesg << " -- adding " << nqq << " element"
+		    << (nqq>1?"s":"") << " to column " << cit->first
+		    << " from column " << scol->name()
+		    << " of partition " << prt.name();
+		ierr = col.append(*scol, mask);
+	    }
 	}
     }
     if (ierr >= 0) {
@@ -6658,23 +6705,27 @@ int ibis::bord::append(const ibis::selectClause &sc, const ibis::part& prt,
 	else {
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(aterm);
-	    if (*(var.variableName()) == '*') continue; // special variable
-
 	    scol = btmp.getColumn(var.variableName());
 	    if (scol == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " -- \"" << var.variableName()
-		    << "\" is unexpected";
-		ierr = -16;
-		continue;
+		if (*(var.variableName()) == '*') { // counts
+		    col.addCounts(nEvents+nqq);
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg << " -- \""
+			<< var.variableName()
+			<< "\" is unexpected";
+		    ierr = -16;
+		}
 	    }
-
-	    LOGGER(ibis::gVerbose > 4)
-		<< mesg << " -- adding " << nqq << " element"
-		<< (nqq>1?"s":"") << " to column " << cit->first
-		<< " from column " << scol->name()
-		<< " of partition " << prt.name();
-	    ierr = col.append(*scol, newseg);
+	    else {
+		LOGGER(ibis::gVerbose > 4)
+		    << mesg << " -- adding " << nqq << " element"
+		    << (nqq>1?"s":"") << " to column " << cit->first
+		    << " from column " << scol->name()
+		    << " of partition " << prt.name();
+		ierr = col.append(*scol, newseg);
+	    }
 	}
     }
     if (ierr >= 0) {
@@ -11743,6 +11794,21 @@ long ibis::bord::column::append(const ibis::column& scol,
     }
     return ierr;
 } // ibis::bord::column::append
+
+/// Extend the buffer to have nr elements.  All new elements have the value
+/// 1U.
+void ibis::bord::column::addCounts(uint32_t nr) {
+    if (*m_name.c_str() != '*' || m_type != ibis::UINT) return;
+    if (buffer == 0) {
+	buffer = new ibis::array_t<uint32_t>(nr, 1U);
+    }
+    else {
+	ibis::array_t<uint32_t> *ubuf =
+	    static_cast<ibis::array_t<uint32_t>*>(buffer);
+	if (nr > ubuf->size())
+	    ubuf->insert(ubuf->end(), nr - ubuf->size(), 1U);
+    }
+} // ibis::bord::column::addCounts
 
 template <typename T> int
 ibis::bord::column::addIncoreData(array_t<T>*& to, uint32_t nold,

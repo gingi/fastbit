@@ -118,63 +118,52 @@ int ibis::selectClause::parse(const char *cl) {
     return ierr;
 } // ibis::selectClause::parse
 
-/// Write the string form of the ith (internal) term.  The result is placed
-/// in the second argument str.
-std::string ibis::selectClause::aggDescription(unsigned i) const {
-    if (i >= atms_.size()) return std::string();
-    if (atms_[i] != 0) {
-	std::ostringstream oss;
-	if (aggr_.size() <= i) {
-	    oss << *(atms_[i]);
-	}
-	else {
-	    switch (aggr_[i]) {
-	    default:
-		oss << *(atms_[i]);
-		break;
-	    case AVG:
-		oss << "AVG(" << *(atms_[i]) << ')';
-		break;
-	    case CNT:
-		oss << "COUNT(" << *(atms_[i]) << ')';
-		break;
-	    case MAX:
-		oss << "MAX(" << *(atms_[i]) << ')';
-		break;
-	    case MIN:
-		oss << "MIN(" << *(atms_[i]) << ')';
-		break;
-	    case SUM:
-		oss << "SUM(" << *(atms_[i]) << ')';
-		break;
-	    case DISTINCT:
-		oss << "DISTINCTCOUNT(" << *(atms_[i]) << ')';
-		break;
-	    case VARPOP:
-		oss << "VARPOP(" << *(atms_[i]) << ')';
-		break;
-	    case VARSAMP:
-		oss << "VAR(" << *(atms_[i]) << ')';
-		break;
-	    case STDPOP:
-		oss << "STDPOP(" << *(atms_[i]) << ')';
-		break;
-	    case STDSAMP:
-		oss << "STD(" << *(atms_[i]) << ')';
-		break;
-	    case MEDIAN:
-		oss << "MEDIAN(" << *(atms_[i]) << ')';
-		break;
-	    }
-	}
-	return oss.str();
+/// Write the string form of an aggregator and artithmetic expression
+/// combination.
+std::string ibis::selectClause::aggDescription
+(ibis::selectClause::AGREGADO ag, const ibis::math::term *tm) const {
+    if (tm == 0) return std::string();
+
+    std::ostringstream oss;
+    switch (ag) {
+    default:
+	oss << *(tm);
+	break;
+    case AVG:
+	oss << "AVG(" << *(tm) << ')';
+	break;
+    case CNT:
+	oss << "COUNT(" << *(tm) << ')';
+	break;
+    case MAX:
+	oss << "MAX(" << *(tm) << ')';
+	break;
+    case MIN:
+	oss << "MIN(" << *(tm) << ')';
+	break;
+    case SUM:
+	oss << "SUM(" << *(tm) << ')';
+	break;
+    case DISTINCT:
+	oss << "DISTINCTCOUNT(" << *(tm) << ')';
+	break;
+    case VARPOP:
+	oss << "VARPOP(" << *(tm) << ')';
+	break;
+    case VARSAMP:
+	oss << "VAR(" << *(tm) << ')';
+	break;
+    case STDPOP:
+	oss << "STDPOP(" << *(tm) << ')';
+	break;
+    case STDSAMP:
+	oss << "STD(" << *(tm) << ')';
+	break;
+    case MEDIAN:
+	oss << "MEDIAN(" << *(tm) << ')';
+	break;
     }
-    else if (! names_[i].empty()) {
-	return names_[i];
-    }
-    else {
-	return std::string();
-    }
+    return oss.str();
 } // ibis::selectClause::aggDescription
 
 /// Fill array names_ and xnames_.  An alias for an aggregation operation
@@ -182,7 +171,7 @@ std::string ibis::selectClause::aggDescription(unsigned i) const {
 /// resolves all external names first to establish all aliases, and then
 /// resolve the names of the arguments to the aggregation functions.  The
 /// arithmetic expressions without external names are given names of the
-/// form "__hhh", where "hhh" is a hexadecimal number.
+/// form "_.hhh", where "hhh" is a hexadecimal number.
 void ibis::selectClause::fillNames() {
     names_.clear();
     xnames_.clear();
@@ -218,7 +207,7 @@ void ibis::selectClause::fillNames() {
 
 	if (xnames_[j].empty()) {
 	    std::ostringstream oss;
-	    oss << "__" << std::hex << j;
+	    oss << "_." << std::hex << j;
 	    xnames_[j] = oss.str();
 	}
     }
@@ -286,32 +275,59 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
 	throw "nested aggregations";
     }
 
-    const unsigned pos = atms_.size();
-    aggr_.push_back(agr);
-    atms_.push_back(expr);
+    const unsigned end = atms_.size();
     LOGGER(ibis::gVerbose > 5)
-	<< "selectClause::addAgregado -- adding term "
-	<< pos << ": " << aggDescription(pos);
+	<< "selectClause::addAgregado  -- adding term " << end << ": "
+	<< aggDescription(agr, expr);
     if (expr->termType() != ibis::math::VARIABLE) {
+	aggr_.push_back(agr);
+	atms_.push_back(expr);
 	std::ostringstream oss;
-	oss << "__" << std::hex << pos;
-	ordered_[oss.str()] = pos;
-	return new ibis::selectClause::variable(oss.str().c_str(), this);
-    }
-    else if (agr != ibis::selectClause::NIL_AGGR) {
-	ibis::math::variable *var = static_cast<ibis::math::variable*>(expr);
-	if (ordered_.find(var->variableName()) == ordered_.end())
-	    ordered_[var->variableName()] = pos;
-	std::ostringstream oss;
-	oss << "__" << std::hex << pos;
+	oss << "__" << std::hex << end;
+	ordered_[oss.str()] = end;
 	return new ibis::selectClause::variable(oss.str().c_str(), this);
     }
     else {
 	ibis::math::variable *var = static_cast<ibis::math::variable*>(expr);
-	if (ordered_.find(var->variableName()) == ordered_.end())
-	    ordered_[var->variableName()] = pos;
-	return var->dup();
+	ibis::selectClause::StringToInt::const_iterator it =
+	    ordered_.find(var->variableName());
+	if (it == ordered_.end()) { // no in the existing list
+	    aggr_.push_back(agr);
+	    atms_.push_back(expr);
+	    ordered_[var->variableName()] = end;
+	    if (agr != ibis::selectClause::NIL_AGGR) {
+		std::ostringstream oss;
+		oss << "__" << std::hex << end;
+		ordered_[oss.str()] = end;
+		return new ibis::selectClause::variable
+		    (oss.str().c_str(), this);
+	    }
+	    else {
+		return var->dup();
+	    }
+	}
+	else if (agr != aggr_[it->second]) { // new aggregation
+	    aggr_.push_back(agr);
+	    atms_.push_back(expr);
+	    if (agr != ibis::selectClause::NIL_AGGR) {
+		std::ostringstream oss;
+		oss << "__" << std::hex << end;
+		ordered_[oss.str()] = end;
+		return new ibis::selectClause::variable
+		    (oss.str().c_str(), this);
+	    }
+	    else {
+		ordered_[var->variableName()] = end;
+		return var->dup();
+	    }
+	}
+	else {
+	    std::ostringstream oss;
+	    oss << "__" << std::hex << it->second;
+	    return new ibis::selectClause::variable(oss.str().c_str(), this);
+	}
     }
+    return 0;
 } // ibis::selectClause::addAgregado
 
 /// Number of terms without aggregation functions.  They are implicitly
@@ -349,8 +365,19 @@ const char* ibis::selectClause::isUnivariate() const {
     ibis::math::barrel bar;
     for (size_t j = 0; j < atms_.size(); ++ j)
 	bar.recordVariable(atms_[j]);
-    if (bar.size() == 1) {
-	return bar.name(0);
+    ibis::table::stringList sl;
+    for (size_t j = 0; j < bar.size(); ++ j) {
+	const char* str = bar.name(j);
+	if (*str != 0) {
+	    if (str[0] != '_' || str[1] != '_') {
+		sl.push_back(str);
+		if (sl.size() > 1)
+		    return static_cast<const char*>(0);
+	    }
+	}
+    }
+    if (sl.size() == 1) {
+	return sl[0];
     }
     else {
 	return static_cast<const char*>(0);
@@ -640,11 +667,11 @@ void ibis::selectClause::print(std::ostream& out) const {
 } // ibis::selectClause::print
 
 void ibis::selectClause::printDetails(std::ostream& out) const {
-    out << "select clause internal details:\n low-level expressions (atms_["
+    out << "select clause internal details:\n  low-level expressions (atms_["
 	<< atms_.size() << "], aggr_[" << aggr_.size() << "], names_["
 	<< names_.size() << "]):";
     for (size_t j = 0; j < atms_.size(); ++ j) {
-	out << "\n" << j << ":\t" << names_[j] << ",\t";
+	out << "\n  " << j << ":\t" << names_[j] << ",\t";
 	switch (aggr_[j]) {
 	default:
 	    out << *(atms_[j]);
@@ -684,10 +711,10 @@ void ibis::selectClause::printDetails(std::ostream& out) const {
 	    break;
 	}
     }
-    out << "\nhigh-level expressions (xtms_[" << xtms_.size()
+    out << "\n  high-level expressions (xtms_[" << xtms_.size()
 	<< "], xnames_[" << xnames_.size() << "]):";
     for (size_t j = 0; j < xtms_.size(); ++ j)
-	out << "\n" << j << ":\t" << xnames_[j] << ",\t" << *(xtms_[j]);
+	out << "\n  " << j << ":\t" << xnames_[j] << ",\t" << *(xtms_[j]);
 } // ibis::selectClause::printDetails
 
 void ibis::selectClause::getNullMask(const ibis::part& part0,

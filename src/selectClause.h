@@ -134,21 +134,24 @@ public:
 
     /// Functions related to internal aggregation operations.
     ///@{
+    /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
+    enum AGREGADO {NIL_AGGR, AVG, CNT, MAX, MIN, SUM, DISTINCT,
+		   VARPOP, VARSAMP, STDPOP, STDSAMP, MEDIAN};
     /// The number of arithmetic expressions inside the select clause.
     uint32_t aggSize() const {return atms_.size();}
+    /// Return the aggregation function used for the ith term.
+    AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
+
     /// Fetch the ith term inside the select clause.  No array bound
     /// checking!
     const ibis::math::term* aggExpr(unsigned i) const {return atms_[i];}
     /// Name inside the aggregation function.  To be used together with
     /// aggSize() and aggExpr().
     const char* aggName(unsigned i) const {return names_[i].c_str();}
-    std::string aggDescription(unsigned i) const;
+    std::string aggDescription(unsigned i) const {
+	return aggDescription(aggr_[i], atms_[i]);}
+    std::string aggDescription(AGREGADO, const ibis::math::term*) const;
 
-    /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
-    enum AGREGADO {NIL_AGGR, AVG, CNT, MAX, MIN, SUM, DISTINCT,
-		   VARPOP, VARSAMP, STDPOP, STDSAMP, MEDIAN};
-    /// Return the aggregation function used for the ith term.
-    AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
     bool isSeparable() const;
     const char* isUnivariate() const;
 

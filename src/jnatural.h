@@ -37,6 +37,7 @@ public:
     virtual int64_t count() const;
 
     virtual ibis::table* select() const;
+    virtual ibis::table* select(const char*) const;
     virtual ibis::table* select(const ibis::table::stringList& colnames) const;
 
 protected:

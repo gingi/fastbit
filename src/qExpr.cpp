@@ -23,12 +23,15 @@
 // the names of the operators used in ibis::compRange
 const char* ibis::math::operator_name[] =
     {"?", "|", "&", "+", "-", "*", "/", "%", "-", "**"};
+
 const char* ibis::math::stdfun1_name[] =
     {"acos", "asin", "atan", "ceil", "cos", "cosh", "exp", "fabs", "floor",
      "frexp", "log10", "log", "modf", "round", "sin", "sinh", "sqrt", "tan",
-     "tanh"};
-const char* ibis::math::stdfun2_name[] =
-    {"atan2", "fmod", "ldexp", "round2", "pow"};
+     "tanh", "is_zero", "is_nonzero"};
+
+const char* ibis::math::stdfun2_name[] = 
+    {"atan2", "fmod", "ldexp", "round", "pow",
+     "is_eql", "is_gte", "is_lte"};
 bool ibis::math::preserveInputExpressions = false;
 
 /// Operations performed include converting compRanges into qRanges,
@@ -1886,6 +1889,10 @@ ibis::math::stdFunction1::stdFunction1(const char* name) {
 	ftype = ibis::math::FABS;
     else if (0 == stricmp(name, "FLOOR"))
 	ftype = ibis::math::FLOOR;
+    else if (0 == stricmp(name, "IS_ZERO"))
+	ftype = ibis::math::IS_ZERO;
+    else if (0 == stricmp(name, "IS_NONZERO"))
+	ftype = ibis::math::IS_NONZERO;
     else if (0 == stricmp(name, "FREXP"))
 	ftype = ibis::math::FREXP;
     else if (0 == stricmp(name, "LOG10"))
@@ -1944,6 +1951,8 @@ ibis::math::term* ibis::math::stdFunction1::reduce() {
 	case EXP: ret = new ibis::math::number(exp(arg)); break;
 	case FABS: ret = new ibis::math::number(fabs(arg)); break;
 	case FLOOR: ret = new ibis::math::number(floor(arg)); break;
+	case IS_ZERO: ret = new ibis::math::number((arg==0)); break;
+	case IS_NONZERO: ret = new ibis::math::number((0!=arg)); break;
 	case FREXP: {int expptr;
 	ret = new ibis::math::number(frexp(arg, &expptr)); break;}
 	case LOG10: ret = new ibis::math::number(log10(arg)); break;
@@ -2054,6 +2063,8 @@ double ibis::math::stdFunction1::eval() const {
     case ibis::math::EXP: arg = exp(arg); break;
     case ibis::math::FABS: arg = fabs(arg); break;
     case ibis::math::FLOOR: arg = floor(arg); break;
+    case ibis::math::IS_ZERO: arg = (double)(0 == arg); break;
+    case ibis::math::IS_NONZERO: arg = (double)(0 != arg); break;
     case ibis::math::FREXP: {int expptr; arg = frexp(arg, &expptr); break;}
     case ibis::math::LOG10: arg = log10(arg); break;
     case ibis::math::LOG: arg = log(arg); break;
@@ -2078,8 +2089,14 @@ ibis::math::stdFunction2::stdFunction2(const char* name) {
 	ftype = ibis::math::LDEXP;
     else if (0 == stricmp(name, "POW") || 0 == stricmp(name, "POWER"))
 	ftype = ibis::math::POW;
-    else if (0 == stricmp(name, "ROUND"))
+    else if (0 == stricmp(name, "ROUND") || 0 == stricmp(name, "TRUNC"))
 	ftype = ibis::math::ROUND2;
+    else if (0 == stricmp(name, "IS_EQL"))
+	ftype = ibis::math::IS_EQL;
+    else if (0 == stricmp(name, "IS_GTE"))
+	ftype = ibis::math::IS_GTE;
+    else if (0 == stricmp(name, "IS_LTE"))
+	ftype = ibis::math::IS_LTE;
     else {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "math::stdFunction2::stdFunction2(" << name
@@ -2134,6 +2151,27 @@ ibis::math::term* ibis::math::stdFunction2::reduce() {
 	    scale = (scale > 0 ? pow(1.0e1, scale) : 1.0);
 	    ret = new ibis::math::number(floor(0.5+lhs->eval()*scale)/scale);
 	    break;}
+	case IS_EQL:
+            if (lhs->eval() == rhs->eval()) {
+	        ret = new ibis::math::number ((double)1.0);
+	    } else {
+	        ret = new ibis::math::number ((double)0.0);
+            }
+            break;
+	case IS_GTE:
+            if (lhs->eval() >= rhs->eval()) {
+	        ret = new ibis::math::number ((double)1.0);
+	    } else {
+	        ret = new ibis::math::number ((double)0.0);
+            }
+            break;
+	case IS_LTE:
+            if (lhs->eval() <= rhs->eval()) {
+	        ret = new ibis::math::number ((double)1.0);
+	    } else {
+	        ret = new ibis::math::number ((double)0.0);
+            }
+            break;
 	default: break;
 	}
     }
@@ -2152,10 +2190,27 @@ double ibis::math::stdFunction2::eval() const {
     case ibis::math::LDEXP: lhs = ldexp(lhs, static_cast<int>(rhs)); break;
     case ibis::math::POW: lhs = pow(lhs, rhs); break;
     case ROUND2: {
-	rhs = floor(0.5+rhs);
-	const double scale = (rhs>0 ? pow(1.0e1, rhs) : 1.0);
-	lhs = floor(0.5+lhs*scale)/scale;
+	const double scale = pow(1.0e1, floor(0.5+rhs));
+	lhs = floor(0.5 + lhs * scale) / scale;
 	break;}
+    case ibis::math::IS_EQL:
+	if (lhs == rhs)
+	    lhs = (double)1.0;
+	else
+	    lhs = (double)0.0;
+	break;
+    case ibis::math::IS_GTE:
+	if (lhs >= rhs)
+	    lhs = (double)1.0;
+	else
+	    lhs = (double)0.0;
+	break;
+    case ibis::math::IS_LTE:
+	if (lhs <= rhs)
+	    lhs = (double)1.0;
+	else
+	    lhs = (double)0.0;
+	break;
     default: break;
     }
     return lhs;

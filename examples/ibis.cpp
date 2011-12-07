@@ -2736,8 +2736,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	}
     }
 
-    ibis::table *sel1 = tbl->select(sstr, wstr);
-    if (sel1 == 0) {
+    std::auto_ptr<ibis::table> sel1(tbl->select(sstr, wstr));
+    if (sel1.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "tableSelect:: select(" << sstr << ", " << wstr
 	    << ") failed on table " << tbl->name();
@@ -2865,7 +2865,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    }
 	}
     }
-    delete sel1;
+
     timer.stop();
     LOGGER(ibis::gVerbose > 0)
 	<< "tableSelect:: complete evaluation of " << sqlstring
@@ -2901,15 +2901,15 @@ static void doQuaere(const char *sstr, const char *fstr, const char *wstr,
 	<< "doQuaere -- processing \"" << sqlstring << '\"';
 
     std::auto_ptr<ibis::table> res;
-    if (estimate_opt < 0) { // directly evaluate the 
-	std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(sstr, fstr, wstr));
+    if (estimate_opt < 0) { // directly evaluate the select clause
+	std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(0, fstr, wstr));
 	if (qq.get() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- doQuaere(" << sqlstring
 		<< ") failed to create an ibis::quaere object";
 	    return;
 	}
-	res.reset(qq->select());
+	res.reset(qq->select(sstr));
     }
     else {
 	std::auto_ptr<ibis::quaere> qq(ibis::quaere::create(sstr, fstr, wstr));

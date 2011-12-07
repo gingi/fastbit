@@ -334,6 +334,7 @@ public:
     inline void append(const void*, uint32_t);
     inline void append(const void*, uint32_t, const void*, uint32_t,
 		       ibis::selectClause::AGREGADO);
+    void addCounts(uint32_t);
 
     int restoreCategoriesAsStrings(const ibis::part&);
     /// Append new data (in @c from) to a larger array (pointed to by

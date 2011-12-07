@@ -207,7 +207,7 @@ mathExpr ADDOP mathExpr {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- only operator COUNT supports * as the argument, "
 	    "but received " << *$1;
-	throw "invalid use of (*) as an argument";
+	throw "invalid use of (*)";
     }
     delete $1;
     $$ = fun;
@@ -219,10 +219,7 @@ mathExpr ADDOP mathExpr {
 	<< *$3 << ")";
 #endif
     ibis::math::term *fun = 0;
-    if (stricmp($1->c_str(), "avg") == 0) { // aggregation avg
-	fun = driver.addAgregado(ibis::selectClause::AVG, $3);
-    }
-    else if (stricmp($1->c_str(), "count") == 0) { // aggregation count
+    if (stricmp($1->c_str(), "count") == 0) { // aggregation count
 	fun = driver.addAgregado(ibis::selectClause::CNT, $3);
     }
     else if (stricmp($1->c_str(), "max") == 0) { // aggregation max
@@ -238,29 +235,166 @@ mathExpr ADDOP mathExpr {
 	fun = driver.addAgregado(ibis::selectClause::MEDIAN, $3);
     }
     else if (stricmp($1->c_str(), "distinct") == 0 ||
-	     stricmp($1->c_str(), "countdistinct") == 0) { // count distinct values
+	     stricmp($1->c_str(), "countdistinct") == 0) {
+	// count distinct values
 	fun = driver.addAgregado(ibis::selectClause::DISTINCT, $3);
     }
+    else if (stricmp($1->c_str(), "avg") == 0) { // aggregation avg
+	ibis::math::term *numer =
+	    driver.addAgregado(ibis::selectClause::SUM, $3);
+	ibis::math::variable *var = new ibis::math::variable("*");
+	ibis::math::term *denom =
+	    driver.addAgregado(ibis::selectClause::CNT, var);
+	ibis::math::bediener *opr =
+	    new ibis::math::bediener(ibis::math::DIVIDE);
+	opr->setRight(denom);
+	opr->setLeft(numer);
+	fun = opr;
+    }
     else if (stricmp($1->c_str(), "varp") == 0 ||
-	     stricmp($1->c_str(), "varpop") == 0) { // population variance
-	fun = driver.addAgregado(ibis::selectClause::VARPOP, $3);
+	     stricmp($1->c_str(), "varpop") == 0) {
+	// population variance is computed as
+	// (sum (x^2) / count(*) - (sum (x) / count(*))^2)
+	ibis::math::term *x = $3;
+	ibis::math::number *two = new ibis::math::number(2.0);
+	ibis::math::variable *star = new ibis::math::variable("*");
+	ibis::math::term *t11 = new ibis::math::bediener(ibis::math::POWER);
+	t11->setLeft(x);
+	t11->setRight(two);
+	t11 = driver.addAgregado(ibis::selectClause::SUM, t11);
+	ibis::math::term *t12 =
+	    driver.addAgregado(ibis::selectClause::CNT, star);
+	ibis::math::term *t13 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t13->setLeft(t11);
+	t13->setRight(t12);
+	ibis::math::term *t21 =
+	    driver.addAgregado(ibis::selectClause::SUM, x->dup());
+	ibis::math::term *t23 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t23->setLeft(t21);
+	t23->setRight(t12->dup());
+	ibis::math::term *t24 = new ibis::math::bediener(ibis::math::POWER);
+	t24->setLeft(t23);
+	t24->setRight(two->dup());
+	fun = new ibis::math::bediener(ibis::math::MINUS);
+	fun->setLeft(t13);
+	fun->setRight(t24);
+	//fun = driver.addAgregado(ibis::selectClause::VARPOP, $3);
     }
     else if (stricmp($1->c_str(), "var") == 0 ||
 	     stricmp($1->c_str(), "varsamp") == 0 ||
-	     stricmp($1->c_str(), "variance") == 0) { // sample variance
-	fun = driver.addAgregado(ibis::selectClause::VARSAMP, $3);
+	     stricmp($1->c_str(), "variance") == 0) {
+	// sample variance is computed as
+	// (sum (x^2) / count(*) - (sum (x) / count(*))^2) * (count(*) / (count(*)-1))
+	ibis::math::term *x = $3;
+	ibis::math::number *two = new ibis::math::number(2.0);
+	ibis::math::variable *star = new ibis::math::variable("*");
+	ibis::math::term *t11 = new ibis::math::bediener(ibis::math::POWER);
+	t11->setLeft(x);
+	t11->setRight(two);
+	t11 = driver.addAgregado(ibis::selectClause::SUM, t11);
+	ibis::math::term *t12 =
+	    driver.addAgregado(ibis::selectClause::CNT, star);
+	ibis::math::term *t13 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t13->setLeft(t11);
+	t13->setRight(t12);
+	ibis::math::term *t21 =
+	    driver.addAgregado(ibis::selectClause::SUM, x->dup());
+	ibis::math::term *t23 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t23->setLeft(t21);
+	t23->setRight(t12->dup());
+	ibis::math::term *t24 = new ibis::math::bediener(ibis::math::POWER);
+	t24->setLeft(t23);
+	t24->setRight(two->dup());
+	ibis::math::term *t31 = new ibis::math::bediener(ibis::math::MINUS);
+	t31->setLeft(t13);
+	t31->setRight(t24);
+	ibis::math::term *t32 = new ibis::math::bediener(ibis::math::MINUS);
+	ibis::math::number *one = new ibis::math::number(1.0);
+	t32->setLeft(t12->dup());
+	t32->setRight(one);
+	ibis::math::term *t33 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t33->setLeft(t12->dup());
+	t33->setRight(t32);
+	fun = new ibis::math::bediener(ibis::math::MULTIPLY);
+	fun->setLeft(t31);
+	fun->setRight(t33);
+	//fun = driver.addAgregado(ibis::selectClause::VARSAMP, $3);
     }
     else if (stricmp($1->c_str(), "stdevp") == 0 ||
-	     stricmp($1->c_str(), "stdpop") == 0) { // population standard deviation
-	fun = driver.addAgregado(ibis::selectClause::STDPOP, $3);
+	     stricmp($1->c_str(), "stdpop") == 0) {
+	// population standard deviation is computed as
+	// sqrt(sum (x^2) / count(*) - (sum (x) / count(*))^2)
+	ibis::math::term *x = $3;
+	ibis::math::number *two = new ibis::math::number(2.0);
+	ibis::math::variable *star = new ibis::math::variable("*");
+	ibis::math::term *t11 = new ibis::math::bediener(ibis::math::POWER);
+	t11->setLeft(x);
+	t11->setRight(two);
+	t11 = driver.addAgregado(ibis::selectClause::SUM, t11);
+	ibis::math::term *t12 =
+	    driver.addAgregado(ibis::selectClause::CNT, star);
+	ibis::math::term *t13 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t13->setLeft(t11);
+	t13->setRight(t12);
+	ibis::math::term *t21 =
+	    driver.addAgregado(ibis::selectClause::SUM, x->dup());
+	ibis::math::term *t23 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t23->setLeft(t21);
+	t23->setRight(t12->dup());
+	ibis::math::term *t24 = new ibis::math::bediener(ibis::math::POWER);
+	t24->setLeft(t23);
+	t24->setRight(two->dup());
+	ibis::math::term *t31 = new ibis::math::bediener(ibis::math::MINUS);
+	t31->setLeft(t13);
+	t31->setRight(t24);
+	fun = new ibis::math::stdFunction1("sqrt");
+	fun->setLeft(t31);
+	//fun = driver.addAgregado(ibis::selectClause::STDPOP, $3);
     }
     else if (stricmp($1->c_str(), "std") == 0 ||
 	     stricmp($1->c_str(), "stdev") == 0 ||
 	     stricmp($1->c_str(), "stddev") == 0 ||
-	     stricmp($1->c_str(), "stdsamp") == 0) { // sample standard deviation
-	fun = driver.addAgregado(ibis::selectClause::STDSAMP, $3);
+	     stricmp($1->c_str(), "stdsamp") == 0) {
+	// sample standard deviation is computed as
+	// sqrt((sum (x^2) / count(*) - (sum (x) / count(*))^2) * (count(*) / (count(*)-1)))
+	ibis::math::term *x = $3;
+	ibis::math::number *two = new ibis::math::number(2.0);
+	ibis::math::variable *star = new ibis::math::variable("*");
+	ibis::math::term *t11 = new ibis::math::bediener(ibis::math::POWER);
+	t11->setLeft(x);
+	t11->setRight(two);
+	t11 = driver.addAgregado(ibis::selectClause::SUM, t11);
+	ibis::math::term *t12 =
+	    driver.addAgregado(ibis::selectClause::CNT, star);
+	ibis::math::term *t13 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t13->setLeft(t11);
+	t13->setRight(t12);
+	ibis::math::term *t21 =
+	    driver.addAgregado(ibis::selectClause::SUM, x->dup());
+	ibis::math::term *t23 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t23->setLeft(t21);
+	t23->setRight(t12->dup());
+	ibis::math::term *t24 = new ibis::math::bediener(ibis::math::POWER);
+	t24->setLeft(t23);
+	t24->setRight(two->dup());
+	ibis::math::term *t31 = new ibis::math::bediener(ibis::math::MINUS);
+	t31->setLeft(t13);
+	t31->setRight(t24);
+	ibis::math::term *t32 = new ibis::math::bediener(ibis::math::MINUS);
+	ibis::math::number *one = new ibis::math::number(1.0);
+	t32->setLeft(t12->dup());
+	t32->setRight(one);
+	ibis::math::term *t33 = new ibis::math::bediener(ibis::math::DIVIDE);
+	t33->setLeft(t12->dup());
+	t33->setRight(t32);
+	ibis::math::term *t34 = new ibis::math::bediener(ibis::math::MULTIPLY);
+	t34->setLeft(t31);
+	t34->setRight(t33);
+	fun = new ibis::math::stdFunction1("sqrt");
+	fun->setLeft(t34);
+	// fun = driver.addAgregado(ibis::selectClause::STDSAMP, $3);
     }
-    else { // standard math function
+    else { // assume it is a standard math function
 	fun = new ibis::math::stdFunction1($1->c_str());
 	fun->setLeft($3);
     }
