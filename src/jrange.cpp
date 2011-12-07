@@ -9,6 +9,7 @@
 #include "fromClause.h"
 #include "selectClause.h"
 
+#include <memory>	// std::auto_ptr
 #include <stdexcept>	// std::exception
 #include <typeinfo>	// std::typeid
 

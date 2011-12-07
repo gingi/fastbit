@@ -1,3 +1,19 @@
+Wed Dec  7 14:41:05 PST 2011
+Version ibis1.2.5
+-- accepted a patch from Jon Strabala (Quantum Systems Integrators) to
+   support is_zero, is_nonzero, is_eql, is_gte, is_lte in the where
+   clauses
+-- add function to support aggregations by parts
+-- rewrite aggregation expressions of AVG, VAR and STDDEV to use SUM and
+   COUNT to allow them to be computed by parts
+-- support DESC and ASC for each column mentined in the order-by clauses
+   as suggested by Jon Strabala
+-- accepted a patch from Robert Wong to allow query processing to
+   continue in case of errors
+-- clean up the code to remove most warning messages from GCC and pgCC
+-- fix bugs in jNatural and jRange
+
+
 Fri May 13 16:47:06 PDT 2011
 Version ibis1.2.4
 -- overwrite output file with an empty file when there is no output at
@@ -13,6 +29,7 @@ Version ibis1.2.4
      Alexandre Maurel)
 -- fix a problem with ordering of select clause reported by Jon Strabala
 -- add runconfig and bin/fastbit-config
+
 
 Wed Mar 30 13:14:35 PDT 2011
 Version ibis1.2.3

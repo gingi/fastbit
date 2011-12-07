@@ -5,6 +5,8 @@
 	* src/bundle.h, src/bundle.cpp: add new constructor of bundle0 to
 	create a bundle for count(*), remove bundle0::size() (which was
 	based on rids only)
+	* examples/ibis.cpp: initialize qtables from fstr to make sure the
+	from clause is actually used
 
 2011-12-06 Jon Strabala <Jon dot Strabala at QuantumSI dot com>
 	* examples/thula.cpp: add -o option for order by clause

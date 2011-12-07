@@ -4282,7 +4282,6 @@ static void parseString(const char* uid, const char* qstr) {
     std::string ordkeys; // order by clause (the order keys)
     uint32_t start = 0; // the 1st row to print
     uint32_t limit = 0; // the limit on the number of output rows
-    ibis::nameList qtables;
     const bool hasdot = (strchr(qstr, '.') != 0);
 
     // skip leading space
@@ -4461,6 +4460,7 @@ static void parseString(const char* uid, const char* qstr) {
 	     << ") expects the key word LIMIT, but got " << str;
     }
 
+    ibis::nameList qtables(fstr.c_str());
     if (hasdot) {
 	doQuaere(sstr.c_str(), fstr.c_str(), wstr.c_str(),
 		 ordkeys.c_str(), limit, start);
