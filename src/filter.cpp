@@ -776,7 +776,13 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 		brd0 = tmp;
 	    }
 	    else {
-		brd0->merge(*tmp, tms);
+		ierr = brd0->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
 	    }
 	}
 	brd1->limit(0);
@@ -1075,7 +1081,13 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 		brd0 = tmp;
 	    }
 	    else {
-		brd0->merge(*tmp, tms);
+		ierr = brd0->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
 	    }
 	}
 	brd1->limit(0);
@@ -1761,7 +1773,13 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 		brd0 = tmp;
 	    }
 	    else {
-		brd0->merge(*tmp, tms);
+		ierr = brd0->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
 	    }
 	}
 	brd1->limit(0);
@@ -1911,7 +1929,13 @@ ibis::table* ibis::filter::sift2S
 		brd0 = tmp;
 	    }
 	    else {
-		brd0->merge(*tmp, tms);
+		ierr = brd0->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
 	    }
 	}
 	brd1->limit(0);
@@ -2117,7 +2141,13 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 		brd0 = tmp;
 	    }
 	    else {
-		brd0->merge(*tmp, tms);
+		ierr = brd0->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
 	    }
 	}
 	brd1->limit(0);

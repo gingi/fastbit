@@ -1,3 +1,13 @@
+2011-12-08 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: in merge1T a number of loops incorrectly used
+	kin1.size() instead of vin1.size(), which cause loops to overstep
+	their bounds, merge1T neglected to increment counters in the case
+	involving matching keys, merge12 incorrectly used the type of u2
+	for v1 (both above problems were revealed with the sample data
+	from Petr Velan <thorgrin @ gmail.com>)
+	* src/filter.cpp: add statements to check the return values of
+	ibis::bord::merge
+
 2011-12-07 John Wu <John dot Wu at ACM dot org>
 	* src/filter.cpp: siftdS mistakenly used groupby when they should
 	have called groupbyc, invoke siftdS only if there are more than

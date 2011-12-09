@@ -2731,54 +2731,74 @@ int ibis::bord::merge0(std::vector<ibis::bord::column*> &vals,
 
 	switch (vals[jc]->type()) {
 	case ibis::BYTE:
-	    ierr = merge0T(*static_cast<array_t<signed char>*>(vals[jc]->getArray()),
-			   *static_cast<array_t<signed char>*>(valr[jc]->getArray()),
+	    ierr = merge0T(*static_cast<array_t<signed char>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<signed char>*>
+			   (valr[jc]->getArray()),
 			   agg[jc]);
 	    break;
 	case ibis::UBYTE:
-	    ierr = merge0T(*static_cast<array_t<unsigned char>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<unsigned char>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<unsigned char>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<unsigned char>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	case ibis::SHORT:
-	    ierr = merge0T(*static_cast<array_t<int16_t>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<int16_t>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<int16_t>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<int16_t>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	case ibis::USHORT:
-	    ierr = merge0T(*static_cast<array_t<uint16_t>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<uint16_t>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<uint16_t>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<uint16_t>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	case ibis::INT:
-	    ierr = merge0T(*static_cast<array_t<int32_t>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<int32_t>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<int32_t>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<int32_t>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	case ibis::UINT:
-	    ierr = merge0T(*static_cast<array_t<uint32_t>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<uint32_t>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<uint32_t>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<uint32_t>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	case ibis::LONG:
-	    ierr = merge0T(*static_cast<array_t<int64_t>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<int64_t>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<int64_t>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<int64_t>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	case ibis::ULONG:
-	    ierr = merge0T(*static_cast<array_t<uint64_t>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<uint64_t>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<uint64_t>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<uint64_t>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	case ibis::FLOAT:
-	    ierr = merge0T(*static_cast<array_t<float>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<float>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<float>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<float>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	case ibis::DOUBLE:
-	    ierr = merge0T(*static_cast<array_t<double>*>(vals[jc]->getArray()),
-		    *static_cast<array_t<double>*>(valr[jc]->getArray()),
-		    agg[jc]);
+	    ierr = merge0T(*static_cast<array_t<double>*>
+			   (vals[jc]->getArray()),
+			   *static_cast<array_t<double>*>
+			   (valr[jc]->getArray()),
+			   agg[jc]);
 	    break;
 	default:
 	    ierr = -5;
@@ -2952,19 +2972,21 @@ ibis::bord::merge1T(ibis::array_t<Tk> &kout,
     while (i1 < kin1.size() && i2 < kin2.size()) {
 	if (kin1[i1] == kin2[i2]) {
 	    kout.push_back(kin1[i1]);
-	    for (unsigned j = 0; j < kin1.size(); ++ j)
+	    for (unsigned j = 0; j < vin1.size(); ++ j)
 		vout[j]->append(vin1[j]->getArray(), i1,
 				vin2[j]->getArray(), i2, agg[j]);
+	    ++ i1;
+	    ++ i2;
 	}
 	else if (kin1[i1] < kin2[i2]) {
 	    kout.push_back(kin1[i1]);
-	    for (unsigned j = 0; j < kin1.size(); ++ j)
+	    for (unsigned j = 0; j < vin1.size(); ++ j)
 		vout[j]->append(vin1[j]->getArray(), i1);
 	    ++ i1;
 	}
 	else {
 	    kout.push_back(kin2[i2]);
-	    for (unsigned j = 0; j < kin2.size(); ++ j)
+	    for (unsigned j = 0; j < vin2.size(); ++ j)
 		vout[j]->append(vin2[j]->getArray(), i2);
 	    ++ i2;
 	}
@@ -2972,14 +2994,14 @@ ibis::bord::merge1T(ibis::array_t<Tk> &kout,
 
     while (i1 < kin1.size()) {
 	kout.push_back(kin1[i1]);
-	for (unsigned j = 0; j < kin1.size(); ++ j)
+	for (unsigned j = 0; j < vin1.size(); ++ j)
 	    vout[j]->append(vin1[j]->getArray(), i1);
 	++ i1;
     }
 
     while (i2 < kin2.size()) {
 	kout.push_back(kin2[i2]);
-	for (unsigned j = 0; j < kin2.size(); ++ j)
+	for (unsigned j = 0; j < vin2.size(); ++ j)
 	    vout[j]->append(vin2[j]->getArray(), i2);
 	++ i2;
     }
@@ -4242,7 +4264,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<signed char>*>(u1.getArray());
 	const ibis::array_t<signed char> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -4354,7 +4376,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<unsigned char>*>(u1.getArray());
 	const ibis::array_t<unsigned char> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -4466,7 +4488,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<int16_t>*>(u1.getArray());
 	const ibis::array_t<int16_t> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -4578,7 +4600,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<uint16_t>*>(u1.getArray());
 	const ibis::array_t<uint16_t> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -4690,7 +4712,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<int32_t>*>(u1.getArray());
 	const ibis::array_t<int32_t> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -4802,7 +4824,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<uint32_t>*>(u1.getArray());
 	const ibis::array_t<uint32_t> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -4914,7 +4936,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<int64_t>*>(u1.getArray());
 	const ibis::array_t<int64_t> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -5026,7 +5048,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<uint64_t>*>(u1.getArray());
 	const ibis::array_t<uint64_t> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -5138,7 +5160,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<float>*>(u1.getArray());
 	const ibis::array_t<float> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -5250,7 +5272,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	    *static_cast<ibis::array_t<double>*>(u1.getArray());
 	const ibis::array_t<double> au1(au0);
 	au0.nosharing();
-	switch (u2.type()) {
+	switch(v1.type()) {
 	default:
 	    return ierr;
 	case ibis::BYTE: {
@@ -6615,9 +6637,12 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	}
     }
     if (ierr >= 0) {
+	ierr = nqq;
 	nEvents += nqq;
 	amask.adjustSize(nEvents, nEvents);
-	ierr = nqq;
+	LOGGER(ibis::gVerbose > 3)
+	    << mesg << " -- added " << nqq << " row" << (nqq>1?"s":"")
+	    << " to make a total of " << nEvents;
     }
     return ierr;
 } // ibis::bord::append
@@ -6729,9 +6754,12 @@ int ibis::bord::append(const ibis::selectClause &sc, const ibis::part& prt,
 	}
     }
     if (ierr >= 0) {
+	ierr = nqq;
 	nEvents += nqq;
 	amask.adjustSize(nEvents, nEvents);
-	ierr = nqq;
+	LOGGER(ibis::gVerbose > 3)
+	    << mesg << " -- added " << nqq << " row" << (nqq>1?"s":"")
+	    << " to make a total of " << nEvents;
     }
     return ierr;
 } // ibis::bord::append

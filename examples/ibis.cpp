@@ -1908,6 +1908,7 @@ static void parse_args(int argc, char** argv, int& mode,
     ibis::gVerbose += 3;
 #endif
 #endif
+
     mode = -1;
     alist.clear(); // list of append operations
     qlist.clear(); // list of query strings
@@ -2298,7 +2299,13 @@ static void parse_args(int argc, char** argv, int& mode,
     }
     if (ibis::gVerbose > 1) {
 	ibis::util::logger lg;
-	lg() << "\n" << argv[0] << ": "
+	lg() << "\n" << *argv;
+	if (ibis::gVerbose > 5) {
+	    for (int i = 1; i < argc; ++ i)
+		lg() << ' ' << argv[i];
+	    lg() << "\n";
+	}
+	lg() << "\nOptions summary: "
 	     << (mode ? "interactive mode" : "batch mode")
 	     << ", log level " << ibis::gVerbose;
 	if (build_index > 0) {
