@@ -1,3 +1,9 @@
+2011-12-09 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: update the log messages printed from the
+	constructors
+	* src/bord.cpp:2618 add statements to update the number of rows in
+	the merged table (to address the problems reported by Petr Velan)
+
 2011-12-08 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: in merge1T a number of loops incorrectly used
 	kin1.size() instead of vin1.size(), which cause loops to overstep

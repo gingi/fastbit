@@ -53,10 +53,10 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     if (m_desc.empty()) m_desc = name;
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg() << "initialized column " << m_name << " ("
-	     << ibis::TYPESTRING[(int)m_type] << ')';
+	lg() << "initialized column " << m_name;
 	if (tbl != 0 && tbl->name() != 0)
-	    lg() << " for partition " << tbl->name();
+	    lg() << tbl->name() << '.';
+	lg() << " (" << ibis::TYPESTRING[(int)m_type] << ')';
     }
 } // ibis::column::column
 
@@ -277,10 +277,10 @@ ibis::column::column(const part* tbl, FILE* file)
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg() << "read info about column " << m_name << " ("
-	     << ibis::TYPESTRING[(int)m_type] << ')';
+	lg() << "read info about column ";
 	if (tbl != 0 && tbl->name() != 0)
-	    lg() << " for partition " << tbl->name();
+	    lg() << tbl->name() << '.';
+	lg() << m_name << " (" << ibis::TYPESTRING[(int)m_type] << ')';
     }
 } // ibis::column::column
 
@@ -300,10 +300,10 @@ ibis::column::column(const ibis::column& rhs) :
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg() << "made a new copy of column " << m_name << " ("
-	     << ibis::TYPESTRING[(int)m_type] << ')';
+	lg() << "made a new copy of column ";
 	if (thePart != 0 && thePart->name() != 0)
-	    lg() << " for partition " << thePart->name();
+	    lg() << thePart->name() << '.';
+	lg() << m_name << " (" << ibis::TYPESTRING[(int)m_type] << ')';
     }
 } // copy constructor
 

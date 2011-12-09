@@ -176,11 +176,11 @@ protected:
     void clear();
     int64_t computeHits(const char* cond) const;
 
-    int merger(std::vector<ibis::bord::column*>&,
-	       std::vector<ibis::bord::column*>&,
-	       const std::vector<ibis::bord::column*>&,
-	       const std::vector<ibis::bord::column*>&,
-	       const std::vector<ibis::selectClause::AGREGADO>&);
+    static int merger(std::vector<ibis::bord::column*>&,
+		      std::vector<ibis::bord::column*>&,
+		      const std::vector<ibis::bord::column*>&,
+		      const std::vector<ibis::bord::column*>&,
+		      const std::vector<ibis::selectClause::AGREGADO>&);
 
     static int merge0(std::vector<ibis::bord::column*>&,
 		      const std::vector<ibis::bord::column*>&,

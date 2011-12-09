@@ -2580,9 +2580,25 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 	    return -5;
 	}
     }
+    if (keys.size() != keyr.size() || vals.size() != valr.size())
+	return -2;
+    if (ibis::gVerbose > 4) {
+	ibis::util::logger lg;
+	lg() << "bord::merge -- merging " << this->part::name() << " ("
+	     << nRows() << ") and " << rhs.part::name() << " ("
+	     << rhs.nRows() << ") into " << this->part::name() << " using ";
+	if (keys.size() == 0) {
+	    lg() << "no keys";
+	}
+	else {
+	    lg() << '(' << keys[0]->name();
+	    for (unsigned j = 1; j < keys.size(); ++ j)
+		lg() << ", " << keys[j]->name();
+	    lg() << ") as keys";
+	}
+    }
 
-    bool match = (this->part::nRows() == rhs.part::nRows() &&
-		  keys.size() == keyr.size() && vals.size() == valr.size());
+    bool match = (this->part::nRows() == rhs.part::nRows());
     for (uint32_t jc = 0; match && jc < keys.size(); ++ jc) {
 	match = keys[jc]->equal_to(*keyr[jc]);
     }
@@ -2599,6 +2615,12 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 			   agg[0], agg[1]);
 	else
 	    ierr = merge1(*keys[0], vals, *keyr[0], valr, agg);
+
+	// update the number of rows
+	if (ierr > 0)
+	    nEvents = ierr;
+	else
+	    nEvents = 0;
     }
     else { // a generic version
 	ierr = merger(keys, vals, keyr, valr, agg);
@@ -2651,7 +2673,7 @@ int ibis::bord::merger(std::vector<ibis::bord::column*> &keys,
 	vals[j]->limit(0);
     }
 
-    nEvents = 0;
+    int ierr = 0;
     uint32_t ir = 0, it = 0;
     const uint32_t nk = keyr.size();
     const uint32_t nv = valr.size();
@@ -2689,7 +2711,7 @@ int ibis::bord::merger(std::vector<ibis::bord::column*> &keys,
 		vals[j1]->append(valr[j1]->getArray(), ir);
 	    ++ ir;
 	}
-	++ nEvents;
+	++ ierr;
     }
 
     while (ir < nr) {
@@ -2697,7 +2719,7 @@ int ibis::bord::merger(std::vector<ibis::bord::column*> &keys,
 	    keys[j1]->append(keyr[j1], it);
 	for (unsigned j1 = 0; j1 < nv; ++ j1)
 	    vals[j1]->append(valr[j1]->getArray(), ir);
-	++ nEvents;
+	++ ierr;
 	++ ir;
     }
     while (it < nt) {
@@ -2705,10 +2727,10 @@ int ibis::bord::merger(std::vector<ibis::bord::column*> &keys,
 	    keys[j1]->append(keyt[j1], it);
 	for (unsigned j1 = 0; j1 < nv; ++ j1)
 	    vals[j1]->append(valt[j1]->getArray(), it);
-	++ nEvents;
+	++ ierr;
 	++ it;
     }
-    return nEvents;
+    return ierr;
 } // ibis::bord::merger
 
 
@@ -7044,8 +7066,7 @@ ibis::bord::column::column(const ibis::bord *tbl,
 
 /// Copy constructor.  Performs a shallow copy of the storage buffer.
 ibis::bord::column::column(const ibis::bord::column &c)
-    : ibis::column(c.thePart, c.m_type, c.m_name.c_str(), c.m_desc.c_str(),
-		   c.lower, c.upper) {
+    : ibis::column(c) {
     switch (c.m_type) {
     case ibis::BYTE: {
 	buffer = new array_t<signed char>
