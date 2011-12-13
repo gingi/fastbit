@@ -1,3 +1,11 @@
+Mon Dec 12 21:43:53 PST 2011
+Version ibis1.2.6
+-- clean up the functions to merge partial aggregation results with the
+   help of Petr Velan <thorgrin @ gmail.com>
+-- clean up the code for compilation on MS Windows with Visual Studio
+   and MinGW compiler
+
+
 Wed Dec  7 14:41:05 PST 2011
 Version ibis1.2.5
 -- accepted a patch from Jon Strabala (Quantum Systems Integrators) to
