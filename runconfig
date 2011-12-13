@@ -10,7 +10,7 @@ if (! ${HOSTNAME}) {
 print "Configuring on ${HOSTNAME}\n";
 if (${HOSTNAME} =~ m/bit\.[lbl.gov|local]/) {
 # on John's machine, enable maintainer mode, use debug options
-    $cmd="./configure --prefix=${HOME}/Darwin --enable-maintainer-mode --with-java CFLAGS='-g -O0 -m64 -Wall' CXXFLAGS='-g -O0 -m64 -Wall'";
+    $cmd="./configure --prefix=${HOME}/Darwin/fastbit --enable-maintainer-mode --with-java CFLAGS='-g -O0 -m64 -Wall' CXXFLAGS='-g -O0 -m64 -Wall'";
 }
 elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/ ) {
 # on hopper at NERSC, use gcc/g++ by default, no debugging

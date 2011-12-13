@@ -868,11 +868,10 @@ void doTest(const ibis::table& tbl) {
 	// choose four random columns for the select clause
 	std::ostringstream sel;
 	sel << "floor(" << cols[(int)(ibis::util::rand() * cols.size())]
-	    << "/80), sum("
-	    << cols[(int)(ibis::util::rand() * cols.size())]
+	    << "/80), sum(" << cols[(int)(ibis::util::rand() * cols.size())]
 	    << "), stdev(" << cols[(int)(ibis::util::rand() * cols.size())]
-	    << "), countdistinct("
-	    << cols[(int)(ibis::util::rand() * cols.size())] << ")";
+	    << "), count(" << cols[(int)(ibis::util::rand() * cols.size())]
+	    << ") as count0";
 	std::auto_ptr<ibis::table>
 	    res(tbl.select(sel.str().c_str(), where.str().c_str()));
 	if (res.get() == 0) {

@@ -4,14 +4,16 @@
 CXX=g++.exe
 OPT=-g -O0
 #OPT=-O5
-INC=-I "C:/MinGW/include" -I . -I ../src -I "pthreads-w32-2-8-0-release"
+INC=-I "C:/MinGW/include" -I "C:/MinGW/msys/1.0/include" -I . -I ../src -I "pthreads-w32-2-8-0-release"
 DEF=-DFASTBIT_MAX_WAIT_TIME=3 -DWITHOUT_FASTBIT_CONFIG_H
 LIB=-Lpthreads-w32-2-8-0-release -lpthreadGC2 -lm
 TESTDIR=tmp
 
 CCFLAGS=$(DEF) $(INC) $(OPT)
-# use cmd.exe as the shell for spawning commands
-SHELL=cmd.exe
+# as of Dec 2011, make from MSYS wants to use the unix sh
+# SHELL=cmd.exe ## comment out to use the default unix sh
+RM=rm -r -f
+#RM = del /s /f
 #
 OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  array_t.o \
@@ -81,23 +83,27 @@ OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
 
 #
 all: ibis ardea rara thula tcapi
-IBISEXE=ibis.exe
-ARDEAEXE=ardea.exe
+IBISEXE=./ibis.exe
+ARDEAEXE=./ardea.exe
 
 lib: libfastbit.a
 libfastbit.a: $(OBJ)
 	ar ruv libfastbit.a $(OBJ)
 
-ibis: ibis.o libfastbit.a
+ibis: ibis.exe
+ibis.exe: ibis.o libfastbit.a
 	$(CXX) $(OPT) -o $@ ibis.o libfastbit.a $(LIB)
 
-thula: thula.o libfastbit.a
+thula: thula.exe
+thula.exe: thula.o libfastbit.a
 	$(CXX) $(OPT) -o $@ thula.o libfastbit.a $(LIB)
 
-rara: rara.o libfastbit.a
+rara: rara.exe
+rara.exe: rara.o libfastbit.a
 	$(CXX) $(OPT) -o rara rara.o libfastbit.a $(LIB)
 
-ardea: ardea.o libfastbit.a
+ardea: ardea.exe
+ardea.exe: ardea.o libfastbit.a
 	$(CXX) $(OPT) -o ardea ardea.o libfastbit.a $(LIB)
 
 dll: fastbit.dll
@@ -115,7 +121,7 @@ tcapi: ../examples/tcapi.c ../src/capi.h fastbit.dll
 	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ ../examples/tcapi.c libfastbit.a $(LIB)
 
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
-	@del /s /f $(TESTDIR)\hist0 $(TESTDIR)\hist1 $(TESTDIR)\hist2
+	@$(RM) $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2
 	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where a = 0"
 	@echo Expected 2 hits from the above query
 	@echo
@@ -132,16 +138,16 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@echo Expected no error from the above tests
 	@echo
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) ../tests/test0.csv
-	if exist $(TESTDIR)/t1 del /s /f $(TESTDIR)\t1
+	$(RM) $(TESTDIR)/t1
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:ushort" -t ../tests/test0.csv
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:int, b:float, c:ushort" -t ../tests/test0.csv
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt
 	echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;
 
 clean:
-	del /f *.o core b?_? *.dll *.lib *.exe *.a *.so *.suo *.ncb *.exp *.pdb
+	$(RM) *.o core b?_? *.dll *.lib *.exe *.a *.so *.suo *.ncb *.exp *.pdb
 clean-all: clean
-	del /f /s Debug Release dll tmp pthreads-w32-2-8-0-release pthreads-w32-2-8-0-release.tar.gz
+	$(RM) Debug Release dll tmp pthreads-w32-2-8-0-release pthreads-w32-2-8-0-release.tar.gz
 
 pthreads-w32: pthreads-w32-2-8-0-release/libpthreadGC2.a
 pthreads-w32-2-8-0-release.tar.gz:

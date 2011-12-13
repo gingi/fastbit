@@ -1,7 +1,7 @@
 # $Id$
 # Makefile for nmake on windows using microsoft compiler visual C++ 7
 #
-VC=C:\Tools\VSx\VC
+VC=C:\Tools\VS\VC
 CXX=$(VC)\BIN\cl
 LINK=$(VC)\BIN\link
 OPT=/MD /EHsc /GR /O2 /W1 /arch:SSE2

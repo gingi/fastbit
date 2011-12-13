@@ -1,3 +1,14 @@
+2011-12-12 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: change the condition on automic operation to be gcc
+	version > 4 and on LINUX only (remove the negative conditions)
+	* win/win.mak, win/MinGW.mak: update to work with a MS Windows
+	installation inside a virtual machine
+	* src/thula.cpp: replace countdistinct in doTest with count to
+	exercise the new aggregation-by-parts functionality (this reduces
+	the memory usage for check-sq0, check-sq1 and check-sq2)
+	* src/selectParser.yy: replace incoming arithmetic expression to
+	function count with "*"
+
 2011-12-09 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: update the log messages printed from the
 	constructors

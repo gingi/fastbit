@@ -4714,7 +4714,7 @@ static void clean_up(bool sane=true) {
 
     if (sane)
 	ibis::fileManager::instance().clear();
-    if (ibis::gVerbose > 3) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	ibis::fileManager::instance().printStatus(lg());
     }
@@ -4965,12 +4965,12 @@ int main(int argc, char** argv) {
 	    }
 	}
 
-	clean_up(true);
 	timer.stop();
 	LOGGER(timer.realTime() > 0.001 && ibis::gVerbose > 0)
 	    << *argv << " -- total CPU time " << timer.CPUTime()
 	    << " s, total elapsed time " << timer.realTime() << " s";
 
+	clean_up(true);
 	// last thing -- close the file logging the messages
 	//ibis::util::closeLogFile();
 	return 0;

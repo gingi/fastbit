@@ -220,7 +220,9 @@ mathExpr ADDOP mathExpr {
 #endif
     ibis::math::term *fun = 0;
     if (stricmp($1->c_str(), "count") == 0) { // aggregation count
-	fun = driver.addAgregado(ibis::selectClause::CNT, $3);
+	delete $3; // drop the expression, replace it with "*"
+	ibis::math::variable *var = new ibis::math::variable("*");
+	fun = driver.addAgregado(ibis::selectClause::CNT, var);
     }
     else if (stricmp($1->c_str(), "max") == 0) { // aggregation max
 	fun = driver.addAgregado(ibis::selectClause::MAX, $3);
