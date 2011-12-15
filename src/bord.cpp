@@ -2606,24 +2606,26 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
     if (match) { // all the keys match, work on the columns one at a time
 	ierr = merge0(vals, valr, agg);
     }
-    else if (keys.size() == 1) {
-	if (vals.size() == 1)
-	    ierr = merge11(*keys[0], *vals[0], *keyr[0], *valr[0], agg[0]);
-	else if (vals.size() == 2)
-	    ierr = merge12(*keys[0], *vals[0], *vals[1],
-			   *keyr[0], *valr[0], *valr[1],
-			   agg[0], agg[1]);
-	else
-	    ierr = merge1(*keys[0], vals, *keyr[0], valr, agg);
+    else {
+	if (keys.size() == 1) {
+	    if (vals.size() == 1)
+		ierr = merge11(*keys[0], *vals[0], *keyr[0], *valr[0], agg[0]);
+	    else if (vals.size() == 2)
+		ierr = merge12(*keys[0], *vals[0], *vals[1],
+			       *keyr[0], *valr[0], *valr[1],
+			       agg[0], agg[1]);
+	    else
+		ierr = merge1(*keys[0], vals, *keyr[0], valr, agg);
+	}
+	else { // a generic version
+	    ierr = merger(keys, vals, keyr, valr, agg);
+	}
 
 	// update the number of rows
 	if (ierr > 0)
 	    nEvents = ierr;
 	else
 	    nEvents = 0;
-    }
-    else { // a generic version
-	ierr = merger(keys, vals, keyr, valr, agg);
     }
     return ierr;
 } // ibis::bord::merge
@@ -2690,7 +2692,7 @@ int ibis::bord::merger(std::vector<ibis::bord::column*> &keys,
 	}
 	if (match) {
 	    for (unsigned j1 = 0; j1 < nk; ++ j1)
-		keys[j1]->append(keyt[j1], it);
+		keys[j1]->append(keyt[j1]->getArray(), it);
 	    for (unsigned j1 = 0; j1 < nv; ++ j1)
 		vals[j1]->append(valt[j1]->getArray(), it,
 				 valr[j1]->getArray(), ir, agg[j1]);
@@ -2699,14 +2701,14 @@ int ibis::bord::merger(std::vector<ibis::bord::column*> &keys,
 	}
 	else if (keyt[j0]->less_than(*keyr[j0], it, ir)) {
 	    for (unsigned j1 = 0; j1 < nk; ++ j1)
-		keys[j1]->append(keyt[j1], it);
+		keys[j1]->append(keyt[j1]->getArray(), it);
 	    for (unsigned j1 = 0; j1 < nv; ++ j1)
 		vals[j1]->append(valt[j1]->getArray(), it);
 	    ++ it;
 	}
 	else {
 	    for (unsigned j1 = 0; j1 < nk; ++ j1)
-		keys[j1]->append(keyr[j1], it);
+		keys[j1]->append(keyr[j1]->getArray(), ir);
 	    for (unsigned j1 = 0; j1 < nv; ++ j1)
 		vals[j1]->append(valr[j1]->getArray(), ir);
 	    ++ ir;
@@ -2716,7 +2718,7 @@ int ibis::bord::merger(std::vector<ibis::bord::column*> &keys,
 
     while (ir < nr) {
 	for (unsigned j1 = 0; j1 < nk; ++ j1)
-	    keys[j1]->append(keyr[j1], it);
+	    keys[j1]->append(keyr[j1]->getArray(), ir);
 	for (unsigned j1 = 0; j1 < nv; ++ j1)
 	    vals[j1]->append(valr[j1]->getArray(), ir);
 	++ ierr;
@@ -2724,7 +2726,7 @@ int ibis::bord::merger(std::vector<ibis::bord::column*> &keys,
     }
     while (it < nt) {
 	for (unsigned j1 = 0; j1 < nk; ++ j1)
-	    keys[j1]->append(keyt[j1], it);
+	    keys[j1]->append(keyt[j1]->getArray(), it);
 	for (unsigned j1 = 0; j1 < nv; ++ j1)
 	    vals[j1]->append(valt[j1]->getArray(), it);
 	++ ierr;

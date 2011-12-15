@@ -1,5 +1,11 @@
+2011-12-15 Tomas Rybka <Tomas dot Rybka at solarwinds dot com>
+	* src/bord.cpp: update nEvents in ibis::bord::merge, and pass
+	array_t objects to ibis::bord::column::append as required
+	* src/capi.cpp: assign _capi_tablex to 0 after deleting the
+	existing value
+
 2011-12-12 John Wu <John dot Wu at ACM dot org>
-	* src/util.h: change the condition on automic operation to be gcc
+	* src/util.h: change the condition on atomic operation to be gcc
 	version > 4 and on LINUX only (remove the negative conditions)
 	* win/win.mak, win/MinGW.mak: update to work with a MS Windows
 	installation inside a virtual machine

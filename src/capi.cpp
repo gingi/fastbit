@@ -1769,6 +1769,7 @@ extern "C" void fastbit_cleanup(void) {
 	    << "fastbit_cleanup is removing a non-empty data buffer "
 	    "for new records";
 	delete _capi_tablex;
+	_capi_tablex = 0;
     }
 } // fastbit_cleanup
 

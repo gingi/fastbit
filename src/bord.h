@@ -626,6 +626,9 @@ ibis::bord::column::less_than(const ibis::bord::column &other,
 } // ibis::bord::column::less_than
 
 /// Append a value.
+///
+/// @note The first argument c1 is expected to be an array_t object with
+/// data type same as this column.
 inline void
 ibis::bord::column::append(const void* c1, uint32_t i1) {
     switch (m_type) {
@@ -706,6 +709,9 @@ ibis::bord::column::append(const void* c1, uint32_t i1) {
 
 /// Append the value genenerated from the the operation on the incoming
 /// columns.
+///
+/// @note Both arguemnt c1 and c2 are expected to array_t objects with the
+/// same data type as this column.
 inline void
 ibis::bord::column::append(const void* c1, uint32_t i1,
 			   const void* c2, uint32_t i2,
