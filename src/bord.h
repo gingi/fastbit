@@ -189,19 +189,19 @@ protected:
 	merge0T(ibis::array_t<T>&, const ibis::array_t<T>&,
 		ibis::selectClause::AGREGADO);
 
-    static int merge1(ibis::bord::column&,
-		      std::vector<ibis::bord::column*>&,
-		      const ibis::bord::column&,
-		      const std::vector<ibis::bord::column*>&,
-		      const std::vector<ibis::selectClause::AGREGADO>&);
+    static int merge10(ibis::bord::column&,
+		       std::vector<ibis::bord::column*>&,
+		       const ibis::bord::column&,
+		       const std::vector<ibis::bord::column*>&,
+		       const std::vector<ibis::selectClause::AGREGADO>&);
     template <typename Tk> static int
-	merge1T(ibis::array_t<Tk> &kout,
-		std::vector<ibis::bord::column*>& vout,
-		const ibis::array_t<Tk> &kin1,
-		const std::vector<ibis::bord::column*> &vin1,
-		const ibis::array_t<Tk> &kin2,
-		const std::vector<ibis::bord::column*> &vin2,
-		const std::vector<ibis::selectClause::AGREGADO>& agg);
+	merge10T(ibis::array_t<Tk> &kout,
+		 std::vector<ibis::bord::column*>& vout,
+		 const ibis::array_t<Tk> &kin1,
+		 const std::vector<ibis::bord::column*> &vin1,
+		 const ibis::array_t<Tk> &kin2,
+		 const std::vector<ibis::bord::column*> &vin2,
+		 const std::vector<ibis::selectClause::AGREGADO>& agg);
 
     static int merge11(ibis::bord::column&,
 		       ibis::bord::column&,
@@ -247,6 +247,73 @@ protected:
 		 const ibis::array_t<Tv> &vin2,
 		 ibis::selectClause::AGREGADO au,
 		 ibis::selectClause::AGREGADO av);
+
+    static int merge20(ibis::bord::column &k11,
+		       ibis::bord::column &k21,
+		       std::vector<ibis::bord::column*> &v1,
+		       const ibis::bord::column &k12,
+		       const ibis::bord::column &k22,
+		       const std::vector<ibis::bord::column*> &v2,
+		       const std::vector<ibis::selectClause::AGREGADO> &agg);
+    template <typename Tk1> static int
+	merge20T1(ibis::array_t<Tk1> &k1out,
+		  const ibis::array_t<Tk1> &k1in1,
+		  const ibis::array_t<Tk1> &k1in2,
+		  ibis::bord::column &k21,
+		  std::vector<ibis::bord::column*> &vin1,
+		  const ibis::bord::column &k22,
+		  const std::vector<ibis::bord::column*> &vin2,
+		  const std::vector<ibis::selectClause::AGREGADO> &agg);
+    template <typename Tk1, typename Tk2> static int
+	merge20T2(ibis::array_t<Tk1> &k1out,
+		  ibis::array_t<Tk2> &k2out,
+		  std::vector<ibis::bord::column*> &vout,
+		  const ibis::array_t<Tk1> &k1in1,
+		  const ibis::array_t<Tk2> &k2in1,
+		  const std::vector<ibis::bord::column*> &vin1,
+		  const ibis::array_t<Tk1> &k1in2,
+		  const ibis::array_t<Tk2> &k2in2,
+		  const std::vector<ibis::bord::column*> &vin2,
+		  const std::vector<ibis::selectClause::AGREGADO> &agg);
+
+    static int merge21(ibis::bord::column &k11,
+		       ibis::bord::column &k21,
+		       ibis::bord::column &v1,
+		       const ibis::bord::column &k12,
+		       const ibis::bord::column &k22,
+		       const ibis::bord::column &v2,
+		       ibis::selectClause::AGREGADO ag);
+    template <typename Tk1> static int
+	merge21T1(ibis::array_t<Tk1> &k1out,
+		  const ibis::array_t<Tk1> &k1in1,
+		  const ibis::array_t<Tk1> &k1in2,
+		  ibis::bord::column &k21,
+		  ibis::bord::column &v1,
+		  const ibis::bord::column &k22,
+		  const ibis::bord::column &v2,
+		  ibis::selectClause::AGREGADO ag);
+    template <typename Tk1, typename Tk2> static int
+	merge21T2(ibis::array_t<Tk1> &k1out,
+		  ibis::array_t<Tk2> &k2out,
+		  const ibis::array_t<Tk1> &k1in1,
+		  const ibis::array_t<Tk2> &k2in1,
+		  const ibis::array_t<Tk1> &k1in2,
+		  const ibis::array_t<Tk2> &k2in2,
+		  ibis::bord::column &v1,
+		  const ibis::bord::column &v2,
+		  ibis::selectClause::AGREGADO ag);
+    template <typename Tk1, typename Tk2, typename Tv> static int
+	merge21T3(ibis::array_t<Tk1> &k1out,
+		  ibis::array_t<Tk2> &k2out,
+		  ibis::array_t<Tv>  &vout,
+		  const ibis::array_t<Tk1> &k1in1,
+		  const ibis::array_t<Tk2> &k2in1,
+		  const ibis::array_t<Tv>  &vin1,
+		  const ibis::array_t<Tk1> &k1in2,
+		  const ibis::array_t<Tk2> &k2in2,
+		  const ibis::array_t<Tv>  &vin2,
+		  ibis::selectClause::AGREGADO av);
+
 
 private:
     // disallow copying.

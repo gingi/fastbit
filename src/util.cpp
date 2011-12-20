@@ -1149,6 +1149,60 @@ void ibis::util::int2string(std::string& str, unsigned val) {
     str = name;
 } // ibis::util::int2string
 
+/// Use the Fletcher's checksum to produce a short string.  The result is
+/// often used as name of temporary table objects.  The name conforms to
+/// the SQL standard.
+std::string ibis::util::shortName(const std::string& de) {
+    std::string tn;
+    ibis::util::int2string(tn, ibis::util::checksum(de.c_str(), de.size()));
+    if (0 == isalpha(tn[0]))
+	tn[0] = '_';
+    size_t i1 = 1, i2 = 2;
+    while (i1 < tn.size() && i2 < tn.size()) {
+	if (isalnum(tn[i1]) == 0) {
+	    if (i2 <= i1) i2 = i1 + 1;
+	    while (i2 < tn.size() && isalnum(tn[i2]) == 0) ++ i2;
+	    if (i2 < tn.size()) {
+		tn[i1] = tn[i2];
+		tn[i2] = ' ';
+		++ i1;
+		++ i2;
+	    }
+	}
+	else {
+	    ++ i1;
+	}
+    }
+    tn.erase(i1);
+    return tn;
+} // ibis::util::shortName
+
+/// Generate a short string to be used as a table/partition name.
+std::string ibis::util::randName(const std::string& de) {
+    std::string tn;
+    ibis::util::int2string(tn, ibis::util::checksum(de.c_str(), de.size()) ^
+			   ibis::util::serialNumber());
+    if (0 == isalpha(tn[0]))
+	tn[0] = '_';
+    size_t i1 = 1, i2 = tn.size()-1;
+    while (i1 <= i2) {
+	if (isalnum(tn[i1]) != 0) {
+	    ++ i1;
+	}
+	else {
+	    while (i2 > 1 && isalnum(tn[i2]) == 0)
+		-- i2;
+	    if (i2 > i1) {
+		tn[i1] = tn[i2];
+		++ i1;
+		-- i2;
+	    }
+	}
+    }
+    tn.erase(i1);
+    return tn;
+} // ibis::util::randName
+
 /// Produce a string version of the unsigned integer value with the decimal
 /// digits grouped into 1000s.
 std::string ibis::util::groupby1000(uint64_t val) {

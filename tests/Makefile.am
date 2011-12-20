@@ -91,7 +91,7 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist $(TESTDIR)/t2/
 	@if [ ` diff -w vault/hist4 $(TESTDIR)/hist4 | wc -l ` -eq 0 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
 	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select count(*), avg(c), countdistinct(c), floor(b/10) as sb where a < 25" -o $(TESTDIR)/hist5 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi
 	@if [ ` diff -w vault/hist5 $(TESTDIR)/hist5 | wc -l ` -eq 0 ] ; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select countdistinct(c), sum(a), count(*), avg(b), floor(b/4) where c > 90" -o $(TESTDIR)/hist6 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select ceil(c/7), sum(a), count(*), avg(b), floor(b/4) where c > 90" -o $(TESTDIR)/hist6 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
 	@if [ ` diff -w vault/hist6 $(TESTDIR)/hist6 | wc -l ` -eq 0 ] ; then echo Passed $@ case 19; else echo Did NOT pass $@ case 19; fi
 	@echo
 check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt

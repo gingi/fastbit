@@ -469,8 +469,8 @@ namespace ibis {
 	/// Fletcher's arithmetic checksum with 32-bit result.
 	FASTBIT_CXX_DLLSPEC uint32_t checksum(const char* str, uint32_t sz);
 	inline uint32_t checksum(uint32_t a, uint32_t b);
-	inline std::string randName(const std::string& longname);
-	inline std::string shortName(const std::string& longname);
+	std::string shortName(const std::string& longname);
+	std::string randName(const std::string& longname);
 	///@}
 
 	///@{
@@ -1452,25 +1452,6 @@ inline double ibis::util::coarsen(const double in, unsigned prec) {
     }
     return ret;
 } // ibis::util::coarsen
-
-/// Use the Fletcher's checksum to produce a short 6-character long string.
-/// The result is often used as name of temporary table objects.
-inline std::string ibis::util::shortName(const std::string& de) {
-    std::string tn;
-    ibis::util::int2string(tn, ibis::util::checksum(de.c_str(), de.size()));
-    if (0 == isalpha(tn[0]))
-	tn[0] = '_';
-    return tn;
-} // ibis::util::shortName
-
-inline std::string ibis::util::randName(const std::string& de) {
-    std::string tn;
-    ibis::util::int2string(tn, ibis::util::checksum(de.c_str(), de.size()) ^
-			   ibis::util::serialNumber());
-    if (0 == isalpha(tn[0]))
-	tn[0] = '_';
-    return tn;
-} // ibis::util::randName
 
 /// Print a rid_t to an output stream.
 inline std::ostream& operator<<(std::ostream& out, const ibis::rid_t& rid) {

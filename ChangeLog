@@ -1,3 +1,9 @@
+2011-12-20 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp, src/bord.h: add special cases for megeing with two
+	key columns
+	* tests/Makefile.am: update test case 18 and 19 to check for the
+	new functions
+
 2011-12-15 Tomas Rybka <Tomas dot Rybka at solarwinds dot com>
 	* src/bord.cpp: update nEvents in ibis::bord::merge, and pass
 	array_t objects to ibis::bord::column::append as required
