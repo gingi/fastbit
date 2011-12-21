@@ -411,6 +411,8 @@ namespace ibis {
 	extern const short unsigned charIndex[];
 	/// Delimiters used to separate a string of names. @sa ibis::nameList
 	extern const char* delimiters;
+	/// log base 2 of an integer, the lookup table
+	extern const int log2table[256];
 	/// A mutex for serialize operations FastBit wide.  Currently it is
 	/// used by the functions that generating user name, asking for
 	/// password, backing up active tables, cleaning up the list of
@@ -538,6 +540,21 @@ namespace ibis {
 	void round_up(const Tin& inval, double& outval) {
 	    outval = static_cast<double>(inval);
 	}
+
+	/// Log_2 of a 32-bit integer.
+	inline int log2(uint32_t x) {
+	    register uint32_t xx, xxx;
+	    return (xx = x >> 16)
+		? (xxx = xx >> 8) ? 24 + log2table[xxx] : 16 + log2table[xx]
+		: (xxx = x >> 8) ? 8 + log2table[xxx] : log2table[x];
+	}
+	/// Log_2 of a 64-bit integer.
+	inline int log2(uint64_t x) {
+	    register uint32_t xx;
+	    return (xx = x >> 32)
+		? 32 + log2(xx)
+		: log2(static_cast<uint32_t>(x));
+	}
 	///@}
 
 	FASTBIT_CXX_DLLSPEC void
@@ -582,11 +599,16 @@ namespace ibis {
 	    return FASTBIT_STRING;
 	}
 	/// Return an integer designating the version of this software.
+	/// The version number is composed of four segments each with two
+	/// decimal digits.  For example, version 1.2.7.0 will be
+	/// represented as 01020000.  The stable releases typically have
+	/// the last segment as zero, which is generally referred to
+	/// without the last ".0".
 	inline int getVersionNumber() {
 #ifdef FASTBIT_IBIS_INT_VERSION
 	    return FASTBIT_IBIS_INT_VERSION;
 #else
-	    return 01010000;
+	    return 01020700;
 #endif
 	}
 

@@ -56,6 +56,15 @@ const short unsigned ibis::util::charIndex[] = {
 // delimiters that can be used to separate names in a name list
 const char* ibis::util::delimiters = ";, \v\b\f\r\t\n'\"";
 
+// log base 2 of an integer, the lookup table
+const int ibis::util::log2table[256] = {
+#define X(i) i, i, i, i, i, i, i, i, i, i, i, i, i, i, i, i
+    -1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+    X(4), X(5), X(5), X(6), X(6), X(6), X(6),
+    X(7), X(7), X(7), X(7), X(7), X(7), X(7), X(7)
+#undef X
+};
+
 /// Initialize the global variable for holding all the datasets.
 ibis::partList ibis::datasets;
 
