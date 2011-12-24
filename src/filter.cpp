@@ -689,6 +689,19 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 /// This function does check whether aggregations are separable!  The
 /// caller need to make sure the aggregations are separable befor calling
 /// this function.
+///
+/// @note As of 12/21/2011, Tomas Rybka introduced a logarithmic list of
+/// accumulators in this function to reduce the number of times the
+/// intermediate results are copied.  In this approach, all partitions are
+/// merged to a similar-sized accumulator.  As their sizes grow, they are
+/// merged into larger ones.  Finally, all of them are merged together into
+/// the final partition.  This approach copies each row at most log(n)
+/// times instead of n times as in the earlier implementation, where n is
+/// the number of data partitions in plist.  However, because this appraoch
+/// holds the partial results in memory for longer period of time,
+/// therefore, it may require more memory than the previous version.
+/// Overall this function should still takes less memory than the function
+/// sift0.
 ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 				  const ibis::constPartList &plist) {
     long int ierr = 0;

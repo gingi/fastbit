@@ -1,3 +1,7 @@
+2011-12-22 Tomas Rybka <Tomas dot Rybka at solarwinds dot com>
+	* src/bord.cpp: clean up temporary vector of bord::columns in
+	various merge functions
+
 2011-12-21 Tomas Rybka <Tomas dot Rybka at solarwinds dot com>
 	* src/filter.cpp, src/util.h, src/util.cpp: reduce the tim needed
 	for merging partial results from different data partitions by

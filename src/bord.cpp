@@ -2842,7 +2842,7 @@ int ibis::bord::merge0(std::vector<ibis::bord::column*> &vals,
     return ierr;
 } // ibis::bord::merge0
 
-/// Template function to perform the meger operations on arrays with
+/// Template function to perform the merger operations on arrays with
 /// matching keys.
 template <typename T> int
 ibis::bord::merge0T(ibis::array_t<T>& vs, const ibis::array_t<T>& vr,
@@ -2883,6 +2883,8 @@ int ibis::bord::merge10(ibis::bord::column &k1,
 	return ierr;
 
     std::vector<ibis::bord::column*> av1(v1.size());
+    IBIS_BLOCK_GUARD(ibis::util::clearVec<ibis::bord::column>,
+		     ibis::util::ref(av1));
     for (unsigned j = 0; j < v1.size(); ++ j)
 	av1[j] = new ibis::bord::column(*v1[j]);
 
@@ -5517,7 +5519,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak12 =
 	    *static_cast<const ibis::array_t<signed char>*>(k12.getArray());
-	ibis::array_t<signed char> ak10 =
+	ibis::array_t<signed char> &ak10 =
 	    *static_cast<ibis::array_t<signed char>*>(k11.getArray());
 	const ibis::array_t<signed char> ak11(ak10);
 	ak10.nosharing();
@@ -5526,7 +5528,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::UBYTE: {
 	const ibis::array_t<unsigned char> &ak12 =
 	    *static_cast<const ibis::array_t<unsigned char>*>(k12.getArray());
-	ibis::array_t<unsigned char> ak10 =
+	ibis::array_t<unsigned char> &ak10 =
 	    *static_cast<ibis::array_t<unsigned char>*>(k11.getArray());
 	const ibis::array_t<unsigned char> ak11(ak10);
 	ak10.nosharing();
@@ -5535,7 +5537,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::SHORT: {
 	const ibis::array_t<int16_t> &ak12 =
 	    *static_cast<const ibis::array_t<int16_t>*>(k12.getArray());
-	ibis::array_t<int16_t> ak10 =
+	ibis::array_t<int16_t> &ak10 =
 	    *static_cast<ibis::array_t<int16_t>*>(k11.getArray());
 	const ibis::array_t<int16_t> ak11(ak10);
 	ak10.nosharing();
@@ -5544,7 +5546,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::USHORT: {
 	const ibis::array_t<uint16_t> &ak12 =
 	    *static_cast<const ibis::array_t<uint16_t>*>(k12.getArray());
-	ibis::array_t<uint16_t> ak10 =
+	ibis::array_t<uint16_t> &ak10 =
 	    *static_cast<ibis::array_t<uint16_t>*>(k11.getArray());
 	const ibis::array_t<uint16_t> ak11(ak10);
 	ak10.nosharing();
@@ -5553,7 +5555,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::INT: {
 	const ibis::array_t<int32_t> &ak12 =
 	    *static_cast<const ibis::array_t<int32_t>*>(k12.getArray());
-	ibis::array_t<int32_t> ak10 =
+	ibis::array_t<int32_t> &ak10 =
 	    *static_cast<ibis::array_t<int32_t>*>(k11.getArray());
 	const ibis::array_t<int32_t> ak11(ak10);
 	ak10.nosharing();
@@ -5562,7 +5564,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::UINT: {
 	const ibis::array_t<uint32_t> &ak12 =
 	    *static_cast<const ibis::array_t<uint32_t>*>(k12.getArray());
-	ibis::array_t<uint32_t> ak10 =
+	ibis::array_t<uint32_t> &ak10 =
 	    *static_cast<ibis::array_t<uint32_t>*>(k11.getArray());
 	const ibis::array_t<uint32_t> ak11(ak10);
 	ak10.nosharing();
@@ -5571,7 +5573,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::LONG: {
 	const ibis::array_t<int64_t> &ak12 =
 	    *static_cast<const ibis::array_t<int64_t>*>(k12.getArray());
-	ibis::array_t<int64_t> ak10 =
+	ibis::array_t<int64_t> &ak10 =
 	    *static_cast<ibis::array_t<int64_t>*>(k11.getArray());
 	const ibis::array_t<int64_t> ak11(ak10);
 	ak10.nosharing();
@@ -5580,7 +5582,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::ULONG: {
 	const ibis::array_t<uint64_t> &ak12 =
 	    *static_cast<const ibis::array_t<uint64_t>*>(k12.getArray());
-	ibis::array_t<uint64_t> ak10 =
+	ibis::array_t<uint64_t> &ak10 =
 	    *static_cast<ibis::array_t<uint64_t>*>(k11.getArray());
 	const ibis::array_t<uint64_t> ak11(ak10);
 	ak10.nosharing();
@@ -5589,7 +5591,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::FLOAT: {
 	const ibis::array_t<float> &ak12 =
 	    *static_cast<const ibis::array_t<float>*>(k12.getArray());
-	ibis::array_t<float> ak10 =
+	ibis::array_t<float> &ak10 =
 	    *static_cast<ibis::array_t<float>*>(k11.getArray());
 	const ibis::array_t<float> ak11(ak10);
 	ak10.nosharing();
@@ -5598,7 +5600,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
     case ibis::DOUBLE: {
 	const ibis::array_t<double> &ak12 =
 	    *static_cast<const ibis::array_t<double>*>(k12.getArray());
-	ibis::array_t<double> ak10 =
+	ibis::array_t<double> &ak10 =
 	    *static_cast<ibis::array_t<double>*>(k11.getArray());
 	const ibis::array_t<double> ak11(ak10);
 	ak10.nosharing();
@@ -5621,7 +5623,10 @@ ibis::bord::merge20T1(ibis::array_t<Tk1> &k1out,
 		      const std::vector<ibis::selectClause::AGREGADO> &agg) {
     int ierr = -1;
     if (k21.type() != k22.type()) return ierr;
+
     std::vector<ibis::bord::column*> av1(vin1.size());
+    IBIS_BLOCK_GUARD(ibis::util::clearVec<ibis::bord::column>,
+		     ibis::util::ref(av1));
     for (unsigned j = 0; j < vin1.size(); ++ j)
 	av1[j] = new ibis::bord::column(*vin1[j]);
 
