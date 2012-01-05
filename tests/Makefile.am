@@ -338,11 +338,11 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 # run a set of tests with 1.6 million rows split into three
 # subdirectories.  Tests may take half a hour or longer depending on
 # your test machine.
-check-sq0: $(IBISEXE) $(TESTDIR)/sq0 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
+check-sq0: $(THULAEXE) $(IBISEXE) $(TESTDIR)/sq0 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
 	@$(IBISEXE) -d $(TESTDIR)/sq0 -v -thr 4 -t 25 >> $(TESTDIR)/$@.log 2>&1
-	@$(IBISEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq0 -v -thr 5 -t 20 >> $(TESTDIR)/$@.log 2>&1
-	@$(IBISEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq0 -v -thr 5 -t 20 >> $(TESTDIR)/$@.log 2>&1
-	@$(IBISEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq0 -v -thr 5 -t 20 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq0 -v -thr 3 -t 33 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -eq 0 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
 $(TESTDIR)/sq0: setqgen$(EXEEXT) TESTDIR
@@ -352,8 +352,8 @@ $(TESTDIR)/sq0: setqgen$(EXEEXT) TESTDIR
 # least 4GB of memory.  More memory will typlically reduce the test
 # time, but not significantly.  The number of rows in the test data is
 # about 25 million.
-check-sq1: $(THULAEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
-	@$(THULAEXE) -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+check-sq1: $(THULAEXE) $(IBISEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
+	@$(IBISEXE) -d $(TESTDIR)/sq1 -v -thr 4 -t 25 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
