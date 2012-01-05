@@ -460,15 +460,12 @@ namespace ibis {
 	FASTBIT_CXX_DLLSPEC const char* userName();
 	/// Return an integer that is always increasing.
 	uint32_t serialNumber();
-	/// Compute a denominator and numerator pair to compute a uniform
-	/// distribution of numbers in a given range.
 	void uniformFraction(const long unsigned idx,
 			     long unsigned &denominator,
 			     long unsigned &numerator);
 	inline double rand(); ///< A pseudo-random number generator (0,1).
 
 	///@{
-	/// Fletcher's arithmetic checksum with 32-bit result.
 	FASTBIT_CXX_DLLSPEC uint32_t checksum(const char* str, uint32_t sz);
 	inline uint32_t checksum(uint32_t a, uint32_t b);
 	std::string shortName(const std::string& longname);
@@ -1302,11 +1299,12 @@ char* getpass(const char* prompt);
 
 /// A Linear Congruential Generator of pseudo-random numbers.  It produces
 /// a floating-point in the range of [0, 1).  It is very simple and fast,
-/// however, it does not produce high-quality random numbers, and is is
-/// thread-safe.
+/// however, it does not produce high-quality random numbers.  It may not
+/// be thread-safe.  Since the actual computation only involves two
+/// arithmetic operations, it is very unlikely to have thread-safty issues.
 inline double ibis::util::rand() {
-    /// The internal variable @c seed is always an odd number.  Don't use
-    /// it directly.
+    // The internal variable @c seed is always an odd number.  Don't use it
+    // directly.
     static uint32_t seed = 1;
     static const uint32_t alpha = 69069;
     static const double scale = ::pow(0.5, 32);

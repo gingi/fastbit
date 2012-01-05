@@ -117,6 +117,8 @@
 #endif
 #include <ibis.h>
 #include <mensa.h>	// ibis::mensa
+#include <twister.h>
+
 #include <sstream>	// std::ostringstream
 #include <algorithm>	// std::sort
 #include <memory>	// std::auto_ptr
@@ -1893,10 +1895,11 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, int& mode,
-		       std::vector<const char*>& qlist,
 		       std::vector<const char*>& alist,
 		       std::vector<const char*>& slist,
-		       std::vector<std::string>& queff, ibis::joinlist& joins) {
+		       std::vector<const char*>& qlist,
+		       std::vector<std::string>& queff,
+		       ibis::joinlist& joins) {
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
     ibis::gVerbose = INT_MAX;
@@ -2194,20 +2197,33 @@ static void parse_args(int argc, char** argv, int& mode,
 	    break;
 	    case 't':
 	    case 'T': { // self-testing mode or number of threads
+		bool thr = (argv[i][2] == 'h' || argv[i][2] == 'H'); // thread
 		char *ptr = strchr(argv[i], '=');
 		if (ptr == 0) {
 		    if (i+1 < argc) {
 			if (isdigit(*argv[i+1])) {
-			    testing += atoi(argv[i+1]);
+			    if (thr)
+				threading += atoi(argv[i+1]);
+			    else
+				testing += atoi(argv[i+1]);
 			    i = i + 1;
+			}
+			else if (thr) {
+			    ++ threading;
 			}
 			else {
 			    ++ testing;
 			}
 		    }
+		    else if (thr) {
+			++ threading;
+		    }
 		    else {
 			++ testing;
 		    }
+		}
+		else if (thr) { // override previous values
+		    threading = atoi(++ptr);
 		}
 		else { // override previous values
 		    testing = atoi(++ptr);
@@ -2266,7 +2282,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		rdirs.empty() && joins.empty() &&
 		yankstring == 0 && keepstring == 0);
     }
-    if (qlist.size() > 1U) {
+    if (qlist.size() > 1U && threading == 0) {
 	if (testing > 0) {
 	    threading = testing;
 	    testing = 0;
@@ -2278,15 +2294,10 @@ static void parse_args(int argc, char** argv, int& mode,
 	    SYSTEM_INFO myinfo;
 	    GetSystemInfo(&myinfo);
 	    threading = myinfo.dwNumberOfProcessors;
-#endif
-	    if (threading > 2) // more than two processors, leave one for OS
-		-- threading;
-	}
-	if (threading > qlist.size())
-	    threading = static_cast<unsigned>
-		(ceil(sqrt(static_cast<double>(qlist.size()))));
-	if (threading <= 1) // make sure it is exactly 0
+#else
 	    threading = 0;
+#endif
+	}
     }
     if (mesgfile != 0 && *mesgfile != 0) {
 	int ierr = ibis::util::setLogFileName(mesgfile);
@@ -2314,7 +2325,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		lg() << " (remove any existing indexes)";
 	}
 	if (testing > 0)
-	    lg() << ", performing self test";
+	    lg() << ", testing " << testing;
 	if (threading > 0)
 	    lg() << ", threading " << threading;
 	if (estimate_opt < 0)
@@ -4381,11 +4392,11 @@ static void parseString(const char* uid, const char* qstr) {
     if (str != 0) {
 	end = strstr(str, "order by");
 	if (end == 0) {
-	    end = strstr(str, "Order by");
+	    end = strstr(str, "ORDER BY");
 	    if (end == 0)
 		end = strstr(str, "Order By");
 	    if (end == 0)
-		end = strstr(str, "ORDER BY");
+		end = strstr(str, "Order by");
 	    if (end == 0)
 		end = strstr(str, "limit");
 	    if (end == 0)
@@ -4408,8 +4419,8 @@ static void parseString(const char* uid, const char* qstr) {
     }
 
     if (str != 0 && 0 == strnicmp(str, "order by ", 9)) { // order by clause
-	// the order by clause may be the last clause or followed by the key word
-	// "LIMIT"
+	// the order by clause may be the last clause or followed by the
+	// key word "LIMIT"
 	str += 9;
 	end = strstr(str, "limit");
 	if (end == 0) {
@@ -4656,6 +4667,7 @@ extern "C" void* thFun(void* arg) {
     thArg* myArg = (thArg*)arg; // recast the argument to the right type
     for (unsigned j = myArg->task(); j < myArg->qlist.size();
 	 j = myArg->task()) {
+	LOGGER(ibis::gVerbose > 0) << " ... processing qlist[" << j << "]";
 	parseString(myArg->uid, myArg->qlist[j]);
     }
     return 0;
@@ -4695,6 +4707,103 @@ static void readInput(std::string& str) {
 	}
     } while (wait);
 } // readInput
+
+/// Generate random queries for testing.
+static void randomQueries(std::vector<const char*> &qlist,
+			  std::vector<std::string> &queff) {
+    if (ibis::datasets.empty()) return;
+    qlist.clear();
+    queff.clear();
+
+#define maxselect 8
+#define maxwhere 5
+    const char selstr[][maxselect] =
+	{"floor", "sum", "stdev", "avg", "ceil", "min", "max", "var"};
+    ibis::part::info p0(*ibis::datasets[0]);
+    ibis::MersenneTwister mt; // a random number generator
+    const unsigned mq = (threading > 1 ? threading : 2) *
+	(testing > 0 ? testing+1 : 5);
+    for (unsigned j = 0; j < mq; ++ j) {
+	std::ostringstream oss;
+	unsigned nsel = mt.next(maxselect * maxwhere);
+	unsigned nwhr = 1 + nsel % maxwhere;
+	nsel = nsel / maxwhere;
+	oss << "SELECT count(*) as _0";
+	while (nsel > 0) {
+	    -- nsel;
+	    const unsigned ic = mt.next(p0.cols.size());
+	    oss << ", " << selstr[nsel] << '(' << p0.cols[ic]->name;
+	    if (nsel == 0) {
+		const unsigned den = 2 + mt.next(4);
+		oss << " % " << den;
+	    }
+	    else if (nsel == 4) {
+		const unsigned den = 3 + mt.next(7);
+		oss << " % " << den;
+	    }
+	    oss << ')';
+	}
+	oss << " WHERE ";
+	for (unsigned j = 0; j < nwhr; ++ j) {
+	    unsigned ic = mt.next(p0.cols.size());
+	    if (p0.cols[ic]->type == ibis::BLOB ||
+		p0.cols[ic]->type == ibis::TEXT) {
+		unsigned jc = ic + 1;
+		if (jc >= p0.cols.size()) jc = 0;
+		while ((p0.cols[jc]->type == ibis::BLOB ||
+			p0.cols[jc]->type == ibis::TEXT) && jc != ic) {
+		    ++ jc;
+		    if (jc >= p0.cols.size()) jc = 0;
+		}
+		if (jc == ic) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- function randomQueries can not find "
+			"a suitable column to form queries using data "
+			"partition " << p0.name;
+		    return;
+		}
+		ic = jc;
+	    }
+
+	    double b0 = p0.cols[ic]->expectedMin + mt() *
+		(p0.cols[ic]->expectedMax - p0.cols[ic]->expectedMin);
+	    double b1 = p0.cols[ic]->expectedMin + mt() *
+		(p0.cols[ic]->expectedMax - p0.cols[ic]->expectedMin);
+	    if (b0 > b1) {
+		double t = b0;
+		b0 = b1;
+		b1 = t;
+	    }
+	    if (j > 0)
+		oss << " and ";
+	    if (p0.cols[ic]->type != ibis::DOUBLE &&
+		p0.cols[ic]->type != ibis::FLOAT &&
+		b1 <= b0 + 1.0) {
+		oss << ceil(b0) << " == " << p0.cols[ic]->name;
+	    }
+	    else if (b0 < b1) {
+		oss << b0 << " <= " << p0.cols[ic]->name
+		    << " < " << b1;
+	    }
+	    else if (b0 == b1) {
+		oss << b0 << " == " << p0.cols[ic]->name;
+	    }
+	    else {
+		oss << p0.cols[ic]->name << " > 0";
+	    }
+	}
+	oss << " ORDER BY _0 desc";
+
+	queff.push_back(oss.str());
+    }
+
+    qlist.reserve(queff.size());
+    for (unsigned j = 0; j < queff.size(); ++ j)
+	qlist.push_back(queff[j].c_str());
+    LOGGER(ibis::gVerbose > 2)
+	<< "randomQueries generated " << qlist.size() << " random quer"
+	<< (qlist.size()>1?"ies":"y");
+} // randomQueries
 
 static void clean_up(bool sane=true) {
     { // use envLock to make sure only one thread is deleting the partitions
@@ -4758,7 +4867,7 @@ int main(int argc, char** argv) {
 	timer.start();
 
 	// parse the command line arguments
-	parse_args(argc, argv, interactive, qlist, alist, slist,
+	parse_args(argc, argv, interactive, alist, slist, qlist,
 		   queff, joins);
 
 	// append new data one directory at a time, the same directory map
@@ -4826,8 +4935,12 @@ int main(int argc, char** argv) {
 	    slist.clear(); // no longer needed
 	}
 
-	// performing self test
-	if (testing > 0 && ! ibis::datasets.empty()) {
+	if (testing > 0 && ! ibis::datasets.empty() && threading > 0 &&
+	    qlist.empty()) { // generate random queries
+	    randomQueries(qlist, queff);
+	}
+	else if (testing > 0 && ! ibis::datasets.empty()) {
+	    // performing self test
 	    LOGGER(ibis::gVerbose > 0) << *argv << ": start testing ...";
 	    ibis::horometer timer3;
 	    timer3.start();
@@ -4880,8 +4993,8 @@ int main(int argc, char** argv) {
 		int ierr = pthread_create(&(tid[i]), 0, thFun, (void*)&args);
 		if (ierr != 0) {
 		    LOGGER(ibis::gVerbose >= 0)
-			<< "pthread_create failed to create " << i
-			<< "th thread";
+			<< "Warning -- pthread_create failed to create thread "
+			<< i << " -- " << strerror(ierr);
 		    return(-5);
 		}
 	    }
@@ -4889,11 +5002,9 @@ int main(int argc, char** argv) {
 	    for (int i = 0; i < nth; ++ i) {
 		int status;
 		int ierr = pthread_join(tid[i], (void**)&status);
-		if (ierr != 0) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "pthread_join failed on the " << i
-			<< "th thread";
-		}
+		LOGGER(ibis::gVerbose >= 0 && ierr != 0)
+		    << "pthread_join failed on thread " << i
+		    << " -- " << strerror(ierr);
 	    }
 #endif
 	    queff.clear();
@@ -4920,7 +5031,7 @@ int main(int argc, char** argv) {
 	    doJoin(uid, *joins[j]);
 	}
 
-	if (interactive) {	// iteractive operations
+	if (interactive) {	// interactive operations
 	    std::string str;
 	    if (ibis::gVerbose >= 0) {
 		// entering the interactive mode, print the help message

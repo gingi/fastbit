@@ -101,8 +101,6 @@ public:
 
     /// Perform predefined set of tests and return the number of failures.
     virtual long selfTest(int nth=1, const char* pref=0) const;
-    /// Go through all the values to compute the min and max for each
-    /// column.
     void computeMinMax();
 
     /******************************************************************/
@@ -620,9 +618,9 @@ public:
     /// Generate name for a partition based on the meta tags.
     static void  genName(const ibis::resource::vList &mtags,
 			 std::string &name);
-    /// Rename the partition to avoid conflicts with an existing list of
-    /// data partitions.
     void rename(const ibis::partAssoc& known);
+    void rename(const char*);
+
     /// Given a @c bitvector, compute the number of pages would be accessed.
     static uint32_t countPages(const ibis::bitvector &mask,
 			       unsigned elemsize=4);

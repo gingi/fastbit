@@ -1019,9 +1019,8 @@ char* ibis::util::strnewdup(const char* s, const uint32_t n) {
     return str;
 } // ibis::util::strnewdup
 
-// return a denominator and numerator pair to compute a uniform
-// distribution of numbers in a given range
-// the fraction (denominator / numerator) is uniformly distributed in [0, 1)
+/// Compute a denominator and numerator pair. 
+/// The fraction (denominator / numerator) is uniformly distributed in [0, 1).
 void ibis::util::uniformFraction(const long unsigned idx,
 				 long unsigned &denominator,
 				 long unsigned &numerator) {
@@ -1059,7 +1058,7 @@ void ibis::util::uniformFraction(const long unsigned idx,
     }
 } // unformMultiplier
 
-// Fletcher's arithmetic checksum
+/// Fletcher's arithmetic checksum with 32-bit result.
 uint32_t ibis::util::checksum(const char* str, uint32_t sz) {
     uint32_t c0 = 0;
     uint32_t c1 = 0;

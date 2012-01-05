@@ -11040,6 +11040,18 @@ ibis::column::softWriteLock::~softWriteLock() {
     }
 }
 
+/// Constructor.
+ibis::column::info::info(const ibis::column& col)
+    : name(col.name()), description(col.description()),
+      expectedMin(col.lowerBound()),
+      expectedMax(col.upperBound()), type(col.type()) {
+    if (expectedMin > expectedMax) {
+	const_cast<ibis::column&>(col).computeMinMax();
+	const_cast<double&>(expectedMin) = col.lowerBound();
+	const_cast<double&>(expectedMax) = col.upperBound();
+    }
+}
+
 // explicit template instantiation
 template long ibis::column::selectValuesT
 (const bitvector&, array_t<unsigned char>&, array_t<uint32_t>&) const;

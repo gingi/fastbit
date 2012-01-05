@@ -1,3 +1,24 @@
+2012-01-04 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/part.cpp: add another version of rename to take
+	a user-specified name
+	* src/column.h, src/column.cpp: modify the constructor of
+	column::info to compute the actual min and max if the existing min
+	and max have not been computed
+	* examples/ibis.cpp: add function randomQueries, add code to test
+	the generated queries using multiple threads
+	* src/filter.cpp: return an empty table when there is no hit
+
+2012-01-03 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.cpp:434 multiple threads may simutaneously decrease
+	the reference counter to make the original copy unused, need to
+	free the original storage object in this case as suggested by
+	Tomas
+
+2012-01-02 Tomas Rybka <Tomas dot Rybka at solarwinds dot com>
+	* src/array_t.cpp:630 remove statements that swap the values of
+	the array because the array content is not to be changed in this
+	function
+
 2011-12-22 Tomas Rybka <Tomas dot Rybka at solarwinds dot com>
 	* src/bord.cpp: clean up temporary vector of bord::columns in
 	various merge functions
@@ -8,7 +29,7 @@
 	using a binary merging approach
 
 2011-12-20 John Wu <John dot Wu at ACM dot org>
-	* src/bord.cpp, src/bord.h: add special cases for megeing with two
+	* src/bord.cpp, src/bord.h: add special cases for mergeing with two
 	key columns
 	* tests/Makefile.am: update test case 18 and 19 to check for the
 	new functions

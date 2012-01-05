@@ -627,6 +627,8 @@ void ibis::part::genName(const ibis::resource::vList &mtags,
 	name = ibis::util::userName();
 } // ibis::part::genName
 
+/// Rename the partition to avoid conflicts with an existing list of
+/// data partitions.
 /// If the incoming name is empty, this function assigns the data partition
 /// a random name.  If it already has a name, it will append a random
 /// number at the end.  It will try as many random numbers as necessary to
@@ -712,6 +714,19 @@ void ibis::part::rename(const ibis::partAssoc& known) {
     // 	<< "]::rename failed to produce a name that is different from "
     // 	"those in a list of " << known.size() << " known partition"
     // 	<< (known.size()>1 ? "s" : "");
+} // ibis::part::rename
+
+/// Change the name of the data partition to the given name.  Nothing is
+/// done if the incoming argument is a nil pointer or points to a null
+/// string.
+///
+/// @note This function does not check that incoming name conforms to the
+/// SQL standard.
+void ibis::part::rename(const char *newname) {
+    if (newname == 0 || *newname == 0 || newname == m_name) return;
+
+    delete [] m_name;
+    m_name = ibis::util::strnewdup(newname);
 } // ibis::part::rename
 
 /// Determines where to store the data.
@@ -5750,8 +5765,9 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
     return hits.cnt();
 } // ibis::part::matchAny
 
-/// Actually compute the min and max of each attribute and write out a new
-/// metadata file for the data partition.
+/// Compute the min and max for each column.  Actually compute the min and
+/// max of each attribute and write out a new metadata file for the data
+/// partition.
 void ibis::part::computeMinMax() {
     for (columnList::iterator it=columns.begin(); it!=columns.end(); ++it) {
 	(*it).second->computeMinMax();

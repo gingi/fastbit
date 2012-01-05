@@ -397,8 +397,7 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 #endif
 } // ibis::array_t<T>::deepCopy
 
-/// Make a not-shared copy of the array if it is currently shared
-/// or read-only.
+/// Make a non-shared copy of the array.
 /// This function makes a copy of the current content if the content is
 /// shared by two or more clients.  This does not guarantee that it would
 /// not become shared later.  The complete solution is to implement
@@ -430,8 +429,18 @@ void ibis::array_t<T>::nosharing() {
 	tmp->beginUse();
 	m_begin = (T*)(tmp->begin());
 	m_end = (T*)(tmp->end());
-	if (actual != 0)
+	if (actual != 0) {
 	    actual->endUse();
+	    // multiple threads may simutaneously call endUse and leave the
+	    // original copy unused
+	    if (actual->inUse() == 0 && actual->filename() == 0 ) {
+		ibis::util::mutexLock lock(&(ibis::util::envLock),
+					   "array_t::nosharing");
+		if (actual->inUse() == 0)
+		    delete actual;
+		actual = 0;
+	    }
+	}
 	actual = tmp.release();
     }
 } // ibis::array_t<T>::nosharing
@@ -627,9 +636,6 @@ void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind) const {
     else if (size() == 2) {
 	ind.resize(2);
 	if (m_begin[1] < m_begin[0]) {
-	    const T tmp = m_begin[1];
-	    m_begin[1] = m_begin[0];
-	    m_begin[0] = tmp;
 	    ind[0] = 1;
 	    ind[1] = 0;
 	}

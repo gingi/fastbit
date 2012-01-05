@@ -647,15 +647,11 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 	}
     }
     if (brd1->nRows() == 0) {
-	if (ierr >= 0) { // return an empty table of type tabula
-	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- " << mesg << " failed to produce any result, "
-		"the last error code was " << ierr;
-	    return 0;
-	}
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << mesg << " failed to produce any result, "
+	    "the last error code was " << ierr;
+	// return an empty table of type tabula
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     }
     else if (brd1->nColumns() == 0) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
@@ -761,7 +757,8 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
     std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
-    int mergesFirst = sizeof(merges)/sizeof(merges[0]), mergesLast = 0;
+    unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
+	mergesLast = 0;
 
     // main loop through each data partition, fill the initial selection
     for (ibis::constPartList::const_iterator it = plist.begin();
@@ -799,7 +796,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 
 	    // find the merging accumulator index,
 	    // matching to the size of "merged-in" greouped partition.
-	    int lg2 = ibis::util::log2(tmp->nRows());
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
 	    if (lg2 < mergesFirst) mergesFirst = lg2;
 	    if (lg2 > mergesLast) mergesLast = lg2;
 
@@ -820,7 +817,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
 		    // find the suitable merging accumulator index for
 		    // the accumulator containing new data
-		    int newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
 		    // if it still matches the current index, no cascade merge
 		    if (newlg2 <= lg2)
 			break;
@@ -854,7 +851,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
-    for (int j = mergesFirst; j <= mergesLast; ++j) {
+    for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
 	    brd0 = merges[j];
@@ -879,7 +876,8 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 	}
     }
 
-    if (brd0.get() == 0) return 0;
+    if (brd0.get() == 0) // no answer
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     if (ibis::gVerbose > 2 && brd0.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " completed per partition aggregation to produce "
@@ -1033,15 +1031,10 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
 	}
     }
     if (brd1->nRows() == 0) {
-	if (ierr >= 0) { // return an empty table of type tabula
-	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- " << mesg << " failed to produce any result, "
-		"the last error code was " << ierr;
-	    return 0;
-	}
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << mesg << " failed to produce any result, "
+	    "the last error code was " << ierr;
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     }
     else if (brd1->nColumns() == 0) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
@@ -1144,7 +1137,8 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
     std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
-    int mergesFirst = sizeof(merges)/sizeof(merges[0]), mergesLast = 0;
+    unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
+	mergesLast = 0;
 
     // main loop through each data partition, fill the initial selection
     for (ibis::constPartList::const_iterator it = plist.begin();
@@ -1181,7 +1175,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 
 	    // find the merging accumulator index,
 	    // matching to the size of "merged-in" greouped partition.
-	    int lg2 = ibis::util::log2(tmp->nRows());
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
 	    if (lg2 < mergesFirst) mergesFirst = lg2;
 	    if (lg2 > mergesLast) mergesLast = lg2;
 
@@ -1202,7 +1196,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
 		    // find the suitable merging accumulator index for
 		    // the accumulator containing new data
-		    int newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
 		    // if it still matches the current index, no cascade merge
 		    if (newlg2 <= lg2)
 			break;
@@ -1236,7 +1230,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
-    for (int j = mergesFirst; j <= mergesLast; ++j) {
+    for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
 	    brd0 = merges[j];
@@ -1249,7 +1243,8 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 		    if (ierr < 0) {
 			LOGGER(ibis::gVerbose > 1)
 			    << "Warning -- " << mesg
-			    << " failed to merge partial results, ierr = " << ierr;
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
 			return 0;
 		    }
 		    // the result is the merged accumulator now
@@ -1260,7 +1255,8 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 	}
     }
 
-    if (brd0.get() == 0) return 0;
+    if (brd0.get() == 0) // no answer
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << mesg << " created an in-memory data partition with "
@@ -1449,15 +1445,10 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	}
     }
     if (brd1->nRows() == 0) {
-	if (ierr >= 0) { // return an empty table of type tabula
-	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- " << mesg << " failed to produce any result, "
-		"the last error code was " << ierr;
-	    return 0;
-	}
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << mesg << " failed to produce any result, "
+	    "the last error code was " << ierr;
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     }
     else if (brd1->nColumns() == 0) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
@@ -1766,15 +1757,10 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
 	}
     }
     if (brd1->nRows() == 0) {
-	if (ierr >= 0) { // return an empty table of type tabula
-	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << mesg << " failed to produce any result, "
-		"the last error code was " << ierr;
-	    return 0;
-	}
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << mesg << " failed to produce any result, "
+	    "the last error code was " << ierr;
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     }
     else if (brd1->nColumns() == 0) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
@@ -1882,7 +1868,8 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
     std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
-    int mergesFirst = sizeof(merges)/sizeof(merges[0]), mergesLast = 0;
+    unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
+	mergesLast = 0;
 
     // main loop through each data partition
     for (ibis::constPartList::const_iterator it = plist.begin();
@@ -1949,7 +1936,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 
 	    // find the merging accumulator index,
 	    // matching to the size of "merged-in" greouped partition.
-	    int lg2 = ibis::util::log2(tmp->nRows());
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
 	    if (lg2 < mergesFirst) mergesFirst = lg2;
 	    if (lg2 > mergesLast) mergesLast = lg2;
 
@@ -1970,7 +1957,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
 		    // find the suitable merging accumulator index for
 		    // the accumulator containing new data
-		    int newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
 		    // if it still matches the current index, no cascade merge
 		    if (newlg2 <= lg2)
 			break;
@@ -2004,7 +1991,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
-    for (int j = mergesFirst; j <= mergesLast; ++j) {
+    for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
 	    brd0 = merges[j];
@@ -2017,7 +2004,8 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 		    if (ierr < 0) {
 			LOGGER(ibis::gVerbose > 1)
 			    << "Warning -- " << mesg
-			    << " failed to merge partial results, ierr = " << ierr;
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
 			return 0;
 		    }
 		    // the result is the merged accumulator now
@@ -2028,7 +2016,8 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 	}
     }
 
-    if (brd0.get() == 0) return 0;
+    if (brd0.get() == 0) // no answer
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << mesg << " created an in-memory data partition with "
@@ -2144,7 +2133,8 @@ ibis::table* ibis::filter::sift2S
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
     std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
-    int mergesFirst = sizeof(merges)/sizeof(merges[0]), mergesLast = 0;
+    unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
+	mergesLast = 0;
 
     // main loop through each data partition
     for (unsigned j = 0; j < plist.size(); ++ j) {
@@ -2181,7 +2171,7 @@ ibis::table* ibis::filter::sift2S
 
 	    // find the merging accumulator index,
 	    // matching to the size of "merged-in" greouped partition.
-	    int lg2 = ibis::util::log2(tmp->nRows());
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
 	    if (lg2 < mergesFirst) mergesFirst = lg2;
 	    if (lg2 > mergesLast) mergesLast = lg2;
 
@@ -2202,7 +2192,7 @@ ibis::table* ibis::filter::sift2S
 		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
 		    // find the suitable merging accumulator index for
 		    // the accumulator containing new data
-		    int newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
 		    // if it still matches the current index, no cascade merge
 		    if (newlg2 <= lg2)
 			break;
@@ -2236,7 +2226,7 @@ ibis::table* ibis::filter::sift2S
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
-    for (int j = mergesFirst; j <= mergesLast; ++j) {
+    for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
 	    brd0 = merges[j];
@@ -2249,7 +2239,8 @@ ibis::table* ibis::filter::sift2S
 		    if (ierr < 0) {
 			LOGGER(ibis::gVerbose > 1)
 			    << "Warning -- " << mesg
-			    << " failed to merge partial results, ierr = " << ierr;
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
 			return 0;
 		    }
 		    // the result is the merged accumulator now
@@ -2260,7 +2251,8 @@ ibis::table* ibis::filter::sift2S
 	}
     }
 
-    if (brd0.get() == 0) return 0;
+    if (brd0.get() == 0) // no answer
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << mesg << " creates an in-memory data partition with "
@@ -2393,7 +2385,8 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
     std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
-    int mergesFirst = sizeof(merges)/sizeof(merges[0]), mergesLast = 0;
+    unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
+	mergesLast = 0;
 
     // main loop through each data partition, fill the initial selection
     for (size_t j = 0; j < plist.size(); ++ j) {
@@ -2470,7 +2463,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 
 	    // find the merging accumulator index,
 	    // matching to the size of "merged-in" greouped partition.
-	    int lg2 = ibis::util::log2(tmp->nRows());
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
 	    if (lg2 < mergesFirst) mergesFirst = lg2;
 	    if (lg2 > mergesLast) mergesLast = lg2;
 
@@ -2491,7 +2484,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
 		    // find the suitable merging accumulator index for
 		    // the accumulator containing new data
-		    int newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
 		    // if it still matches the current index, no cascade merge
 		    if (newlg2 <= lg2)
 			break;
@@ -2525,7 +2518,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
-    for (int j = mergesFirst; j <= mergesLast; ++j) {
+    for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
 	    brd0 = merges[j];
@@ -2538,7 +2531,8 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 		    if (ierr < 0) {
 			LOGGER(ibis::gVerbose > 1)
 			    << "Warning -- " << mesg
-			    << " failed to merge partial results, ierr = " << ierr;
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
 			return 0;
 		    }
 		    // the result is the merged accumulator now
@@ -2549,7 +2543,8 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 	}
     }
 
-    if (brd0.get() == 0) return 0;
+    if (brd0.get() == 0) // no answer
+	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << mesg << " creates an in-memory data partition with "

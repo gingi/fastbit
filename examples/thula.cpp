@@ -899,7 +899,7 @@ void doTest(const ibis::table& tbl) {
 	std::cout << "\n" << std::endl;
     }
 
-    if (testing > 0) {
+    if (testing > 1) {
 	ibis::util::logger lg;
 	lg() << "doTest completed with the following content in "
 	    "the memory cache\n";

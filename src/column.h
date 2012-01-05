@@ -460,15 +460,13 @@ class FASTBIT_CXX_DLLSPEC ibis::column::info {
     const double expectedMin;	///< The expected lower bound.
     const double expectedMax;	///< The expected upper bound.
     const ibis::TYPE_T type;	///< The type of the values.
-    info(const ibis::column& col)
-	: name(col.name()), description(col.description()),
-	  expectedMin(col.lowerBound()),
-	  expectedMax(col.upperBound()), type(col.type()) {};
+    info(const ibis::column& col);
     info(const info& rhs)
 	: name(rhs.name), description(rhs.description),
 	expectedMin(rhs.expectedMin),
 	expectedMax(rhs.expectedMax),
 	type(rhs.type) {};
+
  private:
     info();
     info& operator=(const info&);
