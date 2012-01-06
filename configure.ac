@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.2.6.4], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.2.6.5], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -733,7 +733,11 @@ AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile tests/Makefile
 	         java/Makefile contrib/fbmerge/Makefile])
 AC_CONFIG_FILES([tests/scripts/fastbit-config],
 		[chmod a+x tests/scripts/fastbit-config])
-#AC_CONFIG_COMMANDS([FastBit-prefix],
-#[sed -i .bak -e 's/ PACKAGE_/ FASTBIT_/' src/fastbit-config.h;
-#touch src/stamp-h1])
+AC_CONFIG_COMMANDS([FastBit-prefix],
+[rm -f src/stamp-h1;
+mv src/fastbit-config.h src/stamp-h1;
+sed -e 's/ PACKAGE_/ FASTBIT_/' src/stamp-h1 > src/fastbit-config.h;
+if test ! src/fastbit-config.h -nt src/stamp-h1; then sleep 1; touch src/fastbit-config.h; else :; fi
+])
+#
 AC_OUTPUT

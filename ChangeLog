@@ -1,3 +1,8 @@
+2012-01-05 John Wu <John dot Wu at ACM dot org>
+	* configure.ac, src/Makefile.am: adjust make script to work with
+	older version of make (with some previous versions of make, the
+	previous configuration files causes the make to rerun endlessly)
+
 2012-01-04 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/part.cpp: add another version of rename to take
 	a user-specified name
