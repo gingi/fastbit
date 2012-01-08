@@ -19,6 +19,7 @@
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
 #include <cmath>	// std::floor
+#include <iomanip>	// std::setprecision
 
 /// This function expects a valid data directory to find data partitions.
 /// If the incoming directory is not a valid string, it will use

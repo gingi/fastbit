@@ -11,6 +11,8 @@
 #endif
 #include "bitvector.h"
 
+#include <iomanip>	// setw
+
 // constances defined in bitvector
 const unsigned ibis::bitvector::MAXBITS =
 8*sizeof(ibis::bitvector::word_t) - 1;

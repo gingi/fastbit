@@ -9,8 +9,6 @@
 
 #include "array_t.h"	// alternative to std::vector
 
-#include <iomanip>	// setw
-
 #if defined(_MSC_VER) && defined(_WIN32)
 //disable warnings on extern before template instantiation
 #pragma warning (disable : 4231)
@@ -762,13 +760,6 @@ inline void ibis::bitvector::appendFill(int val, word_t n) {
 /// points to the next unused word and nw stores the value of remaining
 /// words to copy.
 inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
-#if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(ibis::gVerbose >= 0)
-	    << "bitvector::copy_runs(0x"
-	    << std::hex << std::setw(8) << std::setfill('0')
-	    << *(it.it) << ", " << std::dec << nw
-	    << ") ... it.nWords = " << it.nWords;
-#endif
     // deal with the first word -- attach it to the last word in m_vec
     if (it.isFill != 0) {
 	append_counter(it.fillBit, it.nWords);
@@ -802,13 +793,6 @@ inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 /// Copy the complements of a set of consecutive runs.  It assumes that
 /// active is empty.
 inline void ibis::bitvector::copy_runsn(run& it, word_t& nw) {
-#if defined(DEBUG) && DEBUG + 0 > 1
-	LOGGER(ibis::gVerbose >= 0)
-	    << "bitvector::copy_runsn(0x"
-	    << std::hex << std::setw(8) << std::setfill('0')
-	    << *(it.it) << ", " << std::dec << nw
-	    << ") ... it.nWords = " << it.nWords;
-#endif
     // deal with the first word -- need to attach it to the last word in m_vec
     if (it.isFill != 0) {
 	append_counter(!it.fillBit, it.nWords);

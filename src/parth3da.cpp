@@ -7,6 +7,7 @@
 #include "part.h"
 #include <math.h>	// floor
 #include <typeinfo>	// typeid
+#include <iomanip>	// setw, setprecision
 
 /// The three triplets, (begin1, end1, stride1), (begin2, end2, stride2),
 /// and (begin3, end3, stride3), defines <tt> (1 + floor((end1 - begin1) /

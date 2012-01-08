@@ -10,6 +10,7 @@
 #include <math.h>	// ceil, log, exp
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
+#include <iomanip>	// setw, setprecision
 
 // This file definte does not use the min and max macro.  Their presence
 // could cause the calls to numeric_limits::min and numeric_limits::max to

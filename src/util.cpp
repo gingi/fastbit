@@ -65,7 +65,7 @@ const int ibis::util::log2table[256] = {
 #undef X
 };
 
-/// Initialize the global variable for holding all the datasets.
+/// The global variable holding all the data partitions.
 ibis::partList ibis::datasets;
 
 // file scope variables

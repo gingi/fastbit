@@ -12,17 +12,21 @@ if (${HOSTNAME} =~ m/bit\.[lbl.gov|local]/) {
 # on John's machine, enable maintainer mode, use debug options
     $cmd="./configure --prefix=${HOME}/Darwin/fastbit --enable-maintainer-mode --with-java CFLAGS='-g -O0 -m64 -Wall' CXXFLAGS='-g -O0 -m64 -Wall'";
 }
-elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/ ) {
-# on hopper at NERSC, use the default Cray compilers wrappers, no debugging
-    $cmd="./configure CC=cc CXX=CC --disable-shared --without-getpwuid --disable-debug --enable-xopt --without-java --prefix=/project/projectdirs/m1248/hopper/fastbit";
-}
-elsif (${HOSTNAME} =~ m/^fr\w+[.nersc.gov]?$/ ) {
-# on franklin at NERSC, use the default compilers, no debugging
-    $cmd="./configure --disable-shared --without-getpwuid --disable-debug --enable-xopt --without-java --prefix=/project/projectdirs/m1248/franklin/fastbit";
-}
 elsif (${HOSTNAME} =~ m/^d\w+[.lbl.gov]?$/) {
 # on sdm group's linux machines, know where is java and where to install
     $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.6.0_24 --prefix=/data/john/Linux";
+}
+elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/) {
+# on hopper at NERSC, use the default GCC compilers, no debugging # Cray compilers wrappers CC=cc CXX=CC
+    $cmd="./configure --disable-shared --without-getpwuid --disable-debug --enable-xopt --without-java --prefix=/project/projectdirs/m1248/hopper/fastbit";
+}
+elsif (${HOSTNAME} =~ m/^fra\w+[\.nersc\.gov]?$/) {
+# on franklin at NERSC, use the default compilers, no debugging
+    $cmd="./configure --disable-shared --without-getpwuid --disable-debug --enable-xopt --without-java --prefix=/project/projectdirs/m1248/franklin/fastbit";
+}
+elsif (${HOSTNAME} =~ m/\.nersc\.gov$/) {
+# on other NERSC machines, use the default compilers, no debugging
+    $cmd="./configure --disable-shared --without-getpwuid --disable-debug --enable-xopt";
 }
 else { # use all default options on generic linux/unix machines
     $cmd="./configure --prefix=${PWD}";

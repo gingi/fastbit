@@ -13,6 +13,7 @@
 #include "bundle.h"	// ibis::bundle
 #include "ikeywords.h"	// ibis::keyword::tokenizer
 
+#include <iomanip>	// std::setprecision
 #include <limits>	// std::numeric_limits
 #include <sstream>	// std::ostringstream
 #include <typeinfo>	// std::typeid
@@ -1687,6 +1688,138 @@ int ibis::bord::dump(std::ostream& out, uint64_t offset, uint64_t nr,
 	ierr = -4;
     return ierr;
 } // ibis::bord::dump
+
+int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
+    int ierr = -1;
+    if (buffer == 0) {
+	out << "(no data in memory)";
+	return ierr;
+    }
+
+    switch (m_type) {
+    case ibis::BYTE: {
+	const array_t<signed char>* vals =
+	    static_cast<const array_t<signed char>*>(buffer);
+	if (i < vals->size()) {
+	    out << (int)((*vals)[i]);
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::UBYTE: {
+	const array_t<unsigned char>* vals =
+	    static_cast<const array_t<unsigned char>*>(buffer);
+	if (i < vals->size()) {
+	    out << (unsigned)((*vals)[i]);
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::SHORT: {
+	const array_t<int16_t>* vals =
+	    static_cast<const array_t<int16_t>*>(buffer);
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::USHORT: {
+	const array_t<uint16_t>* vals =
+	    static_cast<const array_t<uint16_t>*>(buffer);
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::INT: {
+	const array_t<int32_t>* vals =
+	    static_cast<const array_t<int32_t>*>(buffer);
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::UINT: {
+	const array_t<uint32_t>* vals =
+	    static_cast<const array_t<uint32_t>*>(buffer);
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::LONG: {
+	const array_t<int64_t>* vals =
+	    static_cast<const array_t<int64_t>*>(buffer);
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::ULONG: {
+	const array_t<uint64_t>* vals =
+	    static_cast<const array_t<uint64_t>*>(buffer);
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::FLOAT: {
+	const array_t<float>* vals =
+	    static_cast<const array_t<float>*>(buffer);
+	if (i < vals->size()) {
+	    out << std::setprecision(7) << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::DOUBLE: {
+	const array_t<double>* vals =
+	    static_cast<const array_t<double>*>(buffer);
+	if (i < vals->size()) {
+	    out << std::setprecision(15) << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	std::string tmp;
+	getString(i, tmp);
+	out << '"' << tmp << '"';
+	ierr = 0;
+	break;}
+    default: {
+	ierr = -2;
+	break;}
+    }
+    return ierr;
+} // ibis::bord::column::dump
 
 /// Write the content of partition into the specified directory dir.  The
 /// directory dir must be writable.  If the second and third arguments are

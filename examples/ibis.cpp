@@ -122,6 +122,7 @@
 #include <sstream>	// std::ostringstream
 #include <algorithm>	// std::sort
 #include <memory>	// std::auto_ptr
+#include <iomanip>	// std::setprecision
 
 /// The data structure for holding information about query jobs for
 /// multi-threaded testing.

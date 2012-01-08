@@ -990,10 +990,10 @@ $(TESTDIR)/smallmem3.rc: TESTDIR
 clean: clean-am
 	-rm -f *~ core core.[0-9]*
 	-rm -rf $(TESTDIR) tmp .ibis star2002*
-	-rm -f readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} jrf${EXEEXT}
+	-rm -f readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} jrf${EXEEXT} *.exe
 clean-tmp:
 	-rm -rf tmp .ibis
-distclean: distclean-am
+distclean: distclean-am clean
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 #

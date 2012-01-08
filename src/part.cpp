@@ -2027,29 +2027,26 @@ void ibis::part::readRIDs() const {
     if (activeDir == 0) return;
 
     readLock lock(this, "readRIDs");
-    if (rids) {
-	if (rids->size() == nEvents)
-	    return;
-	else
-	    delete rids;
-    }
+    if (rids != 0 && rids->size() == nEvents)
+	return;
+
+    ibis::util::mutexLock mtx(&mutex, "part::readRIDs");
+    delete rids;
+    rids = new array_t<ibis::rid_t>;
 
     std::string fn(activeDir);
     fn += FASTBIT_DIRSEP;
     fn += "-rids";
-    rids = new array_t<ibis::rid_t>;
     if (ibis::fileManager::instance().getFile(fn.c_str(), *rids)) {
 	LOGGER(ibis::gVerbose > 4)
 	    << "part[" << name() << "]::readRIDs -- the file manager "
 	    "failed to read file \"" << fn << "\".  There is no RIDs.";
 	rids->clear();
     }
-    if (nEvents != rids->size() && rids->size() > 0) {
-	LOGGER(ibis::gVerbose > 2)
-	    <<  "part[" << name() << "]::readRIDs -- nEvents (" << nEvents
-	    << ") is different from the number of RIDs (" << rids->size()
-	    << ").";
-    }
+    LOGGER(nEvents != rids->size() && rids->size() > 0 && ibis::gVerbose > 2)
+	<< "Warning -- part[" << name() << "]::readRIDs -- nEvents ("
+	<< nEvents << ") is different from the number of RIDs ("
+	<< rids->size() << ")";
 } // ibis::part::readRIDs
 
 /// If only complete the task if it can acquire a write lock on the
@@ -2379,20 +2376,20 @@ ibis::part::getRIDs(const ibis::bitvector &mask) const {
 	return ret;
     if (rids == 0)
 	readRIDs(); // attempt to read the file rids
-    else if (rids->size() == 0)
-	readRIDs();
+    // else if (rids->size() == 0)
+    // 	readRIDs();
 
     ret->reserve(cnt);
     ibis::bitvector::indexSet ind = mask.firstIndexSet();
-    if (rids !=0 && rids->size() > 0) { // has rids specified
+    if (rids != 0 && rids->size() > 0) { // has rids specified
 	readLock lock(this, "getRIDs");
 	const uint32_t nmask = mask.size();
 	const uint32_t nrids = rids->size();
-	if (nrids != nmask)
-	    logMessage("getRIDs", "number of RIDs (%lu) does not match the "
-		       "size of the mask (%lu)",
-		       static_cast<long unsigned>(nrids),
-		       static_cast<long unsigned>(nmask));
+	LOGGER(nrids != nmask && ibis::gVerbose > 1)
+	    << "Warning -- part[" << name()
+	    << "]::getRIDs found the number of RIDs (" << nrids
+	    << ") to be different from the size of the mask ("
+	    << nmask << ')';
 	if (nrids >= nmask) { // more RIDS than mask bits
 	    while (ind.nIndices()) {    // copy selected elements
 		const uint32_t nind = ind.nIndices();
@@ -2454,11 +2451,9 @@ ibis::part::getRIDs(const ibis::bitvector &mask) const {
 	}
     }
 
-    if (ret->size() != cnt) {
-	logWarning("getRIDs", "expected to get %lu RIDs, but actually "
-		   "got %lu", static_cast<long unsigned>(cnt),
-		   static_cast<long unsigned>(ret->size()));
-    }
+    LOGGER(ret->size() != cnt && ibis::gVerbose > 0)
+	<< "Warning -- part[" << name() << "]::getRIDs expected to get "
+	<< cnt << " RIDs, but actually got " << ret->size();
     return ret;
 } // ibis::part::getRIDs
 
@@ -3100,7 +3095,7 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 				ibis::bitvector &hits) const {
     if (in.empty() || nEvents == 0)
 	return 0;
-    if (rids && rids->size() > 0) {
+    if (rids != 0 && rids->size() > 0) {
 	try {
 	    sortRIDs(); // make sure the file -rids.srt is up-to-date
 	    searchSortedRIDs(in, hits);
@@ -3115,11 +3110,9 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 	    hits.setBit(static_cast<unsigned>(in[i].value), 1);
 	hits.adjustSize(0, nEvents); // size the bitvector hits
     }
-    if (ibis::gVerbose > 4)
-	logMessage("evaluateRIDSet", "found %lu out of %lu rid%s",
-		   static_cast<long unsigned>(hits.cnt()),
-		   static_cast<long unsigned>(in.size()),
-		   (in.size()>1 ? "s" : ""));
+    LOGGER(ibis::gVerbose > 4)
+	<< "part[" << name() << "]::evaluateRIDSet found " << hits.cnt()
+	<< " out of " << in.size() << " rid" << (in.size()>1 ? "s" : "");
     return hits.cnt();
 } // ibis::part::evaluateRIDSet
 

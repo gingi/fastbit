@@ -1,7 +1,22 @@
+2012-01-08 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: add mutex lock to ibis::part::readRIDs based on
+	the suggestion from Dominique Prunier
+
+2012-01-07 John Wu <John dot Wu at ACM dot org>
+	* runconfig: use GCC on NERSC machines to avoid problems with
+	FastQuery and other software packages
+
+2012-01-06 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.h, src/bitvector64.h: move iomanip out of the .h
+	files into the .cpp files (might reduce compilation time)
+
 2012-01-05 John Wu <John dot Wu at ACM dot org>
 	* configure.ac, src/Makefile.am: adjust make script to work with
 	older version of make (with some previous versions of make, the
-	previous configuration files causes the make to rerun endlessly)
+	previous configuration files causes the make to rerun endlessly.
+	Note that the repeated builds apparently can be caused by stale
+	.deps information as well.  Need to remove .deps when moving to a
+	new platform.)
 
 2012-01-04 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/part.cpp: add another version of rename to take

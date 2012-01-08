@@ -10,8 +10,6 @@
 #include "array_t.h"	// alternative to std::vector
 
 #include <stdio.h>	// sprintf
-#include <limits.h>	// INT_MAX
-#include <iomanip>	// setw()
 
 
 /**
@@ -613,13 +611,6 @@ inline void ibis::bitvector64::appendFill(int val,
 // append nw words starting from 'it' to the current bit vector -- assume
 // active is empty
 inline void ibis::bitvector64::copy_runs(run& it, word_t& nw) {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< "bitvector64::copy_runs(0x"
-	<< std::hex << std::setw(8) << std::setfill('0')
-	<< *(it.it) << ", " << std::dec << nw
-	<< ") ... it.nWords = " << it.nWords;
-#endif
     // deal with the first word -- need to attach it to the last word in m_vec
     if (it.isFill) {
 	append_counter(it.fillBit, it.nWords);
@@ -647,13 +638,6 @@ inline void ibis::bitvector64::copy_runs(run& it, word_t& nw) {
 // append nw words starting from it to the current bit vector -- assume
 // active is empty
 inline void ibis::bitvector64::copy_runsn(run& it, word_t& nw) {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< "bitvector64::copy_runsn(0x"
-	<< std::hex << std::setw(8) << std::setfill('0')
-	<< *(it.it) << ", " << std::dec << nw
-	<< ") ... it.nWords = " << it.nWords;
-#endif
     // deal with the first word -- need to attach it to the last word in m_vec
     if (it.isFill) {
 	append_counter(!it.fillBit, it.nWords);

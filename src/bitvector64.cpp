@@ -11,6 +11,7 @@
 #endif
 #include "bitvector64.h"
 #include "bitvector.h"
+#include <iomanip>	// setw()
 
 // constances defined in bitvector64
 const unsigned ibis::bitvector64::MAXBITS = 63;
