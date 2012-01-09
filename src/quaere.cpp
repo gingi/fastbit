@@ -1,6 +1,6 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2010-2011 the Regents of the University of California
+// Copyright 2010-2012 the Regents of the University of California
 #include "jnatural.h"	// ibis::jNatural
 #include "jrange.h"	// ibis::jRange
 #include "filter.h"	// ibis::filter

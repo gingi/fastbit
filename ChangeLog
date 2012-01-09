@@ -1,6 +1,8 @@
 2012-01-08 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: add mutex lock to ibis::part::readRIDs based on
 	the suggestion from Dominique Prunier
+	* *: update copyright year to 2012 in preparation for the next
+	public release
 
 2012-01-07 John Wu <John dot Wu at ACM dot org>
 	* runconfig: use GCC on NERSC machines to avoid problems with

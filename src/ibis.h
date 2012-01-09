@@ -1,7 +1,7 @@
 // $Id$
 //	Author: John Wu <John.Wu at ACM.org>
 //              Lawrence Berkeley National Laboratory
-//	Copyright 2000-2011 the Regents of the University of California
+//	Copyright 2000-2012 the Regents of the University of California
 #ifndef IBIS_H
 #define IBIS_H
 /// @file ibis.h
@@ -24,7 +24,7 @@
 
 /*! \mainpage Overview of FastBit IBIS Implementation
 
-\date 2011
+\copyright 2000-2012
 
 \author <A HREF="http://lbl.gov/~kwu/">John Wu</A>,
 <A HREF="http://sdm.lbl.gov/">Scientific Data Management</A>,

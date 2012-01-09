@@ -1,5 +1,5 @@
 // $Id$
-// Copyright 2003-2011 the Regents of the University of California
+// Copyright 2003-2012 the Regents of the University of California
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 #ifndef IBIS_RIDS_H
