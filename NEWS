@@ -1,4 +1,4 @@
-
+Mon Jan  9 18:04:47 PST 2012
 Version ibis1.2.7
 -- Tomas Rybka implemented algorithm to perform binary merge to reduce
    the number of copies made during the merging of partial results
