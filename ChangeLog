@@ -46,7 +46,7 @@
 	various merge functions
 
 2011-12-21 Tomas Rybka <Tomas dot Rybka at solarwinds dot com>
-	* src/filter.cpp, src/util.h, src/util.cpp: reduce the tim needed
+	* src/filter.cpp, src/util.h, src/util.cpp: reduce the time needed
 	for merging partial results from different data partitions by
 	using a binary merging approach
 

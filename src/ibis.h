@@ -24,16 +24,16 @@
 
 /*! \mainpage Overview of FastBit IBIS Implementation
 
-\copyright 2000-2012
-
 \author <A HREF="http://lbl.gov/~kwu/">John Wu</A>,
 <A HREF="http://sdm.lbl.gov/">Scientific Data Management</A>,
-<A HREF="http://www.lbl.gov/">Lawrence Berkeley National Lab</A>,
-<A HREF="http://www.universityofcalifornia.edu/">University of California</A>
+<A HREF="http://www.lbl.gov/">Lawrence Berkeley National Lab</A>
 \n With additional contributors listed in files
 <A HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/AUTHORS?root=fastbit&view=markup">AUTHORS</A>
 and
 <A HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>.
+
+\copyright 2000-2012
+<A HREF="http://www.universityofcalifornia.edu/">University of California</A>
 
 \section intro Introduction
 FastBit is an open-source data processing library in the spirit of

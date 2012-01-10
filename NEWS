@@ -1,3 +1,13 @@
+
+Version ibis1.2.7
+-- Tomas Rybka implemented algorithm to perform binary merge to reduce
+   the number of copies made during the merging of partial results
+-- update configure script to better interact with older versions of
+   make
+-- update lock handling in array_t::nosharing (suggested by Tomas Rybka)
+   and in part::readRIDs (suggested by Dominique Prunier)
+
+
 Mon Dec 12 21:43:53 PST 2011
 Version ibis1.2.6
 -- clean up the functions to merge partial aggregation results with the
