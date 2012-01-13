@@ -342,6 +342,8 @@ public:
 
     /// Move to the next row/record of results.
     bool next();
+    /// Jump to the next bundle of results.
+    bool nextBundle();
     /// Move the internal pointer back to the beginning.  Must call @c next
     /// to use the first set of results.
     void reset();

@@ -4990,9 +4990,9 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 
     ibis::index* tmp = idx;
     try { // if an index is not available, create one
-	if (ibis::gVerbose > 7)
-	    logMessage("loadIndex", "loading the index from %s",
-		       thePart->currentDataDir());
+	LOGGER(ibis::gVerbose > 7)
+	    << "column[" << thePart->name() << '.' << name()
+	    <<"]::loadIndex -- loading the index from " << thePart->currentDataDir();
 	if (tmp == 0) {
 	    tmp = ibis::index::create(this, thePart->currentDataDir(),
 				      iopt, ropt);
@@ -5012,31 +5012,27 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	}
 
 	if (tmp->getNRows()
-#if defined(DELETE_INDEX_ON_SIZE_MISMATCH)
+#if defined(FASTBIT_REBUILD_INDEX_ON_SIZE_MISMATCH)
 	    !=
 #else
 	    >
 #endif
 	    thePart->nRows()) {
-	    if (ibis::gVerbose > 2)
-		logMessage("loadIndex", "found an index with nRows=%lu, "
-			   "but the data partition nRows=%lu, try to "
-			   "recreate the index",
-			   static_cast<unsigned long>(tmp->getNRows()),
-			   static_cast<unsigned long>(thePart->nRows()));
+	    LOGGER(ibis::gVerbose > 2)
+		<< "column[" << thePart->name() << '.' << name()
+		<<"]::loadIndex found an index with nRows=" << tmp->getNRows()
+		<< ", but the data partition nRows=" << thePart->nRows()
+		<< ", try to recreate the index";
 	    delete tmp;
 	    // create a brand new index from data in the current working
 	    // directory
 	    tmp = ibis::index::create(this, static_cast<const char*>(0), iopt);
 	    if (tmp != 0 && tmp->getNRows() != thePart->nRows()) {
-		if (ibis::gVerbose > 0)
-		    logWarning("loadIndex",
-			       "created an index with nRows=%lu, "
-			       "but the data partition nRows=%lu, "
-			       "failed on retry!",
-			       static_cast<unsigned long>(tmp->getNRows()),
-			       static_cast<unsigned long>
-			       (thePart->nRows()));
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- column[" << thePart->name() << '.' << name()
+		    <<"]::loadIndex created an index with nRows=" << tmp->getNRows()
+		    << ", but the data partition nRows=" << thePart->nRows()
+		    << ", failed on retry!";
 		delete tmp;
 		purgeIndexFile();
 	    }
@@ -6368,10 +6364,12 @@ long ibis::column::append(const char* dt, const char* df,
     //////////////////////////////////////////////////
     // deal with the index
     ibis::index* ind = 0;
-    j = filename.size();
-    filename[--j] = 'x'; // msk --> idx
-    filename[--j] = 'd';
-    filename[--j] = 'i';
+    j = filename.size()-1;
+    filename[j] = 'x'; // msk --> idx
+    -- j;
+    filename[j] = 'd';
+    -- j;
+    filename[j] = 'i';
     j = ibis::util::getFileSize(filename.c_str());
     if (thePart->getState() == ibis::part::TRANSITION_STATE) {
 	if (thePart->currentDataDir() != 0) {
@@ -10507,6 +10505,37 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     hits.adjustSize(0, vals.size());
     return 0;
 } // ibis::column::searchSortedICD
+
+template int ibis::column::searchSortedICD
+(const array_t<signed char>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<unsigned char>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<int16_t>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<uint16_t>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<int32_t>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<uint32_t>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<int64_t>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<uint64_t>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<float>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICD
+(const array_t<double>&, const ibis::qDiscreteRange&,
+ ibis::bitvector&) const;
 
 /// This version of search function reads the content of data file through
 /// explicit read operations.  It sequentially reads the content of the

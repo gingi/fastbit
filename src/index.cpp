@@ -51,14 +51,11 @@ namespace std { // specialize the std::less struct
 ////////////////////////////////////////////////////////////////////////
 // functions from ibis::index
 
-/// Index factory.
-/// It creates a specific concrete index object.  If this function
-/// fails to read the specified index file, it attempts to create a
-/// new index based on the current data file and index specification.
-/// The new index will be written under the old name.
-///
-/// This function returns nil if it fails to create an index.  It captures
-/// and absorbs exceptions in most cases.
+/// Index factory.  It creates a specific concrete index object.  It
+/// attempts to read the existing index if a location is specified.  If it
+/// fails to read an index or no expilicit location is given, it attempts
+/// to create a new index based on the current data file and index
+/// specification.  Any newly created index will be written to a file.
 ///
 /// @param c a pointer to a ibis::column object.  This argument must be
 /// present.
@@ -74,9 +71,6 @@ namespace std { // specialize the std::less struct
 /// to the return value of function indexSpec.  The argument dfname can be
 /// nil, in which case, the data file name is constructed by concatenate
 /// the return of partition()->currentDataDir() and the column name.
-///
-/// @note Set @c name to null to build a brand new index and discard
-/// the existing index.
 ///
 /// @param spec the index specification.  This string contains the
 /// parameters for how to create an index.  The most general form is
@@ -94,60 +88,77 @@ namespace std { // specialize the std::less struct
 ///
 /// If the argument @c spec is not specified, this function checks the
 /// specification in the following order.
-/// <ol>
-/// <li> use the index specification for the column being indexed;
-/// <li> use the index specification for the table containing the
-/// column being indexed;
-/// <li> use the most specific index specification relates to the
-/// column be indexed in the global resources (gParameters).
-/// </ol>
-/// It stops looking as soon as it finds the first non-empty string.
-/// To override any general index specification, one must provide a
-/// complete index specification string.
+///
+/// -- use the index specification for the column being indexed;
+/// -- use the index specification for the table containing the
+///    column being indexed;
+/// -- use the most specific index specification relates to the
+///    column be indexed in the global resources (gParameters).
+///
+/// It stops looking as soon as it finds the first non-empty string, which
+/// follows the principle of a more specific index specification override a
+/// general specification.
 ///
 /// @param readopt Depending on whether this value is positive, zero or
 /// negative, the index is read from the index file in three different
-/// ways.  (1) If this value is positive, the content of the index file is
-/// read into memory and there is no need for further I/O operation to use
-/// the index.  (2) If this value is zero, the content of a large index
-/// file is loaded into memory through memory map and the content of a
-/// small index file will be read into memory.  This is the default option.
+/// ways.
+///
+/// (1) If this value is positive, the content of the index file is read
+/// into memory and there is no need for further I/O operation to use the
+/// index.
+///
+/// (2) If this value is zero, the content of a large index file is loaded
+/// into memory through memory map and the content of a small index file
+/// will be read into memory.  This is the default option.
+///
 /// (3) If this value is negative, then only the metadata is read into
 /// memory.  This option requires the least amount of memory, but requires
 /// more I/O operations later when bitmaps are needed to answer queries.
 /// To use option (1) and (2), there must be enough memory to hold the
 /// index file in memory.  Furthermore, to use the memory map option,
 /// FastBit must be able to hold the index file open indefinitely and the
-/// operating system must support memory map function mmap.  Note that
-/// three options have different start up cost and different query
-/// processing cost.  Typically, reading the whole file in this function
-/// will take the longest, but since it requires no further I/O operations,
-/// its query processing cost is likely the lowest.  The memory map option
-/// only need to load the page table into memory and read part of the
-/// metadata, it is likely to be relatively inexpensive to reconstruct the
-/// index object this way.  Since the memory map option can read the
-/// necessary portion of the index file into memory pretty efficiently, the
-/// query processing cost should have reasonable performance.  The third of
-/// reading metadata only in this function requires the least amount of
-/// memory, but it might actually read more bytes in this function than the
-/// memory map option because this option actually needs to read all the
-/// bytes representing the metadata while the memory map option only need
-/// to create a memory map for the index file.  Later when the index is
-/// used, the needed bitmaps are read into memory, which is likely take
-/// more time than accessing the memory mapped bitmaps.  Additionally, the
-/// third option also causes the bitmaps to be placed in unpredictable
-/// memory locations, while the first two options place all bitmaps of an
-/// index consecutively in memory.  This difference in memory layout could
-/// cause the memory accesses to take different amounts of time; typically,
-/// accessing consecutive memory locations is more efficient.  The default
-/// value of this argument is 0, which prefers the memory map option.
+/// operating system must support memory map function mmap.
 ///
-/// @note An index can not be built correctly if it does not fit in memory!
+/// These three options have different start up cost and different query
+/// processing cost.  Typically, reading the whole file in this function
+/// will take the longest time, but since it requires no further I/O
+/// operations, its query processing cost is likely the lowest.  The memory
+/// map option only need to load the page table into memory and read part
+/// of the metadata, it is likely to be relatively inexpensive to
+/// reconstruct the index object this way.  Since the memory map option can
+/// read the necessary portion of the index file into memory pretty
+/// efficiently, the query processing cost should have reasonable
+/// performance.  The third of reading metadata only in this function
+/// requires the least amount of memory, but it might actually read more
+/// bytes in this function than the memory map option because this option
+/// actually needs to read all the bytes representing the metadata while
+/// the memory map option only need to create a memory map for the index
+/// file.  Later when the index is used, the needed bitmaps are read into
+/// memory, which is likely take more time than accessing the memory mapped
+/// bitmaps.  Additionally, the third option also causes the bitmaps to be
+/// placed in unpredictable memory locations, while the first two options
+/// place all bitmaps of an index consecutively in memory.  This difference
+/// in memory layout could cause the memory accesses to take different
+/// amounts of time; typically, accessing consecutive memory locations is
+/// more efficient.
+///
+/// The default value of @c readopt is 0, which prefers the memory map
+/// option.
+///
+/// @return This function returns a pointer to the index created.  The
+/// caller is responsible for freeing the pointer.  In case of error, it
+/// returns a nil pointer.  It captures and absorbs exceptions in most
+/// cases.
+///
+/// @note An index can NOT be built correctly if it does not fit in memory!
 /// This is the most likely reason for failure in this function.  If this
 /// does happen, try to build indexes one at a time, use a machine with
 /// more memory, or break up a large partition into a number of smaller
 /// ones.  Normally, we recommand one to not put much more than 100 million
 /// rows in a data partition.
+///
+/// @note Set @c dfname to null to build a brand new index and discard
+/// the existing index.
 ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 				 const char* spec, int readopt) {
     ibis::index* ind = 0;

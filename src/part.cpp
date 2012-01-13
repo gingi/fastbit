@@ -183,10 +183,10 @@ extern "C" {
 		    if (! (col->upperBound() >= col->lowerBound()))
 			col->computeMinMax();
 		    col->loadIndex(pool.opt);
-		    if (col->indexedRows() <= (pool.tbl.nRows() >> 1)) {
-			// rebuild the index if the existing covers less
-			// than half of the all rows.  Use this doubling to
-			// avoid excessive cost of repeated building indexes
+		    if (col->indexedRows() != pool.tbl.nRows()) {
+			// rebuild the index if the existing one does not
+			// have the same number of rows as the current data
+			// partition
 			col->unloadIndex();
 			col->purgeIndexFile();
 			std::auto_ptr<ibis::index>
@@ -19707,6 +19707,42 @@ template long
 ibis::part::doCompare<signed char>
 (const ibis::array_t<signed char>&, const ibis::qRange&,
  const ibis::bitvector&, ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<unsigned char>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<int16_t>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<uint16_t>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<int32_t>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<uint32_t>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<int64_t>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<uint64_t>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<float>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
+template long
+ibis::part::doCompare(const array_t<double>&,
+		      const ibis::qRange&, const ibis::bitvector&,
+		      ibis::bitvector&);
 template long
 ibis::part::doCompare<signed char>
 (const char*, const ibis::qRange&,

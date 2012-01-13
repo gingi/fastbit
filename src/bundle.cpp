@@ -355,7 +355,7 @@ void ibis::bundle0::printAll(std::ostream& out) const {
 /// Constructor.  It attempt to read to read a bundle from files first.  If
 /// that fails, it attempts to create a bundle based on the current hits.
 ibis::bundle1::bundle1(const ibis::query& q)
-    : bundle(q), aggr(comps.getAggregator(0)) {
+    : bundle(q), col(0), aggr(comps.getAggregator(0)) {
     if (q.getNumHits() == 0)
 	return;
 
@@ -535,7 +535,7 @@ ibis::bundle1::bundle1(const ibis::query& q)
 
 /// Constructor.  It creates a bundle using the rows selected by hits.
 ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
-    : bundle(q, hits), aggr(comps.getAggregator(0)) {
+    : bundle(q, hits), col(0), aggr(comps.getAggregator(0)) {
     if (hits.cnt() == 0)
 	return;
 
@@ -651,7 +651,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
 
     ibis::column* c = 0;
     if (tm->termType() == ibis::math::VARIABLE)
-	c = tbl.getColumn(static_cast<const ibis::math::variable*>(tm)->variableName());
+	c = tbl.getColumn(static_cast<const ibis::math::variable*>(tm)->
+			  variableName());
     if (c == 0)
 	c = tbl.getColumn(comps.aggName(icol));
     if (c == 0) {
@@ -2442,6 +2443,23 @@ bool ibis::query::result::next() {
     }
     return ret;
 } // ibis::query::result::next
+
+bool ibis::query::result::nextBundle() {
+    bool ret = false;
+    if (bdl_ == 0)
+	return ret;
+    const uint32_t bsize = bdl_->size();
+    if (bid_ < bsize) {
+	ret = true;
+	lib_ = bdl_->numRowsInBundle(bid_) - 1;
+	++ bid_;
+    }
+    else if (bid_ == bsize) {
+	lib_ = 0;
+	++ bid_;
+    }
+    return ret;
+} // ibis::query::result::nextBundle
 
 void ibis::query::result::reset() {
     bid_ = 0;

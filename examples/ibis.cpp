@@ -140,7 +140,7 @@ struct thArg {
 static unsigned testing = 0;
 static unsigned threading = 0;
 static unsigned build_index = 0;
-// <0 skip estimate, =0 do estimation, >0 estimation only
+// <0 skip estimation, =0 do estimation, >0 estimation only
 static int estimate_opt = -1;
 static bool sequential_scan = false;
 static bool verify_rid = false;

@@ -187,6 +187,8 @@ extern "C" {
 
     ///@brief Returns 0 if there are more results, otherwise returns -1.
     FASTBIT_DLLSPEC int fastbit_result_set_next(FastBitResultSetHandle rset);
+    ///@brief Returns 0 if there are more bundles, otherwise returns -1.
+    FASTBIT_DLLSPEC int fastbit_result_set_next_bundle(FastBitResultSetHandle rset);
     ///@brief Get the value of the named column as an integer.
     FASTBIT_DLLSPEC int
     fastbit_result_set_get_int(FastBitResultSetHandle rset, const char *cname);

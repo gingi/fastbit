@@ -1,3 +1,19 @@
+2012-01-13 Dominique Prunier <dominique dot prunier at watch4net dot com>
+	* src/bundle.cpp: missing initialization in bundle1 generating a
+	segmentation fault
+
+2012-01-12 Dominique Prunier <dominique dot prunier at watch4net dot com>
+	* src/bundle.h, src/bundle.cpp, src/capi.h, src/capi.cpp: add
+	function to go to next bundle with different values
+
+2012-01-11 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: change ibis_part_build_indexes to rebuild the
+	index is the existing does not have the same number of rows
+
+2012-01-10 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp, src/column.cpp: add more explicit template
+	instantiation to satisfy FastQuery on hopper
+
 2012-01-08 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: add mutex lock to ibis::part::readRIDs based on
 	the suggestion from Dominique Prunier
