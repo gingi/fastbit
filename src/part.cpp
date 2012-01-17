@@ -5861,11 +5861,10 @@ int ibis::part::buildIndexes(const char* iopt, int nthr) {
 	for (int i = 0; i < nthr; ++ i) {
 	    void *j;
 	    pthread_join(tid[i], &j);
-	    if (j != 0) {
-		logWarning("buildIndexes", "thread # %i returned a "
-			   "nonzero code %ld", i,
-			   reinterpret_cast<long int>(j));
-	    }
+	    LOGGER(j != 0 && ibis::gVerbose > 0)
+		<< "Warning -- part[" << name()
+		<< "]::buildIndexes -- thread # "
+		<< i << " returned a nonzero code " << j;
 	}
 	++ nthr; // restore the original value
     }
@@ -6232,10 +6231,9 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 	    for (int i = 0; i < nth; ++i) { // wait for the other threads
 		void* j;
 		pthread_join(tid[i], &j);
-		if (j != 0)
-		    logWarning("selfTest", "thread # %d returned "
-			       "a nonzero code %ld", i,
-			       reinterpret_cast<long int>(j));
+		LOGGER(j != 0 && ibis::gVerbose > 0)
+		    << "Warning -- part[" << name() << "]::selfTest thread # "
+		    << i << " returned a nonzero code " << j;
 	    }
 
 	    if (nerr == 0 && columns.size() > 1) {
@@ -6261,16 +6259,22 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 				   i, strerror(ierr));
 		    }
 		}
-		ierr = (long) ibis_part_threadedTestFun2((void*)&arg);
-		if (ierr != 0)
+
+		void *j;
+		j = ibis_part_threadedTestFun2((void*)&arg);
+		if (j != 0) {
 		    ++ nerr;
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- part[" << name()
+			<< "]::selfTest ibis_part_threadedTestFun2 returned "
+			<< j << " instead of 0";
+		}
 		for (int i = 0; i < nth; ++ i) {
-		    void *j;
 		    pthread_join(tid[i], &j);
-		    if (j != 0)
-			logWarning("selfTest", "thread # %d returned "
-				   "a nonzero code %ld", i,
-				   reinterpret_cast<long int>(j));
+		    LOGGER(j != 0 && ibis::gVerbose > 0)
+			<< "Warning -- part[" << name()
+			<< "]::selfTest thread # " << i
+			<< " returned a nonzero code " << j;
 		}
 		checkQueryList(arg);
 	    }

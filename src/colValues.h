@@ -26,7 +26,10 @@ public:
     static colValues* create(const ibis::column* c);
 
     /// Provide a pointer to the column containing the selected values.
-    virtual const ibis::column* operator->() const {return col;};
+    const ibis::column* operator->() const {return col;};
+    /// Name.
+    const char* name() const {return(col!=0?col->name():0);}
+
     virtual bool empty() const = 0;
     virtual void reduce(const array_t<uint32_t>& starts) = 0;
     virtual void reduce(const array_t<uint32_t>& starts,
@@ -91,9 +94,6 @@ public:
     virtual uint64_t getULong(uint32_t) const = 0;
     virtual float getFloat(uint32_t) const = 0;
     virtual double getDouble(uint32_t) const = 0;
-
-    /// Name.
-    const char* name() const {return(col!=0?col->name():0);}
 
 protected:
     const ibis::column* col; ///< The column where the value is from.

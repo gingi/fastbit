@@ -1,12 +1,17 @@
 # $Id$
 # Makefile for mingw32-make on windows using MinGW g++ port
 #
-CXX=g++.exe
+CHOST=x86_64-w64-mingw32
+CXX=$(CHOST)-g++
+AR=$(CHOST)-ar
+DLLTOOL=$(CHOST)-dlltool
+RANLIB=$(CHOST)-ranlib
+MAKE=make
 OPT=-g -O0
 #OPT=-O5
-INC=-I "C:/MinGW/include" -I "C:/MinGW/msys/1.0/include" -I . -I ../src -I "pthreads-w32-2-8-0-release"
+INC=-I . -I ../src -I pthreads/$(CHOST)/include
 DEF=-DFASTBIT_MAX_WAIT_TIME=3 -DWITHOUT_FASTBIT_CONFIG_H
-LIB=-Lpthreads-w32-2-8-0-release -lpthreadGC2 -lm
+LIB=-Lpthreads/$(CHOST)/lib -lpthread -lm
 TESTDIR=tmp
 
 CCFLAGS=$(DEF) $(INC) $(OPT)
@@ -88,7 +93,8 @@ ARDEAEXE=./ardea.exe
 
 lib: libfastbit.a
 libfastbit.a: $(OBJ)
-	ar ruv libfastbit.a $(OBJ)
+	$(AR) ruv libfastbit.a $(OBJ)
+	$(RANLIB) libfastbit.a
 
 ibis: ibis.exe
 ibis.exe: ibis.o libfastbit.a
@@ -109,10 +115,10 @@ ardea.exe: ardea.o libfastbit.a
 dll: fastbit.dll
 fastbit.a: fastbit.dll
 fastbit.dll: $(FRC)
-	make -f MinGW.mak DEF="$(DEF) -DCXX_USE_DLL -DDLL_EXPORT" $(OBJ)
+	$(MAKE) -f MinGW.mak DEF="$(DEF) -DCXX_USE_DLL -DDLL_EXPORT" $(OBJ)
 	$(CXX) -shared -o $@ $(OBJ) $(LIB)
-	dlltool -z fastbit.def $(OBJ)
-	dlltool -k --dllname fastbit.dll --output-lib fastbit.a --def fastbit.def
+	$(DLLTOOL) -z fastbit.def $(OBJ)
+	$(DLLTOOL) -k --dllname fastbit.dll --output-lib fastbit.a --def fastbit.def
 # -Wl,-soname,$@
 trydll: trydll.cpp fastbit.dll
 	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ trydll.cpp fastbit.a $(LIB)

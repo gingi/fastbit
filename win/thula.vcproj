@@ -35,6 +35,9 @@
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
 				Name="VCMIDLTool"
 				TypeLibraryName="Debug\thula.tlb"
 				HeaderFileName=""
@@ -82,7 +85,7 @@
 				SubSystem="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				TargetMachine="1"
+				TargetMachine="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -125,6 +128,9 @@
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
 			/>
 			<Tool
 				Name="VCMIDLTool"
@@ -175,7 +181,7 @@
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="pthreadVCE.lib"
-				TargetMachine="1"
+				TargetMachine="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -232,10 +238,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\dictionary.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\column.cpp"
 				>
 			</File>
@@ -245,6 +247,10 @@
 			</File>
 			<File
 				RelativePath="..\src\countQuery.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\dictionary.cpp"
 				>
 			</File>
 			<File
@@ -376,10 +382,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\quaere.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\mensa.cpp"
 				>
 			</File>
@@ -425,6 +427,10 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\quaere.cpp"
 				>
 			</File>
 			<File
@@ -509,10 +515,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\dictionary.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\column.h"
 				>
 			</File>
@@ -526,6 +528,10 @@
 			</File>
 			<File
 				RelativePath="..\src\countQuery.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\dictionary.h"
 				>
 			</File>
 			<File
@@ -573,10 +579,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\quaere.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\jrange.h"
 				>
 			</File>
@@ -602,6 +604,10 @@
 			</File>
 			<File
 				RelativePath="..\src\qExpr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\quaere.h"
 				>
 			</File>
 			<File

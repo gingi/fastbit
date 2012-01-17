@@ -120,3 +120,11 @@ project must be "Not Set", i.e., can be neither "multi-byte character
 set" nor "Unicode".  If you create a new visual studio project with a
 newer version of visual studio, the default character set might be
 unicode.  Be sure to change it to "Not Set."
+
+Jan 17, 2012: MinGW-w64 can downloaded from
+<http://sourceforge.net/projects/mingw-w64/>
+This site also have the necessary 64-bit pthread implementation needed
+for compiling FastBit
+(Information from Dominique Prunier <dominique dot prunier at watch4net dot com>)
+
+

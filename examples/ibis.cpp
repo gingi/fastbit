@@ -5017,7 +5017,7 @@ int main(int argc, char** argv) {
 	    }
 	    thFun((void*)&args); // this thread do something too
 	    for (int i = 0; i < nth; ++ i) {
-		int status;
+		void *status;
 		int ierr = pthread_join(tid[i], (void**)&status);
 		LOGGER(ibis::gVerbose >= 0 && ierr != 0)
 		    << "pthread_join failed on thread " << i
