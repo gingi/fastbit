@@ -147,7 +147,7 @@ check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-maurel.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-maurel.log; fi
 	@echo
 #
-really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTDIR)/w3/-part.txt $(TESTDIR)/w4/-part.txt $(TESTDIR)/w5/-part.txt
+really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTDIR)/w3/-part.txt $(TESTDIR)/w4/-part.txt $(TESTDIR)/w5/-part.txt $(TESTDIR)/w6/-part.txt
 	@date >| $(TESTDIR)/really-small.log
 	@$(IBISEXE) -d $(TESTDIR)/w1 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w2 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
@@ -171,6 +171,7 @@ really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTD
 	@if [ -f $(TESTDIR)/small-10 -a -f vault/small-10 -a `diff -w $(TESTDIR)/small-10 vault/small-10 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@if [ -f $(TESTDIR)/small-11 -a -f vault/small-11 -a `diff -w $(TESTDIR)/small-11 vault/small-11 | wc -l` -eq 0 ]; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ -f $(TESTDIR)/small-12 -a -f vault/small-12 -a `diff -w $(TESTDIR)/small-12 vault/small-12 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/w6 -v -q "where M = 144115188075857871ULL OR M = 144115188075857872ULL" | fgrep '==> 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/really-small.log; fi
 	@echo
 check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
@@ -410,6 +411,9 @@ $(TESTDIR)/w4/-part.txt: $(ARDEAEXE) TESTDIR
 	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist
 $(TESTDIR)/w5/-part.txt: $(ARDEAEXE) TESTDIR
 	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w5 -m "c_1:s, c_2:f, c_3:i" -r "5, 1.0, 1" -r "75, 0.25, 3" -r "75, 0.5, 3" -r "105, 4, 1" -r "105, 8, 3" -r "105, 16, 5" >> $(TESTDIR)/stdout.log 2>&1
+# 8 rows with 18- and 19-digit long number, inspired by the questions from Bao Toan Ngyuen
+$(TESTDIR)/w6/-part.txt: $(ARDEAEXE) TESTDIR
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w6 -m "m:ul, n:d" -r "144115188075857871,144115188075857871" -r "144115188075857872,144115188075857872" -r "288230376151715742,288230376151715742" -r "288230376151715743,288230376151715743" -r "1152921504606862968,1152921504606862968" -r "1152921504606862969,1152921504606862969" -r "9223372036854903744,9223372036854903744", -r "9223372036854903745,9223372036854903745" >> ${TESTDIR}/stdout.log 2>&1
 $(TESTDIR)/test.rc: TESTDIR
 	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc

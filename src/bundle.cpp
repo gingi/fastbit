@@ -1,4 +1,4 @@
-//File: $Id$
+// File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
 // Copyright 2000-2012 the Regents of the University of California
@@ -779,6 +779,11 @@ void ibis::bundle1::printAll(std::ostream& out) const {
     }
 } // ibis::bundle1::printAll
 
+void ibis::bundle1::printColumnNames(std::ostream& out) const {
+    if (col != 0)
+	out << col->name();
+} // ibis::bundle1::printColumnNames
+
 /// Sort the rows.  Remove the duplicate elements and generate the
 /// starts.
 void ibis::bundle1::sort() {
@@ -1141,12 +1146,15 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		// go through every selected column to construct the colValues
 		uint32_t start = sizeof(uint32_t)*(ncol+2);
 		for (uint32_t i=0; i < ncol; ++i) {
+		    if (comps.getAggregator(i) == ibis::selectClause::CNT)
+			continue;
+
 		    const ibis::column* cptr = tbl->getColumn(comps.aggName(i));
 		    if (cptr != 0) {
 			LOGGER(ibis::gVerbose > 4)
 			    << "bundles::ctor to recreate a colValues for "
-			    << *(comps.aggExpr(i)) << " as cols[" << cols.size()
-			    << ']';
+			    << *(comps.aggExpr(i)) << " as cols["
+			    << cols.size() << ']';
 			ibis::colValues* tmp;
 			switch (comps.getAggregator(i)) {
 			case ibis::selectClause::AVG:
@@ -1209,6 +1217,10 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 		throw ibis::bad_alloc("bundles::ctor -- no hit vector");
 	    }
 	    for (uint32_t i=0; i < ncol; ++i) {
+		if (comps.getAggregator(i) == ibis::selectClause::CNT) {
+		    continue;
+		}
+
 		const ibis::column* cptr = tbl->getColumn(comps.aggName(i));
 		if (cptr != 0) {
 		    ibis::colValues* tmp;
@@ -1284,6 +1296,10 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	const ibis::part* tbl = q.partition();
 	const uint32_t ncol = comps.aggSize();
 	for (uint32_t i=0; i < ncol; ++i) {
+	    if (comps.getAggregator(i) != ibis::selectClause::CNT) {
+		continue;
+	    }
+
 	    const ibis::column* cptr = tbl->getColumn(comps.aggName(i));
 	    if (cptr != 0) {
 		LOGGER(ibis::gVerbose > 4)
@@ -1361,13 +1377,9 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 	for (unsigned ic = 0; ic < comps.aggSize(); ++ ic) {
 	    const ibis::math::term& expr = *comps.aggExpr(ic);
 	    const char* cn = comps.aggName(ic);
-	    bool iscountstar =
-		(expr.termType() == ibis::math::VARIABLE &&
-		 comps.getAggregator(ic) == ibis::selectClause::CNT);
-	    if (iscountstar)
-		iscountstar = (*(static_cast<const ibis::math::variable&>
-				 (expr).variableName()) == '*');
-	    if (iscountstar) continue;
+	    if (comps.getAggregator(ic) == ibis::selectClause::CNT) {
+		continue;
+	    }
 
 	    ibis::column* c = tbl.getColumn(cn);
 	    if (c == 0 && expr.termType() == ibis::math::VARIABLE) {
@@ -1521,6 +1533,14 @@ void ibis::bundles::printAll(std::ostream& out) const {
 	}
     }
 } // ibis::bundles::printAll
+
+void ibis::bundles::printColumnNames(std::ostream& out) const {
+    if (cols.size() > 0) {
+	out << cols[0]->name();
+	for (unsigned j = 1; j < cols.size(); ++ j)
+	    out << ", " << cols[j]->name();
+    }
+} // ibis::bundles::printColumnNames
 
 /// Sort the columns.  Remove the duplicate elements and generate the
 /// starts.  This function allows aggregation functions to appear in

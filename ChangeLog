@@ -1,3 +1,17 @@
+2012-01-16 John Wu <John dot Wu at ACM dot org>
+	* src/bundle.cpp: add statements to skip over COUNT operations in
+	the select clauses
+	* src/bundle.h, src/bundle.cpp: add function printColumnNames
+	* tests/Makefile.am: add test case 13 to really-small to check on
+	the problem on very long integers reported by Bao Toan Nguyen
+
+2012-01-14 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: add option to try compression again after a
+	bitmap index has been built (attempt to iron out an irregularity
+	observed in a test to measure index sizes)
+	* examples/ibis.cpp: add code to record the data directories
+	reordered for later uses
+
 2012-01-13 Dominique Prunier <dominique dot prunier at watch4net dot com>
 	* src/bundle.cpp: missing initialization in bundle1 generating a
 	segmentation fault

@@ -297,6 +297,14 @@ to execute the queries using multiple threads with the option
 used in queries of their own.  If the optional file name is present, the
 RIDs will also be written into the named file.
 
+<li><code>-reorder data_dir[:colname1,colname2,...]</code>
+
+<br>This option instructs <code>ibis</code> to reorder the data in the
+specified directory.  An optional list of column name may be used to
+specify which columns are to be used as sorting keys.  If no key is
+specified, the integer valued columns will be used and the one with the
+smallest range of values will be used first.
+
 <li><code>-s[quential-scan]</code>
 <br>For ibis to check the answer produced from the index operations with
 a sequence scan of the raw data.

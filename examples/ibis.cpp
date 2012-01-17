@@ -1929,7 +1929,8 @@ static void parse_args(int argc, char** argv, int& mode,
 	    switch (argv[i][1]) {
 	    case 'a': // append a directory of data (must have a directory
 	    case 'A': // name, optionally specify data partition name with "to
-		      // name")
+		      // name", where the name can be a data partition name
+		      // or a directory name)
 		if (i+1 < argc) {
 		    alist.push_back(argv[i+1]);
 		    if (i+3 < argc && stricmp(argv[i+2], "to")==0 &&
@@ -2355,16 +2356,11 @@ static void parse_args(int argc, char** argv, int& mode,
     }
     // process data directories specified in the rc files
     ibis::init(confs.empty()?(const char*)0:confs.back());
-    // construct the paritions using both the command line arguments and
-    // the resource files
-    for (std::vector<const char*>::const_iterator it = dirs.begin();
-	 it != dirs.end(); ++ it) {
-	ibis::util::gatherParts(ibis::datasets, *it);
-    }
 
     // reorder the data directories first, a data directory may be followed
     // by ':' and column names
     for (unsigned i = 0; i < rdirs.size(); ++ i) {
+	long ierr = 0;
 	LOGGER(ibis::gVerbose >= 0)
 	    << *argv << " -reorder " << rdirs[i];
 	char* str = const_cast<char*>(strrchr(rdirs[i], ':'));
@@ -2375,14 +2371,33 @@ static void parse_args(int argc, char** argv, int& mode,
 	    str = ibis::util::strnewdup(str+1);
 	    ibis::table::stringList slist;
 	    ibis::table::parseNames(str, slist);
-	    ibis::part tbl(dir.c_str(), static_cast<const char*>(0));
-	    tbl.reorder(slist);
+	    uint32_t nr = 0;
+	    {
+		ibis::part tbl(dir.c_str(), static_cast<const char*>(0));
+		ierr = tbl.reorder(slist);
+		nr = tbl.nRows();
+	    }
 	    delete [] str;
+	    if ((long)nr == ierr && nr > 0U)
+		ibis::util::gatherParts(ibis::datasets, dir.c_str());
 	}
 	else {
-	    ibis::part tbl(rdirs[i], static_cast<const char*>(0));
-	    tbl.reorder();
+	    uint32_t nr = 0;
+	    {
+		ibis::part tbl(rdirs[i], static_cast<const char*>(0));
+		ierr = tbl.reorder();
+		nr = tbl.nRows();
+	    }
+	    if (nr > 0U && (long)nr == ierr)
+		ibis::util::gatherParts(ibis::datasets, rdirs[i]);
 	}
+    }
+
+    // construct the paritions using both the command line arguments and
+    // the resource files
+    for (std::vector<const char*>::const_iterator it = dirs.begin();
+	 it != dirs.end(); ++ it) {
+	ibis::util::gatherParts(ibis::datasets, *it);
     }
 
     if (ibis::gVerbose > 1) {
@@ -2446,15 +2461,16 @@ static void parse_args(int argc, char** argv, int& mode,
 // those types should be used instead of @c getString.
 static void printQueryResults(std::ostream &out, ibis::query &q) {
     ibis::query::result cursor(q);
-    out << "printing results of query " << q.id() << "(numHits="
-	<< q.getNumHits() << ")\n"
-	<< q.getSelectClause() << std::endl;
-    const ibis::selectClause& sel = q.components();
-    if (sel.empty()) return;
+    const unsigned w = cursor.width();
+    out << "printing results of query " << q.id() << " (numHits="
+	<< q.getNumHits() << ")\n";
+    cursor.printColumnNames(out);
+    out << "\n";
+    if (w == 0) return;
 
     while (cursor.next()) {
 	out << cursor.getString(static_cast<uint32_t>(0U));
-	for (uint32_t i = 1; i < sel.numTerms(); ++ i)
+	for (uint32_t i = 1; i < w; ++ i)
 	    out << ", " << cursor.getString(i);
 	out << "\n";
     }
@@ -4871,7 +4887,7 @@ int main(int argc, char** argv) {
 	parse_args(argc, argv, interactive, alist, slist, qlist,
 		   queff, joins);
 
-	// append new data one directory at a time, the same directory map
+	// append new data one directory at a time, the same directory may
 	// be used many times, all incoming directories appended to the
 	// same output directory specified by appendto
 	for (std::vector<const char*>::const_iterator it = alist.begin();

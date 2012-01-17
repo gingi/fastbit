@@ -7905,7 +7905,7 @@ void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 /// Decide whether to uncompress the bitmaps.
 void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 				 const char *opt) {
-    const uint32_t nobs = bts.size();
+    const size_t nobs = bts.size();
     const char *ptr = 0;
     if (opt != 0)
 	ptr = strstr(opt, "<compressing ");
@@ -7917,7 +7917,7 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	    switch (ptr[10]) {
 	    case 'a':
 	    case 'A': { // uncompressAll
-		for (uint32_t i = 0; i < nobs; ++i) {
+		for (size_t i = 0; i < nobs; ++i) {
 		    if (bts[i])
 			bts[i]->decompress();
 		}
@@ -7933,11 +7933,13 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 		    if (dens <= 0.0)
 			dens = 0.125;
 		}
-		for (uint32_t i = 0; i < nobs; ++i) {
+		for (size_t i = 0; i < nobs; ++i) {
 		    if (bts[i]) {
-			//bts[i]->compress();
+#ifdef FASTBIT_RETRY_COMPRESSION
+			bts[i]->compress();
+#endif
 			if (bts[i]->cnt() >
-			    static_cast<uint32_t>(dens * bts[i]->size()))
+			    static_cast<size_t>(dens * bts[i]->size()))
 			    bts[i]->decompress();
 		    }
 		}
@@ -7953,10 +7955,12 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 		    if (cr <= 0.0)
 			cr = 0.75;
 		}
-		for (uint32_t i = 0; i < nobs; ++i) {
+		for (size_t i = 0; i < nobs; ++i) {
 		    if (bts[i]) {
-			//bts[i]->compress();
-			if (bts[i]->bytes() > static_cast<uint32_t>
+#ifdef FASTBIT_RETRY_COMPRESSION
+			bts[i]->compress();
+#endif
+			if (bts[i]->bytes() > static_cast<size_t>
 			    (ceil(cr * (bts[i]->size()>>3))))
 			    bts[i]->decompress();
 		    }
@@ -7964,6 +7968,12 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 		break;
 	    }
 	    default: break; // do nothing
+	    }
+	}
+	else if (strnicmp(ptr, "recompress", 10) == 0) {
+	    for (size_t j = 0; j < nobs; ++ j) {
+		if (bts[j] != 0)
+		    bts[j]->compress();
 	    }
 	}
     }
@@ -7981,7 +7991,7 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	uA += "All";
 	if (ibis::gParameters().isTrue(uA.c_str())) {
 	    // decompress the bitvectors as requested
-	    for (uint32_t i = 0; i < nobs; ++i) {
+	    for (size_t i = 0; i < nobs; ++i) {
 		if (bts[i])
 		    bts[i]->decompress();
 	    }
@@ -7989,10 +7999,12 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	else if (ibis::gParameters().isTrue(uL.c_str())) {
 	    // decompress the bitvectors as requested -- decompress those
 	    // with compression ratios larger than 1/3
-	    uint32_t bar0 = nrows / 24;
-	    for (uint32_t i = 0; i < nobs; ++i) {
+	    size_t bar0 = nrows / 24;
+	    for (size_t i = 0; i < nobs; ++i) {
 		if (bts[i]) {
-		    //bts[i]->compress();
+#ifdef FASTBIT_RETRY_COMPRESSION
+		    bts[i]->compress();
+#endif
 		    if (bts[i]->bytes() > bar0)
 			bts[i]->decompress();
 		}
@@ -8000,10 +8012,12 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	}
 	else {
 	    // decompress very heavy bitvectors, > 8/9
-	    uint32_t bar1 = nrows / 9;
-	    for (uint32_t i = 0; i < nobs; ++i) {
+	    size_t bar1 = nrows / 9;
+	    for (size_t i = 0; i < nobs; ++i) {
 		if (bts[i]) {
-		    //bts[i]->compress();
+#ifdef FASTBIT_RETRY_COMPRESSION
+		    bts[i]->compress();
+#endif
 		    if (bts[i]->bytes() > bar1)
 			bts[i]->decompress();
 		}

@@ -82,6 +82,8 @@ public:
     virtual void print(std::ostream& out) const = 0;
     /// Print the bundle values along with the RIDs.
     virtual void printAll(std::ostream& out) const = 0;
+    /// Print column names.
+    virtual void printColumnNames(std::ostream& out) const = 0;
     /// Retrieve a single value.  Numerical values will be casted into
     /// the return type.
     /// @note Most compilers will emit numerous complains about the
@@ -204,6 +206,8 @@ public:
 
     virtual void print(std::ostream& out) const;
     virtual void printAll(std::ostream& out) const;
+    /// Print column names.  No column name to print in this case.
+    virtual void printColumnNames(std::ostream&) const {};
 
     // can not do anything
     virtual void reorder(const char *) {};
@@ -235,6 +239,8 @@ public:
     virtual void print(std::ostream& out) const;
     // print the bundle values along with the RIDs
     virtual void printAll(std::ostream& out) const;
+    virtual void printColumnNames(std::ostream& out) const;
+
     virtual int32_t  getInt(uint32_t, uint32_t) const;
     virtual uint32_t getUInt(uint32_t, uint32_t) const;
     virtual int64_t  getLong(uint32_t, uint32_t) const;
@@ -293,6 +299,8 @@ public:
     virtual void print(std::ostream& out) const;
     // print the bundle values along with the RIDs
     virtual void printAll(std::ostream& out) const;
+    virtual void printColumnNames(std::ostream& out) const;
+
     virtual int32_t  getInt(uint32_t, uint32_t) const;
     virtual uint32_t getUInt(uint32_t, uint32_t) const;
     virtual int64_t  getLong(uint32_t, uint32_t) const;
@@ -339,6 +347,8 @@ class FASTBIT_CXX_DLLSPEC ibis::query::result {
 public:
     result(ibis::query& q);
     ~result();
+
+    uint32_t width() const {return(bdl_!=0 ? bdl_->width() : 0U);}
 
     /// Move to the next row/record of results.
     bool next();
@@ -397,6 +407,7 @@ public:
     double getDouble(uint32_t selind) const {
 	return bdl_->getDouble(bid_-1, selind);
     }
+
     /// Retrieve the string value.
     /// @see ibis::bundle::getString for limitations.
     std::string getString(uint32_t selind) const {
@@ -404,6 +415,12 @@ public:
     }
     inline uint32_t colPosition(const char *cname) const
     {return sel.find(cname);}
+
+    void printColumnNames(std::ostream& out) const {
+	if (bdl_ != 0) {
+	    bdl_->printColumnNames(out);
+	}
+    }
 
 private:
     ibis::query &que_;

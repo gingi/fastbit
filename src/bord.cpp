@@ -20,9 +20,10 @@
 #include <memory>	// std::auto_ptr
 #include <algorithm>	// std::reverse, std::copy
 
-/// Constructor.  It produces an in-memory version of the selected values
-/// for further operations.  The reference data partition ref is used to
-/// determine the data types.
+/// Constructor.  It produces an empty data partition for storing values to
+/// be selected by the select clause.  The reference data partition ref is
+/// used to determine the data types.  Use the append function to add data
+/// for the actual selected values.
 ibis::bord::bord(const char *tn, const char *td,
 		 const ibis::selectClause &sc, const ibis::part &ref)
     : ibis::part("in-core") {
@@ -1859,7 +1860,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
     }
 
     ibis::bitvector msk0, msk1;
-    msk0.set(0, nEvents);
+    msk0.set(1, nEvents);
     md << "# meta data for data partition " << tname
        << " written by bord::backup on " << stamp << "\n\n"
        << "BEGIN HEADER\nName = " << tname << "\nDescription = "

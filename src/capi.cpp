@@ -1921,20 +1921,20 @@ fastbit_result_set_next_bundle(FastBitResultSetHandle rset) {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fastbit_result_set_next_bundle failed to prepare the "
-	    "next row due to exception: " << e.what();
+	    << "Warning -- fastbit_result_set_next_bundle failed to prepare "
+	    "the next row due to exception: " << e.what();
 	ierr = -3;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fastbit_result_set_next_bundle failed to prepare the "
-	    "next row due to a string exception: " << s;
+	    << "Warning -- fastbit_result_set_next_bundle failed to prepare "
+	    "the next row due to a string exception: " << s;
 	ierr = -4;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fastbit_result_set_next_bundle failed to prepare the "
-	    "next row due to a unknown exception";
+	    << "Warning -- fastbit_result_set_next_bundle failed to prepare "
+	    "the next row due to a unknown exception";
 	ierr = -5;
     }
 

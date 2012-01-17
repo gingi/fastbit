@@ -93,18 +93,9 @@ public:
 		       const std::vector<double>& rbounds);
     /// Specify the where clause through a qExpr object.
     int setWhereClause(const ibis::qExpr* qexp);
-    /// Specifies the select clause for the query.  The select clause is a
-    /// string of attribute names (plus the four predefined functions, @c
-    /// avg, @c var, @c max, @c min and @c sum) separated by spaces, commas
-    /// (,) or semicolons(;).  Repeated calls to this function simply
-    /// overwrite the previous definition of the select clause.  If no
-    /// select clause is specified, the where clause alone determines
-    /// whether record is a hit or not.  The select clause will be
-    /// reordered to make the plain column names without functions appear
-    /// before with functions.
+    /// Specifies the select clause for the query.
     virtual int setSelectClause(const char *str);
-    /// Resets the data partition used to evaluate the query conditions to
-    /// the partition specified in the argument.
+    /// Resets the data partition associated with the query.
     int setPartition(const ibis::part* tbl);
     /// This is deprecated, will be removed soon.
     int setTable(const ibis::part* tbl) {return setPartition(tbl);}
@@ -130,8 +121,9 @@ public:
 
     int evaluate(const bool evalSelect=false);
     /// Return the pointer to the internal hit vector.  The user should NOT
-    /// attempt to free the returned pointer.  It is intended to be called
-    /// after calling ibis::query::evaluate.
+    /// attempt to free the returned pointer.  If this function is called
+    /// before calling ibis::query::evaluate, it might return a nil
+    /// pointer.
     const ibis::bitvector* getHitVector() const {return hits;}
     long getNumHits() const;
     long getHitRows(std::vector<uint32_t> &rids) const;

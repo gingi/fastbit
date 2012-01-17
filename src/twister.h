@@ -28,7 +28,7 @@ namespace ibis {
     class MersenneTwister;	// concrete uniform random number generator
     class discretePoisson;	// discrete Poisson
     class discretePoisson1;	// the spcial case for exp(-x)
-    class discreteZipf;		// discrete Zipf 1/x^a (a > 1)
+    class discreteZipf;		// discrete Zipf 1/x^a (a > 0)
     class discreteZipf1;	// 1/x
     class discreteZipf2;	// 1/x^2
     class randomGaussian;	// continuous Gaussian

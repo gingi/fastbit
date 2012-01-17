@@ -92,6 +92,9 @@ public:
     virtual float getFloat(uint32_t) const = 0;
     virtual double getDouble(uint32_t) const = 0;
 
+    /// Name.
+    const char* name() const {return(col!=0?col->name():0);}
+
 protected:
     const ibis::column* col; ///< The column where the value is from.
 
