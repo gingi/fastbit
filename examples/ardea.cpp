@@ -48,6 +48,7 @@ static const char* indexing = 0;
 static std::string namestypes;
 static std::string metatags;
 static int build_indexes = 0;
+static unsigned xrepeats = 0;
 
 // printout the usage string
 static void usage(const char* name) {
@@ -259,6 +260,27 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		}
 		else {
 		    ibis::gVerbose += atoi(++ptr);
+		}
+		break;}
+	    case 'x':
+	    case 'X': { // repeat the user supplied data xrepeats times
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    xrepeats += atoi(argv[i+1]);
+			    i = i + 1;
+			}
+			else {
+			    ++ xrepeats;
+			}
+		    }
+		    else {
+			++ xrepeats;
+		    }
+		}
+		else {
+		    xrepeats += atoi(++ptr);
 		}
 		break;}
 	    } // switch (argv[i][1])
@@ -809,6 +831,11 @@ int main(int argc, char** argv) {
 			      << "\", error code = " << ierr << std::endl;
 		    return ierr;
 		}
+		else if (xrepeats > 0) { // repeat xrepeats times
+		    for (unsigned j = 1; j < xrepeats; ++ j)
+			(void) ta->write(outdir, dsn, oss.str().c_str(),
+					 indexing, metatags.c_str());
+		}
 		ta->clearData();
 		if (build_indexes > 0) { // build indexes
 		    std::auto_ptr<ibis::table> tbl(ibis::table::create(outdir));
@@ -831,6 +858,11 @@ int main(int argc, char** argv) {
 		std::clog << *argv << " failed to write user-supplied data to "
 			  << outdir << ", error code = " << ierr << std::endl;
 		return(ierr);
+	    }
+	    else if (xrepeats > 0) { // repeat xrepeats times
+		for (unsigned j = 1; j < xrepeats; ++ j)
+		    (void) ta->write(outdir, dsn, oss.str().c_str(),
+				     indexing, metatags.c_str());
 	    }
 	}
     }

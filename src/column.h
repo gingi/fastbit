@@ -418,14 +418,16 @@ protected:
     /// Find the smallest value > tgt.
     template <typename T> uint32_t
 	findUpper(int fdes, const uint32_t nr, const T tgt) const;
+
     template <typename T>
-	long selectValuesT(const bitvector& mask, array_t<T>& vals) const;
+	long selectValuesT(const char*, const bitvector&, array_t<T>&) const;
     template <typename T>
-	long selectValuesT(const bitvector& mask,
+	long selectValuesT(const char*, const bitvector& mask,
 			   array_t<T>& vals, array_t<uint32_t>& inds) const;
     template <typename T>
-	long selectToStrings(const bitvector& mask,
-			     std::vector<std::string>& str) const;
+	long selectToStrings(const char*, const bitvector&,
+			     std::vector<std::string>&) const;
+
     /// Append the content of incoming array to the current data.
     template <typename T>
 	long appendValues(const array_t<T>&, const ibis::bitvector&);
@@ -634,8 +636,8 @@ inline std::ostream& operator<<(std::ostream& out, const ibis::column& prop) {
 
 namespace ibis { // for template specialization
     template <> long column::selectToStrings<signed char>
-    (const bitvector& mask, std::vector<std::string>& str) const;
+    (const char*, const bitvector&, std::vector<std::string>&) const;
     template <> long column::selectToStrings<unsigned char>
-    (const bitvector& mask, std::vector<std::string>& str) const;
+    (const char*, const bitvector&, std::vector<std::string>&) const;
 }
 #endif // IBIS_COLUMN_H

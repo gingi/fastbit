@@ -1,6 +1,10 @@
 2012-01-17 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: modified printing of return values from thread
 	functions based on the suggestions from Dominique
+	* examples/ardea.cpp: add option -x to tell ardea.cpp to repeat
+	the write calls
+	* src/category.cpp: add statements in category::selectUInts to
+	work with the .int file (which was ignored)
 
 2012-01-17 Dominique Prunier <dominique dot prunier at watch4net dot com>
 	* win/MinGW.mak: update makefile to work with X64 version of pthread

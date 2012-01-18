@@ -88,7 +88,21 @@ ibis::category::~category() {
 ibis::array_t<uint32_t>*
 ibis::category::selectUInts(const ibis::bitvector& mask) const {
     prepareMembers();
-    indexLock lock(this, "category::selectInts");
+    std::string fname;
+    bool tryintfile = (0 != dataFileName(fname));
+    if (tryintfile) {
+	fname += ".int";
+	tryintfile = (thePart->nRows() ==
+		      (ibis::util::getFileSize(fname.c_str()) >> 2));
+    }
+    if (tryintfile) {
+	std::auto_ptr< ibis::array_t<uint32_t> >
+	    tmp(new ibis::array_t<uint32_t>);
+	if (selectValuesT(fname.c_str(), mask, *tmp) >= 0)
+	    return tmp.release();
+    }
+
+    indexLock lock(this, "category::selectUInts");
     if (idx != 0)
 	return static_cast<ibis::relic*>(idx)->keys(mask);
     else
@@ -287,10 +301,10 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
 	    }
 	    if (thePart->getStateNoLocking() != ibis::part::PRETRANSITION_STATE)
 		ints.resize(thePart->nRows());
-#if defined(WRITE_INT_VALUES_FOR_KEYS)
+	    //#if defined(WRITE_INT_VALUES_FOR_KEYS)
 	    data += ".int";
 	    ints.write(data.c_str());
-#endif
+	    //#endif
 	}
 	if (rlc != 0) {
 	    ret = rlc->append(ints);

@@ -553,12 +553,12 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
     } // switch(m_type)
 } // ibis::column::actualMinMax
 
-/// Name of the data file in the given data directory.  If the
-/// directory name is not given, the directory is assumed to be the
-/// current data directory of the data partition.
-/// There is no need for the caller to free this pointer.  Upon successful
-/// completion of this function, it returns fname.c_str(); otherwise, it
-/// returns th nil pointer.
+/// Name of the data file in the given data directory.  If the directory
+/// name is not given, the directory is assumed to be the current data
+/// directory of the data partition.  There is no need for the caller to
+/// free the pointer returned by this function.  Upon successful completion
+/// of this function, it returns fname.c_str(); otherwise, it returns th
+/// nil pointer.
 const char*
 ibis::column::dataFileName(std::string& fname, const char *dir) const {
     if (m_name.empty())
@@ -891,11 +891,13 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0 || *fnm == 0) return array.release();
+
     if (m_type == ibis::BYTE || m_type == ibis::UBYTE) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<signed char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -964,7 +966,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -1002,11 +1004,13 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
+
     if (m_type == ibis::BYTE || m_type == ibis::UBYTE) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1075,7 +1079,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -1115,11 +1119,13 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
+
     if (m_type == ibis::SHORT || m_type == ibis::USHORT) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<int16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart->accessHint(mask, sizeof(int16_t));
 
@@ -1187,7 +1193,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -1199,8 +1205,6 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::BYTE) {
 	array_t<signed char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1264,8 +1268,6 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::UBYTE) {
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1354,11 +1356,13 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
+
     if (m_type == ibis::SHORT || m_type == ibis::USHORT) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<uint16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart->accessHint(mask, sizeof(uint16_t));
 
@@ -1426,7 +1430,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -1438,8 +1442,6 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::BYTE) {
 	array_t<signed char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1503,8 +1505,6 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::UBYTE) {
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1593,12 +1593,14 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
+
     if (m_type == ibis::INT || m_type == ibis::UINT ||
 	m_type == ibis::CATEGORY || m_type == ibis::TEXT) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<int32_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1700,7 +1702,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -1712,8 +1714,6 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::SHORT) {
 	array_t<int16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart->accessHint(mask, sizeof(int16_t));
 
@@ -1776,8 +1776,6 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1841,8 +1839,6 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::BYTE) {
 	array_t<signed char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1906,8 +1902,6 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::UBYTE) {
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -1997,13 +1991,14 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
 
     if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	m_type == ibis::TEXT) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<uint32_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2072,7 +2067,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -2084,8 +2079,6 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == USHORT) {
 	array_t<uint16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2150,8 +2143,6 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
     }
     else if (m_type == UBYTE) {
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2245,11 +2236,13 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
+
     if (m_type == ibis::LONG || m_type == ibis::ULONG) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<int64_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int64_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2351,7 +2344,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -2364,8 +2357,6 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
     else if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	     m_type == ibis::TEXT) {
 	array_t<uint32_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2462,8 +2453,6 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::INT) {
 	array_t<int32_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2560,8 +2549,6 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2625,8 +2612,6 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
     }
     else if (m_type == SHORT) {
 	array_t<int16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2690,8 +2675,6 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
     }
     else if (m_type == UBYTE) {
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2755,8 +2738,6 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
     }
     else if (m_type == BYTE) {
 	array_t<signed char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2846,11 +2827,13 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
+
     if (m_type == ibis::ULONG) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<uint64_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint64_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -2952,7 +2935,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -2965,8 +2948,6 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
     else if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
 	     m_type == ibis::TEXT) {
 	array_t<uint32_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3063,8 +3044,6 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3128,8 +3107,6 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
     }
     else if (m_type == UBYTE) {
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3221,12 +3198,13 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
 
     if (m_type == FLOAT) {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<float> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(float))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3295,7 +3273,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -3307,8 +3285,6 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
     }
     else if (m_type == ibis::USHORT) {
 	array_t<uint16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3372,8 +3348,6 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
     }
     else if (m_type == SHORT) {
 	array_t<int16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3437,8 +3411,6 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
     }
     else if (m_type == UBYTE) {
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3502,8 +3474,6 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
     }
     else if (m_type == BYTE) {
 	array_t<signed char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3594,13 +3564,14 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
     ibis::horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
+    std::string sname;
+    const char* fnm = dataFileName(sname);
+    if (fnm == 0) return array.release();
 
     switch(m_type) {
     case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3673,8 +3644,6 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	break;}
     case ibis::INT: {
 	array_t<int32_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int32_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3747,8 +3716,6 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	break;}
     case ibis::USHORT: {
 	array_t<uint16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3821,8 +3788,6 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	break;}
     case ibis::SHORT: {
 	array_t<int16_t> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(int16_t))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3895,8 +3860,6 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	break;}
     case ibis::UBYTE: {
 	array_t<unsigned char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(unsigned char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -3969,8 +3932,6 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	break;}
     case ibis::BYTE: {
 	array_t<signed char> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(char))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -4043,8 +4004,6 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	break;}
     case ibis::FLOAT: {
 	array_t<float> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(float))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -4118,8 +4077,6 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
     case ibis::DOUBLE: {
 #if defined(FASTBIT_PREFER_READ_ALL)
 	array_t<double> prop;
-	std::string sname;
-	const char* fnm = dataFileName(sname);
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(double))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
@@ -4196,7 +4153,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 		       timer.CPUTime(), timer.realTime());
 	}
 #else
-	long ierr = selectValuesT(mask, *array);
+	long ierr = selectValuesT(fnm, mask, *array);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- column["
@@ -4221,9 +4178,9 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 /// modified.  If it returns a negative number, the contents of arrays @c
 /// vals is not guaranteed to be in any particular state.
 template <typename T>
-long ibis::column::selectValuesT(const bitvector& mask,
+long ibis::column::selectValuesT(const char* dfn,
+				 const bitvector& mask,
 				 ibis::array_t<T>& vals) const {
-    if (thePart == 0) return -2;
     long ierr = 0;
     const long unsigned tot = mask.cnt();
     if (mask.cnt() == 0) return ierr;
@@ -4231,20 +4188,17 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	logWarning("selectValuesT", "incompatible types");
 	return -1;
     }
-    if (mask.cnt() == mask.size())
-	return getValuesArray(&vals);
-
-    std::string sname;
-    const char *dfn = dataFileName(sname);
-    if (dfn == 0)
-	return -3;
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
 	       (thePart != 0 ? thePart->nRows() : 0), dfn);
 #endif
     if (tot == mask.size()) { // read all values
-	ierr = ibis::fileManager::instance().getFile(dfn, vals);
+	if (dfn != 0 && *dfn != 0)
+	    ierr = ibis::fileManager::instance().getFile(dfn, vals);
+	else
+	    ierr = getValuesArray(&vals);
+
 	return ierr;
     }
 
@@ -4260,12 +4214,16 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	return -2;
     }
     array_t<T> incore; // make the raw storage more friendly
-    {
+    if (dfn != 0 && *dfn != 0) {
 	// attempt to read the whole file into memory
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
 	ierr = ibis::fileManager::instance().tryGetFile(dfn, incore, apref);
+    }
+    else {
+	ierr = getValuesArray(&incore);
+	if (ierr < 0) return -3;
     }
 
     if (ierr == 0) { // the file is in memory
@@ -4293,11 +4251,11 @@ long ibis::column::selectValuesT(const bitvector& mask,
 		}
 	    }
 	}
-	if (ibis::gVerbose > 4)
-	    logMessage("selectValuesT", "got %lu values (%lu wanted) from an "
-		       "in-memory version of file %s as %s",
-		       static_cast<long unsigned>(vals.size()), tot, dfn,
-		       typeid(T).name());
+	LOGGER(ibis::gVerbose > 4)
+	    << "column[" << m_name << "]::selectValuesT got "
+	    << vals.size() << " values (" << tot << " wanted) from an "
+	    "in-memory version of file " << (dfn && *dfn ? dfn : "??")
+	    << " as " << typeid(T).name();
     }
     else { // has to use UnixRead family of functions
 	int fdes = UnixOpen(dfn, OPEN_READONLY);
@@ -4393,10 +4351,11 @@ long ibis::column::selectValuesT(const bitvector& mask,
     }
 
     ierr = vals.size();
-    if (vals.size() != tot)
-	logWarning("selectValuesT", "got %li out of %lu values from %s as %s",
-		   ierr, static_cast<long unsigned>(tot), dfn,
-		   typeid(T).name());
+    LOGGER(vals.size() != tot && ibis::gVerbose > 0)
+	<< "Warning -- column[" << m_name << "]::selectValuesT got "
+	<< ierr << " out of " << tot << " values from "
+	<< (dfn && *dfn ? dfn : "?") << " as "
+	<< typeid(T).name();
     return ierr;
 } // ibis::column::selectValuesT
 
@@ -4410,10 +4369,10 @@ long ibis::column::selectValuesT(const bitvector& mask,
 /// arrays @c vals and @c inds are not guaranteed to be in particular
 /// state.
 template <typename T>
-long ibis::column::selectValuesT(const bitvector& mask,
+long ibis::column::selectValuesT(const char *dfn,
+				 const bitvector& mask,
 				 ibis::array_t<T>& vals,
 				 ibis::array_t<uint32_t>& inds) const {
-    if (thePart == 0) return -2;
     long ierr = 0;
     const long unsigned tot = mask.cnt();
     if (mask.cnt() == 0) return ierr;
@@ -4434,22 +4393,24 @@ long ibis::column::selectValuesT(const bitvector& mask,
 	    << "] and inds[" << tot << "]";
 	return -2;
     }
-    std::string sname;
-    const char *dfn = dataFileName(sname);
-    if (dfn == 0) return -3;
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
 	       tot, static_cast<long unsigned>
 	       (thePart != 0 ? thePart->nRows() : 0), dfn);
 #endif
     array_t<T> incore;
-    {
+    if (dfn != 0 && *dfn != 0) {
 	// attempt to read the whole file into memory
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
 	    : ibis::fileManager::MMAP_LARGE_FILES;
 	ierr = ibis::fileManager::instance().tryGetFile(dfn, incore, apref);
     }
+    else {
+	ierr = getValuesArray(&incore);
+	if (ierr < 0) return -3;
+    }
+
     if (ierr == 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
 	// destructor of incore
@@ -4477,11 +4438,11 @@ long ibis::column::selectValuesT(const bitvector& mask,
 		}
 	    }
 	}
-	if (ibis::gVerbose > 4)
-	    logMessage("selectValuesT", "got %lu values (%lu wanted) from an "
-		       "in-memory version of file %s as %s",
-		       static_cast<long unsigned>(vals.size()), tot, dfn,
-		       typeid(T).name());
+	LOGGER(ibis::gVerbose > 4)
+	    << "column[" << m_name << "]::selectValuesT got "
+	    << vals.size() << " values (" << tot << " wanted) from an "
+	    "in-memory version of file " << (dfn && *dfn ? dfn : "??")
+	    << " as " << typeid(T).name();
     }
     else { // has to use UnixRead family of functions
 	int fdes = UnixOpen(dfn, OPEN_READONLY);
@@ -4580,10 +4541,11 @@ long ibis::column::selectValuesT(const bitvector& mask,
     }
 
     ierr = (vals.size() <= inds.size() ? vals.size() : inds.size());
-    if (static_cast<uint32_t>(ierr) != tot)
-	logWarning("selectValuesT", "got %li out of %lu values from %s as %s",
-		   ierr, static_cast<long unsigned>(tot), dfn,
-		   typeid(T).name());
+    LOGGER(vals.size() != tot && ibis::gVerbose > 0)
+	<< "Warning -- column[" << m_name << "]::selectValuesT got "
+	<< ierr << " out of " << tot << " values from "
+	<< (dfn && *dfn ? dfn : "?") << " as "
+	<< typeid(T).name();
     vals.resize(ierr);
     inds.resize(ierr);
     return ierr;
@@ -4595,29 +4557,55 @@ long ibis::column::selectValuesT(const bitvector& mask,
 /// are supported.
 long ibis::column::selectValues(const bitvector& mask, void* vals) const {
     if (vals == 0) return -1L;
+    if (thePart == 0) return -3L;
+    std::string sname;
+    const char *dfn = dataFileName(sname);
+
     switch (m_type) {
     case ibis::BYTE:
-	return selectValuesT(mask, *static_cast<array_t<signed char>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<signed char>*>(vals));
     case ibis::UBYTE:
-	return selectValuesT(mask, *static_cast<array_t<unsigned char>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<unsigned char>*>(vals));
     case ibis::SHORT:
-	return selectValuesT(mask, *static_cast<array_t<int16_t>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<int16_t>*>(vals));
     case ibis::USHORT:
-	return selectValuesT(mask, *static_cast<array_t<uint16_t>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<uint16_t>*>(vals));
     case ibis::INT:
-	return selectValuesT(mask, *static_cast<array_t<int32_t>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<int32_t>*>(vals));
     case ibis::UINT:
-	return selectValuesT(mask, *static_cast<array_t<uint32_t>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<uint32_t>*>(vals));
     case ibis::LONG:
-	return selectValuesT(mask, *static_cast<array_t<int64_t>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<int64_t>*>(vals));
     case ibis::ULONG:
-	return selectValuesT(mask, *static_cast<array_t<uint64_t>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<uint64_t>*>(vals));
     case ibis::FLOAT:
-	return selectValuesT(mask, *static_cast<array_t<float>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<float>*>(vals));
     case ibis::DOUBLE:
-	return selectValuesT(mask, *static_cast<array_t<double>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<double>*>(vals));
     case ibis::OID:
-	return selectValuesT(mask, *static_cast<array_t<ibis::rid_t>*>(vals));
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<ibis::rid_t>*>(vals));
+    case ibis::CATEGORY: {
+	if (dfn != 0 && *dfn != 0) {
+	    sname += ".int";
+	    dfn = sname.c_str();
+	    return selectValuesT(dfn, mask,
+				 *static_cast<array_t<uint32_t>*>(vals));
+	}
+	else {
+	    return -3L;
+	}
+    }
     default:
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column["
@@ -4637,41 +4625,52 @@ long ibis::column::selectValues(const bitvector& mask, void* vals,
 				ibis::array_t<uint32_t>& inds) const {
     if (vals == 0)
 	return -1L;
+    if (thePart == 0) return -3L;
+    std::string sname;
+    const char *dfn = dataFileName(sname);
+    if (dfn == 0 || *dfn == 0) return -3L;
 
     switch (m_type) {
     case ibis::BYTE:
-	return selectValuesT(mask, *static_cast<array_t<signed char>*>(vals),
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<signed char>*>(vals),
 			     inds);
     case ibis::UBYTE:
-	return selectValuesT(mask, *static_cast<array_t<unsigned char>*>(vals),
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<unsigned char>*>(vals),
 			     inds);
     case ibis::SHORT:
-	return selectValuesT(mask, *static_cast<array_t<int16_t>*>(vals),
+	return selectValuesT(dfn, mask, *static_cast<array_t<int16_t>*>(vals),
 			     inds);
     case ibis::USHORT:
-	return selectValuesT(mask, *static_cast<array_t<uint16_t>*>(vals),
+	return selectValuesT(dfn, mask, *static_cast<array_t<uint16_t>*>(vals),
 			     inds);
     case ibis::INT:
-	return selectValuesT(mask, *static_cast<array_t<int32_t>*>(vals),
+	return selectValuesT(dfn, mask, *static_cast<array_t<int32_t>*>(vals),
 			     inds);
     case ibis::UINT:
-	return selectValuesT(mask, *static_cast<array_t<uint32_t>*>(vals),
+	return selectValuesT(dfn, mask, *static_cast<array_t<uint32_t>*>(vals),
 			     inds);
     case ibis::LONG:
-	return selectValuesT(mask, *static_cast<array_t<int64_t>*>(vals),
+	return selectValuesT(dfn, mask, *static_cast<array_t<int64_t>*>(vals),
 			     inds);
     case ibis::ULONG:
-	return selectValuesT(mask, *static_cast<array_t<uint64_t>*>(vals),
+	return selectValuesT(dfn, mask, *static_cast<array_t<uint64_t>*>(vals),
 			     inds);
     case ibis::FLOAT:
-	return selectValuesT(mask, *static_cast<array_t<float>*>(vals),
+	return selectValuesT(dfn, mask, *static_cast<array_t<float>*>(vals),
 			     inds);
     case ibis::DOUBLE:
-	return selectValuesT(mask, *static_cast<array_t<double>*>(vals),
+	return selectValuesT(dfn, mask, *static_cast<array_t<double>*>(vals),
 			     inds);
     case ibis::OID:
-	return selectValuesT(mask, *static_cast<array_t<ibis::rid_t>*>(vals),
-			     inds);
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<ibis::rid_t>*>(vals), inds);
+    case ibis::CATEGORY: {
+	sname += ".int";
+	dfn = sname.c_str();
+	return selectValuesT(dfn, mask,
+			     *static_cast<array_t<uint32_t>*>(vals), inds);}
     default:
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column["
@@ -4684,10 +4683,10 @@ long ibis::column::selectValues(const bitvector& mask, void* vals,
 
 /// Extract the values masked 1 and convert them to strings.
 template <typename T>
-long ibis::column::selectToStrings(const bitvector& mask,
+long ibis::column::selectToStrings(const char* dfn, const bitvector& mask,
 				   std::vector<std::string>& str) const {
     ibis::array_t<T> tmp;
-    long ierr = selectValuesT<T>(mask, tmp);
+    long ierr = selectValuesT<T>(dfn, mask, tmp);
     if (ierr <= 0) {
 	str.clear();
 	return ierr;
@@ -4718,9 +4717,9 @@ long ibis::column::selectToStrings(const bitvector& mask,
 } // ibis::column::selectToStrings
 
 template <> long ibis::column::selectToStrings<signed char>
-(const bitvector& mask, std::vector<std::string>& str) const {
+(const char* dfn, const bitvector& mask, std::vector<std::string>& str) const {
     ibis::array_t<signed char> tmp;
-    long ierr = selectValuesT<signed char>(mask, tmp);
+    long ierr = selectValuesT<signed char>(dfn, mask, tmp);
     if (ierr <= 0) {
 	str.clear();
 	return ierr;
@@ -4751,9 +4750,9 @@ template <> long ibis::column::selectToStrings<signed char>
 } // ibis::column::selectToStrings
 
 template <> long ibis::column::selectToStrings<unsigned char>
-(const bitvector& mask, std::vector<std::string>& str) const {
+(const char* dfn, const bitvector& mask, std::vector<std::string>& str) const {
     ibis::array_t<unsigned char> tmp;
-    long ierr = selectValuesT<unsigned char>(mask, tmp);
+    long ierr = selectValuesT<unsigned char>(dfn, mask, tmp);
     if (ierr <= 0) {
 	str.clear();
 	return ierr;
@@ -4792,43 +4791,48 @@ template <> long ibis::column::selectToStrings<unsigned char>
 std::vector<std::string>*
 ibis::column::selectStrings(const bitvector& mask) const {
     std::vector<std::string> *res = 0;
-    if (mask.cnt() == 0) return res;
+    if (thePart == 0) return 0;
+    std::string sname;
+    const char *dfn = dataFileName(sname);
+    if (dfn == 0 || *dfn == 0) return res;
+
     res = new std::vector<std::string>(mask.cnt());
+    if (mask.cnt() == 0) return res;
 
     long ierr = 0;
     switch (m_type) {
     case ibis::BYTE:
-	ierr = selectToStrings<signed char>(mask, *res);
+	ierr = selectToStrings<signed char>(dfn, mask, *res);
 	break;
     case ibis::UBYTE:
-	ierr = selectToStrings<unsigned char>(mask, *res);
+	ierr = selectToStrings<unsigned char>(dfn, mask, *res);
 	break;
     case ibis::SHORT:
-	ierr = selectToStrings<int16_t>(mask, *res);
+	ierr = selectToStrings<int16_t>(dfn, mask, *res);
 	break;
     case ibis::USHORT:
-	ierr = selectToStrings<uint16_t>(mask, *res);
+	ierr = selectToStrings<uint16_t>(dfn, mask, *res);
 	break;
     case ibis::INT:
-	ierr = selectToStrings<int32_t>(mask, *res);
+	ierr = selectToStrings<int32_t>(dfn, mask, *res);
 	break;
     case ibis::UINT:
-	ierr = selectToStrings<uint32_t>(mask, *res);
+	ierr = selectToStrings<uint32_t>(dfn, mask, *res);
 	break;
     case ibis::LONG:
-	ierr = selectToStrings<int64_t>(mask, *res);
+	ierr = selectToStrings<int64_t>(dfn, mask, *res);
 	break;
     case ibis::ULONG:
-	ierr = selectToStrings<uint64_t>(mask, *res);
+	ierr = selectToStrings<uint64_t>(dfn, mask, *res);
 	break;
     case ibis::FLOAT:
-	ierr = selectToStrings<float>(mask, *res);
+	ierr = selectToStrings<float>(dfn, mask, *res);
 	break;
     case ibis::DOUBLE:
-	ierr = selectToStrings<double>(mask, *res);
+	ierr = selectToStrings<double>(dfn, mask, *res);
 	break;
     case ibis::OID:
-	ierr = selectToStrings<ibis::rid_t>(mask, *res);
+	ierr = selectToStrings<ibis::rid_t>(dfn, mask, *res);
 	break;
     default:
 	LOGGER(ibis::gVerbose > 1)
@@ -11083,27 +11087,29 @@ ibis::column::info::info(const ibis::column& col)
 
 // explicit template instantiation
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<unsigned char>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<unsigned char>&,
+ array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<signed char>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<signed char>&,
+ array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<char>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<char>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<uint16_t>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<uint16_t>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<int16_t>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<int16_t>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<uint32_t>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<uint32_t>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<int32_t>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<int32_t>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<uint64_t>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<uint64_t>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<int64_t>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<int64_t>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<float>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<float>&, array_t<uint32_t>&) const;
 template long ibis::column::selectValuesT
-(const bitvector&, array_t<double>&, array_t<uint32_t>&) const;
+(const char*, const bitvector&, array_t<double>&, array_t<uint32_t>&) const;
 
 template long ibis::column::castAndWrite
 (const array_t<double>& vals, ibis::bitvector& mask, const char special);
