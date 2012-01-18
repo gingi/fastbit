@@ -4181,18 +4181,21 @@ template <typename T>
 long ibis::column::selectValuesT(const char* dfn,
 				 const bitvector& mask,
 				 ibis::array_t<T>& vals) const {
+    vals.clear();
     long ierr = 0;
     const long unsigned tot = mask.cnt();
     if (mask.cnt() == 0) return ierr;
-    if (elementSize() != sizeof(T)) {
-	logWarning("selectValuesT", "incompatible types");
-	return -1;
-    }
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
-    logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
-	       tot, static_cast<long unsigned>
-	       (thePart != 0 ? thePart->nRows() : 0), dfn);
-#endif
+    std::string evt = "column[";
+    evt += (thePart!=0 ? thePart->name() : "");
+    evt += '.';
+    evt += m_name;
+    evt += "]::selectValuesT<";
+    evt += typeid(T).name();
+    evt += '>';
+
+    LOGGER(ibis::gVerbose > 5)
+	<< evt << " -- selecting " << tot << " out of " << mask.size()
+	<< " values from " << (dfn ? dfn : "memory");
     if (tot == mask.size()) { // read all values
 	if (dfn != 0 && *dfn != 0)
 	    ierr = ibis::fileManager::instance().getFile(dfn, vals);
@@ -4207,14 +4210,20 @@ long ibis::column::selectValuesT(const char* dfn,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column["
-	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
-	    << "]::selectValuesT failed to allocate space for vals[" << tot
-	    << "]";
+	    << "Warning -- " << evt
+	    << " failed to allocate space for vals[" << tot << "]";
 	return -2;
     }
     array_t<T> incore; // make the raw storage more friendly
     if (dfn != 0 && *dfn != 0) {
+	const off_t sz = ibis::util::getFileSize(dfn);
+	if (sz != (off_t)(sizeof(T)*mask.size())) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected file " << dfn
+		<< " to have " << (sizeof(T)*mask.size()) << " bytes, but got "
+		<< sz;
+	    return -4;
+	}
 	// attempt to read the whole file into memory
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
@@ -4223,7 +4232,15 @@ long ibis::column::selectValuesT(const char* dfn,
     }
     else {
 	ierr = getValuesArray(&incore);
-	if (ierr < 0) return -3;
+	if (ierr < 0) {
+	    return -3;
+	}
+	else if (incore.size() != mask.size()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected " << mask.size()
+		<< " elements in memory, but got " << incore.size();
+	    return -4;
+	}
     }
 
     if (ierr == 0) { // the file is in memory
@@ -4274,11 +4291,9 @@ long ibis::column::selectValuesT(const char* dfn,
 	    << typeid(T).name();
 	int32_t pos = UnixSeek(fdes, 0L, SEEK_END) / sizeof(T);
 	if (pos < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "column[" << (thePart->name()?thePart->name():"?")
-		<< '.' << m_name
-		<< "]::selectValuesT failed to seek to the end of file "
-		<< dfn;
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt
+		<< " failed to seek to the end of file " << dfn;
 	    UnixClose(fdes);
 	    return -4;
 	}
@@ -4299,18 +4314,18 @@ long ibis::column::selectValuesT(const char* dfn,
 		    ierr /=  sizeof(T);
 		    vals.resize(vals.size() + ierr);
 		    ibis::fileManager::instance().recordPages(pos, pos+ierr);
-		    if (static_cast<uint32_t>(ierr) != nelm)
-			logWarning("selectValuesT", "expected to read %lu "
-				   "consecutive elements (of %lu bytes each) "
-				   "from %s, but actually read %ld",
-				   static_cast<long unsigned>(nelm),
-				   static_cast<long unsigned>(sizeof(T)),
-				   dfn, ierr);
+		    LOGGER(static_cast<uint32_t>(ierr) != nelm &&
+			   ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " expected to read "
+			<< nelm << "consecutive elements (of " << sizeof(T)
+			<< " bytes each) from " << dfn
+			<< ", but actually read " << ierr;
 		}
 		else {
-		    logWarning("selectValuesT", "failed to read at %ld in "
-			       "file %s", UnixSeek(fdes, 0L, SEEK_CUR),
-			       dfn);
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " failed to read at "
+			<< UnixSeek(fdes, 0L, SEEK_CUR) << " in file "
+			<< dfn;
 		}
 	    }
 	    else {
@@ -4325,19 +4340,18 @@ long ibis::column::selectValuesT(const char* dfn,
 			    vals.push_back(tmp);
 			}
 			else {
-			    logWarning("selectValuesT", "failed to read "
-				       "%lu-byte data from offset %ld in "
-				       "file \"%s\"",
-				       static_cast<long unsigned>(sizeof(tmp)),
-				       static_cast<long>(target), dfn);
+			    LOGGER(ibis::gVerbose > 0)
+				<< "Warning -- " << evt << " failed to read "
+				<< sizeof(tmp) << "-byte data from offset "
+				<< target << " in file \"" << dfn << "\"";
 			}
 		    }
 		    else {
-			logWarning("selectValuesT", "failed to seek to the "
-				   "expected location in file \"%s\" (actual "
-				   "%ld, expected %ld)", dfn,
-				   static_cast<long>(pos),
-				   static_cast<long>(target));
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- " << evt << " failed to seek to the "
+			    "expected location in file \"" << dfn
+			    << "\" (actual " << pos << ", expected " << target
+			    << ")";
 		    }
 		}
 	    }
@@ -4352,10 +4366,8 @@ long ibis::column::selectValuesT(const char* dfn,
 
     ierr = vals.size();
     LOGGER(vals.size() != tot && ibis::gVerbose > 0)
-	<< "Warning -- column[" << m_name << "]::selectValuesT got "
-	<< ierr << " out of " << tot << " values from "
-	<< (dfn && *dfn ? dfn : "?") << " as "
-	<< typeid(T).name();
+	<< "Warning -- " << evt << " got " << ierr << " out of "
+	<< tot << " values from " << (dfn && *dfn ? dfn : "memory");
     return ierr;
 } // ibis::column::selectValuesT
 
@@ -4373,33 +4385,46 @@ long ibis::column::selectValuesT(const char *dfn,
 				 const bitvector& mask,
 				 ibis::array_t<T>& vals,
 				 ibis::array_t<uint32_t>& inds) const {
+    vals.clear();
+    inds.clear();
     long ierr = 0;
     const long unsigned tot = mask.cnt();
-    if (mask.cnt() == 0) return ierr;
-    if (elementSize() != sizeof(T)) {
-	logWarning("selectValuesT", "incompatible types");
-	return -1;
-    }
+    if (mask.cnt() == 0)
+	return ierr;
 
-    try {
+    std::string evt = "column[";
+    evt += (thePart!=0 ? thePart->name() : "");
+    evt += '.';
+    evt += m_name;
+    evt += "]::selectValuesT<";
+    evt += typeid(T).name();
+    evt += '>';
+    LOGGER(ibis::gVerbose > 5)
+	<< evt << " -- selecting " << tot << " out of " << mask.size()
+	<< " values from " << (dfn ? dfn : "memory");
+
+    try { // make sure we've got enough space for the results
 	vals.reserve(tot);
 	inds.reserve(tot);
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column["
-	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
-	    << "]::selectValuesT failed to allocate space for vals[" << tot
+	    << "Warning -- " << evt
+	    << " failed to allocate space for vals[" << tot
 	    << "] and inds[" << tot << "]";
 	return -2;
     }
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
-    logMessage("selectValuesT", "selecting %lu out of %lu values from %s",
-	       tot, static_cast<long unsigned>
-	       (thePart != 0 ? thePart->nRows() : 0), dfn);
-#endif
+
     array_t<T> incore;
     if (dfn != 0 && *dfn != 0) {
+	const off_t sz = ibis::util::getFileSize(dfn);
+	if (sz != (off_t)(sizeof(T)*mask.size())) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected file " << dfn
+		<< " to have " << (sizeof(T)*mask.size()) << " bytes, but got "
+		<< sz;
+	    return -4;
+	}
 	// attempt to read the whole file into memory
 	ibis::fileManager::ACCESS_PREFERENCE apref =
 	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
@@ -4408,7 +4433,15 @@ long ibis::column::selectValuesT(const char *dfn,
     }
     else {
 	ierr = getValuesArray(&incore);
-	if (ierr < 0) return -3;
+	if (ierr < 0) {
+	    return -3;
+	}
+	else if (incore.size() != mask.size()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected " << mask.size()
+		<< " elements in memory, but got " << incore.size();
+	    return -4;
+	}
     }
 
     if (ierr == 0) { // the file is in memory
@@ -4447,8 +4480,9 @@ long ibis::column::selectValuesT(const char *dfn,
     else { // has to use UnixRead family of functions
 	int fdes = UnixOpen(dfn, OPEN_READONLY);
 	if (fdes < 0) {
-	    logWarning("selectValuesT", "failed to open file %s, ierr=%d",
-		       dfn, fdes);
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to open file "
+		<< dfn << ", ierr=" << fdes;
 	    return fdes;
 	}
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -4461,10 +4495,8 @@ long ibis::column::selectValuesT(const char *dfn,
 	    << typeid(T).name();
 	int32_t pos = UnixSeek(fdes, 0L, SEEK_END) / sizeof(T);
 	if (pos < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "column[" << (thePart->name()?thePart->name():"?")
-		<< '.' << m_name
-		<< "]::selectValuesT failed to seek to the end of file "
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to seek to the end of file "
 		<< dfn;
 	    UnixClose(fdes);
 	    return -4;
@@ -4488,18 +4520,18 @@ long ibis::column::selectValuesT(const char *dfn,
 		    for (int i = 0; i < ierr; ++ i)
 			inds.push_back(i + *ixval);
 		    ibis::fileManager::instance().recordPages(pos, pos+ierr);
-		    if (static_cast<uint32_t>(ierr) != nelm)
-			logWarning("selectValuesT", "expected to read %lu "
-				   "consecutive elements (of %lu bytes each) "
-				   "from %s, but actually read %ld",
-				   static_cast<long unsigned>(nelm),
-				   static_cast<long unsigned>(sizeof(T)),
-				   dfn, ierr);
+		    LOGGER(static_cast<uint32_t>(ierr) != nelm &&
+			   ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " expected to read "
+			<< nelm << "consecutive elements (of " << sizeof(T)
+			<< " bytes each) from " << dfn
+			<< ", but actually read " << ierr;
 		}
 		else {
-		    logWarning("selectValuesT", "failed to read at %ld in "
-			       "file %s", UnixSeek(fdes, 0L, SEEK_CUR),
-			       dfn);
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " failed to read at "
+			<< UnixSeek(fdes, 0L, SEEK_CUR) << " in file "
+			<< dfn;
 		}
 	    }
 	    else {
@@ -4515,39 +4547,34 @@ long ibis::column::selectValuesT(const char *dfn,
 			    inds.push_back(ixval[j]);
 			}
 			else {
-			    logWarning("selectValuesT", "failed to read "
-				       "%lu-byte data from offset %ld in "
-				       "file \"%s\"",
-				       static_cast<long unsigned>(sizeof(tmp)),
-				       static_cast<long>(target), dfn);
+			    LOGGER(ibis::gVerbose > 0)
+				<< "Warning -- " << evt << " failed to read "
+				<< sizeof(tmp) << "-byte data from offset "
+				<< target << " in file \"" << dfn << "\"";
 			}
 		    }
 		    else {
-			logWarning("selectValuesT", "failed to seek to the "
-				   "expected location in file \"%s\" (actual "
-				   "%ld, expected %ld)", dfn,
-				   static_cast<long>(pos),
-				   static_cast<long>(target));
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- " << evt << " failed to seek to the "
+			    "expected location in file \"" << dfn
+			    << "\" (actual " << pos << ", expected " << target
+			    << ")";
 		    }
 		}
 	    }
 	} // for (ibis::bitvector::indexSet...
 	(void) UnixClose(fdes);
-	if (ibis::gVerbose > 4)
-	    logMessage("selectValuesT", "got %lu values (%lu wanted) from "
-		       "reading file %s",
-		       static_cast<long unsigned>(vals.size()),
-		       static_cast<long unsigned>(tot), dfn);
+	LOGGER(ibis::gVerbose > 4)
+	    << evt << " -- got " << vals.size() << " values (" << tot
+	    << " wanted) from file " << dfn;
     }
 
     ierr = (vals.size() <= inds.size() ? vals.size() : inds.size());
-    LOGGER(vals.size() != tot && ibis::gVerbose > 0)
-	<< "Warning -- column[" << m_name << "]::selectValuesT got "
-	<< ierr << " out of " << tot << " values from "
-	<< (dfn && *dfn ? dfn : "?") << " as "
-	<< typeid(T).name();
     vals.resize(ierr);
     inds.resize(ierr);
+    LOGGER(vals.size() != tot && ibis::gVerbose > 0)
+	<< "Warning -- " << evt << " got " << ierr << " out of "
+	<< tot << " values from " << (dfn && *dfn ? dfn : "memory");
     return ierr;
 } // ibis::column::selectValuesT
 
