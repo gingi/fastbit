@@ -1,3 +1,13 @@
+2012-01-19 John Wu <John dot Wu at ACM dot org>
+	* src/bundle.cpp: add macro FASTBIT_ORDER_OUTPUT_RIDS to control
+	whether the RIDs within each bundle is sorted.  Dominique reported
+	that this extra sorting can take up to half of the total time to
+	create the bundles
+	* src/category.cpp: include header file memory at the suggestion
+	of Alexandre Maurel
+	* src/utilidor.cpp: add option to use 65536 bins in sort_radix for
+	16-bit integer keys
+
 2012-01-18 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: change selectValues and supporting functions to
 	work with in-memory data, relax the checking of element sizes to

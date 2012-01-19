@@ -318,6 +318,19 @@ perform.
 <br>Any integer can be specified as the verbose level.  Typically range
 are 1 -- 20.  Use a negative number to mute <code>ibis</code>.
 
+<li><code>-y [rowidlist|conditions]</code>
+<br>This option tells IBIS to yank the specified rows from further query
+processing.  It can take either a file with a list of row numbers or a
+set of condititions in the same syntax as the where clauses.  The rows
+with ids matching the row ids in the named file or matching the
+specified conditions will be marked as "inactive" in future query
+processing.
+
+<br>This options can be reversed by <code>-k
+[rowidlist|conditions]</code>.
+
+<br>An additional option <code>-z</code> can be used together with
+<code>-y</code> to tell IBIS to zap the inactive rows away.
 
 </ul>
 

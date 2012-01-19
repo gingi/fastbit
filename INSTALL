@@ -173,7 +173,7 @@ FASTBIT_READ_BITVECTOR0
 FASTBIT_EXPAND_ALL_TYPES
 
   The macro FASTBIT_EXPAND_ALL_TYPES controls whether all ten different
-  columns will have its own template instance function.  By default,
+  column types will have its own template instance function.  By default,
   with FASTBIT_EXPAND_ALL_TYPES not defined, only five instances are
   generated.  The columns of type BYTE and SHORT are converted to INT
   and passed to the function that handles INT.  The columns of type
@@ -201,6 +201,14 @@ FASTBIT_USE_LONG_OFFSETS
   affects the writing function, the reading function will always check
   the header to determine the expected bitmap offset size.
 
+FASTBIT_ORDER_OUTPUT_RIDS
+
+  If this macro is defined, the RIDs within each bundle is sorted in an
+  extra loop after the bundles are generated.  This feature was useful
+  in one early application of FastBit, but the SQL standard does not
+  demand this feature.  According to some user reports, sorting the RIDs
+  in this extra loop costs as much as remaining sorting operations.  It
+  is not defined by default.
 
 ----------
 Known Issues

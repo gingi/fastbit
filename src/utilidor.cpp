@@ -1762,11 +1762,14 @@ template <typename T>
 void ibis::util::sort_radix(array_t<char>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
+    if (nelm <= 1) return;
+
     array_t<uint32_t> offsets(256, 0);
     bool sorted = true;
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    ++ offsets[keys[0]+128];
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	++ offsets[keys[j]+128];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+	sorted = sorted && (keys[j] >= keys[j-1]);
     }
     if (sorted) return;
 
@@ -1779,7 +1782,7 @@ void ibis::util::sort_radix(array_t<char>& keys, array_t<T>& vals) {
 	prev += cnt;
 	if (maxv < cnt) maxv = cnt;
     }
-    if (maxv < nelm) {
+    if (maxv < nelm) { // not all the same
 	array_t<char> ktmp(nelm);
 	array_t<T> vtmp(nelm);
 	for (uint32_t j = 0; j < nelm; ++ j) {
@@ -1826,10 +1829,13 @@ void ibis::util::sort_radix(array_t<signed char>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offsets(256, 0);
+    if (nelm <= 1) return;
+
     bool sorted = true;
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    ++ offsets[keys[0]+128];
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	++ offsets[keys[j]+128];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+	sorted = sorted && (keys[j] >= keys[j-1]);
     }
     if (sorted) return;
 
@@ -1890,10 +1896,13 @@ void ibis::util::sort_radix(array_t<unsigned char>& keys,
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
     array_t<uint32_t> offsets(256, 0);
+    if (nelm <= 1) return;
+
     bool sorted = true;
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    offsets[keys[0]] = 1;
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	++ offsets[keys[j]];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+	sorted = sorted && (keys[j] >= keys[j-1]);
     }
     if (sorted) return;
 
@@ -1953,64 +1962,104 @@ template <typename T>
 void ibis::util::sort_radix(array_t<int16_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
-    array_t<uint32_t> offset1(256, 0);
-    array_t<uint32_t> offset2(256, 0);
-    bool sorted = true;
-    // count the number of values in each bucket
-    for (uint32_t j = 0; j < nelm; ++ j) {
-	++ offset1[keys[j]&255];
-	++ offset2[(keys[j]>>8)+128];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
-    }
-    if (sorted) return;
+    if (nelm <= 1) return;
 
-    // determine the starting positions for each bucket
-    uint32_t max1 = offset1[0];
-    uint32_t max2 = offset2[0];
-    uint32_t prev1 = offset1[0];
-    uint32_t prev2 = offset2[0];
-    offset1[0] = 0;
-    offset2[0] = 0;
-    for (uint32_t j = 1; j < 256; ++ j) {
-	const uint32_t cnt1 = offset1[j];
-	const uint32_t cnt2 = offset2[j];
-	offset1[j] = prev1;
-	offset2[j] = prev2;
-	prev1 += cnt1;
-	prev2 += cnt2;
-	if (max1 < cnt1) max1 = cnt1;
-	if (max2 < cnt2) max2 = cnt2;
-    }
-    if (max1 == nelm && max2 == nelm) return;
+    try { // try the one-pass approach first
+	array_t<uint32_t> offsets(65536, 0);
+	bool sorted = true;
+	// count the number of values in each bucket
+	offsets[keys[0]+32768] = 1;
+	for (uint32_t j = 1; j < nelm; ++ j) {
+	    ++ offsets[keys[j]+32768];
+	    sorted = sorted && (keys[j] >= keys[j-1]);
+	}
+	if (sorted) return;
 
-    array_t<int16_t> ktmp(nelm);
-    array_t<T> vtmp(nelm);
-    // distribution 1
-    if (max1 < nelm) {
+	// determine the starting positions for each bucket
+	uint32_t max1 = offsets[0];
+	uint32_t prev1 = offsets[0];
+	offsets[0] = 0;
+	for (uint32_t j = 1; j < 65536; ++ j) {
+	    const uint32_t cnt1 = offsets[j];
+	    offsets[j] = prev1;
+	    prev1 += cnt1;
+	    if (max1 < cnt1) max1 = cnt1;
+	}
+
+	array_t<int16_t> ktmp(nelm);
+	array_t<T> vtmp(nelm);
+	// distribution 1
 	for (uint32_t j = 0; j < nelm; ++ j) {
-	    uint32_t &pos = offset1[keys[j]&255];
+	    uint32_t &pos = offsets[keys[j]+32768];
 	    ktmp[pos] = keys[j];
 	    vtmp[pos] = vals[j];
 	    ++ pos;
 	}
-    }
-    else {
 	keys.swap(ktmp);
 	vals.swap(vtmp);
     }
-
-    // distribution 2
-    if (max2 < nelm) {
-	for (uint32_t j = 0; j < nelm; ++ j) {
-	    uint32_t &pos = offset2[(ktmp[j]>>8)+128];
-	    keys[pos] = ktmp[j];
-	    vals[pos] = vtmp[j];
-	    ++ pos;
+    catch (...) { // now try to two-pass appraoch
+	array_t<uint32_t> offset1(256, 0);
+	array_t<uint32_t> offset2(256, 0);
+	bool sorted = true;
+	// count the number of values in each bucket
+	offset1[keys[0]&255] = 1;
+	offset2[(keys[0]>>8)+128] = 1;
+	for (uint32_t j = 1; j < nelm; ++ j) {
+	    ++ offset1[keys[j]&255];
+	    ++ offset2[(keys[j]>>8)+128];
+	    sorted = sorted && (keys[j] >= keys[j-1]);
 	}
-    }
-    else {
-	keys.swap(ktmp);
-	vals.swap(vtmp);
+	if (sorted) return;
+
+	// determine the starting positions for each bucket
+	uint32_t max1 = offset1[0];
+	uint32_t max2 = offset2[0];
+	uint32_t prev1 = offset1[0];
+	uint32_t prev2 = offset2[0];
+	offset1[0] = 0;
+	offset2[0] = 0;
+	for (uint32_t j = 1; j < 256; ++ j) {
+	    const uint32_t cnt1 = offset1[j];
+	    const uint32_t cnt2 = offset2[j];
+	    offset1[j] = prev1;
+	    offset2[j] = prev2;
+	    prev1 += cnt1;
+	    prev2 += cnt2;
+	    if (max1 < cnt1) max1 = cnt1;
+	    if (max2 < cnt2) max2 = cnt2;
+	}
+	if (max1 == nelm && max2 == nelm) return;
+
+	array_t<int16_t> ktmp(nelm);
+	array_t<T> vtmp(nelm);
+	// distribution 1
+	if (max1 < nelm) {
+	    for (uint32_t j = 0; j < nelm; ++ j) {
+		uint32_t &pos = offset1[keys[j]&255];
+		ktmp[pos] = keys[j];
+		vtmp[pos] = vals[j];
+		++ pos;
+	    }
+	}
+	else {
+	    keys.swap(ktmp);
+	    vals.swap(vtmp);
+	}
+
+	// distribution 2
+	if (max2 < nelm) {
+	    for (uint32_t j = 0; j < nelm; ++ j) {
+		uint32_t &pos = offset2[(ktmp[j]>>8)+128];
+		keys[pos] = ktmp[j];
+		vals[pos] = vtmp[j];
+		++ pos;
+	    }
+	}
+	else {
+	    keys.swap(ktmp);
+	    vals.swap(vtmp);
+	}
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     sorted = true;
@@ -2047,64 +2096,104 @@ template <typename T>
 void ibis::util::sort_radix(array_t<uint16_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
-    array_t<uint32_t> offset1(256, 0);
-    array_t<uint32_t> offset2(256, 0);
-    bool sorted = true;
-    // count the number of values in each bucket
-    for (uint32_t j = 0; j < nelm; ++ j) {
-	++ offset1[keys[j]&255];
-	++ offset2[keys[j]>>8];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
-    }
-    if (sorted) return;
+    if (nelm <= 1) return;
 
-    // determine the starting positions for each bucket
-    uint32_t max1 = offset1[0];
-    uint32_t max2 = offset2[0];
-    uint32_t prev1 = offset1[0];
-    uint32_t prev2 = offset2[0];
-    offset1[0] = 0;
-    offset2[0] = 0;
-    for (uint32_t j = 1; j < 256; ++ j) {
-	const uint32_t cnt1 = offset1[j];
-	const uint32_t cnt2 = offset2[j];
-	offset1[j] = prev1;
-	offset2[j] = prev2;
-	prev1 += cnt1;
-	prev2 += cnt2;
-	if (cnt1 > max1) max1 = cnt1;
-	if (cnt2 > max2) max2 = cnt2;
-    }
-    if (max1 == nelm && max2 == nelm) return;
+    try { // attempt to use 65536 bins
+	array_t<uint32_t> offsets(65536, 0);
+	bool sorted = true;
+	// count the number of values in each bucket
+	offsets[keys[0]] = 1;
+	for (uint32_t j = 1; j < nelm; ++ j) {
+	    ++ offsets[keys[j]];
+	    sorted = sorted && (keys[j] >= keys[j-1]);
+	}
+	if (sorted) return;
 
-    array_t<uint16_t> ktmp(nelm);
-    array_t<T> vtmp(nelm);
-    // distribution 1
-    if (max1 < nelm) {
+	// determine the starting positions for each bucket
+	uint32_t max1 = offsets[0];
+	uint32_t prev1 = offsets[0];
+	offsets[0] = 0;
+	for (uint32_t j = 1; j < 65536; ++ j) {
+	    const uint32_t cnt1 = offsets[j];
+	    offsets[j] = prev1;
+	    prev1 += cnt1;
+	    if (cnt1 > max1) max1 = cnt1;
+	}
+
+	array_t<uint16_t> ktmp(nelm);
+	array_t<T> vtmp(nelm);
+	// distribution 1
 	for (uint32_t j = 0; j < nelm; ++ j) {
-	    uint32_t &pos = offset1[keys[j]&255];
+	    uint32_t &pos = offsets[keys[j]];
 	    ktmp[pos] = keys[j];
 	    vtmp[pos] = vals[j];
 	    ++ pos;
 	}
-    }
-    else {
 	keys.swap(ktmp);
 	vals.swap(vtmp);
     }
-
-    // distribution 2
-    if (max2 < nelm) {
-	for (uint32_t j = 0; j < nelm; ++ j) {
-	    uint32_t &pos = offset2[ktmp[j]>>8];
-	    keys[pos] = ktmp[j];
-	    vals[pos] = vtmp[j];
-	    ++ pos;
+    catch (...) { // attempt to use 512 bins (256 x 2)
+	array_t<uint32_t> offset1(256, 0);
+	array_t<uint32_t> offset2(256, 0);
+	bool sorted = true;
+	// count the number of values in each bucket
+	offset1[keys[0]&255] = 1;
+	offset2[keys[0]>>8] = 1;
+	for (uint32_t j = 1; j < nelm; ++ j) {
+	    ++ offset1[keys[j]&255];
+	    ++ offset2[keys[j]>>8];
+	    sorted = sorted && (keys[j] >= keys[j-1]);
 	}
-    }
-    else {
-	keys.swap(ktmp);
-	vals.swap(vtmp);
+	if (sorted) return;
+
+	// determine the starting positions for each bucket
+	uint32_t max1 = offset1[0];
+	uint32_t max2 = offset2[0];
+	uint32_t prev1 = offset1[0];
+	uint32_t prev2 = offset2[0];
+	offset1[0] = 0;
+	offset2[0] = 0;
+	for (uint32_t j = 1; j < 256; ++ j) {
+	    const uint32_t cnt1 = offset1[j];
+	    const uint32_t cnt2 = offset2[j];
+	    offset1[j] = prev1;
+	    offset2[j] = prev2;
+	    prev1 += cnt1;
+	    prev2 += cnt2;
+	    if (cnt1 > max1) max1 = cnt1;
+	    if (cnt2 > max2) max2 = cnt2;
+	}
+	if (max1 == nelm && max2 == nelm) return;
+
+	array_t<uint16_t> ktmp(nelm);
+	array_t<T> vtmp(nelm);
+	// distribution 1
+	if (max1 < nelm) {
+	    for (uint32_t j = 0; j < nelm; ++ j) {
+		uint32_t &pos = offset1[keys[j]&255];
+		ktmp[pos] = keys[j];
+		vtmp[pos] = vals[j];
+		++ pos;
+	    }
+	}
+	else {
+	    keys.swap(ktmp);
+	    vals.swap(vtmp);
+	}
+
+	// distribution 2
+	if (max2 < nelm) {
+	    for (uint32_t j = 0; j < nelm; ++ j) {
+		uint32_t &pos = offset2[ktmp[j]>>8];
+		keys[pos] = ktmp[j];
+		vals[pos] = vtmp[j];
+		++ pos;
+	    }
+	}
+	else {
+	    keys.swap(ktmp);
+	    vals.swap(vtmp);
+	}
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     sorted = true;
@@ -2141,16 +2230,21 @@ template <typename T>
 void ibis::util::sort_radix(array_t<int32_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
+    if (nelm <= 1) return;
+
     array_t<uint32_t> offset1(2048, 0); // 11-bit
     array_t<uint32_t> offset2(2048, 0); // 11-bit
     array_t<uint32_t> offset3(1024, 0); // 10-bit
     bool sorted = true;
     // count the number of values in each bucket
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    offset1[keys[0]&2047] = 1;
+    offset2[(keys[0]>>11)&2047] = 1;
+    offset3[(keys[0]>>22)+512] = 1;
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	++ offset1[keys[j]&2047];
 	++ offset2[(keys[j]>>11)&2047];
 	++ offset3[(keys[j]>>22)+512];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+	sorted = sorted && (keys[j] >= keys[j-1]);
     }
     if (sorted) return;
 
@@ -2269,13 +2363,18 @@ void ibis::util::sort_radix(array_t<uint32_t>& keys, array_t<T>& vals) {
     array_t<uint32_t> offset1(2048, 0); // 11-bit
     array_t<uint32_t> offset2(2048, 0); // 11-bit
     array_t<uint32_t> offset3(1024, 0); // 10-bit
+    if (nelm <= 1) return;
+
     bool sorted = true;
     // count the number of values in each bucket
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    ++ offset1[keys[0]&2047];
+    ++ offset2[(keys[0]>>11)&2047];
+    ++ offset3[(keys[0]>>22)];
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	++ offset1[keys[j]&2047];
 	++ offset2[(keys[j]>>11)&2047];
 	++ offset3[(keys[j]>>22)];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+	sorted = sorted && (keys[j] >= keys[j-1]);
     }
     if (sorted) return;
 
@@ -2391,6 +2490,8 @@ template <typename T>
 void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
+    if (nelm <= 1) return;
+
     array_t<uint32_t> offset1(2048, 0); // 11-bit
     array_t<uint32_t> offset2(2048, 0); // 11-bit
     array_t<uint32_t> offset3(2048, 0); // 11-bit
@@ -2399,14 +2500,20 @@ void ibis::util::sort_radix(array_t<int64_t>& keys, array_t<T>& vals) {
     array_t<uint32_t> offset6(1024, 0); // 10-bit
     bool sorted = true;
     // count the number of values in each bucket
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    ++ offset1[keys[0]&2047];
+    ++ offset2[(keys[0]>>11)&2047];
+    ++ offset3[(keys[0]>>22)&2047];
+    ++ offset4[(keys[0]>>33)&2047];
+    ++ offset5[(keys[0]>>44)&1023];
+    ++ offset6[(keys[0]>>54)+512];
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	++ offset1[keys[j]&2047];
 	++ offset2[(keys[j]>>11)&2047];
 	++ offset3[(keys[j]>>22)&2047];
 	++ offset4[(keys[j]>>33)&2047];
 	++ offset5[(keys[j]>>44)&1023];
 	++ offset6[(keys[j]>>54)+512];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+	sorted = sorted && (keys[j] >= keys[j-1]);
     }
     if (sorted) return;
 
@@ -2596,6 +2703,8 @@ template <typename T>
 void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
+    if (nelm <= 1) return;
+
     array_t<uint32_t> offset1(2048, 0); // 11-bit
     array_t<uint32_t> offset2(2048, 0); // 11-bit
     array_t<uint32_t> offset3(2048, 0); // 11-bit
@@ -2604,14 +2713,20 @@ void ibis::util::sort_radix(array_t<uint64_t>& keys, array_t<T>& vals) {
     array_t<uint32_t> offset6(1024, 0); // 10-bit
     bool sorted = true;
     // count the number of values in each bucket
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    ++ offset1[keys[0]&2047];
+    ++ offset2[(keys[0]>>11)&2047];
+    ++ offset3[(keys[0]>>22)&2047];
+    ++ offset4[(keys[0]>>33)&2047];
+    ++ offset5[(keys[0]>>44)&1023];
+    ++ offset6[(keys[0]>>54)];
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	++ offset1[keys[j]&2047];
 	++ offset2[(keys[j]>>11)&2047];
 	++ offset3[(keys[j]>>22)&2047];
 	++ offset4[(keys[j]>>33)&2047];
 	++ offset5[(keys[j]>>44)&1023];
 	++ offset6[(keys[j]>>54)];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+	sorted = sorted && (keys[j] >= keys[j-1]);
     }
     if (sorted) return;
 
@@ -2801,19 +2916,23 @@ template <typename T>
 void ibis::util::sort_radix(array_t<float>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
+    if (nelm <= 1) return;
+
     array_t<uint32_t> offset1(2048, 0); // 11-bit
     array_t<uint32_t> offset2(2048, 0); // 11-bit
     array_t<uint32_t> offset3(1024, 0); // 10-bit
     bool sorted = true;
     // count the number of values in each bucket
     const uint32_t *ikeys = reinterpret_cast<const uint32_t*>(keys.begin());
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    offset1[(*ikeys)&2047] = 1;
+    offset2[((*ikeys)>>11)&2047] = 1;
+    offset3[((*ikeys)>>22)] = 1;
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	const uint32_t& key = ikeys[j];
 	++ offset1[key&2047];
 	++ offset2[(key>>11)&2047];
 	++ offset3[(key>>22)];
-	if (j > 0)
-	    sorted = sorted && (keys[j]>=keys[j-1]);
+	sorted = sorted && (keys[j]>=keys[j-1]);
     }
     if (sorted) return; // input keys are already sorted
 
@@ -2939,6 +3058,8 @@ template <typename T>
 void ibis::util::sort_radix(array_t<double>& keys, array_t<T>& vals) {
     const uint32_t nelm = (keys.size() <= vals.size() ?
 			   keys.size() : vals.size());
+    if (nelm <= 1) return;
+
     array_t<uint32_t> offset1(2048, 0); // 11-bit
     array_t<uint32_t> offset2(2048, 0); // 11-bit
     array_t<uint32_t> offset3(2048, 0); // 11-bit
@@ -2948,14 +3069,20 @@ void ibis::util::sort_radix(array_t<double>& keys, array_t<T>& vals) {
     bool sorted = true;
     const uint64_t *ikeys = reinterpret_cast<const uint64_t*>(keys.begin());
     // count the number of values in each bucket
-    for (uint32_t j = 0; j < nelm; ++ j) {
+    offset1[ikeys[0]&2047] = 1;
+    offset2[(ikeys[0]>>11)&2047] = 1;
+    offset3[(ikeys[0]>>22)&2047] = 1;
+    offset4[(ikeys[0]>>33)&2047] = 1;
+    offset5[(ikeys[0]>>44)&1023] = 1;
+    offset6[(ikeys[0]>>54)] = 1;
+    for (uint32_t j = 1; j < nelm; ++ j) {
 	++ offset1[ikeys[j]&2047];
 	++ offset2[(ikeys[j]>>11)&2047];
 	++ offset3[(ikeys[j]>>22)&2047];
 	++ offset4[(ikeys[j]>>33)&2047];
 	++ offset5[(ikeys[j]>>44)&1023];
 	++ offset6[(ikeys[j]>>54)];
-	sorted = sorted && (j > 0 ? keys[j] >= keys[j-1] : true);
+	sorted = sorted && (keys[j] >= keys[j-1]);
     }
     if (sorted) return;
 

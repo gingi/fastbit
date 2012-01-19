@@ -14,6 +14,7 @@
 #include "ikeywords.h"
 
 #include <algorithm>	// std::copy
+#include <memory>	// std::auto_ptr
 
 ////////////////////////////////////////////////////////////////////////
 // functions for ibis::category

@@ -109,22 +109,22 @@ void ibis::bundle::sortRIDs(uint32_t i, uint32_t j) {
 	bool right = !cmp((*rids)[i2], tmp);
 	while (i1 < i2) {
 	    if (left && right) {
-		// both i1 and i2 are in the right position
+		// both i1 and i2 are on the correct size
 		++ i1; --i2;
 		left = cmp((*rids)[i1], tmp);
 		right = !cmp((*rids)[i2], tmp);
 	    }
 	    else if (right) {
-		// i2 is in the right position
+		// i2 is on the correct size
 		-- i2;
 		right = !cmp((*rids)[i2], tmp);
 	    }
 	    else if (left) {
-		// i1 is in the right position
+		// i1 is on the correct side
 		++ i1;
 		left = cmp((*rids)[i1], tmp);
 	    }
-	    else { // both in the wrong position, swap them
+	    else { // both on the wrong side, swap them
 		swapRIDs(i2, i1);
 		++ i1; -- i2;
 		left = cmp((*rids)[i1], tmp);
@@ -821,10 +821,12 @@ void ibis::bundle1::sort() {
 	uint32_t nGroups = starts->size() - 1;
 	if (nGroups < nrow) {    // erase the dupliate elements
 	    col->reduce(*starts);
-	    if (rids && rids->size() == nrow) {
+#ifdef FASTBIT_ORDER_OUTPUT_RIDS
+	    if (rids != 0 && rids->size() == nrow) {
 		for (uint32_t i=nGroups; i>0; --i)
 		    sortRIDs((*starts)[i-1], (*starts)[i]);
 	    }
+#endif
 	}
     }
     else { // a function is involved
@@ -1669,18 +1671,22 @@ void ibis::bundles::sort() {
 	cols2.swap(cols);
     }
 
-    // sort RIDs and perform sanity check
-    if (nGroups < nHits && rids && rids->size() == nHits) {
+#ifdef FASTBIT_ORDER_OUTPUT_RIDS
+    // sort RIDs
+    if (nGroups < nHits && rids != 0 && rids->size() == nHits) {
 	for (uint32_t i1=nGroups; i1>0; --i1)
 	    sortRIDs((*starts)[i1-1], (*starts)[i1]);
     }
-    for (uint32_t i1 = 0; i1 < ncol; ++i1) {
-	LOGGER(cols[i1]->size() != nGroups && ibis::gVerbose >= 0)
-	    << "Warning -- bundles::sort -- column # " << i1
-	    << " (" << (*(cols[i1]))->name()
-	    << ") is expected to have " << nGroups << " value"
-	    << (nGroups>1?"s":"") << ", but it actually has "
-	    << cols[i1]->size();
+#endif
+    if (ibis::gVerbose > 0) { // perform a sanity check
+	for (uint32_t i1 = 0; i1 < ncol; ++i1) {
+	    LOGGER(cols[i1]->size() != nGroups)
+		<< "Warning -- bundles::sort -- column # " << i1
+		<< " (" << (*(cols[i1]))->name()
+		<< ") is expected to have " << nGroups << " value"
+		<< (nGroups>1?"s":"") << ", but it actually has "
+		<< cols[i1]->size();
+	}
     }
 #if _DEBUG+0>2 || DEBUG+0>1
     if (ibis::gVerbose > 5) {
