@@ -46,6 +46,7 @@ public:
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;
 
+    virtual void loadIndex(const char* iopt=0, int ropt=0) const throw ();
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);
     virtual long append(const void*, const ibis::bitvector&) {return -1;}
@@ -132,6 +133,7 @@ public:
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;
 
+    virtual void loadIndex(const char*, int) const throw ();
     /// Append the content in @a df to the directory @a dt.
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);

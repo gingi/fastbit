@@ -639,6 +639,11 @@ void ibis::category::getString(uint32_t i, std::string &str) const {
 	str.clear();
 } // ibis::category::getString
 
+/// This function checks to make sure the index is ready.
+void ibis::category::loadIndex(const char*, int) const throw () {
+    prepareMembers();
+} // ibis::category::loadIndex
+
 // read the string values (terminated with NULL) from the directory "dt" and
 // extend the set of bitvectors representing the strings
 long ibis::category::append(const char* dt, const char* df,
@@ -1314,6 +1319,11 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    << (thePart->nRows() > 1 ? "s" : "");
     }
 } // ibis::text::startPositions
+
+void ibis::text::loadIndex(const char*, int) const throw () {
+    if (thePart != 0 && thePart->currentDataDir() != 0)
+	startPositions(thePart->currentDataDir(), 0, 0);
+} // ibis::text::loadIndex
 
 /// Append the data file stored in directory @c df to the corresponding
 /// data file in directory @c dt.  Use the buffer @c buf to copy data in

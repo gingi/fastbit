@@ -3413,6 +3413,7 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
 	if (col != 0) {
 	    ibis::bitvector mymask;
 	    col->getNullMask(mymask);
+	    mymask &= mask;
 	    ierr = col->evaluateRange(cmp, mymask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
@@ -3544,6 +3545,7 @@ long ibis::part::evaluateRange(const ibis::qIntHod &cmp,
 	if (col != 0) {
 	    ibis::bitvector mymask;
 	    col->getNullMask(mymask);
+	    mymask &= mask;
 	    ierr = col->evaluateRange(cmp, mymask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
@@ -3675,6 +3677,7 @@ long ibis::part::evaluateRange(const ibis::qUIntHod &cmp,
 	if (col != 0) {
 	    ibis::bitvector mymask;
 	    col->getNullMask(mymask);
+	    mymask &= mask;
 	    ierr = col->evaluateRange(cmp, mymask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");

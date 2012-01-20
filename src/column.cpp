@@ -5015,15 +5015,20 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	thePart->currentDataDir() == 0)
 	return;
 
-    writeLock lock(this, "loadIndex");
+    std::string evt = "column[";
+    evt += thePart->name();
+    evt += '.';
+    evt += name();
+    evt += "]::loadIndex";
+    writeLock lock(this, evt.c_str());
     if (idx != 0 || thePart->nRows() == 0)
 	return;
 
     ibis::index* tmp = idx;
     try { // if an index is not available, create one
 	LOGGER(ibis::gVerbose > 7)
-	    << "column[" << thePart->name() << '.' << name()
-	    <<"]::loadIndex -- loading the index from " << thePart->currentDataDir();
+	    << evt << " -- loading the index from "
+	    << thePart->currentDataDir();
 	if (tmp == 0) {
 	    tmp = ibis::index::create(this, thePart->currentDataDir(),
 				      iopt, ropt);
@@ -5050,8 +5055,7 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 #endif
 	    thePart->nRows()) {
 	    LOGGER(ibis::gVerbose > 2)
-		<< "column[" << thePart->name() << '.' << name()
-		<<"]::loadIndex found an index with nRows=" << tmp->getNRows()
+		<< evt << " an index with nRows=" << tmp->getNRows()
 		<< ", but the data partition nRows=" << thePart->nRows()
 		<< ", try to recreate the index";
 	    delete tmp;
@@ -5060,8 +5064,8 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	    tmp = ibis::index::create(this, static_cast<const char*>(0), iopt);
 	    if (tmp != 0 && tmp->getNRows() != thePart->nRows()) {
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- column[" << thePart->name() << '.' << name()
-		    <<"]::loadIndex created an index with nRows=" << tmp->getNRows()
+		    << "Warning -- " << evt
+		    <<" created an index with nRows=" << tmp->getNRows()
 		    << ", but the data partition nRows=" << thePart->nRows()
 		    << ", failed on retry!";
 		delete tmp;
@@ -5080,8 +5084,7 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	    }
 	    else if (idx != tmp) { // another thread has created an index
 		LOGGER(ibis::gVerbose >= 0)
-		    << "column[" << (thePart ? thePart->name() : "?") << '.'
-		    << m_name << "]::loadIndex found an index (" << idx->name()
+		    << evt << " found an index (" << idx->name()
 		    << ") for this column after building another one ("
 		    << tmp->name() << "), discarding the new one";
 		delete tmp;
@@ -5089,8 +5092,9 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	}
     }
     catch (const char* s) {
-	logWarning("loadIndex", "index::ceate(%s) throw "
-		   "the following exception\n%s", name(), s);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " received the following exception\n"
+	    << s;
 	delete tmp;
 	// 	    std::string key = thePart->name();
 	// 	    key += '.';
@@ -5104,14 +5108,14 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	// 	    purgeIndexFile();
     }
     catch (const std::exception& e) {
-	logWarning("loadIndex", "index::create(%s) failed "
-		   "to create a new index -- %s", name(), e.what());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " received the following exception\n"
+	    << e.what();
 	delete tmp;
     }
     catch (...) {
-	logWarning("loadIndex", "index::create(%s) failed "
-		   "to create a new index -- unexpected exception",
-		   name());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " received a unexpected exception";
 	delete tmp;
     }
 } // ibis::column::loadIndex

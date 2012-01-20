@@ -7,6 +7,11 @@
 	of Alexandre Maurel
 	* src/utilidor.cpp: add option to use 65536 bins in sort_radix for
 	16-bit integer keys
+	* src/category.h, src/category.cpp: add function loadIndex to
+	prepare auxiliary data so that part::buildIndexes could prepare
+	all auxiliary data files
+	* src/part.cpp: three versions of evaluateRange neglected to apply
+	the externally supplied mask
 
 2012-01-18 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: change selectValues and supporting functions to
