@@ -1320,9 +1320,11 @@ void ibis::text::startPositions(const char *dir, char *buf,
     }
 } // ibis::text::startPositions
 
-void ibis::text::loadIndex(const char*, int) const throw () {
-    if (thePart != 0 && thePart->currentDataDir() != 0)
+void ibis::text::loadIndex(const char* iopt, int ropt) const throw () {
+    if (thePart != 0 && thePart->currentDataDir() != 0) {
 	startPositions(thePart->currentDataDir(), 0, 0);
+	ibis::column::loadIndex(iopt, ropt);
+    }
 } // ibis::text::loadIndex
 
 /// Append the data file stored in directory @c df to the corresponding

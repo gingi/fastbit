@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.2.7.3], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.2.8], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -718,7 +718,7 @@ dnl AM_CONDITIONAL(CONFIG_CONTRIB, test "$contrib" = "yes")
 dnl AC_SUBST(CONFIG_CONTRIB)
 
 AC_DEFINE_UNQUOTED(FASTBIT_IBIS_INT_VERSION,
- `echo $PACKAGE_VERSION | awk 'BEGIN { FS="." } { printf("%.2d%.2d%.2d%.2d\n", substr($1, 5), $2, $3, $4); }'`,
+ `echo $PACKAGE_VERSION | awk 'BEGIN { FS="." } { printf("%d%.2d%.2d%.2d\n", substr($1, 5), $2, $3, $4); }'`,
 [Define an integer version of FastBit IBIS version number])
 OBJDIR=$objdir
 AC_SUBST(BUILD_JAVA_INTERFACE)

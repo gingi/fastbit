@@ -605,7 +605,7 @@ namespace ibis {
 #ifdef FASTBIT_IBIS_INT_VERSION
 	    return FASTBIT_IBIS_INT_VERSION;
 #else
-	    return 01020700;
+	    return 1020800;
 #endif
 	}
 

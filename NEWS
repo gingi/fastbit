@@ -1,3 +1,21 @@
+Fri Jan 20 16:43:32 PST 2012
+Version ibis1.2.8
+-- change ibis::part::buildIndexes to rebuild indexes if the existing
+   ones are out of date
+-- Dominique Prunier added function to interate over bundles, fixed
+   initailization issues
+-- add option to force the index building procedure to invoke an extra
+   round of compression calls
+-- complete the code that makes uses of .int files for categorical
+   values
+-- change ibis::part::buildIndexes to build all auxiliary data files to
+   avoid the need of write access to data files during query processing
+-- enable control of whether to sort RIDs when creating bundles, sorting
+   RIDS could be as expensive sorting to create the bundles
+-- implement aggregation (group by) operations COUNT, COUNT-DISTINCT,
+   MIN, and MAX for string values
+
+
 Mon Jan  9 18:04:47 PST 2012
 Version ibis1.2.7
 -- Tomas Rybka implemented algorithm to perform binary merge to reduce

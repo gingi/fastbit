@@ -6048,12 +6048,96 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
     }
 } // ibis::colDoubles::reduce
 
-void ibis::colStrings::reduce(const array_t<uint32_t>&,
-			      ibis::selectClause::AGREGADO) {
-    LOGGER(ibis::gVerbose >= 0 && col != 0)
-	<< "Warning -- colStrings::reduce can NOT apply any aggregate "
-	"function on column " << col->name() << " (type "
-	<< ibis::TYPESTRING[(int)(col->type())] << ")";
+void ibis::colStrings::reduce(const array_t<uint32_t>& starts,
+			      ibis::selectClause::AGREGADO func) {
+    const uint32_t nseg = starts.size() - 1;
+    switch (func) {
+    default:
+	LOGGER(ibis::gVerbose >= 0 && col != 0)
+	    << "Warning -- colStrings::reduce can NOT apply aggregate "
+	    << (int)func << " on column " << col->name() << " (type "
+	    << ibis::TYPESTRING[(int)(col->type())] << ")";
+	break;
+    case ibis::selectClause::NIL_AGGR: // only save the first value
+	for (uint32_t i = 0; i < nseg; ++i) 
+	    (*array)[i] = (*array)[starts[i]];
+	break;
+    case ibis::selectClause::CNT: // count
+	for (uint32_t i = 0; i < nseg; ++ i) {
+	    std::ostringstream oss;
+	    oss << starts[i+1] - starts[i];
+	    (*array)[i] = oss.str();
+	}
+	break;
+    case ibis::selectClause::MIN: // min
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    (*array)[i] = (*array)[starts[i]];
+	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		if ((*array)[i] > (*array)[j])
+		    (*array)[i] = (*array)[j];
+	}
+	break;
+    case ibis::selectClause::MAX: // max
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    (*array)[i] = (*array)[starts[i]];
+	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		if ((*array)[i] < (*array)[j])
+		    (*array)[i] = (*array)[j];
+	}
+	break;
+    case ibis::selectClause::DISTINCT: // count distinct values
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) {
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
+
+		std::string lastVal = (*array)[starts[i]];
+		uint32_t distinct = 1;
+
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		    if ((*array)[j] != lastVal) {
+			lastVal = (*array)[j];
+			++ distinct;
+		    }
+		}
+
+		std::ostringstream oss;
+		oss << distinct;
+		(*array)[i] = oss.str();
+	    }
+	    else if (nv == 2) {
+		if ((*array)[starts[i]] == (*array)[starts[i]+1]) {
+		    (*array)[i] = "1";
+		}
+		else {
+		    (*array)[i] = "2";
+		}
+	    }
+	    else if (nv == 1) {
+		(*array)[i] = "1";
+	    }
+	}
+	break;
+    case ibis::selectClause::MEDIAN: // compute median
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    const uint32_t nv = starts[i+1] - starts[i];
+	    if (nv > 2) { // general case, require sorting
+		std::sort(array->begin()+starts[i], array->begin()+starts[i+1]);
+		(*array)[i] = (*array)[starts[i] + nv/2];
+	    }
+	    else if (starts[i] > i) {
+		(*array)[i] = (*array)[starts[i]];
+	    }
+	}
+	break;
+    }
+    array->resize(nseg);
+    if (array->capacity() > 1000 && array->capacity() > nseg+nseg) {
+	// replace the storage object with a smaller one
+	std::vector<std::string> tmp(nseg);
+	std::copy(array->begin(), array->end(), tmp.begin());
+	array->swap(tmp);
+    }
 } // ibis::colStrings::reduce
 
 double ibis::colInts::getMin() const {

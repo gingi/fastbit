@@ -1,3 +1,12 @@
+2012-01-20 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: print FASTBIT_IBIS_INT_VERSION with the leading 0
+	(the leading 0 cause the integer constant to be interpreted as
+	octal number, we actually intend the number of be interpreted as
+	a decimal integer), mark as ibis1.2.8
+	* src/category.cpp: text::loadIndex need to call column::loadIndex
+	* src/colValues.cpp: implement aggregation operations COUNT,
+	COUNT-DISTINCT, MIN, and MAX for string values
+
 2012-01-19 John Wu <John dot Wu at ACM dot org>
 	* src/bundle.cpp: add macro FASTBIT_ORDER_OUTPUT_RIDS to control
 	whether the RIDs within each bundle is sorted.  Dominique reported
@@ -35,7 +44,7 @@
 	the select clauses
 	* src/bundle.h, src/bundle.cpp: add function printColumnNames
 	* tests/Makefile.am: add test case 13 to really-small to check on
-	the problem on very long integers reported by Bao Toan Nguyen
+	the problem with very long integers reported by Bao Toan Nguyen
 
 2012-01-14 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: add option to try compression again after a
@@ -54,7 +63,7 @@
 
 2012-01-11 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: change ibis_part_build_indexes to rebuild the
-	index is the existing does not have the same number of rows
+	index if the existing does not have the same number of rows
 
 2012-01-10 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp, src/column.cpp: add more explicit template
