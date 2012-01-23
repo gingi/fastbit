@@ -1,3 +1,13 @@
+2012-01-23 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: in category::selectStrings call
+	text::selectStrings as a fallback option if .int file is not
+	present or not of the expected size
+
+2012-01-23 Dominique Prunier <dominique dot prunier at watch4net dot com>
+	* src/category.cpp: change category::selectStrings to make use of
+	category::selectUInt and the dictionary, it is faster than reading
+	the raw string values through text::selectStrings
+
 2012-01-20 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: print FASTBIT_IBIS_INT_VERSION with the leading 0
 	(the leading 0 cause the integer constant to be interpreted as

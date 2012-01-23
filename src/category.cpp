@@ -127,6 +127,27 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 	return new std::vector<std::string>(mask.cnt(), dic[1]);
     }
 
+    std::string fname;
+    bool useintfile = (0 != dataFileName(fname));
+    if (useintfile) { // chech the size of the .int file
+	fname += ".int";
+	useintfile = (thePart->nRows() ==
+		      (ibis::util::getFileSize(fname.c_str()) >> 2));
+    }
+    if (useintfile) {
+	std::auto_ptr< ibis::array_t<uint32_t> >
+	    keys(new ibis::array_t<uint32_t>);
+	if (selectValuesT(fname.c_str(), mask, *keys) >= 0) {
+	    std::vector<std::string>* strings = new std::vector<std::string>();
+	    strings->reserve(keys->size());
+	    for (unsigned i = 0; i < keys->size(); ++i) {
+		strings->push_back(dic[(*keys)[i]]);
+	    }
+	    return strings;
+	}
+    }
+
+    // the fallback option - read the strings from the raw data file
     return ibis::text::selectStrings(mask);
 } // ibis::category::selectStrings
 
