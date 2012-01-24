@@ -186,9 +186,9 @@ extern "C" {
     fastbit_destroy_result_set(FastBitResultSetHandle rset);
 
     ///@brief Returns 0 if there are more results, otherwise returns -1.
-    FASTBIT_DLLSPEC int fastbit_result_set_next(FastBitResultSetHandle rset);
+    FASTBIT_DLLSPEC int fastbit_result_set_next(FastBitResultSetHandle);
     ///@brief Returns 0 if there are more bundles, otherwise returns -1.
-    FASTBIT_DLLSPEC int fastbit_result_set_next_bundle(FastBitResultSetHandle rset);
+    FASTBIT_DLLSPEC int fastbit_result_set_next_bundle(FastBitResultSetHandle);
     ///@brief Get the value of the named column as an integer.
     FASTBIT_DLLSPEC int
     fastbit_result_set_get_int(FastBitResultSetHandle rset, const char *cname);
@@ -196,6 +196,10 @@ extern "C" {
     FASTBIT_DLLSPEC unsigned
     fastbit_result_set_get_unsigned(FastBitResultSetHandle rset,
 				    const char *cname);
+    ///@brief Get the value of the named column as a long.
+    FASTBIT_DLLSPEC int64_t
+    fastbit_result_set_get_long(FastBitResultSetHandle rset,
+				const char *cname);
     ///@brief Get the value of the named column as a single-precision
     /// floating-point number.
     FASTBIT_DLLSPEC float
@@ -221,6 +225,10 @@ extern "C" {
     FASTBIT_DLLSPEC uint32_t
     fastbit_result_set_getUnsigned(FastBitResultSetHandle rset,
 				   unsigned position);
+    ///@brief Get the value of the named column as a long.
+    FASTBIT_DLLSPEC int64_t
+    fastbit_result_set_getLong(FastBitResultSetHandle rset,
+				unsigned position);
     ///@brief Get the value of the named column as a single-precision
     /// floating-point number.
     FASTBIT_DLLSPEC float

@@ -9,6 +9,12 @@
 #include "bundle.h"	// ibis::query::result
 #include "tafel.h"	// a concrete instance of ibis::tablex
 
+// FIXME: we should not have to do this but C99 limit macros are not
+// defined in C++ unless __STDC_LIMIT_MACROS is defined
+#ifndef INT64_MAX
+#  define INT64_MAX (9223372036854775807LL)
+#endif
+
 extern "C" {
     /// The object underlying the FastBit query handle.
     struct FastBitQuery {
@@ -1277,6 +1283,7 @@ fastbit_get_qualified_uints(FastBitQueryHandle qhandle, const char *att) {
 	    return ret;
 	}
 	if (c->type() != ibis::UINT &&
+	    c->type() != ibis::CATEGORY &&
 	    c->type() != ibis::USHORT &&
 	    c->type() != ibis::UBYTE &&
 	    c->type() != ibis::SHORT &&
@@ -1999,6 +2006,35 @@ fastbit_result_set_get_unsigned(FastBitResultSetHandle rset,
     return ret;
 } // fastbit_result_set_get_unsigned
 
+extern "C" int64_t
+fastbit_result_set_get_long(FastBitResultSetHandle rset,
+			    const char *cname) {
+    int64_t ret = INT64_MAX;
+    try {
+	if (rset != 0 && cname != 0 && *cname != 0)
+	    ret = rset->results->getLong(cname);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_long failed to retrieve "
+	    "value of " << cname << " due to exception: " << e.what();
+	ret = INT64_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_long failed to retrieve "
+	    "value of " << cname << " due to a string exception: " << s;
+	ret = INT64_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_get_long failed to retrieve "
+	    "value of " << cname << " due to a unknown exception";
+	ret = INT64_MAX;
+    }
+    return ret;
+} // fastbit_result_set_get_long
+
 extern "C" float
 fastbit_result_set_get_float(FastBitResultSetHandle rset,
 			     const char *cname) {
@@ -2151,6 +2187,36 @@ fastbit_result_set_getUnsigned(FastBitResultSetHandle rset,
     }
     return ret;
 } // fastbit_result_set_getUnsigned
+
+extern "C" int64_t
+fastbit_result_set_getLong(FastBitResultSetHandle rset,
+			       unsigned pos) {
+    int64_t ret = INT64_MAX;
+    if (rset == 0)
+	return ret;
+    try {
+	ret = rset->results->getLong(pos);
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getLong failed to retrieve "
+	    "value of column " << pos << " due to exception: " << e.what();
+	ret = INT64_MAX;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getLong failed to retrieve "
+	    "value of column " << pos << " due to a string exception: " << s;
+	ret = INT64_MAX;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_result_set_getLong failed toretrieve "
+	    "value of column " << pos << " due to a unknown exception";
+	ret = INT64_MAX;
+    }
+    return ret;
+} // fastbit_result_set_getLong
 
 extern "C" float
 fastbit_result_set_getFloat(FastBitResultSetHandle rset,

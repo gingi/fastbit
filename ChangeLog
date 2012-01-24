@@ -7,6 +7,7 @@
 	* src/category.cpp: change category::selectStrings to make use of
 	category::selectUInt and the dictionary, it is faster than reading
 	the raw string values through text::selectStrings
+	* src/capi.cpp, src/capi.h: add fastbit_result_set_get_long
 
 2012-01-20 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: print FASTBIT_IBIS_INT_VERSION with the leading 0
