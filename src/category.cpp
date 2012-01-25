@@ -141,7 +141,8 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 	    std::vector<std::string>* strings = new std::vector<std::string>();
 	    strings->reserve(keys->size());
 	    for (unsigned i = 0; i < keys->size(); ++i) {
-		strings->push_back(dic[(*keys)[i]]);
+		const char *ptr = dic[(*keys)[i]];
+		strings->push_back(ptr!=0 ? ptr : "");
 	    }
 	    return strings;
 	}

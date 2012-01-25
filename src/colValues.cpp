@@ -6413,8 +6413,8 @@ uint32_t ibis::colStrings::write(FILE* fptr) const {
 	LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
 	    << "Warning -- colStrings[" << col->partition()->name() << '.'
 	    << col->name() << "]::write failed to string " << (*array)[i]
-	    << "(# " << i << " out of " << array->size() << ") to file, ierr = "
-	    << ierr;
+	    << "(# " << i << " out of " << array->size()
+	    << ") to file, ierr = " << ierr;
     }
     return cnt;
 } // ibis::colStrings::write

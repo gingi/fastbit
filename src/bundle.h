@@ -66,9 +66,9 @@ namespace ibis {
 ///
 class FASTBIT_CXX_DLLSPEC ibis::bundle {
 public:
-    static bundle* create(const ibis::query& q);
-    static bundle* create(const ibis::query& q, const ibis::bitvector& hits);
-    static bundle* create(const ibis::part& p, const ibis::selectClause& sel);
+    static bundle* create(const ibis::query&, int =0);
+    static bundle* create(const ibis::query&, const ibis::bitvector&, int =0);
+    static bundle* create(const ibis::part&, const ibis::selectClause&, int =0);
 
     /// Return the RIDs related to the ith bundle.
     static const ibis::RIDSet* readRIDs(const char* dir, const uint32_t i);
@@ -227,9 +227,9 @@ public:
 /// The bundle with only one component.
 class FASTBIT_CXX_DLLSPEC ibis::bundle1 : public ibis::bundle {
 public:
-    explicit bundle1(const ibis::query& q);
-    bundle1(const ibis::query& q, const ibis::bitvector& hits);
-    bundle1(const ibis::part& tbl, const ibis::selectClause& sel);
+    explicit bundle1(const ibis::query&, int =0);
+    bundle1(const ibis::query&, const ibis::bitvector&, int =0);
+    bundle1(const ibis::part&, const ibis::selectClause&, int =0);
     virtual ~bundle1();
     virtual void write(const ibis::query&) const;
 
@@ -274,7 +274,7 @@ private:
     ibis::selectClause::AGREGADO aggr;
 
     /// Sort all records.
-    void sort();
+    void sort(int);
     /// Reverse the order of records.
     void reverse();
 
@@ -286,9 +286,9 @@ private:
 /// The bundle with multiple components.
 class FASTBIT_CXX_DLLSPEC ibis::bundles : public ibis::bundle {
 public:
-    explicit bundles(const ibis::query& q);
-    bundles(const ibis::query& q, const ibis::bitvector& hits);
-    bundles(const ibis::part& tbl, const ibis::selectClause& sel);
+    explicit bundles(const ibis::query&, int =0);
+    bundles(const ibis::query&, const ibis::bitvector&, int =0);
+    bundles(const ibis::part&, const ibis::selectClause&, int =0);
     virtual ~bundles() {clear();}
     virtual void write(const ibis::query&) const;
 
@@ -323,7 +323,7 @@ private:
     colList cols;
     std::vector<ibis::selectClause::AGREGADO> aggr;
 
-    void sort();
+    void sort(int);
     void clear();
     void reverse();
 

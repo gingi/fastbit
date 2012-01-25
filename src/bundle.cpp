@@ -15,22 +15,25 @@
 
 //////////////////////////////////////////////////////////////////////
 // functions of class bundle
-/// Create a new bundle from previously stored information.
-ibis::bundle* ibis::bundle::create(const ibis::query& q,
-				   const ibis::bitvector& hits) {
-    if (hits.size() == 0 || hits.cnt() == 0)
-	return 0;
+/// Create new bundle from a hit vector.  Write info to q.dir().
+/// @param dir:
+/// - > 0 sort RIDs,
+/// - < 0 do not sort RIDs, leave them in whatever order after sorting the
+///       order-by keys,
+/// - = 0 if FASTBIT_ORDER_OUTPUT_RIDS is defined, sort RIDs, otherwise
+///       don't sort.
+ibis::bundle* ibis::bundle::create(const ibis::query& q, int dir) {
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
 	timer.start();
 
     ibis::bundle* bdl = 0;
     if (q.components().empty())
-	bdl = new ibis::bundle0(q, hits);
+	bdl = new ibis::bundle0(q);
     else if (q.components().aggSize() == 1)
-	bdl = new ibis::bundle1(q, hits);
+	bdl = new ibis::bundle1(q, dir);
     else
-	bdl = new ibis::bundles(q, hits);
+	bdl = new ibis::bundles(q, dir);
 
     if (ibis::gVerbose > 2) {
 	timer.stop();
@@ -41,19 +44,23 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q,
     return bdl;
 } // ibis::bundle::create
 
-/// Create new bundle from a hit vector.  Write info to q.dir().
-ibis::bundle* ibis::bundle::create(const ibis::query& q) {
+/// Create a new bundle from previously stored information.
+ibis::bundle* ibis::bundle::create(const ibis::query& q,
+				   const ibis::bitvector& hits,
+				   int dir) {
+    if (hits.size() == 0 || hits.cnt() == 0)
+	return 0;
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
 	timer.start();
 
     ibis::bundle* bdl = 0;
     if (q.components().empty())
-	bdl = new ibis::bundle0(q);
+	bdl = new ibis::bundle0(q, hits);
     else if (q.components().aggSize() == 1)
-	bdl = new ibis::bundle1(q);
+	bdl = new ibis::bundle1(q, hits, dir);
     else
-	bdl = new ibis::bundles(q);
+	bdl = new ibis::bundles(q, hits, dir);
 
     if (ibis::gVerbose > 2) {
 	timer.stop();
@@ -66,7 +73,8 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q) {
 
 /// Create a bundle using the all values of the partition.
 ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
-				   const ibis::selectClause& sel) {
+				   const ibis::selectClause& sel,
+				   int dir) {
     const uint32_t nc = sel.aggSize();
     bool cs = (nc == 1 && sel.getAggregator(0) == ibis::selectClause::CNT);
     if (cs) {
@@ -82,10 +90,10 @@ ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
 	res = new ibis::bundle0(tbl, sel);
     }
     else if (nc == 1) {
-	res = new ibis::bundle1(tbl, sel);
+	res = new ibis::bundle1(tbl, sel, dir);
     }
     else {
-	res = new ibis::bundles(tbl, sel);
+	res = new ibis::bundles(tbl, sel, dir);
     }
     return res;
 } // ibis::bundle::create
@@ -354,7 +362,7 @@ void ibis::bundle0::printAll(std::ostream& out) const {
 //
 /// Constructor.  It attempt to read to read a bundle from files first.  If
 /// that fails, it attempts to create a bundle based on the current hits.
-ibis::bundle1::bundle1(const ibis::query& q)
+ibis::bundle1::bundle1(const ibis::query& q, int dir)
     : bundle(q), col(0), aggr(comps.getAggregator(0)) {
     if (q.getNumHits() == 0)
 	return;
@@ -504,7 +512,7 @@ ibis::bundle1::bundle1(const ibis::query& q)
 		    throw ibis::bad_alloc("incorrect number of bundles");
 		}
 	    }
-	    sort();
+	    sort(dir);
 	}
 
 	if (ibis::gVerbose > 5) {
@@ -534,7 +542,8 @@ ibis::bundle1::bundle1(const ibis::query& q)
 } // ibis::bundle1::bundle1
 
 /// Constructor.  It creates a bundle using the rows selected by hits.
-ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
+ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
+		       int dir)
     : bundle(q, hits), col(0), aggr(comps.getAggregator(0)) {
     if (hits.cnt() == 0)
 	return;
@@ -595,7 +604,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 		<< "\" is not a column in table " << tbl->name();
 	    throw ibis::bad_alloc("not a valid column name");
 	}
-	sort();
+	sort(dir);
 
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
@@ -624,7 +633,8 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits)
 } // ibis::bundle1::bundle1
 
 /// Constructor.  It creates the bundle using all rows of tbl.
-ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
+ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
+		       int dir)
     : bundle(cmps), col(0), aggr(comps.getAggregator(0)) {
     if (comps.empty())
 	return;
@@ -692,7 +702,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps)
 		break;
 	    }
 	}
-	sort();
+	sort(dir);
 
 	if (col == 0) {
 	    LOGGER(ibis::gVerbose > 0)
@@ -786,7 +796,13 @@ void ibis::bundle1::printColumnNames(std::ostream& out) const {
 
 /// Sort the rows.  Remove the duplicate elements and generate the
 /// starts.
-void ibis::bundle1::sort() {
+/// @param dir:
+/// - > 0 sort RIDs,
+/// - < 0 do not sort RIDs, leave them in whatever order after sorting the
+///       order-by keys,
+/// - = 0 if FASTBIT_ORDER_OUTPUT_RIDS is defined, sort RIDs, otherwise
+///       don't sort.
+void ibis::bundle1::sort(int dir) {
     if (col == 0) return;
 
     const uint32_t nrow = col->size();
@@ -821,12 +837,17 @@ void ibis::bundle1::sort() {
 	uint32_t nGroups = starts->size() - 1;
 	if (nGroups < nrow) {    // erase the dupliate elements
 	    col->reduce(*starts);
+	    if (dir == 0) {
 #ifdef FASTBIT_ORDER_OUTPUT_RIDS
-	    if (rids != 0 && rids->size() == nrow) {
+		dir = 1;
+#else
+		dir = -1;
+#endif
+	    }
+	    if (dir > 0 && rids != 0 && rids->size() == nrow) {
 		for (uint32_t i=nGroups; i>0; --i)
 		    sortRIDs((*starts)[i-1], (*starts)[i]);
 	    }
-#endif
 	}
     }
     else { // a function is involved
@@ -1097,7 +1118,7 @@ std::string ibis::bundle1::getString(uint32_t i, uint32_t j) const {
 //
 /// Constructor.  It will use the hit vector of the query to generate a new
 /// bundle, if it is not able to read the existing bundles.
-ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
+ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
     if (q.getNumHits() == 0)
 	return;
 
@@ -1256,7 +1277,7 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 	    }
 
 	    if (cols.size() > 0)
-		sort();
+		sort(dir);
 	}
 
 	if (ibis::gVerbose > 5) {
@@ -1288,8 +1309,8 @@ ibis::bundles::bundles(const ibis::query& q) : bundle(q) {
 
 /// Constructor.  It creates a bundle using the hits provided by the caller
 /// (instead of from the query object q).
-ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
-    : bundle(q, hits) {
+ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits,
+		       int dir) : bundle(q, hits) {
     if (hits.cnt() == 0)
 	return;
 
@@ -1340,7 +1361,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 	    }
 	}
 	if (cols.size() > 0)
-	    sort();
+	    sort(dir);
 
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
@@ -1370,8 +1391,8 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits)
 } // ibis::bundles::bundles
 
 /// Constructor.  It creates a bundle from all rows of tbl.
-ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
-    : bundle(cmps) {
+ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
+		       int dir) : bundle(cmps) {
     id = tbl.name();
     try {
 	ibis::bitvector msk;
@@ -1430,7 +1451,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps)
 	}
 
 	if (cols.size() > 0)
-	    sort();
+	    sort(dir);
 
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
@@ -1547,7 +1568,13 @@ void ibis::bundles::printColumnNames(std::ostream& out) const {
 /// Sort the columns.  Remove the duplicate elements and generate the
 /// starts.  This function allows aggregation functions to appear in
 /// arbitrary positions in the select clause.
-void ibis::bundles::sort() {
+/// @param dir:
+/// - > 0 sort RIDs,
+/// - < 0 do not sort RIDs, leave them in whatever order after sorting the
+///       order-by keys,
+/// - = 0 if FASTBIT_ORDER_OUTPUT_RIDS is defined, sort RIDs, otherwise
+///       don't sort.
+void ibis::bundles::sort(int dir) {
     const uint32_t ncol = cols.size();
     if (ncol == 0) return;
 
@@ -1671,13 +1698,18 @@ void ibis::bundles::sort() {
 	cols2.swap(cols);
     }
 
+    if (dir == 0) {
 #ifdef FASTBIT_ORDER_OUTPUT_RIDS
+	dir = 1;
+#else
+	dir = -1;
+#endif
+    }
     // sort RIDs
-    if (nGroups < nHits && rids != 0 && rids->size() == nHits) {
+    if (dir > 0 && nGroups < nHits && rids != 0 && rids->size() == nHits) {
 	for (uint32_t i1=nGroups; i1>0; --i1)
 	    sortRIDs((*starts)[i1-1], (*starts)[i1]);
     }
-#endif
     if (ibis::gVerbose > 0) { // perform a sanity check
 	for (uint32_t i1 = 0; i1 < ncol; ++i1) {
 	    LOGGER(cols[i1]->size() != nGroups)

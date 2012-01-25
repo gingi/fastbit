@@ -343,7 +343,7 @@ int ibis::dictionary::readKeys(const char *evt, FILE *fptr) {
     return 0;
 } // ibis::dictionary::readKeys
 
-/// Clear the allocated memory.
+/// Clear the allocated memory.  Leave with only one NULL entry.
 void ibis::dictionary::clear() {
     for (size_t i = 0; i < buffer_.size(); ++ i)
 	delete [] buffer_[i];
@@ -351,6 +351,7 @@ void ibis::dictionary::clear() {
     code_.clear();
     key_.clear();
     raw_.resize(1);
+    raw_[0] = 0;
 } // ibis::dictionary::clear
 
 /// Convert a string to its integer code.  Returns 0 for empty (null)

@@ -4292,7 +4292,7 @@ ibis::RIDSet* ibis::query::readRIDs() const {
 
 /// Write the list of RIDs to a file named "-rids".
 void ibis::query::writeRIDs(const ibis::RIDSet* rids) const {
-    if (rids && myDir) {
+    if (rids != 0 && myDir != 0) {
 	char *fn = new char[strlen(myDir) + 8];
 	strcpy(fn, myDir);
 	strcat(fn, "-rids");
