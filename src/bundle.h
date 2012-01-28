@@ -109,6 +109,8 @@ public:
     /// Return the pointer to the underlying array used to store the jth
     /// column of the bundle.
     virtual void* columnArray(uint32_t) const {return 0;}
+    /// Column pointer.
+    virtual const ibis::column* columnPointer(uint32_t) const {return 0;}
 
     /// Re-order the bundles according to the new keys.
     virtual void reorder(const char *) = 0;
@@ -231,24 +233,26 @@ public:
     bundle1(const ibis::query&, const ibis::bitvector&, int =0);
     bundle1(const ibis::part&, const ibis::selectClause&, int =0);
     virtual ~bundle1();
-    virtual void write(const ibis::query&) const;
 
     virtual uint32_t size() const {return (col ? col->size() : 0);}
     virtual uint32_t width() const {return 1;}
-    // print the bundle values to the specified output stream
+
+    virtual void write(const ibis::query&) const;
     virtual void print(std::ostream& out) const;
-    // print the bundle values along with the RIDs
     virtual void printAll(std::ostream& out) const;
     virtual void printColumnNames(std::ostream& out) const;
 
-    virtual int32_t  getInt(uint32_t, uint32_t) const;
-    virtual uint32_t getUInt(uint32_t, uint32_t) const;
-    virtual int64_t  getLong(uint32_t, uint32_t) const;
-    virtual uint64_t getULong(uint32_t, uint32_t) const;
-    virtual float    getFloat(uint32_t, uint32_t) const;
-    virtual double   getDouble(uint32_t, uint32_t) const;
+    virtual int32_t     getInt(uint32_t, uint32_t) const;
+    virtual uint32_t    getUInt(uint32_t, uint32_t) const;
+    virtual int64_t     getLong(uint32_t, uint32_t) const;
+    virtual uint64_t    getULong(uint32_t, uint32_t) const;
+    virtual float       getFloat(uint32_t, uint32_t) const;
+    virtual double      getDouble(uint32_t, uint32_t) const;
     virtual std::string getString(uint32_t, uint32_t) const;
 
+    virtual const ibis::column* columnPointer(uint32_t j) const {
+	return (j == 0 ? col->columnPointer() :
+		static_cast<const ibis::column*>(0));}
     virtual ibis::TYPE_T columnType(uint32_t j) const {
 	return (j == 0 ? col->getType() : ibis::UNKNOWN_TYPE);}
     virtual void* columnArray(uint32_t j) const {
@@ -290,25 +294,27 @@ public:
     bundles(const ibis::query&, const ibis::bitvector&, int =0);
     bundles(const ibis::part&, const ibis::selectClause&, int =0);
     virtual ~bundles() {clear();}
-    virtual void write(const ibis::query&) const;
 
     virtual uint32_t size() const {
 	return (cols.empty() ? 0 : cols.back()->size());}
     virtual uint32_t width() const {return cols.size();}
-    // print the bundle values to the specified output stream
+
     virtual void print(std::ostream& out) const;
-    // print the bundle values along with the RIDs
     virtual void printAll(std::ostream& out) const;
     virtual void printColumnNames(std::ostream& out) const;
+    virtual void write(const ibis::query&) const;
 
-    virtual int32_t  getInt(uint32_t, uint32_t) const;
-    virtual uint32_t getUInt(uint32_t, uint32_t) const;
-    virtual int64_t  getLong(uint32_t, uint32_t) const;
-    virtual uint64_t getULong(uint32_t, uint32_t) const;
-    virtual float    getFloat(uint32_t, uint32_t) const;
-    virtual double   getDouble(uint32_t, uint32_t) const;
+    virtual int32_t     getInt(uint32_t, uint32_t) const;
+    virtual uint32_t    getUInt(uint32_t, uint32_t) const;
+    virtual int64_t     getLong(uint32_t, uint32_t) const;
+    virtual uint64_t    getULong(uint32_t, uint32_t) const;
+    virtual float       getFloat(uint32_t, uint32_t) const;
+    virtual double      getDouble(uint32_t, uint32_t) const;
     virtual std::string getString(uint32_t, uint32_t) const;
 
+    virtual const ibis::column* columnPointer(uint32_t j) const {
+	return (j < cols.size() ? cols[j]->columnPointer() :
+		static_cast<const ibis::column*>(0));}
     virtual ibis::TYPE_T columnType(uint32_t j) const {
 	return (j < cols.size() ? cols[j]->getType() : ibis::UNKNOWN_TYPE);}
     virtual void* columnArray(uint32_t j) const {

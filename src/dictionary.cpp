@@ -41,6 +41,20 @@ ibis::dictionary::dictionary(const ibis::dictionary& old)
     ibis::util::sortStrings(key_, code_);
 } // copy constructor
 
+/// Compare whether this dicrionary and the other are equal in content.
+/// The two dictionaries are considered same only if they have the same
+/// keys and the the same integer representations.
+bool ibis::dictionary::equal_to(const ibis::dictionary& other) const {
+    if (key_.size() != other.key_.size() || key_.size() != code_.size() ||
+	code_.size() != other.code_.size())
+	return false;
+
+    for (size_t j = 0; j < key_.size(); ++ j)
+	if (strcmp(key_[j], other.key_[j]) != 0 || code_[j] != other.code_[j])
+	    return false;
+    return true;
+} // ibis::dictionary::equal_to
+
 /// Copy function.  Use copy constructor and swap the content.
 void ibis::dictionary::copy(const ibis::dictionary& old) {
     ibis::dictionary tmp(old);

@@ -32,7 +32,8 @@ public:
 	 ibis::table::bufferList &buf,
 	 const ibis::table::typeList &ct,
 	 const ibis::table::stringList &cn,
-	 const ibis::table::stringList *cdesc=0);
+	 const ibis::table::stringList *cdesc=0,
+	 const std::vector<const ibis::dictionary*> *dct=0);
     bord(const char *tn, const char *td,
 	 const ibis::selectClause &sc, const ibis::part &ref);
     virtual ~bord() {clear();}
@@ -115,7 +116,7 @@ public:
     virtual void indexSpec(const char*, const char*) {return;}
     virtual const char* indexSpec(const char*) const {return 0;}
 
-    int restoreCategoriesAsStrings(const char*);
+    int restoreCategoriesAsStrings(const ibis::part&);
     ibis::table* evaluateTerms(const ibis::selectClause&,
 			       const char*) const;
 
@@ -157,7 +158,8 @@ public:
 			const array_t<uint32_t>& ind) const;
 
 
-    void copyColumn(const char*, ibis::TYPE_T&, void*&) const;
+    void copyColumn(const char*, ibis::TYPE_T&, void*&,
+		    const ibis::dictionary*&) const;
     static void copyValue(ibis::TYPE_T type,
 			  void* outbuf, size_t outpos,
 			  const void* inbuf, size_t inpos);
@@ -403,7 +405,7 @@ public:
 		       ibis::selectClause::AGREGADO);
     void addCounts(uint32_t);
 
-    int restoreCategoriesAsStrings(const ibis::part&);
+    int restoreCategoriesAsStrings(const ibis::category&);
     /// Append new data (in @c from) to a larger array (pointed to by
     /// @c to).
     template <typename T> static int 
@@ -412,11 +414,20 @@ public:
     static int addStrings(std::vector<std::string>*&, uint32_t,
 			  const std::vector<std::string>&);
 
+    /// Return the dictionary associated with the column.  A dictionary is
+    /// associated with the column originally stored as ibis::category, but
+    /// has been converted to be an integer column of type ibis::UINT.
+    const ibis::dictionary* getDictionary() const {return dic;}
+    void setDictionary(const ibis::dictionary* d) {dic = d;}
 
 protected:
     /// The in-memory storage.  A pointer to an array<T> or
     /// std::vector<std::string> depending on data type.
     void *buffer;
+    /// A dictionary.  This dictionary was originally associated with an
+    /// ibis::category, but has been coverted through ibis::bundle as
+    /// ibis::UINT.
+    const ibis::dictionary *dic;
 
     column& operator=(const column&); // no assignment
 }; // ibis::bord::column
@@ -468,8 +479,9 @@ protected:
 	const char* cname;
 	ibis::TYPE_T ctype;
 	void* cval;
+	const ibis::dictionary* dic;
 
-	bufferElement() : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0) {}
+	bufferElement() : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0) , dic(0) {}
     }; // bufferElement
     typedef std::map<const char*, uint32_t, ibis::lessi> bufferMap;
     std::vector<bufferElement> buffer;

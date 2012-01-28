@@ -77,14 +77,14 @@ ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
 				   int dir) {
     const uint32_t nc = sel.aggSize();
     bool cs = (nc == 1 && sel.getAggregator(0) == ibis::selectClause::CNT);
-    if (cs) {
-	const ibis::math::term *tm = sel.aggExpr(0);
-	if (tm->termType() == ibis::math::VARIABLE)
-	    cs = ('*' == *(static_cast<const ibis::math::variable*>(tm)->
-			   variableName()));
-	else
-	    cs = false;
-    }
+    // if (cs) {
+    // 	const ibis::math::term *tm = sel.aggExpr(0);
+    // 	if (tm->termType() == ibis::math::VARIABLE)
+    // 	    cs = ('*' == *(static_cast<const ibis::math::variable*>(tm)->
+    // 			   variableName()));
+    // 	else
+    // 	    cs = false;
+    // }
     ibis::bundle* res = 0;
     if (nc == 0 || cs) {
 	res = new ibis::bundle0(tbl, sel);
@@ -734,7 +734,8 @@ ibis::bundle1::~bundle1() {
 	<< static_cast<void*>(col);
 }
 
-// print out the bundles (without RIDs)
+/// Print the bundle values to the specified output stream.
+/// print out the bundles without RIDs.
 void ibis::bundle1::print(std::ostream& out) const {
     if (col == 0)
 	return;
@@ -761,7 +762,7 @@ void ibis::bundle1::print(std::ostream& out) const {
     }
 } // ibis::bundle1::print
 
-// print out the bundles (with RIDs)
+/// Print the bundle values along with the RIDs.
 void ibis::bundle1::printAll(std::ostream& out) const {
     if (col == 0)
 	return;
@@ -1418,8 +1419,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    }
 
 	    LOGGER(ibis::gVerbose > 6)
-		<< "bundles::ctor is to start a colValues for "
-		<< *(comps.aggExpr(ic)) << " as cols[" << ic << ']';
+		<< "bundles::ctor is to start a colValues for \""
+		<< *(comps.aggExpr(ic)) << "\" as cols[" << ic << ']';
 	    ibis::colValues* cv = 0;
 	    switch (comps.getAggregator(ic)) {
 	    case ibis::selectClause::AVG:
@@ -1470,7 +1471,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
     }
 } // ibis::bundles::bundles
 
-// print out the bundles (no RIDs)
+/// Print out the bundles without RIDs.
 void ibis::bundles::print(std::ostream& out) const {
     // caller must hold an ioLock ibis::util::ioLock lock;
     const uint32_t ncol = cols.size();
@@ -1516,7 +1517,7 @@ void ibis::bundles::print(std::ostream& out) const {
     }
 } // ibis::bundles::print
 
-// print out the bundles (with RIDs)
+/// Print out the bundles with RIDs.
 void ibis::bundles::printAll(std::ostream& out) const {
     const uint32_t ncol = cols.size();
     if (ncol == 0) return;

@@ -549,7 +549,7 @@ ibis::table* ibis::filter::sift(const ibis::selectClause  &tms,
 	}
     }
 
-    if (separable)
+    if (separable && plist.size()>1)
 	return ibis::filter::sift2S(tms, plist, cond);
     else
 	return ibis::filter::sift2(tms, plist, cond);
@@ -907,10 +907,14 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 
     if (nplain >= tms.aggSize()) {
 	brd0->renameColumns(tms);
+	// brd0->restoreCategoriesAsStrings(*plist.front());
 	return brd0.release();
     }
 
     std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*brd0, tms));
+    // if (brd2.get() != 0)
+    // 	static_cast<ibis::bord*>(brd2.get())
+    // 	    ->restoreCategoriesAsStrings(*plist.front());
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produced an in-memory data partition with "

@@ -53,10 +53,10 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     if (m_desc.empty()) m_desc = name;
     if (ibis::gVerbose > 5 && !m_name.empty()) {
 	ibis::util::logger lg;
-	lg() << "initialized column " << m_name;
+	lg() << "initialized column ";
 	if (tbl != 0 && tbl->name() != 0)
 	    lg() << tbl->name() << '.';
-	lg() << " (" << ibis::TYPESTRING[(int)m_type] << ')';
+	lg() << m_name << " (" << ibis::TYPESTRING[(int)m_type] << ')';
     }
 } // ibis::column::column
 

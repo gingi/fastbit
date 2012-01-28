@@ -13,7 +13,7 @@
 #include <algorithm>
 #include "bundle.h"
 #include "column.h"
-
+#include "bord.h"
 
 //////////////////////////////////////////////////////////////////////
 // functions of ibis::colValues and derived classes
@@ -101,6 +101,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c) {
     case ibis::SHORT:
 	return new colShorts(c);
     case ibis::UINT:
+    case ibis::CATEGORY:
 	return new colUInts(c);
     case ibis::INT:
 	return new colInts(c);
@@ -113,7 +114,6 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c) {
     case ibis::DOUBLE:
 	return new colDoubles(c);
     case ibis::TEXT:
-    case ibis::CATEGORY:
 	return new colStrings(c);
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -367,11 +367,23 @@ ibis::colInts::colInts(const ibis::column* c)
 } // ibis::colInts::colInts
 
 ibis::colUInts::colUInts(const ibis::column* c)
-    : colValues(c), array(new ibis::array_t<uint32_t>) {
+    : colValues(c), array(new ibis::array_t<uint32_t>), dic(0) {
     if (c == 0) return;
     switch (c->type()) {
+    case ibis::CATEGORY: { // store the integers instead of strings
+	delete array;
+	ibis::bitvector hits;
+	hits.set(1, c->partition()->nRows());
+	array = c->selectUInts(hits);
+	dic = static_cast<const ibis::category*>(c)->getDictionary();
+    }
     case ibis::UINT: {
 	c->getValuesArray(array);
+	// check to see if the column actually carries a dictionary already
+	const ibis::bord::column* bc =
+	    dynamic_cast<const ibis::bord::column*>(c);
+	if (bc != 0)
+	    dic = bc->getDictionary();
 	break;}
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
@@ -1023,9 +1035,15 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
 
 /// Construct ibis::colStrings from an existing list of strings.
 ibis::colStrings::colStrings(const ibis::column* c)
-    : colValues(c), array(new std::vector<std::string>) {
+    : colValues(c), array(0) {
     if (c == 0) return;
-    if (c->type() == ibis::TEXT || c->type() == ibis::CATEGORY) {
+    if (c->type() == ibis::CATEGORY) {
+	ibis::bitvector hits;
+	hits.set(1, c->partition()->nRows());
+	array = c->selectStrings(hits);
+    }
+    if (c->type() == ibis::TEXT) {
+	array =new std::vector<std::string>;
 	c->getValuesArray(array);
     }
     else {
@@ -1892,8 +1910,8 @@ void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 } // colShorts::sort
 
 void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
-			  ibis::colList::iterator head,
-			  ibis::colList::iterator tail) {
+			   ibis::colList::iterator head,
+			   ibis::colList::iterator tail) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
@@ -2085,8 +2103,8 @@ void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 } // colUShorts::sort
 
 void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
-			   ibis::colList::iterator head,
-			   ibis::colList::iterator tail) {
+			    ibis::colList::iterator head,
+			    ibis::colList::iterator tail) {
     if (i+32 > j) { // use selection sort
 	for (uint32_t i1=i; i1+1<j; ++i1) {
 	    uint32_t imin = i1;
@@ -3045,7 +3063,7 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
-		    << col->name() << "]::sort exiting with the following:";
+	     << col->name() << "]::sort exiting with the following:";
 	for (uint32_t ii = istart; ii < jend; ++ ii)
 	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
@@ -3146,7 +3164,7 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
 	lg() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
-		    << col->name() << "]::sort exiting with the following:";
+	     << col->name() << "]::sort exiting with the following:";
 	for (uint32_t ii = istart; ii < jend; ++ ii)
 	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
@@ -3343,8 +3361,8 @@ ibis::colInts::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colInts::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -3415,8 +3433,8 @@ ibis::colUInts::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colUInts::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -3488,8 +3506,8 @@ ibis::colLongs::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colLongs::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -3560,8 +3578,8 @@ ibis::colULongs::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colULongs::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -3633,8 +3651,8 @@ ibis::colShorts::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colShorts::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -3705,8 +3723,8 @@ ibis::colUShorts::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colUShorts::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -3778,8 +3796,8 @@ ibis::colBytes::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colBytes::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -3850,8 +3868,8 @@ ibis::colUBytes::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colUBytes::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -3923,8 +3941,8 @@ ibis::colFloats::segment(const array_t<uint32_t>* old) const {
     unsigned jold = 0, jnew = 0;
     ibis::util::logger lg(4);
     lg() << "DEBUG -- colFloats::segment: old groups "
-		<< (old != 0 ? nold-1 : 0) << ", new groups "
-		<< res->size()-1;
+	 << (old != 0 ? nold-1 : 0) << ", new groups "
+	 << res->size()-1;
     if (nold > 2) {
 	for (unsigned i = 0; i < nelm; ++ i) {
 	    lg() << "\n" << i << "\t" << (*array)[i] << "\t";
@@ -4359,7 +4377,7 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<int>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -4540,7 +4558,7 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<unsigned>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -4720,7 +4738,7 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<int>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -4901,7 +4919,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<unsigned>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -4970,7 +4988,7 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 
 /// Remove the duplicate elements according to the array starts
 void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
-			    ibis::selectClause::AGREGADO func) {
+			     ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
@@ -5081,7 +5099,7 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<int>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -5150,7 +5168,7 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 
 /// Remove the duplicate elements according to the array starts
 void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
-			     ibis::selectClause::AGREGADO func) {
+			      ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
     default: // only save the first value
@@ -5262,7 +5280,7 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<unsigned>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -5442,7 +5460,7 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<int>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -5623,7 +5641,7 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<unsigned>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -5803,7 +5821,7 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] = static_cast<float>
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}
@@ -5981,7 +5999,7 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 		else {
 		    (*array)[i] =
 			(sqrt(((*array)[starts[i]]-avg)
-				   *((*array)[starts[i]]-avg)/count));
+			      *((*array)[starts[i]]-avg)/count));
 		}
 	    }
 	}

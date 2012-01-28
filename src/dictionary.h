@@ -31,6 +31,9 @@ public:
     int  read(const char* name);
     int  write(const char* name) const;
 
+    bool equal_to(const ibis::dictionary&) const;
+
+
 protected:
 
     /// Member variable raw_ contains the string values in the order of the

@@ -3,7 +3,7 @@
 // Copyright 2000-2012 the Regents of the University of California
 #ifndef IBIS_COLVALUES_H
 #define IBIS_COLVALUES_H
-#include "column.h"
+#include "category.h"
 #include "utilidor.h"	// ibis::util::reorder
 
 ///@file
@@ -26,7 +26,8 @@ public:
     static colValues* create(const ibis::column* c);
 
     /// Provide a pointer to the column containing the selected values.
-    const ibis::column* operator->() const {return col;};
+    const ibis::column* operator->() const {return col;}
+    const ibis::column* columnPointer() const {return col;}
     /// Name.
     const char* name() const {return(col!=0?col->name():0);}
 
@@ -187,12 +188,21 @@ private:
 /// A class to store unsigned integer values.
 class FASTBIT_CXX_DLLSPEC ibis::colUInts : public ibis::colValues {
 public:
-    colUInts() : colValues(), array(0) {};
+    colUInts() : colValues(), array(0), dic(0) {};
     colUInts(const ibis::column* c, const ibis::bitvector& hits)
-	: colValues(c), array(c->selectUInts(hits)) {}
+	: colValues(c), array(c->selectUInts(hits)), dic(0) {
+	if (c != 0 && c->type() == ibis::CATEGORY) {
+	    dic = reinterpret_cast<const ibis::category*>(c)->getDictionary();
+	}
+    }
     colUInts(const ibis::column* c, ibis::fileManager::storage* store,
 	    const uint32_t start, const uint32_t nelm)
-	: colValues(c), array(new array_t<uint32_t>(store, start, nelm)) {}
+	: colValues(c), array(new array_t<uint32_t>(store, start, nelm)),
+	dic(0) {
+	if (c != 0 && c->type() == ibis::CATEGORY) {
+	    dic = reinterpret_cast<const ibis::category*>(c)->getDictionary();
+	}
+    }
     colUInts(const ibis::column* c);
     virtual ~colUInts() {delete array;}
 
@@ -236,7 +246,7 @@ public:
 		out << "<NULL>";
 	    }
 	    else {
-		out << '"' << str << '"';
+		out << str ;
 	    }
 	}
 	else {
@@ -271,6 +281,7 @@ public:
 
 private:
     array_t<uint32_t>* array;
+    const dictionary* dic;
 
     colUInts(const colUInts&);
     colUInts& operator=(const colUInts&);
@@ -949,9 +960,9 @@ public:
     void swap(colStrings& rhs) { // swap two colStrings
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	std::vector<std::string>* a = rhs.array; rhs.array = array; array = a;}
-    virtual void   reduce(const array_t<uint32_t>& starts);
-    virtual void   reduce(const array_t<uint32_t>& starts,
-			  ibis::selectClause::AGREGADO func);
+    virtual void reduce(const array_t<uint32_t>& starts);
+    virtual void reduce(const array_t<uint32_t>& starts,
+			ibis::selectClause::AGREGADO func);
 
     // write out whole array as binary
     virtual uint32_t write(FILE* fptr) const;
