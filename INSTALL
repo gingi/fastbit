@@ -42,6 +42,8 @@ For hopper.nersc.gov and other Cray XT machines, need options
 
 --disable-shared --without-getpwuid
 
+The preferred programming environment is PrgEnv-gnu on these machines.
+
 
 ----------
 Configuration Options

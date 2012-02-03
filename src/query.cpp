@@ -238,12 +238,12 @@ int ibis::query::setSelectClause(const char* str) {
 } // ibis::query::setSelectClause
 
 /// The where clause is a string representing a list of range conditions.
-/// A where clause is mandatory if a query is to be estimated or evaluated.
+/// By SQL convention, an empty where clause matches all rows.
 /// This function may be called multiple times and each invocation will
 /// overwrite the previous where clause.
 int ibis::query::setWhereClause(const char* str) {
     if (str == 0 || *str == static_cast<char>(0))
-	return -4; // invalid input where clause
+	str = "1=1"; // default string
     if (conds.getString() != 0 && stricmp(conds.getString(), str) == 0)
 	return 0; // no change in where clause
 

@@ -97,11 +97,6 @@ extern "C" {
     typedef struct FastBitQuery* FastBitQueryHandle;
 
     /// @brief Build a new FastBit query.
-    /// This is logically equivalent to the SQL statement "SELECT
-    /// selectClause FROM indexLocation WHERE queryConditions."  A blank
-    /// selectClause is equivalent to "count(*)".
-    /// @note Must call fastbit_destroy_query on the handle returned to free
-    /// the resources.
     FASTBIT_DLLSPEC FastBitQueryHandle
     fastbit_build_query(const char *selectClause, const char *indexLocation,
 			const char *queryConditions);

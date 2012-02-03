@@ -85,16 +85,28 @@ static void builtin(const char *nm, FILE* output) {
     }
 
     mult /= 100;
-    for (i = 0; i < 5; ++ i) {
-	FastBitQueryHandle h = fastbit_build_query(0, dir, conditions[i]);
-	int nhits = fastbit_get_result_rows(h);
-	if (nhits != mult * counts[i]) {
-	    ++ nerrors;
-	    fprintf(output, "%s: query \"%s\" on %d built-in records found "
-		    "%d hits, but %d were expected\n", nm, conditions[i],
-		    (int)(mult*100), nhits, (int)(mult*counts[i]));
+    if (mult > 0) {
+	for (i = 0; i < 5; ++ i) {
+	    FastBitQueryHandle h = fastbit_build_query(0, dir, conditions[i]);
+	    int nhits = fastbit_get_result_rows(h);
+	    if (nhits != mult * counts[i]) {
+		++ nerrors;
+		fprintf(output, "%s: query \"%s\" on %d built-in records found "
+			"%d hits, but %d were expected\n", nm, conditions[i],
+			(int)(mult*100), nhits, (int)(mult*counts[i]));
+	    }
+	    fastbit_destroy_query(h);
 	}
-	fastbit_destroy_query(h);
+
+	// try the empty where clause
+	FastBitQueryHandle h2 = fastbit_build_query(0, dir, 0);
+	int nh2 = fastbit_get_result_rows(h2);
+	if (nh2 != 100 * mult) {
+	    ++ nerrors;
+	    fprintf(output, "%s: query expected to return %d rows, "
+		    "but got %d instead\n", nm, 100*mult, nh2);
+	}
+	fastbit_destroy_query(h2);
     }
 
     // try to append the same data again

@@ -165,7 +165,7 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
 	}
 
 	t = _capi_tlist->find(dir);
-	if (t->nRows() > 0 && t->nColumns() > 0) {
+	if (t != 0 && t->nRows() > 0 && t->nColumns() > 0) {
 	    t->buildIndexes(opt);
 	    ierr = 0;
 	}
@@ -214,6 +214,8 @@ extern "C" int fastbit_purge_indexes(const char *dir) {
 	}
 
 	t = _capi_tlist->find(dir);
+	if (t == 0) return ierr;
+
 	t->purgeIndexFiles();
 	ierr = 0;
     }
@@ -317,7 +319,7 @@ fastbit_purge_index(const char *dir, const char *att) {
 	}
 
 	t = _capi_tlist->find(dir);
-	if (t->nRows() == 0 || t->nColumns() == 0) {
+	if (t == 0 || t->nRows() == 0 || t->nColumns() == 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "fastbit_purge_index -- data directory \"" << dir
 		<< "\" contains no data";
@@ -409,9 +411,18 @@ extern "C" int fastbit_reorder_partition(const char *dir) {
     }
 } // fastbit_reorder_partition
 
+/// This is logically equivalent to the SQL statement "SELECT selectClause
+/// FROM dataLocation WHERE queryConditions."  A blank selectClause is
+/// equivalent to "count(*)".  The dataLocation is the directory containing
+/// the data and indexes.  This is a required field.  If the where clause
+/// is missing, the query is assumed to match all rows following the
+/// convention used by SQL.
+///
+/// @note Must call fastbit_destroy_query on the handle returned to free
+/// the resources.
 extern "C" FastBitQueryHandle
 fastbit_build_query(const char *select, const char *from, const char *where) {
-    if (from == 0 || where == 0 || *from == 0 || *where == 0)
+    if (from == 0 || *from == 0)
 	return 0;
 
     try {

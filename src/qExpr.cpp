@@ -2939,6 +2939,13 @@ ibis::qContinuousRange* ibis::compRange::simpleRange() const {
     return res;
 } // ibis::compRange::simpleRange
 
+/// Create a constant expression that always evaluates to true.
+ibis::compRange* ibis::compRange::makeConstantTrue() {
+    ibis::math::number *t1 = new ibis::math::number(0.0);
+    ibis::math::number *t2 = new ibis::math::number(0.0);
+    return new ibis::compRange(t1, ibis::qExpr::OP_EQ, t2);
+} // ibis::compRange::makeConstantTrue
+
 /// Create a constant expression that always evaluates to false.
 ibis::compRange* ibis::compRange::makeConstantFalse() {
     ibis::math::number *one = new ibis::math::number(1.0);

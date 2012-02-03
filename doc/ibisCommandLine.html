@@ -291,7 +291,7 @@ and read the queries into an internal list of queries.  It is possible
 to execute the queries using multiple threads with the option
 <code>-t</code>.
 
-<li><code>-r[id-check] [filename]</code>
+<li><code>-rid[-check] [filename]</code>
 
 <br>This option will tells <code>ibis</code> to verify the RIDs can be
 used in queries of their own.  If the optional file name is present, the
@@ -304,6 +304,16 @@ specified directory.  An optional list of column name may be used to
 specify which columns are to be used as sorting keys.  If no key is
 specified, the integer valued columns will be used and the one with the
 smallest range of values will be used first.
+
+<br>Rules for distinguishing between -rid-check and -reorder:
+<ul>
+  <li>If the second letter is 'i' or 'I', then it is assume to be
+  -rid-check,
+  <li>otherwise it is assumed to -reorder if there is an argument
+  following it,
+  <li>if there is no argument follor '-r', the option is assumed to be
+  -rid-check.
+</ul>
 
 <li><code>-s[quential-scan]</code>
 <br>For ibis to check the answer produced from the index operations with

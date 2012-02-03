@@ -1,3 +1,23 @@
+2012-02-02 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp: add special cases to ibis::util::setLogFileName to
+	accept "stderr" and "stdout" as representations for stderr and
+	stdout, refactor setLogFileName and writeLogFileHeader to ensure
+	the global variables are modified only under an ioLock
+	* src/query.cpp: change setWhereClause to accept empty where
+	clause as '1=1' to match all rows according to SQL convention
+	* src/capi.cpp: change fastbit_build_query to accept empty where
+	clause, check that _capi_tlist->find did not return a nil pointer
+
+2012-02-01 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: category::selectStrings fixing a corner case
+	involving valid empty strings (pointered out by Dominique Prunier)
+	* src/util.cpp: add compiler macros FASTBIT_LOG_TO_STDERR and
+	FASTBIT_DEFAULT_LOG to control where the default log file points
+	to.  Dominique Prunier has suggested to use stderr, but the
+	existing default is stdout.  Added note now to warn users that the
+	default will be changed to stderr to conform with C++ convention
+	soon
+
 2012-01-28 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp, src/colValues.cpp: following the code given by
 	Alex, change the column type CATEGORY to keep using the strings
@@ -1252,7 +1272,7 @@
 	the call to increaseUse to eliminate the duplicate counting of
 	in-core storage object, which appears to be the last possible
 	source of memory management errors related to the problem report
-	reported by Jan
+	reported by Jan Krivanek
 
 2010-07-10 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.h: storage::size and storage::bytes contained

@@ -120,12 +120,15 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 	return new std::vector<std::string>();
     if (dic.size() == 0)
 	prepareMembers();
-    if (dic.size() == 0)
-	return new std::vector<std::string>();
+    if (dic.size() == 0) // return empty strings
+	return new std::vector<std::string>(mask.cnt(), "");
 
-    if (dic.size() == 1) {
-	return new std::vector<std::string>(mask.cnt(), dic[1]);
-    }
+    // The dictionary size may be 1 because some values are empty string
+    // which will be mapped to integer id 0.  In this case, the dictionary
+    // size is 1, but there are actually two different values.
+    // if (dic.size() == 1) {
+    // 	return new std::vector<std::string>(mask.cnt(), dic[1]);
+    // }
 
     std::string fname;
     bool useintfile = (0 != dataFileName(fname));

@@ -941,6 +941,7 @@ public:
     // convert a simple expression to qContinuousRange
     ibis::qContinuousRange* simpleRange() const;
     static compRange* makeConstantFalse();
+    static compRange* makeConstantTrue();
 
 private:
     ibis::math::term *expr3;	// the right most expression
