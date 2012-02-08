@@ -56,13 +56,33 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 
     const uint32_t nc = (cn.size()<=ct.size() ? cn.size() : ct.size());
     for (uint32_t i = 0; i < nc; ++ i) {
-	if (columns.find(cn[i]) == columns.end()) { // a new column
+	std::string cnm0;
+	if (cn[i] == 0 || *(cn[i]) == 0) {
+	    if (cdesc != 0 && i < cdesc->size()) {
+		cnm0 = (*cdesc)[i];
+		cnm0 = ibis::util::randName(cnm0);
+	    }
+	    else {
+		std::ostringstream oss;
+		oss << "_" << i;
+		cnm0 = oss.str();
+	    }
+	}
+	else {
+	    if (isalpha(*(cn[i])) != 0 || *(cn[i]) == '_')
+		cnm0 = *(cn[i]);
+	    else
+		cnm0 = 'A' + (*(cn[i]) % 26);
+	    for (const char* ptr = cn[i]+1; *ptr != 0; ++ ptr)
+		cnm0 += (isalnum(*ptr) ? *ptr : '_');
+	}
+	if (columns.find(cnm0.c_str()) == columns.end()) { // a new column
 	    ibis::bord::column *tmp;
 	    if (cdesc != 0 && cdesc->size() > i)
 		tmp = new ibis::bord::column
-		    (this, ct[i], cn[i], buf[i], (*cdesc)[i]);
+		    (this, ct[i], cnm0.c_str(), buf[i], (*cdesc)[i]);
 	    else
-		tmp = new ibis::bord::column(this, ct[i], cn[i], buf[i]);
+		tmp = new ibis::bord::column(this, ct[i], cnm0.c_str(), buf[i]);
 	    if (dct != 0 && i < dct->size())
 		tmp->setDictionary((*dct)[i]);
 	    columns[tmp->name()] = tmp;
@@ -71,7 +91,7 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 	else { // duplicate name
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- bord::ctor found column " << i << " ("
-		<< cn[i] << ") to be a duplicate, discarding it...";
+		<< cnm0 << ") to be a duplicate, discarding it...";
 	    // free the buffer because it will not be freed anywhere else
 	    freeBuffer(buf[i], ct[i]);
 	}
@@ -83,8 +103,10 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
     if (ibis::gVerbose > 1) {
 	ibis::util::logger lg;
 	lg() << "Constructed in-memory data partition "
-	     << (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
-	     << " -- with " << nr << " row" << (nr > 1U ? "s" : "") << " and "
+	     << (m_name != 0 ? m_name : "<unnamed>");
+	if (! m_desc.empty())
+	    lg() << " -- " << m_desc;
+	lg() << " -- with " << nr << " row" << (nr > 1U ? "s" : "") << " and "
 	     << columns.size() << " column" << (columns.size() > 1U ? "s" : "");
 	if (ibis::gVerbose > 4) {
 	    lg() << "\n";
@@ -137,6 +159,15 @@ ibis::bord::bord(const char *tn, const char *td,
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(ctrm);
 	    const ibis::column* refcol = ref.getColumn(var.variableName());
+	    if (refcol == 0) {
+		size_t nch = strlen(ref.name());
+		const char* vname = var.variableName();
+		if (0 == strnicmp(ref.name(), vname, nch) &&
+		    vname[nch] == '_') {
+		    vname += (nch + 1);
+		    refcol = ref.getColumn(vname);
+		}
+	    }
 	    if (*(var.variableName()) == '*') { // special name
 		ibis::bord::column *col = new ibis::bord::column
 		    (this, ibis::UINT, "*", 0, "count(*)");
@@ -7216,14 +7247,14 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 			      ibis::util::ref(ct));
     for (uint32_t j = 0; j < sel.aggSize(); ++ j) {
 	const ibis::math::term* t = sel.aggExpr(j);
-	std::string desc = sel.aggDescription(j);
+	std::string de = sel.aggDescription(j);
 	LOGGER(ibis::gVerbose > 4)
 	    << "bord[" << ibis::part::name() << "] -- evaluating \""
-	    << desc << '"';
+	    << de << '"';
 
 	switch (t->termType()) {
 	default: {
-	    cdesc.push_back(desc);
+	    cdesc.push_back(de);
 	    cn.push_back(sel.aggName(j));
 	    ct.push_back(ibis::DOUBLE);
 	    buf.push_back(new ibis::array_t<double>(nEvents));
@@ -7240,13 +7271,13 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	case ibis::math::NUMBER: { // a fixed number
 	    cn.push_back(sel.aggName(j));
 	    ct.push_back(ibis::DOUBLE);
-	    cdesc.push_back(desc);
+	    cdesc.push_back(de);
 	    buf.push_back(new ibis::array_t<double>(nEvents, t->eval()));
 	    break;}
 	case ibis::math::STRING: { // a string literal
 	    cn.push_back(sel.aggName(j));
 	    ct.push_back(ibis::CATEGORY);
-	    cdesc.push_back(desc);
+	    cdesc.push_back(de);
 	    buf[j] = new std::vector<std::string>
 		(nEvents, (const char*)*
 		 static_cast<const ibis::math::literal*>(t));
@@ -7256,9 +7287,8 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		(t)->variableName();
 	    if (*cn1 == '*') { // must be count(*)
 		cn.push_back(cn1);
-		cdesc.push_back(desc);
+		cdesc.push_back(de);
 		ct.push_back(ibis::UINT);
-		cd.push_back(cdesc.back().c_str());
 		ibis::part::columnList::const_iterator it = columns.find("*");
 		if (it == columns.end()) { // new values
 		    buf.push_back(new ibis::array_t<uint32_t>(nEvents, 1U));
@@ -7270,8 +7300,8 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		continue;
 	    }
 
-	    ibis::part::columnList::const_iterator it = columns.find(cn1);
-	    if (it == columns.end()) {
+	    const ibis::column *col = getColumn(cn1);
+	    if (col == 0) {
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- bord::evaluateTerms(" << desc
 		    << ") failed to find a column " << j << " named " << cn1;
@@ -7279,8 +7309,8 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	    }
 
 	    cn.push_back(cn1);
-	    cdesc.push_back(desc);
-	    ct.push_back(it->second->type());
+	    cdesc.push_back(de);
+	    ct.push_back(col->type());
 	    switch (ct.back()) {
 	    default: {
 		LOGGER(ibis::gVerbose > 0)
@@ -7290,7 +7320,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		return 0;}
 	    case ibis::BYTE:
 		buf.push_back(new ibis::array_t<signed char>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7303,7 +7333,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::UBYTE:
 		buf.push_back(new ibis::array_t<unsigned char>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7316,7 +7346,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::SHORT:
 		buf.push_back(new ibis::array_t<int16_t>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7329,7 +7359,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::USHORT:
 		buf.push_back(new ibis::array_t<uint16_t>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7342,7 +7372,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::INT:
 		buf.push_back(new ibis::array_t<int32_t>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7355,7 +7385,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::UINT:
 		buf.push_back(new ibis::array_t<uint32_t>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7368,7 +7398,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::LONG:
 		buf.push_back(new ibis::array_t<int64_t>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7381,7 +7411,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::ULONG:
 		buf.push_back(new ibis::array_t<uint64_t>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7394,7 +7424,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::FLOAT:
 		buf.push_back(new ibis::array_t<float>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7407,7 +7437,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::DOUBLE:
 		buf.push_back(new ibis::array_t<double>);
-		ierr = it->second->selectValues(msk, buf.back());
+		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
@@ -7420,7 +7450,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		break;
 	    case ibis::TEXT:
 	    case ibis::CATEGORY:
-		buf.push_back(it->second->selectStrings(msk));
+		buf.push_back(col->selectStrings(msk));
 		if (buf[j] == 0 || static_cast<std::vector<std::string>*>
 		    (buf[j])->size() != nEvents) {
 		    LOGGER(ibis::gVerbose > 0)
@@ -7438,11 +7468,10 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	    }
 	    break;}
 	} // switch (t->termType())
-
-	cn.back() = skipPrefix(cn.back());
-	cd.push_back(cdesc[j].c_str());
     } // for (uint32_t j...
 
+    for (unsigned j = 0; j < cdesc.size(); ++ j)
+	cd.push_back(cdesc[j].c_str());
     std::auto_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), desc, (uint64_t)nEvents, buf, ct, cn, &cd));
     if (brd1.get() != 0)
@@ -7478,12 +7507,8 @@ int ibis::bord::restoreCategoriesAsStrings(const ibis::part& ref) {
 /// for integers and floating-point numbers.
 void ibis::bord::copyColumn(const char* nm, ibis::TYPE_T& t, void*& buf,
 			    const ibis::dictionary*& dic) const {
-    columnList::const_iterator it = columns.find(nm);
-    if (it == columns.end()) {
-	nm = skipPrefix(nm);
-	it = columns.find(nm);
-    }
-    if (it == columns.end()) {
+    const ibis::column* col = getColumn(nm);
+    if (col == 0) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- bord[" << name_ << "]::copyColumn failed to find "
 	    "a column named " << nm;
@@ -7492,58 +7517,60 @@ void ibis::bord::copyColumn(const char* nm, ibis::TYPE_T& t, void*& buf,
 	return;
     }
 
-    const ibis::column& col = *(it->second);
-    t = col.type();
-    switch (col.type()) {
+    t = col->type();
+    switch (col->type()) {
     case ibis::BYTE:
 	buf = new ibis::array_t<signed char>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::UBYTE:
 	buf = new ibis::array_t<unsigned char>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::SHORT:
 	buf = new ibis::array_t<int16_t>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::USHORT:
 	buf = new ibis::array_t<uint16_t>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::INT:
 	buf = new ibis::array_t<int32_t>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::UINT: {
 	buf = new ibis::array_t<uint32_t>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	const ibis::bord::column *bc =
-	    dynamic_cast<const ibis::bord::column*>(&col);
+	    dynamic_cast<const ibis::bord::column*>(col);
 	if (bc != 0)
 	    dic = bc->getDictionary();
 	break;}
     case ibis::LONG:
 	buf = new ibis::array_t<int64_t>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::ULONG:
 	buf = new ibis::array_t<uint64_t>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::FLOAT:
 	buf = new ibis::array_t<float>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::DOUBLE:
 	buf = new ibis::array_t<double>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
 	break;
     case ibis::TEXT:
-    case ibis::CATEGORY:
-	dic = static_cast<const ibis::category&>(col).getDictionary();
 	buf = new std::vector<std::string>;
-	col.getValuesArray(buf);
+	col->getValuesArray(buf);
+	break;
+    case ibis::CATEGORY:
+	dic = static_cast<const ibis::category*>(col)->getDictionary();
+	buf = new std::vector<std::string>;
+	col->getValuesArray(buf);
 	break;
     default:
 	t = ibis::UNKNOWN_TYPE;
@@ -8361,8 +8388,8 @@ void ibis::bord::column::computeMinMax(const char *,
 	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
     default:
-	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- column[" << (thePart ? thePart->name() : "")
+	LOGGER(ibis::gVerbose > 4)
+	    << "column[" << (thePart ? thePart->name() : "")
 	    << '.' << m_name << "]::computeMinMax -- column type "
 	    << TYPESTRING[static_cast<int>(m_type)] << " is not one of the "
 	    "supported types (int, uint, float, double)";
@@ -9627,14 +9654,13 @@ ibis::array_t<uint32_t>*
 ibis::bord::column::selectUInts(const ibis::bitvector& mask) const {
     array_t<uint32_t>* array = new array_t<uint32_t>;
     const uint32_t tot = mask.cnt();
-    if (tot == 0)
+    if (tot == 0 || buffer == 0)
 	return array;
     ibis::horometer timer;
     if (ibis::gVerbose > 5)
 	timer.start();
 	
-    if (m_type == ibis::UINT || m_type == ibis::CATEGORY ||
-	m_type == ibis::TEXT) {
+    if (m_type == ibis::UINT) {
 	const array_t<uint32_t> &prop =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
 	const uint32_t nprop = prop.size();
@@ -9800,6 +9826,14 @@ ibis::bord::column::selectUInts(const ibis::bitvector& mask) const {
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
+    }
+    else if (m_type == ibis::CATEGORY && dic != 0) {
+	const std::vector<std::string> *prop =
+	    static_cast<const std::vector<std::string>*>(buffer);
+	const size_t nprop = prop->size();
+	array->resize(nprop);
+	for (size_t j = 0; j < nprop; ++ j)
+	    (*array)[j] = (*dic)[(*prop)[j].c_str()];
     }
     else {
 	logWarning("selectUInts", "incompatible data type");
@@ -12430,20 +12464,17 @@ ibis::bord::column::selectStrings(const ibis::bitvector& mask) const {
 /// Convert the integer value i into the corresponding string value.
 void ibis::bord::column::getString(uint32_t i, std::string &val) const {
     val.erase();
-    if (m_type == ibis::TEXT ) {
+    if (dic != 0) {
+	if (i > 0 && i <= (*dic).size())
+	    val = (*dic)[i];
+    }
+    else if (m_type == ibis::TEXT || m_type == ibis::CATEGORY) {
 	std::vector<std::string> *str_column = 
 	    static_cast<std::vector<std::string> *>(buffer);
 	if ( i < str_column->size())
 	    val = str_column->at(i);
     }
-    else if (m_type == ibis::CATEGORY) {
-	if (i > 0 && i <= (*dic).size())
-	    val = (*dic)[i];
-    }
-    else if (m_type == ibis::UINT && dic != 0) {
-	if (i > 0 && i <= dic->size())
-	    val = (*dic)[i];
-    }
+
 } // ibis::bord::column::getString
 
 /// Makes a copy of the in-memory data.  Uses a shallow copy for

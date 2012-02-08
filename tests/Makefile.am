@@ -61,37 +61,37 @@ large-tests: large-append-test
 #
 check-thula: $(THULAEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@rm -f $(TESTDIR)/thula-0 $(TESTDIR)/thula-1
-	@$(THULAEXE) -d $(TESTDIR)/t1/ -w "a = 0" | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a = b and -1 < c < 10" | if [ `fgrep " produced 20 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@$(THULAEXE) -d $(TESTDIR)/t1/ -w "a = 0" 2>&1 | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a = b and -1 < c < 10" 2>&1 | if [ `fgrep " produced 20 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "-2 <= c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 >> $(TESTDIR)/stdout.log 2>&1 && if [ `diff -w vault/thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), countdistinct(a)/count(*)" -x $(TESTDIR)/thula-1 >> $(TESTDIR)/stdout.log 2>&1 && if [ `diff -w vault/thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
-	@$(THULAEXE) -d $(TESTDIR)/t2 -w "a between -1 and 1" | if [ `fgrep "t2) contains 14 rows but no columns" - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
+	@$(THULAEXE) -d $(TESTDIR)/t2 -w "a between -1 and 1" 2>&1 | if [ `fgrep "t2) contains 14 rows but no columns" - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@echo
 check-tcapi: $(TCAPIEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt
-	@$(TCAPIEXE) $(TESTDIR)/t1/ "a = 0" | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(TCAPIEXE) $(TESTDIR)/t1 "a = b and -2 <= c < 10" | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l | tail -1 > $(TESTDIR)/tcapi-3 ; if [ `diff -w vault/tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@$(TCAPIEXE) $(TESTDIR)/t1/ "a = 0" 2>&1 | if [ `fgrep " produced 2 hits" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(TCAPIEXE) $(TESTDIR)/t1 "a = b and -2 <= c < 10" 2>&1 | if [ `fgrep " produced 20 hits" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l 2>&1 | tail -1 > $(TESTDIR)/tcapi-3 ; if [ `diff -w vault/tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@echo
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2
-	@$(IBISEXE) -d $(TESTDIR)/t1/ -q "where a = 0 OR a = -1 OR a = -2" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "select count(*) as cnt where a = b and -3 < c < exp(log(9.5))" | if [ "`fgrep -v doQuaere`" == "20" ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -y $(TESTDIR)/rowlist -q "where a=0" | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where -1 < c < 10" | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -k "a < 2 || c < 3" -q "where a=0" | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 2" | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" | perl -p -e 's/ in Partition .*//' | if [ `diff -w vault/hist0 - | wc -l` -eq 0 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 && if [ `diff -w vault/hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint c a b : c>50" > $(TESTDIR)/hist2 && if [ `diff -w vault/hist2 $(TESTDIR)/hist2 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -p "weighted a b : c>80" > $(TESTDIR)/hist3 && if [ `diff -w vault/hist3 $(TESTDIR)/hist3 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -q "select c where b > 90 order by c" -r -v 2 | if [ `fgrep "Successfully verified 18 RIDs" - | wc -l` -gt 1 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
-	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 >| $(TESTDIR)/check-ibis-12.log && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-12.log | wc -l` -eq 1 ] ; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
-	@$(IBISEXE) -r $(TESTDIR)/t2/t2c -v 2 | if [ `fgrep 'reorder' - | fgrep 'completed successfully' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else  echo Did NOT pass $@ case 13; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select floor(b/10) as sb, avg(c), count(*)/countdistinct(c) where a < 25" -o $(TESTDIR)/hist4 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1/ -q "where a = 0 OR a = -1 OR a = -2" 2>&1 | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "select count(*) as cnt where a = b and -3 < c < exp(log(9.5))" 2>&1 | if [ "`fgrep 20`" == "20" ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -y $(TESTDIR)/rowlist -q "where a=0" 2>&1 | if [ `fgrep " produced 1 hit, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where -1 < c < 10" 2>&1 | if [ `fgrep " produced 19 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -k "a < 2 || c < 3" -q "where a=0" 2>&1 | if [ `fgrep " produced 2 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "where c < 2" 2>&1 | if [ `fgrep " produced 4 hits, " - | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "c : c>80" 2>&1 | perl -p -e 's/ in Partition .*//' | if [ `diff -w vault/hist0 - | wc -l` -eq 0 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint a b : c>50" > $(TESTDIR)/hist1 2>&1 && if [ `diff -w vault/hist1 $(TESTDIR)/hist1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "joint c a b : c>50" > $(TESTDIR)/hist2 2>&1 && if [ `diff -w vault/hist2 $(TESTDIR)/hist2 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -p "weighted a b : c>80" > $(TESTDIR)/hist3 2>&1 && if [ `diff -w vault/hist3 $(TESTDIR)/hist3 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -q "select c where b > 90 order by c" -r -v 2 2>&1 | if [ `fgrep "Successfully verified 18 RIDs" - | wc -l` -gt 1 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
+	@$(IBISEXE) -d $(TESTDIR)/t1 -v -t 5 >| $(TESTDIR)/check-ibis-12.log 2>&1 && if [ `fgrep "found no error" $(TESTDIR)/check-ibis-12.log | wc -l` -eq 1 ] ; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
+	@$(IBISEXE) -r $(TESTDIR)/t2/t2c -v 2 2>&1 | if [ `fgrep 'reorder' - | fgrep 'completed successfully' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else  echo Did NOT pass $@ case 13; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select floor(b/10) as sb, avg(c), count(*)/countdistinct(c) where a < 25" -o $(TESTDIR)/hist4 2>&1 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
 	@if [ ` diff -w vault/hist4 $(TESTDIR)/hist4 | wc -l ` -eq 0 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select count(*), avg(c), countdistinct(c), floor(b/10) as sb where a < 25" -o $(TESTDIR)/hist5 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select count(*), avg(c), countdistinct(c), floor(b/10) as sb where a < 25" -o $(TESTDIR)/hist5 2>&1 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi
 	@if [ ` diff -w vault/hist5 $(TESTDIR)/hist5 | wc -l ` -eq 0 ] ; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select ceil(c/7), sum(a), count(*), avg(b), floor(b/4) where c > 90" -o $(TESTDIR)/hist6 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select ceil(c/7), sum(a), count(*), avg(b), floor(b/4) where c > 90" -o $(TESTDIR)/hist6 2>&1 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
 	@if [ ` diff -w vault/hist6 $(TESTDIR)/hist6 | wc -l ` -eq 0 ] ; then echo Passed $@ case 19; else echo Did NOT pass $@ case 19; fi
 	@echo
 check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
@@ -111,10 +111,10 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@if [ `diff $(TESTDIR)/t0-4 $(TESTDIR)/t0-5 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select count(*), floor(c/10), 10-floor(c/7) as b, max(c) as mx, avg(c) as av where a in ('1', '11', '21') or c < 29 order by b, av desc" -o $(TESTDIR)/text-0 >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `diff -w vault/text-0 $(TESTDIR)/text-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
-	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v | fgrep 'doDeletion purgeInactive(t0) returned 90' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
-	@if [ "`$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" | fgrep 15`" == "15" ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
-	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch | fgrep -v std::exception | diff - vault/smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
-	@if [ `./inRange${EXEEXT} $(TESTDIR)/inRange | fgrep -v std::exception | diff -w - vault/inRange-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v 2>&1 | fgrep 'doDeletion purgeInactive(t0) returned 90' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@if [ "`$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" 2>&1 | fgrep 15`" == "15" ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
+	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch 2>&1 | fgrep -v std::exception | diff - vault/smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@if [ `./inRange${EXEEXT} $(TESTDIR)/inRange 2>&1 | fgrep -v std::exception | diff -w - vault/inRange-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-text.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-text.log; fi
 	@echo
 check-jrf: $(IBISEXE) $(TESTDIR)/jrf/-part.txt
@@ -129,7 +129,7 @@ check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@if [ `scripts/hcompare.pl $(TESTDIR)/marksdb-1 $(TESTDIR)/marksdb-2 | fgrep acceptable | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select lat,lon where time = 77328 and 3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2))) <= 15 order by lat DESC, lon DESC" -o $(TESTDIR)/marksdb-3 >> $(TESTDIR)/check-marksdb.log 2>&1
 	@if [ `diff -w vault/marksdb-3 $(TESTDIR)/marksdb-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select floor(lat), floor(lon), avg(3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2)))), count(*) where time = 77328" -o $(TESTDIR)/marksdb-4 >> $(TESTDIR)/check-marksdb.log
+	@$(IBISEXE) -d $(TESTDIR)/marksdb -q "select floor(lat), floor(lon), avg(3956 * 2 * asin(sqrt(pow(sin((fabs(-10) - fabs(lat)) * 0.0174/2), 2) + cos(fabs(-10) * 0.0174) * cos(fabs(lat) * 0.0174) * pow(sin((112 - lon) * 0.0174/2), 2)))), count(*) where time = 77328" -o $(TESTDIR)/marksdb-4 >> $(TESTDIR)/check-marksdb.log 2>&1
 	@if [ `scripts/hcompare.pl vault/marksdb-4 $(TESTDIR)/marksdb-4 cnt | fgrep acceptable | wc -l` -eq 1 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-marksdb.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-marksdb.log; fi
 	@echo
@@ -166,75 +166,75 @@ really-small: $(IBISEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTD
 	@if [ -f $(TESTDIR)/small-5 -a -f vault/small-5 -a `diff -w $(TESTDIR)/small-5 vault/small-5 | wc -l` -eq 0 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ -f $(TESTDIR)/small-6 -a -f vault/small-6 -a `diff -w $(TESTDIR)/small-6 vault/small-6 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
 	@if [ -f $(TESTDIR)/small-7 -a -f vault/small-7 -a `diff -w $(TESTDIR)/small-7 vault/small-7 | wc -l` -eq 0 ]; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
-	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='USA'" | fgrep 'produced 1 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
-	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='CA'" | fgrep 'produced 0 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='USA'" 2>&1 | fgrep 'produced 1 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='CA'" 2>&1 | fgrep 'produced 0 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
 	@if [ -f $(TESTDIR)/small-10 -a -f vault/small-10 -a `diff -w $(TESTDIR)/small-10 vault/small-10 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@if [ -f $(TESTDIR)/small-11 -a -f vault/small-11 -a `diff -w $(TESTDIR)/small-11 vault/small-11 | wc -l` -eq 0 ]; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ -f $(TESTDIR)/small-12 -a -f vault/small-12 -a `diff -w $(TESTDIR)/small-12 vault/small-12 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
-	@if [ `$(IBISEXE) -d $(TESTDIR)/w6 -v -q "where M = 144115188075857871ULL OR M = 144115188075857872ULL" | fgrep '==> 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/w6 -v -q "where M = 144115188075857871ULL OR M = 144115188075857872ULL" 2>&1 | fgrep '==> 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/really-small.log; fi
 	@echo
 check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@date >| $(TESTDIR)/check-join.log
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "from t2a join t2b using a where t2a.a < 10 and t2b.b > 10" | if [ `fgrep ' result table (0 x 0)' - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" | if [ `fgrep ' result table (4 x 0)' - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-1 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "from t2a join t2b using a where t2a.a < 10 and t2b.b > 10" 2>&1 | if [ `fgrep ' result table (0 x 0)' - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" 2>&1 | if [ `fgrep ' result table (4 x 0)' - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-1 2>&1 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@if [ -f $(TESTDIR)/join-1 -a -f vault/join-1 -a `diff -w $(TESTDIR)/join-1 vault/join-1 | wc -l` -eq 0 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a from t2a as s, t2b as t where s.a = t.a and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-2 | if [ `fgrep ' produced a table with 8 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a from t2a as s, t2b as t where s.a = t.a and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-2 2>&1 | if [ `fgrep ' produced a table with 8 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ -f $(TESTDIR)/join-2 -a -f vault/join-2 -a `diff -w $(TESTDIR)/join-2 vault/join-2 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-3 | if [ `fgrep ' produced a table with 20 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-3 2>&1 | if [ `fgrep ' produced a table with 20 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@if [ -f $(TESTDIR)/join-3 -a -f vault/join-3 -a `diff -w $(TESTDIR)/join-3 vault/join-3 | wc -l` -eq 0 ]; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), avg(t.b), count(*) from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-4 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), avg(t.b), count(*) from t2a as s, t2c as t where s.a = t.a and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-4 2>&1 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
 	@if [ -f $(TESTDIR)/join-4 -a -f vault/join-4 -a `diff -w $(TESTDIR)/join-4 vault/join-4 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a, t2a.a from t2a as s where s.a - t2a.a between 0 and 1 and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-5 | if [ `fgrep ' produced a table with 7 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a, t2a.a from t2a as s where s.a - t2a.a between 0 and 1 and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-5 2>&1 | if [ `fgrep ' produced a table with 7 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ -f $(TESTDIR)/join-5 -a -f vault/join-5 -a `diff -w $(TESTDIR)/join-5 vault/join-5 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a-t.a, distinct(s.a)/count(s.a) from t2a as s, t2b as t where t.a - s.a between 0 and 1 and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-6 | if [ `fgrep ' produced a table with 2 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a-t.a, distinct(s.a)/count(s.a) from t2a as s, t2b as t where t.a - s.a between 0 and 1 and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-6 2>&1 | if [ `fgrep ' produced a table with 2 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
 	@if [ -f $(TESTDIR)/join-6 -a -f vault/join-6 -a `diff -w $(TESTDIR)/join-6 vault/join-6 | wc -l` -eq 0 ]; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a-0.1 < t.a < s.a+1.1 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-7 | if [ `fgrep ' produced a table with 36 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a-0.1 < t.a < s.a+1.1 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-7 2>&1 | if [ `fgrep ' produced a table with 36 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
 	@if [ -f $(TESTDIR)/join-7 -a -f vault/join-7 -a `diff -w $(TESTDIR)/join-7 vault/join-7 | wc -l` -eq 0 ]; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), sum(t.b)+count(*) from t2a as s, t2c as t where s.a+0.5 <= t.a <= s.a+2.5 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-8 | if [ `fgrep ' produced a table with 3 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select floor(t.b+s.c/4), sum(t.b)+count(*) from t2a as s, t2c as t where s.a+0.5 <= t.a <= s.a+2.5 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-8 2>&1 | if [ `fgrep ' produced a table with 3 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
 	@if [ -f $(TESTDIR)/join-8 -a -f vault/join-8 -a `diff -w $(TESTDIR)/join-8 vault/join-8 | wc -l` -eq 0 ]; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-join.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
 	@echo
 check-labeling: $(IBISEXE) $(TESTDIR)/m0/-part.txt $(TESTDIR)/m1/-part.txt
-	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<10" >> $(TESTDIR)/check-labeling.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<10" | if [ `fgrep " 1 connected component" - | wc -l` -eq 2 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<10" >| $(TESTDIR)/check-labeling.log 2>&1
+	@if [ `fgrep " 1 connected component" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<40 && c%2 > 0" >> $(TESTDIR)/check-labeling.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<40 && c%2 > 0" | if [ `fgrep " 20 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@if [ `fgrep " 20 connected components" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where b<75 && c%3 > 0" >> $(TESTDIR)/check-labeling.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where b<75 && c%3 > 0" | if [ `fgrep " 7 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@if [ `fgrep " 7 connected components" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a1<5" >> $(TESTDIR)/check-labeling.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a1<5" | if [ `fgrep " 35 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@if [ `fgrep " 35 connected components" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a2<5 && b1>10" >> $(TESTDIR)/check-labeling.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a2<5 && b1>10" | if [ `fgrep " 14 connected components" - | wc -l` -eq 2 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
+	@if [ `fgrep " 14 connected components" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-labeling.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-labeling.log; fi
 	@echo
 #
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@test -f $(TESTDIR)/t0/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/t0/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 	@if [ ! -f $(TESTDIR)/t1/-part.txt ] ; then \
-	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
-	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
 	fi
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt TESTDIR
 	@test -f $(TESTDIR)/rowlist || (echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;)
 $(TESTDIR)/t2/t2a/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@test -f $(TESTDIR)/t2/t2a/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/t2/t2a/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/t2/t2b/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 	@if [ ! -f $(TESTDIR)/t2/t2b/-part.txt ] ; then \
-	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
-	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
 	fi
 $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 	@if [ ! -f $(TESTDIR)/t2/t2c/-part.txt ] ; then \
-	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
-	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
-	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
-	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/stdout.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
 	fi
 # a simple internal sanity check
-sanity-check: $(TESTDIR)/stdout.log $(IBISEXE) $(TESTDIR)/append.log
+sanity-check: $(TESTDIR)/std.log $(IBISEXE) $(TESTDIR)/append.log
 	@echo
 	@if [ -f $(TESTDIR)/append.rc ] ; then \
 	$(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 > $(TESTDIR)/sanity-check.log; \
@@ -312,13 +312,13 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTD
 	@ncases=0; npassed=0; for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
 	ncases=`expr 1 + $$ncases`; echo; echo "$@ case # $${ncases}"; \
-	$(IBISEXE) -c $(TESTDIR)/test.rc -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/stdout.log; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/std.log 2>&1; \
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; \
 	done; done; \
 	perl -pi -e "s/index = .*/index = none/" $(TESTDIR)/0/test?/-part.txt; \
 	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	ncases=`expr 1 + $$ncases`; echo; echo "$@ case # $${ncases}"; \
-	$(IBISEXE) -c $(TESTDIR)/test.rc -b "none" -z >> $(TESTDIR)/stdout.log; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -b "none" -z >> $(TESTDIR)/std.log 2>&1; \
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; echo; \
 	if [ $${npassed} -lt $${ncases} ]; then \
 	echo Did NOT pass `expr $${ncases} - $${npassed}` out of $${ncases} $@ test cases; \
@@ -375,7 +375,7 @@ $(TESTDIR)/sq2: setqgen$(EXEEXT) TESTDIR
 	@test -d $(TESTDIR)/sq2 || ./setqgen$(EXEEXT) $(TESTDIR)/sq2 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
 #
 TESTDIR:
-	@test -d $(TESTDIR) || (mkdir -p $(TESTDIR) && echo "File $@/stdout.log started on " `/bin/date` >> $(TESTDIR)/stdout.log)
+	@test -d $(TESTDIR) || (mkdir -p $(TESTDIR) && echo "File $@/std.log started on " `/bin/date` >> $(TESTDIR)/std.log)
 $(TESTDIR)/0: $(TESTDIR)
 	@test -d $(TESTDIR)/0 || mkdir $(TESTDIR)/0
 $(TESTDIR)/1: $(TESTDIR)
@@ -383,37 +383,37 @@ $(TESTDIR)/1: $(TESTDIR)
 $(TESTDIR)/2: $(TESTDIR)
 	@test -d $(TESTDIR)/2 || mkdir $(TESTDIR)/2
 $(TESTDIR)/marksdb/-part.txt: readcsv$(EXEEXT) marksdb.csv TESTDIR
-	@test -f $(TESTDIR)/marksdb/-part.txt || ./readcsv marksdb.csv $(TESTDIR)/marksdb >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/marksdb/-part.txt || ./readcsv marksdb.csv $(TESTDIR)/marksdb >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/maurel/-part.txt: readcsv$(EXEEXT) maurel.csv TESTDIR
-	@test -f $(TESTDIR)/maurel/-part.txt || ./readcsv maurel.csv $(TESTDIR)/maurel >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/maurel/-part.txt || ./readcsv maurel.csv $(TESTDIR)/maurel >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/jrf/-part.txt: jrf$(EXEEXT) TESTDIR
-	@test -f $(TESTDIR)/jrf/-part.txt || ./jrf$(EXEEXT) $(TESTDIR)/jrf 1e5 >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/jrf/-part.txt || ./jrf$(EXEEXT) $(TESTDIR)/jrf 1e5 >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT) TESTDIR
-	@test -f $(TESTDIR)/0/test0/-part.txt || ./readcsv test0.csv $(TESTDIR)/0/test0 >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/0/test0/-part.txt || ./readcsv test0.csv $(TESTDIR)/0/test0 >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT) TESTDIR
-	@test -f $(TESTDIR)/0/test1/-part.txt || ./readcsv test1.csv $(TESTDIR)/0/test1 >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/0/test1/-part.txt || ./readcsv test1.csv $(TESTDIR)/0/test1 >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/m0/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@test -f $(TESTDIR)/m0/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/m0 -m "a:b, b:f, c:s" -t test0.csv -tag "meshShape=(20,5)" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/m0/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/m0 -m "a:b, b:f, c:s" -t test0.csv -tag "meshShape=(20,5)" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/m1/-part.txt: $(ARDEAEXE) test1.csv TESTDIR
-	@test -f $(TESTDIR)/m1/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/m1 -m "a0:d, a1:b, a2:b, b0:f, b1:s, b2:s, c0:f, c1:i, c2:i" -t test1.csv -tag "meshShape=(10, 10, 10)" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $(TESTDIR)/m1/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/m1 -m "a0:d, a1:b, a2:b, b0:f, b1:s, b2:s, c0:f, c1:i, c2:i" -t test1.csv -tag "meshShape=(10, 10, 10)" >> $(TESTDIR)/std.log 2>&1
 # really small data partitions (wee == very small)
 $(TESTDIR)/w1/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:d, c_3:k" -r "105, 1.1," >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w1 -m "c_1:s, c_2:d, c_3:k" -r "105, 1.1," >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/w2/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:d, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w2 -m "c_1:s, c_2:d, c_3:k" -r "105, , 1010" -r "105, 1.001, 1010" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/w3/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:d, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:d, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/w4/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/std.log 2>&1
 	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt
 	@echo 'Berkeley: 5'    > $(TESTDIR)/w4/b.tdlist
 	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
 	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist
 $(TESTDIR)/w5/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w5 -m "c_1:s, c_2:f, c_3:i" -r "5, 1.0, 1" -r "75, 0.25, 3" -r "75, 0.5, 3" -r "105, 4, 1" -r "105, 8, 3" -r "105, 16, 5" >> $(TESTDIR)/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w5 -m "c_1:s, c_2:f, c_3:i" -r "5, 1.0, 1" -r "75, 0.25, 3" -r "75, 0.5, 3" -r "105, 4, 1" -r "105, 8, 3" -r "105, 16, 5" >> $(TESTDIR)/std.log 2>&1
 # 8 rows with 18- and 19-digit long number, inspired by the questions from Bao Toan Ngyuen
 $(TESTDIR)/w6/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w6 -m "m:ul, n:d" -r "144115188075857871,144115188075857871" -r "144115188075857872,144115188075857872" -r "288230376151715742,288230376151715742" -r "288230376151715743,288230376151715743" -r "1152921504606862968,1152921504606862968" -r "1152921504606862969,1152921504606862969" -r "9223372036854903744,9223372036854903744", -r "9223372036854903745,9223372036854903745" >> ${TESTDIR}/stdout.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w6 -m "m:ul, n:d" -r "144115188075857871,144115188075857871" -r "144115188075857872,144115188075857872" -r "288230376151715742,288230376151715742" -r "288230376151715743,288230376151715743" -r "1152921504606862968,1152921504606862968" -r "1152921504606862969,1152921504606862969" -r "9223372036854903744,9223372036854903744", -r "9223372036854903745,9223372036854903745" >> ${TESTDIR}/std.log 2>&1
 $(TESTDIR)/test.rc: TESTDIR
 	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc

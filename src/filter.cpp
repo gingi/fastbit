@@ -647,11 +647,16 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 	}
     }
     if (brd1->nRows() == 0) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << mesg << " failed to produce any result, "
-	    "the last error code was " << ierr;
-	// return an empty table of type tabula
-	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
+	if (ierr >= 0) {
+	    // return an empty table of type tabula
+	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << mesg << " failed to produce any result, "
+		"the last error code was " << ierr;
+	    return 0;
+	}
     }
     else if (brd1->nColumns() == 0) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
@@ -1035,10 +1040,15 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
 	}
     }
     if (brd1->nRows() == 0) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << mesg << " failed to produce any result, "
-	    "the last error code was " << ierr;
-	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
+	if (ierr >= 0) {
+	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << mesg << " failed to produce any result, "
+		"the last error code was " << ierr;
+	    return 0;
+	}
     }
     else if (brd1->nColumns() == 0) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
@@ -1449,10 +1459,15 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	}
     }
     if (brd1->nRows() == 0) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << mesg << " failed to produce any result, "
-	    "the last error code was " << ierr;
-	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
+	if (ierr >= 0) {
+	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << mesg << " failed to produce any result, "
+		"the last error code was " << ierr;
+	    return 0;
+	}
     }
     else if (brd1->nColumns() == 0) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
@@ -1761,10 +1776,15 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
 	}
     }
     if (brd1->nRows() == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << mesg << " failed to produce any result, "
-	    "the last error code was " << ierr;
-	return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
+	if (ierr >= 0) {
+	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << mesg << " failed to produce any result, "
+		"the last error code was " << ierr;
+	    return 0;
+	}
     }
     else if (brd1->nColumns() == 0) { // count(*)
 	return new ibis::tabele(tn.c_str(), mesg.c_str(), brd1->nRows(),
@@ -2565,7 +2585,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 	    return new ibis::tabula(tn.c_str(), mesg.c_str(), 0);
 	}
 	else {
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << mesg << " failed to produce any result, "
 		"the last error code was " << ierr;
 	    return 0;

@@ -35,8 +35,10 @@ int FASTBIT_CXX_DLLSPEC ibis::gVerbose = 0;
 #ifndef FASTBIT_DEFAULT_LOG
 #ifdef FASTBIT_LOG_TO_STDERR
 #define FASTBIT_DEFAULT_LOG stderr
-#else
+#elif FASTBIT_LOG_TO_STDOUT
 #define FASTBIT_DEFAULT_LOG stdout
+#else
+#define FASTBIT_DEFAULT_LOG stderr
 #endif
 #endif
 
@@ -1527,7 +1529,7 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
 /// a null pointer) resets the log file to the default value
 /// FASTBIT_DEFAULT_LOG.  The default value of FASTBIT_DEFAULT_LOG is
 /// explained in function ibis::util::getLogFile.  The values of "stderr"
-/// and "stdout" refers to the stderr and stdout defined on most UNIX
+/// and "stdout" refer to the stderr and stdout defined on most UNIX
 /// systems.  Note that both "stderr" and "stdout" must be in lower case if
 /// the caller intends to use stderr or stdout.
 ///
@@ -1569,9 +1571,7 @@ int ibis::util::setLogFileName(const char* filename) {
 /// Write a header to the log file.  The caller has opened the file named
 /// fname, this function attempts to write a simple message to verify that
 /// the file is writable.  It returns zero (0) upon successful completion
-/// of the write operations, it returns a non-zero number to indicate
-/// error.  It additionally sets the global variables
-/// ibis_util_logfilepointer and ibis_util_logfilename on success.
+/// of the write operation, it returns a non-zero number to indicate error.
 ///
 /// If fptr is 0, it passes fname to ibis::util::setLogFileName to open the
 /// appropriate file.  Otherwise, this function attempt to write to fptr.
@@ -1618,6 +1618,9 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
 	    ibis_util_logfilepointer != stdout &&
 	    ibis_util_logfilepointer != stderr) // close existing file
 	    (void) fclose(ibis_util_logfilepointer);
+
+	// set the global variables ibis_util_logfilepointer
+	// and ibis_util_logfilename
 	ibis_util_logfilepointer = fptr;
 	if (fname != 0 && *fname != 0)
 	    ibis_util_logfilename = fname;
@@ -1638,37 +1641,35 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
 /// -- environment variable FASTBITLOGFILE
 /// -- configuration parameter logfile
 ///
-/// @note The macro FASTBIT_DEFAULT_LOG is default to stdout.  It could be
-/// directly set to a FILE* during compile time.  Alternatively, setting
-/// FASTBIT_LOG_TO_STDERR will change the default log file to stderr.
-///
-/// @warn The value of FASTBIT_DEFAULT_LOG will be set to stderr in the
-/// next public release to conform with the convention that std::cerr is
-/// equivalent to std::clog.
+/// @note The macro FASTBIT_DEFAULT_LOG is default to stderr.  It could be
+/// directly set to another FILE* during compile time by changing
+/// FASTBIT_DEFAULT_LOG or changed at run time through
+/// ibis::util::setLogFileName.  Instead of directly giving a FILE* to
+/// FASTBIT_DEFAULT_LOG, one may also set either FASTBIT_LOG_TO_STDERR or
+/// FASTBIT_LOG_TO_STDOUT at compile time to change the default log file to
+/// stderr or stdout.
 FILE* ibis::util::getLogFile() {
-    if (ibis_util_logfilepointer != 0)
+    if (ibis_util_logfilepointer != 0) { // file pointer already set
 	return ibis_util_logfilepointer;
-
-    ibis::util::ioLock lock;
-    if (ibis_util_logfilepointer != 0)
-	return ibis_util_logfilepointer;
+    }
+    else { // wait and see if another thread will set it
+	ibis::util::ioLock lock;
+	if (ibis_util_logfilepointer != 0)
+	    return ibis_util_logfilepointer;
+    }
 
     const char* fname = (ibis_util_logfilename.empty() ? 0 :
 			 ibis_util_logfilename.c_str());
     if (fname != 0 && *fname != 0) {
-	FILE* fptr = fopen(fname, "a");
-	if (fptr != 0) {
-	    if (0 == writeLogFileHeader(fptr, fname))
-		return fptr;
+	if (setLogFileName(fname) == 0) {
+	    return ibis_util_logfilepointer;
 	}
     }
 
     fname = getenv("FASTBITLOGFILE");
     if (fname != 0 && *fname != 0) {
-	FILE* fptr = fopen(fname, "a");
-	if (fptr != 0) {
-	    if (0 == writeLogFileHeader(fptr, fname))
-		return fptr;
+	if (setLogFileName(fname) == 0) {
+	    return ibis_util_logfilepointer;
 	}
     }
 
@@ -1676,21 +1677,18 @@ FILE* ibis::util::getLogFile() {
     if (fname == 0 || *fname == 0)
 	fname = ibis::gParameters()["mesgfile"];
     if (fname != 0 && *fname == 0) {
-	FILE* fptr = fopen(fname, "a");
-	if (fptr != 0) {
-	    if (0 == writeLogFileHeader(fptr, fname))
-		return fptr;
+	if (setLogFileName(fname) == 0) {
+	    return ibis_util_logfilepointer;
 	}
     }
 
-    // fall back to use the standard output
-    ibis_util_logfilepointer = FASTBIT_DEFAULT_LOG;
-    ibis_util_logfilename.erase();
-    return FASTBIT_DEFAULT_LOG;
+    // fall back to use FASTBIT_DEFAULT_LOG, writeLogFileHeader should not fail
+    (void) writeLogFileHeader(FASTBIT_DEFAULT_LOG, 0);
+    return ibis_util_logfilepointer;
 } // ibis::util::getLogFile
 
-/// Return name the of the current log file.  Blank string or null
-/// string indicate standard output.
+/// Return name the of the current log file.  A blank string indicates a
+/// standard output stream, either stderr or stdout.
 const char* ibis::util::getLogFileName() {
     return ibis_util_logfilename.c_str();
 } // ibis::util::getLogFileName

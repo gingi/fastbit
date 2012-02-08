@@ -35,6 +35,8 @@ namespace ibis {
 class FASTBIT_CXX_DLLSPEC ibis::quaere {
 public:
     static quaere* create(const char* sel, const char* from, const char* where);
+    static quaere* create(const char* sel, const char* from, const char* where,
+			  const ibis::partList& prts);
     static quaere* create(const ibis::part* partr, const ibis::part* parts,
 			  const char* colname, const char* condr = 0,
 			  const char* conds = 0, const char* sel = 0);
@@ -79,4 +81,9 @@ private:
     quaere(const quaere&); // no copying
     quaere& operator=(const quaere&); // no assignment
 }; // class ibis::quaere
+
+namespace ibis {
+    ibis::part* findDataset(const char*);
+    ibis::part* findDataset(const char*, const ibis::partList&);
+}
 #endif

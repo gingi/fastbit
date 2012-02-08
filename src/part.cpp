@@ -6041,20 +6041,60 @@ ibis::part::TABLE_STATE ibis::part::getState() const {
 /// characters up to the first period.
 ibis::column* ibis::part::getColumn(const char* prop) const {
     ibis::column *ret = 0;
-    if (prop != 0 && *prop != 0) {
-	const char *str = strchr(prop, '.');
-	columnList::const_iterator it = columns.end();
-	if (str != 0) {
-	    ++ str; // skip '.'
-	    it = columns.find(str);
-	    if (it == columns.end()) // try the whole name
-		it = columns.find(prop);
-	}
-	else {
+    if (prop == 0 || *prop == 0 || *prop == '*')
+	return ret;
+
+    const char *str = strchr(prop, '.');
+    columnList::const_iterator it = columns.end();
+    if (str != 0) {
+	++ str; // skip '.'
+	it = columns.find(str);
+
+	if (it == columns.end()) {// try the whole name
 	    it = columns.find(prop);
 	}
-	if (it != columns.end()) {
-	    ret = (*it).second;
+    }
+    else {
+	it = columns.find(prop);
+    }
+
+    if (it == columns.end()) {
+	const size_t nch = strlen(m_name);
+	if (strlen(prop) > nch+1 && prop[nch] == '_' &&
+	    strnicmp(prop, m_name, nch) == 0) {
+	    str = prop + nch + 1;
+	    it = columns.find(str);
+	}
+    }
+
+    if (it == columns.end()) {
+	std::string nm = prop;
+	// normalize the name and try again
+	if (isalpha(nm[0]) == 0 && nm[0] != '_')
+	    nm[0] = 'A' + (nm[0] % 26);
+	for (unsigned j = 1; j < nm.size(); ++ j)
+	    if (isalnum(nm[j]) == 0)
+		nm[j] = '_';
+	it = columns.find(nm.c_str());
+    }
+
+    if (it != columns.end()) {
+	ret = (*it).second;
+    }
+    else if (*prop == '_') {
+	for (++ prop; *prop == '_'; ++ prop); // skip leading '_'
+	if (isdigit(*prop) != 0) {
+	    unsigned ind = *prop - '0';
+	    for (++ prop; isdigit(*prop); ++ prop) {
+		ind = ind * 10 + (*prop - '0');
+	    }
+	    if (ind < colorder.size()) {
+		return const_cast<ibis::column*>(colorder[ind]);
+	    }
+	    else if (ind < columns.size()) {
+		for(it = columns.begin(); ind > 0; ++ it, -- ind);
+		return const_cast<ibis::column*>(it->second);
+	    }
 	}
     }
     return ret;
@@ -6063,7 +6103,7 @@ ibis::column* ibis::part::getColumn(const char* prop) const {
 /// Skip pass all the dots in the given string.  The pointer returned from
 /// this function points to the first character after the last dot (.).  If
 /// the incoming string ends with a dot, the return value would be null
-/// terminator.  If there is not dot at all, the return value is the same
+/// terminator.  If there is no dot at all, the return value is the same
 /// as the input value.
 const char* ibis::part::skipPrefix(const char* name) {
     const char* ptr = name;
@@ -18536,9 +18576,9 @@ long ibis::part::barrel::open(const ibis::part *t) {
     long ierr = 0;
     position = 0;
     if (t == 0 && _tbl == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::barrel::open needs an ibis::part object";
 	ierr = -1;
-	ibis::util::logMessage("part::barrel::open",
-			       "An ibis::part must be speficied");
 	return ierr;
     }
     if (_tbl == 0) _tbl = t;
@@ -18822,10 +18862,10 @@ long ibis::part::barrel::read() {
 	case ibis::OID:
 	default: {
 	    ++ ierr;
-	    _tbl->logWarning("barrel::read", "unable to evaluate "
-			     "attribute of type %s (name: %s)",
-			     ibis::TYPESTRING[(int)cols[i]->type()],
-			     cols[i]->name());
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Waring -- barrel::read can not work with column type "
+		<< ibis::TYPESTRING[(int)cols[i]->type()]
+		<< " (name: " << cols[i]->name() << ')';
 	    break;}
 	}
     }
@@ -18874,8 +18914,8 @@ long ibis::part::vault::open(const ibis::part *t) {
     position = 0;
     if (t == 0 && _tbl == 0) {
 	ierr = -1;
-	ibis::util::logMessage("part::vault::open",
-			       "An ibis::part must be speficied");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::vault::open needs an ibis::part object";
 	return ierr;
     }
     if (_tbl == 0) _tbl = t;
@@ -19637,33 +19677,6 @@ void ibis::util::updateDatasets() {
     for (uint32_t j = 0; j < npt; ++ j)
 	ibis::datasets[j]->updateData();
 } // ibis::util::updateDatasets
-
-/// Find a dataset with the given name.  If the named data partition is
-/// found, a point to the data partition is returned, otherwise, a nil
-/// pointer is returned.  If the name is nil, a nil pointer will be
-/// returned.
-ibis::part* ibis::findDataset(const char* pn) {
-    if (pn == 0 || *pn == 0) return 0;
-
-    static ibis::partAssoc ordered_;
-    { // a scope to limit the mutex lock
-	ibis::util::mutexLock lock(&ibis::util::envLock, "findDataset");
-	if (ordered_.size() != ibis::datasets.size()) {
-	    ordered_.clear();
-	    for (size_t j = 0; j < ibis::datasets.size(); ++ j)
-		ordered_[ibis::datasets[j]->name()] = ibis::datasets[j];
-	}
-    }
-
-    ibis::partAssoc::iterator it = ordered_.find(pn);
-    if (it != ordered_.end()) {
-	return it->second;
-    }
-    else {
-	return 0;
-    }
-} // ibis::findDataset
-
 
 // explicit instantiations of the templated functions
 template long

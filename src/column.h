@@ -599,7 +599,7 @@ inline bool ibis::column::isFloat() const {
     return(m_type == ibis::FLOAT || m_type == ibis::DOUBLE);
 } // ibis::column::isFloat
 
-///< Are they integer values?
+/// Are they integer values?
 inline bool ibis::column::isInteger() const {
     return(m_type == ibis::BYTE || m_type == ibis::UBYTE ||
 	   m_type == ibis::SHORT || m_type == ibis::USHORT ||
@@ -607,19 +607,19 @@ inline bool ibis::column::isInteger() const {
 	   m_type == ibis::LONG || m_type == ibis::ULONG);
 } // ibis::column::isInteger
 
-///< Are they signed integer values?
+/// Are they signed integer values?
 inline bool ibis::column::isSignedInteger() const {
     return(m_type == ibis::BYTE || m_type == ibis::SHORT ||
 	   m_type == ibis::INT || m_type == ibis::LONG);
 } // ibis::column::isSignedInteger
 
-///< Are they unsigned integer values?
+/// Are they unsigned integer values?
 inline bool ibis::column::isUnsignedInteger() const {
     return(m_type == ibis::UBYTE || m_type == ibis::USHORT ||
 	   m_type == ibis::UINT || m_type == ibis::ULONG);
 } // ibis::column::isUnsignedInteger
 
-///< Are they numberical values?
+/// Are they numberical values?
 inline bool ibis::column::isNumeric() const {
     return(m_type == ibis::BYTE || m_type == ibis::UBYTE ||
 	   m_type == ibis::SHORT || m_type == ibis::USHORT ||

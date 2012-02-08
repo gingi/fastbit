@@ -1,3 +1,27 @@
+2012-02-07 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp: change the default log output to stderr (following
+	the C++ iostream convention where cerr and clog are the same
+	stream)
+	* tests/Makefile.am: change the log file from stdout.log to
+	std.log
+	* src/bord.cpp: modify bord::copyColumn to use getColumn instead
+	of its own procedure for finding the named column; evaluateTerms
+	assigns the values to cd too early, the actual strings in cdesc
+	could moved
+	* src/quaere.cpp: in ibis::quaere::create, make sure prts is
+	passed down to the filter object
+
+2012-02-06 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.cpp: change selectClause::fillNames to make
+	sure the names used match the SQL convention
+
+2012-02-03 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp: add argument three to doJoin to ensure can
+	use a different list of tables than ibis::datasets
+	* src/util.cpp: change util::getLogFile to use setLogFile (to make
+	sure the log file is initialized exacty the same way no matter how
+	it is generated)
+
 2012-02-02 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp: add special cases to ibis::util::setLogFileName to
 	accept "stderr" and "stdout" as representations for stderr and
@@ -7,6 +31,15 @@
 	clause as '1=1' to match all rows according to SQL convention
 	* src/capi.cpp: change fastbit_build_query to accept empty where
 	clause, check that _capi_tlist->find did not return a nil pointer
+	* examples/ibis.cpp: modify doJoin to perform additional queries
+	on the results of join (per suggestion from Alexandre Maurel)
+	* src/jnatural.cpp: using frm_ without checking whether it is nil
+	* src/bord.cpp: change ibis::bord::column::getString to make use
+	of dic first and the array values next (but always try both of
+	them)
+	* src/bord.cpp: in the constructor of ibis::bord, make sure the
+	column names are proper SQL names (so that they can be used by
+	other operations)
 
 2012-02-01 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: category::selectStrings fixing a corner case

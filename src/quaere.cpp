@@ -9,15 +9,21 @@
 
 #include <memory>	// std::auto_ptr
 
+/// Create a query object using the global datasets.
+ibis::quaere* ibis::quaere::create(const char* sel, const char* from,
+				    const char* where) {
+    return ibis::quaere::create(sel, from, where, ibis::datasets);
+}
+
 /// Generate a query expression.  This function takes three arguments known
 /// as the select clause, the from clause and the where clause.  It expects
 /// a valid where clause, but the select clause and the from clause could
 /// be blank strings or left as nil pointers.  If the select clause is
 /// undefined, the default operation is to count the number of hits.  If
 /// the from clause is not specified, it will attempt to use all the data
-/// partitions stored in the global variable ibis::datasets.  If the where
-/// clause is not specified, the query is assumed to select every row
-/// (following the SQL convension).
+/// partitions stored in the prts.  If the where clause is not specified,
+/// the query is assumed to select every row (following the SQL
+/// convension).
 ///
 /// @note If more than one data partition was used in specifying the
 /// query, the column names should be fully qualified in the form of
@@ -28,7 +34,8 @@
 /// nil pointer will be returned if any name is not associated with a
 /// known column.
 ibis::quaere*
-ibis::quaere::create(const char* sel, const char* fr, const char* wh) {
+ibis::quaere::create(const char* sel, const char* fr, const char* wh,
+		     const ibis::partList& prts) {
     std::string sql;
     if (fr != 0 && *fr != 0) {
 	sql += "From ";
@@ -51,19 +58,13 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh) {
 	std::set<std::string> plist;
 	wc.getExpr()->getTableNames(plist);
 	if (plist.empty() || (plist.size() == 1 && plist.begin()->empty())) {
-	    if (sc.empty() || wc.empty()) {
-		return new ibis::filter(&wc);
-	    }
-	    else {
-		return new ibis::filter
-		    (&sc,
-		     reinterpret_cast<const constPartList*>(&ibis::datasets),
-		     &wc);
-	    }
+	    // a simple filter
+	    return new ibis::filter
+		(&sc, reinterpret_cast<const constPartList*>(&prts), &wc);
 	}
 	else if (plist.size() == 1) { // one table name
 	    std::set<std::string>::const_iterator pit = plist.begin();
-	    ibis::part *pt = ibis::findDataset(pit->c_str());
+	    ibis::part *pt = ibis::findDataset(pit->c_str(), prts);
 	    if (pt == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- quaere::create(" << sql
@@ -93,7 +94,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh) {
 		    << ") can't find a data partition known as " << pr;
 		return 0;
 	    }
-	    ibis::part *partr = ibis::findDataset(rpr);
+	    ibis::part *partr = ibis::findDataset(rpr, prts);
 	    if (partr == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- quaere::create(" << sql
@@ -109,7 +110,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh) {
 		    << ") can't find a data partition known as " << ps;
 		return 0;
 	    }
-	    ibis::part *parts = ibis::findDataset(rps);
+	    ibis::part *parts = ibis::findDataset(rps, prts);
 	    if (parts == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- quaere::create(" << sql
@@ -1041,3 +1042,46 @@ ibis::quaere::create(const ibis::part* partr, const ibis::part* parts,
 		     const char* conds, const char* sel) {
     return new ibis::jNatural(partr, parts, colname, condr, conds, sel);
 } // ibis::quaere::create
+
+/// Find a dataset with the given name.  If the named data partition is
+/// found, a point to the data partition is returned, otherwise, a nil
+/// pointer is returned.  If the name is nil, a nil pointer will be
+/// returned.
+ibis::part* ibis::findDataset(const char* pn) {
+    if (pn == 0 || *pn == 0) return 0;
+
+    static ibis::partAssoc ordered_;
+    { // a scope to limit the mutex lock
+	ibis::util::mutexLock lock(&ibis::util::envLock, "findDataset");
+	if (ordered_.size() != ibis::datasets.size()) {
+	    ordered_.clear();
+	    for (size_t j = 0; j < ibis::datasets.size(); ++ j)
+		ordered_[ibis::datasets[j]->name()] = ibis::datasets[j];
+	}
+    }
+
+    ibis::partAssoc::iterator it = ordered_.find(pn);
+    if (it != ordered_.end()) {
+	return it->second;
+    }
+    else {
+	return 0;
+    }
+} // ibis::findDataset
+
+/// Find a dataset with the given name among the given list.  It performs a
+/// linear search.
+ibis::part* ibis::findDataset(const char* pn, const ibis::partList& prts) {
+    if (&prts == &ibis::datasets)
+	return ibis::findDataset(pn);
+    if (pn == 0 || *pn == 0)
+	return 0;
+
+    for (ibis::partList::const_iterator it = prts.begin();
+	 it != prts.end(); ++ it) {
+	if (stricmp((*it)->name(), pn) == 0)
+	    return *it;
+    }
+    return 0;
+} // ibis::findDataset
+

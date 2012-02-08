@@ -171,7 +171,7 @@ std::string ibis::selectClause::aggDescription
 /// resolves all external names first to establish all aliases, and then
 /// resolve the names of the arguments to the aggregation functions.  The
 /// arithmetic expressions without external names are given names of the
-/// form "_.hhh", where "hhh" is a hexadecimal number.
+/// form "_hhh", where "hhh" is a hexadecimal number.
 void ibis::selectClause::fillNames() {
     names_.clear();
     xnames_.clear();
@@ -189,8 +189,8 @@ void ibis::selectClause::fillNames() {
     for (uint32_t j = 0; j < xtms_.size(); ++ j) {
 	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL_AGGR &&
 	    xtms_[j]->termType() == ibis::math::VARIABLE) {
-	    const char *vn = static_cast<const ibis::math::variable*>(xtms_[j])->
-		variableName();
+	    const char *vn = static_cast<const ibis::math::variable*>
+		(xtms_[j])->variableName();
 	    uint64_t jv = atms_.size();
 	    if (vn[0] == '_' && vn[1] == '_')
 		if (0 > ibis::util::decode16(jv, vn+2))
@@ -200,15 +200,22 @@ void ibis::selectClause::fillNames() {
 	    else
 		xnames_[j] = vn;
 
-	    size_t pos = xnames_[j].rfind('.');
-	    if (pos < xnames_[j].size())
-		xnames_[j].erase(0, pos+1);
+	    // size_t pos = xnames_[j].rfind('.');
+	    // if (pos < xnames_[j].size())
+	    // 	xnames_[j].erase(0, pos+1);
 	}
 
 	if (xnames_[j].empty()) {
 	    std::ostringstream oss;
-	    oss << "_." << std::hex << j;
+	    oss << "_" << std::hex << j;
 	    xnames_[j] = oss.str();
+	}
+	else {
+	    if (isalpha(xnames_[j][0]) == 0 && xnames_[j][0] != '_')
+		xnames_[j][0] = 'A' + (xnames_[j][0] % 26);
+	    for (unsigned i = 1; i < xnames_[j].size(); ++ i)
+		if (isalnum(xnames_[j][i]) == 0)
+		    xnames_[j][i] = '_';
 	}
     }
 
@@ -221,14 +228,21 @@ void ibis::selectClause::fillNames() {
 	    names_[j] = static_cast<const ibis::math::variable*>(atms_[j])
 		->variableName();
 
-	    size_t pos = names_[j].rfind('.');
-	    if (pos < names_[j].size())
-		names_[j].erase(0, pos+1);
+	    // size_t pos = names_[j].rfind('.');
+	    // if (pos < names_[j].size())
+	    // 	names_[j].erase(0, pos+1);
 	}
 	if (names_[j].empty()) {
 	    std::ostringstream oss;
 	    oss << "__" << std::hex << j;
 	    names_[j] = oss.str();
+	}
+	else {
+	    if (isalpha(names_[j][0]) == 0 && names_[j][0] != '_')
+		names_[j][0] = 'A' + (names_[j][0] % 26);
+	    for (unsigned i = 1; i < names_[j].size(); ++ i)
+		if (isalnum(names_[j][i]) == 0)
+		    names_[j][i] = '_';
 	}
     }
 
@@ -667,9 +681,9 @@ void ibis::selectClause::print(std::ostream& out) const {
 } // ibis::selectClause::print
 
 void ibis::selectClause::printDetails(std::ostream& out) const {
-    out << "select clause internal details:\n  low-level expressions (atms_["
-	<< atms_.size() << "], aggr_[" << aggr_.size() << "], names_["
-	<< names_.size() << "]):";
+    out << "select clause internal details:\n low-level expressions (names_["
+	<< names_.size() << "], aggr_[" << aggr_.size() << "], atms_["
+	<< atms_.size() << "]):";
     for (size_t j = 0; j < atms_.size(); ++ j) {
 	out << "\n  " << j << ":\t" << names_[j] << ",\t";
 	switch (aggr_[j]) {
@@ -711,8 +725,8 @@ void ibis::selectClause::printDetails(std::ostream& out) const {
 	    break;
 	}
     }
-    out << "\n  high-level expressions (xtms_[" << xtms_.size()
-	<< "], xnames_[" << xnames_.size() << "]):";
+    out << "\n high-level expressions (xnames_[" << xnames_.size()
+	<< "], xtms_[" << xtms_.size() << "]):";
     for (size_t j = 0; j < xtms_.size(); ++ j)
 	out << "\n  " << j << ":\t" << xnames_[j] << ",\t" << *(xtms_[j]);
 } // ibis::selectClause::printDetails
@@ -803,6 +817,12 @@ int ibis::selectClause::verifyTerm(const ibis::math::term& xp0,
 	if (*(var.variableName()) != '*') {
 	    if (part0.getColumn(var.variableName()) == 0) {
 		bool alias = false;
+		const char *vnm = strchr(var.variableName(), '_');
+		if (vnm != 0) {
+		    ++ vnm;
+		    if (part0.getColumn(vnm) != 0)
+			return ierr;
+		}
 		if (sel0 != 0) {
 		    int as = sel0->find(var.variableName());
 		    if (as >= 0 && (unsigned)as < sel0->aggSize())

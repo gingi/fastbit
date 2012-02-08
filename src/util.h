@@ -337,7 +337,6 @@ namespace ibis {
 
     /// A global list of data partitions.
     extern FASTBIT_CXX_DLLSPEC partList datasets;
-    ibis::part* findDataset(const char*);
 
     typedef std::vector<colValues*> colList; /// List of in-memory data.
 
