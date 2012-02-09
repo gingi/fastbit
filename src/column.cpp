@@ -5081,6 +5081,10 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	    ibis::util::mutexLock lck2(&mutex, "loadIndex");
 	    if (idx == 0) {
 		idx = tmp;
+		if (! (lower <= upper)) { // use negation to catch NaNs
+		    const_cast<ibis::column*>(this)->lower = tmp->getMin();
+		    const_cast<ibis::column*>(this)->upper = tmp->getMax();
+		}
 	    }
 	    else if (idx != tmp) { // another thread has created an index
 		LOGGER(ibis::gVerbose >= 0)

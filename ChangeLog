@@ -1,3 +1,6 @@
+2012-02-09 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: capture min and max after index creation.
+
 2012-02-07 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp: change the default log output to stderr (following
 	the C++ iostream convention where cerr and clog are the same
