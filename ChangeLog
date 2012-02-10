@@ -1,3 +1,10 @@
+2012-02-10 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: update column::write to handle unsigned types
+	separately, add specific cases for min and max of LONG and ULONG
+	(as doubles)
+	* src/category.cpp: update category::write to limit the size of
+	description to be no more than a couple of hundred characters
+
 2012-02-09 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: capture min and max after index creation.
 

@@ -1004,26 +1004,45 @@ long ibis::category::append(const char* dt, const char* df,
 
 /// Write the current content to the metadata file for the data partition.
 void ibis::category::write(FILE* file) const {
+    std::string evt = "category";
+    evt += '[';
+    if (ibis::gVerbose > 0 && thePart != 0) {
+	evt += thePart->name();
+	evt += '.';
+    }
+    evt += m_name;
+    evt += "]::write";
+
+    off_t ierr = 0;
     fputs("\nBegin Column\n", file);
     fprintf(file, "name = \"%s\"\n", (const char*)m_name.c_str());
-    if (m_desc.empty() || m_desc == m_name) {
+    if ((m_desc.empty() || m_desc == m_name) && dic.size() > 1) {
 	fprintf(file, "description = %s ", m_name.c_str());
-	if (dic.size() > 10) {
-	    fprintf(file, "= ");
-	    for (int i = 1; i < 10; ++i)
-		fprintf(file, "%s, ", dic[i]);
-	    fprintf(file, "..., %s", dic[dic.size()]);
+	unsigned lim = (dic.size() > 10 ? 10 : dic.size());
+	unsigned nchar = 0;
+	unsigned i = 1;
+	fprintf(file, "= ");
+	for (i = 1; i < lim && nchar < 100; ++i) {
+	    ierr = fprintf(file, "%s, ", dic[i]);
+	    if (ierr <= 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt
+		    << " failed to write a description from dictionary";
+		break;
+	    }
+	    nchar += ierr;
 	}
-	else if (dic.size() > 1) {
-	    fprintf(file, "= %s", dic[1]);
-	    for (unsigned int i = 2; i < dic.size(); ++ i)
-		fprintf(file, ", %s", dic[i]);
+	if (i < dic.size()) {
+	    fprintf(file, "...");
+	    if (nchar+strlen(dic[dic.size()]) < 200) {
+		fprintf(file, ", %s", dic[dic.size()]);
+	    }
 	}
 	fprintf(file, "\n");
     }
     else {
 	fprintf(file, "description =\"%s\"\n",
-	    (const char*)m_desc.c_str());
+		(const char*)m_desc.c_str());
     }
     fprintf(file, "data_type = \"%s\"\n", TYPESTRING[m_type]);
     fprintf(file, "minimum = 1\nmaximum = %lu\n",
@@ -2266,7 +2285,7 @@ void ibis::text::write(FILE* file) const {
     }
     else {
 	fprintf(file, "description =\"%s\"\n",
-	    (const char*)m_desc.c_str());
+		(const char*)m_desc.c_str());
     }
     fprintf(file, "data_type = \"%s\"\n", TYPESTRING[m_type]);
 //     fprintf(file, "minimum = %lu\n", static_cast<long unsigned>(lower));

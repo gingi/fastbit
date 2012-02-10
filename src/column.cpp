@@ -342,10 +342,16 @@ void ibis::column::write(FILE* file) const {
 	    fprintf(file, "maximum = %.8g\n", upper);
 	    break;
 	case DOUBLE:
+	case ULONG:
+	case LONG:
 	    fprintf(file, "minimum = %.15g\n", lower);
 	    fprintf(file, "maximum = %.15g\n", upper);
 	    break;
-	default: // Uxx, CATEGORY, TEXT, ...
+	default: // no min/max
+	    break;
+	case UBYTE:
+	case USHORT:
+	case UINT:
 	    fprintf(file, "minimum = %lu\n",
 		    static_cast<long unsigned>(lower));
 	    fprintf(file, "maximum = %lu\n",
