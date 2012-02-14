@@ -166,8 +166,7 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
 
 	t = _capi_tlist->find(dir);
 	if (t != 0 && t->nRows() > 0 && t->nColumns() > 0) {
-	    t->buildIndexes(opt);
-	    ierr = 0;
+	    ierr = t->buildIndexes(opt);
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
@@ -258,7 +257,7 @@ extern "C" int fastbit_build_index(const char *dir, const char *att,
 	}
 
 	t = _capi_tlist->find(dir);
-	if (t->nRows() == 0 || t->nColumns() == 0) {
+	if (t == 0 || t->nRows() == 0 || t->nColumns() == 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "fastbit_build_index -- data directory \"" << dir
 		<< "\" contains no data";
@@ -275,9 +274,12 @@ extern "C" int fastbit_build_index(const char *dir, const char *att,
 	    return ierr;
 	}
 
-	if (opt != 0 && *opt != 0)
+	c->loadIndex(opt);
+	c->unloadIndex();
+	if (opt != 0 && *opt != 0) {
 	    c->indexSpec(opt);
-	c->loadIndex();
+	    t->updateMetaData();
+	}
 	ierr = 0;
     }
     catch (const std::exception& e) {

@@ -1040,9 +1040,10 @@ void ibis::category::write(FILE* file) const {
 	}
 	fprintf(file, "\n");
     }
-    else {
-	fprintf(file, "description =\"%s\"\n",
-		(const char*)m_desc.c_str());
+    else if (! m_desc.empty()) {
+	if (m_desc.size() > MAX_LINE-60)
+	    const_cast<std::string&>(m_desc).erase(MAX_LINE-60);
+	fprintf(file, "description =\"%s\"\n", m_desc.c_str());
     }
     fprintf(file, "data_type = \"%s\"\n", TYPESTRING[m_type]);
     fprintf(file, "minimum = 1\nmaximum = %lu\n",
@@ -2284,6 +2285,8 @@ void ibis::text::write(FILE* file) const {
 	fprintf(file, "\n");
     }
     else {
+	if (m_desc.size() > MAX_LINE-60)
+	    const_cast<std::string&>(m_desc).erase(MAX_LINE-60);
 	fprintf(file, "description =\"%s\"\n",
 		(const char*)m_desc.c_str());
     }

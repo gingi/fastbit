@@ -1,3 +1,17 @@
+2012-02-14 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp, src/column.cpp, src/category.cpp: truncate
+	description to avoid writing extremely long description line
+	* tests/Makefile.am: update case 2 of check-ibis to accommodate
+	mixing of output from stdout with stderr
+	* src/part.cpp: updateMetaData and setMeshShape invoke write lock
+	before calling writeMetaData
+	* src/capi.cpp: invoke updateMetaData when fastbit_build_index
+	came with an explicit indexing option
+
+2012-02-13 Dominique Prunier <dominique dot prunier at watch4net dot com>
+	* src/capi.cpp:260 check null pointer before attempt to build
+	indexes
+
 2012-02-10 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: update column::write to handle unsigned types
 	separately, add specific cases for min and max of LONG and ULONG

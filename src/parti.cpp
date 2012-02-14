@@ -326,13 +326,15 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 	}
     }
 
-    m_desc += " -- ";
-    m_desc += evt;
-    if (ibis::gVerbose >= 0) {
-	char currtime[30];
-	ibis::util::getLocalTime(currtime);
-	m_desc += " on ";
-	m_desc += currtime;
+    if (m_desc.size() < MAX_LINE - 60 - evt.size()) {
+	m_desc += " -- ";
+	m_desc += evt;
+	if (ibis::gVerbose >= 0) {
+	    char currtime[30];
+	    ibis::util::getLocalTime(currtime);
+	    m_desc += " on ";
+	    m_desc += currtime;
+	}
     }
     writeMetaData(nEvents, columns, activeDir);
     LOGGER(ibis::gVerbose > 1 && ierr >= 0)

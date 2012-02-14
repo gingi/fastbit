@@ -1728,6 +1728,34 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     delete [] filename;
 } // ibis::part::writeMetaData
 
+/// Write the metadata file to record the changes to the partition.
+///
+/// @note This function uses a soft write lock.  When a write lock can not
+/// be acquired, it will not write the metadata to file -part.txt.
+void ibis::part::updateMetaData() const {
+    if (activeDir != 0 && *activeDir != 0) {
+	softWriteLock lock(this, "updateMetaData");
+	if (lock.isLocked())
+	    writeMetaData(nEvents, columns, activeDir);
+    }
+}
+
+/// Digest the mesh shape stored in the string.  The shape can be just
+/// numbers, e.g., "(10, 12, 14)", or 'name=value' pairs, e.g., "(nz=10,
+/// ny=12, nx=14)".
+///
+/// @note This function uses a soft write lock.  When a write lock can not
+/// be acquired, it will not write the metadata to file -part.txt.
+void ibis::part::setMeshShape(const char *shape) {
+    digestMeshShape(shape);
+
+    if (activeDir != 0 && *activeDir != 0) {
+	softWriteLock lock(this, "setMeshShape");
+	if (lock.isLocked())
+	    writeMetaData(nEvents, columns, activeDir);
+    }
+}
+
 /// Make a deep copy of the incoming name-value pairs.
 void ibis::part::setMetaTags(const ibis::resource::vList &mts) {
     for (ibis::resource::vList::const_iterator it = mts.begin();
@@ -1752,7 +1780,7 @@ void ibis::part::setMetaTags(const std::vector<const char*> &mts) {
 	metaList[ibis::util::strnewdup(mts.back())] =
 	    ibis::util::strnewdup("*");
     }
-} // ibis::part::setMetaTags()
+} // ibis::part::setMetaTags
 
 /// Output meta tags as a string.
 std::string ibis::part::metaTags() const {
@@ -1768,7 +1796,7 @@ std::string ibis::part::metaTags() const {
 	st += (*it).second;
     }
     return st;
-}
+} // ibis::part::metaTags
 
 /// Return true if the list of meta tags contains a name-value pair that
 /// matches the input arguments.
@@ -5812,12 +5840,14 @@ void ibis::part::buildSorted(const char* cname) const {
 /// indexes.
 /// @sa ibis::part::loadIndexes
 int ibis::part::buildIndexes(const char* iopt, int nthr) {
-    readLock lock(this, "buildIndexes");
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::buildIndexes";
+    readLock lock(this, evt.c_str());
     ibis::horometer timer;
     timer.start();
-    if (ibis::gVerbose > 5)
-	logMessage("buildIndexes",
-		   "start to load indexes of this data partition");
+    LOGGER(ibis::gVerbose > 5)
+	<< evt << " -- starting ...";
     if (nthr > 1) {
 	-- nthr; // spawn one less thread than specified
 	indexBuilderPool pool(*this, iopt);
@@ -5832,32 +5862,31 @@ int ibis::part::buildIndexes(const char* iopt, int nthr) {
 		&& ierr != ENOTSUP
 #endif
 		) {
-		logMessage("buildIndexes", "pthread_attr_setscope is unable "
-			   "to set system scope (ierr = %d)", ierr);
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << evt << " pthread_attr_setscope failed "
+		    "to set system scope (ierr = " << ierr << ')';
 	    }
 #endif
 	    for (long i = 0; i < nthr; ++i) {
 		ierr = pthread_create(&(tid[i]), &tattr,
-				      ibis_part_build_indexes,
-				      (void*)&pool);
-		if (0 != ierr) {
-		    logWarning("buildIndexes", "unable to start the thread # "
-			       "%ld to run ibis_part_build_index (%s)",
-			       i, strerror(ierr));
-		}
+				      ibis_part_build_indexes, (void*)&pool);
+		LOGGER(0 != ierr && ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to start the thread # "
+		    << i << " to run ibis_part_build_index (" << strerror(ierr)
+		    << ')';
 	    }
 	}
 	else {
-	    logWarning("buildIndexes", "pthread_attr_init failed with %d, "
-		       "using default attributes", ierr);
+	    LOGGER(ibis::gVerbose > 2)
+		<< evt << " -- pthread_attr_init failed with " << ierr
+		<< ", using default attributes";
 	    for (long i = 0; i < nthr; ++i) {
 		ierr = pthread_create(&(tid[i]), 0, ibis_part_build_indexes,
 				      (void*)&pool);
-		if (0 != ierr) {
-		    logWarning("buildIndexes", "unable to start the thread # "
-			       "%ld to run ibis_part_build_index (%s)",
-			       i, strerror(ierr));
-		}
+		LOGGER(0 != ierr && ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to start the thread # "
+		    << i << " to run ibis_part_build_index (" << strerror(ierr)
+		    << ')';
 	    }
 	}
 	(void) ibis_part_build_indexes((void*)&pool);
@@ -5865,8 +5894,7 @@ int ibis::part::buildIndexes(const char* iopt, int nthr) {
 	    void *j;
 	    pthread_join(tid[i], &j);
 	    LOGGER(j != 0 && ibis::gVerbose > 0)
-		<< "Warning -- part[" << name()
-		<< "]::buildIndexes -- thread # "
+		<< "Warning -- part[" << name() << "]::buildIndexes -- thread # "
 		<< i << " returned a nonzero code " << j;
 	}
 	++ nthr; // restore the original value
@@ -5879,14 +5907,14 @@ int ibis::part::buildIndexes(const char* iopt, int nthr) {
     if (ibis::gVerbose > 0) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part[" << name() << "]::buildIndexes processed "
+	lg() << evt << " processed "
 	     << nColumns() << " column" << (nColumns()>1 ? "s" : "")
 	     << " using " << nthr << " thread" << (nthr > 1 ? "s" : "")
 	     << " took " << timer.CPUTime() << " CPU seconds and "
 	     << timer.realTime() << " elapsed seconds";
     }
 
-    if (activeDir == 0) return 0;
+    if (activeDir == 0 || *activeDir == 0) return 0;
     writeMetaData(nEvents, columns, activeDir);
     if (backupDir != 0 && *backupDir != 0) {
 	Stat_T tmp;

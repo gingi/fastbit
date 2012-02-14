@@ -566,15 +566,8 @@ public:
     /// returned from getMeshShape.
     const std::vector<std::string> &getMeshDimensions() const {
 	return shapeName;}
-    /// Digest the mesh shape stored in the string.  The shape can be just
-    /// numbers, e.g., "(10, 12, 14)", or 'name=value' pairs, e.g.,
-    /// "(nz=10, ny=12, nx=14)".
-    void setMeshShape(const char *shape) {
-	digestMeshShape(shape);
-	writeMetaData(nEvents, columns, activeDir);
-    }
-    /// Write the metadata file to record the changes to the partition.
-    void updateMetaData() const {writeMetaData(nEvents, columns, activeDir);}
+    void setMeshShape(const char *shape);
+    void updateMetaData() const;
     /// Update the list of columns with information in this data partition
     void combineNames(ibis::table::namesTypes &metalist) const;
 

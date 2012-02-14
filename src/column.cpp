@@ -325,9 +325,11 @@ ibis::column::~column() {
 void ibis::column::write(FILE* file) const {
     fputs("\nBegin Column\n", file);
     fprintf(file, "name = \"%s\"\n", (const char*)m_name.c_str());
-    if (! m_desc.empty())
-	fprintf(file, "description =\"%s\"\n",
-		(const char*)m_desc.c_str());
+    if (! m_desc.empty()) {
+	if (m_desc.size() > MAX_LINE-60)
+	    const_cast<std::string&>(m_desc).erase(MAX_LINE-60);
+	fprintf(file, "description =\"%s\"\n", m_desc.c_str());
+    }
     fprintf(file, "data_type = \"%s\"\n", ibis::TYPESTRING[(int)m_type]);
     if (upper >= lower) {
 	switch (m_type) {
@@ -5141,14 +5143,15 @@ void ibis::column::unloadIndex() const {
 	if (0 == idxc) {
 	    delete idx;
 	    idx = 0;
-	    if (ibis::gVerbose > 7)
-		logMessage("unloadIndex", "successfully removed the index");
+	    LOGGER(ibis::gVerbose > 7)
+		<< "column[" << thePart->name() << "." << name()
+		<< "]::unloadIndex successfully removed the index";
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- column[" << thePart->name()
-		<< "." << name() << "]::unloadIndex failed because "
-		"idxcnt (" << idxc << ") is not zero";
+		<< "Warning -- column[" << thePart->name() << "."
+		<< name() << "]::unloadIndex failed because idxcnt ("
+		<< idxc << ") is not zero";
 	}
     }
 } // ibis::column::unloadIndex
