@@ -7,6 +7,10 @@
 	before calling writeMetaData
 	* src/capi.cpp: invoke updateMetaData when fastbit_build_index
 	came with an explicit indexing option
+	* src/qExpr.cpp: add function overlap to ibis::qContinuousRange
+	and ibis::qDiscreteRange
+	* src/column.cpp: check that the query ranges are not outside of
+	the column value ranges
 
 2012-02-13 Dominique Prunier <dominique dot prunier at watch4net dot com>
 	* src/capi.cpp:260 check null pointer before attempt to build

@@ -120,7 +120,7 @@ public:
 	virtual ~weight() {};
     };
     double reorder(const weight&); ///< Reorder the expressions tree.
-    // Duplicate this query expression.  Return the pointer to the new object.
+    /// Duplicate this query expression.  Return the pointer to the new object.
     virtual qExpr* dup() const {
 	qExpr* res = new qExpr(type);
 	if (left)
@@ -301,7 +301,7 @@ public:
     // Fold the boundaries to unsigned integers.
     void foldUnsignedBoundaries();
 
-    // duplicate *this
+    /// Duplicate *this.
     virtual qContinuousRange* dup() const {return new qContinuousRange(*this);}
     virtual bool inRange(double val) const;
     virtual void restrictRange(double left, double right);
@@ -309,7 +309,8 @@ public:
 
     virtual void print(std::ostream&) const;
     virtual void printFull(std::ostream& out) const;
-    /// An operator for comparing two query expressions.
+
+    bool overlap(double, double) const;
     inline bool operator<(const qContinuousRange& y) const;
 
 private:
@@ -356,8 +357,9 @@ public:
 	return (values.empty() ? -DBL_MAX : values.back());}
     virtual uint32_t nItems() const {return values.size();}
 
-    /// Convert to a sequence of qContinuousRange.
     ibis::qExpr* convert() const;
+
+    bool overlap(double, double) const;
 
     virtual void print(std::ostream&) const;
     virtual void printFull(std::ostream& out) const {print(out);}
@@ -559,7 +561,7 @@ public:
     qMultiString(const char *col, const char *sval);
     virtual ~qMultiString() {}; // name and values automatically destroyed
 
-    /// Duplicate the object with the compiler generated copy constructor.
+    /// Duplicate the object.  Using the compiler generated copy constructor.
     virtual qMultiString* dup() const {return new qMultiString(*this);}
     virtual void print(std::ostream& out) const;
     virtual void printFull(std::ostream& out) const {print(out);}
@@ -914,7 +916,7 @@ public:
     const ibis::math::term* getTerm3() const {return expr3;}
     void setTerm3(ibis::math::term* t) {delete expr3; expr3 = t;}
 
-    /// Duplicate this object and return a pointer to the new copy.
+    /// Duplicate this object.  Return a pointer to the new copy.
     virtual qExpr* dup() const {return new compRange(*this);}
     /// Evaluate the logical expression.
     inline bool inRange() const;
@@ -1008,7 +1010,8 @@ public:
     const char* getPrefix() const {return prefix.c_str();}
     const ibis::array_t<double>& getValues() const {return values;}
 
-    // Use the compiler generated copy constructor to perform duplication.
+    /// Duplicate this.  Use the compiler generated copy constructor to
+    /// perform duplication.
     virtual qExpr* dup() const {return new qAnyAny(*this);}
 
     virtual void print(std::ostream& out) const;
@@ -1124,9 +1127,11 @@ inline void ibis::qContinuousRange::foldUnsignedBoundaries() {
     }
 } //ibis::qContinuousRange::foldUnsignedBoundaries
 
-/// The operator< for ibis::qContinuousRange.
-inline bool ibis::qContinuousRange::operator<
-    (const ibis::qContinuousRange& y) const {
+/// An operator for comparing two query expressions.
+/// The comparison is based on the name first, then the left bound and then
+/// the right bound.
+inline bool 
+ibis::qContinuousRange::operator<(const ibis::qContinuousRange& y) const {
     int cmp = strcmp(colName(), y.colName());
     if (cmp < 0)
 	return true;

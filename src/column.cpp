@@ -5293,6 +5293,10 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	ierr = -4;
 	return ierr;
     }
+    if (cmp.overlap(lower, upper) == false) {
+	low.set(0, mask.size());
+	return 0;
+    }
 
     try {
 	ibis::bitvector high;
@@ -5457,6 +5461,10 @@ long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
 	ierr = -4;
 	return ierr;
     }
+    if (cmp.overlap(lower, upper) == false) {
+	low.set(0, mask.size());
+	return 0;
+    }
 
     try {
 	if (mask.size() == mask.cnt()) { // directly use index
@@ -5527,6 +5535,10 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 				  cmp.colName(), ibis::qExpr::OP_LE,
 				  cmp.getValues().back());
 	return evaluateRange(cr, mask, low);
+    }
+    if (cmp.overlap(lower, upper) == false) {
+	low.set(0, mask.size());
+	return 0;
     }
 
     try {
@@ -5716,6 +5728,11 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
     long ierr = 0;
     if (thePart == 0)
 	return -9;
+    if (cmp.overlap(lower, upper) == false) {
+	high.set(0, thePart->nRows());
+	low.set(0, thePart->nRows());
+	return 0;
+    }
 
     try {
 	indexLock lock(this, "estimateRange");
@@ -5778,6 +5795,9 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 /// hits.  If no index can be computed, it will return the number of rows
 /// as the upper bound.
 long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
+    if (cmp.overlap(lower, upper) == false)
+	return 0;
+
     long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
     try {
 	indexLock lock(this, "estimateRange");
@@ -5813,6 +5833,9 @@ long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp,
 } // ibis::column::estimateRange
 
 double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
+    if (cmp.overlap(lower, upper) == false)
+	return 0.0;
+
     double ret;
     indexLock lock(this, "estimateCost");
     if (idx != 0)
@@ -5824,6 +5847,9 @@ double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
 } // ibis::column::estimateCost
 
 double ibis::column::estimateCost(const ibis::qDiscreteRange& cmp) const {
+    if (cmp.overlap(lower, upper) == false)
+	return 0.0;
+
     double ret;
     indexLock lock(this, "estimateCost");
     if (idx != 0)
@@ -5874,6 +5900,9 @@ float ibis::column::getUndecidable(const ibis::qContinuousRange& cmp,
 
 // use the index to compute a upper bound on the number of hits
 long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp) const {
+    if (cmp.overlap(lower, upper) == false)
+	return 0;
+
     long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
     try {
 	indexLock lock(this, "estimateRange");

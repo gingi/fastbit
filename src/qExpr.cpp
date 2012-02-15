@@ -1653,6 +1653,165 @@ bool ibis::qContinuousRange::inRange(double val) const {
     return res0 && res1;
 } // ibis::qContinuousRange::inRange
 
+// Does the given range overlap with the query range?  Returns true for
+// yes, false for no.  The arguements lo and hi are both included in the
+// range specified.  This is consistent with how the the two arguments to
+// the SQL clause "v between a and b."
+bool ibis::qContinuousRange::overlap(double lo, double hi) const {
+    if (lo > hi) { // swap the incoming arguments
+	double tmp = lo;
+	lo = hi;
+	hi = tmp;
+    }
+
+    bool ret = false;
+    switch (left_op) {
+    case OP_LT:
+	if (lower < hi) {
+	    switch (right_op) {
+	    case OP_LT:
+		ret = (lo < upper);
+		break;
+	    case OP_LE:
+		ret = (lo <= upper);
+		break;
+	    case OP_GT:
+		ret = (hi > upper);
+		break;
+	    case OP_GE:
+		ret = (hi >= upper);
+		break;
+	    case OP_EQ:
+		ret = (lower < upper);
+		break;
+	    default:
+		ret = true;
+		break;
+	    }
+	}
+	break;
+    case OP_LE:
+	if (lower <= hi) {
+	    switch (right_op) {
+	    case OP_LT:
+		ret = (lo < upper);
+		break;
+	    case OP_LE:
+		ret = (lo <= upper);
+		break;
+	    case OP_GT:
+		ret = (hi > upper);
+		break;
+	    case OP_GE:
+		ret = (hi >= upper);
+		break;
+	    case OP_EQ:
+		ret = (lower <= upper);
+		break;
+	    default:
+		ret = true;
+		break;
+	    }
+	}
+	break;
+    case OP_GT:
+	if (lower > lo) {
+	    switch (right_op) {
+	    case OP_LT:
+		ret = (lo < upper);
+		break;
+	    case OP_LE:
+		ret = (lo <= upper);
+		break;
+	    case OP_GT:
+		ret = (hi > upper);
+		break;
+	    case OP_GE:
+		ret = (hi >= upper);
+		break;
+	    case OP_EQ:
+		ret = (lower > upper);
+		break;
+	    default:
+		ret = true;
+		break;
+	    }
+	}
+	break;
+    case OP_GE:
+	if (lower >= lo) {
+	    switch (right_op) {
+	    case OP_LT:
+		ret = (lo < upper);
+		break;
+	    case OP_LE:
+		ret = (lo <= upper);
+		break;
+	    case OP_GT:
+		ret = (hi > upper);
+		break;
+	    case OP_GE:
+		ret = (hi >= upper);
+		break;
+	    case OP_EQ:
+		ret = (lower >= upper);
+		break;
+	    default:
+		ret = true;
+		break;
+	    }
+	}
+	break;
+    case OP_EQ:
+	if (lower >= lo && lower <= hi) {
+	    switch (right_op) {
+	    case OP_LT:
+		ret = (lower < upper);
+		break;
+	    case OP_LE:
+		ret = (lower <= upper);
+		break;
+	    case OP_GT:
+		ret = (lower > upper);
+		break;
+	    case OP_GE:
+		ret = (lower >= upper);
+		break;
+	    case OP_EQ:
+		ret = (lower == upper);
+		break;
+	    default:
+		ret = true;
+		break;
+	    }
+	}
+	break;
+    default:
+	switch (right_op) {
+	case OP_LT:
+	    ret = (lo < upper);
+	    break;
+	case OP_LE:
+	    ret = (lo <= upper);
+	    break;
+	case OP_GT:
+	    ret = (hi > upper);
+	    break;
+	case OP_GE:
+	    ret = (hi >= upper);
+	    break;
+	case OP_EQ:
+	    ret = (lo <= upper && hi >= upper);
+	    break;
+	default:
+	    break;
+	}
+	break;
+    }
+
+    return ret;
+} // ibis::qContinuousRange::overlap
+
 /// The constructor of qString.  The string rs must have matching quote if
 /// it is quoted.  It may also contain meta character '\' that is used to
 /// escape the quote and other characters.  The meta character will also be
@@ -3132,6 +3291,7 @@ void ibis::qDiscreteRange::print(std::ostream& out) const {
     out << ')';
 } // ibis::qDiscreteRange::print
 
+/// Convert to a sequence of qContinuousRange.
 ibis::qExpr* ibis::qDiscreteRange::convert() const {
     if (name.empty()) return 0;
     if (values.empty()) { // an empty range
@@ -3171,6 +3331,24 @@ void ibis::qDiscreteRange::restrictRange(double left, double right) {
     }
     values.resize(sz);
 } // ibis::qDiscreteRange::restrictRange
+
+// Does the given range overlap with the query range?  Returns true for
+// yes, false for no.  The arguements lo and hi are both included in the
+// range specified.  This is consistent with how the the two arguments to
+// the SQL clause "v between a and b."
+bool ibis::qDiscreteRange::overlap(double lo, double hi) const {
+    if (lo > hi) { // swap the incoming arguments
+	double tmp = lo;
+	lo = hi;
+	hi = tmp;
+    }
+    else if (lo == hi) {
+	return inRange(lo);
+    }
+
+    if (values.empty()) return false;
+    return (lo <= values.back() && hi >= values.front());
+} // ibis::qDiscreteRange::overlap
 
 /// Constructor.  Take a single number.
 ibis::qIntHod::qIntHod(const char* col, int64_t v1)
