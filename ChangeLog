@@ -1,3 +1,10 @@
+2012-03-01 Dominique Prunier <dominique dot prunier at watch4net dot com>
+	* src/column.cpp:4213 covert the return value ierr from 0 to
+	vals.size() to match the interface documentation
+
+2012-02-17 John Wu <John dot Wu at ACM dot org>
+	* runconfig: change the install directory on datax
+
 2012-02-14 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp, src/column.cpp, src/category.cpp: truncate
 	description to avoid writing extremely long description line

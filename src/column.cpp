@@ -4210,6 +4210,8 @@ long ibis::column::selectValuesT(const char* dfn,
 	else
 	    ierr = getValuesArray(&vals);
 
+	if (ierr >= 0)
+	    ierr = vals.size();
 	return ierr;
     }
 
@@ -4251,7 +4253,7 @@ long ibis::column::selectValuesT(const char* dfn,
 	}
     }
 
-    if (ierr == 0) { // the file is in memory
+    if (ierr >= 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
 	// destructor of ibis::fileManager::incore
 	const uint32_t nr = (incore.size() <= mask.size() ?
@@ -4452,7 +4454,7 @@ long ibis::column::selectValuesT(const char *dfn,
 	}
     }
 
-    if (ierr == 0) { // the file is in memory
+    if (ierr >= 0) { // the file is in memory
 	// the content of raw is automatically deallocated through the
 	// destructor of incore
 	const uint32_t nr = (incore.size() <= mask.size() ?

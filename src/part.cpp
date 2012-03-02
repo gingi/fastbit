@@ -16584,7 +16584,7 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
 
     array_t<T> vals;
     long ierr = col->getValuesArray(&vals);
-    if (ierr != 0) {
+    if (ierr < 0) {
 	return -3;
     }
     ibis::bitvector mask;
@@ -17084,7 +17084,7 @@ long ibis::part::doCount<float>(const ibis::qRange &cmp) const {
 
     array_t<float> vals;
     long ierr = col->getValuesArray(&vals);
-    if (ierr != 0) {
+    if (ierr < 0) {
 	return -3;
     }
     ibis::bitvector mask;
@@ -17451,7 +17451,7 @@ long ibis::part::doCount<double>(const ibis::qRange &cmp) const {
 
     array_t<double> vals;
     long ierr = col->getValuesArray(&vals);
-    if (ierr != 0) {
+    if (ierr < 0) {
 	return -3;
     }
     ibis::bitvector mask;

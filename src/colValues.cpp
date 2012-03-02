@@ -129,7 +129,7 @@ ibis::colBytes::colBytes(const ibis::column* c)
     switch (c->type()) {
     case ibis::UBYTE:
     case ibis::BYTE: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -144,7 +144,7 @@ ibis::colUBytes::colUBytes(const ibis::column* c)
     switch (c->type()) {
     case ibis::UBYTE:
     case ibis::BYTE: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -160,7 +160,7 @@ ibis::colShorts::colShorts(const ibis::column* c)
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -173,7 +173,7 @@ ibis::colShorts::colShorts(const ibis::column* c)
     case ibis::BYTE: {
 	array_t<signed char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -185,7 +185,7 @@ ibis::colShorts::colShorts(const ibis::column* c)
 	break;}
     case ibis::USHORT:
     case ibis::SHORT: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -201,7 +201,7 @@ ibis::colUShorts::colUShorts(const ibis::column* c)
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -214,7 +214,7 @@ ibis::colUShorts::colUShorts(const ibis::column* c)
     case ibis::BYTE: {
 	array_t<signed char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -226,7 +226,7 @@ ibis::colUShorts::colUShorts(const ibis::column* c)
 	break;}
     case ibis::USHORT:
     case ibis::SHORT: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -242,7 +242,7 @@ ibis::colInts::colInts(const ibis::column* c)
     case ibis::UINT: {
 	array_t<uint32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -255,7 +255,7 @@ ibis::colInts::colInts(const ibis::column* c)
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -268,7 +268,7 @@ ibis::colInts::colInts(const ibis::column* c)
     case ibis::USHORT: {
 	array_t<uint16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -279,12 +279,12 @@ ibis::colInts::colInts(const ibis::column* c)
 	    (*array)[i] = arr[i];
 	break;}
     case ibis::INT: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     case ibis::BYTE: {
 	array_t<signed char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -297,7 +297,7 @@ ibis::colInts::colInts(const ibis::column* c)
     case ibis::SHORT: {
 	array_t<int16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -310,7 +310,7 @@ ibis::colInts::colInts(const ibis::column* c)
     case ibis::ULONG: {
 	array_t<uint64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -323,7 +323,7 @@ ibis::colInts::colInts(const ibis::column* c)
     case ibis::LONG: {
 	array_t<int64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -336,7 +336,7 @@ ibis::colInts::colInts(const ibis::column* c)
     case ibis::FLOAT: {
 	array_t<float> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -349,7 +349,7 @@ ibis::colInts::colInts(const ibis::column* c)
     case ibis::DOUBLE: {
 	array_t<double> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -378,7 +378,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
 	dic = static_cast<const ibis::category*>(c)->getDictionary();
     }
     case ibis::UINT: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	// check to see if the column actually carries a dictionary already
 	const ibis::bord::column* bc =
 	    dynamic_cast<const ibis::bord::column*>(c);
@@ -388,7 +388,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -401,7 +401,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::USHORT: {
 	array_t<uint16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -414,7 +414,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::INT: {
 	array_t<int32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -427,7 +427,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::BYTE: {
 	array_t<signed char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -440,7 +440,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::SHORT: {
 	array_t<int16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -453,7 +453,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::ULONG: {
 	array_t<uint64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -466,7 +466,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::LONG: {
 	array_t<int64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -479,7 +479,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::FLOAT: {
 	array_t<float> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -492,7 +492,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
     case ibis::DOUBLE: {
 	array_t<double> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -516,7 +516,7 @@ ibis::colLongs::colLongs(const ibis::column* c)
     case ibis::UINT: {
 	array_t<uint32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -529,7 +529,7 @@ ibis::colLongs::colLongs(const ibis::column* c)
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -542,7 +542,7 @@ ibis::colLongs::colLongs(const ibis::column* c)
     case ibis::USHORT: {
 	array_t<uint16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -555,7 +555,7 @@ ibis::colLongs::colLongs(const ibis::column* c)
     case ibis::INT: {
 	array_t<int32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -568,7 +568,7 @@ ibis::colLongs::colLongs(const ibis::column* c)
     case ibis::BYTE: {
 	array_t<signed char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -581,7 +581,7 @@ ibis::colLongs::colLongs(const ibis::column* c)
     case ibis::SHORT: {
 	array_t<int16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -594,7 +594,7 @@ ibis::colLongs::colLongs(const ibis::column* c)
     case ibis::ULONG: {
 	array_t<uint64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -605,12 +605,12 @@ ibis::colLongs::colLongs(const ibis::column* c)
 	    (*array)[i] = arr[i];
 	break;}
     case ibis::LONG: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     case ibis::FLOAT: {
 	array_t<float> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -623,7 +623,7 @@ ibis::colLongs::colLongs(const ibis::column* c)
     case ibis::DOUBLE: {
 	array_t<double> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -647,7 +647,7 @@ ibis::colULongs::colULongs(const ibis::column* c)
     case ibis::UINT: {
 	array_t<uint32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -660,7 +660,7 @@ ibis::colULongs::colULongs(const ibis::column* c)
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -673,7 +673,7 @@ ibis::colULongs::colULongs(const ibis::column* c)
     case ibis::USHORT: {
 	array_t<uint16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -686,7 +686,7 @@ ibis::colULongs::colULongs(const ibis::column* c)
     case ibis::INT: {
 	array_t<int32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -699,7 +699,7 @@ ibis::colULongs::colULongs(const ibis::column* c)
     case ibis::BYTE: {
 	array_t<signed char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -712,7 +712,7 @@ ibis::colULongs::colULongs(const ibis::column* c)
     case ibis::SHORT: {
 	array_t<int16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -723,12 +723,12 @@ ibis::colULongs::colULongs(const ibis::column* c)
 	    (*array)[i] = arr[i];
 	break;}
     case ibis::ULONG: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     case ibis::LONG: {
 	array_t<int64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -741,7 +741,7 @@ ibis::colULongs::colULongs(const ibis::column* c)
     case ibis::FLOAT: {
 	array_t<float> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -754,7 +754,7 @@ ibis::colULongs::colULongs(const ibis::column* c)
     case ibis::DOUBLE: {
 	array_t<double> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -778,7 +778,7 @@ ibis::colFloats::colFloats(const ibis::column* c)
     case ibis::UINT: {
 	array_t<uint32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -791,7 +791,7 @@ ibis::colFloats::colFloats(const ibis::column* c)
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -804,7 +804,7 @@ ibis::colFloats::colFloats(const ibis::column* c)
     case ibis::USHORT: {
 	array_t<uint16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -817,7 +817,7 @@ ibis::colFloats::colFloats(const ibis::column* c)
     case ibis::INT: {
 	array_t<int32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -830,7 +830,7 @@ ibis::colFloats::colFloats(const ibis::column* c)
     case ibis::BYTE: {
 	array_t<signed char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -843,7 +843,7 @@ ibis::colFloats::colFloats(const ibis::column* c)
     case ibis::SHORT: {
 	array_t<int16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -856,7 +856,7 @@ ibis::colFloats::colFloats(const ibis::column* c)
     case ibis::ULONG: {
 	array_t<uint64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -869,7 +869,7 @@ ibis::colFloats::colFloats(const ibis::column* c)
     case ibis::LONG: {
 	array_t<int64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -880,12 +880,12 @@ ibis::colFloats::colFloats(const ibis::column* c)
 	    (*array)[i] = static_cast<float>(arr[i]);
 	break;}
     case ibis::FLOAT: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     case ibis::DOUBLE: {
 	array_t<double> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -909,7 +909,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::UINT: {
 	array_t<uint32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -922,7 +922,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::UBYTE: {
 	array_t<unsigned char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -935,7 +935,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::USHORT: {
 	array_t<uint16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -948,7 +948,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::INT: {
 	array_t<int32_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -961,7 +961,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::BYTE: {
 	array_t<signed char> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -974,7 +974,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::SHORT: {
 	array_t<int16_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -987,7 +987,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::ULONG: {
 	array_t<uint64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -1000,7 +1000,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::LONG: {
 	array_t<int64_t> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -1013,7 +1013,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
     case ibis::FLOAT: {
 	array_t<float> arr;
 	try {
-	    c->getValuesArray(&arr);
+	    (void) c->getValuesArray(&arr);
 	    array->resize(arr.size());
 	}
 	catch (...) {
@@ -1024,7 +1024,7 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
 	    (*array)[i] = arr[i];
 	break;}
     case ibis::DOUBLE: {
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
 	break;}
     default:
 	LOGGER(ibis::gVerbose >= 0)
@@ -1044,7 +1044,7 @@ ibis::colStrings::colStrings(const ibis::column* c)
     }
     if (c->type() == ibis::TEXT) {
 	array =new std::vector<std::string>;
-	c->getValuesArray(array);
+	(void) c->getValuesArray(array);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
