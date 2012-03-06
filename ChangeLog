@@ -1,3 +1,8 @@
+2012-03-05 John Wu <John dot Wu at ACM dot org>
+	* src/MinGW.mak: restore MinGW.mak to the version from SVN 444,
+	the last version from Dominique work with cross compilers on
+	ubuntu instead of on MinGW/MS Win
+
 2012-03-01 Dominique Prunier <dominique dot prunier at watch4net dot com>
 	* src/column.cpp:4213 covert the return value ierr from 0 to
 	vals.size() to match the interface documentation

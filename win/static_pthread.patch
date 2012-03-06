@@ -1,0 +1,68 @@
+--- pthreads/source/build_w64.sh.org	2012-03-05 12:27:56.063799694 -0500
++++ pthreads/source/build_w64.sh	2012-03-05 12:30:26.533904302 -0500
+@@ -1,5 +1,7 @@
+ #!/bin/sh
+ 
++cd "`dirname "$0"`"
++
+ THISDIR=`pwd`
+ TARGET="x86_64-w64-mingw32"
+ 
+@@ -19,7 +21,7 @@
+     -e 's/pthreadGCE\$(DLL_VER)/&-w64/g' \
+     < GNUmakefile.bak > GNUmakefile
+ 
+-make CROSS="$TARGET-" clean GC || exit 1
++make CROSS="$TARGET-" clean GC-static || exit 1
+ 
+ mkdir -p bin
+ mkdir -p $TARGET/include
+@@ -27,14 +29,11 @@
+ mkdir -p share/doc/pthreads-win32
+ 
+ cp -p pthread.h sched.h semaphore.h pthreads_win32_config.h ./$TARGET/include || exit 1
+-cp -p pthreadGC2-w64.dll ./bin || exit 1
+ cp -p libpthreadGC2-w64.a ./$TARGET/lib/libpthread.a || exit 1
+ for i in ANNOUNCE BUGS CONTRIBUTORS COPYING COPYING.LIB FAQ MAINTAINERS NEWS PROGRESS README README.CV README.NONPORTABLE README.WinCE TODO ;
+   do cp -p ${i} ./share/doc/pthreads-win32 ;
+ done
+ 
+-$TARGET-strip ./bin/pthreadGC2-w64.dll
+-
+ zip -9 -r -q pthreads-w64.zip bin $TARGET share || exit 1
+ 
+ cd ..
+--- pthreads/source/build_w32.sh.org	2012-03-05 12:27:50.694831642 -0500
++++ pthreads/source/build_w32.sh	2012-03-05 12:30:51.628754971 -0500
+@@ -1,5 +1,7 @@
+ #!/bin/sh
+ 
++cd "`dirname "$0"`"
++
+ THISDIR=`pwd`
+ TARGET="i686-w64-mingw32"
+ 
+@@ -19,7 +21,7 @@
+     -e 's/pthreadGCE\$(DLL_VER)/&-w32/g' \
+     < GNUmakefile.bak > GNUmakefile
+ 
+-make CROSS="$TARGET-" clean GC || exit 1
++make CROSS="$TARGET-" clean GC-static || exit 1
+ 
+ mkdir -p bin
+ mkdir -p $TARGET/include
+@@ -27,14 +29,11 @@
+ mkdir -p share/doc/pthreads-win32
+ 
+ cp -p pthread.h sched.h semaphore.h pthreads_win32_config.h ./$TARGET/include || exit 1
+-cp -p pthreadGC2-w32.dll ./bin || exit 1
+ cp -p libpthreadGC2-w32.a ./$TARGET/lib/libpthread.a || exit 1
+ for i in ANNOUNCE BUGS CONTRIBUTORS COPYING COPYING.LIB FAQ MAINTAINERS NEWS PROGRESS README README.CV README.NONPORTABLE README.WinCE TODO ;
+   do cp -p ${i} ./share/doc/pthreads-win32 ;
+ done
+ 
+-$TARGET-strip ./bin/pthreadGC2-w32.dll
+-
+ zip -9 -r -q pthreads-w32.zip bin $TARGET share || exit 1
+ 
+ cd ..

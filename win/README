@@ -127,4 +127,6 @@ This site also have the necessary 64-bit pthread implementation needed
 for compiling FastBit
 (Information from Dominique Prunier <dominique dot prunier at watch4net dot com>)
 
+Mar 5, 2012: renamed Dominique's MinGW.mak to xMinGW.mak
+xMinGW.mak is meant for cross compiling on ubuntu to produce MS Windows binary
 

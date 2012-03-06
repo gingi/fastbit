@@ -1,16 +1,30 @@
 # $Id$
-# Makefile for mingw32-make on windows using MinGW g++ port
+# Makefile to be used by GNU C++ on ubuntu for producing MS Windows binaries
+# needs MinGW 
 #
-CXX=g++.exe
+# Dominique Prunier produced this based on MinGW.mak
+#
+CHOST=x86_64-w64-mingw32
+CXX=$(CHOST)-g++
+AR=$(CHOST)-ar
+DLLTOOL=$(CHOST)-dlltool
+RANLIB=$(CHOST)-ranlib
 OPT=-g -O0
 #OPT=-O5
-INC=-I "C:/MinGW/include" -I "C:/MinGW/msys/1.0/include" -I . -I ../src -I "pthreads-w32-2-8-0-release"
+INC=-I . -I ../src -I pthreads/$(CHOST)/include
 DEF=-DFASTBIT_MAX_WAIT_TIME=3 -DWITHOUT_FASTBIT_CONFIG_H
-LIB=-Lpthreads-w32-2-8-0-release -lpthreadGC2 -lm
+LIB=-Lpthreads/$(CHOST)/lib -lpthread -lm -lws2_32
+
+ifndef TESTDIR
 TESTDIR=tmp
+endif
+
+ifndef MAKE
+MAKE=make
+endif
 
 CCFLAGS=$(DEF) $(INC) $(OPT)
-# as of Dec 2011, make from MSYS needs the unix sh
+# as of Dec 2011, make from MSYS wants to use the unix sh
 # SHELL=cmd.exe ## comment out to use the default unix sh
 RM=rm -r -f
 #RM = del /s /f
@@ -79,7 +93,8 @@ OBJ =  parth3d.o parth3da.o parth3db.o parth3dw.o \
  resource.o \
  rids.o \
  utilidor.o \
- util.o
+ util.o \
+ static_pthread_init.o
 
 #
 all: ibis ardea rara thula tcapi
@@ -88,7 +103,8 @@ ARDEAEXE=./ardea.exe
 
 lib: libfastbit.a
 libfastbit.a: $(OBJ)
-	ar ruv libfastbit.a $(OBJ)
+	$(AR) ruv libfastbit.a $(OBJ)
+	$(RANLIB) libfastbit.a
 
 ibis: ibis.exe
 ibis.exe: ibis.o libfastbit.a
@@ -109,10 +125,10 @@ ardea.exe: ardea.o libfastbit.a
 dll: fastbit.dll
 fastbit.a: fastbit.dll
 fastbit.dll: $(FRC)
-	make -f MinGW.mak DEF="$(DEF) -DCXX_USE_DLL -DDLL_EXPORT" $(OBJ)
+	$(MAKE) -f MinGW.mak DEF="$(DEF) -DCXX_USE_DLL -DDLL_EXPORT" $(OBJ)
 	$(CXX) -shared -o $@ $(OBJ) $(LIB)
-	dlltool -z fastbit.def $(OBJ)
-	dlltool -k --dllname fastbit.dll --output-lib fastbit.a --def fastbit.def
+	$(DLLTOOL) -z fastbit.def $(OBJ)
+	$(DLLTOOL) -k --dllname fastbit.dll --output-lib fastbit.a --def fastbit.def
 # -Wl,-soname,$@
 trydll: trydll.cpp fastbit.dll
 	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ trydll.cpp fastbit.a $(LIB)
@@ -149,18 +165,27 @@ clean:
 clean-all: clean
 	$(RM) Debug Release dll tmp pthreads-w32-2-8-0-release pthreads-w32-2-8-0-release.tar.gz
 
-pthreads-w32: pthreads-w32-2-8-0-release/libpthreadGC2.a
-pthreads-w32-2-8-0-release.tar.gz:
-	wget ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-8-0-release.tar.gz
-pthreads-w32-2-8-0-release: pthreads-w32-2-8-0-release.tar.gz
-	tar xzf pthreads-w32-2-8-0-release.tar.gz
-pthreads-w32-2-8-0-release/libpthreadGC2.a: pthreads-w32-2-8-0-release
-	cd pthreads-w32-2-8-0-release && make clean PTW32_FLAGS=-DPTW32_BUILD GC
+pthreads-20100604.zip:
+	wget http://superb-sea2.dl.sourceforge.net/project/mingw-w64/External%20binary%20packages%20%28Win64%20hosted%29/pthreads/pthreads-20100604.zip
+pthreads: pthreads-20100604.zip
+	unzip pthreads-20100604.zip
+	mv pthreads-20100604 pthreads
+	chmod +x pthreads/source/*sh
+pthreads/$(CHOST): pthreads
+	patch -p0 < static_pthread.patch
+ifeq ($(CHOST),x86_64-w64-mingw32)
+	pthreads/source/build_w64.sh
+	unzip pthreads/source/pthreads/pthreads-w64.zip -d pthreads "$(CHOST)/*"
+else
+	pthreads/source/build_w32.sh
+	unzip pthreads/source/pthreads/pthreads-w32.zip -d pthreads "$(CHOST)/*"
+endif
+pthreads-static: pthreads/$(CHOST)
 
 force:
 
 #suffixes
-.SUFFIXES: .o .cpp .h
+.SUFFIXES: .o .cpp .c .h
 # #
 # # rules to generate .h and .cpp files from predicate.y and predicate.l
 # predicate: predicate.tab.h predicate.tab.cpp predicate.yy.cpp
@@ -175,6 +200,8 @@ force:
 # predicate.h: predicate.tab.h predicate.yy.cpp
 # suffixes based rules
 .cpp.o:
+	$(CXX) $(CCFLAGS) -c $<
+.c.o:
 	$(CXX) $(CCFLAGS) -c $<
 ############################################################
 # dependencies generated with g++ -MM
