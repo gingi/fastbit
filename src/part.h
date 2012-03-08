@@ -1695,7 +1695,8 @@ inline ibis::part::info* ibis::part::getInfo() const {
 
 /// Returns the pointer to the ith column.  If an external order has been
 /// established, that order is used, otherwise, the alphabetical order is
-/// used.
+/// used.  Index starts with 0.  An out of range index will result a nil
+/// pointer.
 inline ibis::column* ibis::part::getColumn(uint32_t ind) const {
     if (ind < columns.size()) {
 	if (colorder.size() == columns.size()) {

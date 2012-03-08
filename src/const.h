@@ -274,6 +274,7 @@
 #else
 #  define FASTBIT_DIRSEP '/'
 #endif
+
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
 #  if defined(_USRDLL) || defined(CXX_USE_DLL)
 #    if defined(DLL_EXPORT)

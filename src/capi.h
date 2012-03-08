@@ -54,8 +54,9 @@
 #    define uint64_t unsigned __int64
 #  endif
 #else
-#error Donot know how to find the exact width data types!
+#error Do NOT know how to find the exact width data types!
 #endif
+
 #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
 #  if defined(_USRDLL) || defined(CXX_USE_DLL)
 #    if defined(DLL_EXPORT)
@@ -69,6 +70,7 @@
 #else
 #  define FASTBIT_DLLSPEC
 #endif
+
 #include <stdio.h>	// FILE*
 
 /// @defgroup FastBitCAPI FastBit C API.

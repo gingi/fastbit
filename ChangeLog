@@ -1,3 +1,9 @@
+2012-03-07 John Wu <John dot Wu at ACM dot org>
+	* src/jnatural.cpp, src/jrange.cpp: replace categorical values
+	with integer representation
+	* examples/ibis.cpp: rearrange the output of timing information to
+	avoid a problem with test case 2 of check-ibis
+
 2012-03-05 John Wu <John dot Wu at ACM dot org>
 	* src/MinGW.mak: restore MinGW.mak to the version from SVN 444,
 	the last version from Dominique work with cross compilers on
@@ -56,8 +62,8 @@
 	sure the names used match the SQL convention
 
 2012-02-03 John Wu <John dot Wu at ACM dot org>
-	* examples/ibis.cpp: add argument three to doJoin to ensure can
-	use a different list of tables than ibis::datasets
+	* examples/ibis.cpp: add argument three to doJoin to use a
+	different list of tables than ibis::datasets
 	* src/util.cpp: change util::getLogFile to use setLogFile (to make
 	sure the log file is initialized exacty the same way no matter how
 	it is generated)

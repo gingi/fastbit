@@ -418,6 +418,7 @@ public:
     /// associated with the column originally stored as ibis::category, but
     /// has been converted to be an integer column of type ibis::UINT.
     const ibis::dictionary* getDictionary() const {return dic;}
+    /// Assign the dictionary to use.
     void setDictionary(const ibis::dictionary* d) {dic = d;}
 
 protected:

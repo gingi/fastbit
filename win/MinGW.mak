@@ -1,6 +1,8 @@
 # $Id$
 # Makefile for mingw32-make on windows using MinGW g++ port
 #
+# If you are attempting to do cross compiling, please use xMinGW.mak!
+#
 CXX=g++.exe
 OPT=-g -O0
 #OPT=-O5
@@ -92,11 +94,11 @@ libfastbit.a: $(OBJ)
 
 ibis: ibis.exe
 ibis.exe: ibis.o libfastbit.a
-	$(CXX) $(OPT) -o $@ ibis.o libfastbit.a $(LIB)
+	$(CXX) $(OPT) -o ibis ibis.o libfastbit.a $(LIB)
 
 thula: thula.exe
 thula.exe: thula.o libfastbit.a
-	$(CXX) $(OPT) -o $@ thula.o libfastbit.a $(LIB)
+	$(CXX) $(OPT) -o thula thula.o libfastbit.a $(LIB)
 
 rara: rara.exe
 rara.exe: rara.o libfastbit.a
@@ -115,10 +117,10 @@ fastbit.dll: $(FRC)
 	dlltool -k --dllname fastbit.dll --output-lib fastbit.a --def fastbit.def
 # -Wl,-soname,$@
 trydll: trydll.cpp fastbit.dll
-	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ trydll.cpp fastbit.a $(LIB)
+	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o trydll trydll.cpp fastbit.a $(LIB)
 
 tcapi: ../examples/tcapi.c ../src/capi.h fastbit.dll
-	$(CXX) $(INC) $(OPT) -DCXX_USE_DLL -o $@ ../examples/tcapi.c libfastbit.a $(LIB)
+	$(CXX) $(INC) $(OPT) -o tcapi ../examples/tcapi.c libfastbit.a $(LIB)
 
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist
 	@$(RM) $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2

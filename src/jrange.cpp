@@ -4,6 +4,7 @@
 #include "jrange.h"
 #include "tab.h"	// ibis::tabula
 #include "bord.h"	// ibis::bord, ibis::table::bufferList
+#include "category.h"	// ibis::category
 #include "countQuery.h"	// ibis::countQuery
 #include "utilidor.h"	// ibis::util::sortMerge
 #include "fromClause.h"
@@ -581,6 +582,7 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
     std::map<const char*, uint32_t, ibis::lessi> namesToPos;
     std::vector<uint32_t> ipToPos(colnames.size());
     std::vector<const ibis::column*> ircol, iscol;
+    std::vector<const ibis::dictionary*> cats(colnames.size(), 0);
     // identify the names from the two data partitions
     for (uint32_t j = 0; j < ncols; ++ j) {
 	ipToPos[j] = ncols+1;
@@ -616,6 +618,18 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 		namesToPos[colnames[j]] = j;
 		ipToPos[j] = ircol.size();
 		ircol.push_back(col);
+		if (col->type() == ibis::CATEGORY) {
+		    const ibis::category *cat =
+			static_cast<const ibis::category*>(col);
+		    cats[j] = cat->getDictionary();
+		}
+		else if (col->type() == ibis::UINT) {
+		    const ibis::bord::column *bc =
+			dynamic_cast<const ibis::bord::column*>(col);
+		    if (bc != 0) {
+			cats[j] = bc->getDictionary();
+		    }
+		}
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
@@ -631,6 +645,18 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 		namesToPos[colnames[j]] = j;
 		ipToPos[j] = ncols - iscol.size();
 		iscol.push_back(col);
+		if (col->type() == ibis::CATEGORY) {
+		    const ibis::category *cat =
+			static_cast<const ibis::category*>(col);
+		    cats[j] = cat->getDictionary();
+		}
+		else if (col->type() == ibis::UINT) {
+		    const ibis::bord::column *bc =
+			dynamic_cast<const ibis::bord::column*>(col);
+		    if (bc != 0) {
+			cats[j] = bc->getDictionary();
+		    }
+		}
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
@@ -646,6 +672,18 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 	    if (col != 0) {
 		ipToPos[j] = ircol.size();
 		ircol.push_back(col);
+		if (col->type() == ibis::CATEGORY) {
+		    const ibis::category *cat =
+			static_cast<const ibis::category*>(col);
+		    cats[j] = cat->getDictionary();
+		}
+		else if (col->type() == ibis::UINT) {
+		    const ibis::bord::column *bc =
+			dynamic_cast<const ibis::bord::column*>(col);
+		    if (bc != 0) {
+			cats[j] = bc->getDictionary();
+		    }
+		}
 		LOGGER(ibis::gVerbose > 3)
 		    << evt << " encountered a column name ("
 		    << colnames[j] << ") that does not start with a data "
@@ -657,6 +695,18 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 		if (col != 0) {
 		    ipToPos[j] = ncols - iscol.size();
 		    iscol.push_back(col);
+		    if (col->type() == ibis::CATEGORY) {
+			const ibis::category *cat =
+			    static_cast<const ibis::category*>(col);
+			cats[j] = cat->getDictionary();
+		    }
+		    else if (col->type() == ibis::UINT) {
+			const ibis::bord::column *bc =
+			    dynamic_cast<const ibis::bord::column*>(col);
+			if (bc != 0) {
+			    cats[j] = bc->getDictionary();
+			}
+		    }
 		    LOGGER(ibis::gVerbose > 1)
 			<< evt << " encountered a column name (" << colnames[j]
 			<< ") that does not start with a data partition name, "
@@ -1008,6 +1058,15 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " can not handle join column of type "
 	    << ibis::TYPESTRING[(int)colr_.type()];
+    }
+
+    for (unsigned j = 0; j < cats.size(); ++ j) {
+	if (cats[j] != 0) {
+	    ibis::bord::column *bc = dynamic_cast<ibis::bord::column*>
+		(static_cast<ibis::bord*>(res)->getColumn(j));
+	    if (bc != 0)
+		bc->setDictionary(cats[j]);
+	}
     }
     return res;
 } // ibis::jRange::select

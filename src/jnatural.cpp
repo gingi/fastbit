@@ -608,7 +608,7 @@ ibis::jNatural::fillResult(size_t nrows,
 } // ibis::jNatural::fillResult
 
 /// Form the joined table for string valued join columns.  The caller
-/// provides all relevant values, this function only need to join them to
+/// provides all relevant values, this function only needs to join them to
 /// produce the output data table.
 ibis::table*
 ibis::jNatural::fillResult(size_t nrows,
@@ -770,6 +770,7 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
     std::map<const char*, uint32_t, ibis::lessi> namesToPos;
     std::vector<uint32_t> ipToPos(colnames.size());
     std::vector<const ibis::column*> ircol, iscol;
+    std::vector<const ibis::dictionary*> cats(colnames.size(), 0);
     // identify the names from the two data partitions
     for (uint32_t j = 0; j < ncols; ++ j) {
 	ipToPos[j] = ncols+1;
@@ -806,6 +807,18 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 		namesToPos[colnames[j]] = j;
 		ipToPos[j] = ircol.size();
 		ircol.push_back(col);
+		if (col->type() == ibis::CATEGORY) {
+		    const ibis::category *cat =
+			static_cast<const ibis::category*>(col);
+		    cats[j] = cat->getDictionary();
+		}
+		else if (col->type() == ibis::UINT) {
+		    const ibis::bord::column *bc =
+			dynamic_cast<const ibis::bord::column*>(col);
+		    if (bc != 0) {
+			cats[j] = bc->getDictionary();
+		    }
+		}
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
@@ -822,6 +835,18 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 		namesToPos[colnames[j]] = j;
 		ipToPos[j] = ncols - iscol.size();
 		iscol.push_back(col);
+		if (col->type() == ibis::CATEGORY) {
+		    const ibis::category *cat =
+			static_cast<const ibis::category*>(col);
+		    cats[j] = cat->getDictionary();
+		}
+		else if (col->type() == ibis::UINT) {
+		    const ibis::bord::column *bc =
+			dynamic_cast<const ibis::bord::column*>(col);
+		    if (bc != 0) {
+			cats[j] = bc->getDictionary();
+		    }
+		}
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
@@ -838,6 +863,18 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	    if (col != 0) {
 		ipToPos[j] = ircol.size();
 		ircol.push_back(col);
+		if (col->type() == ibis::CATEGORY) {
+		    const ibis::category *cat =
+			static_cast<const ibis::category*>(col);
+		    cats[j] = cat->getDictionary();
+		}
+		else if (col->type() == ibis::UINT) {
+		    const ibis::bord::column *bc =
+			dynamic_cast<const ibis::bord::column*>(col);
+		    if (bc != 0) {
+			cats[j] = bc->getDictionary();
+		    }
+		}
 		LOGGER(ibis::gVerbose > 3)
 		    << evt << " encountered a column name ("
 		    << colnames[j] << ") that does not start with a data "
@@ -849,6 +886,18 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 		if (col != 0) {
 		    ipToPos[j] = ncols - iscol.size();
 		    iscol.push_back(col);
+		    if (col->type() == ibis::CATEGORY) {
+			const ibis::category *cat =
+			    static_cast<const ibis::category*>(col);
+			cats[j] = cat->getDictionary();
+		    }
+		    else if (col->type() == ibis::UINT) {
+			const ibis::bord::column *bc =
+			    dynamic_cast<const ibis::bord::column*>(col);
+			if (bc != 0) {
+			    cats[j] = bc->getDictionary();
+			}
+		    }
 		    LOGGER(ibis::gVerbose > 1)
 			<< evt << " encountered a column name ("
 			<< colnames[j] << ") that does not start with a "
@@ -972,7 +1021,6 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	    else
 		sane = false;
 	    break;
-	case ibis::CATEGORY:
 	case ibis::TEXT:
 	    rbuff[j] = ircol[j]->selectStrings(maskR_);
 	    if (rbuff[j] != 0)
@@ -983,11 +1031,6 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 		sane = false;
 	    break;
 	case ibis::UINT: {
-	    // const ibis::bord::column * bc =
-	    // 	dynamic_cast<const ibis::bord::column*>(ircol[j]);
-	    // if (bc != 0)
-	    // 	rdct[j] = bc->getDictionary();
-
 	    rbuff[j] = ircol[j]->selectUInts(maskR_);
 	    if (rbuff[j] != 0)
 		ibis::util::reorder
@@ -996,21 +1039,16 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	    else
 		sane = false;
 	    break;}
-	// case ibis::CATEGORY: {
-	//     rtypes[j] = ibis::UINT;
-	//     const ibis::category *cat =
-	// 	dynamic_cast<const ibis::category*>(ircol[j]);
-	//     if (cat != 0)
-	// 	rdct[j] = cat->getDictionary();
-
-	//     rbuff[j] = ircol[j]->selectUInts(maskR_);
-	//     if (rbuff[j] != 0)
-	// 	ibis::util::reorder
-	// 	    (*static_cast<array_t<uint32_t>*>(rbuff[j]),
-	// 	     *orderR_);
-	//     else
-	// 	sane = false;
-	//     break;}
+	case ibis::CATEGORY: {
+	    rtypes[j] = ibis::UINT;
+	    rbuff[j] = ircol[j]->selectUInts(maskR_);
+	    if (rbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<uint32_t>*>(rbuff[j]),
+		     *orderR_);
+	    else
+		sane = false;
+	    break;}
 	default:
 	    sane = false;
 	    rbuff[j] = 0;
@@ -1110,7 +1148,6 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	    else
 		sane = false;
 	    break;
-	case ibis::CATEGORY:
 	case ibis::TEXT:
 	    sbuff[j] = iscol[j]->selectStrings(maskS_);
 	    if (sbuff[j] != 0)
@@ -1121,11 +1158,6 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 		sane = false;
 	    break;
 	case ibis::UINT:{
-	    // const ibis::bord::column* bc =
-	    // 	dynamic_cast<const ibis::bord::column*>(iscol[j]);
-	    // if (bc != 0)
-	    // 	sdct[j] = bc->getDictionary();
-
 	    sbuff[j] = iscol[j]->selectUInts(maskS_);
 	    if (sbuff[j] != 0)
 		ibis::util::reorder
@@ -1134,21 +1166,16 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	    else
 		sane = false;
 	    break;}
-	// case ibis::CATEGORY: {
-	//     const ibis::category* cat =
-	// 	dynamic_cast<const ibis::category*>(iscol[j]);
-	//     if (cat != 0)
-	// 	sdct[j] = cat->getDictionary();
-
-	//     stypes[j] = ibis::UINT;
-	//     sbuff[j] = iscol[j]->selectUInts(maskS_);
-	//     if (sbuff[j] != 0)
-	// 	ibis::util::reorder
-	// 	    (*static_cast<array_t<uint32_t>*>(sbuff[j]),
-	// 	     *orderS_);
-	//     else
-	// 	sane = false;
-	//     break;}
+	case ibis::CATEGORY: {
+	    stypes[j] = ibis::UINT;
+	    sbuff[j] = iscol[j]->selectUInts(maskS_);
+	    if (sbuff[j] != 0)
+		ibis::util::reorder
+		    (*static_cast<array_t<uint32_t>*>(sbuff[j]),
+		     *orderS_);
+	    else
+		sane = false;
+	    break;}
 	default:
 	    sane = false;
 	    sbuff[j] = 0;
@@ -1247,6 +1274,15 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " cannot handle join column of type "
 	    << ibis::TYPESTRING[(int)colR_.type()];
+    }
+
+    for (unsigned j = 0; j < cats.size(); ++ j) {
+	if (cats[j] != 0) {
+	    ibis::bord::column *bc = dynamic_cast<ibis::bord::column*>
+		(static_cast<ibis::bord*>(res)->getColumn(j));
+	    if (bc != 0)
+		bc->setDictionary(cats[j]);
+	}
     }
     return res;
 } // ibis::jNatural::select

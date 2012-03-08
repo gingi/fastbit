@@ -2886,7 +2886,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    lg() << num2;
 	}
 	if (estimate_opt > 0 || num2 == 0) {
-	    if (ibis::gVerbose >= 0) {
+	    if (ibis::gVerbose > 0) {
 		timer.stop();
 		ibis::util::logger lg;
 		lg() << "tableSelect:: estimate(" << wstr << ") took "
@@ -3138,13 +3138,16 @@ static void doQuaere(const ibis::partList& pl,
     }
 
     timer.stop();
-    LOGGER(ibis::gVerbose >= 0)
-	<< "doQuaere -- \"" << sqlstring << "\" produced a table with "
-	<< res->nRows() << " row" << (res->nRows() > 1 ? "s" : "")
-	<< " and " << res->nColumns() << " column"
-	<< (res->nColumns() > 1 ? "s" : "") << ", took "
-	<< timer.CPUTime() << " CPU seconds, "
-	<< timer.realTime() << " elapsed seconds";
+    if (ibis::gVerbose >= 0) {
+	ibis::util::logger lg;
+	lg() << "doQuaere -- \"" << sqlstring << "\" produced a table with "
+	     << res->nRows() << " row" << (res->nRows() > 1 ? "s" : "")
+	     << " and " << res->nColumns() << " column"
+	     << (res->nColumns() > 1 ? "s" : "");
+	if (ibis::gVerbose > 0)
+	    lg () << ", took " << timer.CPUTime() << " CPU seconds, "
+		  << timer.realTime() << " elapsed seconds";
+    }
 
     int64_t ierr;
     if (outputfile != 0 && *outputfile != 0) {
@@ -3453,9 +3456,10 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    ibis::util::logger lg;
 	    lg() << "doQuery:: sequentialScan("
 		 << aQuery.getWhereClause() << ") produced "
-		 << num2 << " hit" << (num2>1 ? "s" : "") << ", took "
-		 << timer.CPUTime() << " CPU seconds, "
-		 << timer.realTime() << " elapsed seconds";
+		 << num2 << " hit" << (num2>1 ? "s" : "");
+	    if (ibis::gVerbose > 0)
+		lg () << ", took " << timer.CPUTime() << " CPU seconds, "
+		      << timer.realTime() << " elapsed seconds";
 	}
 	return;
     }
@@ -3566,9 +3570,10 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "doQuery:: evaluate(" << sqlstring
-	     << ") produced " << num1 << (num1 > 1 ? " hits" : " hit")
-	     << ", took " << timer.CPUTime() << " CPU seconds, "
-	     << timer.realTime() << " elapsed seconds";
+	     << ") produced " << num1 << (num1 > 1 ? " hits" : " hit");
+	if (ibis::gVerbose > 0)
+	    lg() << ", took " << timer.CPUTime() << " CPU seconds, "
+		 << timer.realTime() << " elapsed seconds";
     }
 
     if (ibis::gVerbose > 0 && (sstr == 0 || *sstr == 0) &&
@@ -3813,7 +3818,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    lg() << num2;
 	}
 	if (estimate_opt > 0 || num2 == 0) {
-	    if (ibis::gVerbose >= 0) {
+	    if (ibis::gVerbose > 0) {
 		timer.stop();
 		ibis::util::logger lg;
 		lg() << "doMeshQuery:: estimate("
@@ -3833,13 +3838,14 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	return;
     }
     num1 = aQuery.getNumHits();
-    if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "doMeshQuery:: evaluate(" << aQuery.getWhereClause() 
-	     << ") produced " << num1 << (num1 > 1 ? " hits" : " hit")
-	     << ", took " << timer.CPUTime() << " CPU seconds, "
-	     << timer.realTime() << " elapsed seconds";
+	     << ") produced " << num1 << (num1 > 1 ? " hits" : " hit");
+	if (ibis::gVerbose > 0)
+	    lg() << ", took " << timer.CPUTime() << " CPU seconds, "
+		 << timer.realTime() << " elapsed seconds";
     }
 
     std::vector<uint32_t> lines;
@@ -4164,11 +4170,13 @@ static void doAppend(const char* dir) {
 	    delete tbl;
 	return;
     }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "doAppend(" << dir << "): adding " << ierr
-	    << " rows took "  << timer.CPUTime() << " CPU seconds, "
-	    << timer.realTime() << " elapsed seconds";
+    else if (ibis::gVerbose >= 0) {
+	ibis::util::logger lg;
+	lg() << "doAppend(" << dir << "): adding " << ierr
+	     << " row" << (ierr>1?"s":"");
+	if (ibis::gVerbose > 0)
+	    lg() << " took "  << timer.CPUTime() << " CPU seconds, "
+		 << timer.realTime() << " elapsed seconds";
     }
     const long napp = ierr;
     if (tbl->getState() != ibis::part::STABLE_STATE) {
@@ -4208,13 +4216,14 @@ static void doAppend(const char* dir) {
 		<< ".  Unrecoverable error!\n";
 	    return;
 	}
-	else {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "doAppend(" << dir << "): committing " << napp
-		<< " rows to partition \"" << tbl->name() << "\" took "
-		<< timer.CPUTime() << " CPU seconds, "
-		<< timer.realTime() << " elapsed seconds.  "
-		"Total number of rows is " << tbl->nRows() << ".";
+	else if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "doAppend(" << dir << "): committing " << napp
+		 << " rows to partition \"" << tbl->name() << "\"";
+	    if (ibis::gVerbose > 0)
+		lg() << " took " << timer.CPUTime() << " CPU seconds, "
+		     << timer.realTime() << " elapsed seconds";
+	    lg() << ".  Total number of rows is " << tbl->nRows() << ".";
 	}
 
 	if (ierr <= 0) {
@@ -4301,23 +4310,26 @@ static void doJoin(const char* uid, ibis::joinspec& js,
 	return;
     }
 
-    // print the columns name
-    res->describe(std::cout);
-    size_t nprint = ((nhits >> ibis::gVerbose) > 2 ? (2 << ibis::gVerbose) :
-		     nhits);
-    // print the first few rows of the result
-    int ierr = res->dump(std::cout, nprint);
-    LOGGER(ierr < 0 && ibis::gVerbose > 0)
-	<< "Warning -- " << oss.str() << ": failed to print " << nprint
-	<< " row" << (nprint > 1 ? "s" : "")
-	<< "from the joined table, ierr = " << ierr;
+    if (ibis::gVerbose >= 0) {
+	ibis::util::logger lg;
+	// print the columns name
+	res->describe(lg());
+	size_t nprint = ((nhits >> ibis::gVerbose) > 2 ? (2 << ibis::gVerbose) :
+			 nhits);
+	// print the first few rows of the result
+	int ierr = res->dump(std::cout, nprint);
+	if (ierr < 0 && ibis::gVerbose > 0)
+	    lg() << "Warning -- " << oss.str() << ": failed to print " << nprint
+		 << " row" << (nprint > 1 ? "s" : "")
+		 << "from the joined table, ierr = " << ierr;
+    }
 
-    if (testing <= 0 && ibis::gVerbose <= 9)
+    if (testing <= 0 && ibis::gVerbose <= 7)
 	return;
-
     ibis::part* pt = dynamic_cast<ibis::part*>(res.get());
     if (pt == 0) return;
 
+    // additional tests on the result table produced from joins
     std::vector<const char*> qlist;
     std::vector<std::string> qstrings;
     ibis::partList pl(1, pt);
@@ -4974,11 +4986,14 @@ int main(int argc, char** argv) {
 		//(*it)->loadIndexes(indexingOption);
 	    }
 	    timer1.stop();
-	    LOGGER(ibis::gVerbose >= 0)
-		<< *argv << ": building indexes for " << ibis::datasets.size()
-		<< " data partition" << (ibis::datasets.size()>1 ? "s" : "")
-		<< " took " << timer1.CPUTime() << " CPU seconds, "
-		<< timer1.realTime() << " elapsed seconds\n";
+	    if (ibis::gVerbose >= 0) {
+		ibis::util::logger lg;
+		lg() << *argv << ": building indexes for " << ibis::datasets.size()
+		     << " data partition" << (ibis::datasets.size()>1 ? "s" : "");
+		if (ibis::gVerbose > 0)
+		    lg() << " took " << timer1.CPUTime() << " CPU seconds, "
+			 << timer1.realTime() << " elapsed seconds\n";
+	    }
 	    zapping = false;
 	}
 	// sort the specified columns
@@ -4991,13 +5006,16 @@ int main(int argc, char** argv) {
 		    (*it)->buildSorted(slist[j]);
 	    }
 	    timer2.stop();
-	    LOGGER(ibis::gVerbose >= 0)
-		<< *argv << ": building sorted versions of " << slist.size()
-		<< " column" << (slist.size()>1 ? "s" : "")
-		<< ibis::datasets.size() << " data partition"
-		<< (ibis::datasets.size()>1 ? "s" : "") << " took "
-		<< timer2.CPUTime() << " CPU seconds, "
-		<< timer2.realTime() << " elapsed seconds\n";
+	    if (ibis::gVerbose >= 0) {
+		ibis::util::logger lg;
+		lg() << *argv << ": building sorted versions of " << slist.size()
+		     << " column" << (slist.size()>1 ? "s" : "")
+		     << ibis::datasets.size() << " data partition"
+		     << (ibis::datasets.size()>1 ? "s" : "");
+		if (ibis::gVerbose > 0)
+		    lg() << " took " << timer2.CPUTime() << " CPU seconds, "
+			 << timer2.realTime() << " elapsed seconds\n";
+	    }
 	    slist.clear(); // no longer needed
 	}
 
@@ -5032,7 +5050,7 @@ int main(int argc, char** argv) {
 		}
 	    }
 	    timer3.stop();
-	    LOGGER(ibis::gVerbose >= 0)
+	    LOGGER(ibis::gVerbose > 0)
 		<< *argv << ": testing " << ibis::datasets.size()
 		<< " data partition" << (ibis::datasets.size()>1 ? "s" : "")
 		<< " took " << timer3.CPUTime() << " CPU seconds, "
