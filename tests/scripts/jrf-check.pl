@@ -18,7 +18,7 @@ $IBIS = $ARGV[0];
 $JRFDIR = $ARGV[1];
 $nerr1 = 0;
 for ($j = 0; $j <= $#K1; ++ $j) {
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where k1 = \'$K1[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where k1 = \'$K1[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nh1 = $1;
     }
@@ -27,7 +27,7 @@ for ($j = 0; $j <= $#K1; ++ $j) {
 	$nh1 = -1;
 	++ $nerr1;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K1[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K1[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhc = $1;
     }
@@ -36,7 +36,7 @@ for ($j = 0; $j <= $#K1; ++ $j) {
 	$nhc = -2;
 	++ $nerr1;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K1[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K1[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhs = $1;
     }
@@ -67,7 +67,7 @@ else {
 }
 $nerr2 = 0;
 for ($j = 0; $j <= $#K2; ++ $j) {
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where k2 = \'$K2[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where k2 = \'$K2[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nh2 = $1;
     }
@@ -76,7 +76,7 @@ for ($j = 0; $j <= $#K2; ++ $j) {
 	$nh2 = -1;
 	++ $nerr2;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K2[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K2[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhc = $1;
     }
@@ -85,7 +85,7 @@ for ($j = 0; $j <= $#K2; ++ $j) {
 	$nhc = -2;
 	++ $nerr2;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K2[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K2[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhs = $1;
     }
@@ -116,7 +116,7 @@ else {
 }
 $nerr3 = 0;
 for ($j = 0; $j <= $#K3; ++ $j) {
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where k3 = \'$K3[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where k3 = \'$K3[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nh3 = $1;
     }
@@ -125,7 +125,7 @@ for ($j = 0; $j <= $#K3; ++ $j) {
 	$nh3 = -1;
 	++ $nerr3;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K3[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K3[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhc = $1;
     }
@@ -134,7 +134,7 @@ for ($j = 0; $j <= $#K3; ++ $j) {
 	$nhc = -2;
 	++ $nerr3;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K3[$j]\'"`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K3[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhs = $1;
     }

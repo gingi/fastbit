@@ -119,7 +119,7 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@echo
 check-jrf: $(IBISEXE) $(TESTDIR)/jrf/-part.txt
 	@scripts/jrf-check.pl $(IBISEXE) $(TESTDIR)/jrf | tee $(TESTDIR)/check-jrf.log
-	@if [ `fgrep Success $(TESTDIR)/check-jrf.log | wc -l` -eq 3 ] ; then echo Passed $@; else Did NOT pass $@; fi
+	@if [ `fgrep Success $(TESTDIR)/check-jrf.log | wc -l` -eq 3 ] ; then echo Passed $@; else echo Did NOT pass $@; fi
 	@echo
 check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@$(IBISEXE) -d $(TESTDIR)/marksdb -b -v -v > $(TESTDIR)/check-marksdb.log 2>&1

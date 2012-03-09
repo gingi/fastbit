@@ -1,3 +1,8 @@
+2012-03-09 John Wu <John dot Wu at ACM dot org>
+	* tests/scripts/jrf-check.pl, tests/scripts/matchCounts.pl:
+	redirect stderr to stdout so that the output from ibis can be
+	captured - the default log message has been redirected to stderr
+
 2012-03-08 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp, src/idirekte.h, src/idirekte.cpp: add
 	functions to enable ibis::direkte to replace ibis::relic in

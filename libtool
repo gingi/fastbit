@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # libtool - Provide generalized library-building support services.
-# Generated automatically by config.status (fastbit) ibis1.2.8.7
+# Generated automatically by config.status (fastbit) ibis1.2.8.8
 # Libtool was configured on host bit.lbl.gov:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
@@ -269,7 +269,7 @@ finish_eval=""
 hardcode_into_libs=no
 
 # Compile-time system search path for libraries.
-sys_lib_search_path_spec="/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/x86_64 /Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/x86_64 /usr/lib/gcc/i686-apple-darwin11/4.2.1/x86_64 /usr/lib/i686-apple-darwin11/4.2.1 /usr/lib /usr/llvm-gcc-4.2/lib/gcc /usr/llvm-gcc-4.2/lib /Developer/usr/llvm-gcc-4.2/lib  /usr/local/lib"
+sys_lib_search_path_spec="/opt/local/lib/gcc45/gcc/x86_64-apple-darwin11/4.5.3 /opt/local/lib/gcc45 /usr/lib  /usr/local/lib"
 
 # Run-time system search path for libraries.
 sys_lib_dlsearch_path_spec="/usr/local/lib /lib /usr/lib"
@@ -289,7 +289,7 @@ striplib="strip -x"
 
 
 # The linker used to build libraries.
-LD="/usr/llvm-gcc-4.2/libexec/gcc/i686-apple-darwin11/4.2.1/ld"
+LD="/usr/bin/ld"
 
 # How to create reloadable object files.
 reload_flag=" -r"
@@ -10123,7 +10123,7 @@ build_old_libs=`case $build_libtool_libs in yes) echo no;; *) echo yes;; esac`
 # ### BEGIN LIBTOOL TAG CONFIG: CXX
 
 # The linker used to build libraries.
-LD="/usr/llvm-gcc-4.2/libexec/gcc/i686-apple-darwin11/4.2.1/ld"
+LD="/usr/bin/ld"
 
 # How to create reloadable object files.
 reload_flag=" -r"

@@ -1,3 +1,15 @@
+Version ibis1.2.9
+-- faster string handling through internal use of integer representation
+   (with contribution from Dominique Prunier and Alexandre Maurel)
+-- change the log message to use stderr/std::clog
+-- make sure the result from a join can be passed to another query
+   (added test cases in ibis.cpp)
+-- add win/xMinGW.mak for cross compiling Windows binary on ubuntu
+   (mostly from Dominique Prunier)
+-- change ibis::category to use a slender index class ibis::direkte
+   instead of ibis::relic
+
+
 Fri Jan 20 16:43:32 PST 2012
 Version ibis1.2.8
 -- change ibis::part::buildIndexes to rebuild indexes if the existing

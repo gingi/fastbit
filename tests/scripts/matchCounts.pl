@@ -33,7 +33,7 @@ while (<QH>) {
     ++ $nlines;
     $cond = $ln[0];
     $hits = $ln[1];
-    $rc = 0xffff & system("$ARGV[0] -q \"$cond\" > $tmp");
+    $rc = 0xffff & system("$ARGV[0] -q \"$cond\" > $tmp 2>&1");
     #print "\"$ARGV[0] -q $cond > $tmp\" returned with code ", $rc, "\n";
     $bak = $cond;
     $bak =~ s/\W/_/g;
