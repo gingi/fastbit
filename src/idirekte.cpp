@@ -15,19 +15,20 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     if (c->type() == ibis::FLOAT ||
 	c->type() == ibis::DOUBLE ||
 	c->type() == ibis::TEXT) {
-	ibis::util::logMessage("Error", "direkte can only be used "
-			       "for columns with integer values (current "
-			       "column %s, type=%s)", c->name(),
-			       ibis::TYPESTRING[(int)c->type()]);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Error -- direkte can only be used for columns with "
+	    "nonnegative integer values (current column " << c->name()
+	    << ", type=" << ibis::TYPESTRING[(int)c->type()] << ')';
 	throw ibis::bad_alloc("wrong column type for ibis::direkte");
     }
-//     if (c->lowerBound() < 0.0 || c->lowerBound() > 1.0) {
-// 	ibis::util::logMessage("Error", "direkte can only be used "
-// 			       " on integer attributes with minimal value "
-// 			       "of 0 or 1, current minimal value is %g",
-// 			       c->lowerBound());
-// 	throw ibis::bad_alloc("unexpected minimal value for ibis::direkte");
-//     }
+    if (c->lowerBound() < 0.0 || c->upperBound() < 0.0) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Error -- direkte can only be used on nonnegative integer values, "
+	    "but the current minimal value is "
+	    << (c->lowerBound()<=c->upperBound() ? c->lowerBound() :
+		c->upperBound());
+	throw ibis::bad_alloc("minimal value must >= 0 for ibis::direkte");
+    }
 
     std::string dfname;
     dataFileName(f, dfname);
@@ -37,40 +38,40 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     int ierr = 0;
     switch (c->type()) {
     default: {
-	ibis::util::logMessage("Error", "direkte can only be used "
-			       "for columns with integer values (current "
-			       "column %s, type=%s)", c->name(),
-			       ibis::TYPESTRING[(int)c->type()]);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Error -- direkte can only be used for columns with "
+	    "nonnegative integer values (current column " << c->name()
+	    << ", type=" << ibis::TYPESTRING[(int)c->type()] << ')';
 	throw ibis::bad_alloc("wrong column type for ibis::direkte");}
     case ibis::BYTE: {
-	ierr = construct<signed char>(dfname.c_str());
+	ierr = construct0<signed char>(dfname.c_str());
 	break;}
     case ibis::UBYTE: {
-	ierr = construct<unsigned char>(dfname.c_str());
+	ierr = construct0<unsigned char>(dfname.c_str());
 	break;}
     case ibis::SHORT: {
-	ierr = construct<int16_t>(dfname.c_str());
+	ierr = construct0<int16_t>(dfname.c_str());
 	break;}
     case ibis::USHORT: {
-	ierr = construct<uint16_t>(dfname.c_str());
+	ierr = construct0<uint16_t>(dfname.c_str());
 	break;}
     case ibis::INT: {
-	ierr = construct<int32_t>(dfname.c_str());
+	ierr = construct0<int32_t>(dfname.c_str());
 	break;}
     case ibis::UINT:
     case ibis::CATEGORY: {
-	ierr = construct<uint32_t>(dfname.c_str());
+	ierr = construct0<uint32_t>(dfname.c_str());
 	break;}
     case ibis::LONG: {
-	ierr = construct<int64_t>(dfname.c_str());
+	ierr = construct0<int64_t>(dfname.c_str());
 	break;}
     case ibis::ULONG: {
-	ierr = construct<uint64_t>(dfname.c_str());
+	ierr = construct0<uint64_t>(dfname.c_str());
 	break;}
     }
     if (ierr < 0) {
-	ibis::util::logMessage("Error", "direkte failed with error "
-			       "code %d", ierr);
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Error -- direkte::construct0 failed with error code " << ierr;
 	throw ibis::bad_alloc("direkte construction failure");
     }
     if (ibis::gVerbose > 2) {
@@ -161,6 +162,121 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t card,
 	throw;
     }
 } // construct an index from an integer array
+
+ibis::direkte::direkte(const ibis::column* c, ibis::fileManager::storage* st)
+    : ibis::index(c, st) {
+    read(st);
+} // ibis::direkte::direkte
+
+template <typename T>
+int ibis::direkte::construct0(const char* dfname) {
+    int ierr = 0;
+    array_t<T> vals;
+    LOGGER(ibis::gVerbose > 4)
+	<< "direkte[" << col->partition()->name() << '.' << col->name()
+	<< "]::construct0 -- starting to process file " << dfname << " as "
+	<< typeid(T).name();
+    nrows = col->partition()->nRows();
+    ierr = ibis::fileManager::instance().getFile(dfname, vals);
+    if (ierr == 0) { // got a pointer to the base data
+	if (col->upperBound() > col->lowerBound()) {
+	    const uint32_t nbits = (uint32_t)col->upperBound() + 1;
+#ifdef RESERVE_SPACE_BEFORE_CREATING_INDEX
+	    const uint32_t nset = (uint32_t)(nrows+nbits-1)/nbits;
+#endif
+	    bits.resize(nbits);
+	    for (uint32_t i = 0; i < nbits; ++ i) {
+		bits[i] = new ibis::bitvector();
+#ifdef RESERVE_SPACE_BEFORE_CREATING_INDEX
+		bits[i]->reserve(nbits, nset);
+#endif
+	    }
+	    if (ibis::gVerbose > 6)
+		col->logMessage("direkte::construct", "finished allocating "
+				"%lu bitvectors",
+				static_cast<long unsigned>(nbits));
+	}
+
+	for (uint32_t j = 0; j < nrows; ++ j) {
+	    const uint32_t nbits = bits.size();
+	    if (nbits <= static_cast<uint32_t>(vals[j])) {
+		const uint32_t newsize =
+		    (vals[j]+1U>nbits+nbits?vals[j]+1U:nbits+nbits);
+		bits.resize(newsize);
+		for (uint32_t i = nbits; i < newsize; ++ i)
+		    bits[i] = new ibis::bitvector;
+	    }
+	    bits[vals[j]]->setBit(j, 1);
+	}
+    }
+    else { // failed to read or memory map the data file, try to read the
+	   // values one at a time
+	const unsigned elemsize = sizeof(T);
+	uint32_t sz = ibis::util::getFileSize(dfname);
+	if (sz == 0) {
+	    ierr = -1; // no data file
+	    return ierr;
+	}
+
+	LOGGER(ibis::gVerbose > 5)
+	    << "direkte[" << col->partition()->name() << '.' << col->name()
+	    << "]::construct -- starting to read the values from "
+	    << dfname << " one at a time";
+	if (col->upperBound() > col->lowerBound()) {
+	    const uint32_t nbits = (uint32_t)col->upperBound() + 1;
+#ifdef RESERVE_SPACE_BEFORE_CREATING_INDEX
+	    const uint32_t nset = (nrows + nbits - 1) / nbits;
+#endif
+	    bits.resize(nbits);
+	    for (uint32_t i = 0; i < nbits; ++ i) {
+		bits[i] = new ibis::bitvector();
+#ifdef RESERVE_SPACE_BEFORE_CREATING_INDEX
+		bits[i]->reserve(nbits, nset);
+#endif
+	    }
+	}
+	sz /= elemsize;
+	if (sz > nrows)
+	    sz = nrows;
+	int fdes = UnixOpen(dfname, OPEN_READONLY);
+	if (fdes < 0) {
+	    ierr = -2; // failed to open file for reading
+	    return ierr;
+	}
+
+	for (uint32_t j = 0; j < nrows; ++ j) {
+	    T val;
+	    ierr = UnixRead(fdes, &val, elemsize);
+	    if (ierr < static_cast<int>(elemsize)) {
+		ierr = -3;
+		break;
+	    }
+
+	    const uint32_t nbits = bits.size();
+	    if (nbits <= static_cast<uint32_t>(val)) {
+		const uint32_t newsize =
+		    (val+1U>=nbits+nbits?val+1U:nbits+nbits);
+		bits.resize(newsize);
+		for (uint32_t i = nbits; i < newsize; ++ i)
+		    bits[i] = new ibis::bitvector;
+	    }
+	    bits[val]->setBit(j, 1);
+	}
+	UnixClose(fdes);
+    }
+
+    // remove the empty bitvector at the end
+    uint32_t last = bits.size();
+    while (last > 0 && bits[last-1]->cnt() == 0) {
+	-- last;
+	delete bits[last];
+    }
+    bits.resize(last);
+    // make sure all bitvectors are of the right size
+    for (uint32_t i = 0; i < bits.size(); ++ i)
+	bits[i]->adjustSize(0, nrows);
+    return ierr;
+} // ibis::direkte::construct0
 
 template <typename T>
 int ibis::direkte::construct(const char* dfname) {
@@ -319,11 +435,6 @@ int ibis::direkte::construct(const char* dfname) {
 	bits[i]->adjustSize(0, nrows);
     return ierr;
 } // ibis::direkte::construct
-
-ibis::direkte::direkte(const ibis::column* c, ibis::fileManager::storage* st)
-    : ibis::index(c, st) {
-    read(st);
-} // ibis::direkte::direkte
 
 /// The printing function.
 void ibis::direkte::print(std::ostream& out) const {
@@ -1181,29 +1292,29 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
 	ierr = -2;
 	return ierr;}
     case ibis::BYTE: {
-	ierr = construct<signed char>(dfname.c_str());
+	ierr = construct0<signed char>(dfname.c_str());
 	break;}
     case ibis::UBYTE: {
-	ierr = construct<unsigned char>(dfname.c_str());
+	ierr = construct0<unsigned char>(dfname.c_str());
 	break;}
     case ibis::SHORT: {
-	ierr = construct<int16_t>(dfname.c_str());
+	ierr = construct0<int16_t>(dfname.c_str());
 	break;}
     case ibis::USHORT: {
-	ierr = construct<uint16_t>(dfname.c_str());
+	ierr = construct0<uint16_t>(dfname.c_str());
 	break;}
     case ibis::INT: {
-	ierr = construct<int32_t>(dfname.c_str());
+	ierr = construct0<int32_t>(dfname.c_str());
 	break;}
     case ibis::UINT:
     case ibis::CATEGORY: {
-	ierr = construct<uint32_t>(dfname.c_str());
+	ierr = construct0<uint32_t>(dfname.c_str());
 	break;}
     case ibis::LONG: {
-	ierr = construct<int64_t>(dfname.c_str());
+	ierr = construct0<int64_t>(dfname.c_str());
 	break;}
     case ibis::ULONG: {
-	ierr = construct<uint64_t>(dfname.c_str());
+	ierr = construct0<uint64_t>(dfname.c_str());
 	break;}
     }
     if (ierr < 0) {

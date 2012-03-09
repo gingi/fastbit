@@ -164,12 +164,20 @@ void ibis::category::prepareMembers() const {
     if (dic.size() == 0)
 	readDictionary();
 
-    if (idx == 0) {
+    if (idx == 0) { // attempt to read the index file
 	std::string idxf = thePart->currentDataDir();
 	idxf += FASTBIT_DIRSEP;
 	idxf += m_name;
 	idxf += ".idx";
-	idx = new ibis::direkte(this, idxf.c_str());
+	ibis::fileManager::storage *st = new ibis::fileManager::storage;
+	if (0 <= ibis::fileManager::instance().getFile(idxf.c_str(), &st)) {
+	    idx = new ibis::direkte(this, st);
+	    if (idx->getNRows() != thePart->nRows()) {
+		delete idx;
+		delete st;
+		idx = 0;
+	    }
+	}
     }
     if (idx == 0 || idx->getNRows() != thePart->nRows()) {
 	delete idx;

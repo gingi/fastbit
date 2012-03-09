@@ -88,6 +88,8 @@ public:
 protected:
     template <typename T>
     int construct(const char* f);
+    template <typename T>
+    int construct0(const char* f);
 
     void locate(const ibis::qContinuousRange& expr,
 		uint32_t& hit0, uint32_t& hit1) const;
