@@ -321,13 +321,15 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 			}
 		    }
 		}
-		else if (thePart->getStateNoLocking()
-			 != ibis::part::PRETRANSITION_STATE
-			 && ibis::gVerbose > 1) {
-		    logMessage("category::fillIndex", "found %u strings while "
-			       "expecting %lu, truncating the list of values",
-			       nints,
-			       static_cast<long unsigned>(thePart->nRows()));
+		else {
+		    LOGGER(thePart->getStateNoLocking()
+			   != ibis::part::PRETRANSITION_STATE
+			   && ibis::gVerbose > 1)
+			<< "Warning -- category["
+			<< (thePart != 0 ? thePart->name() : "")
+			<< "." << name() << "]::fillIndex found " << nints
+			<< " strings while expecting " << thePart->nRows()
+			<< ", truncating the list of values";
 		}
 	    }
 	    else if (ints.size() < thePart->nRows()) {
@@ -513,7 +515,9 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs,
 	    long ierr = idx->evaluate(expr, hits);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- category::stringSearch on " << strs.size()
+		    << "Warning -- category["
+		    << (thePart != 0 ? thePart->name() : "")
+		    << "." << name() << "]::stringSearch on " << strs.size()
 		    << " strings failed because idx->evaluate(" << expr
 		    << ") failed with error code " << ierr;
 		return ierr;
@@ -521,9 +525,11 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs,
 	}
 	else { // index must exist! can not proceed
 	    hits.set(0, thePart->nRows());
-	    if (ibis::gVerbose >= 0)
-		logWarning("category::stringSearch", "can not obtain a lock "
-			   "on the index or there is no index");
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- category["
+		<< (thePart != 0 ? thePart->name() : "")
+		<< "." << name() << "]::stringSearch can not obtain a lock "
+		"on the index or there is no index";
 	}
     }
     return hits.cnt();
@@ -562,9 +568,11 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs) const {
 	    }
 	    else { // index must exist
 		ret = 0;
-		if (ibis::gVerbose >= 0)
-		    logWarning("category::stringSearch", "can not obtain a "
-			       "lock on the index or there is no index");
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- category["
+		    << (thePart != 0 ? thePart->name() : "")
+		    << "." << name() << "]::stringSearch can not obtain a "
+		    "lock on the index or there is no index";
 	    }
 	}
     }
@@ -598,13 +606,12 @@ long ibis::category::patternSearch(const char *pat) const {
 	<< '.' << m_name << "]::patternSearch starting to match pattern "
 	<< pat;
     long est = 0;
-    const uint32_t nd = dic.size();
-    for (uint32_t j = 1; j <= nd; ++ j) {
-	if (ibis::util::strMatch(dic[j], pat)) {
-	    const ibis::bitvector *bv = rlc->getBitvector(j);
-	    if (bv != 0)
-		est += bv->cnt();
-	}
+    std::auto_ptr< ibis::array_t<uint32_t> > tmp(new ibis::array_t<uint32_t>);
+    dic.patternSearch(pat, *tmp);
+    for (uint32_t j = 0; j < tmp->size(); ++ j) {
+	const ibis::bitvector *bv = rlc->getBitvector(j);
+	if (bv != 0)
+	    est += bv->cnt();
     }
     return est;
 } // ibis::category::patternSearch
@@ -639,21 +646,20 @@ long ibis::category::patternSearch(const char *pat,
 	<< pat;
     long est = 0;
     uint32_t cnt = 0;
-    const uint32_t nd = dic.size();
-    for (uint32_t j = 1; j <= nd; ++ j) {
-	if (ibis::util::strMatch(dic[j], pat)) {
-	    const ibis::bitvector *bv = rlc->getBitvector(j);
-	    if (bv != 0) {
-		++ cnt;
-		est += bv->cnt();
-		if (hits.empty()) {
-		    hits.copy(*bv);
-		}
-		else {
-		    if (cnt > 32 || (j > 3 && cnt*16 > j))
-			hits.decompress();
-		    hits |= *bv;
-		}
+    std::auto_ptr< ibis::array_t<uint32_t> > tmp(new ibis::array_t<uint32_t>);
+    dic.patternSearch(pat, *tmp);
+    for (uint32_t j = 0; j < tmp->size(); ++ j) {
+	const ibis::bitvector *bv = rlc->getBitvector(j);
+	if (bv != 0) {
+	    ++ cnt;
+	    est += bv->cnt();
+	    if (hits.empty()) {
+		hits.copy(*bv);
+	    }
+	    else {
+		if (cnt > 32 || (j > 3 && cnt*16 > j))
+		    hits.decompress();
+		hits |= *bv;
 	    }
 	}
     }
@@ -768,11 +774,12 @@ long ibis::category::append(const char* dt, const char* df,
 		array_t<uint32_t> tmp;
 		ret = string2int(fptr, dic, nbuf, buf, tmp);
 		if (ret < 0) {
-		    if (ibis::gVerbose >= 0)
-			logWarning("append", "string2int returned %ld "
-				   "after processed %lu strings from \"%s\"",
-				   ret, static_cast<long unsigned>(cnt),
-				   src.c_str());
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- category["
+			<< (thePart != 0 ? thePart->name() : "")
+			<< "." << name() << "]::append string2int returned "
+			<< ret << " after processed " << cnt
+			<< " strings from \"" << src << "\"";
 		    return ret;
 		}
 		if (ret > 0) {
@@ -829,14 +836,13 @@ long ibis::category::append(const char* dt, const char* df,
 		binp = new ibis::direkte(this, 1+dic.size(), ints);
 		ierr = ints.size() * (binp != 0);
 	    }
-	    if (static_cast<uint32_t>(ierr) != ints.size() &&
-		ibis::gVerbose >= 0) {
-		logWarning("append", "string2int processed %lu "
-			   "strings from \"%s\" but was only able "
-			   "append %ld to the index",
-			   static_cast<long unsigned>(ints.size()),
-			   src.c_str(), ierr);
-	    }
+	    LOGGER(static_cast<uint32_t>(ierr) != ints.size() &&
+		   ibis::gVerbose >= 0)
+		<< "Warning -- category["
+		<< (thePart != 0 ? thePart->name() : "")
+		<< "." << name() << "]::append string2int processed "
+		<< ints.size() << " strings from \"" << src
+		<< "\" but was only able append " << ierr << " to the index";
 
 	    int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
 	    if (fdest >= 0) { // copy raw bytes without any sanity check
@@ -920,12 +926,10 @@ long ibis::category::append(const char* dt, const char* df,
 
     mtot += mapp; // append the new ones to the end of the old ones
     if (mtot.size() != nold+nnew) {
-	if (ibis::gVerbose > 0)
-	    logWarning("append", "combined mask (%lu-bits) is expected to "
-		       "have %lu bits, but it is not.  Will force it to "
-		       "the expected size",
-		       static_cast<long unsigned>(mtot.size()),
-		       static_cast<long unsigned>(nold+nnew));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "")
+	    << "." << name() << "]::append expects the combined mask to have "
+	    << nold+nnew << " bits, but it has " << mtot.size();
 	mtot.adjustSize(nold+nnew, nold+nnew);
     }
     if (mtot.cnt() != mtot.size()) {
@@ -967,9 +971,13 @@ long ibis::category::append(const char* dt, const char* df,
 			ind.print(lg());
 		    }
 		}
-		else if (ibis::gVerbose > 0) {
-		    logWarning("append", "failed to extend the index (%ld)",
-			       ierr);
+		else {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- category["
+			<< (thePart != 0 ? thePart->name() : "") << "."
+			<< name()
+			<< "]::append failed to extend the index, ierr = "
+			<< ierr;
 		    if (ind.getNRows() > 0)
 			purgeIndexFile(dt);
 		    (void) fillIndex(dt);
@@ -1157,17 +1165,19 @@ void ibis::text::startPositions(const char *dir, char *buf,
 
     if (fdata == 0 || fsp == 0) { // at least one of the files did not open
 	if (fdata == 0) {
-	    if (ibis::gVerbose > 0)
-		logWarning("startPositions", "failed to open file \"%s\"",
-			   dfile.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
+		<< "." << name() << "]::startPositions failed to open file "
+		<< dfile;
 	}
 	else {
 	    fclose(fdata);
 	}
 	if (fsp == 0) {
-	    if (ibis::gVerbose > 0)
-		logWarning("startPositions", "failed to open file \"%s\"",
-			   spfile.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
+		<< "." << name() << "]::startPositions failed to open file "
+		<< spfile;
 	}
 	else {
 	    fclose(fsp);
@@ -1415,9 +1425,10 @@ long ibis::text::append(const char* dt, const char* df,
 
     int fsrc = UnixOpen(src.c_str(), OPEN_READONLY);
     if (fsrc < 0) {
-	if (ibis::gVerbose >= 0)
-	    logWarning("append", "unableto open file \"%s\" for reading",
-		       src.c_str());
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
+	    << "." << name() << "]::append failed to open file \"" << src
+	    <<"\" for reading";
 	return -1;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -1426,10 +1437,10 @@ long ibis::text::append(const char* dt, const char* df,
     int fdest = UnixOpen(dest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (fdest < 0) {
 	UnixClose(fsrc);
-	if (ibis::gVerbose >= 0) {
-	    logWarning("append", "unableto open file \"%s\" for appending",
-		       dest.c_str());
-	}
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
+	    << "." << name() << "]::append failed to open file \"" << dest
+	    <<"\" for appending";
 	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -1439,9 +1450,10 @@ long ibis::text::append(const char* dt, const char* df,
     while (0 < (ierr = UnixRead(fsrc, buf, nbuf))) {
 	ret = UnixWrite(fdest, buf, ierr);
 	if (ret < ierr) {
-	    if (ibis::gVerbose >= 0)
-		logWarning("append", "failed to write %ld bytes to file "
-			   "\"%s\", only wrote %ld", ierr, dest.c_str(), ret);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
+		<< "." << name() << "]::append failed to write " << ierr
+		<< " bytes to file \"" << dest << "\", only wrote " << ret;
 	    ret = -3;
 	    break;
 	}
@@ -2392,8 +2404,10 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     fname.erase(fname.size()-3); // remove .sp
     int fdata = UnixOpen(fname.c_str(), OPEN_READONLY);
     if (fdata < 0) {
-	logWarning("selectStrings", "failed to open data file \"%s\"",
-		   fname.c_str());
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
+	    << "." << name() << "]::selectStrings failed to open data file "
+	    << fname;
 	delete res;
 	return 0;
     }
@@ -2426,12 +2440,13 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
 		    res->push_back(tmp);
 		}
 		else {
-		    if (ibis::gVerbose >= 0)
-			logWarning("selectStrings", "failed to read strings "
-				   "from file \"%s\" (position %ld), "
-				   "readString returned ierr=%d",
-				   fname.c_str(), static_cast<long>(sp[i]),
-				   ierr);
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- text["
+			<< (thePart != 0 ? thePart->name() : "")
+			<< "." << name() << "]::selectStrings failed to read "
+			"from file \"" << fname << "\" (position %"
+			<< sp[i] << "), readString returned ierr = "
+			<< ierr;
 		    UnixClose(fdata);
 		    delete res;
 		    return 0;
@@ -2447,13 +2462,13 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
 			res->push_back(tmp);
 		    }
 		    else {
-			if (ibis::gVerbose >= 0)
-			    logWarning("selectStrings",
-				       "failed to read strings from "
-				       "file \"%s\" (position %ld), "
-				       "readString returned ierr=%d",
-				       fname.c_str(),
-				       static_cast<long>(sp[ixval[i]]), ierr);
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- text["
+			    << (thePart != 0 ? thePart->name() : "")
+			    << "." << name() << "]::selectStrings "
+			    "failed to read from file \"" << fname
+			    << "\" (position " << sp[ixval[i]]
+			    << "), readString returned ierr = " << ierr;
 			UnixClose(fdata);
 			delete res;
 			return 0;
@@ -2484,17 +2499,19 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
 	
 	off_t ierr = UnixSeek(fdes, boffset+inbuf, SEEK_SET);
 	if (ierr != boffset+(long)inbuf) {
-	    if (ibis::gVerbose > 1)
-		logWarning("readString", "unable to move file pointer "
-			   "to %ld", static_cast<long>(boffset+inbuf));
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
+		<< "." << name() << "]::readString failed to move file pointer "
+		"to " << (boffset+inbuf);
 	    return -1;
 	}
 	ierr = UnixRead(fdes, buf, nbuf);
 	if (ierr < 0) {
-	    if (ibis::gVerbose > 1)
-		logWarning("readString", "unable to read from data file "
-			   "at position %ld",
-			   static_cast<long>(boffset+inbuf));
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
+		<< "." << name()
+		<< "]::readString failed to read from data file position "
+		<< (boffset+inbuf);
 	    inbuf = 0;
 	    return -2;
 	}
@@ -2506,10 +2523,11 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
 		res += buf[j];
 	    ierr = UnixRead(fdes, buf, nbuf);
 	    if (ierr < 0) {
-		if (ibis::gVerbose > 1)
-		    logWarning("readString", "unable to read from data file "
-			       "at position %ld",
-			       static_cast<long>(boffset+inbuf));
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- text["
+		    << (thePart != 0 ? thePart->name() : "") << "." << name()
+		    << "]::readString failed to read from data file position "
+		    << (boffset+inbuf);
 		inbuf = 0;
 		return -3;
 	    }
@@ -2521,16 +2539,19 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
     else { // start reading from @c be
 	off_t ierr = UnixSeek(fdes, be, SEEK_SET);
 	if (ierr != static_cast<off_t>(be)) {
-	    if (ibis::gVerbose > 1)
-		logWarning("readString", "unable to move file pointer "
-			   "to %ld", static_cast<long>(be));
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- text["
+		<< (thePart != 0 ? thePart->name() : "") << "." << name()
+		<< "]::readString failed to move file pointer to " << be;
 	    return -4;
 	}
 	ierr = UnixRead(fdes, buf, nbuf);
 	if (ierr < 0) {
-	    if (ibis::gVerbose > 1)
-		logWarning("readString", "unable to read from data file "
-			   "at position %ld", static_cast<long>(be));
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- text["
+		<< (thePart != 0 ? thePart->name() : "") << "." << name()
+		<< "]::readString failed to read from data file position "
+		<< be;
 	    inbuf = 0;
 	    return -5;
 	}
@@ -2541,9 +2562,11 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
 		res += buf[j];
 	    ierr = UnixRead(fdes, buf, nbuf);
 	    if (ierr < 0) {
-		if (ibis::gVerbose > 1)
-		    logWarning("readString", "unable to read from data file "
-			       "at position %ld", static_cast<long>(be));
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning-- text["
+		    << (thePart != 0 ? thePart->name() : "") << "." << name()
+		    << "]::readString failed to read from data file position "
+		    << be;
 		inbuf = 0;
 		return -6;
 	    }

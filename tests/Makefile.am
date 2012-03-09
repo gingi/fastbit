@@ -237,9 +237,9 @@ $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 sanity-check: $(TESTDIR)/std.log $(IBISEXE) $(TESTDIR)/append.log
 	@echo
 	@if [ -f $(TESTDIR)/append.rc ] ; then \
-	$(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 > $(TESTDIR)/sanity-check.log; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 > $(TESTDIR)/sanity-check.log 2>&1; \
 	else \
-	$(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 > $(TESTDIR)/sanity-check.log; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 > $(TESTDIR)/sanity-check.log 2>&1; \
 	fi
 	@if [ `fgrep 'self tests' $(TESTDIR)/sanity-check.log | fgrep 'found no error' | wc -l` -lt 2 -o `scripts/printWarning.pl $(TESTDIR)/sanity-check.log | wc -l` -gt 0 ]; then echo Did NOT pass $@.  Please look through $(TESTDIR)/sanity-check.log.; else echo Passed internal sanity checks.; fi
 	@echo
@@ -278,11 +278,11 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(T
 	echo >> $(TESTDIR)/large-sanity-check.log; \
 	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
-	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/large-sanity-check.log; \
-	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem2.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem2.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	else \
-	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	fi; jcase=`expr 1 + $${jcase}`; \
 	if [ $${test_status} -eq 0 ] ; then echo "  Completed case $${jcase} of $@"; \
@@ -293,12 +293,12 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(T
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/?/*/-part.txt; \
 	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
 	echo >> $(TESTDIR)/large-sanity-check.log; \
-	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
+	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log 2>71; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
-	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	else \
-	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log; \
+	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	fi; jcase=`expr 1 + $${jcase}`; \
 	if [ $${test_status} -eq 0 ] ; then echo "  Completed case $${jcase} of $@"; \
@@ -452,8 +452,8 @@ do-small-append: $(TESTDIR)/append.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/
 	@/bin/date > $(TESTDIR)/append.log
 	@echo Append the test data 10 times >> $(TESTDIR)/append.log
 	@for i in 0 1 2 3 4 5 6 7 8 9 ; do \
-	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/0/test0 appendTest0 >> $(TESTDIR)/append.log; \
-	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/0/test1 appendTest1 >> $(TESTDIR)/append.log; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/0/test0 appendTest0 >> $(TESTDIR)/append.log 2>&1; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/0/test1 appendTest1 >> $(TESTDIR)/append.log 2>&1; \
 	done
 #
 # take the results of do-small-append, double them 10 times
@@ -468,11 +468,11 @@ do-large-append: do-small-append $(TESTDIR)/at0 $(TESTDIR)/at1
 	@for i in 0 1 2 3 4 5 6 7 8 9 ; do \
 	/bin/cp -pr $(TESTDIR)/2/appendTest0/* $(TESTDIR)/at0; \
 	/bin/cp -pr $(TESTDIR)/2/appendTest1/* $(TESTDIR)/at1; \
-	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at0 appendTest0 >> $(TESTDIR)/append.log; \
-	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at1 appendTest1 >> $(TESTDIR)/append.log; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at0 appendTest0 >> $(TESTDIR)/append.log 2>&1; \
+	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at1 appendTest1 >> $(TESTDIR)/append.log 2>&1; \
 	done
 	@$(IBISEXE) -v -reorder $(TESTDIR)/1/appendTest0 \
-	-reorder $(TESTDIR)/2/appendTest0 >> $(TESTDIR)/append.log
+	-reorder $(TESTDIR)/2/appendTest0 >> $(TESTDIR)/append.log 2>&1
 #
 $(IBISEXE):
 	@cd $(EXDIR) && $(MAKE) ibis$(EXEEXT)

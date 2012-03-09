@@ -263,6 +263,16 @@ int truncate(const char*, uint32_t);
 #endif
 #endif
 
+// speeds up SQL LIKE by using case sensitive match
+#define CS_PATTERN_MATCH
+
+// The meta characters used in ibis::util::strMatch.
+#define STRMATCH_META_CSH_ANY '*'
+#define STRMATCH_META_CSH_ONE '?'
+#define STRMATCH_META_SQL_ANY '%'
+#define STRMATCH_META_SQL_ONE '_'
+#define STRMATCH_META_ESCAPE '\\'
+
 // // The function isfinite is a macro defined in math.h according to
 // // opengroup.org.  As of 2011, only MS visual studio does not have a
 // // definition for isfinite, but it has _finite in float,h.

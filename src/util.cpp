@@ -1788,13 +1788,6 @@ ibis::util::timer::~timer() {
     }
 } // ibis::util::timer::~timer
 
-// The meta characters used in ibis::util::strMatch.  
-#define STRMATCH_META_CSH_ANY '*'
-#define STRMATCH_META_CSH_ONE '?'
-#define STRMATCH_META_SQL_ANY '%'
-#define STRMATCH_META_SQL_ONE '_'
-#define STRMATCH_META_ESCAPE '\\'
-
 /// If the whole string matches the pattern, this function returns true,
 /// otherwise, it returns false.  The special cases are (1) if the two
 /// pointers are the same, it returns true; (2) if both arguments point to
@@ -1845,9 +1838,17 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
     const char *s1 = strpbrk(pat, metaList);
     const long int nhead = s1 - pat;
     if (s1 < pat) { // no meta character
+#ifdef CS_PATTERN_MATCH
+	return (0 == strcmp(str, pat));
+#else
 	return (0 == stricmp(str, pat));
+#endif
     }
+#ifdef CS_PATTERN_MATCH
+    else if (s1 > pat && 0 != strncmp(str, pat, nhead)) {
+#else
     else if (s1 > pat && 0 != strnicmp(str, pat, nhead)) {
+#endif
 	// characters before the first meta character do not match
 	return false;
     }
@@ -1927,7 +1928,11 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 	if (nstr < ntail)
 	    return false;
 	else
+#ifdef CS_PATTERN_MATCH
+	    return (0 == strcmp(s1, s0+(nstr-ntail)));
+#else
 	    return (0 == stricmp(s1, s0+(nstr-ntail)));
+#endif
     }
 
     const std::string anchor(s1, s2);

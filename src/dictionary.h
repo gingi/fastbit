@@ -23,6 +23,7 @@ public:
     const char* operator[](uint32_t i) const;
     uint32_t operator[](const char* str) const;
     const char* find(const char* str) const;
+    void patternSearch(const char* pat, array_t<uint32_t>& matches) const;
     uint32_t insert(const char* str);
     uint32_t insertRaw(char* str);
 

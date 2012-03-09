@@ -18574,13 +18574,15 @@ void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
 	else {
 	    const char *nm = name(i);
 	    const ibis::column* col = _tbl->getColumn(nm);
-	    if (col)
+	    if (col) {
 		col->getNullMask(tmp);
-	    else if (nm != 0 && *nm != 0 && *nm != '*')
+	    }
+	    else if (nm != 0 && *nm != 0 && *nm != '*') {
 		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- barrel::getNullMask failed to find a "
 		    "column named \"" << nm << "\" in partition "
 		    << _tbl->name();
+	    }
 	}
 	if (tmp.size() == _tbl->nRows()) {
 	    if (mask.size() == _tbl->nRows())
