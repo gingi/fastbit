@@ -12,9 +12,9 @@
 /// the first project using this software, a high-energy physics experiment
 /// named STAR.
 ///
-#include "irelic.h"
-#include "column.h"
-#include "dictionary.h"
+#include "idirekte.h"	// ibis::direkte
+#include "column.h"	// ibis::column
+#include "dictionary.h" // ibis::dictionary
 
 /// A data structure for storing null-terminated text.  The only type of
 /// search supported on this type of data is keyword search.
@@ -102,7 +102,7 @@ private:
 
 /// A specialized low-cardinality text field.  It is also known as control
 /// values or categorical values.  This implementation directly converts
-/// string values into bitvectors (as ibis::relic), and does not store
+/// string values into bitvectors (as ibis::direkte), and does not store
 /// integer version of the string.
 ///
 /// @note The integer zero (0) is reserved for NULL values.
@@ -151,7 +151,7 @@ public:
     virtual void write(FILE* file) const;
     virtual void print(std::ostream& out) const;
 
-    ibis::relic* fillIndex(const char *dir=0) const;
+    ibis::direkte* fillIndex(const char *dir=0) const;
     /// Return a pointer to the dictionary used for the categorical values.
     const ibis::dictionary* getDictionary() const {return &dic;}
 

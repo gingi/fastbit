@@ -3,7 +3,9 @@
 // Copyright 2006-2012 the Regents of the University of California
 #include "idirekte.h"
 #include "part.h"
-#include <typeinfo>	// typeid
+
+#include <typeinfo>	// std::typeid
+#include <memory>	// std::auto_ptr
 
 /// Constructing a new ibis::direkte object from base data in a file.
 ibis::direkte::direkte(const ibis::column* c, const char* f)
@@ -73,16 +75,92 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     }
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg()
-	    << "direkte[" << col->partition()->name() << '.' << col->name()
-	    << "]::ctor -- constructed a simple equality index with "
-	    << bits.size() << " bitmap" << (bits.size()>1?"s":"");
+	lg() << "direkte[" << col->partition()->name() << '.' << col->name()
+	     << "]::ctor -- constructed a simple equality index with "
+	     << bits.size() << " bitmap" << (bits.size()>1?"s":"");
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
 	}
     }
 } // ibis::direkte::direkte
+
+/// Construct a dummy index.  All entries have the same value @c popu.
+/// This is used to generate index for meta tags from STAR data.
+ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
+    : ibis::index(c) {
+    if (c == 0) return; // must has a valid column
+    try {
+	if (ntpl == 0)
+	    ntpl = c->partition()->nRows();
+	nrows = ntpl;
+	bits.resize(1+popu);
+	for (unsigned j = 0; j < popu; ++ j)
+	    bits[j] = 0;
+	bits[popu] = new ibis::bitvector();
+	bits[popu]->set(1, ntpl);
+	if (ibis::gVerbose > 5) {
+	    ibis::util::logger lg;
+	    print(lg());
+	}
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- direkte[" << col->partition()->name() << '.'
+	    << col->name() << "]::ctor received an exception, cleaning up ...";
+	clear();
+	throw;
+    }
+} // constructor for dummy attributes
+
+/// Construct an index from an integer array.
+ibis::direkte::direkte(const ibis::column* c, uint32_t card,
+		       array_t<uint32_t>& ind) : ibis::index(c) {
+    if (c == 0) return;
+    if (ind.empty()) return;
+
+    try {
+	bits.resize(card);
+	for (uint32_t i = 0; i < card; ++i) {
+	    bits[i] = new ibis::bitvector();
+	}
+	nrows = ind.size();
+	for (uint32_t i = 0; i < nrows; ++i) {
+	    if (ind[i] < card) {
+		bits[ind[i]]->setBit(i, 1);
+	    }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+	    else {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "DEBUG -- direkte[" << col->partition()->name() << '.'
+		    << col->name() << "]::ctor ind[" << i << "]=" << ind[i]
+		    << " >=" << card;
+	    }
+#endif
+	}
+	for (uint32_t i = 0; i < card; ++i) {
+	    bits[i]->adjustSize(0, nrows);
+	}
+	if (ibis::gVerbose > 2) {
+	    ibis::util::logger lg;
+	    lg() << "direkte[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- constructed an equality index with "
+		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+		 << " for " << nrows << " row" << (nrows>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg() << "\n";
+		print(lg());
+	    }
+	}
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- direkte[" << col->partition()->name() << '.'
+	    << col->name() << "]::ctor received an exception, cleaning up ...";
+	clear();
+	throw;
+    }
+} // construct an index from an integer array
 
 template <typename T>
 int ibis::direkte::construct(const char* dfname) {
@@ -561,6 +639,68 @@ int ibis::direkte::read(ibis::fileManager::storage* st) {
 	<< bits.size();
     return 0;
 } // ibis::direkte::read
+
+/// Convert the bitvector mask into bin numbers.
+ibis::array_t<uint32_t>*
+ibis::direkte::keys(const ibis::bitvector& mask) const {
+    std::auto_ptr< ibis::array_t<uint32_t> > res(new ibis::array_t<uint32_t>);
+    if (mask.cnt() == 0) // nothing to do
+	return res.release();
+
+    std::auto_ptr<ibis::bitvector> tmp(0);
+    uint32_t nobs = bits.size();
+    ibis::array_t<uint32_t> ires;
+    res->reserve(mask.cnt());
+    ires.reserve(mask.cnt());
+
+    activate(); // need all bitvectors to be in memory
+    for (uint32_t i = 0; i < nobs; ++i) { // loop to fill res and ires
+	if (bits[i]) {
+	    if (bits[i]->size() == mask.size()) {
+		uint32_t nind = 0;
+		tmp.reset(mask & *(bits[i]));
+		ibis::bitvector::indexSet is = tmp->firstIndexSet();
+		const ibis::bitvector::word_t *iix = is.indices();
+		nind = is.nIndices();
+		while (nind > 0) {
+		    if (is.isRange()) {
+			for (uint32_t j = *iix; j < iix[1]; ++j) {
+			    res->push_back(i);
+			    ires.push_back(j);
+			}
+		    }
+		    else if (nind > 0) {
+			for  (uint32_t j = 0; j < nind; ++j) {
+			    res->push_back(i);
+			    ires.push_back(iix[j]);
+			}
+		    }
+
+		    ++ is;
+		    nind =is.nIndices();
+		}
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 2)
+		    << "Warning -- direkte[" << col->partition()->name() << '.'
+		    << col->name() << "]::keys bits[" << i << "]->size() = "
+		    << bits[i]->size() << ", but mask.size() = " << mask.size();
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 4)
+		<< "Warning -- direkte[" << col->partition()->name() << '.'
+		<< col->name() << "]::keys bits[" << i << "] can not be activated";
+	}
+    }
+
+    ibis::util::sortKeys(ires, *res);
+    LOGGER(res->empty() && ibis::gVerbose > 1)
+	<< "Warning -- direkte[" << col->partition()->name() << '.'
+	<< col->name() << "]::keys failed to compute the keys most likely "
+	"because the index does not have the same number of rows as data";
+    return res.release();
+} // ibis::direkte::keys
 
 // Convert to a range [ib, ie) such that bits[ib:ie-1] contains the solution
 void ibis::direkte::locate(const ibis::qContinuousRange& expr,
@@ -1080,6 +1220,132 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
 	ierr = nnew;
     }
     return ierr;
+} // ibis::direkte::append
+
+/// Append tail to this index.  The incoming index must be for the same
+/// column as this one.
+long ibis::direkte::append(const ibis::direkte& tail) {
+    if (tail.col != col) return -1;
+    if (tail.bits.empty()) return 0;
+
+    activate(); // need all bitvectors;
+    tail.activate();
+
+    const unsigned long ntot = nrows + tail.nrows;
+    if (bits.size() == tail.bits.size()) { // perfect matching
+	for (unsigned j = 0; j < bits.size(); ++ j) {
+	    if (bits[j] != 0) {
+		if (bits[j]->size() != nrows)
+		    bits[j]->adjustSize(0, nrows);
+		if (tail.bits[j] != 0)
+		    *(bits[j]) += *(tail.bits[j]);
+	    }
+	    else {
+		bits[j] = new ibis::bitvector;
+		bits[j]->set(nrows, 0);
+		if (tail.bits[j] != 0)
+		    *(bits[j]) += *(tail.bits[j]);
+	    }
+	    bits[j]->adjustSize(0, ntot);
+	}
+    }
+    else if (bits.size() < tail.bits.size()) {
+	const size_t nold = bits.size();
+	for (unsigned j = 0; j < nold; ++ j) {
+	    if (bits[j] != 0) {
+		if (bits[j]->size() != nrows)
+		    bits[j]->adjustSize(0, nrows);
+		if (tail.bits[j] != 0)
+		    *(bits[j]) += *(tail.bits[j]);
+	    }
+	    else {
+		bits[j] = new ibis::bitvector;
+		bits[j]->set(nrows, 0);
+		if (tail.bits[j] != 0)
+		    *(bits[j]) += *(tail.bits[j]);
+	    }
+	    bits[j]->adjustSize(0, ntot);
+	}
+
+	bits.resize(tail.bits.size());
+	for (unsigned j = nold; j < tail.bits.size(); ++ j) {
+	    if (tail.bits[j] != 0) {
+		bits[j] = new ibis::bitvector;
+		bits[j]->set(nrows, 0);
+		*(bits[j]) += *(tail.bits[j]);
+		bits[j]->adjustSize(0, ntot);
+	    }
+	    else {
+		bits[j] = 0;
+	    }
+	}
+    }
+    else {
+	const size_t nold = tail.bits.size();
+	for (unsigned j = 0; j < nold; ++ j) {
+	    if (bits[j] != 0) {
+		if (bits[j]->size() != nrows)
+		    bits[j]->adjustSize(0, nrows);
+		if (tail.bits[j] != 0)
+		    *(bits[j]) += *(tail.bits[j]);
+	    }
+	    else {
+		bits[j] = new ibis::bitvector;
+		bits[j]->set(nrows, 0);
+		if (tail.bits[j] != 0)
+		    *(bits[j]) += *(tail.bits[j]);
+	    }
+	    bits[j]->adjustSize(0, ntot);
+	}
+
+	for (unsigned j = nold; j < bits.size(); ++ j) {
+	    if (bits[j] != 0) {
+		bits[j]->adjustSize(0, ntot);
+	    }
+	}
+    }
+
+    nrows += tail.nrows;
+    LOGGER(nrows != ntot && ibis::gVerbose >= 0) 
+	<< "Warning -- direkte[" << col->partition()->name() << '.' << col->name()
+	<< "]::append the combined index has more 2^32 rows (too many rows)";
+    if (ibis::gVerbose > 10) {
+	ibis::util::logger lg;
+	lg() << "\nAfter appending " << tail.nrows
+	     << " rows to this index, the total number of rows is "
+	     << nrows << "\n";
+	print(lg());
+    }
+    return 0;
+} // ibis::direkte::append
+
+/// Append a list of integers.  The integers are treated as bin numbers.
+/// This function is primarily used by ibis::category::append.
+long ibis::direkte::append(const array_t<uint32_t>& ind) {
+    if (ind.empty()) return 0; // nothing to do
+    uint32_t i, nobs = bits.size();
+    activate(); // need all bitvectors to be in memory
+    for (i = 0; i < ind.size(); ++ i, ++ nrows) {
+	const uint32_t j = ind[i];
+	if (j >= nobs) { // extend the number of bitvectors
+	    for (uint32_t k = nobs; k <= j; ++ k) {
+		bits.push_back(new ibis::bitvector);
+	    }
+	    nobs = bits.size();
+	}
+	bits[j]->setBit(nrows, 1);
+    }
+
+    uint32_t nset = 0;
+    for (i = 0; i < nobs; ++i) {
+	bits[i]->adjustSize(0, nrows);
+	nset += bits[i]->cnt();
+    }
+    LOGGER(nset != nrows && ibis::gVerbose > 1)
+	<< "Warning -- direkte[" << col->partition()->name() << '.' << col->name()
+	<< "]::append found the new index contains " << nset
+	<< " objects but the bitmap length is " << nrows;
+    return ind.size();
 } // ibis::direkte::append
 
 double ibis::direkte::getSum() const {

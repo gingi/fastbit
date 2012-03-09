@@ -10,7 +10,7 @@
 <link rel="StyleSheet" href="http://lbl.gov/%7Ekwu/fastbit/style.css"
  type="text/css"/>
 <link rev="made" href="mailto:John.Wu@acm.org"/>
-<link rel="SHORTCUT ICON" HREF="http://crd.lbl.gov/~kewu/fastbit/favicon.ico"/>
+<link rel="SHORTCUT ICON" HREF="http://lbl.gov/%7Ekwu/fastbit/favicon.ico"/>
 <title>FastBit Quick Start</title>
 </head>
 
@@ -271,7 +271,7 @@ There are two functions, <code>ibis::table::estimate</code>, which gives a
 lower and a upper bound on the number of hits, and
 <code>ibis::table::select</code>, which produces another table containing
 the selected values.  Both of these functions are documented in <A
-HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1table.html">table.h</A>.
+HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1table.html">table.h</A>.
 The following is a snipets of source code that build an
 <code>ibis::table</code> object from directory <code>tmp</code>, and estimate
 the number of hits of query condition "a = 0".
@@ -285,7 +285,7 @@ For a more realistic example, see file <code>examples/thula.cpp</code>.
 <p>
 Additional information about the functions defined in
 <code>ibis::table</code> and related classes can be found in <A
-HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/table_8h.html">table.h</A>.
+HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/table_8h.html">table.h</A>.
 </p>
 
 <h3>Class <code>ibis::part</code></h3>
@@ -311,9 +311,9 @@ que.evaluate();
 long nhits = que.getNumHits();
 </pre>
 The class <code>ibis::part</code> is documented in <A
-HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1part.html">part.h</A>,
+HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1part.html">part.h</A>,
 and the class <code>ibis::query</code> is documented in 
-<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1query.html">query.h</A>.
+<A HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1query.html">query.h</A>.
 A more realistic example can be found in <code>examples/ibis.cpp</code>.
 
 <h3>Class <code>ibis::index</code></h3>
@@ -322,7 +322,7 @@ The most unique component of FastBit is the class hierarchy of
 <code>ibis::index</code>.  A potentially interesting task is to extend these
 compressed bitmap indexes in this class hierarchy.  The class
 <code>ibis::index</code> is documented in <A
-HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1index.html">index.h</A>.
+HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1index.html">index.h</A>.
 Inside FastBit, an index is created through the class
 <code>ibis::column::indexLock</code>, which in turn calls
 <code>ibis::column::loadIndex</code>, which then invokes the index factory
@@ -336,9 +336,9 @@ There are two types of indexes in FastBit, binned and unbinned.  The
 binned class all derive from <code>ibis::bin</code>, and most of the
 unbinned classes derive from <code>ibis::relic</code> that implements the
 basic bitmap index.  The class <code>ibis::bin</code> is defined in <A
-HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1bin.html">ibin.h</A>
+HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1bin.html">ibin.h</A>
 and the class <code>ibis::relic</code> is defined in <A
-HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1relic.html">irelic.h</A>.
+HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1relic.html">irelic.h</A>.
 Note that all concrete index classes are defined in files starting with
 letter <code>i</code>.</p>
 

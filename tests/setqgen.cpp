@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     for (uint64_t irow = 1; irow <= maxrow;) {
 	const uint64_t krow = (irow + nrpd < maxrow+1 ? irow+nrpd : maxrow+1);
 	std::string dir;
-	if (nparts > 1) {
+	if (nparts > 1) { // generate a new directory name
 	    const char* str = strrchr(argv[1], '/');
 	    if (str != 0) {
 		++ str;
@@ -153,9 +153,8 @@ int main(int argc, char **argv) {
 	    dir = argv[1];
 	}
 
-	while (irow < krow) {
-	    LOGGER(irow % 100000 == 0)
-		<< " . " << irow;
+	while (irow < krow) { // loop to generate the actual values
+	    LOGGER(irow % 100000 == 0) << " . " << irow;
 
 	    fillRow(val, irow);
 	    ierr = tab->appendRow(val);
@@ -163,7 +162,7 @@ int main(int argc, char **argv) {
 		<< "Warning -- " << *argv << " failed to add values of row "
 		<< irow << " to the in-memory table, appendRow returned "
 		<< ierr;
-	    if (tab->mRows() >= cap) {
+	    if (tab->mRows() >= cap) { // write when the buffer is full
 		ierr= tab->write(dir.c_str());
 		LOGGER(ierr < 0)
 		    << "Warning -- " << *argv << " failed to write "
@@ -175,7 +174,7 @@ int main(int argc, char **argv) {
 	    ++ irow;
 	}
 
-	if (tab->mRows() > 0) {
+	if (tab->mRows() > 0) { // write the left over entries to dir
 	    ierr = tab->write(dir.c_str());
 	    LOGGER(ierr < 0)
 		<< "Warning -- " << *argv << " failed to write "

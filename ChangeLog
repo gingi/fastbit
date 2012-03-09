@@ -1,3 +1,8 @@
+2012-03-08 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp, src/idirekte.h, src/idirekte.cpp: add
+	functions to enable ibis::direkte to replace ibis::relic in
+	ibis::category (should reduce the index and query response time)
+
 2012-03-07 John Wu <John dot Wu at ACM dot org>
 	* src/jnatural.cpp, src/jrange.cpp: replace categorical values
 	with integer representation

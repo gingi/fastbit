@@ -66,7 +66,7 @@ ibis::category::category(const part* tbl, const char* name,
     if (nevt == 0) nevt = tbl->nRows();
     if (dir == 0)  dir  = tbl->currentDataDir();
     if (nevt > 0 && dir != 0) { // generate a trivial index
-	ibis::relic rlc(this, 1, nevt);
+	ibis::direkte rlc(this, 1, nevt);
 	rlc.write(dir);
     }
 } // ibis::category::category
@@ -105,7 +105,7 @@ ibis::category::selectUInts(const ibis::bitvector& mask) const {
 
     indexLock lock(this, "category::selectUInts");
     if (idx != 0)
-	return static_cast<ibis::relic*>(idx)->keys(mask);
+	return static_cast<ibis::direkte*>(idx)->keys(mask);
     else
 	return 0;
 } // ibis::category::selectUInts
@@ -169,7 +169,7 @@ void ibis::category::prepareMembers() const {
 	idxf += FASTBIT_DIRSEP;
 	idxf += m_name;
 	idxf += ".idx";
-	idx = new ibis::relic(this, idxf.c_str());
+	idx = new ibis::direkte(this, idxf.c_str());
     }
     if (idx == 0 || idx->getNRows() != thePart->nRows()) {
 	delete idx;
@@ -204,11 +204,11 @@ void ibis::category::readDictionary(const char *dir) const {
 	<< ierr;
 } // ibis::category::readDictionary
 
-/// Build an ibis::relic index using the existing primary data.
+/// Build an ibis::direkte index using the existing primary data.
 /// If the dictionary exists and the size is one, it builds a dummy index.
 /// Otherwise, it reads the primary data file to update the dictionary and
-/// complete a new ibis::relic index.
-ibis::relic* ibis::category::fillIndex(const char *dir) const {
+/// complete a new ibis::direkte index.
+ibis::direkte* ibis::category::fillIndex(const char *dir) const {
     std::string dirstr;
     if (dir != 0 && *dir != 0) { // the name may be a filename
 	unsigned ldir = strlen(dir);
@@ -251,9 +251,9 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
     if (dic.size() == 0)
 	readDictionary(dir);
 
-    ibis::relic *rlc = 0;
+    ibis::direkte *rlc = 0;
     if (dic.size() == 1) { // assume every entry has the given value
-	rlc = new ibis::relic(this, 1);
+	rlc = new ibis::direkte(this, 1);
     }
     else { // actually read the raw data to build an index
 	std::string data = (dir ? dir : thePart->currentDataDir());
@@ -336,7 +336,7 @@ ibis::relic* ibis::category::fillIndex(const char *dir) const {
 	    ret = rlc->append(ints);
 	}
 	else {
-	    rlc = new ibis::relic(this, 1+dic.size(), ints);
+	    rlc = new ibis::direkte(this, 1+dic.size(), ints);
 	    ret = ints.size();
 	}
     }
@@ -576,7 +576,7 @@ long ibis::category::patternSearch(const char *pat) const {
 	return -2;
     }
 
-    const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+    const ibis::direkte *rlc = dynamic_cast<const ibis::direkte*>(idx);
     if (rlc == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
@@ -616,7 +616,7 @@ long ibis::category::patternSearch(const char *pat,
 	return -2;
     }
 
-    const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+    const ibis::direkte *rlc = dynamic_cast<const ibis::direkte*>(idx);
     if (rlc == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
@@ -686,7 +686,7 @@ long ibis::category::append(const char* dt, const char* df,
     if (strcmp(dt, df) == 0)
 	return ret;
     prepareMembers();
-    // STEP 1: convert the strings to ibis::relic
+    // STEP 1: convert the strings to ibis::direkte
     std::string dest = dt;
     std::string src = df;
     src += FASTBIT_DIRSEP;
@@ -695,7 +695,7 @@ long ibis::category::append(const char* dt, const char* df,
     dest += FASTBIT_DIRSEP;
     dest += name();
     //dest += ".idx";
-    ibis::relic *binp = 0;
+    ibis::direkte *binp = 0;
     ibis::fileManager::storage *st = 0;
     ierr = ibis::fileManager::instance().getFile(src.c_str(), &st);
     readDictionary(df);	// read the dictionary in df
@@ -703,7 +703,7 @@ long ibis::category::append(const char* dt, const char* df,
     //dest.erase(dest.size()-4); // remove .idx
     if (ierr == 0 && st != 0 && st->size() > 0) {
 	// read the previously built index
-	binp = new ibis::relic(this, st);
+	binp = new ibis::direkte(this, st);
 	cnt = nnew;
 
 	// copy the raw bytes to dt
@@ -818,7 +818,7 @@ long ibis::category::append(const char* dt, const char* df,
 		ierr = binp->append(ints);
 	    }
 	    else {
-		binp = new ibis::relic(this, 1+dic.size(), ints);
+		binp = new ibis::direkte(this, 1+dic.size(), ints);
 		ierr = ints.size() * (binp != 0);
 	    }
 	    if (static_cast<uint32_t>(ierr) != ints.size() &&
@@ -865,7 +865,7 @@ long ibis::category::append(const char* dt, const char* df,
 			   "for reading ... %s, assume the attribute to "
 			   "have only one value", src.c_str(),
 			   (errno ? strerror(errno) : "no free stdio stream"));
-	    binp = new ibis::relic(this, 1, nnew);
+	    binp = new ibis::direkte(this, 1, nnew);
 	    cnt = nnew;
 	}
 	if (binp != 0)
@@ -945,7 +945,7 @@ long ibis::category::append(const char* dt, const char* df,
     // extend the index
     try { // attempt to load the index from directory dt
 	if (binp) {
-	    ibis::relic ind(this, dt);
+	    ibis::direkte ind(this, dt);
 
 	    if (ind.getNRows() == nold && nold > 0) { // append the index
 		ierr = ind.append(*binp);

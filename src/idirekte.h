@@ -9,8 +9,11 @@
 /// The word @c direkte in Danish means @c direct.
 #include "index.h"
 
-/// Directly use the integer values as bin number to avoid some intemdiate
-/// steps.
+/// A version of precise index that directly uses the integer values.  It
+/// can avoid some intemdiate steps during index building and query
+/// answering.  However, this class can only be used with integer column
+/// with nonnegative values.  Ideally, the values should start with 0, and
+/// only use small positive integers.
 class ibis::direkte : public ibis::index {
 public:
     virtual INDEX_TYPE type() const {return DIREKTE;}
@@ -56,8 +59,11 @@ public:
     virtual int read(const char* name);
     virtual int read(ibis::fileManager::storage* st);
 
-    /// Extend the index.
     virtual long append(const char* dt, const char* df, uint32_t nnew);
+
+    long append(const ibis::direkte& tail);
+    long append(const array_t<uint32_t>& ind);
+    array_t<uint32_t>* keys(const ibis::bitvector& mask) const;
 
     /// Time some logical operations and print out their speed.
     virtual void speedTest(std::ostream& out) const {};
@@ -76,6 +82,8 @@ public:
     virtual ~direkte() {clear();}
     direkte(const ibis::column* c, const char* f = 0);
     direkte(const ibis::column* c, ibis::fileManager::storage* st);
+    direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl=0);
+    direkte(const ibis::column* c, uint32_t card, array_t<uint32_t>& ints);
 
 protected:
     template <typename T>

@@ -9,7 +9,7 @@
 <link REL="StyleSheet" href="http://lbl.gov/%7Ekwu/fastbit/style.css"
  type="text/css"/>
 <link REV="made" href="mailto:John.Wu@acm.org"/>
-<link REL="SHORTCUT ICON" HREF="http://crd.lbl.gov/~kewu/fastbit/favicon.ico"/>
+<link REL="SHORTCUT ICON" HREF="http://lbl.gov/%7Ekwu/fastbit/favicon.ico"/>
 <title>FastBit Example Code: rara.cpp</title>
 </head>
 
@@ -102,7 +102,7 @@ SELECT c FROM tests/tmp/t1 WHERE c between 10 and 20
     ibis::part apart(argv[1], static_cast&lt;const char*&gt;(0));
 </pre>
 This statement creates an
-<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1part.html">ibis::part</A>
+<A HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1part.html">ibis::part</A>
 object that encapsulates a data partition.  The second nil pointer is
 required because there is another constructor that takes a single string
 but performs a very different function.
@@ -112,7 +112,7 @@ but performs a very different function.
     ibis::query aquery(ibis::util::userName(), &apart);
 </pre>
 This statement creates an
-<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1query.html">ibis::query</A>
+<A HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1query.html">ibis::query</A>
 object which represent our query.  A FastBit query is always associated
 with a data partition.
 
@@ -138,7 +138,7 @@ as a part of the query.
 	ierr = aquery.evaluate(); // evaluate the query
 </pre>
 The primary function to evaluate a query is 
-<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/classibis_1_1query.html#4786930adc9cd6773a0c0486468b7503">ibis::query::evaluate</A>.
+<A HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/classibis_1_1query.html#4786930adc9cd6773a0c0486468b7503">ibis::query::evaluate</A>.
 This function evaluate the query conditions and identify the records
 that satisfy the conditions.  In some cases, it may be faster to use
 ibis::query::estimate to get an approximate answer first.
@@ -162,7 +162,7 @@ records to standard output.
 <p>
 The file examples/rara.cpp contains additional code for error checking
 and optional command-line arguments.
-<A HREF="http://crd.lbl.gov/~kewu/fastbit/doc/html/rara_8cpp.html">The
+<A HREF="http://lbl.gov/%7Ekwu/fastbit/doc/html/rara_8cpp.html">The
 Doxygen documentation of the file is available on-line</A>.
 </p>
 

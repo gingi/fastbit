@@ -13,7 +13,7 @@
 #endif
 #include "index.h"
 #include "ibin.h"
-#include "idirekte.h"
+#include "irelic.h"
 #include "ikeywords.h"
 #include "part.h"
 #include "category.h"
