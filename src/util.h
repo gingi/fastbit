@@ -264,7 +264,7 @@ int truncate(const char*, uint32_t);
 #endif
 
 // speeds up SQL LIKE by using case sensitive match
-#define CS_PATTERN_MATCH
+#define FASTBOT_CS_PATTERN_MATCH
 
 // The meta characters used in ibis::util::strMatch.
 #define STRMATCH_META_CSH_ANY '*'

@@ -212,6 +212,15 @@ FASTBIT_ORDER_OUTPUT_RIDS
   in this extra loop costs as much as remaining sorting operations.  It
   is not defined by default.
 
+FASTBIT_CS_PATTERN_MATCH
+
+  When this macro is set, the queries involving strings will treat
+  strings as case sensitive.  This approach allows some operations to
+  perform simple binary search and therefore improve the speed of
+  pattern matching.  This macro was suggested by Dominique Prunier.  It
+  is set in util.h by default.
+
+
 ----------
 Known Issues
 

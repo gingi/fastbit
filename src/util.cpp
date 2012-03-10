@@ -1838,13 +1838,13 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
     const char *s1 = strpbrk(pat, metaList);
     const long int nhead = s1 - pat;
     if (s1 < pat) { // no meta character
-#ifdef CS_PATTERN_MATCH
+#ifdef FASTBIT_CS_PATTERN_MATCH
 	return (0 == strcmp(str, pat));
 #else
 	return (0 == stricmp(str, pat));
 #endif
     }
-#ifdef CS_PATTERN_MATCH
+#ifdef FASTBIT_CS_PATTERN_MATCH
     else if (s1 > pat && 0 != strncmp(str, pat, nhead)) {
 #else
     else if (s1 > pat && 0 != strnicmp(str, pat, nhead)) {
@@ -1928,7 +1928,7 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 	if (nstr < ntail)
 	    return false;
 	else
-#ifdef CS_PATTERN_MATCH
+#ifdef FASTBIT_CS_PATTERN_MATCH
 	    return (0 == strcmp(s1, s0+(nstr-ntail)));
 #else
 	    return (0 == stricmp(s1, s0+(nstr-ntail)));

@@ -370,7 +370,8 @@ void ibis::dictionary::clear() {
 
 /// Find all codes that matches the SQL LIKE pattern.
 /// If the pattern is null or empty, matches is not changed.
-void ibis::dictionary::patternSearch(const char* pat, array_t<uint32_t>& matches) const {
+void ibis::dictionary::patternSearch(const char* pat,
+				     array_t<uint32_t>& matches) const {
     if (pat == 0) return;
     if (*pat == 0) return;
     if (key_.size() == 0) return;
@@ -384,16 +385,8 @@ void ibis::dictionary::patternSearch(const char* pat, array_t<uint32_t>& matches
 	return;
     }
 
-#ifndef CS_PATTERN_MATCH
-    // case insensitive, test all values
-    const uint32_t nd = key_.size();
-    for (uint32_t j = 0; j < nd; ++ j) {
-	if (ibis::util::strMatch(key_[j], pat)) {
-	    matches.push_back(code_[j]);
-	}
-    }
-#else
-    // case insensitive, extract longest constant prefix to restrict range
+#ifdef FASTBIT_CS_PATTERN_MATCH
+    // case sensitive, extract longest constant prefix to restrict range
     size_t pos;
     bool esc = false;
     bool meta = false;
@@ -404,20 +397,21 @@ void ibis::dictionary::patternSearch(const char* pat, array_t<uint32_t>& matches
 	if (esc) {
 	    prefix.append(1, c);
 	    esc = false;
-	} else {
+	}
+	else {
 	    switch (c) {
-		case STRMATCH_META_ESCAPE:
-		    esc = true;
-		    break;
-		case STRMATCH_META_CSH_ANY:
-		case STRMATCH_META_CSH_ONE:
-		case STRMATCH_META_SQL_ANY:
-		case STRMATCH_META_SQL_ONE:
-		    meta = true;
-		    break;
-		default:
-		    prefix.append(1, c);
-		    break;
+	    case STRMATCH_META_ESCAPE:
+		esc = true;
+		break;
+	    case STRMATCH_META_CSH_ANY:
+	    case STRMATCH_META_CSH_ONE:
+	    case STRMATCH_META_SQL_ANY:
+	    case STRMATCH_META_SQL_ONE:
+		meta = true;
+		break;
+	    default:
+		prefix.append(1, c);
+		break;
 	    }
 	}
     }
@@ -425,7 +419,7 @@ void ibis::dictionary::patternSearch(const char* pat, array_t<uint32_t>& matches
     // if there is no meta char, find the string directly
     if (!meta) {
 	uint32_t code = operator[](prefix.c_str());
-	if ( code != size() + 1 ) {
+	if (code != size() + 1) {
 	    matches.push_back(code);
 	}
 	return;
@@ -433,44 +427,47 @@ void ibis::dictionary::patternSearch(const char* pat, array_t<uint32_t>& matches
 
     // locate prefix to restrict matching range
     int32_t min = -1, max = -1;
-    if ( prefix.size() == 0 ) {
+    if (prefix.size() == 0) {
 	min = 0;
 	max = key_.size();
     }
-    else if (key_.size() < 16 ) {
+    else if (key_.size() < 16) {
 	// use linear search
 	for (uint32_t m = 0; m < key_.size(); ++ m) {
-	    if ( min < 0 ) {
+	    if (min < 0) {
 		int comp = strncmp(key_[m], prefix.c_str(), prefix.length());
-		if ( comp == 0 ) {
+		if (comp == 0) {
 		    min = m;
-		} else if ( comp > 0 ) {
+		}
+		else if (comp > 0) {
 		    break;
 		}
-	    } else if ( max < 0 ) {
-		if ( strncmp(key_[m], prefix.c_str(), prefix.length()) != 0 ) {
+	    }
+	    else if (max < 0) {
+		if (strncmp(key_[m], prefix.c_str(), prefix.length()) != 0) {
 		    max = m;
 		    break;
 		}
 	    }
 	}
-	if ( min < 0 ) return;
-	if ( max < 0 ) max = key_.size();
+	if (min < 0) return;
+	if (max < 0) max = key_.size();
     }
     else {
 	// find lower bound using binary search
 	int32_t b = 0;
 	int32_t e = key_.size() - 1;
-	while ( b <= e ) {
+	while (b <= e) {
 	    int32_t m = (b + e) / 2;
-	    if ( strncmp(key_[m], prefix.c_str(), prefix.size()) >= 0 ) {
+	    if (strncmp(key_[m], prefix.c_str(), prefix.size()) >= 0) {
 		e = m - 1;
 	    } else {
 		b = m + 1;
 	    }
 	}
 
-	if ( b < key_.size() && strncmp(key_[b], prefix.c_str(), prefix.size()) == 0 ) {
+	if (b < key_.size() &&
+	    strncmp(key_[b], prefix.c_str(), prefix.size()) == 0) {
 	    min = b;
 	} else {
 	    return;
@@ -478,9 +475,9 @@ void ibis::dictionary::patternSearch(const char* pat, array_t<uint32_t>& matches
 
 	// find upper bound using binary search
 	e = key_.size() - 1;
-	while ( b <= e) {
+	while (b <= e) {
 	    int32_t m = (b + e) / 2;
-	    if ( strncmp(key_[m], prefix.c_str(), prefix.size()) > 0 ) {
+	    if (strncmp(key_[m], prefix.c_str(), prefix.size()) > 0) {
 		e = m - 1;
 	    } else {
 		b = m + 1;
@@ -492,6 +489,14 @@ void ibis::dictionary::patternSearch(const char* pat, array_t<uint32_t>& matches
     // match values in the range
     for (uint32_t j = min; j < max; ++ j) {
 	if (ibis::util::strMatch(key_[j] + prefix.size(), pat + pos - 1)) {
+	    matches.push_back(code_[j]);
+	}
+    }
+#else
+    // case insensitive, test all values
+    const uint32_t nd = key_.size();
+    for (uint32_t j = 0; j < nd; ++ j) {
+	if (ibis::util::strMatch(key_[j], pat)) {
 	    matches.push_back(code_[j]);
 	}
     }

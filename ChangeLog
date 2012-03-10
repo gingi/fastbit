@@ -1,7 +1,7 @@
 2012-03-09 Dominique Prunier <dominique dot prunier at watch4net dot com>
 	* src/category.cpp, src/dictionary.h, src/dictionary.cpp,
-	src/util.h, src/util.cpp: enable regular expression matching with
-	categorical values, details in
+	src/util.h, src/util.cpp: enable case sensitive pattern matching,
+	for additional information, see the following email message
 	https://hpcrdm.lbl.gov/pipermail/fastbit-users/2012-March/001104.html
 
 2012-03-09 John Wu <John dot Wu at ACM dot org>

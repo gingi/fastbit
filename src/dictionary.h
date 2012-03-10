@@ -9,8 +9,8 @@
 #include "array_t.h"
 
 /// Provide a dual-directional mapping between strings and integers.  A
-/// utility class used by ibis::category.  The NULL string is always the
-/// 0th string.
+/// utility class used by ibis::category.  Both the NULL string and the
+/// empty string are mapped to 0.
 class FASTBIT_CXX_DLLSPEC ibis::dictionary {
 public:
     ~dictionary() {clear();}
