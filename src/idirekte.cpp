@@ -583,8 +583,12 @@ int ibis::direkte::write(const char* dt) const {
 	    << ") failed to write bitmap offsets, ierr = " << ierr;
 	return -7;
     }
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if _POSIX_FSYNC+0 > 0
     (void) UnixFlush(fdes); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+	(void) _commit(fdes);
+#endif
 #endif
 
     LOGGER(ibis::gVerbose > 5)

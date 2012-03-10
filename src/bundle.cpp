@@ -1028,12 +1028,12 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
     ierr = fwrite(&tmp, sizeof(uint32_t), 1, fptr);
     ierr = col->write(fptr);
     ierr = fwrite(starts->begin(), sizeof(uint32_t), starts->size(), fptr);
+#if defined(FASTBIT_SYNC_WRITE)
+    (void)fflush(fptr);
+#endif
     ierr = fclose(fptr);
     delete [] fn;
     infile = true;
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    sync();
-#endif
 } // ibis::bundle1::write
 
 /// Retrieve the value of i-th row j-th column as a 32-bit integer.
@@ -2352,12 +2352,12 @@ void ibis::bundles::write(const ibis::query& theQ) const {
     // the starting positions
     ierr = fwrite(starts->begin(), sizeof(uint32_t), starts->size(),
 		  fptr);
-    ierr = fclose(fptr);
+#if defined(FASTBIT_SYNC_WRITE)
+    (void) fflush(fptr);
+#endif
+    (void) fclose(fptr);
     delete [] fn;
     infile = true;
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
-    sync();
-#endif
 } // ibis::bundles::write
 
 /// Retrieve the value of i-th row j-th column as a 32-bit integer.

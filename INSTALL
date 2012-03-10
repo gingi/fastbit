@@ -120,6 +120,12 @@ FastBit parameters.  When you find unexpected troubles with FastBit,
 they might come in handy.  Here is a list in the order of potential
 usefulness.
 
+DEBUG
+
+  Turning on DEBUG will enable FastBit to print a lot of diagnostic
+  messages about its internal operations.  It is useful for debugging
+  FastBit internal operations.
+
 WITHOUT_FASTBIT_CONFIG_H
 
   This macro must be defined if the system can not run the configure
@@ -147,12 +153,6 @@ FASTBIT_MIN_MAP_SIZE
   FastBit will attempt to use memory map to read large data files if
   mmap and its associated functions are available.  This defines the
   minimal file size (in bytes) before it will attempt to use mmap.
-
-DEBUG
-
-  Turning on DEBUG will enable FastBit to print a lot of diagnostic
-  messages about its internal operations.  It is useful for debugging
-  FastBit internal operations.
 
 WAH_CHECK_SIZE
 
@@ -214,11 +214,13 @@ FASTBIT_ORDER_OUTPUT_RIDS
 
 FASTBIT_CS_PATTERN_MATCH
 
-  When this macro is set, the queries involving strings will treat
-  strings as case sensitive.  This approach allows some operations to
-  perform simple binary search and therefore improve the speed of
-  pattern matching.  This macro was suggested by Dominique Prunier.  It
-  is set in util.h by default.
+  When this macro is set to a value greater than 0, the queries
+  involving strings will treat strings as case sensitive.  This approach
+  allows some operations to perform simple binary search instead of
+  linear search, which improves the speed of pattern matching.  This
+  macro was suggested by Dominique Prunier.  It is set to 1 in util.h by
+  default.  To disable case sensitive matching, add
+  -DFASTBIT_CS_PATTERN_MATCH=0 to the compiler options.
 
 
 ----------

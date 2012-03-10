@@ -237,8 +237,12 @@ int ibis::fuge::write(const char* dt) const {
     }
 
     if (ierr >= 0) {
-#if _POSIX_FSYNC+0 > 0 && defined(FASTBIT_SYNC_WRITE)
+#if defined(FASTBIT_SYNC_WRITE)
+#if  _POSIX_FSYNC+0 > 0
 	(void) UnixFlush(fdes); // write to disk
+#elif defined(_WIN32) && defined(_MSC_VER)
+	(void) _commit(fdes);
+#endif
 #endif
 	const uint32_t nc = (cbounds.size()-1 <= cbits.size() ?
 			     cbounds.size()-1 : cbits.size());

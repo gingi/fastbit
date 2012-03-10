@@ -1,3 +1,12 @@
+2012-03-10 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: correct typo: FASTBOT -> FASTBIT, change the test on
+	FASTBIT_CS_PATTERN_MATCH to give users a chance to disable case
+	sensitive matching (-DFASTBIT_CS_PATTERN_MATCH=0 to disable case
+	sensitive matching)
+	* src/bundle.cpp, ...: harmonize the use of FASTBIT_SYNC_WRITE to
+	make _commit is called on windows systems when the macro is
+	defined, some functions were missing this branch of the code
+
 2012-03-09 Dominique Prunier <dominique dot prunier at watch4net dot com>
 	* src/category.cpp, src/dictionary.h, src/dictionary.cpp,
 	src/util.h, src/util.cpp: enable case sensitive pattern matching,

@@ -1506,7 +1506,9 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
     vfprintf(fptr, fmt, args);
     va_end(args);
     fprintf(fptr, "\n");
+#if defined(_DEBUG) || defined(DEBUG) || defined(FASTBIT_SYNC_WRITE)
     fflush(fptr);
+#endif
 #else
     ibis::util::logger lg;
     lg() << event << " -- " << fmt << " ...";
@@ -1748,7 +1750,7 @@ ibis::util::logger::~logger() {
 	// multiple fprintf statements.
 	ibis::util::ioLock lock;
 	fprintf(fptr, "%s\n", mystr.c_str());
-#if defined(_DEBUG) || defined(DEBUG)
+#if defined(_DEBUG) || defined(DEBUG) || defined(FASTBIT_SYNC_WRITE)
 	fflush(fptr);
 #endif
     }
@@ -1769,9 +1771,8 @@ ibis::util::timer::timer(const char* msg, int lvl) :
     mesg_(ibis::gVerbose >= lvl && msg != 0 && *msg != 0 ? msg : "") {
     if (chrono_ != 0) {
 	chrono_->start();
-	if (ibis::gVerbose > lvl+1)
-	    ibis::util::logger(0)()
-		<< mesg_ << " -- start timer ...";
+	LOGGER(ibis::gVerbose > lvl+1)
+	    << mesg_ << " -- start timer ...";
     }
 } // ibis::util::timer::timer
 
@@ -1838,13 +1839,13 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
     const char *s1 = strpbrk(pat, metaList);
     const long int nhead = s1 - pat;
     if (s1 < pat) { // no meta character
-#ifdef FASTBIT_CS_PATTERN_MATCH
+#if FASTBIT_CS_PATTERN_MATCH+0 > 0
 	return (0 == strcmp(str, pat));
 #else
 	return (0 == stricmp(str, pat));
 #endif
     }
-#ifdef FASTBIT_CS_PATTERN_MATCH
+#if FASTBIT_CS_PATTERN_MATCH+0 > 0
     else if (s1 > pat && 0 != strncmp(str, pat, nhead)) {
 #else
     else if (s1 > pat && 0 != strnicmp(str, pat, nhead)) {
@@ -1928,7 +1929,7 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 	if (nstr < ntail)
 	    return false;
 	else
-#ifdef FASTBIT_CS_PATTERN_MATCH
+#if FASTBIT_CS_PATTERN_MATCH+0 > 0
 	    return (0 == strcmp(s1, s0+(nstr-ntail)));
 #else
 	    return (0 == stricmp(s1, s0+(nstr-ntail)));

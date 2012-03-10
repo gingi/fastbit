@@ -385,7 +385,7 @@ void ibis::dictionary::patternSearch(const char* pat,
 	return;
     }
 
-#ifdef FASTBIT_CS_PATTERN_MATCH
+#if FASTBIT_CS_PATTERN_MATCH+0 > 0
     // case sensitive, extract longest constant prefix to restrict range
     size_t pos;
     bool esc = false;
@@ -455,8 +455,8 @@ void ibis::dictionary::patternSearch(const char* pat,
     }
     else {
 	// find lower bound using binary search
-	int32_t b = 0;
-	int32_t e = key_.size() - 1;
+	uint32_t b = 0;
+	uint32_t e = key_.size() - 1;
 	while (b <= e) {
 	    int32_t m = (b + e) / 2;
 	    if (strncmp(key_[m], prefix.c_str(), prefix.size()) >= 0) {
@@ -487,7 +487,7 @@ void ibis::dictionary::patternSearch(const char* pat,
     }
 
     // match values in the range
-    for (uint32_t j = min; j < max; ++ j) {
+    for (int32_t j = min; j < max; ++ j) {
 	if (ibis::util::strMatch(key_[j] + prefix.size(), pat + pos - 1)) {
 	    matches.push_back(code_[j]);
 	}
