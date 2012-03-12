@@ -1,3 +1,4 @@
+Sun Mar 11 22:58:38 PDT 2012
 Version ibis1.2.9
 -- faster string handling through internal use of integer representation
    (with contribution from Dominique Prunier and Alexandre Maurel)
@@ -8,6 +9,9 @@ Version ibis1.2.9
    (mostly from Dominique Prunier)
 -- change ibis::category to use a slender index class ibis::direkte
    instead of ibis::relic
+-- add option to perform pattern match on words in a dictionary
+   (Dominique Prunier) and allow for case-sensitive operations to make
+   use of the binary search algorithm
 
 
 Fri Jan 20 16:43:32 PST 2012
