@@ -11,6 +11,7 @@
 
 #include "part.h"
 #include "category.h"
+#include "irelic.h"	// ibis::relic
 #include "ikeywords.h"
 
 #include <algorithm>	// std::copy
@@ -104,10 +105,19 @@ ibis::category::selectUInts(const ibis::bitvector& mask) const {
     }
 
     indexLock lock(this, "category::selectUInts");
-    if (idx != 0)
-	return static_cast<ibis::direkte*>(idx)->keys(mask);
-    else
-	return 0;
+    if (idx != 0) {
+	const ibis::direkte *dir = dynamic_cast<const ibis::direkte*>(idx);
+	if (dir != 0)
+	    return dir->keys(mask);
+	const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+	if (rlc != 0)
+	    return rlc->keys(mask);
+    }
+
+    LOGGER(ibis::gVerbose >= 0)
+	<< "Warning -- category[" << (thePart ? thePart->name() : "?") << '.'
+	<< m_name << "]::selectUInts failed the .int option and .idx option";
+    return 0;
 } // ibis::category::selectUInts
 
 /// Retrieve the string values from the rows marked 1 in mask.

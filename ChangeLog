@@ -1,3 +1,7 @@
+2012-03-12 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.cpp:458,459 change uint32_t back to int32_t
+	(problem reported by Dominique)
+
 2012-03-10 John Wu <John dot Wu at ACM dot org>
 	* src/util.h: correct typo: FASTBOT -> FASTBIT, change the test on
 	FASTBIT_CS_PATTERN_MATCH to give users a chance to disable case

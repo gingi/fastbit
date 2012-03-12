@@ -455,13 +455,14 @@ void ibis::dictionary::patternSearch(const char* pat,
     }
     else {
 	// find lower bound using binary search
-	uint32_t b = 0;
-	uint32_t e = key_.size() - 1;
+	int32_t b = 0;
+	int32_t e = key_.size() - 1;
 	while (b <= e) {
 	    int32_t m = (b + e) / 2;
 	    if (strncmp(key_[m], prefix.c_str(), prefix.size()) >= 0) {
 		e = m - 1;
-	    } else {
+	    }
+	    else {
 		b = m + 1;
 	    }
 	}
@@ -469,7 +470,8 @@ void ibis::dictionary::patternSearch(const char* pat,
 	if (b < key_.size() &&
 	    strncmp(key_[b], prefix.c_str(), prefix.size()) == 0) {
 	    min = b;
-	} else {
+	}
+	else {
 	    return;
 	}
 
@@ -479,7 +481,8 @@ void ibis::dictionary::patternSearch(const char* pat,
 	    int32_t m = (b + e) / 2;
 	    if (strncmp(key_[m], prefix.c_str(), prefix.size()) > 0) {
 		e = m - 1;
-	    } else {
+	    }
+	    else {
 		b = m + 1;
 	    }
 	}

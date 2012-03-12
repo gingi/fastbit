@@ -337,7 +337,7 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
     jboolean        iscopy;
     const char     *ccol;
     jlongArray      ret;
-    const int64_t  *carr;
+    const jlong    *carr;
     jint            nrows;
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
@@ -351,7 +351,7 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
     }
 
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
-    carr = fastbit_get_qualified_longs(chandle, ccol);
+    carr = (jlong*)fastbit_get_qualified_longs(chandle, ccol);
     if (carr != 0) {
 	ret = (*env)->NewLongArray(env, nrows);
 	if (ret != NULL) {
