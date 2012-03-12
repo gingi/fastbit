@@ -1,6 +1,11 @@
 2012-03-12 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.cpp:458,459 change uint32_t back to int32_t
 	(problem reported by Dominique)
+	* src/irelic.cpp, ...: check the index type in functions that read
+	from ibis::fileManager::storage objects to reconstitute indexes
+	* src/dictioinary.cpp: fold input strings to upper case when the
+	user desires case-insensitive comparisons of string values (note
+	that the names are alwasy compared in the case-insensitive manner)
 
 2012-03-10 John Wu <John dot Wu at ACM dot org>
 	* src/util.h: correct typo: FASTBOT -> FASTBIT, change the test on

@@ -2263,6 +2263,7 @@ int ibis::bylt::readCoarse(const char* fn) {
 /// Reconstruct an index from a storage object.
 int ibis::bylt::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
+    if (st->begin()[5] != static_cast<char>(BYLT)) return -3;
     clear();
 
     const char offsetsize = st->begin()[6];

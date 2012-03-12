@@ -826,6 +826,8 @@ int ibis::pack::read(const char* f) {
 
 /// Read the index content from a storage object.
 int ibis::pack::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
+    if (st->begin()[5] != ibis::index::PACK) return -3;
     int ierr = ibis::bin::read(st);
     if (ierr < 0) return ierr;
     max1 = *(minval.end());

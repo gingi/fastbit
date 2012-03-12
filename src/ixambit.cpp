@@ -880,6 +880,7 @@ int ibis::ambit::read(int fdes, size_t start, const char *fn,
 } // ibis::ambit::read
 
 int ibis::ambit::read(ibis::fileManager::storage* st) {
+    if (st->begin()[5] != ibis::index::AMBIT) return -3;
     off_t ierr = ibis::bin::read(st);
     if (ierr < 0) {
 	clear();

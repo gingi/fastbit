@@ -804,6 +804,9 @@ int ibis::pale::read(const char* f) {
 } // ibis::pale::read
 
 int ibis::pale::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
+    if (st->begin()[5] != ibis::index::PALE) return -3;
+
     int ierr = ibis::bin::read(st);
     if (ierr < 0) return ierr;
     for (uint32_t i = 0; i < sub.size(); ++i)

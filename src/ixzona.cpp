@@ -1481,6 +1481,7 @@ int ibis::zona::readCoarse(const char* fn) {
 // attempt to reconstruct an index from a piece of consecutive memory
 int ibis::zona::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
+    if (st->begin()[5] != ibis::index::ZONA) return -3;
     clear();
 
     const char offsetsize = st->begin()[6];

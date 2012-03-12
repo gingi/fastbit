@@ -765,6 +765,7 @@ int ibis::keywords::read(const char* f) {
 // attempt to reconstruct an index from a piece of consecutive memory
 int ibis::keywords::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
+    if (st->begin()[5] != ibis::index::KEYWORDS) return -3;
     clear();
 
     const char offsetsize = st->begin()[6];

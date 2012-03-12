@@ -11,6 +11,11 @@
 /// Provide a dual-directional mapping between strings and integers.  A
 /// utility class used by ibis::category.  Both the NULL string and the
 /// empty string are mapped to 0.
+///
+/// @note If FASTBIT_CS_PATTERN_MATCH is defined to be 0, the values tored
+/// in a dictionary will be folded to the upper case.  This will allow the
+/// words in the dictionary to be stored in a simple sorted order.  By
+/// default, the dictionary is case sensitive.
 class FASTBIT_CXX_DLLSPEC ibis::dictionary {
 public:
     ~dictionary() {clear();}
@@ -73,9 +78,10 @@ inline const char* ibis::dictionary::operator[](uint32_t i) const {
     return (i < raw_.size() ? raw_[i] : raw_[0]);
 } // int to string
 
-/// If the input string is found in the dictionary, it returns the string.
-/// Otherwise it returns null pointer.  This function makes a little easier
-/// to determine whether a string is in a dictionary.
+/// Find the given string in the dictionary.  If the input string is found
+/// in the dictionary, it returns the string.  Otherwise it returns null
+/// pointer.  This function makes a little easier to determine whether a
+/// string is in a dictionary.
 inline const char* ibis::dictionary::find(const char* str) const {
     const char* ret = 0;
     const uint32_t ind = operator[](str);

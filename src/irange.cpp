@@ -176,6 +176,7 @@ int ibis::range::read(const char* f) {
     if (false == (header[0] == '#' && header[1] == 'I' &&
 		  header[2] == 'B' && header[3] == 'I' &&
 		  header[4] == 'S' &&
+		  header[5] == ibis::index::RANGE &&
 		  (header[6] == 4 || header[6] == 8) &&
 		  header[7] == static_cast<char>(0))) {
 	return -3;
@@ -340,6 +341,7 @@ int ibis::range::read(int fdes, size_t start, const char *fn,
 
 /// Extract the index from a storage object.
 int ibis::range::read(ibis::fileManager::storage* st) {
+    if (st->begin()[5] != ibis::index::RANGE) return -3;
     int ierr = ibis::bin::read(st);
     max1 = *(minval.end()); // the value after the minval array
     min1 = *(1+minval.end());

@@ -506,8 +506,7 @@ int ibis::relic::read(const char* f) {
 	    if (isprint(header[1]) != 0)
 		lg() << header[1];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[1]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[1] << std::dec;
 	    if (isprint(header[2]) != 0)
 		lg() << header[2];
 	    else
@@ -515,23 +514,19 @@ int ibis::relic::read(const char* f) {
 	    if (isprint(header[3]) != 0)
 		lg() << header[3];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[3]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[3] << std::dec;
 	    if (isprint(header[4]) != 0)
 		lg() << header[4];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[4]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[4] << std::dec;
 	    if (isprint(header[5]) != 0)
 		lg() << header[5];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[5]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[5] << std::dec;
 	    if (isprint(header[6]) != 0)
 		lg() << header[6];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[6]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[6] << std::dec;
 	    if (isprint(header[7]) != 0)
 		lg() << header[7];
 	    else
@@ -607,6 +602,12 @@ int ibis::relic::read(const char* f) {
 int ibis::relic::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
     ibis::index::clear();
+
+    if (st->begin()[5] != RELIC && st->begin()[5] != BYLT &&
+	st->begin()[5] != FADE && st->begin()[5] != SBIAD &&
+	st->begin()[5] != SAPID && st->begin()[5] != FUZZ &&
+	st->begin()[5] != SLICE && st->begin()[5] != ZONA)
+	return -3;
 
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     uint32_t pos = 8 + sizeof(uint32_t);

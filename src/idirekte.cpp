@@ -721,6 +721,9 @@ int ibis::direkte::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
     clear();
 
+    if (st->begin()[5] != ibis::index::DIREKTE)
+	return -3;
+
     const char offsetsize = st->begin()[6];
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
     uint32_t pos = 8 + sizeof(uint32_t);

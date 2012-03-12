@@ -315,7 +315,8 @@ int ibis::dictionary::readKeys(const char *evt, FILE *fptr) {
     int ierr = fread(&nkeys, 4, 1, fptr);
     if (ierr != 1) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << evt << " failed to read the number of keys, fread returned " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to read the number of keys, fread returned " << ierr;
 	return -6;
     }
 
@@ -385,8 +386,12 @@ void ibis::dictionary::patternSearch(const char* pat,
 	return;
     }
 
-#if FASTBIT_CS_PATTERN_MATCH+0 > 0
-    // case sensitive, extract longest constant prefix to restrict range
+#if FASTBIT_CS_PATTERN_MATCH+0 == 0
+    for (char *ptr = const_cast<char*>(pat); *ptr != 0; ++ ptr) {
+	*ptr = toupper(*ptr);
+    }
+#endif
+    // extract longest constant prefix to restrict range
     size_t pos;
     bool esc = false;
     bool meta = false;
@@ -495,15 +500,13 @@ void ibis::dictionary::patternSearch(const char* pat,
 	    matches.push_back(code_[j]);
 	}
     }
-#else
-    // case insensitive, test all values
-    const uint32_t nd = key_.size();
-    for (uint32_t j = 0; j < nd; ++ j) {
-	if (ibis::util::strMatch(key_[j], pat)) {
-	    matches.push_back(code_[j]);
-	}
-    }
-#endif
+    // // case insensitive, test all values
+    // const uint32_t nd = key_.size();
+    // for (uint32_t j = 0; j < nd; ++ j) {
+    // 	if (ibis::util::strMatch(key_[j], pat)) {
+    // 	    matches.push_back(code_[j]);
+    // 	}
+    // }
 }
 
 /// Convert a string to its integer code.  Returns 0 for empty (null)
@@ -521,6 +524,11 @@ uint32_t ibis::dictionary::operator[](const char* str) const {
 	    << key_.size() << "), and code_.size(" << code_.size() << ')';
 	return 0;
     }
+#if FASTBIT_CS_PATTERN_MATCH+0 == 0
+    for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
+	*ptr = toupper(*ptr);
+    }
+#endif
 
     if (key_.size() < 16) { // use linear search
 	for (uint32_t m = 0; m < key_.size(); ++ m) {
@@ -577,6 +585,11 @@ uint32_t ibis::dictionary::insert(const char* str) {
 	return 0;
     }
 
+#if FASTBIT_CS_PATTERN_MATCH+0 == 0
+    for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
+	*ptr = toupper(*ptr);
+    }
+#endif
     uint32_t ind = 0;
     if (key_.size() < 16) { // use linear search
 	for (ind = 0; ind < key_.size(); ++ ind) {
@@ -642,9 +655,8 @@ uint32_t ibis::dictionary::insert(const char* str) {
 	ordered = (strcmp(key_[j-1], key_[j]) <= 0);
     if (ordered == false && ibis::gVerbose >= 0) {
 	ibis::util::logger lg;
-	lg()
-	    << "Warning -- dictionary::insert(" << str
-	    << ") incorrectly produced an unsorted list of keys";
+	lg() << "Warning -- dictionary::insert(" << str
+	     << ") incorrectly produced an unsorted list of keys";
 	for (unsigned j = 0; j < nk; ++ j) {
 	    lg() << "\nkey[" << j << "] = " << key_[j];
 	    if (j > 0 && strcmp(key_[j-1], key_[j]) > 0)
@@ -672,6 +684,11 @@ uint32_t ibis::dictionary::insertRaw(char* str) {
 	    << key_.size() << "), and code_.size(" << code_.size() << ')';
 	return 0;
     }
+#if FASTBIT_CS_PATTERN_MATCH+0 == 0
+    for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
+	*ptr = toupper(*ptr);
+    }
+#endif
 
     uint32_t ind = 0;
     if (key_.size() < 16) { // use linear search

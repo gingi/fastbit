@@ -448,6 +448,8 @@ int ibis::fuge::read(const char* f) {
 
 /// Read an index from the storage object.
 int ibis::fuge::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
+    if (st->begin()[5] != static_cast<char>(FUGE)) return -3;
     int ierr = ibis::bin::read(st);
     if (ierr < 0) return ierr;
     const char offsetsize = (*st)[6];

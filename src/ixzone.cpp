@@ -790,6 +790,8 @@ int ibis::zone::read(const char* f) {
 
 /// Read the metadata of an index from a storage object.
 int ibis::zone::read(ibis::fileManager::storage* st) {
+    if (st == 0) return -1;
+    if (st->begin()[5] != ibis::index::ZONE) return -3;
     int ierr = ibis::bin::read(st);
     if (ierr < 0) return ierr;
 

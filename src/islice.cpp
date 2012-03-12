@@ -487,6 +487,7 @@ int ibis::slice::read(const char* f) {
 /// bit vectors.
 int ibis::slice::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
+    if (st->begin()[5] != ibis::index::SLICE) return -3;
     clear(); // clear the current conent
 
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
