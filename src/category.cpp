@@ -181,7 +181,7 @@ void ibis::category::prepareMembers() const {
 	idxf += ".idx";
 	idx = new ibis::direkte(this,
 				static_cast<ibis::fileManager::storage*>(0));
-	if (0 <= static_cast<ibis::direkte*>(idx)->read(idxf.c_str()) ||
+	if (static_cast<ibis::direkte*>(idx)->read(idxf.c_str()) < 0 ||
 	    idx->getNRows() != thePart->nRows()) {
 	    delete idx;
 	    idx = 0;

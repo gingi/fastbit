@@ -5,6 +5,9 @@
 	* src/idirekte.cpp,...: flush the file to be written by
 	ibis::index::write (to prevent the file manager from holding
 	information about older version the file)
+	* src/category.cpp:184 if the return value from read is less than
+	0, we need to get rid of the existing index.  The previous test
+	got it the wrong way.
 
 2012-03-12 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.cpp:458,459 change uint32_t back to int32_t
