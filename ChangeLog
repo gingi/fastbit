@@ -1,3 +1,11 @@
+2012-03-13 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: change prepareMembers to avoid using retriving
+	the index file content to a storage object (which creates problem
+	in tracking its usage)
+	* src/idirekte.cpp,...: flush the file to be written by
+	ibis::index::write (to prevent the file manager from holding
+	information about older version the file)
+
 2012-03-12 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.cpp:458,459 change uint32_t back to int32_t
 	(problem reported by Dominique)

@@ -189,8 +189,13 @@ int ibis::egale::write(const char* dt) const {
 
     std::string fnm;
     indexFileName(dt, fnm);
-    if (fname != 0 && fnm.compare(fname) == 0)
+    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
+    }
+    else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
+	return 0;
+    }
+    ibis::fileManager::instance().flushFile(fnm.c_str());
 
     if (str != 0 || fname != 0)
 	activate();
@@ -472,50 +477,40 @@ int ibis::egale::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "Warning -- egale[" << col->partition()->name() << '.'
-		<< col->name() << "]::read the header from " << fnm
-		<< " (";
+	    lg() << "Warning -- egale[" << col->partition()->name() << '.'
+		 << col->name() << "]::read the header from " << fnm << " (";
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[0]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[0] << std::dec;
 	    if (isprint(header[1]) != 0)
 		lg() << header[1];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[1]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[1] << std::dec;
 	    if (isprint(header[2]) != 0)
 		lg() << header[2];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[2]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[2] << std::dec;
 	    if (isprint(header[3]) != 0)
 		lg() << header[3];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[3]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[3] << std::dec;
 	    if (isprint(header[4]) != 0)
 		lg() << header[4];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[4]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[4] << std::dec;
 	    if (isprint(header[5]) != 0)
 		lg() << header[5];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[5]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[5] << std::dec;
 	    if (isprint(header[6]) != 0)
 		lg() << header[6];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[6]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[6] << std::dec;
 	    if (isprint(header[7]) != 0)
 		lg() << header[7];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[7]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[7] << std::dec;
 	    lg() << ") does not contain the expected values";
 	}
 	return -2;

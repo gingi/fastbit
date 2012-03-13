@@ -491,8 +491,14 @@ void ibis::direkte::print(std::ostream& out) const {
 int ibis::direkte::write(const char* dt) const {
     std::string fnm;
     indexFileName(dt, fnm);
-    if (fname != 0 && fnm.compare(fname) == 0)
+    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
+    }
+    else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
+	return 0;
+    }
+    ibis::fileManager::instance().flushFile(fnm.c_str());
+
     if (fname != 0 || str != 0)
 	activate();
 

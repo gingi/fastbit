@@ -1424,17 +1424,15 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 /// Constructor with a storage object.  Both the column object and the
 /// storage object are expected to be valid.
 ibis::index::index(const ibis::column* c, ibis::fileManager::storage* s) :
-    fname(0), nrows(0) {
+    col(c), str(s), fname(0), nrows(0) {
     if (c != 0 && s != 0) {
 	nrows = *reinterpret_cast<const uint32_t*>(s->begin()+8);
-	col = c;
-	str = s;
     }
-    else {
-	LOGGER(ibis::gVerbose > 0)
-	    << "index::ctor needs valid a column object or a storage object";
-	throw "index::ctor needs valid a column object or a storage object";
-    }
+    // else {
+    // 	LOGGER(ibis::gVerbose > 0)
+    // 	    << "index::ctor needs a column object and a storage object";
+    // 	throw "index::ctor needs a column object and a storage object";
+    // }
 } // ibis::index::index
 
 /// Free the objectes pointed to by the pointers.

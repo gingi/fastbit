@@ -717,7 +717,7 @@ int ibis::column::setNullMask(const ibis::bitvector& msk) {
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning - column::setNullMask expects msk.size to be "
+	    << "Warning - column::setNullMask expected msk.size to be "
 	    << thePart->nRows() << " but the actual size is "
 	    << msk.size();
 	return -1;
@@ -969,7 +969,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectBytes", "expects to retrieve %lu elements "
+	    logWarning("selectBytes", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1082,7 +1082,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectUBytes", "expects to retrieve %lu elements "
+	    logWarning("selectUBytes", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1196,7 +1196,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectShorts", "expects to retrieve %lu elements "
+	    logWarning("selectShorts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1269,7 +1269,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectShorts", "expects to retrieve %lu elements "
+	    logWarning("selectShorts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1332,7 +1332,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectShorts", "expects to retrieve %lu elements "
+	    logWarning("selectShorts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1433,7 +1433,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectUShorts", "expects to retrieve %lu elements "
+	    logWarning("selectUShorts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1506,7 +1506,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectUShorts", "expects to retrieve %lu elements "
+	    logWarning("selectUShorts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1569,7 +1569,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectUShorts", "expects to retrieve %lu elements "
+	    logWarning("selectUShorts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1705,7 +1705,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectInts", "expects to retrieve %lu elements "
+	    logWarning("selectInts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1777,7 +1777,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectInts", "expects to retrieve %lu elements "
+	    logWarning("selectInts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1840,7 +1840,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectInts", "expects to retrieve %lu elements "
+	    logWarning("selectInts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1903,7 +1903,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectInts", "expects to retrieve %lu elements "
+	    logWarning("selectInts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -1966,7 +1966,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectInts", "expects to retrieve %lu elements "
+	    logWarning("selectInts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2070,7 +2070,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectUInts", "expects to retrieve %lu elements "
+	    logWarning("selectUInts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2144,7 +2144,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectUInts", "expects to retrieve %lu elements "
+	    logWarning("selectUInts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2208,7 +2208,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectUInts", "expects to retrieve %lu elements "
+	    logWarning("selectUInts", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2347,7 +2347,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectLongs", "expects to retrieve %lu elements "
+	    logWarning("selectLongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2454,7 +2454,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectLongs", "expects to retrieve %lu elements "
+	    logWarning("selectLongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2550,7 +2550,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectLongs", "expects to retrieve %lu elements "
+	    logWarning("selectLongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2613,7 +2613,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectLongs", "expects to retrieve %lu elements "
+	    logWarning("selectLongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2676,7 +2676,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectLongs", "expects to retrieve %lu elements "
+	    logWarning("selectLongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2739,7 +2739,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectLongs", "expects to retrieve %lu elements "
+	    logWarning("selectLongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2802,7 +2802,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectLongs", "expects to retrieve %lu elements "
+	    logWarning("selectLongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -2938,7 +2938,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectULongs", "expects to retrieve %lu elements "
+	    logWarning("selectULongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3045,7 +3045,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectULongs", "expects to retrieve %lu elements "
+	    logWarning("selectULongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3108,7 +3108,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectULongs", "expects to retrieve %lu elements "
+	    logWarning("selectULongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3171,7 +3171,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectULongs", "expects to retrieve %lu elements "
+	    logWarning("selectULongs", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3276,7 +3276,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectFloats", "expects to retrieve %lu elements "
+	    logWarning("selectFloats", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3349,7 +3349,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectFloats", "expects to retrieve %lu elements "
+	    logWarning("selectFloats", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3412,7 +3412,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectFloats", "expects to retrieve %lu elements "
+	    logWarning("selectFloats", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3475,7 +3475,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectFloats", "expects to retrieve %lu elements "
+	    logWarning("selectFloats", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3538,7 +3538,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectFloats", "expects to retrieve %lu elements "
+	    logWarning("selectFloats", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3637,7 +3637,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3709,7 +3709,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3781,7 +3781,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3853,7 +3853,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3925,7 +3925,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -3997,7 +3997,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -4069,7 +4069,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -4148,7 +4148,7 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
 	}
 	if (i != tot) {
 	    array->resize(i);
-	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
 		       "but only got %lu", static_cast<long unsigned>(tot),
 		       static_cast<long unsigned>(i));
 	}
@@ -6879,14 +6879,27 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     long ierr = 0;
     if (dir == 0 || nnew  == 0 || va1 == 0) return ierr;
 
+    std::string evt = "column[";
+    if (thePart != 0 && thePart->name() != 0)
+	evt += thePart->name();
+    else
+	evt += '?';
+    evt += '.';
+    evt += m_name;
+    evt += "]::writeData";
+
     uint32_t nact = 0;
     char fn[PATH_MAX];
     uint32_t ninfile=0;
     sprintf(fn, "%s%c%s", dir, FASTBIT_DIRSEP, m_name.c_str());
+    ibis::fileManager::instance().flushFile(fn);
+
     FILE *fdat = fopen(fn, "ab");
     if (fdat == 0) {
-	logWarning("writeData", "unable to open \"%s\" for writing ... %s", fn,
-		   (errno ? strerror(errno) : "no free stdio stream"));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open \"" << fn
+	    << "\" for writing ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	return ierr;
     }
 
@@ -6896,10 +6909,10 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	const unsigned int tmp = 4294967295U;
 	const unsigned int elem = sizeof(unsigned int);
 	if (ninfile != nold*elem) {
-	    logMessage("writeData", "file \"%s\" is expected to have %lu "
-		       "bytes but it has %lu", fn,
-		       static_cast<long unsigned>(nold*elem),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " exptects file \"" << fn
+		<< "\" to have " << nold*elem << "bytes but it found only "
+		<< ninfile;
 	    if (ninfile > (nold+nnew)*elem) {
 		// need to truncate the file
 		fclose(fdat);
@@ -6911,9 +6924,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		for (uint32_t i = ninfile; i < nold; ++ i) {
 		    // write NULL values
 		    ierr = fwrite(&tmp, elem, 1, fdat);
-		    if (ierr == 0)
-			logError("writeData", "unable to write to \"%s\"",
-				 fn);
+		    LOGGER(ierr == 0 && ibis::gVerbose >= 0)
+			<< "Warning -- " << evt << " failed to write to \""
+			<< fn << "\", fwrite returned " << ierr;
 		}
 	    }
 	    ierr = fseek(fdat, nold*elem, SEEK_SET);
@@ -6945,22 +6958,19 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
 	nact = fwrite(arr, elem, nnew, fdat);
 	fclose(fdat);
-	if (nact < nnew ) {
-	    logWarning("writeData", "expected to write %lu unsigned int "
-		       "to \"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nnew), fn,
-		       static_cast<long unsigned>(nact));
-	}
+	LOGGER(nact < nnew && ibis::gVerbose > 0)
+	    << "Warning -- " << evt  << "expected to write " << nnew
+	    << " unsigned ints to \"" << fn << "\", but only wrote " << nact;
     }
     else if (m_type == ibis::INT) {
 	// data type is int -- signed integers
 	const int tmp = 2147483647;
 	const unsigned int elem = sizeof(int);
 	if (ninfile != nold*elem) {
-	    logMessage("writeData", "file \"%s\" is expected to have %lu "
-		       "bytes but it has %lu", fn,
-		       static_cast<long unsigned>(nold*elem),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << evt << "expected file \"" << fn
+		<< "\" to have " << nold*elem << "bytes but it has "
+		<< ninfile;
 	    if (ninfile > (nold+nnew)*elem) {
 		fclose(fdat);
 		ierr = truncate(fn, (nold+nnew)*elem);
@@ -6971,9 +6981,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		for (uint32_t i = ninfile; i < nold; ++ i) {
 		    // write NULLs
 		    ierr = fwrite(&tmp, elem, 1, fdat);
-		    if (ierr == 0)
-			logError("writeData", "unable to write to \"%s\"",
-				 fn);
+		    LOGGER(ierr == 0 && ibis::gVerbose >= 0)
+			<< "Warning -- " << evt << " failed to write to \""
+			<< fn << "\", fwrite returned " << ierr;
 		}
 	    }
 	    ierr = fseek(fdat, nold*elem, SEEK_SET);
@@ -7005,22 +7015,19 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
 	nact = fwrite(arr, elem, nnew, fdat);
 	fclose(fdat);
-	if (nact < nnew ) {
-	    logWarning("writeData", "expected to write %lu int "
-		       "to \"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nnew), fn,
-		       static_cast<long unsigned>(nact));
-	}
+	LOGGER(nact < nnew && ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write " << nnew
+	    << " ints to \"" << fn << "\", but only wrote " << nact;
     }
     else if (m_type == ibis::USHORT) {
 	// data type is unsigned 2-byte integer
 	const unsigned short int tmp = 65535;
 	const unsigned int elem = sizeof(unsigned short int);
 	if (ninfile != nold*elem) {
-	    logMessage("writeData", "file \"%s\" is expected to have %lu "
-		       "bytes but it has %lu", fn,
-		       static_cast<long unsigned>(nold*elem),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " exptected file \"" << fn
+		<< "\" to have " << nold*elem << " bytes but it has "
+		<< ninfile;
 	    if (ninfile > (nold+nnew)*elem) {
 		// need to truncate the file
 		fclose(fdat);
@@ -7032,9 +7039,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		for (uint32_t i = ninfile; i < nold; ++ i) {
 		    // write NULL values
 		    ierr = fwrite(&tmp, elem, 1, fdat);
-		    if (ierr == 0)
-			logError("writeData", "unable to write to \"%s\"",
-				 fn);
+		    LOGGER(ierr == 0 && ibis::gVerbose >= 0)
+			<< "Warning -- " << evt << " failed to write to \"" << fn
+			<< "\", fwrite returned " << ierr;
 		}
 	    }
 	    ierr = fseek(fdat, nold*elem, SEEK_SET);
@@ -7067,22 +7074,19 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
 	nact = fwrite(arr, elem, nnew, fdat);
 	fclose(fdat);
-	if (nact < nnew ) {
-	    logWarning("writeData", "expected to write %lu unsigned int "
-		       "to \"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nnew), fn,
-		       static_cast<long unsigned>(nact));
-	}
+	LOGGER(nact < nnew && ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write " << nnew
+	    << " unsigned ints to \"" << fn << "\", but only wrote " << nact;
     }
     else if (m_type == ibis::SHORT) {
 	// data type is int -- signed short (2-byte) integers
 	const short int tmp = 32767;
 	const unsigned int elem = sizeof(short int);
 	if (ninfile != nold*elem) {
-	    logMessage("writeData", "file \"%s\" is expected to have %lu "
-		       "bytes but it has %lu", fn,
-		       static_cast<long unsigned>(nold*elem),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected file \"" << fn
+		<< "\" to have " << nold*elem << " bytes but it has "
+		<< ninfile;
 	    if (ninfile > (nold+nnew)*elem) {
 		fclose(fdat);
 		ierr = truncate(fn, (nold+nnew)*elem);
@@ -7093,9 +7097,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		for (uint32_t i = ninfile; i < nold; ++ i) {
 		    // write NULLs
 		    ierr = fwrite(&tmp, elem, 1, fdat);
-		    if (ierr == 0)
-			logError("writeData", "unable to write to \"%s\"",
-				 fn);
+		    LOGGER(ierr == 0 && ibis::gVerbose >= 0)
+			<< "Warning -- " << evt << " failed to write to \""
+			<< fn << "\", fwrite returned " << ierr;
 		}
 	    }
 	    ierr = fseek(fdat, nold*elem, SEEK_SET);
@@ -7127,22 +7131,19 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
 	nact = fwrite(arr, elem, nnew, fdat);
 	fclose(fdat);
-	if (nact < nnew ) {
-	    logWarning("writeData", "expected to write %lu int "
-		       "to \"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nnew), fn,
-		       static_cast<long unsigned>(nact));
-	}
+	LOGGER(nact < nnew && ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write " << nnew
+	    << " short ints to \"" << fn << "\", but only wrote " << nact;
     }
     else if (m_type == ibis::UBYTE) {
 	// data type is 1-byte integer
 	const unsigned char tmp = 255;
 	const unsigned int elem = sizeof(unsigned char);
 	if (ninfile != nold*elem) {
-	    logMessage("writeData", "file \"%s\" is expected to have %lu "
-		       "bytes but it has %lu", fn,
-		       static_cast<long unsigned>(nold*elem),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected file \"" << fn
+		<< "\" to have " << nold*elem <<  " bytes but it has "
+		<< ninfile;
 	    if (ninfile > (nold+nnew)*elem) {
 		// need to truncate the file
 		fclose(fdat);
@@ -7154,9 +7155,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		for (uint32_t i = ninfile; i < nold; ++ i) {
 		    // write NULL values
 		    ierr = fwrite(&tmp, elem, 1, fdat);
-		    if (ierr == 0)
-			logError("writeData", "unable to write to \"%s\"",
-				 fn);
+		    LOGGER(ierr == 0 && ibis::gVerbose >= 0)
+			<< "Warning -- " << evt << " failed to write to \""
+			<< fn <<"\", fwrite returned " << ierr;
 		}
 	    }
 	    ierr = fseek(fdat, nold*elem, SEEK_SET);
@@ -7188,22 +7189,20 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
 	nact = fwrite(arr, elem, nnew, fdat);
 	fclose(fdat);
-	if (nact < nnew ) {
-	    logWarning("writeData", "expected to write %lu unsigned int "
-		       "to \"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nnew), fn,
-		       static_cast<long unsigned>(nact));
-	}
+	LOGGER(nact < nnew && ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write "<< nnew
+	    << " unsigned short ints to \"" << fn << "\", but only wrote "
+	    << nact;
     }
     else if (m_type == ibis::BYTE) {
 	// data type is 1-byte signed integers
 	const signed char tmp = 127;
 	const unsigned int elem = sizeof(signed char);
 	if (ninfile != nold*elem) {
-	    logMessage("writeData", "file \"%s\" is expected to have %lu "
-		       "bytes but it has %lu", fn,
-		       static_cast<long unsigned>(nold*elem),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected file \"" << fn
+		<< "\" to have " << nold*elem << " bytes but it has "
+		<< ninfile;
 	    if (ninfile > (nold+nnew)*elem) {
 		fclose(fdat);
 		ierr = truncate(fn, (nold+nnew)*elem);
@@ -7214,9 +7213,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		for (uint32_t i = ninfile; i < nold; ++ i) {
 		    // write NULLs
 		    ierr = fwrite(&tmp, elem, 1, fdat);
-		    if (ierr == 0)
-			logError("writeData", "unable to write to \"%s\"",
-				 fn);
+		    LOGGER(ierr == 0 && ibis::gVerbose >= 0)
+			<< "Warning -- " << evt << " failed to write to \""
+			<< fn << "\", fwrite returned " << ierr;
 		}
 	    }
 	    ierr = fseek(fdat, nold*elem, SEEK_SET);
@@ -7248,12 +7247,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
 	nact = fwrite(arr, elem, nnew, fdat);
 	fclose(fdat);
-	if (nact < nnew ) {
-	    logWarning("writeData", "expected to write %lu int "
-		       "to \"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nnew), fn,
-		       static_cast<long unsigned>(nact));
-	}
+	LOGGER(nact < nnew && ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write " << nnew
+	    << " 8-bit ints to \"" << fn << "\", but only wrote " << nact;
     }
     else if (m_type == ibis::FLOAT) {
 	// data type is float -- single precision floating-point values
@@ -7265,18 +7261,18 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	const float tmp = FASTBIT_FLOAT_NULL;
 	const unsigned int elem = sizeof(float);
 	if (ninfile != nold*elem) {
-	    logMessage("writeData", "file \"%s\" is expected to have %lu "
-		       "bytes but it has %lu", fn,
-		       static_cast<long unsigned>(nold*elem),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected file \"" << fn
+		<< "\" to have " << nold*elem << " bytes but it has "
+		<< ninfile;
 	    if (ninfile < nold*elem) {
 		ninfile /= elem;
 		for (uint32_t i = ninfile; i < nold; ++ i) {
 		    // write NULLs
 		    ierr = fwrite(&tmp, elem, 1, fdat);
-		    if (ierr == 0)
-			logError("writeData", "unable to write to \"%s\"",
-				 fn);
+		    LOGGER(ierr == 0 && ibis::gVerbose >= 0)
+			<< "Warning -- " << evt << " failed to write to \""
+			<< fn << "\", fwrite returned " << ierr;
 		}
 	    }
 	    else if (ninfile > (nold+nnew)*elem) {
@@ -7313,12 +7309,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
 	nact = fwrite(arr, elem, nnew, fdat);
 	fclose(fdat);
-	if (nact < nnew ) {
-	    logWarning("writeData", "expected to write %lu float "
-		       "to \"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nnew), fn,
-		       static_cast<long unsigned>(nact));
-	}
+	LOGGER(nact < nnew && ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expected to write " << nnew
+	    << " floats to \"" << fn << "\", but only wrote " << nact;
     }
     else if (m_type == ibis::DOUBLE) {
 	// data type is double -- double precision floating-point values
@@ -7330,18 +7323,18 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	const double tmp = FASTBIT_DOUBLE_NULL;
 	const unsigned int elem = sizeof(double);
 	if (ninfile != nold*elem) {
-	    logMessage("writeData", "file \"%s\" is expected to have %lu "
-		       "bytes but it has %lu", fn,
-		       static_cast<long unsigned>(nold*elem),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << evt << " expected file \"" << fn
+		<< "\" to have " << nold*elem << " bytes but it has "
+		<< ninfile;
 	    if (ninfile < nold*elem) {
 		ninfile /= elem;
 		for (uint32_t i = nact; i < nold; ++ i) {
 		    // write NULLs
 		    ierr = fwrite(&tmp, elem, 1, fdat);
-		    if (ierr == 0)
-			logError("writeData", "unable to write to \"%s\"",
-				 fn);
+		    LOGGER(ierr == 0 && ibis::gVerbose >= 0)
+			<< "Warning -- " << evt << " failed to write to \""
+			<< fn << "\", fwrite returned " << ierr;
 		}
 	    }
 	    else if (ninfile > (nold+nnew)*elem) {
@@ -7367,12 +7360,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 
 	nact = fwrite(arr, elem, nnew, fdat);
 	fclose(fdat);
-	if (nact < nnew ) {
-	    logWarning("writeData", "expected to write %lu double "
-		       "to \"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nnew), fn,
-		       static_cast<long unsigned>(nact));
-	}
+	LOGGER(nact < nnew && ibis::gVerbose > 0)
+	    << "Warning " << evt << " expected to write " << nnew
+	    << " doubles to \"" << fn << "\", but only wrote " << nact;
     }
     else if (m_type == ibis::OID) {
 	// OID is formed from two unsigned ints, i.e., both va1 and va2 are
@@ -7380,15 +7370,17 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	// use logError to terminate this function upon any error
 	if (va2 == 0 || va1 == 0) {
 	    fclose(fdat);
-	    logWarning("writeData", "both components of OID must be valid");
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt
+		<< " needs both components of OID to be valid";
 	    return 0;
 	}
-	else if (ninfile != 2*sizeof(int)*nold) {
+	else if (ninfile != 8*nold) {
 	    fclose(fdat);
-	    logWarning("writeData", "OID file \"%s\" is expected to %lu "
-		       "bytes, but it has %lu", fn,
-		       static_cast<long unsigned>(2*sizeof(int)*nold),
-		       static_cast<long unsigned>(ninfile));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected OID file \"" << fn
+		<< "\" to have " << 8*nold << " bytes, but it has "
+		<< ninfile;
 	    return 0;
 	}
 	else {
@@ -7399,21 +7391,20 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 		ierr += fwrite(en+nact, sizeof(unsigned), 1, fdat);
 		if (ierr != 2) {
 		    fclose(fdat);
-		    logWarning("writeData", "failed to write new OID # %lu "
-			       "to \"%s\"", static_cast<long unsigned>(nact),
-			       fn);
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " failed to write new OID # "
+			<< nact << "to \"" << fn << "\", fwrite returned "
+			<< ierr;
 		    break;
 		}
 	    }
 	    fclose(fdat);
-	    if (nact != nnew) {
-		logWarning("writeData", "nact(=%lu) must be the same as "
-			   "nnew(=%lu) for the OID column, remove \"%s\"",
-			   static_cast<long unsigned>(nact),
-			   static_cast<long unsigned>(nnew), fn);
+	    LOGGER(nact != nnew && ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected nact(=" << nact
+		<< ") to be the same as nnew(=" << nnew
+		<< ") for the OID column, remove \"" << fn << "\"";
 		(void) remove(fn);
 		nact = 0;
-	    }
 	    return nact;
 	}
     }
@@ -7428,12 +7419,10 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	    (void) memset(tmp, 0, 1024);
 	    ninfile = mask.size();
 	    if (nold > ninfile) {
-		if (ibis::gVerbose > 2)
-		    logMessage("writeData", "adding %lu null string(s) "
-			       "(mask.size()=%lu, nold=%lu)",
-			       static_cast<long unsigned>(nold-ninfile),
-			       static_cast<long unsigned>(ninfile),
-			       static_cast<long unsigned>(nold));
+		LOGGER(ibis::gVerbose > 2)
+		    << evt << " adding " << (nold-ninfile)
+		    << " null string(s) (mask.size()=" << ninfile
+		    << ", nold=" << nold << ")";
 		for (uint32_t i = ninfile; i < nold; i += 1024)
 		    fwrite(tmp, 1, (nold-i>1024)?1024:(nold-i), fdat);
 	    }
@@ -7448,34 +7437,31 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
 	nact = fwrite(arr, 1, nbytes, fdat);
 	fclose(fdat);
 	if (nact != nbytes) { // no easy way to recover
-	    logWarning("writeData", "expected to write %lu bytes to "
-		       "\"%s\", but only wrote %lu",
-		       static_cast<long unsigned>(nbytes), fn,
-		       static_cast<long unsigned>(nact));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected to write " << nbytes
+		<< " bytes to \"" << fn << "\", but only wrote " << nact;
 	    ierr = truncate(fn, oldbytes);
 	    nact = 0;
 	}
 	else {
-	    if (ibis::gVerbose > 13)
-		logMessage("writeData", "wrote %lu bytes as requested",
-			   static_cast<long unsigned>(nact));
+	    LOGGER(ibis::gVerbose > 7)
+		<< evt << " wrote " << nact << " bytes of strings";
 	    nact = nnew;
 	}
     }
     else {
 	fclose(fdat);
-	logError("writeData", "data type %d not yet supported",
-		 (int)(m_type));
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << "does not yet supported type "
+	    << ibis::TYPESTRING[(int)(m_type)];
 	return 0;
     }
 
-    if (ibis::gVerbose > 8) {
+    if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg() << "column[" << (thePart != 0 ? thePart->name() : "")
-	     << '.' << m_name << "](" << ibis::TYPESTRING[(int)m_type]
-	     << ")::writeData -- wrote " << nact << " entr"
-	     << (nact>1?"ies":"y") << " (expected " << nnew
-	     << ") to " << fn << "\n";
+	lg() << evt << " wrote " << nact << " entr" << (nact>1?"ies":"y")
+	     << " of type " << ibis::TYPESTRING[(int)m_type]
+	     << " (expected " << nnew << ") to " << fn << "\n";
 	if (ibis::gVerbose > 16)
 	    lg() << *this;
     }
@@ -7486,11 +7472,9 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     mask.adjustSize(nact+nold, nnew+nold);
     if (mask.cnt() < mask.size()) {
 	mask.write(fn);
-	LOGGER(ibis::gVerbose > 6)
-	    << "column[" << (thePart != 0 ? thePart->name() : "")
-	    << '.' << m_name << "](" << ibis::TYPESTRING[(int)m_type]
-	    << ")::writeData -- null mask in \"" << fn << "\" contains "
-	    << mask.cnt() << " set bits and " << mask.size() << " total bits";
+	LOGGER(ibis::gVerbose > 8)
+	    << evt << " wrote the new null mask to \"" << fn << "\" with "
+	    << mask.cnt() << " set bits out of " << mask.size();
     }
     else if (ibis::util::getFileSize(fn) > 0) {
 	(void) remove(fn);

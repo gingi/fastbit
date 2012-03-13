@@ -5082,8 +5082,13 @@ int ibis::bin::write(const char* dt) const {
     if (nobs <= 0 || nrows <= 0) return -1;
     std::string fnm;
     indexFileName(dt, fnm);
-    if (fname != 0 && fnm.compare(fname) == 0) // same file name
+    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
+    }
+    else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
+	return 0;
+    }
+    ibis::fileManager::instance().flushFile(fnm.c_str());
 
     try {
 	if (str != 0 || fname != 0)

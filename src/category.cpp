@@ -179,14 +179,13 @@ void ibis::category::prepareMembers() const {
 	idxf += FASTBIT_DIRSEP;
 	idxf += m_name;
 	idxf += ".idx";
-	ibis::fileManager::storage *st = new ibis::fileManager::storage;
-	if (0 <= ibis::fileManager::instance().getFile(idxf.c_str(), &st)) {
-	    idx = new ibis::direkte(this, st);
-	    if (idx->getNRows() != thePart->nRows()) {
-		delete idx;
-		delete st;
-		idx = 0;
-	    }
+	idx = new ibis::direkte(this,
+				static_cast<ibis::fileManager::storage*>(0));
+	if (0 <= static_cast<ibis::direkte*>(idx)->read(idxf.c_str()) ||
+	    idx->getNRows() != thePart->nRows()) {
+	    delete idx;
+	    idx = 0;
+	    ibis::fileManager::instance().flushFile(idxf.c_str());
 	}
     }
     if (idx == 0 || idx->getNRows() != thePart->nRows()) {

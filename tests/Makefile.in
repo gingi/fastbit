@@ -607,7 +607,7 @@ uninstall-am:
 #
 # tests with different levels of thoroughness
 check: clean-tmp check-am TESTDIR
-	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} >> $(TESTDIR)/stdout.log 2>&1
+	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} >> $(TESTDIR)/std.log 2>&1
 	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
 	$(MAKE) check-text && $(MAKE) check-marksdb && \
 	$(MAKE) really-small && $(MAKE) check-maurel && \
@@ -630,8 +630,8 @@ check-thula: $(THULAEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t2/t2a/-part.txt $(T
 	@rm -f $(TESTDIR)/thula-0 $(TESTDIR)/thula-1
 	@$(THULAEXE) -d $(TESTDIR)/t1/ -w "a = 0" 2>&1 | if [ `fgrep " produced 2 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a = b and -1 < c < 10" 2>&1 | if [ `fgrep " produced 20 hits out of 200 records" - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@$(THULAEXE) -d $(TESTDIR)/t1 -w "-2 <= c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 >> $(TESTDIR)/stdout.log 2>&1 && if [ `diff -w vault/thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), countdistinct(a)/count(*)" -x $(TESTDIR)/thula-1 >> $(TESTDIR)/stdout.log 2>&1 && if [ `diff -w vault/thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@$(THULAEXE) -d $(TESTDIR)/t1 -w "-2 <= c < 10" -s "min(a/b), max(a/b), avg(a/b)" -x $(TESTDIR)/thula-0 >> $(TESTDIR)/std.log 2>&1 && if [ `diff -w vault/thula-0 $(TESTDIR)/thula-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@$(THULAEXE) -d $(TESTDIR)/t1 -w "a < c and b > 30" -s "b, min(b/c*c), max(sqrt(a/c)^2*c), countdistinct(a)/count(*)" -x $(TESTDIR)/thula-1 >> $(TESTDIR)/std.log 2>&1 && if [ `diff -w vault/thula-1 $(TESTDIR)/thula-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@$(THULAEXE) -d $(TESTDIR)/t2 -w "a between -1 and 1" 2>&1 | if [ `fgrep "t2) contains 14 rows but no columns" - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@echo
 check-tcapi: $(TCAPIEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt

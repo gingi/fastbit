@@ -131,8 +131,14 @@ int ibis::moins::write(const char* dt) const {
 
     std::string name;
     indexFileName(dt, name);
-    if (fname != 0 && name.compare(fname) == 0)
+    if (0 != str && 0 != str->filename() &&
+	0 == name.compare(str->filename())) {
 	return 0;
+    }
+    else if (fname != 0 && *fname != 0 && 0 == name.compare(fname)) {
+	return 0;
+    }
+    ibis::fileManager::instance().flushFile(name.c_str());
 
     if (fname != 0 || str != 0)
 	activate();

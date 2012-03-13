@@ -273,8 +273,12 @@ int ibis::pale::write(const char* dt) const {
 
     std::string fnm;
     indexFileName(dt, fnm);
-    if (fname != 0 && fnm.compare(fname) == 0)
+    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
+    }
+    else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
+	return 0;
+    }
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) { // try again
