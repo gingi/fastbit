@@ -1,3 +1,7 @@
+2012-03-14 Dominique Prunier <dominique dot prunier at watch4net dot com>
+	* src/category.cpp: update pattern search to retrive the correct
+	bit vector
+
 2012-03-14 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: in test case 12 of check-ibis, change -t 5 to
 	-t to allow PGI compiled programs to pass 'make check'

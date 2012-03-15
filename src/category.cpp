@@ -611,14 +611,13 @@ long ibis::category::patternSearch(const char *pat) const {
     }
 
     LOGGER(ibis::gVerbose > 5)
-	<< "category[" << (thePart != 0 ? thePart->name() : "??")
-	<< '.' << m_name << "]::patternSearch starting to match pattern "
-	<< pat;
+	<< "category[" << (thePart != 0 ? thePart->name() : "??") << '.'
+	<< m_name << "]::patternSearch starting to match pattern " << pat;
     long est = 0;
-    std::auto_ptr< ibis::array_t<uint32_t> > tmp(new ibis::array_t<uint32_t>);
-    dic.patternSearch(pat, *tmp);
-    for (uint32_t j = 0; j < tmp->size(); ++ j) {
-	const ibis::bitvector *bv = rlc->getBitvector(j);
+    ibis::array_t<uint32_t> tmp;
+    dic.patternSearch(pat, tmp);
+    for (uint32_t j = 0; j < tmp.size(); ++ j) {
+	const ibis::bitvector *bv = rlc->getBitvector(tmp[j]);
 	if (bv != 0)
 	    est += bv->cnt();
     }
@@ -650,15 +649,14 @@ long ibis::category::patternSearch(const char *pat,
     }
 
     LOGGER(ibis::gVerbose > 5)
-	<< "category[" << (thePart != 0 ? thePart->name() : "??")
-	<< '.' << m_name << "]::patternSearch starting to match pattern "
-	<< pat;
+	<< "category[" << (thePart != 0 ? thePart->name() : "??") << '.'
+	<< m_name << "]::patternSearch starting to match pattern " << pat;
     long est = 0;
     uint32_t cnt = 0;
-    std::auto_ptr< ibis::array_t<uint32_t> > tmp(new ibis::array_t<uint32_t>);
-    dic.patternSearch(pat, *tmp);
-    for (uint32_t j = 0; j < tmp->size(); ++ j) {
-	const ibis::bitvector *bv = rlc->getBitvector(j);
+    ibis::array_t<uint32_t> tmp;
+    dic.patternSearch(pat, tmp);
+    for (uint32_t j = 0; j < tmp.size(); ++ j) {
+	const ibis::bitvector *bv = rlc->getBitvector(tmp[j]);
 	if (bv != 0) {
 	    ++ cnt;
 	    est += bv->cnt();
