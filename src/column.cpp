@@ -403,8 +403,9 @@ uint32_t ibis::column::numBins() const {
     return nBins;
 } // ibis::column::numBins
 
-// actually go through values and determine the min/max values, the min is
-// recordeed as lowerBound and the max is recorded as the upperBound
+/// Compute the actual min/max values.  It actually goes through all the
+/// values.  This function reads the data in the active data directory and
+/// modifies the member variables to record the actual min/max.
 void ibis::column::computeMinMax() {
     if (thePart == 0 || thePart->currentDataDir() == 0) return;
     std::string sname;
@@ -416,6 +417,9 @@ void ibis::column::computeMinMax() {
     }
 } // ibis::column::computeMinMax
 
+/// Compute the actual min/max values.  It actually goes through all the
+/// values.  This function reads the data in the given directory and
+/// modifies the member variables to record the actual min/max.
 void ibis::column::computeMinMax(const char *dir) {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0)) return;
     std::string sname;
@@ -427,8 +431,10 @@ void ibis::column::computeMinMax(const char *dir) {
     }
 } // ibis::column::computeMinMax
 
-/// Go through the values in data directory @c dir and compute the actual
-/// min and max.
+/// Compute the actual min/max of the data in directory @c dir.  Report the
+/// actual min/max found back through output arguments @c min and @c max.
+/// This version does not modify the min/max recorded in this column
+/// object.
 void ibis::column::computeMinMax(const char *dir, double &min,
 				 double &max) const {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0)) return;

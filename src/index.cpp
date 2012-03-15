@@ -704,8 +704,9 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			double amin = c->lowerBound();
 			double amax = c->upperBound();
 			if (amin >= amax && amin >= 0) {
-			    c->computeMinMax(c->partition()->currentDataDir(),
-					     amin, amax);
+			    const_cast<ibis::column*>(c)->computeMinMax();
+			    amin = c->lowerBound();
+			    amax = c->upperBound();
 			}
 			if (amax - amin < 1e3 ||
 			    amax - amin < c->partition()->nRows()*0.1) {

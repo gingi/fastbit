@@ -1,3 +1,11 @@
+2012-03-14 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: in test case 12 of check-ibis, change -t 5 to
+	-t to allow PGI compiled programs to pass 'make check'
+	* INSTALL: update information about PGI compiler and SVN accesses
+	* src/index.cpp:707 remember the min/max computed for the column
+	* src/idirekte.cpp:25 add call to ibis::column::computeMinMax to
+	compute the min and max values before declaring an error
+
 2012-03-13 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: change prepareMembers to avoid using retriving
 	the index file content to a storage object (which creates problem

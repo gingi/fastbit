@@ -94,14 +94,8 @@ public:
     /// Retrive the number of rows in each bin.
     void binWeights(std::vector<uint32_t>&) const;
 
-    /// Compute the actual min/max values by actually going through all the
-    /// values.  This function reads the data in the active data directory
-    /// and modifies the member variables to record the actual min/max.
     virtual void computeMinMax();
     virtual void computeMinMax(const char *dir);
-    /// Compute the actual min/max of the data in directory @c dir.  Report
-    /// the actual min/max found back through output arguments @c min and
-    /// @c max.
     virtual void computeMinMax(const char *dir,
 			       double& min, double &max) const;
 

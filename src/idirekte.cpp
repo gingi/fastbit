@@ -22,12 +22,15 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 	throw ibis::bad_alloc("wrong column type for ibis::direkte");
     }
     if (c->lowerBound() < 0.0 || c->upperBound() < 0.0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Error -- direkte can only be used on nonnegative integer values, "
-	    "but the current minimal value is "
-	    << (c->lowerBound()<=c->upperBound() ? c->lowerBound() :
-		c->upperBound());
-	throw ibis::bad_alloc("minimal value must >= 0 for ibis::direkte");
+	const_cast<ibis::column*>(c)->computeMinMax();
+	if (c->lowerBound() < 0.0 || c->upperBound() < 0.0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Error -- direkte can only be used on nonnegative integer "
+		"values, but the current minimal value is "
+		<< (c->lowerBound()<=c->upperBound() ? c->lowerBound() :
+		    c->upperBound());
+	    throw ibis::bad_alloc("minimal value must >= 0 for ibis::direkte");
+	}
     }
 
     int ierr = read(f);
