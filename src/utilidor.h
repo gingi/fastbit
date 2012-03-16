@@ -36,19 +36,20 @@ namespace ibis {
 
 	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
-	void FASTBIT_CXX_DLLSPEC reorder(array_t<T> &arr,
-					 const array_t<uint32_t> &ind);
-	void FASTBIT_CXX_DLLSPEC reorder(std::vector<std::string> &arr,
-					 const array_t<uint32_t> &ind);
+	void FASTBIT_CXX_DLLSPEC
+	reorder(array_t<T> &arr, const array_t<uint32_t> &ind);
+	void FASTBIT_CXX_DLLSPEC
+	reorder(std::vector<std::string> &arr, const array_t<uint32_t> &ind);
 	/// Reorder the array arr according to the indices given in ind.
 	template <typename T>
-	void FASTBIT_CXX_DLLSPEC reorder(array_t<T*> &arr,
-					 const array_t<uint32_t> &ind);
+	void FASTBIT_CXX_DLLSPEC
+	reorder(array_t<T*> &arr, const array_t<uint32_t> &ind);
 	/// Sort two arrays together.  Order arr1 in ascending order first,
 	/// then when arr1 has the same value, order arr2 in ascending
 	/// order as well.
 	template <typename T1, typename T2>
-	void FASTBIT_CXX_DLLSPEC sortAll(array_t<T1>& arr1, array_t<T2>& arr2);
+	void FASTBIT_CXX_DLLSPEC
+	sortAll(array_t<T1>& arr1, array_t<T2>& arr2);
 
 	/// An in-memory sort merge join function with string values.
 	int64_t FASTBIT_CXX_DLLSPEC
@@ -70,13 +71,14 @@ namespace ibis {
 	/// Sorting function with payload.  Sort keys in ascending order,
 	/// move the vals accordingly.
 	template <typename T1, typename T2>
-	void FASTBIT_CXX_DLLSPEC sortKeys(array_t<T1>& keys, array_t<T2>& vals);
+	void FASTBIT_CXX_DLLSPEC
+	sortKeys(array_t<T1>& keys, array_t<T2>& vals);
 	/// Sorting function with string as keys and uint32_t as payload.
-	void FASTBIT_CXX_DLLSPEC sortStrings(std::vector<std::string>& keys,
-			 array_t<uint32_t>& vals);
+	void FASTBIT_CXX_DLLSPEC
+	sortStrings(std::vector<std::string>& keys, array_t<uint32_t>& vals);
 	/// Sorting function with string as keys and uint32_t as payload.
-	void FASTBIT_CXX_DLLSPEC sortStrings(array_t<const char*>& keys,
-			 array_t<uint32_t>& vals);
+	void FASTBIT_CXX_DLLSPEC
+	sortStrings(array_t<const char*>& keys, array_t<uint32_t>& vals);
 
 	/// A simple heap based on std::push_heap and std::pop_heap.
 	template <typename T, class C>

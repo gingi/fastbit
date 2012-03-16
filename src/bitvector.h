@@ -45,7 +45,7 @@ Encoding format <http://lbl.gov/~kwu/ps/LBNL-49626.html>
  Restrictions
 <ul>
 <li> The number of bits must be expressible by one single
-    bitvector::word_t.  This ensure that a fill word can store a fill of
+    bitvector::word_t.  This ensures that a fill word can store a fill of
     any valid length without performing a bound check.  If
     bitvector::word_t is 32-bit long, the maximum number of bits that can
     be represented by a bitvector object is 4 billion.
@@ -53,8 +53,8 @@ Encoding format <http://lbl.gov/~kwu/ps/LBNL-49626.html>
 <li> When adding a bit with bitvector::operator+=, the integer value passed
     in must be one of 0 or 1.  Since checking whether the import value is 0
     or not 0 causes pipeline bubble in CPU, we have opted for not performing
-    the check.  An input value other than 0 or 1 will cause existing bits
-    to be modified in unpredictable ways.
+    the check.  An input value other than 0 or 1 will cause unrelated bits
+    to be modified and producing an incorrect bitvector.
 </ul>
 
 @ingroup FastBitIBIS
@@ -310,8 +310,6 @@ private:
     inline void append_counter(int val, word_t cnt);
     inline word_t cnt_ones(word_t) const; // number of ones in a word
     inline word_t cnt_bits(word_t) const; // number of bits in a word
-    /// Count the number of bits and number of ones in m_vec.
-    /// Return the number of bits.
     word_t do_cnt() const throw ();
 }; // class bitvector
 

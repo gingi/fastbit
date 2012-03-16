@@ -25,15 +25,19 @@ public:
 
     /// Return the number of valid (not null) strings in the dictionary.
     uint32_t size() const {return key_.size();}
+
     const char* operator[](uint32_t i) const;
     uint32_t operator[](const char* str) const;
     const char* find(const char* str) const;
     void patternSearch(const char* pat, array_t<uint32_t>& matches) const;
+
     uint32_t insert(const char* str);
     uint32_t insertRaw(char* str);
 
     void clear();
     void swap(dictionary&);
+    void sort(ibis::array_t<uint32_t>&);
+
     int  read(const char* name);
     int  write(const char* name) const;
 

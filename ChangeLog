@@ -1,3 +1,13 @@
+2012-03-16 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.h, src/dictionary.cpp: add function dictionary
+	sort
+	* src/category.cpp: in category::fillIndex add code to reoder the
+	dicrionary entries
+
+2012-03-16 Andrew Olson <olson at cshl dot edu>
+	* src/bord.h, src/bord.cpp: add function dumpJSON to output data
+	in JSON format
+
 2012-03-14 Dominique Prunier <dominique dot prunier at watch4net dot com>
 	* src/category.cpp: update pattern search to retrive the correct
 	bit vector

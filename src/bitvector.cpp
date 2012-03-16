@@ -460,8 +460,8 @@ ibis::bitvector::word_t ibis::bitvector::compressible() const {
     return cnt;
 } // ibis::bitvector::compressible
 
-// return the number of bits counted and modify the member variable nset to
-// the correct value
+/// Count the number of bits and number of ones in m_vec.  Return the
+/// number of bits.  Modify the member variable nset to the correct value.
 ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
     nset = 0;
     word_t nb = 0;

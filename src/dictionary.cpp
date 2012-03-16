@@ -746,3 +746,24 @@ uint32_t ibis::dictionary::insertRaw(char* str) {
     code_[ind] = nk;
     return nk;
 } // ibis::dictionary::insertRaw
+
+/// Reassign the integer values to the strings.  Upon successful completion
+/// of this function, the integer values assigned to the strings will be in
+/// ascending order.  In other word, string values that are lexigraphically
+/// smaller will have smaller integer representations.
+///
+/// The argument to this function carrys the permutation information needed
+/// to turn the previous integer assignments into the new ones.  If the
+/// previous assignment was k, the new assignement will be o2n[k].  Note
+/// that the name o2n is shorthand for old-to-new.
+void ibis::dictionary::sort(ibis::array_t<uint32_t> &o2n) {
+    const size_t nelm = code_.size();
+    o2n.resize(nelm+1);
+    o2n[0] = 0;  // 0 is always mapped to 0
+    for (uint32_t j = 0; j < nelm; ++ j) {
+	raw_[j+1] = key_[j];
+	o2n[code_[j]] = j+1;
+	code_[j] = j+1;
+    }
+} // ibis::dictionary::sort
+

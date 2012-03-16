@@ -268,6 +268,21 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
     if (dic.size() == 0)
 	readDictionary(dir);
 
+    std::string evt = "category";
+    if (ibis::gVerbose > 1) {
+	evt += '[';
+	evt += (thePart ? thePart->name() : "?");
+	evt += '.';
+	evt += m_name;
+	evt += ']';
+    }
+    evt += "::fillIndex";
+    if (ibis::gVerbose > 2) {
+	evt += '(';
+	evt += dir;
+	evt += ')';
+    }
+
     ibis::direkte *rlc = 0;
     if (dic.size() == 1) { // assume every entry has the given value
 	rlc = new ibis::direkte(this, 1);
@@ -278,9 +293,9 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 	data += m_name; // primary data file name
 	int fdata = UnixOpen(data.c_str(), OPEN_READONLY);
 	if (fdata < 0) {
-	    if (ibis::gVerbose > 1)
-		logMessage("fillIndex", "unable to open data file %s",
-			   data.c_str());
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << evt << " failed to open data file "
+		<< data;
 	    return 0;
 	}
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -315,12 +330,10 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 		    cnt += (ints[i] == 0);
 		if (cnt + thePart->nRows() == nints) {
 		    LOGGER(ibis::gVerbose > 1)
-			<< "category["
-			<< (thePart != 0 ? thePart->name() : "")
-			<< "." << name() << "]::fillIndex -- found "
-			<< nints << " strings while expecting "
-			<< thePart->nRows() << "; remove "
-			<< cnt << " null strings";
+			<< "Warning -- " << evt << " found " << nints
+			<< " strings while expecting " << thePart->nRows()
+			<< "; but the extra " << cnt
+			<< " strings are nulls, will remove the nulls";
 
 		    cnt = 0;
 		    for (unsigned i = 0; i < nints; ++ i) {
@@ -334,9 +347,7 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 		    LOGGER(thePart->getStateNoLocking()
 			   != ibis::part::PRETRANSITION_STATE
 			   && ibis::gVerbose > 1)
-			<< "Warning -- category["
-			<< (thePart != 0 ? thePart->name() : "")
-			<< "." << name() << "]::fillIndex found " << nints
+			<< "Warning -- " << evt << " found " << nints
 			<< " strings while expecting " << thePart->nRows()
 			<< ", truncating the list of values";
 		}
@@ -346,6 +357,20 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 	    }
 	    if (thePart->getStateNoLocking() != ibis::part::PRETRANSITION_STATE)
 		ints.resize(thePart->nRows());
+
+	    try {
+		// reorder dictionary and ints
+		ibis::array_t<uint32_t> o2n;
+		dic.sort(o2n);
+		const uint32_t nints = ints.size();
+		for (uint32_t j = 0; j < nints; ++ j)
+		    ints[j] = o2n[ints[j]];
+	    }
+	    catch (...) {
+		LOGGER(ibis::gVerbose > 5)
+		    << evt << " did not find enough space to reorder the "
+		    "dictionary entries, continue with the existing order";
+	    }
 	    //#if defined(WRITE_INT_VALUES_FOR_KEYS)
 	    data += ".int";
 	    ints.write(data.c_str());
