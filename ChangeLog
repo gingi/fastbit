@@ -3,6 +3,7 @@
 	sort
 	* src/category.cpp: in category::fillIndex add code to reoder the
 	dicrionary entries
+	* src/bord.cpp:1952 add double quote around string value
 
 2012-03-16 Andrew Olson <olson at cshl dot edu>
 	* src/bord.h, src/bord.cpp: add function dumpJSON to output data

@@ -1949,7 +1949,7 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 		out << (*vals)[i];
 	    }
 	    else if ((*vals)[i] > 0) {
-		out << (*dic)[(*vals)[i]];
+		out << '"' << (*dic)[(*vals)[i]] << '"';
 	    }
 	    ierr = 0;
 	}
