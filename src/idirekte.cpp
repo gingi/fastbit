@@ -809,7 +809,7 @@ ibis::direkte::keys(const ibis::bitvector& mask) const {
 	else {
 	    LOGGER(ibis::gVerbose > 4)
 		<< "Warning -- direkte[" << col->partition()->name() << '.'
-		<< col->name() << "]::keys bits[" << i << "] can not be activated";
+		<< col->name() << "]::keys bits[" << i << "] is nil";
 	}
     }
 

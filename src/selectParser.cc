@@ -698,7 +698,7 @@ namespace ibis {
 	fun = driver.addAgregado(ibis::selectClause::CNT, var);
     }
     else {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- only operator COUNT supports * as the argument, "
 	    "but received " << *(yysemantic_stack_[(4) - (1)].stringVal);
 	throw "invalid use of (*)";

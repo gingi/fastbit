@@ -377,8 +377,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 	bdlfile[0] = 0;
     }
     if (comps.empty()) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bundle1 can not continue with an empty "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Error -- bundle1 can not continue with an empty "
 	    "select clause";
 	throw "bundle1 can not work with empty select clauses";
     }
@@ -503,8 +503,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 		    }
 		}
 		if (col->size() != hits->cnt()) {
-		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- bundle1::ctor got " << col->size()
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Error -- bundle1::ctor got " << col->size()
 			<< " value" << (col->size()>1?"s":"")
 			<< " but expected " << hits->cnt();
 		    delete col;
@@ -588,8 +588,8 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
 		}
 	    }
 	    if (col->size() != hits.cnt()) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- bundle1::ctor got "
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Error -- bundle1::ctor got "
 		    << col->size() << " value"
 		    << (col->size()>1?"s":"") << ", but expected "
 		    << hits.cnt();
@@ -654,7 +654,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
     }
     if (tm == 0 || icol >= comps.aggSize()) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- bundle1::ctor failed to locate a valid column "
+	    << "Error -- bundle1::ctor failed to locate a valid column "
 	    "name in " << comps;
 	throw "bundle1::ctor can not find a column name";
     }
@@ -667,7 +667,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	c = tbl.getColumn(comps.aggName(icol));
     if (c == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- bundle1 constructor failed to find column "
+	    << "Error -- bundle1 constructor failed to find column "
 	    << comps.aggName(icol) << " in " << tbl.name();
 	throw "bundle1::ctor can find the named column";
     }
@@ -705,8 +705,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	sort(dir);
 
 	if (col == 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- bundle1::ctor failed to create an in-memory "
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Error -- bundle1::ctor failed to create an in-memory "
 		"representation for " << *comps;
 	    throw "bundle1::ctor failed to create a bundle";
 	}

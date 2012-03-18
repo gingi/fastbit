@@ -340,8 +340,8 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 		maxLength = readMetaData(nEvents, columns, activeDir);
 	    }
 	    else {
-		LOGGER(ibis::gVerbose > 5)
-		    << "Warning -- part::part(" << adir << ", "
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Error -- part::part(" << adir << ", "
 		    << (const void*)bdir << "): stat.st_mode="
 		    << static_cast<int>(tmp.st_mode) << " is not a directory";
 		throw std::invalid_argument("the argument to part::part "
@@ -855,8 +855,8 @@ void ibis::part::init(const char* iname) {
 	if (! readonly) {
 	    int ierr = ibis::util::makeDir(activeDir); // make sure it exists
 	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "part::init(" << (iname!=0 ? iname : "")
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Error -- part::init(" << (iname!=0 ? iname : "")
 		    << ") failed to create directory " << activeDir;
 		throw "Can NOT generate the necessary data directory";
 	    }
@@ -864,19 +864,16 @@ void ibis::part::init(const char* iname) {
     }
     catch (const std::exception &e) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- part::init failed because of " << e.what();
-	throw "part::init received a std::exception while calling "
-	    "makeDir";
+	    << "Error -- part::init failed because of " << e.what();
+	throw "part::init received a std::exception while calling makeDir";
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- part::init failed because of " << s;
-	throw "part::init received a string exception while calling "
-	    "makeDir";
+	    << "Error -- part::init failed because of " << s;
+	throw "part::init received a string exception while calling makeDir";
     }
     catch (...) {
-	throw "part::init received a unknown exception while "
-	    "calling makeDir";
+	throw "part::init received a unknown exception while calling makeDir";
     }
 
     // read metadata file in activeDir
@@ -1047,15 +1044,13 @@ void ibis::part::init(const char* iname) {
     j = 0;
     if (maxLength <= 0) maxLength = 16;
     if (strlen(activeDir)+16+maxLength > PATH_MAX) {
-	ibis::util::logMessage
-	    ("Warning", "directory name \"%s\" is too long",
-	     activeDir);
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- directory name \"" << activeDir << "\" is too long";
 	++j;
     }
     if (backupDir != 0 && strlen(backupDir)+16+maxLength > PATH_MAX) {
-	ibis::util::logMessage
-	    ("Warning", "directory name \"%s\" is too long",
-	     backupDir);
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- directory name \"" << backupDir << "\" is too long";
 	++j;
     }
     if (j) throw "direcotry names too long";
@@ -4682,7 +4677,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::LONG: {
 	try {
 	    ibis::array_t<int64_t> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), intarray) == 0) {
 		switch (cmp.getType()) {
 		default: {
 		    ierr = doCompare(intarray, cmp, mask,
@@ -4699,13 +4695,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    }
 	    else {
 		ierr = doCompare<int64_t>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<int64_t>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<int64_t>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
 	    ierr = doCompare<int64_t>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<int64_t>*>(res), hits);
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<int64_t>*>(res), hits);
 	}
 	catch (...) {
 	    throw;
@@ -4715,7 +4712,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::ULONG: {
 	try {
 	    ibis::array_t<uint64_t> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray) == 0) {
+	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray)
+		== 0) {
 		switch (cmp.getType()) {
 		default: {
 		    ierr = doCompare
@@ -4733,13 +4731,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    }
 	    else {
 		ierr = doCompare<uint64_t>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<uint64_t>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<uint64_t>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
 	    ierr = doCompare<uint64_t>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<uint64_t>*>(res), hits);
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<uint64_t>*>(res), hits);
 	}
 	catch (...) {
 	    throw;
@@ -4749,7 +4748,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::INT: {
 	try {
 	    ibis::array_t<int32_t> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4765,13 +4765,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    }
 	    else {
 		ierr = doCompare<int32_t>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<int32_t>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<int32_t>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
 	    ierr = doCompare<int32_t>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<int32_t>*>(res), hits);
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<int32_t>*>(res), hits);
 	}
 	catch (...) {
 	    throw;
@@ -4781,30 +4782,31 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::UINT: {
 	try {
 	    ibis::array_t<uint32_t> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
-		    ierr = doScan(intarray, rng, mask,
-				  *static_cast<array_t<uint32_t>*>(res),
-				  hits);
+		    ierr = doScan
+			(intarray, rng, mask,
+			 *static_cast<array_t<uint32_t>*>(res), hits);
 		}
 		else {
-		    ierr = doCompare(intarray, cmp, mask,
-				     *static_cast<array_t<uint32_t>*>(res),
-				     hits);
+		    ierr = doCompare
+			(intarray, cmp, mask,
+			 *static_cast<array_t<uint32_t>*>(res), hits);
 		}
 	    }
 	    else {
 		ierr = doCompare<uint32_t>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<uint32_t>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<uint32_t>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
 	    ierr = doCompare<uint32_t>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<uint32_t>*>(res),
-		 hits);
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<uint32_t>*>(res), hits);
 	}
 	catch (...) {
 	    throw;
@@ -4814,7 +4816,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::SHORT: {
 	try {
 	    ibis::array_t<int16_t> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4830,8 +4833,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    }
 	    else {
 		ierr = doCompare<int16_t>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<int16_t>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<int16_t>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
@@ -4847,7 +4850,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::USHORT: {
 	try {
 	    ibis::array_t<uint16_t> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4856,21 +4860,21 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				  hits);
 		}
 		else {
-		    ierr = doCompare(intarray, cmp, mask,
-				     *static_cast<array_t<uint16_t>*>(res),
-				     hits);
+		    ierr = doCompare
+			(intarray, cmp, mask,
+			 *static_cast<array_t<uint16_t>*>(res), hits);
 		}
 	    }
 	    else {
 		ierr = doCompare<uint16_t>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<uint16_t>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<uint16_t>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
 	    ierr = doCompare<uint16_t>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<uint16_t>*>(res),
-		 hits);
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<uint16_t>*>(res), hits);
 	}
 	catch (...) {
 	    throw;
@@ -4880,7 +4884,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::BYTE: {
 	try {
 	    ibis::array_t<signed char> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4896,14 +4901,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    }
 	    else {
 		ierr = doCompare<signed char>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<signed char>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<signed char>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
 	    ierr = doCompare<signed char>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<signed char>*>(res),
-		 hits);
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<signed char>*>(res), hits);
 	}
 	catch (...) {
 	    throw;
@@ -4913,7 +4918,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::UBYTE: {
 	try {
 	    ibis::array_t<unsigned char> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4937,8 +4943,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	}
 	catch (const std::bad_alloc&) {
 	    ierr = doCompare<unsigned char>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<unsigned char>*>(res),
-		 hits);
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<unsigned char>*>(res), hits);
 	}
 	catch (...) {
 	    throw;
@@ -4948,7 +4954,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::FLOAT: {
 	try {
 	    ibis::array_t<float> floatarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), floatarray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), floatarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE)
 		    ierr = doScan
 			(floatarray,
@@ -4960,13 +4967,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    }
 	    else {
 		ierr = doCompare<float>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<float>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<float>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
 	    ierr = doCompare<float>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<float>*>(res), hits);
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<float>*>(res), hits);
 	}
 	catch (...) {
 	    throw;
@@ -4976,7 +4984,8 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::DOUBLE: {
 	try {
 	    ibis::array_t<double> doublearray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), doublearray) == 0) {
+	    if (ibis::fileManager::instance().getFile
+		(sname.c_str(), doublearray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE)
 		    ierr = doScan
 			(doublearray,
@@ -4989,14 +4998,14 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    }
 	    else {
 		ierr = doCompare<double>
-		    (sname.c_str(), cmp, mask, *static_cast<array_t<double>*>(res),
-		     hits);
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<double>*>(res), hits);
 	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<double>(sname.c_str(), cmp, mask,
-				     *static_cast<array_t<double>*>(res),
-				     hits);
+	    ierr = doCompare<double>
+		(sname.c_str(), cmp, mask,
+		 *static_cast<array_t<double>*>(res), hits);
 	}
 	catch (...) {
 	    throw;

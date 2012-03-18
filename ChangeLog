@@ -1,3 +1,8 @@
+2012-03-17 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp, src/fileManager.cpp: print the message before
+	throwing an exception with ibis::gVerbose >= 0, prefix the
+	messages with Error instead of Warning
+
 2012-03-16 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.h, src/dictionary.cpp: add function dictionary
 	sort

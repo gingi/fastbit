@@ -204,7 +204,7 @@ mathExpr ADDOP mathExpr {
 	fun = driver.addAgregado(ibis::selectClause::CNT, var);
     }
     else {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- only operator COUNT supports * as the argument, "
 	    "but received " << *$1;
 	throw "invalid use of (*)";

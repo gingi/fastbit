@@ -32,7 +32,7 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
     nEvents = static_cast<uint32_t>(nr);
     if (nEvents != nr) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "bord::ctor can not handle " << nr
+	    << "Error -- bord::ctor can not handle " << nr
 	    << " rows in an in-memory table";
 	throw "Too many rows for an in-memory table";
     }
@@ -176,8 +176,8 @@ ibis::bord::bord(const char *tn, const char *td,
 		    colorder.push_back(col);
 		}
 		else {
-		    LOGGER(ibis::gVerbose > 1)
-			<< "Warning -- bord::ctor failed to allocate column "
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Error -- bord::ctor failed to allocate column "
 			<< cname << " for in-memory partition " << tn;
 		    throw "bord::ctor failed to allocate a column";
 		}
@@ -204,15 +204,15 @@ ibis::bord::bord(const char *tn, const char *td,
 		    colorder.push_back(col);
 		}
 		else {
-		    LOGGER(ibis::gVerbose > 1)
-			<< "Warning -- bord::ctor failed to allocate column "
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Error -- bord::ctor failed to allocate column "
 			<< cname << " for in-memory partition " << tn;
 		    throw "bord::ctor failed to allocate a column";
 		}
 	    }
 	    else {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- bord::ctor failed to locate column "
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Error -- bord::ctor failed to locate column "
 		    << var.variableName() << " in data partition "
 		    << ref.name();
 		throw "bord::ctor failed to locate a needed column";
@@ -226,8 +226,8 @@ ibis::bord::bord(const char *tn, const char *td,
 		colorder.push_back(col);
 	    }
 	    else {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- bord::ctor failed to allocate column "
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Error -- bord::ctor failed to allocate column "
 		    << cname << " for in-memory partition " << tn;
 		throw "bord::ctor failed to allocate a column";
 	    }
@@ -8172,8 +8172,8 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
 	    // delete stv;
 	    break;}
 	default: {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- bord::column::ctor can not handle column ("
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Error -- bord::column::ctor can not handle column ("
 		<< cn << ") with type " << ibis::TYPESTRING[(int)t];
 	    throw "bord::column unexpected type";}
 	}
@@ -8223,8 +8223,8 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
 	    //dic = new ibis::dictionary();
 	    break;}
 	default: {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- bord::column::ctor can not handle column ("
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Error -- bord::column::ctor can not handle column ("
 		<< cn << ") with type " << ibis::TYPESTRING[(int)t];
 	    throw "bord::column unexpected type";}
 	}

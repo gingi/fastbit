@@ -1959,7 +1959,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 	    }
 
 	    // find the merging accumulator index,
-	    // matching to the size of "merged-in" greouped partition.
+	    // matching to the size of "merged-in" grouped partition.
 	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
 	    if (lg2 < mergesFirst) mergesFirst = lg2;
 	    if (lg2 > mergesLast) mergesLast = lg2;

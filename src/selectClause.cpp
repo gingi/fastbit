@@ -283,7 +283,7 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
 				ibis::math::term *expr) {
     if (agr != ibis::selectClause::NIL_AGGR &&
 	hasAggregation(expr)) {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- selectClause can not have aggregations inside "
 	    "another aggregation operation (" << *expr << ')';
 	throw "nested aggregations";
@@ -426,7 +426,7 @@ void ibis::selectClause::addTerm(ibis::math::term *tm, const std::string* al) {
 	xtms_.push_back(xtm);
     }
     else {
-	LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- selectClause::addTerm(" << *tm
 	    << ") encountered an ill-formed arithmetic expression";
 	throw "selectClause encountered an ill-formed expression";
