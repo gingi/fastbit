@@ -750,14 +750,28 @@ long ibis::category::patternSearch(const char *pat,
     return est;
 } // ibis::category::patternSearch
 
-/// Retrieve the string value represented by the integer i.
+/// Return the string at the <code>i</code>th row.  If the .int file is
+/// present, it will be used, otherwise this function uses the raw data
+/// file.
 void ibis::category::getString(uint32_t i, std::string &str) const {
+    str.clear();
     if (i > dic.size())
 	prepareMembers();
-    if (i > 0 && i <= dic.size())
-	str = dic[i];
-    else
-	str.clear();
+
+    int ierr;
+    std::string fnm;
+    if (dataFileName(fnm) != 0) { // try .int file
+	fnm += ".int";
+	ibis::array_t<uint32_t> ints;
+	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), ints);
+	if (ierr >= 0 && ints.size() == thePart->nRows()) {
+	    if (i < ints.size()) {
+		str = dic[ints[i]];
+	    }
+	    return;
+	}
+    }
+    ibis::text::readString(i, str);
 } // ibis::category::getString
 
 /// This function checks to make sure the index is ready.

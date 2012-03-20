@@ -3352,6 +3352,10 @@ int ibis::bord::merge0(std::vector<ibis::bord::column*> &vals,
 			   agg[jc]);
 	    break;
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge0 can not deal with vals[" << jc
+		<< "] (" << vals[jc]->name() << ") of type "
+		<< ibis::TYPESTRING[(int)vals[jc]->type()];
 	    ierr = -5;
 	    break;
 	}
@@ -3407,6 +3411,10 @@ int ibis::bord::merge10(ibis::bord::column &k1,
 
     switch (k1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge10 can not deal with k1 ("
+	    << k1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k1.type()];
 	return -6;
     case ibis::BYTE: {
 	ibis::array_t<signed char> &ak0 =
@@ -3645,6 +3653,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
     int ierr = -1;
     switch (k1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge11 can not deal with k1 ("
+	    << k1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k1.type()];
 	return -2;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak2 =
@@ -3655,6 +3667,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -3757,6 +3773,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -3859,6 +3879,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -3961,6 +3985,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -4063,6 +4091,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -4165,6 +4197,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -4267,6 +4303,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -4369,6 +4409,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -4471,6 +4515,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -4573,6 +4621,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	ak0.nosharing();
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -4675,6 +4727,10 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	const std::vector<std::string> ak1(ak0);
 	switch (v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge11 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return -3;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char> &av2 =
@@ -4940,6 +4996,10 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 
     switch (k1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge12 can not deal with k1 ("
+	    << k1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k1.type()];
 	return -2;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak2 =
@@ -5060,6 +5120,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 
     switch (u1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge12T1 can not deal with u1 ("
+	    << u1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)u1.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char>& au2 =
@@ -5070,6 +5134,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -5182,6 +5250,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -5294,6 +5366,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -5406,6 +5482,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -5518,6 +5598,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -5630,6 +5714,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -5742,6 +5830,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -5854,6 +5946,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -5966,6 +6062,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -6078,6 +6178,10 @@ ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12T1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -6286,6 +6390,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 
     switch (u1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge12S1 can not deal with u1 ("
+	    << u1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)u1.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char>& au2 =
@@ -6296,6 +6404,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -6408,6 +6520,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -6520,6 +6636,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -6632,6 +6752,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -6744,6 +6868,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -6856,6 +6984,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -6968,6 +7100,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -7080,6 +7216,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -7192,6 +7332,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -7304,6 +7448,10 @@ ibis::bord::merge12S1(std::vector<std::string> &kout,
 	au0.nosharing();
 	switch(v1.type()) {
 	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- bord::merge12S1 can not deal with v1 ("
+		<< v1.name() << ") of type "
+		<< ibis::TYPESTRING[(int)v1.type()];
 	    return ierr;
 	case ibis::BYTE: {
 	    const ibis::array_t<signed char>& av2 =
@@ -7509,6 +7657,10 @@ int ibis::bord::merge20(ibis::bord::column &k11,
 
     switch (k11.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge20 can not deal with k11 ("
+	    << k11.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k11.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak12 =
@@ -7635,6 +7787,10 @@ ibis::bord::merge20T1(ibis::array_t<Tk1> &k1out,
 
     switch (k21.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge20T1 can not deal with k21 ("
+	    << k21.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k21.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak22 =
@@ -7856,6 +8012,10 @@ ibis::bord::merge20S1(std::vector<std::string> &k1out,
 
     switch (k21.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge20S1 can not deal with k21 ("
+	    << k21.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k21.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak22 =
@@ -8236,6 +8396,10 @@ int ibis::bord::merge21(ibis::bord::column &k11,
 
     switch (k11.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge21 can not deal with k11 ("
+	    << k11.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k11.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak12 =
@@ -8357,6 +8521,10 @@ int ibis::bord::merge21T1(ibis::array_t<Tk1> &k1out,
 
     switch (k21.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge21T1 can not deal with k21 ("
+	    << k21.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k21.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak22 =
@@ -8479,6 +8647,10 @@ int ibis::bord::merge21T2(ibis::array_t<Tk1> &k1out,
 
     switch (v1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge21T2 can not deal with v1 ("
+	    << v1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)v1.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &av2 =
@@ -8697,6 +8869,10 @@ int ibis::bord::merge21S1(std::vector<std::string> &k1out,
 
     switch (k21.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge21S1 can not deal with k21 ("
+	    << k21.name() << ") of type "
+	    << ibis::TYPESTRING[(int)k21.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &ak22 =
@@ -8817,6 +8993,10 @@ int ibis::bord::merge21S2(std::vector<std::string> &k1out,
 
     switch (v1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge21S2 can not deal with v1 ("
+	    << v1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)v1.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &av2 =
@@ -9034,6 +9214,10 @@ int ibis::bord::merge21S4(std::vector<std::string> &k1out,
 
     switch (v1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge21S4 can not deal with v1 ("
+	    << v1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)v1.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &av2 =
@@ -9252,6 +9436,10 @@ int ibis::bord::merge21S6(ibis::array_t<Tk1> &k1out,
 
     switch (v1.type()) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::merge21S6 can not deal with v1 ("
+	    << v1.name() << ") of type "
+	    << ibis::TYPESTRING[(int)v1.type()];
 	return ierr;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &av2 =
@@ -15375,20 +15563,23 @@ ibis::bord::column::selectStrings(const ibis::bitvector& mask) const {
     return array;
 } // ibis::bord::column::selectStrings
 
-/// Convert the integer value i into the corresponding string value.
+/// Return the string at the <code>i</code>th row.  If the raw data is not
+/// present, but a dictionary is present, then this function return the
+/// string value corresponding to the integer value i.  Note that this
+/// fall-back option does not conform to the original intention of this
+/// function.
 void ibis::bord::column::getString(uint32_t i, std::string &val) const {
     val.erase();
-    if (dic != 0) {
-	if (i > 0 && i <= (*dic).size())
-	    val = (*dic)[i];
-    }
-    else if (m_type == ibis::TEXT || m_type == ibis::CATEGORY) {
+    if (buffer != 0 && (m_type == ibis::TEXT || m_type == ibis::CATEGORY)) {
 	std::vector<std::string> *str_column = 
 	    static_cast<std::vector<std::string> *>(buffer);
 	if ( i < str_column->size())
 	    val = str_column->at(i);
     }
-
+    else if (dic != 0) {
+	if (i > 0 && i <= (*dic).size())
+	    val = (*dic)[i];
+    }
 } // ibis::bord::column::getString
 
 /// Makes a copy of the in-memory data.  Uses a shallow copy for

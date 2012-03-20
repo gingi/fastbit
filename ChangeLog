@@ -4,6 +4,9 @@
 	make strings suitable for group by operaton were based on
 	converting them to integers which can not be trusted when the
 	dictionaries do not match, problem raised by Andrew Olson)
+	* src/bord.cpp, src/category.cpp: getString did not return ith
+	string value promised by the interface specification in some
+	cases.
 
 2012-03-19 John Wu <John dot Wu at ACM dot org>
 	* src/index.h: add function ibis::index::sizeInBytes
