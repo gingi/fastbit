@@ -243,6 +243,161 @@ ibis::bord::bord(const char *tn, const char *td,
 	<< (columns.size() > 1U ? "s" : "");
 } // ctor
 
+/// Constructor.  It produces an empty data partition for storing values to
+/// be selected by the select clause.  The reference data partition list is
+/// used to determine the data types.  For columns, the type is determined
+/// by the first data partition in the list.  However, for categorical
+/// values it checks to see if all the data paritions have the same
+/// dictionary before deciding what type to use.  If the data partitions
+/// have the same dictionary, then it uses an integer representation for
+/// the column, otherwise it keeps the strings explcitly.  Normally, we
+/// would expect the integer reprepresentation to be more compact and more
+/// efficient to use.
+///
+/// @note The list of partitions, ref, can not be empty.
+ibis::bord::bord(const char *tn, const char *td,
+		 const ibis::selectClause &sc, const ibis::constPartList &ref)
+    : ibis::part("in-core") {
+    if (ref.empty())
+	throw "Can not construct a bord with an empty list of parts";
+
+    if (td != 0 && *td != 0) {
+	m_desc = td;
+    }
+    else {
+	std::ostringstream oss;
+	oss << "in-memory data partition for select clause " << sc;
+	m_desc = oss.str();
+    }
+    if (tn != 0 && *tn != 0) {
+	m_name = ibis::util::strnewdup(tn);
+    }
+    else {
+	m_name = ibis::util::strnewdup(ibis::util::shortName(m_desc).c_str());
+    }
+    desc_ = m_desc;
+    name_ = m_name;
+    const size_t nagg = sc.aggSize();
+    for (size_t j = 0; j < nagg; ++ j) {
+	const char* cname = sc.aggName(j);
+	const ibis::math::term* ctrm = sc.aggExpr(j);
+	if (cname == 0 || *cname == 0 || ctrm == 0) continue;
+	cname = ibis::part::skipPrefix(cname);
+
+	switch (ctrm->termType()) {
+	case ibis::math::UNDEF_TERM:
+	case ibis::math::NUMBER:
+	case ibis::math::STRING:
+	    break;
+	case ibis::math::VARIABLE: {
+	    const ibis::math::variable &var =
+		*static_cast<const ibis::math::variable*>(ctrm);
+	    const char* vname = var.variableName();
+	    if (*vname == '*') { // special name
+		ibis::bord::column *col = new ibis::bord::column
+		    (this, ibis::UINT, "*", 0, "count(*)");
+		if (col != 0) {
+		    columns[col->name()] = col;
+		    colorder.push_back(col);
+		}
+		else {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Error -- bord::ctor failed to allocate column "
+			<< cname << " for in-memory partition " << tn;
+		    throw "bord::ctor failed to allocate a column";
+		}
+	    }
+	    else { // normal name
+		const ibis::column* refcol = 0;
+		for (unsigned i = 0; refcol == 0 && i < ref.size(); ++ i) {
+		    refcol = ref[0]->getColumn(var.variableName());
+		    if (refcol == 0) {
+			size_t nch = strlen(ref[i]->name());
+			if (0 == strnicmp(ref[i]->name(), vname, nch) &&
+			    vname[nch] == '_') {
+			    refcol = ref[i]->getColumn(vname+nch+1);
+			}
+		    }
+		}
+		if (refcol != 0) {
+		    ibis::TYPE_T t = refcol->type();
+		    if (refcol->type() == ibis::CATEGORY) {
+			unsigned i = 0;
+			bool samecats = true;
+			const ibis::dictionary *dic0 = 
+			    static_cast<const ibis::category*>(refcol)
+			    ->getDictionary();
+			for (; samecats && i < ref.size(); ++ i) {
+			    const ibis::category *cat1 =
+				dynamic_cast<const ibis::category*>
+				(ref[i]->getColumn(refcol->name()));
+			    if (cat1 != 0) {
+				const ibis::dictionary *dic1 =
+				    cat1->getDictionary();
+				samecats = dic0->equal_to(*dic1);
+			    }
+			}
+			t = (samecats ? ibis::UINT : ibis::CATEGORY);
+		    }
+		    ibis::bord::column *col = new ibis::bord::column
+			(this, t, cname, 0, sc.aggName(j));
+		    if (col != 0) {
+			if (refcol->type() == ibis::CATEGORY &&
+			    t == ibis::UINT) {
+			    col->loadIndex();
+			    col->setDictionary(static_cast<const ibis::category*>
+					       (refcol)->getDictionary());
+			}
+			else if (refcol->type() == ibis::UINT) {
+			    const ibis::bord::column *bc =
+				dynamic_cast<const ibis::bord::column*>(refcol);
+			    if (bc != 0)
+				col->setDictionary(bc->getDictionary());
+			}
+			columns[col->name()] = col;
+			colorder.push_back(col);
+		    }
+		    else {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Error -- bord::ctor failed to allocate column "
+			    << cname << " for in-memory partition " << tn;
+			throw "bord::ctor failed to allocate a column";
+		    }
+		}
+		else {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Error -- bord::ctor failed to locate column "
+			<< var.variableName() << " in " << ref.size()
+			<< "data partition" << (ref.size() > 1 ? "s" : "");
+		    throw "bord::ctor failed to locate a needed column";
+		}
+	    }
+	    break;}
+	default: {
+	    ibis::bord::column *col = new ibis::bord::column
+		(this, ibis::DOUBLE, cname, 0, sc.aggName(j));
+	    if (col != 0) {
+		columns[col->name()] = col;
+		colorder.push_back(col);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Error -- bord::ctor failed to allocate column "
+		    << cname << " for in-memory partition " << tn;
+		throw "bord::ctor failed to allocate a column";
+	    }
+	    break;}
+	}
+    }
+
+    state = ibis::part::STABLE_STATE;
+    LOGGER(ibis::gVerbose > 1)
+	<< "Constructed in-memory data partition "
+	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
+	<< " -- with " << columns.size() << " column"
+	<< (columns.size() > 1U ? "s" : "");
+} // ctor
+
 /// Clear the existing content.
 void ibis::bord::clear() {
 } // ibis::bord::clear
@@ -1162,6 +1317,7 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	return -1;
 
     switch (col->type()) {
+    case ibis::CATEGORY:
     case ibis::TEXT: {
 	const std::vector<std::string>* arr =
 	    static_cast<const std::vector<std::string>*>(col->getArray());
@@ -1257,21 +1413,21 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 	}
 	return sz;}
 
-    case ibis::CATEGORY:{
-	const array_t<uint32_t> *arr =
-	    static_cast<const array_t<uint32_t>*>(col->getArray());
-	if (arr == 0) return -3;
+    // case ibis::CATEGORY:{
+    // 	const array_t<uint32_t> *arr =
+    // 	    static_cast<const array_t<uint32_t>*>(col->getArray());
+    // 	if (arr == 0) return -3;
 
-	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
-	if (begin >= sz)
-	    return 0;
+    // 	uint32_t sz = (nEvents <= arr->size() ? nEvents : arr->size());
+    // 	if (begin >= sz)
+    // 	    return 0;
 
-	vals.resize(sz);
-	const ibis::dictionary* aDic = col->getDictionary();
-	for (uint32_t i = 0; i < sz; ++ i) {
-	    vals[i] = (*aDic)[(*arr)[i+begin]];
-	}
-	return sz;}
+    // 	vals.resize(sz);
+    // 	const ibis::dictionary* aDic = col->getDictionary();
+    // 	for (uint32_t i = 0; i < sz; ++ i) {
+    // 	    vals[i] = (*aDic)[(*arr)[i+begin]];
+    // 	}
+    // 	return sz;}
     case ibis::UINT: {
 	const array_t<uint32_t> *arr =
 	    static_cast<const array_t<uint32_t>*>(col->getArray());
@@ -2198,26 +2354,26 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    else
 		ierr =-4;
 	    break;}
-	    // 	case ibis::BLOB: {
-	    // 	    std::string spname = cnm;
-	    // 	    spname += ".sp";
-	    // 	    int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
-	    // 	    if (sdes < 0) {
-	    // 		LOGGER(ibis::gVerbose >= 0)
-	    // 		    << "bord::backup(" << dir << ") failed to open file "
-	    // 		    << spname << " for writing the starting positions";
-	    // 		return -4;
-	    // 	    }
-	    // 	    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
-	    // #if defined(_WIN32) && defined(_MSC_VER)
-	    // 	    (void)_setmode(sdes, _O_BINARY);
-	    // #endif
+// 	case ibis::BLOB: {
+// 	    std::string spname = cnm;
+// 	    spname += ".sp";
+// 	    int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
+// 	    if (sdes < 0) {
+// 		LOGGER(ibis::gVerbose >= 0)
+// 		    << "bord::backup(" << dir << ") failed to open file "
+// 		    << spname << " for writing the starting positions";
+// 		return -4;
+// 	    }
+// 	    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
+// #if defined(_WIN32) && defined(_MSC_VER)
+// 	    (void)_setmode(sdes, _O_BINARY);
+// #endif
 
-	    // 	    ierr = ibis::part::writeRaw
-	    // 		(fdes, sdes, 0, nEvents,
-	    // 		 * static_cast<const array_t<unsigned char>*>(values),
-	    // 		 col.starts, msk1, msk0);
-	    // 	    break;}
+// 	    ierr = ibis::part::writeRaw
+// 		(fdes, sdes, 0, nEvents,
+// 		 * static_cast<const array_t<unsigned char>*>(values),
+// 		 col.starts, msk1, msk0);
+// 	    break;}
 	default:
 	    break;
 	}
@@ -2447,6 +2603,7 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
 	    buf[i] = new array_t<double>
 		(* static_cast<const array_t<double>*>(bptr));
 	    break;
+	case ibis::CATEGORY:
 	case ibis::TEXT: {
 	    std::vector<std::string> &bstr =
 		* static_cast<std::vector<std::string>*>(bptr);
@@ -2456,12 +2613,12 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
 		(*tmp)[j] = bstr[j];
 	    buf[i] = tmp;
 	    break;}
-	case ibis::CATEGORY: {
-	    buf[i] = new array_t<uint32_t>
-		(* static_cast<const array_t<uint32_t>*>(bptr));
-	    dct[i] = static_cast<const ibis::category*>
-		(bdl->columnPointer(jbdl))->getDictionary();
-	    break;}
+	// case ibis::CATEGORY: {
+	//     buf[i] = new array_t<uint32_t>
+	// 	(* static_cast<const array_t<uint32_t>*>(bptr));
+	//     dct[i] = static_cast<const ibis::category*>
+	// 	(bdl->columnPointer(jbdl))->getDictionary();
+	//     break;}
 	default:
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- " << td << " can not process column "
@@ -2746,6 +2903,7 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
 	    buf[i] = new array_t<double>
 		(* static_cast<const array_t<double>*>(bptr));
 	    break;
+	case ibis::CATEGORY:
 	case ibis::TEXT: {
 	    std::vector<std::string> &bstr =
 		* static_cast<std::vector<std::string>*>(bptr);
@@ -2755,12 +2913,12 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
 		(*tmp)[j] = bstr[j];
 	    buf[i] = tmp;
 	    break;}
-	case ibis::CATEGORY: { // stored as UINT, copy pointer to dictionary
-	    buf[i] = new array_t<uint32_t>
-		(* static_cast<const array_t<uint32_t>*>(bptr));
-	    dct[i] = static_cast<const ibis::category*>
-		(refcol)->getDictionary();
-	    break;}
+	// case ibis::CATEGORY: { // stored as UINT, copy pointer to dictionary
+	//     buf[i] = new array_t<uint32_t>
+	// 	(* static_cast<const array_t<uint32_t>*>(bptr));
+	//     dct[i] = static_cast<const ibis::category*>
+	// 	(refcol)->getDictionary();
+	//     break;}
 	default:
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- " << td << " can not process column "
@@ -2953,7 +3111,7 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 	    lg() << '(' << keys[0]->name();
 	    for (unsigned j = 1; j < keys.size(); ++ j)
 		lg() << ", " << keys[j]->name();
-	    lg() << ") as keys";
+	    lg() << ") as key" << (keys.size()>1 ? "s" : "");
 	}
     }
 
@@ -3340,6 +3498,15 @@ int ibis::bord::merge10(ibis::bord::column &k1,
 	ak0.nosharing();
 	ierr = merge10T(ak0, v1, ak1, av1, ak2, v2, agg);
 	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	std::vector<std::string> &ak0 =
+	    * static_cast<std::vector<std::string>*>(k1.getArray());
+	const std::vector<std::string> &ak2 =
+	    * static_cast<const std::vector<std::string>*>(k2.getArray());
+	const std::vector<std::string> ak1(ak0);
+	ierr = merge10S(ak0, v1, ak1, av1, ak2, v2, agg);
+	break;}
     }
     return ierr;
 } // ibis::bord::merge10
@@ -3403,6 +3570,64 @@ ibis::bord::merge10T(ibis::array_t<Tk> &kout,
     ierr = kout.size();
     return ierr;
 } // ibis::bord::merge10T
+
+int
+ibis::bord::merge10S(std::vector<std::string> &kout,
+		     std::vector<ibis::bord::column*> &vout,
+		     const std::vector<std::string> &kin1,
+		     const std::vector<ibis::bord::column*> &vin1,
+		     const std::vector<std::string> &kin2,
+		     const std::vector<ibis::bord::column*> &vin2,
+		     const std::vector<ibis::selectClause::AGREGADO> &agg) {
+    int ierr = -1;
+    kout.clear();
+    for (size_t j = 0; j < vout.size(); ++ j)
+	vout[j]->limit(0);
+    if (vout.size() != vin1.size() || vout.size() != vin2.size() ||
+	vout.size() != agg.size())
+	return ierr;
+
+    uint32_t i1 = 0;
+    uint32_t i2 = 0;
+    while (i1 < kin1.size() && i2 < kin2.size()) {
+	if (kin1[i1] == kin2[i2]) {
+	    kout.push_back(kin1[i1]);
+	    for (unsigned j = 0; j < vin1.size(); ++ j)
+		vout[j]->append(vin1[j]->getArray(), i1,
+				vin2[j]->getArray(), i2, agg[j]);
+	    ++ i1;
+	    ++ i2;
+	}
+	else if (kin1[i1] < kin2[i2]) {
+	    kout.push_back(kin1[i1]);
+	    for (unsigned j = 0; j < vin1.size(); ++ j)
+		vout[j]->append(vin1[j]->getArray(), i1);
+	    ++ i1;
+	}
+	else {
+	    kout.push_back(kin2[i2]);
+	    for (unsigned j = 0; j < vin2.size(); ++ j)
+		vout[j]->append(vin2[j]->getArray(), i2);
+	    ++ i2;
+	}
+    }
+
+    while (i1 < kin1.size()) {
+	kout.push_back(kin1[i1]);
+	for (unsigned j = 0; j < vin1.size(); ++ j)
+	    vout[j]->append(vin1[j]->getArray(), i1);
+	++ i1;
+    }
+
+    while (i2 < kin2.size()) {
+	kout.push_back(kin2[i2]);
+	for (unsigned j = 0; j < vin2.size(); ++ j)
+	    vout[j]->append(vin2[j]->getArray(), i2);
+	++ i2;
+    }
+    ierr = kout.size();
+    return ierr;
+} // ibis::bord::merge10S
 
 /// Function to merge one column as key and one column as value.
 int ibis::bord::merge11(ibis::bord::column &k1,
@@ -4441,6 +4666,108 @@ int ibis::bord::merge11(ibis::bord::column &k1,
 	    break;}
 	} // v1.type()
 	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &ak2 =
+	    *static_cast<const std::vector<std::string>*>(k2.getArray());
+	std::vector<std::string> &ak0 =
+	    *static_cast<std::vector<std::string>*>(k1.getArray());
+	const std::vector<std::string> ak1(ak0);
+	switch (v1.type()) {
+	default:
+	    return -3;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char> &av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char> &av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char> &av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char> &av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t> &av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t> &av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t> &av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t> &av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t> &av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t> &av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t> &av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t> &av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t> &av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t> &av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t> &av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t> &av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float> &av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float> &av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double> &av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double> &av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge11S(ak0, av0, ak1, av1, ak2, av2, agg);
+	    break;}
+	} // v1.type()
+	break;}
     } // k1.type()
     return ierr;
 } // ibis::bord::merge11
@@ -4520,6 +4847,79 @@ ibis::bord::merge11T(ibis::array_t<Tk> &kout,
     return kout.size();
 } // ibis::bord::merge11T
 
+template <typename Tv> int
+ibis::bord::merge11S(std::vector<std::string> &kout,
+		     ibis::array_t<Tv> &vout,
+		     const std::vector<std::string> &kin1,
+		     const ibis::array_t<Tv> &vin1,
+		     const std::vector<std::string> &kin2,
+		     const ibis::array_t<Tv> &vin2,
+		     ibis::selectClause::AGREGADO agg) {
+    kout.clear();
+    vout.clear();
+    if (kin1.size() != vin1.size() ||
+	kin2.size() != vin2.size())
+	return -10;
+    if (kin1.empty() || vin1.empty()) {
+	kout.insert(kout.end(), kin2.begin(), kin2.end());
+	vout.copy(vin2);
+	return kin2.size();
+    }
+    else if (kin2.empty() || vin2.empty()) {
+	kout.insert(kout.end(), kin1.begin(), kin1.end());
+	vout.copy(vin1);
+	return kin1.size();
+    }
+
+    size_t i1 = 0;
+    size_t i2 = 0;
+    while (i1 < kin1.size() && i2 < kin2.size()) {
+	if (kin1[i1] == kin2[i2]) {
+	    switch (agg) {
+	    default:
+		kout.clear();
+		vout.clear();
+		return -6;
+	    case ibis::selectClause::CNT:
+	    case ibis::selectClause::SUM:
+		vout.push_back(vin1[i1] + vin2[i2]);
+		break;
+	    case ibis::selectClause::MIN:
+		vout.push_back(vin1[i1] <= vin2[i2] ? vin1[i1] : vin2[i2]);
+		break;
+	    case ibis::selectClause::MAX:
+		vout.push_back(vin1[i1] >= vin2[i2] ? vin1[i1] : vin2[i2]);
+		break;
+	    }
+	    kout.push_back(kin1[i1]);
+	    ++ i1;
+	    ++ i2;
+	}
+	else if (kin1[i1] < kin2[i2]) {
+	    kout.push_back(kin1[i1]);
+	    vout.push_back(vin1[i1]);
+	    ++ i1;
+	}
+	else {
+	    kout.push_back(kin2[i2]);
+	    vout.push_back(vin2[i2]);
+	    ++ i2;
+	}
+    }
+
+    while (i1 < kin1.size()) {
+	kout.push_back(kin1[i1]);
+	vout.push_back(vin1[i1]);
+	++ i1;
+    }
+    while (i2 < kin2.size()) {
+	kout.push_back(kin2[i2]);
+	vout.push_back(vin2[i2]);
+	++ i2;
+    }
+    return kout.size();
+} // ibis::bord::merge11S
+
 /// Merge two aggregations sharing the same key.
 int ibis::bord::merge12(ibis::bord::column &k1,
 			ibis::bord::column &u1,
@@ -4548,7 +4948,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<signed char>*>(k1.getArray());
 	const ibis::array_t<signed char> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::UBYTE: {
 	const ibis::array_t<unsigned char> &ak2 =
@@ -4557,7 +4957,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<unsigned char>*>(k1.getArray());
 	const ibis::array_t<unsigned char> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::SHORT: {
 	const ibis::array_t<int16_t> &ak2 =
@@ -4566,7 +4966,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<int16_t>*>(k1.getArray());
 	const ibis::array_t<int16_t> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::USHORT: {
 	const ibis::array_t<uint16_t> &ak2 =
@@ -4575,7 +4975,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<uint16_t>*>(k1.getArray());
 	const ibis::array_t<uint16_t> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::INT: {
 	const ibis::array_t<int32_t> &ak2 =
@@ -4584,7 +4984,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<int32_t>*>(k1.getArray());
 	const ibis::array_t<int32_t> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::UINT: {
 	const ibis::array_t<uint32_t> &ak2 =
@@ -4593,7 +4993,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<uint32_t>*>(k1.getArray());
 	const ibis::array_t<uint32_t> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::LONG: {
 	const ibis::array_t<int64_t> &ak2 =
@@ -4602,7 +5002,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<int64_t>*>(k1.getArray());
 	const ibis::array_t<int64_t> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::ULONG: {
 	const ibis::array_t<uint64_t> &ak2 =
@@ -4611,7 +5011,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<uint64_t>*>(k1.getArray());
 	const ibis::array_t<uint64_t> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::FLOAT: {
 	const ibis::array_t<float> &ak2 =
@@ -4620,7 +5020,7 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<float>*>(k1.getArray());
 	const ibis::array_t<float> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     case ibis::DOUBLE: {
 	const ibis::array_t<double> &ak2 =
@@ -4629,22 +5029,31 @@ int ibis::bord::merge12(ibis::bord::column &k1,
 	    *static_cast<ibis::array_t<double>*>(k1.getArray());
 	const ibis::array_t<double> ak1(ak0);
 	ak0.nosharing();
-	ierr = merge12S(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	ierr = merge12T1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &ak2 =
+	    *static_cast<const std::vector<std::string>*>(k2.getArray());
+	std::vector<std::string> &ak0 =
+	    *static_cast<std::vector<std::string>*>(k1.getArray());
+	const std::vector<std::string> ak1(ak0);
+	ierr = merge12S1(ak0, ak1, ak2, u1, v1, u2, v2, au, av);
 	break;}
     }
     return ierr;
 } // ibis::bord::merge12
 
 template <typename Tk> int
-ibis::bord::merge12S(ibis::array_t<Tk> &kout,
-		     const ibis::array_t<Tk> &kin1,
-		     const ibis::array_t<Tk> &kin2,
-		     ibis::bord::column &u1,
-		     ibis::bord::column &v1,
-		     const ibis::bord::column &u2,
-		     const ibis::bord::column &v2,
-		     ibis::selectClause::AGREGADO au,
-		     ibis::selectClause::AGREGADO av) {
+ibis::bord::merge12T1(ibis::array_t<Tk> &kout,
+		      const ibis::array_t<Tk> &kin1,
+		      const ibis::array_t<Tk> &kin2,
+		      ibis::bord::column &u1,
+		      ibis::bord::column &v1,
+		      const ibis::bord::column &u2,
+		      const ibis::bord::column &v2,
+		      ibis::selectClause::AGREGADO au,
+		      ibis::selectClause::AGREGADO av) {
     int ierr = -1;
     if (u1.type() != u2.type() || v1.type() != v2.type())
 	return ierr;
@@ -5774,7 +6183,7 @@ ibis::bord::merge12S(ibis::array_t<Tk> &kout,
 	break;}
     }
     return ierr;
-} // ibis::bord::merge12S
+} // ibis::bord::merge12T1
 
 template <typename Tk, typename Tu, typename Tv> int
 ibis::bord::merge12T(ibis::array_t<Tk> &kout,
@@ -5860,6 +6269,1232 @@ ibis::bord::merge12T(ibis::array_t<Tk> &kout,
     }
     return kout.size();
 } // ibis::bord::merge12T
+
+int
+ibis::bord::merge12S1(std::vector<std::string> &kout,
+		      const std::vector<std::string> &kin1,
+		      const std::vector<std::string> &kin2,
+		      ibis::bord::column &u1,
+		      ibis::bord::column &v1,
+		      const ibis::bord::column &u2,
+		      const ibis::bord::column &v2,
+		      ibis::selectClause::AGREGADO au,
+		      ibis::selectClause::AGREGADO av) {
+    int ierr = -1;
+    if (u1.type() != u2.type() || v1.type() != v2.type())
+	return ierr;
+
+    switch (u1.type()) {
+    default:
+	return ierr;
+    case ibis::BYTE: {
+	const ibis::array_t<signed char>& au2 =
+	    *static_cast<const ibis::array_t<signed char>*>(u2.getArray());
+	ibis::array_t<signed char>& au0 =
+	    *static_cast<ibis::array_t<signed char>*>(u1.getArray());
+	const ibis::array_t<signed char> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::UBYTE: {
+	const ibis::array_t<unsigned char>& au2 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(u2.getArray());
+	ibis::array_t<unsigned char>& au0 =
+	    *static_cast<ibis::array_t<unsigned char>*>(u1.getArray());
+	const ibis::array_t<unsigned char> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::SHORT: {
+	const ibis::array_t<int16_t>& au2 =
+	    *static_cast<const ibis::array_t<int16_t>*>(u2.getArray());
+	ibis::array_t<int16_t>& au0 =
+	    *static_cast<ibis::array_t<int16_t>*>(u1.getArray());
+	const ibis::array_t<int16_t> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::USHORT: {
+	const ibis::array_t<uint16_t>& au2 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(u2.getArray());
+	ibis::array_t<uint16_t>& au0 =
+	    *static_cast<ibis::array_t<uint16_t>*>(u1.getArray());
+	const ibis::array_t<uint16_t> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::INT: {
+	const ibis::array_t<int32_t>& au2 =
+	    *static_cast<const ibis::array_t<int32_t>*>(u2.getArray());
+	ibis::array_t<int32_t>& au0 =
+	    *static_cast<ibis::array_t<int32_t>*>(u1.getArray());
+	const ibis::array_t<int32_t> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::UINT: {
+	const ibis::array_t<uint32_t>& au2 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(u2.getArray());
+	ibis::array_t<uint32_t>& au0 =
+	    *static_cast<ibis::array_t<uint32_t>*>(u1.getArray());
+	const ibis::array_t<uint32_t> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::LONG: {
+	const ibis::array_t<int64_t>& au2 =
+	    *static_cast<const ibis::array_t<int64_t>*>(u2.getArray());
+	ibis::array_t<int64_t>& au0 =
+	    *static_cast<ibis::array_t<int64_t>*>(u1.getArray());
+	const ibis::array_t<int64_t> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::ULONG: {
+	const ibis::array_t<uint64_t>& au2 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(u2.getArray());
+	ibis::array_t<uint64_t>& au0 =
+	    *static_cast<ibis::array_t<uint64_t>*>(u1.getArray());
+	const ibis::array_t<uint64_t> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::FLOAT: {
+	const ibis::array_t<float>& au2 =
+	    *static_cast<const ibis::array_t<float>*>(u2.getArray());
+	ibis::array_t<float>& au0 =
+	    *static_cast<ibis::array_t<float>*>(u1.getArray());
+	const ibis::array_t<float> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    case ibis::DOUBLE: {
+	const ibis::array_t<double>& au2 =
+	    *static_cast<const ibis::array_t<double>*>(u2.getArray());
+	ibis::array_t<double>& au0 =
+	    *static_cast<ibis::array_t<double>*>(u1.getArray());
+	const ibis::array_t<double> au1(au0);
+	au0.nosharing();
+	switch(v1.type()) {
+	default:
+	    return ierr;
+	case ibis::BYTE: {
+	    const ibis::array_t<signed char>& av2 =
+		*static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	    ibis::array_t<signed char>& av0 =
+		*static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	    const ibis::array_t<signed char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UBYTE: {
+	    const ibis::array_t<unsigned char>& av2 =
+		*static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	    ibis::array_t<unsigned char>& av0 =
+		*static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	    const ibis::array_t<unsigned char> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::SHORT: {
+	    const ibis::array_t<int16_t>& av2 =
+		*static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	    ibis::array_t<int16_t>& av0 =
+		*static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	    const ibis::array_t<int16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::USHORT: {
+	    const ibis::array_t<uint16_t>& av2 =
+		*static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	    ibis::array_t<uint16_t>& av0 =
+		*static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	    const ibis::array_t<uint16_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::INT: {
+	    const ibis::array_t<int32_t>& av2 =
+		*static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	    ibis::array_t<int32_t>& av0 =
+		*static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	    const ibis::array_t<int32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::UINT: {
+	    const ibis::array_t<uint32_t>& av2 =
+		*static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	    ibis::array_t<uint32_t>& av0 =
+		*static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	    const ibis::array_t<uint32_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::LONG: {
+	    const ibis::array_t<int64_t>& av2 =
+		*static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	    ibis::array_t<int64_t>& av0 =
+		*static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	    const ibis::array_t<int64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::ULONG: {
+	    const ibis::array_t<uint64_t>& av2 =
+		*static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	    ibis::array_t<uint64_t>& av0 =
+		*static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	    const ibis::array_t<uint64_t> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::FLOAT: {
+	    const ibis::array_t<float>& av2 =
+		*static_cast<const ibis::array_t<float>*>(v2.getArray());
+	    ibis::array_t<float>& av0 =
+		*static_cast<ibis::array_t<float>*>(v1.getArray());
+	    const ibis::array_t<float> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	case ibis::DOUBLE: {
+	    const ibis::array_t<double>& av2 =
+		*static_cast<const ibis::array_t<double>*>(v2.getArray());
+	    ibis::array_t<double>& av0 =
+		*static_cast<ibis::array_t<double>*>(v1.getArray());
+	    const ibis::array_t<double> av1(av0);
+	    av0.nosharing();
+	    ierr = merge12S(kout, au0, av0, kin1, au1, av1, kin2, au2, av2,
+			    au, av);
+	    break;}
+	}
+	break;}
+    }
+    return ierr;
+} // ibis::bord::merge12S1
+
+template <typename Tu, typename Tv> int
+ibis::bord::merge12S(std::vector<std::string> &kout,
+		     ibis::array_t<Tu> &uout,
+		     ibis::array_t<Tv> &vout,
+		     const std::vector<std::string> &kin1,
+		     const ibis::array_t<Tu> &uin1,
+		     const ibis::array_t<Tv> &vin1,
+		     const std::vector<std::string> &kin2,
+		     const ibis::array_t<Tu> &uin2,
+		     const ibis::array_t<Tv> &vin2,
+		     ibis::selectClause::AGREGADO au,
+		     ibis::selectClause::AGREGADO av) {
+    kout.clear();
+    uout.clear();
+    vout.clear();
+    int ierr = -1;
+    if (kin1.size() != uin1.size() || kin1.size() != vin1.size() ||
+	kin2.size() != uin2.size() || kin2.size() != vin2.size())
+	return ierr;
+
+    size_t j1 = 0;
+    size_t j2 = 0;
+    while (j1 < kin1.size() && j2 < kin2.size()) {
+	if (kin1[j1] == kin2[j2]) { // same key value
+	    switch (au) {
+	    default:
+		return ierr;
+	    case ibis::selectClause::CNT:
+	    case ibis::selectClause::SUM:
+		uout.push_back(uin1[j1] + uin2[j2]);
+		break;
+	    case ibis::selectClause::MAX:
+		uout.push_back(uin1[j1] >= uin2[j2] ? uin1[j1] : uin2[j2]);
+		break;
+	    case ibis::selectClause::MIN:
+		uout.push_back(uin1[j1] <= uin2[j2] ? uin1[j1] : uin2[j2]);
+		break;
+	    }
+	    switch (av) {
+	    default:
+		return ierr;
+	    case ibis::selectClause::CNT:
+	    case ibis::selectClause::SUM:
+		vout.push_back(vin1[j1] + vin2[j2]);
+		break;
+	    case ibis::selectClause::MAX:
+		vout.push_back(vin1[j1] >= vin2[j2] ? vin1[j1] : vin2[j2]);
+		break;
+	    case ibis::selectClause::MIN:
+		vout.push_back(vin1[j1] <= vin2[j2] ? vin1[j1] : vin2[j2]);
+		break;
+	    }
+	    kout.push_back(kin1[j1]);
+	    ++ j1;
+	    ++ j2;
+	}
+	else if (kin1[j1] < kin2[j2]) {
+	    uout.push_back(uin1[j1]);
+	    vout.push_back(vin1[j1]);
+	    kout.push_back(kin1[j1]);
+	    ++ j1;
+	}
+	else {
+	    uout.push_back(uin2[j2]);
+	    vout.push_back(vin2[j2]);
+	    kout.push_back(kin2[j2]);
+	    ++ j2;
+	}
+    }
+
+    while (j1 < kin1.size()) {
+	kout.push_back(kin1[j1]);
+	uout.push_back(uin1[j1]);
+	vout.push_back(vin1[j1]);
+	++ j1;
+    }
+    while (j2 < kin2.size()) {
+	kout.push_back(kin2[j2]);
+	uout.push_back(uin2[j2]);
+	vout.push_back(vin2[j2]);
+	++ j2;
+    }
+    return kout.size();
+} // ibis::bord::merge12S
 
 /// Merge with two key columns and arbitrary number of value columns.
 int ibis::bord::merge20(ibis::bord::column &k11,
@@ -5964,6 +7599,15 @@ int ibis::bord::merge20(ibis::bord::column &k11,
 	const ibis::array_t<double> ak11(ak10);
 	ak10.nosharing();
 	ierr = merge20T1(ak10, ak11, ak12, k21, v1, k22, v2, agg);
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &ak12 =
+	    *static_cast<const std::vector<std::string>*>(k12.getArray());
+	std::vector<std::string> &ak10 =
+	    *static_cast<std::vector<std::string>*>(k11.getArray());
+	const std::vector<std::string> ak11(ak10);
+	ierr = merge20S1(ak10, ak11, ak12, k21, v1, k22, v2, agg);
 	break;}
     }
     return ierr;
@@ -6092,6 +7736,16 @@ ibis::bord::merge20T1(ibis::array_t<Tk1> &k1out,
 	ierr = merge20T2(k1out, ak20, vin1, k1in1, ak21, av1,
 			 k1in2, ak22, vin2, agg);
 	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &ak22 =
+	    *static_cast<const std::vector<std::string>*>(k22.getArray());
+	std::vector<std::string> &ak20 =
+	    *static_cast<std::vector<std::string>*>(k21.getArray());
+	const std::vector<std::string> ak21(ak20);
+	ierr = merge20S3(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
     }
     return ierr;
 } // ibis::bord::merge20T1
@@ -6181,6 +7835,393 @@ ibis::bord::merge20T2(ibis::array_t<Tk1> &k1out,
     ierr = k1out.size();
     return ierr;
 } // ibis::bord::merge20T2
+
+int
+ibis::bord::merge20S1(std::vector<std::string> &k1out,
+		      const std::vector<std::string> &k1in1,
+		      const std::vector<std::string> &k1in2,
+		      ibis::bord::column &k21,
+		      std::vector<ibis::bord::column*> &vin1,
+		      const ibis::bord::column &k22,
+		      const std::vector<ibis::bord::column*> &vin2,
+		      const std::vector<ibis::selectClause::AGREGADO> &agg) {
+    int ierr = -1;
+    if (k21.type() != k22.type()) return ierr;
+
+    std::vector<ibis::bord::column*> av1(vin1.size());
+    IBIS_BLOCK_GUARD(ibis::util::clearVec<ibis::bord::column>,
+		     ibis::util::ref(av1));
+    for (unsigned j = 0; j < vin1.size(); ++ j)
+	av1[j] = new ibis::bord::column(*vin1[j]);
+
+    switch (k21.type()) {
+    default:
+	return ierr;
+    case ibis::BYTE: {
+	const ibis::array_t<signed char> &ak22 =
+	    *static_cast<const ibis::array_t<signed char>*>(k22.getArray());
+	ibis::array_t<signed char> &ak20 =
+	    *static_cast<ibis::array_t<signed char>*>(k21.getArray());
+	const ibis::array_t<signed char> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::UBYTE: {
+	const ibis::array_t<unsigned char> &ak22 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(k22.getArray());
+	ibis::array_t<unsigned char> &ak20 =
+	    *static_cast<ibis::array_t<unsigned char>*>(k21.getArray());
+	const ibis::array_t<unsigned char> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::SHORT: {
+	const ibis::array_t<int16_t> &ak22 =
+	    *static_cast<const ibis::array_t<int16_t>*>(k22.getArray());
+	ibis::array_t<int16_t> &ak20 =
+	    *static_cast<ibis::array_t<int16_t>*>(k21.getArray());
+	const ibis::array_t<int16_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::USHORT: {
+	const ibis::array_t<uint16_t> &ak22 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(k22.getArray());
+	ibis::array_t<uint16_t> &ak20 =
+	    *static_cast<ibis::array_t<uint16_t>*>(k21.getArray());
+	const ibis::array_t<uint16_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::INT: {
+	const ibis::array_t<int32_t> &ak22 =
+	    *static_cast<const ibis::array_t<int32_t>*>(k22.getArray());
+	ibis::array_t<int32_t> &ak20 =
+	    *static_cast<ibis::array_t<int32_t>*>(k21.getArray());
+	const ibis::array_t<int32_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::UINT: {
+	const ibis::array_t<uint32_t> &ak22 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(k22.getArray());
+	ibis::array_t<uint32_t> &ak20 =
+	    *static_cast<ibis::array_t<uint32_t>*>(k21.getArray());
+	const ibis::array_t<uint32_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::LONG: {
+	const ibis::array_t<int64_t> &ak22 =
+	    *static_cast<const ibis::array_t<int64_t>*>(k22.getArray());
+	ibis::array_t<int64_t> &ak20 =
+	    *static_cast<ibis::array_t<int64_t>*>(k21.getArray());
+	const ibis::array_t<int64_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::ULONG: {
+	const ibis::array_t<uint64_t> &ak22 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(k22.getArray());
+	ibis::array_t<uint64_t> &ak20 =
+	    *static_cast<ibis::array_t<uint64_t>*>(k21.getArray());
+	const ibis::array_t<uint64_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::FLOAT: {
+	const ibis::array_t<float> &ak22 =
+	    *static_cast<const ibis::array_t<float>*>(k22.getArray());
+	ibis::array_t<float> &ak20 =
+	    *static_cast<ibis::array_t<float>*>(k21.getArray());
+	const ibis::array_t<float> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::DOUBLE: {
+	const ibis::array_t<double> &ak22 =
+	    *static_cast<const ibis::array_t<double>*>(k22.getArray());
+	ibis::array_t<double> &ak20 =
+	    *static_cast<ibis::array_t<double>*>(k21.getArray());
+	const ibis::array_t<double> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge20S2(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &ak22 =
+	    *static_cast<const std::vector<std::string>*>(k22.getArray());
+	std::vector<std::string> &ak20 =
+	    *static_cast<std::vector<std::string>*>(k21.getArray());
+	const std::vector<std::string> ak21(ak20);
+	ierr = merge20S0(k1out, ak20, vin1, k1in1, ak21, av1,
+			 k1in2, ak22, vin2, agg);
+	break;}
+    }
+    return ierr;
+} // ibis::bord::merge20S1
+
+int
+ibis::bord::merge20S0(std::vector<std::string> &k1out,
+		      std::vector<std::string> &k2out,
+		      std::vector<ibis::bord::column*> &vout,
+		      const std::vector<std::string> &k1in1,
+		      const std::vector<std::string> &k2in1,
+		      const std::vector<ibis::bord::column*> &vin1,
+		      const std::vector<std::string> &k1in2,
+		      const std::vector<std::string> &k2in2,
+		      const std::vector<ibis::bord::column*> &vin2,
+		      const std::vector<ibis::selectClause::AGREGADO> &agg) {
+    int ierr = -1;
+    k1out.clear();
+    k2out.clear();
+    for (size_t j = 0; j < vout.size(); ++ j)
+	vout[j]->limit(0);
+    if (vout.size() != vin1.size() || vout.size() != vin2.size() ||
+	vout.size() != agg.size())
+	return ierr;
+
+    size_t j1 = 0;
+    size_t j2 = 0;
+    while (j1 < k1in1.size() && j2 < k1in2.size()) {
+	if (k1in1[j1] == k1in2[j2]) {
+	    if (k2in1[j1] == k2in2[j2]) {
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		for (unsigned j = 0; j < vin1.size(); ++ j)
+		    vout[j]->append(vin1[j]->getArray(), j1,
+				    vin2[j]->getArray(), j2, agg[j]);
+		++ j1;
+		++ j2;
+	    }
+	    else if (k2in1[j1] < k2in2[j2]) {
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		for (unsigned j = 0; j < vin1.size(); ++ j)
+		    vout[j]->append(vin1[j]->getArray(), j1);
+		++ j1;
+	    }
+	    else {
+		k1out.push_back(k1in2[j2]);
+		k2out.push_back(k2in2[j2]);
+		for (unsigned j = 0; j < vin2.size(); ++ j)
+		    vout[j]->append(vin2[j]->getArray(), j2);
+		++ j2;
+	    }
+	}
+	else if (k1in1[j1] < k1in2[j2]) {
+	    k1out.push_back(k1in1[j1]);
+	    k2out.push_back(k2in1[j1]);
+	    for (unsigned j = 0; j < vin1.size(); ++ j)
+		vout[j]->append(vin1[j]->getArray(), j1);
+	    ++ j1;
+	}
+	else {
+	    k1out.push_back(k1in2[j2]);
+	    k2out.push_back(k2in2[j2]);
+	    for (unsigned j = 0; j < vin2.size(); ++ j)
+		vout[j]->append(vin2[j]->getArray(), j2);
+	    ++ j2;
+	}
+    }
+
+    while (j1 < k1in1.size()) {
+	k1out.push_back(k1in1[j1]);
+	k2out.push_back(k2in1[j1]);
+	for (unsigned j = 0; j < vin1.size(); ++ j)
+	    vout[j]->append(vin1[j]->getArray(), j1);
+	++ j1;
+    }
+
+    while (j2 < k1in2.size()) {
+	k1out.push_back(k1in2[j2]);
+	k2out.push_back(k2in2[j2]);
+	for (unsigned j = 0; j < vin2.size(); ++ j)
+	    vout[j]->append(vin2[j]->getArray(), j2);
+	++ j2;
+    }
+
+    ierr = k1out.size();
+    return ierr;
+} // ibis::bord::merge20S0
+
+template <typename Tk2> int
+ibis::bord::merge20S2(std::vector<std::string> &k1out,
+		      ibis::array_t<Tk2> &k2out,
+		      std::vector<ibis::bord::column*> &vout,
+		      const std::vector<std::string> &k1in1,
+		      const ibis::array_t<Tk2> &k2in1,
+		      const std::vector<ibis::bord::column*> &vin1,
+		      const std::vector<std::string> &k1in2,
+		      const ibis::array_t<Tk2> &k2in2,
+		      const std::vector<ibis::bord::column*> &vin2,
+		      const std::vector<ibis::selectClause::AGREGADO> &agg) {
+    int ierr = -1;
+    k1out.clear();
+    k2out.clear();
+    for (size_t j = 0; j < vout.size(); ++ j)
+	vout[j]->limit(0);
+    if (vout.size() != vin1.size() || vout.size() != vin2.size() ||
+	vout.size() != agg.size())
+	return ierr;
+
+    size_t j1 = 0;
+    size_t j2 = 0;
+    while (j1 < k1in1.size() && j2 < k1in2.size()) {
+	if (k1in1[j1] == k1in2[j2]) {
+	    if (k2in1[j1] == k2in2[j2]) {
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		for (unsigned j = 0; j < vin1.size(); ++ j)
+		    vout[j]->append(vin1[j]->getArray(), j1,
+				    vin2[j]->getArray(), j2, agg[j]);
+		++ j1;
+		++ j2;
+	    }
+	    else if (k2in1[j1] < k2in2[j2]) {
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		for (unsigned j = 0; j < vin1.size(); ++ j)
+		    vout[j]->append(vin1[j]->getArray(), j1);
+		++ j1;
+	    }
+	    else {
+		k1out.push_back(k1in2[j2]);
+		k2out.push_back(k2in2[j2]);
+		for (unsigned j = 0; j < vin2.size(); ++ j)
+		    vout[j]->append(vin2[j]->getArray(), j2);
+		++ j2;
+	    }
+	}
+	else if (k1in1[j1] < k1in2[j2]) {
+	    k1out.push_back(k1in1[j1]);
+	    k2out.push_back(k2in1[j1]);
+	    for (unsigned j = 0; j < vin1.size(); ++ j)
+		vout[j]->append(vin1[j]->getArray(), j1);
+	    ++ j1;
+	}
+	else {
+	    k1out.push_back(k1in2[j2]);
+	    k2out.push_back(k2in2[j2]);
+	    for (unsigned j = 0; j < vin2.size(); ++ j)
+		vout[j]->append(vin2[j]->getArray(), j2);
+	    ++ j2;
+	}
+    }
+
+    while (j1 < k1in1.size()) {
+	k1out.push_back(k1in1[j1]);
+	k2out.push_back(k2in1[j1]);
+	for (unsigned j = 0; j < vin1.size(); ++ j)
+	    vout[j]->append(vin1[j]->getArray(), j1);
+	++ j1;
+    }
+
+    while (j2 < k1in2.size()) {
+	k1out.push_back(k1in2[j2]);
+	k2out.push_back(k2in2[j2]);
+	for (unsigned j = 0; j < vin2.size(); ++ j)
+	    vout[j]->append(vin2[j]->getArray(), j2);
+	++ j2;
+    }
+
+    ierr = k1out.size();
+    return ierr;
+} // ibis::bord::merge20S2
+
+template <typename Tk1> int
+ibis::bord::merge20S3(ibis::array_t<Tk1> &k1out,
+		      std::vector<std::string> &k2out,
+		      std::vector<ibis::bord::column*> &vout,
+		      const ibis::array_t<Tk1> &k1in1,
+		      const std::vector<std::string> &k2in1,
+		      const std::vector<ibis::bord::column*> &vin1,
+		      const ibis::array_t<Tk1> &k1in2,
+		      const std::vector<std::string> &k2in2,
+		      const std::vector<ibis::bord::column*> &vin2,
+		      const std::vector<ibis::selectClause::AGREGADO> &agg) {
+    int ierr = -1;
+    k1out.clear();
+    k2out.clear();
+    for (size_t j = 0; j < vout.size(); ++ j)
+	vout[j]->limit(0);
+    if (vout.size() != vin1.size() || vout.size() != vin2.size() ||
+	vout.size() != agg.size())
+	return ierr;
+
+    size_t j1 = 0;
+    size_t j2 = 0;
+    while (j1 < k1in1.size() && j2 < k1in2.size()) {
+	if (k1in1[j1] == k1in2[j2]) {
+	    if (k2in1[j1] == k2in2[j2]) {
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		for (unsigned j = 0; j < vin1.size(); ++ j)
+		    vout[j]->append(vin1[j]->getArray(), j1,
+				    vin2[j]->getArray(), j2, agg[j]);
+		++ j1;
+		++ j2;
+	    }
+	    else if (k2in1[j1] < k2in2[j2]) {
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		for (unsigned j = 0; j < vin1.size(); ++ j)
+		    vout[j]->append(vin1[j]->getArray(), j1);
+		++ j1;
+	    }
+	    else {
+		k1out.push_back(k1in2[j2]);
+		k2out.push_back(k2in2[j2]);
+		for (unsigned j = 0; j < vin2.size(); ++ j)
+		    vout[j]->append(vin2[j]->getArray(), j2);
+		++ j2;
+	    }
+	}
+	else if (k1in1[j1] < k1in2[j2]) {
+	    k1out.push_back(k1in1[j1]);
+	    k2out.push_back(k2in1[j1]);
+	    for (unsigned j = 0; j < vin1.size(); ++ j)
+		vout[j]->append(vin1[j]->getArray(), j1);
+	    ++ j1;
+	}
+	else {
+	    k1out.push_back(k1in2[j2]);
+	    k2out.push_back(k2in2[j2]);
+	    for (unsigned j = 0; j < vin2.size(); ++ j)
+		vout[j]->append(vin2[j]->getArray(), j2);
+	    ++ j2;
+	}
+    }
+
+    while (j1 < k1in1.size()) {
+	k1out.push_back(k1in1[j1]);
+	k2out.push_back(k2in1[j1]);
+	for (unsigned j = 0; j < vin1.size(); ++ j)
+	    vout[j]->append(vin1[j]->getArray(), j1);
+	++ j1;
+    }
+
+    while (j2 < k1in2.size()) {
+	k1out.push_back(k1in2[j2]);
+	k2out.push_back(k2in2[j2]);
+	for (unsigned j = 0; j < vin2.size(); ++ j)
+	    vout[j]->append(vin2[j]->getArray(), j2);
+	++ j2;
+    }
+
+    ierr = k1out.size();
+    return ierr;
+} // ibis::bord::merge20S3
 
 /// Merge two key columns with one value column.
 int ibis::bord::merge21(ibis::bord::column &k11,
@@ -6285,6 +8326,15 @@ int ibis::bord::merge21(ibis::bord::column &k11,
 	const ibis::array_t<double> ak11(ak10);
 	ak10.nosharing();
 	ierr = merge21T1(ak10, ak11, ak12, k21, v1, k22, v2, ag);
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &ak12 =
+	    *static_cast<const std::vector<std::string>*>(k12.getArray());
+	std::vector<std::string> &ak10 =
+	    *static_cast<std::vector<std::string>*>(k11.getArray());
+	const std::vector<std::string> ak11(ak10);
+	ierr = merge21S1(ak10, ak11, ak12, k21, v1, k22, v2, ag);
 	break;}
     }
 
@@ -6397,6 +8447,15 @@ int ibis::bord::merge21T1(ibis::array_t<Tk1> &k1out,
 	const ibis::array_t<double> ak21(ak20);
 	ak20.nosharing();
 	ierr = merge21T2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &ak22 =
+	    *static_cast<const std::vector<std::string>*>(k22.getArray());
+	std::vector<std::string> &ak20 =
+	    *static_cast<std::vector<std::string>*>(k21.getArray());
+	const std::vector<std::string> ak21(ak20);
+	ierr = merge21S6(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
 	break;}
     }
 
@@ -6625,6 +8684,777 @@ int ibis::bord::merge21T3(ibis::array_t<Tk1> &k1out,
     return k1out.size();
 } // ibis::bord::merge21T3
 
+int ibis::bord::merge21S1(std::vector<std::string> &k1out,
+			  const std::vector<std::string> &k1in1,
+			  const std::vector<std::string> &k1in2,
+			  ibis::bord::column &k21,
+			  ibis::bord::column &v1,
+			  const ibis::bord::column &k22,
+			  const ibis::bord::column &v2,
+			  ibis::selectClause::AGREGADO ag) {
+    int ierr = -1;
+    if (k21.type() != k22.type()) return ierr;
+
+    switch (k21.type()) {
+    default:
+	return ierr;
+    case ibis::BYTE: {
+	const ibis::array_t<signed char> &ak22 =
+	    *static_cast<const ibis::array_t<signed char>*>(k22.getArray());
+	ibis::array_t<signed char> &ak20 =
+	    *static_cast<ibis::array_t<signed char>*>(k21.getArray());
+	const ibis::array_t<signed char> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::UBYTE: {
+	const ibis::array_t<unsigned char> &ak22 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(k22.getArray());
+	ibis::array_t<unsigned char> &ak20 =
+	    *static_cast<ibis::array_t<unsigned char>*>(k21.getArray());
+	const ibis::array_t<unsigned char> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::SHORT: {
+	const ibis::array_t<int16_t> &ak22 =
+	    *static_cast<const ibis::array_t<int16_t>*>(k22.getArray());
+	ibis::array_t<int16_t> &ak20 =
+	    *static_cast<ibis::array_t<int16_t>*>(k21.getArray());
+	const ibis::array_t<int16_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::USHORT: {
+	const ibis::array_t<uint16_t> &ak22 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(k22.getArray());
+	ibis::array_t<uint16_t> &ak20 =
+	    *static_cast<ibis::array_t<uint16_t>*>(k21.getArray());
+	const ibis::array_t<uint16_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::INT: {
+	const ibis::array_t<int32_t> &ak22 =
+	    *static_cast<const ibis::array_t<int32_t>*>(k22.getArray());
+	ibis::array_t<int32_t> &ak20 =
+	    *static_cast<ibis::array_t<int32_t>*>(k21.getArray());
+	const ibis::array_t<int32_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::UINT: {
+	const ibis::array_t<uint32_t> &ak22 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(k22.getArray());
+	ibis::array_t<uint32_t> &ak20 =
+	    *static_cast<ibis::array_t<uint32_t>*>(k21.getArray());
+	const ibis::array_t<uint32_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::LONG: {
+	const ibis::array_t<int64_t> &ak22 =
+	    *static_cast<const ibis::array_t<int64_t>*>(k22.getArray());
+	ibis::array_t<int64_t> &ak20 =
+	    *static_cast<ibis::array_t<int64_t>*>(k21.getArray());
+	const ibis::array_t<int64_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::ULONG: {
+	const ibis::array_t<uint64_t> &ak22 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(k22.getArray());
+	ibis::array_t<uint64_t> &ak20 =
+	    *static_cast<ibis::array_t<uint64_t>*>(k21.getArray());
+	const ibis::array_t<uint64_t> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::FLOAT: {
+	const ibis::array_t<float> &ak22 =
+	    *static_cast<const ibis::array_t<float>*>(k22.getArray());
+	ibis::array_t<float> &ak20 =
+	    *static_cast<ibis::array_t<float>*>(k21.getArray());
+	const ibis::array_t<float> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::DOUBLE: {
+	const ibis::array_t<double> &ak22 =
+	    *static_cast<const ibis::array_t<double>*>(k22.getArray());
+	ibis::array_t<double> &ak20 =
+	    *static_cast<ibis::array_t<double>*>(k21.getArray());
+	const ibis::array_t<double> ak21(ak20);
+	ak20.nosharing();
+	ierr = merge21S2(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &ak22 =
+	    *static_cast<const std::vector<std::string>*>(k22.getArray());
+	std::vector<std::string> &ak20 =
+	    *static_cast<std::vector<std::string>*>(k21.getArray());
+	const std::vector<std::string> ak21(ak20);
+	ierr = merge21S4(k1out, ak20, k1in1, ak21, k1in2, ak22, v1, v2, ag);
+	break;}
+    }
+
+    return ierr;
+} // ibis::bord::merge21S1
+
+template <typename Tk2>
+int ibis::bord::merge21S2(std::vector<std::string> &k1out,
+			  ibis::array_t<Tk2> &k2out,
+			  const std::vector<std::string> &k1in1,
+			  const ibis::array_t<Tk2> &k2in1,
+			  const std::vector<std::string> &k1in2,
+			  const ibis::array_t<Tk2> &k2in2,
+			  ibis::bord::column &v1,
+			  const ibis::bord::column &v2,
+			  ibis::selectClause::AGREGADO ag) {
+    int ierr = -1;
+    if (v1.type() != v2.type()) return ierr;
+
+    switch (v1.type()) {
+    default:
+	return ierr;
+    case ibis::BYTE: {
+	const ibis::array_t<signed char> &av2 =
+	    *static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	ibis::array_t<signed char> &av0 =
+	    *static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	const ibis::array_t<signed char> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::UBYTE: {
+	const ibis::array_t<unsigned char> &av2 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	ibis::array_t<unsigned char> &av0 =
+	    *static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	const ibis::array_t<unsigned char> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::SHORT: {
+	const ibis::array_t<int16_t> &av2 =
+	    *static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	ibis::array_t<int16_t> &av0 =
+	    *static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	const ibis::array_t<int16_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::USHORT: {
+	const ibis::array_t<uint16_t> &av2 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	ibis::array_t<uint16_t> &av0 =
+	    *static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	const ibis::array_t<uint16_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::INT: {
+	const ibis::array_t<int32_t> &av2 =
+	    *static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	ibis::array_t<int32_t> &av0 =
+	    *static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	const ibis::array_t<int32_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::UINT: {
+	const ibis::array_t<uint32_t> &av2 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	ibis::array_t<uint32_t> &av0 =
+	    *static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	const ibis::array_t<uint32_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::LONG: {
+	const ibis::array_t<int64_t> &av2 =
+	    *static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	ibis::array_t<int64_t> &av0 =
+	    *static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	const ibis::array_t<int64_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::ULONG: {
+	const ibis::array_t<uint64_t> &av2 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	ibis::array_t<uint64_t> &av0 =
+	    *static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	const ibis::array_t<uint64_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::FLOAT: {
+	const ibis::array_t<float> &av2 =
+	    *static_cast<const ibis::array_t<float>*>(v2.getArray());
+	ibis::array_t<float> &av0 =
+	    *static_cast<ibis::array_t<float>*>(v1.getArray());
+	const ibis::array_t<float> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::DOUBLE: {
+	const ibis::array_t<double> &av2 =
+	    *static_cast<const ibis::array_t<double>*>(v2.getArray());
+	ibis::array_t<double> &av0 =
+	    *static_cast<ibis::array_t<double>*>(v1.getArray());
+	const ibis::array_t<double> av1(av0);
+	av0.nosharing();
+	ierr = merge21S3(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    }
+
+    return ierr;
+} // ibis::bord::merge21S2
+
+template <typename Tk2, typename Tv>
+int ibis::bord::merge21S3(std::vector<std::string> &k1out,
+			  ibis::array_t<Tk2> &k2out,
+			  ibis::array_t<Tv>  &vout,
+			  const std::vector<std::string> &k1in1,
+			  const ibis::array_t<Tk2> &k2in1,
+			  const ibis::array_t<Tv>  &vin1,
+			  const std::vector<std::string> &k1in2,
+			  const ibis::array_t<Tk2> &k2in2,
+			  const ibis::array_t<Tv>  &vin2,
+			  ibis::selectClause::AGREGADO av) {
+    k1out.clear();
+    k2out.clear();
+    vout.clear();
+    int ierr = -1;
+    if (k1in1.size() != k2in1.size() || k1in1.size() != vin1.size() ||
+	k1in2.size() != k2in2.size() || k1in2.size() != vin2.size())
+	return ierr;
+
+    size_t j1 = 0; // for k1in1, k2in1, vin1
+    size_t j2 = 0; // for k1in2, k2in2, vin2
+    while (j1 < k1in1.size() && j2 < k1in2.size()) {
+	if (k1in1[j1] == k1in2[j2]) { // same k1
+	    if (k2in1[j1] == k2in2[j2]) { // same k2
+		switch (av) {
+		default:
+		    return ierr;
+		case ibis::selectClause::CNT:
+		case ibis::selectClause::SUM:
+		    vout.push_back(vin1[j1] + vin2[j2]);
+		    break;
+		case ibis::selectClause::MAX:
+		    vout.push_back(vin1[j1] >= vin2[j2] ? vin1[j1] : vin2[j2]);
+		    break;
+		case ibis::selectClause::MIN:
+		    vout.push_back(vin1[j1] <= vin2[j2] ? vin1[j1] : vin2[j2]);
+		    break;
+		}
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		++ j1;
+		++ j2;
+	    }
+	    else if (k2in1[j1] < k2in2[j2]) { // copy from *1
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		vout.push_back(vin1[j1]);
+		++ j1;
+	    }
+	    else { // copy from *2
+		k1out.push_back(k1in2[j2]);
+		k2out.push_back(k2in2[j2]);
+		vout.push_back(vin2[j2]);
+		++ j2;
+	    }
+	}
+	else if (k1in1[j1] < k1in2[j2]) { // copy from *1
+	    k1out.push_back(k1in1[j1]);
+	    k2out.push_back(k2in1[j1]);
+	    vout.push_back(vin1[j1]);
+	    ++ j1;
+	}
+	else { // copy from *2
+	    k1out.push_back(k1in2[j2]);
+	    k2out.push_back(k2in2[j2]);
+	    vout.push_back(vin2[j2]);
+	    ++ j2;
+	}
+    }
+
+    while (j1 < k1in1.size()) {
+	k1out.push_back(k1in1[j1]);
+	k2out.push_back(k2in1[j1]);
+	vout.push_back(vin1[j1]);
+	++ j1;
+    }
+
+    while (j2 < k1in2.size()) {
+	k1out.push_back(k1in2[j2]);
+	k2out.push_back(k2in2[j2]);
+	vout.push_back(vin2[j2]);
+	++ j2;
+    }
+
+    return k1out.size();
+} // ibis::bord::merge21S3
+
+int ibis::bord::merge21S4(std::vector<std::string> &k1out,
+			  std::vector<std::string> &k2out,
+			  const std::vector<std::string> &k1in1,
+			  const std::vector<std::string> &k2in1,
+			  const std::vector<std::string> &k1in2,
+			  const std::vector<std::string> &k2in2,
+			  ibis::bord::column &v1,
+			  const ibis::bord::column &v2,
+			  ibis::selectClause::AGREGADO ag) {
+    int ierr = -1;
+    if (v1.type() != v2.type()) return ierr;
+
+    switch (v1.type()) {
+    default:
+	return ierr;
+    case ibis::BYTE: {
+	const ibis::array_t<signed char> &av2 =
+	    *static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	ibis::array_t<signed char> &av0 =
+	    *static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	const ibis::array_t<signed char> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::UBYTE: {
+	const ibis::array_t<unsigned char> &av2 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	ibis::array_t<unsigned char> &av0 =
+	    *static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	const ibis::array_t<unsigned char> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::SHORT: {
+	const ibis::array_t<int16_t> &av2 =
+	    *static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	ibis::array_t<int16_t> &av0 =
+	    *static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	const ibis::array_t<int16_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::USHORT: {
+	const ibis::array_t<uint16_t> &av2 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	ibis::array_t<uint16_t> &av0 =
+	    *static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	const ibis::array_t<uint16_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::INT: {
+	const ibis::array_t<int32_t> &av2 =
+	    *static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	ibis::array_t<int32_t> &av0 =
+	    *static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	const ibis::array_t<int32_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::UINT: {
+	const ibis::array_t<uint32_t> &av2 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	ibis::array_t<uint32_t> &av0 =
+	    *static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	const ibis::array_t<uint32_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::LONG: {
+	const ibis::array_t<int64_t> &av2 =
+	    *static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	ibis::array_t<int64_t> &av0 =
+	    *static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	const ibis::array_t<int64_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::ULONG: {
+	const ibis::array_t<uint64_t> &av2 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	ibis::array_t<uint64_t> &av0 =
+	    *static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	const ibis::array_t<uint64_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::FLOAT: {
+	const ibis::array_t<float> &av2 =
+	    *static_cast<const ibis::array_t<float>*>(v2.getArray());
+	ibis::array_t<float> &av0 =
+	    *static_cast<ibis::array_t<float>*>(v1.getArray());
+	const ibis::array_t<float> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::DOUBLE: {
+	const ibis::array_t<double> &av2 =
+	    *static_cast<const ibis::array_t<double>*>(v2.getArray());
+	ibis::array_t<double> &av0 =
+	    *static_cast<ibis::array_t<double>*>(v1.getArray());
+	const ibis::array_t<double> av1(av0);
+	av0.nosharing();
+	ierr = merge21S5(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    }
+
+    return ierr;
+} // ibis::bord::merge21S4
+
+template <typename Tv>
+int ibis::bord::merge21S5(std::vector<std::string> &k1out,
+			  std::vector<std::string> &k2out,
+			  ibis::array_t<Tv>  &vout,
+			  const std::vector<std::string> &k1in1,
+			  const std::vector<std::string> &k2in1,
+			  const ibis::array_t<Tv>  &vin1,
+			  const std::vector<std::string> &k1in2,
+			  const std::vector<std::string> &k2in2,
+			  const ibis::array_t<Tv>  &vin2,
+			  ibis::selectClause::AGREGADO av) {
+    k1out.clear();
+    k2out.clear();
+    vout.clear();
+    int ierr = -1;
+    if (k1in1.size() != k2in1.size() || k1in1.size() != vin1.size() ||
+	k1in2.size() != k2in2.size() || k1in2.size() != vin2.size())
+	return ierr;
+
+    size_t j1 = 0; // for k1in1, k2in1, vin1
+    size_t j2 = 0; // for k1in2, k2in2, vin2
+    while (j1 < k1in1.size() && j2 < k1in2.size()) {
+	if (k1in1[j1] == k1in2[j2]) { // same k1
+	    if (k2in1[j1] == k2in2[j2]) { // same k2
+		switch (av) {
+		default:
+		    return ierr;
+		case ibis::selectClause::CNT:
+		case ibis::selectClause::SUM:
+		    vout.push_back(vin1[j1] + vin2[j2]);
+		    break;
+		case ibis::selectClause::MAX:
+		    vout.push_back(vin1[j1] >= vin2[j2] ? vin1[j1] : vin2[j2]);
+		    break;
+		case ibis::selectClause::MIN:
+		    vout.push_back(vin1[j1] <= vin2[j2] ? vin1[j1] : vin2[j2]);
+		    break;
+		}
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		++ j1;
+		++ j2;
+	    }
+	    else if (k2in1[j1] < k2in2[j2]) { // copy from *1
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		vout.push_back(vin1[j1]);
+		++ j1;
+	    }
+	    else { // copy from *2
+		k1out.push_back(k1in2[j2]);
+		k2out.push_back(k2in2[j2]);
+		vout.push_back(vin2[j2]);
+		++ j2;
+	    }
+	}
+	else if (k1in1[j1] < k1in2[j2]) { // copy from *1
+	    k1out.push_back(k1in1[j1]);
+	    k2out.push_back(k2in1[j1]);
+	    vout.push_back(vin1[j1]);
+	    ++ j1;
+	}
+	else { // copy from *2
+	    k1out.push_back(k1in2[j2]);
+	    k2out.push_back(k2in2[j2]);
+	    vout.push_back(vin2[j2]);
+	    ++ j2;
+	}
+    }
+
+    while (j1 < k1in1.size()) {
+	k1out.push_back(k1in1[j1]);
+	k2out.push_back(k2in1[j1]);
+	vout.push_back(vin1[j1]);
+	++ j1;
+    }
+
+    while (j2 < k1in2.size()) {
+	k1out.push_back(k1in2[j2]);
+	k2out.push_back(k2in2[j2]);
+	vout.push_back(vin2[j2]);
+	++ j2;
+    }
+
+    return k1out.size();
+} // ibis::bord::merge21S5
+
+template <typename Tk1>
+int ibis::bord::merge21S6(ibis::array_t<Tk1> &k1out,
+			  std::vector<std::string> &k2out,
+			  const ibis::array_t<Tk1> &k1in1,
+			  const std::vector<std::string> &k2in1,
+			  const ibis::array_t<Tk1> &k1in2,
+			  const std::vector<std::string> &k2in2,
+			  ibis::bord::column &v1,
+			  const ibis::bord::column &v2,
+			  ibis::selectClause::AGREGADO ag) {
+    int ierr = -1;
+    if (v1.type() != v2.type()) return ierr;
+
+    switch (v1.type()) {
+    default:
+	return ierr;
+    case ibis::BYTE: {
+	const ibis::array_t<signed char> &av2 =
+	    *static_cast<const ibis::array_t<signed char>*>(v2.getArray());
+	ibis::array_t<signed char> &av0 =
+	    *static_cast<ibis::array_t<signed char>*>(v1.getArray());
+	const ibis::array_t<signed char> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::UBYTE: {
+	const ibis::array_t<unsigned char> &av2 =
+	    *static_cast<const ibis::array_t<unsigned char>*>(v2.getArray());
+	ibis::array_t<unsigned char> &av0 =
+	    *static_cast<ibis::array_t<unsigned char>*>(v1.getArray());
+	const ibis::array_t<unsigned char> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::SHORT: {
+	const ibis::array_t<int16_t> &av2 =
+	    *static_cast<const ibis::array_t<int16_t>*>(v2.getArray());
+	ibis::array_t<int16_t> &av0 =
+	    *static_cast<ibis::array_t<int16_t>*>(v1.getArray());
+	const ibis::array_t<int16_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::USHORT: {
+	const ibis::array_t<uint16_t> &av2 =
+	    *static_cast<const ibis::array_t<uint16_t>*>(v2.getArray());
+	ibis::array_t<uint16_t> &av0 =
+	    *static_cast<ibis::array_t<uint16_t>*>(v1.getArray());
+	const ibis::array_t<uint16_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::INT: {
+	const ibis::array_t<int32_t> &av2 =
+	    *static_cast<const ibis::array_t<int32_t>*>(v2.getArray());
+	ibis::array_t<int32_t> &av0 =
+	    *static_cast<ibis::array_t<int32_t>*>(v1.getArray());
+	const ibis::array_t<int32_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::UINT: {
+	const ibis::array_t<uint32_t> &av2 =
+	    *static_cast<const ibis::array_t<uint32_t>*>(v2.getArray());
+	ibis::array_t<uint32_t> &av0 =
+	    *static_cast<ibis::array_t<uint32_t>*>(v1.getArray());
+	const ibis::array_t<uint32_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::LONG: {
+	const ibis::array_t<int64_t> &av2 =
+	    *static_cast<const ibis::array_t<int64_t>*>(v2.getArray());
+	ibis::array_t<int64_t> &av0 =
+	    *static_cast<ibis::array_t<int64_t>*>(v1.getArray());
+	const ibis::array_t<int64_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::ULONG: {
+	const ibis::array_t<uint64_t> &av2 =
+	    *static_cast<const ibis::array_t<uint64_t>*>(v2.getArray());
+	ibis::array_t<uint64_t> &av0 =
+	    *static_cast<ibis::array_t<uint64_t>*>(v1.getArray());
+	const ibis::array_t<uint64_t> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::FLOAT: {
+	const ibis::array_t<float> &av2 =
+	    *static_cast<const ibis::array_t<float>*>(v2.getArray());
+	ibis::array_t<float> &av0 =
+	    *static_cast<ibis::array_t<float>*>(v1.getArray());
+	const ibis::array_t<float> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    case ibis::DOUBLE: {
+	const ibis::array_t<double> &av2 =
+	    *static_cast<const ibis::array_t<double>*>(v2.getArray());
+	ibis::array_t<double> &av0 =
+	    *static_cast<ibis::array_t<double>*>(v1.getArray());
+	const ibis::array_t<double> av1(av0);
+	av0.nosharing();
+	ierr = merge21S7(k1out, k2out, av0,
+			 k1in1, k2in1, av1,
+			 k1in2, k2in2, av2, ag);
+	break;}
+    }
+
+    return ierr;
+} // ibis::bord::merge21S6
+
+template <typename Tk1, typename Tv>
+int ibis::bord::merge21S7(ibis::array_t<Tk1> &k1out,
+			  std::vector<std::string> &k2out,
+			  ibis::array_t<Tv>  &vout,
+			  const ibis::array_t<Tk1> &k1in1,
+			  const std::vector<std::string> &k2in1,
+			  const ibis::array_t<Tv>  &vin1,
+			  const ibis::array_t<Tk1> &k1in2,
+			  const std::vector<std::string> &k2in2,
+			  const ibis::array_t<Tv>  &vin2,
+			  ibis::selectClause::AGREGADO av) {
+    k1out.clear();
+    k2out.clear();
+    vout.clear();
+    int ierr = -1;
+    if (k1in1.size() != k2in1.size() || k1in1.size() != vin1.size() ||
+	k1in2.size() != k2in2.size() || k1in2.size() != vin2.size())
+	return ierr;
+
+    size_t j1 = 0; // for k1in1, k2in1, vin1
+    size_t j2 = 0; // for k1in2, k2in2, vin2
+    while (j1 < k1in1.size() && j2 < k1in2.size()) {
+	if (k1in1[j1] == k1in2[j2]) { // same k1
+	    if (k2in1[j1] == k2in2[j2]) { // same k2
+		switch (av) {
+		default:
+		    return ierr;
+		case ibis::selectClause::CNT:
+		case ibis::selectClause::SUM:
+		    vout.push_back(vin1[j1] + vin2[j2]);
+		    break;
+		case ibis::selectClause::MAX:
+		    vout.push_back(vin1[j1] >= vin2[j2] ? vin1[j1] : vin2[j2]);
+		    break;
+		case ibis::selectClause::MIN:
+		    vout.push_back(vin1[j1] <= vin2[j2] ? vin1[j1] : vin2[j2]);
+		    break;
+		}
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		++ j1;
+		++ j2;
+	    }
+	    else if (k2in1[j1] < k2in2[j2]) { // copy from *1
+		k1out.push_back(k1in1[j1]);
+		k2out.push_back(k2in1[j1]);
+		vout.push_back(vin1[j1]);
+		++ j1;
+	    }
+	    else { // copy from *2
+		k1out.push_back(k1in2[j2]);
+		k2out.push_back(k2in2[j2]);
+		vout.push_back(vin2[j2]);
+		++ j2;
+	    }
+	}
+	else if (k1in1[j1] < k1in2[j2]) { // copy from *1
+	    k1out.push_back(k1in1[j1]);
+	    k2out.push_back(k2in1[j1]);
+	    vout.push_back(vin1[j1]);
+	    ++ j1;
+	}
+	else { // copy from *2
+	    k1out.push_back(k1in2[j2]);
+	    k2out.push_back(k2in2[j2]);
+	    vout.push_back(vin2[j2]);
+	    ++ j2;
+	}
+    }
+
+    while (j1 < k1in1.size()) {
+	k1out.push_back(k1in1[j1]);
+	k2out.push_back(k2in1[j1]);
+	vout.push_back(vin1[j1]);
+	++ j1;
+    }
+
+    while (j2 < k1in2.size()) {
+	k1out.push_back(k1in2[j2]);
+	k2out.push_back(k2in2[j2]);
+	vout.push_back(vin2[j2]);
+	++ j2;
+    }
+
+    return k1out.size();
+} // ibis::bord::merge21S7
+
 void ibis::bord::orderby(const ibis::table::stringList& keys) {
     std::vector<bool> directions;
     (void) reorder(keys, directions);
@@ -6787,6 +9617,7 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 
 	    const bool asc = (directions.size()>i?directions[i]:true);
 	    switch (keys[i]->type()) {
+	    case ibis::CATEGORY:
 	    case ibis::TEXT:
 		ierr = sortStrings(* static_cast<std::vector<std::string>*>
 				   (col->getArray()), starts, ind0, ind1, asc);
@@ -6807,7 +9638,6 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 		ierr = sortValues(* static_cast<array_t<int64_t>*>
 				  (col->getArray()), starts, ind0, ind1, asc);
 		break;
-	    case ibis::CATEGORY:
 	    case ibis::UINT:
 		ierr = sortValues(* static_cast<array_t<uint32_t>*>
 				  (col->getArray()), starts, ind0, ind1, asc);
@@ -6883,6 +9713,7 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 
 	switch (load[i]->type()) {
 	
+	case ibis::CATEGORY:
 	case ibis::TEXT:
 	    ierr = reorderStrings(* static_cast<std::vector<std::string>*>
 				  (col->getArray()), ind1);
@@ -6903,7 +9734,6 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 	    ierr = reorderValues(* static_cast<array_t<int64_t>*>
 				 (col->getArray()), ind1);
 	    break;
-	case ibis::CATEGORY:
 	case ibis::UINT:
 	    ierr = reorderValues(* static_cast<array_t<uint32_t>*>
 				 (col->getArray()), ind1);
@@ -8380,7 +11210,6 @@ ibis::bord::column::getRawData() const {
     case ibis::INT: {
 	str = static_cast<array_t<int32_t>*>(buffer)->getStorage();
 	break;}
-    case ibis::CATEGORY:
     case ibis::UINT: {
 	str = static_cast<array_t<uint32_t>*>(buffer)->getStorage();
 	break;}
@@ -9908,7 +12737,11 @@ ibis::bord::column::selectUInts(const ibis::bitvector& mask) const {
 		       static_cast<long unsigned>(i));
 	}
     }
-    else if (m_type == ibis::CATEGORY && dic != 0) {
+    else if (m_type == ibis::CATEGORY) {
+	if (dic == 0)
+	    const_cast<ibis::bord::column*>(this)->dic =
+		new ibis::dictionary();
+
 	const std::vector<std::string> *prop =
 	    static_cast<const std::vector<std::string>*>(buffer);
 	const size_t nprop = prop->size();
@@ -12407,9 +15240,73 @@ ibis::bord::column::selectStrings(const ibis::bitvector& mask) const {
 		       timer.CPUTime(), timer.realTime());
 	}
 	break;}
-    case ibis::CATEGORY: {
-	const array_t<uint32_t> &prop =
-	    * static_cast<const array_t<uint32_t>*>(buffer);
+    // case ibis::CATEGORY: {
+    // 	const array_t<uint32_t> &prop =
+    // 	    * static_cast<const array_t<uint32_t>*>(buffer);
+
+    // 	uint32_t i = 0;
+    // 	array->resize(tot);
+    // 	const uint32_t nprop = prop.size();
+    // 	ibis::bitvector::indexSet index = mask.firstIndexSet();
+    // 	if (nprop >= mask.size()) {
+    // 	    while (index.nIndices() > 0) {
+    // 		const ibis::bitvector::word_t *idx0 = index.indices();
+    // 		if (index.isRange()) {
+    // 		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+    // 			(*array)[i] = (*dic)[(prop[j])];
+    // 		    }
+    // 		}
+    // 		else {
+    // 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+    // 			(*array)[i] = (*dic)[ (prop[idx0[j]])];
+    // 		    }
+    // 		}
+    // 		++ index;
+    // // 	    }
+    // 	}
+    // 	else {
+    // 	    while (index.nIndices() > 0) {
+    // 		const ibis::bitvector::word_t *idx0 = index.indices();
+    // 		if (*idx0 >= nprop) break;
+    // 		if (index.isRange()) {
+    // 		    for (uint32_t j = *idx0;
+    // 			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+    // 			 ++j, ++i) {
+    // 			(*array)[i] = (*dic)[(prop[j])];
+    // 		    }
+    // 		}
+    // 		else {
+    // 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+    // 			if (idx0[j] < nprop) {
+    // 			    (*array)[i] = (*dic)[(prop[idx0[j]])];
+    // 			}
+    // 			else
+    // 			    break;
+    // 		    }
+    // 		}
+    // 		++ index;
+    // 	    }
+    // 	}
+
+    // 	if (i != tot) {
+    // 	    array->resize(i);
+    // 	    logWarning("selectStrings", "expects to retrieve %lu elements "
+    // 		       "but only got %lu", static_cast<long unsigned>(tot),
+    // 		       static_cast<long unsigned>(i));
+    // 	}
+    // 	else if (ibis::gVerbose > 5) {
+    // 	    timer.stop();
+    // 	    long unsigned cnt = mask.cnt();
+    // 	    logMessage("selectStrings", "retrieving %lu string value%s "
+    // 		       "took %g sec(CPU), %g sec(elapsed)",
+    // 		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+    // 		       timer.CPUTime(), timer.realTime());
+    // 	}
+    // 	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const std::vector<std::string> &prop =
+	    * static_cast<const std::vector<std::string>*>(buffer);
 
 	uint32_t i = 0;
 	array->resize(tot);
@@ -12420,12 +15317,12 @@ ibis::bord::column::selectStrings(const ibis::bitvector& mask) const {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {
 		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
-			(*array)[i] = (*dic)[(prop[j])];
+			(*array)[i] = (prop[j]);
 		    }
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-			(*array)[i] = (*dic)[ (prop[idx0[j]])];
+			(*array)[i] = (prop[idx0[j]]);
 		    }
 		}
 		++ index;
@@ -12439,13 +15336,13 @@ ibis::bord::column::selectStrings(const ibis::bitvector& mask) const {
 		    for (uint32_t j = *idx0;
 			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
 			 ++j, ++i) {
-			(*array)[i] = (*dic)[(prop[j])];
+			(*array)[i] = (prop[j]);
 		    }
 		}
 		else {
 		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
 			if (idx0[j] < nprop) {
-			    (*array)[i] = (*dic)[(prop[idx0[j]])];
+			    (*array)[i] = (prop[idx0[j]]);
 			}
 			else
 			    break;
@@ -12466,75 +15363,11 @@ ibis::bord::column::selectStrings(const ibis::bitvector& mask) const {
 	    long unsigned cnt = mask.cnt();
 	    logMessage("selectStrings", "retrieving %lu string value%s "
 		       "took %g sec(CPU), %g sec(elapsed)",
-		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       static_cast<long unsigned>(cnt),
+		       (cnt > 1 ? "s" : ""),
 		       timer.CPUTime(), timer.realTime());
 	}
 	break;}
-    case ibis::TEXT:
-	{
-	    const std::vector<std::string> &prop =
-		* static_cast<const std::vector<std::string>*>(buffer);
-
-	    uint32_t i = 0;
-	    array->resize(tot);
-	    const uint32_t nprop = prop.size();
-	    ibis::bitvector::indexSet index = mask.firstIndexSet();
-	    if (nprop >= mask.size()) {
-		while (index.nIndices() > 0) {
-		    const ibis::bitvector::word_t *idx0 = index.indices();
-		    if (index.isRange()) {
-			for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
-			    (*array)[i] = (prop[j]);
-			}
-		    }
-		    else {
-			for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-			    (*array)[i] = (prop[idx0[j]]);
-			}
-		    }
-		    ++ index;
-		}
-	    }
-	    else {
-		while (index.nIndices() > 0) {
-		    const ibis::bitvector::word_t *idx0 = index.indices();
-		    if (*idx0 >= nprop) break;
-		    if (index.isRange()) {
-			for (uint32_t j = *idx0;
-			     j<(idx0[1]<=nprop ? idx0[1] : nprop);
-			     ++j, ++i) {
-			    (*array)[i] = (prop[j]);
-			}
-		    }
-		    else {
-			for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
-			    if (idx0[j] < nprop) {
-				(*array)[i] = (prop[idx0[j]]);
-			    }
-			    else
-				break;
-			}
-		    }
-		    ++ index;
-		}
-	    }
-
-	    if (i != tot) {
-		array->resize(i);
-		logWarning("selectStrings", "expects to retrieve %lu elements "
-			   "but only got %lu", static_cast<long unsigned>(tot),
-			   static_cast<long unsigned>(i));
-	    }
-	    else if (ibis::gVerbose > 5) {
-		timer.stop();
-		long unsigned cnt = mask.cnt();
-		logMessage("selectStrings", "retrieving %lu string value%s "
-			   "took %g sec(CPU), %g sec(elapsed)",
-			   static_cast<long unsigned>(cnt),
-			   (cnt > 1 ? "s" : ""),
-			   timer.CPUTime(), timer.realTime());
-	    }
-	    break;}
     default: {
 	logWarning("selectStrings", "incompatible data type");
 	break;}
@@ -12589,8 +15422,7 @@ int ibis::bord::column::getValuesArray(void* vals) const {
 	static_cast<array_t<int32_t>*>(vals)->
 	    copy(* static_cast<const array_t<int32_t>*>(buffer));
 	break;}
-    case ibis::UINT:
-    case ibis::CATEGORY:{
+    case ibis::UINT: {
 	static_cast<array_t<uint32_t>*>(vals)->
 	    copy(* static_cast<const array_t<uint32_t>*>(buffer));
 	break;}
@@ -12610,12 +15442,12 @@ int ibis::bord::column::getValuesArray(void* vals) const {
 	static_cast<array_t<double>*>(vals)->
 	    copy(* static_cast<const array_t<double>*>(buffer));
 	break;}
-    case ibis::TEXT:
-	{
-	    std::vector<std::string>
-		tmp(* static_cast<const std::vector<std::string>*>(buffer));
-	    static_cast<std::vector<std::string>*>(vals)->swap(tmp);
-	    break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	std::vector<std::string>
+	    tmp(* static_cast<const std::vector<std::string>*>(buffer));
+	static_cast<std::vector<std::string>*>(vals)->swap(tmp);
+	break;}
     }
     return 0;
 } // ibis::bord::column::getValuesArray
@@ -12632,7 +15464,6 @@ void ibis::bord::column::reverseRows() {
 	    * static_cast<array_t<int64_t>*>(buffer);
 	std::reverse(prop.begin(), prop.end());
 	break;}
-    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t> &prop =
 	    * static_cast<array_t<uint32_t>*>(buffer);
@@ -12673,6 +15504,7 @@ void ibis::bord::column::reverseRows() {
 	    * static_cast<array_t<double>*>(buffer);
 	std::reverse(prop.begin(), prop.end());
 	break;}
+    case ibis::CATEGORY:
     case ibis::TEXT: {
 	std::vector<std::string> &prop =
 	    * static_cast<std::vector<std::string>*>(buffer);
@@ -12699,7 +15531,6 @@ int ibis::bord::column::limit(uint32_t nr) {
 	if (nr < prop.size())
 	    prop.resize(nr);
 	break;}
-    case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t> &prop =
 	    * static_cast<array_t<uint32_t>*>(buffer);
@@ -12748,6 +15579,7 @@ int ibis::bord::column::limit(uint32_t nr) {
 	if (nr < prop.size())
 	    prop.resize(nr);
 	break;}
+    case ibis::CATEGORY:
     case ibis::TEXT: {
 	std::vector<std::string> &prop =
 	    * static_cast<std::vector<std::string>*>(buffer);
@@ -13279,16 +16111,16 @@ bool ibis::bord::column::equal_to(const ibis::bord::column &other) const {
 	const ibis::array_t<double> &v1 =
 	    *static_cast<const ibis::array_t<double>*>(other.buffer);
 	return v0.equal_to(v1);}
-    case ibis::CATEGORY:{
-	const ibis::dictionary * aDic1 = other.getDictionary();
-	if (dic->equal_to(*aDic1)) {
-	    const ibis::array_t<uint32_t> &v0 = *static_cast<const ibis::array_t<uint32_t>*>(buffer);
-	    const ibis::array_t<uint32_t> &v1 = *static_cast<const ibis::array_t<uint32_t>*>(other.buffer);
-	    return v0.equal_to(v1);
-	} else return false;
+    // case ibis::CATEGORY:{
+    // 	const ibis::dictionary * aDic1 = other.getDictionary();
+    // 	if (dic->equal_to(*aDic1)) {
+    // 	    const ibis::array_t<uint32_t> &v0 = *static_cast<const ibis::array_t<uint32_t>*>(buffer);
+    // 	    const ibis::array_t<uint32_t> &v1 = *static_cast<const ibis::array_t<uint32_t>*>(other.buffer);
+    // 	    return v0.equal_to(v1);
+    // 	} else return false;
 
-    }
-    case ibis::BLOB:
+    // }
+    case ibis::CATEGORY:
     case ibis::TEXT: {
 	const std::vector<std::string> &v0 =
 	    *static_cast<const std::vector<std::string>*>(buffer);
@@ -13486,17 +16318,18 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 		res.doublesvalues.push_back(FASTBIT_DOUBLE_NULL);
 	    }
 	    break;}
-	case ibis::CATEGORY: {
-	    res.catsnames.push_back(buffer[j].cname);
-	    if (buffer[j].cval) {
-		uint32_t v = (* static_cast<const array_t<uint32_t>*>(buffer[j].cval))[curRow];
-		const ibis::dictionary * aDic = buffer[j].dic;
-		res.catsvalues.push_back((*aDic)[v]);
-	    }
-	    else {
-		res.catsvalues.push_back("");
-	    }
-	    break;}
+	// case ibis::CATEGORY: {
+	//     res.catsnames.push_back(buffer[j].cname);
+	//     if (buffer[j].cval) {
+	// 	uint32_t v = (* static_cast<const array_t<uint32_t>*>(buffer[j].cval))[curRow];
+	// 	const ibis::dictionary * aDic = buffer[j].dic;
+	// 	res.catsvalues.push_back((*aDic)[v]);
+	//     }
+	//     else {
+	// 	res.catsvalues.push_back("");
+	//     }
+	//     break;}
+	case ibis::CATEGORY:
 	case ibis::TEXT: {
 	    res.textsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval) {
@@ -13941,13 +16774,19 @@ int ibis::bord::cursor::getColumnAsString(uint32_t j, std::string& val) const {
 	ierr = 0;
 	break;}
     case ibis::CATEGORY:{
-	uint32_t v = (* static_cast<const array_t<uint32_t>*>
-		      (buffer[j].cval))[curRow];
-	const ibis::dictionary * aDic = buffer[j].dic;
-	val = (*aDic)[v];
-	ierr = 0;
-	break;
-    }
+	const std::vector<std::string> *v =
+	    static_cast<const std::vector<std::string>*>(buffer[j].cval);
+	if (v->size() > (unsigned long)curRow) {
+	    val = (*v)[curRow];
+	    ierr = 0;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- bord::cursor::getColumnAsString failed to "
+		"recover the value of column " << j;
+	    ierr = -4;
+	}
+	break;}
     case ibis::TEXT: {
 	const ibis::column* col = tab.getColumn(buffer[j].cname);
 	if (col != 0) {
@@ -13963,4 +16802,4 @@ int ibis::bord::cursor::getColumnAsString(uint32_t j, std::string& val) const {
 	break;}
     }
     return ierr;
-} // ibis::bord::cursor::getColumnAsLong
+} // ibis::bord::cursor::getColumnAsString

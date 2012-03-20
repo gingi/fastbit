@@ -598,7 +598,7 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -741,7 +741,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd0(0);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -992,7 +992,7 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -1130,7 +1130,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd0(0);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -1381,7 +1381,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -1541,7 +1541,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -1687,7 +1687,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
 
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -1871,7 +1871,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd0(0);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -2136,7 +2136,7 @@ ibis::table* ibis::filter::sift2S
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd0(0);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
@@ -2386,7 +2386,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::auto_ptr<ibis::bord> brd0(0);
     std::auto_ptr<ibis::bord> brd1
-	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, *(plist.front())));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;

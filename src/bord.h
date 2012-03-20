@@ -36,6 +36,8 @@ public:
 	 const std::vector<const ibis::dictionary*> *dct=0);
     bord(const char *tn, const char *td,
 	 const ibis::selectClause &sc, const ibis::part &ref);
+    bord(const char *tn, const char *td,
+	 const ibis::selectClause &sc, const ibis::constPartList &ref);
     virtual ~bord() {clear();}
 
     virtual uint64_t nRows() const {return nEvents;}
@@ -205,6 +207,14 @@ protected:
 		 const ibis::array_t<Tk> &kin2,
 		 const std::vector<ibis::bord::column*> &vin2,
 		 const std::vector<ibis::selectClause::AGREGADO>& agg);
+    static int
+	merge10S(std::vector<std::string> &kout,
+		 std::vector<ibis::bord::column*>& vout,
+		 const std::vector<std::string> &kin1,
+		 const std::vector<ibis::bord::column*> &vin1,
+		 const std::vector<std::string> &kin2,
+		 const std::vector<ibis::bord::column*> &vin2,
+		 const std::vector<ibis::selectClause::AGREGADO>& agg);
 
     static int merge11(ibis::bord::column&,
 		       ibis::bord::column&,
@@ -219,6 +229,14 @@ protected:
 		 const ibis::array_t<Tk> &kin2,
 		 const ibis::array_t<Tv> &vin2,
 		 ibis::selectClause::AGREGADO agg);
+    template <typename Tv> static int
+	merge11S(std::vector<std::string> &kout,
+		 ibis::array_t<Tv> &vout,
+		 const std::vector<std::string> &kin1,
+		 const ibis::array_t<Tv> &vin1,
+		 const std::vector<std::string> &kin2,
+		 const ibis::array_t<Tv> &vin2,
+		 ibis::selectClause::AGREGADO agg);
 
     static int merge12(ibis::bord::column&,
 		       ibis::bord::column&,
@@ -229,15 +247,15 @@ protected:
 		       ibis::selectClause::AGREGADO,
 		       ibis::selectClause::AGREGADO);
     template <typename Tk> static int
-	merge12S(ibis::array_t<Tk> &kout,
-		 const ibis::array_t<Tk> &kin1,
-		 const ibis::array_t<Tk> &kin2,
-		 ibis::bord::column&,
-		 ibis::bord::column&,
-		 const ibis::bord::column&,
-		 const ibis::bord::column&,
-		 ibis::selectClause::AGREGADO,
-		 ibis::selectClause::AGREGADO);
+	merge12T1(ibis::array_t<Tk> &kout,
+		  const ibis::array_t<Tk> &kin1,
+		  const ibis::array_t<Tk> &kin2,
+		  ibis::bord::column&,
+		  ibis::bord::column&,
+		  const ibis::bord::column&,
+		  const ibis::bord::column&,
+		  ibis::selectClause::AGREGADO,
+		  ibis::selectClause::AGREGADO);
     template <typename Tk, typename Tu, typename Tv> static int
 	merge12T(ibis::array_t<Tk> &kout,
 		 ibis::array_t<Tu> &uout,
@@ -246,6 +264,28 @@ protected:
 		 const ibis::array_t<Tu> &uin1,
 		 const ibis::array_t<Tv> &vin1,
 		 const ibis::array_t<Tk> &kin2,
+		 const ibis::array_t<Tu> &uin2,
+		 const ibis::array_t<Tv> &vin2,
+		 ibis::selectClause::AGREGADO au,
+		 ibis::selectClause::AGREGADO av);
+    static int
+	merge12S1(std::vector<std::string> &kout,
+		  const std::vector<std::string> &kin1,
+		  const std::vector<std::string> &kin2,
+		  ibis::bord::column&,
+		  ibis::bord::column&,
+		  const ibis::bord::column&,
+		  const ibis::bord::column&,
+		  ibis::selectClause::AGREGADO,
+		  ibis::selectClause::AGREGADO);
+    template <typename Tu, typename Tv> static int
+	merge12S(std::vector<std::string> &kout,
+		 ibis::array_t<Tu> &uout,
+		 ibis::array_t<Tv> &vout,
+		 const std::vector<std::string> &kin1,
+		 const ibis::array_t<Tu> &uin1,
+		 const ibis::array_t<Tv> &vin1,
+		 const std::vector<std::string> &kin2,
 		 const ibis::array_t<Tu> &uin2,
 		 const ibis::array_t<Tv> &vin2,
 		 ibis::selectClause::AGREGADO au,
@@ -276,6 +316,48 @@ protected:
 		  const std::vector<ibis::bord::column*> &vin1,
 		  const ibis::array_t<Tk1> &k1in2,
 		  const ibis::array_t<Tk2> &k2in2,
+		  const std::vector<ibis::bord::column*> &vin2,
+		  const std::vector<ibis::selectClause::AGREGADO> &agg);
+    static int
+	merge20S0(std::vector<std::string> &k1out,
+		  std::vector<std::string> &k2out,
+		  std::vector<ibis::bord::column*> &vout,
+		  const std::vector<std::string> &k1in1,
+		  const std::vector<std::string> &k2in1,
+		  const std::vector<ibis::bord::column*> &vin1,
+		  const std::vector<std::string> &k1in2,
+		  const std::vector<std::string> &k2in2,
+		  const std::vector<ibis::bord::column*> &vin2,
+		  const std::vector<ibis::selectClause::AGREGADO> &agg);
+    static int
+	merge20S1(std::vector<std::string> &k1out,
+		  const std::vector<std::string> &k1in1,
+		  const std::vector<std::string> &k1in2,
+		  ibis::bord::column &k21,
+		  std::vector<ibis::bord::column*> &vin1,
+		  const ibis::bord::column &k22,
+		  const std::vector<ibis::bord::column*> &vin2,
+		  const std::vector<ibis::selectClause::AGREGADO> &agg);
+    template <typename Tk2> static int
+	merge20S2(std::vector<std::string> &k1out,
+		  ibis::array_t<Tk2> &k2out,
+		  std::vector<ibis::bord::column*> &vout,
+		  const std::vector<std::string> &k1in1,
+		  const ibis::array_t<Tk2> &k2in1,
+		  const std::vector<ibis::bord::column*> &vin1,
+		  const std::vector<std::string> &k1in2,
+		  const ibis::array_t<Tk2> &k2in2,
+		  const std::vector<ibis::bord::column*> &vin2,
+		  const std::vector<ibis::selectClause::AGREGADO> &agg);
+    template <typename Tk1> static int
+	merge20S3(ibis::array_t<Tk1> &k1out,
+		  std::vector<std::string> &k2out,
+		  std::vector<ibis::bord::column*> &vout,
+		  const ibis::array_t<Tk1> &k1in1,
+		  const std::vector<std::string> &k2in1,
+		  const std::vector<ibis::bord::column*> &vin1,
+		  const ibis::array_t<Tk1> &k1in2,
+		  const std::vector<std::string> &k2in2,
 		  const std::vector<ibis::bord::column*> &vin2,
 		  const std::vector<ibis::selectClause::AGREGADO> &agg);
 
@@ -316,7 +398,78 @@ protected:
 		  const ibis::array_t<Tk2> &k2in2,
 		  const ibis::array_t<Tv>  &vin2,
 		  ibis::selectClause::AGREGADO av);
-
+    static int
+	merge21S1(std::vector<std::string> &k1out,
+		  const std::vector<std::string> &k1in1,
+		  const std::vector<std::string> &k1in2,
+		  ibis::bord::column &k21,
+		  ibis::bord::column &v1,
+		  const ibis::bord::column &k22,
+		  const ibis::bord::column &v2,
+		  ibis::selectClause::AGREGADO ag);
+    template <typename Tk2> static int
+	merge21S2(std::vector<std::string> &k1out,
+		  ibis::array_t<Tk2> &k2out,
+		  const std::vector<std::string> &k1in1,
+		  const ibis::array_t<Tk2> &k2in1,
+		  const std::vector<std::string> &k1in2,
+		  const ibis::array_t<Tk2> &k2in2,
+		  ibis::bord::column &v1,
+		  const ibis::bord::column &v2,
+		  ibis::selectClause::AGREGADO ag);
+    template <typename Tk2, typename Tv> static int
+	merge21S3(std::vector<std::string> &k1out,
+		  ibis::array_t<Tk2> &k2out,
+		  ibis::array_t<Tv>  &vout,
+		  const std::vector<std::string> &k1in1,
+		  const ibis::array_t<Tk2> &k2in1,
+		  const ibis::array_t<Tv>  &vin1,
+		  const std::vector<std::string> &k1in2,
+		  const ibis::array_t<Tk2> &k2in2,
+		  const ibis::array_t<Tv>  &vin2,
+		  ibis::selectClause::AGREGADO av);
+    static int
+	merge21S4(std::vector<std::string> &k1out,
+		  std::vector<std::string> &k2out,
+		  const std::vector<std::string> &k1in1,
+		  const std::vector<std::string> &k2in1,
+		  const std::vector<std::string> &k1in2,
+		  const std::vector<std::string> &k2in2,
+		  ibis::bord::column &v1,
+		  const ibis::bord::column &v2,
+		  ibis::selectClause::AGREGADO ag);
+    template <typename Tv> static int
+	merge21S5(std::vector<std::string> &k1out,
+		  std::vector<std::string> &k2out,
+		  ibis::array_t<Tv>  &vout,
+		  const std::vector<std::string> &k1in1,
+		  const std::vector<std::string> &k2in1,
+		  const ibis::array_t<Tv>  &vin1,
+		  const std::vector<std::string> &k1in2,
+		  const std::vector<std::string> &k2in2,
+		  const ibis::array_t<Tv>  &vin2,
+		  ibis::selectClause::AGREGADO av);
+    template <typename Tk1> static int
+	merge21S6(ibis::array_t<Tk1> &k1out,
+		  std::vector<std::string> &k2out,
+		  const ibis::array_t<Tk1> &k1in1,
+		  const std::vector<std::string> &k2in1,
+		  const ibis::array_t<Tk1> &k1in2,
+		  const std::vector<std::string> &k2in2,
+		  ibis::bord::column &v1,
+		  const ibis::bord::column &v2,
+		  ibis::selectClause::AGREGADO ag);
+    template <typename Tk1, typename Tv> static int
+	merge21S7(ibis::array_t<Tk1> &k1out,
+		  std::vector<std::string> &k2out,
+		  ibis::array_t<Tv>  &vout,
+		  const ibis::array_t<Tk1> &k1in1,
+		  const std::vector<std::string> &k2in1,
+		  const ibis::array_t<Tv>  &vin1,
+		  const ibis::array_t<Tk1> &k1in2,
+		  const std::vector<std::string> &k2in2,
+		  const ibis::array_t<Tv>  &vin2,
+		  ibis::selectClause::AGREGADO av);
 
 private:
     // disallow copying.

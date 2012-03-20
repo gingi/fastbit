@@ -1,7 +1,25 @@
+2012-03-20 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src/bord.cpp: add functions to work with string
+	values as keys for group by operations (the previous attempt to
+	make strings suitable for group by operaton were based on
+	converting them to integers which can not be trusted when the
+	dictionaries do not match, problem raised by Andrew Olson)
+
+2012-03-19 John Wu <John dot Wu at ACM dot org>
+	* src/index.h: add function ibis::index::sizeInBytes
+	* src/category.cpp: review ibis::category::selectStrings to examine
+	all three options (to avoid getting stuck with the option of using
+	raw data when it is not present)
+	* src/colValues.cpp, src/bord.cpp: remove inconsistent changes
+	about columns of type ibis::CATEGORY
+
 2012-03-17 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp, src/fileManager.cpp: print the message before
 	throwing an exception with ibis::gVerbose >= 0, prefix the
 	messages with Error instead of Warning
+	* src/bord.cpp: add new constructor that takes a list of data
+	partitions and makes sure the dictionaries for categories match
+	before using the integer representation for the resulting column
 
 2012-03-16 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.h, src/dictionary.cpp: add function dictionary

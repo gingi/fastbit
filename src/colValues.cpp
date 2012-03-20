@@ -30,7 +30,6 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
     case ibis::SHORT:
 	return new colShorts(c, hits);
     case ibis::UINT:
-    case ibis::CATEGORY:
 	return new colUInts(c, hits);
     case ibis::INT:
 	return new colInts(c, hits);
@@ -42,6 +41,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colFloats(c, hits);
     case ibis::DOUBLE:
 	return new colDoubles(c, hits);
+    case ibis::CATEGORY:
     case ibis::TEXT:
 	return new colStrings(c, hits);
     default:
@@ -101,7 +101,6 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c) {
     case ibis::SHORT:
 	return new colShorts(c);
     case ibis::UINT:
-    case ibis::CATEGORY:
 	return new colUInts(c);
     case ibis::INT:
 	return new colInts(c);
@@ -113,6 +112,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c) {
 	return new colFloats(c);
     case ibis::DOUBLE:
 	return new colDoubles(c);
+    case ibis::CATEGORY:
     case ibis::TEXT:
 	return new colStrings(c);
     default:
@@ -1042,7 +1042,7 @@ ibis::colStrings::colStrings(const ibis::column* c)
 	hits.set(1, c->partition()->nRows());
 	array = c->selectStrings(hits);
     }
-    if (c->type() == ibis::TEXT) {
+    else if (c->type() == ibis::TEXT) {
 	array =new std::vector<std::string>;
 	(void) c->getValuesArray(array);
     }
