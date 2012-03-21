@@ -5272,6 +5272,11 @@ int ibis::column::contractRange(ibis::qContinuousRange& rng) const {
     return ret;
 } // ibis::column::contractRange
 
+/// Compute the exact answer.  Attempts to use the index if one is
+/// available, otherwise use the base data.
+///
+/// Return a negative value to indicate error, 0 to indicate no hit, and
+/// positive value to indicate there are zero or more hits.
 long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 				 const ibis::bitvector& mask,
 				 ibis::bitvector& low) const {
@@ -5345,7 +5350,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    ibis::bitvector b2;
 	    high &= mask;
 	    high -= low;
-	    if (high.cnt() > 0) {
+	    if (high.sloppyCount() > 0) {
 		ierr = thePart->doScan(cmp, high, b2);
 		if (ierr >= 0) {
 		    low |= b2;
@@ -5355,12 +5360,10 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		}
 	    }
 	}
-	if (low.size() == mask.size())
-	    ierr = low.cnt();
 
+	ierr = low.sloppyCount();
 	LOGGER(ibis::gVerbose > 3)
-	    << evt << " completed with low.size() = " << low.size()
-	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	    << evt << " completed with ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -5393,7 +5396,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	else {
 	    indexLock lock(this, evt.c_str());
 	    if (idx != 0) {
-		idx->evaluate(cmp, low);
+		ierr = idx->evaluate(cmp, low);
 		if (low.size() < mask.size()) {
 		    ibis::bitvector high, delta;
 		    high.adjustSize(low.size(), mask.size());
@@ -5417,9 +5420,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     }
 
     LOGGER(ibis::gVerbose > 3)
-	<< evt << " completed the fallback option with low.size() = "
-	<< low.size() << ", low.cnt() = " << low.cnt()
-	<< ", and ierr = " << ierr;
+	<< evt << " completed the fallback option with ierr = " << ierr;
     return ierr;
 } // ibis::column::evaluateRange
 
@@ -5486,14 +5487,12 @@ long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
 	}
 	if (low.size() != mask.size()) { // separate evaluate and select
 	    ierr = evaluateRange(cmp, mask, low);
-	    if (low.cnt() > 0)
+	    if (ierr > 0)
 		ierr = selectValues(low, vals);
 	}
 
 	LOGGER(ibis::gVerbose > 3)
-	    << evt << " completed with low.size() = "
-	    << low.size() << ", low.cnt() = " << low.cnt()
-	    << ", and ierr = " << ierr;
+	    << evt << " completed with ierr = " << ierr;
     }
     catch (std::exception &se) {
 	LOGGER(ibis::gVerbose > 0)
@@ -5558,7 +5557,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		ierr = searchSorted(cmp, low);
 		if (ierr == 0) {
 		    low &= mask;
-		    return low.cnt();
+		    return low.sloppyCount();
 		}
 	    }
 	    if (idxcost > (elementSize()+4.0) * mask.size() &&
@@ -5569,7 +5568,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		    ierr = ros.locate(cmp.getValues(), low);
 		    if (ierr >= 0) {
 			low &= mask;
-			return low.cnt();
+			return low.sloppyCount();
 		    }
 		}
 	    }
@@ -5621,14 +5620,12 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		    low &= mask;
 		    if (high.size() == low.size()) {
 			high &= mask;
-			if (high.cnt() > low.cnt()) {
-			    high -= low;
+			high -= low;
+			if (high.sloppyCount() > 0) {
 			    ibis::bitvector delta;
-			    if (high.cnt() > 0 && thePart != 0) {
-				ierr = thePart->doScan(cmp, high, delta);
-				if (ierr >= 0)
-				    low |= delta;
-			    }
+			    ierr = thePart->doScan(cmp, high, delta);
+			    if (ierr > 0)
+				low |= delta;
 			}
 		    }
 		}
@@ -5641,7 +5638,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    else {
 		ierr = -1;
 	    }
-	    if (ierr < 0 && thePart != 0) {
+	    if (ierr < 0) {
 		ibis::roster ros(this);
 		if (ros.size() == thePart->nRows()) {
 		    ierr = ros.locate(cmp.getValues(), low);
@@ -5657,8 +5654,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	LOGGER(ibis::gVerbose > 3)
 	    << "column[" << (thePart->name()?thePart->name():"?") << "."
 	    << name() << "]::evaluateRange(" << cmp.colName() << " IN ...) "
-	    << "completed with low.size() = " << low.size()
-	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	    << "completed with ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -5723,9 +5719,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     LOGGER(ibis::gVerbose > 3)
 	<< "column[" << (thePart->name()?thePart->name():"?") << "." << name()
 	<< "]::evaluateRange(" << cmp.colName() << " IN ...) "
-	<< "completed the fallback option with low.size() = "
-	<< low.size() << ", low.cnt() = " << low.cnt()
-	<< ", and ierr = " << ierr;
+	<< "completed the fallback option with ierr = " << ierr;
     return ierr;
 } // ibis::column::evaluateRange
 
@@ -5768,10 +5762,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 	LOGGER(ibis::gVerbose > 4)
 	    << "column[" << (thePart->name()?thePart->name():"?")
 	    << "." << name() << "]::estimateRange(" << cmp
-	    << ") completed with low.size() = " << low.size()
-	    << ", low.cnt() = " << low.cnt() << ", high.size() = "
-	    << high.size() << ", high.cnt() = " << high.cnt()
-	    << ", and ierr = " << ierr;
+	    << ") completed with ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -6002,9 +5993,9 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
 	    ibis::roster ros(this);
 	    if (ros.size() == thePart->nRows()) {
 		ierr = ros.locate(cmp.getValues(), low);
-		if (ierr >= 0) {
+		if (ierr > 0) {
 		    low &= mask;
-		    ierr = low.cnt();
+		    ierr = low.sloppyCount();
 		}
 	    }
 	}
@@ -6015,8 +6006,7 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
 	LOGGER(ibis::gVerbose > 3)
 	    << "column[" << (thePart->name()?thePart->name():"?") << "."
 	    << name() << "]::evaluateRange(" << cmp.colName() << " IN ...) "
-	    << "completed with low.size() = " << low.size()
-	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	    << "completed with ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -6047,7 +6037,7 @@ long ibis::column::estimateRange(const ibis::qIntHod& cmp,
 	low.set(0, thePart->nRows());
 	high.copy(thePart->getNullMask());
     }
-    return high.cnt();
+    return high.sloppyCount();
 } // ibis::column::estimateRange
 
 double ibis::column::estimateCost(const ibis::qIntHod& cmp) const {
@@ -6103,9 +6093,9 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 	    ibis::roster ros(this);
 	    if (ros.size() == thePart->nRows()) {
 		ierr = ros.locate(cmp.getValues(), low);
-		if (ierr >= 0) {
+		if (ierr > 0) {
 		    low &= mask;
-		    ierr = low.cnt();
+		    ierr = low.sloppyCount();
 		}
 	    }
 	}
@@ -6116,8 +6106,7 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 	LOGGER(ibis::gVerbose > 3)
 	    << "column[" << (thePart->name()?thePart->name():"?") << "."
 	    << name() << "]::evaluateRange(" << cmp.colName() << " IN ...) "
-	    << "completed with low.size() = " << low.size()
-	    << ", low.cnt() = " << low.cnt() << ", and ierr = " << ierr;
+	    << "completed with ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -6147,7 +6136,7 @@ long ibis::column::estimateRange(const ibis::qUIntHod& cmp,
 	low.set(0, thePart->nRows());
 	high.copy(thePart->getNullMask());
     }
-    return high.cnt();
+    return high.sloppyCount();
 } // ibis::column::estimateRange
 
 double ibis::column::estimateCost(const ibis::qUIntHod& cmp) const {

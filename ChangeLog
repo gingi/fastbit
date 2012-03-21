@@ -1,3 +1,9 @@
+2012-03-21 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.h, src/bitvector.cpp: add function sloppyCount as
+	a cheaper alternative for actually counting the number of 1s in a
+	bit vector.  This should address a concern raised by dominique
+	about invoking bitvector::cnt taking too much time
+
 2012-03-20 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h, src/bord.cpp: add functions to work with string
 	values as keys for group by operations (the previous attempt to

@@ -2181,12 +2181,13 @@ void ibis::part::sortRIDs() const {
 	    return;
 	}
     }
-    timer.stop();
-    if (ibis::gVerbose > 4)
+    if (ibis::gVerbose > 4) {
+	timer.stop();
 	logMessage("sortRIDs", "sorting %lu RIDs took  %g sec(CPU), %g "
 		   "sec(elapsed); result written to %s",
 		   static_cast<long unsigned>(rmap.size()),
 		   timer.CPUTime(), timer.realTime(), name);
+    }
 } // ibis::part::sortRIDs
 
 /// It tries the sorted RID list first.  If that fails, it uses the brute
@@ -3114,6 +3115,9 @@ long ibis::part::selectValues(const ibis::qContinuousRange& cond,
 /// is available, sort those RIDS and search through them, otherwise,
 /// assume the incoming numbers are row numbers and mark the corresponding
 /// positions of hits.
+///
+/// Return a negative value to indicate error, 0 to indicate no hit, and
+/// positive value to indicate there are zero or more hits.
 long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 				ibis::bitvector &hits) const {
     if (in.empty() || nEvents == 0)
@@ -3136,7 +3140,7 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
     LOGGER(ibis::gVerbose > 4)
 	<< "part[" << name() << "]::evaluateRIDSet found " << hits.cnt()
 	<< " out of " << in.size() << " rid" << (in.size()>1 ? "s" : "");
-    return hits.cnt();
+    return hits.sloppyCount();
 } // ibis::part::evaluateRIDSet
 
 /// Find all records that has the exact string value.
@@ -3148,6 +3152,9 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 /// this column.  Otherwise the right string is compared against the column
 /// names, if a match is found, the search is performed on that column.  If
 /// both failed, the search returns no hit.
+///
+/// Return a negative value to indicate error, 0 to indicate no hit, and
+/// positive value to indicate there are zero or more hits.
 long ibis::part::lookforString(const ibis::qString &cmp,
 			       ibis::bitvector &low) const {
     long ierr = 0;
@@ -3209,6 +3216,10 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
 /// Determine the records that have the exact string values.  Actual work
 /// done in the function search of the string-valued column.  It
 /// produces no hit if the name is not a string-valued column.
+///
+/// Return a negative value to indicate error, 0 to indicate no hit, and
+/// positive value to indicate there are zero or more hits.  To determine
+/// the exact number of hits, call low.count().
 long ibis::part::lookforString(const ibis::qMultiString &cmp,
 			       ibis::bitvector &low) const {
     int ierr = 0;
@@ -3278,7 +3289,9 @@ long ibis::part::patternSearch(const ibis::qLike &cmp,
 	    << ") failed because " << cmp.colName()
 	    << " is not a known column name";
     }
-    return -1L;
+
+    hits.set(0, nEvents);
+    return 0;
 } // ibis::part::patternSearch
 
 // simply pass the job to the named column
@@ -3292,7 +3305,7 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
 	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
 	hits.set(0, nEvents);
-	return 0;
+	return ierr;
     }
 
     const ibis::column* col = getColumn(cmp.colName());
@@ -3312,7 +3325,7 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 	    << "Warning -- part[" << name()
 	    << "]::evaluateRangeun failed to find a column named "
 	    << cmp.colName();
-	hits.copy(mask);
+	hits.set(0, nEvents);
     }
 
     LOGGER(ibis::gVerbose > 7)
@@ -5033,9 +5046,12 @@ long ibis::part::doScan(const array_t<E> &varr,
 			const ibis::qRange &cmp,
 			const ibis::bitvector &mask,
 			ibis::bitvector &hits) {
+    long ierr = 0;
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start();
+    hits.set(0, mask.size());
+    hits.decompress();
     for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 	 is.nIndices() > 0; ++ is) {
 	const ibis::bitvector::word_t *iix = is.indices();
@@ -5043,6 +5059,7 @@ long ibis::part::doScan(const array_t<E> &varr,
 	    const uint32_t last = (varr.size()>=iix[1] ? iix[1] : varr.size());
 	    for (uint32_t i = iix[0]; i < last; ++ i) {
 		if (cmp.inRange(varr[i])) {
+		    ++ ierr;
 		    hits.setBit(i, 1);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose >= 0) << varr[i] << " is in " << cmp;
@@ -5053,6 +5070,7 @@ long ibis::part::doScan(const array_t<E> &varr,
 	else {
 	    for (uint32_t i = 0; i < is.nIndices(); ++ i) {
 		if (iix[i] < varr.size() && cmp.inRange(varr[iix[i]])) {
+		    ++ ierr;
 		    hits.setBit(iix[i], 1);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 		    LOGGER(ibis::gVerbose >= 0)
@@ -5063,8 +5081,8 @@ long ibis::part::doScan(const array_t<E> &varr,
 	}
     } // main loop
 
-    hits.adjustSize(0, mask.size());
-    if (ibis::gVerbose > 1) {
+    hits.compress();
+    if (ibis::gVerbose > 1 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << cmp << " on "
@@ -5072,13 +5090,13 @@ long ibis::part::doScan(const array_t<E> &varr,
 	     << (mask.cnt() > 1 ? " values" : " value")
 	     << " (total: " << mask.size() << ") took "
 	     << timer.realTime() << " sec elapsed time and produced "
-	     << hits.cnt() << (hits.cnt() > 1 ? " hits" : " hit");
+	     << ierr << (ierr > 1 ? " hits" : " hit");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg() << "\nmask\n" << mask;
 	lg() << "\nhit vector\n" << hits << "\n";
 #endif
     }
-    return hits.cnt();
+    return ierr;
 } // ibis::part::doScan
 
 /// Compute the records (marked 1 in the mask) that does not satisfy the
@@ -5145,7 +5163,7 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 		(reinterpret_cast<const ibis::qDiscreteRange&>(cmp),
 		 hits, tmp);
 	hits &= mask;
-	ierr = 0;
+	ierr = hits.sloppyCount();
 	break;}
 
     case ibis::LONG: {
@@ -5481,7 +5499,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 	    hits.copy(mymask);
 	else
 	    hits.set(mymask.size(), 0);
-	ierr = hits.cnt();
+	ierr = hits.sloppyCount();
 	return ierr;
     }
 
@@ -5535,21 +5553,25 @@ long ibis::part::doScan(const ibis::compRange &cmp,
     else if (hits.size() < nEvents)
 	hits.setBit(nEvents-1, 0);
 
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::doScan -- evaluating "
-	     << cmp << " on " << mask.cnt() << " records (total: "
-	     << nEvents << ") took " << timer.realTime()
-	     << " sec elapsed time and produced "
-	     << hits.cnt() << " hits\n";
+    if (ierr >= 0) {
+	if (ibis::gVerbose > 1) {
+	    timer.stop();
+	    ierr = hits.cnt();
+	    ibis::util::logger lg;
+	    lg() << "part[" << (m_name ? m_name : "?")
+		 << "]::doScan -- evaluating "
+		 << cmp << " on " << mask.cnt() << " records (total: "
+		 << nEvents << ") took " << timer.realTime()
+		 << " sec elapsed time and produced "
+		 << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits;
+	    lg() << "\nmask\n" << mask << "\nhit vector\n" << hits;
 #endif
+	}
+	else {
+	    ierr = hits.sloppyCount();
+	}
     }
-    if (ierr >= 0)
-	ierr = hits.cnt();
     return ierr;
 } // ibis::part::doScan
 
@@ -5719,18 +5741,22 @@ long ibis::part::doScan(const ibis::math::term &trm,
 	++ idx;
     } // while (idx.nIndices() > 0)
 
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg() << "part[" << (m_name ? m_name : "?")
-	     << "]::doScan -- evaluating " << trm << " on "
-	     << msk.cnt() << " records (total: " << nEvents
-	     << ") took " << timer.realTime()
-	     << " sec elapsed time and produced " << res.cnt()
-	     << " hit" << (res.cnt() > 1 ? "s" : "");
+    if (ierr >= 0) {
+	if (ibis::gVerbose > 1) {
+	    timer.stop();
+	    ierr = res.cnt();
+	    ibis::util::logger lg;
+	    lg() << "part[" << (m_name ? m_name : "?")
+		 << "]::doScan -- evaluating " << trm << " on "
+		 << msk.cnt() << " records (total: " << nEvents
+		 << ") took " << timer.realTime()
+		 << " sec elapsed time and produced " << ierr
+		 << " hit" << (ierr > 1 ? "s" : "");
+	}
+	else {
+	    ierr = res.sloppyCount();
+	}
     }
-    if (ierr >= 0)
-	ierr = res.cnt();
     return ierr;
 } // ibis::part::doScan
 
@@ -5751,6 +5777,7 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
     if (cmp.getPrefix() == 0 || cmp.getValues().empty()) return -1;
     if (nEvents == 0) return 0;
 
+    long ierr = 0;
     hits.set(0, mask.size());
     const char* pref = cmp.getPrefix();
     const int len = strlen(pref);
@@ -5768,7 +5795,7 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
 		msk -= hits;
 		msk.compress();
 	    }
-	    doScan(ex, msk, res);
+	    ierr = doScan(ex, msk, res);
 	    if (res.size() == hits.size())
 		hits |= res;
 	    ++ it;
@@ -5789,13 +5816,15 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
 	    // should be worth it in most case!
 	    //if (hits.cnt() > hits.bytes())
 	    msk -= hits;
-	    doScan(ex, msk, res);
+	    ierr = doScan(ex, msk, res);
 	    if (res.size() == hits.size())
 		hits |= res;
 	    ++ it;
 	}
     }
-    return hits.cnt();
+    if (ierr >= 0)
+	ierr = hits.sloppyCount();
+    return ierr;
 } // ibis::part::matchAny
 
 /// Compute the min and max for each column.  Actually compute the min and
@@ -7826,6 +7855,10 @@ long ibis::part::doCompare(const char* file,
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
+	ierr = hits.cnt();
+    }
+    else {
+	ierr = hits.sloppyCount();
     }
     return ierr;
 } // ibis::part::doCompare
@@ -8056,6 +8089,7 @@ long ibis::part::doCompare(const char* file,
 	     << timer.realTime() << " sec elapsed time and produced "
 	     << ierr << " hit" << (ierr > 1 ? "s" : "") << "\n";
     }
+
     return ierr;
 } // ibis::part::doCompare
 
@@ -8413,7 +8447,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     else if (hits.size() != mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 1 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -8422,9 +8456,9 @@ long ibis::part::doCompare(const array_t<T> &array,
 	     << typeid(T).name() << "-array[" << array.size()
 	     << "] took " << timer.realTime()
 	     << " sec elapsed time and produced "
-	     << hits.cnt() << " hits" << "\n";
+	     << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits;
+	lg() << "\nmask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
     return ierr;
@@ -8722,7 +8756,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 1 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::negativeCompare -- performing comparison with column "
@@ -8731,9 +8765,9 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 	     << typeid(T).name() << "-array[" << array.size()
 	     << "] took " << timer.realTime()
 	     << " sec elapsed time and produced "
-	     << hits.cnt() << " hits" << "\n";
+	     << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -8957,20 +8991,24 @@ long ibis::part::negativeCompare(const char* file,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg()
-	    << "part::negativeCompare -- performing comparison with column "
-	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
-	    << "s from file \"" << file << "\" took " << timer.realTime()
-	    << " sec elapsed time and produced " << hits.cnt() << " hits";
+    if (ierr >= 0) {
+	if (ibis::gVerbose > 1) {
+	    timer.stop();
+	    ierr = hits.cnt();
+	    ibis::util::logger lg;
+	    lg() << "part::negativeCompare -- performing comparison with column "
+		 << cmp.colName() << " on " << mask.cnt() << ' '
+		 << typeid(T).name() << "s from file \"" << file << "\" took "
+		 << timer.realTime() << " sec elapsed time and produced "
+		 << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg()
-	    << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
+	    lg() << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
+	}
+	else {
+	    ierr = hits.sloppyCount();
+	}
     }
-    ierr = hits.cnt();
     return ierr;
 } // ibis::part::negativeCompare
 
@@ -9083,7 +9121,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
+    if (ierr >= 0 && ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -9092,9 +9130,9 @@ long ibis::part::doCompare(const array_t<T> &array,
 	     << typeid(T).name() << "-array[" << array.size()
 	     << "] took " << timer.realTime()
 	     << " sec elapsed time and produced "
-	     << hits.cnt() << " hits" << "\n";
+	     << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits;
+	lg() << "\nmask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
     return ierr;
@@ -9323,18 +9361,22 @@ long ibis::part::doCompare(const char* file,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 1 && ierr >= 0) {
 	timer.stop();
+	ierr = hits.cnt();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
 	     << cmp.colName() << " on " << mask.cnt() << " element"
 	     << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
 	     << " from file \"" << file << "\" took "
 	     << timer.realTime() << " sec elapsed time and produced "
-	     << hits.cnt() << " hits" << "\n";
+	     << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
+    }
+    else if (ierr >= 0) {
+	ierr = hits.sloppyCount();
     }
     return ierr;
 } // ibis::part::doCompare
@@ -9352,7 +9394,8 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 
     uint32_t i=0, j=0;
     long ierr=0;
-    const uint32_t nelm = (array.size() <= mask.size() ? array.size() : mask.size());
+    const uint32_t nelm =
+	(array.size() <= mask.size() ? array.size() : mask.size());
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
 	hits.set(0, mask.size());
@@ -9403,7 +9446,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
+    if (ierr >= 0 && ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::negativeCompare -- performing comparison with column "
@@ -9412,9 +9455,9 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 	     << typeid(T).name() << "-array[" << array.size()
 	     << "] took " << timer.realTime()
 	     << " sec elapsed time and produced "
-	     << hits.cnt() << " hits" << "\n";
+	     << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -9641,20 +9684,24 @@ long ibis::part::negativeCompare(const char* file,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg()
-	    << "part::negativeCompare -- performing comparison with column "
-	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
-	    << "s from file \"" << file << "\" took " << timer.realTime()
-	    << " sec elapsed time and produced " << hits.cnt() << " hits";
+    if (ierr >= 0) {
+	if (ibis::gVerbose > 1) {
+	    timer.stop();
+	    ierr = hits.cnt();
+	    ibis::util::logger lg;
+	    lg() << "part::negativeCompare -- performing comparison with column "
+		<< cmp.colName() << " on " << mask.cnt() << ' '
+		 << typeid(T).name() << "s from file \"" << file << "\" took "
+		 << timer.realTime() << " sec elapsed time and produced "
+		 << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg()
-	    << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
+	    lg() << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
+	}
+	else {
+	    ierr = hits.sloppyCount();
+	}
     }
-    ierr = hits.cnt();
     return ierr;
 } // ibis::part::negativeCompare
 
@@ -9767,7 +9814,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
+    if (ierr >= 0 && ibis::gVerbose > 1) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -9776,9 +9823,9 @@ long ibis::part::doCompare(const array_t<T> &array,
 	     << typeid(T).name() << "-array[" << array.size()
 	     << "] took " << timer.realTime()
 	     << " sec elapsed time and produced "
-	     << hits.cnt() << " hits" << "\n";
+	     << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits;
+	lg() << "\nmask\n" << mask << "\nhit vector\n" << hits;
 #endif
     }
     return ierr;
@@ -10005,18 +10052,24 @@ long ibis::part::doCompare(const char* file,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg() << "part::doCompare -- performing comparison with column "
-	     << cmp.colName() << " on " << mask.cnt() << " element"
-	     << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
-	     << " from file \"" << file << "\" took "
-	     << timer.realTime() << " sec elapsed time and produced "
-	     << hits.cnt() << " hits" << "\n";
+    if (ierr >= 0) {
+	if (ibis::gVerbose > 1) {
+	    timer.stop();
+	    ierr = hits.cnt();
+	    ibis::util::logger lg;
+	    lg() << "part::doCompare -- performing comparison with column "
+		 << cmp.colName() << " on " << mask.cnt() << " element"
+		 << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
+		 << " from file \"" << file << "\" took "
+		 << timer.realTime() << " sec elapsed time and produced "
+		 << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	    lg() << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
+	}
+	else {
+	    ierr = hits.sloppyCount();
+	}
     }
     return ierr;
 } // ibis::part::doCompare
@@ -10084,7 +10137,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 1 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::negativeCompare -- performing comparison with column "
@@ -10093,9 +10146,9 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 	     << typeid(T).name() << "-array[" << array.size()
 	     << "] took " << timer.realTime()
 	     << " sec elapsed time and produced "
-	     << hits.cnt() << " hits" << "\n";
+	     << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "mask\n" << mask << "\nhit vector\n" << hits << "\n";
+	lg() << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
     }
     return ierr;
@@ -10319,20 +10372,24 @@ long ibis::part::negativeCompare(const char* file,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg()
-	    << "part::negativeCompare -- performing comparison with column "
-	    << cmp.colName() << " on " << mask.cnt() << ' ' << typeid(T).name()
-	    << "s from file \"" << file << "\" took " << timer.realTime()
-	    << " sec elapsed time and produced " << hits.cnt() << " hits";
+    if (ierr >= 0) {
+	if (ibis::gVerbose > 1) {
+	    timer.stop();
+	    ierr = hits.cnt();
+	    ibis::util::logger lg;
+	    lg() << "part::negativeCompare -- performing comparison with column "
+		 << cmp.colName() << " on " << mask.cnt() << ' '
+		 << typeid(T).name() << "s from file \"" << file << "\" took "
+		 << timer.realTime() << " sec elapsed time and produced "
+		 << ierr << " hit" << (ierr>1?"s":"");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg()
-	    << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
+	    lg() << "\nmask\n" << mask << "\nhit vector\n" << hits << "\n";
 #endif
+	}
+	else {
+	    ierr = hits.sloppyCount();
+	}
     }
-    ierr = hits.cnt();
     return ierr;
 } // ibis::part::negativeCompare
 
@@ -15992,7 +16049,8 @@ long ibis::part::doComp(const array_t<T> &vals, F cmp,
 	hits.compress();
     else
 	hits.adjustSize(0, mask.size());
-    ierr = hits.cnt();
+
+    ierr = hits.sloppyCount();
     return ierr;
 } // ibis::part::doComp
 
@@ -16061,7 +16119,7 @@ long ibis::part::doComp0(const array_t<T> &vals, F cmp,
     }
 
     hits.compress();
-    ierr = hits.cnt();
+    ierr = hits.sloppyCount();
     return ierr;
 } // ibis::part::doComp0
 
@@ -16141,7 +16199,7 @@ long ibis::part::doComp(const array_t<T> &vals, F1 cmp1, F2 cmp2,
 	hits.compress();
     else
 	hits.adjustSize(0, mask.size());
-    ierr = hits.cnt();
+    ierr = hits.sloppyCount();
     return ierr;
 } // ibis::part::doComp
 
@@ -16208,7 +16266,7 @@ long ibis::part::doComp0(const array_t<T> &vals, F1 cmp1, F2 cmp2,
     }
 
     hits.compress();
-    ierr = hits.cnt();
+    ierr = hits.sloppyCount();
     return ierr;
 } // ibis::part::doComp0
 

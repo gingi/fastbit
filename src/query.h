@@ -194,9 +194,6 @@ public:
     /// the state of the current query.
     long sequentialScan(ibis::bitvector& bv) const;
 
-    /// Get a bitvector containing all rows satisfying the query
-    /// condition. The resulting bitvector inculdes both active rows and
-    /// inactive rows.
     long getExpandedHits(ibis::bitvector&) const;
 
     // used by ibis::bundle
@@ -257,23 +254,18 @@ protected:
     void reorderExpr(); // reorder query expression
 
     bool hasBundles() const;
-    int  computeHits();	  // generate the hit vector for range queries
-    void getBounds();	  // get the upper and lower bounds for range queries
-    // use index only to come up with a upper bound and a lower bound
+    void getBounds();
     void doEstimate(const qExpr* term, ibis::bitvector& low,
 		    ibis::bitvector& high) const;
-    /// Read the data partition to resolve the query conditions.
-    int doScan(const qExpr* term, const ibis::bitvector& mask,
-	       ibis::bitvector& hits) const;
-    /// Read the data partition to resolve the query expression.
-    int doScan(const qExpr* term, ibis::bitvector& hits) const;
-    /// Evaluate one term of a query conditions.
+
+    int  computeHits();
     int doEvaluate(const qExpr* term, ibis::bitvector& hits) const;
-    /// Evaluate one term of a query conditions.
     int doEvaluate(const qExpr* term, const ibis::bitvector& mask,
 		   ibis::bitvector& hits) const;
+    int doScan(const qExpr* term, const ibis::bitvector& mask,
+	       ibis::bitvector& hits) const;
+    int doScan(const qExpr* term, ibis::bitvector& hits) const;
 
-    /// Process the join operation and return the number of pairs.
     int64_t processJoin();
 
     /// Write the basic information about the query to disk.

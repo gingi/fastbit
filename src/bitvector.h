@@ -138,6 +138,8 @@ public:
     inline word_t size() const throw();
     inline void sloppySize(word_t n) const;
     inline word_t cnt() const;
+    inline word_t count() const {return cnt();}
+    inline word_t sloppyCount() const;
     inline word_t numFillWords() const;
     /// Return the number of bytes used by the bitvector object in memory.
     uint32_t bytes() const throw() {
@@ -520,7 +522,7 @@ private:
 /// Explicitly set the size of the bitvector.  This is intended to be used
 /// by indexing functions to avoid counting the number of bits.  Caller is
 /// responsible for ensuring the size assigned is actually correct.  It
-/// does not the number of bits actually represented by this data
+/// does not affect the number of bits actually represented by this data
 /// structure.  To change the number of bits represented by this data
 /// structure use the function adjustSize instead.
 inline void ibis::bitvector::sloppySize(word_t n) const {
@@ -535,6 +537,27 @@ inline void ibis::bitvector::sloppySize(word_t n) const {
     }
 #endif
 } // ibis::bitvector::sloppySize
+
+/// Provide a sloppy count of the number of bits that are 1.  If it returns
+/// 0, this bit vector has NO bits that are 1, otherwise, there might be
+/// some bits that are 1.  However, the return value not equaling to 0 does
+/// not necessarily mean there are actually any bits that are 1.  It simply
+/// means that we can not determine whether all bits are 0 without
+/// additional work.  This is a sloppy version of count, it can be used to
+/// avoid producing precise counts in some functions.
+inline ibis::bitvector::word_t ibis::bitvector::sloppyCount() const {
+    if (active.nbits == 0 || active.val == 0) {
+	if (m_vec.empty() ||
+	    (m_vec.size() == 1 &&
+	     (m_vec[0] == 0 || (m_vec[0]>=HEADER0 && m_vec[0]<HEADER1))))
+	    return 0;
+	else
+	    return 2;
+    }
+    else {
+	return 1;
+    }
+} // ibis::bitvector::sloppyCount
 
 /// Are all bits in regular words 0?
 inline bool ibis::bitvector::all0s() const {

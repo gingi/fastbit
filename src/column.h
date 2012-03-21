@@ -160,8 +160,6 @@ public:
     /// on the bin boundaries.
     int contractRange(ibis::qContinuousRange& rng) const;
 
-    /// Compute the exact answer.  If successful, return the number of
-    /// hits, otherwise return a negative value.
     virtual long evaluateRange(const ibis::qContinuousRange& cmp,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector& res) const;

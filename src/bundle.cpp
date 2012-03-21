@@ -467,7 +467,7 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 
 	if (starts == 0) { // use the current hit vector
 	    const ibis::bitvector* hits = q.getHitVector();
-	    if (hits != 0 && hits->cnt() > 0) {
+	    if (hits != 0 && hits->sloppyCount() > 0) {
 		if (rids == 0) {
 		    rids = tbl->getRIDs(*hits);
 		    if (rids != 0 && rids->size() != hits->cnt()) {

@@ -773,7 +773,7 @@ long ibis::query::getMinNumHits() const {
 long ibis::query::getMaxNumHits() const {
     readLock lck(this, "getMaxNumHits");
     long nHits = (sup != 0 ? static_cast<long>(sup->cnt()) :
-		 (hits ? static_cast<long>(hits->cnt()) : -1));
+		  (hits ? static_cast<long>(hits->cnt()) : -1));
     if (ibis::gVerbose > 11)
 	logMessage("getMaxNumHits", "maxHits = %d", nHits);
     return nHits;
@@ -784,14 +784,14 @@ long ibis::query::getMaxNumHits() const {
 /// the select clause should be evaluated at the same time.  If its value
 /// is true, the columns specified in the select clause will be retrieved
 /// from disk and stored in the temporary location for this query.  If not,
-/// the qualified values will be retrieved from disk when one of getRIDs,
-/// getQualifiedInts, getQualifiedFloats, and getQualifiedDoubles is
-/// issued.  In the later case, only the specified column is retrieved.  In
-/// addition, the values of column at the time of the function are read,
-/// which can be potentially different different from the time when the
-/// function evaluate was called.
+/// the qualified values need to be retrieved by calling one of getRIDs,
+/// getQualifiedInts, getQualifiedFloats, getQualifiedDoubles and similar
+/// functions.  These functions work with one column at a time.  Note that
+/// if the data is dynamically varying, the values retrived later could be
+/// different from the values extracted while processing this function.
 ///
-/// Returns 0 for success, a negative value for error.
+/// Returns 0 or a positive integer for success, a negative value for
+/// error.
 ///
 /// @see getQualifiedInts
 int ibis::query::evaluate(const bool evalSelect) {
@@ -847,7 +847,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		ierr = computeHits(); // do actual computation here
 		if (ierr < 0) return ierr;
 	    }
-	    if (hits != 0 && hits->cnt() > 0 && ! conds.empty()
+	    if (hits != 0 && hits->sloppyCount() > 0 && ! conds.empty()
 		&& ibis::gVerbose > 3) {
 		const unsigned nb = hits->size();
 		const unsigned nc = hits->cnt();
@@ -944,7 +944,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	writeQuery(); // record the current status
     }
 
-    if (myDir && hits->cnt() > 0 && evalSelect) {
+    if (myDir && hits->sloppyCount() > 0 && evalSelect) {
 	// generate the bundles
 	writeHits();
 	if (ibis::gVerbose > 1) timer.start();
@@ -2409,6 +2409,7 @@ void ibis::query::reorderExpr() {
     }
 } // ibis::query::reorderExpr
 
+/// Compute the upper and lower bounds for range queries.
 void ibis::query::getBounds() {
     if (ibis::gVerbose > 7)
 	logMessage("getBounds", "compute upper and lower bounds of hits");
@@ -2463,9 +2464,9 @@ void ibis::query::getBounds() {
     }
 } // ibis::query::getBounds
 
-/// Use the indexes only.  Treat nil term as matching every row to allow
-/// empty where clauses to be interpreted as matching everything (to
-/// conform to SQL standard).
+/// Use index only to come up with a upper bound and a lower bound.  Treats
+/// nil term as matching every row to allow empty where clauses to be
+/// interpreted as matching everything (to conform to SQL standard).
 void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 			     ibis::bitvector& high) const {
     if (term == 0) {
@@ -2493,7 +2494,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	doEstimate(term->getLeft(), low, high);
 	// there is no need to evaluate the right-hand side if the left-hand
 	// is evaluated to have no hit
-	if (low.cnt() > 0 || (high.size() == low.size() && high.cnt() > 0)) {
+	if (high.sloppyCount() > 0) {
 	    // continue to evaluate the right-hand side
 	    ibis::bitvector b1, b2;
 	    doEstimate(term->getRight(), b1, b2);
@@ -2602,7 +2603,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	doEstimate(term->getLeft(), low, high);
 	// there is no need to evaluate the right-hand side if the left-hand
 	// is evaluated to have no hit
-	if (low.cnt() > 0 || (high.size() == low.size() && high.cnt() > 0)) {
+	if (high.sloppyCount() > 0) {
 	    // continue to evaluate the right-hand side
 	    ibis::bitvector b1, b2;
 	    doEstimate(term->getRight(), b2, b1);
@@ -2732,6 +2733,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 #endif
 } // ibis::query::doEstimate
 
+/// Generate the hit vector.
 int ibis::query::computeHits() {
     if (ibis::gVerbose > 7) {
 	ibis::util::logger lg;
@@ -2781,26 +2783,20 @@ int ibis::query::computeHits() {
     if (sup == 0) { // already have the exact answer
 	sup = hits; // copy the pointer to make other operations easier
     }
-    else if (hits->size() != sup->size() || hits->cnt() >= sup->cnt()) {
-	// the estimate is accurate -- no need for actual scan
-	if (sup != hits) {
-	    delete sup;
-	    sup = hits;
-	}
-    }
     else { // need to actually examine the data files involved
-	ibis::bitvector delta;
 	(*sup) -= (*hits);
-
-	ierr = doScan(conds.getExpr(), *sup, delta);
-	if (ierr >= 0) {
-	    delete sup;  // no longer need it
-	    *hits |= delta;
-	    sup = hits;
-	}
-	else {
-	    (*sup) |= (*hits);
-	    return ierr - 20;
+	if (sup->sloppyCount() > 0) {
+	    ibis::bitvector delta;
+	    ierr = doScan(conds.getExpr(), *sup, delta);
+	    if (ierr > 0) {
+		delete sup;  // no longer need it
+		*hits |= delta;
+		sup = hits;
+	    }
+	    else if (ierr < 0) {
+		(*sup) |= (*hits);
+		return ierr - 20;
+	    }
 	}
     }
 
@@ -2879,10 +2875,9 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
     if (ierr >= 0 && ibis::gVerbose > 2) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg()
-	    << "query[" << myID << "]::sequentialScan produced " << ierr
-	    << " hit" << (ierr>1?"s":"") << " in " << timer.CPUTime()
-	    << " sec(CPU), " << timer.realTime() << " sec(elapsed)";
+	lg() << "query[" << myID << "]::sequentialScan produced " << ierr
+	     << " hit" << (ierr>1?"s":"") << " in " << timer.CPUTime()
+	     << " sec(CPU), " << timer.realTime() << " sec(elapsed)";
 	if (ibis::gVerbose > 3 && hits != 0 && state == FULL_EVALUATE) {
 	    ibis::bitvector diff;
 	    diff.copy(*hits);
@@ -2896,10 +2891,9 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
 	    diff.print(lg());
 #endif
 	    if (diff.cnt()) {
-		lg()
-		    << "\nWarning -- query[" << myID
-		    << "]::sequentialScan produced " << diff.cnt()
-		    << " hit" << (diff.cnt()>1?"s":"")
+		lg() << "\nWarning -- query[" << myID
+		     << "]::sequentialScan produced " << diff.cnt()
+		     << " hit" << (diff.cnt()>1?"s":"")
 		     << " that are different from the previous evaluation";
 		if (ibis::gVerbose > 5) {
 		    uint32_t maxcnt = (ibis::gVerbose > 30 ? mypart->nRows()
@@ -2933,6 +2927,9 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
     return ierr;
 } // ibis::query::sequentialScan
 
+/// Get a bitvector containing all rows satisfying the query
+/// condition. The resulting bitvector inculdes both active rows and
+/// inactive rows.
 long ibis::query::getExpandedHits(ibis::bitvector& res) const {
     long ierr;
     readLock lock(this, "getExpandedHits"); // don't change query
@@ -2942,13 +2939,11 @@ long ibis::query::getExpandedHits(ibis::bitvector& res) const {
     }
     else if (conds.getExpr() != 0) {
 	ibis::part::readLock lock2(mypart, myID); // don't change data
-	doEvaluate(conds.getExpr(), res);
-	ierr = res.cnt();
+	ierr = doEvaluate(conds.getExpr(), res);
     }
     else if (rids_in != 0) {
 	ibis::part::readLock lock2(mypart, myID);
-	mypart->evaluateRIDSet(*rids_in, res);
-	ierr = res.cnt();
+	ierr = mypart->evaluateRIDSet(*rids_in, res);
     }
     else {
 	res.clear();
@@ -2958,6 +2953,7 @@ long ibis::query::getExpandedHits(ibis::bitvector& res) const {
 } // ibis::query::getExpandedHits
 
 /// Perform a sequential scan.
+/// Reads the data partition to resolve the query expression.
 int ibis::query::doScan(const ibis::qExpr* term,
 			ibis::bitvector& ht) const {
     int ierr = 0;
@@ -3108,6 +3104,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
 } // ibis::query::doScan
 
 /// Masked sequential scan.
+/// Reads the data partition to resolve the query conditions.
 int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 			ibis::bitvector& ht) const {
     int ierr = 0;
@@ -3155,7 +3152,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	// to ht.cnt()
 	// since there are no good estimates on the coefficients, we will
 	// simply directly compare the two
-	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
+	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
 		std::auto_ptr<ibis::bitvector> newmask(mask - ht);
@@ -3523,12 +3520,20 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 } // ibis::query::doScan
 
 /// Evaluate the query expression.
-/// Combines the operations on index and the sequential scan in one function.
+/// Combines the operations on index and the sequential scan in one
+/// function.
+///
+/// It returns a non-negative value to indicate success and a negative
+/// value to indicate error.  Note that a return value of zero indicates
+/// that no hits is found.  However, a positive return value does not
+/// necessarily mean the number of hits is greater than zero, it simply
+/// means that it will take some work to figure out the actually number of
+/// hits.
 int ibis::query::doEvaluate(const ibis::qExpr* term,
 			    ibis::bitvector& ht) const {
     if (term == 0) { // match everything
 	ht.set(1, mypart->nRows());
-	return 0;
+	return mypart->nRows();
     }
     LOGGER(ibis::gVerbose > 5)
 	<< "query[" << myID << "]::doEvaluate -- starting to evaluate "
@@ -3581,7 +3586,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr > 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), ht, b1);
-	    if (ierr >= 0)
+	    if (ierr > 0)
 		ht -= b1;
 	    ierr = ht.cnt();
 	}
@@ -3703,7 +3708,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	mypart->estimateMatchAny(*tmp, ht, more);
 	if (ht.size() == more.size() && ht.cnt() < more.cnt()) {
 	    more -= ht;
-	    if (more.cnt() > 0) {
+	    if (more.sloppyCount() > 0) {
 		ibis::bitvector res;
 		mypart->matchAny(*tmp, res, more);
 		ht |= res;
@@ -3784,7 +3789,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
     case ibis::qExpr::LOGICAL_OR: {
 	ierr = doEvaluate(term->getLeft(), mask, ht);
-	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
+	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
 		std::auto_ptr<ibis::bitvector> newmask(mask - ht);
@@ -3793,7 +3798,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    else {
 		ierr = doEvaluate(term->getRight(), mask, b1);
 	    }
-	    if (ierr >= 0)
+	    if (ierr > 0)
 		ht |= b1;
 	    ierr = ht.cnt();
 	}
@@ -3804,7 +3809,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), mask, b1);
-	    if (ierr >= 0) {
+	    if (ierr > 0) {
 		ht ^= b1;
 		ierr = ht.cnt();
 	    }
@@ -3816,7 +3821,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr > 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), ht, b1);
-	    if (ierr >= 0)
+	    if (ierr > 0)
 		ht -= b1;
 	    ierr = ht.cnt();
 	}
@@ -4006,7 +4011,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ht.size() == more.size() && ht.cnt() < more.cnt()) {
 	    more -= ht;
 	    more &= mask;
-	    if (more.cnt() > 0) {
+	    if (more.sloppyCount() > 0) {
 		ibis::bitvector res;
 		mypart->matchAny(*tmp, more, res);
 		ht |= res;
@@ -4571,6 +4576,7 @@ int ibis::query::doContract(ibis::qExpr* exp0) const {
     return ret;
 } // ibis::query::doContract
 
+/// Process the join operation and return the number of pairs.
 /// This function only counts the number of hits; it does produce the
 /// actual tuples for the results of join.  Additionally, it performs only
 /// self-join, i.e., join a partition with itself.  This is only meant to
