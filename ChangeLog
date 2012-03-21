@@ -6,7 +6,10 @@
 	dictionaries do not match, problem raised by Andrew Olson)
 	* src/bord.cpp, src/category.cpp: getString did not return ith
 	string value promised by the interface specification in some
-	cases.
+	cases
+	* src/array_t.cpp: array_t::deepCopy neglected to copy empty rhs
+	(which was the cause of the problem with very short bit vectors
+	reported by Teryl Taylor)
 
 2012-03-19 John Wu <John dot Wu at ACM dot org>
 	* src/index.h: add function ibis::index::sizeInBytes
