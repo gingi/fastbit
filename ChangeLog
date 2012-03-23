@@ -1,3 +1,13 @@
+2012-03-23 John Wu <John dot Wu at ACM dot org>
+	* src/colValues.cpp: in colValues::create, produce integer
+	representations for categorical values (As Dominique points out,
+	ibis::bundle and ibis::colValues are only associated with one data
+	partition and therefore safe to use integer representation)
+	* src/colValues.h, src/colValues.cpp: the function element size
+	gave inconsistent types to function sizeof, move UInts::write from
+	.h to .cpp, replace call to getString to getKey as suggested by
+	Dominique
+
 2012-03-22 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp:759 add statement to deal with the empty string
 	* src/query.cpp, src/iroster.cpp: make consistent use of return 0

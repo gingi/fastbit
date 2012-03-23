@@ -12,9 +12,9 @@
 /// the first project using this software, a high-energy physics experiment
 /// named STAR.
 ///
-#include "idirekte.h"	// ibis::direkte
 #include "column.h"	// ibis::column
 #include "dictionary.h" // ibis::dictionary
+#include "idirekte.h"	// ibis::direkte
 
 /// A data structure for storing null-terminated text.  The only type of
 /// search supported on this type of data is keyword search.

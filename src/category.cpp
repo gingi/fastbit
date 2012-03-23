@@ -1192,6 +1192,8 @@ uint32_t ibis::category::getNumKeys() const {
 
 /// Return the ith value in the dictionary.
 const char* ibis::category::getKey(uint32_t i) const {
+    if (i == 0)
+	return 0;
     if (dic.size() == 0)
 	prepareMembers();
     return dic[i];

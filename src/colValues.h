@@ -3,7 +3,7 @@
 // Copyright 2000-2012 the Regents of the University of California
 #ifndef IBIS_COLVALUES_H
 #define IBIS_COLVALUES_H
-#include "category.h"
+#include "column.h"
 #include "utilidor.h"	// ibis::util::reorder
 
 ///@file
@@ -120,7 +120,7 @@ public:
 
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
-    virtual uint32_t elementSize() const {return sizeof(int);}
+    virtual uint32_t elementSize() const {return sizeof(int32_t);}
     virtual ibis::TYPE_T getType() const {return ibis::INT;}
     virtual void* getArray() const {return array;}
     virtual void nosharing() {array->nosharing();}
@@ -143,7 +143,7 @@ public:
     virtual uint32_t write(FILE* fptr) const {
 	if (array) {
 	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(int), nelm, fptr);
+	    return nelm - fwrite(array->begin(), sizeof(int32_t), nelm, fptr);
 	}
 	else {
 	    return 0;
@@ -189,26 +189,15 @@ private:
 class FASTBIT_CXX_DLLSPEC ibis::colUInts : public ibis::colValues {
 public:
     colUInts() : colValues(), array(0), dic(0) {};
-    colUInts(const ibis::column* c, const ibis::bitvector& hits)
-	: colValues(c), array(c->selectUInts(hits)), dic(0) {
-	if (c != 0 && c->type() == ibis::CATEGORY) {
-	    dic = reinterpret_cast<const ibis::category*>(c)->getDictionary();
-	}
-    }
+    colUInts(const ibis::column* c, const ibis::bitvector& hits);
     colUInts(const ibis::column* c, ibis::fileManager::storage* store,
-	    const uint32_t start, const uint32_t nelm)
-	: colValues(c), array(new array_t<uint32_t>(store, start, nelm)),
-	dic(0) {
-	if (c != 0 && c->type() == ibis::CATEGORY) {
-	    dic = reinterpret_cast<const ibis::category*>(c)->getDictionary();
-	}
-    }
+	     const uint32_t start, const uint32_t nelm);
     colUInts(const ibis::column* c);
     virtual ~colUInts() {delete array;}
 
     virtual bool   empty() const {return (col==0 || array==0);}
     virtual uint32_t size() const {return (array ? array->size() : 0);}
-    virtual uint32_t elementSize() const {return sizeof(unsigned);}
+    virtual uint32_t elementSize() const {return sizeof(uint32_t);}
     virtual ibis::TYPE_T getType() const {return ibis::UINT;}
     virtual void* getArray() const {return array;}
     virtual void nosharing() {array->nosharing();}
@@ -227,32 +216,8 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<uint32_t>* a = rhs.array; rhs.array = array; array = a;}
 
-    /// Write out the whole array as binary.
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(unsigned), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    /// Write the ith element as text.
-    virtual void write(std::ostream& out, uint32_t i) const {
-	if (col->type() == ibis::CATEGORY || col->type() == ibis::TEXT) {
-	    std::string str;
-	    col->getString((*array)[i], str);
-	    if (str.empty()) {
-		out << "<NULL>";
-	    }
-	    else {
-		out << str ;
-	    }
-	}
-	else {
-	    out << (*array)[i];
-	}
-    }
+    virtual uint32_t write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -411,17 +376,7 @@ public:
     }
     /// Write the ith element as text.
     virtual void write(std::ostream& out, uint32_t i) const {
-	if (col->type() == ibis::CATEGORY || col->type() == ibis::TEXT) {
-	    std::string str;
-	    col->getString((*array)[i], str);
-	    if (str.empty()) {
-		out << "<NULL>";
-	    }
-	    else {
-		out << str;
-	    }
-	}
-	else {
+	if (array != 0 && array->size() > i) {
 	    out << (*array)[i];
 	}
     }
@@ -964,11 +919,8 @@ public:
     virtual void reduce(const array_t<uint32_t>& starts,
 			ibis::selectClause::AGREGADO func);
 
-    // write out whole array as binary
     virtual uint32_t write(FILE* fptr) const;
-    // write ith element as text
-    virtual void write(std::ostream& out, uint32_t i) const {
-	out << '"' << (*array)[i] << '"';}
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,

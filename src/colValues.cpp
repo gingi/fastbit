@@ -11,9 +11,10 @@
 #include <math.h>	// sqrt
 #include <vector>
 #include <algorithm>
-#include "bundle.h"
-#include "column.h"
+
 #include "bord.h"
+#include "bundle.h"
+#include "category.h"
 
 //////////////////////////////////////////////////////////////////////
 // functions of ibis::colValues and derived classes
@@ -29,6 +30,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colUShorts(c, hits);
     case ibis::SHORT:
 	return new colShorts(c, hits);
+    case ibis::CATEGORY:
     case ibis::UINT:
 	return new colUInts(c, hits);
     case ibis::INT:
@@ -41,7 +43,6 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colFloats(c, hits);
     case ibis::DOUBLE:
 	return new colDoubles(c, hits);
-    case ibis::CATEGORY:
     case ibis::TEXT:
 	return new colStrings(c, hits);
     default:
@@ -100,6 +101,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c) {
 	return new colUShorts(c);
     case ibis::SHORT:
 	return new colShorts(c);
+    case ibis::CATEGORY:
     case ibis::UINT:
 	return new colUInts(c);
     case ibis::INT:
@@ -112,7 +114,6 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c) {
 	return new colFloats(c);
     case ibis::DOUBLE:
 	return new colDoubles(c);
-    case ibis::CATEGORY:
     case ibis::TEXT:
 	return new colStrings(c);
     default:
@@ -506,6 +507,23 @@ ibis::colUInts::colUInts(const ibis::column* c)
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- colUInts does not support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
+    }
+} // ibis::colUInts::colUInts
+
+ibis::colUInts::colUInts(const ibis::column* c, const ibis::bitvector& hits)
+    : colValues(c), array(c->selectUInts(hits)), dic(0) {
+    if (c != 0 && c->type() == ibis::CATEGORY) {
+	dic = reinterpret_cast<const ibis::category*>(c)->getDictionary();
+    }
+} // ibis::colUInts::colUInts
+
+ibis::colUInts::colUInts(const ibis::column* c,
+			 ibis::fileManager::storage* store,
+			 const uint32_t start, const uint32_t nelm)
+    : colValues(c), array(new array_t<uint32_t>(store, start, nelm)),
+      dic(0) {
+    if (c != 0 && c->type() == ibis::CATEGORY) {
+	dic = reinterpret_cast<const ibis::category*>(c)->getDictionary();
     }
 } // ibis::colUInts::colUInts
 
@@ -6418,6 +6436,34 @@ double ibis::colDoubles::getSum() const {
     return ret;
 } // ibis::colDoubles::getSum
 
+/// Write out the whole array as binary.
+uint32_t ibis::colUInts::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return nelm - fwrite(array->begin(), sizeof(uint32_t), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+} // ibis::colUInts::write
+
+/// Write the ith element as text.
+void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
+    if (array == 0) {
+	return;
+    }
+    if (col != 0 && col->type() == ibis::CATEGORY) {
+	const char* str =
+	    static_cast<const ibis::category*>(col)->getKey((*array)[i]);
+	if (str != 0 && *str != 0)
+	    out << str;
+    }
+    else {
+	out << (*array)[i];
+    }
+} // ibis::colUInts::write
+
+/// write out whole array as binary.
 uint32_t ibis::colStrings::write(FILE* fptr) const {
     if (array == 0 || col == 0)
 	return 0;
@@ -6436,6 +6482,12 @@ uint32_t ibis::colStrings::write(FILE* fptr) const {
     }
     return cnt;
 } // ibis::colStrings::write
+
+/// write ith element as text.
+void ibis::colStrings::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << '"' << (*array)[i] << '"';
+}
 
 void ibis::colStrings::reorder(const array_t<uint32_t> &ind) {
     if (array == 0 || col == 0 || ind.size() > array->size())
@@ -6753,3 +6805,4 @@ long ibis::colStrings::truncate(uint32_t keep, uint32_t start) {
     }
     return array->size();
 } // ibis::colStrings::truncate
+
