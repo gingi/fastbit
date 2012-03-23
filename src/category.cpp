@@ -464,7 +464,7 @@ long ibis::category::stringSearch(const char* str,
 	hits.flip();
     }
     else if (ind == 1 && dic.size() == 1) { // special case with one value
-	hits.set(1, thePart->nRows()); // every record has this value
+	getNullMask(hits); // all valid entries
     }
     else if (ind <= dic.size()) { // found it in the dictionary
 	indexLock lock(this, "category::stringSearch");
@@ -755,6 +755,8 @@ long ibis::category::patternSearch(const char *pat,
 /// file.
 void ibis::category::getString(uint32_t i, std::string &str) const {
     str.clear();
+    if (i == 0) return; // nothing else to do
+
     if (i > dic.size())
 	prepareMembers();
 

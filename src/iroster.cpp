@@ -2313,7 +2313,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 
 /// In-core searching function.  Attempts to read .ind and .srt into
 /// memory.  Returns a negative value if it fails to read the necessary
-/// data files into memory.
+/// data files into memory.  Returns 0 if there is no hits, a positive
+/// number if there are some hits.
+///
 /// @note This function only adds more positions to pos.  The caller needs
 /// to initialize the output array if necessary.
 template <typename T> int
@@ -2341,7 +2343,7 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 	    while (iv < nvals && vals[iv] < tmp[it])
 		++ iv;
 	    if (iv >= nvals)
-		return 0;
+		return (pos.size() > 0);
 	    // move it so that tmp[it] is not less than vals[iv]
 	    while (it < nrows && vals[iv] > tmp[it])
 		++ it;
@@ -2351,7 +2353,7 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 		++ it;
 	    }
 	}
-	return 0;
+	return (pos.size() > 0);
     }
     else {
 	LOGGER(ibis::gVerbose > 3)
@@ -2369,7 +2371,7 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 	    while (iv < nvals && vals[iv] < tmp[ind[it]])
 		++ iv;
 	    if (iv >= nvals)
-		return 0;
+		return (pos.size() > 0);
 	    // move it so that tmp[ind[it]] is not less than vals[iv]
 	    while (it < nrows && vals[iv] > tmp[ind[it]])
 		++ it;
@@ -2380,14 +2382,15 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 		++ it;
 	    }
 	}
+	ierr = (pos.size() > 0);
     }
     else {
 	LOGGER(ibis::gVerbose > 1)
 	    << "roster::icSearch<" << typeid(T).name()
 	    << "> failed to read data files " << fname << ".srt and " << fname;
-	return -2;
+	ierr = -2;
     }
-    return 0;
+    return ierr;
 } // ibis::roster::icSearch
 
 /// Out-of-core search function.  It requires at least .ind file to be in
@@ -2442,7 +2445,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		while (iv < nvals && vals[iv] < *curr)
 		    ++ iv;
 		if (iv >= nvals) {
-		    return 0;
+		    return (pos.size() > 0);
 		}
 		while (curr < end && vals[iv] > *curr) {
 		    ++ curr;
@@ -2456,7 +2459,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	    }
 	}
 
-	return 0;
+	return (pos.size() > 0);
     }
 
     if (inddes < 0) {
@@ -2487,7 +2490,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		while (iv < nvals && vals[iv] < *curr)
 		    ++ iv;
 		if (iv >= nvals) {
-		    return 0;
+		    return (pos.size() > 0);
 		}
 		while (curr < end && vals[iv] > *curr) {
 		    ++ curr;
@@ -2528,7 +2531,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	    while (iv < nvals && vals[iv] < curr)
 		++ iv;
 	    if (iv >= nvals)
-		return 0;
+		return (pos.size() > 0);
 
 	    while (ir < nrows && vals[iv] > curr) {
 		ierr = UnixRead(srtdes, &curr, tbytes);
@@ -2570,7 +2573,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	    }
 	}
     }
-    return 0;
+    return (pos.size() > 0);
 } // ibis::roster::oocSearch
 
 /// In-core searching function.  Attempts to read .ind and .srt into
@@ -2603,7 +2606,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 	    while (iv < nvals && vals[iv] < tmp[it])
 		++ iv;
 	    if (iv >= nvals)
-		return 0;
+		return (pos.size() > 0);
 	    // move it so that tmp[it] is not less than vals[iv]
 	    while (it < nrows && vals[iv] > tmp[it])
 		++ it;
@@ -2613,7 +2616,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 		++ it;
 	    }
 	}
-	return 0;
+	return (pos.size() > 0);
     }
     else {
 	LOGGER(ibis::gVerbose > 3)
@@ -2631,7 +2634,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 	    while (iv < nvals && vals[iv] < tmp[ind[it]])
 		++ iv;
 	    if (iv >= nvals)
-		return 0;
+		return (pos.size() > 0);
 	    // move it so that tmp[ind[it]] is not less than vals[iv]
 	    while (it < nrows && vals[iv] > tmp[ind[it]])
 		++ it;
@@ -2649,7 +2652,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 	    << "> failed to read data files " << fname << ".srt and " << fname;
 	return -2;
     }
-    return 0;
+    return (pos.size() > 0);
 } // ibis::roster::icSearch
 
 /// Out-of-core search function.  It requires at least .ind file to be in
@@ -2718,7 +2721,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	    }
 	}
 
-	return 0;
+	return (pos.size() > 0);
     }
 
     if (inddes < 0) {
@@ -2832,7 +2835,8 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	    }
 	}
     }
-    return 0;
+
+    return (pos.size() > 0);
 } // ibis::roster::oocSearch
 
 /// Error code:
@@ -2990,12 +2994,15 @@ ibis::roster::locate(const ibis::array_t<T>& vals,
 	return ierr;
 
     std::string evt;
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 1) {
 	std::ostringstream oss;
-	oss << "column[" << col->partition()->name() << '.' << col->name()
-	    << "]::roster::locate<" << typeid(T).name()<< ">("
+	oss << "roster[" << col->partition()->name() << '.' << col->name()
+	    << "]::locate<" << typeid(T).name()<< ">("
 	    << vals.size() << ')';
 	evt = oss.str();
+    }
+    else {
+	evt = "roster::locate";
     }
     ibis::util::timer mytime(evt.c_str(), 3);
     std::vector<uint32_t> ipos; // integer positions

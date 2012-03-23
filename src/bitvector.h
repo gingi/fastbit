@@ -160,7 +160,7 @@ public:
     void adjustSize(word_t nv, word_t nt);
     void reserve(unsigned nb, unsigned nc, double cf=0.0);
 
-    /// Is the bitvector empty?  For efficiency concerns, this funciton
+    /// Is the bitvector empty?  For efficiency reasons, this funciton
     /// only works correctly on a properly compressed bitvector.
     bool empty() const {return all0s() && active.val == 0;}
 
@@ -541,15 +541,21 @@ inline void ibis::bitvector::sloppySize(word_t n) const {
 /// Provide a sloppy count of the number of bits that are 1.  If it returns
 /// 0, this bit vector has NO bits that are 1, otherwise, there might be
 /// some bits that are 1.  However, the return value not equaling to 0 does
-/// not necessarily mean there are actually any bits that are 1.  It simply
+/// not necessarily mean there are actually no bit that is 1.  It simply
 /// means that we can not determine whether all bits are 0 without
-/// additional work.  This is a sloppy version of count, it can be used to
-/// avoid producing precise counts in some functions.
+/// additional work.  This is a sloppy version of count, it only checks the
+/// active word and the first one regular word and therefore should be very
+/// cheap to run.  This function is more useful for situations where one
+/// wants to detect an empty bit vector.
 inline ibis::bitvector::word_t ibis::bitvector::sloppyCount() const {
-    if (active.nbits == 0 || active.val == 0) {
+    if (nset > 0) {
+	return nset;
+    }
+    else if (active.nbits == 0 || active.val == 0) {
 	if (m_vec.empty() ||
 	    (m_vec.size() == 1 &&
-	     (m_vec[0] == 0 || (m_vec[0]>=HEADER0 && m_vec[0]<HEADER1))))
+	     (m_vec[0] == 0 ||
+	      (m_vec[0]>=HEADER0 && m_vec[0]<HEADER1))))
 	    return 0;
 	else
 	    return 2;
@@ -559,7 +565,8 @@ inline ibis::bitvector::word_t ibis::bitvector::sloppyCount() const {
     }
 } // ibis::bitvector::sloppyCount
 
-/// Are all bits in regular words 0?
+/// Are all bits in regular words 0?  It assumes the regular words have
+/// been properly compressed and therefore only need to check one word.
 inline bool ibis::bitvector::all0s() const {
     if (m_vec.empty()) {
 	return true;
@@ -572,7 +579,8 @@ inline bool ibis::bitvector::all0s() const {
     }
 } // ibis::bitvector::all0s
 
-/// Are all bits in regular words 1?
+/// Are all bits in regular words 1?  It assumes the regular words are
+/// properly compressed and therefore only need to examine one word.
 inline bool ibis::bitvector::all1s() const {
     if (m_vec.size() == 1) {
 	return (m_vec[0] == ALLONES || (m_vec[0] > HEADER1));

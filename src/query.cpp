@@ -836,7 +836,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	try {
 	    if (dslock != 0 && dstime == mypart->timestamp() && hits != 0 &&
 		(sup == 0 || sup == hits)) { // nothing to do
-		ierr = hits->cnt();
+		ierr = hits->sloppyCount();
 	    }
 	    else {
 		if (dslock == 0) { // acquire read lock on mypart
@@ -982,7 +982,7 @@ int ibis::query::evaluate(const bool evalSelect) {
     }
     if (state != FULL_EVALUATE) {
 	logWarning("evaluate", "unable to compute the hit vector");
-	return -9;
+	ierr = -9;
     }
     else if (hits == 0) {
 	if (ibis::gVerbose > 0)
@@ -1025,7 +1025,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		 (1U<<ibis::gVerbose) >= hits->bytes())))
 	    << "The hit vector" << *hits;
     }
-    return 0;
+    return ierr;
 } // ibis::query::evaluate
 
 /// Compute the number of records in the exact solution.  This function
@@ -2783,7 +2783,11 @@ int ibis::query::computeHits() {
     if (sup == 0) { // already have the exact answer
 	sup = hits; // copy the pointer to make other operations easier
     }
-    else { // need to actually examine the data files involved
+    else if (sup->size() < hits->size()) {	
+	delete sup;
+	sup = hits;
+    }
+    else if (sup != hits) { // need to actually examine the data files involved
 	(*sup) -= (*hits);
 	if (sup->sloppyCount() > 0) {
 	    ibis::bitvector delta;
@@ -2990,10 +2994,9 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doScan(term->getRight(), b1);
-	    if (ierr >= 0) {
+	    if (ierr > 0)
 		ht |= b1;
-		ierr = ht.cnt();
-	    }
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3002,10 +3005,9 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doScan(term->getRight(), b1);
-	    if (ierr >= 0) {
+	    if (ierr > 0)
 		ht ^= b1;
-		ierr = ht.cnt();
-	    }
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3014,10 +3016,9 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	if (ierr > 0) {
 	    ibis::bitvector b1;
 	    ierr = doScan(term->getRight(), ht, b1);
-	    if (ierr >= 0) {
+	    if (ierr >= 0)
 		ht -= b1;
-		ierr = ht.cnt();
-	    }
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3161,9 +3162,9 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	    else {
 		ierr = doScan(term->getRight(), mask, b1);
 	    }
-	    if (ierr >= 0)
+	    if (ierr > 0)
 		ht |= b1;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3172,9 +3173,9 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doScan(term->getRight(), mask, b1);
-	    if (ierr >= 0)
+	    if (ierr > 0)
 		ht ^= b1;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3183,9 +3184,9 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	if (ierr > 0) {
 	    ibis::bitvector b1;
 	    ierr = doScan(term->getRight(), ht, b1);
-	    if (ierr >= 0)
+	    if (ierr > 0)
 		ht -= b1;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3564,9 +3565,9 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), b1);
-	    if (ierr >= 0)
+	    if (ierr > 0)
 		ht |= b1;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3575,9 +3576,9 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), b1);
-	    if (ierr >= 0)
+	    if (ierr > 0)
 		ht ^= b1;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3588,7 +3589,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr > 0)
 		ht -= b1;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3610,9 +3611,9 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		ibis::bitvector res;
 		ierr = mypart->doScan
 		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
-		if (ierr >= 0)
+		if (ierr > 0)
 		    ht |= res;
-		ierr = ht.cnt();
+		ierr = ht.sloppyCount();
 	    }
 	}
 	break;
@@ -3636,7 +3637,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    (*(reinterpret_cast<const ibis::qRange*>(term)), tmp, res);
 		if (ierr >= 0)
 		    ht |= res;
-		ierr = ht.cnt();
+		ierr = ht.sloppyCount();
 	    }
 	}
 	break;
@@ -3800,7 +3801,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    }
 	    if (ierr > 0)
 		ht |= b1;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3809,10 +3810,9 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), mask, b1);
-	    if (ierr > 0) {
+	    if (ierr > 0)
 		ht ^= b1;
-		ierr = ht.cnt();
-	    }
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3823,7 +3823,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr > 0)
 		ht -= b1;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3850,10 +3850,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    ierr = mypart->doScan
 			(*(reinterpret_cast<const ibis::qRange*>(term)),
 			 tmp, res);
-		    if (ierr >= 0)
+		    if (ierr > 0)
 			ht |= res;
 		}
-		ierr = ht.cnt();
+		ierr = ht.sloppyCount();
 	    }
 	}
 	break;
@@ -3880,10 +3880,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    ierr = mypart->doScan
 			(*(reinterpret_cast<const ibis::qRange*>(term)),
 			 tmp, res);
-		    if (ierr >= 0)
+		    if (ierr > 0)
 			ht |= res;
 		}
-		ierr = ht.cnt();
+		ierr = ht.sloppyCount();
 	    }
 	}
 	break;
@@ -3910,10 +3910,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    ierr = mypart->doScan
 			(*(reinterpret_cast<const ibis::qIntHod*>(term)),
 			 tmp, res);
-		    if (ierr >= 0)
+		    if (ierr > 0)
 			ht |= res;
 		}
-		ierr = ht.cnt();
+		ierr = ht.sloppyCount();
 	    }
 	}
 	break;
@@ -3940,10 +3940,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		    ierr = mypart->doScan
 			(*(reinterpret_cast<const ibis::qUIntHod*>(term)),
 			 tmp, res);
-		    if (ierr >= 0)
+		    if (ierr > 0)
 			ht |= res;
 		}
-		ierr = ht.cnt();
+		ierr = ht.sloppyCount();
 	    }
 	}
 	break;
@@ -3953,7 +3953,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	if (ierr >= 0) {
 	    ht &= mask;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3962,7 +3962,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
 	if (ierr >= 0) {
 	    ht &= mask;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }

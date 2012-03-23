@@ -1,3 +1,9 @@
+2012-03-22 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp:759 add statement to deal with the empty string
+	* src/query.cpp, src/iroster.cpp: make consistent use of return 0
+	for no hits and a positive number of some hits (passed 'make
+	check')
+
 2012-03-21 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h, src/bitvector.cpp: add function sloppyCount as
 	a cheaper alternative for actually counting the number of 1s in a
