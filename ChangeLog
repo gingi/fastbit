@@ -1,3 +1,10 @@
+2012-03-24 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: the special cases in
+	ibis::category::stringSearch used incorrect assumptions (pointed
+	out by Dominique)
+	* src/colValues.cpp: colUInts constructor neglected a break
+	statement for the case of ibis::CATEGORY
+
 2012-03-23 John Wu <John dot Wu at ACM dot org>
 	* src/colValues.cpp: in colValues::create, produce integer
 	representations for categorical values (As Dominique points out,

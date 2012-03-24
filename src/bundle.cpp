@@ -15,7 +15,8 @@
 
 //////////////////////////////////////////////////////////////////////
 // functions of class bundle
-/// Create new bundle from a hit vector.  Write info to q.dir().
+
+/// Create new bundle from a query object.  Write info to q.dir().
 /// @param dir:
 /// - > 0 sort RIDs,
 /// - < 0 do not sort RIDs, leave them in whatever order after sorting the
@@ -1116,7 +1117,7 @@ std::string ibis::bundle1::getString(uint32_t i, uint32_t j) const {
 
 //////////////////////////////////////////////////////////////////////
 // functions of ibis::bundles
-//
+
 /// Constructor.  It will use the hit vector of the query to generate a new
 /// bundle, if it is not able to read the existing bundles.
 ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
@@ -2448,7 +2449,7 @@ ibis::query::result::result(ibis::query& q)
     }
     if (sel.empty()) {
 	throw ibis::bad_alloc("Can not construct query::result on "
-			      "a query without a select clause");
+			      "a query with an empty select clause");
     }
     if (q.getState() == ibis::query::SPECIFIED ||
 	q.getState() == ibis::query::QUICK_ESTIMATE) {

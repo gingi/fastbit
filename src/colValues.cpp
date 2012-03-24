@@ -377,7 +377,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
 	hits.set(1, c->partition()->nRows());
 	array = c->selectUInts(hits);
 	dic = static_cast<const ibis::category*>(c)->getDictionary();
-    }
+	break;}
     case ibis::UINT: {
 	(void) c->getValuesArray(array);
 	// check to see if the column actually carries a dictionary already
@@ -6455,8 +6455,8 @@ void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
     if (col != 0 && col->type() == ibis::CATEGORY) {
 	const char* str =
 	    static_cast<const ibis::category*>(col)->getKey((*array)[i]);
-	if (str != 0 && *str != 0)
-	    out << str;
+	if (str != 0)
+	    out << '"' << str << '"';
     }
     else {
 	out << (*array)[i];
@@ -6483,7 +6483,7 @@ uint32_t ibis::colStrings::write(FILE* fptr) const {
     return cnt;
 } // ibis::colStrings::write
 
-/// write ith element as text.
+/// Write ith element as text.
 void ibis::colStrings::write(std::ostream& out, uint32_t i) const {
     if (array != 0 && array->size() > i)
 	out << '"' << (*array)[i] << '"';

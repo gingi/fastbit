@@ -459,48 +459,40 @@ long ibis::category::stringSearch(const char* str,
 				  ibis::bitvector& hits) const {
     prepareMembers();
     uint32_t ind = dic[str];
-    if (ind == 0) { // null value
-	getNullMask(hits); // mask = 0 if null
-	hits.flip();
-    }
-    else if (ind == 1 && dic.size() == 1) { // special case with one value
-	getNullMask(hits); // all valid entries
-    }
-    else if (ind <= dic.size()) { // found it in the dictionary
+    if (ind <= dic.size()) { // found it in the dictionary
 	indexLock lock(this, "category::stringSearch");
 	if (idx != 0) {
 	    ibis::qContinuousRange expr(m_name.c_str(),
 					ibis::qExpr::OP_EQ, ind);
 	    long ierr = idx->evaluate(expr, hits);
 	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose >= 0)
+		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- category::stringSearch(" << str
 		    << ") failed because idx->evaluate(" << expr
-		    << ") returned " << ierr;
-		return ierr;
+		    << ") returned " << ierr << ", attempt to work directly"
+		    " with raw string values";
+		return ibis::text::stringSearch(str, hits);
 	    }
 	}
 	else {
-	    hits.set(0, thePart->nRows());
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- category::stringSearch(" << str
+		<< ") failed to reconstruct the index, try to use the raw "
+		"string values";
+	    return ibis::text::stringSearch(str, hits);
 	}
     }
     else { // not in the dictionary
 	hits.set(0, thePart->nRows());
     }
-    return hits.cnt();
+    return hits.sloppyCount();
 } // ibis::category::stringSearch
 
 long ibis::category::stringSearch(const char* str) const {
     long ret;
     prepareMembers();
     uint32_t ind = dic[str];
-    if (ind == 0) { // null value
-	ret = 0;
-    }
-    else if (ind == 1 && dic.size() == 1) {
-	ret = thePart->nRows();
-    }
-    else if (ind <= dic.size()) { // found it
+    if (ind <= dic.size()) { // found it
 	indexLock lock(this, "category::stringSearch");
 	if (idx != 0) {
 	    ibis::qContinuousRange expr(m_name.c_str(),
