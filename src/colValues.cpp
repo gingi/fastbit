@@ -6437,6 +6437,9 @@ double ibis::colDoubles::getSum() const {
 } // ibis::colDoubles::getSum
 
 /// Write out the whole array as binary.
+///
+/// @note This version always writes the integers even if there is a
+/// dictioanry.
 uint32_t ibis::colUInts::write(FILE* fptr) const {
     if (array) {
 	uint32_t nelm = array->size();
@@ -6448,6 +6451,12 @@ uint32_t ibis::colUInts::write(FILE* fptr) const {
 } // ibis::colUInts::write
 
 /// Write the ith element as text.
+///
+/// @note If a valid dictionary is present, the integer value is translated
+/// to string.  All valid strings are quoted with double quotes.  An empty
+/// string is a valid string and it produces two double quotes right next
+/// to eachother ("").  Invalid string (nil pointer) and invalid arguemnts
+/// produces nothing.
 void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
     if (array == 0) {
 	return;
@@ -6463,7 +6472,8 @@ void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
     }
 } // ibis::colUInts::write
 
-/// write out whole array as binary.
+/// Write out whole array as binary.  All bytes including the null
+/// terminators are written to the file.
 uint32_t ibis::colStrings::write(FILE* fptr) const {
     if (array == 0 || col == 0)
 	return 0;
@@ -6484,6 +6494,11 @@ uint32_t ibis::colStrings::write(FILE* fptr) const {
 } // ibis::colStrings::write
 
 /// Write ith element as text.
+/// 
+/// All valid strings (i.e., nonzero char*) are printed with double quotes.
+/// An empty string is printed with two double quotes right next to each
+/// other as "".  Nothing will be printed if the arguments are invalid or
+/// out of range, and if this object itself is ill-formed.
 void ibis::colStrings::write(std::ostream& out, uint32_t i) const {
     if (array != 0 && array->size() > i)
 	out << '"' << (*array)[i] << '"';
