@@ -1494,8 +1494,8 @@ bool ibis::index::isIndex(const char* f, ibis::index::INDEX_TYPE t) {
     return false;
 } // ibis::index::isIndex
 
-// generates data file name from "f"
-void ibis::index::dataFileName(const char* f, std::string& iname) const {
+/// Generate data file name from "f"
+void ibis::index::dataFileName(std::string& iname, const char* f) const {
     iname.clear();
     if (col == 0) {
 	return;
@@ -1547,7 +1547,7 @@ void ibis::index::dataFileName(const char* f, std::string& iname) const {
 } // dataFileName
 
 // generates index file name from "f"
-void ibis::index::indexFileName(const char* f, std::string& iname) const {
+void ibis::index::indexFileName(std::string& iname, const char* f) const {
     iname.clear();
     if (col == 0) return;
     if (f == 0 || *f == 0) {
@@ -1656,7 +1656,7 @@ void ibis::index::indexFileName(std::string& iname,
 void ibis::index::computeMinMax(const char* f, double& min,
 				double& max) const {
     std::string fnm;
-    dataFileName(f, fnm); // generate the correct data file name
+    dataFileName(fnm, f); // generate the correct data file name
     if (fnm.empty()) return;
 
     switch (col->type()) {
@@ -1847,7 +1847,7 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
     std::string fnm; // name of the data file
 
     bmap.clear();
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
     k = ibis::util::getFileSize(fnm.c_str());
     if (k > 0) {
 	if (ibis::gVerbose > 1)
@@ -2714,7 +2714,7 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 
     horometer timer;
     std::string fnm; // name of the data file
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
     if (ibis::gVerbose > 4) {
 	timer.start();
 	col->logMessage("mapValues", "attempting to generate a histogram "

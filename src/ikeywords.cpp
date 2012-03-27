@@ -30,7 +30,7 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
     // try to read an existing keyword index
     int ierr;
     std::string fdic, fmat;
-    dataFileName(f, fdic);
+    dataFileName(fdic, f);
     fmat = fdic;
     fdic += ".terms";
     fmat += ".idx";
@@ -524,7 +524,7 @@ void ibis::keywords::print(std::ostream& out) const {
 /// for the terms and xx.idx for the bitmaps that marks the positions.
 int ibis::keywords::write(const char* dt) const {
     std::string fnm;
-    dataFileName(dt, fnm);
+    dataFileName(fnm, dt);
     fnm += ".terms";
     terms.write(fnm.c_str());
 
@@ -633,7 +633,7 @@ int ibis::keywords::write(const char* dt) const {
 
 int ibis::keywords::read(const char* f) {
     std::string fnm;
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
     fnm += ".terms";
     terms.read(fnm.c_str());
 
@@ -791,7 +791,7 @@ int ibis::keywords::read(ibis::fileManager::storage* st) {
     initBitmaps(st);
     if (terms.size() < bits.size()) { // need to read the dictionary
 	std::string fnm;
-	dataFileName(0, fnm);
+	dataFileName(fnm);
 	fnm += ".terms";
 	terms.read(fnm.c_str());
     }

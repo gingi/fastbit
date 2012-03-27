@@ -106,7 +106,7 @@ int ibis::slice::write(const char* dt) const {
     if (vals.empty()) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -383,7 +383,7 @@ int ibis::slice::write64(int fdes) const {
 /// bitvectors.
 int ibis::slice::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) {
@@ -696,7 +696,7 @@ void ibis::slice::construct2(const char* f) {
 	bits[i] = new ibis::bitvector;
 
     std::string fnm; // name of the data file
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
 
     nrows = col->partition()->nRows();
     ibis::bitvector mask;

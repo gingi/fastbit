@@ -93,20 +93,19 @@ int ibis::roster::write(const char* df) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fptr = fopen(fnm.c_str(), "wb");
 	if (fptr == 0) {
-	    col->logWarning("roster::write", "unable to open \"%s\" for write "
-			    "... %s", fnm.c_str(), (errno ? strerror(errno) :
-						    "no free stdio stream"));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::write failed to open \"" << fnm
+		<< "\" for write ... "
+		<< (errno ? strerror(errno) : "no free stdio stream");
 	    return -2;
 	}
     }
 
     ierr = fwrite(reinterpret_cast<const void*>(ind.begin()),
 		  sizeof(uint32_t), ind.size(), fptr);
-    if (ierr != ind.size())
-	col->logWarning("roster::write", "expected to "
-			"write %lu words but only wrote %lu",
-			static_cast<long unsigned>(ind.size()),
-			static_cast<long unsigned>(ierr));
+    LOGGER(ierr != ind.size() && ibis::gVerbose > 0)
+	<< "Warning -- roster::write expected to write " << ind.size()
+	<< " words but only wrote " << ierr;
     ierr = fclose(fptr);
 
     return writeSorted(df);
@@ -152,8 +151,8 @@ int ibis::roster::writeSorted(const char *df) const {
 
     FILE *fptr = fopen(fnm.c_str(), "wb");
     if (fptr == 0) {
-	col->logWarning("roster::writeSorted", "fopen(%s) failed",
-			fnm.c_str());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::writeSorted failed to fopen " << fnm;
 	return -3;
     }
 
@@ -457,20 +456,16 @@ int ibis::roster::writeSorted(const char *df) const {
 		    ierr = fread(&tmp, sizeof(float), 1, fpts);
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(float), 1, fptr);
-			if (ierr < sizeof(float))
-			    col->logWarning
-				("roster::writeSorted",
-				 "failed to write value # %lu (%g) to %s",
-				 static_cast<long unsigned>(i),
-				 tmp, fnm.c_str());
+			LOGGER(ierr < sizeof(float) && ibis::gVerbose > 0)
+			    << "Warning -- roster::writeSorted "
+			    << "failed to write value # " << i
+			    << " (" << tmp << ") to " << fnm;
 		    }
 		    else {
-			col->logWarning("roster::writeSorted",
-					"failed to read value # %lu "
-					"(ind[%lu]=%lu)",
-					static_cast<long unsigned>(i),
-					static_cast<long unsigned>(i),
-					static_cast<long unsigned>(ind[i]));
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- roster::writeSorted "
+			    << "failed to read value # " << i
+			    << "(ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
 	    }
@@ -494,20 +489,16 @@ int ibis::roster::writeSorted(const char *df) const {
 		    ierr = fread(&tmp, sizeof(double), 1, fpts);
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(double), 1, fptr);
-			if (ierr < sizeof(double))
-			    col->logWarning
-				("roster::writeSorted",
-				 "failed to write value # %lu (%lg) to %s",
-				 static_cast<long unsigned>(i),
-				 tmp, fnm.c_str());
+			LOGGER(ierr < sizeof(double) && ibis::gVerbose > 0)
+			    << "Warning -- roster::writeSorted "
+			    << "failed to write value # " << i << " ("
+			    << tmp << ") to " << fnm;
 		    }
 		    else {
-			col->logWarning("roster::writeSorted",
-					"failed to read value # %lu "
-					"(ind[%lu]=%lu)",
-					static_cast<long unsigned>(i),
-					static_cast<long unsigned>(i),
-					static_cast<long unsigned>(ind[i]));
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- roster::writeSorted "
+			    << "failed to read value # " << i
+			    << "(ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
 	    }
@@ -516,9 +507,9 @@ int ibis::roster::writeSorted(const char *df) const {
 	break;}
     default: {
 	const int t = static_cast<int>(col->type());
-	col->logWarning("roster::writeSorted",
-			"unable to write column type %s(%d)",
-			ibis::TYPESTRING[t], t);
+	LOGGER(ibis::gVerbose > 0)	
+	    << "Warning -- roster::writeSorted unable to write column type "
+	    << ibis::TYPESTRING[t] << "(" << t << ")";
 	ierr = 0;
 	break;}
     } // switch (col->type())
@@ -528,9 +519,9 @@ int ibis::roster::writeSorted(const char *df) const {
 	return 0;
     }
     else {
-	col->logWarning("roster::writeSorted",
-			"failed to write to data file %s",
-			fnm.c_str());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::writeSorted failed to write to data file "
+	    << fnm;
 	return -4;
     }
 } // ibis::roster::writeSorted
@@ -541,10 +532,9 @@ int ibis::roster::write(FILE* fptr) const {
     uint32_t ierr = fwrite(reinterpret_cast<const void*>(ind.begin()),
 			   sizeof(uint32_t), ind.size(), fptr);
     if (ierr != ind.size()) {
-	ibis::util::logMessage("roster::write", "expected to "
-			       "write %lu words but only wrote %lu",
-			       static_cast<long unsigned>(ind.size()),
-			       static_cast<long unsigned>(ierr));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::write expected to write " << ind.size()
+	    << " words but only wrote " << ierr;
 	return -5;
     }
     else {
@@ -586,18 +576,20 @@ int ibis::roster::read(const char* idxf) {
 
     if (nbytes < ibis::fileManager::bytesFree()) {
 	ind.read(fnm.c_str());
-	if (ibis::gVerbose > 4)
-	    col->logMessage("roster", "read the content of %s into memory",
-			    fnm.c_str());
+	LOGGER(ibis::gVerbose > 4)
+	    << "roster -- read the content of " << fnm << " into memory";
     }
     else {
 	inddes = UnixOpen(fnm.c_str(), OPEN_READONLY);
-	if (inddes < 0)
-	    col->logMessage("roster", "Warning -- read(%s) failed to open "
-			    "the name file", fnm.c_str());
-	else if (ibis::gVerbose > 4)
-	    col->logMessage("roster", "successfully openned file %s for "
-			    "future read operations", fnm.c_str());
+	if (inddes < 0) {
+	    LOGGER(ibis::gVerbose > 0) 
+		<< "Warning -- roster::read failed to open " << fnm;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 4) 
+		<< "roster::read successfully openned file " << fnm
+		<< " for future read operations";
+	}
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(inddes, _O_BINARY);
 #endif
@@ -635,8 +627,9 @@ void ibis::roster::icSort(const char* fin) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) {
 	timer.start();
-	col->logMessage("roster::icSort", "attempt to sort the content "
-			"of file (%s) in memory", fnm.c_str());
+	LOGGER(ibis::gVerbose > 1)
+	    << "roster::icSort attempt to sort the content of file ("
+	    << fnm << ") in memory";
     }
 
     array_t<uint32_t> indim;
@@ -651,8 +644,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -675,8 +667,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -723,8 +714,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -747,8 +737,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -771,8 +760,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -795,8 +783,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -819,8 +806,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -843,8 +829,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -867,8 +852,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
-		"position, count\n";
+	    lg() << "roster::icSort -- value, starting position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -881,7 +865,8 @@ void ibis::roster::icSort(const char* fin) {
 	}
 	break;}
     case ibis::CATEGORY: { // no need for a separate index
-	col->logWarning("roster", "no need for a separate index");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster can not generate additional index";
 	break;}
     default: {
 	ibis::util::logger lg;
@@ -897,10 +882,10 @@ void ibis::roster::icSort(const char* fin) {
     }
     if (ibis::gVerbose > 2) {
 	timer.stop();
-	col->logMessage("roster::icSort", "in-core sorting of %lu numbers "
-			"from %s took %g sec(CPU), %g sec(elapsed)",
-			static_cast<long unsigned>(ind.size()), fnm.c_str(),
-			timer.CPUTime(), timer.realTime());
+	LOGGER(ibis::gVerbose > 2)
+	    << "roster::icSort -- in-core sorting of " << ind.size()
+	    << " numbers from " << fnm << " took " << timer.realTime()
+	    << " sec(elapsed)";
     }
     if (ibis::gVerbose > 4 &&
 	(ibis::gVerbose > 30 || ((1U<<ibis::gVerbose) > ind.size()))) {
@@ -919,9 +904,9 @@ void ibis::roster::oocSort(const char *fin) {
     ibis::horometer timer;
     if (ibis::gVerbose > 1) {
 	timer.start();
-	col->logMessage("roster::oocSort",
-			"attempt to sort the attribute %s out of core",
-			col->name());
+	LOGGER(ibis::gVerbose > 1)
+	    << "roster::oocSort attempt to sort the column " << col->name()
+	    << " out of core";
     }
 
     // nsrt is the name of the final sorted data file
@@ -1303,8 +1288,9 @@ void ibis::roster::oocSort(const char *fin) {
 	}
 	break;}
     default: {
-	col->logWarning("roster::oocSort", "can not process column type %d",
-			static_cast<int>(col->type()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::oocSort can not process column type "
+	    << static_cast<int>(col->type());
 	break;}
     }
 
@@ -1313,18 +1299,18 @@ void ibis::roster::oocSort(const char *fin) {
     if (ierr < 0) {
 	remove(nsrt.c_str());
 	remove(nind.c_str());
-	col->logWarning("roster::oocSort", "unable to complete the "
-			"out-of-core sorting of %s. ierr = %d. all "
-			"output files removed",
-			datafile.c_str(), ierr);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::oocSort failed to complete the "
+	    "out-of-core sorting of " << datafile << ". ierr = "
+	    << ierr << ". all output files removed";
 	return;
     }
     else if (ibis::gVerbose > 2) {
 	timer.stop();
-	col->logMessage("roster::oocSort", "out-of-core sorting (%s -> %s "
-			"(%s)) took %g sec(CPU), %g sec(elapsed)",
-			datafile.c_str(), nsrt.c_str(), nind.c_str(),
-			timer.CPUTime(), timer.realTime());
+	LOGGER(ibis::gVerbose > 2)
+	    << "roster::oocSort out-of-core sorting (" << datafile << " -> "
+	    << nsrt << " (" << nind << ")) took " << timer.realTime()
+	    << " sec(elapsed)";
     }
     if (ibis::gVerbose > 4 &&
 	(ibis::gVerbose > 30 || ((1U<<ibis::gVerbose) > ind.size()))) {
@@ -1349,37 +1335,37 @@ long ibis::roster::oocSortBlocks(const char *src, const char *dest,
 				 array_t<uint32_t>& ibuf) const {
     int fdsrc = UnixOpen(src, OPEN_READONLY);
     if (fdsrc < 0) {
-	ibis::util::logMessage("Warning",
-			       "oocSortBlocks failed to open %s for reading",
-			       src);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- oocSortBlocks failed to open " << src
+	    << " for reading";
 	return -1;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdsrc, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fdsrc);
     int fddes = UnixOpen(dest, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fddes < 0) {
-	ibis::util::logMessage("Warning",
-			       "oocSortBlocks failed to open %s for writing",
-			       dest);
-	UnixClose(fdsrc);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- oocSortBlocks failed to open " << dest
+	    << " for writing";
 	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fddes, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fddes);
     int fdind = UnixOpen(ind, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdind < 0) {
-	ibis::util::logMessage("Warning",
-			       "oocSortBlocks failed to open %s for writing",
-			       ind);
-	UnixClose(fddes);
-	UnixClose(fdsrc);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- oocSortBlocks failed to open " << ind
+	    << " for writing";
 	return -3;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdind, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fdind);
 
     const uint32_t szi = sizeof(uint32_t);
     const uint32_t szd = sizeof(T);
@@ -1391,19 +1377,16 @@ long ibis::roster::oocSortBlocks(const char *src, const char *dest,
     dbuf2.resize(mblock);
     long ierr = 0;
     for (uint32_t i = 0; ierr == 0 && i < nrows; i += mblock) {
-	if (ibis::gVerbose > 12)
-	    col->logMessage("roster::oocSortBlocks",
-			    "sorting block %lu",
-			    static_cast<long unsigned>(i));
+	LOGGER(ibis::gVerbose > 12)
+	    << "roster::oocSortBlocks -- sorting block " << i;
 
 	const uint32_t block = (i+mblock <= nrows ? mblock : nrows-i);
 	ierr = dbuf1.read(fdsrc, i*szd, (i+block)*szd);
 	if (static_cast<uint32_t>(ierr) != block*szd) {
-	    ibis::util::logMessage
-		("Warning", "oocSortBlocks expected to read "
-		 "%lu bytes from %s at %lu, but only got %ld",
-		 static_cast<long unsigned>(block*szd), src,
-		 static_cast<long unsigned>(i*szd), ierr);
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- oocSortBlocks expected to read " << block*szd
+		<< " bytes from " << src << " at " << i*szd << ", but only got "
+		<< ierr;
 	    ierr = -11;
 	    break;
 	}
@@ -1420,23 +1403,20 @@ long ibis::roster::oocSortBlocks(const char *src, const char *dest,
 	// write the sorted values.
 	ierr = UnixWrite(fddes, dbuf2.begin(), szd*block);
 	if (static_cast<uint32_t>(ierr) != block*szd) {
-	    ibis::util::logMessage("Warning", "oocSortBlocks expected to "
-				   "write %lu bytes to %s at %lu, but only "
-				   "wrote %ld",
-				   static_cast<long unsigned>(block*szd), dest,
-				   static_cast<long unsigned>(i*szd), ierr);
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- oocSortBlocks expected to write " << block*szd
+		<< " bytes to " << dest << " at " << i*szd
+		<< ", but only wrote " << ierr;
 	    ierr = -12;
 	    break;
 	}
 	// write the indices.
 	ierr = UnixWrite(fdind, ibuf.begin(), block*szi);
 	if (static_cast<uint32_t>(ierr) != block*szi) {
-	    ibis::util::logMessage("Warning", "oocSortBlocks expected to "
-				   "write %lu bytes to %s at %lu, but only "
-				   "wrote %ld",
-				   static_cast<long unsigned>(block*szi),
-				   ind, static_cast<long unsigned>(i*szi),
-				   ierr);
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- oocSortBlocks expected to write " << block*szi
+		<< " bytes to " << i*szi << " at " << i*szi
+		<< ", but only wrote " << ierr;
 	    ierr = -12;
 	    break;
 	}
@@ -1449,25 +1429,22 @@ long ibis::roster::oocSortBlocks(const char *src, const char *dest,
     _commit(fddes);
     _commit(fdind);
 #endif
-    UnixClose(fdind);
-    UnixClose(fddes);
-    UnixClose(fdsrc);
     if (ierr < 0) { // remove the output files
 	remove(ind);
 	remove(dest);
-	ibis::util::logMessage("Warning", "roster::oocSortBlocks failed with "
-			       "ierr = %d", ierr);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::oocSortBlocks failed with ierr = " << ierr;
     }
     else if (ibis::gVerbose > 3) {
 	ierr = 0;
 	timer.stop();
 	double speed = 1e-6 * (szd + szd + szi) * nrows;
 	speed /= (timer.realTime() > 1.0e-6 ? timer.realTime() : 1.0e-6);
-	col->logMessage("roster::oocSortBlocks",
-			"completed sorting all blocks (%lu) of %s, wrote "
-			"results to %s and %s, used %g sec with %g MB/s",
-			static_cast<long unsigned>(mblock), src, dest,
-			ind, timer.realTime(), speed);
+	LOGGER(ibis::gVerbose > 3)
+	    << "roster::oocSortBlocks completed sorting all (" << mblock
+	    << ") blocks of " << src << ", wrote results to " << dest
+	    << " and " << ind << ", used " << timer.realTime()
+	    << " sec with " << speed << " MB/s";
     }
     return ierr;
 } // ibis::roster::oocSortBlocks
@@ -1491,50 +1468,48 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 				  array_t<uint32_t>& ibuf2) const {
     const int fdsrc = UnixOpen(dsrc, OPEN_READONLY);
     if (fdsrc < 0) {
-	ibis::util::logMessage("Warning",
-			       "oocMergeBlocks failed to open %s for reading",
-			       dsrc);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- oocMergeBlocks failed to open " << dsrc
+	    << " for reading";
 	return -1;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdsrc, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fdsrc);
     const int fisrc = UnixOpen(isrc, OPEN_READONLY);
     if (fisrc < 0) {
-	ibis::util::logMessage("Warning",
-			       "oocMergeBlocks failed to open %s for reading",
-			       isrc);
-	UnixClose(fdsrc);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- oocMergeBlocks failed to open " << isrc
+	    << " for reading";
 	return -2;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fisrc, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fisrc);
     const int fdout = UnixOpen(dout, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdout < 0) {
-	ibis::util::logMessage("Warning",
-			       "oocMergeBlocks failed to open %s for writing",
-			       dout);
-	UnixClose(fisrc);
-	UnixClose(fdsrc);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- oocMergeBlocks failed to open " << dout
+	    << " for writing";
 	return -3;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdout, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fdout);
     const int fiout = UnixOpen(iout, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fiout < 0) {
-	ibis::util::logMessage("Warning",
-			       "oocMergeBlocks failed to open %s for writing",
-			       iout);
-	UnixClose(fdout);
-	UnixClose(fisrc);
-	UnixClose(fdsrc);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- oocMergeBlocks failed to open " << iout
+	    << " for writing";
 	return -4;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fiout, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fiout);
 
     ibis::horometer timer;
     timer.start();
@@ -1577,39 +1552,35 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 	    // the input index file
 	    ierr = dbuf1.read(fdsrc, szdi1, szdi1+bszd);
 	    if (static_cast<uint32_t>(ierr) != bszd) {
-		ibis::util::logMessage
-		    ("Warning", "oocMergeBlocks failed to read %lu bytes "
-		     "at %lu from %s", static_cast<long unsigned>(bszd),
-		     static_cast<long unsigned>(szdi1), dsrc);
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- oocMergeBlocks failed to read " << bszd
+		    << " bytes at " << szdi1 << " from " << dsrc;
 		ierr = -19;
 	    }
 	    else {
 		ierr = dbuf2.read(fdsrc, szdi2, szdi2+cszd);
 		if (static_cast<uint32_t>(ierr) != cszd) {
-		    ibis::util::logMessage
-			("Warning", "oocMergeBlocks failed to read %lu bytes "
-			 "at %lu from %s", static_cast<long unsigned>(cszd),
-			 static_cast<long unsigned>(szdi2), dsrc);
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- oocMergeBlocks failed to read " << cszd
+			<< " bytes at " << szdi2 << " from " << dsrc;
 		    ierr = -20;
 		}
 		else {
 		    ierr = ibuf1.read(fisrc, szii1, szii1+bszi);
 		    if (static_cast<uint32_t>(ierr) != bszi) {
-			ibis::util::logMessage
-			    ("Warning", "oocMergeBlocks failed to read %lu "
-			     "bytes at %lu from %s",
-			     static_cast<long unsigned>(bszi),
-			     static_cast<long unsigned>(szii1), isrc);
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- oocMergeBlocks failed to read "
+			    << bszi << "bytes at " << szii1 << " from "
+			    << isrc;
 			ierr = -21;
 		    }
 		    else {
 			ierr = ibuf2.read(fisrc, szii2, szii2+cszi);
 			if (static_cast<uint32_t>(ierr) != cszi) {
-			    ibis::util::logMessage
-				("Warning", "oocMergeBlocks failed to read %lu "
-				 "bytes at %lu from %s",
-				 static_cast<long unsigned>(cszi),
-				 static_cast<long unsigned>(szii2), isrc);
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- oocMergeBlocks failed to read "
+				<< cszi << " bytes at " << szii2 << " from "
+				<< isrc;
 			    ierr = -22;
 			}
 			else {
@@ -1626,21 +1597,19 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 			if (dbuf1[j01] <= dbuf2[j12]) { // output j01
 			    ierr = UnixWrite(fdout, &(dbuf1[j01]), szd);
 			    if (static_cast<uint32_t>(ierr) != szd) {
-				ibis::util::logMessage
-				    ("Warning", "oocMergeBlocks failed to "
-				     "write data value # %lu to %s",
-				     static_cast<long unsigned>(i01+j01),
-				     dout);
+				LOGGER(ibis::gVerbose > 1)
+				    << "Warning -- oocMergeBlocks failed to "
+				    "write data value # " << (i01+j01)
+				    << " to " << dout;
 				ierr = -23;
 				break;
 			    }
 			    ierr = UnixWrite(fiout, &(ibuf1[j01]), szi);
 			    if (static_cast<uint32_t>(ierr) != szi) {
-				ibis::util::logMessage
-				    ("Warning", "oocMergeBlocks failed to "
-				     "write data value # %lu to %s",
-				     static_cast<long unsigned>(i01+j01),
-				     iout);
+				LOGGER(ibis::gVerbose > 1)
+				    << "Warning -- oocMergeBlocks failed to "
+				    "write data value # " << (i01+j01)
+				    << " to " << iout;
 				ierr = -24;
 				break;
 			    }
@@ -1650,21 +1619,19 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 			else { // output the value at j12
 			    ierr = UnixWrite(fdout, &(dbuf2[j12]), szd);
 			    if (static_cast<uint32_t>(ierr) != szd) {
-				ibis::util::logMessage
-				    ("Warning", "oocMergeBlocks failed to "
-				     "write data value # %lu to %s",
-				     static_cast<long unsigned>(i12+j12),
-				     dout);
+				LOGGER(ibis::gVerbose > 1)
+				    << "Warning -- oocMergeBlocks failed to "
+				    "write data value # " << (i12+j12)
+				    << " to " << dout;
 				ierr = -25;
 				break;
 			    }
 			    ierr = UnixWrite(fiout, &(ibuf2[j12]), szi);
 			    if (static_cast<uint32_t>(ierr) != szi) {
-				ibis::util::logMessage
-				    ("Warning", "oocMergeBlocks failed to "
-				     "write data value # %lu to %s",
-				     static_cast<long unsigned>(i12+j12),
-				     iout);
+				LOGGER(ibis::gVerbose > 1)
+				    << "Warning -- oocMergeBlocks failed to "
+				    "write data value # " << (i12+j12)
+				    << " to " << iout;
 				ierr = -26;
 				break;
 			    }
@@ -1677,19 +1644,19 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 		    for (; j01 < mblock; ++ j01) { // output all elements
 			ierr = UnixWrite(fdout, &(dbuf1[j01]), szd);
 			if (static_cast<uint32_t>(ierr) != szd) {
-			    ibis::util::logMessage
-				("Warning", "oocMergeBlocks failed to "
-				 "write data value # %lu to %s",
-				 static_cast<long unsigned>(i01+j01), dout);
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- oocMergeBlocks failed to "
+				"write data value # " << (i01+j01)
+				<< " to " << dout;
 			    ierr = -27;
 			    break;
 			}
 			ierr = UnixWrite(fiout, &(ibuf1[j01]), szi);
 			if (static_cast<uint32_t>(ierr) != szi) {
-			    ibis::util::logMessage
-				("Warning", "oocMergeBlocks failed to "
-				 "write data value # %lu to %s",
-				 static_cast<long unsigned>(i01+j01), iout);
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- oocMergeBlocks failed to "
+				"write data value # " << (i01+j01)
+				<< " to " << iout;
 			    ierr = -28;
 			    break;
 			}
@@ -1700,19 +1667,19 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 		    for (; j12 < block; ++ j12) { // output all elements
 			ierr = UnixWrite(fdout, &(dbuf2[j12]), szd);
 			if (static_cast<uint32_t>(ierr) != szd) {
-			    ibis::util::logMessage
-				("Warning", "oocMergeBlocks failed to "
-				 "write data value # %lu to %s",
-				 static_cast<long unsigned>(i12+j12), dout);
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- oocMergeBlocks failed to "
+				"write data value # " << (i12+j12)
+				<< " to " << dout;
 			    ierr = -29;
 			    break;
 			}
 			ierr = UnixWrite(fiout, &(ibuf2[j12]), szi);
 			if (static_cast<uint32_t>(ierr) != szi) {
-			    ibis::util::logMessage
-				("Warning", "oocMergeBlocks failed to "
-				 "write data value # %lu to %s",
-				 static_cast<long unsigned>(i12+j12), iout);
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- oocMergeBlocks failed to "
+				"write data value # " << (i12+j12)
+				<< " to " << iout;
 			    ierr = -30;
 			    break;
 			}
@@ -1729,22 +1696,19 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 			    j01 = 0;
 			    ierr = dbuf1.read(fdsrc, szdi1, szdi1+bszd);
 			    if (static_cast<uint32_t>(ierr) != bszd) {
-				ibis::util::logMessage
-				    ("Warning", "oocMergeBlocks failed to read "
-				     "%lu bytes at %lu from %s",
-				     static_cast<long unsigned>(bszd),
-				     static_cast<long unsigned>(szdi1), dsrc);
+				LOGGER(ibis::gVerbose > 1)
+				    << "Warning -- oocMergeBlocks failed to read "
+				    << bszd << " bytes at " << szdi1 << " from "
+				    << dsrc;
 				ierr = -31;
 			    }
 			    else {
 				ierr = ibuf1.read(fisrc, szii1, szii1+bszi);
 				if (static_cast<uint32_t>(ierr) != bszi) {
-				    ibis::util::logMessage
-					("Warning", "oocMergeBlocks failed to "
-					 "read %lu bytes at %lu from %s",
-					 static_cast<long unsigned>(bszi),
-					 static_cast<long unsigned>(szii1),
-					 isrc);
+				    LOGGER(ibis::gVerbose > 1)
+					<< "Warning -- oocMergeBlocks failed to "
+					"read " << bszi << " bytes at " << szii1
+					<< " from " << isrc;
 				    ierr = -33;
 				}
 				else {
@@ -1764,22 +1728,19 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 			    cszi = szi * block;
 			    ierr = dbuf2.read(fdsrc, szdi2, szdi2+cszd);
 			    if (static_cast<uint32_t>(ierr) != cszd) {
-				ibis::util::logMessage
-				    ("Warning", "oocMergeBlocks failed to read "
-				     "%lu bytes at %lu from %s",
-				     static_cast<long unsigned>(cszd),
-				     static_cast<long unsigned>(szdi2), dsrc);
+				LOGGER(ibis::gVerbose > 1)
+				    << "Warning -- oocMergeBlocks failed to read "
+				    << cszd << " bytes at " << szdi2 << " from "
+				    << dsrc;
 				ierr = -32;
 			    }
 			    else {
 				ierr = ibuf2.read(fisrc, szii2, szii2+cszi);
 				if (static_cast<uint32_t>(ierr) != cszi) {
-				    ibis::util::logMessage
-					("Warning", "oocMergeBlocks failed to "
-					 "read %lu bytes at %lu from %s",
-					 static_cast<long unsigned>(cszi),
-					 static_cast<long unsigned>(szii2),
-					 isrc);
+				    LOGGER(ibis::gVerbose > 1)
+					<< "Warning -- oocMergeBlocks failed to "
+					"read " << cszi << " bytes at " << szii2
+					<< " from " << isrc;
 				    ierr = -34;
 				}
 				else {
@@ -1798,37 +1759,33 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 		const uint32_t szii = szi * i;
 		ierr = dbuf1.read(fdsrc, szdi, szdi + bszd);
 		if (static_cast<uint32_t>(ierr) != bszd) {
-		    ibis::util::logMessage
-			("Warning", "oocMergeBlocks failed to read %lu bytes "
-			 "at %lu from %s", static_cast<long unsigned>(bszd),
-			 static_cast<long unsigned>(szdi), dsrc);
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- oocMergeBlocks failed to read " << bszd
+			<< " bytes at " << szdi << " from " << dsrc;
 		    ierr = -11;
 		    break;
 		}
 		ierr = UnixWrite(fdout, dbuf1.begin(), bszd);
 		if (static_cast<uint32_t>(ierr) != bszd) {
-		    ibis::util::logMessage
-			("Warning", "oocMergeBlocks failed to read %lu bytes "
-			 "at %lu from %s", static_cast<long unsigned>(bszd),
-			 static_cast<long unsigned>(szdi), dout);
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- oocMergeBlocks failed to write " << bszd
+			<< " bytes at " << szdi << " to " << dout;
 		    ierr = -12;
 		    break;
 		}
 		ierr = ibuf1.read(fisrc, szii, szii + bszi);
 		if (static_cast<uint32_t>(ierr) != bszd) {
-		    ibis::util::logMessage
-			("Warning", "oocMergeBlocks failed to read %lu bytes "
-			 "at %lu from %s", static_cast<long unsigned>(bszi),
-			 static_cast<long unsigned>(szii), isrc);
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- oocMergeBlocks failed to read " << bszi
+			<< " bytes at " << szii << " from " << isrc;
 		    ierr = -13;
 		    break;
 		}
 		ierr = UnixWrite(fiout, ibuf1.begin(), bszi);
 		if (static_cast<uint32_t>(ierr) != bszi) {
-		    ibis::util::logMessage
-			("Warning", "oocMergeBlocks failed to write %lu bytes "
-			 "at %lu from %s", static_cast<long unsigned>(bszi),
-			 static_cast<long unsigned>(szii), iout);
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- oocMergeBlocks failed to write " << bszi
+			<< " bytes at " << szii << " from " << iout;
 		    ierr = -14;
 		    break;
 		}
@@ -1845,40 +1802,35 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
 		ibuf1.resize(block);
 		ierr = dbuf1.read(fdsrc, szdi, szdi + cszd);
 		if (static_cast<uint32_t>(ierr) != cszd) {
-		    ibis::util::logMessage
-			("Warning", "oocMergeBlocks failed to read %lu bytes "
-			 "at %lu from %s", static_cast<long unsigned>(cszd),
-			 static_cast<long unsigned>(szdi), dsrc);
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- oocMergeBlocks failed to read " << cszd
+			<< " bytes at " << szdi << " from " << dsrc;
 		    ierr = -15;
 		}
 		else {
 		    ierr = UnixWrite(fdout, dbuf1.begin(), cszd);
 		    if (static_cast<uint32_t>(ierr) != cszd) {
-			ibis::util::logMessage
-			    ("Warning", "oocMergeBlocks failed to read %lu "
-			     "bytes at %lu from %s",
-			     static_cast<long unsigned>(cszd),
-			     static_cast<long unsigned>(szdi), dout);
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- oocMergeBlocks failed to read "
+			    << cszd << "bytes at " << szdi << " from " << dout;
 			ierr = -16;
 		    }
 		    else {
 			ierr = ibuf1.read(fisrc, szii, szii + cszi);
 			if (static_cast<uint32_t>(ierr) != cszi) {
-			    ibis::util::logMessage
-				("Warning", "oocMergeBlocks failed to read %lu "
-				 "bytes at %lu from %s",
-				 static_cast<long unsigned>(cszi),
-				 static_cast<long unsigned>(szii), isrc);
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- oocMergeBlocks failed to read "
+				<< cszi << "bytes at " << szii << " from "
+				<< isrc;
 			    ierr = -17;
 			}
 			else {
 			    ierr = UnixWrite(fiout, ibuf1.begin(), cszi);
 			    if (static_cast<uint32_t>(ierr) != cszi) {
-				ibis::util::logMessage
-				    ("Warning", "oocMergeBlocks failed to "
-				     "write %lu bytes at %lu from %s",
-				     static_cast<long unsigned>(cszi),
-				     static_cast<long unsigned>(szii), iout);
+				LOGGER(ibis::gVerbose > 1)
+				    << "Warning -- oocMergeBlocks failed to "
+				    "write " << cszi << " bytes at " << szii
+				    << " from " << iout;
 				ierr = -18;
 			    }
 			    else {
@@ -1895,26 +1847,24 @@ long ibis::roster::oocMergeBlocks(const char *dsrc, const char *dout,
     _commit(fiout);
     _commit(fdout);
 #endif
-    UnixClose(fiout);
-    UnixClose(fdout);
-    UnixClose(fisrc);
-    UnixClose(fdsrc);
 
     if (ierr != 0) { // remove the output in case of error
 	remove(dout);
 	remove(iout);
-	ibis::util::logMessage("Warning", "roster::oocMergeBlocks failed with "
-			       "ierr = %d", ierr);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::oocMergeBlocks failed with ierr = "
+	    << ierr;
     }
     else if (ibis::gVerbose > 3) {
 	ierr = 0;
 	timer.stop();
 	double speed = 2e-6 * ((szd+szi) * nrows);
 	speed /= (timer.realTime() > 1e-6 ? timer.realTime() : 1e-6);
-	col->logMessage("roster::oocMergeBlocks", "completed merging blocks "
-			"of size %lu, written output to %s (%s), used %g sec "
-			"with %g MB/s",	static_cast<long unsigned>(stride),
-			dout, iout, timer.realTime(), speed);
+	LOGGER(ibis::gVerbose > 3)
+	    << "roster::oocMergeBlocks completed merging blocks of size "
+	    << stride << ", written output to " << dout << " (" << iout
+	    << "), used " << timer.realTime() << " sec with " << speed
+	    << " MB/s";
     }
     return ierr;
 } //ibis::roster::oocMergeBlocks
@@ -1925,19 +1875,20 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 			       array_t<T>& buf2, array_t<T>& buf3) {
     const int fdsrc = UnixOpen(dsrc, OPEN_READONLY);
     if (fdsrc < 0) {
-	ibis::util::logMessage("Warning",
-			       "mergeBlock2 failed to open %s for reading",
-			       dsrc);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::mergeBlock2 failed to open " << dsrc
+	    << " for reading";
 	return -1;
     }
+    IBIS_BLOCK_GUARD(UnixClose, fdsrc);
     const int fdout = UnixOpen(dout, OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdout < 0) {
-	ibis::util::logMessage("Warning",
-			       "mergeBlock2 failed to open %s for writing",
-			       dout);
-	UnixClose(fdsrc);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::mergeBlock2 failed to open " << dout
+	    << " for writing";
 	return -2;
     }
+    IBIS_BLOCK_GUARD(UnixClose, fdout);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdsrc, _O_BINARY);
     (void)_setmode(fdout, _O_BINARY);
@@ -1980,10 +1931,9 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 	    // the input index file
 	    ierr = buf1.read(fdsrc, szdi1, szdi1+bszd);
 	    if (ierr != static_cast<long>(bszd)) {
-		ibis::util::logMessage
-		    ("Warning", "mergeBlock2 failed to read %lu bytes "
-		     "at %lu from %s", static_cast<long unsigned>(bszd),
-		     static_cast<long unsigned>(szdi1), dsrc);
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- roster::mergeBlock2 failed to read " << bszd
+		    << " bytes at " << szdi1 << " from " << dsrc;
 		ierr = -3;
 		more = false;
 		break;
@@ -1997,10 +1947,9 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 		totread += ierr;
 	    }
 	    else {
-		ibis::util::logMessage
-		    ("Warning", "mergeBlock2 failed to read %lu bytes "
-		     "at %lu from %s", static_cast<long unsigned>(bszd),
-		     static_cast<long unsigned>(szdi2), dsrc);
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- mergeBlock2 failed to read " << bszd
+		    << " bytes at " << szdi2 << " from " << dsrc;
 		ierr = -4;
 		more = false;
 		break;
@@ -2037,11 +1986,10 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 			szdi1 += bszd;
 			ierr = buf1.read(fdsrc, szdi1, szdi1+bszd);
 			if (ierr != static_cast<long>(bszd)) {
-			    ibis::util::logMessage
-				("Warning", "mergeBlock2 failed to read %lu "
-				 "bytes at %lu from %s",
-				 static_cast<long unsigned>(bszd),
-				 static_cast<long unsigned>(szdi1), dsrc);
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- roster::mergeBlock2 failed to "
+				"read " << bszd << " bytes at " << szdi1
+				<< " from " << dsrc;
 			    ierr = -5;
 			    more = false;
 			    break;
@@ -2059,11 +2007,10 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 			    totread += ierr;
 			}
 			else {
-			    ibis::util::logMessage
-				("Warning", "mergeBlock2 failed to read %lu "
-				 "bytes at %lu from %s",
-				 static_cast<long unsigned>(bszd),
-				 static_cast<long unsigned>(szdi2), dsrc);
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- roster::mergeBlock2 failed to "
+				"read " << bszd << "bytes at " << szdi2
+				<< " from " << dsrc;
 			    ierr = -6;
 			    more = false;
 			    break;
@@ -2087,8 +2034,6 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 #if defined(_WIN32) && defined(_MSC_VER)
     _commit(fdout);
 #endif
-    UnixClose(fdout);
-    UnixClose(fdsrc);
 
     if (ierr > 0)
 	ierr = 0;
@@ -2098,11 +2043,10 @@ long ibis::roster::mergeBlock2(const char *dsrc, const char *dout,
 	if (speed < 1.0e-6)
 	    speed = 1.0e-6;
 	speed *= 2e-6 * totread;
-	ibis::util::logMessage
-	    ("roster::mergeBlock2", "completed merging blocks "
-	     "of size %lu, written output to %s, used %g sec "
-	     "with %g MB/s", static_cast<long unsigned>(segment),
-	     dout, timer.realTime(), speed);
+	LOGGER(ibis::gVerbose > 3)
+	    << "roster::mergeBlock2 completed merging blocks of size "
+	    << segment << ", written output to " << dout << ", used "
+	    << timer.realTime() << " sec with " << speed << " MB/s";
     }
     return ierr;
 } //ibis::roster::mergeBlock2
@@ -2144,10 +2088,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "roster (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and data array (" << val.size() << ") to be the same";
 	}
 	break;
     }
@@ -2161,10 +2104,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "index (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
@@ -2178,10 +2120,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "roster (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
@@ -2195,10 +2136,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "index (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
@@ -2212,10 +2152,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "roster (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
@@ -2229,10 +2168,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "index (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
@@ -2246,10 +2184,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "roster (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
@@ -2263,10 +2200,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "index (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
@@ -2278,10 +2214,9 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, bnd);
 	}
 	else {
-	    col->logWarning("roster::locate", "index (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
@@ -2292,19 +2227,17 @@ uint32_t ibis::roster::locate(const double& v) const {
 	    hit = val.find(ind, v);
 	}
 	else {
-	    col->logWarning("roster::locate", "index (%lu) and data array "
-			    "(%lu) has different number of elements",
-			    static_cast<long unsigned>(ind.size()),
-			    static_cast<long unsigned>(val.size()));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- roster::locate expected ind.size(" << ind.size()
+		<< ") and val.size(" << val.size() << ") to be the esame";
 	}
 	break;
     }
     default: {
 	ibis::util::logger lg;
 	lg() << "Warning -- column[" << col->partition()->name() << "."
-		    << col->name()
-		    << "]::roster -- no roster list for column type "
-		    << ibis::TYPESTRING[static_cast<int>(col->type())];
+	     << col->name() << "]::roster -- no roster list for column type "
+	     << ibis::TYPESTRING[static_cast<int>(col->type())];
 	break;}
     }
 
@@ -2415,10 +2348,12 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
     const uint32_t nrows = col->partition()->nRows();
     int srtdes = UnixOpen(fname.c_str(), OPEN_READONLY);
     if (srtdes < 0) {
-	ibis::util::logMessage("Warning", "failed to open the file "
-			       "containing sorted values (%s)", fname.c_str());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::oocSearch failed to open the file "
+	    << fname;
 	return -5;
     }
+    IBIS_BLOCK_GUARD(UnixClose, srtdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(srtdes, _O_BINARY);
 #endif
@@ -2467,9 +2402,9 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	fname += ".ind";
 	inddes = UnixOpen(fname.c_str(), OPEN_READONLY);
 	if (inddes < 0) {
-	    ibis::util::logMessage("Warning", "roster::oocSearch failed "
-				   "to open index file %s",
-				   fname.c_str());
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning roster::oocSearch failed to open index file "
+		<< fname;
 	    return -7;
 	}
     }
@@ -2501,10 +2436,9 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		    ierr = UnixSeek(inddes, ir*sizeof(tmp), SEEK_SET);
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
-			ibis::util::logMessage
-			    ("Warning", "roster::oocSearch "
-			     "failed to %lu-th index value",
-			     static_cast<long unsigned>(ir));
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- roster::oocSearch failed to "
+			    "read index value # " << ir;
 			return -9;
 		    }
 		    pos.push_back(tmp);
@@ -2520,10 +2454,9 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	T curr;
 	ierr = UnixRead(srtdes, &curr, tbytes);
 	if (ierr < static_cast<int>(tbytes)) {
-	    ibis::util::logMessage
-		("Warning", "roster::oocSearch failed to read "
-		 "value %lu from the sorted file",
-		 static_cast<long unsigned>(ir));
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- roster::oocSearch failed to read value # "
+		<< ir << " from the sorted file";
 	    return -10;
 	}
 
@@ -2536,10 +2469,9 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	    while (ir < nrows && vals[iv] > curr) {
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
-		    ibis::util::logMessage
-			("Warning", "roster::oocSearch failed to read "
-			 "value %lu from the sorted file",
-			 static_cast<long unsigned>(ir));
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- roster::oocSearch failed to read value # "
+			<< ir << " from the sorted file";
 		    return -11;
 		}
 		++ ir;
@@ -2553,20 +2485,18 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		    ierr = UnixSeek(inddes, ir*sizeof(tmp), SEEK_SET);
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
-			ibis::util::logMessage
-			    ("Warning", "roster::oocSearch "
-			     "failed to %lu-th index value",
-			     static_cast<long unsigned>(ir));
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- roster::oocSearch failed to read "
+			    "index value # " << ir;
 			return -12;
 		    }
 		    pos.push_back(tmp);
 		}
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
-		    ibis::util::logMessage
-			("Warning", "roster::oocSearch failed to read "
-			 "value %lu from the sorted file",
-			 static_cast<long unsigned>(ir));
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- roster::oocSearch failed to read "
+			"value # " << ir << " from the sorted file";
 		    return -13;
 		}
 		++ ir;
@@ -2677,10 +2607,12 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
     const uint32_t nrows = col->partition()->nRows();
     int srtdes = UnixOpen(fname.c_str(), OPEN_READONLY);
     if (srtdes < 0) {
-	ibis::util::logMessage("Warning", "failed to open the file "
-			       "containing sorted values (%s)", fname.c_str());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- roster::oocSearch failed to open the file "
+	    << fname;
 	return -5;
     }
+    IBIS_BLOCK_GUARD(UnixClose, srtdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(srtdes, _O_BINARY);
 #endif
@@ -2729,9 +2661,9 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	fname += ".ind";
 	inddes = UnixOpen(fname.c_str(), OPEN_READONLY);
 	if (inddes < 0) {
-	    ibis::util::logMessage("Warning", "roster::oocSearch failed "
-				   "to open index file %s",
-				   fname.c_str());
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- roster::oocSearch failed to open index file "
+		<< fname;
 	    return -7;
 	}
     }
@@ -2763,10 +2695,9 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		    ierr = UnixSeek(inddes, ir*sizeof(tmp), SEEK_SET);
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
-			ibis::util::logMessage
-			    ("Warning", "roster::oocSearch "
-			     "failed to %lu-th index value",
-			     static_cast<long unsigned>(ir));
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- roster::oocSearch failed to read "
+			    "index value # " << ir;
 			return -9;
 		    }
 		    pos.push_back(tmp);
@@ -2782,10 +2713,9 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	T curr;
 	ierr = UnixRead(srtdes, &curr, tbytes);
 	if (ierr < static_cast<int>(tbytes)) {
-	    ibis::util::logMessage
-		("Warning", "roster::oocSearch failed to read "
-		 "value %lu from the sorted file",
-		 static_cast<long unsigned>(ir));
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- roster::oocSearch failed to read value # "
+		<< ir << " from the sorted file";
 	    return -10;
 	}
 
@@ -2798,10 +2728,9 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	    while (ir < nrows && vals[iv] > curr) {
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
-		    ibis::util::logMessage
-			("Warning", "roster::oocSearch failed to read "
-			 "value %lu from the sorted file",
-			 static_cast<long unsigned>(ir));
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- roster::oocSearch failed to read value # "
+			<< ir << " from the sorted file";
 		    return -11;
 		}
 		++ ir;
@@ -2815,20 +2744,18 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		    ierr = UnixSeek(inddes, ir*sizeof(tmp), SEEK_SET);
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
-			ibis::util::logMessage
-			    ("Warning", "roster::oocSearch "
-			     "failed to %lu-th index value",
-			     static_cast<long unsigned>(ir));
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- roster::oocSearch failed to read "
+			    "index value #" << ir;
 			return -12;
 		    }
 		    pos.push_back(tmp);
 		}
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
-		    ibis::util::logMessage
-			("Warning", "roster::oocSearch failed to read "
-			 "value %lu from the sorted file",
-			 static_cast<long unsigned>(ir));
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- roster::oocSearch failed to read "
+			"value #" << ir << " from the sorted file";
 		    return -13;
 		}
 		++ ir;

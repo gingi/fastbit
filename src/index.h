@@ -358,10 +358,8 @@ protected:
     index(const ibis::column* c=0) : col(c), str(0), fname(0), nrows(0) {}
     index(const ibis::column* c, ibis::fileManager::storage* s);
 
-    /// Generate data file name from "f"
-    void dataFileName(const char* f, std::string& name) const;
-    /// Generate index file name from "f"
-    void indexFileName(const char* f, std::string& name) const;
+    void dataFileName(std::string& name, const char* f=0) const;
+    void indexFileName(std::string& name, const char* f=0) const;
     static void indexFileName(std::string& name, const ibis::column* col1,
 			      const ibis::column* col2, const char* f=0);
 

@@ -525,7 +525,7 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	if (nEvents == 0)
 	    lg() << "n empty";
 	lg() << " part named "
-	     << (m_name?m_name:"<NULL>");
+	     << (m_name?m_name:"??");
 	if (! m_desc.empty())
 	    lg() << " -- " << m_desc;
 	if (ibis::gVerbose > 1) {
@@ -1064,7 +1064,7 @@ void ibis::part::init(const char* iname) {
 	if (nEvents == 0)
 	    lg() << "n empty";
 	lg() << " part named "
-	     << (m_name?m_name:"<NULL>");
+	     << (m_name?m_name:"??");
 	if (ibis::gVerbose > 1) {
 	    lg() << "\nactiveDir = \"" << activeDir << "\"";
 	    if (backupDir != 0 && *backupDir != 0)
@@ -6847,7 +6847,7 @@ void ibis::part::quickTest(const char* pref, long* nerrors) const {
 	ibis::util::logger lg(4);
 	const char* str = qtmp.getWhereClause();
 	lg() << "DEBUG -- query[" << qtmp.id() << ", "
-	     << (str?str:"<NULL>") << "]::getRIDs returned "
+	     << (str?str:"??") << "]::getRIDs returned "
 	     << rid1->size() << "\n";
 #if DEBUG > 2
 	for (ibis::RIDSet::const_iterator it1 = rid1->begin();

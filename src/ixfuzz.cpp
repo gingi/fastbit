@@ -1099,7 +1099,7 @@ int ibis::fuzz::write(const char* dt) const {
     if (vals.empty()) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -1305,7 +1305,7 @@ int ibis::fuzz::writeCoarse64(int fdes) const {
 /// determined by the function indexFileName.
 int ibis::fuzz::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -1;
@@ -1496,7 +1496,7 @@ int ibis::fuzz::read(const char* f) {
 /// ibis::relic::read, which happens in the constructor.
 int ibis::fuzz::readCoarse(const char* fn) {
     std::string fnm;
-    indexFileName(fn, fnm);
+    indexFileName(fnm, fn);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -1;

@@ -14,6 +14,9 @@ following two commands in this directory
 ./configure
 make
 
+*** NOTE: Must run configure to generate the Makefile and other crucial
+***       files.
+
 Further information about installation is available in file INSTALL in
 this directory.  For installation on a MS Windows system using Visual
 Studio, follow instructions in win/README.

@@ -273,7 +273,7 @@ int ibis::pack::write(const char* dt) const {
     if (nobs <= 1) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -620,7 +620,7 @@ int ibis::pack::write64(int fdes) const {
 /// Read the content of an index from the specified location.
 int ibis::pack::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
@@ -1036,7 +1036,7 @@ long ibis::pack::append(const char* dt, const char* df, uint32_t nnew) {
     }
 
     std::string fnm = df;
-    indexFileName(df, fnm);
+    indexFileName(fnm, df);
     ibis::pack* bin0=0;
     ibis::fileManager::storage* st0=0;
     long ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);

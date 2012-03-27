@@ -160,7 +160,7 @@ int ibis::mesa::write(const char* dt) const {
     if (nobs <= 0) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -424,7 +424,7 @@ long ibis::mesa::append(const char* dt, const char* df, uint32_t nnew) {
     }
 
     std::string fnm;
-    indexFileName(df, fnm);
+    indexFileName(fnm, df);
     ibis::mesa* bin0=0;
     ibis::fileManager::storage* st0=0;
     long ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);

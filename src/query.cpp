@@ -3546,7 +3546,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ierr = doEvaluate(term->getLeft(), ht);
 	if (ierr >= 0) {
 	    ht.flip();
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3565,9 +3565,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), b1);
-	    if (ierr > 0)
+	    if (ierr >= 0) {
 		ht |= b1;
-	    ierr = ht.sloppyCount();
+		ierr = ht.sloppyCount();
+	    }
 	}
 	break;
     }
@@ -3576,9 +3577,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), b1);
-	    if (ierr > 0)
+	    if (ierr >= 0) {
 		ht ^= b1;
-	    ierr = ht.sloppyCount();
+		ierr = ht.sloppyCount();
+	    }
 	}
 	break;
     }
@@ -3587,9 +3589,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr > 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), ht, b1);
-	    if (ierr > 0)
+	    if (ierr >= 0) {
 		ht -= b1;
-	    ierr = ht.sloppyCount();
+		ierr = ht.sloppyCount();
+	    }
 	}
 	break;
     }
@@ -3755,26 +3758,26 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 int ibis::query::doEvaluate(const ibis::qExpr* term,
 			    const ibis::bitvector& mask,
 			    ibis::bitvector& ht) const {
-    int ierr = 0;
     if (term == 0) { // all hits
-	ht.set(1, mypart->nRows());
-	return ierr;
+	ht.copy(mask);
+	return mypart->nRows();
     }
     if (mask.cnt() == 0) { // no hits
 	ht.set(0, mask.size());
-	return ierr;
+	return 0;
     }
     LOGGER(ibis::gVerbose > 7)
 	<< "query[" << myID << "]::doEvaluate -- starting to evaluate "
 	<< *term;
 
+    int ierr = 0;
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
 	ierr = doEvaluate(term->getLeft(), mask, ht);
 	if (ierr >= 0) {
 	    ht.flip();
 	    ht &= mask;
-	    ierr = ht.cnt();
+	    ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3792,16 +3795,11 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	ierr = doEvaluate(term->getLeft(), mask, ht);
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
-	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
-		std::auto_ptr<ibis::bitvector> newmask(mask - ht);
-		ierr = doEvaluate(term->getRight(), *newmask, b1);
-	    }
-	    else {
-		ierr = doEvaluate(term->getRight(), mask, b1);
-	    }
-	    if (ierr > 0)
+	    ierr = doEvaluate(term->getRight(), mask, b1);
+	    if (ierr >= 0) {
 		ht |= b1;
-	    ierr = ht.sloppyCount();
+		ierr = ht.sloppyCount();
+	    }
 	}
 	break;
     }
@@ -3810,9 +3808,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), mask, b1);
-	    if (ierr > 0)
+	    if (ierr >= 0) {
 		ht ^= b1;
-	    ierr = ht.sloppyCount();
+		ierr = ht.sloppyCount();
+	    }
 	}
 	break;
     }
@@ -3821,9 +3820,10 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (ierr > 0) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), ht, b1);
-	    if (ierr > 0)
+	    if (ierr >= 0) {
 		ht -= b1;
-	    ierr = ht.sloppyCount();
+		ierr = ht.sloppyCount();
+	    }
 	}
 	break;
     }
@@ -3951,7 +3951,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::STRING: {
 	ierr = mypart->lookforString
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
-	if (ierr >= 0) {
+	if (ierr > 0) {
 	    ht &= mask;
 	    ierr = ht.sloppyCount();
 	}
@@ -3960,7 +3960,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::LIKE: {
 	ierr = mypart->patternSearch
 	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
-	if (ierr >= 0) {
+	if (ierr > 0) {
 	    ht &= mask;
 	    ierr = ht.sloppyCount();
 	}
@@ -3972,7 +3972,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (cr.isConstant()) {
 	    if (cr.inRange()) {
 		ht.copy(mask);
-		ierr = mask.cnt();
+		ierr = ht.sloppyCount();
 	    }
 	    else {
 		ht.set(0, mask.size());
@@ -3990,7 +3990,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	if (mt.isConstant()) {
 	    if (mt.isTrue()) {
 		ht.copy(mask);
-		ierr = mask.cnt();
+		ierr = mask.sloppyCount();
 	    }
 	    else {
 		ht.set(0, mask.size());
@@ -4023,7 +4023,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::TOPK:
     case ibis::qExpr::DEPRECATEDJOIN: { // pretend every row qualifies
 	ht.copy(mask);
-	ierr = ht.cnt();
+	ierr = ht.sloppyCount();
 	break;
     }
     default:

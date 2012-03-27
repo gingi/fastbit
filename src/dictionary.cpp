@@ -358,7 +358,7 @@ int ibis::dictionary::readKeys(const char *evt, FILE *fptr) {
     return 0;
 } // ibis::dictionary::readKeys
 
-/// Clear the allocated memory.  Leave with only one NULL entry.
+/// Clear the allocated memory.  Leave only the NULL entry.
 void ibis::dictionary::clear() {
     for (size_t i = 0; i < buffer_.size(); ++ i)
 	delete [] buffer_[i];
@@ -472,7 +472,7 @@ void ibis::dictionary::patternSearch(const char* pat,
 	    }
 	}
 
-	if (b < key_.size() &&
+	if (b < (long)key_.size() &&
 	    strncmp(key_[b], prefix.c_str(), prefix.size()) == 0) {
 	    min = b;
 	}
@@ -767,3 +767,139 @@ void ibis::dictionary::sort(ibis::array_t<uint32_t> &o2n) {
     }
 } // ibis::dictionary::sort
 
+/// Merge the incoming dictionary with this one.  It produces a dictionary
+/// that combines the words in both dictionaries and keep the words in
+/// ascending order.
+///
+/// Upon successful completion of this function, the return value will be
+/// the new size of the dictionary, i.e., the number of non-empty words.
+/// It returns a negative value to indicate error.
+int ibis::dictionary::merge(const ibis::dictionary& rhs) {
+    const uint32_t nt = key_.size();
+    const uint32_t nr = rhs.key_.size();
+    if (nr == 0) {
+	return key_.size();
+    }
+    if (nt == 0) {
+	ibis::dictionary tmp(rhs);
+	swap(tmp);
+	return key_.size();
+    } // ibis::dictionary::merge
+
+    
+    uint32_t jt = 0;
+    uint32_t jr = 0;
+    array_t<uint32_t> code2;
+    array_t<const char*> raw2, key2;
+    try {
+	code2.reserve(nr+nt);
+	raw2.reserve(nr+nt+1);
+	key2.reserve(nr+nt);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- dictionary::merge failed to allocate temporary "
+	    "arrays";
+	return -1;
+    }
+
+    // the linear merge loop
+    while (jt < nt && jr < nr) {
+	int cmp = strcmp(key_[jt], rhs.key_[jr]);
+	if (cmp <= 0) {
+	    key2.push_back(key_[jt]);
+	    ++ jt;
+	    jr += (cmp == 0);
+	}
+	else {
+	    char *cp = ibis::util::strnewdup(rhs.key_[jr]);
+	    if (cp == 0) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warnign -- dictionary::merge failed to allocate "
+		    "memory for a new string value";
+		return -2;
+	    }
+	    buffer_.push_back(cp);
+	    key2.push_back(cp);
+	    ++ jr;
+	}
+    } // (jt < nt && jr < nr)
+
+    while (jt < nt) {
+	key2.push_back(key_[jt]);
+	++ jt;
+    }
+    while (jr < nr) {
+	char *cp = ibis::util::strnewdup(rhs.key_[jr]);
+	if (cp == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warnign -- dictionary::merge failed to allocate "
+		"memory for a new string value";
+	    return -3;
+	}
+	buffer_.push_back(cp);
+	key2.push_back(cp);
+	++ jr;
+    }
+
+    raw2.push_back(0);
+    for (jt = 0; jt < nt+nr; ++ jt) {
+	raw2.push_back(key2[jt]);
+	code2.push_back(jt+1);
+    }
+    raw2.swap(raw_);
+    key2.swap(key_);
+    code2.swap(code_);
+    return key_.size();
+} // ibis::dictionary::merge
+
+/// Produce an array that mapps the integers in old dictionary to the new
+/// one.  The incoming dictionary represents the old dictionary, this
+/// dictionary represents the new one.
+///
+/// Upon successful completion of this fuction, the array o2n will have
+/// (old.size()+1) number of elements, where the new value for the old code
+/// i is stored as o2n[i].
+int ibis::dictionary::morph(const ibis::dictionary &old,
+			    ibis::array_t<uint32_t> &o2n) const {
+    const uint32_t nold = key_.size();
+    if (old.key_.size() > nold) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- dictionary::morph can not proceed because the "
+	    "new dictioanry is smaller than the old one";
+	return -1;
+    }
+
+    o2n.resize(nold+1);
+    o2n[0] = 0;
+    if (nold == 0) return 0;
+
+    const uint32_t nnew = key_.size();
+    uint32_t j1 = 0, j0 = 0;
+    while (j0 < nold && j1 < nnew) {
+	int cmp = strcmp(key_[j1], old.key_[j0]);
+	if (cmp < 0) {
+	    ++ j1;
+	}
+	else if (cmp == 0) {
+	    o2n[old.code_[j0]] = code_[j1];
+	    ++ j0;
+	    ++ j1;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- dictionary::morph can not find \""
+		<< old.key_[j0] << "\" in the new dictionary";
+	    return -2;
+	}
+    }
+    if (j1 >= nnew) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- dictionary::morph exhausted the new dictionary "
+	    "entries but only found " << j0 << " entr" << (j0>1?"ies":"y")
+	    << " from the old one";
+	return -3;
+    }
+    return j0;
+} // ibis::dictioniary::morph
+    

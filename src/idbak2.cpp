@@ -46,7 +46,7 @@ int ibis::bak2::read(const char* f) {
     int ierr = -1;
     try {
 	std::string fnm;
-	indexFileName(f, fnm);
+	indexFileName(fnm, f);
 	if (ibis::index::isIndex(fnm.c_str(), ibis::index::BAK2)) {
 	    ierr = ibis::bin::read(f);
 	}
@@ -124,7 +124,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 
     uint32_t nev = col->partition()->nRows();
     std::string fnm; // name of the data file
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
 
     ibis::bitvector mask;
     {   // limit the scope of some variables

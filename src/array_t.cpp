@@ -1659,7 +1659,9 @@ ibis::array_t<T>::erase(typename ibis::array_t<T>::iterator i,
     }
 } // ibis::array_t<T>::earse
 
-/// Read an array from the name file.
+/// Read an array from the name file.  This version may use either explicit
+/// read or on-deman read (i.e. memory map) depending on the file size and
+/// available file pointers.
 template<class T>
 void ibis::array_t<T>::read(const char* file) {
     if (file == 0 || *file == 0) return;
@@ -1677,7 +1679,8 @@ void ibis::array_t<T>::read(const char* file) {
     }
 } // ibis::array_t<T>::read
 
-/// Read an array from a port of the named file.
+/// Read a portion of the named file.  This version always uses the
+/// explicit read function to extract the content of file.
 template<class T>
 off_t ibis::array_t<T>::read(const char* fname, const off_t begin,
 			     const off_t end) {
@@ -1716,16 +1719,19 @@ off_t ibis::array_t<T>::read(const int fdes, const off_t begin,
 } // ibis::array_t<T>::read
 
 /// Write the content of array to the named file.
+///
+/// Returns 0 for success, a negative number for errors.
 template<class T>
-void ibis::array_t<T>::write(const char* file) const {
-    if (m_end <= m_begin) return; // nothing to write
+int ibis::array_t<T>::write(const char* file) const {
+    if (m_end <= m_begin) return 0; // nothing to write
+
     off_t n, i;
     FILE *out = fopen(file, "wb");
     if (out == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "array_t<T>::write is unable open file \"" << file << "\" ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
-	return;
+	return -1;
     }
 
     n = m_end - m_begin;
@@ -1736,15 +1742,18 @@ void ibis::array_t<T>::write(const char* file) const {
 	    << "array_t<T>::write expects to write " << n << ' '
 	    << sizeof(T) << "-byte element" << (n>1?"s":"")
 	    << " to \"" << file << "\", but actually wrote " << i;
+	return -2;
     }
+    return 0;
 } // ibis::array_t<T>::write
 
 /// Write the content of the array to a file already opened.
 template<class T>
-void ibis::array_t<T>::write(FILE* fptr) const {
-    if (fptr == 0 || m_end <= m_begin) return;
-    off_t n, i;
+int ibis::array_t<T>::write(FILE* fptr) const {
+    if (fptr == 0) return -1;
+    if (m_end <= m_begin) return 0;
 
+    off_t n, i;
     n = m_end - m_begin;
     i = fwrite(reinterpret_cast<void*>(m_begin), sizeof(T), n, fptr);
     if (i != n) {
@@ -1752,7 +1761,9 @@ void ibis::array_t<T>::write(FILE* fptr) const {
 	    << "array_t<T>::write() expects to write " << n << ' '
 	    << sizeof(T) << "-byte element" << (n>1?"s":"")
 	    << ", but actually wrote " << i;
+	return -2;
     }
+    return 0;
 } // ibis::array_t<T>::write
 
 /// Print internal pointer addresses.

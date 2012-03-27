@@ -3,9 +3,13 @@ only need to run
 
 ./configure && make
 
-to build the library and the examples.  The following instructions are
-for customization and trouble-shooting your configuration and building
-process.
+to build the library and the examples.  
+
+*** NOTE: Must run configure to generate the Makefile and other crucial
+***       files.
+
+The following instructions are for customization and trouble-shooting
+your configuration and building process.
 
 On systems where make (or gmake) support parallel builds, it is safe to
 invoke the parallel build options to build the library and the

@@ -124,7 +124,7 @@ int ibis::fade::write(const char* dt) const {
     if (vals.empty()) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -408,7 +408,7 @@ int ibis::fade::write64(int fdes) const {
 /// Read the index contained in the file named @c f.
 int ibis::fade::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
     if (fname != 0 && fnm.compare(fname) == 0)
 	return 0;
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
@@ -797,7 +797,7 @@ void ibis::fade::construct2(const char* f, const uint32_t nbase) {
 	bits[i] = new ibis::bitvector;
 
     std::string fnm; // name of the data file
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
 
     nrows = col->partition()->nRows();
     ibis::bitvector mask;

@@ -51,7 +51,8 @@ public:
     virtual int64_t
     getColumnAsBytes(const char*, char*, uint64_t =0, uint64_t =0) const;
     virtual int64_t
-    getColumnAsUBytes(const char*, unsigned char*, uint64_t =0, uint64_t =0) const;
+    getColumnAsUBytes(const char*, unsigned char*,
+		      uint64_t =0, uint64_t =0) const;
     virtual int64_t
     getColumnAsShorts(const char*, int16_t*, uint64_t =0, uint64_t =0) const;
     virtual int64_t
@@ -120,6 +121,7 @@ public:
     virtual const char* indexSpec(const char*) const;
     virtual void indexSpec(const char*, const char*);
     virtual int getPartitions(ibis::constPartList &) const;
+    virtual int combineCategories(const ibis::table::stringList&);
 
     // Cursor class for row-wise data accesses.
     class cursor;

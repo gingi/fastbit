@@ -316,6 +316,132 @@ int ibis::mensa::buildIndexes(const char* opt) {
     return 0;
 } // ibis::mensa::buildIndexes
 
+int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
+    if (parts.size() <= 1 && nms.size() == 0)
+	return 0;
+
+    std::string evt="mensa";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	evt += name_;
+	evt += ']';
+    }
+    evt += "::combineCategories";
+    if (ibis::gVerbose > 1) {
+	std::ostringstream oss;
+	oss << '(';
+	if (nms.empty()) {
+	    oss << "<NULL>";
+	}
+	else if (nms.size() == 1) {
+	    oss << (nms[0] ? nms[0] : "");
+	}
+	else {
+	    oss << nms.size() << " names";
+	}
+	oss << ')';
+	evt += oss.str();
+    }
+    ibis::util::timer mytimer(evt.c_str(), 4);
+    int ierr = 0, cnt = 0;
+
+    if (nms.empty()) { // merge categorical columns with the same name
+	ibis::table::stringList names;
+	std::vector<ibis::dictionary*> words;
+	for (ibis::table::namesTypes::const_iterator it = naty.begin();
+	     it != naty.end();
+	     ++ it) { // gather all names
+	    if ((*it).second == ibis::CATEGORY) {
+		names.push_back((*it).first);
+		words.push_back(new ibis::dictionary());
+	    }
+	}
+	if (names.empty() || words.empty()) return 0;
+
+	IBIS_BLOCK_GUARD(ibis::util::clearVec<ibis::dictionary>,
+			 ibis::util::ref(words));
+	// loop to consolidate the dictionaries
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end();
+	     ++ it) {
+	    for (unsigned k = 0; k < names.size(); ++ k) {
+		const ibis::column *c0 = (*it)->getColumn(names[k]);
+		const ibis::category *c1 =
+		    dynamic_cast<const ibis::category*>(c0);
+		if (c1 != 0) {
+		    ierr = words[k]->merge(*(c1->getDictionary()));
+		    LOGGER(ibis::gVerbose > 0 && ierr < 0)
+			<< "Warning -- " << evt
+			<< " failed to merge dictionary for "
+			<< (*it)->name() << '.' << c1->name();
+		}
+	    }
+	}
+
+	// loop to update the indexes
+	for (ibis::partList::iterator it = parts.begin();
+	     it != parts.end();
+	     ++ it) {
+	    for (unsigned k = 0; k < names.size(); ++ k) {
+		ibis::column *c0 = (*it)->getColumn(names[k]);
+		ibis::category *c1 = dynamic_cast<ibis::category*>(c0);
+		if (c1 != 0) {
+		    ierr = c1->setDictionary(*(words[k]));
+		    LOGGER(ibis::gVerbose > 0 && ierr < 0)
+			<< "Warning -- " << evt
+			<< " failed to change dictionary for "
+			<< (*it)->name() << '.' << c1->name();
+		    cnt += (ierr >= 0);
+		}
+	    }
+	}
+    } // merge categorical columns with the same name
+    else { // merge columns with the specified names
+	ibis::dictionary words;
+	// loop to gather all the words
+	for (ibis::partList::const_iterator pit = parts.begin();
+	     pit != parts.end();
+	     ++ pit) {
+	    for (ibis::table::stringList::const_iterator nit = nms.begin();
+		 nit != nms.end();
+		 ++ nit) {
+		const ibis::column *c0 = (*pit)->getColumn(*nit);
+		const ibis::category *c1 =
+		    dynamic_cast<const ibis::category*>(c0);
+		if (c1 != 0) {
+		    ierr = words.merge(*c1->getDictionary());
+		    LOGGER(ierr < 0 && ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " failed to merge words from "
+			<< (*pit)->name() << '.' << c1->name();
+		}
+	    }
+	}
+
+	if (words.size() == 0) return 0;
+	// loop to update the indexes
+	for (ibis::partList::iterator pit = parts.begin();
+	     pit != parts.end();
+	     ++ pit) {
+	    for (ibis::table::stringList::const_iterator nit = nms.begin();
+		 nit != nms.end();
+		 ++ nit) {
+		ibis::column *c0 = (*pit)->getColumn(*nit);
+		ibis::category *c1 =
+		    dynamic_cast<ibis::category*>(c0);
+		if (c1 != 0) {
+		    ierr = c1->setDictionary(words);
+		    LOGGER(ierr < 0 && ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " failed to update index for "
+			<< (*pit)->name() << '.' << c1->name();
+		    cnt += (ierr >= 0);
+		}
+	    }
+	}
+    } // merge columns with the specified names
+
+    return cnt;
+} // ibis::mensa::combineCateogires
+
 void ibis::mensa::estimate(const char* cond,
 			   uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;

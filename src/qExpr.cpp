@@ -1812,29 +1812,14 @@ bool ibis::qContinuousRange::overlap(double lo, double hi) const {
     return ret;
 } // ibis::qContinuousRange::overlap
 
-/// The constructor of qString.  The string rs must have matching quote if
-/// it is quoted.  It may also contain meta character '\' that is used to
-/// escape the quote and other characters.  The meta character will also be
-/// striped.
+/// The constructor of qString.  It copies the two string arguments.
 ibis::qString::qString(const char* ls, const char* rs) :
-    qExpr(ibis::qExpr::STRING), lstr(ibis::util::strnewdup(ls)) {
-    // need to remove leading and trailing quote and the meta characters
-    rstr = new char[1+strlen(rs)];
-    const char quote = ('"' == *rs || '\'' == *rs) ? *rs : 0;
-    const char* cptr = rs;
-    char* dptr = rstr;
-    cptr += (quote != 0);
-    while (*cptr != quote) {
-	if (*cptr != '\\') {
-	    *dptr = *cptr;
-	}
-	else {
-	    ++cptr;
-	    *dptr = *cptr;
-	}
-	++cptr; ++dptr;
-    }
-    *dptr = 0; // terminate rstr with the NULL character
+    qExpr(ibis::qExpr::STRING), lstr(ibis::util::strnewdup(ls)),
+    rstr(ibis::util::strnewdup(rs)) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+    LOGGER(ibis::gVerbose > 5)
+	<< "qString::ctor(\"" << ls << "\", \"" << rs << "\") ...";
+#endif
 }
 
 void ibis::qString::print(std::ostream& out) const {
@@ -1852,33 +1837,17 @@ void ibis::qString::getTableNames(std::set<std::string>& plist) const {
 
 /// Constructor.
 ibis::qLike::qLike(const char* ls, const char* rs) :
-    qExpr(ibis::qExpr::LIKE), lstr(ibis::util::strnewdup(ls)) {
+    qExpr(ibis::qExpr::LIKE), lstr(ibis::util::strnewdup(ls)),
+    rpat(ibis::util::strnewdup(rs)) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose > 5)
 	<< "qLike::ctor(\"" << ls << "\", \"" << rs << "\") ...";
 #endif
-    // need to remove leading and trailing quote and the meta characters
-    rpat = new char[1+strlen(rs)];
-    const char quote = ('"' == *rs || '\'' == *rs) ? *rs : 0;
-    const char* cptr = rs;
-    char* dptr = rpat;
-    cptr += (quote != 0);
-    while (*cptr != quote) {
-	if (*cptr != '\\') {
-	    *dptr = *cptr;
-	}
-	else {
-	    ++cptr;
-	    *dptr = *cptr;
-	}
-	++cptr; ++dptr;
-    }
-    *dptr = 0; // terminate rpat with the NULL character
 }
 
 void ibis::qLike::print(std::ostream& out) const {
     if (lstr && rpat)
-	out << lstr << " LIKE \"" << rpat << "\"";
+	out << lstr << " LIKE " << rpat;
 }
 
 void ibis::qLike::getTableNames(std::set<std::string>& plist) const {

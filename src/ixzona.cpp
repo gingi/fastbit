@@ -1024,7 +1024,7 @@ int ibis::zona::write(const char* dt) const {
     if (vals.empty()) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -1202,7 +1202,7 @@ int ibis::zona::writeCoarse64(int fdes) const {
 /// determined by the function indexFileName.
 int ibis::zona::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -1;
@@ -1395,7 +1395,7 @@ int ibis::zona::read(const char* f) {
 /// file name is determined by the function indexFileName.
 int ibis::zona::readCoarse(const char* fn) {
     std::string fnm;
-    indexFileName(fn, fnm);
+    indexFileName(fnm, fn);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -1;

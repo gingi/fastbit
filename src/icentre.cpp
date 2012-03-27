@@ -127,7 +127,7 @@ int ibis::entre::write(const char* dt) const {
     if (nobs == 0) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -314,8 +314,8 @@ long ibis::entre::append(const char* dt, const char* df, uint32_t nnew) {
     const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
 			   col->partition()->nRows()-nnew : nrows);
     std::string ff, ft;
-    dataFileName(df, ff);
-    dataFileName(dt, ft);
+    dataFileName(ff, df);
+    dataFileName(ft, dt);
     uint32_t sf = ibis::util::getFileSize(ff.c_str());
     uint32_t st = ibis::util::getFileSize(ft.c_str());
     if (sf >= (st >> 1) || nrows != nold) {

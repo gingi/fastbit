@@ -304,7 +304,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 /// Read from a file named f.
 int ibis::bin::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
 	return -1;
@@ -753,7 +753,7 @@ void ibis::bin::binning(const char* f) {
     }
 
     std::string fnm; // name of the data file
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
 
     ibis::bitvector mask;
     {   // name of mask file associated with the data file
@@ -1565,7 +1565,7 @@ void ibis::bin::binningT(const char* f) {
     }
 
     std::string fnm; // name of the data file
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
 
     ibis::bitvector mask;
     {   // name of mask file associated with the data file
@@ -1821,7 +1821,7 @@ long ibis::bin::binOrderT(const char* basename) const {
 	return ierr;
 
     std::string fnm;
-    dataFileName(basename, fnm);
+    dataFileName(fnm, basename);
     array_t<E> basevals;
     ierr = ibis::fileManager::instance().getFile(fnm.c_str(), basevals);
     if (ierr != 0) {
@@ -1892,7 +1892,7 @@ long ibis::bin::checkBin0(const ibis::qRange& cmp, uint32_t jbin,
     res.clear();
     long ierr = 0;
     std::string fnm;
-    dataFileName(0, fnm);
+    dataFileName(fnm);
     fnm += ".bin";
     if (ibis::util::getFileSize(fnm.c_str()) <=
 	(off_t)(sizeof(int32_t)*(nobs+1))) {
@@ -1981,7 +1981,7 @@ long ibis::bin::checkBin1(const ibis::qRange& cmp, uint32_t jbin,
     res.clear();
     long ierr = 0;
     std::string fnm;
-    dataFileName(0, fnm);
+    dataFileName(fnm);
     fnm += ".bin";
     if (ibis::util::getFileSize(fnm.c_str()) <=
 	(off_t)(sizeof(int32_t)*(nobs+1))) {
@@ -5081,7 +5081,7 @@ void ibis::bin::divideBitmaps(const array_t<bitvector*>& bms,
 int ibis::bin::write(const char* dt) const {
     if (nobs <= 0 || nrows <= 0) return -1;
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -5727,7 +5727,7 @@ long ibis::bin::append(const char* dt, const char* df, uint32_t nnew) {
     }
 
     std::string fnm;
-    indexFileName(df, fnm);
+    indexFileName(fnm, df);
     ibis::bin* bin0=0;
     ibis::fileManager::storage* st0=0;
     long ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);
@@ -11240,7 +11240,7 @@ long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
 	return 0;
 
     std::string fnm; // data file name
-    dataFileName(0, fnm);
+    dataFileName(fnm);
     fnm += ".bin";
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
@@ -11331,7 +11331,7 @@ long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
 	return 0;
 
     std::string fnm; // data file name
-    dataFileName(0, fnm);
+    dataFileName(fnm);
     fnm += ".bin";
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
@@ -11575,7 +11575,7 @@ long ibis::bin::select(const ibis::qContinuousRange& cmp, void* vals) const {
 long ibis::bin::select(const ibis::qContinuousRange& cmp, void* vals,
 		       ibis::bitvector& hits) const {
     std::string iname, bname;
-    dataFileName(0, iname);
+    dataFileName(iname);
     bname = iname;
     bname += ".bin"; // bin file name
     iname += ".idx"; // index file name

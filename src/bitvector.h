@@ -134,6 +134,9 @@ public:
     void compress();	///< Merge fills into fill words.
     void decompress();	///< Turn all fill words into literal words.
     word_t compressible() const;
+    /// Does this bit vector use less space than the maximum? Return true
+    /// if yes, otherwise false.
+    bool isCompressed() const {return (m_vec.size()*MAXBITS < nbits);}
 
     inline word_t size() const throw();
     inline void sloppySize(word_t n) const;
@@ -186,7 +189,6 @@ public:
     friend class const_iterator;
 
 protected:
-    bool isCompressed() const {return (m_vec.size()*MAXBITS < nbits);}
     inline bool all0s() const;
     inline bool all1s() const;
 

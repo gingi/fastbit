@@ -185,7 +185,7 @@ int ibis::fuge::write(const char* dt) const {
     if (nobs <= 1) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -263,7 +263,7 @@ int ibis::fuge::write(const char* dt) const {
 /// Read the content of the named file.
 int ibis::fuge::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
@@ -1105,7 +1105,7 @@ int ibis::fuge::writeCoarse64(int fdes) const {
 /// ibis::bin::read.
 int ibis::fuge::readCoarse(const char* fn) {
     std::string fnm;
-    indexFileName(fn, fnm);
+    indexFileName(fnm, fn);
 
     // check to make sure either offset32 or offset64 is ready for use
     if (offset64.size() <= bits.size() &&

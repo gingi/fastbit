@@ -154,6 +154,7 @@ public:
     ibis::direkte* fillIndex(const char *dir=0) const;
     /// Return a pointer to the dictionary used for the categorical values.
     const ibis::dictionary* getDictionary() const {return &dic;}
+    int setDictionary(const dictionary&);
 
 private:
     // private member variables

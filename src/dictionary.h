@@ -36,13 +36,15 @@ public:
 
     void clear();
     void swap(dictionary&);
-    void sort(ibis::array_t<uint32_t>&);
 
     int  read(const char* name);
     int  write(const char* name) const;
 
-    bool equal_to(const ibis::dictionary&) const;
+    void sort(array_t<uint32_t>&);
+    int  merge(const dictionary&);
+    int  morph(const dictionary&, array_t<uint32_t>&) const;
 
+    bool equal_to(const ibis::dictionary&) const;
 
 protected:
 

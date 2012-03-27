@@ -1,3 +1,30 @@
+2012-03-26 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.h, src/bitvector64.h: make isCompressed public
+	(was protected)
+	* src/category.cpp: partially restore decompressing hits in
+	category::patternSearch.  The performance problem was caused by
+	repeated invocation of the function decompress.  Make sure it is
+	only invoked once
+	* src/index.h: exchange the two arguements of dataFileName and
+	indexFileName to have the output file name as the 1st arguemt and
+	make the second argument optional and to conform to
+	column::dataFileName
+	* src/dictionary.h, src/dictionary.cpp: add function setDictionary
+
+2012-03-26 Dominique Prunier <dominique dot prunier at watch4net dot com>
+	* src/category.cpp: category::patternSearch, skip the
+	decompression/compression phase, in category::patternSearch, use
+	sloppyCount for estimation
+	* src/query.cpp: query::doEvaluate, fix returned value when term
+	== null (was 0, now is row count), in query::doEvaluate, even more
+	usage of bitvector::sloppyCount instead of bitvector::cnt, in
+	query::doEvaluate, removed complex OR evaluation depending on
+	bitmap sizes
+
+2012-03-25 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.h, src/dictionary.cpp: add merge and morph in
+	preparation for sychronize the dictionaries
+
 2012-03-24 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: the special cases in
 	ibis::category::stringSearch used incorrect assumptions (pointed

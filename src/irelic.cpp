@@ -220,7 +220,7 @@ int ibis::relic::write(const char* dt) const {
     }
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (fname != 0 && fnm.compare(fname) == 0)
 	return 0;
     if (fname != 0 || str != 0)
@@ -472,7 +472,7 @@ int ibis::relic::write64(int fdes) const {
 /// Read the index contained from the speficied location.
 int ibis::relic::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -1;
@@ -1014,7 +1014,7 @@ long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
     }
 
     std::string fnm;
-    indexFileName(df, fnm);
+    indexFileName(fnm, df);
     ibis::relic* bin0=0;
     ibis::fileManager::storage* st0=0;
     int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);

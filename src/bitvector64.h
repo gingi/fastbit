@@ -123,6 +123,9 @@ public:
     void decompress();	///< Turn all fill words into literal words.
     /// Return the number of word saved if the function compress is called.
     word_t compressible() const;
+    /// Does this bit vector use less space than the maximum? Return true
+    /// if yes, otherwise false.
+    bool isCompressed() const {return (m_vec.size()*MAXBITS < nbits);}
 
     /// Return the number of bits that are one.
     word_t cnt() const {
@@ -185,7 +188,6 @@ public:
     friend class const_iterator;
 
 protected:
-    bool isCompressed() const {return (m_vec.size()*MAXBITS < nbits);}
     inline bool all0s() const;
     inline bool all1s() const;
 

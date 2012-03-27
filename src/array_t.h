@@ -117,8 +117,8 @@ public:
     void  read(const char*);
     off_t read(const char*, const off_t, const off_t);
     off_t read(const int, const off_t, const off_t);
-    void write(const char*) const;
-    void write(FILE* fptr) const;
+    int write(const char*) const;
+    int write(FILE* fptr) const;
 
     // print internal pointer addresses
     void printStatus(std::ostream& out) const;

@@ -93,7 +93,7 @@ int ibis::sbiad::write(const char* dt) const {
     if (vals.empty()) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -404,7 +404,7 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	bits[i] = new ibis::bitvector;
 
     std::string fnm; // name of the data file
-    dataFileName(f, fnm);
+    dataFileName(fnm, f);
 
     nrows = col->partition()->nRows();
     ibis::bitvector mask;

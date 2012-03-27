@@ -2031,7 +2031,7 @@ void ibis::fileManager::storage::printStatus(std::ostream& out) const {
 	<< "\t# of active acc " << nref() << std::endl;
 } // ibis::fileManager::storage::printStatus
 
-/// Read part of a file.  The file name is given as the first argument
+/// Read a part of a file.  The file name is given as the first argument
 /// fname, and the range [begin, end) is specified in bytes.  Return the
 /// number of bytes read.
 off_t ibis::fileManager::storage::read(const char* fname,
@@ -2084,20 +2084,22 @@ off_t ibis::fileManager::storage::read(const char* fname,
 	ibis::horometer timer;
 	timer.start();
 	nread = UnixRead(fdes, m_begin, nbytes);
-	timer.stop();
 
 	ibis::fileManager::instance().recordPages(begin, end);
 	if (nread == nbytes) {
-	    double tcpu = timer.CPUTime();
-	    double treal = timer.realTime();
-	    double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
-	    double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
-	    LOGGER(ibis::gVerbose > 7)
-		<< evt << " -- read " << nbytes << " bytes in "
-		<< treal << " sec(elapsed) [" << tcpu
-		<< " sec(CPU)] at a speed of "
-		<< std::setprecision(3) << rt2 << " MB/s ["
-		<< std::setprecision(3) << rt1 << "]";
+	    if (ibis::gVerbose > 7) {
+		timer.stop();
+		double tcpu = timer.CPUTime();
+		double treal = timer.realTime();
+		double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
+		double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
+		LOGGER(ibis::gVerbose > 7)
+		    << evt << " -- read " << nbytes << " bytes in "
+		    << treal << " sec(elapsed) [" << tcpu
+		    << " sec(CPU)] at a speed of "
+		    << std::setprecision(3) << rt2 << " MB/s ["
+		    << std::setprecision(3) << rt1 << "]";
+	    }
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
@@ -2149,20 +2151,22 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	ibis::horometer timer;
 	timer.start();
 	nread = UnixRead(fdes, m_begin, nbytes);
-	timer.stop();
 
 	ibis::fileManager::instance().recordPages(begin, end);
 	if (nread == nbytes) {
-	    double tcpu = timer.CPUTime();
-	    double treal = timer.realTime();
-	    double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
-	    double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
-	    LOGGER(ibis::gVerbose > 7)
-		<< evt << " -- read " << nbytes << " bytes in "
-		<< treal << " sec(elapsed) [" << tcpu
-		<< " sec(CPU)] at a speed of "
-		<< std::setprecision(3) << rt2 << " MB/s ["
-		<< std::setprecision(3) << rt1 << "]";
+	    if (ibis::gVerbose > 7) {
+		timer.stop();
+		double tcpu = timer.CPUTime();
+		double treal = timer.realTime();
+		double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
+		double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
+		LOGGER(ibis::gVerbose > 7)
+		    << evt << " -- read " << nbytes << " bytes in "
+		    << treal << " sec(elapsed) [" << tcpu
+		    << " sec(CPU)] at a speed of "
+		    << std::setprecision(3) << rt2 << " MB/s ["
+		    << std::setprecision(3) << rt1 << "]";
+	    }
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)

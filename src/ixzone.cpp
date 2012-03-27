@@ -275,7 +275,7 @@ int ibis::zone::write(const char* dt) const {
     if (nobs <= 0 || nobs != bits.size()) return -1;
 
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -629,7 +629,7 @@ int ibis::zone::write64(int fdes) const {
 /// error.
 int ibis::zone::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0)
@@ -1000,7 +1000,7 @@ long ibis::zone::append(const char* dt, const char* df, uint32_t nnew) {
     }
 
     std::string fnm = df;
-    indexFileName(df, fnm);
+    indexFileName(fnm, df);
     ibis::zone* bin0=0;
     ibis::fileManager::storage* st0=0;
     long ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);

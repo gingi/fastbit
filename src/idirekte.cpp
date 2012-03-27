@@ -37,7 +37,7 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     if (ierr == 0) return; // got an index from the file
 
     std::string dfname;
-    dataFileName(f, dfname);
+    dataFileName(dfname, f);
     if (c->type() == ibis::CATEGORY)
 	dfname += ".int";
 
@@ -493,7 +493,7 @@ void ibis::direkte::print(std::ostream& out) const {
 /// Write the direct bitmap index to a file.
 int ibis::direkte::write(const char* dt) const {
     std::string fnm;
-    indexFileName(dt, fnm);
+    indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	return 0;
     }
@@ -612,7 +612,7 @@ int ibis::direkte::write(const char* dt) const {
 /// Read index from the specified location.
 int ibis::direkte::read(const char* f) {
     std::string fnm;
-    indexFileName(f, fnm);
+    indexFileName(fnm, f);
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) return -1;
 
@@ -1218,7 +1218,7 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
     long ierr;
     if (nrows == nold) { // can make use of the existing index
 	std::string dfidx;
-	indexFileName(df, dfidx);
+	indexFileName(dfidx, df);
 	ibis::direkte* idxf = 0;
 	ibis::fileManager::storage* stdf = 0;
 	ierr = ibis::fileManager::instance().getFile(dfidx.c_str(), &stdf);
@@ -1287,7 +1287,7 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
 	<< "]::append to recreate the index with the data from " << dt;
     clear();
     std::string dfname;
-    dataFileName(dt, dfname);
+    dataFileName(dfname, dt);
     if (col->type() == ibis::CATEGORY)
 	dfname += ".int";
 
