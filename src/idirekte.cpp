@@ -598,7 +598,7 @@ int ibis::direkte::write(const char* dt) const {
 #if _POSIX_FSYNC+0 > 0
     (void) UnixFlush(fdes); // write to disk
 #elif defined(_WIN32) && defined(_MSC_VER)
-	(void) _commit(fdes);
+    (void) _commit(fdes);
 #endif
 #endif
 
@@ -759,7 +759,72 @@ int ibis::direkte::read(ibis::fileManager::storage* st) {
     return 0;
 } // ibis::direkte::read
 
-/// Convert the bitvector mask into bin numbers.
+/// Change the key values to a new set of numbers.  This is used after a
+/// categorical value column changes it dictionary and we need to reshuffle
+/// the bitmaps but not the actual content in any bitmap.  The incoming
+/// argument is expected to be an array of exactly the same number of
+/// elements as the number of bitmaps in this index.
+///
+/// Return the number of bit vectors after successfully remapped the keys.
+/// Otherwise return a negative number.
+int ibis::direkte::remapKeys(const ibis::array_t<uint32_t> &o2n) {
+    if (bits.empty()) return 0;
+    if (bits.size() != o2n.size()) return -1;
+
+    const std::string evt = "direkte::remapKeys";
+    uint32_t nb = o2n[0];
+    for (unsigned j = 1; j < o2n.size(); ++ j) {
+	if (o2n[j] > nb)
+	    nb = o2n[j];
+    }
+    nb += 1; // the number of new bit vectors
+    ibis::array_t<ibis::bitvector*> newbits(nb, 0);
+
+    activate(); // make sure all bit vectors are in memory
+    for (unsigned j = 0; j < o2n.size(); ++ j) {
+	if (bits[j] != 0 && bits[j]->sloppyCount() > 0) {
+	    if (newbits[o2n[j]] == 0) {
+		newbits[o2n[j]] = new ibis::bitvector;
+		if (newbits[o2n[j]] != 0) {
+		    newbits[o2n[j]]->copy(*(bits[j]));
+		}
+		else {
+		    ibis::util::clear(newbits);
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- " << evt << " failed to allocate a new "
+			"bitvector for key value " << o2n[j];
+		    return -2;
+		}
+	    }
+	    else {
+		ibis::util::clear(newbits);
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " encountered duplicate mapped "
+		    "values " << o2n[j];
+		return -3;
+	    }
+	}
+    }
+
+    offset32.clear();
+    offset64.resize(nb+1);
+    offset64[0] = 0;
+    for (unsigned j = 0; j < nb; ++ j) {
+	offset64[j+1] = offset64[j] + (newbits[j] ? newbits[j]->bytes() : 0U);
+    }
+    newbits.swap(bits);
+    ibis::util::clear(newbits);
+
+    if (str != 0) {
+	if (str->filename() != 0)
+	    ibis::fileManager::instance().flushFile(str->filename());
+	else
+	    delete str;
+    }
+    return write(0);
+} // ibis::direkte::remapKeys
+
+/// Convert the bitvector mask into key values.
 ibis::array_t<uint32_t>*
 ibis::direkte::keys(const ibis::bitvector& mask) const {
     std::auto_ptr< ibis::array_t<uint32_t> > res(new ibis::array_t<uint32_t>);

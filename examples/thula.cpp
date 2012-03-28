@@ -9,12 +9,14 @@ one ibis::table.
 
 Command line arguments
 [-c conf-file] [-d directory_containing_a_dataset] [-s select-clause]
-[-w where-clause] [-f from-clause] [-v[=| ]verbose_level] [-help]
+[-w where-clause] [-f from-clause] [-o order-by] [-v[=| ]verbose_level] [-help]
+[-t[=| ]#-of-cases] [-m[erge-dictionaries][[=| ]column-names]]
 
 @note All data directories specified through options -d and -c are treated
 as partitions of one data table.
 
-@note Only the last from clause and the last select clause will be used.
+@note Only the last from clause, the last select clause, and the last
+order-by clause will be used.
 
 @note Multiple where clauses are executed one after another.
 
@@ -44,10 +46,11 @@ int testing = 0;
 
 // printout the usage string
 static void usage(const char* name) {
-    std::cout << "usage:\n" << name << " [-c conf-file] "
+    std::cout << "usage:\n" << name << " [-c conf-file] [-help] "
 	"[-d directory_containing_a_dataset] [-s select-clause] "
 	"[-w where-clause] [-o order-by-clasue] [-f from-clause] "
-	"[-v[=| ]verbose_level] [-t[=| ]#-of-cases]"
+	"[-v[=| ]verbose_level] [-t[=| ]#-of-cases] "
+	"[-m[erge-dictionaries][[=| ]column-names]]"
 	"\n\nPerforms a projection of rows satisfying the specified "
 	"conditions, a very limited version of SQL"
 	"\n  SELECT select-clause FROM from-clause WHERE where-clause."
@@ -67,7 +70,7 @@ static void usage(const char* name) {
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		       qList& qcnd, const char*& sel, const char*& frm,
-		       const char*& ord) {
+		       const char*& ord, ibis::table::stringList *&cats) {
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
     ibis::gVerbose = INT_MAX;
@@ -113,6 +116,23 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		    frm = argv[i];
 		}
 		break;
+	    case 'm':
+	    case 'M': {
+		if (0 == cats)
+		    cats = new ibis::table::stringList;
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if ('-' != *argv[i+1]) {
+			    ibis::table::parseNames(argv[i+1], *cats);
+			    i = i + 1;
+			}
+		    }
+		}
+		else {
+		    ibis::table::parseNames(++ptr, *cats);
+		}
+		break;}
 	    case 'q':
 	    case 'Q':
 	    case 'w':
@@ -910,16 +930,25 @@ void doTest(const ibis::table& tbl) {
 
 int main(int argc, char** argv) {
     ibis::table* tbl = 0;
+    ibis::table::stringList *cats = 0;
     const char* sel; // only one select clause
     const char* frm; // only one string to select different data partitions
     const char* ord; // only one order clause
     qList qcnd; // list of query conditions (where clauses)
 
-    parse_args(argc, argv, tbl, qcnd, sel, frm, ord);
+    parse_args(argc, argv, tbl, qcnd, sel, frm, ord, cats);
     if (tbl == 0) {
 	std::clog << *argv << " must have at least one data table."
 		  << std::endl;
 	exit(-1);
+    }
+    if (cats != 0) {
+	std::clog << *argv << " invoking combineCategories with "
+		  << cats->size() << " name" << (cats->size()>1?"s":"")
+		  << std::endl;
+	int ierr = tbl->combineCategories(*cats);
+	std::clog << (ierr < 0 ? "Warning -- " : "")
+		  << "combineCategories returned " << ierr << std::endl;
     }
     if (qcnd.empty() && xfile.is_open() && xfile.good()) {
 	int ierr = tbl->dump(xfile);
@@ -932,22 +961,17 @@ int main(int argc, char** argv) {
 			  << tbl->name() << std::endl;
 	}
     }
-    else if (qcnd.empty() && testing <= 0) {
-	std::clog << *argv << " must have at least one query specified."
-		  << std::endl;
-	exit(-2);
+    if (testing > 0 || ! qcnd.empty()) {
+	// to print the elapsed time from this point on when -v is specified
+	ibis::util::timer mytimer(*argv, 1);
+	if (testing > 0)
+	    doTest(*tbl);
+
+	for (qList::const_iterator qit = qcnd.begin();
+	     qit != qcnd.end(); ++ qit) {
+	    doQuery(*tbl, *qit, sel, frm, ord);
+	}
     }
-
-    // to print the elapsed time from this point on when -v is specified
-    ibis::util::timer mytimer(*argv, 1);
-    if (testing > 0)
-	doTest(*tbl);
-
-    for (qList::const_iterator qit = qcnd.begin();
-	 qit != qcnd.end(); ++ qit) {
-	doQuery(*tbl, *qit, sel, frm, ord);
-    }
-
     delete tbl;
     return 0;
 } // main

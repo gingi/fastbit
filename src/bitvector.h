@@ -656,7 +656,7 @@ ibis::bitvector::operator=(const ibis::bitvector& bv) {
     return *this;
 }
 
-/// Performs deep copy.
+/// Make a copy.  Performs a deep copy.
 inline ibis::bitvector& ibis::bitvector::copy(const ibis::bitvector& bv) {
     nbits = bv.nbits; nset = bv.nset; active = bv.active;
     m_vec.deepCopy(bv.m_vec);

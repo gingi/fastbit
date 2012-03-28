@@ -46,6 +46,8 @@ public:
 
     bool equal_to(const ibis::dictionary&) const;
 
+    void copy(const dictionary& rhs);
+
 protected:
 
     /// Member variable raw_ contains the string values in the order of the
@@ -59,8 +61,6 @@ protected:
     /// Member varaible buffer_ contains a list of pointers to the memory
     /// that holds the strings.
     array_t<char*> buffer_;
-
-    void copy(const dictionary& rhs);
 
     int readRaw(const char*, FILE *);
     int readKeys(const char*, FILE *);

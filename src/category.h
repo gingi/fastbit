@@ -133,7 +133,7 @@ public:
     virtual double estimateCost(const ibis::qString& cmp) const;
     virtual double estimateCost(const ibis::qMultiString& cmp) const;
 
-    virtual void loadIndex(const char*, int) const throw ();
+    virtual void loadIndex(const char* =0, int =0) const throw ();
     /// Append the content in @a df to the directory @a dt.
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);

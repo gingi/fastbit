@@ -2255,8 +2255,9 @@ int ibis::bord::backup(const char* dir, const char* tname,
 
 	switch (col.type()) {
 	case ibis::BYTE: {
-	    array_t<signed char> *values = col.selectBytes(msk0);
-	    if (values != 0) {
+	    std::auto_ptr< array_t<signed char> >
+		values(col.selectBytes(msk0));
+	    if (values.get() != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values,
 		     (signed char)0x7F, msk1, msk0);
@@ -2266,8 +2267,9 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    }
 	    break;}
 	case ibis::UBYTE: {
-	    array_t<unsigned char> *values = col.selectUBytes(msk0);
-	    if (values != 0)
+	    std::auto_ptr< array_t<unsigned char> >
+		values(col.selectUBytes(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values,
 		     (unsigned char)0xFF, msk1, msk0);
@@ -2275,8 +2277,8 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::SHORT: {
-	    array_t<int16_t> *values = col.selectShorts(msk0);
-	    if (values != 0) 
+	    std::auto_ptr< array_t<int16_t> > values(col.selectShorts(msk0));
+	    if (values.get() != 0) 
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values,
 		     (int16_t)0x7FFF, msk1, msk0);
@@ -2284,8 +2286,8 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::USHORT: {
-	    array_t<uint16_t> *values = col.selectUShorts(msk0);
-	    if (values != 0)
+	    std::auto_ptr< array_t<uint16_t> > values(col.selectUShorts(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values,
 		     (uint16_t)0xFFFF, msk1, msk0);
@@ -2293,8 +2295,8 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::INT: {
-	    array_t<int32_t> *values = col.selectInts(msk0);
-	    if (values != 0)
+	    std::auto_ptr< array_t<int32_t> > values(col.selectInts(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values,
 		     (int32_t)0x7FFFFFFF, msk1, msk0);
@@ -2302,8 +2304,8 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::UINT: {
-	    array_t<uint32_t> *values = col.selectUInts(msk0);
-	    if (values != 0)
+	    std::auto_ptr< array_t<uint32_t> > values(col.selectUInts(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values,
 		     (uint32_t)0xFFFFFFFF, msk1, msk0);
@@ -2311,8 +2313,8 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::LONG: {
-	    array_t<int64_t> *values = col.selectLongs(msk0);
-	    if (values != 0)
+	    std::auto_ptr< array_t<int64_t> > values(col.selectLongs(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn<int64_t>
 		    (fdes, 0, nEvents, *values,
 		     0x7FFFFFFFFFFFFFFFLL, msk1, msk0);
@@ -2320,8 +2322,8 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::ULONG: {
-	    array_t<uint64_t> *values = col.selectULongs(msk0);
-	    if (values != 0)
+	    std::auto_ptr< array_t<uint64_t> > values(col.selectULongs(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn<uint64_t>
 		    (fdes, 0, nEvents, *values, 0xFFFFFFFFFFFFFFFFULL,
 		     msk1, msk0);
@@ -2329,16 +2331,16 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::FLOAT: {
-	    array_t<float> *values = col.selectFloats(msk0);
-	    if (values != 0)
+	    std::auto_ptr< array_t<float> > values(col.selectFloats(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values, FASTBIT_FLOAT_NULL, msk1, msk0);
 	    else
 		ierr = -4;
 	    break;}
 	case ibis::DOUBLE: {
-	    array_t<double> *values = col.selectDoubles(msk0);
-	    if (values != 0)
+	    std::auto_ptr< array_t<double> > values(col.selectDoubles(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, 0, nEvents, *values, FASTBIT_DOUBLE_NULL,
 		     msk1, msk0);
@@ -2347,8 +2349,9 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    break;}
 	case ibis::TEXT:
 	case ibis::CATEGORY: {
-	    std::vector<std::string> *values = col.selectStrings(msk0);
-	    if (values != 0)
+	    std::auto_ptr< std::vector<std::string> >
+		values(col.selectStrings(msk0));
+	    if (values.get() != 0)
 		ierr = ibis::part::writeString
 		    (fdes, 0, nEvents, *values, msk1, msk0);
 	    else

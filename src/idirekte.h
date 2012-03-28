@@ -64,8 +64,10 @@ public:
     long append(const ibis::direkte& tail);
     long append(const array_t<uint32_t>& ind);
     array_t<uint32_t>* keys(const ibis::bitvector& mask) const;
+    int remapKeys(const ibis::array_t<uint32_t>&);
 
-    /// Time some logical operations and print out their speed.
+    /// Time some logical operations and print out their speed.  This
+    /// version does nothing.
     virtual void speedTest(std::ostream& out) const {};
 
     virtual void binBoundaries(std::vector<double>&) const;

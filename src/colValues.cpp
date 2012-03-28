@@ -1426,22 +1426,24 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    uint32_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else if (j > i+2) {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones
+	    // collect consecutive elements = element i
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == (*array)[i2]; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == (*array)[i]) {
+		    uint32_t tmp = (*array)[i1];
+		    (*array)[i1] = (*array)[i2];
+		    (*array)[i2] = tmp;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
 } // colUInts::sort

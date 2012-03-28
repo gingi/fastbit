@@ -2322,7 +2322,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 	ib1e = bits.size();
     }
     else if (range1->getType() == ibis::qExpr::RANGE) {
-	locate(*reinterpret_cast<const ibis::qContinuousRange*const>(range1),
+	locate(*reinterpret_cast<const ibis::qContinuousRange*>(range1),
 	       ib1, ib1e);
     }
     else {
@@ -2336,7 +2336,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 	ib2e = idx2.bits.size();
     }
     else if (range2->getType() == ibis::qExpr::RANGE) {
-	locate(*reinterpret_cast<const ibis::qContinuousRange*const>(range2),
+	locate(*reinterpret_cast<const ibis::qContinuousRange*>(range2),
 	       ib2, ib2e);
     }
     else {
@@ -2419,7 +2419,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 	ib1e = bits.size();
     }
     else if (range1->getType() == ibis::qExpr::RANGE) {
-	locate(*reinterpret_cast<const ibis::qContinuousRange*const>(range1),
+	locate(*reinterpret_cast<const ibis::qContinuousRange*>(range1),
 	       ib1, ib1e);
     }
     else {
@@ -2433,7 +2433,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 	ib2e = idx2.bits.size();
     }
     else if (range2->getType() == ibis::qExpr::RANGE) {
-	locate(*reinterpret_cast<const ibis::qContinuousRange*const>(range2),
+	locate(*reinterpret_cast<const ibis::qContinuousRange*>(range2),
 	       ib2, ib2e);
     }
     else {
@@ -2654,7 +2654,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 	nb1e = bits.size();
     }
     else if (range1->getType() == ibis::qExpr::RANGE) {
-	locate(*reinterpret_cast<const ibis::qContinuousRange*const>(range1),
+	locate(*reinterpret_cast<const ibis::qContinuousRange*>(range1),
 	       nb1s, nb1e);
     }
     else {
@@ -2668,7 +2668,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 	nb2e = idx2.bits.size();
     }
     else if (range2->getType() == ibis::qExpr::RANGE) {
-	locate(*reinterpret_cast<const ibis::qContinuousRange*const>(range2),
+	locate(*reinterpret_cast<const ibis::qContinuousRange*>(range2),
 	       nb2s, nb2e);
     }
     else {
@@ -2759,7 +2759,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 	nb1e = bits.size();
     }
     else if (range1->getType() == ibis::qExpr::RANGE) {
-	locate(*reinterpret_cast<const ibis::qContinuousRange*const>(range1),
+	locate(*reinterpret_cast<const ibis::qContinuousRange*>(range1),
 	       nb1s, nb1e);
     }
     else {
@@ -2773,7 +2773,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 	nb2e = idx2.bits.size();
     }
     else if (range2->getType() == ibis::qExpr::RANGE) {
-	locate(*reinterpret_cast<const ibis::qContinuousRange*const>(range2),
+	locate(*reinterpret_cast<const ibis::qContinuousRange*>(range2),
 	       nb2s, nb2e);
     }
     else {

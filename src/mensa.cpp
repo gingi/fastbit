@@ -342,7 +342,7 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
 	oss << ')';
 	evt += oss.str();
     }
-    ibis::util::timer mytimer(evt.c_str(), 4);
+    ibis::util::timer mytimer(evt.c_str(), 2);
     int ierr = 0, cnt = 0;
 
     if (nms.empty()) { // merge categorical columns with the same name
@@ -369,6 +369,7 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
 		const ibis::category *c1 =
 		    dynamic_cast<const ibis::category*>(c0);
 		if (c1 != 0) {
+		    c1->loadIndex(0, 0); // force initalization of all members
 		    ierr = words[k]->merge(*(c1->getDictionary()));
 		    LOGGER(ibis::gVerbose > 0 && ierr < 0)
 			<< "Warning -- " << evt
@@ -409,6 +410,7 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
 		const ibis::category *c1 =
 		    dynamic_cast<const ibis::category*>(c0);
 		if (c1 != 0) {
+		    c1->loadIndex(0, 0); // force initalization of all members
 		    ierr = words.merge(*c1->getDictionary());
 		    LOGGER(ierr < 0 && ibis::gVerbose > 0)
 			<< "Warning -- " << evt << " failed to merge words from "
@@ -3963,7 +3965,7 @@ void ibis::table::parseOrderby(char* in, ibis::table::stringList& out,
 
 /// Parse the incoming string into a set of names.  Some bytes in the
 /// incoming string may be turned into nil (0) to mark the end of names or
-/// functions.
+/// functions.  Newly discovered tokens will be appended to out.
 void ibis::table::parseNames(char* in, ibis::table::stringList& out) {
     char* ptr1 = in;
     char* ptr2;

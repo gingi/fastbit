@@ -177,7 +177,7 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warnign -- fastbit_build_indexes failed to build indexes in \""
+	    << "Warning -- fastbit_build_indexes failed to build indexes in \""
 	    << dir << "\" due to exception: " << e.what();
 	ierr = -2;
     }
@@ -189,7 +189,7 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warnign -- fastbit_build_indexes failed to build indexes in \""
+	    << "Warning -- fastbit_build_indexes failed to build indexes in \""
 	    << dir << "\" due to a unknown exception";
 	ierr = -4;
     }

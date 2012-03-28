@@ -1,3 +1,12 @@
+2012-03-27 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: in function backup wrap all values into auto_ptr
+	to automatically clean up the pointers (a problem noticed by
+	Alexandra Maurel)
+	* src/idirekte.h, src/idirekte.cpp: add function remapKeys
+	* src/column.cpp, src/part.cpp: minor cleanup to remove warnings
+	from PGI compilers on hopper
+	* examples/thula.cpp: add option -m for merging the dictionaries
+
 2012-03-26 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h, src/bitvector64.h: make isCompressed public
 	(was protected)

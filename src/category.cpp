@@ -50,8 +50,8 @@ ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
 #endif
 } // ibis::category::category
 
-/// Construct a column that has only one possible value.  Also build the
-/// corresponding index.
+/// Construct a categorical column that has only one possible value.  Also
+/// builds the corresponding index.
 ibis::category::category(const part* tbl, const char* name,
 			 const char* value, const char* dir,
 			 uint32_t nevt)
@@ -73,7 +73,7 @@ ibis::category::category(const part* tbl, const char* name,
 } // ibis::category::category
 
 /// Destructor.  It also writes the dictionary to a file if the dictionary
-/// is not empty.
+/// file is currently empty but the in-memory dictionary is not.
 ibis::category::~category() {
     unloadIndex();
     if (dic.size() > 0) {
@@ -460,6 +460,9 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 /// dictionary is provided, this function will replace the internally kept
 /// dictionary and update the index associated with the column.
 int ibis::category::setDictionary(const ibis::dictionary &sup) {
+    if (dic.size() == 0)
+	prepareMembers();
+
     ibis::array_t<uint32_t> o2n;
     int ierr = sup.morph(dic, o2n);
     if (ierr <= 0) return ierr;
@@ -481,15 +484,13 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	return -10;
     }
 
-    ibis::util::timer mytimer(evt.c_str(), 3);
+    ibis::util::timer mytimer(evt.c_str(), 4);
     if (idx != 0 && idxcnt() > 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " failed to remove the existing index "
-	    "from memeory";
+	    << "Warning -- " << evt << " can not proceed because the existing "
+	    "index is in use";
 	return -11;
     }
-    delete idx;
-    idx = 0;
 
     std::string fnm;
     if (0 == dataFileName(fnm)) {
@@ -498,7 +499,27 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	return -12;
     }
 
-    fnm += ".int";
+    bool neednewindex = true;
+    if (idx != 0) {
+	ibis::direkte *drk = dynamic_cast<ibis::direkte*>(idx);
+	if (drk != 0) {
+	    ierr = drk->remapKeys(o2n);
+	    if (ierr >= 0) {
+		neednewindex = false;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 3)
+		    << "Warning " << evt << " failed to remap keys of the index"
+		    ", need to recreate the index";
+	    }
+	}
+    }
+
+    dic.copy(sup);
+    fnm += ".dic";
+    dic.write(fnm.c_str());
+    fnm.erase(fnm.size()-3);
+    fnm += "int";
     ibis::array_t<uint32_t> ints;
     ints.reserve(thePart->nRows());
     (void) ints.read(fnm.c_str(), 0, (thePart->nRows()<<2));
@@ -506,75 +527,75 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	for (unsigned j = 0; j < thePart->nRows(); ++ j) {
 	    ints[j] = o2n[ints[j]];
 	}
-	idx = new ibis::direkte(this, 1+sup.size(), ints);
-	if (idx == 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- " << evt << " failed to generate index from "
-		<< ints.size() << "integers";
-	    return -13;
-	}
 	ierr = ints.write(fnm.c_str());
 	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to write integers to " << fnm;
-	ierr = idx->write(thePart->currentDataDir());
-	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << "Warning -- " << evt << " failed to write index to "
-	    << thePart->currentDataDir();
-	if (ierr == 0)
-	    ierr = ints.size();
-	ibis::fileManager::instance().flushFile(fnm.c_str());
     }
     else { // read the raw strings and generate .int and .idx
 	std::string data = thePart->currentDataDir();
 	data += FASTBIT_DIRSEP;
 	data += m_name; // primary data file name
 	int fdata = UnixOpen(data.c_str(), OPEN_READONLY);
-	if (fdata < 0) {
+	if (fdata >= 0) {
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(fdata, _O_BINARY);
+#endif
+	    IBIS_BLOCK_GUARD(UnixClose, fdata);
+	    int ret;
+	    ibis::fileManager::buffer<char> mybuf;
+	    char *buf = mybuf.address();
+	    uint32_t nbuf = mybuf.size();
+	    ints.clear();
+	    do {
+		array_t<uint32_t> tmp;
+		ret = string2int(fdata,
+				 const_cast<ibis::dictionary&>(sup),
+				 nbuf, buf, tmp);
+		if (ret > 0) {
+		    if (! ints.empty())
+			ints.insert(ints.end(), tmp.begin(), tmp.end());
+		    else
+			ints.swap(tmp);
+		}
+	    } while (ret > 0 && ints.size() < thePart->nRows());
+
+	    if (ints.size() < thePart->nRows()) {
+		ints.insert(ints.end(), thePart->nRows() - ints.size(), 0);
+	    }
+	    ierr = ints.write(fnm.c_str());
+	    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+		<< "Warning -- " << evt << " failed to write integers to " << fnm;
+	}
+	else if (neednewindex) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << evt << " failed to open data file "
-		<< data;
-	    return 0;
+		<< data << " to create an index";
+	    return -13;
 	}
-#if defined(_WIN32) && defined(_MSC_VER)
-	(void)_setmode(fdata, _O_BINARY);
-#endif
-	IBIS_BLOCK_GUARD(UnixClose, fdata);
-	int ret;
-	ibis::fileManager::buffer<char> mybuf;
-	char *buf = mybuf.address();
-	uint32_t nbuf = mybuf.size();
-	ints.clear();
-	do {
-	    array_t<uint32_t> tmp;
-	    ret = string2int(fdata,
-			     const_cast<ibis::dictionary&>(sup),
-			     nbuf, buf, tmp);
-	    if (ret > 0) {
-		if (! ints.empty())
-		    ints.insert(ints.end(), tmp.begin(), tmp.end());
-		else
-		    ints.swap(tmp);
-	    }
-	} while (ret > 0 && ints.size() < thePart->nRows());
+    }
 
-	if (ints.size() < thePart->nRows()) {
-	    ints.insert(ints.end(), thePart->nRows() - ints.size(), 0);
+    if (neednewindex) {
+	if (ints.size() == thePart->nRows()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expects ints.size() to be "
+		<< thePart->nRows() << ", but it is actually " << ints.size();
+	    return -14;
 	}
 
 	idx = new ibis::direkte(this, 1+sup.size(), ints);
 	if (idx == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- " << evt << " failed to generate index from "
-		<< ints.size() << "integers";
-	    return -13;
+		<< ints.size() << " integers";
+	    return -15;
 	}
-	ierr = idx->write(thePart->currentDataDir());
-	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << "Warning -- " << evt << " failed to write index to "
-	    << thePart->currentDataDir();
-	if (ierr == 0)
-	    ierr = ints.size();
     }
+    ierr = idx->write(thePart->currentDataDir());
+    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+	<< "Warning -- " << evt << " failed to write index to "
+	<< thePart->currentDataDir();
+    if (ierr >= 0)
+	ierr = ints.size();
     return ierr;
 } // ibis::category::setDictionary
 
@@ -853,9 +874,12 @@ long ibis::category::patternSearch(const char *pat,
 		hits.copy(*bv);
 	    }
 	    else {
-		if (hits.isCompressed() &&
-		    hits.bytes()*mult + bv->bytes() > hits.size())
-		    hits.decompress();
+		if (mult > 4) {
+		    if (hits.isCompressed()) {
+			if (hits.bytes()*mult + bv->bytes() > hits.size())
+			    hits.decompress();
+		    }
+		}
 		hits |= *bv;
 	    }
 	}
@@ -889,7 +913,9 @@ void ibis::category::getString(uint32_t i, std::string &str) const {
     ibis::text::readString(i, str);
 } // ibis::category::getString
 
-/// This function checks to make sure the index is ready.
+/// This function makes sure the index is ready.  It can also be called to
+/// initialize all the internal data members because the lazy
+/// initialization in the constructor of this class.
 void ibis::category::loadIndex(const char*, int) const throw () {
     prepareMembers();
 } // ibis::category::loadIndex

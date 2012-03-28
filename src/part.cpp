@@ -3362,7 +3362,7 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
     }
     else {
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warnign -- part[" << name()
+	    << "Warning -- part[" << name()
 	    << "]::estimateRange failed to find a column named "
 	    << cmp.colName();
 	high.set(0, nEvents);
@@ -8786,7 +8786,7 @@ long ibis::part::negativeCompare(const char* file,
     int fdes = UnixOpen(file, OPEN_READONLY);
     if (fdes < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warnign -- part::negativeCompare failed to open file \""
+	    << "Warning -- part::negativeCompare failed to open file \""
 	    << file << '"';
 	hits.set(0, mask.size());
 	return -1;
@@ -9110,7 +9110,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warnign -- part::doCompare requires the input data array size ("
+	    << "Warning -- part::doCompare requires the input data array size ("
 	    << array.size() << ") to be either " << mask.size() << " or "
 	    << mask.cnt();
 	ierr = -6;
@@ -17885,14 +17885,14 @@ long ibis::part::doCount(const array_t<T> &vals, const ibis::qIntHod &cmp,
 	if (ix.isRange()) {
 	    for (unsigned ii = *iix; ii < iix[1]; ++ ii) {
 		const int64_t tmp = (int64_t) vals[ii];
-		if (static_cast<const T>(tmp) == vals[ii])
+		if (static_cast<T>(tmp) == vals[ii])
 		    ierr += static_cast<int>(cmp.inRange(tmp));
 	    }
 	}
 	else {
 	    for (unsigned ii = 0; ii < ix.nIndices(); ++ ii) {
 		const int64_t tmp = (int64_t)vals[iix[ii]];
-		if (static_cast<const T>(tmp) == vals[iix[ii]])
+		if (static_cast<T>(tmp) == vals[iix[ii]])
 		    ierr += static_cast<int>(cmp.inRange(tmp));
 	    }
 	}
@@ -17910,14 +17910,14 @@ long ibis::part::doCount(const array_t<T> &vals, const ibis::qUIntHod &cmp,
 	if (ix.isRange()) {
 	    for (unsigned ii = *iix; ii < iix[1]; ++ ii) {
 		const uint64_t tmp = (uint64_t)vals[ii];
-		if (static_cast<const T>(tmp) == vals[ii])
+		if (static_cast<T>(tmp) == vals[ii])
 		    ierr += static_cast<int>(cmp.inRange(tmp));
 	    }
 	}
 	else {
 	    for (unsigned ii = 0; ii < ix.nIndices(); ++ ii) {
 		const uint64_t tmp = (uint64_t)vals[iix[ii]];
-		if (static_cast<const T>(tmp) == vals[iix[ii]])
+		if (static_cast<T>(tmp) == vals[iix[ii]])
 		    ierr += static_cast<int>(cmp.inRange(tmp));
 	    }
 	}

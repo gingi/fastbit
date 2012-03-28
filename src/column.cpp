@@ -10712,7 +10712,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 	    const T tmp = static_cast<T>(u[j]);
 	    if ((int64_t)tmp == u[j]) {
 		uint32_t jloc = vals.find(static_cast<T>(u[j]));
-		if (vals[jloc] == static_cast<const T>(u[j])) {
+		if (vals[jloc] == static_cast<T>(u[j])) {
 		    hits.setBit(jloc, 1);
 		}
 	    }
@@ -10843,7 +10843,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 	    const T tmp = static_cast<T>(u[j]);
 	    if ((uint64_t)tmp == u[j]) {
 		uint32_t jloc = vals.find(static_cast<T>(u[j]));
-		if (vals[jloc] == static_cast<const T>(u[j])) {
+		if (vals[jloc] == static_cast<T>(u[j])) {
 		    hits.setBit(jloc, 1);
 		}
 	    }

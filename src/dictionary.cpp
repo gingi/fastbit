@@ -13,6 +13,7 @@ static char _fastbit_dictionary_header[20] =
 ibis::dictionary::dictionary(const ibis::dictionary& old)
     : raw_(old.raw_.size()), key_(old.key_.size()),
       code_(old.code_.size()), buffer_(1) {
+    raw_[0] = 0;
     if (old.key_.empty() ||
 	! (old.code_.size() == old.key_.size() &&
 	   old.code_.size()+1 == old.raw_.size())) {
@@ -574,7 +575,7 @@ uint32_t ibis::dictionary::operator[](const char* str) const {
 /// to the string.  A copy of the string is stored internally.
 uint32_t ibis::dictionary::insert(const char* str) {
     if (str == 0) return 0;
-    if (*str == 0) return 0;
+    //if (*str == 0) return 0;
     if (! (code_.size() == key_.size() &&
 	   key_.size()+1 == raw_.size())) {
 	LOGGER(ibis::gVerbose > 0)
@@ -674,7 +675,7 @@ uint32_t ibis::dictionary::insert(const char* str) {
 /// argument.
 uint32_t ibis::dictionary::insertRaw(char* str) {
     if (str == 0) return 0;
-    if (*str == 0) return 0;
+    //if (*str == 0) return 0;
     if (! (code_.size() == key_.size() &&
 	   key_.size()+1 == raw_.size())) {
 	LOGGER(ibis::gVerbose > 0)
@@ -815,7 +816,7 @@ int ibis::dictionary::merge(const ibis::dictionary& rhs) {
 	    char *cp = ibis::util::strnewdup(rhs.key_[jr]);
 	    if (cp == 0) {
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warnign -- dictionary::merge failed to allocate "
+		    << "Warning -- dictionary::merge failed to allocate "
 		    "memory for a new string value";
 		return -2;
 	    }
@@ -833,7 +834,7 @@ int ibis::dictionary::merge(const ibis::dictionary& rhs) {
 	char *cp = ibis::util::strnewdup(rhs.key_[jr]);
 	if (cp == 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warnign -- dictionary::merge failed to allocate "
+		<< "Warning -- dictionary::merge failed to allocate "
 		"memory for a new string value";
 	    return -3;
 	}
@@ -843,7 +844,7 @@ int ibis::dictionary::merge(const ibis::dictionary& rhs) {
     }
 
     raw2.push_back(0);
-    for (jt = 0; jt < nt+nr; ++ jt) {
+    for (jt = 0; jt < key2.size(); ++ jt) {
 	raw2.push_back(key2[jt]);
 	code2.push_back(jt+1);
     }
@@ -862,8 +863,9 @@ int ibis::dictionary::merge(const ibis::dictionary& rhs) {
 /// i is stored as o2n[i].
 int ibis::dictionary::morph(const ibis::dictionary &old,
 			    ibis::array_t<uint32_t> &o2n) const {
-    const uint32_t nold = key_.size();
-    if (old.key_.size() > nold) {
+    const uint32_t nold = old.key_.size();
+    const uint32_t nnew = key_.size();
+    if (nold > nnew) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- dictionary::morph can not proceed because the "
 	    "new dictioanry is smaller than the old one";
@@ -874,7 +876,6 @@ int ibis::dictionary::morph(const ibis::dictionary &old,
     o2n[0] = 0;
     if (nold == 0) return 0;
 
-    const uint32_t nnew = key_.size();
     uint32_t j1 = 0, j0 = 0;
     while (j0 < nold && j1 < nnew) {
 	int cmp = strcmp(key_[j1], old.key_[j0]);
@@ -893,11 +894,11 @@ int ibis::dictionary::morph(const ibis::dictionary &old,
 	    return -2;
 	}
     }
-    if (j1 >= nnew) {
+    if (j0 < nold) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- dictionary::morph exhausted the new dictionary "
-	    "entries but only found " << j0 << " entr" << (j0>1?"ies":"y")
-	    << " from the old one";
+	    "entries but only found " << j0 << " out of " << nold
+	    << " entr" << (nold>1?"ies":"y") << " from the old one";
 	return -3;
     }
     return j0;

@@ -916,7 +916,7 @@ namespace ibis {
 	    /// Decrement operator.
 	    uint32_t operator--() {
 #if defined(HAVE_GCC_ATOMIC32)
-		return __sync_add_and_fetch(&val_, -1);
+		return __sync_sub_and_fetch(&val_, 1);
 #elif defined(HAVE_WIN_ATOMIC32)
 		return InterlockedDecrement((volatile long *)&val_);
 #else
@@ -1014,7 +1014,7 @@ namespace ibis {
 	    /// Decrement operator.
 	    uint64_t operator--() {
 #if defined(HAVE_GCC_ATOMIC64)
-		return __sync_add_and_fetch(&val_, -1);
+		return __sync_sub_and_fetch(&val_, 1);
 #elif defined(HAVE_WIN_ATOMIC64)
 		return InterlockedDecrement64((volatile LONGLONG *)&val_);
 #else
