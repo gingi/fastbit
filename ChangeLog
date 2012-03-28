@@ -6,6 +6,11 @@
 	* src/column.cpp, src/part.cpp: minor cleanup to remove warnings
 	from PGI compilers on hopper
 	* examples/thula.cpp: add option -m for merging the dictionaries
+	* src/util.cpp: allow strnewdup to produce empty strings
+	* src/dictionary.cpp: allow empty string to be stored in a
+	dictionary
+	* tests/Makefile.am: add test case 14 and data directory w7 to
+	exercise operations with unmatched quotes
 
 2012-03-26 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h, src/bitvector64.h: make isCompressed public
