@@ -1010,7 +1010,11 @@ uint32_t ibis::util::serialNumber() {
 /// it returns 0.
 char* ibis::util::strnewdup(const char* s) {
     char* str = 0;
-    if (s != 0) { // && *s != static_cast<char>(0)
+    if (s != 0
+#ifdef FASTBIT_EMPTY_STRING_AS_NULL
+	&& *s != static_cast<char>(0)
+#endif
+	) { //
 	str = new char[strlen(s)+1];
 	std::strcpy(str, s);
     }

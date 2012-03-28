@@ -226,8 +226,16 @@ FASTBIT_CS_PATTERN_MATCH
   allows some operations to perform simple binary search instead of
   linear search, which improves the speed of pattern matching.  This
   macro was suggested by Dominique Prunier.  It is set to 1 in util.h by
-  default.  To disable case sensitive matching, add
-  -DFASTBIT_CS_PATTERN_MATCH=0 to the compiler options.
+  default.  To disable case sensitive matching, add the following to the
+  compiler options:
+    -DFASTBIT_CS_PATTERN_MATCH=0.
+
+FASTBIT_EMPTY_STRING_AS_NULL
+
+  When this macro is defined, FastBit will not distinguish emptry string
+  from NULL strings.  This is useful because there is no good way for
+  users to input null strings (either as input data or as string
+  constants in query expressions).
 
 
 ----------

@@ -1,3 +1,7 @@
+2012-03-28 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.cpp, src/util.cpp: add macro
+	FASTBIT_EMPTY_STRING_AS_NULL per request of Dominique Prunier
+
 2012-03-27 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: in function backup wrap all values into auto_ptr
 	to automatically clean up the pointers (a problem noticed by

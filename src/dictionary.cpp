@@ -575,7 +575,9 @@ uint32_t ibis::dictionary::operator[](const char* str) const {
 /// to the string.  A copy of the string is stored internally.
 uint32_t ibis::dictionary::insert(const char* str) {
     if (str == 0) return 0;
-    //if (*str == 0) return 0;
+#ifdef FASTBIT_EMPTY_STRING_AS_NULL
+    if (*str == 0) return 0;
+#endif
     if (! (code_.size() == key_.size() &&
 	   key_.size()+1 == raw_.size())) {
 	LOGGER(ibis::gVerbose > 0)
@@ -675,7 +677,9 @@ uint32_t ibis::dictionary::insert(const char* str) {
 /// argument.
 uint32_t ibis::dictionary::insertRaw(char* str) {
     if (str == 0) return 0;
-    //if (*str == 0) return 0;
+#ifdef FASTBIT_EMPTY_STRING_AS_NULL
+    if (*str == 0) return 0;
+#endif
     if (! (code_.size() == key_.size() &&
 	   key_.size()+1 == raw_.size())) {
 	LOGGER(ibis::gVerbose > 0)
