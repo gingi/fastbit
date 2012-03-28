@@ -291,6 +291,14 @@ public:
     /// Return the number of rows represented by this object.
     uint32_t getNRows() const {return nrows;}
 
+    void addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
+    void addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
+		 const ibis::bitvector& tot) const;
+    void sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
+    void sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
+		 uint32_t ib0, uint32_t ie0) const;
+    void sumBins(const ibis::array_t<uint32_t> &, ibis::bitvector&) const;
+
     /// The functions expandRange and contractRange expands or contracts the
     /// boundaries of a range condition so that the new range will have
     /// exact answers using the function estimate.  The default
@@ -381,24 +389,11 @@ protected:
     void mapValues(const char* f, VMap& bmap) const;
     /// Generate a histogram.
     void mapValues(const char* f, histogram& hist, uint32_t count=0) const;
+
     void computeMinMax(const char* f, double& min, double& max) const;
     /// A function to decide whether to uncompress the bitvectors.
     void optionalUnpack(array_t<ibis::bitvector*>& bits,
 			const char* opt);
-    /// Add the sum of @c bits[ib] through @c bits[ie-1] to @c res.  Always
-    /// explicitly use @c bits[ib] through @c bits[ie-1].
-    void addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
-    /// Compute the sum of bit vectors [@c ib, @c ie).  If computing a
-    /// complement is faster, assume all bit vectors add up to @c tot.
-    void addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
-		 const ibis::bitvector& tot) const;
-    /// Compute the bitwise OR of all bitvectors (in bits) from ib to ie.
-    /// As usual, bits[ib] is included but bits[ie] is excluded.
-    void sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res) const;
-    /// Compute a new sum for bit vectors [ib, ie) by taking advantage of the
-    /// old sum for bitvectors [ib0, ie0).
-    void sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
-		 uint32_t ib0, uint32_t ie0) const;
 
     int initOffsets(int fdes, const char offsize, size_t start,
 		    uint32_t nobs);

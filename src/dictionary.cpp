@@ -515,7 +515,9 @@ void ibis::dictionary::patternSearch(const char* pat,
 /// dictionary::size()+1 for unknown values.
 uint32_t ibis::dictionary::operator[](const char* str) const {
     if (str == 0) return 0;
+#ifdef FASTBIT_EMPTY_STRING_AS_NULL
     if (*str == 0) return 0;
+#endif
     if (! (code_.size() == key_.size() &&
 	   key_.size()+1 == raw_.size())) {
 	LOGGER(ibis::gVerbose > 0)

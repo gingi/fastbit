@@ -229,9 +229,15 @@ char* ibis::util::getString(const char* buf) {
 /// return value.  A quoted empty string is a valid string.
 ///
 /// @note This function uses backslash as the escape character for allowing
-/// quotes to be inside the quited strings.  Unfortunately, this also means
+/// quotes to be inside the quoted strings.  Unfortunately, this also means
 /// to have a single backslash in a string, one has to input two of them
 /// right next to each other.
+///
+/// @note Input strings starting with an apostrophe, such as "'twas", must
+/// be quoted as "\"'twas\"" or the apostrophe must be escaped as
+/// "\'twas".  Otherwise, the leading apostrophe would be interested as a
+/// unmatched quote which will cause the next string value to extend beyond
+/// the intended word.
 int ibis::util::readString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
@@ -1286,15 +1292,15 @@ void ibis::util::encode64(uint64_t input, std::string &buf) {
 int ibis::util::decode64(uint64_t &output, const std::string &buf) {
     output = 0;
     if (buf.empty() || buf.size() > 11 ||
-	(buf.size()==11 && ibis::util::charIndex[buf[10]] >= 16)) return -1;
+	(buf.size()==11 && ibis::util::charIndex[(unsigned)buf[10]] >= 16)) return -1;
 
-    output = ibis::util::charIndex[buf[0]];
+    output = ibis::util::charIndex[(unsigned)buf[0]];
     if (output >= 64) return -2;
     if (buf.size() == 1) return 0;
 
     for (size_t j = 1; j < buf.size(); ++ j) {
 	output <<= 6;
-	unsigned short tmp = ibis::util::charIndex[buf[j]];
+	unsigned short tmp = ibis::util::charIndex[(unsigned)buf[j]];
 	if (tmp < 64) {
 	    output = output | tmp;
 	}

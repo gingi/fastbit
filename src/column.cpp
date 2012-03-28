@@ -4300,6 +4300,7 @@ long ibis::column::selectValuesT(const char* dfn,
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
 	LOGGER(ibis::gVerbose > 5)
 	    << "column[" << (thePart->name()?thePart->name():"?")
 	    << '.' << m_name << "]::selectValuesT opened file " << dfn
@@ -4310,7 +4311,6 @@ long ibis::column::selectValuesT(const char* dfn,
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt
 		<< " failed to seek to the end of file " << dfn;
-	    UnixClose(fdes);
 	    return -4;
 	}
 
@@ -4372,7 +4372,7 @@ long ibis::column::selectValuesT(const char* dfn,
 		}
 	    }
 	} // for (ibis::bitvector::indexSet...
-	(void) UnixClose(fdes);
+
 	if (ibis::gVerbose > 4)
 	    logMessage("selectValuesT", "got %lu values (%lu wanted) from "
 		       "reading file %s",
@@ -4504,6 +4504,7 @@ long ibis::column::selectValuesT(const char *dfn,
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(fdes, _O_BINARY);
 #endif
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
 	LOGGER(ibis::gVerbose > 5)
 	    << "column[" << (thePart->name()?thePart->name():"")
 	    << '.' << m_name << "]::selectValuesT opened file " << dfn
@@ -4514,7 +4515,6 @@ long ibis::column::selectValuesT(const char *dfn,
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt << " failed to seek to the end of file "
 		<< dfn;
-	    UnixClose(fdes);
 	    return -4;
 	}
 
@@ -4579,7 +4579,7 @@ long ibis::column::selectValuesT(const char *dfn,
 		}
 	    }
 	} // for (ibis::bitvector::indexSet...
-	(void) UnixClose(fdes);
+
 	LOGGER(ibis::gVerbose > 4)
 	    << evt << " -- got " << vals.size() << " values (" << tot
 	    << " wanted) from file " << dfn;
@@ -5298,6 +5298,14 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	oss << ')';
 	evt += oss.str();
     }
+
+    if (cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED) {
+	getNullMask(low);
+	low &= mask;
+	return low.sloppyCount();
+    }
+
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt
@@ -5730,6 +5738,12 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
     long ierr = 0;
     if (thePart == 0)
 	return -9;
+    if (cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED) {
+	low.copy(mask_);
+	high.copy(mask_);
+	return 0;
+    }
     if (cmp.overlap(lower, upper) == false) {
 	high.set(0, thePart->nRows());
 	low.set(0, thePart->nRows());
@@ -5798,6 +5812,10 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
 	return 0;
 
     long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
+    if (cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)
+	return ret;
+
     try {
 	indexLock lock(this, "estimateRange");
 	if (idx != 0)
@@ -5832,6 +5850,9 @@ long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp,
 } // ibis::column::estimateRange
 
 double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
+    if (cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)
+	return 0.0;
     if (cmp.overlap(lower, upper) == false)
 	return 0.0;
 
@@ -5864,6 +5885,10 @@ double ibis::column::estimateCost(const ibis::qDiscreteRange& cmp) const {
 /// condition.  If no index, nothing can be decided.
 float ibis::column::getUndecidable(const ibis::qContinuousRange& cmp,
 				   ibis::bitvector& iffy) const {
+    if (cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)
+	return 0.0;
+
     float ret = 1.0;
     try {
 	indexLock lock(this, "getUndecidable");
@@ -6273,6 +6298,7 @@ long ibis::column::append(const char* dt, const char* df,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(dest, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, dest);
     size_t j = UnixSeek(dest, 0, SEEK_END);
     size_t sz = elem*nold, nnew0 = 0;
     uint32_t nold0 = j / elem;
@@ -6289,7 +6315,6 @@ long ibis::column::append(const char* dt, const char* df,
     long ret = UnixSeek(dest, sz, SEEK_SET);
     if (ret < static_cast<long>(sz)) {
 	// can not move file pointer to the expected location
-	UnixClose(dest);
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning" << evt << " failed to seek to " << sz << " in " << to
 	    << ", seek returned " << ret;
@@ -6302,6 +6327,7 @@ long ibis::column::append(const char* dt, const char* df,
 #if defined(_WIN32) && defined(_MSC_VER)
 	(void)_setmode(src, _O_BINARY);
 #endif
+	IBIS_BLOCK_GUARD(UnixClose, src);
 	const uint32_t tgt = nnew * elem;
 	long iread=1, iwrite;
 	while (static_cast<uint32_t>(ret) < tgt &&
@@ -6324,7 +6350,6 @@ long ibis::column::append(const char* dt, const char* df,
 	    ret += (iwrite>0 ? iwrite : 0);
 	}
 
-	UnixClose(src);
 	m_sorted = false; // assume no longer sorted
 	LOGGER(ibis::gVerbose > 8)
 	    << evt << " -- copied " << ret << " bytes from \"" << from
@@ -6356,7 +6381,6 @@ long ibis::column::append(const char* dt, const char* df,
     (void) _commit(dest);
 #endif
 #endif
-    UnixClose(dest);
     if (j != sz) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " file \"" << to << "\" size (" << j
@@ -6725,6 +6749,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(curr, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, curr);
 
     long ierr = 0;
     const unsigned elem = sizeof(T);
@@ -6746,7 +6771,6 @@ long ibis::column::appendValues(const array_t<T>& vals,
 		    << "Warning -- " << evt << " failed to write " << nw*elem
 		    << " bytes to " << fn << ", the write function returned "
 		    << ierr;
-		UnixClose(curr);
 		return -6L;
 	    }
 	}
@@ -6761,11 +6785,9 @@ long ibis::column::appendValues(const array_t<T>& vals,
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to write " << vals.size()*elem
 	    << " bytes to " << fn << ", the write function returned " << ierr;
-	UnixClose(curr);
 	return -7L;
     }
 
-    UnixClose(curr);
     LOGGER(ibis::gVerbose > 2)
 	<< evt << " successfully added " << vals.size() << " element"
 	<< (vals.size()>1?"s":"") << " to " << fn;
@@ -6809,6 +6831,7 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(curr, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, curr);
 
     long ierr = 0;
     if (mask_.size() < thePart->nRows()) {
@@ -6824,7 +6847,6 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
 		    << "Warning -- " << evt << " failed to write " << nw
 		    << " bytes to " << fn << ", the write function returned "
 		    << ierr;
-		UnixClose(curr);
 		return -6L;
 	    }
 	}
@@ -6838,11 +6860,10 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
 		<< "Warning -- " << evt << " failed to write "
 		<< 1+vals[ierr].size() << " bytes to " << fn
 		<< ", the write function returned " << jerr;
-	    UnixClose(curr);
 	    return -7L;
 	}
     }
-    UnixClose(curr);
+
     LOGGER(ibis::gVerbose > 2)
 	<< evt << " successfully added " << vals.size() << " string"
 	<< (vals.size()>1?"s":"") << " to " << fn;
@@ -8609,6 +8630,12 @@ void ibis::column::isSorted(bool iss) {
 
 int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
 			       ibis::bitvector& hits) const {
+    if (rng.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	rng.rightOperator() == ibis::qExpr::OP_UNDEFINED) {
+	getNullMask(hits);
+	return hits.sloppyCount();
+    }
+
     std::string dfname;
     if (dataFileName(dfname) == 0) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -9111,6 +9138,12 @@ template<typename T>
 int ibis::column::searchSortedICC(const array_t<T>& vals,
 				  const ibis::qContinuousRange& rng,
 				  ibis::bitvector& hits) const {
+    if (rng.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	rng.rightOperator() == ibis::qExpr::OP_UNDEFINED) {
+	getNullMask(hits);
+	return hits.sloppyCount();
+    }
+
     hits.clear();
     uint32_t iloc, jloc;
     T ival = (rng.leftOperator() == ibis::qExpr::OP_UNDEFINED ? 0 :
@@ -9665,8 +9698,8 @@ int ibis::column::searchSortedICC(const array_t<T>& vals,
 	    break;}
 	case ibis::qExpr::OP_UNDEFINED:
 	default: {
-	    hits.set(0, vals.size());
-	    return -8;}
+	    getNullMask(hits);
+	    break;}
 	} // switch (rng.rightOperator())
 	break;}
     } // switch (rng.leftOperator())
@@ -9681,6 +9714,12 @@ template<typename T>
 int ibis::column::searchSortedOOCC(const char* fname,
 				   const ibis::qContinuousRange& rng,
 				   ibis::bitvector& hits) const {
+    if (rng.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	rng.rightOperator() == ibis::qExpr::OP_UNDEFINED) {
+	getNullMask(hits);
+	return hits.sloppyCount();
+    }
+
     int fdes = UnixOpen(fname, OPEN_READONLY);
     if (fdes < 0) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -9694,6 +9733,7 @@ int ibis::column::searchSortedOOCC(const char* fname,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 
     int ierr = UnixSeek(fdes, 0, SEEK_END);
     if (ierr < 0) {
@@ -9701,7 +9741,6 @@ int ibis::column::searchSortedOOCC(const char* fname,
 	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedOOCC<" << typeid(T).name() << ">("
 	    << fname << ", " << rng << ") failed to seek to the end of file";
-	(void) UnixClose(fdes);
 	return -2;
     }
     const uint32_t nrows = ierr / sizeof(T);
@@ -10374,13 +10413,12 @@ int ibis::column::searchSortedOOCC(const char* fname,
 	    break;}
 	case ibis::qExpr::OP_UNDEFINED:
 	default: {
-	    hits.set(0, nrows);
-	    return -8;}
+	    getNullMask(hits);
+	    break;}
 	} // switch (rng.rightOperator())
 	break;}
     } // switch (rng.leftOperator())
 
-    (void) UnixClose(fdes);
     return 0;
 } // ibis::column::searchSortedOOCC
 
@@ -10625,13 +10663,13 @@ int ibis::column::searchSortedOOCD(const char* fname,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 
     const uint32_t sz = sizeof(T);
     int ierr = UnixSeek(fdes, 0, SEEK_END);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to seek to the end of file";
-	(void) UnixClose(fdes);
 	return -2;
     }
     ibis::fileManager::instance().recordPages(0, ierr);
@@ -10666,7 +10704,7 @@ int ibis::column::searchSortedOOCD(const char* fname,
 	    ++ jv;
 	}
     }
-    (void) UnixClose(fdes);
+
     hits.adjustSize(0, nrows);
     return (ierr > 0 ? 0 : -3);
 } // ibis::column::searchSortedOOCD
@@ -10752,13 +10790,13 @@ int ibis::column::searchSortedOOCD(const char* fname,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 
     const uint32_t sz = sizeof(T);
     int ierr = UnixSeek(fdes, 0, SEEK_END);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to seek to the end of file";
-	(void) UnixClose(fdes);
 	return -2;
     }
     ibis::fileManager::instance().recordPages(0, ierr);
@@ -10797,7 +10835,7 @@ int ibis::column::searchSortedOOCD(const char* fname,
 	    ++ jv;
 	}
     }
-    (void) UnixClose(fdes);
+
     hits.adjustSize(0, nrows);
     return (ierr > 0 ? 0 : -3);
 } // ibis::column::searchSortedOOCD
@@ -10883,13 +10921,13 @@ int ibis::column::searchSortedOOCD(const char* fname,
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
+    IBIS_BLOCK_GUARD(UnixClose, fdes);
 
     const uint32_t sz = sizeof(T);
     int ierr = UnixSeek(fdes, 0, SEEK_END);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to seek to the end of file";
-	(void) UnixClose(fdes);
 	return -2;
     }
     ibis::fileManager::instance().recordPages(0, ierr);
@@ -10928,7 +10966,7 @@ int ibis::column::searchSortedOOCD(const char* fname,
 	    ++ jv;
 	}
     }
-    (void) UnixClose(fdes);
+
     hits.adjustSize(0, nrows);
     return (ierr > 0 ? 0 : -3);
 } // ibis::column::searchSortedOOCD

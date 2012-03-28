@@ -1,4 +1,24 @@
 2012-03-28 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: extend the data in w7 to include null values
+	and empty strings
+	* src/part.cpp: take into account of null mask when working with
+	strings
+	* src/index.h, src/index.cpp: move sumBins to be public, add a new
+	version to work with a list of bin numbers, allow addBits to
+	initialize the results to an empty bitvector
+	* src/category.cpp: change category::patternSearch to use the new
+	index::sumBins, previous version neglected to activate bitmaps and
+	therefore may lead to incorrect answers
+	* src/whereLexer.ll, src/whereParser.yy: accept "colname NOT NULL"
+	* src/column.cpp, src/part.cpp: add IBIS_BLOCK_GUARD, handle
+	"colname NOT NULL" as a special case of ibis::qContinuousRange
+	that matches all valid entries
+	* tests/Makefile.am: add test case for "colname NOT NULL"
+
+2012-03-28 Dominique Prunier <dominique dot prunier at watch4net dot com>
+	* src/qExpr.cpp: restore backslash as escape character
+
+2012-03-28 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.cpp, src/util.cpp: add macro
 	FASTBIT_EMPTY_STRING_AS_NULL per request of Dominique Prunier
 

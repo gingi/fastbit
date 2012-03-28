@@ -42,6 +42,7 @@
 }
 
 %token              END       0 "end of input"
+%token <integerVal> NULLOP	"null"
 %token <integerVal> NOTOP	"not"
 %token <integerVal> LEOP	"<="
 %token <integerVal> GEOP	">="
@@ -189,6 +190,13 @@ NOUNSTR INOP NUMSEQ {
 #endif
     $$ = new ibis::qContinuousRange($1->c_str(), ibis::qExpr::OP_EQ, $4);
     delete $1;
+}
+| NOUNSTR NOTOP NULLOP {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " NOT NULL";
+#endif
+    $$ = new ibis::qContinuousRange($1->c_str(), ibis::qExpr::OP_UNDEFINED, 0U);
 }
 | NOUNSTR NOTOP INOP NUMSEQ {
 #if defined(DEBUG) && DEBUG + 0 > 1

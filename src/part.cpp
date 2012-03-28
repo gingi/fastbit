@@ -3166,10 +3166,6 @@ long ibis::part::lookforString(const ibis::qString &cmp,
 
     // try leftString()
     const ibis::column* col = getColumn(cmp.leftString());
-    // try rightString
-    if (col == 0)
-	col = getColumn(cmp.rightString());
-
     if (col != 0) {
 	if (col->type() == ibis::TEXT) {
 	    ierr = col->keywordSearch(cmp.rightString(), low);
@@ -3179,10 +3175,34 @@ long ibis::part::lookforString(const ibis::qString &cmp,
 	else if (col->type() == ibis::CATEGORY) {
 	    ierr = col->stringSearch(cmp.rightString(), low);
 	}
+	if (ierr > 0) {
+	    ibis::bitvector mskc;
+	    col->getNullMask(mskc);
+	    low &= mskc;
+	}
     }
     else {
-	// no match -- no hit
-	low.set(0, nEvents);
+	// try rightString
+	col = getColumn(cmp.rightString());
+	if (col != 0) {
+	    if (col->type() == ibis::TEXT) {
+		ierr = col->keywordSearch(cmp.leftString(), low);
+		if (ierr < 0)
+		    ierr = col->stringSearch(cmp.leftString(), low);
+	    }
+	    else if (col->type() == ibis::CATEGORY) {
+		ierr = col->stringSearch(cmp.leftString(), low);
+	    }
+	    if (ierr > 0) {
+		ibis::bitvector mskc;
+		col->getNullMask(mskc);
+		low &= mskc;
+	    }
+	}
+	else {
+	    // no match -- no hit
+	    low.set(0, nEvents);
+	}
     }
     return ierr;
 } // ibis::part::lookforString
@@ -3198,8 +3218,6 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
 
     // try leftString()
     const ibis::column* col = getColumn(cmp.leftString());
-    if (col == 0)    // try rightString
-	col = getColumn(cmp.rightString());
     if (col != 0) {
 	if (col->type() == ibis::TEXT) {
 	    ret = col->keywordSearch(cmp.rightString());
@@ -3208,6 +3226,19 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
 	}
 	else if (col->type() == ibis::CATEGORY) {
 	    ret = col->stringSearch(cmp.rightString());
+	}
+    }
+    else {    // try rightString
+	col = getColumn(cmp.rightString());
+	if (col != 0) {
+	    if (col->type() == ibis::TEXT) {
+		ret = col->keywordSearch(cmp.leftString());
+		if (ret < 0)
+		    ret = col->stringSearch(cmp.leftString());
+	    }
+	    else if (col->type() == ibis::CATEGORY) {
+		ret = col->stringSearch(cmp.leftString());
+	    }
 	}
     }
     return ret;
@@ -3230,6 +3261,11 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp,
 	if (col->type() == ibis::TEXT ||
 	    col->type() == ibis::CATEGORY) {
 	    ierr = col->stringSearch(cmp.valueList(), low);
+	    if (ierr > 0) {
+		ibis::bitvector mskc;
+		col->getNullMask(mskc);
+		low &= mskc;
+	    }
 	    return ierr;
 	}
     }
@@ -3281,7 +3317,13 @@ long ibis::part::patternSearch(const ibis::qLike &cmp,
 
     const ibis::column* col = getColumn(cmp.colName());
     if (col != 0) {
-	return col->patternSearch(cmp.pattern(), hits);
+	long ierr = col->patternSearch(cmp.pattern(), hits);
+	if (ierr > 0) {
+	    ibis::bitvector mskc;
+	    col->getNullMask(mskc);
+	    hits &= mskc;
+	}
+	return hits.sloppyCount();
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
@@ -3301,9 +3343,7 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
     long ierr = 0;
     if (columns.empty() || nEvents == 0) return ierr;
 
-    if (cmp.colName() == 0 ||
-	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
-	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
+    if (cmp.colName() == 0 || *(cmp.colName()) == 0) { // no hit
 	hits.set(0, nEvents);
 	return ierr;
     }
@@ -3343,9 +3383,7 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
     long ierr = 0;
     if (columns.empty() || nEvents == 0) return ierr;
 
-    if (cmp.colName() == 0 ||
-	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
-	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)) { // no hit
+    if (cmp.colName() == 0 || *(cmp.colName()) == 0) { // no hit
 	low.set(0, nEvents);
 	high.set(0, nEvents);
 	return 0;
@@ -3416,7 +3454,7 @@ double ibis::part::estimateCost(const ibis::qContinuousRange &cmp) const {
     double ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;
-    if (cmp.colName() == 0 ||
+    if (cmp.colName() == 0 || *cmp.colName() == 0 ||
 	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
 	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED))
 	return ret;
@@ -5350,7 +5388,9 @@ float ibis::part::getUndecidable(const ibis::qContinuousRange &cmp,
     float ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;
-    if (cmp.colName() == 0)
+    if (cmp.colName() == 0 || *cmp.colName() == 0 ||
+	(cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	 cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED))
 	return ret;
 
     const ibis::column* col = getColumn(cmp.colName());
@@ -10409,6 +10449,12 @@ long ibis::part::doScan(const array_t<T> &vals,
     T leftBound, rightBound;
     ibis::qExpr::COMPARE lop = rng.leftOperator();
     ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	hits.copy(mask);
+	return hits.sloppyCount();
+    }
+
     switch (rng.leftOperator()) {
     case ibis::qExpr::OP_UNDEFINED:
 	leftBound = 0;
@@ -11364,6 +11410,11 @@ long ibis::part::doScan(const array_t<float> &vals,
     const double rightBound = rng.rightBound();
     const ibis::qExpr::COMPARE lop = rng.leftOperator();
     const ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	hits.copy(mask);
+	return hits.sloppyCount();
+    }
 
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     switch (lop) {
@@ -12114,6 +12165,11 @@ long ibis::part::doScan(const array_t<double> &vals,
     const double rightBound = rng.rightBound();
     const ibis::qExpr::COMPARE lop = rng.leftOperator();
     const ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	hits.copy(mask);
+	return hits.sloppyCount();
+    }
 
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     switch (lop) {
@@ -12857,6 +12913,24 @@ long ibis::part::doScan(const array_t<T> &vals,
     T leftBound, rightBound;
     ibis::qExpr::COMPARE lop = rng.leftOperator();
     ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	res.reserve(mask.cnt());
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0;
+	     ++ is) {
+	    const ibis::bitvector::word_t *ind = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = ind[0]; j < ind[1]; ++ j)
+		    res.push_back(vals[j]);
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j)
+		    res.push_back(vals[ind[j]]);
+	    }
+	}
+    }
+
     switch (rng.leftOperator()) {
     case ibis::qExpr::OP_UNDEFINED:
 	leftBound = 0;
@@ -13445,6 +13519,24 @@ long ibis::part::doScan(const array_t<T> &vals,
     T leftBound, rightBound;
     ibis::qExpr::COMPARE lop = rng.leftOperator();
     ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	res.reserve(mask.cnt());
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0;
+	     ++ is) {
+	    const ibis::bitvector::word_t *ind = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = ind[0]; j < ind[1]; ++ j)
+		    res.push_back(vals[j]);
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j)
+		    res.push_back(vals[ind[j]]);
+	    }
+	}
+    }
+
     switch (rng.leftOperator()) {
     case ibis::qExpr::OP_UNDEFINED:
 	leftBound = 0;
@@ -14034,6 +14126,23 @@ long ibis::part::doScan(const array_t<float> &vals,
     const double rightBound = rng.rightBound();
     const ibis::qExpr::COMPARE lop = rng.leftOperator();
     const ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	res.reserve(mask.cnt());
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0;
+	     ++ is) {
+	    const ibis::bitvector::word_t *ind = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = ind[0]; j < ind[1]; ++ j)
+		    res.push_back(vals[j]);
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j)
+		    res.push_back(vals[ind[j]]);
+	    }
+	}
+    }
 
     switch (lop) {
     case ibis::qExpr::OP_LT: {
@@ -14498,6 +14607,23 @@ long ibis::part::doScan(const array_t<double> &vals,
     const double rightBound = rng.rightBound();
     const ibis::qExpr::COMPARE lop = rng.leftOperator();
     const ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	res.reserve(mask.cnt());
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0;
+	     ++ is) {
+	    const ibis::bitvector::word_t *ind = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = ind[0]; j < ind[1]; ++ j)
+		    res.push_back(vals[j]);
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j)
+		    res.push_back(vals[ind[j]]);
+	    }
+	}
+    }
 
     switch (lop) {
     case ibis::qExpr::OP_LT: {
@@ -14984,6 +15110,11 @@ long ibis::part::doScan(const array_t<float> &vals,
     const double rightBound = rng.rightBound();
     const ibis::qExpr::COMPARE lop = rng.leftOperator();
     const ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	hits.copy(mask);
+	return hits.sloppyCount();
+    }
 
     switch (lop) {
     case ibis::qExpr::OP_LT: {
@@ -15487,6 +15618,11 @@ long ibis::part::doScan(const array_t<double> &vals,
     const double rightBound = rng.rightBound();
     const ibis::qExpr::COMPARE lop = rng.leftOperator();
     const ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	hits.copy(mask);
+	return hits.sloppyCount();
+    }
 
     switch (lop) {
     case ibis::qExpr::OP_LT: {
@@ -16673,6 +16809,11 @@ long ibis::part::doCount(const ibis::qRange &cmp) const {
     T leftBound, rightBound;
     ibis::qExpr::COMPARE lop = rng.leftOperator();
     ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	return mask.cnt();
+    }
+
     switch (rng.leftOperator()) {
     case ibis::qExpr::OP_UNDEFINED:
 	leftBound = 0;
@@ -17168,6 +17309,10 @@ long ibis::part::doCount<float>(const ibis::qRange &cmp) const {
     const double rightBound = rng.rightBound();
     const ibis::qExpr::COMPARE lop = rng.leftOperator();
     const ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	return mask.cnt();
+    }
 
     switch (lop) {
     case ibis::qExpr::OP_LT: {
@@ -17535,6 +17680,10 @@ long ibis::part::doCount<double>(const ibis::qRange &cmp) const {
     const double rightBound = rng.rightBound();
     const ibis::qExpr::COMPARE lop = rng.leftOperator();
     const ibis::qExpr::COMPARE rop = rng.rightOperator();
+    if (lop == ibis::qExpr::OP_UNDEFINED &&
+	rop == ibis::qExpr::OP_UNDEFINED) {
+	return mask.cnt();
+    }
 
     switch (lop) {
     case ibis::qExpr::OP_LT: {

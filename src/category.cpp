@@ -706,7 +706,7 @@ double ibis::category::estimateCost(const ibis::qLike &cmp) const {
 long ibis::category::stringSearch(const std::vector<std::string>& strs,
 				  ibis::bitvector& hits) const {
     if (strs.empty()) {
-	hits.clear();
+	hits.set(0, thePart->nRows());
 	return 0;
     }
 
@@ -724,9 +724,8 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs,
 	    inds.push_back(ind);
     }
 
-    if (inds.empty()) { // null value
-	getNullMask(hits); // mask = 0 if null
-	hits.flip();
+    if (inds.empty()) { // nothing match
+	hits.set(0, thePart->nRows());
     }
     else { // found some values in the dictionary
 	indexLock lock(this, "category::stringSearch");
@@ -749,10 +748,10 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs,
 		<< "Warning -- category["
 		<< (thePart != 0 ? thePart->name() : "")
 		<< "." << name() << "]::stringSearch can not obtain a lock "
-		"on the index or there is no index";
+		"on the index or there is no index, can not produce any answer";
 	}
     }
-    return hits.cnt();
+    return hits.sloppyCount();
 } // ibis::category::stringSearch
 
 long ibis::category::stringSearch(const std::vector<std::string>& strs) const {
@@ -840,7 +839,7 @@ long ibis::category::patternSearch(const char *pat,
 				   ibis::bitvector &hits) const {
     hits.clear();
     if (pat == 0 || *pat == 0) return -1;
-    prepareMembers();
+    if (idx == 0) prepareMembers();
 
     if (idx == 0) {
 	LOGGER(ibis::gVerbose > 0)
@@ -862,29 +861,15 @@ long ibis::category::patternSearch(const char *pat,
     LOGGER(ibis::gVerbose > 5)
 	<< "category[" << (thePart != 0 ? thePart->name() : "??") << '.'
 	<< m_name << "]::patternSearch starting to match pattern " << pat;
-    long est = 0;
+
     ibis::array_t<uint32_t> tmp;
     dic.patternSearch(pat, tmp);
-    const uint32_t mult = ibis::util::log2((uint32_t)tmp.size());
-    for (uint32_t j = 0; j < tmp.size(); ++ j) {
-	const ibis::bitvector *bv = rlc->getBitvector(tmp[j]);
-	if (bv != 0) {
-	    est += bv->sloppyCount();
-	    if (hits.empty()) {
-		hits.copy(*bv);
-	    }
-	    else {
-		if (mult > 4) {
-		    if (hits.isCompressed()) {
-			if (hits.bytes()*mult + bv->bytes() > hits.size())
-			    hits.decompress();
-		    }
-		}
-		hits |= *bv;
-	    }
-	}
+    if (tmp.empty()) {
+	hits.set(0, thePart->nRows());
+	return 0;
     }
-    return est;
+    rlc->sumBins(tmp, hits);
+    return hits.sloppyCount();
 } // ibis::category::patternSearch
 
 /// Return the string at the <code>i</code>th row.  If the .int file is
@@ -2107,6 +2092,7 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 	    startPositions(thePart->currentDataDir(), buf, nbuf);
 	hits.adjustSize(0, thePart->nRows());
     }
+
     LOGGER(ibis::gVerbose > 4)
 	<< evt << " found " << hits.cnt() << " string" << (hits.cnt()>1?"s":"")
 	<< " in \"" << data << "\" matching " << str;
@@ -2314,6 +2300,7 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 	    startPositions(thePart->currentDataDir(), buf, nbuf);
 	hits.adjustSize(0, thePart->nRows());
     }
+
     LOGGER(ibis::gVerbose > 4)
 	<< evt << " found " << hits.cnt() << " string" << (hits.cnt()>1?"s":"")
 	<< " in \"" << data << "\" matching " << strs.size() << " strings";
@@ -2527,6 +2514,7 @@ long ibis::text::patternSearch(const char* pat, ibis::bitvector& hits) const {
 	    startPositions(thePart->currentDataDir(), buf, nbuf);
 	hits.adjustSize(0, thePart->nRows());
     }
+
     LOGGER(ibis::gVerbose > 4)
 	<< evt << " found " << hits.cnt() << " string" << (hits.cnt()>1?"s":"")
 	<< " in \"" << data << "\" matching " << pat;

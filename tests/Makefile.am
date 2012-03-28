@@ -173,6 +173,7 @@ really-small: $(IBISEXE) $(TCAPIEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part
 	@if [ -f $(TESTDIR)/small-12 -a -f vault/small-12 -a `diff -w $(TESTDIR)/small-12 vault/small-12 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
 	@if [ `$(IBISEXE) -d $(TESTDIR)/w6 -v -q "where M = 144115188075857871ULL OR M = 144115188075857872ULL" 2>&1 | fgrep '==> 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
 	@if [`$(TCAPIEXE) $(TESTDIR)/w7 "c=\"'twas\"" 2>&1 | fgrep 'w7 produced 1 hit' | wc -l` -eq 1 ]; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
+	@if [`$(TCAPIEXE) $(TESTDIR)/w7 "c='' and c not null" 2>&1 | fgrep 'w7 produced 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/really-small.log; fi
 	@echo
 check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
@@ -417,7 +418,7 @@ $(TESTDIR)/w6/-part.txt: $(ARDEAEXE) TESTDIR
 	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w6 -m "m:ul, n:d" -r "144115188075857871,144115188075857871" -r "144115188075857872,144115188075857872" -r "288230376151715742,288230376151715742" -r "288230376151715743,288230376151715743" -r "1152921504606862968,1152921504606862968" -r "1152921504606862969,1152921504606862969" -r "9223372036854903744,9223372036854903744", -r "9223372036854903745,9223372036854903745" >> ${TESTDIR}/std.log 2>&1
 # some words with apostrophe and hyphen
 $(TESTDIR)/w7/-part.txt: $(ARDEAEXE) TESTDIR
-	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w7 -m "a:s, b:f, c:k" -r "1, 0.1, \"'twas\"" -r "2, 0.01, makin'" -r "3, .01, half-moon" -r "1, .01, twas" -r "2, 0.01, making" >> $(TESTDIR)/std.log 2>&1
+	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w7 -m "a:s, b:f, c:k" -r "1, 0.1, \"'twas\"" -r "2, 0.01, makin'" -r "1, .01, twas" -r "2, 0.01, making" -r "3, .01, half-moon" -r "3, .001, \"it's good\"" -r "3, .001, 'it\'s good'" -r "4, .001, \"\"" -r "4, .001, ''" -r "4, .001," -r "4, .001" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/test.rc: TESTDIR
 	@echo "activeDir=$(TESTDIR)/0" > $(TESTDIR)/test.rc
 	@echo "CacheDir=$(TESTDIR)/queryCache" >> $(TESTDIR)/test.rc

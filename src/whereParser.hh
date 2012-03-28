@@ -112,38 +112,39 @@ namespace ibis {
       /* Tokens.  */
    enum yytokentype {
      END = 0,
-     NOTOP = 258,
-     LEOP = 259,
-     GEOP = 260,
-     LTOP = 261,
-     GTOP = 262,
-     EQOP = 263,
-     NEQOP = 264,
-     ANDOP = 265,
-     ANDNOTOP = 266,
-     OROP = 267,
-     XOROP = 268,
-     BETWEENOP = 269,
-     INOP = 270,
-     LIKEOP = 271,
-     ANYOP = 272,
-     BITOROP = 273,
-     BITANDOP = 274,
-     ADDOP = 275,
-     MINUSOP = 276,
-     MULTOP = 277,
-     DIVOP = 278,
-     REMOP = 279,
-     EXPOP = 280,
-     INT64 = 281,
-     UINT64 = 282,
-     NUMBER = 283,
-     INTSEQ = 284,
-     UINTSEQ = 285,
-     NOUNSTR = 286,
-     NUMSEQ = 287,
-     STRSEQ = 288,
-     STRLIT = 289
+     NULLOP = 258,
+     NOTOP = 259,
+     LEOP = 260,
+     GEOP = 261,
+     LTOP = 262,
+     GTOP = 263,
+     EQOP = 264,
+     NEQOP = 265,
+     ANDOP = 266,
+     ANDNOTOP = 267,
+     OROP = 268,
+     XOROP = 269,
+     BETWEENOP = 270,
+     INOP = 271,
+     LIKEOP = 272,
+     ANYOP = 273,
+     BITOROP = 274,
+     BITANDOP = 275,
+     ADDOP = 276,
+     MINUSOP = 277,
+     MULTOP = 278,
+     DIVOP = 279,
+     REMOP = 280,
+     EXPOP = 281,
+     INT64 = 282,
+     UINT64 = 283,
+     NUMBER = 284,
+     INTSEQ = 285,
+     UINTSEQ = 286,
+     NOUNSTR = 287,
+     NUMSEQ = 288,
+     STRSEQ = 289,
+     STRLIT = 290
    };
 
     };
@@ -323,7 +324,7 @@ namespace ibis {
 } // ibis
 
 /* Line 35 of lalr1.cc  */
-#line 327 "whereParser.hh"
+#line 328 "whereParser.hh"
 
 
 

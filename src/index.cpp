@@ -4974,6 +4974,8 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
     }
 } // ibis::index::activate
 
+/// Add the sum of @c bits[ib] through @c bits[ie-1] to @c res.  Always
+/// explicitly use @c bits[ib] through @c bits[ie-1].
 /// The most important difference between this function and @c sumBins is
 /// that this function always use @c bits[ib] through @c bits[ie-1].  This
 /// is similar to the function @c addBits.
@@ -5168,6 +5170,8 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 #endif
 } // ibis::index::addBins
 
+/// Compute the sum of bit vectors [@c ib, @c ie).  If computing a
+/// complement is faster, assume all bit vectors add up to @c tot.
 /// This is basically a copy of the function @c sumBins (without the 4th
 /// argument).  There are two changes: (1) if @c res has the same number
 /// of bits as @c tot, the new sum is added to the existing bitvector, and
@@ -6261,6 +6265,8 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 #endif
 } // ibis::index::sumBins
 
+/// Compute a new sum for bit vectors [ib, ie) by taking advantage of the
+/// old sum for bitvectors [ib0, ie0).
 /// This function attempts to take advantage of existing results of a
 /// previously computed sum.
 /// - On input, res = sum_{i=ib0}^{ie0-1} bits[i].
@@ -6353,31 +6359,79 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 #endif
 } // ibis::index::sumBins
 
-/// Add the @c bts[ib:ie-1] to @c res.  This function always use bitvectors
-/// @c bts[ib] through @c bts[ie-1] and expects the caller to have filled
+/// Sum up the bits in in the specified bins.
+void ibis::index::sumBins(const ibis::array_t<uint32_t> &bns,
+			  ibis::bitvector &res) const {
+    if (bns.empty()) {
+	res.set(0, nrows);
+	return;
+    }
+    if (bns.size() == 1) {
+	activate(bns[0]);
+	if (bits[bns[0]] != 0) {
+	    ibis::bitvector tmp(*(bits[bns[0]]));
+	    res.swap(tmp);
+	}
+	else {
+	    res.set(0, nrows);
+	}
+	return;
+    }
+
+    ibis::array_t<ibis::bitvector*> pile;
+    pile.reserve(bns.size());
+    if (bns.size() >= (bits.size() >> 2)) {
+	activate(); // make all bitmaps ready to use
+	for (size_t j = 0; j < bns.size(); ++ j) {
+	    if (bns[j] < bits.size()) {
+		if (bits[bns[j]] != 0)
+		    pile.push_back(bits[bns[j]]);
+	    }
+	}
+    }
+    else {
+	for (size_t j = 0; j < bns.size(); ++ j) {
+	    if (bns[j] < bits.size()) {
+		activate(bns[j]);
+		if (bits[bns[j]] != 0)
+		    pile.push_back(bits[bns[j]]);
+	    }
+	}
+    }
+    if (pile.empty()) {
+	res.set(0, nrows);
+    }
+    else {
+	addBits(pile, 0, pile.size(), res);
+    }
+} // ibis::index::sumBins
+
+/// Add the @c pile[ib:ie-1] to @c res.  This function always use bitvectors
+/// @c pile[ib] through @c pile[ie-1] and expects the caller to have filled
 /// these bitvectors already.
 ///
 /// @note The caller need to activate the required bit vectors!  In other
-/// words, bts[ib:ie-1] must be in memory.
-/// @note If bts[i] is a null pointer, it is skipped, which is equivalent
+/// words, pile[ib:ie-1] must be in memory.
+/// @note If pile[i] is a null pointer, it is skipped, which is equivalent
 /// to it being a bitvector of all 0s.
-void ibis::index::addBits(const array_t<bitvector*>& bts,
+void ibis::index::addBits(const array_t<bitvector*>& pile,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
     LOGGER(ibis::gVerbose > 7)
-	<< "index::addBits(" << bts.size()
+	<< "index::addBits(" << pile.size()
 	<< "-bitvector set, " << ib << ", " << ie << ", res("
 	<< res.cnt() << ", " << res.size() << ")) ...";
-    const uint32_t nobs = bts.size();
-    if (res.cnt() >= res.size()) return; // useless to add more bit
-    while (ib < nobs && bts[ib] == 0) // skip the leading nulls
+    const uint32_t nobs = pile.size();
+    if (res.size() != pile.front()->size()) {
+	res.set(0, pile.front()->size());
+    }
+    else if (res.cnt() >= res.size()) {
+	return; // useless to add more bit
+    }
+    while (ib < nobs && pile[ib] == 0) // skip the leading nulls
 	++ ib;
     if (ie > nobs)
 	ie = nobs;
     if (ib >= ie || ib >= nobs) {
-	return;
-    }
-    else if (ib == 0 && ie == nobs) {
-	res.set(1, res.size());
 	return;
     }
 
@@ -6385,8 +6439,8 @@ void ibis::index::addBits(const array_t<bitvector*>& bts,
     bool decmp = false;
     if (ibis::gVerbose > 4)
 	timer.start();
-    if (res.size() != bts[ib]->size()) {
-	res.copy(*(bts[ib]));
+    if (res.size() != pile[ib]->size()) {
+	res.copy(*(pile[ib]));
 	++ ib;
     }
 
@@ -6397,8 +6451,8 @@ void ibis::index::addBits(const array_t<bitvector*>& bts,
     else if (ie - ib > 3) {
 	uint32_t tot = 0;
 	for (uint32_t i = ib; i < ie; ++i)
-	    if (bts[i])
-		tot += bts[i]->bytes();
+	    if (pile[i])
+		tot += pile[i]->bytes();
 	if (tot > (res.size() >> 2))
 	    decmp = true;
 	else if (tot > (res.size() >> 3) && ie-ib > 4)
@@ -6412,7 +6466,7 @@ void ibis::index::addBits(const array_t<bitvector*>& bts,
 				   static_cast<long unsigned>(ie));
 	res.decompress(); // decompress res
 	for (uint32_t i = ib; i < ie; ++i)
-	    res |= *(bts[i]);
+	    res |= *(pile[i]);
 	res.compress();
     }
     else if (ie > ib + 2) { // use compressed res
@@ -6428,8 +6482,8 @@ void ibis::index::addBits(const array_t<bitvector*>& bts,
 
 	// populate the priority queue with the original input
 	for (uint32_t i = ib; i < ie; ++i) {
-	    if (bts[i]) {
-		op1.first = bts[i];
+	    if (pile[i]) {
+		op1.first = pile[i];
 		op1.second = false;
 		que.push(op1);
 	    }
@@ -6490,13 +6544,13 @@ void ibis::index::addBits(const array_t<bitvector*>& bts,
 	}
     }
     else if (ie > ib + 1) {
-	if (bts[ib])
-	    res |= *(bts[ib]);
-	if (bts[ib+1])
-	    res |= *(bts[ib+1]);
+	if (pile[ib])
+	    res |= *(pile[ib]);
+	if (pile[ib+1])
+	    res |= *(pile[ib+1]);
     }
-    else if (bts[ib]) {
-	res |= *(bts[ib]);
+    else if (pile[ib]) {
+	res |= *(pile[ib]);
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
@@ -6514,31 +6568,31 @@ void ibis::index::addBits(const array_t<bitvector*>& bts,
 #endif
 } // ibis::index::addBits
 
-/// Sum up @c bts[ib:ie-1] and place the result in @c res.
+/// Sum up @c pile[ib:ie-1] and place the result in @c res.
 ///
-/// @note This function either uses bts[ib:ie-1] or bts[0:ib-1] and
-/// bts[ie:nobs-1] depending which set has more bit vectors!  This requires
+/// @note This function either uses pile[ib:ie-1] or pile[0:ib-1] and
+/// pile[ie:nobs-1] depending which set has more bit vectors!  This requires
 /// the caller to determine with set of them are to be used and then load
 /// them to memory before calling this function.
 ///
 /// @note This function always uses the operator |=.
 /// Tests show that using the function @c setBit is always slower.
-void ibis::index::sumBits(const array_t<bitvector*>& bts,
+void ibis::index::sumBits(const array_t<bitvector*>& pile,
 			  uint32_t ib, uint32_t ie, ibis::bitvector& res) {
     LOGGER(ibis::gVerbose > 7)
-	<< "index::sumBits(" << bts.size()
+	<< "index::sumBits(" << pile.size()
 	<< "-bitvector set, " << ib << ", " << ie << ", res("
 	<< res.cnt() << ", " << res.size() << ")) ...";
     typedef std::pair<ibis::bitvector*, bool> _elem;
-    const uint32_t nobs = bts.size();
+    const uint32_t nobs = pile.size();
     if (ie > nobs) ie = nobs;
     const bool straight = (2*(ie-ib) <= nobs);
     const uint32_t na = (straight ? ie-ib : nobs + ib - ie);
     // need to figure out the size of bit vectors
     uint32_t sz = 0;
     for (unsigned i = 0; i < nobs && sz == 0; ++i)
-	if (bts[i] != 0)
-	    sz = bts[i]->size();
+	if (pile[i] != 0)
+	    sz = pile[i]->size();
 
     if (ib >= ie) {
 	res.set(0, sz); // no bitmap in the range
@@ -6546,20 +6600,20 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
     }
     else if (na <= 2) { // some special cases
 	if (ib == 0 && ie == nobs) { // every bitmap in the range
-	    res.set(1, bts[0]->size());
+	    res.set(1, pile[0]->size());
 	}
 	else if (na == 1) {
 	    if (straight) { // only one bitmap in the range
-		if (bts[ib]) {
-		    res.copy(*(bts[ib]));
+		if (pile[ib]) {
+		    res.copy(*(pile[ib]));
 		}
 		else {
 		    res.set(0, sz);
 		}
 	    }
 	    else if (ib == 0) { // last one is outside
-		if (bts[ie]) {
-		    res.copy(*(bts[ie]));
+		if (pile[ie]) {
+		    res.copy(*(pile[ie]));
 		    res.flip();
 		}
 		else {
@@ -6567,8 +6621,8 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		}
 	    }
 	    else { // the first one is outside
-		if (bts[0] != 0) {
-		    res.copy(*(bts[0]));
+		if (pile[0] != 0) {
+		    res.copy(*(pile[0]));
 		    res.flip();
 		}
 		else {
@@ -6577,27 +6631,27 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	    }
 	}
 	else if (straight) { // two consecutive bitmaps in the range
-	    if (bts[ib]) {
-		res.copy(*(bts[ib]));
-		if (bts[ib+1])
-		    res |= *(bts[ib+1]);
+	    if (pile[ib]) {
+		res.copy(*(pile[ib]));
+		if (pile[ib+1])
+		    res |= *(pile[ib+1]);
 	    }
-	    else if (bts[ib+1]) {
-		res.copy(*(bts[ib+1]));
+	    else if (pile[ib+1]) {
+		res.copy(*(pile[ib+1]));
 	    }
 	    else {
 		res.set(0, sz);
 	    }
 	}
 	else if (ib == 0) { // two bitmaps at the end are outside
-	    if (bts[ie]) {
-		res.copy(*(bts[ie]));
-		if (bts[nobs-1])
-		    res |= *(bts[nobs-1]);
+	    if (pile[ie]) {
+		res.copy(*(pile[ie]));
+		if (pile[nobs-1])
+		    res |= *(pile[nobs-1]);
 		res.flip();
 	    }
-	    else if (bts[nobs-1]) {
-		res.copy(*(bts[nobs-1]));
+	    else if (pile[nobs-1]) {
+		res.copy(*(pile[nobs-1]));
 		res.flip();
 	    }
 	    else {
@@ -6605,15 +6659,15 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	    }
 	}
 	else if (ib == 1) { // two outside bitmaps are split
-	    res.copy(*(bts[0]));
-	    if (bts[ie])
-		res |= *(bts[ie]);
+	    res.copy(*(pile[0]));
+	    if (pile[ie])
+		res |= *(pile[ie]);
 	    res.flip();
 	}
 	else if (ib == 2) { // two outside bitmaps are at the beginning
-	    res.copy(*(bts[0]));
-	    if (bts[1])
-		res |= *(bts[1]);
+	    res.copy(*(pile[0]));
+	    if (pile[1])
+		res |= *(pile[1]);
 	    res.flip();
 	}
 	return;
@@ -6633,13 +6687,13 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 			       ibis::_sumBits_option);
 	if (straight) {
 	    for (uint32_t i = ib; i < ie; ++i)
-		bytes += bts[i]->bytes();
+		bytes += pile[i]->bytes();
 	}
 	else {
 	    for (uint32_t i = 0; i < ib; ++i)
-		bytes += bts[i]->bytes();
+		bytes += pile[i]->bytes();
 	    for (uint32_t i = ie; i < nobs; ++i)
-		bytes += bts[i]->bytes();
+		bytes += pile[i]->bytes();
 	}
 	timer.start();
     }
@@ -6647,22 +6701,22 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
     switch (ibis::_sumBits_option) {
     case 1: // compressed or in natural order
 	if (2*(ie-ib) <= nobs) {
-	    res.copy(*(bts[ib]));
+	    res.copy(*(pile[ib]));
 	    for (uint32_t i = ib+1; i < ie; ++i)
-		res |= *(bts[i]);
+		res |= *(pile[i]);
 	}
 	else { // use complement
 	    if (ib > 0) {
-		res.copy(*(bts[0]));
+		res.copy(*(pile[0]));
 		for (uint32_t i = 1; i < ib; ++i)
-		    res |= *(bts[i]);
+		    res |= *(pile[i]);
 	    }
 	    else {
-		res.copy(*(bts[ie]));
+		res.copy(*(pile[ie]));
 		++ ie;
 	    }
 	    for (uint32_t i = ie; i < nobs; ++i)
-		res |= *(bts[i]);
+		res |= *(pile[i]);
 	    res.flip();
 	}
 	break;
@@ -6671,13 +6725,13 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	ind.reserve(na);
 	if (straight) {
 	    for (uint32_t i = ib; i < ie; ++i)
-		ind.push_back(bts[i]);
+		ind.push_back(pile[i]);
 	}
 	else { // use complement
 	    for (uint32_t i = 0; i < ib; ++i)
-		ind.push_back(bts[i]);
+		ind.push_back(pile[i]);
 	    for (uint32_t i = ie; i < nobs; ++i)
-		ind.push_back(bts[i]);
+		ind.push_back(pile[i]);
 	}
 	// sort ind according the size of the bitvectors
 	// make use the specialized version of std::less
@@ -6705,19 +6759,19 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	// populate the priority queue with the original input
 	if (straight) {
 	    for (uint32_t i = ib; i < ie; ++i) {
-		op1.first = bts[i];
+		op1.first = pile[i];
 		op1.second = false;
 		que.push(op1);
 	    }
 	}
 	else { // use complement
 	    for (uint32_t i = 0; i < ib; ++i) {
-		op1.first = bts[i];
+		op1.first = pile[i];
 		op1.second = false;
 		que.push(op1);
 	    }
 	    for (uint32_t i = ie; i < nobs; ++i) {
-		op1.first = bts[i];
+		op1.first = pile[i];
 		op1.second = false;
 		que.push(op1);
 	    }
@@ -6780,51 +6834,51 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
     }
     case 4: {// uncompressed res, start with either from or end
 	if (straight) {
-	    if (bts[ib]->bytes() >= bts[ie-1]->bytes()) {
-		res.copy(*(bts[ib]));
+	    if (pile[ib]->bytes() >= pile[ie-1]->bytes()) {
+		res.copy(*(pile[ib]));
 		++ ib;
 	    }
 	    else {
 		-- ie;
-		res.copy(*(bts[ie]));
+		res.copy(*(pile[ie]));
 	    }
 	    res.decompress();
 	    for (uint32_t i = ib; i < ie; ++i)
-		res |= *(bts[i]);
+		res |= *(pile[i]);
 	    res.compress();
 	}
 	else if (ib > 0) {
-	    if (bts[0]->bytes() >= bts[ib-1]->bytes()) {
-		res.copy(*(bts[0]));
+	    if (pile[0]->bytes() >= pile[ib-1]->bytes()) {
+		res.copy(*(pile[0]));
 		res.decompress();
 		for (uint32_t i = 1; i < ib; ++i)
-		    res |= *(bts[i]);
+		    res |= *(pile[i]);
 	    }
 	    else {
 		-- ib;
-		res.copy(*(bts[ib]));
+		res.copy(*(pile[ib]));
 		res.decompress();
 		for (uint32_t i = 0; i < ib; ++i)
-		    res |= *(bts[i]);
+		    res |= *(pile[i]);
 	    }
 	    for (uint32_t i = ie; i < nobs; ++i)
-		res |= *(bts[i]);
+		res |= *(pile[i]);
 	    res.compress();
 	    res.flip();
 	}
-	else if (bts[ie]->bytes() >= bts[nobs-1]->bytes()) {
-	    res.copy(*(bts[ie]));
+	else if (pile[ie]->bytes() >= pile[nobs-1]->bytes()) {
+	    res.copy(*(pile[ie]));
 	    res.decompress();
 	    for (uint32_t i = ie+1; i < nobs; ++i)
-		res |= *(bts[i]);
+		res |= *(pile[i]);
 	    res.compress();
 	    res.flip();
 	}
 	else {
-	    res.copy(*(bts[nobs-1]));
+	    res.copy(*(pile[nobs-1]));
 	    res.decompress();
 	    for (uint32_t i = ie; i < nobs-1; ++i)
-		res |= *(bts[i]);
+		res |= *(pile[i]);
 	    res.compress();
 	    res.flip();
 	}
@@ -6845,14 +6899,14 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	}
 	uint32_t j = 0;
 	for (uint32_t i = 1; i < na; ++i) {
-	    if (bts[ind[i]]->bytes() > bts[ind[j]]->bytes())
+	    if (pile[ind[i]]->bytes() > pile[ind[j]]->bytes())
 		j = i;
 	}
-	res.copy(*(bts[ind[j]]));
+	res.copy(*(pile[ind[j]]));
 	res.decompress();
 	ind[j] = ind[0];
 	for (uint32_t i = 1; i < na; ++i)
-	    res |= *(bts[ind[i]]);
+	    res |= *(pile[ind[i]]);
 	res.compress();
 	if (! straight)
 	    res.flip();
@@ -6864,30 +6918,30 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	// (1) if the two size of the first two are greater than the
 	// uncompressed size of one bitmap, use option 1.  Because the
 	// operation of the first two will produce an uncompressed result,
-	// it will sum together all other bts with to the uncompressed
+	// it will sum together all other bitmaps with to the uncompressed
 	// result generated already.
 	// (2) if total size (bytes) times square root of number of bitmaps
 	// is less than or equal to twice the size of an uncompressed
 	// bitmap, use option 3, else use option 4.
-	const uint32_t uncomp = (ibis::bitvector::btsPerLiteral() == 8 ?
+	const uint32_t uncomp = (ibis::bitvector::pilePerLiteral() == 8 ?
 				 sz * 2 / 15 :
 				 sz * 4 / 31);
 	if (straight) {
-	    uint32_t sum2 = bts[ib]->bytes() + bts[ib+1]->bytes();
+	    uint32_t sum2 = pile[ib]->bytes() + pile[ib+1]->bytes();
 	    if (sum2 >= uncomp) {
 		ibis::bitvector *tmp;
-		tmp = *(bts[ib]) | *(bts[ib+1]);
+		tmp = *(pile[ib]) | *(pile[ib+1]);
 		res.swap(*tmp);
 		delete tmp;
 		for (uint32_t i = ib+2; i < ie; ++i) {
-		    res |= *(bts[i]);
+		    res |= *(pile[i]);
 		}
 	    }
 	    else {
 		// need to compute the total size of all bitmaps
 		if (bytes == 0) {
 		    for (uint32_t i = ib; i < ie; ++i)
-			bytes += bts[i]->bytes();
+			bytes += pile[i]->bytes();
 		}
 		if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 		    // put all bitmaps in a priority queue
@@ -6897,7 +6951,7 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 
 		    // populate the priority queue with the original input
 		    for (uint32_t i = ib; i < ie; ++i) {
-			op1.first = bts[i];
+			op1.first = pile[i];
 			op1.second = false;
 			que.push(op1);
 		    }
@@ -6956,64 +7010,64 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		else if (sum2 <= (uncomp >> 2)) {
 		    // use uncompressed res
 		    ibis::bitvector *tmp;
-		    tmp = *(bts[ib]) | *(bts[ib+1]);
+		    tmp = *(pile[ib]) | *(pile[ib+1]);
 		    res.swap(*tmp);
 		    delete tmp;
 		    res.decompress();
 		    for (uint32_t i = ib+2; i < ie; ++i)
-			res |= *(bts[i]);
+			res |= *(pile[i]);
 		}
 		else {
-		    res.copy(*(bts[ib]));
+		    res.copy(*(pile[ib]));
 		    res.decompress();
 		    for (uint32_t i = ib + 1; i < ie; ++i)
-			res |= *(bts[i]);
+			res |= *(pile[i]);
 		}
 	    }
 	} // if (straight)
 	else { // use complements
 	    uint32_t sum2;
 	    if (ib > 1) {
-		sum2 = bts[0]->bytes() + bts[1]->bytes();
+		sum2 = pile[0]->bytes() + pile[1]->bytes();
 	    }
 	    else if (ib == 1) {
-		sum2 = bts[0]->bytes() + bts[ie]->bytes();
+		sum2 = pile[0]->bytes() + pile[ie]->bytes();
 	    }
 	    else {
-		sum2 = bts[ie]->bytes() + bts[ie+1]->bytes();
+		sum2 = pile[ie]->bytes() + pile[ie+1]->bytes();
 	    }
 	    if (sum2 >= uncomp) { // take advantage of automate decopression
 		if (ib > 1) {
 		    ibis::bitvector *tmp;
-		    tmp = *(bts[0]) | *(bts[1]);
+		    tmp = *(pile[0]) | *(pile[1]);
 		    res.swap(*tmp);
 		    delete tmp;
 		    for (uint32_t i = 2; i < ib; ++i)
-			res |= *(bts[i]);
+			res |= *(pile[i]);
 		}
 		else if (ib == 1) {
 		    ibis::bitvector *tmp;
-		    tmp = *(bts[0]) | *(bts[ie]);
+		    tmp = *(pile[0]) | *(pile[ie]);
 		    res.swap(*tmp);
 		    delete tmp;
 		    ++ ie;
 		}
 		else {
 		    ibis::bitvector *tmp;
-		    tmp = *(bts[ie]) | *(bts[ie+1]);
+		    tmp = *(pile[ie]) | *(pile[ie+1]);
 		    res.swap(*tmp);
 		    delete tmp;
 		    ie += 2;
 		}
 		for (uint32_t i = ie; i < nobs; ++i)
-		    res |= *(bts[i]);
+		    res |= *(pile[i]);
 	    }
 	    else { // need to look at the total size
 		if (bytes == 0) {
 		    for (uint32_t i = 0; i < ib; ++i)
-			bytes += bts[i]->bytes();
+			bytes += pile[i]->bytes();
 		    for (uint32_t i = ie; i < nobs; ++i)
-			bytes += bts[i]->bytes();
+			bytes += pile[i]->bytes();
 		}
 		if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 		    // use priority queue for all bitmaps
@@ -7023,12 +7077,12 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 
 		    // populate the priority queue with the original input
 		    for (uint32_t i = 0; i < ib; ++i) {
-			op1.first = bts[i];
+			op1.first = pile[i];
 			op1.second = false;
 			que.push(op1);
 		    }
 		    for (uint32_t i = ie; i < nobs; ++i) {
-			op1.first = bts[i];
+			op1.first = pile[i];
 			op1.second = false;
 			que.push(op1);
 		    }
@@ -7089,16 +7143,16 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		    // uncompress the first bitmap generated
 		    if (ib > 1) {
 			ibis::bitvector *tmp;
-			tmp = *(bts[0]) | *(bts[1]);
+			tmp = *(pile[0]) | *(pile[1]);
 			res.swap(*tmp);
 			delete tmp;
 			res.decompress();
 			for (uint32_t i = 2; i < ib; ++i)
-			    res |= *(bts[i]);
+			    res |= *(pile[i]);
 		    }
 		    else if (ib == 1) {
 			ibis::bitvector *tmp;
-			tmp = *(bts[0]) | *(bts[ie]);
+			tmp = *(pile[0]) | *(pile[ie]);
 			res.swap(*tmp);
 			delete tmp;
 			res.decompress();
@@ -7106,43 +7160,43 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		    }
 		    else {
 			ibis::bitvector *tmp;
-			tmp = *(bts[ie]) | *(bts[ie+1]);
+			tmp = *(pile[ie]) | *(pile[ie+1]);
 			res.swap(*tmp);
 			delete tmp;
 			res.decompress();
 			ie += 2;
 		    }
 		    for (uint32_t i = ie; i < nobs; ++i)
-			res |= *(bts[i]);
+			res |= *(pile[i]);
 		}
 		else if (ib > 0) {
-		    if (bts[0]->bytes() >= bts[ib-1]->bytes()) {
-			res.copy(*(bts[0]));
+		    if (pile[0]->bytes() >= pile[ib-1]->bytes()) {
+			res.copy(*(pile[0]));
 			res.decompress();
 			for (uint32_t i = 1; i < ib; ++i)
-			    res |= *(bts[i]);
+			    res |= *(pile[i]);
 		    }
 		    else {
 			-- ib;
-			res.copy(*(bts[ib]));
+			res.copy(*(pile[ib]));
 			res.decompress();
 			for (uint32_t i = 0; i < ib; ++i)
-			    res |= *(bts[i]);
+			    res |= *(pile[i]);
 		    }
 		    for (uint32_t i = ie; i < nobs; ++i)
-			res |= *(bts[i]);
+			res |= *(pile[i]);
 		}
-		else if (bts[ie]->bytes() >= bts[nobs-1]->bytes()) {
-		    res.copy(*(bts[ie]));
+		else if (pile[ie]->bytes() >= pile[nobs-1]->bytes()) {
+		    res.copy(*(pile[ie]));
 		    res.decompress();
 		    for (uint32_t i = ie+1; i < nobs; ++i)
-			res |= *(bts[i]);
+			res |= *(pile[i]);
 		}
 		else {
-		    res.copy(*(bts[nobs-1]));
+		    res.copy(*(pile[nobs-1]));
 		    res.decompress();
 		    for (uint32_t i = ie; i < nobs-1; ++i)
-			res |= *(bts[i]);
+			res |= *(pile[i]);
 		}
 	    }
 	    res.flip(); // need to flip because we have been using complement
@@ -7159,7 +7213,7 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	    else if (ie - ib > 3) {
 		uint32_t tot = 0;
 		for (uint32_t i = ib; i < ie; ++i)
-		    tot += bts[i]->bytes();
+		    tot += pile[i]->bytes();
 		if (tot > (sz >> 2))
 		    decmp = true;
 		else if (tot > (sz >> 3) && ie-ib > 4)
@@ -7169,23 +7223,23 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		if (ibis::gVerbose > 5) {
 		    double sb = 0;
 		    for (uint32_t i = ib; i < ie; ++i)
-			sb += bts[i]->bytes();
+			sb += pile[i]->bytes();
 		    ibis::util::logMessage("index", "sumBits(%lu, %lu) using "
 					   "uncompressed bitvector, total "
 					   "input bitmap size is %lG bytes",
 					   static_cast<long unsigned>(ib),
 					   static_cast<long unsigned>(ie), sb);
 		}
-		res.copy(*(bts[ib]));
+		res.copy(*(pile[ib]));
 		res.decompress();
 		for (uint32_t i = ib+1; i < ie; ++i)
-		    res |= *(bts[i]);
+		    res |= *(pile[i]);
 	    }
 	    else if (ie > ib + 2) { // use compressed res
 		if (ibis::gVerbose > 5) {
 		    double sb = 0;
 		    for (uint32_t i = ib; i < ie; ++i)
-			sb += bts[i]->bytes();
+			sb += pile[i]->bytes();
 		    ibis::util::logMessage("index", "sumBits(%lu, %lu) using "
 					   "compressed bitvector, total "
 					   "input bitmap size is %lG bytes",
@@ -7202,16 +7256,16 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		for (i = 0; i < ie-ib-1; ++i) {
 		    k = i + 1;
 		    for (j = k+1; j < ie-ib; ++j)
-			if (bts[ind[j]]->bytes() < bts[ind[k]]->bytes())
+			if (pile[ind[j]]->bytes() < pile[ind[k]]->bytes())
 			    k = j;
-		    if (bts[ind[i]]->bytes() > bts[ind[k]]->bytes()) {
+		    if (pile[ind[i]]->bytes() > pile[ind[k]]->bytes()) {
 			j = ind[i];
 			ind[i] = ind[k];
 			ind[k] = j;
 		    }
 		    else {
 			++ i;
-			if (bts[ind[i]]->bytes() > bts[ind[k]]->bytes()) {
+			if (pile[ind[i]]->bytes() > pile[ind[k]]->bytes()) {
 			    j = ind[i];
 			    ind[i] = ind[k];
 			    ind[k] = j;
@@ -7219,34 +7273,34 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		    }
 		}
 		// evaluate according the order ind
-		res.copy(*(bts[ind[0]]));
+		res.copy(*(pile[ind[0]]));
 		for (i = 1; i < ie-ib; ++i)
-		    res |= *(bts[ind[i]]);
+		    res |= *(pile[ind[i]]);
 	    }
 	    else if (ie > ib + 1) {
 		if (ibis::gVerbose > 5) {
-		    double sb = bts[ib]->bytes();
-		    sb += bts[ib+1]->bytes();
+		    double sb = pile[ib]->bytes();
+		    sb += pile[ib+1]->bytes();
 		    ibis::util::logMessage("index", "sumBits(%lu, %lu) using "
 					   "compressed bitvector, total "
 					   "input bitmap size is %lG bytes",
 					   static_cast<long unsigned>(ib),
 					   static_cast<long unsigned>(ie), sb);
 		}
-		res.copy(*(bts[ib]));
-		res |= *(bts[ib+1]);
+		res.copy(*(pile[ib]));
+		res |= *(pile[ib+1]);
 	    }
 	    else {
-		res.copy(*(bts[ib]));
+		res.copy(*(pile[ib]));
 	    }
 	}
 	else if (nobs - ie + ib > 64) { // use uncompressed res
 	    if (ibis::gVerbose > 5) {
 		double sb = 0;
 		for (uint32_t i = 0; i < ib; ++i)
-		    sb += bts[i]->bytes();
+		    sb += pile[i]->bytes();
 		for (uint32_t i = ie; i < nobs; ++i)
-		    sb += bts[i]->bytes();
+		    sb += pile[i]->bytes();
 		ibis::util::logMessage("index", "sumBits(%lu, %lu) using "
 				       "uncompressed bitvecector, total "
 				       "input bitmap size is %lG bytes",
@@ -7255,17 +7309,17 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	    }
 	    if (ib > 0) {
 		-- ib;
-		res.copy(*(bts[ib]));
+		res.copy(*(pile[ib]));
 	    }
 	    else {
-		res.copy(*(bts[ie]));
+		res.copy(*(pile[ie]));
 		++ ie;
 	    }
 	    res.decompress();
 	    for (uint32_t i = 0; i < ib; ++i)
-		res |= *(bts[i]);
+		res |= *(pile[i]);
 	    for (uint32_t i = ie; i < nobs; ++i)
-		res |= *(bts[i]);
+		res |= *(pile[i]);
 	    res.compress();
 	    res.flip();
 	}
@@ -7282,7 +7336,7 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	    else if (ind.size() > 3) {
 		uint32_t tot = 0;
 		for (uint32_t i = 0; i < ind.size(); ++i)
-		    tot += bts[ind[i]]->bytes();
+		    tot += pile[ind[i]]->bytes();
 		if (tot > (sz >> 2))
 		    decmp = true;
 		else if (tot > (sz >> 3) && ind.size() > 8)
@@ -7294,7 +7348,7 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		    uint32_t j = 0;
 		    uint32_t large=0, tmp;
 		    for (uint32_t i = 0; i < ind.size(); ++i) {
-			tmp = bts[ind[i]]->bytes();
+			tmp = pile[ind[i]]->bytes();
 			if (tmp > large) {
 			    large = tmp;
 			    j = i;
@@ -7312,10 +7366,10 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 					   static_cast<long unsigned>(ib),
 					   static_cast<long unsigned>(ie), sb);
 		}
-		res.copy(*(bts[ind[0]]));
+		res.copy(*(pile[ind[0]]));
 		res.decompress();
 		for (uint32_t i = 1; i < ind.size(); ++i)
-		    res |= *(bts[ind[i]]);
+		    res |= *(pile[ind[i]]);
 		res.compress();
 	    }
 	    else {
@@ -7323,7 +7377,7 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		if (ibis::gVerbose > 5) {
 		    double sb = 0;
 		    for (uint32_t i = 0; i < nb; ++i)
-			sb += bts[ind[i]]->bytes();
+			sb += pile[ind[i]]->bytes();
 		    ibis::util::logMessage("index", "sumBits(%lu, %lu) using "
 					   "compressed bitvector, total "
 					   "input bitmap size is %lG bytes",
@@ -7335,16 +7389,16 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		for (i = 0; i < nb-1; ++i) {
 		    k = i + 1;
 		    for (j = k + 1; j < nb; ++j)
-			if (bts[ind[j]]->bytes() < bts[ind[k]]->bytes())
+			if (pile[ind[j]]->bytes() < pile[ind[k]]->bytes())
 			    k = j;
-		    if (bts[ind[i]]->bytes() > bts[ind[k]]->bytes()) {
+		    if (pile[ind[i]]->bytes() > pile[ind[k]]->bytes()) {
 			j = ind[i];
 			ind[i] = ind[k];
 			ind[k] = j;
 		    }
 		    else {
 			++ i;
-			if (bts[ind[i]]->bytes() > bts[ind[k]]->bytes()) {
+			if (pile[ind[i]]->bytes() > pile[ind[k]]->bytes()) {
 			    j = ind[i];
 			    ind[i] = ind[k];
 			    ind[k] = j;
@@ -7352,9 +7406,9 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		    }
 		}
 		// evaluate in the order specified by ind
-		res.copy(*(bts[ind[0]]));
+		res.copy(*(pile[ind[0]]));
 		for (i = 1; i < nb; ++i)
-		    res |= *(bts[ind[i]]);
+		    res |= *(pile[ind[i]]);
 	    }
 	    res.flip();
 	}
@@ -7376,7 +7430,7 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
     // (1) if the two size of the first two are greater than the
     // uncompressed size of one bitmap, use option 1.  Because the
     // operation of the first two will produce an uncompressed result,
-    // it will sum together all other bts with to the uncompressed
+    // it will sum together all other bitmaps with to the uncompressed
     // result generated already.
     // (2) if total size (bytes) times log 2 of number of bitmaps
     // is less than or equal to the size of an uncompressed
@@ -7391,18 +7445,18 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	timer.start();
 	if (straight) {
 	    for (uint32_t i = ib; i < ie; ++i) {
-		if (bts[i])
-		    bytes += bts[i]->bytes();
+		if (pile[i])
+		    bytes += pile[i]->bytes();
 	    }
 	}
 	else {
 	    for (uint32_t i = 0; i < ib; ++i) {
-		if (bts[i])
-		    bytes += bts[i]->bytes();
+		if (pile[i])
+		    bytes += pile[i]->bytes();
 	    }
 	    for (uint32_t i = ie; i < nobs; ++i) {
-		if (bts[i])
-		    bytes += bts[i]->bytes();
+		if (pile[i])
+		    bytes += pile[i]->bytes();
 	    }
 	}
     }
@@ -7410,26 +7464,26 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 			     sz * 2 / 15 :
 			     sz * 4 / 31);
     if (straight) {
-	uint32_t sum2 = (bts[ib] ? bts[ib]->bytes() : 0U) +
-	    (bts[ib+1] ? bts[ib+1]->bytes() : 0U);
+	uint32_t sum2 = (pile[ib] ? pile[ib]->bytes() : 0U) +
+	    (pile[ib+1] ? pile[ib+1]->bytes() : 0U);
 	if (sum2 >= uncomp) {
 	    uint32_t i;
-	    for (i = ib; i < ie && bts[i] == 0; ++ i);
+	    for (i = ib; i < ie && pile[i] == 0; ++ i);
 	    if (i < ie)
-		res.copy(*(bts[i]));
+		res.copy(*(pile[i]));
 	    else
 		res.set(0, sz);
 	    for (++ i; i < ie; ++ i) {
-		if (bts[i])
-		    res |= *(bts[i]);
+		if (pile[i])
+		    res |= *(pile[i]);
 	    }
 	}
 	else {
 	    // need to compute the total size of all bitmaps
 	    if (bytes == 0) {
 		for (uint32_t i = ib; i < ie; ++i)
-		    if (bts[i])
-			bytes += bts[i]->bytes();
+		    if (pile[i])
+			bytes += pile[i]->bytes();
 	    }
 	    if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 		// put all bitmaps in a priority queue
@@ -7439,8 +7493,8 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 
 		// populate the priority queue with the original input
 		for (uint32_t i = ib; i < ie; ++i) {
-		    if (bts[i]) {
-			op1.first = bts[i];
+		    if (pile[i]) {
+			op1.first = pile[i];
 			op1.second = false;
 			que.push(op1);
 		    }
@@ -7501,13 +7555,13 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	    }
 	    else {
 		uint32_t i;
-		for (i = ib; i < ie && bts[i] == 0; ++ i);
+		for (i = ib; i < ie && pile[i] == 0; ++ i);
 		if (i < ie) {
-		    res.copy(*(bts[i]));
+		    res.copy(*(pile[i]));
 		    res.decompress();
 		    for (++ i; i < ie; ++ i)
-			if (bts[i])
-			    res |= *(bts[i]);
+			if (pile[i])
+			    res |= *(pile[i]);
 		}
 		else {
 		    res.set(0, sz);
@@ -7518,45 +7572,45 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
     else { // use complements
 	uint32_t sum2;
 	if (ib > 1) {
-	    sum2 = bts[0]->bytes() + (bts[1] ? bts[1]->bytes() : 0U);
+	    sum2 = pile[0]->bytes() + (pile[1] ? pile[1]->bytes() : 0U);
 	}
 	else if (ib == 1) {
-	    sum2 = bts[0]->bytes() + (bts[ie] ? bts[ie]->bytes() : 0U);
+	    sum2 = pile[0]->bytes() + (pile[ie] ? pile[ie]->bytes() : 0U);
 	}
 	else {
-	    sum2 = (bts[ie] ? bts[ie]->bytes() : 0U) +
-		(bts[ie+1] ? bts[ie+1]->bytes() : 0U);
+	    sum2 = (pile[ie] ? pile[ie]->bytes() : 0U) +
+		(pile[ie+1] ? pile[ie+1]->bytes() : 0U);
 	}
 	if (sum2 >= uncomp) { // take advantage of automate decopression
 	    if (ib > 1) {
-		res.copy(*(bts[0]));
+		res.copy(*(pile[0]));
 		for (uint32_t i = 1; i < ib; ++i)
-		    if (bts[i])
-			res |= *(bts[i]);
+		    if (pile[i])
+			res |= *(pile[i]);
 	    }
 	    else if (ib == 1) {
-		res.copy(*(bts[0]));
+		res.copy(*(pile[0]));
 	    }
 	    else {
-		while (ie < nobs && bts[ie] == 0)
+		while (ie < nobs && pile[ie] == 0)
 		    ++ ie;
 		if (ie < nobs) {
-		    res.copy(*(bts[ie]));
+		    res.copy(*(pile[ie]));
 		    ++ ie;
 		}
 	    }
 	    for (uint32_t i = ie; i < nobs; ++i)
-		if (bts[i])
-		    res |= *(bts[i]);
+		if (pile[i])
+		    res |= *(pile[i]);
 	}
 	else { // need to look at the total size
 	    if (bytes == 0) {
 		for (uint32_t i = 0; i < ib; ++i)
-		    if (bts[i])
-			bytes += bts[i]->bytes();
+		    if (pile[i])
+			bytes += pile[i]->bytes();
 		for (uint32_t i = ie; i < nobs; ++i)
-		    if (bts[i])
-			bytes += bts[i]->bytes();
+		    if (pile[i])
+			bytes += pile[i]->bytes();
 	    }
 	    if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
 		// use priority queue for all bitmaps
@@ -7566,15 +7620,15 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 
 		// populate the priority queue with the original input
 		for (uint32_t i = 0; i < ib; ++i) {
-		    if (bts[i]) {
-			op1.first = bts[i];
+		    if (pile[i]) {
+			op1.first = pile[i];
 			op1.second = false;
 			que.push(op1);
 		    }
 		}
 		for (uint32_t i = ie; i < nobs; ++i) {
-		    if (bts[i]) {
-			op1.first = bts[i];
+		    if (pile[i]) {
+			op1.first = pile[i];
 			op1.second = false;
 			que.push(op1);
 		    }
@@ -7636,21 +7690,21 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	    else if (sum2 <= (uncomp >> 2)){
 		// uncompress the first bitmap generated
 		if (ib > 1) {
-		    res.copy(*(bts[0]));
+		    res.copy(*(pile[0]));
 		    res.decompress();
 		    for (uint32_t i = 1; i < ib; ++i)
-			if (bts[i])
-			    res |= *(bts[i]);
+			if (pile[i])
+			    res |= *(pile[i]);
 		}
 		else if (ib == 1) {
-		    res.copy(*(bts[0]));
+		    res.copy(*(pile[0]));
 		    res.decompress();
 		}
 		else {
-		    while (ie < nobs && bts[ie] == 0)
+		    while (ie < nobs && pile[ie] == 0)
 			++ ie;
 		    if (ie < nobs) {
-			res.copy(*(bts[ie]));
+			res.copy(*(pile[ie]));
 			res.decompress();
 			++ ie;
 		    }
@@ -7659,28 +7713,28 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 		    }
 		}
 		for (uint32_t i = ie; i < nobs; ++i)
-		    if (bts[i])
-			res |= *(bts[i]);
+		    if (pile[i])
+			res |= *(pile[i]);
 	    }
 	    else if (ib > 0) {
-		res.copy(*(bts[0]));
+		res.copy(*(pile[0]));
 		res.decompress();
 		for (uint32_t i = 1; i < ib; ++i)
-		    if (bts[i])
-			res |= *(bts[i]);
+		    if (pile[i])
+			res |= *(pile[i]);
 		for (uint32_t i = ie; i < nobs; ++i)
-		    if (bts[i])
-			res |= *(bts[i]);
+		    if (pile[i])
+			res |= *(pile[i]);
 	    }
 	    else {
-		while (ie < nobs && bts[ie] == 0)
+		while (ie < nobs && pile[ie] == 0)
 		    ++ ie;
 		if (ie < nobs) {
-		    res.copy(*(bts[ie]));
+		    res.copy(*(pile[ie]));
 		    res.decompress();
 		    for (uint32_t i = ie+1; i < nobs; ++i)
-			if (bts[i])
-			    res |= *(bts[i]);
+			if (pile[i])
+			    res |= *(pile[i]);
 		}
 		else {
 		    res.set(0, sz);
@@ -7708,25 +7762,25 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 #endif
 } // ibis::index::sumBits
 
-/// Sum up @c bts[ib:ie-1] and add the result to @c res.  It is assumed
-/// that all bts add up to @c tot.  In the other version of sumBits without
+/// Sum up @c pile[ib:ie-1] and add the result to @c res.  It is assumed
+/// that all pile add up to @c tot.  In the other version of sumBits without
 /// this argument @c tot, it was assumed that all bitmaps add up to a bit
-/// vector of all ones.  The decision of whether to use bts[ib:ie-1]
-/// directly or use the subtractive version (with bts[0:ib-1] and
-/// bts[ie:nobs-1]) are based on the number of bit vectors.  The caller is
+/// vector of all ones.  The decision of whether to use pile[ib:ie-1]
+/// directly or use the subtractive version (with pile[0:ib-1] and
+/// pile[ie:nobs-1]) are based on the number of bit vectors.  The caller is
 /// responsible to ensuring the necessary bitmaps are already in memory
 /// before calling this function.
-void ibis::index::sumBits(const array_t<bitvector*>& bts,
+void ibis::index::sumBits(const array_t<bitvector*>& pile,
 			  const ibis::bitvector& tot, uint32_t ib,
 			  uint32_t ie, ibis::bitvector& res) {
     LOGGER(ibis::gVerbose > 7)
-	<< "index::sumBits(" << bts.size()
+	<< "index::sumBits(" << pile.size()
 	<< "-bitvector set, tot(" << tot.cnt() << ", " << tot.size()
 	<< "), " << ib << ", " << ie << "res(" << res.cnt() << ", "
 	<< res.size() << ")) ...";
     const uint32_t uncomp = (ibis::bitvector::bitsPerLiteral() == 8 ?
 			     tot.size() * 2 / 15 : tot.size() * 4 / 31);
-    const uint32_t nobs = bts.size();
+    const uint32_t nobs = pile.size();
     if (ie > nobs)
 	ie = nobs;
     if (ib >= ie || ib >= nobs) {
@@ -7746,33 +7800,33 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	else if (nb > 3) {
 	    uint32_t tb = 0;
 	    for (uint32_t i = ib; i < ie; ++ i)
-		if (bts[i])
-		    tb += bts[i]->bytes();
+		if (pile[i])
+		    tb += pile[i]->bytes();
 	    if (nb * log(static_cast<double>(nb)) >
 		uncomp / static_cast<double>(tb))
 		res.decompress();
 	}
 	for (uint32_t i=ib; i<ie; ++i)
-	    if (bts[i])
-		res |= *(bts[i]);
+	    if (pile[i])
+		res |= *(pile[i]);
     }
     else if (ib == 0 && ie >= nobs) { // all bitmaps
 	res |= tot;
     }
     else { // more than half (but not all)
 	ibis::bitvector tmp;
-	while (ib > 0 && bts[ib-1] == 0)
+	while (ib > 0 && pile[ib-1] == 0)
 	    -- ib;
-	if (bts[ib]) {
-	    tmp.copy(*(bts[ib]));
+	if (pile[ib]) {
+	    tmp.copy(*(pile[ib]));
 	    if (ib > 0)
 		-- ib;
 	}
 	else {
-	    while (ie < nobs && bts[ie] == 0)
+	    while (ie < nobs && pile[ie] == 0)
 		++ ie;
 	    if (ie < nobs) {
-		tmp.copy(*(bts[ie]));
+		tmp.copy(*(pile[ie]));
 		++ ie;
 	    }
 	    else {
@@ -7786,21 +7840,21 @@ void ibis::index::sumBits(const array_t<bitvector*>& bts,
 	else if (nb > 3) {
 	    uint32_t tb = 0;
 	    for (uint32_t i = 0; i < ib; ++ i)
-		if (bts[i])
-		    tb += bts[i]->bytes();
+		if (pile[i])
+		    tb += pile[i]->bytes();
 	    for (uint32_t i = ie; i < nobs; ++ i)
-		if (bts[i])
-		    tb += bts[i]->bytes();
+		if (pile[i])
+		    tb += pile[i]->bytes();
 	    if (nb * log(static_cast<double>(nb))
 		> uncomp / static_cast<double>(tb))
 		tmp.decompress();
 	}
 	for (uint32_t i = 0; i < ib; ++ i)
-	    if (bts[i])
-		tmp |= *(bts[i]);
+	    if (pile[i])
+		tmp |= *(pile[i]);
 	for (uint32_t i = ie; i < nobs; ++ i)
-	    if (bts[i])
-		tmp |= *(bts[i]);
+	    if (pile[i])
+		tmp |= *(pile[i]);
 	ibis::bitvector diff(tot);
 	diff -= tmp;
 	res |= diff;
@@ -7902,9 +7956,9 @@ void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 } // ibis::index::setBases
 
 /// Decide whether to uncompress the bitmaps.
-void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
+void ibis::index::optionalUnpack(array_t<bitvector*>& pile,
 				 const char *opt) {
-    const size_t nobs = bts.size();
+    const size_t nobs = pile.size();
     const char *ptr = 0;
     if (opt != 0)
 	ptr = strstr(opt, "<compressing ");
@@ -7917,8 +7971,8 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	    case 'a':
 	    case 'A': { // uncompressAll
 		for (size_t i = 0; i < nobs; ++i) {
-		    if (bts[i])
-			bts[i]->decompress();
+		    if (pile[i])
+			pile[i]->decompress();
 		}
 		break;
 	    }
@@ -7933,13 +7987,13 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 			dens = 0.125;
 		}
 		for (size_t i = 0; i < nobs; ++i) {
-		    if (bts[i]) {
+		    if (pile[i]) {
 #ifdef FASTBIT_RETRY_COMPRESSION
-			bts[i]->compress();
+			pile[i]->compress();
 #endif
-			if (bts[i]->cnt() >
-			    static_cast<size_t>(dens * bts[i]->size()))
-			    bts[i]->decompress();
+			if (pile[i]->cnt() >
+			    static_cast<size_t>(dens * pile[i]->size()))
+			    pile[i]->decompress();
 		    }
 		}
 		break;
@@ -7955,13 +8009,13 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 			cr = 0.75;
 		}
 		for (size_t i = 0; i < nobs; ++i) {
-		    if (bts[i]) {
+		    if (pile[i]) {
 #ifdef FASTBIT_RETRY_COMPRESSION
-			bts[i]->compress();
+			pile[i]->compress();
 #endif
-			if (bts[i]->bytes() > static_cast<size_t>
-			    (ceil(cr * (bts[i]->size()>>3))))
-			    bts[i]->decompress();
+			if (pile[i]->bytes() > static_cast<size_t>
+			    (ceil(cr * (pile[i]->size()>>3))))
+			    pile[i]->decompress();
 		    }
 		}
 		break;
@@ -7971,8 +8025,8 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	}
 	else if (strnicmp(ptr, "recompress", 10) == 0) {
 	    for (size_t j = 0; j < nobs; ++ j) {
-		if (bts[j] != 0)
-		    bts[j]->compress();
+		if (pile[j] != 0)
+		    pile[j]->compress();
 	    }
 	}
     }
@@ -7991,8 +8045,8 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	if (ibis::gParameters().isTrue(uA.c_str())) {
 	    // decompress the bitvectors as requested
 	    for (size_t i = 0; i < nobs; ++i) {
-		if (bts[i])
-		    bts[i]->decompress();
+		if (pile[i])
+		    pile[i]->decompress();
 	    }
 	}
 	else if (ibis::gParameters().isTrue(uL.c_str())) {
@@ -8000,12 +8054,12 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	    // with compression ratios larger than 1/3
 	    size_t bar0 = nrows / 24;
 	    for (size_t i = 0; i < nobs; ++i) {
-		if (bts[i]) {
+		if (pile[i]) {
 #ifdef FASTBIT_RETRY_COMPRESSION
-		    bts[i]->compress();
+		    pile[i]->compress();
 #endif
-		    if (bts[i]->bytes() > bar0)
-			bts[i]->decompress();
+		    if (pile[i]->bytes() > bar0)
+			pile[i]->decompress();
 		}
 	    }
 	}
@@ -8013,12 +8067,12 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& bts,
 	    // decompress very heavy bitvectors, > 8/9
 	    size_t bar1 = nrows / 9;
 	    for (size_t i = 0; i < nobs; ++i) {
-		if (bts[i]) {
+		if (pile[i]) {
 #ifdef FASTBIT_RETRY_COMPRESSION
-		    bts[i]->compress();
+		    pile[i]->compress();
 #endif
-		    if (bts[i]->bytes() > bar1)
-			bts[i]->decompress();
+		    if (pile[i]->bytes() > bar1)
+			pile[i]->decompress();
 		}
 	    }
 	}

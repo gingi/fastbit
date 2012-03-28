@@ -1524,9 +1524,12 @@ bool ibis::qContinuousRange::empty() const {
 } // ibis::qContinuousRange::empty
 
 void ibis::qContinuousRange::print(std::ostream& out) const {
-    if (name == 0 || *name == 0 ||
-	(left_op == OP_UNDEFINED && right_op == OP_UNDEFINED)) {
+    if (name == 0 || *name == 0) {
 	out << "ILL-DEFINED-RANGE";
+	return;
+    }
+    if (left_op == OP_UNDEFINED && right_op == OP_UNDEFINED) {
+	out << name << " NOT NULL";
 	return;
     }
 
@@ -1577,9 +1580,12 @@ void ibis::qContinuousRange::print(std::ostream& out) const {
 } // ibis::qContinuousRange::print
 
 void ibis::qContinuousRange::printFull(std::ostream& out) const {
-    if (name == 0 || *name == 0 ||
-	(left_op == OP_UNDEFINED && right_op == OP_UNDEFINED)) {
+    if (name == 0 || *name == 0) {
 	out << "ILL-DEFINED-RANGE";
+	return;
+    }
+    if (left_op == OP_UNDEFINED && right_op == OP_UNDEFINED) {
+	out << name << " NOT NULL";
 	return;
     }
 
@@ -1812,12 +1818,13 @@ bool ibis::qContinuousRange::overlap(double lo, double hi) const {
     return ret;
 } // ibis::qContinuousRange::overlap
 
-/// The constructor of qString.  The string may contain meta character '\'
-/// that is used to escape the quote and other characters.  The meta
-/// character will also be striped.
+/// The constructor of qString.  For convenience of inputting patterns,
+/// this function allows the back slash to be used as escape characters in
+/// the second argument.  It attempts to remove the back slashes before
+/// passing the second argument to later operations.
 ibis::qString::qString(const char* ls, const char* rs) :
     qExpr(ibis::qExpr::STRING), lstr(ibis::util::strnewdup(ls)) {
-    // need to remove leading and trailing quote and the meta characters
+    // attempt to remove the back slash as escape characters
     rstr = new char[1+strlen(rs)];
     const char* cptr = rs;
     char* dptr = rstr;
@@ -1847,14 +1854,17 @@ void ibis::qString::getTableNames(std::set<std::string>& plist) const {
     }
 } // ibis::qString::getTableNames
 
-/// Constructor.
+/// Constructor.  For convenience of inputting patterns, this function
+/// allows the back slash to be used as escape characters for the second
+/// argument, and attempts to remove them before passing the pattern
+/// expression to later operations.
 ibis::qLike::qLike(const char* ls, const char* rs) :
     qExpr(ibis::qExpr::LIKE), lstr(ibis::util::strnewdup(ls)) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     LOGGER(ibis::gVerbose > 5)
 	<< "qLike::ctor(\"" << ls << "\", \"" << rs << "\") ...";
 #endif
-    // need to remove leading and trailing quote and the meta characters
+    // attempt to remove back slash used as escape characters
     rpat = new char[1+strlen(rs)];
     const char* cptr = rs;
     char* dptr = rpat;
