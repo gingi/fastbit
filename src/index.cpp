@@ -6367,12 +6367,21 @@ void ibis::index::sumBins(const ibis::array_t<uint32_t> &bns,
 	return;
     }
     if (bns.size() == 1) {
-	activate(bns[0]);
-	if (bits[bns[0]] != 0) {
-	    ibis::bitvector tmp(*(bits[bns[0]]));
-	    res.swap(tmp);
+	if (bns[0] < bits.size()) {
+	    activate(bns[0]);
+	    if (bits[bns[0]] != 0) {
+		ibis::bitvector tmp(*(bits[bns[0]]));
+		res.swap(tmp);
+	    }
+	    else {
+		res.set(0, nrows);
+	    }
 	}
 	else {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "Warning -- index::sumBins encountered a bin number ("
+		<< bns[0] << ") that is too large, expect to be less than "
+		<< bits.size();
 	    res.set(0, nrows);
 	}
 	return;

@@ -14,6 +14,8 @@
 	"colname NOT NULL" as a special case of ibis::qContinuousRange
 	that matches all valid entries
 	* tests/Makefile.am: add test case for "colname NOT NULL"
+	* tests/maurel.csv: shorten the column names, introduce a few null
+	values in columns i and q
 
 2012-03-28 Dominique Prunier <dominique dot prunier at watch4net dot com>
 	* src/qExpr.cpp: restore backslash as escape character

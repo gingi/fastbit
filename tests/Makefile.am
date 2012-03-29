@@ -135,15 +135,18 @@ check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@echo
 check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 	@echo "Output from tests and data contributed by Alexandre Maurel (`/bin/date`)" > $(TESTDIR)/check-maurel.log
-	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Inhibitor where Inhibitor = 'Imatinib'" -output-with-header $(TESTDIR)/maurel-1a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Inhibitor where Inhibitor in ('Imatinib')" -output-with-header $(TESTDIR)/maurel-1b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select I where I = 'Imatinib'" -output-with-header $(TESTDIR)/maurel-1a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select I where I in ('Imatinib')" -output-with-header $(TESTDIR)/maurel-1b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
 	@if [ -f $(TESTDIR)/maurel-1a -a -f $(TESTDIR)/maurel-1b -a `diff -w $(TESTDIR)/maurel-1a $(TESTDIR)/maurel-1b | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -no-estimation -d $(TESTDIR)/maurel -q "select Col, Array where (((((( ! Array == 'D09') AND ( ! Array == 'H07')) AND ( ! Array == 'B04')) AND ( ! (Array == 'B04' AND Visual_QC == 'OK'))) AND Visual_QC == 'OK') AND 2 < Col)" -output-with-header $(TESTDIR)/maurel-2a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Col, Array where (((((( ! Array == 'D09') AND ( ! Array == 'H07')) AND ( ! Array == 'B04')) AND ( ! (Array == 'B04' AND Visual_QC == 'OK'))) AND Visual_QC == 'OK') AND 2 < Col)" -output-with-header $(TESTDIR)/maurel-2b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -no-estimation -d $(TESTDIR)/maurel -q "select C, A where (((((( ! A == 'D09') AND ( ! A == 'H07')) AND ( ! A == 'B04')) AND ( ! (A == 'B04' AND Q == 'OK'))) AND Q == 'OK') AND 2 < C)" -output-with-header $(TESTDIR)/maurel-2a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select C, A where (((((( ! A == 'D09') AND ( ! A == 'H07')) AND ( ! A == 'B04')) AND ( ! (A == 'B04' AND Q == 'OK'))) AND Q == 'OK') AND 2 < C)" -output-with-header $(TESTDIR)/maurel-2b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
 	@if [ -f $(TESTDIR)/maurel-2a -a -f $(TESTDIR)/maurel-2b -a `diff -w $(TESTDIR)/maurel-2a $(TESTDIR)/maurel-2b | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@$(IBISEXE) -no-estimation -d $(TESTDIR)/maurel -q "select Col, countdistinct(Row), avg(cycle*exposure_time) where  (Visual_QC = 'OK') AND ((! ( Array  = 'D09')) AND (! ( Array  = 'H07')) AND (Array != 'B04')) AND (Col > 2) AND (! ( Array  = 'B04' AND Visual_QC  = 'OK'))" -output-with-header $(TESTDIR)/maurel-3a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select Col, countdistinct(Row), avg(cycle*exposure_time) where  (Visual_QC = 'OK') AND ((! ( Array  = 'D09')) AND (! ( Array  = 'H07')) AND !(Array = 'B04')) AND (Col > 2) AND (! ( Array  = 'B04' AND Visual_QC  = 'OK'))" -output-with-header $(TESTDIR)/maurel-3b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -no-estimation -d $(TESTDIR)/maurel -q "select C, countdistinct(R), avg(y*e) where  (Q = 'OK') AND ((! ( A  = 'D09')) AND (! ( A  = 'H07')) AND (A != 'B04')) AND (C > 2) AND (! ( A  = 'B04' AND Q  = 'OK'))" -output-with-header $(TESTDIR)/maurel-3a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select C, countdistinct(R), avg(y*e) where  (Q = 'OK') AND ((! ( A  = 'D09')) AND (! ( A  = 'H07')) AND !(A = 'B04')) AND (C > 2) AND (! ( A  = 'B04' AND Q  = 'OK'))" -output-with-header $(TESTDIR)/maurel-3b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
 	@if [ -f $(TESTDIR)/maurel-3a -a -f $(TESTDIR)/maurel-3b -a `diff -w $(TESTDIR)/maurel-3a $(TESTDIR)/maurel-3b | wc -l` -eq 0 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select b, avg(y) where b='xx2' and q not null" -o $(TESTDIR)/maurel-4a -v 2 >> $(TESTDIR)/check-maurel.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select b, avg(y) where g like 'xx2%' and q not null" -o $(TESTDIR)/maurel-4b -v 2 >> $(TESTDIR)/check-maurel.log 2>&1
+	@if [ -f $(TESTDIR)/maurel-4a -a -f $(TESTDIR)/maurel-4b -a `diff -w $(TESTDIR)/maurel-4a $(TESTDIR)/maurel-4b | wc -l` -eq 0 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-maurel.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-maurel.log; fi
 	@echo
 #
@@ -386,8 +389,8 @@ $(TESTDIR)/2: $(TESTDIR)
 	@test -d $(TESTDIR)/2 || mkdir $(TESTDIR)/2
 $(TESTDIR)/marksdb/-part.txt: readcsv$(EXEEXT) marksdb.csv TESTDIR
 	@test -f $(TESTDIR)/marksdb/-part.txt || ./readcsv marksdb.csv $(TESTDIR)/marksdb >> $(TESTDIR)/std.log 2>&1
-$(TESTDIR)/maurel/-part.txt: readcsv$(EXEEXT) maurel.csv TESTDIR
-	@test -f $(TESTDIR)/maurel/-part.txt || ./readcsv maurel.csv $(TESTDIR)/maurel >> $(TESTDIR)/std.log 2>&1
+$(TESTDIR)/maurel/-part.txt: $(ARDEAEXE) maurel.csv TESTDIR
+	@test -f $(TESTDIR)/maurel/-part.txt || $(ARDEAEXE) -t maurel.csv -d $(TESTDIR)/maurel -m "b:k, r:s, c:s, f:s, e:s, y:s, g:k, t:s, n:k, a:k, v:s, i:k, h:s, d:k, p:s, q:k, s:s, m:s, j:k" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/jrf/-part.txt: jrf$(EXEEXT) TESTDIR
 	@test -f $(TESTDIR)/jrf/-part.txt || ./jrf$(EXEEXT) $(TESTDIR)/jrf 1e5 >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT) TESTDIR
