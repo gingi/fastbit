@@ -92,6 +92,8 @@ public:
     static void stableSort(array_t<T>& val, array_t<uint32_t>& ind,
 			   array_t<T>& tmp, array_t<uint32_t>& itmp);
 
+    bool isSorted() const;
+    bool isSorted(const array_t<uint32_t>&) const;
     bool equal_to(const array_t<T>&) const;
 
     /// Non-modifiable reference to an element of the array.

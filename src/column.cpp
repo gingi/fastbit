@@ -5330,11 +5330,6 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		if (cost < thePart->nRows() * 0.5) {
 		    idx->estimate(cmp, low, high);
 		}
-		else if (m_sorted) {
-		    ierr = searchSorted(cmp, low);
-		    if (ierr < 0)
-			low.clear();
-		}
 		else if (ibis::gVerbose > 1) {
 		    ibis::util::logger lg;
 		    lg() << evt << ") will not use the index because the cost ("
@@ -5346,6 +5341,11 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		if (ierr < 0)
 		    low.clear();
 	    }
+	}
+	if (low.size() != mask.size() && m_sorted) {
+	    ierr = searchSorted(cmp, low);
+	    if (ierr < 0)
+		low.clear();
 	}
 	if (low.size() != mask.size()) { // short index
 	    if (high.size() != low.size())

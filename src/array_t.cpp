@@ -501,7 +501,7 @@ uint32_t ibis::array_t<T>::find(const array_t<uint32_t>& ind,
 } // ibis::array_t<T>::find
 
 /// Find the first position where the value is no less than @c val.
-/// Assuming the array is already sorted in ascending order,
+/// Assuming the array is already sorted in the ascending order,
 /// it returns the smallest i such that @c operator[](i) >= @c val.
 template<class T>
 size_t ibis::array_t<T>::find(const T& val) const {
@@ -528,7 +528,7 @@ size_t ibis::array_t<T>::find(const T& val) const {
 } // ibis::array_t<T>::find
 
 /// Find the first position where the value is greater than @c val.
-/// Assuming the array is already sorted in ascending order,
+/// Assuming the array is already sorted in the ascending order,
 /// it returns the smallest i such that @c operator[](i) > @c val.
 ///
 /// @note The word upper is used in the same sense as in the STL function
@@ -558,8 +558,8 @@ size_t ibis::array_t<T>::find_upper(const T& val) const {
 } // ibis::array_t<T>::find_upper
 
 /// A stable sort using the provided workspace.  The current content is
-/// modified to be in ascending order.  The argument @c tmp is only used as
-/// temporary storage.  It uses the merge sort algorithm.
+/// modified to be in the ascending order.  The argument @c tmp is only
+/// used as temporary storage.  It uses the merge sort algorithm.
 template<class T>
 void ibis::array_t<T>::stableSort(array_t<T>& tmp) {
     const size_t n = size();
@@ -619,6 +619,9 @@ void ibis::array_t<T>::stableSort(array_t<T>& tmp) {
 	swap(tmp);
 	stride += stride; // double the stride every iteration
     }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    (void) isSorted();
+#endif
 } // ibis::array_t<T>::stableSort
 
 /// A stable sort that does not modify the current array.  It uses two
@@ -656,6 +659,9 @@ void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind) const {
     else {
 	ind.clear();
     }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    (void) isSorted(ind);
+#endif
 } // stableSort
 
 /// A stable sort.  It does not change this array, but produces a
@@ -710,6 +716,9 @@ void ibis::array_t<T>::stableSort(array_t<uint32_t>& ind,
 	sorted.clear();
 	ind.clear();
     }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    (void) sorted.isSorted();
+#endif
 } // ibis::array_t<T>::stableSort
 
 /// This function sorts the content of array @c val.  The values of @c
@@ -816,6 +825,71 @@ ibis::array_t<T>::equal_to(const ibis::array_t<T>& other) const {
     return true;
 } // ibis::array_t<T>::equal_to
 
+/// Verify the values are in ascending order.  Returns true if yes,
+/// otherwise no.
+template<class T>
+bool ibis::array_t<T>::isSorted() const {
+    const size_type ni = size();
+    bool sorted = true;
+    for (size_t i = 1; i < ni; ++ i) {
+	if (m_begin[i] < m_begin[i-1]) {
+	    sorted = false;
+	    break;
+	}
+    }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    ibis::util::logger lg(4);
+    if (sorted) {
+	lg() << "DEBUG -- array_t<" << typeid(T).name() << ">::isSorted"
+	     " found the array in the ascending order";
+    }
+    else {
+	lg() << "Warning -- array_t<" << typeid(T).name() << ">::isSorted"
+	     " found the array not in the ascending order";
+	for (size_t i = 0; i < ni; ++i) {
+	    lg() << "\n" << i << "\t" << m_begin[i];
+	    if (i > 0 && m_begin[i] < m_begin[i-1]) {
+		lg() << "\t*";
+	    }
+	}
+    }
+#endif
+    return sorted;
+} // ibis::array_t<T>::isSorted
+
+/// Verify the index array orders the values in the ascending order.
+/// Returns true if yes, otherwise false.
+template<class T>
+bool ibis::array_t<T>::isSorted(const array_t<uint32_t>& ind) const {
+    const size_type ni = ind.size();
+    bool sorted = true;
+    for (size_t i = 1; i < ni; ++ i) {
+	if (m_begin[ind[i]] < m_begin[ind[i-1]]) {
+	    sorted = false;
+	    break;
+	}
+    }
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+    ibis::util::logger lg(4);
+    if (sorted) {
+	lg() << "DEBUG -- array_t<" << typeid(T).name() << ">::isSorted(ind["
+	     << ni << "]) is true";
+    }
+    else {
+	lg() << "Warning -- array_t<" << typeid(T).name() << ">::isSorted(ind["
+	     << ni << "]) is false";
+	for (size_t i = 0; i < ni; ++i) {
+	    lg() << "\nind[" << i << "]=" << ind[i] << "\t"
+		 << m_begin[ind[i]];
+	    if (i > 0 && m_begin[ind[i]] < m_begin[ind[i-1]]) {
+		lg() << "\t*";
+	    }
+	}
+    }
+#endif
+    return sorted;
+} // ibis::array_t<T>::isSorted
+
 /// Remove the duplicate values.  It sorts the values first and remove any
 /// entry that is not in strictly assending order.
 ///
@@ -845,7 +919,10 @@ void ibis::array_t<T>::deduplicate() {
     if (flag > 1) return; // nothing to do
 
     nosharing(); // prepare for changes
-    std::sort(m_begin, m_end);
+    if (flag == 0) // need to sort values
+	std::sort(m_begin, m_end);
+
+    // deduplicate
     size_t sz = 0;
     for (size_t j = 1; j < oldsize; ++ j) {
 	if (m_begin[sz] < m_begin[j]) {
@@ -887,28 +964,7 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
     // call qsort to do the actual work
     qsort(ind, 0, ni);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-    ibis::util::logger lg(4);
-    bool sorted = true;
-    for (size_t i = 1; i < ni; ++ i) {
-	if (m_begin[ind[i]] < m_begin[ind[i-1]]) {
-	    sorted = false;
-	    break;
-	}
-    }
-    if (sorted) {
-	lg() << "DEBUG -- sort(ind[" << ni
-	     << "]) verified results to be in ascending order";
-    }
-    else {
-	lg() << "Warning -- sort(ind[" << ni << "]) did not sort correctly";
-	for (size_t i = 0; i < ni; ++i) {
-	    lg() << "\nind[" << i << "]=" << ind[i] << "\t"
-		 << m_begin[ind[i]];
-	    if (i > 0 && m_begin[ind[i]] < m_begin[ind[i-1]]) {
-		lg() << "\t*";
-	    }
-	}
-    }
+    (void) isSorted(ind);
 #endif
 } // ibis::array_t<T>::sort
 
@@ -921,7 +977,7 @@ void ibis::array_t<T>::sort(array_t<uint32_t>& ind) const {
 /// ind may have less than @c k elements if this array has less than @c k
 /// elements.
 ///
-///@note The values are sorted in ascending order, i.e., <code>[ind[i]] <=
+///@note The values are sorted in the ascending order, i.e., <code>[ind[i]] <=
 /// [ind[i+1]]</code>.  This is done so that all sorting routines produce
 /// indices in the same ascending order.  It should be easy to reverse the
 /// order the indices since it only contains the largest values.
@@ -1104,7 +1160,7 @@ void ibis::array_t<T>::qsort(array_t<uint32_t>& ind, uint32_t front,
     }
     if (sorted) {
 	lg() << "DEBUG -- qsort(" << front << ", " << back
-	     << ") verified results to be in ascending order";
+	     << ") verified results to be in the ascending order";
     }
     else {
 	lg() << "Warning -- qsort(" << front << ", " << back

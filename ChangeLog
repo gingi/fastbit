@@ -4,6 +4,10 @@
 	therefore valid strings
 	* tests/Makefile.am: the dollar signs in the input to w7 requires
 	escape for the program make
+	* src/array_t.h, src/array_t.cpp: add function isSorted to
+	consolidate error checking
+	* src/iroster.cpp: in ibis::roster::writeSorted use int32_t for
+	LONG type
 
 2012-03-29 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: introduce % into the categorical values of w7

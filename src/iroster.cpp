@@ -405,7 +405,7 @@ int ibis::roster::writeSorted(const char *df) const {
 	}
 	break;}
     case ibis::LONG: {
-	array_t<int32_t> arr;
+	array_t<int64_t> arr;
 	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), arr);
 	if (ierr == 0) {
 	    for (uint32_t i = 0; i < ind.size(); ++ i) {
@@ -644,7 +644,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -667,7 +668,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -690,7 +692,7 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting "
+	    lg() << "DEBUG -- roster::icSort -- value, starting "
 		"position, count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
@@ -714,7 +716,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -737,7 +740,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -760,7 +764,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -783,7 +788,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -806,7 +812,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG  -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -829,7 +836,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -852,7 +860,8 @@ void ibis::roster::icSort(const char* fin) {
 	    uint32_t i = 0, j = 0;
 	    ibis::util::logger lg(4);
 	    const uint32_t n = ind.size();
-	    lg() << "roster::icSort -- value, starting position, count\n";
+	    lg() << "DEBUG -- roster::icSort -- value, starting position, "
+		"count\n";
 	    while (i < n) {
 		tmp = val[ind[i]];
 		++ j;
@@ -2267,8 +2276,14 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 
     uint32_t iv = 0;
     uint32_t it = 0;
-    const uint32_t nvals = vals.size();
     array_t<T> tmp;
+    const uint32_t nvals = vals.size();
+
+    LOGGER(ibis::gVerbose > 4)
+	<< "roster::icSearch<" << typeid(T).name()
+	<< "> attempting to read the content of " << fname
+	<< " to locate " << vals.size() << " value"
+	<< (vals.size()>1?"s":"");
     int ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
     if (ierr == 0) { // got the sorted values
 	while (iv < nvals && it < nrows) {
@@ -2286,6 +2301,12 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 		++ it;
 	    }
 	}
+
+	LOGGER(ibis::gVerbose > 4)
+	    << "roster::icSearch<" << typeid(T).name()
+	    << "> read the content of " << fname
+	    << " and found " << pos.size() << " match"
+	    << (pos.size()>1?"es":"");
 	return (pos.size() > 0);
     }
     else {
@@ -2343,6 +2364,11 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
     fname += col->name();
     int len = fname.size();
     fname += ".srt";
+    LOGGER(ibis::gVerbose > 4)
+	<< "roster::oocSearch<" << typeid(T).name()
+	<< "> attempting to read the content of " << fname
+	<< " to locate " << vals.size() << " value"
+	<< (vals.size()>1?"s":"");
 
     const uint32_t nvals = vals.size();
     const uint32_t nrows = col->partition()->nRows();
@@ -2394,6 +2420,11 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	    }
 	}
 
+	LOGGER(ibis::gVerbose > 4)
+	    << "roster::oocSearch<" << typeid(T).name()
+	    << "> read the content of " << fname
+	    << " and found " << pos.size() << " match"
+	    << (pos.size()>1?"es":"");
 	return (pos.size() > 0);
     }
 
@@ -2503,6 +2534,12 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	    }
 	}
     }
+
+    LOGGER(ibis::gVerbose > 4)
+	<< "roster::oocSearch<" << typeid(T).name()
+	<< "> read the content of " << fname
+	<< " and found " << pos.size() << " match"
+	<< (pos.size()>1?"es":"");
     return (pos.size() > 0);
 } // ibis::roster::oocSearch
 
@@ -2527,8 +2564,14 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 
     uint32_t iv = 0;
     uint32_t it = 0;
-    const uint32_t nvals = vals.size();
     array_t<T> tmp;
+    const uint32_t nvals = vals.size();
+
+    LOGGER(ibis::gVerbose > 4)
+	<< "roster::icSearch<" << typeid(T).name()
+	<< "> attempting to read the content of " << fname
+	<< " to locate " << vals.size() << " value"
+	<< (vals.size()>1?"s":"");
     int ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
     if (ierr == 0) { // got the sorted values
 	while (iv < nvals && it < nrows) {
@@ -2546,6 +2589,12 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 		++ it;
 	    }
 	}
+
+	LOGGER(ibis::gVerbose > 4)
+	    << "roster::icSearch<" << typeid(T).name()
+	    << "> read the content of " << fname
+	    << " and found " << pos.size() << " match"
+	    << (pos.size()>1?"es":"");
 	return (pos.size() > 0);
     }
     else {
@@ -2602,6 +2651,11 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
     fname += col->name();
     int len = fname.size();
     fname += ".srt";
+    LOGGER(ibis::gVerbose > 4)
+	<< "roster::oocSearch<" << typeid(T).name()
+	<< "> attempting to read the content of " << fname
+	<< " to locate " << vals.size() << " value"
+	<< (vals.size()>1?"s":"");
 
     const uint32_t nvals = vals.size();
     const uint32_t nrows = col->partition()->nRows();
@@ -2653,6 +2707,11 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	    }
 	}
 
+	LOGGER(ibis::gVerbose > 4)
+	    << "roster::oocSearch<" << typeid(T).name()
+	    << "> read the content of " << fname
+	    << " and found " << pos.size() << " match"
+	    << (pos.size()>1?"es":"");
 	return (pos.size() > 0);
     }
 
@@ -2763,6 +2822,11 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	}
     }
 
+    LOGGER(ibis::gVerbose > 4)
+	<< "roster::oocSearch<" << typeid(T).name()
+	<< "> read the content of " << fname
+	<< " and found " << pos.size() << " match"
+	<< (pos.size()>1?"es":"");
     return (pos.size() > 0);
 } // ibis::roster::oocSearch
 
