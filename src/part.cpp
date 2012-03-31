@@ -18570,7 +18570,7 @@ int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
     }
 
     totmask += newmask;
-    totmask.adjustSize(totmask.size(), nnew+nold);
+    totmask.adjustSize(0, nnew+nold);
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << "part::writeString wrote " << pos

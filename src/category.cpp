@@ -854,7 +854,7 @@ long ibis::category::patternSearch(const char *pat,
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- category[" << (thePart != 0 ? thePart->name() : "??")
 	    << '.' << m_name << "]::patternSearch can not proceed without "
-	    "an index ";
+	    "the latex version of index";
 	return -3;
     }
 
@@ -868,8 +868,10 @@ long ibis::category::patternSearch(const char *pat,
 	hits.set(0, thePart->nRows());
 	return 0;
     }
-    rlc->sumBins(tmp, hits);
-    return hits.sloppyCount();
+    else {
+	rlc->sumBins(tmp, hits);
+	return hits.sloppyCount();
+    }
 } // ibis::category::patternSearch
 
 /// Return the string at the <code>i</code>th row.  If the .int file is

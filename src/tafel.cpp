@@ -915,7 +915,10 @@ void ibis::tafel::normalize() {
     }
     if (! need2nd) return;
 
-    // second loop - adjust the array sizes
+    LOGGER(ibis::gVerbose > 5)
+	<< "tafel::normalize - setting number of rows to " << mrows
+	<< ", adjusting all in-memory data to reflect this change";
+    // second loop - adjust the arrays and null masks
     for (columnList::iterator it = cols.begin(); it != cols.end(); ++ it) {
 	column& col = *((*it).second);
 	switch (col.type) {
@@ -924,7 +927,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<signed char>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<signed char*>(col.defval));
 		}
@@ -943,7 +946,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<unsigned char>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<unsigned char*>(col.defval));
 		}
@@ -962,7 +965,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<int16_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<int16_t*>(col.defval));
 		}
@@ -981,7 +984,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<uint16_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<uint16_t*>(col.defval));
 		}
@@ -1000,7 +1003,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<int32_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<int32_t*>(col.defval));
 		}
@@ -1019,7 +1022,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<uint32_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<uint32_t*>(col.defval));
 		}
@@ -1058,7 +1061,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<uint64_t>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<uint64_t*>(col.defval));
 		}
@@ -1078,7 +1081,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<float>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<float*>(col.defval));
 		}
@@ -1098,7 +1101,7 @@ void ibis::tafel::normalize() {
 		*static_cast<array_t<double>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<double*>(col.defval));
 		}
@@ -1119,7 +1122,7 @@ void ibis::tafel::normalize() {
 		*static_cast<std::vector<std::string>*>(col.values);
 	    if (vals.size() < mrows) {
 		if (col.defval != 0) {
-		    col.mask.set(1, mrows);
+		    col.mask.adjustSize(mrows, mrows);
 		    vals.insert(vals.end(), mrows-vals.size(),
 				*static_cast<std::string*>(col.defval));
 		}
@@ -1852,6 +1855,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     md << "\nEND HEADER\n";
 
     int ierr = 0;
+    const_cast<tafel*>(this)->normalize();
     for (columnList::const_iterator it = cols.begin();
 	 it != cols.end(); ++ it) {
 	const column& col = *((*it).second);
@@ -2073,13 +2077,12 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	    return ierr;
 	}
 
-	if (col.defval != 0) { // 
-	    if (msk.size() == mrows) {
-		msk.set(1, mrows);
+	if (msk.size() != nold+mrows) {
+	    if (col.defval != 0) { // 
+		msk.adjustSize(nold+mrows, nold+mrows);
 	    }
 	    else {
-		msk.adjustSize(0, nold);
-		msk.adjustSize(nold+mrows, nold+mrows);
+		msk.adjustSize(0, nold+mrows);
 	    }
 	}
 	if (msk.cnt() != msk.size()) {
@@ -2930,7 +2933,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	    break;}
 	}
 
-	if (*str != 0) { // skip trailing sapace and one delimeter
+	if (*str != 0) { // skip trailing space and one delimeter
 	    while (*str != 0 && isspace(*str)) ++ str; // trailing space
 	    if (*str != 0 && del != 0 && *del != 0 && strchr(del, *str) != 0)
 		++ str;

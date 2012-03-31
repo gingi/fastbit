@@ -224,9 +224,11 @@ char* ibis::util::getString(const char* buf) {
 /// first quote to the last character before the matching quote or end of
 /// buffer.  If delim is not provided (i.e., is 0), and the 1st nonblank
 /// character is not a quote, then string will terminate at the 1st space
-/// character following the nonblank character.  A unquoted empty string
-/// is considered a null value which is indicated by a negative
-/// return value.  A quoted empty string is a valid string.
+/// character following the nonblank character.
+///
+/// @note A unquoted empty string is considered a null value which is
+/// indicated by a negative return value.  A quoted empty string is a valid
+/// string, which is indicated by a return value of 0.
 ///
 /// @note This function uses backslash as the escape character for allowing
 /// quotes to be inside the quoted strings.  Unfortunately, this also means
@@ -242,7 +244,7 @@ int ibis::util::readString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
     while (*buf && isspace(*buf)) ++ buf; // skip leading space
-    if (buf == 0 || *buf == 0) return -1;
+    if (buf == 0 || *buf == 0) return -3;
 
     if (*buf == '\'') { // single quoted string
 	++ buf; // skip the openning quote
@@ -287,58 +289,70 @@ int ibis::util::readString(std::string& str, const char *&buf,
 	} // while (*buf)
     }
     else { // delimiter separated string
+	const char *start = buf;
 	if (delim == 0 || *delim == 0) { // assume space as delimiter
 	    while (*buf) {
 		if (!isspace(*buf))
 		    str += *buf;
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
-		else
-		    break;
+		else {
+		    ++ buf;
+		    return 0;
+		}
 		++ buf;
 	    } // while (*buf)
 	}
-	else if (delim[1] == 0) {
+	else if (delim[1] == 0) { // single character delimiter
 	    while (*buf) {
 		if (*delim != *buf)
 		    str += *buf;
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
-		else
-		    break;
+		else {
+		    int ierr = - (buf <= start);
+		    ++ buf;
+		    return ierr;
+		}
 		++ buf;
 	    } // while (*buf)
 	}
-	else if (delim[2] == 0) {
+	else if (delim[2] == 0) { // two delimiters
 	    while (*buf) {
 		if (*delim != *buf && delim[1] != *buf)
 		    str += *buf;
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
-		else
-		    break;
+		else {
+		    int ierr = - (buf <= start);
+		    ++ buf;
+		    return ierr;
+		}
 		++ buf;
 	    } // while (*buf)
 	}
-	else {
+	else { // long list of delimiters
 	    while (*buf) {
 		if (0 == strchr(delim, *buf))
 		    str += *buf;
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
-		else
-		    break;
+		else {
+		    int ierr = - (buf <= start);
+		    ++ buf;
+		    return ierr;
+		}
 		++ buf;
 	    } // while (*buf)
 	}
-	if (str.empty()) return -2; // unquoted empty string
     }
 #if DEBUG+0 > 0 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 0)
 	<< "DEBUG -- util::getString(" << buf << ") retrieved \""
 	<< str << "\"";
 #endif
-    return 0;
+    // shouldn't get here, but just in case..
+    if (str.empty()) return -2;
 } // ibis::util::readString
 
 /// Attempt to convert the incoming string into an integer.  It skips

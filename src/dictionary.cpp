@@ -345,8 +345,8 @@ int ibis::dictionary::readKeys(const char *evt, FILE *fptr) {
     ierr = fread(buffer_[0], 1, offsets.back()-offsets.front(), fptr);
     if (ierr != (int)(offsets.back()-offsets.front())) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << evt << " failed to read the strings, expected "
-	    "fread to return " << (offsets.back()-offsets.front())
+	    << "Warning -- " << evt << " failed to read the strings, "
+	    "expected fread to return " << (offsets.back()-offsets.front())
 	    << ", but got " << ierr;
 	return -9;
     }
@@ -425,7 +425,7 @@ void ibis::dictionary::patternSearch(const char* pat,
     // if there is no meta char, find the string directly
     if (!meta) {
 	uint32_t code = operator[](prefix.c_str());
-	if (code != size() + 1) {
+	if (code < raw_.size()) {
 	    matches.push_back(code);
 	}
 	return;
@@ -540,7 +540,7 @@ uint32_t ibis::dictionary::operator[](const char* str) const {
 		return code_[m];
 	    }
 	    else if (cmp < 0) {
-		return raw_.size()+1;
+		return raw_.size();
 	    }
 	}
     }
