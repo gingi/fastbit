@@ -1,3 +1,7 @@
+2012-04-03 John Wu <John dot Wu at ACM dot org>
+	* Makefile.am, src/Makefile.am, win/xMinGW.Mak: add missing files
+	spotted by Dominique Prunier, details at <http://goo.gl/iQaMK>
+
 2012-04-02 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp:6433 change use of pile.front() to pile[ib], and
 	make sure pile[ib] is not nil (to correct match-count case # 166)

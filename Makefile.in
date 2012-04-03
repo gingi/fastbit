@@ -277,16 +277,17 @@ ACLOCAL_AMFLAGS = -I tests/m4
 SUBDIRS = src examples java tests
 bin_SCRIPTS = tests/scripts/fastbit-config
 EXTRA_DIST = runconfig tests/scripts/fastbit-config.in \
-	win/README win/Win.mak win/MinGW.mak win/ibis.sln \
+	win/README win/Win.mak win/MinGW.mak win/xMinGW.mak win/ibis.sln \
 	win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
 	win/ardea.vcproj win/setqgen.vcproj win/rara.vcproj win/FlexLexer.h \
+	win/static_pthread_init.c win/static_pthread.patch \
 	contrib/README contrib/fbmerge/fbmerge.cpp \
 	contrib/fbmerge/Makefile.am contrib/fbmerge/Makefile.in \
 	contrib/fbmerge/fbmerge.sln contrib/fbmerge/fbmerge.vcproj
 
-dist_doc_DATA = doc/dataDistributions.html \
-	doc/index.html doc/quickstart.html doc/dataLoading.html \
+dist_doc_DATA = doc/dataDistributions.html doc/header.html doc/contact.html \
+	doc/index.html doc/quickstart.html doc/dataLoading.html doc/rara.html \
 	doc/ibisCommandLine.html doc/indexSpec.html doc/footer.html
 
 all: all-recursive

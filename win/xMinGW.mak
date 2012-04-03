@@ -125,7 +125,7 @@ ardea.exe: ardea.o libfastbit.a
 dll: fastbit.dll
 fastbit.a: fastbit.dll
 fastbit.dll: $(FRC)
-	$(MAKE) -f MinGW.mak DEF="$(DEF) -DCXX_USE_DLL -DDLL_EXPORT" $(OBJ)
+	$(MAKE) -f xMinGW.mak DEF="$(DEF) -DCXX_USE_DLL -DDLL_EXPORT" $(OBJ)
 	$(CXX) -shared -o $@ $(OBJ) $(LIB)
 	$(DLLTOOL) -z fastbit.def $(OBJ)
 	$(DLLTOOL) -k --dllname fastbit.dll --output-lib fastbit.a --def fastbit.def
