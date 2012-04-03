@@ -6430,18 +6430,18 @@ void ibis::index::addBits(const array_t<bitvector*>& pile,
 	<< "-bitvector set, " << ib << ", " << ie << ", res("
 	<< res.cnt() << ", " << res.size() << ")) ...";
     const uint32_t nobs = pile.size();
-    if (res.size() != pile.front()->size()) {
-	res.set(0, pile.front()->size());
-    }
-    else if (res.cnt() >= res.size()) {
-	return; // useless to add more bit
-    }
     while (ib < nobs && pile[ib] == 0) // skip the leading nulls
 	++ ib;
     if (ie > nobs)
 	ie = nobs;
     if (ib >= ie || ib >= nobs) {
 	return;
+    }
+    if (res.size() != pile[ib]->size()) {
+	res.set(0, pile[ib]->size());
+    }
+    else if (res.cnt() >= res.size()) {
+	return; // useless to add more bit
     }
 
     horometer timer;

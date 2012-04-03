@@ -1,3 +1,8 @@
+2012-04-02 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp:6433 change use of pile.front() to pile[ib], and
+	make sure pile[ib] is not nil (to correct match-count case # 166)
+	* tests/Makefile.am: move tcapi commands outside of if tests
+
 2012-03-30 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp: update util::readString to only designate unquoted
 	empty strings as null, quoted empty strings are intentional and
@@ -165,7 +170,7 @@
 	compute the min and max values before declaring an error
 
 2012-03-13 John Wu <John dot Wu at ACM dot org>
-	* src/category.cpp: change prepareMembers to avoid using retriving
+	* src/category.cpp: change prepareMembers to avoid retriving
 	the index file content to a storage object (which creates problem
 	in tracking its usage)
 	* src/idirekte.cpp,...: flush the file to be written by

@@ -742,12 +742,12 @@ really-small: $(IBISEXE) $(TCAPIEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part
 	@if [ -f $(TESTDIR)/small-11 -a -f vault/small-11 -a `diff -w $(TESTDIR)/small-11 vault/small-11 | wc -l` -eq 0 ]; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ -f $(TESTDIR)/small-12 -a -f vault/small-12 -a `diff -w $(TESTDIR)/small-12 vault/small-12 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
 	@if [ `$(IBISEXE) -d $(TESTDIR)/w6 -v -q "where M = 144115188075857871ULL OR M = 144115188075857872ULL" 2>&1 | fgrep '==> 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
-	@if [`$(TCAPIEXE) $(TESTDIR)/w7 "c=\"'twas\"" 2>&1 | fgrep 'w7 produced 1 hit' | wc -l` -eq 1 ]; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
+	@$(TCAPIEXE) $(TESTDIR)/w7 "c=\"'twas\"" 2>&1 | if [`fgrep 'w7 produced 1 hit' | wc -l` -eq 1 ]; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
 	@$(TCAPIEXE) $(TESTDIR)/w7 "c='' and c not null" >> $(TESTDIR)/really-small.log 2>&1
-	@if [`$(TCAPIEXE) $(TESTDIR)/w7 "c='' and c not null" 2>&1 | fgrep 'w7 produced 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
+	@$(TCAPIEXE) $(TESTDIR)/w7 "c='' and c not null" 2>&1 | if [`fgrep 'w7 produced 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
 	@$(TCAPIEXE) $(TESTDIR)/w7 "b like '%\\\\%'" >> $(TESTDIR)/really-small.log 2>&1
-	@if [`$(TCAPIEXE) $(TESTDIR)/w7 "b like '%\\\\%'" 2>&1 | fgrep ' produced 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi
-	@if [`$(TCAPIEXE) $(TESTDIR)/w7 "b like '.%'" 2>&1 | fgrep ' produced 5 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
+	@$(TCAPIEXE) $(TESTDIR)/w7 "b like '%\\\\%'" 2>&1 | if [`fgrep ' produced 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi
+	@$(TCAPIEXE) $(TESTDIR)/w7 "b like '.%'" 2>&1 | if [`fgrep ' produced 5 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 17; else echo Did NOT pass $@ case 17; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/really-small.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/really-small.log; fi
 	@echo
 check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt

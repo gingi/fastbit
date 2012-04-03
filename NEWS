@@ -1,3 +1,25 @@
+Mon Apr  2 20:07:36 PDT 2012
+Version ibis1.3.0
+-- adopt case-sensitive comparisons for strings in a dictionary at the
+   suggestion of Dominique Prunier
+-- clean up left-over problems with using ibis::direkte in
+   ibis::category
+-- Andrew Olson adds dumpJSON
+-- add function sort dictionaries and merge dictioaries
+-- enable array_t::deepCopy to copy an empty array (problem reported by
+   Teryl Taylor)
+-- Complete the functions to allow string values to be used as sorting
+   keys in group by operations
+-- replace most of the call to ibis::bitvector::cnt with
+   ibis::bitvector::sloppyCount
+-- inprove the performance of ibis::category::patternSearch by using
+   ibis::index::sumBins
+-- add more test case for exercise special characters in dictionary
+-- add support for "NOT NULL" in where clause
+-- distinguish explicitly quoted empty string and unquoted empty string
+   in the CSV input files
+
+
 Sun Mar 11 22:58:38 PDT 2012
 Version ibis1.2.9
 -- faster string handling through internal use of integer representation
