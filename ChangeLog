@@ -1,7 +1,12 @@
 2012-04-10 John Wu <John dot Wu at ACM dot org>
-	* util.h, util.cpp, fileManager.cpp: replace UnixRead with
-	ibis::util::read to handle the buffer size limitation in POSIX
-	read function (pointed out by Rock Wang)
+	* src/uti.cpp:648 cast buf to char* before adding the offset
+	* src/table.h: add data type UDT in anticipation of future
+	expansions
+
+2012-04-10 John Wu <John dot Wu at ACM dot org>
+	* src/util.h, src/util.cpp, src/fileManager.cpp: replace UnixRead
+	with ibis::util::read to handle the buffer size limitation in
+	POSIX read function (pointed out by Rock Wang)
 
 2012-04-03 John Wu <John dot Wu at ACM dot org>
 	* Makefile.am, src/Makefile.am, win/xMinGW.Mak: add missing files

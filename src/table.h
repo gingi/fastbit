@@ -48,7 +48,9 @@ namespace ibis {
 	/// column of this type requires special handling for input and
 	/// output.  It can not be used as a part of any searching
 	/// criteria.
-	BLOB
+	BLOB,
+        /// User-defined type.  FastBit does not know much about it.
+        UDT
     };
     /// Human readable version of the enumeration types.
     FASTBIT_CXX_DLLSPEC extern const char** TYPESTRING;

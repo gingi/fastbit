@@ -645,7 +645,9 @@ int64_t ibis::util::read(int fdes, void *buf, int64_t nbytes) {
 	int64_t offset = 0;
 	while (nbytes > 0) {
 	    ssize_t chunk = (nbytes > SSIZE_MAX ? SSIZE_MAX : nbytes);
-	    ierr = UnixRead(fdes, buf+offset, chunk);
+	    ierr = UnixRead(fdes,
+			    static_cast<char*>(buf)+offset,
+			    chunk);
 	    if (ierr == chunk) {
 		nbytes -= ierr;
 		offset += ierr;
