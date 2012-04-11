@@ -1,3 +1,8 @@
+2012-04-10 John Wu <John dot Wu at ACM dot org>
+	* util.h, util.cpp, fileManager.cpp: replace UnixRead with
+	ibis::util::read to handle the buffer size limitation in POSIX
+	read function (pointed out by Rock Wang)
+
 2012-04-03 John Wu <John dot Wu at ACM dot org>
 	* Makefile.am, src/Makefile.am, win/xMinGW.Mak: add missing files
 	spotted by Dominique Prunier, details at <http://goo.gl/iQaMK>

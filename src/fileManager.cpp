@@ -2041,6 +2041,10 @@ off_t ibis::fileManager::storage::read(const char* fname,
     if (fname == 0 || *fname == 0 || nref() > 1) return -1;
     if (end <= begin) return nread;
 
+    ibis::horometer timer;
+    if (ibis::gVerbose > 7)
+	timer.start();
+
     std::string evt = "fileManager::storage::read";
     if (ibis::gVerbose > 0) {
 	std::ostringstream oss;
@@ -2072,41 +2076,28 @@ off_t ibis::fileManager::storage::read(const char* fname,
 	return 0;
     }
 
-    if (ibis::gVerbose < 8) {
-	nread = UnixRead(fdes, m_begin, nbytes);
-
+    nread = ibis::util::read(fdes, m_begin, nbytes);
+    if (nread == nbytes) {
 	ibis::fileManager::instance().recordPages(begin, end);
-	LOGGER(nread != nbytes && ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " allocated " << nbytes << " bytes at "
-	    << static_cast<const void*>(m_begin) << ", but only read " << nread;
+	if (ibis::gVerbose > 7) {
+	    timer.stop();
+	    double tcpu = timer.CPUTime();
+	    double treal = timer.realTime();
+	    double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
+	    double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
+	    LOGGER(ibis::gVerbose > 7)
+		<< evt << " -- read " << nbytes << " bytes in "
+		<< treal << " sec(elapsed) [" << tcpu
+		<< " sec(CPU)] at a speed of "
+		<< std::setprecision(3) << rt2 << " MB/s ["
+		<< std::setprecision(3) << rt1 << "]";
+	}
     }
     else {
-	ibis::horometer timer;
-	timer.start();
-	nread = UnixRead(fdes, m_begin, nbytes);
-
-	ibis::fileManager::instance().recordPages(begin, end);
-	if (nread == nbytes) {
-	    if (ibis::gVerbose > 7) {
-		timer.stop();
-		double tcpu = timer.CPUTime();
-		double treal = timer.realTime();
-		double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
-		double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
-		LOGGER(ibis::gVerbose > 7)
-		    << evt << " -- read " << nbytes << " bytes in "
-		    << treal << " sec(elapsed) [" << tcpu
-		    << " sec(CPU)] at a speed of "
-		    << std::setprecision(3) << rt2 << " MB/s ["
-		    << std::setprecision(3) << rt1 << "]";
-	    }
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << " allocated " << nbytes
-		<< " bytes at "	<< static_cast<const void*>(m_begin)
-		<< ", but only read " << nread;
-	}
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " allocated " << nbytes
+	    << " bytes at "	<< static_cast<const void*>(m_begin)
+	    << ", but only read " << nread;
     }
     return nread;
 } // ibis::fileManager::storage::read
@@ -2118,6 +2109,10 @@ off_t ibis::fileManager::storage::read(const int fdes,
     off_t nread = 0;
     if (nref() > 1) return -1;
     if (fdes < 0 || end <= begin) return nread;
+
+    ibis::horometer timer;
+    if (ibis::gVerbose > 7)
+	timer.start();
 
     std::string evt = "fileManager::storage::read";
     if (ibis::gVerbose > 0) {
@@ -2139,41 +2134,28 @@ off_t ibis::fileManager::storage::read(const int fdes,
 	return 0;
     }
 
-    if (ibis::gVerbose < 8) {
-	nread = UnixRead(fdes, m_begin, nbytes);
-
+    nread = ibis::util::read(fdes, m_begin, nbytes);
+    if (nread == nbytes) {
 	ibis::fileManager::instance().recordPages(begin, end);
-	LOGGER(nread != nbytes && ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " allocated " << nbytes << " bytes at "
-	    << static_cast<const void*>(m_begin) << ", but only read " << nread;
+	if (ibis::gVerbose > 7) {
+	    timer.stop();
+	    double tcpu = timer.CPUTime();
+	    double treal = timer.realTime();
+	    double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
+	    double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
+	    LOGGER(ibis::gVerbose > 7)
+		<< evt << " -- read " << nbytes << " bytes in "
+		<< treal << " sec(elapsed) [" << tcpu
+		<< " sec(CPU)] at a speed of "
+		<< std::setprecision(3) << rt2 << " MB/s ["
+		<< std::setprecision(3) << rt1 << "]";
+	}
     }
     else {
-	ibis::horometer timer;
-	timer.start();
-	nread = UnixRead(fdes, m_begin, nbytes);
-
-	ibis::fileManager::instance().recordPages(begin, end);
-	if (nread == nbytes) {
-	    if (ibis::gVerbose > 7) {
-		timer.stop();
-		double tcpu = timer.CPUTime();
-		double treal = timer.realTime();
-		double rt1 = tcpu > 0 ? (1e-6*nbytes/tcpu) : 0.0;
-		double rt2 = treal > 0 ? (1e-6*nbytes/treal) : 0.0;
-		LOGGER(ibis::gVerbose > 7)
-		    << evt << " -- read " << nbytes << " bytes in "
-		    << treal << " sec(elapsed) [" << tcpu
-		    << " sec(CPU)] at a speed of "
-		    << std::setprecision(3) << rt2 << " MB/s ["
-		    << std::setprecision(3) << rt1 << "]";
-	    }
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << " allocated " << nbytes
-		<< " bytes at " << static_cast<const void*>(m_begin)
-		<< ", but only read " << nread;
-	}
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " allocated " << nbytes
+	    << " bytes at "	<< static_cast<const void*>(m_begin)
+	    << ", but only read " << nread;
     }
     return nread;
 } // ibis::fileManager::storage::read
@@ -2428,7 +2410,7 @@ void ibis::fileManager::roFile::doRead(const char* file) {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(in, _O_BINARY);
 #endif
-    i = UnixRead(in, static_cast<void*>(m_begin), n);
+    i = ibis::util::read(in, m_begin, n);
     ibis::fileManager::instance().recordPages(0, n);
     UnixClose(in); // close the file
     if (i == static_cast<size_t>(-1)) {
@@ -2479,7 +2461,7 @@ void ibis::fileManager::roFile::doRead(const char* file, off_t b, off_t e) {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(in, _O_BINARY);
 #endif
-    i = UnixRead(in, static_cast<void*>(m_begin), n);
+    i = ibis::util::read(in, m_begin, n);
     ibis::fileManager::instance().recordPages(b, e);
     UnixClose(in); // close the file
     if (i == -1L) {

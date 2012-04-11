@@ -453,6 +453,8 @@ namespace ibis {
 	FASTBIT_CXX_DLLSPEC int readString(std::string& str, const char*& buf,
 					   const char *delim=0);
 
+	int64_t read(int, void*, int64_t);
+
 	/// Remove the content of named directory.  The directory itself is
 	/// removed unless the second argument is true.
 	void removeDir(const char* name, bool leaveDir=false);

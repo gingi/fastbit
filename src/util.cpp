@@ -533,7 +533,7 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
     return 0;
 } // ibis::util::readDouble
 
-// return the size of file in bytes, file that does not exist has size zero
+/// Return the size of file in bytes.  File that does not exist has size zero.
 off_t ibis::util::getFileSize(const char* name) {
     Stat_T buf;
     if (name == 0) {
@@ -556,8 +556,8 @@ off_t ibis::util::getFileSize(const char* name) {
     }
 }
 
-// copy file named "from" to a file named "to" -- it overwrite the content of
-// "to"
+/// Copy file named "from" to a file named "to".  It overwrite the content
+/// of "to".
 int ibis::util::copy(const char* to, const char* from) {
     Stat_T tmp;
     if (UnixStat(from, &tmp) != 0) return -1; // file does not exist
@@ -569,11 +569,10 @@ int ibis::util::copy(const char* to, const char* from) {
 
     int fdes = UnixOpen(from, OPEN_READONLY);
     if (fdes < 0) {
-	if (errno != ENOENT || ibis::gVerbose > 10)
-	    ibis::util::logMessage
-		("Warning", "util::copy(%s, %s) failed "
-		 "to open %s ... %s", to, from, from,
-		 (errno ? strerror(errno) : "no free stdio stream"));
+	LOGGER(errno != ENOENT || ibis::gVerbose > 10)
+	    << "Warning -- util::copy(" << to << ", " << from
+	    << ") failed to open " << from << " ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -1;
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
@@ -583,10 +582,10 @@ int ibis::util::copy(const char* to, const char* from) {
 
     int tdes = UnixOpen(to, OPEN_WRITENEW, OPEN_FILEMODE);
     if (tdes < 0) {
-	ibis::util::logMessage
-	    ("Warning", "util::copy(%s, %s) failed "
-	     "to open %s ... %s", to, from, to,
-	     (errno ? strerror(errno) : "no free stdio stream"));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- util::copy(" << to << ", " << from
+	    << ") failed to open " << to << " ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -2;
     }
     IBIS_BLOCK_GUARD(UnixClose, tdes);
@@ -632,6 +631,43 @@ int ibis::util::copy(const char* to, const char* from) {
 
     return 0;
 } // ibis::util::copy
+
+/// A wrapper over POSIX read function.  Reads a large chunk from an open
+/// file.  The POSIX API does not handle read operations involving more
+/// than SSIZE_MAX bytes.  This function breaks the read operations into
+/// chunks no larger than SSIZE_MAX bytes.
+int64_t ibis::util::read(int fdes, void *buf, int64_t nbytes) {
+    if (nbytes <= SSIZE_MAX) {
+	return UnixRead(fdes, buf, nbytes);
+    }
+    else {
+	ssize_t ierr = 0;
+	int64_t offset = 0;
+	while (nbytes > 0) {
+	    ssize_t chunk = (nbytes > SSIZE_MAX ? SSIZE_MAX : nbytes);
+	    ierr = UnixRead(fdes, buf+offset, chunk);
+	    if (ierr == chunk) {
+		nbytes -= ierr;
+		offset += ierr;
+	    }
+	    else if (ierr < 0) {
+		LOGGER(ibis::gVerbose > 3)
+		    << "Warning -- util::largeRead received error "
+		    << ierr << " from file descriptor " << fdes;
+		return ierr;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 3)
+		    << "Warning -- util::largeRead expected to read "
+		    << chunk << " byte" << (chunk>1?"s":"")
+		    << " from file descriptor " << fdes << ", but got "
+		    << ierr;
+		return offset+ierr;
+	    }
+	}
+	return offset;
+    }
+} // ibis::util::largeRead
 
 /// If this function is run on a unix-type system and the second argument
 /// is true, it will leave all the subdirectories intact as well.
