@@ -632,43 +632,31 @@ int ibis::util::copy(const char* to, const char* from) {
     return 0;
 } // ibis::util::copy
 
-/// A wrapper over POSIX read function.  Reads a large chunk from an open
-/// file.  The POSIX API does not handle read operations involving more
-/// than SSIZE_MAX bytes.  This function breaks the read operations into
-/// chunks no larger than SSIZE_MAX bytes.
+/// A wrapper over POSIX read function.  When a large chunk is requested by
+/// the user, the read function may return one piece at a time, typically a
+/// piece is no larger than 2^31 bytes.  However, this maximum chunk size
+/// is not consistently defined to be SSIZE_MAX as the POSIX standard
+/// demands.  This function attempts use the return value from read when it
+/// is a posive value.
 int64_t ibis::util::read(int fdes, void *buf, int64_t nbytes) {
-    if (nbytes <= SSIZE_MAX) {
-	return UnixRead(fdes, buf, nbytes);
-    }
-    else {
-	ssize_t ierr = 0;
-	int64_t offset = 0;
-	while (nbytes > 0) {
-	    ssize_t chunk = (nbytes > SSIZE_MAX ? SSIZE_MAX : nbytes);
-	    ierr = UnixRead(fdes,
-			    static_cast<char*>(buf)+offset,
-			    chunk);
-	    if (ierr == chunk) {
-		nbytes -= ierr;
-		offset += ierr;
-	    }
-	    else if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 3)
-		    << "Warning -- util::largeRead received error "
-		    << ierr << " from file descriptor " << fdes;
-		return ierr;
-	    }
-	    else {
-		LOGGER(ibis::gVerbose > 3)
-		    << "Warning -- util::largeRead expected to read "
-		    << chunk << " byte" << (chunk>1?"s":"")
-		    << " from file descriptor " << fdes << ", but got "
-		    << ierr;
-		return offset+ierr;
-	    }
+    ssize_t ierr = 0;
+    int64_t offset = 0;
+    while (nbytes > 0) {
+	ierr = UnixRead(fdes,
+			static_cast<char*>(buf)+offset,
+			nbytes);
+	if (ierr <= 0) {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "Warning -- util::largeRead received error "
+		<< ierr << " from file descriptor " << fdes;
+	    return ierr;
 	}
-	return offset;
+	else {
+	    nbytes -= ierr;
+	    offset += ierr;
+	}
     }
+    return offset;
 } // ibis::util::largeRead
 
 /// If this function is run on a unix-type system and the second argument

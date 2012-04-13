@@ -1,8 +1,11 @@
-2013-04-12 John Wu <John dot Wu at ACM dot org>
+2013-04-13 John Wu <John dot Wu at ACM dot org>
 	* Makefile.am, configure.ac: add option --enable-contrib to
 	compile code in the contrib directory per suggestion of Petr Valen
+	* src/util.cpp: update ibis::util::read following the report from
+	Rock Wang to avoid using SSIZE_MAX (even though the POSIX standard
+	promises it to be the upper bound of read operation)
 
-2013-04-12 Petr Valen <petr dot velan at cesnet dot cz>
+2013-04-13 Petr Valen <petr dot velan at cesnet dot cz>
 	* contrib/fbmerbe/Makefile.am: add rule distclean-local
 
 2012-04-12 John Wu <John dot Wu at ACM dot org>
