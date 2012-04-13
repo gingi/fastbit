@@ -1,6 +1,10 @@
 AUTOMAKE_OPTIONS=gnu
 ACLOCAL_AMFLAGS=-I tests/m4
-SUBDIRS = src examples java tests
+
+if BUILD_CONTRIB
+   EXTRA_BUILD=contrib
+endif
+SUBDIRS = src examples java tests $(EXTRA_BUILD)
 
 bin_SCRIPTS = tests/scripts/fastbit-config
 
@@ -10,7 +14,8 @@ EXTRA_DIST = runconfig tests/scripts/fastbit-config.in \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
 	win/ardea.vcproj win/setqgen.vcproj win/rara.vcproj win/FlexLexer.h \
 	win/static_pthread_init.c win/static_pthread.patch \
-	contrib/README contrib/fbmerge/fbmerge.cpp \
+	contrib/README contrib/Makefile.am contrib/Makefile.in \
+	contrib/fbmerge/fbmerge.cpp \
 	contrib/fbmerge/Makefile.am contrib/fbmerge/Makefile.in \
 	contrib/fbmerge/fbmerge.sln contrib/fbmerge/fbmerge.vcproj
 
@@ -31,16 +36,12 @@ more-check:
 full-check:
 	cd tests && $(MAKE) full-check
 
-clean: clean-recursive
+clean-local:
 	-rm -f win/*.suo win/*.ncb win/*/*.suo win/*/*.ncb win/*.obj win/*.lib win/*.exe win/*.exe.* win/*/*.obj win/*/*.lib win/*/*.exe win/*/*.exe.* win/fastbit.def
 	-rm -fr autom4te.cache doc/html doc/latex win/Debug win/Release win/*/Debug win/*/Release win/dll win/*.vcproj.* win/*/*.vcproj.*
 
-distclean: distclean-recursive
-	-rm -f $(am__CONFIG_DISTCLEAN_FILES) Makefile win/*.suo win/*.ncb win/*.obj win/*.exe win/*.exe.* win/*/*.suo win/*/*.ncb win/*/*.obj win/*/*.exe win/*/*.exe.*
+distclean-local:
+	-rm -f win/*.suo win/*.ncb win/*.obj win/*.exe win/*.exe.* win/*/*.suo win/*/*.ncb win/*/*.obj win/*/*.exe win/*/*.exe.*
 	-rm -fr autom4te.cache doc/html doc/latex win/Debug win/Release win/*/Debug win/*/Release win/dll win/*.vcproj.* win/*/*.vcproj.*
-
-maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) autom4te.cache
-	-rm -f Makefile
 
 .PHONY: docs more-check full-check

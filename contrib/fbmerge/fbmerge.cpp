@@ -63,7 +63,7 @@ int mergeDir(char *input_dir, char *output_dir) {
     ibis::tablex *tablex = NULL;
 
     /* Scan colums */
-    if(part.nRows() == 0) return(0);
+    if (part.nRows() == 0) return(0);
 
     printf("Found %u records on directory %s\n", part.nRows(), input_dir);
 
@@ -72,7 +72,7 @@ int mergeDir(char *input_dir, char *output_dir) {
     bv = new ibis::bitvector();
     bv->appendFill(1, part.nRows()); /* Set all bitmaps to 1 */
 
-    if(!dump_mode) {
+    if (!dump_mode) {
 	tablex = ibis::tablex::create();
     }
 
@@ -93,8 +93,8 @@ int mergeDir(char *input_dir, char *output_dir) {
 	    std::auto_ptr< ibis::array_t<unsigned char> >
 		tmp(part.selectUBytes(c->name(), *bv));
 	    s8 = tmp->begin();
-	    if(dump_mode) {
-		if((fd = fopen(path, "a")) != NULL) {
+	    if (dump_mode) {
+		if ((fd = fopen(path, "a")) != NULL) {
 		    for(unsigned j=0; j<part.nRows()-1; j++)
 			fprintf(fd, "%u\n", s8[j]);
 		    fclose(fd);
@@ -108,8 +108,8 @@ int mergeDir(char *input_dir, char *output_dir) {
 	    std::auto_ptr< ibis::array_t<uint16_t> >
 		tmp(part.selectUShorts(c->name(), *bv));
 	    s16 = tmp->begin();
-	    if(dump_mode) {
-		if((fd = fopen(path, "a")) != NULL) {
+	    if (dump_mode) {
+		if ((fd = fopen(path, "a")) != NULL) {
 		    for(unsigned j=0; j<part.nRows()-1; j++)
 			fprintf(fd, "%u\n", s16[j]);
 		    fclose(fd);
@@ -123,8 +123,8 @@ int mergeDir(char *input_dir, char *output_dir) {
 	    std::auto_ptr< ibis::array_t<uint32_t> >
 		tmp(part.selectUInts(c->name(), *bv));
 	    s32 = tmp->begin(); 
-	    if(dump_mode) {
-		if((fd = fopen(path, "a")) != NULL) {
+	    if (dump_mode) {
+		if ((fd = fopen(path, "a")) != NULL) {
 		    for(unsigned j=0; j<part.nRows()-1; j++)
 			fprintf(fd, "%u\n", s32[j]);
 		    fclose(fd);
@@ -138,10 +138,10 @@ int mergeDir(char *input_dir, char *output_dir) {
 	    std::auto_ptr< ibis::array_t<uint64_t> >
 		tmp(part.selectULongs(c->name(), *bv));
 	    s64 = tmp->begin();
-	    if(dump_mode) {
-		if((fd = fopen(path, "a")) != NULL) {
+	    if (dump_mode) {
+		if ((fd = fopen(path, "a")) != NULL) {
 		    for(unsigned j=0; j<part.nRows()-1; j++)
-			fprintf(fd, "%u\n", s64[j]);
+			fprintf(fd, "%lu\n", s64[j]);
 		    fclose(fd);
 		}
 	    } else {
@@ -152,7 +152,7 @@ int mergeDir(char *input_dir, char *output_dir) {
 	}
     }
   
-    if(!dump_mode)
+    if (!dump_mode)
 	tablex->write(output_dir, 0, 0);
     delete tablex;
 
@@ -170,16 +170,16 @@ int walkDirs(char *input_dir, char *output_dir) {
     DIR *dir;
     struct dirent *dirent;
 
-    if((dir = opendir(input_dir)) != NULL) {
+    if ((dir = opendir(input_dir)) != NULL) {
 	while ((dirent = readdir(dir))) {
 	    char dirname[256];
 
-	    if(dirent->d_name[0] == '.') continue;
+	    if (dirent->d_name[0] == '.') continue;
 	    snprintf(dirname, sizeof(dirname), "%s/%s", input_dir,
 		     dirent->d_name);
 
-	    if(stat(dirname, &stats) == 0) {
-		if(S_ISDIR(stats.st_mode)) {
+	    if (stat(dirname, &stats) == 0) {
+		if (S_ISDIR(stats.st_mode)) {
 		    walkDirs(dirname, output_dir);
 		}
 	    }
@@ -190,8 +190,8 @@ int walkDirs(char *input_dir, char *output_dir) {
 #endif
 
     snprintf(partname, sizeof(partname), "%s/-part.txt", input_dir);
-    if(stat(partname, &stats) == 0) {
-	if(access(partname, 4) == 0) // have read access
+    if (stat(partname, &stats) == 0) {
+	if (access(partname, 4) == 0) // have read access
 	    mergeDir(input_dir, output_dir);
 	else
 	    printf("WARNING: skipping unreadable directory %s\n", partname);
@@ -230,7 +230,7 @@ int main (int argc, char * argv []) {
 	}
     }
 #endif
-    if((!input_dir) || (!output_dir))
+    if ((!input_dir) || (!output_dir))
 	help();
 
     printf("Searching FastBit dirs on %s...\n", input_dir);

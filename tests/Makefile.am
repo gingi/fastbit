@@ -462,15 +462,11 @@ $(TESTDIR)/smallmem3.rc: TESTDIR
 	@echo "fileManager.maxBytes=1.6GB" > $(TESTDIR)/smallmem3.rc
 #
 #
-clean: clean-am
+clean-local: clean-tmp
 	-rm -f *~ core core.[0-9]*
-	-rm -rf $(TESTDIR) tmp .ibis star2002*
 	-rm -f readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} jrf${EXEEXT} *.exe
 clean-tmp:
-	-rm -rf tmp .ibis
-distclean: distclean-am clean
-	-rm -rf ./$(DEPDIR)
-	-rm -f Makefile
+	-rm -rf $(TESTDIR) tmp .ibis star2002*
 #
 # append the data in test0.csv and test1.csv 10 times
 do-small-append: $(TESTDIR)/append.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt $(IBISEXE)

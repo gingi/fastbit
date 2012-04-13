@@ -1,4 +1,15 @@
-2012-04-10 John Wu <John dot Wu at ACM dot org>
+2013-04-12 John Wu <John dot Wu at ACM dot org>
+	* Makefile.am, configure.ac: add option --enable-contrib to
+	compile code in the contrib directory per suggestion of Petr Valen
+
+2013-04-12 Petr Valen <petr dot velan at cesnet dot cz>
+	* contrib/fbmerbe/Makefile.am: add rule distclean-local
+
+2012-04-12 John Wu <John dot Wu at ACM dot org>
+	* src/Makefile.am: add fastbit-config.h to the header files to be
+	installed (per suggestion of Petr Valen)
+
+2012-04-11 John Wu <John dot Wu at ACM dot org>
 	* src/uti.cpp:648 cast buf to char* before adding the offset
 	* src/table.h: add data type UDT in anticipation of future
 	expansions
