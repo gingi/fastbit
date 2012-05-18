@@ -30,10 +30,10 @@
 #endif
 
 // constants defined for type name and type code used in the metadata file
-FASTBIT_CXX_DLLSPEC const char* ibis::TYPECODE   = "?OBAHGIULVRDCSQ";
+FASTBIT_CXX_DLLSPEC const char* ibis::TYPECODE   = "?OBAHGIULVRDCSQT";
 static const char* _ibis_TYPESTRING_local[] = {
     "UNKNOWN", "OID", "BYTE", "UBYTE", "SHORT", "USHORT", "INT", "UINT",
-    "LONG", "ULONG", "FLOAT", "DOUBLE", "CATEGORY", "TEXT", "BLOB"
+    "LONG", "ULONG", "FLOAT", "DOUBLE", "CATEGORY", "TEXT", "BLOB", "UDT"
 };
 FASTBIT_CXX_DLLSPEC const char** ibis::TYPESTRING = _ibis_TYPESTRING_local;
 
@@ -169,8 +169,8 @@ ibis::column::column(const part* tbl, FILE* file)
 		m_type = ibis::INT;
 		break;}
 	    case 'u':
-	    case 'U': { // defaults to UINT, but may be other unsigned
-		m_type = ibis::UINT;
+	    case 'U': { // like unsigned type, but maybe UNKNOWN or UDT
+		m_type = ibis::UNKNOWN_TYPE;
 		if (s1[1] == 's' || s1[1] == 'S') { // USHORT
 		    m_type = ibis::USHORT;
 		}
@@ -178,10 +178,16 @@ ibis::column::column(const part* tbl, FILE* file)
 			 s1[1] == 'c' || s1[1] == 'C') { // UBYTE
 		    m_type = ibis::UBYTE;
 		}
+		else if (s1[1] == 'i' || s1[1] == 'I') { // UINT
+		    m_type = ibis::UINT;
+		}
 		else if (s1[1] == 'l' || s1[1] == 'L') { // ULONG
 		    m_type = ibis::ULONG;
 		}
-		else if (s1[1] == 'n' || s1[1] == 'N') { // unsigned xx
+		else if (s1[1] == 'd' || s1[1] == 'd') { // UDT
+		    m_type = ibis::UDT;
+		}
+		else if (strnicmp(s1, "unsigned", 8) == 0) { // unsigned xx
 		    s1 += 8; // skip "unsigned"
 		    s1 += strspn(s1, " \t=\'\""); // skip space
 		    if (*s1 == 's' || *s1 == 'S') { // USHORT

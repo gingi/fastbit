@@ -1,3 +1,6 @@
+2013-05-18 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: add UDT into the type list
+
 2013-05-17 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp: minor adjustments of printing stements in
 	bin::setBoundaries, accept binning specifications with prefixes,
