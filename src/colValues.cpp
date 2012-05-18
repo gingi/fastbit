@@ -6438,14 +6438,31 @@ double ibis::colDoubles::getSum() const {
     return ret;
 } // ibis::colDoubles::getSum
 
+/// Write out whole array as binary.
+long ibis::colInts::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(int32_t), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// Write ith element as text.
+void ibis::colInts::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
 /// Write out the whole array as binary.
 ///
 /// @note This version always writes the integers even if there is a
 /// dictioanry.
-uint32_t ibis::colUInts::write(FILE* fptr) const {
+long ibis::colUInts::write(FILE* fptr) const {
     if (array) {
 	uint32_t nelm = array->size();
-	return nelm - fwrite(array->begin(), sizeof(uint32_t), nelm, fptr);
+	return fwrite(array->begin(), sizeof(uint32_t), nelm, fptr);
     }
     else {
 	return 0;
@@ -6460,7 +6477,7 @@ uint32_t ibis::colUInts::write(FILE* fptr) const {
 /// to eachother ("").  Invalid string (nil pointer) and invalid arguemnts
 /// produces nothing.
 void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
-    if (array == 0) {
+    if (array == 0 || i > array->size()) {
 	return;
     }
     if (col != 0 && col->type() == ibis::CATEGORY) {
@@ -6474,13 +6491,149 @@ void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
     }
 } // ibis::colUInts::write
 
+/// Write out whole array as binary.
+long ibis::colLongs::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(int64_t), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// Write ith element as text
+void ibis::colLongs::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
+/// Write out whole array as binary.
+long ibis::colULongs::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(uint64_t), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// write ith element as text
+void ibis::colULongs::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
+/// Write out whole array as binary.
+long ibis::colShorts::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(int16_t), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// Write ith element as text
+void ibis::colShorts::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
+/// Write out whole array as binary.
+long ibis::colUShorts::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(uint16_t), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// Write ith element as text
+void ibis::colUShorts::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
+/// Write out whole array as binary.
+long ibis::colBytes::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(char), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// Write ith element as text
+void ibis::colBytes::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
+/// Write out whole array as binary.
+long ibis::colUBytes::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(unsigned char), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// Write ith element as text
+void ibis::colUBytes::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
+/// Write out whole array as binary.
+long ibis::colFloats::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(float), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// Write ith element as text
+void ibis::colFloats::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
+/// Write out whole array as binary.
+long ibis::colDoubles::write(FILE* fptr) const {
+    if (array) {
+	uint32_t nelm = array->size();
+	return fwrite(array->begin(), sizeof(double), nelm, fptr);
+    }
+    else {
+	return 0;
+    }
+}
+
+/// Write ith element as text
+void ibis::colDoubles::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
 /// Write out whole array as binary.  All bytes including the null
 /// terminators are written to the file.
-uint32_t ibis::colStrings::write(FILE* fptr) const {
+long ibis::colStrings::write(FILE* fptr) const {
     if (array == 0 || col == 0)
 	return 0;
 
-    uint32_t cnt = 0;
+    long cnt = 0;
     const uint32_t nelm = array->size();
     for (uint32_t i = 0; i < nelm; ++ i) {
 	int ierr = fwrite((*array)[i].c_str(), sizeof(char),

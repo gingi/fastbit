@@ -1000,7 +1000,7 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
     uint32_t tmp = col->size();
     if (starts->size() != tmp+1) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bundle1::write invalid bundle "
+	    << "Warning -- bundle1::write detected invalid bundle "
 	    "(starts->size(" << starts->size()
 	    << ") != col->size(" << tmp << ")+1)";
 	return;
@@ -1016,13 +1016,21 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
     FILE* fptr = fopen(fn, "wb");
     if (fptr == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bundle1::write -- unable to open file \""
+	    << "Warning -- bundle1::write failed to open file \""
 	    << fn << "\" ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return;
     }
 
-    int32_t ierr = fwrite(&tmp, sizeof(uint32_t), 1, fptr);
+    IBIS_BLOCK_GUARD(fclose, fptr);
+    int ierr = fwrite(&tmp, sizeof(uint32_t), 1, fptr);
+    if (ierr != 1) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bundle1::write failed to the number of rows to "
+	    << fn;
+	return;
+    }
+
     tmp = 1;
     ierr = fwrite(&tmp, sizeof(uint32_t), 1, fptr);
     tmp = col->elementSize();
@@ -1032,7 +1040,7 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
 #if defined(FASTBIT_SYNC_WRITE)
     (void)fflush(fptr);
 #endif
-    ierr = fclose(fptr);
+    //ierr = fclose(fptr);
     delete [] fn;
     infile = true;
 } // ibis::bundle1::write
@@ -2312,7 +2320,7 @@ void ibis::bundles::write(const ibis::query& theQ) const {
     if (cols[0]->size() == 0) return;
     if (cols[0]->size()+1 != starts->size()) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bundles::write invalid bundle (starts->size("
+	    << "Warning -- bundles::write found an invalid bundle (starts->size("
 	    << starts->size() << ") != cols[0]->size(" << cols[0]->size()
 	    << ")+1)";
 	return;
@@ -2328,7 +2336,7 @@ void ibis::bundles::write(const ibis::query& theQ) const {
     FILE* fptr = fopen(fn, "wb");
     if (fptr == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bundles::write -- unable to open file \""
+	    << "Warning -- bundles::write failed to open file \""
 	    << fn << "\" ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return;
@@ -2336,7 +2344,13 @@ void ibis::bundles::write(const ibis::query& theQ) const {
 
     uint32_t i1, ncol = cols.size(), tmp = cols[0]->size();
     int32_t ierr = fwrite(&tmp, sizeof(uint32_t), 1, fptr);
-    ierr = fwrite(&ncol, sizeof(uint32_t), 1, fptr);
+    ierr += fwrite(&ncol, sizeof(uint32_t), 1, fptr);
+    if (ierr < 2) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bundles::write failed to write number of rows "
+	    "and columns to " << fn;
+	return;
+    }
     for (i1 = 0; i1 < ncol; ++ i1) { // element sizes
 	tmp = cols[i1]->elementSize(); // ibis::colValue::elementSize
 	ierr = fwrite(&tmp, sizeof(uint32_t), 1, fptr);

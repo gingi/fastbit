@@ -1,3 +1,19 @@
+2013-05-17 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp: minor adjustments of printing stements in
+	bin::setBoundaries, accept binning specifications with prefixes,
+	allow spaces aroud equal signs in bin spec
+
+2013-05-16 John Wu <John dot Wu at ACM dot org>
+	* examples/ardea.cpp: add space to the default delimiters
+
+2013-05-14 John Wu <John dot Wu at ACM dot org>
+	* part.cpp: initialize ierr based on the warning message from gcc
+	4.7.0
+
+2013-04-15 John Wu <John dot Wu at ACM dot org>
+	* win/Win.mak: change DLL_EXPORTS to DLL_EXPORT suggested by
+	Sebastien Schneider
+
 2013-04-13 John Wu <John dot Wu at ACM dot org>
 	* Makefile.am, configure.ac: add option --enable-contrib to
 	compile code in the contrib directory per suggestion of Petr Valen

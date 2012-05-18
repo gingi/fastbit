@@ -3163,9 +3163,9 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
     LOGGER(ibis::gVerbose > 2)
 	<< "tafel::readSQLDump(" << filename
 	<< ") successfully opened the named file for reading";
-    int ierr;
-    char *str;
-    char *ptr;
+    int ierr=-1;
+    char *str=0;
+    char *ptr=0;
     std::string tmp;
     int ret = 0;
     uint32_t iline = 0;

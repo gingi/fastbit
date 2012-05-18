@@ -3394,10 +3394,24 @@ uint32_t ibis::bin::parseNbins() const {
 	    nbins = static_cast<uint32_t>(atof(str));
 	}
 	else {
-	    str = strstr(bspec, "no=");
+	    str = strstr(bspec, "nbins =");
 	    if (str) {
-		str += 3;
+		str += 7;
 		nbins = static_cast<uint32_t>(atof(str));
+	    }
+	    else {
+		str = strstr(bspec, "no=");
+		if (str) {
+		    str += 3;
+		    nbins = static_cast<uint32_t>(atof(str));
+		}
+		else {
+		    str = strstr(bspec, "no =");
+		    if (str) {
+			str += 4;
+			nbins = static_cast<uint32_t>(atof(str));
+		    }
+		}
 	    }
 	}
     }
@@ -3410,10 +3424,24 @@ uint32_t ibis::bin::parseNbins() const {
 		nbins = static_cast<uint32_t>(atof(str));
 	    }
 	    else {
-		str = strstr(bspec, "no=");
+		str = strstr(bspec, "nbins =");
 		if (str) {
-		    str += 3;
+		    str += 7;
 		    nbins = static_cast<uint32_t>(atof(str));
+		}
+		else {
+		    str = strstr(bspec, "no=");
+		    if (str) {
+			str += 3;
+			nbins = static_cast<uint32_t>(atof(str));
+		    }
+		    else {
+			str = strstr(bspec, "no =");
+			if (str) {
+			    str += 4;
+			    nbins = static_cast<uint32_t>(atof(str));
+			}
+		    }
 		}
 	    }
 	}
@@ -3431,10 +3459,24 @@ uint32_t ibis::bin::parseNbins() const {
 		nbins = static_cast<uint32_t>(atof(str));
 	    }
 	    else {
-		str = strstr(bspec, "no=");
+		str = strstr(bspec, "nbins =");
 		if (str) {
-		    str += 3;
+		    str += 7;
 		    nbins = static_cast<uint32_t>(atof(str));
+		}
+		else {
+		    str = strstr(bspec, "no=");
+		    if (str) {
+			str += 3;
+			nbins = static_cast<uint32_t>(atof(str));
+		    }
+		    else {
+			str = strstr(bspec, "no =");
+			if (str) {
+			    str += 4;
+			    nbins = static_cast<uint32_t>(atof(str));
+			}
+		    }
 		}
 	    }
 	}
@@ -3492,6 +3534,18 @@ unsigned ibis::bin::parseScale(const char* spec) const {
 		eq = 0;
 	    }
 	}
+	else if ((ptr = strstr(spec, "scale =")) != 0) {
+	    ptr += 7;
+	    if (*ptr == 'L' || *ptr == 'l') {
+		if (ptr[1] == 'O' || ptr[1] == 'o')
+		    eq = 2;
+		else
+		    eq = 1;
+	    }
+	    else {
+		eq = 0;
+	    }
+	}
 	else if ((ptr = strstr(spec, "equal")) != 0 &&
 		 strncmp(ptr, "equality", 8) != 0) {
 	    ptr += 5;
@@ -3515,7 +3569,9 @@ unsigned ibis::bin::parseScale(const char* spec) const {
 	}
 	else if (strnicmp(spec, "bins:", 4) == 0 || strchr(spec, '(') ||
 		 strstr(spec, "start=") || strstr(spec, "end=") ||
-		 strstr(spec, "ile=")) {
+		 strstr(spec, "ile=") ||
+		 strstr(spec, "start =") || strstr(spec, "end =") ||
+		 strstr(spec, "ile =")) {
 	    eq = 0; // a place holder for more complex options
 	}
     }
@@ -3532,9 +3588,19 @@ unsigned ibis::bin::parsePrec() const {
 	    str += 10;
 	}
 	else {
-	    str = strstr(bspec, "prec=");
-	    if (str)
-		str += 5;
+	    str = strstr(bspec, "precision =");
+	    if (str) {
+		str += 11;
+	    }
+	    else {
+		str = strstr(bspec, "prec=");
+		if (str) {
+		    str += 5;
+		}
+		else if ((str = strstr(bspec, "prec =")) != 0) {
+		    str += 6;
+		}
+	    }
 	}
 	if (str && *str)
 	    prec = static_cast<unsigned>(atof(str));
@@ -3547,9 +3613,19 @@ unsigned ibis::bin::parsePrec() const {
 		str += 10;
 	    }
 	    else {
-		str = strstr(bspec, "prec=");
-		if (str)
-		    str += 5;
+		str = strstr(bspec, "precision =");
+		if (str) {
+		    str += 11;
+		}
+		else {
+		    str = strstr(bspec, "prec=");
+		    if (str) {
+			str += 5;
+		    }
+		    else if ((str = strstr(bspec, "prec =")) != 0) {
+			str += 6;
+		    }
+		}
 	    }
 	    if (str && *str)
 		prec = static_cast<unsigned>(atof(str));
@@ -3567,9 +3643,19 @@ unsigned ibis::bin::parsePrec() const {
 		str += 10;
 	    }
 	    else {
-		str = strstr(bspec, "prec=");
-		if (str)
-		    str += 5;
+		str = strstr(bspec, "precision =");
+		if (str) {
+		    str += 11;
+		}
+		else {
+		    str = strstr(bspec, "prec=");
+		    if (str) {
+			str += 5;
+		    }
+		    else if ((str = strstr(bspec, "prec =")) != 0) {
+			str += 6;
+		    }
+		}
 	    }
 	    if (str && *str)
 		prec = static_cast<unsigned>(atof(str));
@@ -3613,7 +3699,6 @@ void ibis::bin::addBounds(double lbd, double rbd, uint32_t nbins,
 		-- nbins;
 		if (lbd < 1.0) lbd = 1.0;
 		diff = pow(rbd / lbd, 1.0 / nbins);
-		double fac = sqrt(1.0 / diff);
 		lbd *= diff;
 		while (lbd < rbd && nbins > 0) {
 		    double tmp = floor(lbd+0.5);
@@ -3627,7 +3712,6 @@ void ibis::bin::addBounds(double lbd, double rbd, uint32_t nbins,
 			-- nbins;
 			if (nbins > 0) {
 			    diff = pow(rbd / lbd, 1.0 / nbins);
-			    fac = sqrt(1.0 / diff);
 			}
 		    }
 		    lbd *= diff;
@@ -4277,6 +4361,15 @@ void ibis::bin::setBoundaries(const char* f) {
 	const char* spec = col->indexSpec();
 	const char* str = (spec ? strstr(spec, "<binning ") : 0);
 	if (str != 0) {
+	    str += 9;
+	}
+	else if (spec != 0 && strncmp(spec, "bins:", 5) == 0) {
+	    str += 5;
+	}
+	else if (spec != 0 && *spec != 0) {
+	    str = spec;
+	}
+	if (str != 0) {
 	    // new style of bin specification <binning ... />
 	    // start=xx, end=xx, nbins=xx, scale=linear|log
 	    // (start, end, nbins, scale)(start, end, nbins, scale)...
@@ -4293,7 +4386,8 @@ void ibis::bin::setBoundaries(const char* f) {
 		++ str;
 	    while (str != 0 && *str != 0 && *str != '/' && *str != '>') {
 		if (*str == 's' || *str == 'S') { // start=|scale=
-		    ptr = str + 6;
+		    ptr = str + 5;
+		    ptr += strspn(ptr, "= \t");
 		    if (*ptr == 'l' || *ptr == 'L') {
 			// assume scale=[linear | log]
 			eqw = 1 + (ptr[1]=='o' || ptr[1]=='O');
@@ -4318,17 +4412,16 @@ void ibis::bin::setBoundaries(const char* f) {
 			eqw = parseScale(str);
 			progress |= 8;
 		    }
-		    else { // bad options
+		    else { // bad option
 			if (r1 > r0)
 			    r0 = r1;
 			else
 			    r0 = col->lowerBound();
 			progress |= 1;
-			if (ibis::gVerbose > 1)
-			    ibis::util::logMessage
-				("index::setBoundaries",
-				 "bad option \"%s\", assume it to be "
-				 "\"start=%G\"", str, r0);
+			LOGGER(ibis::gVerbose > 1)
+			    <<"Warning -- bin::setBoundaries encountered a "
+			    "bad indexing option \"" << str
+			    << "\", assume it to be \"start=" << r0 << "\"";
 		    }
 		}
 		else if (*str == 'e' || *str == 'E') { // end=
@@ -4363,10 +4456,10 @@ void ibis::bin::setBoundaries(const char* f) {
 			progress |= 7;
 		    }
 		    else {
-			col->logWarning("index::setBoundaries",
-					"labeled elements must appear "
-					"after the unlabeled ones -- "
-					"skipping value %g", tmp);
+			LOGGER(ibis::gVerbose > 0)
+			    << "Warning -- bin::setBoundaries found a "
+			    "labeled element of bin spec before the "
+			    "unlabeled ones -- skipping value " << tmp;
 		    }
 		}
 		else if (*str == 'l' || *str == 'L') {
@@ -4382,7 +4475,8 @@ void ibis::bin::setBoundaries(const char* f) {
 			progress |= 11;
 		}
 		str = strpbrk(str, ",; \t()/>");
-		str += strspn(str, ",; \t"); // skip space
+		if (str != 0 && *str != 0)
+		    str += strspn(str, ",; \t"); // skip space
 		bool add = (progress == 15);
 		if (str == 0) { // end of string
 		    add = 1;
@@ -4420,7 +4514,7 @@ void ibis::bin::setBoundaries(const char* f) {
 		}
 	    }
 	}
-	else if ((str = (spec ? strstr(spec, "bins:") : 0)) != 0) {
+	else if (spec != 0 && (str = strstr(spec, "bins:")) != 0) {
 	    // use explicitly specified bin boundaries
 	    double r0, r1;
 	    const char* ptr = strchr(str, '[');
@@ -4474,7 +4568,8 @@ void ibis::bin::setBoundaries(const char* f) {
 						      DBL_MAX));
 	}
 	else if (spec != 0) {
-	    col->logWarning("bin::binning", "bad index spec \"%s\"", spec);
+	    col->logWarning("bin::binning", "expect bin spec to start with "
+			    "<binning or bins: but found none \"%s\"", spec);
 	}
 	else {
 	    col->logWarning("bin::binning", "do not know how to bin");
@@ -4482,7 +4577,7 @@ void ibis::bin::setBoundaries(const char* f) {
     }
 
     if (bounds.empty()) {
-	if (eqw < 10) { // bad bin spec, try approximate equal depth bin
+	if (eqw < 10) { // default bin spec, try approximate equal depth bin
 	    eqw = 11;
 	    scanAndPartition(f, eqw);
 	}

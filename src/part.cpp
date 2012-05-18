@@ -8843,7 +8843,7 @@ long ibis::part::negativeCompare(const char* file,
     T *buf = mybuf.address();
 
     uint32_t i=0, j=0;
-    long diff, ierr;
+    long diff, ierr=0;
     const ibis::bitvector::word_t *ii;
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
@@ -9536,7 +9536,7 @@ long ibis::part::negativeCompare(const char* file,
     T *buf = mybuf.address();
 
     uint32_t i=0, j=0;
-    long diff, ierr;
+    long diff, ierr=0;
     const ibis::bitvector::word_t *ii;
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
@@ -10224,7 +10224,7 @@ long ibis::part::negativeCompare(const char* file,
     T *buf = mybuf.address();
 
     uint32_t i=0, j=0;
-    long diff, ierr;
+    long diff, ierr=0;
     const ibis::bitvector::word_t *ii;
     const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally

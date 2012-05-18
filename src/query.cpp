@@ -808,7 +808,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		   "user \"%s\"", user);
     }
 
-    int ierr;
+    int ierr=-1;
     ibis::horometer timer;
     double pcnt = ibis::fileManager::instance().pageCount();
     writeLock lck(this, "evaluate");

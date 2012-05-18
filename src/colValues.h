@@ -56,7 +56,7 @@ public:
     }
 
     /// Write out whole array as binary.
-    virtual uint32_t write(FILE* fptr) const  = 0;
+    virtual long write(FILE* fptr) const  = 0;
     /// Write ith element as text.
     virtual void write(std::ostream& out, uint32_t i) const = 0;
 
@@ -139,19 +139,8 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<int32_t>* a = rhs.array; rhs.array = array; array = a;}
 
-    // write out whole array as binary
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(int32_t), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    // write ith element as text
-    virtual void write(std::ostream& out, uint32_t i) const
-    {out << (*array)[i];}
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -216,7 +205,7 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<uint32_t>* a = rhs.array; rhs.array = array; array = a;}
 
-    virtual uint32_t write(FILE* fptr) const;
+    virtual long write(FILE* fptr) const;
     virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
@@ -285,19 +274,8 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<int64_t>* a = rhs.array; rhs.array = array; array = a;}
 
-    // write out whole array as binary
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(int64_t), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    // write ith element as text
-    virtual void write(std::ostream& out, uint32_t i) const
-    {out << (*array)[i];}
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -364,22 +342,8 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<uint64_t>* a = rhs.array; rhs.array = array; array = a;}
 
-    /// Write out the whole array as binary.
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(uint64_t), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    /// Write the ith element as text.
-    virtual void write(std::ostream& out, uint32_t i) const {
-	if (array != 0 && array->size() > i) {
-	    out << (*array)[i];
-	}
-    }
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -446,19 +410,8 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<int16_t>* a = rhs.array; rhs.array = array; array = a;}
 
-    // write out whole array as binary
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(int16_t), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    // write ith element as text
-    virtual void write(std::ostream& out, uint32_t i) const
-    {out << (*array)[i];}
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -525,20 +478,8 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<uint16_t>* a = rhs.array; rhs.array = array; array = a;}
 
-    /// Write out the whole array as binary.
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(uint16_t), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    /// Write the ith element as text.
-    virtual void write(std::ostream& out, uint32_t i) const {
-	out << (*array)[i];
-    }
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -605,19 +546,8 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<signed char>* a = rhs.array; rhs.array = array; array = a;}
 
-    // write out whole array as binary
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(char), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    // write ith element as text
-    virtual void write(std::ostream& out, uint32_t i) const
-    {out << (int16_t)(*array)[i];}
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -684,20 +614,8 @@ public:
 	const ibis::column* c = rhs.col; rhs.col = col; col = c;
 	array_t<unsigned char>* a = rhs.array; rhs.array = array; array = a;}
 
-    /// Write out the whole array as binary.
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(char), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    /// Write the ith element as text.
-    virtual void write(std::ostream& out, uint32_t i) const {
-	out << (uint16_t)(*array)[i];
-    }
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -764,19 +682,8 @@ public:
     virtual void   reduce(const array_t<uint32_t>& starts,
 			  ibis::selectClause::AGREGADO func);
 
-    // write out whole array as binary
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(float), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    // write ith element as text
-    virtual void write(std::ostream& out, uint32_t i) const {
-	out << (*array)[i];}
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -844,19 +751,8 @@ public:
     virtual void   reduce(const array_t<uint32_t>& starts,
 			  ibis::selectClause::AGREGADO func);
 
-    // write out whole array as binary
-    virtual uint32_t write(FILE* fptr) const {
-	if (array) {
-	    uint32_t nelm = array->size();
-	    return nelm - fwrite(array->begin(), sizeof(double), nelm, fptr);
-	}
-	else {
-	    return 0;
-	}
-    }
-    // write ith element as text
-    virtual void write(std::ostream& out, uint32_t i) const {
-	out.precision(12); out << (*array)[i];}
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl,
@@ -919,7 +815,7 @@ public:
     virtual void reduce(const array_t<uint32_t>& starts,
 			ibis::selectClause::AGREGADO func);
 
-    virtual uint32_t write(FILE* fptr) const;
+    virtual long write(FILE* fptr) const;
     virtual void write(std::ostream& out, uint32_t i) const;
 
     virtual void sort(uint32_t i, uint32_t j, bundle* bdl);

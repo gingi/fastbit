@@ -747,7 +747,7 @@ int main(int argc, char** argv) {
     const char* outdir = ""; // default to keep data in memory
     const char* sel;
     const char* dsn = 0;
-    const char* del = ","; // delimiters
+    const char* del = ", "; // delimiters
     int ierr, nrpf;
     qList qcnd;
     std::ostringstream oss;

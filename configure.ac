@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.0.1], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.0.2], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -712,7 +712,7 @@ fi
 AC_MSG_CHECKING(whether to configure Makefiles in contrib)
 AC_ARG_ENABLE(contrib,
               [AS_HELP_STRING([--enable-contrib],[build contributed code in contrib directory (default: no)])],
-	      [if test "$enableval" = "yes" ; then contrib = "yes" ; else contrib = "no" ; fi],[contrib = "no"])
+	      [if test "$enableval" = "yes" ; then contrib="yes" ; else contrib="no" ; fi],[contrib="no"])
 AC_MSG_RESULT(${contrib})
 AM_CONDITIONAL(BUILD_CONTRIB, test "$contrib" = "yes")
 AC_SUBST(BUILD_CONTRIB)

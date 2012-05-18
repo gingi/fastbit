@@ -485,11 +485,9 @@ inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
 /// number of pages involved.  Used by derived classes to record page
 /// accesses.
 inline void ibis::fileManager::recordPages(off_t start, off_t stop) {
-    if (start < stop) {
-	start -= (start % pagesize);
-	if (stop % pagesize)
-	    stop += pagesize - stop % pagesize;
-	page_count += static_cast<double>((stop - start) / pagesize);
+    if (stop - start > 0) {
+	start = (start / pagesize) * pagesize;
+	page_count += ceil(static_cast<double>((stop - start)) / pagesize);
     }
 } // ibis::fileManager::recordPages
 

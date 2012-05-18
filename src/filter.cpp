@@ -57,7 +57,7 @@ ibis::filter::~filter() {
 void ibis::filter::roughCount(uint64_t& nmin, uint64_t& nmax) const {
     const ibis::constPartList &myparts =
 	(parts_ != 0 ? *parts_ :
-	 reinterpret_cast<const constPartList&>(ibis::datasets));
+	 reinterpret_cast<const ibis::constPartList&>(ibis::datasets));
     nmin = 0;
     nmax = 0;
     if (wc_ == 0) {

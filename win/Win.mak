@@ -110,11 +110,11 @@ tcapi: tcapi.exe
 tcapi.exe: tcapi.obj fastbit.lib
 	$(LINK) /NOLOGO $(LIB) /out:$@ tcapi.obj fastbit.lib
 
-#	$(MAKE) /f Win.mak DEF="$(DEF) /D _USRDLL /D DLL_EXPORTS" $(OBJ)
+#	$(MAKE) /f Win.mak DEF="$(DEF) /D _USRDLL /D DLL_EXPORT" $(OBJ)
 # To compile C++ Interface of FastBit, replace _USRDLL with CXX_USE_DLL
 dll: fastbit.dll
 fastbit.dll: $(FRC)
-	$(MAKE) /f Win.mak DEF="$(DEF) /D _USRDLL /D DLL_EXPORTS" $(OBJ)
+	$(MAKE) /f Win.mak DEF="$(DEF) /D _USRDLL /D DLL_EXPORT" $(OBJ)
 	$(LINK) /NOLOGO /DLL /OUT:$@ $(LIB) $(OBJ)
 
 trydll: trydll.exe
