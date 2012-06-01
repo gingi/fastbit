@@ -747,15 +747,17 @@ void ibis::bundle1::print(std::ostream& out) const {
 	    << (col->canSort() ? " distinct" : "")
 	    << (nbdl > 1 ? " values" : " value")
 	    << std::endl;
-    if (starts != 0) {
-	out << (*col)->name() << " (with counts)\n";
+    if (starts != 0 && ibis::gVerbose > 2) {
+	if (ibis::gVerbose > 4)
+	    out << (*col)->name() << " (with counts)\n";
 	for (uint32_t i=0; i < nbdl; ++i) {
 	    col->write(out, i);
 	    out << ",\t" << (*starts)[i+1] - (*starts)[i] << "\n";
 	}
     }
     else {
-	out << *comps << "\n";
+	if (ibis::gVerbose > 4)
+	    out << *comps << "\n";
 	for (uint32_t i=0; i < nbdl; ++i) {
 	    col->write(out, i);
 	    out << "\n";
@@ -1501,12 +1503,14 @@ void ibis::bundles::print(std::ostream& out) const {
 	out << "Bundle " << id << " contains " << size
 	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
 	    << (size > 1 ? "s" : "") << std::endl;
-    if (starts != 0) {
-	for (uint32_t i = 0; i < ncol; ++ i) {
-	    if (i > 0) out << ", ";
-	    out << (*(cols[i]))->name();
+    if (starts != 0 && ibis::gVerbose > 2) {
+	if (ibis::gVerbose > 4) {
+	    for (uint32_t i = 0; i < ncol; ++ i) {
+		if (i > 0) out << ", ";
+		out << (*(cols[i]))->name();
+	    }
+	    out << " (with counts)\n";
 	}
-	out << " (with counts)\n";
 	for (uint32_t i=0; i<size; ++i) {
 	    for (uint32_t ii=0; ii<ncol; ++ii) {
 		cols[ii]->write(out, i);
@@ -1516,7 +1520,8 @@ void ibis::bundles::print(std::ostream& out) const {
 	}
     }
     else {
-	out << *comps << "\n";
+	if (ibis::gVerbose > 4)
+	    out << *comps << "\n";
 	for (uint32_t i=0; i<size; ++i) {
 	    for (uint32_t ii=0; ii<ncol; ++ii) {
 		cols[ii]->write(out, i);

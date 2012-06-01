@@ -612,15 +612,15 @@ namespace ibis {
 	}
 	/// Return an integer designating the version of this software.
 	/// The version number is composed of four segments each with two
-	/// decimal digits.  For example, version 1.2.7.0 will be
-	/// represented as 01020000.  The stable releases typically have
+	/// decimal digits.  For example, version 1.3.0.2 will be
+	/// represented as 1030002.  The stable releases typically have
 	/// the last segment as zero, which is generally referred to
 	/// without the last ".0".
 	inline int getVersionNumber() {
 #ifdef FASTBIT_IBIS_INT_VERSION
 	    return FASTBIT_IBIS_INT_VERSION;
 #else
-	    return 1020800;
+	    return 1030000;
 #endif
 	}
 

@@ -390,7 +390,7 @@ namespace ibis { // forward definition of all the classes in IBIS
     };
 
     /// Verbosity level.  The larger the value, the more is printed.
-    /// Default value is 0.  A negative value will disable all printing.
+    /// The default value is 0.  A negative value will disable all printing.
     extern FASTBIT_CXX_DLLSPEC int gVerbose;
 } // namespace ibis
 #endif // ifndef IBIS_CONST_H

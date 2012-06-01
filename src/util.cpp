@@ -1644,8 +1644,11 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
     }
     int ierr = 0;
     if (fname != 0 && *fname != 0)
-	ierr = fprintf(fptr, "\nLog file %s for %s opened on %s\n",
-		       fname, str, tstr);
+	ierr = fprintf(fptr, "\n%s\nLog file %s opened on %s\n",
+		       str, fname, tstr);
+    else if (ibis::gVerbose > 1)
+	ierr = fprintf(fptr, "\n%s\nLog messages started on %s\n",
+		       str, tstr);
     else
 	ierr = fprintf(fptr, "\n");
     if (ierr > 0) {

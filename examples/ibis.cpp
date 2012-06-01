@@ -194,7 +194,7 @@ static void usage(const char* name) {
 #else
 	      << "FastBit ibis1.2"
 #endif
-	      << "\nList of options for " << name
+	      << "\n\nList of options for " << name
 	      << "\n\t[-a[ppend] data_dir [output_dir / partition_name]]"
 	"\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
 	"\n\t[-c[onf] conf_file]"
@@ -244,7 +244,8 @@ static void usage(const char* name) {
 
 // printout the help message
 static void help(const char* name) {
-    std::cout << name << " accepts the following commands:\n"
+    std::cout << FASTBIT_STRING << "\n\n"
+	      << name << " accepts the following commands:\n"
 	"help, exit, quit, append and query of the form\n\n"
 	"[SELECT column_names] [FROM dataset_names] WHERE ranges\n\n"
 	"The WHERE clause of a query must be specified.  "

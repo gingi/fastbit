@@ -1461,6 +1461,10 @@ void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
 /// many times.
 template<class T>
 void ibis::array_t<T>::resize(size_t n) {
+    if (n > 0x7FFFFFFFU) {
+	throw "array_t must have less than 2^31 elements";
+    }
+
     nosharing();
     if (actual != 0) {
 	m_end = m_begin + n;
@@ -1496,6 +1500,10 @@ void ibis::array_t<T>::resize(size_t n) {
 /// space, enlarge the storage object.
 template<class T>
 void ibis::array_t<T>::reserve(size_t n) {
+    if (n > 0x7FFFFFFFU) {
+	throw "array_t must have less than 2^31 elements";
+    }
+
     nosharing();
     if (actual != 0) {
 	size_t n0 = (T*)(actual->end()) - m_begin;
@@ -1536,7 +1544,7 @@ void ibis::array_t<T>::reserve(size_t n) {
 /// will be set to nil.
 ///
 /// It throws a string exception if the existing array has more than
-/// 0x7FFFFFFF (2^32-1) elements.
+/// 0x7FFFFFFF (2^31-1) elements.
 template<class T> typename ibis::array_t<T>::iterator
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
     if (actual == 0 || m_begin == 0) {
@@ -1563,7 +1571,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 	const difference_type n = m_end - m_begin;
 	const size_t ip = p - m_begin;
 	size_t newsize = static_cast<size_t>((n >= 7 ? n : 7) + n);
-	if ((long long) newsize <= n) {
+	if ((long long) newsize > 0x7FFFFFFFU) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 
@@ -1610,7 +1618,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, size_t n,
 	// copy and swap
 	const difference_type nold = m_end - m_begin;
 	size_t nnew = static_cast<size_t>(nold + (nold>=(long)n?nold:n));
-	if ((long long)nnew <= nold) {
+	if ((long long)nnew > 0x7FFFFFFFU) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 
@@ -1634,15 +1642,16 @@ template<class T> void
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 			 typename ibis::array_t<T>::const_iterator front,
 			 typename ibis::array_t<T>::const_iterator back) {
-    difference_type n = back - front;
-    if (n <= 0 || p < m_begin || p > m_end) return;
+    if (back <= front || p < m_begin || p > m_end) return;
+    const difference_type n = back - front;
 
-    if (actual == 0) {
+    if (actual == 0) { // no space
 	reserve(n);
 	for (const_iterator j = front; j < back; ++ j, ++ m_end)
 	    *m_end = *j;
     }
     else if (actual->inUse() == 1 && m_end+n <= (T*)(actual->end())) {
+	// enough space, simply copy the values
 	m_end += n;
 	iterator i = m_end - 1;
 	while (i >= p+n) {
@@ -1652,11 +1661,12 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 	    *i = *back;
 	}
     }
-    else { 	// need new memory
-	const difference_type nold = m_end - m_begin;
+    else { 	// need new memory, copy-and-swap
+	const difference_type nold = (m_begin > 0 && m_end > m_begin ?
+				      m_end - m_begin : 0);
 	size_t nnew = static_cast<size_t>(nold + (nold>=n ? nold : n));
-	if ((long long) nnew <= nold) {
-	    throw "array_t must have less than 2^32 elements";
+	if ((long long) nnew > 0x7FFFFFFFU) {
+	    throw "array_t must have less than 2^31 elements";
 	}
 
 	const size_t jp = p - m_begin;

@@ -30,7 +30,7 @@
 #endif
 
 // constants defined for type name and type code used in the metadata file
-FASTBIT_CXX_DLLSPEC const char* ibis::TYPECODE   = "?OBAHGIULVRDCSQT";
+FASTBIT_CXX_DLLSPEC const char* ibis::TYPECODE   = "?OBAHGIULVRDKSQT";
 static const char* _ibis_TYPESTRING_local[] = {
     "UNKNOWN", "OID", "BYTE", "UBYTE", "SHORT", "USHORT", "INT", "UINT",
     "LONG", "ULONG", "FLOAT", "DOUBLE", "CATEGORY", "TEXT", "BLOB", "UDT"

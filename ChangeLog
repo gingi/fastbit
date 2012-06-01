@@ -1,3 +1,11 @@
+2013-06-01 John Wu <John dot Wu at ACM dot org>
+	* src/bundle.cpp: change function print to output the names when
+	ibis::gVerbose > 4 and output the counts when ibis::gVerbose > 2
+
+2013-05-25 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.cpp: add explicit limit on the array size to be less
+	than 2^31
+
 2013-05-18 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: add UDT into the type list
 
