@@ -962,7 +962,7 @@ int main(int argc, char** argv) {
 	}
     }
     if (testing > 0 || ! qcnd.empty()) {
-	// to print the elapsed time from this point on when -v is specified
+	// to print the elapsed time when -v is specified
 	ibis::util::timer mytimer(*argv, 1);
 	if (testing > 0)
 	    doTest(*tbl);

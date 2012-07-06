@@ -240,6 +240,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\blob.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\bord.h"
 				>
 			</File>

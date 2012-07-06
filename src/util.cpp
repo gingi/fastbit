@@ -351,8 +351,8 @@ int ibis::util::readString(std::string& str, const char *&buf,
 	<< "DEBUG -- util::getString(" << buf << ") retrieved \""
 	<< str << "\"";
 #endif
-    // shouldn't get here, but just in case..
-    if (str.empty()) return -2;
+    // end of string
+    return -2 * (str.empty());
 } // ibis::util::readString
 
 /// Attempt to convert the incoming string into an integer.  It skips

@@ -226,6 +226,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\blob.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\bord.cpp"
 				>
 			</File>
@@ -500,6 +504,10 @@
 			</File>
 			<File
 				RelativePath="..\src\bitvector64.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\blob.h"
 				>
 			</File>
 			<File
