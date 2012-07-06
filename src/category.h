@@ -56,11 +56,13 @@ public:
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
     /// Return the starting positions of strings marked 1 in the mask.
     virtual array_t<int64_t>* selectLongs(const bitvector& mask) const;
-    virtual
-    std::vector<std::string>* selectStrings(const bitvector& mask) const;
+    virtual std::vector<std::string>*
+    selectStrings(const bitvector& mask) const;
     virtual const char* findString(const char* str) const;
     virtual void getString(uint32_t i, std::string &val) const {
 	readString(i, val);}
+    // virtual std::vector<ibis::opaque>*
+    // selectOpaques(const bitvector& mask) const;
 
     virtual void write(FILE* file) const; ///< Write the metadata entry.
     virtual void print(std::ostream& out) const; ///< Print header info.
@@ -143,6 +145,8 @@ public:
     virtual std::vector<std::string>*
     selectStrings(const bitvector& mask) const;
     virtual void getString(uint32_t i, std::string &val) const;
+    // virtual std::vector<ibis::opaque>*
+    // selectOpaques(const bitvector& mask) const;
 
     virtual uint32_t getNumKeys() const;
     virtual const char* getKey(uint32_t i) const;
@@ -169,108 +173,4 @@ private:
 
     category& operator=(const category&);
 }; // ibis::category
-
-/// A class to provide minimal support for byte arrays.  Since a byte array
-/// may contain any arbitrary byte values, we can not rely on the null
-/// terminator any more, nor use std::string as the container for each
-/// array.  It is intended to store opaque data that can not be searched.
-class ibis::blob : public ibis::column {
-public:
-    virtual ~blob() {};
-    blob(const part*, FILE*);
-    blob(const part*, const char*);
-    blob(const ibis::column&);
-
-    virtual long stringSearch(const char*, ibis::bitvector&) const {return -1;}
-    virtual long stringSearch(const std::vector<std::string>&,
-			      ibis::bitvector&) const {return -1;}
-    virtual long stringSearch(const char*) const {return -1;}
-    virtual long stringSearch(const std::vector<std::string>&) const {
-	return -1;}
-
-    virtual void computeMinMax() {}
-    virtual void computeMinMax(const char*) {}
-    virtual void computeMinMax(const char*, double&, double&) const {}
-    virtual void loadIndex(const char*, int) const throw () {}
-    virtual long indexSize() const {return -1;}
-    virtual int  getValuesArray(void*) const {return -1;}
-
-    virtual array_t<signed char>* selectBytes(const bitvector&) const {return 0;}
-    virtual array_t<unsigned char>* selectUBytes(const bitvector&) const {return 0;}
-    virtual array_t<int16_t>* selectShorts(const bitvector&) const {return 0;}
-    virtual array_t<uint16_t>* selectUShorts(const bitvector&) const {return 0;}
-    virtual array_t<int32_t>* selectInts(const bitvector&) const {return 0;}
-    virtual array_t<uint32_t>* selectUInts(const bitvector&) const {return 0;}
-    virtual array_t<int64_t>* selectLongs(const bitvector&) const {return 0;}
-    virtual array_t<uint64_t>* selectULongs(const bitvector&) const {return 0;}
-    virtual array_t<float>* selectFloats(const bitvector&) const {return 0;}
-    virtual array_t<double>* selectDoubles(const bitvector&) const {return 0;}
-    virtual std::vector<std::string>* selectStrings(const bitvector&) const {return 0;}
-
-    // virtual long estimateRange(const ibis::qContinuousRange&,
-    // 			       ibis::bitvector&,
-    // 			       ibis::bitvector&) const {return -1;}
-    // virtual long estimateRange(const ibis::qDiscreteRange&,
-    // 			       ibis::bitvector&,
-    // 			       ibis::bitvector&) const {return -1;}
-    // virtual long evaluateRange(const ibis::qContinuousRange&,
-    // 			       const ibis::bitvector&,
-    // 			       ibis::bitvector&) const {return -1;}
-    // virtual long evaluateRange(const ibis::qDiscreteRange&,
-    // 			       const ibis::bitvector&,
-    // 			       ibis::bitvector&) const {return -1;}
-    // virtual long estimateRange(const ibis::qContinuousRange&) const {return -1;}
-    // virtual long estimateRange(const ibis::qDiscreteRange&) const {return -1;}
-    // virtual double estimateCost(const ibis::qContinuousRange&) const {return 0;}
-    // virtual double estimateCost(const ibis::qDiscreteRange& cmp) const {return 0;}
-    // virtual double estimateCost(const ibis::qString&) const {return 0;}
-    // virtual double estimateCost(const ibis::qMultiString&) const {return 0;}
-
-    // virtual float getUndecidable(const ibis::qContinuousRange&,
-    // 				 ibis::bitvector&) const {return 1;}
-    // virtual float getUndecidable(const ibis::qDiscreteRange&,
-    // 				 ibis::bitvector&) const {return 1;}
-
-    virtual double getActualMin() const {return DBL_MAX;}
-    virtual double getActualMax() const {return -DBL_MAX;}
-    virtual double getSum() const {return 0;}
-
-    virtual long append(const void*, const ibis::bitvector&) {return -1;}
-    virtual long append(const char* dt, const char* df, const uint32_t nold,
-			const uint32_t nnew, uint32_t nbuf, char* buf);
-    virtual long writeData(const char* dir, uint32_t nold, uint32_t nnew,
-			   ibis::bitvector& mask, const void *va1,
-			   void *va2);
-
-    virtual void write(FILE*) const;
-    virtual void print(std::ostream&) const;
-
-    long countRawBytes(const bitvector&) const;
-    int selectRawBytes(const bitvector&,
-		       array_t<unsigned char>&, array_t<uint32_t>&) const;
-    int getBlob(uint32_t ind, unsigned char *&buf, uint32_t &size) const;
-
-protected:
-    int extractAll(const bitvector&,
-		   array_t<unsigned char>&, array_t<uint32_t>&,
-		   const array_t<unsigned char>&,
-		   const array_t<int64_t>&) const;
-    int extractSome(const bitvector&,
-		    array_t<unsigned char>&, array_t<uint32_t>&,
-		    const array_t<unsigned char>&, const array_t<int64_t>&,
-		    const uint32_t) const;
-    int extractAll(const bitvector&,
-		   array_t<unsigned char>&, array_t<uint32_t>&,
-		   const char*, const array_t<int64_t>&) const;
-    int extractSome(const bitvector&,
-		    array_t<unsigned char>&, array_t<uint32_t>&,
-		    const char*, const array_t<int64_t>&, const uint32_t) const;
-    int extractSome(const bitvector&,
-		    array_t<unsigned char>&, array_t<uint32_t>&,
-		    const char*, const char*, const uint32_t) const;
-    int readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
-		 const array_t<int64_t> &starts, const char *datafile) const;
-    int readBlob(uint32_t ind, unsigned char *&buf, uint32_t &size,
-		 const char *spfile, const char *datafile) const;
-}; // ibis::blob
 #endif // IBIS_CATEGORY_H

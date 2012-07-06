@@ -10,7 +10,8 @@
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 
-#include "category.h"
+#include "blob.h"	// ibis::blob
+#include "category.h"	// ibis::text, ibis::category, ibis::column
 #include "query.h"
 #include "countQuery.h"	// ibis::countQuery
 #include "iroster.h"
@@ -1730,8 +1731,14 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 void ibis::part::updateMetaData() const {
     if (activeDir != 0 && *activeDir != 0) {
 	softWriteLock lock(this, "updateMetaData");
-	if (lock.isLocked())
+	if (lock.isLocked()) {
 	    writeMetaData(nEvents, columns, activeDir);
+	}
+	else if (ibis::gVerbose > 1) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- part[" << name() << "::updateMetaData failed "
+		"to acquire a write lock, metadata file is not changed";
+	}
     }
 }
 

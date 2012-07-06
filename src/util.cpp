@@ -639,7 +639,7 @@ int ibis::util::copy(const char* to, const char* from) {
 /// demands.  This function attempts use the return value from read when it
 /// is a posive value.
 int64_t ibis::util::read(int fdes, void *buf, int64_t nbytes) {
-    ssize_t ierr = 0;
+    long ierr = 0;
     int64_t offset = 0;
     while (nbytes > 0) {
 	ierr = UnixRead(fdes,

@@ -4,7 +4,7 @@
 #ifndef IBIS_COLUMN_H
 #define IBIS_COLUMN_H
 ///@file
-/// Define the class column.
+/// Define the class ibis::column.
 ///
 /// A column of a relational table is also known as an attribute of a
 /// relation.  In IBIS, columns are stored separate from each other.  This
@@ -139,6 +139,8 @@ public:
     virtual array_t<double>*   selectDoubles(const bitvector& mask) const;
     virtual std::vector<std::string>*
 	selectStrings(const bitvector& mask) const;
+    virtual std::vector<ibis::opaque>*
+	selectOpaques(const bitvector& mask) const;
 
     long selectValues(const bitvector&, void*) const;
     long selectValues(const bitvector&, void*, array_t<uint32_t>&) const;
@@ -419,6 +421,9 @@ protected:
     template <typename T>
 	long selectToStrings(const char*, const bitvector&,
 			     std::vector<std::string>&) const;
+    template <typename T>
+	long selectToOpaques(const char*, const bitvector&,
+			     std::vector<ibis::opaque>&) const;
 
     /// Append the content of incoming array to the current data.
     template <typename T>

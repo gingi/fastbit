@@ -130,7 +130,7 @@ public:
     /// @note This function returns the internal storage representation of
     /// the array_t object.  <b>In general, it is very dangarous to expose
     /// internal implementation details to clients</b>.  <b>Likely to be
-    /// removed soon</b>.  Don't rely on this function!
+    /// removed in a future release</b>.  Don't rely on this function!
     ibis::fileManager::storage* getStorage() {return actual;}
 
 private:

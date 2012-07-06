@@ -10,9 +10,11 @@
 #include "bord.h"	// ibis::bord
 #include "mensa.h"	// ibis::mensa
 #include "countQuery.h"	// ibis::countQuery
-#include "index.h"	// ibis::index
-#include "category.h"	// ibis::text
 #include "selectClause.h"	// ibis::selectClause
+#include "index.h"	// ibis::index
+
+#include "blob.h"	// ibis::blob
+#include "category.h"	// ibis::text
 
 #include <memory>	// std::auto_ptr
 #include <algorithm>	// std::sort
@@ -265,15 +267,20 @@ const char* ibis::mensa::indexSpec(const char* colname) const {
 } // ibis::mensa::indexSpec
 
 void ibis::mensa::indexSpec(const char* opt, const char* colname) {
+    if (opt == 0 || *opt == 0) return;
+
     for (ibis::partList::iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	if (colname == 0 || *colname == 0) {
 	    (*it)->indexSpec(opt);
+	    (*it)->updateMetaData();
 	}
 	else {
 	    ibis::column* col = (*it)->getColumn(colname);
-	    if (col != 0)
+	    if (col != 0) {
 		col->indexSpec(opt);
+		(*it)->updateMetaData();
+	    }
 	}
     }
 } // ibis::mensa::indexSpec
@@ -284,16 +291,20 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
     int ierr = 0;
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	const ibis::column* col = (*it)->getColumn(colname);
+	ibis::column* col = (*it)->getColumn(colname);
 	if (col != 0) {
 	    ibis::index* ind = ibis::index::create(col, 0, option);
 	    if (ind != 0) {
 		++ ierr;
 		delete ind;
+		if (option != 0 && *option != 0) {
+		    col->indexSpec(option);
+		    (*it)->updateMetaData();
+		}
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 1)
-		    << "mensa::buildIndex(" << colname << ", "
+		    << "Warning -- mensa::buildIndex(" << colname << ", "
 		    << (option != 0 ? option : col->indexSpec()) << ") failed";
 	    }
 	}
@@ -2886,18 +2897,19 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 	    }
 	    break;}
 	case ibis::BLOB: {
-	    std::string val;
+	    ibis::opaque val;
 	    res.blobsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval != 0) {
-		unsigned char *buf = 0;
-		uint32_t sz = 0;
+		char *buf = 0;
+		uint64_t sz = 0;
 		int ierr = reinterpret_cast<const ibis::blob*>(buffer[j].cval)
 		    ->getBlob(curRow-pBegin, buf, sz);
 		if (ierr >= 0 && sz > 0 && buf != 0)
-		    val.insert(val.end(), buf, buf+sz);
+		    val.assign(buf, sz);
 		delete buf;
 	    }
-	    res.blobsvalues.push_back(val);
+	    res.blobsvalues.resize(res.blobsvalues.size()+1);
+	    res.blobsvalues.back().swap(val);
 	    break;}
 	case ibis::TEXT: {
 	    res.textsnames.push_back(buffer[j].cname);
@@ -3215,8 +3227,8 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, uint32_t i,
 	    }
 
 	    if (blo != 0) {
-		unsigned char *buf = 0;
-		uint32_t sz = 0;
+		char *buf = 0;
+		uint64_t sz = 0;
 		ierr = blo->getBlob(static_cast<uint32_t>(i+bBegin-pBegin),
 				    buf, sz);
 		if (ierr >= 0 && sz > 0 && buf != 0) {
@@ -3695,8 +3707,8 @@ int ibis::mensa::cursor::getColumnAsString(uint32_t j, std::string& val) const {
 	}
 	break;}
     case ibis::BLOB: {
-	unsigned char *buf = 0;
-	uint32_t sz = 0;
+	char *buf = 0;
+	uint64_t sz = 0;
 	const ibis::blob* blo = dynamic_cast<const ibis::blob*>
 	    (tab.parts[curPart]->getColumn(buffer[j].cname));
 	if (blo != 0) {

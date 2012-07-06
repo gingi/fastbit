@@ -1439,9 +1439,19 @@ int64_t ibis::bord::getColumnAsStrings(const char *cn,
 
 	vals.resize(sz);
 	for (uint32_t i = 0; i < sz; ++ i) {
-	    std::ostringstream oss;
-	    oss << (*arr)[i+begin];
-	    vals[i] = oss.str();
+	    if (col->getDictionary() == 0) {
+		std::ostringstream oss;
+		oss << (*arr)[i+begin];
+		vals[i] = oss.str();
+	    }
+	    else if (col->getDictionary()->size() >= (*arr)[i+begin]) {
+		vals[i] = col->getDictionary()->operator[]((*arr)[i+begin]);
+	    }
+	    else {
+		std::ostringstream oss;
+		oss << (*arr)[i+begin];
+		vals[i] = oss.str();
+	    }
 	}
 	return sz;}
     case ibis::SHORT: {
@@ -11374,7 +11384,7 @@ ibis::bord::column::~column() {
 /// Retrieve the raw data buffer as an ibis::fileManager::storage.  Since
 /// this function exposes the internal storage representation, it should
 /// not be relied upon for general uses.  This is mostly a convenience
-/// thing for FastBit internal development!
+/// for FastBit internal development!
 ///
 /// @note Only fix-sized columns are stored using
 /// ibis::fileManager::storage objects.  It will return a nil pointer for
@@ -16938,9 +16948,21 @@ int ibis::bord::cursor::getColumnAsString(uint32_t j, std::string& val) const {
 	ierr = 0;
 	break;}
     case ibis::UINT: {
-	oss << (* static_cast<const array_t<uint32_t>*>
-		(buffer[j].cval))[curRow];
-	val = oss.str();
+	const ibis::array_t<uint32_t> &arr =
+	    (* static_cast<const array_t<uint32_t>*>(buffer[j].cval));
+	if (buffer[j].dic == 0) {
+	    oss << arr[curRow];
+	    val = oss.str();
+	}
+	else if (buffer[j].dic->size() >= arr[curRow]) {
+	    val = buffer[j].dic->operator[]
+		((* static_cast<const array_t<uint32_t>*>
+		  (buffer[j].cval))[curRow]);
+	}
+	else {
+	    oss << arr[curRow];
+	    val = oss.str();
+	}
 	ierr = 0;
 	break;}
     case ibis::LONG: {

@@ -44,10 +44,10 @@ namespace ibis {
 	/// stored with the null terminators, therefore null can not be
 	/// part of a string.
 	TEXT,
-	/// Byte array.  Also known as Binary Large Object (blob).  A
-	/// column of this type requires special handling for input and
-	/// output.  It can not be used as a part of any searching
-	/// criteria.
+	/// Byte array.  Also known as Binary Large Objects (blob) or
+	/// opaque objects.  A column of this type requires special
+	/// handling for input and output.  It can not be used as a part of
+	/// any searching criteria.
 	BLOB,
         /// User-defined type.  FastBit does not know much about it.
         UDT
@@ -394,7 +394,7 @@ public:
 	std::vector<std::string>   textsnames; ///< For ibis::TEXT.
 	std::vector<std::string>   textsvalues;
 	std::vector<std::string>   blobsnames; ///< For ibis::BLOB
-	std::vector<std::string>   blobsvalues;
+	std::vector<ibis::opaque>  blobsvalues;
 
 	/// Clear all names and values.
 	void clear();

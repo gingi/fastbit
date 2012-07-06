@@ -8,6 +8,7 @@
 #include "util.h"	// ibis::partList
 #include "part.h"	// ibis::part
 #include "selectClause.h"// ibis::selectClause
+#include "dictionary.h"	// ibis::dictionary
 
 ///@file
 /// Defines ibis::bord.  This is an in-memory data table, with a single
@@ -636,7 +637,8 @@ protected:
 	void* cval;
 	const ibis::dictionary* dic;
 
-	bufferElement() : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0) , dic(0) {}
+	bufferElement()
+	    : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0), dic(0) {}
     }; // bufferElement
     typedef std::map<const char*, uint32_t, ibis::lessi> bufferMap;
     std::vector<bufferElement> buffer;
@@ -654,8 +656,8 @@ private:
 }; // ibis::bord::cursor
 
 /// Copy a single value from inbuf to outbuf.  The output buffer must have
-/// the correct size on entry; this function does not attempt to resize the
-/// output buffer.
+/// the correct size on entry.  This function does *NOT* attempt to resize
+/// the output buffer.
 inline void
 ibis::bord::copyValue(ibis::TYPE_T type, void* outbuf, size_t outpos,
 		      const void* inbuf, size_t inpos) {
@@ -1267,7 +1269,15 @@ ibis::bord::cursor::dumpIJ(std::ostream& out, uint32_t i,
     case ibis::UINT: {
 	const array_t<const uint32_t>* vals =
 	    static_cast<const array_t<const uint32_t>*>(buffer[j].cval);
-	out << (*vals)[i];
+	if (buffer[j].dic == 0) {
+	    out << (*vals)[i];
+	}
+	else if (buffer[j].dic->size() >= (*vals)[i]) {
+	    out << buffer[j].dic->operator[]((*vals)[i]);
+	}
+	else {
+	    out << (*vals)[i];
+	}
 	break;}
     case ibis::LONG: {
 	const array_t<const int64_t>* vals =

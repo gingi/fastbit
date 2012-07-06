@@ -4904,6 +4904,15 @@ ibis::column::selectStrings(const bitvector& mask) const {
     return res;
 } // ibis::column::selectStrings
 
+std::vector<ibis::opaque>*
+ibis::column::selectOpaques(const bitvector& mask) const {
+    LOGGER(ibis::gVerbose >= 0)
+	<< "Warning -- column["
+	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
+	    << "]::selectOpaque not yet implemented";
+    return 0;
+} // ibis::column::selectOpaques
+
 /// Select the values satisfying the specified range condition.
 long ibis::column::selectValues(const ibis::qContinuousRange& cond,
 				void* vals) const {

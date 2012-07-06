@@ -364,21 +364,77 @@ namespace ibis { // forward definition of all the classes in IBIS
 	    uint32_t event;	///< Event number.  Less significant.
 	} num;
 
-	bool operator<(const rid_t& r) const {
-	    return((num.run < r.num.run) |
-		   (num.run == r.num.run && num.event < r.num.event));}
-	bool operator>(const rid_t& r) const {
-	    return((num.run > r.num.run) |
-		   (num.run == r.num.run && num.event > r.num.event));}
-	bool operator<=(const rid_t& r) const {
-	    return((num.run < r.num.run) |
-		   (num.run == r.num.run && num.event <= r.num.event));}
-	bool operator>=(const rid_t& r) const {
-	    return((num.run > r.num.run) |
-		   (num.run == r.num.run && num.event >= r.num.event));}
+	// (num.run < r.num.run) |
+	// (num.run == r.num.run && num.event < r.num.event))
+	bool operator<(const rid_t& r) const  {return(value < r.value);}
+	bool operator>(const rid_t& r) const  {return(value > r.value);}
+	bool operator<=(const rid_t& r) const {return(value <= r.value);}
+	bool operator>=(const rid_t& r) const {return(value >= r.value);}
 	bool operator==(const rid_t& r) const {return(value == r.value);}
 	bool operator!=(const rid_t& r) const {return(value != r.value);}
-    };
+    }; // rid_t
+
+    /// A simple class representing an opaque object.
+    class FASTBIT_CXX_DLLSPEC opaque {
+    public:
+	/// Return the content of the opaque object as a sequence of bytes.
+	const char* address() const {return buf_;}
+	/// The number of bytes pointed by address.
+	uint64_t length() const {return len_;}
+	/// Copy the byte array into this opaque object.  Do not change the
+	/// incoming arguments.  The caller is still responsible for
+	/// freeing the pointer ptr.
+	///
+	/// It returns 0 upon successful completion of the copy operation,
+	/// otherwise, it returns a negative number to indicate error.
+	int copy(const char* ptr, uint64_t len);
+	/// Assign the external storage to this object.  This object takes
+	/// on the responsibility of freeing the pointer ptr and the caller
+	/// should not attempt to free ptr.
+	///
+	/// It returns 0 upon successful completion of the operation,
+	/// otherwise, it returns a negative number to indicate error.
+	///
+	/// @note The pointer ptr must be created with operator new.
+	int assign(char* ptr, uint64_t len)  {
+	    delete [] buf_;
+	    buf_ = ptr;
+	    len_ = len;
+	    return 0;
+	}
+
+	/// Swap the content of two opaque objects.
+	void swap(opaque& rhs) {
+	    char* ptr = buf_;
+	    buf_ = rhs.buf_;
+	    rhs.buf_ = ptr;
+	    uint64_t len = len_;
+	    len_ = rhs.len_;
+	    rhs.len_ = len;
+	}
+
+	/// Destructor.
+	~opaque() {delete [] buf_;}
+	/// The default constructor.
+	opaque() : buf_(0), len_(0) {};
+	/// Constructor.  The extenal buffer is given to the new object to
+	/// manage and the pointer ptr must be created with operator new.
+	opaque(char* ptr, uint64_t len) : buf_(ptr), len_(len) {}
+
+	/// Copy constructor.  Performs a deep copy.
+	opaque(const opaque &rhs) : buf_(0), len_(0) {
+	    copy(rhs.buf_, rhs.len_);
+	}
+	/// Assignment operator.  Performs a deep copy.
+	opaque& operator=(const opaque &rhs) {
+	    copy(rhs.buf_, rhs.len_);
+	    return *this;
+	}
+
+    protected:
+	char* buf_;
+	uint64_t len_;
+    }; // opaque
 
     /// A case-insensitive version of less for comparing names of tables,
     /// columns, and other resources.
@@ -387,7 +443,7 @@ namespace ibis { // forward definition of all the classes in IBIS
 	bool operator()(const char* x, const char* y) const {
 	    return (x && y ? stricmp(x, y) < 0 : false);
 	}
-    };
+    }; // lessi
 
     /// Verbosity level.  The larger the value, the more is printed.
     /// The default value is 0.  A negative value will disable all printing.

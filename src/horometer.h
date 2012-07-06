@@ -36,8 +36,8 @@
 #   include <unistd.h>
 #endif
 
-/// @file
-/// Defines a simple timer class.
+/// @file Defines a simple timer class.  All functions are in this single
+/// header file.
 namespace ibis {
     class horometer;
 }
@@ -45,7 +45,7 @@ namespace ibis {
 /**
  Horometer -- a primitive timing instrument.
 
- This is intented to be a simple timer that measure a single duration.  It
+ This is intented to be a simple timer that measures a single duration.  It
  must be explicitly started by calling the function start.  The same
  function start may be called to restart the timer which will discard the
  previous starting point.  The function stop must be called before
@@ -53,10 +53,12 @@ namespace ibis {
  horometer is stopped, it may continue by calling start to count a new
  duration, or it may add to the existing duration by calling resume.
 
- Timing accuracy depends on the underlying implementation.  On most unix
- systems, the time resolution is about 0.01 seconds.  The timing function
- itself may take ~10,000 clock cycles to execute, which is about 30
- microseconds on a 400 MHz machine.
+ The timing accuracy depends on the underlying implementation.  On most
+ unix systems, the CPU time resolution is about 0.01 seconds, while the
+ elapsed time may be accurate to 0.0001 seconds.  The timing function
+ itself may take ~10,000 clock cycles to execute, which is about 25
+ microseconds on a 400 MHz machine.  This can become a significant source
+ of error if a timer is stopped and resumed at a high frequency.
 */
 class ibis::horometer {
 public:
@@ -107,16 +109,12 @@ private:
     double countPeriod;     // time of one high-resolution count
 #endif
 
-    /// Read the system's wallclock timer.  It tries to use clock_gettime
-    /// if it is available, otherwise it falls back to gettimeofday and
-    /// clock.
     inline double readWallClock();
-    /// Read the CPU timer.  It tries to use getrusage first, if not
-    /// available, it falls back to times and clock.
     inline double readCPUClock();
 };
 
-// read the system's wall clock time
+/// Read the system's wallclock timer.  It tries to use clock_gettime if it
+/// is available, otherwise it falls back to gettimeofday and clock.
 inline double ibis::horometer::readWallClock() {
 #if defined(CLOCK_REALTIME) && !defined(__CYGWIN__)
     struct timespec tb;
@@ -158,7 +156,8 @@ inline double ibis::horometer::readWallClock() {
 #endif
 } //  ibis::horometer::readWallClock
 
-// read the value of the CPU clock time
+/// Read the CPU timer.  It tries to use getrusage first, if not available,
+/// it falls back to times and clock.
 inline double ibis::horometer::readCPUClock() {
 #if defined(sun) || defined(sgi) || defined(linux) || defined(__APPLE__) \
     || defined(__HOS_AIX__) || defined(__CYGWIN__) || defined(__FreeBSD__)
