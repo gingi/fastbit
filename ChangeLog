@@ -1,3 +1,11 @@
+2012-07-11 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: in function lookforString, when neither left
+	string nor right string is a valid column name, treat the
+	expression as string constant comparison
+	* src/whereClause.cpp: in function verifyExpr, add statements to
+	look for the UINT column with a dictionary and convert the
+	expression to an equality conparison with an integer
+
 2012-07-06 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h: bord::cursor::dumpIJ neglected to check the presence
 	of dictionary (a problem spotted by Gaurav Agarwal)
@@ -274,7 +282,7 @@
 	sensitive matching (-DFASTBIT_CS_PATTERN_MATCH=0 to disable case
 	sensitive matching)
 	* src/bundle.cpp, ...: harmonize the use of FASTBIT_SYNC_WRITE to
-	make _commit is called on windows systems when the macro is
+	make sure _commit is called on windows systems when the macro is
 	defined, some functions were missing this branch of the code
 
 2012-03-09 Dominique Prunier <dominique dot prunier at watch4net dot com>

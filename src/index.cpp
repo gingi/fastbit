@@ -1561,9 +1561,6 @@ void ibis::index::indexFileName(std::string& iname, const char* f) const {
     else {
 	Stat_T st0;
 	if (UnixStat(f, &st0)) { // stat fails, use the name
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- index::indexFileName has determined that \""
-		<< f << "\" does not exist, will use it as an index file name";
 	    iname = f;
 	}
 	else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
@@ -1602,6 +1599,12 @@ void ibis::index::indexFileName(std::string& iname, const char* f) const {
 	    }
 	}
     }
+
+    LOGGER(ibis::gVerbose > 4)
+	<< "index::indexFileName will use \""
+	<< iname << "\" as the index file name for "
+	<< col->partition()->name() << '.'
+	<< col->name();
 } // indexFileName
 
 /// Generate the index file name for the composite index fromed on two

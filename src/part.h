@@ -241,7 +241,7 @@ public:
 			  ibis::bitvector &hits) const;
 
     long patternSearch(const ibis::qLike &cmp,
-		    ibis::bitvector &low) const;
+		       ibis::bitvector &low) const;
     long lookforString(const ibis::qString &cmp,
 		       ibis::bitvector &low) const;
     long lookforString(const ibis::qMultiString &cmp,
@@ -600,7 +600,7 @@ public:
     long purgeInactive();
     void emptyCache() const;
     /// Return a reference to the mask of active rows.
-    const ibis::bitvector &getNullMask() const {return amask;}
+    const ibis::bitvector& getNullMask() const {return amask;}
 
     static const char* skipPrefix(const char*);
     /// A class function to read the meta tags in the tdc file.

@@ -324,7 +324,7 @@ inline ibis::table::typeList ibis::tabula::columnTypes() const {
 inline void ibis::tabula::describe(std::ostream& out) const {
     out << "Table " << name_ << " (" << desc_ << ") contains "
 	<< nrows << " row" << (nrows > 1 ? "s" : "")
-	<< " but no columns" << std::endl;
+	<< (nrows>0?" but":" and") << " no column" << std::endl;
 }
 
 inline void

@@ -251,6 +251,11 @@ public:
     virtual float getUndecidable(const ibis::qUIntHod& cmp,
 				 ibis::bitvector& iffy) const;
 
+    /// Return a pointer to a dictionary.  Used by ibis::category and
+    /// ibis::bord::column (for UINT type converted from ibis::category).
+    /// For all other types, this function returns a nil pointer.
+    virtual const ibis::dictionary* getDictionary() const {return 0;}
+
     /// Append new data in directory df to the end of existing data in dt.
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);

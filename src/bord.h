@@ -572,7 +572,7 @@ public:
     /// Return the dictionary associated with the column.  A dictionary is
     /// associated with the column originally stored as ibis::category, but
     /// has been converted to be an integer column of type ibis::UINT.
-    const ibis::dictionary* getDictionary() const {return dic;}
+    virtual const ibis::dictionary* getDictionary() const {return dic;}
     /// Assign the dictionary to use.
     void setDictionary(const ibis::dictionary* d) {dic = d;}
 

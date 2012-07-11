@@ -549,7 +549,7 @@ ibis::table* ibis::filter::sift(const ibis::selectClause  &tms,
 	}
     }
 
-    if (separable && plist.size()>1)
+    if (separable && plist.size() > 1)
 	return ibis::filter::sift2S(tms, plist, cond);
     else
 	return ibis::filter::sift2(tms, plist, cond);

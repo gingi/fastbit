@@ -564,7 +564,8 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	    }
 	    ierr = ints.write(fnm.c_str());
 	    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-		<< "Warning -- " << evt << " failed to write integers to " << fnm;
+		<< "Warning -- " << evt << " failed to write integers to "
+		<< fnm;
 	}
 	else if (neednewindex) {
 	    LOGGER(ibis::gVerbose > 1)

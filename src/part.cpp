@@ -3152,8 +3152,7 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 
 /// Find all records that has the exact string value.
 /// The object qString contains only two string values without any
-/// indication as what they represent.  This function actually uses the two
-/// string and decide what they are.  It first tries to match the left
+/// indication as what they represent.  It first tries to match the left
 /// string against known column names of this partition.  If the name
 /// matches one that is of type STRING or KEY, the search is performed on
 /// this column.  Otherwise the right string is compared against the column
@@ -3206,6 +3205,9 @@ long ibis::part::lookforString(const ibis::qString &cmp,
 		low &= mskc;
 	    }
 	}
+	else if (strcmp(cmp.leftString(), cmp.rightString()) == 0) {
+	    low.copy(getNullMask());
+	}
 	else {
 	    // no match -- no hit
 	    low.set(0, nEvents);
@@ -3246,6 +3248,9 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
 	    else if (col->type() == ibis::CATEGORY) {
 		ret = col->stringSearch(cmp.leftString());
 	    }
+	}
+	else if (strcmp(cmp.leftString(), cmp.rightString()) == 0) {
+	    ret = getNullMask().cnt();
 	}
     }
     return ret;

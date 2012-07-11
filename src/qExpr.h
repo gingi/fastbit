@@ -504,6 +504,7 @@ public:
 
     const char* leftString() const {return lstr;}
     const char* rightString() const {return rstr;}
+    void swapLeftRight() {char* tmp = lstr; lstr = rstr; rstr = tmp;}
 
     virtual qString* dup() const {return new qString(*this);}
     virtual void print(std::ostream&) const;

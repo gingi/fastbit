@@ -6,6 +6,7 @@
 #include "whereLexer.h"
 #include "whereClause.h"
 #include "selectClause.h"
+#include "dictionary.h"	// ibis::dictionary
 
 ibis::whereClause::~whereClause() {
     delete expr_;
@@ -227,7 +228,7 @@ int ibis::whereClause::verify(const ibis::part& part0,
     }
 } // ibis::whereClause::verify
 
-/// A function to verify an single query expression.  This function check
+/// A function to verify an single query expression.  This function checks
 /// each variable name specified in the query expression to make sure they
 /// all appear as column names of the given data partition.  It returns the
 /// number of names NOT in the data partition.
@@ -321,16 +322,33 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
     case ibis::qExpr::STRING: {
 	const ibis::qString* str =
 	    static_cast<const ibis::qString*>(xp0);
-	if (str->leftString()) { // allow name to be NULL
-	    const ibis::column* col = part0.getColumn(str->leftString());
-	    if (col == 0) {
-		++ ierr;
-		LOGGER(ibis::gVerbose > 2)
-		    << "Warning -- whereClause::verifyExpr -- data partition "
-		    << part0.name() << " does not contain a column named "
-		    << str->leftString();
+	const ibis::column* col = 0;
+	if (str->leftString()) { // try the left side
+	    col = part0.getColumn(str->leftString());
+	}
+	if (col == 0 && str->rightString()) { // try the right side
+	    const ibis::column* col = part0.getColumn(str->rightString());
+	    if (col != 0) {
+		const_cast<ibis::qString*>(str)->swapLeftRight();
 	    }
 	}
+	if (col != 0) {
+	    if (col->type() == ibis::UINT && col->getDictionary() != 0) {
+		uint32_t ind = (*col->getDictionary())[str->rightString()];
+		if (ind <= col->getDictionary()->size()) {
+		    ibis::qContinuousRange *cr = new
+			ibis::qContinuousRange(col->name(),
+					       ibis::qExpr::OP_EQ, ind);
+		    delete xp0;
+		    xp0 = cr;
+		}
+	    }
+	}
+
+	LOGGER(col == 0 && ibis::gVerbose > 2)
+	    << "Warning -- whereClause::verifyExpr -- data partition "
+	    << part0.name() << " does not contain a column named in "
+	    << *str;
 	break;}
     case ibis::qExpr::LIKE: {
 	const ibis::qLike* str =

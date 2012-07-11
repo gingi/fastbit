@@ -12,7 +12,7 @@
 /// utility class used by ibis::category.  Both the NULL string and the
 /// empty string are mapped to 0.
 ///
-/// @note If FASTBIT_CS_PATTERN_MATCH is defined to be 0, the values tored
+/// @note If FASTBIT_CS_PATTERN_MATCH is defined to be 0, the values stored
 /// in a dictionary will be folded to the upper case.  This will allow the
 /// words in the dictionary to be stored in a simple sorted order.  By
 /// default, the dictionary is case sensitive.
