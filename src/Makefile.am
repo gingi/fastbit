@@ -8,7 +8,7 @@ libfastbit_la_SOURCES = part.cpp bord.cpp ibin.cpp column.cpp index.cpp \
  bitvector64.cpp irange.cpp category.cpp iroster.cpp irelic.cpp ixpack.cpp \
  fileManager.cpp filter.cpp bundle.cpp capi.cpp ixbylt.cpp ixpale.cpp util.cpp \
  ixzone.cpp ixfuge.cpp ixfuzz.cpp isbiad.cpp icegale.cpp ifade.cpp \
- ixzona.cpp parti.cpp idirekte.cpp blob.cpp jnatural.cpp islice.cpp isapid.cpp \
+ ixzona.cpp parti.cpp idirekte.cpp blob.cpp jnatural.cpp iskive.cpp isapid.cpp \
  idbak2.cpp jrange.cpp icentre.cpp quaere.cpp countQuery.cpp imesa.cpp \
  ikeywords.cpp selectClause.cpp dictionary.cpp whereClause.cpp idbak.cpp \
  icmoins.cpp resource.cpp fromClause.cpp rids.cpp fromLexer.cc whereParser.cc \

@@ -380,7 +380,7 @@ namespace ibis { // forward definition of all the classes in IBIS
 	/// Return the content of the opaque object as a sequence of bytes.
 	const char* address() const {return buf_;}
 	/// The number of bytes pointed by address.
-	uint64_t length() const {return len_;}
+	uint64_t size() const {return len_;}
 	/// Copy the byte array into this opaque object.  Do not change the
 	/// incoming arguments.  The caller is still responsible for
 	/// freeing the pointer ptr.

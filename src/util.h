@@ -1516,4 +1516,6 @@ inline std::istream& operator>>(std::istream& is, ibis::rid_t& rid) {
     }
     return is;
 }
+
+std::ostream& operator<<(std::ostream& out, const ibis::opaque& opq);
 #endif // IBIS_UTIL_H

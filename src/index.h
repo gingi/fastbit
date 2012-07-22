@@ -39,6 +39,7 @@ namespace ibis { // the concrete classes of index hierarchy
     class pack;  // two-level, cumulative on the coarse level only
     class zone;  // two-level, do not cumulate on either levels
     class relic; // the basic bitmap index (one bitmap per distinct value)
+    class skive; // a binary encoded index with repacking of keyvalues
     class slice; // the bit slice index (binary encoding of ibis::relic)
     class fade;  // a more controlled slice (multicomponent range code)
     class sbiad; // Italian translation of fade (multicomponent interval code)
@@ -93,7 +94,7 @@ public:
 	ZONE,	///< ibis::zone, equality-equality encoding on bins.
 	RELIC,	///< ibis::relic, the basic bitmap index.
 	ROSTER,	///< ibis::roster, RID list.
-	SLICE,	///< ibis::slice, bit-sliced index.
+	SKIVE,	///< ibis::skive, binary encoding with recoding of key values.
 	FADE,	///< ibis::fade, multicomponent range encoding (unbinned).
 	SBIAD,	///< ibis::sbiad, multicomponent interval encoding (unbinned).
 	SAPID,	///< ibis::sapid, multicomponent equality encoding (unbinned).
@@ -113,6 +114,7 @@ public:
 	FUZZ,	///< ibis::fuzz, unbinned interval-equality encoding.
 	ZONA,	///< ibis::zona, unbinned equality-equality encoding.
 	FUGE,	///< ibis::fuge, binned interval-equality encoding.
+	SLICE,	///< ibis::slice, bit-sliced index.
 	EXTERN	///< externally defined index
     };
 

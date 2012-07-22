@@ -70,12 +70,8 @@ public:
 	/// Pointer to the in-memory storage.  For fix-sized elements, this
 	/// is a pointer to an array_t object.  For null-terminated
 	/// strings, this is a pointer to std::vector<std::string>.  For
-	/// binary objects, it is the raw bytes in these objects (type
-	/// array_t<unsigned char>.  The starting positions of the objects
-	/// are stored in starts.
+	/// binary objects, it is std::vector<ibis::opaque.
 	void* values;
-	/// Starting positions of the binary objects stored in values.
-	ibis::array_t<int64_t> starts;
 	/// The default value for the column.  SQL standard allows a column
 	/// to take on a default value if it is not explicitly specified.
 	/// For fix-sized elements, this variable points to the default of
@@ -128,6 +124,8 @@ protected:
     void locateString(ibis::TYPE_T t,
 		      std::vector<std::vector<std::string>*>& buf,
 		      std::vector<ibis::bitvector*>& msk) const;
+    void locateBlob(std::vector<std::vector<ibis::opaque>*>& buf,
+		    std::vector<ibis::bitvector*>& msk) const;
     template <typename T>
     void append(const std::vector<std::string>& nm, const std::vector<T>& va,
 		std::vector<array_t<T>*>& buf,
@@ -136,6 +134,10 @@ protected:
 		      const std::vector<std::string>& va,
 		      std::vector<std::vector<std::string>*>& buf,
 		      std::vector<ibis::bitvector*>& msk);
+    void appendBlob(const std::vector<std::string>& nm,
+		    const std::vector<ibis::opaque>& va,
+		    std::vector<std::vector<ibis::opaque>*>& buf,
+		    std::vector<ibis::bitvector*>& msk);
     int parseLine(const char* str, const char* del, const char* id);
 
     int32_t doReserve(uint32_t);

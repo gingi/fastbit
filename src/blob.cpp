@@ -1,4 +1,4 @@
-//File: $Id: blob.cpp,v 1.1 2012/07/06 20:46:59 kewu Exp $
+//File: $Id: blob.cpp,v 1.2 2012/07/22 02:47:16 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2009-2012 the Regents of the University of California
 ///@file
@@ -1553,7 +1553,7 @@ int ibis::opaque::copy(const char* ptr, uint64_t len) {
     if (len == 0 || ptr == 0) {
 	delete [] buf_;
 	buf_ = 0;
-	len = 0;
+	len_ = 0;
 	return 0;
     }
 

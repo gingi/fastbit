@@ -677,6 +677,11 @@ public:
 			const ibis::array_t<int64_t>& starts,
 			ibis::bitvector& totmask,
 			const ibis::bitvector& newmask);
+    static int writeOpaques(int bdes, int sdes,
+			    ibis::bitvector::word_t nold,
+			    const std::vector<ibis::opaque>& opq,
+			    ibis::bitvector& totmask,
+			    const ibis::bitvector& newmask);
 
 protected:
     class cleaner;

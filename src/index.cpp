@@ -464,12 +464,12 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			ind = new ibis::relic(c, file.c_str());
 		    }
 		    break;
-		case ibis::index::SLICE: // the bit-sliced index
+		case ibis::index::SKIVE: // binary encoded index
 		    if (st) {
-			ind = new ibis::slice(c, st);
+			ind = new ibis::skive(c, st);
 		    }
 		    else {
-			ind = new ibis::slice(0);
+			ind = new ibis::skive(0);
 			ind->col = c;
 			ierr = ind->read(file.c_str());
 			if (ierr < 0) {
@@ -805,7 +805,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			    t = FADE;
 			}
 			else if (strstr(str, "binary")) {
-			    t = SLICE;
+			    t = SKIVE;
 			}
 		    }
 		    else if (stricmp(spec, "index=simple") == 0 ||
@@ -813,9 +813,12 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			     strstr(spec, "relic") != 0) {
 			t = RELIC;
 		    }
-		    else if (strstr(spec, "slice") != 0 ||
-			     strstr(spec, "bitslice") != 0 ||
+		    else if (strstr(spec, "skive") != 0 ||
 			     strstr(spec, "binary") != 0) {
+			t = SKIVE;
+		    }
+		    else if (strstr(spec, "slice") != 0 ||
+			     strstr(spec, "bitslice") != 0) {
 			t = SLICE;
 		    }
 		    else {
@@ -846,8 +849,8 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    case SBIAD:
 			ind = new ibis::sbiad(c, file.c_str(), ncomp);
 			break;
-		    case SLICE:
-			ind = new ibis::slice(c, file.c_str());
+		    case SKIVE:
+			ind = new ibis::skive(c, file.c_str());
 			break;
 		    case BYLT:
 			ind = new ibis::bylt(c, file.c_str());
@@ -860,11 +863,14 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			break;
 		    }
 		}
-		else if (strstr(spec, "slice") != 0 ||
-			 strstr(spec, "bitslice") != 0 ||
-			 strstr(spec, "binary") != 0) { // ibis::slice
-		    ind = new ibis::slice(c, file.c_str());
+		else if (strstr(spec, "skive") != 0 ||
+			 strstr(spec, "binary") != 0) { // ibis::skive
+		    ind = new ibis::skive(c, file.c_str());
 		}
+		// else if (strstr(spec, "slice") != 0 ||
+		// 	 strstr(spec, "bitslice") != 0) { // ibis::slice
+		//     ind = new ibis::skive(c, file.c_str());
+		// }
 		else if (stricmp(spec, "index=simple") == 0 ||
 			 stricmp(spec, "index=basic") == 0 ||
 			 strstr(spec, "relic") != 0) {
@@ -1150,7 +1156,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			t = FADE;
 		    }
 		    else if (strstr(str, "binary")) {
-			t = SLICE;
+			t = SKIVE;
 		    }
 		}
 		else if (stricmp(spec, "index=simple") == 0 ||
@@ -1158,9 +1164,12 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 			 strstr(spec, "relic") != 0) {
 		    t = RELIC;
 		}
-		else if (strstr(spec, "slice") != 0 ||
-			 strstr(spec, "bitslice") != 0 ||
+		else if (strstr(spec, "skive") != 0 ||
 			 strstr(spec, "binary") != 0) {
+		    t = SKIVE;
+		}
+		else if (strstr(spec, "slice") != 0 ||
+			 strstr(spec, "bitslice") != 0) {
 		    t = SLICE;
 		}
 		else {
@@ -1193,8 +1202,8 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    ind = new ibis::sbiad(c, static_cast<const char*>(0),
 					  ncomp);
 		    break;
-		case SLICE:
-		    ind = new ibis::slice(c);
+		case SKIVE:
+		    ind = new ibis::skive(c);
 		    break;
 		case BYLT:
 		    ind = new ibis::bylt(c);
@@ -1207,11 +1216,14 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    break;
 		}
 	    }
-	    else if (strstr(spec, "slice") != 0 ||
-		     strstr(spec, "bitslice") != 0 ||
+	    else if (strstr(spec, "skive") != 0 ||
 		     strstr(spec, "binary") != 0) { // ibis::slice
-		ind = new ibis::slice(c);
+		ind = new ibis::skive(c);
 	    }
+	    // else if (strstr(spec, "slice") != 0 ||
+	    // 	     strstr(spec, "bitslice") != 0) { // ibis::slice
+	    // 	ind = new ibis::slice(c);
+	    // }
 	    else if (strstr(spec, "simple") != 0 ||
 		     strstr(spec, "basic") != 0 ||
 		     strstr(spec, "bitmap") != 0 ||

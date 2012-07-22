@@ -7,7 +7,7 @@
 ///@file
 /// Define ibis::relic and its derived classes
 ///@verbatim
-/// relic -> slice, fade, bylt(pack), zona (zone), fuzz
+/// relic -> skive, fade, bylt(pack), zona (zone), fuzz
 /// fade -> sbiad, sapid
 ///@endverbatim
 ///
@@ -266,12 +266,17 @@ private:
     relic& operator=(const relic&);
 }; // ibis::relic
 
-/// The bit-sliced index (O'Neil).  It used the binary encoding.
-class ibis::slice : public ibis::relic {
+/// The binary encoded index with recoding of keyvalues.
+///
+/// @note The work skive is the Danish for slice.  This is a weired version
+/// of the bit-sliced index because it recodes the keyvalues to use values
+/// between 0 and cnts.size()-1.  The alternative version ibis::slice will
+/// use bit slices more strictly.
+class ibis::skive : public ibis::relic {
 public:
-    virtual ~slice() {clear();};
-    slice(const ibis::column* c = 0, const char* f = 0);
-    slice(const ibis::column* c, ibis::fileManager::storage* st,
+    virtual ~skive() {clear();};
+    skive(const ibis::column* c = 0, const char* f = 0);
+    skive(const ibis::column* c, ibis::fileManager::storage* st,
 	  size_t start = 8);
 
     virtual int write(const char* dt) const;
@@ -298,7 +303,7 @@ public:
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
-    virtual INDEX_TYPE type() const {return SLICE;}
+    virtual INDEX_TYPE type() const {return SKIVE;}
     virtual const char* name() const {return "bit-sliced";}
     // number of records in each bin
     virtual void binWeights(std::vector<uint32_t>& b) const;
@@ -344,8 +349,13 @@ private:
     void evalGE(ibis::bitvector& res, uint32_t b) const;
     void evalEQ(ibis::bitvector& res, uint32_t b) const;
 
-    slice(const slice&);
-    slice& operator=(const slice&);
+    skive(const skive&);
+    skive& operator=(const skive&);
+}; // ibis::skive
+
+/// The bit-sliced index.  This version strictly slices the binary bits of
+/// the incoming values.  It also supports operations on bit slices.
+class ibis::slice : public ibis::skive {
 }; // ibis::slice
 
 /// The multicomponent range-encoded index.  Defined by Chan and Ioannidis

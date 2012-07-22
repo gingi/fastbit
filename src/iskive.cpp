@@ -2,7 +2,7 @@
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2000-2012 the Regents of the University of California
 //
-// This file contains the implementation of the class called ibis::slice.
+// This file contains the implementation of the class called ibis::skive.
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -13,10 +13,10 @@
 #include "resource.h"
 
 ////////////////////////////////////////////////////////////////////////
-// functions from ibis::islice
+// functions from ibis::iskive
 //
 // construct a bitmap index from current data
-ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
+ibis::skive::skive(const ibis::column* c, const char* f) : ibis::relic(0) {
     if (c == 0) return;  // nothing can be done
     col = c;
     try {
@@ -30,8 +30,8 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
 	    ibis::util::logger lg;
 	    const uint32_t card = vals.size();
 	    const uint32_t nbits = bits.size();
-	    lg() << "slice[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- constructed a bit-sliced index with " << nbits
+	    lg() << "skive[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- constructed a bit-skived index with " << nbits
 		 << " bitmap" << (nbits>1?"s":"") << " on " << card
 		 << " distinct value" << (card>1?"s":"") << " and " << nrows
 		 << " row" << (nrows>1?"s":"");
@@ -43,7 +43,7 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- slice[" << col->partition()->name() << '.'
+	    << "Warning -- skive[" << col->partition()->name() << '.'
 	    << col->name() << "]::ctor receiveed an exception, cleaning up ...";
 	clear();
 	throw;
@@ -63,7 +63,7 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::relic(0) {
 /// cnts (uint32_t[card]) -- the counts for each distinct value
 /// bitvectors            -- the bitvectors one after another
 ///@endcode
-ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
+ibis::skive::skive(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start)
     : ibis::relic(c, st, start),
       cnts(st, 8*((start+sizeof(uint32_t)*3+7)/8)+sizeof(int32_t)*
@@ -80,8 +80,8 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
 	    ibis::util::logger lg;
 	    const uint32_t card = vals.size();
 	    const uint32_t nbits = bits.size();
-	    lg() << "slice[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- intialized a bit-sliced index with " << nbits
+	    lg() << "skive[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- intialized a bit-skived index with " << nbits
 		 << " bitmap" << (nbits>1?"s":"") << " on " << card
 		 << " distinct value" << (card>1?"s":"") << " and " << nrows
 		 << " row" << (nrows>1?"s":"") << " from storage object @ "
@@ -94,7 +94,7 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- slice[" << col->partition()->name() << '.'
+	    << "Warning -- skive[" << col->partition()->name() << '.'
 	    << col->name() << "]::ctor received an exception, cleaning up ...";
 	clear();
 	throw;
@@ -102,7 +102,7 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
 }
 
 // the argument is the name of the directory or the file name
-int ibis::slice::write(const char* dt) const {
+int ibis::skive::write(const char* dt) const {
     if (vals.empty()) return -1;
 
     std::string fnm;
@@ -121,7 +121,7 @@ int ibis::slice::write(const char* dt) const {
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- slice[" << col->partition()->name() << '.'
+		<< "Warning -- skive[" << col->partition()->name() << '.'
 		<< col->name() << "]::write failed to open \"" << fnm
 		<< "\" for writing";
 	    return -2;
@@ -138,12 +138,12 @@ int ibis::slice::write(const char* dt) const {
     const bool useoffset64 = (getSerialSize()+8 > 0x80000000UL);
 #endif
     char header[] = "#IBIS\11\0\0";
-    header[5] = (char)ibis::index::SLICE;
+    header[5] = (char)ibis::index::SKIVE;
     header[6] = (char)(useoffset64 ? 8 : 4);
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- slice[" << col->partition()->name() << "."
+	    << "Warning -- skive[" << col->partition()->name() << "."
 	    << col->name() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
@@ -162,18 +162,18 @@ int ibis::slice::write(const char* dt) const {
 #endif
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "slice[" << col->partition()->name() << "." << col->name()
+	    << "skive[" << col->partition()->name() << "." << col->name()
 	    << "]::write wrote " << bits.size() << " bitmap"
 	    << (bits.size()>1?"s":"") << " to file " << fnm;
     }
     return ierr;
-} // ibis::slice::write
+} // ibis::skive::write
 
 /// Write the content to a file opened by the caller.  This function uses
 /// 32-bit bitmap offsets.
-int ibis::slice::write32(int fdes) const {
+int ibis::skive::write32(int fdes) const {
     if (vals.empty()) return -4;
-    std::string evt = "slice";
+    std::string evt = "skive";
     if (ibis::gVerbose > 0) {
 	evt += '[';
 	evt += col->partition()->name();
@@ -272,13 +272,13 @@ int ibis::slice::write32(int fdes) const {
     }
     ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
     return (ierr == offset32[nbits] ? 0 : -13);
-} // ibis::slice::write32
+} // ibis::skive::write32
 
 /// Write the content to a file opened by the caller.  This function uses
 /// 64-bit bitmap offsets.
-int ibis::slice::write64(int fdes) const {
+int ibis::skive::write64(int fdes) const {
     if (vals.empty()) return -4;
-    std::string evt = "slice";
+    std::string evt = "skive";
     if (ibis::gVerbose > 0) {
 	evt += '[';
 	evt += col->partition()->name();
@@ -377,18 +377,18 @@ int ibis::slice::write64(int fdes) const {
     }
     ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
     return (ierr == offset64[nbits] ? 0 : -13);
-} // ibis::slice::write64
+} // ibis::skive::write64
 
 /// Read the index contained in the file f.  This function always reads all
 /// bitvectors.
-int ibis::slice::read(const char* f) {
+int ibis::skive::read(const char* f) {
     std::string fnm;
     indexFileName(fnm, f);
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_READONLY);
     if (fdes < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- slice[" << col->partition()->name() << '.'
+	    << "Warning -- skive[" << col->partition()->name() << '.'
 	    << col->name() << "]::read failed to open " << fnm;
 	return -1; // can not do anything else
     }
@@ -401,7 +401,7 @@ int ibis::slice::read(const char* f) {
     int ierr = UnixRead(fdes, static_cast<void*>(header), 8);
     if (ierr != 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- slice[" << col->partition()->name() << '.'
+	    << "Warning -- skive[" << col->partition()->name() << '.'
 	    << col->name() << "]::read failed to read 8 bytes from "
 	    << fnm;
 	return -2;
@@ -409,12 +409,12 @@ int ibis::slice::read(const char* f) {
     if (!(header[0] == '#' && header[1] == 'I' &&
 	  header[2] == 'B' && header[3] == 'I' &&
 	  header[4] == 'S' &&
-	  header[5] == static_cast<char>(ibis::index::SLICE) &&
+	  header[5] == static_cast<char>(ibis::index::SKIVE) &&
 	  (header[6] == 8 || header[6] == 4) &&
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- slice[" << col->partition()->name() << '.'
+	    lg() << "Warning -- skive[" << col->partition()->name() << '.'
 		 << col->name() << "]::read the header from " << fnm << " (";
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
@@ -487,14 +487,14 @@ int ibis::slice::read(const char* f) {
     initBitmaps(fdes);
     activate();
     return 0;
-} // ibis::slice::read
+} // ibis::skive::read
 
 /// Reconstruct an index from a piece of consecutive memory.  Unlike the
 /// implementations for other type indices, this function always reads all
 /// bit vectors.
-int ibis::slice::read(ibis::fileManager::storage* st) {
+int ibis::skive::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
-    if (st->begin()[5] != ibis::index::SLICE) return -3;
+    if (st->begin()[5] != ibis::index::SKIVE) return -3;
     clear(); // clear the current conent
 
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
@@ -521,19 +521,19 @@ int ibis::slice::read(ibis::fileManager::storage* st) {
     initBitmaps(st);
     activate();
     return 0;
-} // ibis::slice::read
+} // ibis::skive::read
 
 /// Free the memory hold by this object.
-void ibis::slice::clear() {
+void ibis::skive::clear() {
     cnts.clear();
     ibis::relic::clear();
-} // ibis::slice::clear
+} // ibis::skive::clear
 
 // assume that the array vals is initialized properly, this function
 // converts the value val into a set of bits to be stored in the bitvectors
 // contained in bits
-// **** CAN ONLY be used by construct2() to build a new bit-sliced index ****
-void ibis::slice::setBit(const uint32_t i, const double val) {
+// **** CAN ONLY be used by construct2() to build a new bit-skived index ****
+void ibis::skive::setBit(const uint32_t i, const double val) {
     if (val > vals.back()) return;
     if (val < vals[0]) return;
 
@@ -566,19 +566,19 @@ void ibis::slice::setBit(const uint32_t i, const double val) {
 	    ++ jj;
 	}
     }
-} // ibis::slice::setBit
+} // ibis::skive::setBit
 
 /// Construct an index.  It takes one pass through the data to produce a
 /// list of values and their corresponding locations (as bitvectors), then
 /// transforms the bitvectors into those in binary encoding.
-void ibis::slice::construct1(const char* f) {
+void ibis::skive::construct1(const char* f) {
     VMap bmap; // a map between values and their position
     try {
 	mapValues(f, bmap);
     }
     catch (...) { // need to clean up bmap
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- slice[" << col->partition()->name() << '.'
+	    << "Warning -- skive[" << col->partition()->name() << '.'
 	    << col->name() << "]::construct reclaiming storage "
 	    "allocated to bitvectors (" << bmap.size() << ")";
 
@@ -600,7 +600,7 @@ void ibis::slice::construct1(const char* f) {
 	cnts[i] = (*it).second->cnt();
     }
 
-    // determine the number of bits needed for the bit-sliced index
+    // determine the number of bits needed for the bit-skived index
     -- tmp;
     uint32_t nobs = 0;
     while (tmp > 0) {
@@ -621,12 +621,12 @@ void ibis::slice::construct1(const char* f) {
     }
     delete (*it).second;
     LOGGER(ibis::gVerbose > 5)
-	<< "slice[" << col->partition()->name() << '.' << col->name()
+	<< "skive[" << col->partition()->name() << '.' << col->name()
 	<< "]::construct initialized the array of bitvectors, "
 	<< "start converting " << vals.size() << " bitmaps into "
-	<< nobs << " bit slices";
+	<< nobs << " bit skives";
 
-    // fill the bitvectors for the bit-sliced index
+    // fill the bitvectors for the bit-skived index
     for (tmp = 1, ++it; it != bmap.end(); ++it, ++tmp) {
 	uint32_t b = tmp;
 	for (uint32_t i = 0; i < nobs && b > 0; ++i, b >>= 1) {
@@ -656,13 +656,13 @@ void ibis::slice::construct1(const char* f) {
  	ibis::util::logger lg;
  	print(lg());
     }
-} // ibis::slice::construct1
+} // ibis::skive::construct1
 
-/// generate a new bit-sliced index.  This version performs its task in two
+/// generate a new bit-skived index.  This version performs its task in two
 /// steps.
 /// - scan the data to generate a list of distinct values and their counts.
 /// - scan the data a second time to produce the bit vectors.
-void ibis::slice::construct2(const char* f) {
+void ibis::skive::construct2(const char* f) {
     uint32_t tmp;
     {
 	histogram hst;
@@ -718,7 +718,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -755,7 +755,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -764,7 +764,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -801,7 +801,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -810,7 +810,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -847,7 +847,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -856,7 +856,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -893,7 +893,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -902,7 +902,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -939,7 +939,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -948,7 +948,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -985,7 +985,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -994,7 +994,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -1031,7 +1031,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -1040,7 +1040,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -1077,7 +1077,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -1086,7 +1086,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -1123,7 +1123,7 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -1132,7 +1132,7 @@ void ibis::slice::construct2(const char* f) {
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
-		col->logWarning("slice::construct", "the data file \"%s\" "
+		col->logWarning("skive::construct", "the data file \"%s\" "
 				"contains more elements (%lu) then expected "
 				"(%lu)", fnm.c_str(),
 				static_cast<long unsigned>(val.size()),
@@ -1169,15 +1169,15 @@ void ibis::slice::construct2(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("slice::construct", "unable to read %s",
+	    col->logWarning("skive::construct", "unable to read %s",
 			    fnm.c_str());
 	}
 	break;}
     case ibis::CATEGORY: // no need for a separate index
-	col->logWarning("slice::ctor", "no need for another index");
+	col->logWarning("skive::ctor", "no need for another index");
 	return;
     default:
-	col->logWarning("slice::ctor", "unable to create bit slice index "
+	col->logWarning("skive::ctor", "unable to create bit skive index "
 			"for this type of column");
 	return;
     }
@@ -1194,16 +1194,16 @@ void ibis::slice::construct2(const char* f) {
  	ibis::util::logger lg;
  	print(lg());
     }
-} // ibis::slice::construct2
+} // ibis::skive::construct2
 
 // a simple function to test the speed of the bitvector operations
-void ibis::slice::speedTest(std::ostream& out) const {
+void ibis::skive::speedTest(std::ostream& out) const {
     if (nrows == 0) return;
     uint32_t i, nloops = 1000000000 / nrows;
     activate(); // activate all bitmaps
     if (nloops < 2) nloops = 2;
     ibis::horometer timer;
-    col->logMessage("slice::speedTest", "testing the speed of operator &");
+    col->logMessage("skive::speedTest", "testing the speed of operator &");
 
     for (i = 0; i < bits.size()-1; ++i) {
 	ibis::bitvector* tmp;
@@ -1225,11 +1225,11 @@ void ibis::slice::speedTest(std::ostream& out) const {
 		<< timer.realTime() / nloops << "\n";
 	}
     }
-} // ibis::slice::speedTest
+} // ibis::skive::speedTest
 
 // the printing function
-void ibis::slice::print(std::ostream& out) const {
-    out << "index(slice) for " << col->partition()->name() << '.'
+void ibis::skive::print(std::ostream& out) const {
+    out << "index(skive) for " << col->partition()->name() << '.'
 	<< col->name() << " contains " << bits.size() << " bitvectors for "
 	<< nrows << " objects \n";
     const uint32_t nobs = bits.size();
@@ -1250,18 +1250,18 @@ void ibis::slice::print(std::ostream& out) const {
 	}
     }
     out << "\n";
-} // ibis::slice::print
+} // ibis::skive::print
 
 // create index based data in dt -- have to start from data directly
-long ibis::slice::append(const char* dt, const char* df, uint32_t nnew) {
+long ibis::skive::append(const char* dt, const char* df, uint32_t nnew) {
     clear();		// clear the current content
     construct2(dt);	// generate the new version of the index
     //write(dt);		// write out the new content
     return nnew;
-} // ibis::slice::append
+} // ibis::skive::append
 
 // compute the bitvector that is the answer for the query x >= b
-void ibis::slice::evalGE(ibis::bitvector& res, uint32_t b) const {
+void ibis::skive::evalGE(ibis::bitvector& res, uint32_t b) const {
     if (b >= vals.size()) {
 	res.set(0, nrows);
     }
@@ -1302,7 +1302,7 @@ void ibis::slice::evalGE(ibis::bitvector& res, uint32_t b) const {
 } // evalGE
 
 // compute the bitvector that is the answer for the query x = b
-void ibis::slice::evalEQ(ibis::bitvector& res, uint32_t b) const {
+void ibis::skive::evalEQ(ibis::bitvector& res, uint32_t b) const {
     if (b >= vals.size()) {
 	res.set(0, nrows);
     }
@@ -1324,7 +1324,7 @@ void ibis::slice::evalEQ(ibis::bitvector& res, uint32_t b) const {
 } // evalEQ
 
 // Evaluate a continuous range expression
-long ibis::slice::evaluate(const ibis::qContinuousRange& expr,
+long ibis::skive::evaluate(const ibis::qContinuousRange& expr,
 			   ibis::bitvector& lower) const {
     if (bits.empty()) {
 	lower.set(0, nrows);
@@ -1356,10 +1356,10 @@ long ibis::slice::evaluate(const ibis::qContinuousRange& expr,
 	lower -= upper;      // lower := (>= hit0) AND NOT (>= hit1)
     }
     return lower.cnt();
-} // ibis::slice::evaluate
+} // ibis::skive::evaluate
 
 // Evaluate a set of discrete range conditions.
-long ibis::slice::evaluate(const ibis::qDiscreteRange& expr,
+long ibis::skive::evaluate(const ibis::qDiscreteRange& expr,
 			   ibis::bitvector& lower) const {
     const ibis::array_t<double>& varr = expr.getValues();
     lower.set(0, nrows);
@@ -1374,9 +1374,9 @@ long ibis::slice::evaluate(const ibis::qDiscreteRange& expr,
 	}
     }
     return lower.cnt();
-} // ibis::slice::evaluate
+} // ibis::skive::evaluate
 
-void ibis::slice::estimate(const ibis::qContinuousRange& expr,
+void ibis::skive::estimate(const ibis::qContinuousRange& expr,
 			   ibis::bitvector& lower,
 			   ibis::bitvector& upper) const {
     if (bits.empty()) {
@@ -1409,17 +1409,17 @@ void ibis::slice::estimate(const ibis::qContinuousRange& expr,
 	lower -= upper;      // lower := (>= hit0) AND NOT (>= hit1)
     }
     upper.clear();
-} // ibis::slice::estimate
+} // ibis::skive::estimate
 
-void ibis::slice::binWeights(std::vector<uint32_t>& c) const {
+void ibis::skive::binWeights(std::vector<uint32_t>& c) const {
     c.resize(cnts.size());
     for (uint32_t i = 0; i < cnts.size(); ++ i) {
 	c[i] = cnts[i];
     }
-} // ibis::slice::binWeights
+} // ibis::skive::binWeights
 
 // return the number of hits
-uint32_t ibis::slice::estimate(const ibis::qContinuousRange& expr) const {
+uint32_t ibis::skive::estimate(const ibis::qContinuousRange& expr) const {
     if (bits.empty()) return 0;
 
     uint32_t h0, h1;
@@ -1429,16 +1429,16 @@ uint32_t ibis::slice::estimate(const ibis::qContinuousRange& expr) const {
     for (uint32_t i=h0; i<h1; ++i)
 	nhits += cnts[i];
     return nhits;
-} // ibis::slice::estimate()
+} // ibis::skive::estimate()
 
-double ibis::slice::getSum() const {
+double ibis::skive::getSum() const {
     double ret = 0;
     if (vals.size() == cnts.size()) {
 	for (uint32_t i = 0; i < vals.size(); ++ i)
 	    ret += vals[i] * cnts[i];
     }
     else {
-	col->logWarning("slice::getSum", "internal error - arrays "
+	col->logWarning("skive::getSum", "internal error - arrays "
 			"vals[%lu] and cnts[%lu] are expected to have "
 			"the same size but are not",
 			static_cast<long unsigned>(vals.size()),
@@ -1446,13 +1446,13 @@ double ibis::slice::getSum() const {
 	ibis::util::setNaN(ret);
     }
     return ret;
-} // ibis::slice::getSum
+} // ibis::skive::getSum
 
 /// Estimate the size of the index in a file.
-size_t ibis::slice::getSerialSize() const throw() {
+size_t ibis::skive::getSerialSize() const throw() {
     size_t res = 24 + 8 * vals.size() + 12 * bits.size();
     for (unsigned j = 0; j < bits.size(); ++ j)
 	if (bits[j] != 0)
 	    res += bits[j]->getSerialSize();
     return res;
-} // ibis::slice::getSerialSize
+} // ibis::skive::getSerialSize

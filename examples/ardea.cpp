@@ -15,15 +15,15 @@ on the command line.  Specify a SQL dump file with '-sqldump filename'.
 The caller may further specify a number of queries to be run on the data
 after they are written to disk.
 
-If the user did not specify any new data.  It will write a built-in set of
-data (91 rows and 8 columns) and then run 10 built-in queries with known
-numbers of hits.
-
 If the directory specified in -d option (default to "tmp") contains data,
 the new records will be appended.  When the names match, the records are
 assumed to the same type (not checked).  When the names do not match, the
 rows with missing values are padded with NULL values.  See @c
 ibis::tablex::appendRow for more information about NULL values.
+
+If the user does not specify any new data, it will write a built-in set of
+data (91 rows and 8 columns) and then run 10 built-in queries with known
+numbers of hits.
 
 @note This file is named after Cattle Egret, whose Latin name is <A
     HREF="http://tinyurl.com/ded8yj">Ardea ibis</A>.

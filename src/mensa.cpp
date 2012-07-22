@@ -2906,7 +2906,7 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 		    ->getBlob(curRow-pBegin, buf, sz);
 		if (ierr >= 0 && sz > 0 && buf != 0)
 		    val.assign(buf, sz);
-		delete buf;
+		delete [] buf;
 	    }
 	    res.blobsvalues.resize(res.blobsvalues.size()+1);
 	    res.blobsvalues.back().swap(val);

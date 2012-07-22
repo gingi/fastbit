@@ -18561,8 +18561,8 @@ int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
     off_t pos = UnixSeek(fdes, 0, SEEK_END);
     if (pos < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "part::writeString(" << fdes << ", " << nold << ", " << nnew
-	    << " ...) failed to seek to the end of the file";
+	    << "Warning -- part::writeString(" << fdes << ", " << nold
+	    << ", " << nnew << " ...) failed to seek to the end of the file";
 	return -3; // failed to find the EOF position
     }
 
@@ -18586,17 +18586,17 @@ int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << "part::writeString wrote " << pos
-	     << " strings (" << nnew << " expected)\n";
+	     << " strings (" << nnew << " expected)";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	lg() << "vals[" << vals.size() << "]:\n";
+	lg() << "\nvals[" << vals.size() << "]:";
 	for (uint32_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size());
 	     ++ j)
-	    lg() << "  " << j << "\t" << vals[j] << "\n";
+	    lg() << "\n  " << j << "\t" << vals[j];
 #endif
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
-		lg() << "mask for new records: " << newmask << "\n";
-	    lg() << "Overall bit mask: " << totmask;
+		lg() << "\nmask for new records: " << newmask;
+	    lg() << "\nOverall bit mask: " << totmask;
 	}
     }
     return (-5 * ((uint32_t) pos != nnew));
@@ -18616,23 +18616,24 @@ int ibis::part::writeRaw(int bdes, int sdes,
     int64_t bpos = UnixSeek(bdes, 0, SEEK_END);
     if (bpos < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "part::writeRaw(" << bdes << ", " << sdes << ", " << nold
-	    << ", " << nnew << " ...) failed to seek to the end of file "
+	    << "Warning -- part::writeRaw(" << bdes << ", " << sdes << ", "
+	    << nold << ", " << nnew << " ...) failed to seek to the end of file "
 	    << bdes << ", seek returned " << bpos;
 	return -3; // failed to find the EOF position
     }
     off_t spos = UnixSeek(sdes, 0, SEEK_END);
     if (spos < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "part::writeRaw(" << bdes << ", " << sdes << ", " << nold
-	    << ", " << nnew << "...) failed to the end of file " << sdes
+	    << "Warning -- part::writeRaw(" << bdes << ", " << sdes << ", "
+	    << nold << ", " << nnew << "...) failed to the end of file " << sdes
 	    << ", seek returned " << spos;
 	return -4;
     }
     if (spos % selem != 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "part::writeRaw expects the file for starting posistion to "
-	    "have a multiple of " << selem << " bytes, but it is " << spos;
+	    << "Warning -- part::writeRaw expects the file for starting "
+	    "posistion to have a multiple of " << selem << " bytes, but it is "
+	    << spos;
 	return -5;
     }
     if (spos == (int64_t)selem) {
@@ -18640,8 +18641,9 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	ierr = UnixSeek(sdes, 0, SEEK_SET);
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw failed to seek to the beginning of file "
-		<< sdes << " for starting positions, seek returned " << ierr;
+		<< "Warning -- part::writeRaw failed to seek to the beginning "
+		"of file " << sdes << " for starting positions, seek returned "
+		<< ierr;
 	    return -6;
 	}
     }
@@ -18651,23 +18653,23 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	ierr = UnixSeek(sdes, spos-selem, SEEK_SET);
 	if (ierr != static_cast<off_t>(spos-selem)) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw failed to seek to " << spos-selem
-		<< " in file " << sdes << " for starting positions, "
-		"seek returned" << ierr;
+		<< "Warning -- part::writeRaw failed to seek to "
+		<< spos-selem << " in file " << sdes << " for starting "
+		"positions, seek returned" << ierr;
 	    return -7;
 	}
 	ierr = UnixRead(sdes, &stmp, selem);
 	if (ierr < (off_t)selem) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw failed to read the last " << selem
+		<< "Warning -- part::writeRaw failed to read the last " << selem
 		<< " bytes from file " << sdes << " for starting positions, "
 		"read returned " << ierr;
 	    return -8;
 	}
 	if (stmp != bpos) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw expects the last value in file " << sdes
-		<< "(which is " << stmp << ") to match the size of file "
+		<< "Warning -- part::writeRaw expects the last value in file "
+		<< sdes << "(which is " << stmp << ") to match the size of "
 		<< bdes << " (which is " << bpos << "), but they do NOT";
 	    return -9;
 	}
@@ -18680,7 +18682,7 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	ierr = UnixWrite(sdes, &bpos, selem);
 	if (ierr < (off_t)selem) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw failed to write " << bpos
+		<< "Warning -- part::writeRaw failed to write " << bpos
 		<< " to file " << sdes << ", write returned " << ierr;
 	    return -10;
 	}
@@ -18692,7 +18694,7 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	    ierr = UnixWrite(sdes, &bpos, selem);
 	    if (ierr < (off_t)selem) {
 		LOGGER(ibis::gVerbose > 0)
-		    << "part::writeRaw failed to write " << bpos
+		    << "Warning -- part::writeRaw failed to write " << bpos
 		    << " to the end of file " << sdes << ", write returned "
 		    << ierr;
 		return -11;
@@ -18705,23 +18707,25 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	ierr = UnixSeek(sdes, spos, SEEK_SET);
 	if (ierr != spos) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw failed to seek to " << spos << " in file "
-		<< sdes << " for starting positions, seek returned " << ierr;
+		<< "Warning -- part::writeRaw failed to seek to " << spos
+		<< " in file " << sdes
+		<< " for starting positions, seek returned " << ierr;
 	    return -12;
 	}
 	ierr = UnixRead(sdes, &bpos, selem);
 	if (ierr < (off_t)selem) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw failed to read " << selem << " bytes from "
-		<< spos << " of file " << sdes << " for starting positions, "
-		" read returned " << ierr;
+		<< "Warning -- part::writeRaw failed to read " << selem
+		<< " bytes from " << spos << " of file " << sdes
+		<< " for starting positions, read returned " << ierr;
 	    return -13;
 	}
 	ierr = UnixSeek(bdes, bpos, SEEK_SET);
 	if (ierr != bpos) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw failed to seek to " << bpos << " in file "
-		<< bpos << " for binary objects, seek returned " << ierr;
+		<< "Warning -- part::writeRaw failed to seek to " << bpos
+		<< " in file "<< bpos << " for binary objects, seek returned "
+		<< ierr;
 	    return -14;
 	}
     }
@@ -18734,8 +18738,9 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	ierr = UnixWrite(sdes, &bpos, selem);
 	if (ierr < (int64_t)selem) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "part::writeRaw failed to write " << bpos << " to file "
-		<< sdes << " for starting positions, write returned " << ierr;
+		<< "Warning -- part::writeRaw failed to write " << bpos
+		<< " to file "<< sdes << " for starting positions, "
+		"write returned " << ierr;
 	    return -15;
 	}
     }
@@ -18743,7 +18748,7 @@ int ibis::part::writeRaw(int bdes, int sdes,
     ierr = UnixWrite(bdes, bytes.begin(), stmp);
     if (ierr != stmp) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "part::writeRaw expects to write " << stmp << " byte"
+	    << "Warning -- part::writeRaw expects to write " << stmp << " byte"
 	    << (stmp>1 ? "s" : "") << ", but wrote " << ierr << " instead";
 	return -16;
     }
@@ -18763,6 +18768,174 @@ int ibis::part::writeRaw(int bdes, int sdes,
     }
     return (-17 * (nnew1 != nnew));
 } // ibis::part::writeRaw
+
+/// Write raw bytes to an open file.  It also requires a second file to
+/// store starting positions of the raw binary objects.
+int ibis::part::writeOpaques(int bdes, int sdes,
+			     ibis::bitvector::word_t nold,
+			     const std::vector<ibis::opaque>& opq,
+			     ibis::bitvector& totmask,
+			     const ibis::bitvector& newmask) {
+    off_t ierr;
+    const uint32_t selem = sizeof(int64_t);
+    int64_t bpos = UnixSeek(bdes, 0, SEEK_END);
+    if (bpos < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::writeOpaques(" << bdes << ", " << sdes
+	    << ", " << nold << ", " << opq.size()
+	    << " ...) failed to seek to the end of file "
+	    << bdes << ", seek returned " << bpos;
+	return -3; // failed to find the EOF position
+    }
+    off_t spos = UnixSeek(sdes, 0, SEEK_END);
+    if (spos < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::writeOpaques(" << bdes << ", " << sdes
+	    << ", " << nold << ", " << opq.size()
+	    << "...) failed to the end of file " << sdes
+	    << ", seek returned " << spos;
+	return -4;
+    }
+    if (spos % selem != 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::writeOpaques expects the file for starting "
+	    "posistion to have a multiple of " << selem << " bytes, but it is "
+	    << spos;
+	return -5;
+    }
+    if (spos == (int64_t)selem) {
+	spos = 0;
+	ierr = UnixSeek(sdes, 0, SEEK_SET);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to seek to the "
+		"beginning of file " << sdes
+		<< " for starting positions, seek returned " << ierr;
+	    return -6;
+	}
+    }
+
+    int64_t stmp;
+    if (spos > 0) { // go back to read the last word
+	ierr = UnixSeek(sdes, spos-selem, SEEK_SET);
+	if (ierr != static_cast<off_t>(spos-selem)) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to seek to "
+		<< spos-selem << " in file " << sdes << " for starting "
+		"positions, seek returned" << ierr;
+	    return -7;
+	}
+	ierr = UnixRead(sdes, &stmp, selem);
+	if (ierr < (off_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to read the last "
+		<< selem << " bytes from file " << sdes
+		<< " for starting positions, read returned " << ierr;
+	    return -8;
+	}
+	if (stmp != bpos) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques expects the last value in "
+		"file " << sdes	<< "(which is " << stmp
+		<< ") to match the size of file "
+		<< bdes << " (which is " << bpos << "), but they do NOT";
+	    return -9;
+	}
+    }
+
+    const ibis::bitvector::word_t nold1 =
+	(spos > static_cast<off_t>(selem) ? (spos / selem - 1) : 0);
+    if (nold1 == 0) { // need to write the 1st number which is always 0
+	bpos = 0;
+	ierr = UnixWrite(sdes, &bpos, selem);
+	if (ierr < (off_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to write " << bpos
+		<< " to file " << sdes << ", write returned " << ierr;
+	    return -10;
+	}
+    }
+    if (nold1 < nold) {
+	// existing data file does not have enough elements, add empty ones
+	// to fill them
+	for (size_t j = nold1; j < nold; ++ j) {
+	    ierr = UnixWrite(sdes, &bpos, selem);
+	    if (ierr < (off_t)selem) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- part::writeOpaques failed to write " << bpos
+		    << " to the end of file " << sdes << ", write returned "
+		    << ierr;
+		return -11;
+	    }
+	}
+    }
+    else if (nold1 > nold) {
+	// existing files have too many elements
+	spos = nold*selem;
+	ierr = UnixSeek(sdes, spos, SEEK_SET);
+	if (ierr != spos) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to seek to " << spos
+		<< " in file " << sdes << " for starting positions, "
+		"seek returned " << ierr;
+	    return -12;
+	}
+	ierr = UnixRead(sdes, &bpos, selem);
+	if (ierr < (off_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to read " << selem
+		<< " bytes from " << spos << " of file " << sdes
+		<< " for starting positions, ead returned " << ierr;
+	    return -13;
+	}
+	ierr = UnixSeek(bdes, bpos, SEEK_SET);
+	if (ierr != bpos) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to seek to " << bpos
+		<< " in file " << bpos << " for binary objects, seek returned "
+		<< ierr;
+	    return -14;
+	}
+    }
+
+    ibis::bitvector::word_t nnew1 = opq.size();
+    ibis::array_t<int64_t> starts(nnew1);
+    for (bitvector::word_t j = 0; j < nnew1; ++ j) {
+	ierr = UnixWrite(bdes, opq[j].address(), opq[j].size());
+	if (ierr < (off_t)opq[j].size()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to write "
+		<< opq[j].size() << " byte" << (opq[j].size()>1?"s":"")
+		<< " to file " << bdes << ", write returned " << ierr;
+	    return -15;
+	}
+	bpos += ierr;
+	starts[j] = bpos;
+    }
+    stmp = nnew1 * selem;
+    ierr = UnixWrite(sdes, starts.begin(), stmp);
+    if (ierr < stmp) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "part::writeOpaques expects to write " << stmp << " byte"
+	    << (stmp>1 ? "s" : "") << " to file " << sdes << ", but wrote "
+	    << ierr << " instead";
+	return -16;
+    }
+
+    totmask.adjustSize(nold1, nold);
+    totmask += newmask;
+    if (ibis::gVerbose > 3) {
+	ibis::util::logger lg;
+	lg() << "part::writeOpaques wrote " << nnew1 << " binary object"
+	     << (nnew1>1?"s":"");
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg() << "\nmask for new records: " << newmask;
+	    lg() << "\nOverall bit mask: " << totmask;
+	}
+    }
+    return nnew1;
+} // ibis::part::writeOpaques
 
 // Construct an info object from a list of columns
 ibis::part::info::info(const char* na, const char* de, const uint64_t &nr,

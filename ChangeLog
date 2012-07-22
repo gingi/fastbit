@@ -1,3 +1,15 @@
+2012-07-21 John Wu <John dot Wu at ACM dot org>
+	* tests/setqgen.cpp: update for writing blobs
+
+2012-07-19 John Wu <John dot Wu at ACM dot org>
+	* src/iskive.cpp: rename ibis::slice to ibis::skive to indicate
+	the fact that the binary encoded index is somewhat weired in its
+	design
+
+2012-07-17 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: remove an extra "s" in test case 5 of
+	check-thula
+
 2012-07-11 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: in function lookforString, when neither left
 	string nor right string is a valid column name, treat the

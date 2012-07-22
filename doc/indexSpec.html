@@ -241,11 +241,11 @@ of different encoding schemes.
 </dl>
 
 <H3>Compression Options</H3>
-After the bitmaps are constructed, compression may be applied.
-Currently, the bitmaps are compressed at construction time.  Options are
-provided to uncompress them.  Valid options are
+Only WAH compression is supported in the public release of FastBit.
+All bitmaps are compressed at construction time.  Options are
+provided to uncompress some or all of them.  Supported options are
 <dl>
-<DT>&#8226;&nbsp;<code>uncompressDenseBitmaps [density&gt;ddd]</code>
+<DT>&#8226;&nbsp;<code>uncompressDenseBitmaps [density &gt; ddd]</code>
 
 <dd> Uncompress those bitmaps with bit density greater than the
      specified value.  If a density is not specified, it is assumed to
@@ -253,7 +253,7 @@ provided to uncompress them.  Valid options are
      bitmap is uncompressed.  In some cases, decompressing dense bitmaps
      may improve overall query processing speed.
 
-<DT>&#8226;&nbsp;<code>uncompressLargeBitmaps [compratio&gt;ddd]</code>
+<DT>&#8226;&nbsp;<code>uncompressLargeBitmaps [compration &gt; ddd]</code>
 
 <dd> Uncompress those bitmaps with compression ratio greater than the
      specified value.  If the compression value is not specified, it is
@@ -262,7 +262,7 @@ provided to uncompress them.  Valid options are
 
 <DT>&#8226;&nbsp;<code>uncompressAll</code>
 
-<dd> Uncompress all bitmaps.  Used only for debugging purposes.
+<dd> Uncompress all bitmaps.  <b>Used only for debugging purposes</b>.
 
 </dl>
 It is usually a good idea to leave out the compression option and let

@@ -9,6 +9,15 @@
  * directory is needed, it will generate a set of subdirectories in the
  * root-data-dir with the names that are a concatenation of the
  * root-data-dir name and hexadecimal version of the partition number.
+ *
+ * Optional 4th and 5th arguments could be given.  When only four arguments
+ * are given, if it starts with a decimal digit it program writes out an
+ * extra column of blobs to test the new blob support, otherwise, the 4th
+ * argument is taken as a configuration file name to be passed to the
+ * initialization function for FastBit.  When five arguments are given, the
+ * 4th argument is taken to be the configuration file controlling the
+ * initialization of FastBit, and the presence of the 5th parameter inform
+ * this program to test the new blob feature.
  ***************************************************************/ 
 #include <ibis.h>	/* ibis::init */
 #include <string.h>	/* strrchr */
@@ -26,35 +35,47 @@
 const int colcard[]={2,4,5,10,25,100,1000,10000,40000,100000,250000,500000};
 /** column names */
 const char *colname[]={"K2", "K4", "K5", "K10", "K25", "K100", "K1K", "K10K",
-		       "K40K", "K100K", "K250K", "K500K", "KSEQ"};
+		       "K40K", "K100K", "K250K", "K500K", "KSEQ", "V"};
 
+static bool addBlobs = false;
+
+/* constants for random numbers */
+const static double SETQRAND_MODULUS = 2147483647.0;
+const static double SETQRAND_MULTIPLIER = 16807.0;
+/* the actual random value */
+static double SETQRAND_seed = 1.0;
 /** A simple random number generator.  It generates the same sequence of
     numbers each time. */
-inline int simplerand(void) {
-    /* constants for random numbers */
-    const static double MODULUS = 2147483647.0;
-    const static double MULTIPLIER = 16807.0;
-    /* the actual random value */
-    static double seed = 1.0;
-    seed = std::fmod(MULTIPLIER*seed, MODULUS);
-    int ret = (int)seed;
-    return ret;
-} /* simplerand */
+inline int setqrand(void) {
+    SETQRAND_seed = std::fmod(SETQRAND_MULTIPLIER*SETQRAND_seed,
+			      SETQRAND_MODULUS);
+    return (int)SETQRAND_seed;
+} /* setqrand */
 
 static void fillRow(ibis::table::row& val, uint64_t seq) {
     val.uintsvalues[3]   = (uint32_t)seq;
-    val.uintsvalues[2]   = (simplerand() % colcard[11]) + 1;
-    val.uintsvalues[1]   = (simplerand() % colcard[10]) + 1;
-    val.uintsvalues[0]   = (simplerand() % colcard[9]) + 1;
-    val.ushortsvalues[2] = (simplerand() % colcard[8]) + 1;
-    val.ushortsvalues[1] = (simplerand() % colcard[7]) + 1;
-    val.ushortsvalues[0] = (simplerand() % colcard[6]) + 1;
-    val.ubytesvalues[5]  = (simplerand() % colcard[5]) + 1;
-    val.ubytesvalues[4]  = (simplerand() % colcard[4]) + 1;
-    val.ubytesvalues[3]  = (simplerand() % colcard[3]) + 1;
-    val.ubytesvalues[2]  = (simplerand() % colcard[2]) + 1;
-    val.ubytesvalues[1]  = (simplerand() % colcard[1]) + 1;
-    val.ubytesvalues[0]  = (simplerand() % colcard[0]) + 1;
+    val.uintsvalues[2]   = (setqrand() % colcard[11]) + 1;
+    val.uintsvalues[1]   = (setqrand() % colcard[10]) + 1;
+    val.uintsvalues[0]   = (setqrand() % colcard[9]) + 1;
+    val.ushortsvalues[2] = (setqrand() % colcard[8]) + 1;
+    val.ushortsvalues[1] = (setqrand() % colcard[7]) + 1;
+    val.ushortsvalues[0] = (setqrand() % colcard[6]) + 1;
+    val.ubytesvalues[5]  = (setqrand() % colcard[5]) + 1;
+    val.ubytesvalues[4]  = (setqrand() % colcard[4]) + 1;
+    val.ubytesvalues[3]  = (setqrand() % colcard[3]) + 1;
+    val.ubytesvalues[2]  = (setqrand() % colcard[2]) + 1;
+    val.ubytesvalues[1]  = (setqrand() % colcard[1]) + 1;
+    val.ubytesvalues[0]  = (setqrand() % colcard[0]) + 1;
+    if (addBlobs) { // construct a raw string object from the character table
+	unsigned sz = (unsigned)(ibis::util::rand()*65.0);
+	val.blobsvalues[0].copy(ibis::util::charTable, sz);
+	char *str = const_cast<char*>(val.blobsvalues[0].address());
+	size_t j = (size_t)(ibis::util::rand() * sz);
+	while (j < sz) { // add some holes
+	    str[j] = 0;
+	    j += 3U + (size_t)(ibis::util::rand() * sz);
+	}
+    }
 } // fillRow
 
 static void initColumns(ibis::tablex& tab, ibis::table::row& val) {
@@ -80,10 +101,17 @@ static void initColumns(ibis::tablex& tab, ibis::table::row& val) {
     val.ushortsvalues.resize(3);
     val.uintsnames.resize(4);
     val.uintsvalues.resize(4);
+
+    if (addBlobs) {
+	tab.addColumn(colname[13], ibis::BLOB, "opaque values");
+	val.blobsnames.resize(1);
+	val.blobsvalues.resize(1);
+    }
 } // initColumns
 
 int main(int argc, char **argv) {
-    const int totcols = NUMCOLS+1;
+    int totcols = NUMCOLS+1;
+    const char *cf = 0;
     int64_t maxrow, nrpd;
     int nparts, ndigits, ierr;
 
@@ -91,12 +119,25 @@ int main(int argc, char **argv) {
     if (argc < 3) {
 	fprintf(stderr,
 		"Usage: setqgen <fastbit-data-dir> <#rows> [<#rows-per-dir>] \n"
-		"\tIf the fourth argument is not provided, all rows will be "
-		"placed in one directory\n");
+		"\tIf the third argument is not provided, this program will "
+		"put 10 millions rows in a directory\n");
 	return -1;
     }
 
-    ibis::init(argc>4?argv[4]:(const char*)0); // initialize the file manager
+    if (argc > 5) {
+	addBlobs = true;
+	for (int j = 4; cf == 0 && j < argc; ++ j) {
+	    if (isdigit(*argv[j]) == 0)
+		cf = argv[j];
+	}
+    }
+    else if (argc == 5) {
+	if (isdigit(*argv[4]) == 0)
+	    cf = argv[4];
+	else
+	    addBlobs = true;
+    }
+    ibis::init(cf); // initialize the file manager
     ibis::util::timer mytimer(*argv, 0);
     maxrow = atof(argv[2]);
     if (maxrow <= 0) { // determine the number of rows based on cache size
@@ -107,11 +148,11 @@ int main(int argc, char **argv) {
 	// results to fit in the memory cache
 	maxrow = ibis::util::compactValue(maxrow / 80.0, maxrow / 60.0);
     }
-    if (maxrow < 100) /* generate at least 100 rows */
-	maxrow = 100;
+    if (maxrow < 10) /* generate at least 10 rows */
+	maxrow = 10;
     if (argc > 3) {
 	nrpd = atof(argv[3]);
-	if (nrpd < 1)
+	if (nrpd < 2)
 	    nrpd = ibis::util::compactValue(maxrow / 10.0, 1e7);
     }
     else {
@@ -119,6 +160,11 @@ int main(int argc, char **argv) {
     }
     std::cout << argv[0] << " " << argv[1] << " " << maxrow << " " << nrpd
 	      << std::endl;
+    if (addBlobs) {
+	std::cout << "with an additional blob column named " << colname[13]
+		  << std::endl;
+	++ totcols;
+    }
     nparts = maxrow / nrpd;
     nparts += (maxrow > nparts*nrpd);
     ierr = nparts;
@@ -132,8 +178,8 @@ int main(int argc, char **argv) {
     tab->reserveSpace(nrpd);
     const uint32_t cap = tab->capacity();
 
-    for (uint64_t irow = 1; irow <= maxrow;) {
-	const uint64_t krow = (irow + nrpd < maxrow+1 ? irow+nrpd : maxrow+1);
+    for (int64_t irow = 1; irow <= maxrow;) {
+	const int64_t krow = (irow + nrpd < maxrow+1 ? irow+nrpd : maxrow+1);
 	std::string dir;
 	if (nparts > 1) { // generate a new directory name
 	    const char* str = strrchr(argv[1], '/');
