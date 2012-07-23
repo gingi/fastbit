@@ -34,6 +34,7 @@ namespace ibis { // additional names to the namespace ibis
     class colFloats;
     class colDoubles;
     class colStrings;
+    class colBlobs;
 } // namespace
 
 /// @ingroup FastBitIBIS
@@ -576,7 +577,7 @@ private:
 
 /// Size of a data element in bytes.
 inline int ibis::column::elementSize() const {
-    int sz = -1;
+    int sz;
     switch (m_type) {
     case ibis::OID: sz = sizeof(rid_t); break;
     case ibis::INT: sz = sizeof(int32_t); break;
@@ -589,9 +590,10 @@ inline int ibis::column::elementSize() const {
     case ibis::UBYTE: sz = sizeof(unsigned char); break;
     case ibis::SHORT: sz = sizeof(int16_t); break;
     case ibis::USHORT: sz = sizeof(uint16_t); break;
-    case ibis::CATEGORY: sz = 0; break; // no fixed size per element
-    case ibis::TEXT: sz = 0; break; // no fixed size per element
-    default: sz = -1; break;
+    // case ibis::CATEGORY: sz = 0; break; // no fixed size per element
+    // case ibis::TEXT: sz = 0; break; // no fixed size per element
+    // case ibis::BLOB: sz = 0; break; // no fixed size per element
+    default: sz = 0; break;
     }
     return sz;
 } // ibis::column::elementSize

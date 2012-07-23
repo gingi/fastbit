@@ -685,8 +685,8 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 		ibis::fileManager::instance().flushFile(fnm);
 		mask.write(fnm);
 		LOGGER(ibis::gVerbose > 1)
-		    << "column[" << (thePart->name()?thePart->name():"?")
-		    << '.' << m_name
+		    << "Warning -- column["
+		    << (thePart->name()?thePart->name():"?") << '.' << m_name
 		    << "]::getNullMask constructed a new mask with "
 		    << mask.cnt() << " out of " << mask.size()
 		    << " set bits, wrote to " << fnm;

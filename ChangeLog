@@ -1,3 +1,9 @@
+2012-07-23 John Wu <John dot Wu at ACM dot org>
+	* src/column.h: change the default value of elementSize to be 0
+	instead of -1 (ibis::column::getNullMask mistakenly treat -1 as a
+	large positive number and created a wrong null mask for blobs)
+	* src/colValues.h, src/colValues.cpp: add colBlobs
+
 2012-07-21 John Wu <John dot Wu at ACM dot org>
 	* tests/setqgen.cpp: update for writing blobs
 

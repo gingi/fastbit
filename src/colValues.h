@@ -859,4 +859,76 @@ private:
     void sortsub(uint32_t i, uint32_t j, array_t<uint32_t>& ind) const;
     uint32_t partitionsub(uint32_t, uint32_t, array_t<uint32_t>&) const;
 }; // ibis::colStrings
+
+/// A class to store raw binary values.  It does not support sorting or any
+/// arithematic operations.
+class FASTBIT_CXX_DLLSPEC ibis::colBlobs : public ibis::colValues {
+public:
+    colBlobs() : colValues(), array(0) {};
+    colBlobs(const ibis::column* c, const ibis::bitvector& hits)
+	: colValues(c), array(c->selectOpaques(hits)) {}
+    colBlobs(const ibis::column* c);
+    colBlobs(size_t n, const ibis::opaque& v)
+	: array(new std::vector<ibis::opaque>(n, v)) {}
+    virtual ~colBlobs() {delete array;}
+
+    virtual bool         empty() const {return (col==0 || array==0);}
+    virtual uint32_t     size() const {return (array ? array->size() : 0);}
+    virtual uint32_t     elementSize() const {return 0;}
+    virtual ibis::TYPE_T getType() const {return col->type();}
+    virtual void*        getArray() const {return array;}
+    virtual void         nosharing() {/* neve shared */}
+
+    virtual void erase(uint32_t i, uint32_t j) {
+	array->erase(array->begin()+i, array->begin()+j);}
+    virtual void swap(uint32_t i, uint32_t j) {(*array)[i].swap((*array)[j]);}
+
+    void swap(colBlobs& rhs) { // swap two colBlobs
+	const ibis::column* c = rhs.col; rhs.col = col; col = c;
+	std::vector<ibis::opaque>* a = rhs.array; rhs.array = array; array = a;}
+    virtual void reduce(const array_t<uint32_t>&);
+    virtual void reduce(const array_t<uint32_t>&,
+			ibis::selectClause::AGREGADO);
+
+    virtual long write(FILE* fptr) const;
+    virtual void write(std::ostream& out, uint32_t i) const;
+
+    virtual void sort(uint32_t, uint32_t, bundle*);
+    virtual void sort(uint32_t, uint32_t, bundle*,
+		      colList::iterator, colList::iterator);
+    virtual void sort(uint32_t, uint32_t,
+		      array_t<uint32_t>&) const;
+    virtual array_t<uint32_t>* segment(const array_t<uint32_t>*) const;
+    virtual void reorder(const array_t<uint32_t>& ind);
+    virtual void topk(uint32_t k, array_t<uint32_t> &ind) const;
+    virtual void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
+    virtual long truncate(uint32_t keep);
+    virtual long truncate(uint32_t keep, uint32_t start);
+
+    /// Compute the minimum.  NOT implemented.
+    virtual double getMin() const {return FASTBIT_DOUBLE_NULL;}
+    /// Compute the maximum.  NOT implemented.
+    virtual double getMax() const {return FASTBIT_DOUBLE_NULL;}
+    /// Compute the sum.  NOT implemented.
+    virtual double getSum() const {return FASTBIT_DOUBLE_NULL;}
+    /// Return the ith value as int.  NOT implemented.
+    virtual int32_t getInt(uint32_t) const {return 0;}
+    /// Return the ith value as unsigned int.  NOT implemented.
+    virtual uint32_t getUInt(uint32_t) const {return 0;}
+    /// Return the ith value as long.  NOT implemented.
+    virtual int64_t getLong(uint32_t) const {return 0;}
+    /// Return the ith value as unsigned long.  NOT implemented.
+    virtual uint64_t getULong(uint32_t) const {return 0;}
+    /// Return the ith value as float.  NOT implemented.
+    virtual float getFloat(uint32_t) const {return  FASTBIT_FLOAT_NULL;}
+    /// Return the ith value as double.  NOT implemented.
+    virtual double getDouble(uint32_t) const {return FASTBIT_DOUBLE_NULL;}
+
+private:
+    /// Blob values are internally stored as a vector of ibis::opaque.
+    std::vector<ibis::opaque>* array;
+
+    colBlobs(const colBlobs&);
+    colBlobs& operator=(const colBlobs&);
+}; // ibis::colBlobs
 #endif

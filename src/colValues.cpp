@@ -45,6 +45,8 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colDoubles(c, hits);
     case ibis::TEXT:
 	return new colStrings(c, hits);
+    case ibis::BLOB:
+	return new colBlobs(c, hits);
     default:
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- colValues does not support type "
@@ -116,6 +118,8 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c) {
 	return new colDoubles(c);
     case ibis::TEXT:
 	return new colStrings(c);
+    case ibis::BLOB:
+	return new colBlobs(c);
     default:
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- colValues does not support type "
@@ -1070,6 +1074,22 @@ ibis::colStrings::colStrings(const ibis::column* c)
 	    << ibis::TYPESTRING[(int)(c->type())];
     }
 } // ibis::colStrings::colStrings
+
+/// Construct ibis::colBlobs from an existing list of values.
+ibis::colBlobs::colBlobs(const ibis::column* c)
+    : colValues(c), array(0) {
+    if (c == 0) return;
+    if (c->type() == ibis::BLOB) {
+	ibis::bitvector hits;
+	hits.set(1, c->partition()->nRows());
+	array = c->selectOpaques(hits);
+    }
+    else {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- colBlobs does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())];
+    }
+} // ibis::colBlobs::colBlobs
 
 void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
     if (i+32 > j) { // use selection sort
@@ -3336,6 +3356,23 @@ uint32_t ibis::colStrings::partitionsub(uint32_t i, uint32_t j,
     return i1;
 } // ibis::colStrings::partitionsub
 
+void ibis::colBlobs::sort(uint32_t, uint32_t, bundle*) {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- colBlobs::sort is not implemented";
+}
+
+void ibis::colBlobs::sort(uint32_t, uint32_t, bundle*,
+		      colList::iterator, colList::iterator) {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- colBlobs::sort is not implemented";
+}
+
+void ibis::colBlobs::sort(uint32_t, uint32_t,
+		      array_t<uint32_t>&) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- colBlobs::sort is not implemented";
+}
+
 // mark the start positions of the segments with identical values
 ibis::array_t<uint32_t>*
 ibis::colInts::segment(const array_t<uint32_t>* old) const {
@@ -4135,6 +4172,13 @@ ibis::colStrings::segment(const array_t<uint32_t>* old) const {
     return res;
 } // ibis::colStrings::segment
 
+ibis::array_t<uint32_t>*
+ibis::colBlobs::segment(const ibis::array_t<uint32_t>*) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- colBlobs::segment is not implemented";
+    return 0;
+}
+
 /// Remove the duplicate elements according to the array starts
 void ibis::colInts::reduce(const array_t<uint32_t>& starts) {
     const uint32_t nseg = starts.size() - 1;
@@ -4283,6 +4327,15 @@ void ibis::colStrings::reduce(const array_t<uint32_t>& starts) {
 	    (*array)[i].swap((*array)[starts[i]]);
     array->resize(nseg);
 } // ibis::colStrings::reduce
+
+/// remove the duplicate elements according to the array starts
+void ibis::colBlobs::reduce(const array_t<uint32_t>& starts) {
+    const uint32_t nseg = starts.size() - 1;
+    for (uint32_t i = 0; i < nseg; ++i) 
+	if (starts[i] > i)
+	    (*array)[i].swap((*array)[starts[i]]);
+    array->resize(nseg);
+} // ibis::colBlobs::reduce
 
 /// remove the duplicate elements according to the array starts
 void ibis::colInts::reduce(const array_t<uint32_t>& starts,
@@ -6178,6 +6231,12 @@ void ibis::colStrings::reduce(const array_t<uint32_t>& starts,
     }
 } // ibis::colStrings::reduce
 
+void ibis::colBlobs::reduce(const array_t<uint32_t>&,
+			      ibis::selectClause::AGREGADO) {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- colBlobs::reduce is not implemented";
+} // ibis::colBlobs::reduce
+
 double ibis::colInts::getMin() const {
     const uint32_t nelm = array->size();
     int32_t ret = 0x7FFFFFFF;
@@ -6641,12 +6700,59 @@ long ibis::colStrings::write(FILE* fptr) const {
 	cnt += (int) (ierr > long((*array)[i].size()));
 	LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
 	    << "Warning -- colStrings[" << col->partition()->name() << '.'
-	    << col->name() << "]::write failed to string " << (*array)[i]
-	    << "(# " << i << " out of " << array->size()
-	    << ") to file, ierr = " << ierr;
+	    << col->name() << "]::write failed to write string " << (*array)[i]
+	    << "(# " << i << " out of " << nelm << "), ierr = " << ierr;
     }
     return cnt;
 } // ibis::colStrings::write
+
+/// Write out whole array as binary.  Each raw binary object is preceded by
+/// an 8-byte counter and followed padding to ensure the next entry starts
+/// at 8-byte boundary.
+long ibis::colBlobs::write(FILE* fptr) const {
+    if (array == 0 || col == 0)
+	return 0;
+
+    static char padding[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    long int cnt = 0;
+    long int pos = ftell(fptr);
+    long int ierr;
+    if ((pos & 7) != 0) {
+	ierr = 8 - (pos & 7);
+	if (fwrite(padding, 1, ierr, fptr) != (size_t)ierr) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- colBlobs[" << col->partition()->name() << '.'
+		<< col->name() << "]::write failed to write " << ierr
+		<< " byte" << (ierr>1?"s":"") << " to align the next entry";
+	    return -1;
+	}
+    }
+
+    const uint32_t nelm = array->size();
+    for (uint32_t i = 0; i < nelm; ++ i) {
+	uint64_t sz = (*array)[i].size();
+	ierr = fwrite(&sz, 8, 1, fptr);
+	if (ierr < 1) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- colBlobs[" << col->partition()->name() << '.'
+		<< col->name() << "]::write failed to write the size of "
+		<< " row " << i;
+	    return -2;
+	}
+	ierr = fwrite((*array)[i].address(), 1, ierr, fptr);
+	if (ierr == (long)(sz)) {
+	    ++ cnt;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- colBlobs[" << col->partition()->name() << '.'
+		<< col->name() << "]::write failed to write row "
+		<< i << " of " << nelm << ", ierr = " << ierr;
+	    return -3;
+	}
+    }
+    return cnt;
+} // ibis::colBlobs::write
 
 /// Write ith element as text.
 /// 
@@ -6659,6 +6765,13 @@ void ibis::colStrings::write(std::ostream& out, uint32_t i) const {
 	out << '"' << (*array)[i] << '"';
 }
 
+/// Write ith element as text.  This is a truncated form that can not be
+/// used to recreate the binary object!
+void ibis::colBlobs::write(std::ostream& out, uint32_t i) const {
+    if (array != 0 && array->size() > i)
+	out << (*array)[i];
+}
+
 void ibis::colStrings::reorder(const array_t<uint32_t> &ind) {
     if (array == 0 || col == 0 || ind.size() > array->size())
 	return;
@@ -6666,8 +6779,18 @@ void ibis::colStrings::reorder(const array_t<uint32_t> &ind) {
     std::vector<std::string> tmp(array->size());
     for (uint32_t i = 0; i < ind.size(); ++ i)
 	tmp[i].swap((*array)[ind[i]]);
-    tmp.swap(*array);
+    array->swap(tmp);
 } // ibis::colStrings::reorder
+
+void ibis::colBlobs::reorder(const array_t<uint32_t> &ind) {
+    if (array == 0 || col == 0 || ind.size() > array->size())
+	return;
+
+    std::vector<ibis::opaque> tmp(array->size());
+    for (uint32_t i = 0; i < ind.size(); ++ i)
+	tmp[i].swap((*array)[ind[i]]);
+    array->swap(tmp);
+} // ibis::colBlobs::reorder
 
 /// Fill the array ind with positions of the k largest elements.  The array
 /// may contain more than k elements, if the kth largest element is not
@@ -6764,6 +6887,17 @@ void ibis::colStrings::bottomk(uint32_t k, array_t<uint32_t> &ind) const {
     std::flush(lg());
 #endif
 } // ibis::colStrings::bottomk
+
+void ibis::colBlobs::topk(uint32_t, array_t<uint32_t> &) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- colBlobs::topk is not implemented";
+} // ibis::colBlobs::topk
+
+/// Find positions of the k smallest strings.
+void ibis::colBlobs::bottomk(uint32_t, array_t<uint32_t> &) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- colBlobs::bottomk is not implemented";
+} // ibis::colBlobs::bottomk
 
 long ibis::colInts::truncate(uint32_t keep) {
     if (array == 0) return -1;
@@ -6896,6 +7030,17 @@ long ibis::colStrings::truncate(uint32_t keep) {
     }
 } // ibis::colStrings::truncate
 
+long ibis::colBlobs::truncate(uint32_t keep) {
+    if (array == 0) return -1;
+    if (array->size() > keep) {
+	array->resize(keep);
+	return keep;
+    }
+    else {
+	return array->size();
+    }
+} // ibis::colBlobs::truncate
+
 long ibis::colInts::truncate(uint32_t keep, uint32_t start) {
     if (array == 0) return -1;
     array->truncate(keep, start);
@@ -6975,4 +7120,24 @@ long ibis::colStrings::truncate(uint32_t keep, uint32_t start) {
     }
     return array->size();
 } // ibis::colStrings::truncate
+
+long ibis::colBlobs::truncate(uint32_t keep, uint32_t start) {
+    if (array == 0) return -1;
+    if (start == 0) {
+	if (array->size() > keep) {
+	    array->resize(keep);
+	}
+    }
+    else if (start < array->size()) {
+	if (keep+start > array->size())
+	    keep = array->size() - start;
+	for (uint32_t j = 0; j < keep; ++ j)
+	    (*array)[j].swap((*array)[j+start]);
+	array->resize(keep);
+    }
+    else {
+	array->clear();
+    }
+    return array->size();
+} // ibis::colBlobs::truncate
 

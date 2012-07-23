@@ -341,7 +341,7 @@ void ibis::bundle0::print(std::ostream& out) const {
 
 /// Print the bundle values along with the RIDs.
 void ibis::bundle0::printAll(std::ostream& out) const {
-    ibis::util::ioLock lock;
+    //ibis::util::ioLock lock;
     if (rids) {
 	// print all RIDs one on a line
 	ibis::RIDSet::const_iterator it;
@@ -771,7 +771,7 @@ void ibis::bundle1::printAll(std::ostream& out) const {
 	return;
 
     if (rids != 0 && starts != 0) {
-	ibis::util::ioLock lock;
+	//ibis::util::ioLock lock;
 	uint32_t nbdl = col->size();
 	if (ibis::gVerbose > 4)
 	    out << "Bundle " << id << " has " << nbdl
@@ -837,6 +837,13 @@ void ibis::bundle1::sort(int dir) {
 	col->sort(0, nrow, this);
 	// determine the starting positions of the identical segments
 	starts = col->segment();
+	if (starts == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- bundle1::sort failed to sort and segment "
+		"the values of " << col->name() << " ("
+		<< ibis::TYPESTRING[static_cast<int>(col->getType())] << ")";
+	    return;
+	}
 
 	uint32_t nGroups = starts->size() - 1;
 	if (nGroups < nrow) {    // erase the dupliate elements
@@ -1552,7 +1559,7 @@ void ibis::bundles::printAll(std::ostream& out) const {
 	distinct = cols[i]->canSort();
     }
     const uint32_t size = cols[0]->size();
-    ibis::util::ioLock lock;
+    //ibis::util::ioLock lock;
     if (ibis::gVerbose > 2)
 	out << "Bundle " << id << " contains " << size
 	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
@@ -1630,6 +1637,13 @@ void ibis::bundles::sort(int dir) {
 	// sort according to the values of the first column
 	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
 	starts = cols[0]->segment();
+	if (starts == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- bundles::sort failed to sort and segment "
+		"the values of " << cols[0]->name() << " ("
+		<< ibis::TYPESTRING[static_cast<int>(cols[0]->getType())] << ")";
+	    return;
+	}
 
 	nGroups = starts->size() - 1;
 	// go through the rest of the columns if necessary
@@ -1640,6 +1654,14 @@ void ibis::bundles::sort(int dir) {
 			      cols.begin()+i1, cols.end());
 	    }
 	    array_t<uint32_t>* tmp = cols[i]->segment(starts);
+	    if (tmp == 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- bundles::sort failed to sort and segment "
+		    "the values of " << cols[i]->name() << " ("
+		    << ibis::TYPESTRING[static_cast<int>(cols[i]->getType())]
+		    << ")";
+		return;
+	    }
 	    delete starts;
 	    starts = tmp;
 	    nGroups = starts->size() - 1;
@@ -1687,6 +1709,13 @@ void ibis::bundles::sort(int dir) {
  	// sort according to the values of the first column
 	cols[0]->sort(0, nHits, this, cols.begin()+1, cols.end());
 	starts = cols[0]->segment();
+	if (starts == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- bundles::sort failed to sort and segment "
+		"the values of " << cols[0]->name() << " ("
+		<< ibis::TYPESTRING[static_cast<int>(cols[0]->getType())] << ")";
+	    return;
+	}
 	nGroups = starts->size() - 1;
 
 	// go through the rest of the columns if necessary
@@ -1697,6 +1726,14 @@ void ibis::bundles::sort(int dir) {
 			      cols.begin()+i1, cols.end());
 	    }
 	    array_t<uint32_t>* tmp = cols[i]->segment(starts);
+	    if (tmp == 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- bundles::sort failed to sort and segment "
+		    "the values of " << cols[i]->name() << " ("
+		    << ibis::TYPESTRING[static_cast<int>(cols[i]->getType())]
+		    << ")";
+		return;
+	    }
 	    delete starts;
 	    starts = tmp;
 	    nGroups = starts->size() - 1;
@@ -1819,6 +1856,14 @@ void ibis::bundles::reorder(const char *names) {
 
 		{
 		    array_t<uint32_t> *tmp = cols[j]->segment(&gb);
+		    if (tmp == 0) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- bundles::reorder failed to segment "
+			    "the values of " << cols[j]->name() << " ("
+			    << ibis::TYPESTRING[static_cast<int>(cols[j]->getType())]
+			    << ")";
+			return;
+		    }
 		    gb.swap(*tmp);
 		    delete tmp;
 		}
@@ -1898,6 +1943,14 @@ void ibis::bundles::reorder(const char *names) {
 
 		{
 		    ibis::array_t<uint32_t> *tmp = cols[j]->segment(&gb);
+		    if (tmp == 0) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- bundles::sort failed to segment "
+			    "the values of " << cols[j]->name() << " ("
+			    << ibis::TYPESTRING[static_cast<int>(cols[j]->getType())]
+			    << ")";
+			return;
+		    }
 		    gb.swap(*tmp);
 		    delete tmp;
 		}
@@ -2129,6 +2182,14 @@ long ibis::bundles::truncate(const char *names, uint32_t keep) {
 	    ngroups = ind0.size();
 	    { // segment cols[j]
 		array_t<uint32_t> *tmp = cols[j]->segment(&gb);
+		if (tmp == 0) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- bundles::truncate failed to segment "
+			"the values of " << cols[j]->name() << " ("
+			<< ibis::TYPESTRING[static_cast<int>(cols[j]->getType())]
+			<< ")";
+		    return -1;
+		}
 		gb.swap(*tmp);
 		delete tmp;
 	    }
@@ -2155,6 +2216,14 @@ long ibis::bundles::truncate(const char *names, uint32_t keep) {
 
 		{
 		    array_t<uint32_t> *tmp = cols[j]->segment(&gb);
+		    if (tmp == 0) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- bundles::truncate failed to segment "
+			    "the values of " << cols[j]->name() << " ("
+			    << ibis::TYPESTRING[static_cast<int>(cols[j]->getType())]
+			    << ")";
+			return -2;
+		    }
 		    gb.swap(*tmp);
 		    delete tmp;
 		}
@@ -2226,6 +2295,14 @@ long ibis::bundles::truncate(const char *names, uint32_t keep) {
 	    ngroups = ind0.size();
 	    { // segment cols[j0]
 		array_t<uint32_t> *tmp = cols[j0]->segment(&gb);
+		if (tmp == 0) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- bundles::truncate failed to segment "
+			"the values of " << cols[0]->name() << " ("
+			<< ibis::TYPESTRING[static_cast<int>(cols[0]->getType())]
+			<< ")";
+		    return -3;
+		}
 		gb.swap(*tmp);
 		delete tmp;
 	    }
@@ -2252,6 +2329,14 @@ long ibis::bundles::truncate(const char *names, uint32_t keep) {
 
 		{
 		    array_t<uint32_t> *tmp = cols[j1]->segment(&gb);
+		    if (tmp == 0) {
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- bundles::truncate failed to segment "
+			    "the values of " << cols[j1]->name() << " ("
+			    << ibis::TYPESTRING[static_cast<int>(cols[j1]->getType())]
+			    << ")";
+			return -4;
+		    }
 		    gb.swap(*tmp);
 		    delete tmp;
 		}
