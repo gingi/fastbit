@@ -2239,13 +2239,13 @@ std::ostream& operator<<(std::ostream& out, const ibis::opaque& opq) {
     if (opq.size() > 3) {
 	out << "0x"
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[0])
+	    << std::hex << static_cast<short>(opq.address()[0])
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[1])
+	    << std::hex << static_cast<short>(opq.address()[1])
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[2])
+	    << std::hex << static_cast<short>(opq.address()[2])
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[3]);
+	    << std::hex << static_cast<short>(opq.address()[3]);
 	if (opq.size() > 4) {
 	    out << "... (" << opq.size()-4 << " skipped)";
 	}
@@ -2253,23 +2253,23 @@ std::ostream& operator<<(std::ostream& out, const ibis::opaque& opq) {
     else if (opq.size() == 3) {
 	out << "0x"
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[0])
+	    << std::hex << static_cast<short>(opq.address()[0])
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[1])
+	    << std::hex << static_cast<short>(opq.address()[1])
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[2]);
+	    << std::hex << static_cast<short>(opq.address()[2]);
     }
     else if (opq.size() == 2) {
 	out << "0x"
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[0])
+	    << std::hex << static_cast<short>(opq.address()[0])
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[1]);
+	    << std::hex << static_cast<short>(opq.address()[1]);
     }
     else if (opq.size() == 1) {
 	out << "0x"
 	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << static_cast<short>(opq.address()[0]);
+	    << std::hex << static_cast<short>(opq.address()[0]);
     }
     return out;
 }

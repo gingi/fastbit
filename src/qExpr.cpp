@@ -853,25 +853,25 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	}
 	break;}
     case ibis::qExpr::RANGE: { // a continuous range
-// 	ibis::qContinuousRange *cr =
-// 	    reinterpret_cast<ibis::qContinuousRange*>(expr);
-// 	if (cr->empty()) {
-// 	    expr = new ibis::math::number((double)0.0);
-// 	    delete cr;
-// 	}
+	// ibis::qContinuousRange *cr =
+	//     reinterpret_cast<ibis::qContinuousRange*>(expr);
+	// if (cr->empty()) {
+	//     expr = new ibis::math::number((double)0.0);
+	//     delete cr;
+	// }
 	break;}
     case ibis::qExpr::DRANGE: { // break a DRANGE into multiple RANGE
-// 	ibis::qDiscreteRange *dr =
-// 	    reinterpret_cast<ibis::qDiscreteRange*>(expr);
-// 	ibis::qExpr *tmp = dr->convert();
-// 	delete expr;
-// 	expr = tmp;
+	// ibis::qDiscreteRange *dr =
+	//     reinterpret_cast<ibis::qDiscreteRange*>(expr);
+	// ibis::qExpr *tmp = dr->convert();
+	// delete expr;
+	// expr = tmp;
 	break;}
     case ibis::qExpr::MSTRING: { // break a MSTRING into multiple STRING
-	ibis::qExpr *tmp = reinterpret_cast<ibis::qMultiString*>(expr)
-	    ->convert();
-	delete expr;
-	expr = tmp;
+	// ibis::qExpr *tmp = reinterpret_cast<ibis::qMultiString*>(expr)
+	//     ->convert();
+	// delete expr;
+	// expr = tmp;
 	break;}
     case ibis::qExpr::DEPRECATEDJOIN: {
 	ibis::math::term *range =

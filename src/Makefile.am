@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS=gnu
 lib_LTLIBRARIES = libfastbit.la
 libfastbit_la_SOURCES = part.cpp bord.cpp ibin.cpp column.cpp index.cpp \
  array_t.cpp parth3dw.cpp parth3da.cpp parth3db.cpp parth2d.cpp parth3d.cpp \
- meshQuery.cpp query.cpp colValues.cpp bitvector.cpp \
+ meshQuery.cpp query.cpp colValues.cpp bitvector.cpp islice.cpp \
  ixambit.cpp parth.cpp mensa.cpp tafel.cpp party.cpp qExpr.cpp utilidor.cpp \
  bitvector64.cpp irange.cpp category.cpp iroster.cpp irelic.cpp ixpack.cpp \
  fileManager.cpp filter.cpp bundle.cpp capi.cpp ixbylt.cpp ixpale.cpp util.cpp \

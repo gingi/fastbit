@@ -31,8 +31,8 @@ ibis::skive::skive(const ibis::column* c, const char* f) : ibis::relic(0) {
 	    const uint32_t card = vals.size();
 	    const uint32_t nbits = bits.size();
 	    lg() << "skive[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- constructed a bit-skived index with " << nbits
-		 << " bitmap" << (nbits>1?"s":"") << " on " << card
+		 << "]::ctor -- constructed a binary encoded index with "
+		 << nbits << " bitmap" << (nbits>1?"s":"") << " on " << card
 		 << " distinct value" << (card>1?"s":"") << " and " << nrows
 		 << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
@@ -81,7 +81,7 @@ ibis::skive::skive(const ibis::column* c, ibis::fileManager::storage* st,
 	    const uint32_t card = vals.size();
 	    const uint32_t nbits = bits.size();
 	    lg() << "skive[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- intialized a bit-skived index with " << nbits
+		 << "]::ctor -- intialized a binary-encoded index with " << nbits
 		 << " bitmap" << (nbits>1?"s":"") << " on " << card
 		 << " distinct value" << (card>1?"s":"") << " and " << nrows
 		 << " row" << (nrows>1?"s":"") << " from storage object @ "
@@ -409,7 +409,8 @@ int ibis::skive::read(const char* f) {
     if (!(header[0] == '#' && header[1] == 'I' &&
 	  header[2] == 'B' && header[3] == 'I' &&
 	  header[4] == 'S' &&
-	  header[5] == static_cast<char>(ibis::index::SKIVE) &&
+	  (header[5] == static_cast<char>(ibis::index::SKIVE) ||
+	   header[5] == static_cast<char>(ibis::index::SLICE)) &&
 	  (header[6] == 8 || header[6] == 4) &&
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
@@ -494,7 +495,8 @@ int ibis::skive::read(const char* f) {
 /// bit vectors.
 int ibis::skive::read(ibis::fileManager::storage* st) {
     if (st == 0) return -1;
-    if (st->begin()[5] != ibis::index::SKIVE) return -3;
+    if (st->begin()[5] != ibis::index::SKIVE &&
+	st->begin()[5] != ibis::index::SLICE) return -3;
     clear(); // clear the current conent
 
     nrows = *(reinterpret_cast<uint32_t*>(st->begin()+8));
@@ -529,10 +531,13 @@ void ibis::skive::clear() {
     ibis::relic::clear();
 } // ibis::skive::clear
 
-// assume that the array vals is initialized properly, this function
-// converts the value val into a set of bits to be stored in the bitvectors
-// contained in bits
-// **** CAN ONLY be used by construct2() to build a new bit-skived index ****
+/// This function converts the value val into a set of bits stored in the
+/// bitvectors contained in bits.  It assumes that the member variable vals
+/// has been initialized properly already, i.e., it has all distinct values
+/// in ascending order.
+///
+/// @note CAN ONLY be used by construct2() to build a new binary encoded
+/// index.
 void ibis::skive::setBit(const uint32_t i, const double val) {
     if (val > vals.back()) return;
     if (val < vals[0]) return;
@@ -600,7 +605,7 @@ void ibis::skive::construct1(const char* f) {
 	cnts[i] = (*it).second->cnt();
     }
 
-    // determine the number of bits needed for the bit-skived index
+    // determine the number of bits needed under the binary encoding
     -- tmp;
     uint32_t nobs = 0;
     while (tmp > 0) {
@@ -626,7 +631,7 @@ void ibis::skive::construct1(const char* f) {
 	<< "start converting " << vals.size() << " bitmaps into "
 	<< nobs << " bit skives";
 
-    // fill the bitvectors for the bit-skived index
+    // fill the bitvectors
     for (tmp = 1, ++it; it != bmap.end(); ++it, ++tmp) {
 	uint32_t b = tmp;
 	for (uint32_t i = 0; i < nobs && b > 0; ++i, b >>= 1) {
@@ -658,8 +663,9 @@ void ibis::skive::construct1(const char* f) {
     }
 } // ibis::skive::construct1
 
-/// generate a new bit-skived index.  This version performs its task in two
-/// steps.
+/// Generate a new binary encoded index.  This version performs its task in
+/// two steps.
+///
 /// - scan the data to generate a list of distinct values and their counts.
 /// - scan the data a second time to produce the bit vectors.
 void ibis::skive::construct2(const char* f) {
@@ -701,110 +707,18 @@ void ibis::skive::construct2(const char* f) {
     nrows = col->partition()->nRows();
     ibis::bitvector mask;
     {   // name of mask file associated with the data file
-	array_t<ibis::bitvector::word_t> arr;
-	std::string mname(fnm);
-	mname += ".msk";
-	if (ibis::fileManager::instance().getFile(mname.c_str(), arr) == 0)
-	    mask.copy(ibis::bitvector(arr)); // convert arr to a bitvector
-	else
-	    mask.set(1, nrows); // default mask
+        array_t<ibis::bitvector::word_t> arr;
+        std::string mname(fnm);
+        mname += ".msk";
+        if (ibis::fileManager::instance().getFile(mname.c_str(), arr) == 0)
+            mask.copy(ibis::bitvector(arr)); // convert arr to a bitvector
+        else
+            mask.set(1, nrows); // default mask
     }
+
 
     // need to do different things for different columns
     switch (col->type()) {
-    case ibis::TEXT:
-    case ibis::UINT: {// unsigned int
-	array_t<uint32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    if (val.size() > mask.size()) {
-		col->logWarning("skive::construct", "the data file \"%s\" "
-				"contains more elements (%lu) then expected "
-				"(%lu)", fnm.c_str(),
-				static_cast<long unsigned>(val.size()),
-				static_cast<long unsigned>(mask.size()));
-		mask.adjustSize(nrows, nrows);
-	    }
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) {
-		if (iset.isRange()) { // a range
-		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-		    for (uint32_t i = *iix; i < k; ++i)
-			setBit(i, val[i]);
-		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-		    // a list of indices
-		    for (uint32_t i = 0; i < nind; ++i) {
-			uint32_t k = iix[i];
-			setBit(k, val[k]);
-		    }
-		}
-		else {
-		    for (uint32_t i = 0; i < nind; ++i) {
-			uint32_t k = iix[i];
-			if (k < nrows)
-			    setBit(k, val[k]);
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nrows)
-		    nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("skive::construct", "unable to read %s",
-			    fnm.c_str());
-	}
-	break;}
-    case ibis::INT: {// signed int
-	array_t<int32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    if (val.size() > mask.size()) {
-		col->logWarning("skive::construct", "the data file \"%s\" "
-				"contains more elements (%lu) then expected "
-				"(%lu)", fnm.c_str(),
-				static_cast<long unsigned>(val.size()),
-				static_cast<long unsigned>(mask.size()));
-		mask.adjustSize(nrows, nrows);
-	    }
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) {
-		if (iset.isRange()) { // a range
-		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-		    for (uint32_t i = *iix; i < k; ++i)
-			setBit(i, val[i]);
-		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-		    // a list of indices
-		    for (uint32_t i = 0; i < nind; ++i) {
-			uint32_t k = iix[i];
-			setBit(k, val[k]);
-		    }
-		}
-		else {
-		    for (uint32_t i = 0; i < nind; ++i) {
-			uint32_t k = iix[i];
-			if (k < nrows)
-			    setBit(k, val[k]);
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nrows)
-		    nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("skive::construct", "unable to read %s",
-			    fnm.c_str());
-	}
-	break;}
     case ibis::ULONG: {// unsigned long int
 	array_t<uint64_t> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
@@ -853,6 +767,98 @@ void ibis::skive::construct2(const char* f) {
 	break;}
     case ibis::LONG: {// signed long int
 	array_t<int64_t> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("skive::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("skive::construct", "unable to read %s",
+			    fnm.c_str());
+	}
+	break;}
+    case ibis::UINT: {// unsigned int
+	array_t<uint32_t> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("skive::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("skive::construct", "unable to read %s",
+			    fnm.c_str());
+	}
+	break;}
+    case ibis::INT: {// signed int
+	array_t<int32_t> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
@@ -990,7 +996,7 @@ void ibis::skive::construct2(const char* f) {
 	}
 	break;}
     case ibis::UBYTE: {// unsigned char
-	array_t<uint32_t> val;
+	array_t<unsigned char> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {

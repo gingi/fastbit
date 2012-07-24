@@ -279,10 +279,10 @@ public:
     skive(const ibis::column* c, ibis::fileManager::storage* st,
 	  size_t start = 8);
 
-    virtual int write(const char* dt) const;
+    virtual int  write(const char* dt) const;
     virtual void print(std::ostream& out) const;
-    virtual int read(const char* idxfile);
-    virtual int read(ibis::fileManager::storage* st);
+    virtual int  read(const char* idxfile);
+    virtual int  read(ibis::fileManager::storage* st);
 
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
@@ -335,27 +335,50 @@ protected:
     virtual void clear();
     virtual size_t getSerialSize() const throw();
 
-private:
-    // private member variables
     array_t<uint32_t> cnts; // the counts for each distinct value
-
-    // private member functions
-    void construct1(const char* f = 0); // uses more temporary storage
-    void construct2(const char* f = 0); // passes through data twice
-    void setBit(const uint32_t i, const double val);
 
     int write32(int fdes) const;
     int write64(int fdes) const;
     void evalGE(ibis::bitvector& res, uint32_t b) const;
     void evalEQ(ibis::bitvector& res, uint32_t b) const;
 
+private:
     skive(const skive&);
     skive& operator=(const skive&);
+
+    // private member functions
+    void construct1(const char* f = 0); // uses more temporary storage
+    void construct2(const char* f = 0); // passes through data twice
+    void setBit(const uint32_t i, const double val);
 }; // ibis::skive
 
 /// The bit-sliced index.  This version strictly slices the binary bits of
 /// the incoming values.  It also supports operations on bit slices.
 class ibis::slice : public ibis::skive {
+public:
+    virtual ~slice() {clear();};
+    slice(const ibis::column* c = 0, const char* f = 0);
+    slice(const ibis::column* c, ibis::fileManager::storage* st,
+	  size_t start = 8);
+
+    virtual int  write(const char* dt) const;
+    virtual void print(std::ostream& out) const;
+
+    virtual long append(const char* dt, const char* df, uint32_t nnew);
+
+    static bool isSuitable(const column&, const char*);
+
+protected:
+    virtual void clear();
+    virtual size_t getSerialSize() const throw();
+
+private:
+    slice(const slice&);
+    slice& operator=(const slice&);
+
+    // private member functions
+    int construct(const char* f = 0); // passes through data twice
+    template <typename T> int constructT(const char*);
 }; // ibis::slice
 
 /// The multicomponent range-encoded index.  Defined by Chan and Ioannidis
