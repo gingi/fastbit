@@ -1378,7 +1378,7 @@ ibis::RIDSet* ibis::query::getRIDs(const ibis::bitvector& mask) const {
 		   mypart->name(),
 		   static_cast<long unsigned>(mask.cnt()));
     else if (ibis::gVerbose > 5)
-	logMessage("getRIDs", "retrieved %lu row IDs from partitioni %s",
+	logMessage("getRIDs", "retrieved %lu row IDs from partition %s",
 		   static_cast<long unsigned>(ridset!=0 ? ridset->size() : 0),
 		   mypart->name());
     return ridset;

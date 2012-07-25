@@ -12,6 +12,7 @@
 #include "countQuery.h"	// ibis::countQuery
 #include "bundle.h"	// ibis::bundle
 #include "ikeywords.h"	// ibis::keyword::tokenizer
+#include "blob.h"	// printing ibis::opaque
 
 #include <iomanip>	// std::setprecision
 #include <limits>	// std::numeric_limits
@@ -2167,6 +2168,28 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	    ierr = -2;
 	}
 	break;}
+    case ibis::OID: {
+	const array_t<rid_t>* vals =
+	    static_cast<const array_t<rid_t>*>(buffer);
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
+    case ibis::BLOB: {
+	const std::vector<ibis::opaque>* vals =
+	    static_cast<const std::vector<ibis::opaque>*>(buffer);
+	if (i < vals->size()) {
+	    out << (*vals)[i];
+	    ierr = 0;
+	}
+	else {
+	    ierr = -2;
+	}
+	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
 	std::string tmp;
@@ -2331,6 +2354,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    else
 		ierr = -4;
 	    break;}
+	case ibis::OID:
 	case ibis::ULONG: {
 	    std::auto_ptr< array_t<uint64_t> > values(col.selectULongs(msk0));
 	    if (values.get() != 0)
@@ -2367,26 +2391,33 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    else
 		ierr =-4;
 	    break;}
-// 	case ibis::BLOB: {
-// 	    std::string spname = cnm;
-// 	    spname += ".sp";
-// 	    int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
-// 	    if (sdes < 0) {
-// 		LOGGER(ibis::gVerbose >= 0)
-// 		    << "bord::backup(" << dir << ") failed to open file "
-// 		    << spname << " for writing the starting positions";
-// 		return -4;
-// 	    }
-// 	    ibis::util::guard gsdes = ibis::util::makeGuard(UnixClose, sdes);
-// #if defined(_WIN32) && defined(_MSC_VER)
-// 	    (void)_setmode(sdes, _O_BINARY);
-// #endif
-
-// 	    ierr = ibis::part::writeRaw
-// 		(fdes, sdes, 0, nEvents,
-// 		 * static_cast<const array_t<unsigned char>*>(values),
-// 		 col.starts, msk1, msk0);
-// 	    break;}
+	case ibis::BLOB: {
+	    std::auto_ptr< std::vector<ibis::opaque> >
+		values(col.selectOpaques(msk0));
+	    std::string spname = cnm;
+	    spname += ".sp";
+	    int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
+	    if (sdes < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "bord::backup(" << dir << ") failed to open file "
+		    << spname << " for writing the starting positions";
+		return -5;
+	    }
+	    IBIS_BLOCK_GUARD(UnixClose, sdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(sdes, _O_BINARY);
+#endif
+	    if (values.get() != 0) {
+		ierr = ibis::part::writeOpaques
+		    (fdes, sdes, 0,
+		     *static_cast< const std::vector<ibis::opaque>* >
+		     (values.get()),
+		     msk1, msk0);
+	    }
+	    else {
+		ierr = -4;
+	    }
+	    break;}
 	default:
 	    break;
 	}
@@ -11202,6 +11233,12 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
 	    // buffer = tmp;
 	    // delete stv;
 	    break;}
+	case ibis::OID: {
+	    nr = static_cast<array_t<rid_t>*>(st)->size();
+	    break;}
+	case ibis::BLOB: {
+	    nr = static_cast<std::vector<opaque>*>(st)->size();
+	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Error -- bord::column::ctor can not handle column ("
@@ -11252,6 +11289,12 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
 	case ibis::CATEGORY: {
 	    buffer = new std::vector<std::string>;
 	    //dic = new ibis::dictionary();
+	    break;}
+	case ibis::OID: {
+	    buffer = new array_t<rid_t>;
+	    break;}
+	case ibis::BLOB: {
+	    buffer = new std::vector<opaque>;
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -11320,6 +11363,14 @@ ibis::bord::column::column(const ibis::bord::column &c)
 	buffer = new std::vector<std::string>
 	    (* static_cast<std::vector<std::string>*>(c.buffer));
 	break;}
+    case ibis::OID: {
+	buffer = new array_t<rid_t>
+	    (* static_cast<array_t<rid_t>*>(c.buffer));
+	break;}
+    case ibis::BLOB: {
+	buffer = new std::vector<ibis::opaque>
+	    (* static_cast<std::vector<ibis::opaque>*>(c.buffer));
+	break;}
     default: {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- bord::column::ctor can not copy column ("
@@ -11364,6 +11415,12 @@ ibis::bord::column::~column() {
     case ibis::CATEGORY:
     case ibis::TEXT: {
 	delete static_cast<std::vector<std::string>*>(buffer);
+	break;}
+    case ibis::OID: {
+	delete static_cast<array_t<rid_t>*>(buffer);
+	break;}
+    case ibis::BLOB: {
+	delete static_cast<std::vector<opaque>*>(buffer);
 	break;}
     default: {
 	LOGGER(ibis::gVerbose >= 0)
@@ -11474,6 +11531,7 @@ void ibis::bord::column::computeMinMax(const char *,
 
 	ibis::column::actualMinMax(val, mask_, min, max);
 	break;}
+    case ibis::OID:
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
@@ -11550,6 +11608,7 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    * static_cast<const array_t<int32_t>*>(buffer);
 	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
+    case ibis::OID:
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
@@ -11622,6 +11681,7 @@ long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	    * static_cast<const array_t<int32_t>*>(buffer);
 	ierr = ibis::part::doScan(val, cmp, mymask, res);
 	break;}
+    case ibis::OID:
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
@@ -11676,7 +11736,8 @@ long ibis::bord::column::stringSearch(const char* str,
 	return -2;
     }
 
-    const array_t<uint32_t>& vals(*static_cast<const array_t<uint32_t>*>(buffer));
+    const array_t<uint32_t>&
+	vals(*static_cast<const array_t<uint32_t>*>(buffer));
     
     if (str == 0) { // null string can not match any thing
 	hits.set(0, thePart ? thePart->nRows() : vals.size());
@@ -11713,7 +11774,8 @@ long ibis::bord::column::stringSearch(const std::vector<std::string>& str,
 	    << "Warning -- " << evt << " can not proceed with a nil buffer";
 	return -2;
     }
-    const array_t<uint32_t>& vals(*static_cast<const array_t<uint32_t>*>(buffer));
+    const array_t<uint32_t>&
+	vals(*static_cast<const array_t<uint32_t>*>(buffer));
     if (str.empty()) { // null string can not match any thing
 	hits.set(0, thePart ? thePart->nRows() : vals.size());
 	return 0;
@@ -15919,6 +15981,11 @@ long ibis::bord::column::append(const void* vals, const ibis::bitvector& msk) {
 		   thePart->nRows(),
 		   *static_cast<const std::vector<std::string>*>(vals));
 	break;}
+    case ibis::BLOB: {
+	addBlobs(reinterpret_cast<std::vector<ibis::opaque>*&>(buffer),
+	         thePart->nRows(),
+	         *static_cast<const std::vector<ibis::opaque>*>(vals));
+	break;}
     default: {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << thePart->name() << '.' << m_name
@@ -16071,6 +16138,16 @@ long ibis::bord::column::append(const ibis::column& scol,
 	else
 	    ierr = -18;
 	break;}
+    case ibis::BLOB: {
+	std::auto_ptr< std::vector<ibis::opaque> >
+	    vals(scol.selectOpaques(msk));
+	if (vals.get() != 0)
+	    ierr = addBlobs
+		(reinterpret_cast<std::vector<ibis::opaque>*&>(buffer),
+		 thePart->nRows(), *vals);
+	else
+	    ierr = -18;
+	break;}
     default: {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << thePart->name() << '.' << m_name
@@ -16090,8 +16167,9 @@ long ibis::bord::column::append(const ibis::column& scol,
 /// Append selected values from the given column to the current column.
 /// This function extracts the values using the given range condition on
 /// scol, and then append the values to the current column.  The type of
-/// scol must be ligitimately converted to the type of this column.  It
-/// returns 0 to indicate success, a negative number to indicate error.
+/// scol must be ligitimately converted to the type of this column.
+///
+///  It returns 0 to indicate success, a negative number to indicate error.
 long ibis::bord::column::append(const ibis::column& scol,
 				const ibis::qContinuousRange& cnd) {
     int ierr = 0;
@@ -16245,6 +16323,23 @@ int ibis::bord::column::addStrings(std::vector<std::string>*& to,
 	target.insert(target.end(), from.begin(), from.end());
     return nqq;
 } // ibis::bord::column::addStrings
+
+int ibis::bord::column::addBlobs(std::vector<ibis::opaque>*& to,
+				 uint32_t nold,
+				 const std::vector<ibis::opaque>& from) {
+    const int nqq = from.size();
+    if (to == 0)
+	to = new std::vector<ibis::opaque>();
+    std::vector<ibis::opaque>& target = *to;
+    target.reserve(nold+nqq);
+    if (nold > (long)target.size()) {
+	const ibis::opaque dummy;
+	target.insert(target.end(), nold-target.size(), dummy);
+    }
+    if (nqq > 0)
+	target.insert(target.end(), from.begin(), from.end());
+    return nqq;
+} // ibis::bord::column::addBlobs
 
 /// Does this column have the same values as the other.
 bool ibis::bord::column::equal_to(const ibis::bord::column &other) const {

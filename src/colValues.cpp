@@ -8,13 +8,14 @@
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 
-#include <math.h>	// sqrt
-#include <vector>
-#include <algorithm>
-
+#include "blob.h"	// operator<<
 #include "bord.h"
 #include "bundle.h"
 #include "category.h"
+
+#include <math.h>	// sqrt
+#include <vector>
+#include <algorithm>
 
 //////////////////////////////////////////////////////////////////////
 // functions of ibis::colValues and derived classes

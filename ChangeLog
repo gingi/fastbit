@@ -1,8 +1,21 @@
+2012-07-24 John Wu <John dot Wu at ACM dot org>
+	* src/islice.cpp: add ibis::slice to implement a proper bit-slice
+	index (no repacking of the keyvalues)
+	* src/bundle.h:143 change the default value of number of rows in a
+	bundle to 1 (instead of 0)
+	* src/selectClause.cpp:372 change nplains < aggr_.size() tp
+	nplains <= aggr_.size()
+	* src/bord.h, src/bord.cpp: add function bord::column::addBlobs to
+	handle blobs (opaque objects)
+
 2012-07-23 John Wu <John dot Wu at ACM dot org>
 	* src/column.h: change the default value of elementSize to be 0
 	instead of -1 (ibis::column::getNullMask mistakenly treat -1 as a
 	large positive number and created a wrong null mask for blobs)
 	* src/colValues.h, src/colValues.cpp: add colBlobs
+	* src/qExpr.cpp:871 comment out the code to convert MSTRING
+	exprission into a list of qString (to address a problem reported
+	by Greg Barker)
 
 2012-07-21 John Wu <John dot Wu at ACM dot org>
 	* tests/setqgen.cpp: update for writing blobs

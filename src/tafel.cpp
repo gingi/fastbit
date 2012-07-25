@@ -8,6 +8,7 @@
 
 #include "tafel.h"	// ibis::tafel
 #include "bord.h"	// ibis::part, ibis::bord
+#include "blob.h"	// ibis::opaque
 
 #include <fstream>	// std::ofstream
 #include <limits>	// std::numeric_limits

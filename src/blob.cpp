@@ -1,10 +1,12 @@
-//File: $Id: blob.cpp,v 1.2 2012/07/22 02:47:16 kewu Exp $
+//File: $Id: blob.cpp,v 1.3 2012/07/25 04:36:54 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2009-2012 the Regents of the University of California
 ///@file
 /// Define the class ibis::blob.
 #include "blob.h"
 #include "part.h"	// ibis::part
+
+#include <iomanip>	// std::setprecision, std::setw
 
 /// Contruct a blob by reading from a metadata file.
 ibis::blob::blob(const part *prt, FILE *file) : ibis::column(prt, file) {
@@ -1581,3 +1583,48 @@ int ibis::opaque::copy(const char* ptr, uint64_t len) {
 	return -1;
     }
 } // ibis::opaque::copy
+
+/// Print an opaque object to an output stream.
+std::ostream& operator<<(std::ostream& out, const ibis::opaque& opq) {
+    const char *buf = opq.address();
+    if (buf == 0) {
+	out << "    (empty binary object)";
+	return out;
+    }
+
+    if (opq.size() > 3) {
+	out << "0x" << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << std::hex << static_cast<short>(buf[0])
+	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << static_cast<short>(buf[1])
+	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << static_cast<short>(buf[2])
+	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << static_cast<short>(buf[3]) << std::dec;
+	if (opq.size() > 4) {
+	    out << "... (" << opq.size()-4 << " skipped)";
+	}
+    }
+    else if (opq.size() == 3) {
+	out << "0x" << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << std::hex << static_cast<short>(buf[0])
+	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << static_cast<short>(buf[1])
+	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << static_cast<short>(buf[2]) << std::dec;
+    }
+    else if (opq.size() == 2) {
+	out << "0x" << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << std::hex << static_cast<short>(buf[0])
+	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << static_cast<short>(buf[1]) << std::dec;
+    }
+    else if (opq.size() == 1) {
+	out << "0x" << std::setprecision(2) << std::setw(2) << std::setfill('0')
+	    << std::hex << static_cast<short>(buf[0]) << std::dec;
+    }
+    else {
+	out << "    (empty binary object)";
+    }
+    return out;
+}

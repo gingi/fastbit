@@ -369,7 +369,7 @@ bool ibis::selectClause::isSeparable() const {
 		     aggr_[j] == MAX || aggr_[j] == MIN);
     }
     if (separable)
-	separable = (nplains < aggr_.size());
+	separable = (nplains <= aggr_.size());
     return separable;
 } // ibis::selectClause::isSeparable
 

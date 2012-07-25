@@ -140,7 +140,7 @@ public:
 	    return (*starts)[ind+1]-(*starts)[ind];
 	}
 	else {
-	    return 0U;
+	    return 1U;
 	}
     }
     /// Compute the number of rows in each group(bundle).  Return the

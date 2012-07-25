@@ -24,7 +24,6 @@
 #include <limits>	// std::numeric_limits
 #include <locale>	// std::numpunct<char>
 #include <iostream>	// std::cout
-#include <iomanip>	// std::setprecision, std::setw
 
 // global variables
 #if defined(DEBUG)
@@ -2233,46 +2232,6 @@ uint32_t ibis::nameList::find(const char* key) const {
     }
     return sz;
 } // ibis::nameList::find
-
-/// Print an opaque object to an output stream.
-std::ostream& operator<<(std::ostream& out, const ibis::opaque& opq) {
-    if (opq.size() > 3) {
-	out << "0x"
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[0])
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[1])
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[2])
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[3]);
-	if (opq.size() > 4) {
-	    out << "... (" << opq.size()-4 << " skipped)";
-	}
-    }
-    else if (opq.size() == 3) {
-	out << "0x"
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[0])
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[1])
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[2]);
-    }
-    else if (opq.size() == 2) {
-	out << "0x"
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[0])
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[1]);
-    }
-    else if (opq.size() == 1) {
-	out << "0x"
-	    << std::setprecision(2) << std::setw(2) << std::setfill('0')
-	    << std::hex << static_cast<short>(opq.address()[0]);
-    }
-    return out;
-}
 
 
 #ifdef IBIS_REPLACEMENT_RWLOCK

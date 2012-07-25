@@ -568,6 +568,8 @@ public:
 		      const T special);
     static int addStrings(std::vector<std::string>*&, uint32_t,
 			  const std::vector<std::string>&);
+    static int addBlobs(std::vector<ibis::opaque>*&, uint32_t,
+			const std::vector<ibis::opaque>&);
 
     /// Return the dictionary associated with the column.  A dictionary is
     /// associated with the column originally stored as ibis::category, but

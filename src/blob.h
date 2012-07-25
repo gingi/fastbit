@@ -1,4 +1,4 @@
-//File: $Id: blob.h,v 1.1 2012/07/06 20:46:59 kewu Exp $
+//File: $Id: blob.h,v 1.2 2012/07/25 04:36:54 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2009-2012 the Regents of the University of California
 ///@file
@@ -10,10 +10,10 @@
 #include "bitvector.h"
 #include "column.h"	// ibis::column
 
-/// A class to provide minimal support for byte arrays.  Since a byte array
-/// may contain any arbitrary byte values, we can not rely on the null
-/// terminator any more, nor use std::string as the container for each
-/// array.  It is intended to store opaque data that can not be searched.
+/// A class to provide a minimal support for byte arrays.  Since a byte
+/// array may contain any arbitrary byte values, we can not rely on the
+/// null terminator any more, nor use std::string as the container for each
+/// array.  It is intended to store opaque data, and can not be searched.
 class ibis::blob : public ibis::column {
 public:
     virtual ~blob() {};
@@ -102,4 +102,6 @@ protected:
     int readBlob(uint32_t ind, char *&buf, uint64_t &size,
 		 const char *spfile, const char *datafile) const;
 }; // ibis::blob
+
+std::ostream& operator<<(std::ostream& out, const ibis::opaque& opq);
 #endif

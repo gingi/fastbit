@@ -1,4 +1,4 @@
-// $Id: islice.cpp,v 1.1 2012/07/24 18:57:32 kewu Exp $
+// $Id$
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2012-2012 the Regents of the University of California
 //
@@ -17,7 +17,11 @@
 ////////////////////////////////////////////////////////////////////////
 // functions from ibis::islice
 //
-// construct a bitmap index from current data
+ibis::slice::~slice() {
+    clear();
+}
+
+/// Construct a bitmap index from current data.
 ibis::slice::slice(const ibis::column* c, const char* f) : ibis::skive(0) {
     if (c == 0) return;  // nothing can be done
     try {
@@ -324,9 +328,23 @@ ibis::slice::constructT(const char* f) {
 /// directly without checking 
 int ibis::slice::construct(const char* f) {
     clear();
-    if (! isSuitable(*col, f)) return -1;
+    if (! (col->lowerBound() >= 0.0 && col->lowerBound() <= col->upperBound()))
+	const_cast<ibis::column*>(col)->computeMinMax(f);
+    if (! (col->lowerBound() >= 0.0 && col->lowerBound() <= col->upperBound()))
+	return -4;
 
     uint64_t upp = static_cast<uint64_t>(col->upperBound());
+    if ((double)upp != col->upperBound())
+	return -5;
+
+    ++ upp;
+    cnts.resize(upp);
+    vals.resize(upp);
+    for (uint64_t j = 0; j < upp; ++ j) {
+	cnts[j] = 0;
+	vals[j] = j;
+    }
+    -- upp;
     // compute the number of bitvectors
     uint32_t nobs = 0;
     while (upp > 0) {
@@ -339,15 +357,7 @@ int ibis::slice::construct(const char* f) {
     for (uint32_t i = 0; i < nobs; ++i)
 	bits[i] = new ibis::bitvector;
 
-    ++ upp;
-    cnts.resize(upp);
-    vals.resize(upp);
-    for (uint64_t j = 0; j < upp; ++ j) {
-	cnts[j] = 0;
-	vals[j] = j;
-    }
-
-    int ierr = -10;
+    int ierr = -6;
     // need to do different things for different columns
     switch (col->type()) {
     case ibis::ULONG: {// unsigned long int

@@ -269,12 +269,12 @@ private:
 /// The binary encoded index with recoding of keyvalues.
 ///
 /// @note The work skive is the Danish for slice.  This is a weired version
-/// of the bit-sliced index because it recodes the keyvalues to use values
-/// between 0 and cnts.size()-1.  The alternative version ibis::slice will
-/// use bit slices more strictly.
+/// of the bit-sliced index because it recodes the keyvalues to be between
+/// 0 and cnts.size()-1.  The alternative version ibis::slice will use bit
+/// slices more strictly.
 class ibis::skive : public ibis::relic {
 public:
-    virtual ~skive() {clear();};
+    virtual ~skive();
     skive(const ibis::column* c = 0, const char* f = 0);
     skive(const ibis::column* c, ibis::fileManager::storage* st,
 	  size_t start = 8);
@@ -304,7 +304,7 @@ public:
 			  ibis::bitvector& upper) const;
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
     virtual INDEX_TYPE type() const {return SKIVE;}
-    virtual const char* name() const {return "bit-sliced";}
+    virtual const char* name() const {return "binary-encoded";}
     // number of records in each bin
     virtual void binWeights(std::vector<uint32_t>& b) const;
     virtual double getSum() const;
@@ -356,10 +356,12 @@ private:
 /// the incoming values.  It also supports operations on bit slices.
 class ibis::slice : public ibis::skive {
 public:
-    virtual ~slice() {clear();};
+    virtual ~slice();
     slice(const ibis::column* c = 0, const char* f = 0);
     slice(const ibis::column* c, ibis::fileManager::storage* st,
 	  size_t start = 8);
+    virtual INDEX_TYPE type() const {return SLICE;}
+    virtual const char* name() const {return "bit-slice";}
 
     virtual int  write(const char* dt) const;
     virtual void print(std::ostream& out) const;
@@ -367,10 +369,6 @@ public:
     virtual long append(const char* dt, const char* df, uint32_t nnew);
 
     static bool isSuitable(const column&, const char*);
-
-protected:
-    virtual void clear();
-    virtual size_t getSerialSize() const throw();
 
 private:
     slice(const slice&);

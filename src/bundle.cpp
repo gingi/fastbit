@@ -2546,8 +2546,9 @@ std::string ibis::bundles::getString(uint32_t i, uint32_t j) const {
 
 ibis::query::result::result(ibis::query& q)
     : que_(q), bdl_(0), sel(q.components()), bid_(0), lib_(0) {
-    if (q.getState() == ibis::query::UNINITIALIZED ||
-	q.getState() == ibis::query::SET_COMPONENTS) {
+    const ibis::query::QUERY_STATE st = q.getState();
+    if (st == ibis::query::UNINITIALIZED ||
+	st == ibis::query::SET_COMPONENTS) {
 	throw ibis::bad_alloc("Can not construct query::result on "
 			      "an incomplete query");
     }
@@ -2555,8 +2556,8 @@ ibis::query::result::result(ibis::query& q)
 	throw ibis::bad_alloc("Can not construct query::result on "
 			      "a query with an empty select clause");
     }
-    if (q.getState() == ibis::query::SPECIFIED ||
-	q.getState() == ibis::query::QUICK_ESTIMATE) {
+    if (st == ibis::query::SPECIFIED ||
+	st == ibis::query::QUICK_ESTIMATE) {
 	int ierr = q.evaluate();
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)

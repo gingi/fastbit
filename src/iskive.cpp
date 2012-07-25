@@ -15,7 +15,11 @@
 ////////////////////////////////////////////////////////////////////////
 // functions from ibis::iskive
 //
-// construct a bitmap index from current data
+ibis::skive::~skive() {
+    clear();
+}
+
+/// Construct a bitmap index from current data.
 ibis::skive::skive(const ibis::column* c, const char* f) : ibis::relic(0) {
     if (c == 0) return;  // nothing can be done
     col = c;
@@ -420,13 +424,11 @@ int ibis::skive::read(const char* f) {
 	    if (isprint(header[0]) != 0)
 		lg() << header[0];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[0]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[0] << std::dec;
 	    if (isprint(header[1]) != 0)
 		lg() << header[1];
 	    else
-		lg() << "0x" << std::hex << (uint16_t) header[1]
-			    << std::dec;
+		lg() << "0x" << std::hex << (uint16_t) header[1] << std::dec;
 	    if (isprint(header[2]) != 0)
 		lg() << header[2];
 	    else
