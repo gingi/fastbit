@@ -1,4 +1,4 @@
-//File: $Id: blob.cpp,v 1.3 2012/07/25 04:36:54 kewu Exp $
+//File: $Id: blob.cpp,v 1.4 2012/07/28 07:14:29 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2009-2012 the Regents of the University of California
 ///@file
@@ -1343,6 +1343,15 @@ int ibis::blob::extractSome(const ibis::bitvector& mask,
     }
     return (positions.size()-1);
 } // ibis::blob::extractSome
+
+int ibis::blob::getOpaque(uint32_t ind, ibis::opaque &opq) const {
+    char *buf = 0;
+    uint64_t sz = 0;
+    int ierr = getBlob(ind, buf, sz);
+    if (ierr >= 0)
+	opq.assign(buf, sz);
+    return ierr;
+} // ibis::blob::getOpaque
 
 /// Extract a single binary object.  This function is only defined for
 /// ibis::blob, therefore the caller must explicitly cast a column* to

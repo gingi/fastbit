@@ -121,6 +121,7 @@ public:
     static index* create(const column* c, const char* name=0,
 			 const char* spec=0, int inEntirety=0);
     static bool isIndex(const char* f, INDEX_TYPE t);
+
     /// The destructor.
     virtual ~index () {clear();};
 
@@ -404,11 +405,17 @@ protected:
     void initBitmaps(int fdes);
     void initBitmaps(ibis::fileManager::storage* st);
 
+    void printHeader(std::ostream&, const char*) const;
+
     class barrel;
 
 private:
     index(const index&); // no copy constructor
     index& operator=(const index&); // no assignment operator
+
+    static index* readOld(const column*, const char*,
+			  fileManager::storage*, INDEX_TYPE);
+    static index* buildNew(const column*, const char*, const char*);
 }; // ibis::index
 
 

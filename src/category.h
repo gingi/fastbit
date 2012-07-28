@@ -16,11 +16,14 @@
 #include "dictionary.h" // ibis::dictionary
 #include "idirekte.h"	// ibis::direkte
 
-/// A data structure for storing null-terminated text.  The only type of
-/// search supported on this type of data is keyword search.
-/// The keyword search operation is implemented through a boolean
-/// term-document matrix (ibis::keywords) that has to be generated
-/// externally.
+/// A data structure for storing null-terminated text.  This is meant for
+/// string values that are relatively long and may have an internal
+/// structure.  The most useful search operation supported on this type of
+/// data is the keyword search, also known as full-text search.  The
+/// keyword search operation is implemented through a boolean term-document
+/// matrix (implemented as ibis::keywords).
+///
+/// @sa ibis::keywords
 class ibis::text : public ibis::column {
 public:
     virtual ~text() {unloadIndex();};
@@ -29,22 +32,20 @@ public:
     text(const ibis::column& col); // copy from column
 
     virtual long keywordSearch(const char* str, ibis::bitvector& hits) const;
+    virtual long keywordSearch(const std::vector<std::string>& strs,
+			       ibis::bitvector& hits) const;
     virtual long keywordSearch(const char* str) const;
-    //     long keywordSearch(const std::vector<std::string>& strs) const;
-    //     long keywordSearch(const std::vector<std::string>& strs,
-    // 		       ibis::bitvector& hits) const;
+    virtual long keywordSearch(const std::vector<std::string>& strs) const;
 
     virtual long stringSearch(const char* str, ibis::bitvector& hits) const;
     virtual long stringSearch(const std::vector<std::string>& strs,
 			      ibis::bitvector& hits) const;
-    virtual long stringSearch(const char* str) const;
-    virtual long stringSearch(const std::vector<std::string>& strs) const;
+
     virtual long patternSearch(const char*, ibis::bitvector&) const;
-    virtual long patternSearch(const char*) const;
 
     using ibis::column::estimateCost;
     virtual double estimateCost(const ibis::qString& cmp) const;
-    virtual double estimateCost(const ibis::qMultiString& cmp) const;
+    virtual double estimateCost(const ibis::qAnyString& cmp) const;
 
     virtual void loadIndex(const char* iopt=0, int ropt=0) const throw ();
     virtual long append(const char* dt, const char* df, const uint32_t nold,
@@ -59,8 +60,9 @@ public:
     virtual std::vector<std::string>*
     selectStrings(const bitvector& mask) const;
     virtual const char* findString(const char* str) const;
-    virtual void getString(uint32_t i, std::string &val) const {
-	readString(i, val);}
+    virtual int getString(uint32_t i, std::string &val) const {
+	return readString(i, val);}
+    virtual int getOpaque(uint32_t, ibis::opaque&) const;
     // virtual std::vector<ibis::opaque>*
     // selectOpaques(const bitvector& mask) const;
 
@@ -75,11 +77,15 @@ public:
     /// ibis::keywords to build a term-document index.
     struct tokenizer {
 	/// A tokenizer must implement a two-argument operator().  It takes
-	/// an input string in buf to produce a list of tokens in tkns.  The
-	/// input buffer may be modified in this function.  The return
-	/// value shall be zero (0) to indicate success, and a positive
-	/// value to carray a warning message and a negative value to
-	/// indicate fatal error.
+	/// an input string in buf to produce a list of tokens in tkns.
+	/// The input buffer may be modified in this function.  The return
+	/// value shall be zero (0) to indicate success, a positive value
+	/// to carray a warning message, and a negative value to indicate
+	/// fatal error.
+	///
+	/// @note This function is not declared as const because a derived
+	/// class might want to keep some statistics or otherwise alter its
+	/// state while processing an incoming text buffer.
 	virtual int operator()(std::vector<const char*>& tkns, char *buf) = 0;
 	/// Destructor.
 	virtual ~tokenizer() {}
@@ -89,7 +95,7 @@ protected:
     /// Locate the starting position of each string.
     void startPositions(const char *dir, char *buf, uint32_t nbuf) const;
     /// Read the string value of <code>i</code>th row.
-    void readString(uint32_t i, std::string &val) const;
+    int  readString(uint32_t i, std::string &val) const;
     /// Read one string from an open file.
     int  readString(std::string&, int, long, long, char*, uint32_t,
 		    uint32_t&, off_t&) const;
@@ -118,22 +124,29 @@ public:
     category(const part* tbl, const char* name, const char* value,
 	     const char* dir=0, uint32_t nevt=0);
 
-    /// Match a particular string.
+    virtual long keywordSearch(const char* str, ibis::bitvector& hits) const {
+	return stringSearch(str, hits);}
+    virtual long keywordSearch(const std::vector<std::string>& vals,
+			       ibis::bitvector& hits) const {
+	return stringSearch(vals, hits);}
+    virtual long keywordSearch(const char* str) const {
+	return stringSearch(str);}
+    virtual long keywordSearch(const std::vector<std::string>& vals) const {
+	return stringSearch(vals);}
+
     virtual long stringSearch(const char* str, ibis::bitvector& hits) const;
-    /// Match a list of strings
     virtual long stringSearch(const std::vector<std::string>& vals,
 			      ibis::bitvector& hits) const;
-    /// Estimate the number of matches.
     virtual long stringSearch(const char* str) const;
-    /// Estimate the total number of matches for a list of strings.
     virtual long stringSearch(const std::vector<std::string>& vals) const;
 
     virtual long patternSearch(const char* pat) const;
     virtual long patternSearch(const char* pat, ibis::bitvector &hits) const;
+
     using ibis::text::estimateCost;
     virtual double estimateCost(const ibis::qLike& cmp) const;
     virtual double estimateCost(const ibis::qString& cmp) const;
-    virtual double estimateCost(const ibis::qMultiString& cmp) const;
+    virtual double estimateCost(const ibis::qAnyString& cmp) const;
 
     virtual void loadIndex(const char* =0, int =0) const throw ();
     /// Append the content in @a df to the directory @a dt.
@@ -144,7 +157,7 @@ public:
     virtual array_t<uint32_t>* selectUInts(const bitvector& mask) const;
     virtual std::vector<std::string>*
     selectStrings(const bitvector& mask) const;
-    virtual void getString(uint32_t i, std::string &val) const;
+    virtual int getString(uint32_t i, std::string &val) const;
     // virtual std::vector<ibis::opaque>*
     // selectOpaques(const bitvector& mask) const;
 

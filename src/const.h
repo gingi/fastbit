@@ -396,11 +396,18 @@ namespace ibis { // forward definition of all the classes in IBIS
 	/// otherwise, it returns a negative number to indicate error.
 	///
 	/// @note The pointer ptr must be created with operator new.
-	int assign(char* ptr, uint64_t len)  {
+	void assign(char* ptr, uint64_t len)  {
 	    delete [] buf_;
 	    buf_ = ptr;
 	    len_ = len;
-	    return 0;
+	}
+	/// Assign the content from rhs to this.
+	void assign(opaque &rhs) {
+	    delete [] buf_;
+	    buf_ = rhs.buf_;
+	    len_ = rhs.len_;
+	    rhs.buf_ = 0;
+	    rhs.len_ = 0;
 	}
 
 	/// Swap the content of two opaque objects.

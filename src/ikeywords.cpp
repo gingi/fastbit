@@ -110,6 +110,8 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
 	}
     }
 
+    if (terms.size() > 1)
+	reorderTerms();
     optionalUnpack(bits, col->indexSpec());
     //write(f);
     if (ibis::gVerbose > 6) {
@@ -121,12 +123,15 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
 
 /// Constructor.  Construct a new keyword index using the user-provided
 /// tokenizer.
-ibis::keywords::keywords(const ibis::column *c, ibis::text::tokenizer &tkn,
+/// The tokenizer must be derived from ibis::text::tokenizer.
+ibis::keywords::keywords(const ibis::column *c,
+			 ibis::text::tokenizer &tkn,
 			 const char *f) : ibis::index(c) {
     if (c == 0) return;
 
     int ierr = parseTextFile(tkn, f);
     if (ierr >= 0) {
+	reorderTerms();
 	optionalUnpack(bits, col->indexSpec());
 	//write(f);
 	if (ibis::gVerbose > 6) {
@@ -483,20 +488,20 @@ void ibis::keywords::print(std::ostream& out) const {
     if (ibis::gVerbose < 0) return;
     const uint32_t nobs = bits.size();
     if (terms.size()+1 == bits.size() && terms.size() > 0) {
-	out << "The boolean term-document matrix for column ";
+	out << "The keywords index for column ";
 	if (col->partition() != 0)
 	    out << col->partition()->name() << '.';
-	out << col->name() << " contains the following terms (optionally "
-	    "followed by term frequencies)\n";
+	out << col->name() << " contains " << nobs << " term"
+	    << (nobs>1?"s":"") << " (optionally followed by term frequencies)\n";
 	uint32_t skip = 0;
 	if (ibis::gVerbose <= 0) {
 	    skip = nobs;
 	}
-	else if ((nobs >> 2*ibis::gVerbose) > 2) {
+	else if ((nobs >> ibis::gVerbose) > 2) {
 	    skip = static_cast<uint32_t>
 		(ibis::util::compactValue
-		 (static_cast<double>(nobs >> (1+2*ibis::gVerbose)),
-		  static_cast<double>(nobs >> (2*ibis::gVerbose))));
+		 (static_cast<double>(nobs >> (1+ibis::gVerbose)),
+		  static_cast<double>(nobs >> (ibis::gVerbose))));
 	    if (skip < 1)
 		skip = 1;
 	}
@@ -659,50 +664,9 @@ int ibis::keywords::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "Warning -- keywords[" << col->partition()->name() << '.'
-		<< col->name() << "]::read the header from " << fnm
-		<< " (";
-	    if (isprint(header[0]) != 0)
-		lg() << header[0];
-	    else
-		lg() << "0x" << std::hex << (uint16_t) header[0]
-			    << std::dec;
-	    if (isprint(header[1]) != 0)
-		lg() << header[1];
-	    else
-		lg() << "0x" << std::hex << (uint16_t) header[1]
-			    << std::dec;
-	    if (isprint(header[2]) != 0)
-		lg() << header[2];
-	    else
-		lg() << "0x" << std::hex << (uint16_t) header[2]
-			    << std::dec;
-	    if (isprint(header[3]) != 0)
-		lg() << header[3];
-	    else
-		lg() << "0x" << std::hex << (uint16_t) header[3]
-			    << std::dec;
-	    if (isprint(header[4]) != 0)
-		lg() << header[4];
-	    else
-		lg() << "0x" << std::hex << (uint16_t) header[4]
-			    << std::dec;
-	    if (isprint(header[5]) != 0)
-		lg() << header[5];
-	    else
-		lg() << "0x" << std::hex << (uint16_t) header[5]
-			    << std::dec;
-	    if (isprint(header[6]) != 0)
-		lg() << header[6];
-	    else
-		lg() << "0x" << std::hex << (uint16_t) header[6]
-			    << std::dec;
-	    if (isprint(header[7]) != 0)
-		lg() << header[7];
-	    else
-		lg() << "0x" << std::hex << (uint16_t) header[7]
-			    << std::dec;
+	    lg() << "Warning -- keywords[" << col->partition()->name() << '.'
+		 << col->name() << "]::read the header from " << fnm << " (";
+	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
 	}
 	return -3;
@@ -798,10 +762,22 @@ int ibis::keywords::read(ibis::fileManager::storage* st) {
     return 0;
 } // ibis::keywords::read
 
+/// Clear the current content.
 void ibis::keywords::clear() {
     terms.clear();
     ibis::index::clear();
 } // ibis::keywords::clear
+
+/// Reorder the terms in the dictionary.  Afterwards, the terms will be
+/// ordered alphabetically in the dictionary.
+void ibis::keywords::reorderTerms() {
+    ibis::array_t<uint32_t> o2n;
+    terms.sort(o2n);
+    ibis::array_t<ibis::bitvector*> tmp(o2n.size());
+    for (unsigned j = 0; j < o2n.size(); ++ j)
+	tmp[o2n[j]] = bits[j];
+    tmp.swap(bits);
+} // ibis::keywords::reorderTerm
 
 long ibis::keywords::append(const char* dt, const char* df, uint32_t nnew) {
     LOGGER(ibis::gVerbose >= 0)
@@ -820,14 +796,15 @@ long ibis::keywords::evaluate(const ibis::qContinuousRange& expr,
 void ibis::keywords::estimate(const ibis::qContinuousRange& expr,
 			      ibis::bitvector& lower,
 			      ibis::bitvector& upper) const {
-    throw "keywords::estimate not implemented yet";
+    lower.set(0, nrows);
+    upper.set(1, nrows);
 } // ibis::keywords::estimate
 
 uint32_t ibis::keywords::estimate(const ibis::qContinuousRange& expr) const {
-    throw "keywords::estimate not implemented yet";
-    return 0;
+    return nrows;
 } // ibis::keywords::estimate
 
+/// Match a particular keyword.
 long ibis::keywords::search(const char* kw,
 			    ibis::bitvector& hits) const {
     hits.clear();
@@ -846,6 +823,7 @@ long ibis::keywords::search(const char* kw,
     return hits.cnt();
 } // ibis::keywords::search
 
+/// Estimate the number of matches.
 long ibis::keywords::search(const char* kw) const {
     long cnt = 0;
     uint32_t pos = terms[kw];
@@ -854,6 +832,62 @@ long ibis::keywords::search(const char* kw) const {
 	    activate(pos);
 	if (bits[pos] != 0)
 	    cnt = bits[pos]->cnt();
+    }
+    return cnt;
+} // ibis::keywords::search
+
+/// Match all given keywords.
+long ibis::keywords::search(const std::vector<std::string> &kw,
+			    ibis::bitvector& hits) const {
+    hits.clear();
+    if (terms.size() == 0) return 0;
+
+    for (unsigned j = 0; j < kw.size(); ++ j) {
+	uint32_t pos = terms[kw[j].c_str()];
+	if (pos < bits.size()) {
+	    if (bits[pos] == 0)
+		activate(pos);
+	    if (bits[pos] != 0) {
+		if (hits.size() == 0)
+		    hits.copy(*bits[pos]);
+		else
+		    hits &= *bits[pos];
+	    }
+	    else if (hits.size() == 0) {
+		hits.set(0, nrows);
+		break;
+	    }
+	}
+	else if (hits.size() == 0) {
+	    hits.set(0, nrows);
+	    break;
+	}
+    }
+    return hits.cnt();
+} // ibis::keywords::search
+
+/// Estimate the number of matches.  An upper bound.
+long ibis::keywords::search(const std::vector<std::string> &kw) const {
+    if (terms.size() == 0) return 0;
+    long cnt = LONG_MAX;
+    for (unsigned j = 0; j < kw.size(); ++ j) {
+	uint32_t pos = terms[kw[j].c_str()];
+	if (pos < bits.size()) {
+	    if (bits[pos] == 0)
+		activate(pos);
+	    if (bits[pos] != 0) {
+		if (bits[pos]->cnt() < cnt)
+		    cnt = bits[pos]->cnt();
+	    }
+	    else {
+		cnt = 0;
+		break;
+	    }
+	}
+	else {
+	    cnt = 0;
+	    break;
+	}
     }
     return cnt;
 } // ibis::keywords::search
@@ -919,6 +953,17 @@ size_t ibis::keywords::getSerialSize() const throw () {
     return res;
 } // ibis::keywords::getSerialSize
 
+/// Constructor.  It takes a list of delimiters.  Any character in the
+/// list of delimiters will terminate a token.  If no delimiter is
+/// given, anything other than alphanumerical characters will terminate
+/// a token.  By default, the delimiters defined in
+/// ibis::util::delimiters are used.
+ibis::keywords::tokenizer::tokenizer(const char *d) : delim_(d) {
+    LOGGER(ibis::gVerbose > 2)
+	<< "keywords::tokenizer initialized with delimiters \"" << delim_
+	<< '"';
+}
+
 /// Tokenizer.  Turn the buffer buf into a list of tokens based on the
 /// following rules.
 ///
@@ -930,7 +975,9 @@ size_t ibis::keywords::getSerialSize() const throw () {
 /// terminate a token.  Blank spaces surrounding the delimiters will be
 /// turned into null characters along with the delimiters.
 ///
-/// This function returns 0 in normal cases.
+/// This function returns a negative value to indicate error, 0 to indicate
+/// success, a positive number to indicate completion with some potential
+/// issues.
 int ibis::keywords::tokenizer::operator()
     (std::vector<const char*>& tkns, char *buf) {
     tkns.clear();

@@ -17,7 +17,9 @@ namespace ibis { // additional names related to qExpr
     class qContinuousRange;///< A range defined with one or two boundaries.
     class qDiscreteRange;	///< A range defined with discrete values.
     class qString;	///< An equality expression with a string literal.
-    class qMultiString;	///< A range condition involving multiple strings.
+    class qAnyString;	///< A range condition involving multiple strings.
+    class qKeyword;	///< A keyword search
+    class qAllWords;	///< A range condition involving multiple strings.
     class compRange;	///< A comparisons involving arithmetic expression.
     class deprecatedJoin;	///< A deprecated range join operations.
     class qAnyAny;	///< A special form of any-match-any query.
@@ -36,8 +38,8 @@ public:
     /// front and leaf node types are listed at the end.
     enum TYPE {
 	LOGICAL_UNDEFINED, LOGICAL_NOT, LOGICAL_AND, LOGICAL_OR, LOGICAL_XOR,
-	LOGICAL_MINUS, RANGE, DRANGE, STRING, MSTRING, COMPRANGE, MATHTERM,
-	DEPRECATEDJOIN, TOPK, ANYANY, LIKE, INTHOD, UINTHOD
+	LOGICAL_MINUS, RANGE, DRANGE, STRING, ANYSTRING, KEYWORD, ALLWORDS,
+	COMPRANGE, MATHTERM, DEPRECATEDJOIN, TOPK, ANYANY, LIKE, INTHOD, UINTHOD
     };
     /// Comparison operator supported in RANGE.
     enum COMPARE {
@@ -138,7 +140,7 @@ public:
     /// Can the expression be directly evaluated?
     bool directEval() const
     {return (type==RANGE || type==STRING || type==COMPRANGE ||
-	     type==DRANGE || type==MSTRING || type==ANYANY ||
+	     type==DRANGE || type==ANYSTRING || type==ANYANY ||
 	     type==INTHOD || type==UINTHOD ||
 	     (type==LOGICAL_NOT && left && left->directEval()));}
 
@@ -516,10 +518,37 @@ private:
     char* rstr;
 
     qString(const qString& rhs) : qExpr(STRING),
-				  lstr(ibis::util::strnewdup(rhs.lstr)),
-				  rstr(ibis::util::strnewdup(rhs.rstr)) {}
+	lstr(ibis::util::strnewdup(rhs.lstr)),
+	rstr(ibis::util::strnewdup(rhs.rstr)) {}
     qString& operator=(const qString&);
 }; // ibis::qString
+
+/// The column contains one of the values in a list.  A data structure to
+/// hold the string-valued version of the IN expression, name IN ('aaa',
+/// 'bbb', ...).
+class FASTBIT_CXX_DLLSPEC ibis::qAnyString : public ibis::qExpr {
+public:
+    qAnyString() : qExpr(ANYSTRING) {};
+    qAnyString(const char *col, const char *sval);
+    virtual ~qAnyString() {}; // name and values automatically destroyed
+
+    /// Duplicate the object.  Using the compiler generated copy constructor.
+    virtual qAnyString* dup() const {return new qAnyString(*this);}
+    virtual void print(std::ostream& out) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
+
+    /// Return the column name, the left hand side of the IN operator.
+    const char* colName() const {return name.c_str();}
+    /// Return the string values in the parentheses as a vector.
+    const std::vector<std::string>& valueList() const {return values;}
+    /// Convert into a sequence of qString objects.
+    ibis::qExpr* convert() const;
+    virtual void getTableNames(std::set<std::string>& plist) const;
+
+private:
+    std::string name;
+    std::vector<std::string> values;
+}; // ibis::qAnyString
 
 /// Representing the operator 'LIKE'.
 class FASTBIT_CXX_DLLSPEC ibis::qLike : public ibis::qExpr {
@@ -547,23 +576,63 @@ private:
     char* rpat;
 
     /// Copy constructor.  Deep copy.
-    qLike(const qLike& rhs) : qExpr(LIKE),
-			      lstr(ibis::util::strnewdup(rhs.lstr)),
-			      rpat(ibis::util::strnewdup(rhs.rpat)) {}
+    qLike(const qLike& rhs)
+	: qExpr(LIKE), lstr(ibis::util::strnewdup(rhs.lstr)),
+	rpat(ibis::util::strnewdup(rhs.rpat)) {}
     qLike& operator=(const qLike&);
 }; // ibis::qLike
 
-/// The column contains one of the values in a list.  A data structure to
-/// hold the string-valued version of the IN expression, name IN ('aaa',
-/// 'bbb', ...).
-class FASTBIT_CXX_DLLSPEC ibis::qMultiString : public ibis::qExpr {
+/// The class qKeyword encapsulates a search for a single keyword in a text
+/// field.  Only exact match is supported at this point.  This is similar
+/// to the transct-SQL CONTAINS command, but does not accept nearly as many
+/// options.  In addition, the keyword CONTAINS is used like a binary
+/// operator as the keyword IN, e.g., <colunm-name> CONTAINS "keyword".
+class FASTBIT_CXX_DLLSPEC ibis::qKeyword : public ibis::qExpr {
 public:
-    qMultiString() : qExpr(MSTRING) {};
-    qMultiString(const char *col, const char *sval);
-    virtual ~qMultiString() {}; // name and values automatically destroyed
+    // construct the qKeyword from two strings
+    qKeyword() : qExpr(KEYWORD), name(0), kword(0) {};
+    qKeyword(const char* ls, const char* rs);
+    virtual ~qKeyword() {delete [] kword; delete [] name;}
+
+    /// Return the column name.  This is the first argument inside the
+    /// CONTAINS operator.
+    const char* colName() const {return name;}
+    /// Return the keyword looking for.  This the second argument inside
+    /// the CONTAINS operator.
+    const char* keyword() const {return kword;}
+
+    virtual qKeyword* dup() const {return new qKeyword(*this);}
+    virtual void print(std::ostream&) const;
+    virtual void printFull(std::ostream& out) const {print(out);}
+    virtual void getTableNames(std::set<std::string>& plist) const;
+
+private:
+    char* name;
+    char* kword;
+
+    qKeyword(const qKeyword& rhs)
+	: qExpr(STRING), name(ibis::util::strnewdup(rhs.name)),
+	kword(ibis::util::strnewdup(rhs.kword)) {}
+    qKeyword& operator=(const qKeyword&);
+}; // ibis::qKeyword
+
+/// The class qAllWords encapsulates a search for many keywords.  This
+/// class records the information expressed by the expression
+/// @verbatim
+/// <column-name> CONTAINS ("keyword1", ... "keywordn")
+/// @endverbatim
+///
+/// The named column must be a text column.  The row satisfying this
+/// condition must contain all the keywords listed.
+class FASTBIT_CXX_DLLSPEC ibis::qAllWords : public ibis::qExpr {
+public:
+    qAllWords() : qExpr(ALLWORDS) {};
+    qAllWords(const char *, const char *);
+    qAllWords(const char *, const char *, const char *);
+    virtual ~qAllWords() {}; // name and values automatically destroyed
 
     /// Duplicate the object.  Using the compiler generated copy constructor.
-    virtual qMultiString* dup() const {return new qMultiString(*this);}
+    virtual qAllWords* dup() const {return new qAllWords(*this);}
     virtual void print(std::ostream& out) const;
     virtual void printFull(std::ostream& out) const {print(out);}
 
@@ -571,14 +640,13 @@ public:
     const char* colName() const {return name.c_str();}
     /// Return the string values in the parentheses as a vector.
     const std::vector<std::string>& valueList() const {return values;}
-    /// Convert into a sequence of qString objects.
-    ibis::qExpr* convert() const;
     virtual void getTableNames(std::set<std::string>& plist) const;
+    ibis::qExpr* convert() const;
 
 private:
     std::string name;
     std::vector<std::string> values;
-}; // ibis::qMultiString
+}; // ibis::qAllWords
 
 namespace ibis {
     /// A namespace for arithmetic expressions.

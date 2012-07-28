@@ -113,14 +113,21 @@ public:
     void getNullMask(bitvector& mask) const;
     int  setNullMask(const bitvector&);
 
-    /// Return the string value for the <code>i</code>th row.  Only
-    /// implemented for ibis::text and ibis::category.  @sa ibis::text
-    virtual void getString(uint32_t, std::string &) const {};
     /// Determine if the input string has appeared in this data partition.
     /// If yes, return the pointer to the incoming string, otherwise return
     /// nil.
     virtual const char* findString(const char*) const
     {return static_cast<const char*>(0);}
+    /// Return the string value for the <code>i</code>th row.  Only
+    /// implemented for ibis::text and ibis::category.
+    ///
+    /// @sa ibis::text
+    virtual int getString(uint32_t, std::string&) const {return -1;}
+    /// Return the raw binary value for the <code>i</code>th row.  This is
+    /// primarily intended to retrieve values of blobs.
+    ///
+    /// @sa ibis::blob
+    virtual int getOpaque(uint32_t, ibis::opaque&) const;
 
     array_t<int32_t>* getIntArray() const;
     array_t<float>*   getFloatArray() const;
@@ -186,6 +193,9 @@ public:
     virtual long stringSearch(const std::vector<std::string>&) const;
     virtual long keywordSearch(const char*, ibis::bitvector&) const;
     virtual long keywordSearch(const char*) const;
+    virtual long keywordSearch(const std::vector<std::string>&,
+			       ibis::bitvector&) const;
+    virtual long keywordSearch(const std::vector<std::string>&) const;
     virtual long patternSearch(const char*) const;
     virtual long patternSearch(const char*, ibis::bitvector &) const;
 
@@ -237,7 +247,7 @@ public:
     virtual double estimateCost(const ibis::qString&) const {
 	return 0;}
     /// Estimate the cost of looking up a group of strings.
-    virtual double estimateCost(const ibis::qMultiString&) const {
+    virtual double estimateCost(const ibis::qAnyString&) const {
 	return 0;}
 
     virtual float getUndecidable(const ibis::qContinuousRange& cmp,

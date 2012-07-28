@@ -1,4 +1,4 @@
-//File: $Id: blob.h,v 1.2 2012/07/25 04:36:54 kewu Exp $
+//File: $Id: blob.h,v 1.3 2012/07/28 07:14:29 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2009-2012 the Regents of the University of California
 ///@file
@@ -59,6 +59,7 @@ public:
     selectStrings(const bitvector&) const {return 0;}
     virtual std::vector<ibis::opaque>*
 	selectOpaques(const bitvector& mask) const;
+    virtual int getOpaque(uint32_t, ibis::opaque&) const;
 
     virtual double getActualMin() const {return DBL_MAX;}
     virtual double getActualMax() const {return -DBL_MAX;}

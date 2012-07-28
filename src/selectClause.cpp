@@ -26,19 +26,19 @@ ibis::selectClause::selectClause(const ibis::table::stringList &sl)
     LOGGER(ibis::gVerbose > 3)
 	<< "Constructing selectClause @ " << this;
     //#endif
-    std::string cl;
+    std::string tmp;
     for (size_t j = 0; j < sl.size(); ++ j) {
 	if (sl[j] != 0 && *(sl[j]) != 0) {
-	    if (! clause_.empty())
-		cl += ", ";
-	    cl += sl[j];
+	    if (! tmp.empty())
+		tmp += ", ";
+	    tmp += sl[j];
 	}
     }
-    if (cl.empty()) return;
+    if (tmp.empty()) return;
 
-    int ierr = parse(cl.c_str());
+    int ierr = parse(tmp.c_str());
     LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	<< "Warning -- selectClause::ctor failed to parse \"" << cl
+	<< "Warning -- selectClause::ctor failed to parse \"" << tmp
 	<< "\", function parse returned " << ierr;
 } // ibis::selectClause::selectClause
 
@@ -91,7 +91,8 @@ int ibis::selectClause::parse(const char *cl) {
 	    << "selectClause::parse cleared existing content before parsing \""
 	    << cl << "\"";
 
-	clause_ = cl;
+	if (clause_.c_str() != cl)
+	    clause_ = cl;
 	std::istringstream iss(clause_);
 	ibis::util::logger lg;
 	selectLexer lx(&iss, &(lg()));

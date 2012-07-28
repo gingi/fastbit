@@ -263,11 +263,11 @@ int truncate(const char*, uint32_t);
 #endif
 #endif
 
-#ifndef FASTBIT_CS_PATTERN_MATCH
-// By default use case sensitive match for string values in evaluating SQL
-// LIKE statements.  Explicitly set this to 0 when compiling to allow case
-// insensitive evaluations.
-#define FASTBIT_CS_PATTERN_MATCH 1
+#ifndef FASTBIT_CASE_SENSITIVE_COMPARE
+// By default use case sensitive comparisons for string values when
+// evaluating SQL LIKE statements.  Explicitly set this to 0 before
+// compiling to allow case insensitive evaluations.
+#define FASTBIT_CASE_SENSITIVE_COMPARE 1
 #endif
 
 // The meta characters used in ibis::util::strMatch.

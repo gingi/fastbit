@@ -219,7 +219,7 @@ FASTBIT_ORDER_OUTPUT_RIDS
   in this extra loop costs as much as remaining sorting operations.  It
   is not defined by default.
 
-FASTBIT_CS_PATTERN_MATCH
+FASTBIT_CASE_SENSITIVE_COMPARE
 
   When this macro is set to a value greater than 0, the queries
   involving strings will treat strings as case sensitive.  This approach
@@ -228,7 +228,7 @@ FASTBIT_CS_PATTERN_MATCH
   macro was suggested by Dominique Prunier.  It is set to 1 in util.h by
   default.  To disable case sensitive matching, add the following to the
   compiler options:
-    -DFASTBIT_CS_PATTERN_MATCH=0.
+    -DFASTBIT_CASE_SENSITIVE_COMPARE=0.
 
 FASTBIT_EMPTY_STRING_AS_NULL
 

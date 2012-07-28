@@ -530,9 +530,9 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    }
 	}
 	break;}
-    case ibis::qExpr::MSTRING : {
-	ibis::qMultiString *range =
-	    reinterpret_cast<ibis::qMultiString*>(xp0);
+    case ibis::qExpr::ANYSTRING : {
+	ibis::qAnyString *range =
+	    reinterpret_cast<ibis::qAnyString*>(xp0);
 	if (range->colName()) { // allow name to be NULL
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0) {
@@ -660,9 +660,9 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
 	    }
 	}
 	break;}
-    case ibis::qExpr::MSTRING : {
-	const ibis::qMultiString *range =
-	    reinterpret_cast<const ibis::qMultiString*>(xp0);
+    case ibis::qExpr::ANYSTRING : {
+	const ibis::qAnyString *range =
+	    reinterpret_cast<const ibis::qAnyString*>(xp0);
 	if (range->colName()) { // allow name to be NULL
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0) {

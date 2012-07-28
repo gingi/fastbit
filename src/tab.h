@@ -87,6 +87,9 @@ public:
     virtual int64_t
     getColumnAsStrings(const char*, std::vector<std::string>&, uint64_t =0,
 		       uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsOpaques(const char*, std::vector<ibis::opaque>&, uint64_t =0,
+		       uint64_t =0) const {return -1;}
     virtual double getColumnMin(const char*) const {
 	return DBL_MAX;}
     virtual double getColumnMax(const char*) const {
@@ -243,6 +246,9 @@ public:
     virtual int64_t
     getColumnAsStrings(const char*, std::vector<std::string>&, uint64_t =0,
 		       uint64_t =0) const {return -1;}
+    virtual int64_t
+    getColumnAsOpaques(const char*, std::vector<ibis::opaque>&, uint64_t =0,
+		       uint64_t =0) const {return -1;}
     virtual double getColumnMin(const char* cn) const {
 	if (stricmp(cn, col.c_str()) == 0)
 	    return nrows;
@@ -370,6 +376,7 @@ public:
     virtual int getColumnAsFloat(const char*, float&) const {return -1;}
     virtual int getColumnAsDouble(const char*, double&) const {return -1;}
     virtual int getColumnAsString(const char*, std::string&) const {return -1;}
+    virtual int getColumnAsOpaque(const char*, ibis::opaque&) const {return -1;}
 
     virtual int getColumnAsByte(uint32_t, char&) const {return -1;}
     virtual int getColumnAsUByte(uint32_t, unsigned char&) const {return -1;}
@@ -382,6 +389,7 @@ public:
     virtual int getColumnAsFloat(uint32_t, float&) const {return -1;}
     virtual int getColumnAsDouble(uint32_t, double&) const {return -1;}
     virtual int getColumnAsString(uint32_t, std::string&) const {return -1;}
+    virtual int getColumnAsOpaque(uint32_t, ibis::opaque&) const {return -1;}
 
 private:
     const ibis::tabula& tab;
@@ -520,6 +528,7 @@ public:
     virtual int getColumnAsFloat(const char*, float&) const {return -1;}
     virtual int getColumnAsDouble(const char*, double&) const {return -1;}
     virtual int getColumnAsString(const char*, std::string&) const {return -1;}
+    virtual int getColumnAsOpaque(const char*, ibis::opaque&) const {return -1;}
 
     virtual int getColumnAsByte(uint32_t, char&) const {return -1;}
     virtual int getColumnAsUByte(uint32_t, unsigned char&) const {return -1;}
@@ -545,6 +554,7 @@ public:
     virtual int getColumnAsFloat(uint32_t, float&) const {return -1;}
     virtual int getColumnAsDouble(uint32_t, double&) const {return -1;}
     virtual int getColumnAsString(uint32_t, std::string&) const {return -1;}
+    virtual int getColumnAsOpaque(uint32_t, ibis::opaque&) const {return -1;}
 
 private:
     const ibis::tabele& tab;

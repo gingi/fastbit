@@ -3161,8 +3161,8 @@ long ibis::part::evaluateRIDSet(const ibis::RIDSet &in,
 ///
 /// Return a negative value to indicate error, 0 to indicate no hit, and
 /// positive value to indicate there are zero or more hits.
-long ibis::part::lookforString(const ibis::qString &cmp,
-			       ibis::bitvector &low) const {
+long ibis::part::stringSearch(const ibis::qString &cmp,
+			      ibis::bitvector &low) const {
     long ierr = 0;
     if (columns.empty() || nEvents == 0) return ierr;
     if (cmp.leftString() == 0) {
@@ -3173,37 +3173,13 @@ long ibis::part::lookforString(const ibis::qString &cmp,
     // try leftString()
     const ibis::column* col = getColumn(cmp.leftString());
     if (col != 0) {
-	if (col->type() == ibis::TEXT) {
-	    ierr = col->keywordSearch(cmp.rightString(), low);
-	    if (ierr < 0)
-		ierr = col->stringSearch(cmp.rightString(), low);
-	}
-	else if (col->type() == ibis::CATEGORY) {
-	    ierr = col->stringSearch(cmp.rightString(), low);
-	}
-	if (ierr > 0) {
-	    ibis::bitvector mskc;
-	    col->getNullMask(mskc);
-	    low &= mskc;
-	}
+	ierr = col->stringSearch(cmp.rightString(), low);
     }
     else {
 	// try rightString
 	col = getColumn(cmp.rightString());
 	if (col != 0) {
-	    if (col->type() == ibis::TEXT) {
-		ierr = col->keywordSearch(cmp.leftString(), low);
-		if (ierr < 0)
-		    ierr = col->stringSearch(cmp.leftString(), low);
-	    }
-	    else if (col->type() == ibis::CATEGORY) {
-		ierr = col->stringSearch(cmp.leftString(), low);
-	    }
-	    if (ierr > 0) {
-		ibis::bitvector mskc;
-		col->getNullMask(mskc);
-		low &= mskc;
-	    }
+	    ierr = col->stringSearch(cmp.leftString(), low);
 	}
 	else if (strcmp(cmp.leftString(), cmp.rightString()) == 0) {
 	    low.copy(getNullMask());
@@ -3214,11 +3190,11 @@ long ibis::part::lookforString(const ibis::qString &cmp,
 	}
     }
     return ierr;
-} // ibis::part::lookforString
+} // ibis::part::stringSearch
 
 /// Return an upper bound of the number of records that have the exact
 /// string value.
-long ibis::part::lookforString(const ibis::qString &cmp) const {
+long ibis::part::stringSearch(const ibis::qString &cmp) const {
     long ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;
@@ -3228,33 +3204,19 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
     // try leftString()
     const ibis::column* col = getColumn(cmp.leftString());
     if (col != 0) {
-	if (col->type() == ibis::TEXT) {
-	    ret = col->keywordSearch(cmp.rightString());
-	    if (ret < 0)
-		ret = col->stringSearch(cmp.rightString());
-	}
-	else if (col->type() == ibis::CATEGORY) {
-	    ret = col->stringSearch(cmp.rightString());
-	}
+	ret = col->stringSearch(cmp.rightString());
     }
     else {    // try rightString
 	col = getColumn(cmp.rightString());
 	if (col != 0) {
-	    if (col->type() == ibis::TEXT) {
-		ret = col->keywordSearch(cmp.leftString());
-		if (ret < 0)
-		    ret = col->stringSearch(cmp.leftString());
-	    }
-	    else if (col->type() == ibis::CATEGORY) {
-		ret = col->stringSearch(cmp.leftString());
-	    }
+	    ret = col->stringSearch(cmp.leftString());
 	}
 	else if (strcmp(cmp.leftString(), cmp.rightString()) == 0) {
 	    ret = getNullMask().cnt();
 	}
     }
     return ret;
-} // ibis::part::lookforString
+} // ibis::part::stringSearch
 
 /// Determine the records that have the exact string values.  Actual work
 /// done in the function search of the string-valued column.  It
@@ -3263,8 +3225,8 @@ long ibis::part::lookforString(const ibis::qString &cmp) const {
 /// Return a negative value to indicate error, 0 to indicate no hit, and
 /// positive value to indicate there are zero or more hits.  To determine
 /// the exact number of hits, call low.count().
-long ibis::part::lookforString(const ibis::qMultiString &cmp,
-			       ibis::bitvector &low) const {
+long ibis::part::stringSearch(const ibis::qAnyString &cmp,
+			      ibis::bitvector &low) const {
     int ierr = 0;
     if (columns.empty() || nEvents == 0) return ierr;
 
@@ -3285,9 +3247,9 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp,
     // no match -- no hit
     low.set(0, nEvents);
     return ierr;
-} // ibis::part::lookforString
+} // ibis::part::stringSearch
 
-long ibis::part::lookforString(const ibis::qMultiString &cmp) const {
+long ibis::part::stringSearch(const ibis::qAnyString &cmp) const {
     long ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;
@@ -3303,7 +3265,7 @@ long ibis::part::lookforString(const ibis::qMultiString &cmp) const {
 
     // no match -- no hit
     return ret;
-} // ibis::part::lookforString
+} // ibis::part::stringSearch
 
 /// Look for string like the given pattern.
 long ibis::part::patternSearch(const ibis::qLike &cmp) const {
@@ -3347,6 +3309,100 @@ long ibis::part::patternSearch(const ibis::qLike &cmp,
     hits.set(0, nEvents);
     return 0;
 } // ibis::part::patternSearch
+
+/// Identify all rows containing the specified keyword.  The keyword search
+/// is only applicable to a text column with full-text index (keyword
+/// index).
+long ibis::part::keywordSearch(const ibis::qKeyword &cmp,
+			       ibis::bitvector &low) const {
+    long ierr = 0;
+    if (columns.empty() || nEvents == 0) return ierr;
+    if (cmp.colName() == 0) {
+	low.set(0, nEvents);
+	return ierr;
+    }
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	if (col->type() == ibis::TEXT) {
+	    ierr = col->keywordSearch(cmp.keyword(), low);
+	}
+	else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
+	    low.copy(getNullMask());
+	}
+    }
+    else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
+	low.copy(getNullMask());
+    }
+    else {
+	// no match -- no hit
+	low.set(0, nEvents);
+    }
+    return ierr;
+} // ibis::part::keywordSearch
+
+/// Return an upper bound of the number of records that have the keyword.
+long ibis::part::keywordSearch(const ibis::qKeyword &cmp) const {
+    long ret = 0;
+    if (columns.empty() || nEvents == 0)
+	return ret;
+    if (cmp.colName() == 0)
+	return ret;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	if (col->type() == ibis::TEXT) {
+	    ret = col->keywordSearch(cmp.keyword());
+	}
+	else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
+	    ret = getNullMask().cnt();
+	}
+    }
+    else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
+	ret = getNullMask().cnt();
+    }
+    return ret;
+} // ibis::part::keywordSearch
+
+/// Determine the records that have all specified keywords.
+///
+/// Return a negative value to indicate error, 0 to indicate no hit, and
+/// positive value to indicate there are zero or more hits.  To determine
+/// the exact number of hits, call low.count().
+long ibis::part::keywordSearch(const ibis::qAllWords &cmp,
+			      ibis::bitvector &low) const {
+    int ierr = 0;
+    if (columns.empty() || nEvents == 0) return ierr;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	if (col->type() == ibis::TEXT) {
+	    ierr = col->keywordSearch(cmp.valueList(), low);
+	    return ierr;
+	}
+    }
+
+    // no match -- no hit
+    low.set(0, nEvents);
+    return ierr;
+} // ibis::part::keywordSearch
+
+/// Compute an upper bound on the number of rows with all the specified
+/// keywords.  Returns 0 if the column is not a text column.
+long ibis::part::keywordSearch(const ibis::qAllWords &cmp) const {
+    long ret = 0;
+    if (columns.empty() || nEvents == 0)
+	return ret;
+
+    const ibis::column* col = getColumn(cmp.colName());
+    if (col != 0) {
+	if (col->type() == ibis::TEXT) {
+	    ret = col->keywordSearch(cmp.valueList());
+	}
+    }
+
+    return ret;
+} // ibis::part::keywordSearch
 
 // simply pass the job to the named column
 long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
@@ -3902,7 +3958,7 @@ double ibis::part::estimateCost(const ibis::qString &cmp) const {
     return ret;
 } // ibis::part::estimateCost
 
-double ibis::part::estimateCost(const ibis::qMultiString &cmp) const {
+double ibis::part::estimateCost(const ibis::qAnyString &cmp) const {
     double ret = 0;
     if (columns.empty() || nEvents == 0)
 	return ret;

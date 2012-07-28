@@ -55,6 +55,7 @@
 %token <integerVal> OROP	"or"
 %token <integerVal> XOROP	"xor"
 %token <integerVal> BETWEENOP	"between"
+%token <integerVal> CONTAINSOP	"contains"
 %token <integerVal> INOP	"in"
 %token <integerVal> LIKEOP	"like"
 %token <integerVal> ANYOP	"any"
@@ -79,7 +80,7 @@
 %left OROP
 %left XOROP
 %left ANDOP ANDNOTOP
-%nonassoc ANYOP INOP LIKEOP
+%nonassoc ANYOP INOP LIKEOP CONSTAINSOP
 %nonassoc EQOP NEQOP
 %left BITOROP
 %left BITANDOP
@@ -238,7 +239,7 @@ NOUNSTR INOP NUMSEQ {
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " IN ("
 	<< *$3 << ")";
 #endif
-    $$ = new ibis::qMultiString($1->c_str(), $3->c_str());
+    $$ = new ibis::qAnyString($1->c_str(), $3->c_str());
     delete $3;
     delete $1;
 }
@@ -254,7 +255,7 @@ NOUNSTR INOP NUMSEQ {
     val += "\", \"";
     val += *$6;
     val += '"';
-    $$ = new ibis::qMultiString($1->c_str(), val.c_str());
+    $$ = new ibis::qAnyString($1->c_str(), val.c_str());
     delete $6;
     delete $4;
     delete $1;
@@ -271,7 +272,7 @@ NOUNSTR INOP NUMSEQ {
     val += "\", \"";
     val += *$6;
     val += '"';
-    $$ = new ibis::qMultiString($1->c_str(), val.c_str());
+    $$ = new ibis::qAnyString($1->c_str(), val.c_str());
     delete $6;
     delete $4;
     delete $1;
@@ -288,7 +289,7 @@ NOUNSTR INOP NUMSEQ {
     val += "\", \"";
     val += *$6;
     val += '"';
-    $$ = new ibis::qMultiString($1->c_str(), val.c_str());
+    $$ = new ibis::qAnyString($1->c_str(), val.c_str());
     delete $6;
     delete $4;
     delete $1;
@@ -305,7 +306,7 @@ NOUNSTR INOP NUMSEQ {
     val += "\", \"";
     val += *$6;
     val += '"';
-    $$ = new ibis::qMultiString($1->c_str(), val.c_str());
+    $$ = new ibis::qAnyString($1->c_str(), val.c_str());
     delete $6;
     delete $4;
     delete $1;
@@ -320,7 +321,7 @@ NOUNSTR INOP NUMSEQ {
     val = '"'; /* add quote to keep strings intact */
     val += *$4;
     val += '"';
-    $$ = new ibis::qMultiString($1->c_str(), val.c_str());
+    $$ = new ibis::qAnyString($1->c_str(), val.c_str());
     delete $4;
     delete $1;
 }
@@ -334,7 +335,7 @@ NOUNSTR INOP NUMSEQ {
     val = '"'; /* add quote to keep strings intact */
     val += *$4;
     val += '"';
-    $$ = new ibis::qMultiString($1->c_str(), val.c_str());
+    $$ = new ibis::qAnyString($1->c_str(), val.c_str());
     delete $4;
     delete $1;
 }
@@ -365,7 +366,7 @@ NOUNSTR INOP NUMSEQ {
 	<< *$4 << ")";
 #endif
     $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-    $$->setLeft(new ibis::qMultiString($1->c_str(), $4->c_str()));
+    $$->setLeft(new ibis::qAnyString($1->c_str(), $4->c_str()));
     delete $4;
     delete $1;
 }
@@ -382,7 +383,7 @@ NOUNSTR INOP NUMSEQ {
     val += *$7;
     val += '"';
     $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-    $$->setLeft(new ibis::qMultiString($1->c_str(), val.c_str()));
+    $$->setLeft(new ibis::qAnyString($1->c_str(), val.c_str()));
     delete $7;
     delete $5;
     delete $1;
@@ -400,7 +401,7 @@ NOUNSTR INOP NUMSEQ {
     val += *$7;
     val += '"';
     $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-    $$->setLeft(new ibis::qMultiString($1->c_str(), val.c_str()));
+    $$->setLeft(new ibis::qAnyString($1->c_str(), val.c_str()));
     delete $7;
     delete $5;
     delete $1;
@@ -418,7 +419,7 @@ NOUNSTR INOP NUMSEQ {
     val += *$7;
     val += '"';
     $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-    $$->setLeft(new ibis::qMultiString($1->c_str(), val.c_str()));
+    $$->setLeft(new ibis::qAnyString($1->c_str(), val.c_str()));
     delete $7;
     delete $5;
     delete $1;
@@ -436,7 +437,7 @@ NOUNSTR INOP NUMSEQ {
     val += *$7;
     val += '"';
     $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-    $$->setLeft(new ibis::qMultiString($1->c_str(), val.c_str()));
+    $$->setLeft(new ibis::qAnyString($1->c_str(), val.c_str()));
     delete $7;
     delete $5;
     delete $1;
@@ -452,7 +453,7 @@ NOUNSTR INOP NUMSEQ {
     val += *$5;
     val += '"';
     $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-    $$->setLeft(new ibis::qMultiString($1->c_str(), val.c_str()));
+    $$->setLeft(new ibis::qAnyString($1->c_str(), val.c_str()));
     delete $5;
     delete $1;
 }
@@ -467,28 +468,9 @@ NOUNSTR INOP NUMSEQ {
     val += *$5;
     val += '"';
     $$ = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
-    $$->setLeft(new ibis::qMultiString($1->c_str(), val.c_str()));
+    $$->setLeft(new ibis::qAnyString($1->c_str(), val.c_str()));
     delete $5;
     delete $1;
-}
-| ANYOP '(' NOUNSTR ')' EQOP NUMBER {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- ANY(" << *$3 << ") = "
-	<< $6 << ")";
-#endif
-    $$ = new ibis::qAnyAny($3->c_str(), $6);
-    delete $3;
-}
-| ANYOP '(' NOUNSTR ')' INOP NUMSEQ {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- ANY(" << *$3 << ") = "
-	<< *$6 << ")";
-#endif
-    $$ = new ibis::qAnyAny($3->c_str(), $6->c_str());
-    delete $6;
-    delete $3;
 }
 | NOUNSTR INOP INTSEQ {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -531,6 +513,119 @@ NOUNSTR INOP NUMSEQ {
     $$->setLeft(new ibis::qUIntHod($1->c_str(), $4->c_str()));
     delete $4;
     delete $1;
+}
+| NOUNSTR CONTAINSOP NOUNSTR {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1
+	<< " CONTAINS " << *$3;
+#endif
+    $$ = new ibis::qKeyword($1->c_str(), $3->c_str());
+    delete $1;
+    delete $3;
+}
+| NOUNSTR CONTAINSOP STRLIT {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << $1
+	<< " CONTAINS " << *$3;
+#endif
+    $$ = new ibis::qKeyword($1->c_str(), $3->c_str());
+    delete $3;
+    delete $1;
+}
+| NOUNSTR CONTAINSOP '(' NOUNSTR ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1
+	<< " CONTAINS " << *$4;
+#endif
+    $$ = new ibis::qKeyword($1->c_str(), $4->c_str());
+    delete $1;
+    delete $4;
+}
+| NOUNSTR CONTAINSOP '(' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << $1
+	<< " CONTAINS " << *$4;
+#endif
+    $$ = new ibis::qKeyword($1->c_str(), $4->c_str());
+    delete $4;
+    delete $1;
+}
+| NOUNSTR CONTAINSOP '(' STRLIT ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << $1
+	<< " CONTAINS (" << *$4 << ", " << *$6 << ')';
+#endif
+    $$ = new ibis::qAllWords($1->c_str(), $4->c_str(), $6->c_str());
+    delete $6;
+    delete $4;
+    delete $1;
+}
+| NOUNSTR CONTAINSOP '(' STRLIT ',' NOUNSTR ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << $1
+	<< " CONTAINS (" << *$4 << ", " << *$6 << ')';
+#endif
+    $$ = new ibis::qAllWords($1->c_str(), $4->c_str(), $6->c_str());
+    delete $6;
+    delete $4;
+    delete $1;
+}
+| NOUNSTR CONTAINSOP '(' NOUNSTR ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << $1
+	<< " CONTAINS (" << *$4 << ", " << *$6 << ')';
+#endif
+    $$ = new ibis::qAllWords($1->c_str(), $4->c_str(), $6->c_str());
+    delete $6;
+    delete $4;
+    delete $1;
+}
+| NOUNSTR CONTAINSOP '(' NOUNSTR ',' NOUNSTR ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << $1
+	<< " CONTAINS (" << *$4 << ", " << *$6 << ')';
+#endif
+    $$ = new ibis::qAllWords($1->c_str(), $4->c_str(), $6->c_str());
+    delete $6;
+    delete $4;
+    delete $1;
+}
+| NOUNSTR CONTAINSOP STRSEQ {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << $1
+	<< " CONTAINS (" << *$3 << ')';
+#endif
+    $$ = new ibis::qAllWords($1->c_str(), $3->c_str());
+    delete $3;
+    delete $1;
+}
+| ANYOP '(' NOUNSTR ')' EQOP NUMBER {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- ANY(" << *$3 << ") = "
+	<< $6 << ")";
+#endif
+    $$ = new ibis::qAnyAny($3->c_str(), $6);
+    delete $3;
+}
+| ANYOP '(' NOUNSTR ')' INOP NUMSEQ {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- ANY(" << *$3 << ") = "
+	<< *$6 << ")";
+#endif
+    $$ = new ibis::qAnyAny($3->c_str(), $6->c_str());
+    delete $6;
+    delete $3;
 }
 | NOUNSTR EQOP INT64 {
 #if defined(DEBUG) && DEBUG + 0 > 1

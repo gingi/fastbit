@@ -31,6 +31,7 @@ http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 #include "table.h"	// ibis::table
 #include "resource.h"	// ibis::gParameters
 #include "mensa.h"	// ibis::mensa::select2
+#include "blob.h"	// operator<< involving ibis::opaque
 #include <set>		// std::set
 #include <iomanip>	// std::setprecision
 #include <memory>	// std::auto_ptr
@@ -295,6 +296,11 @@ static void clearBuffers(const ibis::table::typeList& tps,
 		    static_cast<std::vector<std::string>*>(buffers[j]);
 		delete tmp;
 		break;}
+	case ibis::BLOB: {
+		std::vector<ibis::opaque>* tmp =
+		    static_cast<std::vector<ibis::opaque>*>(buffers[j]);
+		delete tmp;
+		break;}
 	default: {
 	    break;}
 	}
@@ -348,6 +354,11 @@ static void dumpIth(size_t i, ibis::TYPE_T t, void* buf) {
 	const std::vector<std::string>* tmp =
 	    static_cast<const std::vector<std::string>*>(buf);
 	std::cout << '"' << (*tmp)[i] << '"';
+	break;}
+    case ibis::BLOB: {
+	const std::vector<ibis::opaque>* tmp =
+	    static_cast<const std::vector<ibis::opaque>*>(buf);
+	std::cout << (*tmp)[i];
 	break;}
     default: {
 	break;}
@@ -512,6 +523,19 @@ static int printValues1(const ibis::table& tbl) {
 		return -1;
 	    }
 	    int64_t ierr = tbl.getColumnAsStrings(nms[i], *buf);
+	    if (ierr < 0 || ((size_t) ierr) < nr) {
+		clearBuffers(tps, buffers);
+		return -2;
+	    }
+	    buffers[i] = buf;
+	    break;}
+	case ibis::BLOB: {
+	    std::vector<ibis::opaque>* buf = new std::vector<ibis::opaque>();
+	    if (buf == 0) { // run out of memory
+		clearBuffers(tps, buffers);
+		return -1;
+	    }
+	    int64_t ierr = tbl.getColumnAsOpaques(nms[i], *buf);
 	    if (ierr < 0 || ((size_t) ierr) < nr) {
 		clearBuffers(tps, buffers);
 		return -2;
@@ -797,7 +821,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 
 	    gb = sel->groupby(strc);
 	    if (gb == 0) {
-		std::cout << "groupby(" << strs[0];
+		std::cout << "Warning -- groupby(" << strs[0];
 		for (size_t i = 1; i < strs.size(); ++ i)
 		    std::cout << ", " << strs[i];
 		std::cout << ") failed on table " << sel->name()

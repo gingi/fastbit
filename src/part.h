@@ -122,7 +122,7 @@ public:
     virtual double estimateCost(const ibis::qIntHod &cmp) const;
     virtual double estimateCost(const ibis::qUIntHod &cmp) const;
     virtual double estimateCost(const ibis::qString &cmp) const;
-    virtual double estimateCost(const ibis::qMultiString &cmp) const;
+    virtual double estimateCost(const ibis::qAnyString &cmp) const;
 
     /// Return an upper bound on the number of hits.
     virtual long estimateRange(const ibis::qContinuousRange &cmp) const;
@@ -242,13 +242,19 @@ public:
 
     long patternSearch(const ibis::qLike &cmp,
 		       ibis::bitvector &low) const;
-    long lookforString(const ibis::qString &cmp,
+    long stringSearch(const ibis::qString &cmp,
+		      ibis::bitvector &low) const;
+    long stringSearch(const ibis::qAnyString &cmp,
+		      ibis::bitvector &low) const;
+    long keywordSearch(const ibis::qKeyword &cmp,
 		       ibis::bitvector &low) const;
-    long lookforString(const ibis::qMultiString &cmp,
+    long keywordSearch(const ibis::qAllWords &cmp,
 		       ibis::bitvector &low) const;
     long patternSearch(const ibis::qLike &cmp) const;
-    long lookforString(const ibis::qString &cmp) const;
-    long lookforString(const ibis::qMultiString &cmp) const;
+    long stringSearch(const ibis::qString &cmp) const;
+    long stringSearch(const ibis::qAnyString &cmp) const;
+    long keywordSearch(const ibis::qKeyword &cmp) const;
+    long keywordSearch(const ibis::qAllWords &cmp) const;
 
     /// Evaluate a self-join.  Return the number of pairs satisfying join
     /// condition.  Only records marked with mask=1 are considered.  The

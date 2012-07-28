@@ -75,6 +75,9 @@ public:
     virtual int64_t
     getColumnAsStrings(const char*, std::vector<std::string>&,
 		       uint64_t =0, uint64_t =0) const;
+    virtual int64_t
+    getColumnAsOpaques(const char*, std::vector<ibis::opaque>&,
+		       uint64_t =0, uint64_t =0) const;
     virtual double getColumnMin(const char*) const;
     virtual double getColumnMax(const char*) const;
 
@@ -183,6 +186,7 @@ public:
     virtual int getColumnAsFloat(const char*, float&) const;
     virtual int getColumnAsDouble(const char*, double&) const;
     virtual int getColumnAsString(const char*, std::string&) const;
+    virtual int getColumnAsOpaque(const char*, ibis::opaque&) const;
 
     virtual int getColumnAsByte(uint32_t, char&) const;
     virtual int getColumnAsUByte(uint32_t, unsigned char&) const;
@@ -195,6 +199,7 @@ public:
     virtual int getColumnAsFloat(uint32_t, float&) const;
     virtual int getColumnAsDouble(uint32_t, double&) const;
     virtual int getColumnAsString(uint32_t, std::string&) const;
+    virtual int getColumnAsOpaque(uint32_t, ibis::opaque&) const;
 
 protected:
     /// A buffer element is a minimal data structure to store a column in
@@ -379,6 +384,18 @@ ibis::mensa::cursor::getColumnAsString(const char* cn,
     else
 	return -2;
 } // ibis::mensa::cursor::getColumnAsString
+
+inline int
+ibis::mensa::cursor::getColumnAsOpaque(const char* cn,
+				       ibis::opaque& val) const {
+    if (curRow < 0 || curPart >= tab.parts.size() || cn == 0 || *cn == 0)
+	return -1;
+    bufferMap::const_iterator it = bufmap.find(cn);
+    if (it != bufmap.end())
+	return getColumnAsOpaque((*it).second, val);
+    else
+	return -2;
+} // ibis::mensa::cursor::getColumnAsOpaque
 
 inline int
 ibis::mensa::dump(std::ostream& out, uint64_t nr, const char* del) const {

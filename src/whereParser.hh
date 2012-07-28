@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.6.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002-2011 Free Software Foundation, Inc.
+      Copyright (C) 2002-2012 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,22 +30,27 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/**
+ ** \file whereParser.hh
+ ** Define the ibis::parser class.
+ */
+
 /* C++ LALR(1) parser skeleton written by Akim Demaille.  */
 
-#ifndef PARSER_HEADER_H
-# define PARSER_HEADER_H
+#ifndef IBIS_WHEREPARSER_HH
+# define IBIS_WHEREPARSER_HH
 
 /* "%code requires" blocks.  */
 
-/* Line 35 of lalr1.cc  */
+/* Line 36 of lalr1.cc  */
 #line 13 "whereParser.yy"
 
 #include "whereClause.h"	// class whereClause
 
 
 
-/* Line 35 of lalr1.cc  */
-#line 49 "whereParser.hh"
+/* Line 36 of lalr1.cc  */
+#line 54 "whereParser.hh"
 
 
 #include <string>
@@ -58,24 +63,11 @@
 # define YYDEBUG 1
 #endif
 
-/* Enabling verbose error messages.  */
-#ifdef YYERROR_VERBOSE
-# undef YYERROR_VERBOSE
-# define YYERROR_VERBOSE 1
-#else
-# define YYERROR_VERBOSE 1
-#endif
-
-/* Enabling the token table.  */
-#ifndef YYTOKEN_TABLE
-# define YYTOKEN_TABLE 0
-#endif
-
 
 namespace ibis {
 
-/* Line 35 of lalr1.cc  */
-#line 79 "whereParser.hh"
+/* Line 36 of lalr1.cc  */
+#line 71 "whereParser.hh"
 
   /// A Bison parser.
   class whereParser
@@ -86,7 +78,7 @@ namespace ibis {
     union semantic_type
     {
 
-/* Line 35 of lalr1.cc  */
+/* Line 36 of lalr1.cc  */
 #line 35 "whereParser.yy"
 
     int		 integerVal;
@@ -98,8 +90,8 @@ namespace ibis {
 
 
 
-/* Line 35 of lalr1.cc  */
-#line 103 "whereParser.hh"
+/* Line 36 of lalr1.cc  */
+#line 95 "whereParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -125,26 +117,28 @@ namespace ibis {
      OROP = 268,
      XOROP = 269,
      BETWEENOP = 270,
-     INOP = 271,
-     LIKEOP = 272,
-     ANYOP = 273,
-     BITOROP = 274,
-     BITANDOP = 275,
-     ADDOP = 276,
-     MINUSOP = 277,
-     MULTOP = 278,
-     DIVOP = 279,
-     REMOP = 280,
-     EXPOP = 281,
-     INT64 = 282,
-     UINT64 = 283,
-     NUMBER = 284,
-     INTSEQ = 285,
-     UINTSEQ = 286,
-     NOUNSTR = 287,
-     NUMSEQ = 288,
-     STRSEQ = 289,
-     STRLIT = 290
+     CONTAINSOP = 271,
+     INOP = 272,
+     LIKEOP = 273,
+     ANYOP = 274,
+     BITOROP = 275,
+     BITANDOP = 276,
+     ADDOP = 277,
+     MINUSOP = 278,
+     MULTOP = 279,
+     DIVOP = 280,
+     REMOP = 281,
+     EXPOP = 282,
+     INT64 = 283,
+     UINT64 = 284,
+     NUMBER = 285,
+     INTSEQ = 286,
+     UINTSEQ = 287,
+     NOUNSTR = 288,
+     NUMSEQ = 289,
+     STRSEQ = 290,
+     STRLIT = 291,
+     CONSTAINSOP = 292
    };
 
     };
@@ -257,16 +251,14 @@ namespace ibis {
     /// For a rule, its LHS.
     static const unsigned char yyr1_[];
     /// For a rule, its RHS length.
-    static const unsigned char yyr2_[];
-
-#if YYDEBUG || YYERROR_VERBOSE || YYTOKEN_TABLE
-    /// For a symbol, its name in clear.
-    static const char* const yytname_[];
-#endif
+    static const unsigned char yyr2_[]; 
 
     /// Convert the symbol name \a n to a form suitable for a diagnostic.
     static std::string yytnamerr_ (const char *n);
 
+
+    /// For a symbol, its name in clear.
+    static const char* const yytname_[];
 #if YYDEBUG
     /// A type to store symbol numbers and -1.
     typedef signed char rhs_number_type;
@@ -323,9 +315,9 @@ namespace ibis {
 
 } // ibis
 
-/* Line 35 of lalr1.cc  */
-#line 328 "whereParser.hh"
+/* Line 36 of lalr1.cc  */
+#line 320 "whereParser.hh"
 
 
 
-#endif /* ! defined PARSER_HEADER_H */
+#endif /* !IBIS_WHEREPARSER_HH  */

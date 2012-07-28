@@ -298,7 +298,7 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(T
 	else echo "  Did NOT complete case $${jcase} of $@: $(IBISEXE) exited with $${test_status}"; fi \
 	done; \
 	done
-	@jcase=180; for i in "range/range" "range/bin" "bin/range" "bin/bin" "bitslice" ; do \
+	@jcase=180; for i in "range/range" "range/bin" "bin/range" "bin/bin" "bit-slice" ; do \
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/?/*/-part.txt; \
 	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
 	echo >> $(TESTDIR)/large-sanity-check.log; \
@@ -337,7 +337,7 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTD
 	@echo
 #
 multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR)/test.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt
-	@for i in "range/range" "range/bin" "bin/range" "bin/bin" "skive" "none" ; do \
+	@for i in "range/range" "range/bin" "bin/range" "bin/bin" "binary" "bit-slice" "none" ; do \
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/0/test?/-part.txt; \
 	rm -f $(TESTDIR)/0/test?/*.idx $(TESTDIR)/0/test?/*.bin; \
 	echo; \

@@ -65,7 +65,7 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
 	const ibis::qString* tmp =
 	    reinterpret_cast<const ibis::qString*>(ex);
 	if (tmp != 0)
-	    res = dataset->lookforString(*tmp);
+	    res = dataset->stringSearch(*tmp);
 	break;}
     case ibis::qExpr::LIKE: {
 	const ibis::qLike* tmp =
@@ -2648,16 +2648,6 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)),
 	     low, high);
 	break;
-    case ibis::qExpr::STRING:
-	if (0 <= mypart->lookforString
-	    (*(reinterpret_cast<const ibis::qString*>(term)), low)) {
-	    high.clear();
-	}
-	else {
-	    high.set(1, mypart->nRows());
-	    low.set(0, mypart->nRows());
-	}
-	break;
     case ibis::qExpr::LIKE:
 	if (0 <= mypart->patternSearch
 	    (*(reinterpret_cast<const ibis::qLike*>(term)), low)) {
@@ -2668,9 +2658,39 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	    low.set(0, mypart->nRows());
 	}
 	break;
-    case ibis::qExpr::MSTRING:
-	if (0 <= mypart->lookforString
-	    (*(reinterpret_cast<const ibis::qMultiString*>(term)), low)) {
+    case ibis::qExpr::STRING:
+	if (0 <= mypart->stringSearch
+	    (*(reinterpret_cast<const ibis::qString*>(term)), low)) {
+	    high.clear();
+	}
+	else {
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
+	break;
+    case ibis::qExpr::ANYSTRING:
+	if (0 <= mypart->stringSearch
+	    (*(reinterpret_cast<const ibis::qAnyString*>(term)), low)) {
+	    high.clear();
+	}
+	else {
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
+	break;
+    case ibis::qExpr::KEYWORD:
+	if (0 <= mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qKeyword*>(term)), low)) {
+	    high.clear();
+	}
+	else {
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
+	break;
+    case ibis::qExpr::ALLWORDS:
+	if (0 <= mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qAllWords*>(term)), low)) {
 	    high.clear();
 	}
 	else {
@@ -3043,8 +3063,20 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	    (*(reinterpret_cast<const ibis::qAnyAny*>(term)), ht);
 	break;
     case ibis::qExpr::STRING:
-	ierr = mypart->lookforString
+	ierr = mypart->stringSearch
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
+	break;
+    case ibis::qExpr::ANYSTRING:
+	ierr = mypart->stringSearch
+	    (*(reinterpret_cast<const ibis::qAnyString*>(term)), ht);
+	break;
+    case ibis::qExpr::KEYWORD:
+	ierr = mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qKeyword*>(term)), ht);
+	break;
+    case ibis::qExpr::ALLWORDS:
+	ierr = mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qAllWords*>(term)), ht);
 	break;
     case ibis::qExpr::LIKE:
 	ierr = mypart->patternSearch
@@ -3432,7 +3464,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	break;
     }
     case ibis::qExpr::STRING: {
-	ierr = mypart->lookforString
+	ierr = mypart->stringSearch
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	if (ierr >= 0) {
 	    ht &= mask;
@@ -3440,6 +3472,30 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	}
 	break;
     }
+    case ibis::qExpr::ANYSTRING:
+	ierr = mypart->stringSearch
+	    (*(reinterpret_cast<const ibis::qAnyString*>(term)), ht);
+	if (ierr >= 0) {
+	    ht &= mask;
+	    ierr = ht.cnt();
+	}
+	break;
+    case ibis::qExpr::KEYWORD:
+	ierr = mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qKeyword*>(term)), ht);
+	if (ierr >= 0) {
+	    ht &= mask;
+	    ierr = ht.cnt();
+	}
+	break;
+    case ibis::qExpr::ALLWORDS:
+	ierr = mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qAllWords*>(term)), ht);
+	if (ierr >= 0) {
+	    ht &= mask;
+	    ierr = ht.cnt();
+	}
+	break;
     case ibis::qExpr::LIKE: {
 	ierr = mypart->patternSearch
 	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
@@ -3658,10 +3714,22 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::STRING: {
-	ierr = mypart->lookforString
+	ierr = mypart->stringSearch
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	break;
     }
+    case ibis::qExpr::ANYSTRING:
+	ierr = mypart->stringSearch
+	    (*(reinterpret_cast<const ibis::qAnyString*>(term)), ht);
+	break;
+    case ibis::qExpr::KEYWORD:
+	ierr = mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qKeyword*>(term)), ht);
+	break;
+    case ibis::qExpr::ALLWORDS:
+	ierr = mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qAllWords*>(term)), ht);
+	break;
     case ibis::qExpr::LIKE: {
 	ierr = mypart->patternSearch
 	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);
@@ -3949,7 +4017,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     case ibis::qExpr::STRING: {
-	ierr = mypart->lookforString
+	ierr = mypart->stringSearch
 	    (*(reinterpret_cast<const ibis::qString*>(term)), ht);
 	if (ierr > 0) {
 	    ht &= mask;
@@ -3957,6 +4025,30 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	}
 	break;
     }
+    case ibis::qExpr::ANYSTRING:
+	ierr = mypart->stringSearch
+	    (*(reinterpret_cast<const ibis::qAnyString*>(term)), ht);
+	if (ierr > 0) {
+	    ht &= mask;
+	    ierr = ht.sloppyCount();
+	}
+	break;
+    case ibis::qExpr::KEYWORD:
+	ierr = mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qKeyword*>(term)), ht);
+	if (ierr > 0) {
+	    ht &= mask;
+	    ierr = ht.sloppyCount();
+	}
+	break;
+    case ibis::qExpr::ALLWORDS:
+	ierr = mypart->keywordSearch
+	    (*(reinterpret_cast<const ibis::qAllWords*>(term)), ht);
+	if (ierr > 0) {
+	    ht &= mask;
+	    ierr = ht.sloppyCount();
+	}
+	break;
     case ibis::qExpr::LIKE: {
 	ierr = mypart->patternSearch
 	    (*(reinterpret_cast<const ibis::qLike*>(term)), ht);

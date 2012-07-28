@@ -25,14 +25,13 @@ ibis::quaere* ibis::quaere::create(const char* sel, const char* from,
 /// the query is assumed to select every row (following the SQL
 /// convension).
 ///
-/// @note If more than one data partition was used in specifying the
-/// query, the column names should be fully qualified in the form of
-/// "part-name.column-name".  If a dot ('.') is not present or the
-/// string before the dot is not the name of a data partition, the
-/// whole string is taken to be a column name.  In which case, the
-/// lookup proceeds from the list of data partitions one at a time.  A
-/// nil pointer will be returned if any name is not associated with a
-/// known column.
+/// @note If more than one data partition was used in specifying the query,
+/// the column names should be fully qualified in the form of
+/// "part-name.column-name".  If a dot ('.') is not present or the string
+/// before the dot is not the name of a data partition, the whole string is
+/// taken to be a column name.  In which case, the lookup proceeds from the
+/// list of data partitions one at a time.  A nil pointer will be returned
+/// if any name is not associated with a known column.
 ibis::quaere*
 ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 		     const ibis::partList& prts) {
@@ -51,9 +50,12 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 	ibis::selectClause sc(sel);
 	ibis::fromClause fc(fr);
 	ibis::whereClause wc(wh);
-	LOGGER(wc.empty() && ibis::gVerbose >= 2)
-	    << "Warning -- quaere::create(" << sql
-	    << ") has an empty where clause";
+	if (wc.empty()) {
+	    LOGGER(ibis::gVerbose >= 2)
+		<< "Warning -- quaere::create(" << sql
+		<< ") has an empty where clause";
+	    return 0;
+	}
 
 	std::set<std::string> plist;
 	wc.getExpr()->getTableNames(plist);

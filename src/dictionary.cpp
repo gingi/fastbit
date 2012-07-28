@@ -387,7 +387,7 @@ void ibis::dictionary::patternSearch(const char* pat,
 	return;
     }
 
-#if FASTBIT_CS_PATTERN_MATCH+0 == 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
     for (char *ptr = const_cast<char*>(pat); *ptr != 0; ++ ptr) {
 	*ptr = toupper(*ptr);
     }
@@ -527,7 +527,7 @@ uint32_t ibis::dictionary::operator[](const char* str) const {
 	    << key_.size() << "), and code_.size(" << code_.size() << ')';
 	return 0;
     }
-#if FASTBIT_CS_PATTERN_MATCH+0 == 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
     for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
 	*ptr = toupper(*ptr);
     }
@@ -590,7 +590,7 @@ uint32_t ibis::dictionary::insert(const char* str) {
 	return 0;
     }
 
-#if FASTBIT_CS_PATTERN_MATCH+0 == 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
     for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
 	*ptr = toupper(*ptr);
     }
@@ -691,7 +691,7 @@ uint32_t ibis::dictionary::insertRaw(char* str) {
 	    << key_.size() << "), and code_.size(" << code_.size() << ')';
 	return 0;
     }
-#if FASTBIT_CS_PATTERN_MATCH+0 == 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
     for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
 	*ptr = toupper(*ptr);
     }

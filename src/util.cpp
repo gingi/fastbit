@@ -219,10 +219,10 @@ char* ibis::util::getString(const char* buf) {
 
 /// Copy the next string to the output variable str.  Leading blank spaces
 /// are skipped.  The content of str will be empty if buf is nil or an
-/// empty string.  If the string is quoted, only spaces before the quote is
-/// skipped, and the content of the string will be everything after the
+/// empty string.  If the string is quoted, only spaces before the quote
+/// are skipped, and the content of the string will be everything after the
 /// first quote to the last character before the matching quote or end of
-/// buffer.  If delim is not provided (i.e., is 0), and the 1st nonblank
+/// buffer.  If delim is not provided (i.e., is 0) and the 1st nonblank
 /// character is not a quote, then string will terminate at the 1st space
 /// character following the nonblank character.
 ///
@@ -236,10 +236,10 @@ char* ibis::util::getString(const char* buf) {
 /// right next to each other.
 ///
 /// @note Input strings starting with an apostrophe, such as "'twas", must
-/// be quoted as "\"'twas\"" or the apostrophe must be escaped as
-/// "\'twas".  Otherwise, the leading apostrophe would be interested as a
-/// unmatched quote which will cause the next string value to extend beyond
-/// the intended word.
+/// be quoted as "\"'twas\"" or the apostrophe must be escaped as "\'twas".
+/// Otherwise, the leading apostrophe would be interested as a unmatched
+/// quote which will cause the next string value to extend beyond the
+/// intended word.
 int ibis::util::readString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
@@ -255,6 +255,19 @@ int ibis::util::readString(std::string& str, const char *&buf,
 		str[str.size()-1] = '\'';
 	    else {
 		++ buf;
+		if (*buf != 0) {
+		    if (delim == 0 || *delim == 0) {
+			// nothing to do
+		    }
+		    else if (delim[1] == 0) { // skip delimiter
+			if (delim[0] == *buf)
+			    ++ buf;
+		    }
+		    else { // skip delimiter
+			if (0 != strchr(delim, *buf))
+			    ++ buf;
+		    }
+		}
 		return 0;
 	    }
 	    ++ buf;
@@ -269,6 +282,19 @@ int ibis::util::readString(std::string& str, const char *&buf,
 		str[str.size()-1] = '"';
 	    else {
 		++ buf;
+		if (*buf != 0) {
+		    if (delim == 0 || *delim == 0) {
+			// nothing to do
+		    }
+		    else if (delim[1] == 0) { // skip delimiter
+			if (delim[0] == *buf)
+			    ++ buf;
+		    }
+		    else { // skip delimiter
+			if (0 != strchr(delim, *buf))
+			    ++ buf;
+		    }
+		}
 		return 0;
 	    }
 	    ++ buf;
@@ -283,6 +309,19 @@ int ibis::util::readString(std::string& str, const char *&buf,
 		str[str.size()-1] = '`';
 	    else {
 		++ buf;
+		if (*buf != 0) {
+		    if (delim == 0 || *delim == 0) {
+			// nothing to do
+		    }
+		    else if (delim[1] == 0) { // skip delimiter
+			if (delim[0] == *buf)
+			    ++ buf;
+		    }
+		    else { // skip delimiter
+			if (0 != strchr(delim, *buf))
+			    ++ buf;
+		    }
+		}
 		return 0;
 	    }
 	    ++ buf;
@@ -403,6 +442,19 @@ int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
 	if (*str == 'l' || *str == 'L') ++ str;
     }
     if (neg) val = -val;
+    if (*str != 0) {
+	if (del == 0 || *del == 0) {
+	    // nothing to do
+	}
+	else if (del[1] == 0) { // skip delimiter
+	    if (del[0] == *str)
+		++ str;
+	}
+	else { // skip delimiter
+	    if (0 != strchr(del, *str))
+		++ str;
+	}
+    }
     return 0;
 } // ibis::util::readInt
 
@@ -478,6 +530,19 @@ int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
 	++ str;
 	if (*str == 'l' || *str == 'L') ++ str;
     }
+    if (*str != 0) {
+	if (del == 0 || *del == 0) {
+	    // nothing to do
+	}
+	else if (del[1] == 0) { // skip delimiter
+	    if (del[0] == *str)
+		++ str;
+	}
+	else { // skip delimiter
+	    if (0 != strchr(del, *str))
+		++ str;
+	}
+    }
     return 0;
 } // ibis::util::readUInt
 
@@ -530,6 +595,19 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
     }
 
     if (neg) val = - val;
+    if (*str != 0) {
+	if (del == 0 || *del == 0) {
+	    // nothing to do
+	}
+	else if (del[1] == 0) { // skip delimiter
+	    if (del[0] == *str)
+		++ str;
+	}
+	else { // skip delimiter
+	    if (0 != strchr(del, *str))
+		++ str;
+	}
+    }
     return 0;
 } // ibis::util::readDouble
 
@@ -1892,13 +1970,13 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
     const char *s1 = strpbrk(pat, metaList);
     const long int nhead = s1 - pat;
     if (s1 < pat) { // no meta character
-#if FASTBIT_CS_PATTERN_MATCH+0 > 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 > 0
 	return (0 == strcmp(str, pat));
 #else
 	return (0 == stricmp(str, pat));
 #endif
     }
-#if FASTBIT_CS_PATTERN_MATCH+0 > 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 > 0
     else if (s1 > pat && 0 != strncmp(str, pat, nhead)) {
 #else
     else if (s1 > pat && 0 != strnicmp(str, pat, nhead)) {
@@ -1982,7 +2060,7 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 	if (nstr < ntail)
 	    return false;
 	else
-#if FASTBIT_CS_PATTERN_MATCH+0 > 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 > 0
 	    return (0 == strcmp(s1, s0+(nstr-ntail)));
 #else
 	    return (0 == stricmp(s1, s0+(nstr-ntail)));

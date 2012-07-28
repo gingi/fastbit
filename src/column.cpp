@@ -169,7 +169,7 @@ ibis::column::column(const part* tbl, FILE* file)
 		m_type = ibis::INT;
 		break;}
 	    case 'u':
-	    case 'U': { // like unsigned type, but maybe UNKNOWN or UDT
+	    case 'U': { // likely unsigned type, but maybe UNKNOWN or UDT
 		m_type = ibis::UNKNOWN_TYPE;
 		if (s1[1] == 's' || s1[1] == 'S') { // USHORT
 		    m_type = ibis::USHORT;
@@ -196,6 +196,9 @@ ibis::column::column(const part* tbl, FILE* file)
 		    else if (*s1 == 'b' || *s1 == 'B' ||
 			     *s1 == 'c' || *s1 == 'C') { // UBYTE
 			m_type = ibis::UBYTE;
+		    }
+		    else if (*s1 == 0 || *s1 == 'i' || *s1 == 'I') { // UINT
+			m_type = ibis::UINT;
 		    }
 		    else if (*s1 == 'l' || *s1 == 'L') { // ULONG
 			m_type = ibis::ULONG;
@@ -577,7 +580,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 /// name is not given, the directory is assumed to be the current data
 /// directory of the data partition.  There is no need for the caller to
 /// free the pointer returned by this function.  Upon successful completion
-/// of this function, it returns fname.c_str(); otherwise, it returns th
+/// of this function, it returns fname.c_str(); otherwise, it returns the
 /// nil pointer.
 const char*
 ibis::column::dataFileName(std::string& fname, const char *dir) const {
@@ -591,7 +594,7 @@ ibis::column::dataFileName(std::string& fname, const char *dir) const {
     fname = dir;
     bool needtail = true;
     size_t jtmp = fname.rfind(FASTBIT_DIRSEP);
-    if (jtmp+m_name.size() < fname.size()) {
+    if (jtmp < fname.size() && jtmp+m_name.size() < fname.size()) {
 	if (strnicmp(fname.c_str()+jtmp+1, m_name.c_str(), m_name.size())
 	    == 0) {
 	    if (fname.size() == jtmp+5+m_name.size() &&
@@ -4907,11 +4910,133 @@ ibis::column::selectStrings(const bitvector& mask) const {
 std::vector<ibis::opaque>*
 ibis::column::selectOpaques(const bitvector& mask) const {
     LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- column["
-	    << (thePart!=0 ? thePart->name() : "") << "." << m_name
-	    << "]::selectOpaque not yet implemented";
+	<< "Warning -- column[" << (thePart!=0 ? thePart->name() : "")
+	<< "." << m_name << "]::selectOpaque not yet implemented";
     return 0;
 } // ibis::column::selectOpaques
+
+int ibis::column::getOpaque(uint32_t irow, ibis::opaque &opq) const {
+    if (thePart == 0) {
+	return -2;
+    }
+    else if (irow > thePart->nRows()) {
+	return -3;
+    }
+
+    ibis::fileManager::storage *tmp = getRawData();
+    if (tmp == 0)
+	return -4;
+
+    int ierr = 0;
+    switch (m_type) {
+    case ibis::BYTE: {
+	array_t<char> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy(&(ta[irow]), sizeof(char));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(char));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(int16_t));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(uint16_t));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::INT: {
+	array_t<int32_t> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(int32_t));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(int32_t));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(int64_t));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::ULONG: {
+	array_t<uint64_t> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(uint64_t));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(float));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(double));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    case ibis::OID: {
+	array_t<ibis::rid_t> ta(tmp);
+	if (ta.size() > irow) {
+	    opq.copy((const char*)(&(ta[irow])), sizeof(ibis::rid_t));
+	}
+	else {
+	    ierr = -5;
+	}
+	break;}
+    default: {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- column::getOpaque does not support data type "
+	    << ibis::TYPESTRING[static_cast<int>(m_type)];
+	ierr = -6;
+	break;}
+    }
+    return ierr;
+} // ibis::column::getOpaque
 
 /// Select the values satisfying the specified range condition.
 long ibis::column::selectValues(const ibis::qContinuousRange& cond,
@@ -6209,6 +6334,10 @@ long ibis::column::stringSearch(const char*, ibis::bitvector&) const {
     return -1;
 }
 
+long ibis::column::stringSearch(const char*) const {
+    return (thePart ? (long)thePart->nRows() : -1L);
+}
+
 long ibis::column::stringSearch(const std::vector<std::string>&,
 				ibis::bitvector&) const {
     LOGGER(ibis::gVerbose > 0)
@@ -6216,10 +6345,6 @@ long ibis::column::stringSearch(const std::vector<std::string>&,
 	<< m_name << "]::stringSearch is not supported on column type "
 	<< ibis::TYPESTRING[(int)m_type];
     return -1;
-}
-
-long ibis::column::stringSearch(const char*) const {
-    return (thePart ? (long)thePart->nRows() : -1L);
 }
 
 long ibis::column::stringSearch(const std::vector<std::string>&) const {
@@ -6235,6 +6360,19 @@ long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
 }
 
 long ibis::column::keywordSearch(const char*) const {
+    return (thePart ? (long)thePart->nRows() : -1);
+}
+
+long ibis::column::keywordSearch(const std::vector<std::string>&,
+				 ibis::bitvector&) const {
+    LOGGER(ibis::gVerbose > 0)
+	<< "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
+	<< m_name << "]::keywordSearch is not supported on column type "
+	<< ibis::TYPESTRING[(int)m_type];
+    return -1;
+}
+
+long ibis::column::keywordSearch(const std::vector<std::string>&) const {
     return (thePart ? (long)thePart->nRows() : -1);
 }
 

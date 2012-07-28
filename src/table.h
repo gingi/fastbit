@@ -38,11 +38,15 @@ namespace ibis {
 	FLOAT,	///< Four-byte IEEE floating-point numbers, internally float.
 	DOUBLE, ///< Eight-byte IEEE floating-point numbers, internally double.
 	/// Low cardinality null-terminated strings.  Strings are
-	/// internally stored with the null terminators.
+	/// internally stored with the null terminators.  Each string value
+	/// is intended to be treated as a single atomic item.
 	CATEGORY,
 	/// Arbitrary null-terminated strings.  Strings are internally
-	/// stored with the null terminators, therefore null can not be
-	/// part of a string.
+	/// stored with the null terminators.  Each string could be further
+	/// broken into tokens for a full-text index known as keyword
+	/// index.  Could search for presence of some keywords through
+	/// expression "contains" such as "contains(textcolumn, 'Berkeley',
+	/// 'California')".
 	TEXT,
 	/// Byte array.  Also known as Binary Large Objects (blob) or
 	/// opaque objects.  A column of this type requires special
@@ -257,10 +261,14 @@ public:
     ///
     /// The arguments begin and end are given in row numbers starting from
     /// 0.  If begin < end, then rows begin till end-1 are packed into the
-    /// output array.  If begin >= end, then the values from begin till end
-    /// of the table is packed into the output array.  The default values
-    /// where both begin and end are 0 define a range covering all rows of
-    /// the table.
+    /// output array.  If 0 == end (i.e., leaving end as the default
+    /// value), then the values from begin till end of the table is packed
+    /// into the output array.  The default values where both begin and end
+    /// are 0 define a range covering all rows of the table.
+    ///
+    /// These functions return the number of elements copied upon
+    /// successful completion, otherwise they return a negative number to
+    /// indicate failure.
     ///
     /// @note For fixed-width data types, the raw pointers are used to
     /// point to the values to be returned.  In these cases, the caller is
@@ -306,6 +314,11 @@ public:
     /// using this function.
     virtual int64_t
 	getColumnAsStrings(const char* cname, std::vector<std::string>& vals,
+			   uint64_t begin=0, uint64_t end=0) const =0;
+    /// Retrieve the blobs as ibis::opaque objects.  Only work on the
+    /// column type BLOB.
+    virtual int64_t
+	getColumnAsOpaques(const char* cname, std::vector<ibis::opaque>& vals,
 			   uint64_t begin=0, uint64_t end=0) const =0;
 
     /// Compute the minimum of all valid values in the name column.  In
@@ -801,6 +814,7 @@ public:
     /// Print out the values of the current row.
     virtual int dump(std::ostream& out, const char* del=", ") const =0;
 
+    ///@{
     /// Retrieve the value of the named column.
     /// @note Note the cost of name lookup is likely to dominate the total
     /// cost of such a function.
@@ -815,7 +829,10 @@ public:
     virtual int getColumnAsFloat(const char* cname, float&) const =0;
     virtual int getColumnAsDouble(const char* cname, double&) const =0;
     virtual int getColumnAsString(const char* cname, std::string&) const =0;
+    virtual int getColumnAsOpaque(const char* cname, ibis::opaque&) const =0;
+    ///@}
 
+    ///@{
     /// This version of getColumnAsTTT directly use the column number, i.e.,
     /// the position of a column in the list returned by function @c
     /// columnNames or @c columnTypes.  This version of the data access
@@ -832,6 +849,8 @@ public:
     virtual int getColumnAsFloat(uint32_t cnum, float& val) const =0;
     virtual int getColumnAsDouble(uint32_t cnum, double& val) const =0;
     virtual int getColumnAsString(uint32_t cnum, std::string& val) const =0;
+    virtual int getColumnAsOpaque(uint32_t cnum, ibis::opaque& val) const =0;
+    ///@}
 
 protected:
     cursor() {};

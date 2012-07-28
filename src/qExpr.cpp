@@ -867,8 +867,8 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	// delete expr;
 	// expr = tmp;
 	break;}
-    case ibis::qExpr::MSTRING: { // break a MSTRING into multiple STRING
-	// ibis::qExpr *tmp = reinterpret_cast<ibis::qMultiString*>(expr)
+    case ibis::qExpr::ANYSTRING: { // break a ANYSTRING into multiple STRING
+	// ibis::qExpr *tmp = reinterpret_cast<ibis::qAnyString*>(expr)
 	//     ->convert();
 	// delete expr;
 	// expr = tmp;
@@ -3161,7 +3161,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col, const char *nums)
 } // qDiscreteRange ctor
 
 /// Construct a qDiscreteRange object from a vector of unsigned 32-bit
-/// integers.  Initially used to convert qMultiString to qDiscreteRange,
+/// integers.  Initially used to convert qAnyString to qDiscreteRange,
 /// but made visible to public upon user request.
 ibis::qDiscreteRange::qDiscreteRange(const char *col,
 				     const std::vector<uint32_t>& val)
@@ -3623,8 +3623,8 @@ void ibis::qUIntHod::printFull(std::ostream& out) const {
     out << ')';
 } // ibis::qUIntHod::printFull
 
-ibis::qMultiString::qMultiString(const char *col, const char *sval)
-    : ibis::qExpr(ibis::qExpr::MSTRING) {
+ibis::qAnyString::qAnyString(const char *col, const char *sval)
+    : ibis::qExpr(ibis::qExpr::ANYSTRING) {
     if (col == 0 || *col == 0) return;
     name = col;
     if (sval == 0 || *sval == 0) return;
@@ -3690,9 +3690,9 @@ ibis::qMultiString::qMultiString(const char *col, const char *sval)
 	     it != sset.end(); ++ it)
 	    values.push_back(*it);
     }
-} // ibis::qMultiString ctor
+} // ibis::qAnyString ctor
 
-void ibis::qMultiString::print(std::ostream& out) const {
+void ibis::qAnyString::print(std::ostream& out) const {
     if (name.empty()) return;
     out << name << " IN (";
 //     std::copy(values.begin(), values.end(),
@@ -3703,9 +3703,9 @@ void ibis::qMultiString::print(std::ostream& out) const {
 	    out << ", " << values[i];
     }
     out << ')';
-} // ibis::qMultiString::print
+} // ibis::qAnyString::print
 
-ibis::qExpr* ibis::qMultiString::convert() const {
+ibis::qExpr* ibis::qAnyString::convert() const {
     if (name.empty()) return 0;
     if (values.empty()) return 0;
 
@@ -3718,15 +3718,15 @@ ibis::qExpr* ibis::qMultiString::convert() const {
 	ret = op;
     }
     return ret;
-} // ibis::qMultiString::convert
+} // ibis::qAnyString::convert
 
-void ibis::qMultiString::getTableNames(std::set<std::string>& plist) const {
+void ibis::qAnyString::getTableNames(std::set<std::string>& plist) const {
     if (! name.empty()) {
 	const std::string& tn = ibis::qExpr::extractTableName(name.c_str());
 	if (! tn.empty())
 	    plist.insert(tn);
     }
-} // ibis::qMultiString::getTableNames
+} // ibis::qAnyString::getTableNames
 
 void ibis::deprecatedJoin::print(std::ostream& out) const {
     out << "join(" << name1 << ", " << name2;
@@ -3796,3 +3796,124 @@ void ibis::qAnyAny::getTableNames(std::set<std::string>& plist) const {
 	    plist.insert(tn);
     }
 } // ibis::qAnyAny::getTableNames
+
+ibis::qKeyword::qKeyword(const char* ls, const char* rs) :
+    qExpr(ibis::qExpr::KEYWORD), name(ibis::util::strnewdup(ls)) {
+    // attempt to remove the back slash as escape characters
+    kword = new char[1+strlen(rs)];
+    const char* cptr = rs;
+    char* dptr = kword;
+    while (*cptr != 0) {
+	if (*cptr != '\\') {
+	    *dptr = *cptr;
+	}
+	else {
+	    ++cptr;
+	    *dptr = *cptr;
+	}
+	++cptr; ++dptr;
+    }
+    *dptr = 0; // terminate kword with the NULL character
+}
+
+void ibis::qKeyword::print(std::ostream& out) const {
+    if (name && kword)
+	out << name << " CONTAINS " << kword;
+}
+
+void ibis::qKeyword::getTableNames(std::set<std::string>& plist) const {
+    if (name != 0) {
+	const std::string tn = ibis::qExpr::extractTableName(name);
+	if (! tn.empty())
+	    plist.insert(tn);
+    }
+} // ibis::qKeyword::getTableNames
+
+ibis::qAllWords::qAllWords(const char *sname, const char *s1, const char *s2)
+    : ibis::qExpr(ibis::qExpr::ALLWORDS), name(sname) {
+    if (s1 != 0 && *s1 != 0) {
+	if (s2 != 0 && *s2 != 0) {
+	    if (
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 > 0
+		stricmp(s1, s2)
+#else
+		strcmp(s1, s2)
+#endif
+		<= 0) {
+		values.push_back(s1);
+		values.push_back(s2);
+	    }
+	    else {
+		values.push_back(s2);
+		values.push_back(s1);
+	    }
+	}
+	else {
+	    values.push_back(s1);
+	}
+    }
+    else if (s2 != 0 && *s2 != 0) {
+	values.push_back(s2);
+    }
+} // ibis::qAllWords::qAllWords
+
+ibis::qAllWords::qAllWords(const char *sname, const char *sval)
+    : ibis::qExpr(ibis::qExpr::ALLWORDS) {
+    if (sname == 0 || sval == 0 || *sname == 0 || *sval == 0) return;
+    name = sname;
+
+    std::set<std::string> sset; // use it to sort and remove duplicate
+    std::string tmp;
+    while (*sval != 0) {
+	tmp.erase();
+	(void) ibis::util::readString(tmp, sval, ibis::util::delimiters);
+	if (! tmp.empty()) {
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 > 0
+	    for (size_t j = 0; j < tmp.size(); ++ j)
+		tmp[j] = tolower(tmp[j]);
+#endif
+	    sset.insert(tmp);
+	}
+    }
+
+    if (! sset.empty()) {
+	values.reserve(sset.size());
+	for (std::set<std::string>::const_iterator it = sset.begin();
+	     it != sset.end(); ++ it)
+	    values.push_back(*it);
+    }
+} // ibis::qAllWords ctor
+
+void ibis::qAllWords::print(std::ostream& out) const {
+    if (name.empty()) return;
+    out << name << " CONTAINS (";
+    if (values.size() > 0) {
+	out << values[0];
+	for (uint32_t i = 1; i < values.size(); ++ i)
+	    out << ", " << values[i];
+    }
+    out << ')';
+} // ibis::qAllWords::print
+
+ibis::qExpr* ibis::qAllWords::convert() const {
+    if (name.empty()) {
+	return 0;
+    }
+    else if (values.empty()) {
+	return 0;
+    }
+    else if (values.size() == 0) {
+	return new ibis::qKeyword(name.c_str(), values[0].c_str());
+    }
+    else {
+	return const_cast<ibis::qAllWords*>(this);
+    }
+} // ibis::qAllWords::convert
+
+void ibis::qAllWords::getTableNames(std::set<std::string>& plist) const {
+    if (! name.empty()) {
+	const std::string& tn = ibis::qExpr::extractTableName(name.c_str());
+	if (! tn.empty())
+	    plist.insert(tn);
+    }
+} // ibis::qAllWords::getTableNames

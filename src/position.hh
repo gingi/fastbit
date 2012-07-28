@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.6.  */
 
 /* Positions for Bison parsers in C++
    
-      Copyright (C) 2002-2007, 2009-2011 Free Software Foundation, Inc.
+      Copyright (C) 2002-2007, 2009-2012 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,56 +35,68 @@
  ** Define the ibis::position class.
  */
 
-#ifndef BISON_POSITION_HH
-# define BISON_POSITION_HH
+#ifndef IBIS_POSITION_HH
+# define IBIS_POSITION_HH
 
-# include <iostream>
+# include <algorithm> // std::max
+# include <iosfwd>
 # include <string>
-# include <algorithm>
+
+# ifndef YY_NULL
+#  if defined __cplusplus && 201103L <= __cplusplus
+#   define YY_NULL nullptr
+#  else
+#   define YY_NULL 0
+#  endif
+# endif
 
 
 namespace ibis {
 
-/* Line 37 of location.cc  */
-#line 50 "position.hh"
+/* Line 38 of location.cc  */
+#line 58 "position.hh"
   /// Abstract a position.
   class position
   {
   public:
 
     /// Construct a position.
-    position ()
-      : filename (0), line (1), column (1)
+    explicit position (std::string* f = YY_NULL,
+                       unsigned int l = 1u,
+                       unsigned int c = 1u)
+      : filename (f)
+      , line (l)
+      , column (c)
     {
     }
 
 
     /// Initialization.
-    inline void initialize (std::string* fn)
+    void initialize (std::string* fn = YY_NULL,
+                     unsigned int l = 1u,
+                     unsigned int c = 1u)
     {
       filename = fn;
-      line = 1;
-      column = 1;
+      line = l;
+      column = c;
     }
 
     /** \name Line and Column related manipulators
      ** \{ */
-  public:
     /// (line related) Advance to the COUNT next lines.
-    inline void lines (int count = 1)
+    void lines (int count = 1)
     {
-      column = 1;
+      column = 1u;
       line += count;
     }
 
     /// (column related) Advance to the COUNT next columns.
-    inline void columns (int count = 1)
+    void columns (int count = 1)
     {
       column = std::max (1u, column + count);
     }
     /** \} */
 
-  public:
     /// File name to which this position refers.
     std::string* filename;
     /// Current line number.
@@ -156,6 +168,6 @@ namespace ibis {
 
 } // ibis
 
-/* Line 144 of location.cc  */
-#line 161 "position.hh"
-#endif // not BISON_POSITION_HH
+/* Line 149 of location.cc  */
+#line 173 "position.hh"
+#endif /* !IBIS_POSITION_HH  */

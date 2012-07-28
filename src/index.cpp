@@ -70,7 +70,7 @@ namespace std { // specialize the std::less struct
 /// the content of the data file is read to construct a new index according
 /// to the return value of function indexSpec.  The argument dfname can be
 /// nil, in which case, the data file name is constructed by concatenate
-/// the return of partition()->currentDataDir() and the column name.
+/// the return from partition()->currentDataDir() and the column name.
 ///
 /// @param spec the index specification.  This string contains the
 /// parameters for how to create an index.  The most general form is
@@ -151,11 +151,11 @@ namespace std { // specialize the std::less struct
 /// cases.
 ///
 /// @note An index can NOT be built correctly if it does not fit in memory!
-/// This is the most likely reason for failure in this function.  If this
-/// does happen, try to build indexes one at a time, use a machine with
-/// more memory, or break up a large partition into a number of smaller
-/// ones.  Normally, we recommand one to not put much more than 100 million
-/// rows in a data partition.
+/// This is the most likely reason for the function to fail.  If this does
+/// happen, try to build indexes one at a time, use a machine with more
+/// memory, or break up a large partition into a number of smaller ones.
+/// Normally, we recommand one to not put more than 100 million rows in a
+/// data partition.
 ///
 /// @note Set @c dfname to null to build a brand new index and discard
 /// the existing index.
@@ -191,105 +191,26 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    return ind;
 	}
     }
-    else {
-	switch (c->type()) {
-	case ibis::USHORT:
-	case ibis::SHORT:
-	case ibis::UBYTE:
-	case ibis::BYTE:
-	case ibis::UINT:
-	case ibis::INT:
-	case ibis::ULONG:
-	case ibis::LONG:
-	case ibis::FLOAT:
-	case ibis::DOUBLE:
-	case ibis::CATEGORY:
-	case ibis::TEXT: {
-	    spec = "default";
-	    break;}
-	default: {
-	    c->logWarning("createIndex", "not able to "
-			  "generate for this column type");
-	    return ind;}
-	}
-    }
-    LOGGER(ibis::gVerbose > 3)
-	<< "index::create -- invoking the index factory with spec=`"
-	<< spec << "' and source="
-	<< (dfname ? dfname : c->partition()->currentDataDir())
-	<< " for column " << c->partition()->name() << '.' << c->name();
 
     int ierr;
     bool isRead = false;
-    uint32_t ncomp = 0;
-    const bool usebin = (strstr(spec, "bin") != 0 &&
-			 strstr(spec, "none") == 0);
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start();
-    const char* ptr = strstr(spec, "ncomp=");
-    if (ptr != 0) {
-	ptr += 6;
-	while (isspace(*ptr)) { // skip till the first digit
-	    ++ ptr;
-	}
-	if (*ptr) {
-	    if (isdigit(*ptr)) { // string --> number
-		ncomp = atoi(ptr);
-		if (ncomp == 0) {
-		    if (errno == EINVAL)
-			c->logMessage("createIndex",
-				      "atio(%s) failed", ptr);
-		    ncomp = 2; // default to 2
-		}
-	    }
-	    else {
-		ncomp = 1;
-	    }
-	}
-    }
     try {
 	if (dfname != 0 && *dfname != 0) { // first attempt to read the index
-	    std::string file;
 	    ibis::fileManager::storage* st=0;
-	    file = dfname;
-	    Stat_T st0;
-	    if (UnixStat(dfname, &st0)) { // file/directory doesn't exist
-		ierr = strlen(dfname);
-		if (ierr <= 4 || dfname[ierr-1] != 'x' || dfname[ierr-2] != 'd'
-		    || dfname[ierr-3] != 'i' || dfname[ierr-4] != '.') {
-		    // dfname doesn't end with .idx extension
-		    bool isFile = false;
-		    int len = strlen(c->name());
-		    if (ierr >= len) {
-			const char* tail = dfname + (ierr - len);
-			isFile = (strcmp(tail, c->name()) == 0);
-		    }
-		    if (isFile) { // dfname is the data file name
-			file += ".idx";
-		    }
-		    else { // assume to be a nonexistent dir
-			return ind;
-		    }
-		}
-	    }
-	    else if ((st0.st_mode & S_IFDIR) == S_IFDIR) { // an existing dir
-		file += FASTBIT_DIRSEP;
-		file += c->name();
-		file += ".idx";
-	    }
-	    else { // assumes to be an existing file
-		file += ".idx";
-	    }
-
-	    char buf[12];
+	    std::string file;
 	    const char* header = 0;
-	    {
+	    char buf[12];
+	    c->dataFileName(file, dfname);
+	    if (! file.empty()) {
+		file += ".idx";
 		bool useGetFile = (readopt >= 0);
 		ibis::fileManager::ACCESS_PREFERENCE prf =
 		    (readopt > 0 ? ibis::fileManager::PREFER_READ :
 		     ibis::fileManager::MMAP_LARGE_FILES);
-		if (readopt == 0) { // on default option, check parameters
+		if (readopt == 0) { // default option, check parameters
 		    std::string key(c->partition()->name());
 		    key += ".";
 		    key += c->name();
@@ -357,1084 +278,109 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 
 	    if (header) { // reconstruct index from st
 		isRead = true;
-		switch (static_cast<ibis::index::INDEX_TYPE>(header[5])) {
-		case ibis::index::BINNING: // ibis::bin
-		    if (st) {
-			ind = new ibis::bin(c, st);
-		    }
-		    else {
-			ind = new ibis::bin(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::RANGE: // new range index
-		    if (st) {
-			ind = new ibis::range(c, st);
-		    }
-		    else {
-			ind = new ibis::range(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::AMBIT: // multilevel range index
-		    if (st) {
-			ind = new ibis::ambit(c, st);
-		    }
-		    else {
-			ind = new ibis::ambit(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::PALE: // two-level bin/range index
-		    if (st) {
-			ind = new ibis::pale(c, st);
-		    }
-		    else {
-			ind = new ibis::pale(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::PACK: // two-level range/bin index
-		    if (st) {
-			ind = new ibis::pack(c, st);
-		    }
-		    else {
-			ind = new ibis::pack(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::ZONE: // two-level bin/bin index
-		    if (st) {
-			ind = new ibis::zone(c, st);
-		    }
-		    else {
-			ind = new ibis::zone(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::MESA: // one-level (interval) encoded index
-		    if (st) {
-			ind = new ibis::mesa(c, st);
-		    }
-		    else {
-			ind = new ibis::mesa(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::RELIC: // the basic bitmap index
-		    if (st) {
-			ind = new ibis::relic(c, st);
-		    }
-		    else {
-			ind = new ibis::relic(c, file.c_str());
-		    }
-		    break;
-		case ibis::index::SKIVE: // binary encoded index
-		    if (st) {
-			ind = new ibis::skive(c, st);
-		    }
-		    else {
-			ind = new ibis::skive(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::SLICE: // bit-slice
-		    if (st) {
-			ind = new ibis::slice(c, st);
-		    }
-		    else {
-			ind = new ibis::slice(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::FADE: // multicomponent range-encoded
-		    if (st) {
-			ind = new ibis::fade(c, st);
-		    }
-		    else {
-			ind = new ibis::fade(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::SAPID: // multicomponent equality-encoded
-		    if (st) {
-			ind = new ibis::sapid(c, st);
-		    }
-		    else {
-			ind = new ibis::sapid(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::SBIAD: // multicomponent interval-encoded
-		    if (st) {
-			ind = new ibis::sbiad(c, st);
-		    }
-		    else {
-			ind = new ibis::sbiad(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::EGALE:
-		    // multicomponent equality code on bins
-		    if (st) {
-			ind = new ibis::egale(c, st);
-		    }
-		    else {
-			ind = new ibis::egale(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::MOINS:
-		    // multicomponent equality code on bins
-		    if (st) {
-			ind = new ibis::moins(c, st);
-		    }
-		    else {
-			ind = new ibis::moins(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::ENTRE:
-		    // multicomponent equality code on bins
-		    if (st) {
-			ind = new ibis::entre(c, st);
-		    }
-		    else {
-			ind = new ibis::entre(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::BAK:
-		    // equality code on reduced precision values
-		    if (st) {
-			ind = new ibis::bak(c, st);
-		    }
-		    else {
-			ind = new ibis::bak(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::BAK2:
-		    // equality code on reduced precision values, split bins
-		    if (st) {
-			ind = new ibis::bak2(c, st);
-		    }
-		    else {
-			ind = new ibis::bak2(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::KEYWORDS:
-		    // boolean term-document matrix
-		    if (st) {
-			ind = new ibis::keywords(c, st);
-		    }
-		    else {
-			ind = new ibis::keywords(c, file.c_str());
-		    }
-		    break;
-		case ibis::index::DIREKTE:
-		    if (st) {
-			ind = new ibis::direkte(c, st);
-		    }
-		    else {
-			ind = new ibis::direkte(0);
-			ind->col = c;
-			ierr = ind->read(file.c_str());
-			if (ierr < 0) {
-			    delete ind;
-			    ind = 0;
-			}
-		    }
-		    break;
-		case ibis::index::BYLT:
-		    if (st) {
-			ind = new ibis::bylt(c, st);
-		    }
-		    else {
-			ind = new ibis::bylt(c, file.c_str());
-			// 			ind = new ibis::bylt(0);
-			// 			ind->col = c;
-			// 			ind->read(file.c_str());
-		    }
-		    break;
-		case ibis::index::ZONA:
-		    if (st) {
-			ind = new ibis::zona(c, st);
-		    }
-		    else {
-			ind = new ibis::zona(c, file.c_str());
-			// 			ind = new ibis::zona(0);
-			// 			ind->col = c;
-			// 			ind->read(file.c_str());
-		    }
-		    break;
-		case ibis::index::FUZZ:
-		    if (st) {
-			ind = new ibis::fuzz(c, st);
-		    }
-		    else {
-			ind = new ibis::fuzz(c, file.c_str());
-			// 			ind = new ibis::fuzz(0);
-			// 			ind->col = c;
-			// 			ind->read(file.c_str());
-		    }
-		    break;
-		case ibis::index::FUGE:
-		    if (st) {
-			ind = new ibis::fuge(c, st);
-		    }
-		    else {
-			ind = new ibis::fuge(c, file.c_str());
-		    }
-		    break;
-		default:
-		    c->logWarning("readIndex", "index::create(%s) "
-				  "index type (%d) is not supported",
-				  file.c_str(), (int)header[5]);
-		}
-	    }
-	    else if (c->type() == ibis::CATEGORY) {
-		// special handling
-		ind = reinterpret_cast<const ibis::category*>(c)->
-		    fillIndex(file.c_str());
-		//return ind;
-	    }
-	    else if (c->type() == ibis::TEXT) {
-		ind = new ibis::keywords(c, file.c_str());
-		//return ind;
-	    }
-	    else { // need to build a new index from attribute values
-		file.erase(file.size()-4); // remove ".idx" extension
-		bool dflt = false;
-		if (c->type() == ibis::CATEGORY) {
-		    dflt = true;
-		}
-		else if (spec == 0) {
-		    dflt = true;
-		}
-		else if (*spec == 0) {
-		    dflt = true;
-		}
-		else if (strstr(spec, "automatic") != 0 ||
-			 strstr(spec, "default") != 0) {
-		    dflt = true;
-		}
-		else {
-		    dflt = (0 != isspace(*spec));
-		}
-
-		if (dflt) {
-		    switch (c->type()) {
-		    case ibis::ULONG:
-		    case ibis::LONG:
-		    case ibis::UINT:
-		    case ibis::INT: {
-			double amin = c->lowerBound();
-			double amax = c->upperBound();
-			if (amin >= amax && amin >= 0) {
-			    const_cast<ibis::column*>(c)->computeMinMax();
-			    amin = c->lowerBound();
-			    amax = c->upperBound();
-			}
-			if (amax - amin < 1e3 ||
-			    amax - amin < c->partition()->nRows()*0.1) {
-			    if (amin >= 0.0 && amin <= ceil(amax*0.01))
-				ind = new ibis::direkte(c, file.c_str());
-			    else if (amax >= amin+1e2)
-				ind = new ibis::fuzz(c, file.c_str());
-			    else
-				ind = new ibis::relic(c, file.c_str());
-			}
-			else {
-			    ind = new ibis::bin(c, file.c_str());
-			}
-			break;}
-		    case ibis::FLOAT:
-		    case ibis::DOUBLE: {
-			ind = new ibis::bin(c, file.c_str());
-			break;}
-		    case ibis::USHORT:
-		    case ibis::SHORT:
-		    case ibis::UBYTE:
-		    case ibis::BYTE: {
-			ind = new ibis::relic(c, file.c_str());
-			break;}
-		    case ibis::CATEGORY: {
-			ind = reinterpret_cast<const ibis::category*>(c)->
-			    fillIndex(file.c_str());
-			break;}
-		    case ibis::TEXT: {
-			ind = new ibis::keywords(c, file.c_str());
-			break;}
-		    default: {
-			c->logWarning("createIndex", "not able to "
-				      "generate for this column type");
-			break;}
-		    }
-		}
-		else if (ncomp > 1 || strstr(spec, "mcbin") != 0 ||
-			 strstr(spec, "multicomponent") != 0) {
-		    INDEX_TYPE t = SAPID; // default to equality encoding
-		    if (strstr(spec, "equal")) {
-			t = SAPID;
-		    }
-		    else if (strstr(spec, "range")) {
-			t = FADE;
-		    }
-		    else if (strstr(spec, "interval")) {
-			t = SBIAD;
-		    }
-		    switch (t) {
-		    default:
-		    case SBIAD:
-			if (usebin)
-			    ind = new ibis::entre(c, file.c_str(), ncomp);
-			else
-			    ind = new ibis::sbiad(c, file.c_str(), ncomp);
-			break;
-		    case SAPID:
-			if (usebin)
-			    ind = new ibis::egale(c, file.c_str(), ncomp);
-			else
-			    ind = new ibis::sapid(c, file.c_str(), ncomp);
-			break;
-		    case FADE:
-			if (usebin)
-			    ind = new ibis::moins(c, file.c_str(), ncomp);
-			else
-			    ind = new ibis::fade(c, file.c_str(), ncomp);
-			break;
-		    }
-		}
-		else if (!usebin) { // <binning none> is specified explicitly
-		    INDEX_TYPE t = RELIC;
-		    const char* str = strstr(spec, "<encoding ");
-		    if (str) {
-			str += 10; // skip "<encoding "
-			if (strstr(str, "range/equality") ||
-			    strstr(str, "range-equality")) {
-			    t = BYLT;
-			}
-			else if (strstr(str, "equality/equality") ||
-				 strstr(str, "equality-equality")) {
-			    t = ZONA;
-			}
-			else if (strstr(str, "interval/equality") ||
-				 strstr(str, "interval-equality")) {
-			    t = FUZZ;
-			}
-			else if (strstr(str, "equal")) {
-			    t = SAPID;
-			}
-			else if (strstr(str, "interval")) {
-			    t = SBIAD;
-			}
-			else if (strstr(str, "range")) {
-			    t = FADE;
-			}
-			else if (strstr(str, "binary")) {
-			    t = SKIVE;
-			}
-		    }
-		    else if (stricmp(spec, "index=simple") == 0 ||
-			     stricmp(spec, "index=basic") == 0 ||
-			     strstr(spec, "relic") != 0) {
-			t = RELIC;
-		    }
-		    else if (strstr(spec, "skive") != 0 ||
-			     strstr(spec, "binary") != 0) {
-			t = SKIVE;
-		    }
-		    else if (strstr(spec, "slice") != 0 ||
-			     strstr(spec, "bit-slice") != 0 ||
-			     strstr(spec, "bitslice") != 0) {
-			t = SLICE;
-		    }
-		    else {
-			t = SAPID;
-		    }
-		    switch (t) {
-		    default:
-		    case SAPID:
-			if (ncomp > 1)
-			    ind = new ibis::sapid(c, file.c_str(), ncomp);
-			else if ((c->type() != ibis::FLOAT &&
-				  c->type() != ibis::DOUBLE &&
-				  c->type() != ibis::TEXT) &&
-				 c->lowerBound() >= 0.0 &&
-				 c->lowerBound() <=
-				 ceil(c->upperBound()*0.01) &&
-				 c->upperBound() <= c->partition()->nRows())
-			    ind = new ibis::direkte(c, file.c_str());
-			else
-			    ind = new ibis::relic(c, file.c_str());
-			break;
-		    case RELIC:
-			ind = new ibis::relic(c, file.c_str());
-			break;
-		    case FADE:
-			ind = new ibis::fade(c, file.c_str(), ncomp);
-			break;
-		    case SBIAD:
-			ind = new ibis::sbiad(c, file.c_str(), ncomp);
-			break;
-		    case SKIVE:
-			ind = new ibis::skive(c, file.c_str());
-			break;
-		    case SLICE:
-			ind = new ibis::slice(c, file.c_str());
-			break;
-		    case BYLT:
-			ind = new ibis::bylt(c, file.c_str());
-			break;
-		    case ZONA:
-			ind = new ibis::zona(c, file.c_str());
-			break;
-		    case FUZZ:
-			ind = new ibis::fuzz(c, file.c_str());
-			break;
-		    }
-		}
-		else if (strstr(spec, "skive") != 0 ||
-			 strstr(spec, "binary") != 0) { // ibis::skive
-		    ind = new ibis::skive(c, file.c_str());
-		}
-		else if (strstr(spec, "slice") != 0 ||
-			 strstr(spec, "bits-lice") != 0 ||
-			 strstr(spec, "bitslice") != 0) { // ibis::slice
-		    ind = new ibis::slice(c, file.c_str());
-		}
-		else if (stricmp(spec, "index=simple") == 0 ||
-			 stricmp(spec, "index=basic") == 0 ||
-			 strstr(spec, "relic") != 0) {
-		    if ((c->type() != ibis::FLOAT &&
-			 c->type() != ibis::DOUBLE &&
-			 c->type() != ibis::TEXT) &&
-			c->lowerBound() >= 0.0 &&
-			c->lowerBound() <= ceil(c->upperBound()*0.01) &&
-			c->upperBound() <= c->partition()->nRows())
-			ind = new ibis::direkte(c, file.c_str());
-		    else
-			ind = new ibis::relic(c, file.c_str());
-		}
-		else if (strstr(spec, "fade") != 0 ||
-			 strstr(spec, "multi-range") != 0) {
-		    ind = new ibis::fade(c, file.c_str());
-		}
-		else if (strstr(spec, "sapid") != 0 ||
-			 strstr(spec, "multi-equal") != 0) {
-		    ind = new ibis::sapid(c, file.c_str());
-		}
-		else if (strstr(spec, "sbiad") != 0 ||
-			 strstr(spec, "multi-interval") != 0) {
-		    ind = new ibis::sbiad(c, file.c_str());
-		}
-		else if (strstr(spec, "egale") != 0) {
-		    ind = new ibis::egale(c, file.c_str());
-		}
-		else if (strstr(spec, "moins") != 0) {
-		    ind = new ibis::moins(c, file.c_str());
-		}
-		else if (strstr(spec, "entre") != 0) {
-		    ind = new ibis::entre(c, file.c_str());
-		}
-		else if (strstr(spec, "ambit") != 0 ||
-			 strstr(spec, "range/range") != 0 ||
-			 strstr(spec, "range-range") != 0) {
-		    ibis::bin tmp(c, file.c_str());
-		    ind = new ibis::ambit(tmp);
-		    // ind = new ibis::ambit(c, file.c_str());
-		}
-		else if (strstr(spec, "pale") != 0 ||
-			 strstr(spec, "bin/range") != 0 ||
-			 strstr(spec, "equality-range") != 0) {
-		    ibis::bin tmp(c, file.c_str());
-		    ind = new ibis::pale(tmp);
-		}
-		else if (strstr(spec, "pack") != 0 ||
-			 strstr(spec, "range/bin") != 0 ||
-			 strstr(spec, "range/equality") != 0 ||
-			 strstr(spec, "range-equality") != 0) {
-		    ibis::bin tmp(c, file.c_str());
-		    ind = new ibis::pack(tmp);
-		}
-		else if (strstr(spec, "zone") != 0 ||
-			 strstr(spec, "bin/bin") != 0 ||
-			 strstr(spec, "equality/equality") != 0 ||
-			 strstr(spec, "equality-equality") != 0) {
-		    ibis::bin tmp(c, file.c_str());
-		    ind = new ibis::zone(tmp);
-		}
-		else if (strstr(spec, "interval/equality") != 0 ||
-			 strstr(spec, "interval-equality") != 0) {
-		    ind = new ibis::fuge(c, file.c_str());
-		}
-		else if (strstr(spec, "bak2") != 0) {
-		    ind = new ibis::bak2(c, file.c_str());
-		}
-		else if (strstr(spec, "bak") != 0) {
-		    ind = new ibis::bak(c, file.c_str());
-		}
-		else if (strstr(spec, "mesa") != 0 ||
-			 strstr(spec, "interval") != 0 ||
-			 strstr(spec, "2sided") != 0) {
-		    ibis::bin tmp(c, file.c_str());
-		    ind = new ibis::mesa(tmp);
-		}
-		else if (strstr(spec, "range") != 0 ||
-			 strstr(spec, "cumulative") != 0) {
-		    ind = new ibis::range(c, file.c_str());
-		}
-		else {
-		    if (strstr(spec, "bin") == 0)
-			c->logWarning("createIndex", "can not process bin "
-				      "spec \"%s\", use simple bins", spec);
-		    ind = new ibis::bin(c, file.c_str());
-		}
-
+		ind = readOld(c, file.c_str(), st,
+			      static_cast<INDEX_TYPE>(header[5]));
 		if (ind == 0) {
-		    LOGGER(ibis::gVerbose > 0)
-			<< "index::create failed to create an index for "
-			<< c->name() << " with " << file;
-		}
-		else if (ind->getNRows() == 0) {
-		    delete ind;
-		    ind = 0;
-		    LOGGER(ibis::gVerbose > 0)
-			<< "index::create create an empty index for "
-			<< c->name() << " with " << file;
-		}
-		else if (ind->getNRows() == c->partition()->nRows()) {
-		    // have built a valid index, write out its content
-		    file.erase(file.rfind(FASTBIT_DIRSEP));
-		    try {
-			ierr = ind->write(file.c_str());
-			if (ierr < 0) {
-			    file += FASTBIT_DIRSEP;
-			    file += c->name();
-			    file += ".idx";
-			    remove(file.c_str());
-			    LOGGER(ibis::gVerbose > 0)
-				<< "Warning -- index["
-				<< c->partition()->name() << '.'
-				<< c->name() << "]::create "
-				"failed to write the index (" << ind->name()
-				<< ") to " << file << ", ierr = " << ierr;
-			}
-		    }
-		    catch (...) {
-			file += FASTBIT_DIRSEP;
-			file += c->name();
-			file += ".idx";
-			remove(file.c_str());
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- index["
-			    << c->partition()->name() << '.'
-			    << c->name() << "]::create "
-			    "failed to write the index (" << ind->name()
-			    << ") to " << file << ", received an exception";
-		    }
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 0)
-			<< "index[" << c->partition()->name() << '.'
-			<< c->name() << "]::create created an index with "
-			<< ind->getNRows() << " row"
-			<< (ind->getNRows() > 1 ? "s" : "") << " from "
-			<< file << ", but the data partition has "
-			<< c->partition()->nRows() << " row"
-			<< (c->partition()->nRows() > 1 ? "s" : "");
+		    ibis::fileManager::instance().flushFile(file.c_str());
+		    (void) remove(file.c_str());
 		}
 	    }
-	} // if (dfname != 0)
-	else if (c->type() == ibis::CATEGORY) {
-	    ind = reinterpret_cast<const ibis::category*>(c)->fillIndex();
-	    //return ind;
+	} // if (dfname != 0 && *dfname != 0)
+	if (dfname == 0) {
+	    // user has passed in an explicit nil pointer, purge index files
+	    c->purgeIndexFile();
 	}
-	else if (c->type() == ibis::TEXT) {
-	    ind = new ibis::keywords(c);
-	    //return ind;
-	}
-	else { // build a new index from attribute values
-	    bool dflt = false;
-	    if (c->type() == ibis::CATEGORY) {
-		dflt = true;
-	    }
-	    else if (spec == 0) {
-		dflt = true;
-	    }
-	    else if (*spec == 0) {
-		dflt = true;
-	    }
-	    else if (strstr(spec, "automatic") != 0 ||
-		     strstr(spec, "default") != 0) {
-		dflt = true;
-	    }
-	    else {
-		dflt = (0 != isspace(*spec));
-	    }
 
-	    if (dflt) {
-		switch (c->type()) {
-		case ibis::ULONG:
-		case ibis::LONG:
-		case ibis::UINT:
-		case ibis::INT: {
-		    double amin = c->lowerBound();
-		    double amax = c->upperBound();
-		    if (amin >= amax && amin >= 0) {
-			c->computeMinMax(c->partition()->currentDataDir(),
-					 amin, amax);
-		    }
-		    if (amax - amin < 1e3 ||
-			amax - amin < 0.1 * c->partition()->nRows()) {
-			if (amin >= 0.0 && amin <= ceil(amax*0.01))
-			    ind = new ibis::direkte(c);
-			else if (amax >= amin+1e2)
-			    ind = new ibis::fuzz(c);
-			else
-			    ind = new ibis::relic(c);
-		    }
-		    else {
-			ind = new ibis::bin(c);
-		    }
-		    break;}
-		case ibis::FLOAT:
-		case ibis::DOUBLE: {
-		    ind = new ibis::bin(c);
-		    break;}
-		case ibis::USHORT:
-		case ibis::SHORT:
-		case ibis::UBYTE:
-		case ibis::BYTE: {
-		    ind = new ibis::relic(c);
-		    break;}
-		case ibis::CATEGORY: {
-		    ind = reinterpret_cast<const ibis::category*>(c)->
-			fillIndex();
-		    break;}
-		case ibis::TEXT: {
-		    ind = new ibis::keywords(c);
-		    break;}
-		default: {
-		    c->logWarning("createIndex", "no default index type for "
-				  "this column");
-		    break;}
-		}
-	    }
-	    else if (ncomp > 1 || strstr(spec, "mcbin") != 0 ||
-		     strstr(spec, "multicomponent") != 0) {
-		INDEX_TYPE t = SAPID; // default to equality encoding
-		if (strstr(spec, "equal")) {
-		    t = SAPID;
-		}
-		else if (strstr(spec, "range")) {
-		    t = FADE;
-		}
-		else if (strstr(spec, "interval")) {
-		    t = SBIAD;
-		}
-		switch (t) {
-		default:
-		case SBIAD:
-		    if (usebin)
-			ind = new ibis::entre(c, static_cast<const char*>(0),
-					      ncomp);
-		    else
-			ind = new ibis::sbiad(c, static_cast<const char*>(0),
-					      ncomp);
-		    break;
-		case SAPID:
-		    if (usebin)
-			ind = new ibis::egale(c, static_cast<const char*>(0),
-					      ncomp);
-		    else
-			ind = new ibis::sapid(c, static_cast<const char*>(0),
-					      ncomp);
-		    break;
-		case FADE:
-		    if (usebin)
-			ind = new ibis::moins(c, static_cast<const char*>(0),
-					      ncomp);
-		    else
-			ind = new ibis::fade(c, static_cast<const char*>(0),
-					     ncomp);
-		    break;
-		}
-	    }
-	    else if (!usebin) { // <binning none> is specified explicitly
-		INDEX_TYPE t = RELIC;
-		const char* str = strstr(spec, "<encoding ");
-		if (str) {
-		    str += 10; // skip "<encoding "
-		    if (strstr(str, "range/equality") ||
-			strstr(str, "range-equality")) {
-			t = BYLT;
-		    }
-		    else if (strstr(str, "equality/equality") ||
-			     strstr(str, "equality-equality")) {
-			t = ZONA;
-		    }
-		    else if (strstr(str, "interval/equality") ||
-			     strstr(str, "interval-equality")) {
-			t = FUZZ;
-		    }
-		    else if (strstr(str, "equal")) {
-			t = SAPID;
-		    }
-		    else if (strstr(str, "interval")) {
-			t = SBIAD;
-		    }
-		    else if (strstr(str, "range")) {
-			t = FADE;
-		    }
-		    else if (strstr(str, "binary")) {
-			t = SKIVE;
-		    }
-		}
-		else if (stricmp(spec, "index=simple") == 0 ||
-			 stricmp(spec, "index=basic") == 0 ||
-			 strstr(spec, "relic") != 0) {
-		    t = RELIC;
-		}
-		else if (strstr(spec, "skive") != 0 ||
-			 strstr(spec, "binary") != 0) {
-		    t = SKIVE;
-		}
-		else if (strstr(spec, "slice") != 0 ||
-			 strstr(spec, "bit-slice") != 0 ||
-			 strstr(spec, "bitslice") != 0) {
-		    t = SLICE;
-		}
-		else {
-		    t = SAPID;
-		}
-		switch (t) {
-		default:
-		case SAPID:
-		    if (ncomp > 1)
-			ind = new ibis::sapid(c, static_cast<const char*>(0),
-					      ncomp);
-		    else if ((c->type() != ibis::FLOAT &&
-			      c->type() != ibis::DOUBLE &&
-			      c->type() != ibis::TEXT) &&
-			     c->lowerBound() >= 0.0 &&
-			     c->lowerBound() <= ceil(c->upperBound()*0.01) &&
-			     c->upperBound() <= c->partition()->nRows())
-			ind = new ibis::direkte(c);
-		    else
-			ind = new ibis::relic(c);
-		    break;
-		case RELIC:
-		    ind = new ibis::relic(c);
-		    break;
-		case FADE:
-		    ind = new ibis::fade(c, static_cast<const char*>(0),
-					 ncomp);
-		    break;
-		case SBIAD:
-		    ind = new ibis::sbiad(c, static_cast<const char*>(0),
-					  ncomp);
-		    break;
-		case SKIVE:
-		    ind = new ibis::skive(c);
-		    break;
-		case SLICE:
-		    ind = new ibis::slice(c);
-		    break;
-		case BYLT:
-		    ind = new ibis::bylt(c);
-		    break;
-		case ZONA:
-		    ind = new ibis::zona(c);
-		    break;
-		case FUZZ:
-		    ind = new ibis::fuzz(c);
-		    break;
-		}
-	    }
-	    else if (strstr(spec, "skive") != 0 ||
-		     strstr(spec, "binary") != 0) { // ibis::slice
-		ind = new ibis::skive(c);
-	    }
-	    else if (strstr(spec, "slice") != 0 ||
-	    	     strstr(spec, "bit-slice") != 0 ||
-	    	     strstr(spec, "bitslice") != 0) { // ibis::slice
-	    	ind = new ibis::slice(c);
-	    }
-	    else if (strstr(spec, "simple") != 0 ||
-		     strstr(spec, "basic") != 0 ||
-		     strstr(spec, "bitmap") != 0 ||
-		     strstr(spec, "relic") != 0) { // ibis::relic
-		if ((c->type() != ibis::FLOAT &&
-		     c->type() != ibis::DOUBLE &&
-		     c->type() != ibis::TEXT) &&
-		    c->lowerBound() >= 0.0 &&
-		    c->lowerBound() <= ceil(c->upperBound()*0.01) &&
-		    c->upperBound() <= c->partition()->nRows())
-		    ind = new ibis::direkte(c);
+	if (ind == 0) {
+	    isRead = false;
+	    ind = buildNew(c, dfname, spec);
+	}
+	if (ind == 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "index::create failed to create an index for "
+		<< c->name();
+	}
+	else if (ind->getNRows() == 0) {
+	    delete ind;
+	    ind = 0;
+	    LOGGER(ibis::gVerbose > 0)
+		<< "index::create create an empty index for "
+		<< c->name();
+	}
+	else if (dfname != 0 || ind->getNRows() == c->partition()->nRows()) {
+	    // having built a valid index, write out its content
+	    try {
+		if (! isRead) 
+		    ierr = ind->write(dfname);
 		else
-		    ind = new ibis::relic(c);
-	    }
-	    else if (strstr(spec, "fade") != 0 ||
-		     strstr(spec, "multi-range") != 0) {
-		ind = new ibis::fade(c);
-	    }
-	    else if (strstr(spec, "sapid") != 0 ||
-		     strstr(spec, "multi-equal") != 0) {
-		ind = new ibis::sapid(c);
-	    }
-	    else if (strstr(spec, "sbiad") != 0 ||
-		     strstr(spec, "multi-interval") != 0) {
-		ind = new ibis::sbiad(c);
-	    }
-	    else if (strstr(spec, "egale") != 0) {
-		ind = new ibis::egale(c);
-	    }
-	    else if (strstr(spec, "moins") != 0) {
-		ind = new ibis::moins(c);
-	    }
-	    else if (strstr(spec, "entre") != 0) {
-		ind = new ibis::entre(c);
-	    }
-	    else if (strstr(spec, "ambit") != 0 ||
-		     strstr(spec, "range/range") != 0 ||
-		     strstr(spec, "range-range") != 0) {
-		ibis::bin tmp(c);
-		ind = new ibis::ambit(tmp);
-		// ind = new ibis::ambit(c);
-	    }
-	    else if (strstr(spec, "pale") != 0 ||
-		     strstr(spec, "bin/range") != 0 ||
-		     strstr(spec, "equality-range") != 0) {
-		ibis::bin tmp(c);
-		ind = new ibis::pale(tmp);
-	    }
-	    else if (strstr(spec, "pack") != 0 ||
-		     strstr(spec, "range/bin") != 0 ||
-		     strstr(spec, "range/equality") != 0 ||
-		     strstr(spec, "range-equality") != 0) {
-		ibis::bin tmp(c);
-		ind = new ibis::pack(tmp);
-	    }
-	    else if (strstr(spec, "zone") != 0 ||
-		     strstr(spec, "bin/bin") != 0 ||
-		     strstr(spec, "equality/equality") != 0 ||
-		     strstr(spec, "equality-equality") != 0) {
-		ibis::bin tmp(c);
-		ind = new ibis::zone(tmp);
-	    }
-	    else if (strstr(spec, "interval/equality") != 0 ||
-		     strstr(spec, "interval-equality") != 0) {
-		ind = new ibis::fuge(c);
-	    }
-	    else if (strstr(spec, "bak2") != 0) {
-		ind = new ibis::bak2(c);
-	    }
-	    else if (strstr(spec, "bak") != 0) {
-		ind = new ibis::bak(c);
-	    }
-	    else if (strstr(spec, "mesa") != 0 ||
-		     strstr(spec, "interval") != 0 ||
-		     strstr(spec, "2sided") != 0) {
-		ind = new ibis::mesa(c);
-	    }
-	    else if (strstr(spec, "range") != 0 ||
-		     strstr(spec, "cumulative") != 0) { // ibis::range
-		ind = new ibis::range(c);
-	    }
-	    else {
-		if (strstr(spec, "bin") == 0)
-		    c->logMessage("createIndex", "can not process bin "
-				  "spec \"%s\", use simple bins", spec);
-		ind = new ibis::bin(c);
-	    }
-
-	    if (ind == 0) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "index::create failed to create an index for "
-		    << c->name();
-	    }
-	    else if (ind->getNRows() == 0) {
-		delete ind;
-		ind = 0;
-		LOGGER(ibis::gVerbose > 0)
-		    << "index::create create an empty index for "
-		    << c->name();
-	    }
-	    else if (ind->getNRows() == c->partition()->nRows()) {
-		// having built a valid index, write out its content
-		try {
-		    ierr = ind->write(c->partition()->currentDataDir());
-		    if (ierr < 0) {
-			std::string idxname = c->partition()->currentDataDir();
-			idxname += FASTBIT_DIRSEP;
-			idxname += c->name();
-			idxname += ".idx";
-			remove(idxname.c_str());
-			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- index["
-			    << c->partition()->name() << '.'
-			    << c->name() << "]::create "
-			    "failed to write the index (" << ind->name()
-			    << ") to " << idxname << ", ierr = " << ierr;
-		    }
-		}
-		catch (...) {
-		    std::string idxname = c->partition()->currentDataDir();
-		    idxname += FASTBIT_DIRSEP;
-		    idxname += c->name();
-		    idxname += ".idx";
+		    ierr = 0;
+		if (ierr < 0) {
+		    std::string idxname;
+		    ind->indexFileName(idxname, dfname);
 		    remove(idxname.c_str());
 		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- index[" << c->partition()->name()
-			<< '.' << c->name() << "]::create "
-			"failed to write the index (" << ind->name()
-			<< ") to " << idxname << ", received an exception";
+			<< "Warning -- index[" << c->partition()->name() << '.'
+			<< c->name() << "]::create failed to write the index ("
+			<< ind->name() << ") to " << idxname << ", ierr = "
+			<< ierr;
 		}
 	    }
-	    else {
+	    catch (...) {
+		std::string idxname;
+		ind->indexFileName(idxname, dfname);
+		remove(idxname.c_str());
 		LOGGER(ibis::gVerbose > 0)
-		    << "index[" << c->partition()->name() << '.'
-		    << c->name() << "]::create created an index with "
-		    << ind->getNRows() << " row"
-		    << (ind->getNRows() > 1 ? "s" : "")
-		    << ", but the data partition has "
-		    << c->partition()->nRows() << " row"
-		    << (c->partition()->nRows() > 1 ? "s" : "");
+		    << "Warning -- index[" << c->partition()->name()
+		    << '.' << c->name() << "]::create "
+		    "failed to write the index (" << ind->name()
+		    << ") to " << idxname << ", received an exception";
 	    }
-	} // building a new index
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "index[" << c->partition()->name() << '.'
+		<< c->name() << "]::create created an index with "
+		<< ind->getNRows() << " row"
+		<< (ind->getNRows() > 1 ? "s" : "")
+		<< ", but the data partition has "
+		<< c->partition()->nRows() << " row"
+		<< (c->partition()->nRows() > 1 ? "s" : "");
+	}
     }
     catch (const char* s) {
-	ibis::util::logMessage("Warning", "index::create(%s) received "
-			       "a string exception -- %s", c->name(), s);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index::create(" << c->name()
+	    << ") received a string exception -- " << s;
 	delete ind;
 	ind = 0;
     }
     catch (const ibis::bad_alloc& e) {
-	ibis::util::logMessage("Warning", "index::create(%s) failed "
-			       "to create a new index -- %s", c->name(),
-			       e.what());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index::create(" << c->name()
+	    << ") failed to allocate memory -- " << e.what();
 	delete ind;
 	ind = 0;
     }
     catch (const std::exception& e) {
-	ibis::util::logMessage("Warning", "index::create(%s) failed "
-			       "to create a new index -- %s", c->name(),
-			       e.what());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index::create(" << c->name()
+	    << ") received an std::exception -- " << e.what();
 	delete ind;
 	ind = 0;
     }
     catch (...) {
-	ibis::util::logMessage("Warning", "index::create(%s) failed "
-			       "to create a new index -- unknown error",
-			       c->name());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index::create(" << c->name()
+	    << ") received a unexpected exception";
 	delete ind;
 	ind = 0;
     }
 
     if (ind == 0) {
-	if (c->type() == ibis::TEXT) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "index[" << c->partition()->name() << '.'
-		<< c->name() << "]::create -- can not create an index for "
-		<< c->partition()->name() << "." << c->name()
-		<< ", this is of data value (string) require an "
-		"additional term-document matrix file";
-	}
-	else {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- index["
-		<< c->partition()->name() << "." << c->name()
-		<< "]::create failed to create an index of type "
-		<< (spec != 0 && *spec != 0 ? spec : "default");
-	}
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- index[" << c->partition()->name() << "." << c->name()
+	    << "]::create failed to create an index of type "
+	    << (spec != 0 && *spec != 0 ? spec : "default");
     }
     else if (ibis::gVerbose > 1) {
 	timer.stop();
@@ -1457,6 +403,695 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
     }
     return ind;
 } // ibis::index::create
+
+/// Read an index of the specified type from the incoming data file.  The
+/// index type t has been determined by the caller.  Furthermore, the
+/// caller might have read the index file into storage object st.
+ibis::index* ibis::index::readOld(const ibis::column* c,
+				  const char* f,
+				  ibis::fileManager::storage* st,
+				  ibis::index::INDEX_TYPE t) {
+    LOGGER(ibis::gVerbose > 3)
+	<< "index::create -- attempt to read index type `"
+	<< (int)t << "' from "
+	<< (f ? f : c->partition()->currentDataDir())
+	<< " for column " << c->partition()->name() << '.' << c->name();
+    ibis::index *ind = 0;
+    switch (t) {
+    case ibis::index::BINNING: // ibis::bin
+	if (st) {
+	    ind = new ibis::bin(c, st);
+	}
+	else {
+	    ind = new ibis::bin(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::RANGE: // new range index
+	if (st) {
+	    ind = new ibis::range(c, st);
+	}
+	else {
+	    ind = new ibis::range(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::AMBIT: // multilevel range index
+	if (st) {
+	    ind = new ibis::ambit(c, st);
+	}
+	else {
+	    ind = new ibis::ambit(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::PALE: // two-level bin/range index
+	if (st) {
+	    ind = new ibis::pale(c, st);
+	}
+	else {
+	    ind = new ibis::pale(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::PACK: // two-level range/bin index
+	if (st) {
+	    ind = new ibis::pack(c, st);
+	}
+	else {
+	    ind = new ibis::pack(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::ZONE: // two-level bin/bin index
+	if (st) {
+	    ind = new ibis::zone(c, st);
+	}
+	else {
+	    ind = new ibis::zone(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::MESA: // one-level (interval) encoded index
+	if (st) {
+	    ind = new ibis::mesa(c, st);
+	}
+	else {
+	    ind = new ibis::mesa(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::RELIC: // the basic bitmap index
+	if (st) {
+	    ind = new ibis::relic(c, st);
+	}
+	else {
+	    ind = new ibis::relic(c, f);
+	}
+	break;
+    case ibis::index::SKIVE: // binary encoded index
+	if (st) {
+	    ind = new ibis::skive(c, st);
+	}
+	else {
+	    ind = new ibis::skive(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::SLICE: // bit-slice
+	if (st) {
+	    ind = new ibis::slice(c, st);
+	}
+	else {
+	    ind = new ibis::slice(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::FADE: // multicomponent range-encoded
+	if (st) {
+	    ind = new ibis::fade(c, st);
+	}
+	else {
+	    ind = new ibis::fade(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::SAPID: // multicomponent equality-encoded
+	if (st) {
+	    ind = new ibis::sapid(c, st);
+	}
+	else {
+	    ind = new ibis::sapid(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::SBIAD: // multicomponent interval-encoded
+	if (st) {
+	    ind = new ibis::sbiad(c, st);
+	}
+	else {
+	    ind = new ibis::sbiad(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::EGALE:
+	// multicomponent equality code on bins
+	if (st) {
+	    ind = new ibis::egale(c, st);
+	}
+	else {
+	    ind = new ibis::egale(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::MOINS:
+	// multicomponent equality code on bins
+	if (st) {
+	    ind = new ibis::moins(c, st);
+	}
+	else {
+	    ind = new ibis::moins(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::ENTRE:
+	// multicomponent equality code on bins
+	if (st) {
+	    ind = new ibis::entre(c, st);
+	}
+	else {
+	    ind = new ibis::entre(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::BAK:
+	// equality code on reduced precision values
+	if (st) {
+	    ind = new ibis::bak(c, st);
+	}
+	else {
+	    ind = new ibis::bak(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::BAK2:
+	// equality code on reduced precision values, split bins
+	if (st) {
+	    ind = new ibis::bak2(c, st);
+	}
+	else {
+	    ind = new ibis::bak2(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::KEYWORDS:
+	// boolean term-document matrix
+	if (st) {
+	    ind = new ibis::keywords(c, st);
+	}
+	else {
+	    ind = new ibis::keywords(c, f);
+	}
+	break;
+    case ibis::index::DIREKTE:
+	if (st) {
+	    ind = new ibis::direkte(c, st);
+	}
+	else {
+	    ind = new ibis::direkte(0);
+	    ind->col = c;
+	    int ierr = ind->read(f);
+	    if (ierr < 0) {
+		delete ind;
+		ind = 0;
+	    }
+	}
+	break;
+    case ibis::index::BYLT:
+	if (st) {
+	    ind = new ibis::bylt(c, st);
+	}
+	else {
+	    ind = new ibis::bylt(c, f);
+	}
+	break;
+    case ibis::index::ZONA:
+	if (st) {
+	    ind = new ibis::zona(c, st);
+	}
+	else {
+	    ind = new ibis::zona(c, f);
+	}
+	break;
+    case ibis::index::FUZZ:
+	if (st) {
+	    ind = new ibis::fuzz(c, st);
+	}
+	else {
+	    ind = new ibis::fuzz(c, f);
+	}
+	break;
+    case ibis::index::FUGE:
+	if (st) {
+	    ind = new ibis::fuge(c, st);
+	}
+	else {
+	    ind = new ibis::fuge(c, f);
+	}
+	break;
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- index::create can not process index type "
+	    << (int)t << " from " << f;
+    }
+    return ind;
+} // ibis::index::readOld
+
+/// Build a new index from attribute values.
+ibis::index* ibis::index::buildNew(const ibis::column *c,
+				   const char* dfname,
+				   const char* spec) {
+    if (c->type() == ibis::CATEGORY) {
+	// special handling
+	return reinterpret_cast<const ibis::category*>(c)->
+	    fillIndex(dfname);
+	//return ind;
+    }
+    else if (c->type() == ibis::TEXT) {
+	if (spec != 0 && *spec != 0)
+	    const_cast<column*>(c)->indexSpec(spec);
+	return new ibis::keywords(c, dfname);
+    }
+    if (spec == 0 || *spec == 0) {
+	switch (c->type()) {
+	case ibis::USHORT:
+	case ibis::SHORT:
+	case ibis::UBYTE:
+	case ibis::BYTE:
+	case ibis::UINT:
+	case ibis::INT:
+	case ibis::OID:
+	case ibis::ULONG:
+	case ibis::LONG:
+	case ibis::FLOAT:
+	case ibis::DOUBLE: {
+	    spec = "default";
+	    break;}
+	case ibis::CATEGORY: {
+	    spec = "direkte";
+	    break;}
+	case ibis::TEXT: {
+	    spec = "keywords delimiters=','";
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- index::create can not work with column type "
+		<< ibis::TYPESTRING[(int)c->type()];
+	    return 0;}
+	}
+    }
+    LOGGER(ibis::gVerbose > 3)
+	<< "index::create -- attempt to build a new index with spec `"
+	<< spec << "' and from "
+	<< (dfname ? dfname : c->partition()->currentDataDir())
+	<< " for column " << c->partition()->name() << '.' << c->name();
+
+    ibis::index *ind = 0;
+    const bool usebin = (strstr(spec, "bin") != 0 &&
+			 strstr(spec, "none") == 0);
+    uint32_t ncomp = 0;
+    const char* ptr = strstr(spec, "ncomp=");
+    if (ptr != 0) {
+	ptr += 6;
+	while (isspace(*ptr)) { // skip till the first digit
+	    ++ ptr;
+	}
+	if (*ptr) {
+	    if (isdigit(*ptr)) { // string --> number
+		ncomp = atoi(ptr);
+		if (ncomp == 0) {
+		    if (errno == EINVAL)
+			c->logMessage("createIndex",
+				      "atio(%s) failed", ptr);
+		    ncomp = 2; // default to 2
+		}
+	    }
+	    else {
+		ncomp = 1;
+	    }
+	}
+    }
+
+    bool dflt = false;
+    if (c->type() == ibis::CATEGORY) {
+	dflt = true;
+    }
+    else if (spec == 0) {
+	dflt = true;
+    }
+    else if (*spec == 0) {
+	dflt = true;
+    }
+    else if (strstr(spec, "automatic") != 0 ||
+	     strstr(spec, "default") != 0) {
+	dflt = true;
+    }
+    else {
+	dflt = (0 != isspace(*spec));
+    }
+
+    if (dflt) {
+	switch (c->type()) {
+	case ibis::ULONG:
+	case ibis::LONG:
+	case ibis::UINT:
+	case ibis::INT: {
+	    double amin = c->lowerBound();
+	    double amax = c->upperBound();
+	    if (amin >= amax && amin >= 0) {
+		const_cast<ibis::column*>(c)->computeMinMax();
+		amin = c->lowerBound();
+		amax = c->upperBound();
+	    }
+	    if (amax - amin < 1e3 ||
+		amax - amin < c->partition()->nRows()*0.1) {
+		if (amin >= 0.0 && amin <= ceil(amax*0.01))
+		    ind = new ibis::direkte(c, dfname);
+		else if (amax >= amin+1e2)
+		    ind = new ibis::fuzz(c, dfname);
+		else
+		    ind = new ibis::relic(c, dfname);
+	    }
+	    else {
+		ind = new ibis::bin(c, dfname);
+	    }
+	    break;}
+	case ibis::FLOAT:
+	case ibis::DOUBLE: {
+	    ind = new ibis::bin(c, dfname);
+	    break;}
+	case ibis::USHORT:
+	case ibis::SHORT:
+	case ibis::UBYTE:
+	case ibis::BYTE: {
+	    ind = new ibis::relic(c, dfname);
+	    break;}
+	case ibis::CATEGORY: {
+	    ind = reinterpret_cast<const ibis::category*>(c)->
+		fillIndex(dfname);
+	    break;}
+	case ibis::TEXT: {
+	    ind = new ibis::keywords(c, dfname);
+	    break;}
+	default: {
+	    c->logWarning("createIndex", "not able to "
+			  "generate for this column type");
+	    break;}
+	}
+    }
+    else if (ncomp > 1 || strstr(spec, "mcbin") != 0 ||
+	     strstr(spec, "multicomponent") != 0) {
+	INDEX_TYPE t = SAPID; // default to equality encoding
+	if (strstr(spec, "equal")) {
+	    t = SAPID;
+	}
+	else if (strstr(spec, "range")) {
+	    t = FADE;
+	}
+	else if (strstr(spec, "interval")) {
+	    t = SBIAD;
+	}
+	switch (t) {
+	default:
+	case SBIAD:
+	    if (usebin)
+		ind = new ibis::entre(c, dfname, ncomp);
+	    else
+		ind = new ibis::sbiad(c, dfname, ncomp);
+	    break;
+	case SAPID:
+	    if (usebin)
+		ind = new ibis::egale(c, dfname, ncomp);
+	    else
+		ind = new ibis::sapid(c, dfname, ncomp);
+	    break;
+	case FADE:
+	    if (usebin)
+		ind = new ibis::moins(c, dfname, ncomp);
+	    else
+		ind = new ibis::fade(c, dfname, ncomp);
+	    break;
+	}
+    }
+    else if (!usebin) { // <binning none> is specified explicitly
+	INDEX_TYPE t = RELIC;
+	const char* str = strstr(spec, "<encoding ");
+	if (str) {
+	    str += 10; // skip "<encoding "
+	    if (strstr(str, "range/equality") ||
+		strstr(str, "range-equality")) {
+		t = BYLT;
+	    }
+	    else if (strstr(str, "equality/equality") ||
+		     strstr(str, "equality-equality")) {
+		t = ZONA;
+	    }
+	    else if (strstr(str, "interval/equality") ||
+		     strstr(str, "interval-equality")) {
+		t = FUZZ;
+	    }
+	    else if (strstr(str, "equal")) {
+		t = SAPID;
+	    }
+	    else if (strstr(str, "interval")) {
+		t = SBIAD;
+	    }
+	    else if (strstr(str, "range")) {
+		t = FADE;
+	    }
+	    else if (strstr(str, "binary")) {
+		t = SKIVE;
+	    }
+	}
+	else if (stricmp(spec, "index=simple") == 0 ||
+		 stricmp(spec, "index=basic") == 0 ||
+		 strstr(spec, "relic") != 0) {
+	    t = RELIC;
+	}
+	else if (strstr(spec, "skive") != 0 ||
+		 strstr(spec, "binary") != 0) {
+	    t = SKIVE;
+	}
+	else if (strstr(spec, "slice") != 0) { // bit-slice, bitslice
+	    t = SLICE;
+	}
+	else {
+	    t = SAPID;
+	}
+	switch (t) {
+	default:
+	case SAPID:
+	    if (ncomp > 1)
+		ind = new ibis::sapid(c, dfname, ncomp);
+	    else if ((c->type() != ibis::FLOAT &&
+		      c->type() != ibis::DOUBLE &&
+		      c->type() != ibis::TEXT) &&
+		     c->lowerBound() >= 0.0 &&
+		     c->lowerBound() <=
+		     ceil(c->upperBound()*0.01) &&
+		     c->upperBound() <= c->partition()->nRows())
+		ind = new ibis::direkte(c, dfname);
+	    else
+		ind = new ibis::relic(c, dfname);
+	    break;
+	case RELIC:
+	    ind = new ibis::relic(c, dfname);
+	    break;
+	case FADE:
+	    ind = new ibis::fade(c, dfname, ncomp);
+	    break;
+	case SBIAD:
+	    ind = new ibis::sbiad(c, dfname, ncomp);
+	    break;
+	case SKIVE:
+	    ind = new ibis::skive(c, dfname);
+	    break;
+	case SLICE:
+	    ind = new ibis::slice(c, dfname);
+	    break;
+	case BYLT:
+	    ind = new ibis::bylt(c, dfname);
+	    break;
+	case ZONA:
+	    ind = new ibis::zona(c, dfname);
+	    break;
+	case FUZZ:
+	    ind = new ibis::fuzz(c, dfname);
+	    break;
+	}
+    }
+    else if (strstr(spec, "skive") != 0 ||
+	     strstr(spec, "binary") != 0) { // ibis::skive
+	ind = new ibis::skive(c, dfname);
+    }
+    else if (strstr(spec, "slice") != 0) { // ibis::slice
+	ind = new ibis::slice(c, dfname);
+    }
+    else if (stricmp(spec, "index=simple") == 0 ||
+	     stricmp(spec, "index=basic") == 0 ||
+	     strstr(spec, "relic") != 0) {
+	if ((c->type() != ibis::FLOAT &&
+	     c->type() != ibis::DOUBLE &&
+	     c->type() != ibis::TEXT) &&
+	    c->lowerBound() >= 0.0 &&
+	    c->lowerBound() <= ceil(c->upperBound()*0.01) &&
+	    c->upperBound() <= c->partition()->nRows())
+	    ind = new ibis::direkte(c, dfname);
+	else
+	    ind = new ibis::relic(c, dfname);
+    }
+    else if (strstr(spec, "fade") != 0 ||
+	     strstr(spec, "multi-range") != 0) {
+	ind = new ibis::fade(c, dfname);
+    }
+    else if (strstr(spec, "sapid") != 0 ||
+	     strstr(spec, "multi-equal") != 0) {
+	ind = new ibis::sapid(c, dfname);
+    }
+    else if (strstr(spec, "sbiad") != 0 ||
+	     strstr(spec, "multi-interval") != 0) {
+	ind = new ibis::sbiad(c, dfname);
+    }
+    else if (strstr(spec, "egale") != 0) {
+	ind = new ibis::egale(c, dfname);
+    }
+    else if (strstr(spec, "moins") != 0) {
+	ind = new ibis::moins(c, dfname);
+    }
+    else if (strstr(spec, "entre") != 0) {
+	ind = new ibis::entre(c, dfname);
+    }
+    else if (strstr(spec, "ambit") != 0 ||
+	     strstr(spec, "range/range") != 0 ||
+	     strstr(spec, "range-range") != 0) {
+	ibis::bin tmp(c, dfname);
+	ind = new ibis::ambit(tmp);
+	// ind = new ibis::ambit(c, dfname);
+    }
+    else if (strstr(spec, "pale") != 0 ||
+	     strstr(spec, "bin/range") != 0 ||
+	     strstr(spec, "equality-range") != 0) {
+	ibis::bin tmp(c, dfname);
+	ind = new ibis::pale(tmp);
+    }
+    else if (strstr(spec, "pack") != 0 ||
+	     strstr(spec, "range/bin") != 0 ||
+	     strstr(spec, "range/equality") != 0 ||
+	     strstr(spec, "range-equality") != 0) {
+	ibis::bin tmp(c, dfname);
+	ind = new ibis::pack(tmp);
+    }
+    else if (strstr(spec, "zone") != 0 ||
+	     strstr(spec, "bin/bin") != 0 ||
+	     strstr(spec, "equality/equality") != 0 ||
+	     strstr(spec, "equality-equality") != 0) {
+	ibis::bin tmp(c, dfname);
+	ind = new ibis::zone(tmp);
+    }
+    else if (strstr(spec, "interval/equality") != 0 ||
+	     strstr(spec, "interval-equality") != 0) {
+	ind = new ibis::fuge(c, dfname);
+    }
+    else if (strstr(spec, "bak2") != 0) {
+	ind = new ibis::bak2(c, dfname);
+    }
+    else if (strstr(spec, "bak") != 0) {
+	ind = new ibis::bak(c, dfname);
+    }
+    else if (strstr(spec, "mesa") != 0 ||
+	     strstr(spec, "interval") != 0 ||
+	     strstr(spec, "2sided") != 0) {
+	ibis::bin tmp(c, dfname);
+	ind = new ibis::mesa(tmp);
+    }
+    else if (strstr(spec, "range") != 0 ||
+	     strstr(spec, "cumulative") != 0) {
+	ind = new ibis::range(c, dfname);
+    }
+    else {
+	LOGGER(ibis::gVerbose > 1 && strstr(spec, "bin") == 0)
+	    << "Warning -- index::create can not understand index spec \""
+	    << spec << "\", use simple bins instead";
+	ind = new ibis::bin(c, dfname);
+    }
+
+    return ind;
+} // ibis::index::buildNew
 
 /// Constructor with a storage object.  Both the column object and the
 /// storage object are expected to be valid.
@@ -1490,6 +1125,48 @@ void ibis::index::clear() {
     // the pointer str can only be from a file and must be managed by the
     // fileManager and can not be deleted
 } // ibis::index::clear
+
+void ibis::index::printHeader(std::ostream &out, const char *header) const {
+    if (isprint(header[0]) != 0)
+	out << header[0];
+    else
+	out << "0x" << std::hex << (uint16_t) header[0] << std::dec;
+    out << ' ';
+    if (isprint(header[1]) != 0)
+	out << header[1];
+    else
+	out << "0x" << std::hex << (uint16_t) header[1] << std::dec;
+    out << ' ';
+    if (isprint(header[2]) != 0)
+	out << header[2];
+    else
+	out << "0x" << std::hex << (uint16_t) header[2] << std::dec;
+    out << ' ';
+    if (isprint(header[3]) != 0)
+	out << header[3];
+    else
+	out << "0x" << std::hex << (uint16_t) header[3] << std::dec;
+    out << ' ';
+    if (isprint(header[4]) != 0)
+	out << header[4];
+    else
+	out << "0x" << std::hex << (uint16_t) header[4] << std::dec;
+    out << ' ';
+    if (isprint(header[5]) != 0)
+	out << header[5];
+    else
+	out << "0x" << std::hex << (uint16_t) header[5] << std::dec;
+    out << ' ';
+    if (isprint(header[6]) != 0)
+	out << header[6];
+    else
+	out << "0x" << std::hex << (uint16_t) header[6] << std::dec;
+    out << ' ';
+    if (isprint(header[7]) != 0)
+	out << header[7];
+    else
+	out << "0x" << std::hex << (uint16_t) header[7] << std::dec;
+}
 
 /// Is the named file an index file?  Read the header of the named
 /// file to determine if it contains an index of the specified type.
@@ -1530,117 +1207,30 @@ bool ibis::index::isIndex(const char* f, ibis::index::INDEX_TYPE t) {
     return false;
 } // ibis::index::isIndex
 
-/// Generate data file name from "f"
+/// Generate data file name from "f".  Invokes ibis::column::dataFileName
+/// to do the actual work.
 void ibis::index::dataFileName(std::string& iname, const char* f) const {
     iname.clear();
-    if (col == 0) {
-	return;
-    }
-    if (f == 0) {
-	if (col->partition() != 0) {
-	    iname = col->partition()->currentDataDir();
-	    iname += FASTBIT_DIRSEP;
-	}
-	iname += col->name();
-    }
-    else {
-	uint32_t j = strlen(f);
-	bool isFile = false;
-	uint32_t i = strlen(col->name());
-	if (j >= i) {
-	    const char* tail = f + (j - i);
-	    isFile = (strcmp(tail, col->name()) == 0);
-	}
-	if (isFile) {
-	    iname = f;
-	}
-	else if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' &&
-		 f[j-3] == 'i' && f[j-4] == '.') { // index file name
-	    iname = f;
-	    iname.erase(j-4);
-	}
-	else { // check the existence of the file or direcotry
-	    Stat_T st0;
-	    if (UnixStat(f, &st0)) { // assume to be a file
-		iname = f;
-	    }
-	    else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
-		// named directory exist
-		iname = f;
-		iname += FASTBIT_DIRSEP;
-		iname += col->name();
-	    }
-	    else if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' &&
-		     f[j-3] == 'i' && f[j-4] == '.') { // index file name
-		iname = f;
-		iname.erase(j-4);
-	    }
-	    else { // given name is the data file name
-		iname = f;
-	    }
-	}
+    if (col != 0) {
+	(void) col->dataFileName(iname, f);
     }
 } // dataFileName
 
-// generates index file name from "f"
+/// Generates index file name from "f".  Invokes ibis::column::dataFileName
+/// to do most of the work.
 void ibis::index::indexFileName(std::string& iname, const char* f) const {
     iname.clear();
-    if (col == 0) return;
-    if (f == 0 || *f == 0) {
-	if (col->partition() != 0) {
-	    iname = col->partition()->currentDataDir();
-	    iname += FASTBIT_DIRSEP;
-	}
-	iname += col->name();
-	iname += ".idx";
-    }
-    else {
-	Stat_T st0;
-	if (UnixStat(f, &st0)) { // stat fails, use the name
-	    iname = f;
-	}
-	else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
-	    // named directory exist
-	    iname = f;
-	    iname += FASTBIT_DIRSEP;
-	    iname += col->name();
+    if (col != 0) {
+	(void) col->dataFileName(iname, f);
+	if (! iname.empty()) {
 	    iname += ".idx";
-	}
-	else {
-	    // use given name as the index file name if it is not
-	    // exactly the name as the column name
-	    uint32_t j = strlen(f);
-	    if (f[j-1] == 'x' && f[j-2] == 'd' && f[j-3] == 'i' &&
-		f[j-4] == '.') {
-		iname = f;
-	    }
-	    else {
-		bool isDFile = false;
-		uint32_t i = strlen(col->name());
-		const char* tail = f + (j - i);
-		if (j > i) {
-		    isDFile = ((tail[-1] == FASTBIT_DIRSEP) &&
-			       (strcmp(tail, col->name()) == 0));
-		}
-		else if (j == i) {
-		    isDFile = (strcmp(tail, col->name()) == 0);
-		}
-		if (isDFile) {
-		    iname = f;
-		    iname += ".idx";
-		}
-		else {
-		    iname = f;
-		}
-	    }
+	    LOGGER(ibis::gVerbose > 4)
+		<< "index::indexFileName will use \""
+		<< iname << "\" as the index file name for "
+		<< col->partition()->name() << '.'
+		<< col->name();
 	}
     }
-
-    LOGGER(ibis::gVerbose > 4)
-	<< "index::indexFileName will use \""
-	<< iname << "\" as the index file name for "
-	<< col->partition()->name() << '.'
-	<< col->name();
 } // indexFileName
 
 /// Generate the index file name for the composite index fromed on two

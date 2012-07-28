@@ -665,7 +665,7 @@ void ibis::mensa::orderby(const ibis::table::stringList& names,
 
 int64_t ibis::mensa::getColumnAsBytes(const char* cn, char* vals,
 				      uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     {
 	ibis::table::namesTypes::const_iterator nit = naty.find(cn);
@@ -702,7 +702,7 @@ int64_t ibis::mensa::getColumnAsBytes(const char* cn, char* vals,
 
 int64_t ibis::mensa::getColumnAsUBytes(const char* cn, unsigned char* vals,
 				       uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -737,7 +737,7 @@ int64_t ibis::mensa::getColumnAsUBytes(const char* cn, unsigned char* vals,
 
 int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals,
 				       uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -799,7 +799,7 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals,
 
 int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals,
 					uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -861,7 +861,7 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals,
 
 int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals,
 				     uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -988,7 +988,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals,
 
 int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals,
 				      uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -1076,7 +1076,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals,
 /// may create incorrect values.
 int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 				      uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -1216,6 +1216,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 	    irow += dp.nRows();
 	}
 	break;}
+    case ibis::OID:
     case ibis::LONG:
     case ibis::ULONG: {
 	array_t<int64_t> tmp;
@@ -1249,7 +1250,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 /// integers will be treated as unsigned integers.
 int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
 				       uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -1326,6 +1327,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
 	    irow += dp.nRows();
 	}
 	break;}
+    case ibis::OID:
     case ibis::LONG:
     case ibis::ULONG: {
 	array_t<uint64_t> tmp;
@@ -1359,7 +1361,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
 /// floats.
 int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals,
 				       uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -1487,7 +1489,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals,
 /// safely.  Float values may also be converted into doubles.
 int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 					uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -1680,7 +1682,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
 					std::vector<double>& vals,
 					uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -1905,12 +1907,13 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn,
     return ival;
 } // ibis::mensa::getColumnAsDoubles
 
-/// @note Any data type can be converted to strings, however, the
-/// conversion may take a significant amount of time.
+/// Convert values to their string form.  Many data types can be converted
+/// to strings, however, the conversion may take a significant amount of
+/// time.
 int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 					std::vector<std::string>& vals,
 					uint64_t begin, uint64_t end) const {
-    if (end > begin) end = nrows;
+    if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
     ibis::table::namesTypes::const_iterator nit = naty.find(cn);
     if (nit == naty.end())
@@ -2118,6 +2121,7 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 	    irow += dp.nRows();
 	}
 	break;}
+    case ibis::OID:
     case ibis::ULONG: {
 	array_t<uint64_t> tmp;
 	uint64_t irow = 0;
@@ -2231,6 +2235,334 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
     }
     return ival;
 } // ibis::mensa::getColumnAsStrings
+
+int64_t ibis::mensa::getColumnAsOpaques(const char* cn,
+					std::vector<ibis::opaque>& vals,
+					uint64_t begin, uint64_t end) const {
+    if (end == 0 || end > nrows) end = nrows;
+    if (begin >= end) return 0;
+    ibis::table::namesTypes::const_iterator nit = naty.find(cn);
+    if (nit == naty.end())
+	return -1;
+    try {
+	vals.resize(end-begin);
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- mensa::getColumnAsOpaques failed to "
+	    "allocate space for the output std::vector<ibis::opaque>("
+	    << end-begin << ')';
+	vals.clear();
+	return -5;
+    }
+
+    uint64_t ival = 0;
+    switch ((*nit).second) {
+    case ibis::BYTE: {
+	array_t<signed char> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(char));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::UBYTE: {
+	array_t<unsigned char> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(char));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::SHORT: {
+	array_t<int16_t> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(int16_t));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::USHORT: {
+	array_t<uint16_t> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(int16_t));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::INT: {
+	array_t<int32_t> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(int32_t));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::UINT: {
+	array_t<uint32_t> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(int32_t));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(int64_t));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::OID:
+    case ibis::ULONG: {
+	array_t<uint64_t> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(uint64_t));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::FLOAT: {
+	array_t<float> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(float));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::DOUBLE: {
+	array_t<double> tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+		if (col->getValuesArray(&tmp) < 0)
+		    return -4;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    vals[ival].copy((const char*)(&(tmp[i0])), sizeof(double));
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	std::string tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    if (col->getString(i0, tmp) >= 0)
+			vals[ival].copy(tmp.data(), tmp.size());
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    case ibis::BLOB: {
+	ibis::opaque tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
+
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    if (col->getOpaque(i0, tmp) >= 0)
+			vals[ival].assign(tmp);
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
+    default:
+	return -2;
+    }
+    return ival;
+} // ibis::mensa::getColumnAsOpaques
 
 double ibis::mensa::getColumnMin(const char* cn) const {
     double ret = DBL_MAX;
@@ -2462,6 +2794,7 @@ ibis::mensa::cursor::cursor(const ibis::mensa& t)
 	case ibis::UINT:
 	case ibis::FLOAT:
 	    row_width += 4; break;
+	case ibis::OID:
 	case ibis::LONG:
 	case ibis::ULONG:
 	case ibis::DOUBLE:
@@ -2561,6 +2894,7 @@ int ibis::mensa::cursor::fillBuffer(uint32_t i) const {
 	ierr = col->selectValues
 	    (mask, static_cast< array_t<int64_t>* >(buffer[i].cval));
 	break;}
+    case ibis::OID:
     case ibis::ULONG: {
      if (buffer[i].cval == 0)
 	 buffer[i].cval = new array_t<uint64_t>;
@@ -2627,6 +2961,7 @@ int ibis::mensa::cursor::fillBuffers() const {
 		cnt += (static_cast<const array_t<int64_t>* >
 			(buffer[i].cval)->empty() == false);
 		break;}
+	    case ibis::OID:
 	    case ibis::ULONG: {
 		cnt += (static_cast<const array_t< uint64_t >* >
 			(buffer[i].cval)->empty() == false);
@@ -2698,6 +3033,7 @@ void ibis::mensa::cursor::clearBuffers() {
 	case ibis::LONG:
 	    static_cast<array_t<int64_t>*>(buffer[i].cval)->clear();
 	    break;
+	case ibis::OID:
 	case ibis::ULONG:
 	    static_cast<array_t<uint64_t>*>(buffer[i].cval)->clear();
 	    break;
@@ -2863,6 +3199,7 @@ void ibis::mensa::cursor::fillRow(ibis::table::row& res) const {
 		res.longsvalues.push_back(0x7FFFFFFFFFFFFFFFLL);
 	    }
 	    break;}
+	case ibis::OID:
 	case ibis::ULONG: {
 	    res.ulongsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval != 0) {
@@ -3160,6 +3497,7 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, uint32_t i,
 	    = static_cast<const array_t<int64_t>*>(buffer[j].cval);
 	out << (*tmp)[i];
 	break;}
+    case ibis::OID:
     case ibis::ULONG: {
 	if (buffer[j].cval == 0) return -1; // null value
 	const array_t<uint64_t> *tmp 
@@ -3481,6 +3819,7 @@ int ibis::mensa::cursor::getColumnAsLong(uint32_t j, int64_t& val) const {
 	    [curRow - bBegin];
 	ierr = 0;
 	break;}
+    case ibis::OID:
     case ibis::LONG:
     case ibis::ULONG: {
 	val = (*(static_cast<array_t<int64_t>*>(buffer[j].cval)))
@@ -3522,6 +3861,7 @@ int ibis::mensa::cursor::getColumnAsULong(uint32_t j, uint64_t& val) const {
 	    [curRow - bBegin];
 	ierr = 0;
 	break;}
+    case ibis::OID:
     case ibis::LONG:
     case ibis::ULONG: {
 	val = (*(static_cast<array_t<uint64_t>*>(buffer[j].cval)))
@@ -3678,6 +4018,7 @@ int ibis::mensa::cursor::getColumnAsString(uint32_t j, std::string& val) const {
 	val = oss.str();
 	ierr = 0;
 	break;}
+    case ibis::OID:
     case ibis::ULONG: {
 	oss << (*(static_cast<array_t<uint64_t>*>(buffer[j].cval)))[irow];
 	val = oss.str();
@@ -3734,6 +4075,114 @@ int ibis::mensa::cursor::getColumnAsString(uint32_t j, std::string& val) const {
     return ierr;
 } // ibis::mensa::cursor::getColumnAsString
 
+int
+ibis::mensa::cursor::getColumnAsOpaque(uint32_t j, ibis::opaque& val) const {
+    if (curRow < 0 || curPart >= tab.parts.size() || j > tab.nColumns())
+	return -1;
+    int ierr = 0;
+    if (static_cast<uint64_t>(curRow) == bBegin)
+	ierr = fillBuffer(j);
+    if (ierr < 0 || buffer[j].cval == 0)
+	return -2;
+
+    const uint32_t irow = static_cast<uint32_t>(curRow-bBegin);
+    std::ostringstream oss;
+    switch (buffer[j].ctype) {
+    case ibis::BYTE: {
+	val.copy((const char*)
+		 ((static_cast<array_t<signed char>*>
+		   (buffer[j].cval))->begin()+irow), sizeof(char));
+	ierr = 0;
+	break;}
+    case ibis::UBYTE: {
+	val.copy((const char*)
+		 ((static_cast<array_t<unsigned char>*>
+		   (buffer[j].cval))->begin()+irow), sizeof(char));
+	ierr = 0;
+	break;}
+    case ibis::SHORT: {
+	val.copy((const char*)
+		 ((static_cast<array_t<int16_t>*>(buffer[j].cval))
+		  ->begin()+irow), sizeof(int16_t));
+	ierr = 0;
+	break;}
+    case ibis::USHORT: {
+	val.copy((const char*)
+		 ((static_cast<array_t<uint16_t>*>(buffer[j].cval))
+		  ->begin()+irow), sizeof(int16_t));
+	ierr = 0;
+	break;}
+    case ibis::INT: {
+	val.copy((const char*)
+		 ((static_cast<array_t<int32_t>*>(buffer[j].cval))
+		  ->begin()+irow), sizeof(int32_t));
+	ierr = 0;
+	break;}
+    case ibis::UINT: {
+	val.copy((const char*)
+		 ((static_cast<array_t<uint32_t>*>(buffer[j].cval))
+		  ->begin()+irow), sizeof(int32_t));
+	ierr = 0;
+	break;}
+    case ibis::LONG: {
+	val.copy((const char*)
+		 ((static_cast<array_t<int64_t>*>(buffer[j].cval))
+		  ->begin()+irow), sizeof(int64_t));
+	ierr = 0;
+	break;}
+    case ibis::OID:
+    case ibis::ULONG: {
+	val.copy((const char*)
+		 ((static_cast<array_t<uint64_t>*>(buffer[j].cval))
+		  ->begin()+irow), sizeof(int64_t));
+	break;}
+    case ibis::FLOAT: {
+	val.copy((const char*)
+		 ((static_cast<array_t<float>*>(buffer[j].cval))
+		  ->begin()+irow), sizeof(float));
+	ierr = 0;
+	break;}
+    case ibis::DOUBLE: {
+	val.copy((const char*)
+		 ((static_cast<array_t<double>*>(buffer[j].cval))
+		  ->begin()+irow), sizeof(double));
+	ierr = 0;
+	break;}
+    case ibis::CATEGORY:
+    case ibis::TEXT: {
+	const ibis::column* col =
+	    tab.parts[curPart]->getColumn(buffer[j].cname);
+	if (col != 0) {
+	    std::string tmp;
+	    ierr = col->getString(static_cast<uint32_t>(curRow-pBegin), tmp);
+	    if (ierr >= 0)
+		val.copy(tmp.data(), tmp.size());
+	}
+	else {
+	    ierr = -1;
+	}
+	break;}
+    case ibis::BLOB: {
+	ibis::opaque tmp;
+	const ibis::column* blo =
+	    tab.parts[curPart]->getColumn(buffer[j].cname);
+	if (blo != 0) {
+	    ierr = blo->getOpaque(static_cast<uint32_t>(curRow-pBegin), tmp);
+	    if (ierr >= 0) {
+		val.assign(tmp);
+	    }
+	}
+	else {
+	    ierr = -3;
+	}
+	break;}
+    default: {
+	ierr = -1;
+	break;}
+    }
+    return ierr;
+} // ibis::mensa::cursor::getColumnAsOpaque
+
 /// Destructor for bufferElement.
 ibis::mensa::cursor::bufferElement::~bufferElement() {
     switch (ctype) {
@@ -3763,6 +4212,7 @@ ibis::mensa::cursor::bufferElement::~bufferElement() {
     case ibis::LONG:
 	delete static_cast<array_t<int64_t>*>(cval);
 	break;
+    case ibis::OID:
     case ibis::ULONG:
 	delete static_cast<array_t<uint64_t>*>(cval);
 	break;

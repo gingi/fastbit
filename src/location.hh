@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.5.  */
+/* A Bison parser, made by GNU Bison 2.6.  */
 
 /* Locations for Bison parsers in C++
    
-      Copyright (C) 2002-2007, 2009-2011 Free Software Foundation, Inc.
+      Copyright (C) 2002-2007, 2009-2012 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@
  ** Define the ibis::location class.
  */
 
-#ifndef BISON_LOCATION_HH
-# define BISON_LOCATION_HH
+#ifndef IBIS_LOCATION_HH
+# define IBIS_LOCATION_HH
 
 # include <iostream>
 # include <string>
@@ -45,7 +45,7 @@
 
 namespace ibis {
 
-/* Line 162 of location.cc  */
+/* Line 166 of location.cc  */
 #line 50 "location.hh"
 
   /// Abstract a location.
@@ -53,17 +53,36 @@ namespace ibis {
   {
   public:
 
-    /// Construct a location.
-    location ()
-      : begin (), end ()
+    /// Construct a location from \a b to \a e.
+    location (const position& b, const position& e)
+      : begin (b)
+      , end (e)
+    {
+    }
+
+    /// Construct a 0-width location in \a p.
+    explicit location (const position& p = position ())
+      : begin (p)
+      , end (p)
+    {
+    }
+
+    /// Construct a 0-width location in \a f, \a l, \a c.
+    explicit location (std::string* f,
+                       unsigned int l = 1u,
+                       unsigned int c = 1u)
+      : begin (f, l, c)
+      , end (f, l, c)
     {
     }
 
 
     /// Initialization.
-    inline void initialize (std::string* fn)
+    void initialize (std::string* f = YY_NULL,
+                     unsigned int l = 1u,
+                     unsigned int c = 1u)
     {
-      begin.initialize (fn);
+      begin.initialize (f, l, c);
       end = begin;
     }
 
@@ -71,19 +90,19 @@ namespace ibis {
      ** \{ */
   public:
     /// Reset initial location to final location.
-    inline void step ()
+    void step ()
     {
       begin = end;
     }
 
     /// Extend the current location to the COUNT next columns.
-    inline void columns (unsigned int count = 1)
+    void columns (unsigned int count = 1)
     {
       end += count;
     }
 
     /// Extend the current location to the COUNT next lines.
-    inline void lines (unsigned int count = 1)
+    void lines (unsigned int count = 1)
     {
       end.lines (count);
     }
@@ -158,7 +177,7 @@ namespace ibis {
 
 } // ibis
 
-/* Line 271 of location.cc  */
-#line 163 "location.hh"
+/* Line 294 of location.cc  */
+#line 182 "location.hh"
 
-#endif // not BISON_LOCATION_HH
+#endif /* !IBIS_LOCATION_HH  */

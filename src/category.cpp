@@ -242,6 +242,8 @@ void ibis::category::prepareMembers() const {
 	delete idx;
 	idx = 0;
 	(void) fillIndex();
+	if (idx != 0)
+	    (void) idx->write(thePart->currentDataDir());
     }
 } // ibis::category::prepareMembers
 
@@ -600,6 +602,7 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
     return ierr;
 } // ibis::category::setDictionary
 
+/// Find rows with the exact string as the argument.
 long ibis::category::stringSearch(const char* str,
 				  ibis::bitvector& hits) const {
     prepareMembers();
@@ -633,6 +636,7 @@ long ibis::category::stringSearch(const char* str,
     return hits.sloppyCount();
 } // ibis::category::stringSearch
 
+/// Estimate an upper bound on the number of apparence of the given string.
 long ibis::category::stringSearch(const char* str) const {
     long ret;
     prepareMembers();
@@ -677,7 +681,7 @@ double ibis::category::estimateCost(const ibis::qString& qstr) const {
     return ret;
 } // ibis::category::estimateCost
 
-double ibis::category::estimateCost(const ibis::qMultiString& qstr) const {
+double ibis::category::estimateCost(const ibis::qAnyString& qstr) const {
     double ret = 0;
     prepareMembers();
     indexLock lock(this, "category::estimateCost");
@@ -704,6 +708,8 @@ double ibis::category::estimateCost(const ibis::qLike &cmp) const {
     return patternSearch(cmp.pattern());
 } // ibis::category::estimateCost
 
+/// Locate the position of the rows with values matching of the string
+/// values.
 long ibis::category::stringSearch(const std::vector<std::string>& strs,
 				  ibis::bitvector& hits) const {
     if (strs.empty()) {
@@ -755,6 +761,8 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs,
     return hits.sloppyCount();
 } // ibis::category::stringSearch
 
+/// Estimate an upper bound of the number of rows matching any of the given
+/// strings.
 long ibis::category::stringSearch(const std::vector<std::string>& strs) const {
     long ret = thePart->nRows();
     if (strs.empty()) {
@@ -878,9 +886,9 @@ long ibis::category::patternSearch(const char *pat,
 /// Return the string at the <code>i</code>th row.  If the .int file is
 /// present, it will be used, otherwise this function uses the raw data
 /// file.
-void ibis::category::getString(uint32_t i, std::string &str) const {
+int ibis::category::getString(uint32_t i, std::string &str) const {
     str.clear();
-    if (i == 0) return; // nothing else to do
+    if (i == 0) return 0; // nothing else to do
 
     if (i > dic.size())
 	prepareMembers();
@@ -895,10 +903,10 @@ void ibis::category::getString(uint32_t i, std::string &str) const {
 	    if (i < ints.size()) {
 		str = dic[ints[i]];
 	    }
-	    return;
+	    return 0;
 	}
     }
-    ibis::text::readString(i, str);
+    return ibis::text::readString(i, str);
 } // ibis::category::getString
 
 /// This function makes sure the index is ready.  It can also be called to
@@ -1206,6 +1214,8 @@ long ibis::category::append(const char* dt, const char* df,
 		    if (ind.getNRows() > 0)
 			purgeIndexFile(dt);
 		    (void) fillIndex(dt);
+		    if (idx != 0)
+			(void) idx->write(dt);
 		}
 	    }
 	    else if (nold == 0) { // only need to copy the pointer
@@ -1221,6 +1231,8 @@ long ibis::category::append(const char* dt, const char* df,
 		if (ind.getNRows() > 0)
 		    purgeIndexFile(dt);
 		(void) fillIndex(dt);
+		if (idx != 0)
+		    (void) idx->write(dt);
 	    }
 	    delete binp;
 	}
@@ -1230,6 +1242,8 @@ long ibis::category::append(const char* dt, const char* df,
 			   "data in %s, start scanning all records in %s",
 			   df, dt);
 	    (void) fillIndex(dt);
+	    if (idx != 0)
+		(void) idx->write(dt);
 	}
     }
     catch (...) {
@@ -1237,6 +1251,8 @@ long ibis::category::append(const char* dt, const char* df,
 	    logMessage("append", "absorbed an exception while extending "
 		       "the index, start scanning all records in %s", dt);
 	(void) fillIndex(dt);
+	if (idx != 0)
+	    (void) idx->write(dt);
     }
     ret = cnt;
 
@@ -1707,20 +1723,9 @@ long ibis::text::append(const char* dt, const char* df,
     return ret;
 } // ibis::text::append
 
-long ibis::text::patternSearch(const char*) const {
-    return (thePart ? (long)thePart->nRows() : -1);
-} // ibis::text::patternSearch
-
-long ibis::text::stringSearch(const char*) const {
-    return (thePart ? (long)thePart->nRows() : -1);
-} // ibis::text::stringSearch
-
-long ibis::text::stringSearch(const std::vector<std::string>&) const {
-    return (thePart ? (long)thePart->nRows() : -1);
-} // ibis::text::stringSearch
-
 /// Given a string literal, return a bitvector that marks the strings that
-/// matche it.
+/// matche it.  This is a relatively slow process since this function
+/// actually reads the string values from disk.
 long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
     hits.clear(); // clear the existing content of hits
     if (thePart == 0) return -1L;
@@ -1857,9 +1862,12 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 	}
     }
     else if (spbuf.size() > 1)  { // normal strings, use the second buffer
-	std::string pat = str; // convert to lower case
+	std::string pat = str;
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
+	// convert to lower case
 	for (uint32_t i = 0; i < pat.length(); ++ i)
 	    pat[i] = tolower(pat[i]);
+#endif
 	const uint32_t slen = pat.length() + 1;
 	uint32_t jsp, nsp;
 	ierr = fread(spbuf.address(), sizeof(int64_t), spbuf.size(), fsp);
@@ -1874,9 +1882,10 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 	nsp = ierr;
 	next = spbuf[0];
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 	    for (long j = 0; j < jbuf; ++ j) // convert to lower case
 		buf[j] = tolower(buf[j]);
-
+#endif
 	    bool moresp = true;
 	    if (next > begin+jbuf) {
 		LOGGER(ibis::gVerbose >= 0)
@@ -1918,9 +1927,8 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 #if _DEBUG+0 > 1 || DEBUG+0 > 1
 		if (ibis::gVerbose > 5) {
 		    ibis::util::logger lg(4);
-		    lg()
-			<< "DEBUG -- " << evt << " processing string "
-			<< irow << " \'";
+		    lg() << "DEBUG -- " << evt << " processing string "
+			 << irow << " \'";
 		    for (long i = curr; i < next-1; ++ i)
 			lg() << buf[i-begin];
 		    lg() << "\'";
@@ -2012,15 +2020,19 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 	}
     }
     else { // normal null-terminated strings
-	std::string pat = str; // convert the string to be search to lower case
+	std::string pat = str;
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
+	// convert the string to be search to lower case
 	for (uint32_t i = 0; i < pat.length(); ++ i)
 	    pat[i] = tolower(pat[i]);
+#endif
 	const uint32_t slen = pat.length() + 1;
 	ierr = fread(&next, sizeof(next), 1, fsp);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 	    for (long j = 0; j < jbuf; ++ j) // convert to lower case
 		buf[j] = tolower(buf[j]);
-
+#endif
 	    bool moresp = true;
 	    if (next > begin+jbuf) {
 		LOGGER(ibis::gVerbose >= 0)
@@ -2102,8 +2114,10 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
     return hits.cnt();
 } // ibis::text::stringSearch
 
-/// Given a group of string literals, return a bitvector that matches
-/// anyone of the input strings.
+/// Locate the rows match any of the given strings.
+///
+/// Return the number of hits upon successful completion of this function,
+/// otherwise return a negative number to indicate error.
 long ibis::text::stringSearch(const std::vector<std::string>& strs,
 			      ibis::bitvector& hits) const {
     if (strs.empty()) {
@@ -2211,7 +2225,11 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 		const char *str = buf + (curr - begin);
 		bool match = false;
 		for (uint32_t i = 0; i < strs.size() && match == false; ++ i) {
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 		    match = stricmp(strs[i].c_str(), str);
+#else
+		    match = strcmp(strs[i].c_str(), str);
+#endif
 		}
 		if (match)
 		    hits.setBit(irow, 1);
@@ -2268,7 +2286,11 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 		const char *str = buf + (curr - begin);
 		bool match = false;
 		for (uint32_t i = 0; i < strs.size() && match == false; ++ i) {
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 		    match = stricmp(strs[i].c_str(), str);
+#else
+		    match = strcmp(strs[i].c_str(), str);
+#endif
 		}
 		if (match)
 		    hits.setBit(irow, 1);
@@ -2823,11 +2845,11 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
 /// from the .sp file to read the position of the string in the second file
 /// and the second file contains the actual string values (with nil
 /// terminators).  This can be quite slow!
-void ibis::text::readString(uint32_t i, std::string &ret) const {
+int ibis::text::readString(uint32_t i, std::string &ret) const {
     ret.clear();
     if (thePart == 0 || i >= thePart->nRows() ||
 	thePart->currentDataDir() == 0 ||
-	*(thePart->currentDataDir()) == 0) return;
+	*(thePart->currentDataDir()) == 0) return -1;
     std::string fnm = thePart->currentDataDir();
     fnm += FASTBIT_DIRSEP;
     fnm += m_name;
@@ -2843,7 +2865,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	if (des < 0) {
 	    logWarning("readString", "failed to open file \"%s\"",
 		       fnm.c_str());
-	    return;
+	    return -2;
 	}
     }
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -2857,7 +2879,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	if (des < 0) {
 	    logWarning("readString", "failed to open file \"%s\"",
 		       fnm.c_str());
-	    return;
+	    return -3;
 	}
 
 	ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
@@ -2866,7 +2888,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 		<< "Warning -- text::readString(" << i << ") failed to seek to "
 		<< i*sizeof(int64_t) << " in " << fnm;
 	    (void) UnixClose(des);
-	    return;
+	    return -4;
 	}
     }
     ierr = UnixRead(des, &positions, sizeof(positions));
@@ -2877,7 +2899,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	if (des < 0) {
 	    logWarning("readString", "failed to open file \"%s\"",
 		       fnm.c_str());
-	    return;
+	    return -5;
 	}
 
 	ierr = UnixSeek(des, i*sizeof(int64_t), SEEK_SET);
@@ -2886,7 +2908,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 		<< "Warning -- text::readString(" << i << ") failed to seek to "
 		<< i*sizeof(int64_t) << " in " << fnm;
 	    (void) UnixClose(des);
-	    return;
+	    return -6;
 	}
 
 	ierr = UnixRead(des, &positions, sizeof(positions));
@@ -2895,7 +2917,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 		<< "Warning -- text::readString(" << i << ") failed to read "
 		<< sizeof(positions) << " bytes from " << fnm;
 	    (void) UnixClose(des);
-	    return;
+	    return -7;
 	}
     }
     (void) UnixClose(des);
@@ -2907,7 +2929,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
     if (datafile < 0) {
 	logWarning("readString", "failed to open file \"%s\"",
 		   fnm.c_str());
-	return;
+	return -8;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(datafile, _O_BINARY);
@@ -2917,7 +2939,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- text::readString(" << i << ") failed to seek to "
 	    << *positions << " in file " << fnm;
-	return;
+	return -9;
     }
     char buf[1025];
     buf[1024] = 0;
@@ -2940,6 +2962,7 @@ void ibis::text::readString(uint32_t i, std::string &ret) const {
     }
     (void) UnixClose(datafile);
     ibis::fileManager::instance().recordPages(positions[0], positions[1]);
+    return 0;
 } // ibis::text::readString
 
 /// If the input string is found in the data file, it is returned, else
@@ -3049,13 +3072,18 @@ const char* ibis::text::findString(const char *str) const {
 	    }
 	    while (begin+jbuf >= next) {
 		bool match = (curr+slen+1 == next); // the same length
-		// the actual string match is case-insensitive
-		for (long i = curr; i < next-1 && match; ++ i)
-		    match = (buf[i-begin] == str[i-curr] ||
-			     (islower(buf[i-begin]) &&
-			      buf[i-begin] == tolower(str[i-curr])) ||
-			     (isupper(buf[i-begin]) &&
-			      buf[i-begin] == toupper(str[i-curr])));
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
+		// case-insensitive match
+		match = strnicmp(buf+begin, str+curr, next-curr-1);
+#else
+		match = strncmp(buf+begin, str+curr, next-curr-1);
+#endif
+		// for (long i = curr; i < next-1 && match; ++ i)
+		//     match = (buf[i-begin] == str[i-curr] ||
+		// 	     (islower(buf[i-begin]) &&
+		// 	      buf[i-begin] == tolower(str[i-curr])) ||
+		// 	     (isupper(buf[i-begin]) &&
+		// 	      buf[i-begin] == toupper(str[i-curr])));
 		if  (match) {
 		    found = true;
 		    break;
@@ -3089,6 +3117,14 @@ const char* ibis::text::findString(const char *str) const {
     else
 	return 0;
 } // ibis::text::findString
+
+int ibis::text::getOpaque(uint32_t irow, ibis::opaque &val) const {
+    std::string str;
+    int ierr = getString(irow, str);
+    if (ierr < 0) return ierr;
+    val.copy(str.data(), str.size());
+    return ierr;
+} // ibis::text::getOpaque
 
 /// Locate the ID column for processing term-document list provided by the
 /// user.  This function checks indexSpec first for docIDName=xx for the
@@ -3225,9 +3261,9 @@ void ibis::text::delimitersForKeywordIndex(std::string& fname) const {
 long ibis::text::keywordSearch(const char* str, ibis::bitvector& hits) const {
     long ierr = 0;
     try {
-	startPositions(0, 0, 0);
+	// startPositions(0, 0, 0); // loadIndex already does this
 	indexLock lock(this, "keywordSearch");
-	if (idx) {
+	if (idx != 0 && idx->type() == ibis::index::KEYWORDS) {
 	    ierr = reinterpret_cast<ibis::keywords*>(idx)->search(str, hits);
 	}
 	else {
@@ -3243,10 +3279,53 @@ long ibis::text::keywordSearch(const char* str, ibis::bitvector& hits) const {
 long ibis::text::keywordSearch(const char* str) const {
     long ierr = 0;
     try {
-	startPositions(0, 0, 0);
+	//startPositions(0, 0, 0);
 	indexLock lock(this, "keywordSearch");
-	if (idx) {
+	if (idx != 0 && idx->type() == ibis::index::KEYWORDS) {
 	    ierr = reinterpret_cast<ibis::keywords*>(idx)->search(str);
+	}
+	else {
+	    ierr = -2;
+	}
+    }
+    catch (...) {
+	ierr = -1;
+    }
+    return ierr;
+} // ibis::text::keywordSearch
+
+long ibis::text::keywordSearch(const std::vector<std::string> &strs,
+			       ibis::bitvector& hits) const {
+    long ierr = 0;
+    try {
+	if (strs.empty()) {
+	    getNullMask(hits);
+	    return ierr;
+	}
+
+	indexLock lock(this, "keywordSearch");
+	if (idx != 0 && idx->type() == ibis::index::KEYWORDS) {
+	    ierr = reinterpret_cast<ibis::keywords*>(idx)->search(strs, hits);
+	}
+	else {
+	    ierr = -2;
+	}
+    }
+    catch (...) {
+	ierr = -1;
+    }
+    return ierr;
+} // ibis::text::keywordSearch
+
+long ibis::text::keywordSearch(const std::vector<std::string> &strs) const {
+    long ierr = 0;
+    try {
+	if (strs.empty())
+	    return (thePart != 0 ? thePart->nRows() : LONG_MAX);
+
+	indexLock lock(this, "keywordSearch");
+	if (idx != 0 && idx->type() == ibis::index::KEYWORDS) {
+	    ierr = reinterpret_cast<ibis::keywords*>(idx)->search(strs);
 	}
 	else {
 	    ierr = -2;
@@ -3264,7 +3343,7 @@ double ibis::text::estimateCost(const ibis::qString& cmp) const {
     return ret;
 } // ibis::text::estimateCost
 
-double ibis::text::estimateCost(const ibis::qMultiString& cmp) const {
+double ibis::text::estimateCost(const ibis::qAnyString& cmp) const {
     double ret = partition()->nRows() *
 	static_cast<double>(sizeof(uint64_t));
     return ret;

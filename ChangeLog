@@ -1,3 +1,46 @@
+2012-07-27 John Wu <John dot Wu at ACM dot org>
+	* src/tafel.cpp:3011-3013 comment out the code that skips the next
+	delimiter because the readString and friends have done it already
+	* src/column.cpp:597 make sure jtmp is less then string length
+	* src/index.cpp: change dataFileName and indexFileName to use
+	ibis::column::dataFileName
+	* src/whereParser.yy: change CONTAINS operator to be in-fix
+	similar to the IN operator
+	* src/table.h, src/tab.h, src/bord.h, src/mensa.h: add function to
+	retrieve data as ibis::opaque
+	* src/column.h, src/category.h: add getOpaque, change getString to
+	return an int
+
+2012-07-26 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp:225 add case to explicit handle "unsigned" and
+	"unsigned int"
+	* src/ikeywords.h, src/ikeywords.cpp: add function reorderTerms
+	* src/part.h, src/part.cpp: rename lookforString to stringSearch
+	to match the named used in ibis::column, add functions
+	keywordSearch
+	* src/column.h, src/column.cpp: add two variations of
+	keywordSearch that takes a list of keywords (for handling
+	ibis::qAllWords)
+	* src/util.h: change FASTBIT_CS_PATTERN_MATCH to
+	FASTBIT_CASE_SENSITIVE_COMPARE and change string comparisons in
+	category.cpp to follow this macro as well
+	* src/index.cpp: reorganize index::create to make sure the keyword
+	index is written to disk after it is created (the previous version
+	was simply too disorganized)
+
+2012-07-25 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: add indexing option bit-slice to more-check
+	to exercise the new ibis::slice class
+	* src/qExpr.h: rename qMultiString to qAnyString, add qKeyword and
+	qAllWords
+	* src/whereLexer.ll: add keyword CONTAINS
+	* src/whereParser.yy: add rules to accept CONTAINS command (a
+	simplified version of the CONTAINS command supported by MS SQL
+	server)
+	* src/util.cpp: in readString, readInt, readUInt and readDouble,
+	skip the trailing delimiter if it is present after successfully
+	reading the intended value
+
 2012-07-24 John Wu <John dot Wu at ACM dot org>
 	* src/islice.cpp: add ibis::slice to implement a proper bit-slice
 	index (no repacking of the keyvalues)

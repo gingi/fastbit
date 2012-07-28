@@ -4989,8 +4989,9 @@ int main(int argc, char** argv) {
 	    timer1.stop();
 	    if (ibis::gVerbose >= 0) {
 		ibis::util::logger lg;
-		lg() << *argv << ": building indexes for " << ibis::datasets.size()
-		     << " data partition" << (ibis::datasets.size()>1 ? "s" : "");
+		lg() << *argv << ": building indexes for "
+		     << ibis::datasets.size() << " data partition"
+		     << (ibis::datasets.size()>1 ? "s" : "");
 		if (ibis::gVerbose > 0)
 		    lg() << " took " << timer1.CPUTime() << " CPU seconds, "
 			 << timer1.realTime() << " elapsed seconds\n";

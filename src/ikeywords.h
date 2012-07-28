@@ -11,14 +11,19 @@
 #include "index.h"	// base index class
 #include "category.h"	// definitions of string-valued columns
 
-/// Class ibis::keywords defines a boolean term-document matrix.  The
-/// terms are stored in an ibis::dictionary and the bitmaps are stored in a
-/// series of bitvectors.
+/// Class ibis::keywords defines a boolean term-document matrix.  The terms
+/// are stored in an ibis::dictionary and the columns of the matrix are
+/// stored in a series of bitvectors.  The name term-document matrix is
+/// borrowed from literature about indexing documents.  In this context, a
+/// document is a row of the text column and each document ID is either
+/// stored in another column of unsigned integers or simply the ordinal
+/// number of the row.
 ///
-/// The current implementation can either read a term-document list or parse
-/// the binary string values with a list of delimiters for determining
-/// tokens.  It first checks for the presence of a term-document list which
-/// can be explicitly or implicitly specified.  Here are the options.
+/// The current implementation can either read a term-document list or
+/// parse the binary string values with a list of delimiters to extract the
+/// key words.  It first checks for the presence of a term-document list
+/// which can be explicitly or implicitly specified.  Here are the options.
+///
 /// @li Specifying tdlist in the indexing option, e.g.,
 /// @code
 /// index=keywords tdlist=filename
@@ -29,8 +34,8 @@
 /// <table-name>.<column-name>.tdlist=filename
 /// @endcode
 ///
-/// @li Placing a file named <column-name.tdlist among the data files.
-/// This ithe implicit option.
+/// @li Placing a file named <column-name>.tdlist among the data files.
+/// This is the implicit option mentioned above.
 ///
 /// Note that the filename given above can be either a fully qualified name
 /// or a name in the same directory as the data file.
@@ -56,24 +61,38 @@
 /// If an ID column is not specified, the integer IDs in the @c .tdlist
 /// file is assumed to the row numbers.
 ///
-/// If the term-document list is not explicitly specified, one may specify
-/// a list of delimiters for the tokenizer to parse the text values.  The
-/// list of delimiters can be specified in either the index option or
-/// through a configuration file.  Here is an example with indexing option
+/// If the term-document list is not specified, one may specify a list of
+/// delimiters for the tokenizer to parse the text values.  The list of
+/// delimiters can be specified in either the index option or through a
+/// configuration file.  Here is an example indexing option
+///
 /// @code
 /// index=keywords delimiters=" \t,;"
 /// @endcode
 ///
 /// The following is an example line in a configuration file (say, ibis.rc)
 /// @code
-/// <table-name>.<column-name>.delimiters=" \t,;"
+/// <table-name>.<column-name>.delimiters=","
 /// @endcode
+/// Note that this particular choice might be suitable for useful for
+/// set-valued columns, where the values are stored as coma-separated ASCII
+/// text strings.  For example, in a data set about automobiles for
+/// different manufactures, the column about color choices might have the
+/// following values:
+/// @verbatim
+/// "model A", "red, white, tan", ...
+/// "model B', "black, maroon, silver", ...
+/// "model C', "red, light blue, sky blue, white, pink", ...
+/// @endverbatim
+/// In this case, the second column about color choices could be read in as
+/// TEXT and indexed with keywords index using coma as delimiter for the
+/// built-in tokenizer.
 ///
 /// There are two different ways of building a keyword index and they can
 /// each be specified explicitly or implicitly.  The precedence is as
 /// follows: an explicitly specified option takes precedence over an
-/// implicitly option, the term-document list has precedence over built-in
-/// parser.
+/// implicitly option, a term-document list has the precedence over
+/// the built-in parser.
 ///
 class ibis::keywords : public ibis::index {
 public:
@@ -90,10 +109,10 @@ public:
     virtual double getMin() const {return DBL_MAX;}
     virtual double getMax() const {return -DBL_MAX;}
     virtual double getSum() const {return -DBL_MAX;}
-    /// Match a particular keyword.
-    long search(const char* kw, ibis::bitvector& hits) const;
-    /// Estimate the number of matches.
-    long search(const char* kw) const;
+    long search(const char*, ibis::bitvector&) const;
+    long search(const char*) const;
+    long search(const std::vector<std::string>&, ibis::bitvector&) const;
+    long search(const std::vector<std::string>&) const;
 
     virtual void print(std::ostream& out) const;
     virtual int write(const char* dt) const;
@@ -129,6 +148,9 @@ public:
     class tokenizer;
 
 protected:
+    /// A dictionary for the terms.
+    ibis::dictionary terms;
+
     virtual size_t getSerialSize() const throw();
     int readTermDocFile(const ibis::column* idcol, const char* f);
     inline char readTerm(const char*& buf, std::string &key) const;
@@ -139,11 +161,8 @@ protected:
     void setBits(std::vector<uint32_t>& pos, ibis::bitvector& bvec) const;
     int parseTextFile(ibis::text::tokenizer &tkn, const char *f);
 
-    /// Clear the current content.
     void clear();
-
-private:
-    ibis::dictionary terms;	//< A dictionary for the terms.
+    void reorderTerms();
 }; // class ibis::keywords
 
 /// Extract the term from a line of input term-document file.
@@ -191,21 +210,19 @@ inline uint32_t ibis::keywords::readUInt(const char*& buf) const {
     return res;
 } // ibis::keywords::readUInt
 
-/// A simple tokenizer used to parse the keywords.
+/// A simple tokenizer used to extract keywords.  A text field (i.e., a row
+/// of a text column) is split into a list of null-terminated tokens and
+/// each of these token is a keyword that could be searched.
 class ibis::keywords::tokenizer : public ibis::text::tokenizer {
 public:
-    /// Constructor.  It takes a list of delimiters.  Any character in the
-    /// list of delimiters will terminate a token.  If no delimiter is
-    /// given, anything other than alphanumerical characters will terminate
-    /// a token.  By default, the delimiters defined in
-    /// ibis::util::delimiters are used.
-    tokenizer(const char *d=ibis::util::delimiters) : delim_(d) {}
+    tokenizer(const char *d=ibis::util::delimiters);
     /// Destructor.
     virtual ~tokenizer() {}
 
     virtual int operator()(std::vector<const char*>& tkns, char *buf);
 
-private:
-    std::string delim_; ///< The list of delimiters.  May be empty.
+protected:
+    /// The list of delimiters.  May be empty.
+    std::string delim_;
 }; // class ibis::keywords::tokenizer
 #endif

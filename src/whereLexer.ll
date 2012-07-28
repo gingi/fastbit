@@ -84,6 +84,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 [mM][iI][nN][uU][sS] {return token::ANDNOTOP;}
 [aA][nN][dD][nN][oO][tT] {return token::ANDNOTOP;}
 [bB][eE][tT][wW][eE][eE][nN] {return token::BETWEENOP;}
+[cC][oO][nN][tT][aA][iI][nN][sS] {return token::CONTAINSOP;}
 
 {NAME} { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1

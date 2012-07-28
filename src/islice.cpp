@@ -44,7 +44,7 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::skive(0) {
 	    lg() << "slice[" << col->partition()->name() << '.' << col->name()
 		 << "]::ctor -- constructed a bit-sliced index with " << nbits
 		 << " bitmap" << (nbits>1?"s":"") << " on " << card
-		 << " distinct value" << (card>1?"s":"") << " and " << nrows
+		 << " possible value" << (card>1?"s":"") << " and " << nrows
 		 << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
@@ -66,12 +66,12 @@ ibis::slice::slice(const ibis::column* c, const char* f) : ibis::skive(0) {
 ///@code
 /// nrows(uint32_t)       -- the number of bits in each bit sequence
 /// nobs (uint32_t)       -- the number of bit sequences
-/// card (uint32_t)       -- the number of distinct values, i.e., cardinality
+/// card (uint32_t)       -- the number of possible values, i.e., cardinality
 /// (padding to ensure the next data element is on 8-byte boundary)
-/// values (double[card]) -- the distinct values as doubles
+/// values (double[card]) -- the possible values as doubles
 /// offset ([nobs+1])     -- the starting positions of the bit sequences (as
 ///				bit vectors)
-/// cnts (uint32_t[card]) -- the counts for each distinct value
+/// cnts (uint32_t[card]) -- the counts for each possible value
 /// bitvectors            -- the bitvectors one after another
 ///@endcode
 ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
@@ -84,7 +84,7 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
 	lg() << "slice[" << col->partition()->name() << '.' << col->name()
 	     << "]::ctor -- intialized a bit-sliced index with " << nbits
 	     << " bitmap" << (nbits>1?"s":"") << " on " << card
-	     << " distinct value" << (card>1?"s":"") << " and " << nrows
+	     << " possible value" << (card>1?"s":"") << " and " << nrows
 	     << " row" << (nrows>1?"s":"") << " from storage object @ "
 	     << st << " offset " << start;
 	if (ibis::gVerbose > 6) {
@@ -177,8 +177,8 @@ void ibis::slice::print(std::ostream& out) const {
 		    << bits[i]->bytes() << "\n";
 	}
     }
-    if (ibis::gVerbose > 6) { // also print the list of distinct values
-	out << "distinct values, number of apparences\n";
+    if (ibis::gVerbose > 6) { // also print the list of possible values
+	out << "possible values, number of apparences\n";
 	for (uint32_t i=0; i<vals.size(); ++i) {
 	    out.precision(12);
 	    out << vals[i] << '\t' << cnts[i] << "\n";

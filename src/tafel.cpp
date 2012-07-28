@@ -2163,7 +2163,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	if (! col.indexSpec.empty()) {
 	    md << "\nindex = " << col.indexSpec;
 	}
-	else if (col.type == ibis::TEXT) {
+	else if (col.type == ibis::BLOB) {
 	    md << "\nindex=none";
 	}
 	else {
@@ -3008,9 +3008,9 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
 	}
 
 	if (*str != 0) { // skip trailing space and one delimeter
-	    while (*str != 0 && isspace(*str)) ++ str; // trailing space
-	    if (*str != 0 && del != 0 && *del != 0 && strchr(del, *str) != 0)
-		++ str;
+	    // while (*str != 0 && isspace(*str)) ++ str; // trailing space
+	    // if (*str != 0 && del != 0 && *del != 0 && strchr(del, *str) != 0)
+	    // 	++ str;
 	}
 	else {
 	    break;
