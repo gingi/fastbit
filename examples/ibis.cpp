@@ -2084,7 +2084,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		if (ptr == 0) {
 		    if (i+1 < argc) {
 			if (isdigit(*argv[i+1])) {
-			    build_index += atoi(argv[i+1]);
+			    build_index += strtol(argv[i+1], 0, 0);
 			    i = i + 1;
 			}
 			else {
@@ -2101,7 +2101,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    }
 		}
 		else {
-		    build_index += atoi(++ptr);
+		    build_index += strtol(++ptr, 0, 0);
 		    if (i+1 < argc && *argv[i+1] != '-') {
 			// assume to be an index specification
 			indexingOption = argv[i+1];
@@ -2219,11 +2219,11 @@ static void parse_args(int argc, char** argv, int& mode,
 		char* ptr = strchr(argv[i], '=');
 		if (ptr != 0) {
 		    ++ ptr; // skip '='
-		    ibis::_sumBins_option = atoi(ptr);
+		    ibis::_sumBins_option = strtol(ptr, 0, 0);
 		}
 		else if (i+1 < argc) {
 		    if (isdigit(*argv[i+1])) {
-			ibis::_sumBins_option = atoi(argv[i+1]);
+			ibis::_sumBins_option = strtol(argv[i+1], 0, 0);
 			i = i + 1;
 		    }
 		}
@@ -2295,7 +2295,7 @@ static void parse_args(int argc, char** argv, int& mode,
 #if defined(TEST_SCAN_OPTIONS)
 		if (i+1 < argc) {
 		    if (isdigit(*argv[i+1])) {
-			ibis::_scan_option = atoi(argv[i+1]);
+			ibis::_scan_option = strtol(argv[i+1], 0, 0);
 			i = i + 1;
 		    }
 		    else if (isalpha(*argv[i+1])) {
@@ -2332,9 +2332,9 @@ static void parse_args(int argc, char** argv, int& mode,
 		    if (i+1 < argc) {
 			if (isdigit(*argv[i+1])) {
 			    if (thr)
-				threading += atoi(argv[i+1]);
+				threading += strtol(argv[i+1], 0, 0);
 			    else
-				testing += atoi(argv[i+1]);
+				testing += strtol(argv[i+1], 0, 0);
 			    i = i + 1;
 			}
 			else if (thr) {
@@ -2352,10 +2352,10 @@ static void parse_args(int argc, char** argv, int& mode,
 		    }
 		}
 		else if (thr) { // override previous values
-		    threading = atoi(++ptr);
+		    threading = strtol(++ptr, 0, 0);
 		}
 		else { // override previous values
-		    testing = atoi(++ptr);
+		    testing = strtol(++ptr, 0, 0);
 		}
 		break;}
 	    case 'v':
@@ -2364,7 +2364,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		if (ptr == 0) {
 		    if (i+1 < argc) {
 			if (isdigit(*argv[i+1])) {
-			    ibis::gVerbose += atoi(argv[i+1]);
+			    ibis::gVerbose += strtol(argv[i+1], 0, 0);
 			    i = i + 1;
 			}
 			else {
@@ -2376,7 +2376,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    }
 		}
 		else { // override previous values
-		    ibis::gVerbose = atoi(++ptr);
+		    ibis::gVerbose = strtol(++ptr, 0, 0);
 		}
 		break;}
 	    case 'y':

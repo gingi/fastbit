@@ -1314,16 +1314,16 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	else if (strnicmp(buf, "Number_of_rows", 14) == 0 ||
 		 strnicmp(buf, "Number_of_events", 16) == 0 ||
 		 strnicmp(buf, "Number_of_records", 17) == 0) {
-	    nrows = atol(s1);
+	    nrows = strtol(s1, 0, 0);
 	    if (isActive)
 		nEvents = nrows;
 	}
 	else if (strnicmp(buf, "Number_of_columns", 17) == 0 ||
 		 strnicmp(buf, "Number_of_properties", 20) == 0) {
-	    num_columns = atoi(s1);
+	    num_columns = strtol(s1, 0, 0);
 	}
 	else if (strnicmp(buf, "Tot_num_of", 10) == 0) {
-	    tot_columns = atoi(s1);
+	    tot_columns = strtol(s1, 0, 0);
 	}
 	else if (strnicmp(buf, "index", 5) == 0) {
 	    delete [] idxstr; // discard the old value
@@ -1356,14 +1356,14 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    // ',', ';', or space
 	    while (*s1 == 0) {
 		char* s2;
-		int i = atoi(s1);
+		int i = strtol(s1, 0, 0);
 		if (i > 0) {
 		    selected.insert(i);
 		}
 		s2 = strchr(s1, '-');
 		if (s2 != 0) {
 		    s1 = s2 + 1;
-		    int j = atoi(s1);
+		    int j = strtol(s1, 0, 0);
 		    LOGGER(j < i && ibis::gVerbose > 0)
 			<< "Warning -- readMetaData encounters "
 			"an illformed range: " << i << s2;
@@ -1405,9 +1405,9 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    }
 	    else if (strnicmp(buf, "Timestamp", 9) == 0) {
 		if (sizeof(time_t) == sizeof(int))
-		    switchTime = atoi(s1);
+		    switchTime = strtol(s1, 0, 0);
 		else
-		    switchTime = atol(s1);
+		    switchTime = strtol(s1, 0, 0);
 	    }
 	    else if (strnicmp(buf, "Alternative_Directory", 21) == 0) {
 		if (activeDir == 0 || *activeDir == 0 ||
@@ -1423,7 +1423,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		     strnicmp(buf, "Table.State", 11) == 0 ||
 		     strnicmp(buf, "DataSet.State", 13) == 0 ||
 		     strnicmp(buf, "Partition.State", 15) == 0) {
-		state = (ibis::part::TABLE_STATE)atoi(s1);
+		state = (ibis::part::TABLE_STATE)strtol(s1, 0, 0);
 	    }
 	    else if (strnicmp(buf, "metaTags", 8) == 0 ||
 		     strnicmp(buf, "Part.metaTags", 13) == 0 ||
@@ -1891,7 +1891,7 @@ void ibis::part::digestMeshShape(const char *shape) {
 
 	uint32_t dim = 0;
 	if (*str)
-	    dim = atol(str);
+	    dim = strtol(str, 0, 0);
 	if (dim > 0) { // record the name and value pair
 	    shapeSize.push_back(dim);
 	    shapeName.push_back(dname);
@@ -18234,7 +18234,7 @@ void ibis::part::deriveBackupDirName() {
 	j = 0;
     }
     else {
-	j = atoi(ptr);
+	j = strtol(ptr, 0, 0);
     }
 
     long ierr;
@@ -18327,7 +18327,7 @@ long ibis::part::verifyBackupDir() {
 		if (strnicmp(buf, "Number_of_rows", 14) == 0 ||
 		    strnicmp(buf, "Number_of_events", 16) == 0 ||
 		    strnicmp(buf, "Number_of_records", 17) == 0) {
-		    uint32_t ne = atol(rs);
+		    uint32_t ne = strtol(rs, 0, 0);
 		    if (ne != nEvents) {
 			-- ierr;
 			logWarning("verifyBackupDir", "backup directory"
@@ -18339,7 +18339,7 @@ long ibis::part::verifyBackupDir() {
 		}
 		else if (strnicmp(buf, "Number_of_columns", 17) == 0 ||
 			 strnicmp(buf, "Number_of_properties", 20) == 0) {
-		    np = atol(rs);
+		    np = strtol(rs, 0, 0);
 		}
 		else if (strnicmp(buf, "Alternative_Directory", 21) == 0) {
 		    rs += strspn(rs," \t\"\'");

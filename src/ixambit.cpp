@@ -40,7 +40,7 @@ ibis::ambit::ambit(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	if (strstr(spec, "nrefine=") != 0) {
 	    // number of fine bins per coarse bin
 	    const char* tmp = 8+strstr(spec, "nrefine=");
-	    i = atoi(tmp);
+	    i = strtol(tmp, 0, 0);
 	    if (i > 1)
 		j = (nbins > i ? (nbins+i-1)/i : nbins);
 	    else
@@ -50,7 +50,7 @@ ibis::ambit::ambit(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 	}
 	else if (strstr(spec, "ncoarse=") != 0) { // number of coarse bins
 	    const char* tmp = 8+strstr(spec, "ncoarse=");
-	    j = atoi(tmp);
+	    j = strtol(tmp, 0, 0);
 	    if (j <= 2)
 		j = (nbins >= 100 ? defaultJ :
 		     (nbins >= 10 ? static_cast<uint32_t>(sqrt((double)nbins))
@@ -215,7 +215,7 @@ ibis::ambit::ambit(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 	if (strstr(spec, "nrefine=") != 0) {
 	    // number of fine bins per coarse bin
 	    const char* tmp = 8+strstr(spec, "nrefine=");
-	    i = atoi(tmp);
+	    i = strtol(tmp, 0, 0);
 	    if (i > 1)
 		j = (nbins > i ? (nbins+i-1)/i : nbins);
 	    else
@@ -225,7 +225,7 @@ ibis::ambit::ambit(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
 	}
 	else if (strstr(spec, "ncoarse=") != 0) { // number of coarse bins
 	    const char* tmp = 8+strstr(spec, "ncoarse=");
-	    j = atoi(tmp);
+	    j = strtol(tmp, 0, 0);
 	    if (j <= 1)
 		j = (nbins >= 100 ? defaultJ :
 		     (nbins >= 10 ? static_cast<uint32_t>(sqrt((double)nbins))
@@ -1348,7 +1348,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
 	}
 	if (str != 0) {
 	    spec = 3+str;
-	    nbins = atoi(spec);
+	    nbins = strtol(spec, 0, 0);
 	    if (nbins <= 0)
 		nbins = 10;
 	}
@@ -1373,7 +1373,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
     uint32_t nb2, rem;
     if (strstr(spec, "nrefine=") != 0) { // number of fine bins per coarse bin
 	const char* tmp = 8+strstr(spec, "nrefine=");
-	nb2 = atoi(tmp);
+	nb2 = strtol(tmp, 0, 0);
 	if (nb2 <= 1) nb2 = 2;
 	j = nbins / nb2;
 	if (j <= 1) {
@@ -1389,7 +1389,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
     }
     else if (strstr(spec, "ncoarse=") != 0) { // number of coarse bins
 	const char* tmp = 8+strstr(spec, "ncoarse=");
-	j = atoi(tmp);
+	j = strtol(tmp, 0, 0);
 	if (j <= 1) j = nbins / 2;
 	if (j > 1) {
 	    nb2 = nbins / j;

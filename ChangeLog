@@ -1,3 +1,12 @@
+2012-07-28 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp:4342 comment out the line that intended to skip
+	"<binning " (it has been done on line 4325
+	* src/*.cpp: change all atof to strtod
+	* src/qExpr.cpp, src/util.cpp: change the use of
+	FASTBIT_CASE_SENSITIVE_COMPARE to be consistent with category.cpp
+	and disctionary.cpp - address the problem of inconsistent case
+	folding
+
 2012-07-27 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.cpp:3011-3013 comment out the code that skips the next
 	delimiter because the readString and friends have done it already

@@ -649,7 +649,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	}
 	if (str != 0) {
 	    spec = 3+str;
-	    nbins = atoi(spec);
+	    nbins = strtol(spec, 0, 0);
 	    if (nbins <= 0)
 		nbins = 10;
 	}

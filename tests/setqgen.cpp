@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
     }
     ibis::init(cf); // initialize the file manager
     ibis::util::timer mytimer(*argv, 0);
-    maxrow = atof(argv[2]);
+    maxrow = strtod(argv[2], 0);
     if (maxrow <= 0) { // determine the number of rows based on cache size
 	maxrow = ibis::fileManager::currentCacheSize();
 	// the queries in doTest of thula.cpp needs 4 sets of doubles, wich
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     if (maxrow < 10) /* generate at least 10 rows */
 	maxrow = 10;
     if (argc > 3) {
-	nrpd = atof(argv[3]);
+	nrpd = strtod(argv[3], 0);
 	if (nrpd < 2)
 	    nrpd = ibis::util::compactValue(maxrow / 10.0, 1e7);
     }

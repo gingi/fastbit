@@ -1431,11 +1431,11 @@ ibis::qContinuousRange::qContinuousRange
       left_op(lop), right_op(rop) {
     // first convert the values from string format to double format
     if (lstr)
-	lower = (*lstr)?atof(lstr):(-DBL_MAX);
+	lower = (*lstr)?strtod(lstr, 0):(-DBL_MAX);
     else
 	lower = -DBL_MAX;
     if (rstr)
-	upper = (*rstr)?atof(rstr):(DBL_MAX);
+	upper = (*rstr)?strtod(rstr, 0):(DBL_MAX);
     else
 	upper = DBL_MAX;
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -3834,7 +3834,7 @@ ibis::qAllWords::qAllWords(const char *sname, const char *s1, const char *s2)
     if (s1 != 0 && *s1 != 0) {
 	if (s2 != 0 && *s2 != 0) {
 	    if (
-#if FASTBIT_CASE_SENSITIVE_COMPARE+0 > 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 		stricmp(s1, s2)
 #else
 		strcmp(s1, s2)
@@ -3868,7 +3868,7 @@ ibis::qAllWords::qAllWords(const char *sname, const char *sval)
 	tmp.erase();
 	(void) ibis::util::readString(tmp, sval, ibis::util::delimiters);
 	if (! tmp.empty()) {
-#if FASTBIT_CASE_SENSITIVE_COMPARE+0 > 0
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 	    for (size_t j = 0; j < tmp.size(); ++ j)
 		tmp[j] = tolower(tmp[j]);
 #endif

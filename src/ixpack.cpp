@@ -29,7 +29,7 @@ ibis::pack::pack(const ibis::bin& rhs) {
 	if (strstr(spec, "nrefine=") != 0) {
 	    // number of fine bins per coarse bin
 	    const char* tmp = 8+strstr(spec, "nrefine=");
-	    i = atoi(tmp);
+	    i = strtol(tmp, 0, 0);
 	    if (i > 1)
 		j = (nbins > i ? (nbins+i-1)/i : nbins);
 	    else
@@ -37,7 +37,7 @@ ibis::pack::pack(const ibis::bin& rhs) {
 	}
 	else if (strstr(spec, "ncoarse=") != 0) { // number of coarse bins
 	    const char* tmp = 8+strstr(spec, "ncoarse=");
-	    j = atoi(tmp);
+	    j = strtol(tmp, 0, 0);
 	    if (j <= 2)
 		j = (nbins > 63 ? 31 : nbins);
 	}

@@ -692,9 +692,9 @@ void ibis::bin::binning(const char* f, const array_t<double>& bd) {
     }
 } // ibis::bin::binning (specified bin boundaries)
 
-// This function actually reads the values of the data file and produces
-// the bitvectors for each bin.  The caller must have setup the bounds
-// already.
+/// This function actually reads the values of the data file and produces
+/// the bitvectors for each bin.  The caller must have setup the bounds
+/// already.
 void ibis::bin::binning(const char* f) {
     horometer timer;
     if (ibis::gVerbose > 4)
@@ -2663,15 +2663,21 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		    else if (isdigit(*ptr) || *ptr == '.' ||
 			     *ptr == '+' || *ptr == '-') {
 			// assume start=...
-			tmp = atof(ptr);
-			if (tmp == 0.0 && errno != 0) {
+			char *ptr2 = 0;
+			tmp = strtod(ptr, &ptr2);
+			if (tmp == 0.0 && ptr == ptr2) {
 			    if (r1 > r0)
 				r0 = r1;
 			    else
 				r0 = col->lowerBound();
+			    LOGGER(ibis::gVerbose > 1)
+				<<"Warning -- bin::setBoundaries encountered a "
+				"bad indexing option \"" << str
+				<< "\", assume it to be \"start=" << r0 << "\"";
 			}
 			else {
 			    r0 = tmp;
+			    str = ptr2;
 			}
 			progress |= 1;
 		    }
@@ -2693,16 +2699,25 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		    }
 		}
 		else if (*str == 'e' || *str == 'E') { // end=
+		    char *ptr2 = 0;
 		    ptr = str + 4;
-		    r1 = atof(ptr);
-		    if (r1 == 0.0 && errno != 0)
+		    r1 = strtod(ptr, &ptr2);
+		    if (r1 == 0.0 && ptr == ptr2) {
 			r1 = col->upperBound();
+			LOGGER(ibis::gVerbose > 1)
+			    <<"Warning -- bin::setBoundaries encountered a "
+			    "bad indexing option \"" << str
+			    << "\", assume it to be \"end=" << r1 << "\"";
+		    }
+		    else {
+			str = ptr2;
+		    }
 		    progress |= 2;
 		}
 		else if (*str == 'n' || *str == 'N') { // nbins=
 		    ptr = strchr(str, '=');
 		    if (ptr)
-			nb = static_cast<uint32_t>(atof(ptr+1));
+			nb = static_cast<uint32_t>(strtod(ptr+1, 0));
 		    if (nb == 0)
 			nb = (longSpec ? 1 : IBIS_DEFAULT_NBINS);
 		    progress |= 4;
@@ -2710,7 +2725,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		else if (isdigit(*str) || *str == '.' ||
 			 *str == '+' || *str == '-') {
 		    // get a number, try start, end, and nbins successively
-		    tmp = atof(str);
+		    tmp = strtod(str, 0);
 		    if ((progress&7) == 0) {
 			r0 = tmp;
 			progress |= 1;
@@ -2813,7 +2828,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		    r0 = col->lowerBound();
 		}
 		else {
-		    r0 = atof(ptr);
+		    r0 = strtod(ptr, 0);
 		}
 		if (str != 0) {
 		    ptr = str + (*str != ')');
@@ -2824,7 +2839,7 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 			r1 = col->upperBound();
 		    }
 		    else {
-			r1 = atof(ptr);
+			r1 = strtod(ptr, 0);
 		    }
 		}
 		else {
@@ -2853,10 +2868,10 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		    ++ ptr;
 		if (*ptr == 'n') {
 		    ptr += strspn(ptr, "nobins= \t");
-		    nb = static_cast<uint32_t>(atof(ptr));
+		    nb = static_cast<uint32_t>(strtod(ptr, 0));
 		}
 		else if (isdigit(*ptr) || *ptr == '.') {
-		    nb = static_cast<uint32_t>(atof(ptr));
+		    nb = static_cast<uint32_t>(strtod(ptr, 0));
 		}
 		if (nb == 0)
 		    nb = 1;
@@ -3352,25 +3367,25 @@ uint32_t ibis::bin::parseNbins() const {
 	str = strstr(bspec, "nbins=");
 	if (str) {
 	    str += 6;
-	    nbins = static_cast<uint32_t>(atof(str));
+	    nbins = static_cast<uint32_t>(strtod(str, 0));
 	}
 	else {
 	    str = strstr(bspec, "nbins =");
 	    if (str) {
 		str += 7;
-		nbins = static_cast<uint32_t>(atof(str));
+		nbins = static_cast<uint32_t>(strtod(str, 0));
 	    }
 	    else {
 		str = strstr(bspec, "no=");
 		if (str) {
 		    str += 3;
-		    nbins = static_cast<uint32_t>(atof(str));
+		    nbins = static_cast<uint32_t>(strtod(str, 0));
 		}
 		else {
 		    str = strstr(bspec, "no =");
 		    if (str) {
 			str += 4;
-			nbins = static_cast<uint32_t>(atof(str));
+			nbins = static_cast<uint32_t>(strtod(str, 0));
 		    }
 		}
 	    }
@@ -3382,25 +3397,25 @@ uint32_t ibis::bin::parseNbins() const {
 	    str = strstr(bspec, "nbins=");
 	    if (str) {
 		str += 6;
-		nbins = static_cast<uint32_t>(atof(str));
+		nbins = static_cast<uint32_t>(strtod(str, 0));
 	    }
 	    else {
 		str = strstr(bspec, "nbins =");
 		if (str) {
 		    str += 7;
-		    nbins = static_cast<uint32_t>(atof(str));
+		    nbins = static_cast<uint32_t>(strtod(str, 0));
 		}
 		else {
 		    str = strstr(bspec, "no=");
 		    if (str) {
 			str += 3;
-			nbins = static_cast<uint32_t>(atof(str));
+			nbins = static_cast<uint32_t>(strtod(str, 0));
 		    }
 		    else {
 			str = strstr(bspec, "no =");
 			if (str) {
 			    str += 4;
-			    nbins = static_cast<uint32_t>(atof(str));
+			    nbins = static_cast<uint32_t>(strtod(str, 0));
 			}
 		    }
 		}
@@ -3417,25 +3432,25 @@ uint32_t ibis::bin::parseNbins() const {
 	    str = strstr(bspec, "nbins=");
 	    if (str) {
 		str += 6;
-		nbins = static_cast<uint32_t>(atof(str));
+		nbins = static_cast<uint32_t>(strtod(str, 0));
 	    }
 	    else {
 		str = strstr(bspec, "nbins =");
 		if (str) {
 		    str += 7;
-		    nbins = static_cast<uint32_t>(atof(str));
+		    nbins = static_cast<uint32_t>(strtod(str, 0));
 		}
 		else {
 		    str = strstr(bspec, "no=");
 		    if (str) {
 			str += 3;
-			nbins = static_cast<uint32_t>(atof(str));
+			nbins = static_cast<uint32_t>(strtod(str, 0));
 		    }
 		    else {
 			str = strstr(bspec, "no =");
 			if (str) {
 			    str += 4;
-			    nbins = static_cast<uint32_t>(atof(str));
+			    nbins = static_cast<uint32_t>(strtod(str, 0));
 			}
 		    }
 		}
@@ -3564,7 +3579,7 @@ unsigned ibis::bin::parsePrec() const {
 	    }
 	}
 	if (str && *str)
-	    prec = static_cast<unsigned>(atof(str));
+	    prec = static_cast<unsigned>(strtod(str, 0));
     }
     if (prec == 0) {
 	bspec = col->partition()->indexSpec();
@@ -3589,7 +3604,7 @@ unsigned ibis::bin::parsePrec() const {
 		}
 	    }
 	    if (str && *str)
-		prec = static_cast<unsigned>(atof(str));
+		prec = static_cast<unsigned>(strtod(str, 0));
 	}
     }
     if (prec == 0) {
@@ -3619,7 +3634,7 @@ unsigned ibis::bin::parsePrec() const {
 		}
 	    }
 	    if (str && *str)
-		prec = static_cast<unsigned>(atof(str));
+		prec = static_cast<unsigned>(strtod(str, 0));
 	}
     }
     if (prec == 0) // default to 1 digit precision
@@ -3660,7 +3675,8 @@ void ibis::bin::addBounds(double lbd, double rbd, uint32_t nbins,
 		-- nbins;
 		if (lbd < 1.0) lbd = 1.0;
 		diff = pow(rbd / lbd, 1.0 / nbins);
-		lbd *= diff;
+		if (lbd <= bounds.back())
+		    lbd *= diff;
 		while (lbd < rbd && nbins > 0) {
 		    double tmp = floor(lbd+0.5);
 		    if (tmp > bounds.back()) {
@@ -4339,7 +4355,7 @@ void ibis::bin::setBoundaries(const char* f) {
 	    std::string binfile;
 	    const char *ptr = 0;
 	    uint32_t nb = 1;
-	    str += 9;
+	    //str += 9;
 	    while (isspace(*str))
 		++ str;
 	    bool longSpec = (*str == '(');
@@ -4357,15 +4373,21 @@ void ibis::bin::setBoundaries(const char* f) {
 		    else if (isdigit(*ptr) || *ptr == '.' ||
 			     *ptr == '+' || *ptr == '-') {
 			// assume start=...
-			tmp = atof(ptr);
-			if (tmp == 0.0 && errno != 0) {
+			char *ptr2 = 0;
+			tmp = strtod(ptr, &ptr2);
+			if (tmp == 0.0 && ptr == ptr2) {
 			    if (r1 > r0)
 				r0 = r1;
 			    else
 				r0 = col->lowerBound();
+			    LOGGER(ibis::gVerbose > 1)
+				<<"Warning -- bin::setBoundaries encountered a "
+				"bad indexing option \"" << str
+				<< "\", assume it to be \"start=" << r0 << "\"";
 			}
 			else {
 			    r0 = tmp;
+			    str = ptr2;
 			}
 			progress |= 1;
 		    }
@@ -4386,16 +4408,25 @@ void ibis::bin::setBoundaries(const char* f) {
 		    }
 		}
 		else if (*str == 'e' || *str == 'E') { // end=
+		    char *ptr2 = 0;
 		    ptr = str + 4;
-		    r1 = atof(ptr);
-		    if (r1 == 0.0 && errno != 0)
+		    r1 = strtod(ptr, &ptr2);
+		    if (r1 == 0.0 && ptr == ptr2) {
 			r1 = col->upperBound();
+			LOGGER(ibis::gVerbose > 1)
+			    <<"Warning -- bin::setBoundaries encountered a "
+			    "bad indexing option \"" << str
+			    << "\", assume it to be \"end=" << r1 << "\"";
+		    }
+		    else {
+			str = ptr2;
+		    }
 		    progress |= 2;
 		}
 		else if (*str == 'n' || *str == 'N') { // nbins=
 		    ptr = strchr(str, '=');
 		    if (ptr)
-			nb = static_cast<uint32_t>(atof(ptr+1));
+			nb = static_cast<uint32_t>(strtod(ptr+1, 0));
 		    if (nb == 0)
 			nb = (longSpec ? 1 : IBIS_DEFAULT_NBINS);
 		    progress |= 4;
@@ -4403,7 +4434,7 @@ void ibis::bin::setBoundaries(const char* f) {
 		else if (isdigit(*str) || *str == '.' ||
 			 *str == '+' || *str == '-') {
 		    // get a number, try start, end, and nbins successively
-		    tmp = atof(str);
+		    tmp = strtod(str, 0);
 		    if ((progress&7) == 0) {
 			r0 = tmp;
 			progress |= 1;
@@ -4439,15 +4470,17 @@ void ibis::bin::setBoundaries(const char* f) {
 		if (str != 0 && *str != 0)
 		    str += strspn(str, ",; \t"); // skip space
 		bool add = (progress == 15);
-		if (str == 0) { // end of string
-		    add = 1;
-		}
-		else if (*str == '/' || *str == '>') {
-		    add = 1;
-		}
-		else if (*str == ')' || *str == '(') {
-		    if ((progress&3) == 3)
+		if (! add) {
+		    if (str == 0) { // end of string
 			add = 1;
+		    }
+		    else if (*str == '/' || *str == '>') {
+			add = 1;
+		    }
+		    else if (*str == ')' || *str == '(') {
+			if ((progress&3) == 3)
+			    add = 1;
+		    }
 		}
 		if (add) {
 		    if (binfile.empty()) {
@@ -4488,7 +4521,7 @@ void ibis::bin::setBoundaries(const char* f) {
 		    r0 = col->lowerBound();
 		}
 		else {
-		    r0 = atof(ptr);
+		    r0 = strtod(ptr, 0);
 		}
 		if (str != 0) {
 		    ptr = str + (*str != ')');
@@ -4499,7 +4532,7 @@ void ibis::bin::setBoundaries(const char* f) {
 			r1 = col->upperBound();
 		    }
 		    else {
-			r1 = atof(ptr);
+			r1 = strtod(ptr, 0);
 		    }
 		}
 		else {
@@ -4511,10 +4544,10 @@ void ibis::bin::setBoundaries(const char* f) {
 		    ++ ptr;
 		if (*ptr == 'n') {
 		    ptr += strspn(ptr, "nobins= \t");
-		    nb = static_cast<uint32_t>(atof(ptr));
+		    nb = static_cast<uint32_t>(strtod(ptr, 0));
 		}
 		else if (isdigit(*ptr) || *ptr == '.') {
-		    nb = static_cast<uint32_t>(atof(ptr));
+		    nb = static_cast<uint32_t>(strtod(ptr, 0));
 		}
 		if (nb == 0)
 		    nb = 1;

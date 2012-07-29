@@ -163,7 +163,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		if (ptr == 0) {
 		    if (i+1 < argc) {
 			if (isdigit(*argv[i+1])) {
-			    ibis::gVerbose += atoi(argv[i+1]);
+			    ibis::gVerbose += strtol(argv[i+1], 0, 0);
 			    i = i + 1;
 			}
 			else {
@@ -175,7 +175,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		    }
 		}
 		else {
-		    ibis::gVerbose += atoi(++ptr);
+		    ibis::gVerbose += strtol(++ptr, 0, 0);
 		}
 		break;}
 	    case 't':
@@ -184,7 +184,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		if (ptr == 0) {
 		    if (i+1 < argc) {
 			if (isdigit(*argv[i+1])) {
-			    testing += atoi(argv[i+1]);
+			    testing += strtol(argv[i+1], 0, 0);
 			    i = i + 1;
 			}
 			else {
@@ -196,7 +196,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		    }
 		}
 		else {
-		    testing += atoi(++ptr);
+		    testing += strtol(++ptr, 0, 0);
 		}
 		break;}
 	    case 'x':

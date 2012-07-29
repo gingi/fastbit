@@ -793,7 +793,7 @@ ibis::index* ibis::index::buildNew(const ibis::column *c,
 	}
 	if (*ptr) {
 	    if (isdigit(*ptr)) { // string --> number
-		ncomp = atoi(ptr);
+		ncomp = strtol(ptr, 0, 0);
 		if (ncomp == 0) {
 		    if (errno == EINVAL)
 			c->logMessage("createIndex",
@@ -7623,7 +7623,7 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& pile,
 		ptr = strchr(ptr, '>');
 		if (ptr != 0) {
 		    ++ ptr;
-		    dens = atof(ptr);
+		    dens = strtod(ptr, 0);
 		    if (dens <= 0.0)
 			dens = 0.125;
 		}
@@ -7645,7 +7645,7 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& pile,
 		ptr = strchr(ptr, '>');
 		if (ptr != 0) {
 		    ++ ptr;
-		    cr = atof(ptr);
+		    cr = strtod(ptr, 0);
 		    if (cr <= 0.0)
 			cr = 0.75;
 		}

@@ -174,7 +174,7 @@ void ibis::bylt::coarsen() {
 	if (spec != 0 && *spec != 0 && strstr(spec, "ncoarse=") != 0) {
 	    // number of coarse bins specified explicitly
 	    const char* tmp = 8+strstr(spec, "ncoarse=");
-	    unsigned j = atoi(tmp);
+	    unsigned j = strtol(tmp, 0, 0);
 	    if (j > 4)
 		ncoarse = j;
 	}

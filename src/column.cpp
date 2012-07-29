@@ -117,11 +117,11 @@ ibis::column::column(const part* tbl, FILE* file)
 	}
 	else if (strnicmp(buf, "minimum", 7) == 0) {
 	    s1 += strspn(s1, " \t=\'\"");
-	    lower = atof(s1);
+	    lower = strtod(s1, 0);
 	}
 	else if (strnicmp(buf, "maximum", 7) == 0) {
 	    s1 += strspn(s1, " \t=\'\"");
-	    upper = atof(s1);
+	    upper = strtod(s1, 0);
 	}
 	else if (strnicmp(buf, "Bins:", 5) == 0) {
 	    s1 = buf + 5;
@@ -404,7 +404,7 @@ uint32_t ibis::column::numBins() const {
 	}
 	if (str) {
 	    str += 3;
-	    nBins = atoi(str);
+	    nBins = strtol(str, 0, 0);
 	}
     }
     if (nBins == 0)

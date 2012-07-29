@@ -169,8 +169,8 @@ really-small: $(IBISEXE) $(TCAPIEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part
 	@if [ -f $(TESTDIR)/small-5 -a -f vault/small-5 -a `diff -w $(TESTDIR)/small-5 vault/small-5 | wc -l` -eq 0 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ -f $(TESTDIR)/small-6 -a -f vault/small-6 -a `diff -w $(TESTDIR)/small-6 vault/small-6 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
 	@if [ -f $(TESTDIR)/small-7 -a -f vault/small-7 -a `diff -w $(TESTDIR)/small-7 vault/small-7 | wc -l` -eq 0 ]; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
-	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='USA'" 2>&1 | fgrep 'produced 1 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
-	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b='CA'" 2>&1 | fgrep 'produced 0 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b contains 'USA'" 2>&1 | fgrep 'produced 1 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@$(IBISEXE) -d $(TESTDIR)/w4 -v -q "where b contains (Berkeley, California, USA)" 2>&1 | fgrep 'produced 1 hit' | if [ `wc -l` -eq 1 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
 	@if [ -f $(TESTDIR)/small-10 -a -f vault/small-10 -a `diff -w $(TESTDIR)/small-10 vault/small-10 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@if [ -f $(TESTDIR)/small-11 -a -f vault/small-11 -a `diff -w $(TESTDIR)/small-11 vault/small-11 | wc -l` -eq 0 ]; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ -f $(TESTDIR)/small-12 -a -f vault/small-12 -a `diff -w $(TESTDIR)/small-12 vault/small-12 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
@@ -414,7 +414,7 @@ $(TESTDIR)/w3/-part.txt: $(ARDEAEXE) TESTDIR
 	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w3 -m "c_1:s, c_2:d, c_3:k" -r "105, 1.0001, 1010" -r "105, 1.00001" -r "105, 1.00001, 1012" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/w4/-part.txt: $(ARDEAEXE) TESTDIR
 	@test -f $@ || $(ARDEAEXE) -d $(TESTDIR)/w4 -m "a:i, b:t" -r "5, 'Berkeley, California, USA'" >> $(TESTDIR)/std.log 2>&1
-	@perl -p -i -e 's/index=none/index=keywords, docidname=a/' $(TESTDIR)/w4/-part.txt
+	@head -18 $(TESTDIR)/w4/-part.txt >| $(TESTDIR)/w4/-part.txt2; echo 'index=keywords, docidname=a' >> $(TESTDIR)/w4/-part.txt2; echo "End Column" >> $(TESTDIR)/w4/-part.txt2; mv $(TESTDIR)/w4/-part.txt2 $(TESTDIR)/w4/-part.txt
 	@echo 'Berkeley: 5'    > $(TESTDIR)/w4/b.tdlist
 	@echo 'California: 5' >> $(TESTDIR)/w4/b.tdlist
 	@echo 'USA: 5'        >> $(TESTDIR)/w4/b.tdlist

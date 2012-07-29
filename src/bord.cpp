@@ -15849,6 +15849,7 @@ int ibis::bord::column::getString(uint32_t i, std::string &val) const {
 	if (i > 0 && i <= (*dic).size())
 	    val = (*dic)[i];
     }
+    return 0;
 } // ibis::bord::column::getString
 
 /// Makes a copy of the in-memory data.  Uses a shallow copy for

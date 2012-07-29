@@ -164,7 +164,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		if (i+1 < argc) {
 		    ++ i;
 		    if (isdigit(*argv[i])) {
-			int nn = (int)atof(argv[i]);
+			int nn = (int)strtod(argv[i], 0);
 			if (nn > 1)
 			    nrpf = nn;
 		    }
@@ -186,7 +186,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		if (i+1 < argc) {
 		    ++ i;
 		    if (isdigit(*argv[i])) {
-			int nn = atoi(argv[i]);
+			int nn = strtol(argv[i], 0, 0);
 			if (nn > nrpf)
 			    nrpf = nn;
 		    }
@@ -247,7 +247,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		if (ptr == 0) {
 		    if (i+1 < argc) {
 			if (isdigit(*argv[i+1])) {
-			    ibis::gVerbose += atoi(argv[i+1]);
+			    ibis::gVerbose += strtol(argv[i+1], 0, 0);
 			    i = i + 1;
 			}
 			else {
@@ -259,7 +259,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		    }
 		}
 		else {
-		    ibis::gVerbose += atoi(++ptr);
+		    ibis::gVerbose += strtol(++ptr, 0, 0);
 		}
 		break;}
 	    case 'x':
@@ -268,7 +268,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		if (ptr == 0) {
 		    if (i+1 < argc) {
 			if (isdigit(*argv[i+1])) {
-			    xrepeats += atoi(argv[i+1]);
+			    xrepeats += strtol(argv[i+1], 0, 0);
 			    i = i + 1;
 			}
 			else {
@@ -280,7 +280,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		    }
 		}
 		else {
-		    xrepeats += atoi(++ptr);
+		    xrepeats += strtol(++ptr, 0, 0);
 		}
 		break;}
 	    } // switch (argv[i][1])
