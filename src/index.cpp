@@ -1480,6 +1480,13 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     bmap.clear();
     dataFileName(fnm, f);
+    if (fnm.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index::mapValues failed to determine the data file "
+	    "name from \"" << (f ? f : "") << '"';
+	return;
+    }
+
     k = ibis::util::getFileSize(fnm.c_str());
     if (k > 0) {
 	if (ibis::gVerbose > 1)
@@ -2339,14 +2346,22 @@ long ibis::index::getCumulativeDistribution
 /// double with no rounding, no approximation and no overflow.
 void ibis::index::mapValues(const char* f, histogram& hist,
 			    uint32_t count) const {
+    if (col == 0 || col->partition() == 0) return;
+    if (col->partition()->nRows() == 0) return;
     uint32_t i, k, nev;
-    // TODO: implement a different algorith, like sort the values first, to
+    // TODO: implement a different algorithm, like sort the values first, to
     // make memory usage more predictable.  The numerous dynamically allocated
     // elements used by histogram really could slow down this function!
 
     horometer timer;
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
+    if (fnm.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- index::mapValues failed to determine the data file "
+	    "name from \"" << (f ? f : "") << '"';
+	return;
+    }
     if (ibis::gVerbose > 4) {
 	timer.start();
 	col->logMessage("mapValues", "attempting to generate a histogram "

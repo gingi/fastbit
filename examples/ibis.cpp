@@ -1920,7 +1920,7 @@ static void randomQueries(const ibis::part& pt, unsigned mq,
 	unsigned nsel = mt.next(maxselect * maxwhere);
 	unsigned nwhr = 1 + nsel % maxwhere;
 	nsel = nsel / maxwhere;
-	oss << "SELECT count(*) as _0";
+	oss << "SELECT count(*) as cnt";
 	while (nsel > 0) {
 	    -- nsel;
 	    unsigned ic = mt.next(p0.cols.size());
@@ -2008,7 +2008,7 @@ static void randomQueries(const ibis::part& pt, unsigned mq,
 		oss << p0.cols[ic]->name << " > 0";
 	    }
 	}
-	oss << " ORDER BY _0 desc";
+	oss << " ORDER BY cnt desc";
 
 	queff.push_back(oss.str());
     }

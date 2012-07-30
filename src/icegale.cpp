@@ -754,6 +754,8 @@ void ibis::egale::setBit(const uint32_t i, const double val) {
 /// scheme might use less space, at least we donot have to generate the
 /// simple encoding, however in many tests it takes longer time.
 void ibis::egale::construct(const char* f) {
+    if (col == 0 || col->partition() == 0) return;
+    if (col->partition()->nRows() == 0) return;
     // determine the number of bitvectors to use
     nbits = bases[0];
     for (uint32_t i = 1; i < nbases; ++i)
@@ -779,6 +781,12 @@ void ibis::egale::construct(const char* f) {
 
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
+    if (fnm.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- egale::construct failed to determine the data file "
+	    "name from \"" << (f ? f : "") << '"';
+	return;
+    }
 
     nrows = col->partition()->nRows();
     ibis::bitvector mask;

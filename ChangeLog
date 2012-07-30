@@ -1,3 +1,8 @@
+2012-07-30 John Wu <John dot Wu at ACM dot org>
+	* src/i*.cpp: add statements to check for empty data partitions
+	before attempting to build indexes (to address a problem reported
+	by Greg Barker)
+
 2012-07-28 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:4342 comment out the line that intended to skip
 	"<binning " (it has been done on line 4325
@@ -6,6 +11,8 @@
 	FASTBIT_CASE_SENSITIVE_COMPARE to be consistent with category.cpp
 	and disctionary.cpp - address the problem of inconsistent case
 	folding
+	* examples/ibis.cpp: replace the alias _0 with cnt in
+	randomQueries
 
 2012-07-27 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.cpp:3011-3013 comment out the code that skips the next

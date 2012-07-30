@@ -31,6 +31,13 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
     int ierr;
     std::string fdic, fmat;
     dataFileName(fdic, f);
+    if (fdic.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- keywords::ctor failed to determine the data file "
+	    "name from \"" << (f ? f : "") << '"';
+	return;
+    }
+
     fmat = fdic;
     fdic += ".terms";
     fmat += ".idx";

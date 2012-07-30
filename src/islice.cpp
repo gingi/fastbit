@@ -217,6 +217,8 @@ bool ibis::slice::isSuitable(const ibis::column &col, const char *fd) {
 /// Template function to work with a specific column type.
 template<typename T> int
 ibis::slice::constructT(const char* f) {
+    if (col == 0 || col->partition() == 0) return -1;
+    if (col->partition()->nRows() == 0) return 0;
     nrows = col->partition()->nRows();
 
     array_t<T> val;
@@ -328,6 +330,8 @@ ibis::slice::constructT(const char* f) {
 /// directly without checking 
 int ibis::slice::construct(const char* f) {
     clear();
+    if (col == 0 || col->partition() == 0) return -1;
+    if (col->partition()->nRows() == 0) return 0;
     if (! (col->lowerBound() >= 0.0 && col->lowerBound() <= col->upperBound()))
 	const_cast<ibis::column*>(col)->computeMinMax(f);
     if (! (col->lowerBound() >= 0.0 && col->lowerBound() <= col->upperBound()))

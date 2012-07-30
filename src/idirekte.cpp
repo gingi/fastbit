@@ -95,7 +95,7 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 /// This is used to generate index for meta tags from STAR data.
 ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     : ibis::index(c) {
-    if (c == 0) return; // must has a valid column
+    if (c == 0 || popu == 0 || ntpl == 0) return;
     try {
 	if (ntpl == 0)
 	    ntpl = c->partition()->nRows();
@@ -122,7 +122,7 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 /// Construct an index from an integer array.
 ibis::direkte::direkte(const ibis::column* c, uint32_t card,
 		       array_t<uint32_t>& ind) : ibis::index(c) {
-    if (c == 0) return;
+    if (c == 0 || card == 0) return;
     if (ind.empty()) return;
 
     try {
@@ -175,13 +175,18 @@ ibis::direkte::direkte(const ibis::column* c, ibis::fileManager::storage* st)
 
 template <typename T>
 int ibis::direkte::construct0(const char* dfname) {
+    if (col == 0 || col->partition() == 0) return -1;
+
     int ierr = 0;
+    nrows = col->partition()->nRows();
+    if (nrows == 0) return ierr;
+
     array_t<T> vals;
     LOGGER(ibis::gVerbose > 4)
 	<< "direkte[" << col->partition()->name() << '.' << col->name()
 	<< "]::construct0 -- starting to process file " << dfname << " as "
 	<< typeid(T).name();
-    nrows = col->partition()->nRows();
+
     ierr = ibis::fileManager::instance().getFile(dfname, vals);
     if (ierr == 0) { // got a pointer to the base data
 	if (col->upperBound() > col->lowerBound()) {
@@ -285,7 +290,12 @@ int ibis::direkte::construct0(const char* dfname) {
 
 template <typename T>
 int ibis::direkte::construct(const char* dfname) {
+    if (col == 0 || col->partition() == 0) return -1;
+
     int ierr = 0;
+    nrows = col->partition()->nRows();
+    if (nrows == 0) return ierr;
+
     array_t<T> vals;
     LOGGER(ibis::gVerbose > 4)
 	<< "direkte[" << col->partition()->name() << '.' << col->name()
@@ -293,7 +303,6 @@ int ibis::direkte::construct(const char* dfname) {
 	<< typeid(T).name();
     ibis::bitvector mask;
     col->getNullMask(mask);
-    nrows = col->partition()->nRows();
     ierr = ibis::fileManager::instance().getFile(dfname, vals);
     if (ierr == 0) { // got a pointer to the base data
 	if (col->upperBound() > col->lowerBound()) {

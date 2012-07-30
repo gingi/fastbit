@@ -116,6 +116,9 @@ uint32_t ibis::bak::locate(const double& val) const {
 // This function reads the data file and records the locations of the values
 // in bakMap
 void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
+    if (col == 0 || col->partition() == 0) return;
+    if (col->partition()->nRows() == 0) return;
+
     horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
@@ -125,6 +128,12 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
     uint32_t nev = col->partition()->nRows();
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
+    if (fnm.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bak::mapValues failed to determine the data file "
+	    "name from \"" << (f ? f : "") << '"';
+	return;
+    }
 
     ibis::bitvector mask;
     {   // limit the scope of some variables

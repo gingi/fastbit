@@ -696,6 +696,9 @@ void ibis::bin::binning(const char* f, const array_t<double>& bd) {
 /// the bitvectors for each bin.  The caller must have setup the bounds
 /// already.
 void ibis::bin::binning(const char* f) {
+    if (col == 0 || col->partition() == 0) return;
+    if (col->partition()->nRows() == 0) return;
+
     horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
@@ -715,6 +718,12 @@ void ibis::bin::binning(const char* f) {
 
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
+    if (fnm.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::binning failed to determine the data file "
+	    "name from \"" << (f ? f : "") << '"';
+	return;
+    }
 
     ibis::bitvector mask;
     {   // name of mask file associated with the data file
@@ -1508,6 +1517,9 @@ void ibis::bin::binning(const char* f) {
 // binning with reordering
 template <typename E>
 void ibis::bin::binningT(const char* f) {
+    if (col == 0 || col->partition() == 0) return;
+    if (col->partition()->nRows() == 0) return;
+
     horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
@@ -1527,6 +1539,12 @@ void ibis::bin::binningT(const char* f) {
 
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
+    if (fnm.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::binning failed to determine the data file "
+	    "name from \"" << (f ? f : "") << '"';
+	return;
+    }
 
     ibis::bitvector mask;
     {   // name of mask file associated with the data file
@@ -2387,6 +2405,9 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
 /// binning specifications.  It invokes ibis::bak2 to handle reduced
 /// precision binning.
 void ibis::bin::construct(const char* df) {
+    if (col == 0 || col->partition() == 0) return;
+    if (col->partition()->nRows() == 0) return;
+
     const char* spec = col->indexSpec();
     if (spec == 0 || *spec == 0) {
 	std::string idxnm(col->partition()->name());

@@ -1322,6 +1322,8 @@ void ibis::ambit::adjustLength(uint32_t nr) {
 // construct the bitmap index of type ambit (2 level cummulative ranges)
 // by default, it will use 100 bins
 void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
+    if (col == 0 || col->partition() == 0) return;
+    if (col->partition()->nRows() == 0) return;
     uint32_t i, j, k;
     nrows = col->partition()->nRows();
     uint32_t nbins = 100;  // total number of bins in two levels
