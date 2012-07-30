@@ -761,77 +761,87 @@ void ibis::part::init(const char* iname) {
 	    j = strlen(iname);
     }
 
-    char *pname = new char[j+64];
-    strcpy(pname, "ibis.");
+    std::string pname("ibis.");
     if (j > 0) {
-	strcpy(pname+5, iname);
-	pname[j+5] = '.';
+	pname += iname;
+	pname += '.';
     }
     j += 6;
 
     if (activeDir == 0) {// get the active directory name
-	strcpy(pname+j, "activeDir");
-	str = ibis::gParameters()[pname];
+	pname += "activeDir";
+	str = ibis::gParameters()[pname.c_str()];
 	if (str != 0 && *str != 0) {
 	    activeDir = ibis::util::strnewdup(str);
-	    strcpy(pname+j, "backupDir");
-	    str = ibis::gParameters()[pname];
+	    pname.erase(j, pname.size());
+	    pname += "backupDir";
+	    str = ibis::gParameters()[pname.c_str()];
 	    if (str != 0 && *str != 0)
 		backupDir = ibis::util::strnewdup(str);
 	}
     }
     if (activeDir == 0) {
-	strcpy(pname+j, "DataDir1");
-	str = ibis::gParameters()[pname];
+	pname.erase(j, pname.size());
+	pname += "DataDir1";
+	str = ibis::gParameters()[pname.c_str()];
 	if (str != 0 && *str != 0) {
 	    activeDir = ibis::util::strnewdup(str);
-	    strcpy(pname+j, "DataDir2");
-	    str = ibis::gParameters()[pname];
+	    pname.erase(j, pname.size());
+	    pname += "DataDir2";
+	    str = ibis::gParameters()[pname.c_str()];
 	    if (str != 0 && *str != 0)
 		backupDir = ibis::util::strnewdup(str);
 	}
     }
     if (activeDir == 0) {
-	strcpy(pname+j, "activeDirectory");
-	str = ibis::gParameters()[pname];
+	pname.erase(j, pname.size());
+	pname += "activeDirectory";
+	str = ibis::gParameters()[pname.c_str()];
 	if (str != 0 && *str != 0) {
 	    activeDir = ibis::util::strnewdup(str);
-	    strcpy(pname+j, "backupDirectory");
-	    str = ibis::gParameters()[pname];
+	    pname.erase(j, pname.size());
+	    pname += "backupDirectory";
+	    str = ibis::gParameters()[pname.c_str()];
 	    if (str != 0 && *str != 0)
 		backupDir = ibis::util::strnewdup(str);
 	}
     }
     if (activeDir == 0) {
-	strcpy(pname+j, "DataDir");
-	str = ibis::gParameters()[pname];
+	pname.erase(j, pname.size());
+	pname += "DataDir";
+	str = ibis::gParameters()[pname.c_str()];
 	if (str != 0 && *str != 0) {
 	    activeDir = ibis::util::strnewdup(str);
-	    strcpy(pname+j, "backupDir");
-	    str = ibis::gParameters()[pname];
+	    pname.erase(j, pname.size());
+	    pname += "backupDir";
+	    str = ibis::gParameters()[pname.c_str()];
 	    if (str != 0 && *str != 0)
 		backupDir = ibis::util::strnewdup(str);
 	}
     }
     if (activeDir == 0) {
-	strcpy(pname+j, "DataDirectory");
-	str = ibis::gParameters()[pname];
+	pname.erase(j, pname.size());
+	pname += "DataDirectory";
+	str = ibis::gParameters()[pname.c_str()];
 	if (str != 0 && *str != 0) {
 	    activeDir = ibis::util::strnewdup(str);
-	    strcpy(pname+j, "backupDirectory");
-	    str = ibis::gParameters()[pname];
+	    pname.erase(j, pname.size());
+	    pname += "backupDirectory";
+	    str = ibis::gParameters()[pname.c_str()];
 	    if (str != 0 && *str != 0)
 		backupDir = ibis::util::strnewdup(str);
 	}
 	else {
-	    strcpy(pname+j, "IndexDirectory");
-	    str = ibis::gParameters()[pname];
+	    pname.erase(j, pname.size());
+	    pname += "IndexDirectory";
+	    str = ibis::gParameters()[pname.c_str()];
 	    if (str != 0 && *str != 0) {
 		activeDir = ibis::util::strnewdup(str);
 	    }
 	    else {
-		strcpy(pname+j, "DataDir2");
-		str = ibis::gParameters()[pname];
+		pname.erase(j, pname.size());
+		pname += "DataDir2";
+		str = ibis::gParameters()[pname.c_str()];
 		if (0 != str && *str != 0) {
 		    backupDir = ibis::util::strnewdup(str);
 		}
@@ -929,8 +939,9 @@ void ibis::part::init(const char* iname) {
 	}
 
 	if (backupDir == 0) {
-	    strcpy(pname+j, "useBackupDir");
-	    if (ibis::gParameters().isTrue(pname)) {
+	    pname.erase(j, pname.size());
+	    pname += "useBackupDir";
+	    if (ibis::gParameters().isTrue(pname.c_str())) {
 		// use backup dir
 		if (! subdir.empty()) {
 		    subdir += FASTBIT_DIRSEP;
@@ -944,7 +955,6 @@ void ibis::part::init(const char* iname) {
 	    }
 	}
     }
-    delete [] pname;
 
     if (maxLength > 0 && nEvents > 0) { // metadata file exists
 	// read in the RIDs

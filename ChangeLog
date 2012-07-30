@@ -2,6 +2,8 @@
 	* src/i*.cpp: add statements to check for empty data partitions
 	before attempting to build indexes (to address a problem reported
 	by Greg Barker)
+	* src/part.cpp: in part::init replace the raw pointer pname to a
+	std::string to avoid memory leak issue brought up by Petr Kramolis
 
 2012-07-28 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:4342 comment out the line that intended to skip
