@@ -1570,14 +1570,54 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
     if (ibis::util::getFileSize(mdfile.c_str()) > 0) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "tafel::writeMetaData detects an existing -part.txt in " << dir
-	    << ", retun now";
+	    << ", return now";
 	return 0;
     }
     ibis::horometer timer;
     if (ibis::gVerbose > 0)
 	timer.start();
 
+    uint64_t nr = 0, nb;
     std::string nmlocal, desclocal;
+    for (columnList::const_iterator it = cols.begin(); it != cols.end();
+	 ++ it) {
+	// examine the data files to determine the number of rows
+	const column &col = *(it->second);
+	nmlocal = dir;
+	nmlocal += '/';
+	nmlocal += col.name;
+	nb = ibis::util::getFileSize(nmlocal.c_str());
+	switch (col.type) {
+	default:
+	    break;
+	case ibis::BYTE:
+	case ibis::UBYTE:
+	    if (nb > nr)
+		nr = nb;
+	    break;
+	case ibis::SHORT:
+	case ibis::USHORT:
+	    nb /= 2;
+	    if (nb > nr)
+		nr = nb;
+	    break;
+	case ibis::INT:
+	case ibis::UINT:
+	case ibis::FLOAT:
+	    nb /= 4;
+	    if (nb > nr)
+		nr = nb;
+	    break;
+	case ibis::LONG:
+	case ibis::ULONG:
+	case ibis::DOUBLE:
+	    nb /= 8;
+	    if (nb > nr)
+		nr = nb;
+	    break;
+	}
+    }
+
     time_t currtime = time(0); // current time
     char stamp[28];
     ibis::util::secondsToString(currtime, stamp);
@@ -1637,8 +1677,9 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 
     md << "# meta data for data partition " << tname
        << " written by ibis::tafel::writeMetaData on " << stamp << "\n\n"
-       << "BEGIN HEADER\nName = " << tname << "\nDescription = "
-       << tdesc << "\nNumber_of_rows = 0"
+       << "BEGIN HEADER\nName = " << tname
+       << "\nDescription = " << tdesc
+       << "\nNumber_of_rows = " << nr
        << "\nNumber_of_columns = " << cols.size()
        << "\nTimestamp = " << currtime;
     if (idx != 0 && *idx != 0) {
@@ -1667,9 +1708,6 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	    if (! col.indexSpec.empty()) {
 		md << "\nindex = " << col.indexSpec;
 	    }
-	    else if (col.type == ibis::TEXT) {
-		md << "\nindex = none";
-	    }
 	    else {
 		std::string idxkey = "ibis.";
 		idxkey += tname;
@@ -1693,9 +1731,6 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 		md << "\ndescription = " << col.desc;
 	    if (! col.indexSpec.empty()) {
 		md << "\nindex = " << col.indexSpec;
-	    }
-	    else if (col.type == ibis::TEXT) {
-		md << "\nindex = none";
 	    }
 	    else {
 		std::string idxkey = "ibis.";

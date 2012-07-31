@@ -759,8 +759,7 @@ int main(int argc, char** argv) {
     ibis::init();
     parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
     const bool usersupplied = (! sqlfiles.empty()) ||
-	((! namestypes.empty() || metadatafile != 0) &&
-	 (inputrows.size() > 0 || csvfiles.size() > 0));
+	((! namestypes.empty() || metadatafile != 0));
     // create a new table that does not support querying
     std::auto_ptr<ibis::tablex> ta(ibis::tablex::create());
     if (usersupplied) { // use user-supplied data
@@ -851,15 +850,19 @@ int main(int argc, char** argv) {
 			  << " failed to parse text (appendRow returned "
 			  << ierr << ")\n" << inputrows[i] << std::endl;
 	}
-	if (ta->mRows() > 0 && outdir != 0 && *outdir != 0) {
-	    ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
-			     metatags.c_str());
+	if (outdir != 0 && *outdir != 0 && ta->mColumns() > 0) {
+	    if (ta->mRows() > 0)
+		ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
+				 metatags.c_str());
+	    else
+		ierr = ta->writeMetaData(outdir, dsn, oss.str().c_str(),
+					 indexing, metatags.c_str());
 	    if (ierr < 0) {
 		std::clog << *argv << " failed to write user-supplied data to "
 			  << outdir << ", error code = " << ierr << std::endl;
 		return(ierr);
 	    }
-	    else if (xrepeats > 0) { // repeat xrepeats times
+	    else if (ta->mRows() > 0 && xrepeats > 0) { // repeat xrepeats times
 		for (unsigned j = 1; j < xrepeats; ++ j)
 		    (void) ta->write(outdir, dsn, oss.str().c_str(),
 				     indexing, metatags.c_str());

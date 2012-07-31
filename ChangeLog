@@ -4,6 +4,10 @@
 	by Greg Barker)
 	* src/part.cpp: in part::init replace the raw pointer pname to a
 	std::string to avoid memory leak issue brought up by Petr Kramolis
+	* examples/ardea.cpp: write the metadata file when no external
+	data is provided by the metadata is provided
+	* src/tafel.cpp: in writeMetaData add code to check the sizes of
+	existing files
 
 2012-07-28 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:4342 comment out the line that intended to skip
