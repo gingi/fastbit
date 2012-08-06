@@ -691,7 +691,7 @@ double ibis::category::estimateCost(const ibis::qAnyString& qstr) const {
 	inds.reserve(strs.size());
 	for (unsigned j = 0; j < strs.size(); ++ j) {
 	    uint32_t jnd = dic[strs[j].c_str()];
-	    if (jnd < dic.size())
+	    if (jnd <= dic.size())
 		inds.push_back(jnd);
 	}
 	ibis::qDiscreteRange expr(m_name.c_str(), inds);
@@ -727,7 +727,7 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs,
     for (std::vector<std::string>::const_iterator it = strs.begin();
 	 it != strs.end(); ++ it) {
 	uint32_t ind = dic[(*it).c_str()];
-	if (ind > 0 && ind < dic.size())
+	if (ind > 0 && ind <= dic.size())
 	    inds.push_back(ind);
     }
 
@@ -779,7 +779,7 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs) const {
 	for (std::vector<std::string>::const_iterator it = strs.begin();
 	     it != strs.end(); ++ it) {
 	    uint32_t ind = dic[(*it).c_str()];
-	    if (ind > 0 && ind < dic.size())
+	    if (ind > 0 && ind <= dic.size())
 		inds.push_back(ind);
 	}
 
@@ -1275,10 +1275,12 @@ void ibis::category::write(FILE* file) const {
     fprintf(file, "name = \"%s\"\n", (const char*)m_name.c_str());
     if ((m_desc.empty() || m_desc == m_name) && dic.size() > 1) {
 	fprintf(file, "description = %s ", m_name.c_str());
-	unsigned lim = (dic.size() > 10 ? 10 : dic.size());
+	unsigned lim = (dic.size()+1);
 	unsigned nchar = 0;
 	unsigned i = 1;
 	fprintf(file, "= ");
+	if (lim > 10)
+	    lim = 10;
 	for (i = 1; i < lim && nchar < 100; ++i) {
 	    ierr = fprintf(file, "%s, ", dic[i]);
 	    if (ierr <= 0) {
@@ -1289,7 +1291,7 @@ void ibis::category::write(FILE* file) const {
 	    }
 	    nchar += ierr;
 	}
-	if (i < dic.size()) {
+	if (i <= dic.size()) {
 	    fprintf(file, "...");
 	    if (nchar+strlen(dic[dic.size()]) < 200) {
 		fprintf(file, ", %s", dic[dic.size()]);

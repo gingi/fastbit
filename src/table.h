@@ -816,6 +816,11 @@ public:
 
     ///@{
     /// Retrieve the value of the named column.
+    ///
+    /// These functions return the number of elements copied upon
+    /// successful completion, otherwise they return a negative number to
+    /// indicate failure.
+    ///
     /// @note Note the cost of name lookup is likely to dominate the total
     /// cost of such a function.
     virtual int getColumnAsByte(const char* cname, char&) const =0;
@@ -838,6 +843,11 @@ public:
     /// columnNames or @c columnTypes.  This version of the data access
     /// function may be able to avoid the name lookup and reduce the
     /// execution time.
+    ///
+    /// These functions return the number of elements copied upon
+    /// successful completion, otherwise they return a negative number to
+    /// indicate failure.
+    ///
     virtual int getColumnAsByte(uint32_t cnum, char& val) const =0;
     virtual int getColumnAsUByte(uint32_t cnum, unsigned char& val) const =0;
     virtual int getColumnAsShort(uint32_t cnum, int16_t& val) const =0;
