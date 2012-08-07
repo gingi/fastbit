@@ -123,7 +123,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
     if (ibis::gVerbose > 4)
 	timer.start();
 
-    const unsigned prec = parsePrec(); // the precision of mapped value
+    const unsigned prec = parsePrec(*col); // the precision of mapped value
 
     uint32_t nev = col->partition()->nRows();
     std::string fnm; // name of the data file

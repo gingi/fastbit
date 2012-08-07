@@ -54,6 +54,7 @@ public:
     TABLE_STATE getStateNoLocking() const {return state;}
 
     virtual int buildIndexes(const char* iopt=0, int nthr=1);
+    virtual int buildIndexes(const ibis::table::stringList&, int nthr=1);
     void buildSorted(const char* colname) const;
     void loadIndexes(const char* iopt=0, int ropt=0) const;
     void unloadIndexes() const;
@@ -640,10 +641,11 @@ public:
     /// A struct to pack arguments to the function ibis_part_build_index.
     struct indexBuilderPool {
 	ibis::util::counter cnt;
-	const char* opt;
+	ibis::table::stringList opt;
 	const part &tbl;
 	indexBuilderPool(const part &t, const char* spec)
-	    : cnt(), opt(spec), tbl(t) {}
+	    : cnt(), tbl(t) {opt.push_back(spec);}
+	indexBuilderPool(const part&, const ibis::table::stringList&);
     };
 
     /// Generate and run random queries for slefTest.

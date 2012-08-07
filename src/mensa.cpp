@@ -327,6 +327,14 @@ int ibis::mensa::buildIndexes(const char* opt) {
     return 0;
 } // ibis::mensa::buildIndexes
 
+int ibis::mensa::buildIndexes(const ibis::table::stringList &opt) {
+    for (ibis::partList::const_iterator it = parts.begin();
+	 it != parts.end(); ++ it) {
+	(*it)->buildIndexes(opt);
+    }
+    return 0;
+} // ibis::mensa::buildIndexes
+
 int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
     if (parts.size() <= 1 && nms.size() == 0)
 	return 0;

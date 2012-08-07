@@ -127,6 +127,7 @@ public:
 
     virtual int buildIndex(const char*, const char*) {return -1;}
     virtual int buildIndexes(const char*) {return -1;}
+    virtual int buildIndexes(const ibis::table::stringList&) {return -1;}
     virtual const char* indexSpec(const char*) const {return 0;}
     virtual void indexSpec(const char*, const char*) {return;}
 
@@ -294,6 +295,7 @@ public:
 
     virtual int buildIndex(const char*, const char*) {return -1;}
     virtual int buildIndexes(const char*) {return -1;}
+    virtual int buildIndexes(const ibis::table::stringList&) {return -1;}
     virtual const char* indexSpec(const char*) const {return 0;}
     virtual void indexSpec(const char*, const char*) {return;}
 

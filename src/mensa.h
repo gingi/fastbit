@@ -121,6 +121,7 @@ public:
 
     virtual int buildIndex(const char*, const char*);
     virtual int buildIndexes(const char*);
+    virtual int buildIndexes(const ibis::table::stringList&);
     virtual const char* indexSpec(const char*) const;
     virtual void indexSpec(const char*, const char*);
     virtual int getPartitions(ibis::constPartList &) const;

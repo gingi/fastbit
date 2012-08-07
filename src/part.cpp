@@ -176,30 +176,48 @@ extern "C" {
 	if (arg == 0) return reinterpret_cast<void*>(-1L);
 	ibis::part::indexBuilderPool &pool =
 	    *(reinterpret_cast<ibis::part::indexBuilderPool*>(arg));
+	const ibis::table::stringList &opt = pool.opt;
+	const char *iopt;
 	try {
 	    for (uint32_t i = pool.cnt(); i < pool.tbl.nColumns();
 		 i = pool.cnt()) {
 		ibis::column *col = pool.tbl.getColumn(i);
-		if (col != 0) {
-		    if (! (col->upperBound() >= col->lowerBound()))
-			col->computeMinMax();
-		    col->loadIndex(pool.opt);
-		    if (col->indexedRows() != pool.tbl.nRows()) {
-			// rebuild the index if the existing one does not
-			// have the same number of rows as the current data
-			// partition
-			col->unloadIndex();
-			col->purgeIndexFile();
-			std::auto_ptr<ibis::index>
-			    tmp(ibis::index::create(col, 0, pool.opt));
+		if (col == 0) break;
+		iopt = 0;
+		if (opt.size() > 1) {
+		    size_t j = 0;
+		    for (j = 0; j+1 < opt.size(); j += 2) {
+			if (ibis::util::nameMatch(col->name(), opt[j])) {
+			    ++ j;
+			    break;
+			}
 		    }
-		    else {
-			col->unloadIndex();
+		    if (j < opt.size()) {
+			iopt = opt[j];
 		    }
-		    // std::string snm;
-		    // const char *fnm = col->dataFileName(snm);
-		    // ibis::fileManager::instance().flushFile(fnm);
 		}
+		else if (opt.size() > 0) {
+		    iopt = opt.back();
+		}
+
+		if (! (col->upperBound() >= col->lowerBound()))
+		    col->computeMinMax();
+		col->loadIndex(iopt);
+		if (col->indexedRows() != pool.tbl.nRows()) {
+		    // rebuild the index if the existing one does not
+		    // have the same number of rows as the current data
+		    // partition
+		    col->unloadIndex();
+		    col->purgeIndexFile();
+		    std::auto_ptr<ibis::index>
+			tmp(ibis::index::create(col, 0, iopt));
+		}
+		else {
+		    col->unloadIndex();
+		}
+		// std::string snm;
+		// const char *fnm = col->dataFileName(snm);
+		// ibis::fileManager::instance().flushFile(fnm);
 	    }
 	    return 0;
 	}
@@ -1830,7 +1848,7 @@ bool ibis::part::matchNameValuePair(const char* name, const char* value)
 	    ret = true;
 	}
 	else {
-	    ret = ibis::util::strMatch((*it).second, value);
+	    ret = ibis::util::nameMatch((*it).second, value);
 	}
     }
     return ret;
@@ -1846,7 +1864,7 @@ ibis::part::matchMetaTags(const std::vector<const char*>& mtags) const {
     return ret;
 } // ibis::part::matchMetaTags
 
-/// Return true if and only if the two vLists must match exactly.
+/// Return true if and only if the two vLists match exactly.
 bool ibis::part::matchMetaTags(const ibis::resource::vList &mtags) const {
     const uint32_t len = mtags.size();
     bool ret = (metaList.size() == mtags.size());
@@ -1857,17 +1875,10 @@ bool ibis::part::matchMetaTags(const ibis::resource::vList &mtags) const {
 	       ((strcmp((*it1).second, "*")==0) ||
 		(strcmp((*it2).second, "*")==0) ||
 		(stricmp((*it1).second, (*it2).second)==0)));
-	if (ibis::gVerbose > 5) {
-	    if (ret)
-		logMessage("matchMetaTags", "meta tags (%s = %s) and "
-			   "(%s = %s) match", (*it1).first, (*it1).second,
-			   (*it2).first, (*it2).second);
-	    else
-		logMessage("matchMetaTags", "meta tags (%s = %s) and "
-			   "(%s = %s) donot match",
-			   (*it1).first, (*it1).second,
-			   (*it2).first, (*it2).second);
-	}
+	LOGGER(ibis::gVerbose > 5)
+	    << "util::matchMetaTags -- meta tags (" << it1->first << " = "
+	    << it1->second << ") and (" << it2->first << " = " << it2->second
+	    << ") " << (ret ? "match" : "donot match");;
     }
     return ret;
 } // ibis::part::matchMetaTags
@@ -5996,6 +6007,121 @@ void ibis::part::buildSorted(const char* cname) const {
 /// indexes.
 /// @sa ibis::part::loadIndexes
 int ibis::part::buildIndexes(const char* iopt, int nthr) {
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::buildIndexes";
+    readLock lock(this, evt.c_str());
+    ibis::horometer timer;
+    timer.start();
+    LOGGER(ibis::gVerbose > 5)
+	<< evt << " -- starting ...";
+    if (nthr > 1) {
+	-- nthr; // spawn one less thread than specified
+	indexBuilderPool pool(*this, iopt);
+	std::vector<pthread_t> tid(nthr);
+	pthread_attr_t tattr;
+	int ierr = pthread_attr_init(&tattr);
+	if (ierr == 0) {
+#if defined(PTHREAD_SCOPE_SYSTEM)
+	    ierr = pthread_attr_setscope(&tattr, PTHREAD_SCOPE_SYSTEM);
+	    if (ierr != 0
+#if defined(ENOTSUP)
+		&& ierr != ENOTSUP
+#endif
+		) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << evt << " pthread_attr_setscope failed "
+		    "to set system scope (ierr = " << ierr << ')';
+	    }
+#endif
+	    for (long i = 0; i < nthr; ++i) {
+		ierr = pthread_create(&(tid[i]), &tattr,
+				      ibis_part_build_indexes, (void*)&pool);
+		LOGGER(0 != ierr && ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to start the thread # "
+		    << i << " to run ibis_part_build_index (" << strerror(ierr)
+		    << ')';
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 2)
+		<< evt << " -- pthread_attr_init failed with " << ierr
+		<< ", using default attributes";
+	    for (long i = 0; i < nthr; ++i) {
+		ierr = pthread_create(&(tid[i]), 0, ibis_part_build_indexes,
+				      (void*)&pool);
+		LOGGER(0 != ierr && ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to start the thread # "
+		    << i << " to run ibis_part_build_index (" << strerror(ierr)
+		    << ')';
+	    }
+	}
+	(void) ibis_part_build_indexes((void*)&pool);
+	for (int i = 0; i < nthr; ++ i) {
+	    void *j;
+	    pthread_join(tid[i], &j);
+	    LOGGER(j != 0 && ibis::gVerbose > 0)
+		<< "Warning -- part[" << name() << "]::buildIndexes -- thread # "
+		<< i << " returned a nonzero code " << j;
+	}
+	++ nthr; // restore the original value
+    }
+    else { // do not spawn any new threads
+	indexBuilderPool pool(*this, iopt);
+	(void) ibis_part_build_indexes((void*)&pool);
+	nthr = 1; // used only this thread
+    }
+    if (ibis::gVerbose > 0) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg() << evt << " processed "
+	     << nColumns() << " column" << (nColumns()>1 ? "s" : "")
+	     << " using " << nthr << " thread" << (nthr > 1 ? "s" : "")
+	     << " took " << timer.CPUTime() << " CPU seconds and "
+	     << timer.realTime() << " elapsed seconds";
+    }
+
+    if (activeDir == 0 || *activeDir == 0) return 0;
+    writeMetaData(nEvents, columns, activeDir);
+    if (backupDir != 0 && *backupDir != 0) {
+	Stat_T tmp;
+	if (UnixStat(backupDir, &tmp) == 0) {
+	    if ((tmp.st_mode&S_IFDIR) == S_IFDIR)
+		writeMetaData(nEvents, columns, backupDir);
+	}
+    }
+    return 0;
+} // ibis::part::buildIndexes
+
+/// Make sure indexes for all columns are available.
+///
+/// The sequence of strings are used as follows.
+///
+/// - The strings are taken two at a time where the first of the pair is
+///   taken as the pattern to be used to match the name of the columns.  If
+///   a column name matches the pattern, the second of the pair is used as
+///   the indexing option for the column.
+/// - The odd entry at the end of the sequence is used as the indexing
+///   option for any column that does not match any of the preceeding
+///   pairs.
+/// - If the sequence has an even number of entries, the column whose name
+///   does not match any name patterns will be indexed with the default
+///   indexing option.
+///
+/// Here is an example sequence ("a%", "<binning none/>", "_b*" "<binning
+/// precision=2>", "bit-slice").  A column name that matches "a%", i.e.,
+/// starting columns starting with 'a', will be indexed with option
+/// "<binning none/>".  All column names do not match the pattern "a%" will
+/// then be compared with "_b*".  If they match, then the column will be
+/// indexed with option "<binning precision=2>".  All other columns will be
+/// indexed with option "bit-slice".
+///
+/// May use @c nthr threads to build indexes.  The argument iopt is used to
+/// build new indexes if the corresponding columns do not already have
+/// indexes.
+///
+/// @sa ibis::part::loadIndexes
+int ibis::part::buildIndexes(const ibis::table::stringList &iopt, int nthr) {
     std::string evt = "part[";
     evt += m_name;
     evt += "]::buildIndexes";
@@ -19857,6 +19983,13 @@ uint32_t ibis::part::vault::seekValue(const array_t<T>&arr,
 uint32_t ibis::part::vault::tellReal() const {
     return _roster[position];
 } // ibis::part::vault::tellReal
+
+ibis::part::indexBuilderPool::indexBuilderPool
+(const ibis::part &t, const ibis::table::stringList &p)
+    : cnt(), opt(p.size()), tbl(t) {
+    for (size_t j = 0; j < p.size(); ++ j)
+	opt[j] = p[j];
+} // ibis::part::indexBuilderPool
 
 /// Examining the given directory to look for the metadata files and to
 /// construct ibis::part.  Can only descend into subdirectories through

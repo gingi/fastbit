@@ -1920,6 +1920,8 @@ ibis::util::timer::~timer() {
     }
 } // ibis::util::timer::~timer
 
+/// Match the string @c str against a simple pattern @c pat.
+///
 /// If the whole string matches the pattern, this function returns true,
 /// otherwise, it returns false.  The special cases are (1) if the two
 /// pointers are the same, it returns true; (2) if both arguments point to
@@ -1934,8 +1936,9 @@ ibis::util::timer::~timer() {
 /// meta characters used in C-shell file name substitution and SQL LIKE
 /// clause. 
 ///
-/// @note The strings are matched without considering the case, i.e., the
-/// match is case insensitive.
+/// @note The strings are matched with the same case, i.e., the
+/// match is case sensitive, unless the macro
+/// FASTBIT_CASE_SENSITIVE_COMPARE is defined to be 0 at compile time.
 bool ibis::util::strMatch(const char *str, const char *pat) {
     static const char metaList[6] = "?*_%\\";
     /* Since the escape character is special to C/C++ too, the following initialization causes problem for some compilers!
@@ -2082,6 +2085,140 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
     }
     return ret;
 } // ibis::util::strMatch
+
+/// Match the string @c str against a simple pattern @c pat without
+/// considering cases.  This is to follow the SQL standard for comparing
+/// names.
+///
+/// @sa ibis::util::strMatch
+bool ibis::util::nameMatch(const char *str, const char *pat) {
+    static const char metaList[6] = "?*_%\\";
+    if (str == pat) {
+	return true;
+    }
+    else if (pat == 0) {
+	return (str == 0);
+    }
+    else if (*pat == 0) {
+	return (str != 0 && *str == 0);
+    }
+    else if (str == 0) {
+	return false;
+    }
+    else if (*str == 0) {
+	bool onlyany = false;
+	for (onlyany = (*pat == STRMATCH_META_CSH_ANY ||
+			*pat == STRMATCH_META_SQL_ANY),
+		 ++ pat;
+	     onlyany && *pat != 0; ++ pat)
+	    onlyany = (*pat == STRMATCH_META_CSH_ANY ||
+		       *pat == STRMATCH_META_SQL_ANY);
+	return onlyany;
+    }
+
+    const char *s1 = strpbrk(pat, metaList);
+    const long int nhead = s1 - pat;
+    if (s1 < pat) { // no meta character
+	return (0 == stricmp(str, pat));
+    }
+    else if (s1 > pat && 0 != strnicmp(str, pat, nhead)) {
+	// characters before the first meta character do not match
+	return false;
+    }
+
+    if (*s1 == STRMATCH_META_ESCAPE) { // escape character
+	if (str[nhead] == pat[nhead+1])
+	    return nameMatch(str+nhead+1, pat+nhead+2);
+	else
+	    return false;
+    }
+    else if (*s1 == STRMATCH_META_CSH_ONE || *s1 == STRMATCH_META_SQL_ONE) {
+	// match exactly one character
+	if (str[nhead] != 0)
+	    return nameMatch(str+nhead+1, pat+nhead+1);
+	else
+	    return false;
+    }
+
+    // found STRMATCH_META_*_ANY
+    const char* s0 = str + nhead;
+    do { // skip consecutive STRMATCH_META_*_ANY
+	++ s1;
+    } while (*s1 == STRMATCH_META_CSH_ANY || *s1 == STRMATCH_META_SQL_ANY);
+    if (*s1 == 0) // pattern end with STRMATCH_META_ANY
+	return true;
+
+    const char* s2 = 0;
+    bool  ret;
+    if (*s1 == STRMATCH_META_ESCAPE) { // skip STRMATCH_META_ESCAPE
+	++ s1;
+	if (*s1 != 0)
+	    s2 = strpbrk(s1+1, metaList);
+	else
+	    return true;
+    }
+    else if (*s1 == STRMATCH_META_CSH_ONE || *s1 == STRMATCH_META_SQL_ONE) {
+	do {
+	    if (*s0 != 0) { // STRMATCH_META_*_ONE matched
+		++ s0;
+		// STRMATCH_META_*_ANY STRMATCH_META_*_ONE
+		// STRMATCH_META_*_ANY
+		// ==> STRMATCH_META_*_ANY STRMATCH_META_*_ONE
+		do {
+		    ++ s1;
+		} while (*s1 == STRMATCH_META_CSH_ANY ||
+			 *s1 == STRMATCH_META_SQL_ANY);
+	    }
+	    else { // end of str, STRMATCH_META_*_ONE not matched
+		return false;
+	    }
+	} while (*s1 == STRMATCH_META_CSH_ONE ||
+		 *s1 == STRMATCH_META_SQL_ONE);
+	if (*s1 == 0) {
+	    // pattern end with STRMATCH_META_*_ANY plus a number of
+	    // STRMATCH_META_*_ONE that have been matched.
+	    return true;
+	}
+	if (*s1 == STRMATCH_META_ESCAPE) {
+	    ++ s1;
+	    if (*s1 != 0)
+		s2 = strpbrk(s1+1, metaList);
+	}
+	else {
+	    s2 = strpbrk(s1, metaList);
+	}
+    }
+    else {
+	s2 = strpbrk(s1, metaList);
+    }
+
+    if (s2 < s1) { // no more meta character
+	const uint32_t ntail = strlen(s1);
+	if (ntail <= 0U)
+	    return true;
+
+	uint32_t nstr = strlen(s0);
+	if (nstr < ntail)
+	    return false;
+	else
+	    return (0 == stricmp(s1, s0+(nstr-ntail)));
+    }
+
+    const std::string anchor(s1, s2);
+    const char* tmp = strstr(s0, anchor.c_str());
+    if (tmp < s0) return false;
+    ret = nameMatch(tmp+anchor.size(), s2);
+    while (! ret) { // retry
+	tmp = strstr(tmp+1, anchor.c_str());
+	if (tmp > s0) {
+	    ret = nameMatch(tmp+anchor.size(), s2);
+	}
+	else {
+	    break;
+	}
+    }
+    return ret;
+} // ibis::util::nameMatch
 
 /// Converts the given time in seconds (as returned by function time) into
 /// the string (as from asctime_r).  The argument @c str must contain at

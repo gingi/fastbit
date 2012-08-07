@@ -150,9 +150,10 @@ static bool outputnamestoo = false;
 static const char *ridfile = 0;
 static const char *appendto = 0;
 static const char *outputfile = 0;
-static const char *indexingOption = 0;
 static const char *yankstring = 0;
 static const char *keepstring = 0;
+static ibis::table::stringList indexingOptions;
+
 typedef std::pair<const char*, const char*> namepair;
 
 namespace ibis {
@@ -2045,6 +2046,7 @@ static void parse_args(int argc, char** argv, int& mode,
     qlist.clear(); // list of query strings
     slist.clear(); // list of sort request
 
+    const char* defaultIndexing = 0;
     int accessIndexInWhole = 0;
     std::vector<const char*> confs; // name of the configuration files
     std::vector<const char*> dirs;  // directories specified on command line
@@ -2087,13 +2089,23 @@ static void parse_args(int argc, char** argv, int& mode,
 			    build_index += strtol(argv[i+1], 0, 0);
 			    i = i + 1;
 			}
+			else if (*argv[i+1] != '-') {
+			    // assume to be an index specification
+			    char *str1 = argv[i+1];
+			    char *str2 = strchr(argv[i+1], ':');
+			    if (str2 != 0) {
+				*str2 = 0;
+				++ str2;
+				indexingOptions.push_back(str1);
+				indexingOptions.push_back(str2);
+			    }
+			    else {
+				defaultIndexing = argv[i+1];
+			    }
+			    i = i + 1;
+			}
 			else {
 			    ++ build_index;
-			    if (*argv[i+1] != '-') {
-				// assume to be an index specification
-				indexingOption = argv[i+1];
-				i = i + 1;
-			    }
 			}
 		    }
 		    else {
@@ -2104,7 +2116,17 @@ static void parse_args(int argc, char** argv, int& mode,
 		    build_index += strtol(++ptr, 0, 0);
 		    if (i+1 < argc && *argv[i+1] != '-') {
 			// assume to be an index specification
-			indexingOption = argv[i+1];
+			char *str1 = argv[i+1];
+			char *str2 = strchr(argv[i+1], ':');
+			if (str2 != 0) {
+			    *str2 = 0;
+			    ++ str2;
+			    indexingOptions.push_back(str1);
+			    indexingOptions.push_back(str2);
+			}
+			else {
+			    defaultIndexing = argv[i+1];
+			}
 			i = i + 1;
 		    }
 		}
@@ -2402,6 +2424,8 @@ static void parse_args(int argc, char** argv, int& mode,
 	}
     } // for (inti=1; ...)
 
+    if (defaultIndexing != 0 && *defaultIndexing != 0)
+	indexingOptions.push_back(defaultIndexing);
     for (unsigned i = 0; i < queff.size(); ++ i) {
 	qlist.push_back(queff[i].c_str());
     }
@@ -4966,25 +4990,42 @@ int main(int argc, char** argv) {
 
 	// build new indexes
 	if (build_index > 0 && ! ibis::datasets.empty()) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< *argv << ": start building indexes (nthreads="
-		<< build_index << ", indexingOption="
-		<< (indexingOption ? indexingOption : "-") << ") ...";
+	    if (ibis::gVerbose > 0) {
+		ibis::util::logger lg;
+		lg() << *argv << ": start building indexes (nthreads="
+		     << build_index << ", indexingOption";
+		if (indexingOptions.empty()) {
+		    lg() << "= -";
+		}
+		else if (indexingOptions.size() == 1) {
+		    lg() << "= " << indexingOptions.back();
+		}
+		else {
+		    lg() << "s= {";
+		    for (unsigned j = 0; j+1 < indexingOptions.size(); j += 2)
+			lg() << (j>0?", ":"") << indexingOptions[j] << ':'
+			     << indexingOptions[j+1];
+		    if (indexingOptions.size() % 2 > 0)
+			lg() << ", *:" << indexingOptions.back();
+		    lg() << "}";
+		}
+		lg() << ") ...";
+	    }
+
 	    ibis::horometer timer1;
 	    timer1.start();
 	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
 		 it != ibis::datasets.end(); ++ it) {
-		if (indexingOption != 0 &&
+		if (indexingOptions.size() == 1 &&
 		    ((*it)->indexSpec() == 0 ||
-		     stricmp(indexingOption, (*it)->indexSpec()) != 0)) {
-		    (*it)->indexSpec(indexingOption);
+		     stricmp(indexingOptions.back(), (*it)->indexSpec()) != 0)) {
+		    (*it)->indexSpec(indexingOptions.back());
 		    (*it)->purgeIndexFiles();
 		}
 		else if (zapping) {
 		    (*it)->purgeIndexFiles();
 		}
-		(*it)->buildIndexes(indexingOption, build_index);
-		//(*it)->loadIndexes(indexingOption);
+		(*it)->buildIndexes(indexingOptions, build_index);
 	    }
 	    timer1.stop();
 	    if (ibis::gVerbose >= 0) {

@@ -152,24 +152,50 @@ href="dataLoading.html">dataLoading.html</a>.
 
 
 <li><A name="build"></A>
-<code>-b[uild-index] [num-threads|indexing-option]</code>
-<br>Instruct FastBit to build indexes of all datasets known.  Usually it
+<code>-b[uild-index] [num-threads|indexing-option|name-option-pair]</code>
+<br>Instruct FastBit to build indexes of all datasets known.  Usually FastBit
 builds indexes as needed, therefore there is no need to explicitly build
 indexes.
 <p>
-The option <code>-b</code> may be followed by one of two
+The option <code>-b</code> may be followed by one of three types of
 arguments, an integer to indicate the number of simultaneous
-threads to use while building the indexes, or a string arguments to indicate
-the type of indexes to build.  An indexing option string might look like
+threads to use while building the indexes, a bare indexing option to indicate
+the type of indexes to build for all columns, or a name-option pair to
+  indicate indexing option for a subset of columns.  An
+  indexing option is a string for the following form,
 "<code>&lt;binning nbins=1000/&gt; &lt;encoding range ncomp=2/&gt;</code>".
-More about the indexing options is available at <A
+Additional ifnormation about the indexing option is available at <A
 HREF="indexSpec.html">indexSpec.html</A>.
 </p>
-<p>To specify the number of threads and an indexing option, use two
-separate instances of <code>-b</code> option, such as,
+<p>
+  A name-option pair starts with a column name or a name pattern,
+  followed by the semicolon ':' and an indexing option string.  There is
+  no need to put spaces around the semicolon, in fact, ibis.cpp prefers
+  to have no spaces or any other separator around the semicolon.
+The name pattern may use SQL wild cards or c-shell wild cards.  The
+following example name-option pair
+  "c*:<code>&lt;binning precision=2/&gt;</code>" will index all
+columns whose names starting with the letter "c" with the indexing option
+"<code>&lt;binning precision=2/&gt;</code>".
+</p>
+<p>Multiple -b options may appear on the command line.  The name-option
+pairs are used in the order as they appear on the command line.  Only
+the last bare indexing option is used if any is specified.  The integer
+values following -b are added together.  An option -b appearing by
+itself is treated the same as '-b 1', therefore multple bare -b options will
+inrease the number of threads used to build indexes.
+For example, the following set of -b options,
 <pre>
--b "&lt;binning none/&gt; &lt;encoding interval-equality/&gt;" -b 2
+-b "a%:&lt;binning none/&gt;" -b ".b*:&lt;encoding
+interval-equality/&gt;" -b -b -b "bit-slice"
 </pre>
+will build indexes with two threads.  All columns with 'a' as the first
+letter of their name will be index without binning (i.e., "&lt;binning
+none/&gt;").  Columns whose name does not match the first pattern will
+be compared to the second pattern, all those with names containing b as
+the second letter will be indexed with the option "&lt;encoding
+interval-equality/&gt;".  The columns whose names do not match either
+one of the two patterns will be indexed with the option "bit-slice".
 </p>
 <p>
 Since building indexes is an expensive operation, FastBit by default

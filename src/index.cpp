@@ -412,8 +412,8 @@ ibis::index* ibis::index::readOld(const ibis::column* c,
 				  ibis::fileManager::storage* st,
 				  ibis::index::INDEX_TYPE t) {
     LOGGER(ibis::gVerbose > 3)
-	<< "index::create -- attempt to read index type `"
-	<< (int)t << "' from "
+	<< "index::create -- attempt to read index type #"
+	<< (int)t << " from "
 	<< (f ? f : c->partition()->currentDataDir())
 	<< " for column " << c->partition()->name() << '.' << c->name();
     ibis::index *ind = 0;
@@ -782,8 +782,17 @@ ibis::index* ibis::index::buildNew(const ibis::column *c,
 	<< " for column " << c->partition()->name() << '.' << c->name();
 
     ibis::index *ind = 0;
-    const bool usebin = (strstr(spec, "bin") != 0 &&
-			 strstr(spec, "none") == 0);
+    bool usebin = (strstr(spec, "bin") != 0 && strstr(spec, "none") == 0);
+    if (usebin) {
+	unsigned nb = ibis::bin::parseNbins(*c);
+	const unsigned nr = c->partition()->nRows();
+	if (nb >= nr) {
+	    usebin = false;
+	}
+	else if (nb >= (nr >> 1) && c->isInteger()) {
+	    usebin = false;
+	}
+    }
     uint32_t ncomp = 0;
     const char* ptr = strstr(spec, "ncomp=");
     if (ptr != 0) {
@@ -795,9 +804,10 @@ ibis::index* ibis::index::buildNew(const ibis::column *c,
 	    if (isdigit(*ptr)) { // string --> number
 		ncomp = strtol(ptr, 0, 0);
 		if (ncomp == 0) {
-		    if (errno == EINVAL)
-			c->logMessage("createIndex",
-				      "atio(%s) failed", ptr);
+		    LOGGER(errno == EINVAL && ibis::gVerbose > 0)
+			<< "Warning -- index::create failed to extract "
+			"the number of components from  " << ptr
+			<< ", use the default value 2";
 		    ncomp = 2; // default to 2
 		}
 	    }

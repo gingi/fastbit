@@ -2208,10 +2208,10 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 
 template <typename E>
 void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
-    if (varr.empty()) return;
+    if (varr.empty() || col == 0) return;
 
     nrows = varr.size();
-    uint32_t nbins = parseNbins();
+    uint32_t nbins = parseNbins(*col);
     if (eqw <= 1) { // simple binning
 	E amin = varr[0];
 	E amax = varr[0];
@@ -2646,9 +2646,9 @@ void ibis::bin::construct(const array_t<E>& varr) {
 
 template <typename E>
 void ibis::bin::setBoundaries(const array_t<E>& varr) {
-    if (varr.empty()) return; // can not do anything
+    if (varr.empty() || col == 0) return; // can not do anything
 
-    unsigned eqw = parseScale();
+    unsigned eqw = parseScale(*col);
 
     bounds.clear();
     if (eqw >= 10) { // attempt to generate equal-weight bins
@@ -3152,13 +3152,13 @@ void ibis::bin::binning(const array_t<E>& varr) {
 template <typename E>
 void ibis::bin::mapGranules(const array_t<E>& val,
 			    ibis::bin::granuleMap& gmap) const {
-    if (val.empty()) return;
+    if (val.empty() || col == 0) return;
     gmap.clear();
     horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
 
-    const uint32_t prec = parsePrec(); // the precision of mapped value
+    const uint32_t prec = parsePrec(*col); // the precision of mapped value
     const uint32_t nev = val.size();
 
     for (uint32_t i = 0; i < nev; ++i) {
@@ -3378,11 +3378,13 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 	<< (nobs>1?"s":"");
 } // ibis::bin::convertGranules
 
-// parse the index specification to determine the number of bins, returns
-// IBIS_DEFAULT_NBINS if it is not specified.
-uint32_t ibis::bin::parseNbins() const {
+/// Parse the index specs to determine eqw and nbins.
+///
+/// Parse the index specification to determine the number of bins, returns
+/// IBIS_DEFAULT_NBINS if it is not specified.
+uint32_t ibis::bin::parseNbins(const ibis::column &c) {
     uint32_t nbins = 0;
-    const char* bspec = col->indexSpec();
+    const char* bspec = c.indexSpec();
     const char* str = 0;
     if (bspec != 0) {
 	str = strstr(bspec, "nbins=");
@@ -3413,7 +3415,7 @@ uint32_t ibis::bin::parseNbins() const {
 	}
     }
     if (nbins == 0) {
-	bspec = col->partition()->indexSpec();
+	bspec = c.partition()->indexSpec();
 	if (bspec != 0) {
 	    str = strstr(bspec, "nbins=");
 	    if (str) {
@@ -3444,9 +3446,9 @@ uint32_t ibis::bin::parseNbins() const {
 	}
     }
     if (nbins == 0) {
-	std::string tmp = col->partition()->name();
+	std::string tmp = c.partition()->name();
 	tmp += '.';
-	tmp += col->name();
+	tmp += c.name();
 	tmp += ".index";
 	bspec = ibis::gParameters()[tmp.c_str()];
 	if (bspec != 0) {
@@ -3484,28 +3486,30 @@ uint32_t ibis::bin::parseNbins() const {
     return nbins;
 } // ibis::bin::parseNbins
 
-// parse scale=xx (or the old form equalxx) in the index specification
-// 0 -- simple linear scale (used when "scale=" is present, but is not
-//      "scale=linear" or "scale=log")
-// 1 -- equal length [linear scale]
-// 2 -- equal ratio [log scale]
-// 10 -- equal weight
-// UINT_MAX -- default value if no index specification is found.
-unsigned ibis::bin::parseScale() const {
+/// Parse the specification about scaling.
+///
+/// Parse scale=xx (or the old form equalxx) in the index specification
+/// - 0 -- simple linear scale (used when "scale=" is present, but is not
+///        "scale=linear" or "scale=log")
+/// - 1 -- equal length [linear scale]
+/// - 2 -- equal ratio [log scale]
+/// - 10 -- equal weight
+/// - UINT_MAX -- default value if no index specification is found.
+unsigned ibis::bin::parseScale(const ibis::column &c) {
     unsigned eq = UINT_MAX;
-    const char* bspec = col->indexSpec();
+    const char* bspec = c.indexSpec();
     if (bspec != 0) {
 	eq = parseScale(bspec);
     }
     else {
-	bspec = col->partition()->indexSpec();
+	bspec = c.partition()->indexSpec();
 	if (bspec != 0) {
 	    eq = parseScale(bspec);
 	}
 	else {
-	    std::string tmp = col->partition()->name();
+	    std::string tmp = c.partition()->name();
 	    tmp += '.';
-	    tmp += col->name();
+	    tmp += c.name();
 	    tmp += ".index";
 	    bspec = ibis::gParameters()[tmp.c_str()];
 	    eq = parseScale(bspec);
@@ -3514,7 +3518,7 @@ unsigned ibis::bin::parseScale() const {
     return eq;
 } // ibis::bin::parseScale
 
-unsigned ibis::bin::parseScale(const char* spec) const {
+unsigned ibis::bin::parseScale(const char* spec) {
     unsigned eq = UINT_MAX;
     if (spec && *spec) {
 	const char* ptr;
@@ -3575,9 +3579,10 @@ unsigned ibis::bin::parseScale(const char* spec) const {
     return eq;
 } // ibis::bin::parseScale
 
-unsigned ibis::bin::parsePrec() const {
+/// Parse the index spec to extract precision.
+unsigned ibis::bin::parsePrec(const ibis::column &c) {
     unsigned prec = 0;
-    const char* bspec = col->indexSpec();
+    const char* bspec = c.indexSpec();
     const char* str = 0;
     if (bspec != 0) {
 	str = strstr(bspec, "precision=");
@@ -3603,7 +3608,7 @@ unsigned ibis::bin::parsePrec() const {
 	    prec = static_cast<unsigned>(strtod(str, 0));
     }
     if (prec == 0) {
-	bspec = col->partition()->indexSpec();
+	bspec = c.partition()->indexSpec();
 	if (bspec != 0) {
 	    str = strstr(bspec, "precision=");
 	    if (str) {
@@ -3629,9 +3634,9 @@ unsigned ibis::bin::parsePrec() const {
 	}
     }
     if (prec == 0) {
-	std::string tmp = col->partition()->name();
+	std::string tmp = c.partition()->name();
 	tmp += '.';
-	tmp += col->name();
+	tmp += c.name();
 	tmp += ".index";
 	bspec = ibis::gParameters()[tmp.c_str()];
 	if (bspec != 0) {
@@ -4127,9 +4132,12 @@ void ibis::bin::addBounds(double lbd, double rbd, uint32_t nbins,
 /// The optional argument @c nbins can either be set outside or set to
 /// be the return value of function parseNbins.
 void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
+    if (col == 0) return;
+
     histogram hist; // a histogram
     if (nbins <= 1)
-	nbins = parseNbins();
+	nbins = parseNbins(*col);
+
     mapValues(f, hist, (eqw==10 ? 0 : nbins));
     const uint32_t ncnt = hist.size();
     histogram::const_iterator it;
@@ -4349,7 +4357,9 @@ void ibis::bin::readBinBoundaries(const char *fnm, uint32_t nb) {
 /// @note If equal weight is specified, it take precedence over all other
 /// specification.
 void ibis::bin::setBoundaries(const char* f) {
-    uint32_t eqw = parseScale();
+    if (col == 0) return;
+
+    uint32_t eqw = parseScale(*col);
 
     bounds.clear();
     if (eqw >= 10) { // attempt to generate equal-weight bins
@@ -4948,9 +4958,11 @@ void ibis::bin::setBoundaries(array_t<double>& bnds,
 // *** boundaries as this.
 void ibis::bin::setBoundaries(array_t<double>& bnds,
 			      const ibis::bin& bin0) const {
+    if (col == 0) return;
+
     uint32_t i;
     bnds.resize(nobs);
-    uint32_t eqw = parseScale();
+    uint32_t eqw = parseScale(*col);
     const uint32_t weight =
 	(bits[0]->size()+bin0.bits[0]->size())/(nobs>2?nobs-2:1);
 

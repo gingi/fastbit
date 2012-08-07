@@ -577,10 +577,8 @@ namespace ibis {
 	FASTBIT_CXX_DLLSPEC int setLogFileName(const char* filename);
 	FASTBIT_CXX_DLLSPEC const char* getLogFileName();
 
-	/// Match the string @c str against a simple pattern @c pat.  The
-	/// pattern may use two wild characters defined for SQL function
-	/// LIKE, '_' and '%'.
 	FASTBIT_CXX_DLLSPEC bool strMatch(const char* str, const char* pat);
+	FASTBIT_CXX_DLLSPEC bool nameMatch(const char* str, const char* pat);
 
 	/// Compute the outer product of @c a and @c b, add the result to @c c.
 	const ibis::bitvector64& outerProduct(const ibis::bitvector& a,

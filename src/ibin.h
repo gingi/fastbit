@@ -131,6 +131,11 @@ public:
     virtual double getMax() const;
     virtual double getSum() const;
 
+    static unsigned parsePrec(const ibis::column&);
+    static uint32_t parseNbins(const ibis::column&);
+    static unsigned parseScale(const ibis::column&);
+    static unsigned parseScale(const char*);
+
     /// Read an ibis::bin embedded inside a file.
     int read(int fdes, size_t offset, const char *fname, const char *header);
     /// Append the @c tail to this index.
@@ -312,12 +317,6 @@ protected:
     void scanAndPartition(const char*, unsigned, uint32_t nbins=0);
     /// The function used by setBoudaries() to actually generate the bounds
     void addBounds(double lbd, double rbd, uint32_t nbins, uint32_t eqw);
-    /// Parse the index specs to determine eqw and nbins.
-    uint32_t parseNbins() const;
-    /// Parse the specification about scaling.
-    unsigned parseScale() const;
-    /// Parse the index spec to extract precision.
-    unsigned parsePrec() const;
 
     virtual size_t getSerialSize() const throw();
     /// Partition the bitmaps into groups of takes about the same amount of
@@ -368,8 +367,6 @@ protected:
 private:
     // private member functions
     bin& operator=(const bin&);
-
-    unsigned parseScale(const char*) const;
 
     void print(std::ostream& out, const uint32_t tot,
 	       const double& lbound, const double& rbound) const;

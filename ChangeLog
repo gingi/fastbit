@@ -1,8 +1,18 @@
+2012-08-07 John Wu <John dot Wu at ACM dot org>
+	* src/part.h: replace const char* with ibis::table::stringList
+	* src/part.cpp: update the index building procedure to reflect the
+	new semantics for indexing each individual column differently
+	* src/ibin.h, src/ibin.cpp: change parseNbins, parsePrec and
+	parseScale to be static members of ibis::bin
+	* doc: update documentation about the indexing option and the new
+	bit-slice index class
+
 2012-08-06 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: change tests of the form j < dic.size() to j
 	<= dic.size() because j = dic.size() is a valid code - in an
 	attempt to address a question raised by Greg Barker
 	* src/table.h: clarify the return value of cursor::getColumnAs___
+	* src/util.cpp: update the documentation of ibis::util::strMatch
 
 2012-07-30 John Wu <John dot Wu at ACM dot org>
 	* src/i*.cpp: add statements to check for empty data partitions
