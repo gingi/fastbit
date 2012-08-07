@@ -1646,7 +1646,8 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 } // ibis::part::readMetaData
 
 /// Write the metadata about the data partition into the ASCII file named
-/// "-part.txt".
+/// "-part.txt".  The caller is expected to hold a write lock on the data
+/// partition to prevent simultaneous writes.
 void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 			       const char* dir) const {
     if (dir == 0 || *dir == 0)

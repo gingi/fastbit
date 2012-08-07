@@ -6,6 +6,9 @@
 	parseScale to be static members of ibis::bin
 	* doc: update documentation about the indexing option and the new
 	bit-slice index class
+	* tests/acmpub.csv, tests/vault/acmpub-0, tests/vault/acmpub-1:
+	add test cases for new operations CONTAINS, this exercises the new
+	features in keyword indexes
 
 2012-08-06 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: change tests of the form j < dic.size() to j

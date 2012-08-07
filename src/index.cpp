@@ -159,6 +159,10 @@ namespace std { // specialize the std::less struct
 ///
 /// @note Set @c dfname to null to build a brand new index and discard
 /// the existing index.
+///
+/// @note The index specification passed to this function will be attached
+/// to the column object if a new index is to be built.  This is the only
+/// possible change to the column object.
 ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 				 const char* spec, int readopt) {
     ibis::index* ind = 0;
@@ -774,6 +778,10 @@ ibis::index* ibis::index::buildNew(const ibis::column *c,
 		<< ibis::TYPESTRING[(int)c->type()];
 	    return 0;}
 	}
+    }
+    else if (c->indexSpec() == 0 || *(c->indexSpec()) == 0 ||
+	     strcmp(c->indexSpec(), spec) != 0) {
+	const_cast<column*>(c)->indexSpec(spec);
     }
     LOGGER(ibis::gVerbose > 3)
 	<< "index::create -- attempt to build a new index with spec `"

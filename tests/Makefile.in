@@ -703,7 +703,7 @@ check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist $(TESTDIR)/t2/
 	@$(IBISEXE) -d $(TESTDIR)/t2 -q "select ceil(c/7), sum(a), count(*), avg(b), floor(b/4) where c > 90" -o $(TESTDIR)/hist6 2>&1 | if [ `scripts/printWarning.pl - | wc -l` -eq 0 ] ; then echo Passed $@ case 18; else echo Did NOT pass $@ case 18; fi
 	@if [ ` diff -w vault/hist6 $(TESTDIR)/hist6 | wc -l ` -eq 0 ] ; then echo Passed $@ case 19; else echo Did NOT pass $@ case 19; fi
 	@echo
-check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
+check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt $(TESTDIR)/acmpub/-part.txt
 	@$(IBISEXE) -d $(TESTDIR)/t0/ -b -v -v > $(TESTDIR)/check-text.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, b where -5 < c < 10" -o $(TESTDIR)/t0-0 >> $(TESTDIR)/check-text.log 2>&1
 	@perl -pi -e 's/\"//g' $(TESTDIR)/t0-0
@@ -724,6 +724,10 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt
 	@if [ "`$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" 2>&1 | fgrep 15`" == "15" ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch 2>&1 | fgrep -v std::exception | diff - vault/smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
 	@if [ `./inRange${EXEEXT} $(TESTDIR)/inRange 2>&1 | fgrep -v std::exception | diff -w - vault/inRange-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@$(IBISEXE) -d $(TESTDIR)/acmpub -v -o $(TESTDIR)/acmpub-0 -q "select v where v in (VLDB, SIGMOD)" >> $(TESTDIR)/check-text.log 2>&1
+	@if [ `diff $(TESTDIR)/acmpub-0 vault/acmpub-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
+	@$(IBISEXE) -d $(TESTDIR)/acmpub -v -o $(TESTDIR)/acmpub-1 -q "select v where a contains ('Jim Gray', 'J. Ullman')" >> $(TESTDIR)/check-text.log 2>&1
+	@if [ `diff $(TESTDIR)/acmpub-1 vault/acmpub-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-text.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-text.log; fi
 	@echo
 check-jrf: $(IBISEXE) $(TESTDIR)/jrf/-part.txt
@@ -851,6 +855,10 @@ $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
 	fi
+$(TESTDIR)/acmpub/-part.txt: $(ARDEAEXE) $(IBISEXE) acmpub.csv TESTDIR
+	@rm -rf $(TESTDIR)/acmpub
+	@$(ARDEAEXE) -d $(TESTDIR)/acmpub -m "id:u, t:t, a:t, v:k, y:u" -t acmpub.csv >> $(TESTDIR)/std.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/acmpub -b "a:keywords delimiters=','" -b "id:noindex" -b "<binning none/>" -v >> $(TESTDIR)/std.log 2>&1
 # a simple internal sanity check
 sanity-check: $(TESTDIR)/std.log $(IBISEXE) $(TESTDIR)/append.log
 	@echo

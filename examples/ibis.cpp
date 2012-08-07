@@ -2426,6 +2426,8 @@ static void parse_args(int argc, char** argv, int& mode,
 
     if (defaultIndexing != 0 && *defaultIndexing != 0)
 	indexingOptions.push_back(defaultIndexing);
+    if (indexingOptions.size() > 0 && build_index <= 0)
+	build_index = 1;
     for (unsigned i = 0; i < queff.size(); ++ i) {
 	qlist.push_back(queff[i].c_str());
     }
