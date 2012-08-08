@@ -148,7 +148,7 @@ static bool zapping = false;
 static bool appendToOutput = false;
 static bool outputnamestoo = false;
 static const char *ridfile = 0;
-static const char *appendto = 0;
+static const char *appendTarget = 0;
 static const char *outputfile = 0;
 static const char *yankstring = 0;
 static const char *keepstring = 0;
@@ -2064,11 +2064,11 @@ static void parse_args(int argc, char** argv, int& mode,
 		    alist.push_back(argv[i+1]);
 		    if (i+3 < argc && stricmp(argv[i+2], "to")==0 &&
 			argv[i+3][0] != '-') {
-			appendto = argv[i+3];
+			appendTarget = argv[i+3];
 			i += 3;
 		    }
 		    else if (i+2 < argc && argv[i+2][0] != '-') {
-			appendto = argv[i+2];
+			appendTarget = argv[i+2];
 			i += 2;
 		    }
 		    else {
@@ -2492,8 +2492,8 @@ static void parse_args(int argc, char** argv, int& mode,
 	if (! alist.empty()) {
 	    lg() << "\nappending data in the following director"
 		 << (alist.size()>1 ? "ies" : "y");
-	    if (appendto)
-		lg() << " to " << appendto;
+	    if (appendTarget)
+		lg() << " to " << appendTarget;
 	    for (uint32_t i = 0; i < alist.size(); ++ i)
 		lg() << "\n" << alist[i];
 	}
@@ -4111,10 +4111,11 @@ static void doAppend(const char* dir) {
 	    return;
 	}
     }
-    if (appendto != 0) {
+    if (appendTarget != 0) {
 	Stat_T tmp;
-	if (UnixStat(appendto, &tmp) == 0) { // appendto is a directory name
-	    tbl = new ibis::part(appendto, static_cast<const char*>(0));
+	if (UnixStat(appendTarget, &tmp) == 0) {
+	    // appendTarget is a directory name
+	    tbl = new ibis::part(appendTarget, static_cast<const char*>(0));
 	    if (tbl != 0) {
 		for (unsigned i = 0; i < ibis::datasets.size(); ++ i) {
 		    if (stricmp(tbl->name(), ibis::datasets[i]->name()) == 0) {
@@ -4126,9 +4127,9 @@ static void doAppend(const char* dir) {
 		}
 	    }
 	}
-	if (tbl == 0) { // try appendto as a partition name
+	if (tbl == 0) { // try appendTarget as a partition name
 	    for (unsigned i = 0; i < ibis::datasets.size(); ++ i) {
-		if (stricmp(appendto, ibis::datasets[i]->name()) == 0) {
+		if (stricmp(appendTarget, ibis::datasets[i]->name()) == 0) {
 		    // found an existing partition
 		    tbl = ibis::datasets[i];
 		    newtable = false;
@@ -4155,7 +4156,7 @@ static void doAppend(const char* dir) {
 		tbl = (*itt);
 		newtable = false;
 	    }
-	    else if (appendto == 0) { // user did not specify an name
+	    else if (appendTarget == 0) { // user did not specify an name
 		tbl = new ibis::part(mtags);
 		newtable = true;
 	    }
@@ -4164,8 +4165,8 @@ static void doAppend(const char* dir) {
     }
 
     if (tbl == 0) { // need to allocate a new partition
-	if (appendto != 0) { // use externally specified name
-	    tbl = new ibis::part(appendto);
+	if (appendTarget != 0) { // use externally specified name
+	    tbl = new ibis::part(appendTarget);
 	}
 	else { // generate an random name based on user name and dir
 	    char tmp[128];
@@ -4199,10 +4200,12 @@ static void doAppend(const char* dir) {
     }
     else if (ibis::gVerbose >= 0) {
 	ibis::util::logger lg;
-	lg() << "doAppend(" << dir << "): adding " << ierr
-	     << " row" << (ierr>1?"s":"");
+	lg() << "doAppend(" << dir << "): added " << ierr
+	     << " row" << (ierr>1?"s":"") << " from " << dir
+	     << " to data partition " << tbl->name()
+	     << " located in " << tbl->currentDataDir();
 	if (ibis::gVerbose > 0)
-	    lg() << " took "  << timer.CPUTime() << " CPU seconds, "
+	    lg() << ", took "  << timer.CPUTime() << " CPU seconds, "
 		 << timer.realTime() << " elapsed seconds";
     }
     const long napp = ierr;
@@ -4977,7 +4980,7 @@ int main(int argc, char** argv) {
 
 	// append new data one directory at a time, the same directory may
 	// be used many times, all incoming directories appended to the
-	// same output directory specified by appendto
+	// same output directory specified by appendTarget
 	for (std::vector<const char*>::const_iterator it = alist.begin();
 	     it != alist.end();
 	     ++ it) { // add new data before doing anything else

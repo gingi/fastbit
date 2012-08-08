@@ -440,7 +440,8 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
     if (rlc) {
 	rlc->write(dir);
 	if (dir == thePart->currentDataDir() ||
-	    strcmp(dir, thePart->currentDataDir()) == 0) {
+	    (thePart->currentDataDir() !=0 &&
+	     strcmp(dir, thePart->currentDataDir()) == 0)) {
 	    idx = rlc;
 	}
 	else {

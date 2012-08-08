@@ -9,6 +9,14 @@
 	* tests/acmpub.csv, tests/vault/acmpub-0, tests/vault/acmpub-1:
 	add test cases for new operations CONTAINS, this exercises the new
 	features in keyword indexes
+	* src/category.cpp:443 make sure thePart->currentDataDir() does
+	not return nil pointer (causes seg fault, reported by Greg Barker)
+	* src/ibis.cpp: extend the message from doAppend to include the
+	source and destination directories, set build_index when
+	indexingOptions is not empty to avoid entering into interactive
+	mode
+	* src/parti.cpp: assign rids to 0 after calling delete on rids,
+	otherwise appendToBackup will be accessing deleted memory
 
 2012-08-06 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: change tests of the form j < dic.size() to j

@@ -617,6 +617,7 @@ long ibis::part::append1(const char *dir) {
 	writeLock rw(this, "append");
 	unloadIndexes();	// remove all indices
 	delete rids;	// remove the RID list
+	rids = 0;
 	ibis::fileManager::instance().flushDir(activeDir);
 	columnList::iterator it;
 	for (it = columns.begin(); it != columns.end(); ++it)
@@ -753,6 +754,7 @@ long ibis::part::append2(const char *dir) {
 	if (strcmp(dir, activeDir)) {
 	    unloadIndexes();	// remove all indices
 	    delete rids;	// remove the RID list
+	    rids = 0;
 	    ibis::fileManager::instance().flushDir(activeDir);
 	    columnList::iterator it;
 	    for (it = columns.begin(); it != columns.end(); ++it)
@@ -835,6 +837,7 @@ long ibis::part::rollback() {
 	writeLock rw(this, "rollback");
 	unloadIndexes();	// remove all indices
 	delete rids;	// remove the RID list
+	rids = 0;
 	ibis::fileManager::instance().clear();
 
 	// switch the directory name, and read the table and the rids
