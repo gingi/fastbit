@@ -381,13 +381,7 @@ namespace ibis { // forward definition of all the classes in IBIS
 	const char* address() const {return buf_;}
 	/// The number of bytes pointed by address.
 	uint64_t size() const {return len_;}
-	/// Copy the byte array into this opaque object.  Do not change the
-	/// incoming arguments.  The caller is still responsible for
-	/// freeing the pointer ptr.
-	///
-	/// It returns 0 upon successful completion of the copy operation,
-	/// otherwise, it returns a negative number to indicate error.
-	int copy(const char* ptr, uint64_t len);
+	int copy(const void* ptr, uint64_t len);
 	/// Assign the external storage to this object.  This object takes
 	/// on the responsibility of freeing the pointer ptr and the caller
 	/// should not attempt to free ptr.
@@ -396,9 +390,9 @@ namespace ibis { // forward definition of all the classes in IBIS
 	/// otherwise, it returns a negative number to indicate error.
 	///
 	/// @note The pointer ptr must be created with operator new.
-	void assign(char* ptr, uint64_t len)  {
+	void assign(void* ptr, uint64_t len)  {
 	    delete [] buf_;
-	    buf_ = ptr;
+	    buf_ = static_cast<char*>(ptr);
 	    len_ = len;
 	}
 	/// Assign the content from rhs to this.
@@ -426,7 +420,8 @@ namespace ibis { // forward definition of all the classes in IBIS
 	opaque() : buf_(0), len_(0) {};
 	/// Constructor.  The extenal buffer is given to the new object to
 	/// manage and the pointer ptr must be created with operator new.
-	opaque(char* ptr, uint64_t len) : buf_(ptr), len_(len) {}
+	opaque(void* ptr, uint64_t len)
+	    : buf_(static_cast<char*>(ptr)), len_(len) {}
 
 	/// Copy constructor.  Performs a deep copy.
 	opaque(const opaque &rhs) : buf_(0), len_(0) {

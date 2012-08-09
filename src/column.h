@@ -51,12 +51,10 @@ class FASTBIT_CXX_DLLSPEC ibis::column {
 public:
 
     virtual ~column();
-    /// Reconstitute a column from the content of a file.
+    column(const column& rhs);
     column(const part* tbl, FILE* file);
-    /// Construct a new column of specified type.
     column(const part* tbl, ibis::TYPE_T t, const char* name,
 	   const char* desc="", double low=DBL_MAX, double high=-DBL_MAX);
-    column(const column& rhs); ///< copy constructor
 
     /// Type of the data.
     ///@note The type shall not be changed.

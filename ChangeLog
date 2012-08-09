@@ -1,3 +1,24 @@
+2012-08-09 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp, src/bord.h: add selectOpaques to
+	ibis::bord::column
+	* src/column.cpp: update the copy construct to copy mask_ and
+	m_sorted
+	* src/category.cpp: change fillIndex to make use of .int file
+	before attempting to reading the raw strings
+
+2012-08-08 John Wu <John dot Wu at ACM dot org>
+	* src/filter.cpp: compose the long version of the mesg so that the
+	subsequent table name will have some trace of the original query
+	condition or the original data table
+	* src/ibis.cpp: extend -output with a variant to output in binary,
+	there are now three flavors: -output, -output-with-header, and
+	-output-as-binary.  All three flavors requires an arguement
+	following it to indicate a file name (for the first two flavors)
+	or directory name (for the binary output, last flavor).  The
+	updated version also allows -z option to zap away the existing
+	file or directory with the same name as the argument following
+	this option
+
 2012-08-07 John Wu <John dot Wu at ACM dot org>
 	* src/part.h: replace const char* with ibis::table::stringList
 	* src/part.cpp: update the index building procedure to reflect the

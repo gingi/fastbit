@@ -1804,8 +1804,8 @@ int ibis::tafel::write(const char* dir, const char* tname,
 		 it != cols.end(); ++ it) {
 		const column& col = *((*it).second);
 		const ibis::column* old = tmp.getColumn((*it).first);
-		bool conflict = false;
 		if (old != 0) { // possibility of conflict exists
+		    bool conflict = false;
 		    switch (col.type) {
 		    default:
 			conflict = (old->type() != col.type); break;
@@ -1830,16 +1830,16 @@ int ibis::tafel::write(const char* dir, const char* tname,
 				    old->type() != ibis::ULONG);
 			break;
 		    }
-		}
-		if (conflict) {
-		    ++ nconflicts;
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "tafel::write(" << dir
-			<< ") column " << (*it).first
-			<< " has conflicting types specified, "
-			"previously " << ibis::TYPESTRING[(int)old->type()]
-			<< ", currently "
-			<< ibis::TYPESTRING[(int)col.type];
+		    if (conflict) {
+			++ nconflicts;
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- tafel::write(" << dir
+			    << ") column " << (*it).first
+			    << " has conflicting types specified, previously "
+			    << ibis::TYPESTRING[(int)old->type()]
+			    << ", currently "
+			    << ibis::TYPESTRING[(int)col.type];
+		    }
 		}
 	    }
 	    if (nconflicts > 0) {

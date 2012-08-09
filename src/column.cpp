@@ -60,9 +60,12 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     }
 } // ibis::column::column
 
+/// Reconstitute a column from the content of a file.
 /// Read the basic information about a column from file.
+///
 ///@note
 /// Assume the calling program has read "Begin Property/Column" already.
+///
 ///@note
 /// A well-formed column must have a valid name, i.e., ! m_name.empty().
 ibis::column::column(const part* tbl, FILE* file)
@@ -294,13 +297,16 @@ ibis::column::column(const part* tbl, FILE* file)
 } // ibis::column::column
 
 /// The copy constructor.
+///
 /// @note The rwlock can not be copied.
+///
 /// @note The index is not copied because of reference counting
 /// difficulties.
 ibis::column::column(const ibis::column& rhs) :
-    thePart(rhs.thePart), m_type(rhs.m_type), m_name(rhs.m_name),
-    m_desc(rhs.m_desc), m_bins(rhs.m_bins), m_sorted(false), lower(rhs.lower),
-    upper(rhs.upper), idx(0), idxcnt() {
+    thePart(rhs.thePart), mask_(rhs.mask_), m_type(rhs.m_type),
+    m_name(rhs.m_name), m_desc(rhs.m_desc), m_bins(rhs.m_bins),
+    m_sorted(rhs.m_sorted), lower(rhs.lower), upper(rhs.upper),
+    idx(0), idxcnt() {
     if (pthread_rwlock_init(&rwlock, 0)) {
 	throw "column::ctor unable to initialize the rwlock";
     }
@@ -316,6 +322,8 @@ ibis::column::column(const ibis::column& rhs) :
     }
 } // copy constructor
 
+/// Destructor.  It acquires a write lock to make sure all other operations
+/// have completed.
 ibis::column::~column() {
     { // must not be used for anything else
 	writeLock wk(this, "~column");

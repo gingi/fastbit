@@ -611,7 +611,8 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
     return 0;
 } // ibis::util::readDouble
 
-/// Return the size of file in bytes.  File that does not exist has size zero.
+/// Return size of the file in bytes.  The value 0 is returned if
+/// file does not exist.
 off_t ibis::util::getFileSize(const char* name) {
     Stat_T buf;
     if (name == 0) {
@@ -634,8 +635,9 @@ off_t ibis::util::getFileSize(const char* name) {
     }
 }
 
-/// Copy file named "from" to a file named "to".  It overwrite the content
-/// of "to".
+/// Copy file named "from" to a file named "to".  It overwrites the content
+/// of "to".  It returns a negative number if the source file does not
+/// existing can not be copied.
 int ibis::util::copy(const char* to, const char* from) {
     Stat_T tmp;
     if (UnixStat(from, &tmp) != 0) return -1; // file does not exist
@@ -737,6 +739,7 @@ int64_t ibis::util::read(int fdes, void *buf, int64_t nbytes) {
     return offset;
 } // ibis::util::largeRead
 
+/// Remove the content of named directory.
 /// If this function is run on a unix-type system and the second argument
 /// is true, it will leave all the subdirectories intact as well.
 void ibis::util::removeDir(const char* name, bool leaveDir) {
@@ -1124,7 +1127,10 @@ void ibis::util::setNaN(double& val) {
     val = std::numeric_limits<double>::quiet_NaN();
 } // ibis::util::setNaN
 
-/// This implementation uses a 32-bit shared integer.
+/// Compute a serial number.  It is a unique number that is always
+/// increasing.  Even time FastBit runs, it starts this number with the
+/// value 1.  This implementation uses a 32-bit shared integer and
+/// therefore could wrap-around when exceeding 2^32.
 uint32_t ibis::util::serialNumber() {
     static sharedInt32 cnt;
     return ++cnt;

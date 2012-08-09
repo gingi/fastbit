@@ -1,4 +1,4 @@
-//File: $Id: blob.cpp,v 1.4 2012/07/28 07:14:29 kewu Exp $
+//File: $Id: blob.cpp,v 1.5 2012/08/09 20:03:43 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2009-2012 the Regents of the University of California
 ///@file
@@ -791,18 +791,15 @@ long ibis::blob::countRawBytes(const ibis::bitvector& mask) const {
 } // ibis::blob::countRawBytes
 
 /// Extract the blobs from the rows marked 1 in the mask.  Upon successful
-/// completion, buffer will contain all the raw bytes packed together,
-/// positions will contain the starting positions of all blobs, and the
-/// return value will be the number of blobs retrieved.  The positions are
-/// intentionally chosen to be 32-bit integers, so that it would not be
-/// possible to retrieve very large objects this way.  The number of blobs
-/// retrieved may be less than the number of rows marked 1 in mask if do so
-/// will cause buffer to be more 4GB in size.  On a typical machine, this
-/// function will attempt to use no more than half of the free memory
-/// available to ibis::fileManager upon entering this function, which
-/// usually would be much less than 4GB.  To determine how much memory
-/// would be needed by the buffer to full retrieve all blobs marked 1, use
-/// function ibis::blob::countRawBytes.
+/// completion, the buffer will contain all the raw bytes packed together,
+/// positions will contain the starting positions of each blobs, and the
+/// return value will be the number of blobs retrieved.  Even though the
+/// positions are 64-bit integers, because the buffer has to fit in memory,
+/// it is not possible to retrieve very large objects this way.  The number
+/// of bytes in buffer is limited to be less than half of the free memory
+/// available and this limite is hardcoded into this function.  To
+/// determine how much memory would be needed by the buffer to full
+/// retrieve all blobs marked 1, use function ibis::blob::countRawBytes.
 ///
 /// A negative value will be returned in case of error.
 int ibis::blob::selectRawBytes(const ibis::bitvector& mask,
@@ -1560,7 +1557,14 @@ int ibis::blob::readBlob(uint32_t ind, char *&buf, uint64_t &size,
     return ierr;
 } // ibis::blob::readBlob
 
-int ibis::opaque::copy(const char* ptr, uint64_t len) {
+/// Copy the byte array into this opaque object.  Do not change the
+/// incoming arguments.  The caller is still responsible for freeing the
+/// pointer ptr.
+///
+/// It returns 0 upon successful completion of the copy operation,
+/// otherwise, it returns a negative number to indicate error.  In case of
+/// error, the existing content is not changed.
+int ibis::opaque::copy(const void* ptr, uint64_t len) {
     if (len == 0 || ptr == 0) {
 	delete [] buf_;
 	buf_ = 0;
@@ -1577,9 +1581,7 @@ int ibis::opaque::copy(const char* ptr, uint64_t len) {
 	    return -2;
 	}
 
-	for (size_t j = 0; j < len; ++ j)
-	    tmp[j] = ptr[j];
-
+	(void) memcpy(tmp, ptr, len);
 	delete [] buf_;
 	buf_ = tmp;
 	len_ = len;

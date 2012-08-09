@@ -351,7 +351,7 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
     int maxLength = 0;
     activeDir = ibis::util::strnewdup(adir);
     ibis::util::removeTail(activeDir, FASTBIT_DIRSEP);
-    { // make sure activeDir exists, extra block to limit the scope of tmp
+    { // make sure activeDir exists, use an extra block to limit the scope of tmp
 	Stat_T tmp;
 	if (UnixStat(activeDir, &tmp) == 0) {
 	    if ((tmp.st_mode&S_IFDIR) == S_IFDIR) {
@@ -1658,7 +1658,7 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 			    FASTBIT_DIRSEP);
     if (ierr < 10 || ierr > nfn) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- part::writeMeshShape failed to generate the name "
+	    << "Warning -- part::writeMetaData failed to generate the name "
 	    "of the metadata file, very unexpected";
 	delete [] filename;
 	return;

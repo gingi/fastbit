@@ -545,8 +545,8 @@ long ibis::part::reorderValues(const char *fname,
 } // ibis::part::reorderValues
 
 
-/// Append data in dir to the current database.  Return the number of rows
-/// actually added.
+/// Append data in dir to the current data partition.  Return the number of
+/// rows actually added.
 ///
 /// @note If there is a backup data directory, it is possible to rollback
 /// the append operation before commit.
@@ -919,7 +919,7 @@ long ibis::part::rollback() {
     return ierr;
 } // ibis::part::rollback
 
-/// Commit the active database.  No longer able to rollback afterward.
+/// Commit the active database.  No longer able to rollback after this.
 /// Return the number of records committed.
 long ibis::part::commit(const char* dir) {
     long ierr = 0;

@@ -65,7 +65,7 @@ void ibis::dictionary::copy(const ibis::dictionary& old) {
 /**
    Write the content of the dictionary to the named file.  The existing
    content in the named file is overwritten.  The content of the dictionary
-   file is as follows.
+   file is laid out as follows.
 
    \li Signature "#IBIS Dictionary " and version number (currently 0). (20
    bytes)
@@ -76,7 +76,7 @@ void ibis::dictionary::copy(const ibis::dictionary& old) {
 
    \li uint32_t[N+1]: the starting positions of the strings in this file.
 
-   \li the string values one after the other with nil terminators.
+   \li the string values packed one after the other with nil terminators.
 */
 int ibis::dictionary::write(const char* name) const {
     if (name == 0 || *name == 0) {

@@ -532,6 +532,8 @@ public:
     virtual array_t<double>*        selectDoubles(const ibis::bitvector&) const;
     virtual std::vector<std::string>*
 	selectStrings(const bitvector& mask) const;
+    virtual std::vector<ibis::opaque>*
+	selectOpaques(const bitvector& mask) const;
 
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);

@@ -126,8 +126,8 @@ chunks.
 The option <code>-v</code> tells ibis to be verbose.  If this option is not
 supplied, only the number of hits and the result of the select clause
 are printed.  The result of the select clause may be appended to a file
-instead of printed to standard output.  To use this option specify
-'-output output-file'.
+instead of printed to standard output.  To use this option, specify
+'-output name'.
 
 
 <h2><A name="options">List of options</A></h2>
@@ -135,7 +135,7 @@ Here is the full list of options.
 
 <ul>
 
-<li><code>-a[ppend] data_dir [output_directory or partition_name]</code>
+<li><code>-a[ppend] data_dir [[to] output_directory or partition_name]</code>
 <br>Take the data in the named directory and append it to the data
 parition with the specified name or a directory with the specified path.
 In the current implementation, the second argument
@@ -199,7 +199,7 @@ one of the two patterns will be indexed with the option "bit-slice".
 </p>
 <p>
 Since building indexes is an expensive operation, FastBit by default
-only builds new indexe for a column if no index currently exists.  To
+only builds new index for a column if no index currently exists.  To
 force FastBit to remove existing indexes and rebuild them from
 scratch, specify option <code>-z</code> in addition.
 </p>
@@ -276,7 +276,7 @@ specified in that option will contain the results of select statements.
 
 <li><code>-n[o-estimation]</code>
 <br>Forces <code>ibis</code> to evaluate the number of hits without
-first perform an estimation.
+first performing an estimation.
 
 <p>
 <em>NOTE</em>: options <code>-no-estimation</code> and
@@ -285,21 +285,39 @@ appears later will overwrite the one that appears early on the same
 command line.
 </p>
 
-<li><code>-o[utput] filename</code>
+<li><code>-o[utput-[with-header|as-binary]] name</code>
+
 <br>Tell <code>ibis</code> to append the result of select statements to
-the named file rather than to standard output.  The output are
-coma-separated values.
+the named file/directory.  The program <code>ibis</code> scans for the
+letter b to determine whether or not to output results in binary first.
+When outputting in binary format, the name is taken to the directory to
+contain the output.  This binary format is usable by FastBit.  If the
+letter b is not found, <code>ibis</code> will write the selected data in
+ASCII format.  If it finds the letter h in this option, it will also
+write a header before writing the ASCII data.
 
 <p>
-<em>NOTE</em>: Each set of results from a select statement will be
-preceded by a line of column names if the option appears as
--output-[with-header] (the command line tool ibis only check till the
-second dash, nothing more).  If multiple select statements are
-specified, a header line for each select statement is printed.
+<em>NOTE</em>: the results from multiple select clauses on the same
+command line will be written to the same output file or directory.
+When outputting in the binary format, the new results is always
+appended, however, when writing in ASCII format, the existing file
+content can be erased if the additional opton <code>-z</code> is also
+specified.
 <p>
-<em>NOTE</em>: this file contains the results of the select statments
-only.  Other messages, such as errors, progress information, and debug
-information, may be redirected with option <code>-l</code>.
+<em>NOTE</em>: When outputting ASCII data with header, the results from each
+select clause will have its own header since different select clause
+might have different columns.
+<p>
+<em>NOTE</em>: When outputting binary data, the resulting directory will
+contain a superset of all columns.  A new set of data is always assumed
+to be a new set of rows to the data table.  Any missing values, such as
+those existing columns that do not appear in the new set or new columns
+that do not appear in the old rows, will be assumed to be NULL values.
+<p>
+<em>NOTE</em>: this option controls the output of the results from
+select statments only.  Other messages, such as errors, progress
+information, and debug information, may be redirected with option
+<code>-l</code>.
 </p>
 
 <li><code>-p[rint] [Parts|Columns|Distributions|column-name [:

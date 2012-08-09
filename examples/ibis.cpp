@@ -80,7 +80,7 @@
     -keep-temporary-files
     -log logfilename
     -no-estimation
-    -output-file filename
+    -o[utput-[with-header|as-binary]] name
     -query [SELECT ...] [FROM ...] WHERE ...
     -squential-scan
     -rid-check [filename]
@@ -146,10 +146,11 @@ static bool sequential_scan = false;
 static bool verify_rid = false;
 static bool zapping = false;
 static bool appendToOutput = false;
-static bool outputnamestoo = false;
+static bool showheader = false;
+static bool outputbinary = false;
 static const char *ridfile = 0;
 static const char *appendTarget = 0;
-static const char *outputfile = 0;
+static const char *outputname = 0;
 static const char *yankstring = 0;
 static const char *keepstring = 0;
 static ibis::table::stringList indexingOptions;
@@ -2253,21 +2254,26 @@ static void parse_args(int argc, char** argv, int& mode,
 #endif
 	    case 'n':
 	    case 'N': {
-		// skip estimation, directly call function evaluate
+		// no-estimation, directly call function evaluate
 		estimate_opt = -1;
 		break;}
 	    case 'o':
 	    case 'O':
 		if (argv[i][2] == 'n' || argv[i][2] == 'N') {
-		    // skip estimation, directly call function evaluate
+		    // only-evaluate, directly call function evaluate
 		    estimate_opt = -1;
 		}
 		else if (i+1 < argc && argv[i+1][0] != '-') {
 		    // output file specified
-		    if (! outputnamestoo)
-			outputnamestoo =
-			    (0 == strnicmp(argv[i]+2, "utput-", 6));
-		    outputfile = argv[i+1];
+		    if (! outputbinary)
+			outputbinary =
+			    (0 != strchr(argv[i]+2, 'b') ||
+			     0 != strchr(argv[i]+2, 'B'));
+		    if (! showheader && ! outputbinary)
+			showheader =
+			    (0 != strchr(argv[i]+2, 'h') ||
+			     0 != strchr(argv[i]+2, 'H'));
+		    outputname = argv[i+1];
 		    i = i + 1;
 		}
 	    break;
@@ -2695,21 +2701,21 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
     LOGGER(ibis::gVerbose > 0) << "xdoQuery -- the number of hits = " << num1;
 
     if (asstr != 0 && *asstr != 0 && num1 > 0) {
-	if (outputfile != 0 && *outputfile != 0) {
-	    std::ofstream output(outputfile,
+	if (outputname != 0 && *outputname != 0) {
+	    std::ofstream output(outputname,
 				 std::ios::out |
 				 (appendToOutput ? std::ios::app :
 				  std::ios::trunc));
 	    if (output) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "xdoQuery -- query (" <<  aQuery.getWhereClause()
-		    << ") results written to file \"" <<  outputfile << "\"";
+		    << ") results written to file \"" <<  outputname << "\"";
 		printQueryResults(output, aQuery);
 	    }
 	    else {
 		ibis::util::logger lg;
 		lg() << "Warning ** xdoQuery failed to open \""
-		     << outputfile << "\" for writing query ("
+		     << outputname << "\" for writing query ("
 		     << aQuery.getWhereClause() << ")";
 		printQueryResults(lg(), aQuery);
 	    }
@@ -2852,6 +2858,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 			const char* wstr, const char* sstr,
 			const char* ordkeys,
 			uint32_t limit, uint32_t start) {
+    int64_t ierr;
     std::auto_ptr<ibis::table> tbl(ibis::table::create(pl));
     std::string sqlstring; //
     {
@@ -2943,16 +2950,32 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	sel1->orderby(ordkeys);
     }
 
-    if (outputfile != 0 && *outputfile != 0) {
-	if (limit == 0)
-	    limit = static_cast<uint32_t>(sel1->nRows());
-	if (0 != strcmp(outputfile, "/dev/null")) {
-	    std::ofstream output(outputfile, std::ios::out |
-				 (appendToOutput ? std::ios::app :
-				  std::ios::trunc));
-	    if (outputnamestoo)
-		sel1->dumpNames(output, ", ");
-	    sel1->dump(output, start, limit, ", ");
+    if (outputname != 0 && *outputname != 0) {
+	if (0 != strcmp(outputname, "/dev/null")) {
+	    if (zapping)
+		ibis::util::removeDir(outputname);
+
+	    if (outputbinary) {
+		ierr = sel1->backup(outputname);
+		LOGGER(ierr < 0)
+		    << "Warning -- tableSelect failed to write the content of "
+		    << sel1->name() << " in binary to " << outputname
+		    << ", ierr = " << ierr;
+	    }
+	    else {
+		std::ofstream output(outputname, std::ios::out |
+				     (appendToOutput ? std::ios::app :
+				      std::ios::trunc));
+		if (showheader)
+		    sel1->dumpNames(output, ", ");
+		if (limit == 0)
+		    limit = static_cast<uint32_t>(sel1->nRows());
+		ierr = sel1->dump(output, start, limit, ", ");
+		LOGGER(ierr < 0)
+		    << "Warning -- tableSelect failed to write the content of "
+		    << sel1->name() << " in CSV to " << outputname
+		    << ", ierr = " << ierr;
+	    }
 	}
     }
     else if (ibis::gVerbose >= 0) {
@@ -2978,7 +3001,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		 << " x " << sel1->nColumns() << ") for \""
 		 << sqlstring << "\"\n";
 	}
-	if (outputnamestoo)
+	if (showheader)
 	    sel1->dumpNames(lg(), ", ");
 	sel1->dump(lg(), start, limit, ", ");
     }
@@ -2987,7 +3010,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	// query the list of values selected by the 1st column
 	std::vector<double> svals;
 	const ibis::table::stringList cnames = sel1->columnNames();
-	int64_t ierr = sel1->getColumnAsDoubles(cnames[0], svals);
+	ierr = sel1->getColumnAsDoubles(cnames[0], svals);
 	if (ierr < 0 || static_cast<uint64_t>(ierr) != sel1->nRows()) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "tableSelect -- can not verify the answers returned for "
@@ -3177,16 +3200,32 @@ static void doQuaere(const ibis::partList& pl,
     }
 
     int64_t ierr;
-    if (outputfile != 0 && *outputfile != 0) {
-	if (limit == 0)
-	    limit = static_cast<uint32_t>(res->nRows());
-	if (0 != strcmp(outputfile, "/dev/null")) {
-	    std::ofstream output(outputfile, std::ios::out |
-				 (appendToOutput ? std::ios::app :
-				  std::ios::trunc));
-	    if (outputnamestoo)
-		res->dumpNames(output, ", ");
-	    res->dump(output, start, limit, ", ");
+    if (outputname != 0 && *outputname != 0) {
+	if (0 != strcmp(outputname, "/dev/null")) {
+	    if (zapping)
+		ibis::util::removeDir(outputname);
+
+	    if (outputbinary) {
+		ierr = res->backup(outputname);
+		LOGGER(ierr < 0)
+		    << "Warning -- doQuaere failed to write the content of "
+		    << res->name() << " in binary to " << outputname
+		    << ", ierr = " << ierr;
+	    }
+	    else {
+		std::ofstream output(outputname, std::ios::out |
+				     (appendToOutput ? std::ios::app :
+				      std::ios::trunc));
+		if (showheader)
+		    res->dumpNames(output, ", ");
+		if (limit == 0)
+		    limit = static_cast<uint32_t>(res->nRows());
+		ierr = res->dump(output, start, limit, ", ");
+		LOGGER(ierr < 0)
+		    << "Warning -- doQuaere failed to write the content of "
+		    << res->name() << " in CSV to " << outputname
+		    << ", ierr = " << ierr;
+	    }
 	}
     }
     else if (ibis::gVerbose >= 0) {
@@ -3212,7 +3251,7 @@ static void doQuaere(const ibis::partList& pl,
 		 << " x " << res->nColumns() << ") for \""
 		 << sqlstring << "\"\n";
 	}
-	if (outputnamestoo)
+	if (showheader)
 	    res->dumpNames(lg(), ", ");
 	res->dump(lg(), start, limit, ", ");
     }
@@ -3555,11 +3594,11 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		return;
 	    }
 	}
-	if (0 != outputfile && 0 == strcmp(outputfile, "/dev/null")) {
+	if (0 != outputname && 0 == strcmp(outputname, "/dev/null")) {
 	    // no need to actually write anything to the output file
 	}
-	else if (outputfile != 0 && *outputfile != 0) {
-	    std::ofstream output(outputfile,
+	else if (outputname != 0 && *outputname != 0) {
+	    std::ofstream output(outputname,
 				 std::ios::out | 
 				 (appendToOutput ? std::ios::app :
 				  std::ios::trunc));
@@ -3567,7 +3606,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		LOGGER(ibis::gVerbose >= 0)
 		    << "doQuery -- query (" << aQuery.getWhereClause()
 		    << ") results written to file \""
-		    <<  outputfile << "\"";
+		    <<  outputname << "\"";
 		if (ibis::gVerbose > 8 || verify_rid)
 		    bdl->printAll(output);
 		else
@@ -3576,7 +3615,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    else {
 		ibis::util::logger lg;
 		lg() << "Warning ** doQuery failed to open file \""
-		     << outputfile << "\" for writing query ("
+		     << outputname << "\" for writing query ("
 		     << aQuery.getWhereClause() << ")\n";
 		if (ibis::gVerbose > 8 || verify_rid)
 		    bdl->printAll(lg());
@@ -4055,14 +4094,14 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
 
     if (asstr != 0 && *asstr != 0 && ibis::gVerbose > 0) {
-	if (outputfile != 0 && *outputfile != 0) {
-	    std::ofstream output(outputfile,
+	if (outputname != 0 && *outputname != 0) {
+	    std::ofstream output(outputname,
 				 std::ios::out | std::ios::app);
 	    if (output) {
 		LOGGER(ibis::gVerbose > 0)
 		    << "doMeshQuery -- query (" << aQuery.getWhereClause()
 		    << ") results written to file \""
-		    << outputfile << "\"";
+		    << outputname << "\"";
 		if (ibis::gVerbose > 8 || verify_rid)
 		    aQuery.printSelectedWithRID(output);
 		else
@@ -4071,7 +4110,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    else {
 		ibis::util::logger lg;
 		lg() << "Warning ** doMeshQuery failed to "
-		     << "open file \"" << outputfile
+		     << "open file \"" << outputname
 		     << "\" for writing query ("
 		     << aQuery.getWhereClause() << ") output\n";
 		if (ibis::gVerbose > 8 || verify_rid)
@@ -4505,7 +4544,7 @@ static void parseString(const char* uid, const char* qstr,
     std::string ordkeys; // order by clause (the order keys)
     uint32_t start = 0; // the 1st row to print
     uint32_t limit = 0; // the limit on the number of output rows
-    const bool hasdot = (strchr(qstr, '.') != 0);
+    const bool usequaere = (outputbinary || strchr(qstr, '.') != 0);
 
     // skip leading space
     while (isspace(*str)) ++str;
@@ -4684,7 +4723,7 @@ static void parseString(const char* uid, const char* qstr,
     }
 
     ibis::nameList qtables(fstr.c_str());
-    if (hasdot) {
+    if (usequaere) {
 	doQuaere(prts, sstr.c_str(), fstr.c_str(), wstr.c_str(),
 		 ordkeys.c_str(), limit, start);
     }

@@ -455,16 +455,9 @@ namespace ibis {
 
 	int64_t read(int, void*, int64_t);
 
-	/// Remove the content of named directory.  The directory itself is
-	/// removed unless the second argument is true.
 	void removeDir(const char* name, bool leaveDir=false);
-	/// Recursively create the name directory.
 	int makeDir(const char* dir);
-	/// Return size of the file in bytes.  The value 0 is returned if
-	/// file does not exist.
 	FASTBIT_CXX_DLLSPEC off_t getFileSize(const char* name);
-	/// Copy "from" to "to".  Return zero (0) on success, a negative
-	/// number otherwise.
 	int copy(const char* to, const char* from);
 
 	/// Set the verboseness level.  Unless the code is compiled with
@@ -473,12 +466,11 @@ namespace ibis {
 	inline void setVerboseLevel(int v) {ibis::gVerbose=v;}
 	/// Return the user name.
 	FASTBIT_CXX_DLLSPEC const char* userName();
-	/// Return an integer that is always increasing.
 	uint32_t serialNumber();
 	void uniformFraction(const long unsigned idx,
 			     long unsigned &denominator,
 			     long unsigned &numerator);
-	inline double rand(); ///< A pseudo-random number generator (0,1).
+	inline double rand();
 
 	///@{
 	FASTBIT_CXX_DLLSPEC uint32_t checksum(const char* str, uint32_t sz);
@@ -1310,10 +1302,13 @@ namespace ibis {
 char* getpass(const char* prompt);
 #endif
 
-/// A Linear Congruential Generator of pseudo-random numbers.  It produces
-/// a floating-point in the range of [0, 1).  It is very simple and fast,
-/// however, it does not produce high-quality random numbers.  It may not
-/// be thread-safe.  Since the actual computation only involves two
+/// A very simple pseudo-random number generator.  It produce a floating
+/// point number between 0 and 1.
+///
+/// The is a a Linear Congruential pseudo-random number generator.  It
+/// produces a floating-point in the range of [0, 1).  It is very simple
+/// and fast, however, it does not produce high-quality random numbers.  It
+/// may not be thread-safe.  Since the actual computation only involves two
 /// arithmetic operations, it is very unlikely to have thread-safty issues.
 inline double ibis::util::rand() {
     // The internal variable @c seed is always an odd number.  Don't use it

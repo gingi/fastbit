@@ -340,40 +340,46 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 	rlc = new ibis::direkte(this, 1);
     }
     else { // actually read the raw data to build an index
-	std::string data = (dir ? dir : thePart->currentDataDir());
-	data += FASTBIT_DIRSEP;
-	data += m_name; // primary data file name
-	int fdata = UnixOpen(data.c_str(), OPEN_READONLY);
-	if (fdata < 0) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- " << evt << " failed to open data file "
-		<< data;
-	    return 0;
-	}
-#if defined(_WIN32) && defined(_MSC_VER)
-	(void)_setmode(fdata, _O_BINARY);
-#endif
-
-	int ret;
-	ibis::fileManager::buffer<char> mybuf;
-	char *buf = mybuf.address();
-	uint32_t nbuf = mybuf.size();
 	const bool iscurrent =
 	    (strcmp(dir, thePart->currentDataDir()) == 0 &&
 	     thePart->getStateNoLocking() != ibis::part::PRETRANSITION_STATE);
 	array_t<uint32_t> ints;
-	do {
-	    array_t<uint32_t> tmp;
-	    ret = string2int(fdata, dic, nbuf, buf, tmp);
-	    if (ret > 0) {
-		if (! ints.empty())
-		    ints.insert(ints.end(), tmp.begin(), tmp.end());
-		else
-		    ints.swap(tmp);
+	std::string raw = (dir ? dir : thePart->currentDataDir());
+	raw += FASTBIT_DIRSEP;
+	raw += m_name; // primary data file name
+	std::string intfile = raw;
+	intfile += ".int";
+	ints.read(intfile.c_str());
+	if (ints.size() == 0 ||
+	    (iscurrent && ints.size() < thePart->nRows())) {
+	    int fraw = UnixOpen(raw.c_str(), OPEN_READONLY);
+	    if (fraw < 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << evt << " failed to open data file "
+		    << raw;
+		return 0;
 	    }
-	} while (ret > 0 && (! iscurrent || ints.size() < thePart->nRows()));
-	(void)UnixClose(fdata);
+	    IBIS_BLOCK_GUARD(UnixClose, fraw);
+#if defined(_WIN32) && defined(_MSC_VER)
+	    (void)_setmode(fraw, _O_BINARY);
+#endif
 
+	    int ret;
+	    ibis::fileManager::buffer<char> mybuf;
+	    char *buf = mybuf.address();
+	    uint32_t nbuf = mybuf.size();
+	    do {
+		array_t<uint32_t> tmp;
+		ret = string2int(fraw, dic, nbuf, buf, tmp);
+		if (ret > 0) {
+		    if (! ints.empty())
+			ints.insert(ints.end(), tmp.begin(), tmp.end());
+		    else
+			ints.swap(tmp);
+		}
+	    } while (ret > 0 &&
+		     (! iscurrent || ints.size() < thePart->nRows()));
+	}
 	if (iscurrent) {
 	    if (ints.size() > thePart->nRows()) {
 		unsigned cnt = 0;
@@ -423,17 +429,13 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 		    << evt << " did not find enough space to reorder the "
 		    "dictionary entries, continue with the existing order";
 	    }
-	    //#if defined(WRITE_INT_VALUES_FOR_KEYS)
-	    data += ".int";
-	    ints.write(data.c_str());
-	    //#endif
+	    ints.write(intfile.c_str());
 	}
 	if (rlc != 0) {
-	    ret = rlc->append(ints);
+	    (void) rlc->append(ints);
 	}
 	else {
 	    rlc = new ibis::direkte(this, 1+dic.size(), ints);
-	    ret = ints.size();
 	}
     }
 
