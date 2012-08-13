@@ -346,7 +346,7 @@ int ibis::fade::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
     }
-    ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*card);
+    ierr = ibis::util::write(fdes, vals.begin(), sizeof(double)*card);
     if (ierr < static_cast<off_t>(sizeof(double)*card)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
@@ -366,8 +366,8 @@ int ibis::fade::write64(int fdes) const {
 	return -9;
     }
     ierr  = UnixWrite(fdes, &nb, sizeof(nb));
-    ierr += UnixWrite(fdes, cnts.begin(), sizeof(uint32_t)*card);
-    ierr += UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nb);
+    ierr += ibis::util::write(fdes, cnts.begin(), sizeof(uint32_t)*card);
+    ierr += ibis::util::write(fdes, bases.begin(), sizeof(uint32_t)*nb);
     if (ierr < static_cast<off_t>(sizeof(uint32_t)*(card+nb+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
@@ -391,7 +391,7 @@ int ibis::fade::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -11;
     }
-    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    ierr = ibis::util::write(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < static_cast<off_t>(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "

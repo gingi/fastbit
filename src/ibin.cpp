@@ -1698,13 +1698,13 @@ void ibis::bin::binningT(const char* f) {
 	}
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    if (maxval[i] > minval[i])
-		ierr = UnixWrite(fdes, binned[i]->begin(),
-				 elem * binned[i]->size());
+		ierr = ibis::util::write(fdes, binned[i]->begin(),
+					 elem * binned[i]->size());
 	    delete binned[i];
 	    pos[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
 	}
 	ierr = UnixSeek(fdes, sizeof(uint32_t), SEEK_SET);
-	ierr = UnixWrite(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
+	ierr = ibis::util::write(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
 	ierr = UnixSeek(fdes, pos.back(), SEEK_SET);
 	UnixClose(fdes);
 	if (ibis::gVerbose > 3)
@@ -1853,12 +1853,12 @@ long ibis::bin::binOrderT(const char* basename) const {
 			binned.push_back(basevals[ind[j]]);
 		}
 	    }
-	    ierr = UnixWrite(fdes, binned.begin(), elem * binned.size());
+	    ierr = ibis::util::write(fdes, binned.begin(), elem*binned.size());
 	}
 	pos[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
     ierr = UnixSeek(fdes, sizeof(uint32_t), SEEK_SET);
-    ierr = UnixWrite(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
+    ierr = ibis::util::write(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
     ierr = UnixSeek(fdes, pos.back(), SEEK_SET);
     ierr = UnixClose(fdes);
     return ierr;
@@ -5349,9 +5349,9 @@ int ibis::bin::write32(int fdes) const {
     offset32.resize(nobs+1);
     offset32[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
     ierr  = UnixSeek(fdes, offset32[0], SEEK_SET);
-    ierr += UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, minval.begin(), sizeof(double)*nobs);
     offset32[0] += sizeof(double)*nobs*3;
     if (ierr < offset32[0]) {
 	LOGGER(ibis::gVerbose > 0)
@@ -5377,7 +5377,7 @@ int ibis::bin::write32(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
-    ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
+    ierr = ibis::util::write(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int32_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin[" << col->partition()->name() << '.'
@@ -5441,9 +5441,9 @@ int ibis::bin::write64(int fdes) const {
     offset64.resize(nobs+1);
     offset64[0] = ((start+sizeof(int64_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
     ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
-    ierr += UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, minval.begin(), sizeof(double)*nobs);
     offset64[0] += sizeof(double)*nobs*3;
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
@@ -5469,7 +5469,7 @@ int ibis::bin::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -15;
     }
-    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    ierr = ibis::util::write(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin[" << col->partition()->name() << '.'

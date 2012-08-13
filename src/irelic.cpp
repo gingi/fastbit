@@ -421,7 +421,7 @@ int ibis::relic::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
     }
-    ierr = UnixWrite(fdes, vals.begin(), sizeof(double)*nobs);
+    ierr = ibis::util::write(fdes, vals.begin(), sizeof(double)*nobs);
     if (ierr < static_cast<off_t>(sizeof(double)*nobs)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "
@@ -456,7 +456,7 @@ int ibis::relic::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
-    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    ierr = ibis::util::write(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < static_cast<off_t>(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " expected to write "

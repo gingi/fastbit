@@ -516,7 +516,7 @@ ibis::colUInts::colUInts(const ibis::column* c)
 } // ibis::colUInts::colUInts
 
 ibis::colUInts::colUInts(const ibis::column* c, const ibis::bitvector& hits)
-    : colValues(c), array(c->selectUInts(hits)), dic(0) {
+    : colValues(c), array(c ? c->selectUInts(hits) : 0), dic(0) {
     if (c != 0 && c->type() == ibis::CATEGORY) {
 	dic = reinterpret_cast<const ibis::category*>(c)->getDictionary();
     }

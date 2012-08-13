@@ -1311,14 +1311,15 @@ long ibis::part::reactivate(const char* conds) {
 } // ibis::part::reactivate
 
 /// Purge all inactive rows from the partition.
-/// Return the number of rows left or error code.
+/// Return the number of rows left or an error code.
+///
 /// @note This operations is permanent and irreversible!
 long ibis::part::purgeInactive() {
     if (readonly)
 	return -1;
     int ierr = 0; 
     ibis::util::mutexLock lock(&mutex, "part::purgeInactive");
-    if (amask.cnt() == amask.size()) return nEvents;
+    if (amask.cnt() >= amask.size()) return nEvents;
 
     LOGGER(ibis::gVerbose > 0)
 	<< "part[" << (m_name?m_name:"?") << "]::purgeInactive to remove "
@@ -1329,6 +1330,9 @@ long ibis::part::purgeInactive() {
     char *mybuf = buf_.address();
     uint32_t nbuf = buf_.size();
 
+    if (myCleaner != 0)
+	(*myCleaner)(); // invoke the cleaner
+    purgeIndexFiles(); // purge existing index files
     if (backupDir != 0 && *backupDir != 0) { // has backup dir
 	ibis::fileManager::instance().flushDir(backupDir);
 	for (columnList::iterator it = columns.begin();
@@ -1360,8 +1364,7 @@ long ibis::part::purgeInactive() {
 	    remove(mskfile.c_str());
 	    writeMetaData(amask.cnt(), columns, backupDir);
 
-	    writeLock rw(this, "append");
-	    unloadIndexes();	// remove all indices
+	    writeLock rw(this, "purgeInactive");
 	    delete rids;	// remove the RID list
 	    rids = 0;
 	    ibis::fileManager::instance().flushDir(activeDir);
@@ -1392,6 +1395,8 @@ long ibis::part::purgeInactive() {
     }
     else { // only have one directory
 	writeLock lock(this, "purgeInactive");
+	delete rids;	// remove the RID list
+	rids = 0;
 	ibis::fileManager::instance().flushDir(activeDir);
 	for (columnList::iterator it = columns.begin();
 	     it != columns.end();

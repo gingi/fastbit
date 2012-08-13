@@ -454,6 +454,7 @@ namespace ibis {
 					   const char *delim=0);
 
 	int64_t read(int, void*, int64_t);
+	int64_t write(int, const void*, int64_t);
 
 	void removeDir(const char* name, bool leaveDir=false);
 	int makeDir(const char* dir);

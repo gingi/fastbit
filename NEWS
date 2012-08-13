@@ -1,3 +1,16 @@
+Version ibis1.3.1
+-- impelement ibis::util::read and ibis::util::write to get around the
+   limitation with POSIX read and write functions in handling large
+   buffers
+-- add UDT as a new data type for future expansion
+-- support for BLOB with ibis::opaque class
+-- process categorical values as integers in memory and on output,
+   convert query conditions on categorical values to be integer
+   comparisons
+-- add query expression with the operator "CONTAINS" to allow for a more
+   consistent handling of keyword searches (also known as full-text
+   search)
+
 Mon Apr  2 20:07:36 PDT 2012
 Version ibis1.3.0
 -- adopt case-sensitive comparisons for strings in a dictionary at the

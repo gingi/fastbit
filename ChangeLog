@@ -1,3 +1,16 @@
+2012-08-13 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: replace all logMessage cal with LOGGER
+	* src/parti.cpp: call cleaner and purgeIndexFiles in purgeInactive
+	* src/part.cpp: add call to unload index before purge index files
+
+2012-08-10 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp: util::read needs to stop if UnixRead returns 0
+	* src/index.cpp: change the procedure to building range encoding
+	and interval encoding from the equality encoding to make sure more
+	than 2 bins are present before invoking the conversion procedure,
+	to avoid the conversion procedure from throwing exception due to
+	too few bit vectors
+
 2012-08-09 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp, src/bord.h: add selectOpaques to
 	ibis::bord::column
@@ -5,6 +18,11 @@
 	m_sorted
 	* src/category.cpp: change fillIndex to make use of .int file
 	before attempting to reading the raw strings
+	* src/util.h, src/util.cpp: add util::write as a wrapper over
+	UnixWrite to get around chunking of writing (an issue raised by
+	Matt Bomhoff, similar to that raised by Rock Wong on reading)
+	* src/i*.cpp: update all write64 to use ibis::util::write instead
+	of UnixWrite for writing larger arrays
 
 2012-08-08 John Wu <John dot Wu at ACM dot org>
 	* src/filter.cpp: compose the long version of the mesg so that the
@@ -148,7 +166,7 @@
 	expression as string constant comparison
 	* src/whereClause.cpp: in function verifyExpr, add statements to
 	look for the UINT column with a dictionary and convert the
-	expression to an equality conparison with an integer
+	expression to an equality comparison with an integer
 
 2012-07-06 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h: bord::cursor::dumpIJ neglected to check the presence
@@ -216,7 +234,7 @@
 	installed (per suggestion of Petr Valen)
 
 2012-04-11 John Wu <John dot Wu at ACM dot org>
-	* src/uti.cpp:648 cast buf to char* before adding the offset
+	* src/util.cpp:648 cast buf to char* before adding the offset
 	* src/table.h: add data type UDT in anticipation of future
 	expansions
 

@@ -4341,8 +4341,8 @@ long ibis::column::selectValuesT(const char* dfn,
 		pos = UnixSeek(fdes, *ixval * sizeof(T), SEEK_SET);
 		const uint32_t nelm = (ixval[1]-ixval[0] <= nr-vals.size() ?
 				       ixval[1]-ixval[0] : nr-vals.size());
-		ierr = UnixRead(fdes, vals.begin()+vals.size(),
-				nelm*sizeof(T));
+		ierr = ibis::util::read(fdes, vals.begin()+vals.size(),
+					nelm*sizeof(T));
 		if (ierr > 0) {
 		    ierr /=  sizeof(T);
 		    vals.resize(vals.size() + ierr);
@@ -4545,8 +4545,8 @@ long ibis::column::selectValuesT(const char *dfn,
 		pos = UnixSeek(fdes, *ixval * sizeof(T), SEEK_SET);
 		const uint32_t nelm = (ixval[1]-ixval[0] <= nr-vals.size() ?
 				       ixval[1]-ixval[0] : nr-vals.size());
-		ierr = UnixRead(fdes, vals.begin()+vals.size(),
-				nelm*sizeof(T));
+		ierr = ibis::util::read(fdes, vals.begin()+vals.size(),
+					nelm*sizeof(T));
 		if (ierr > 0) {
 		    ierr /=  sizeof(T);
 		    vals.resize(vals.size() + ierr);
@@ -5173,7 +5173,7 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
 /// reading operations for reconstitute the index object from an index file.
 ///
 /// @note Accesses to this function are serialized through a write lock on
-/// the column.
+/// the column.  It blocks while acquire the write lock.
 void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     if (idx != 0 || thePart == 0 || thePart->nRows() == 0 ||
 	thePart->currentDataDir() == 0)
@@ -5289,7 +5289,8 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 } // ibis::column::loadIndex
 
 /// Unload the index associated with the column.
-// This function requires a write lock just like loadIndex.
+/// This function requires a write lock just like loadIndex.  However, it
+/// will simply return to the caller if it fails to acquire the lock.
 void ibis::column::unloadIndex() const {
     if (0 == idx) return;
 
@@ -5438,7 +5439,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     evt += ".";
     evt += m_name;
     evt += "]::evaluateRange";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	std::ostringstream oss;
 	oss << '(' << cmp;
 	if (ibis::gVerbose > 3)
@@ -5478,10 +5479,10 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		if (cost < thePart->nRows() * 0.5) {
 		    idx->estimate(cmp, low, high);
 		}
-		else if (ibis::gVerbose > 1) {
-		    ibis::util::logger lg;
-		    lg() << evt << ") will not use the index because the cost ("
-			 << cost << ") is too high";
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< evt << ") will not use the index because the cost ("
+			<< cost << ") is too high";
 		}
 	    }
 	    else if (m_sorted) {
@@ -5607,7 +5608,7 @@ long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
     evt += ".";
     evt += m_name;
     evt += "]::evaluateAndSelect";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	std::ostringstream oss;
 	oss << '(' << cmp;
 	if (ibis::gVerbose > 3)
@@ -6469,7 +6470,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    uint32_t diff = sz - j;
 	    if (diff > nbuf)
 		diff = nbuf;
-	    ierr = UnixWrite(dest, buf, diff);
+	    ierr = ibis::util::write(dest, buf, diff);
 	    j += diff;
 	}
     }
@@ -6492,7 +6493,7 @@ long ibis::column::append(const char* dt, const char* df,
 	const uint32_t tgt = nnew * elem;
 	long iread=1, iwrite;
 	while (static_cast<uint32_t>(ret) < tgt &&
-	       (iread = UnixRead(src, buf, nbuf)) > 0) {
+	       (iread = ibis::util::read(src, buf, nbuf)) > 0) {
 	    if (iread + ret > static_cast<long>(tgt)) {
 		// write at most tgt bytes
 		LOGGER(ibis::gVerbose > 1)
@@ -6501,7 +6502,7 @@ long ibis::column::append(const char* dt, const char* df,
 		    << (tgt-ret) << " bytes";
 		iread = tgt - ret;
 	    }
-	    iwrite = UnixWrite(dest, buf, iread);
+	    iwrite = ibis::util::write(dest, buf, iread);
 	    if (iwrite != iread) {
 		logWarning("append", "Only wrote %ld out of %ld bytes to "
 			   "\"%s\" after written %ld elements",
@@ -6531,7 +6532,7 @@ long ibis::column::append(const char* dt, const char* df,
 	    uint32_t diff = sz - j;
 	    if (diff > nbuf)
 		diff = nbuf;
-	    ierr = UnixWrite(dest, buf, diff);
+	    ierr = ibis::util::write(dest, buf, diff);
 	    j += diff;
 	}
     }
@@ -6760,7 +6761,7 @@ long ibis::column::string2int(int fptr, dictionary& dic,
 			      array_t<uint32_t>& out) const {
     out.clear(); // clear the current integer list
     long ierr = 1;
-    int32_t nread = UnixRead(fptr, buf, nbuf);
+    int64_t nread = ibis::util::read(fptr, buf, nbuf);
     ibis::fileManager::instance().recordPages(0, nread);
     if (nread <= 0) { // nothing is read, end-of-file or error ?
 	if (nread == 0) {
@@ -6926,7 +6927,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
 	    const uint32_t nw =
 		((uint32_t)(thePart->nRows()-oldsz) <= vals.size() ?
 		 (uint32_t)(thePart->nRows()-oldsz) : vals.size());
-	    ierr = UnixWrite(curr, vals.begin(), nw*elem);
+	    ierr = ibis::util::write(curr, vals.begin(), nw*elem);
 	    if (ierr < static_cast<long>(nw*elem)) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- " << evt << " failed to write " << nw*elem
@@ -6941,7 +6942,7 @@ long ibis::column::appendValues(const array_t<T>& vals,
 	UnixSeek(curr, elem * thePart->nRows(), SEEK_SET);
     }
 
-    ierr = UnixWrite(curr, vals.begin(), vals.size()*elem);
+    ierr = ibis::util::write(curr, vals.begin(), vals.size()*elem);
     if (ierr < static_cast<long>(vals.size() * elem)) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << evt << " failed to write " << vals.size()*elem
@@ -9998,11 +9999,11 @@ int ibis::column::searchSortedOOCC(const char* fname,
 		T tmp;
 		iloc = findLower<T>(fdes, nrows, jval);
 		ierr = UnixSeek(fdes, iloc*sz, SEEK_SET);
-		ierr = UnixRead(fdes, &tmp, sz);
+		ierr = ibis::util::read(fdes, &tmp, sz);
 		if (iloc < nrows && ierr == (int) sz &&
 		    tmp == rng.rightBound()) {
 		    for (jloc = iloc+1; jloc < nrows; ++ jloc) {
-			ierr = UnixRead(fdes, &tmp, sz);
+			ierr = ibis::util::read(fdes, &tmp, sz);
 			if (ierr < (int)sz || tmp != jval) break;
 		    }
 		    hits.set(0, iloc);
@@ -10842,8 +10843,8 @@ int ibis::column::searchSortedOOCD(const char* fname,
     if (buf.size() > 0) { // has a buffer to use
 	uint32_t ju = 0;
 	uint32_t jv = 0;
-	while (ju < u.size() &&
-	       (ierr = UnixRead(fdes, buf.address(), buf.size()*sz)) > 0) {
+	while (ju < u.size() && 0 <
+	       (ierr = ibis::util::read(fdes, buf.address(), buf.size()*sz))) {
 	    for (uint32_t j = 0; ju < u.size() && j < buf.size(); ++ j) {
 		while (ju < u.size() && u[ju] < buf[j]) ++ ju;
 		if (buf[j] == u[ju]) {
@@ -10969,8 +10970,8 @@ int ibis::column::searchSortedOOCD(const char* fname,
     if (buf.size() > 0) { // has a buffer to use
 	uint32_t ju = 0;
 	uint32_t jv = 0;
-	while (ju < u.size() &&
-	       (ierr = UnixRead(fdes, buf.address(), buf.size()*sz)) > 0) {
+	while (ju < u.size() && 0 <
+	       (ierr = ibis::util::read(fdes, buf.address(), buf.size()*sz))) {
 	    for (uint32_t j = 0; ju < u.size() && j < buf.size(); ++ j) {
 		while (ju < u.size() && u[ju] < (int64_t)buf[j]) ++ ju;
 		if ((int64_t)buf[j] == u[ju]) {
@@ -11100,8 +11101,8 @@ int ibis::column::searchSortedOOCD(const char* fname,
     if (buf.size() > 0) { // has a buffer to use
 	uint32_t ju = 0;
 	uint32_t jv = 0;
-	while (ju < u.size() &&
-	       (ierr = UnixRead(fdes, buf.address(), buf.size()*sz)) > 0) {
+	while (ju < u.size() && 0 < 
+	       (ierr = ibis::util::read(fdes, buf.address(), buf.size()*sz))) {
 	    for (uint32_t j = 0; ju < u.size() && j < buf.size(); ++ j) {
 		while (ju < u.size() && u[ju] < (uint64_t)buf[j]) ++ ju;
 		if ((uint64_t)buf[j] == u[ju]) {

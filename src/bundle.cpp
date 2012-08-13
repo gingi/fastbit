@@ -423,8 +423,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 	    if (bdlstore->bytes() == expected) {
 		if (aggr == ibis::selectClause::NIL_AGGR) {
 		    LOGGER(ibis::gVerbose > 4)
-			<< "bundle1::ctor reconstructing a colValues for "
-			<< comps.aggName(0);
+			<< "bundle1::ctor reconstructing a colValues for \""
+			<< comps.aggName(0) << '"';
 		    col = ibis::colValues::create
 			(c, bdlstore, 3*sizeof(uint32_t), sizes[0]);
 		}
@@ -437,16 +437,16 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 		    case ibis::selectClause::STDPOP:
 		    case ibis::selectClause::STDSAMP:
 			LOGGER(ibis::gVerbose > 4)
-			    << "bundle1::ctor reconstructing a colDoubles for "
-			    << *(comps.aggExpr(0));
+			    << "bundle1::ctor reconstructing a colDoubles for \""
+			    << *(comps.aggExpr(0)) << '"';
 			col = new ibis::colDoubles
 			    (c, bdlstore, 3*sizeof(uint32_t),
 			     3*sizeof(uint32_t)+8*sizes[0]);
 			break;
 		    default:
 			LOGGER(ibis::gVerbose > 4)
-			    << "bundle1::ctor reconstructing a colValues for "
-			    << *(comps.aggExpr(0));
+			    << "bundle1::ctor reconstructing a colValues for \""
+			    << *(comps.aggExpr(0)) << '"';
 			col = ibis::colValues::create
 			    (c, bdlstore, 3*sizeof(uint32_t),
 			     3*sizeof(uint32_t)+sizes[0]*c->elementSize());
@@ -478,8 +478,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 		}
 		if (aggr == ibis::selectClause::NIL_AGGR) {
 		    LOGGER(ibis::gVerbose > 4)
-			<< "bundle1::ctor initializing a colValues for "
-			<< *(comps.aggExpr(0));
+			<< "bundle1::ctor initializing a colValues for \""
+			<< *(comps.aggExpr(0)) << '"';
 		    col = ibis::colValues::create(c, *hits);
 		}
 		else {
@@ -491,14 +491,14 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 		    case ibis::selectClause::STDPOP:
 		    case ibis::selectClause::STDSAMP:
 			LOGGER(ibis::gVerbose > 4)
-			    << "bundle1::ctor initializing a colDoubles for "
-			    << *(comps.aggExpr(0));
+			    << "bundle1::ctor initializing a colDoubles for \""
+			    << *(comps.aggExpr(0)) << '"';
 			col = new ibis::colDoubles(c, *hits);
 			break;
 		    default:
 			LOGGER(ibis::gVerbose > 4)
-			    << "bundle1::ctor initializing a colValues for "
-			    << *(comps.aggExpr(0));
+			    << "bundle1::ctor initializing a colValues for \""
+			    << *(comps.aggExpr(0)) << '"';
 			col = ibis::colValues::create(c, *hits);
 			break;
 		    }
@@ -563,8 +563,8 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
 	    if (aggr == ibis::selectClause::NIL_AGGR) {
 		// use column type
 		LOGGER(ibis::gVerbose > 4)
-		    << "bundle1::ctor initializing a colValues for "
-		    << *(comps.aggExpr(0));
+		    << "bundle1::ctor initializing a colValues for \""
+		    << *(comps.aggExpr(0)) << '"';
 		col = ibis::colValues::create(c, hits);
 	    }
 	    else { // a function, treat AVG and SUM as double
@@ -576,14 +576,14 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
 		case ibis::selectClause::STDPOP:
 		case ibis::selectClause::STDSAMP:
 		    LOGGER(ibis::gVerbose > 4)
-			<< "bundle1::ctor initializing a colDoubles for "
-			<< *(comps.aggExpr(0));
+			<< "bundle1::ctor initializing a colDoubles for \""
+			<< *(comps.aggExpr(0)) << '"';
 		    col = new ibis::colDoubles(c, hits);
 		    break;
 		default:
 		    LOGGER(ibis::gVerbose > 4)
-			<< "bundle1::ctor initializing a colValues for "
-			<< *(comps.aggExpr(0));
+			<< "bundle1::ctor initializing a colValues for \""
+			<< *(comps.aggExpr(0)) << '"';
 		    col = ibis::colValues::create(c, hits);
 		    break;
 		}
@@ -678,8 +678,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	if (aggr == ibis::selectClause::NIL_AGGR) {
 	    // use column type
 	    LOGGER(ibis::gVerbose > 4)
-		<< "bundle1::ctor initializing a colValues for "
-		<< *(comps.aggExpr(icol));
+		<< "bundle1::ctor initializing a colValues for \""
+		<< *(comps.aggExpr(icol)) << '"';
 	    col = ibis::colValues::create(c);
 	}
 	else { // a function, treat AVG and SUM as double
@@ -691,14 +691,14 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    case ibis::selectClause::STDPOP:
 	    case ibis::selectClause::STDSAMP:
 		LOGGER(ibis::gVerbose > 4)
-		    << "bundle1::ctor initializing a colDoubles for "
-		    << *(comps.aggExpr(icol));
+		    << "bundle1::ctor initializing a colDoubles for \""
+		    << *(comps.aggExpr(icol)) << '"';
 		col = new ibis::colDoubles(c);
 		break;
 	    default:
 		LOGGER(ibis::gVerbose > 4)
-		    << "bundle1::ctor initializing a colValues for "
-		    << *(comps.aggExpr(icol));
+		    << "bundle1::ctor initializing a colValues for \""
+		    << *(comps.aggExpr(icol)) << '"';
 		col = ibis::colValues::create(c);
 		break;
 	    }
@@ -1194,8 +1194,8 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
 		    const ibis::column* cptr = tbl->getColumn(comps.aggName(i));
 		    if (cptr != 0) {
 			LOGGER(ibis::gVerbose > 4)
-			    << "bundles::ctor to recreate a colValues for "
-			    << *(comps.aggExpr(i)) << " as cols["
+			    << "bundles::ctor to recreate a colValues for \""
+			    << *(comps.aggExpr(i)) << "\" as cols["
 			    << cols.size() << ']';
 			ibis::colValues* tmp;
 			switch (comps.getAggregator(i)) {
@@ -1267,8 +1267,8 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
 		if (cptr != 0) {
 		    ibis::colValues* tmp;
 		    LOGGER(ibis::gVerbose > 4)
-			<< "bundles::ctor to create a colValues for "
-			<< *(comps.aggExpr(i)) << " as cols[" << cols.size()
+			<< "bundles::ctor to create a colValues for \""
+			<< *(comps.aggExpr(i)) << "\" as cols[" << cols.size()
 			<< ']';
 		    switch (comps.getAggregator(i)) {
 		    case ibis::selectClause::AVG:
@@ -1345,8 +1345,9 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits,
 	    const ibis::column* cptr = tbl->getColumn(comps.aggName(i));
 	    if (cptr != 0) {
 		LOGGER(ibis::gVerbose > 4)
-		    << "bundles::ctor to create a colValues for "
-		    << *(comps.aggExpr(i)) << " as cols[" << cols.size() << ']';
+		    << "bundles::ctor to create a colValues for \""
+		    << *(comps.aggExpr(i)) << "\" as cols[" << cols.size()
+		    << ']';
 		ibis::colValues* tmp;
 		switch (comps.getAggregator(i)) {
 		case ibis::selectClause::AVG:
@@ -1457,15 +1458,15 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 		cols.push_back(cv);
 		aggr.push_back(comps.getAggregator(ic));
 		LOGGER(ibis::gVerbose > 2)
-		    << "bundles::ctor created a colValues for "
-		    << *(comps.aggExpr(ic)) << " as cols[" << ic
+		    << "bundles::ctor created a colValues for \""
+		    << *(comps.aggExpr(ic)) << "\" as cols[" << ic
 		    << "] with size " << cv->size();
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- bundles(" << tbl.name() << ", " << comps
-		    << ") failed to create an in-memory column for "
-		    << *(comps.aggExpr(ic));
+		    << ") failed to create an in-memory column for \""
+		    << *(comps.aggExpr(ic)) << '"';
 	    }
 	}
 

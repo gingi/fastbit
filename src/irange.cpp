@@ -529,9 +529,9 @@ int ibis::range::write64(int fdes) const {
     }
     offset64[0] = ((start+sizeof(int64_t)*(nobs+1)+sizeof(uint32_t)*2+7)/8)*8;
     ierr  = UnixSeek(fdes, offset64[0], SEEK_SET);
-    ierr += UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, minval.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, &max1, sizeof(double));
     ierr += UnixWrite(fdes, &min1, sizeof(double));
     offset64[0] += sizeof(double)*(3*nobs+2);
@@ -558,7 +558,7 @@ int ibis::range::write64(int fdes) const {
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
     }
-    ierr = UnixWrite(fdes, offset64.begin(), 8*(nobs+1));
+    ierr = ibis::util::write(fdes, offset64.begin(), 8*(nobs+1));
     if (ierr < (off_t)(4*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- range[" << col->partition()->name() << "."

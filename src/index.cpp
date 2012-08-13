@@ -19,6 +19,8 @@
 #include "category.h"
 #include "resource.h"
 #include "bitvector64.h"
+
+#include <memory>	// std::auto_ptr
 #include <queue>	// priority queue
 #include <algorithm>	// std::sort
 #include <sstream>	// std::ostringstream
@@ -737,9 +739,8 @@ ibis::index* ibis::index::readOld(const ibis::column* c,
 } // ibis::index::readOld
 
 /// Build a new index from attribute values.
-ibis::index* ibis::index::buildNew(const ibis::column *c,
-				   const char* dfname,
-				   const char* spec) {
+ibis::index* ibis::index::buildNew
+(const ibis::column *c, const char* dfname, const char* spec) {
     if (c->type() == ibis::CATEGORY) {
 	// special handling
 	return reinterpret_cast<const ibis::category*>(c)->
@@ -933,7 +934,15 @@ ibis::index* ibis::index::buildNew(const ibis::column *c,
 	    str += 10; // skip "<encoding "
 	    if (strstr(str, "range/equality") ||
 		strstr(str, "range-equality")) {
-		t = BYLT;
+		if (c->lowerBound() < c->upperBound()) {
+		    t = BYLT;
+		}
+		else {
+		    double lo, hi;
+		    c->computeMinMax(dfname, lo, hi);
+		    if (lo < hi)
+			t = BYLT;
+		}
 	    }
 	    else if (strstr(str, "equality/equality") ||
 		     strstr(str, "equality-equality")) {
@@ -950,7 +959,15 @@ ibis::index* ibis::index::buildNew(const ibis::column *c,
 		t = SBIAD;
 	    }
 	    else if (strstr(str, "range")) {
-		t = FADE;
+		if (c->lowerBound() < c->upperBound()) {
+		    t = FADE;
+		}
+		else {
+		    double lo, hi;
+		    c->computeMinMax(dfname, lo, hi);
+		    if (lo < hi)
+			t = FADE;
+		}
 	    }
 	    else if (strstr(str, "binary")) {
 		t = SKIVE;
@@ -1057,29 +1074,48 @@ ibis::index* ibis::index::buildNew(const ibis::column *c,
     else if (strstr(spec, "ambit") != 0 ||
 	     strstr(spec, "range/range") != 0 ||
 	     strstr(spec, "range-range") != 0) {
-	ibis::bin tmp(c, dfname);
-	ind = new ibis::ambit(tmp);
-	// ind = new ibis::ambit(c, dfname);
+	std::auto_ptr<ibis::bin> tmp(new  ibis::bin(c, dfname));
+	if (tmp->numBins() > 2) {
+	    ind = new ibis::ambit(*tmp);
+	}
+	else {
+	    ind = tmp.release();
+	}
     }
     else if (strstr(spec, "pale") != 0 ||
 	     strstr(spec, "bin/range") != 0 ||
 	     strstr(spec, "equality-range") != 0) {
-	ibis::bin tmp(c, dfname);
-	ind = new ibis::pale(tmp);
+	std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+	if (tmp->numBins() > 2) {
+	    ind = new ibis::pale(*tmp);
+	}
+	else {
+	    ind = tmp.release();
+	}
     }
     else if (strstr(spec, "pack") != 0 ||
 	     strstr(spec, "range/bin") != 0 ||
 	     strstr(spec, "range/equality") != 0 ||
 	     strstr(spec, "range-equality") != 0) {
-	ibis::bin tmp(c, dfname);
-	ind = new ibis::pack(tmp);
+	std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+	if (tmp->numBins() > 2) {
+	    ind = new ibis::pack(*tmp);
+	}
+	else {
+	    ind = tmp.release();
+	}
     }
     else if (strstr(spec, "zone") != 0 ||
 	     strstr(spec, "bin/bin") != 0 ||
 	     strstr(spec, "equality/equality") != 0 ||
 	     strstr(spec, "equality-equality") != 0) {
-	ibis::bin tmp(c, dfname);
-	ind = new ibis::zone(tmp);
+	std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+	if (tmp->numBins() > 2) {
+	    ind = new ibis::zone(*tmp);
+	}
+	else {
+	    ind = tmp.release();
+	}
     }
     else if (strstr(spec, "interval/equality") != 0 ||
 	     strstr(spec, "interval-equality") != 0) {
@@ -1094,12 +1130,23 @@ ibis::index* ibis::index::buildNew(const ibis::column *c,
     else if (strstr(spec, "mesa") != 0 ||
 	     strstr(spec, "interval") != 0 ||
 	     strstr(spec, "2sided") != 0) {
-	ibis::bin tmp(c, dfname);
-	ind = new ibis::mesa(tmp);
+	std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+	if (tmp->numBins() > 2) {
+	    ind = new ibis::mesa(*tmp);
+	}
+	else {
+	    ind = tmp.release();
+	}
     }
     else if (strstr(spec, "range") != 0 ||
 	     strstr(spec, "cumulative") != 0) {
-	ind = new ibis::range(c, dfname);
+	std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+	if (tmp->numBins() > 2) {
+	    ind = new ibis::range(*tmp);
+	}
+	else {
+	    ind = tmp.release();
+	}
     }
     else {
 	LOGGER(ibis::gVerbose > 1 && strstr(spec, "bin") == 0)

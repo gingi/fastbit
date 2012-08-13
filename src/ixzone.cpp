@@ -522,9 +522,9 @@ int ibis::zone::write64(int fdes) const {
 	return -6;
     }
 
-    ierr  = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
-    ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
-    ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
+    ierr  = ibis::util::write(fdes, bounds.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, maxval.begin(), sizeof(double)*nobs);
+    ierr += ibis::util::write(fdes, minval.begin(), sizeof(double)*nobs);
     if (ierr < (off_t)(sizeof(double)*(3*nobs))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- pack[" << col->partition()->name() << "."
@@ -557,7 +557,7 @@ int ibis::zone::write64(int fdes) const {
 	    << start+sizeof(uint32_t)*2 << ", ierr = " << ierr;
 	return -9;
     }
-    ierr = UnixWrite(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
+    ierr = ibis::util::write(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- zone[" << col->partition()->name() << "."
@@ -600,7 +600,7 @@ int ibis::zone::write64(int fdes) const {
 	    << nloff << ", ierr = " << ierr;
 	return -11;
     }
-    ierr = UnixWrite(fdes, nextlevel.begin(), sizeof(int64_t)*(nobs+1));
+    ierr = ibis::util::write(fdes, nextlevel.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- zone[" << col->partition()->name() << "."

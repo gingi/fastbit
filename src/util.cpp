@@ -714,21 +714,20 @@ int ibis::util::copy(const char* to, const char* from) {
 
 /// A wrapper over POSIX read function.  When a large chunk is requested by
 /// the user, the read function may return one piece at a time, typically a
-/// piece is no larger than 2^31 bytes.  However, this maximum chunk size
-/// is not consistently defined to be SSIZE_MAX as the POSIX standard
-/// demands.  This function attempts use the return value from read when it
-/// is a posive value.
+/// piece is no larger than 2^31 bytes, and the size of this piece is
+/// implementation dependent.  This function attempts use the return value
+/// from read when it is a posive value.
 int64_t ibis::util::read(int fdes, void *buf, int64_t nbytes) {
-    long ierr = 0;
+    int64_t ierr = nbytes;
     int64_t offset = 0;
-    while (nbytes > 0) {
+    while (ierr > 0) {
 	ierr = UnixRead(fdes,
 			static_cast<char*>(buf)+offset,
 			nbytes);
-	if (ierr <= 0) {
+	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "Warning -- util::largeRead received error "
-		<< ierr << " from file descriptor " << fdes;
+		<< "Warning -- util::read received error code "
+		<< ierr << " on file descriptor " << fdes;
 	    return ierr;
 	}
 	else {
@@ -737,7 +736,33 @@ int64_t ibis::util::read(int fdes, void *buf, int64_t nbytes) {
 	}
     }
     return offset;
-} // ibis::util::largeRead
+} // ibis::util::read
+
+/// A wrapper over POSIX write function.  When a large chunk is requested
+/// by the user, the write function may return one piece at a time,
+/// typically a piece is no larger than 2^31 bytes depending implementation
+/// details.  This function attempts use the return value from write when
+/// it is a posive value.
+int64_t ibis::util::write(int fdes, const void *buf, int64_t nbytes) {
+    long ierr = 0;
+    int64_t offset = 0;
+    while (nbytes > 0) {
+	ierr = UnixWrite(fdes,
+			 static_cast<const char*>(buf)+offset,
+			 nbytes);
+	if (ierr <= 0) {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "Warning -- util::write received error code "
+		<< ierr << " on file descriptor " << fdes;
+	    return ierr;
+	}
+	else {
+	    nbytes -= ierr;
+	    offset += ierr;
+	}
+    }
+    return offset;
+} // ibis::util::write
 
 /// Remove the content of named directory.
 /// If this function is run on a unix-type system and the second argument

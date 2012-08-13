@@ -219,12 +219,13 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 /// function because it only manipulates mutable data members.  This is
 /// necessary to make it callable from const member function of this class.
 void ibis::category::prepareMembers() const {
-    if (thePart == 0 || thePart->currentDataDir() == 0) return;
+    if (dic.size() > 0) return;
+
     mutexLock lock(this, "category::prepareMembers");
-    if (dic.size() == 0)
-	readDictionary();
+    readDictionary();
 
     if (idx == 0) { // attempt to read the index file
+	if (thePart == 0 || thePart->currentDataDir() == 0) return;
 	std::string idxf = thePart->currentDataDir();
 	idxf += FASTBIT_DIRSEP;
 	idxf += m_name;
@@ -349,7 +350,8 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 	raw += m_name; // primary data file name
 	std::string intfile = raw;
 	intfile += ".int";
-	ints.read(intfile.c_str());
+	if (dic.size() > 0) // read .int file only if a dictionary is present
+	    ints.read(intfile.c_str());
 	if (ints.size() == 0 ||
 	    (iscurrent && ints.size() < thePart->nRows())) {
 	    int fraw = UnixOpen(raw.c_str(), OPEN_READONLY);
@@ -402,27 +404,32 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 		    }
 		}
 		else {
-		    LOGGER(thePart->getStateNoLocking()
-			   != ibis::part::PRETRANSITION_STATE
-			   && ibis::gVerbose > 1)
+		    LOGGER(ibis::gVerbose > 1)
 			<< "Warning -- " << evt << " found " << nints
 			<< " strings while expecting " << thePart->nRows()
 			<< ", truncating the list of values";
 		}
 	    }
 	    else if (ints.size() < thePart->nRows()) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " found only " << ints.size()
+		    << " string value" << (ints.size() > 1 ? "s" : "")
+		    << ", expected " << thePart->nRows()
+		    << ", assume the remaining entries are nulls";
 		ints.insert(ints.end(), thePart->nRows() - ints.size(), 0);
 	    }
-	    if (thePart->getStateNoLocking() != ibis::part::PRETRANSITION_STATE)
+	    if (ints.size() != thePart->nRows())
 		ints.resize(thePart->nRows());
 
 	    try {
 		// reorder dictionary and ints
 		ibis::array_t<uint32_t> o2n;
 		dic.sort(o2n);
-		const uint32_t nints = ints.size();
-		for (uint32_t j = 0; j < nints; ++ j)
-		    ints[j] = o2n[ints[j]];
+		if (! o2n.isSorted()) {
+		    const uint32_t nints = ints.size();
+		    for (uint32_t j = 0; j < nints; ++ j)
+			ints[j] = o2n[ints[j]];
+		}
 	    }
 	    catch (...) {
 		LOGGER(ibis::gVerbose > 5)
@@ -935,6 +942,23 @@ long ibis::category::append(const char* dt, const char* df,
 	return ret;
     if (strcmp(dt, df) == 0)
 	return ret;
+    std::string evt = "category";
+    if (ibis::gVerbose > 1) {
+	evt += '[';
+	evt += (thePart ? thePart->name() : "?");
+	evt += '.';
+	evt += m_name;
+	evt += ']';
+    }
+    evt += "::append";
+    if (ibis::gVerbose > 2) {
+	evt += '(';
+	evt += dt;
+	evt += ", ";
+	evt += df;
+	evt += ')';
+    }
+
     prepareMembers();
     // STEP 1: convert the strings to ibis::direkte
     std::string dest = dt;
@@ -971,10 +995,11 @@ long ibis::category::append(const char* dt, const char* df,
 #endif
 		while ((ierr = UnixRead(fptr, buf, nbuf))) {
 		    ret = UnixWrite(fdest, buf, ierr);
-		    if (ret != ierr && ibis::gVerbose > 2)
-			logMessage("append", "expected to write %ld bytes "
-				   "to \"%s\" by only wrote %ld", ierr,
-				   dest.c_str(), ret);
+		    LOGGER(ret != ierr && ibis::gVerbose > 2)
+			<< "Warning -- " << evt << " expected to write "
+			<< ierr << " byte " << (ierr>1?"s":"")
+			<< " to \"" << dest << "\" by only wrote "
+			<< ret;
 		}
 #if defined(FASTBIT_SYNC_WRITE)
 #if _POSIX_FSYNC+0 > 0
@@ -985,15 +1010,17 @@ long ibis::category::append(const char* dt, const char* df,
 #endif
 	    }
 	    else {
-		logMessage("append", "unable to open \"%s\" to appending",
-			   dest.c_str());
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning " << evt << " failed to open \"" << dest
+		    << "\"";
 	    }
 	}
-	else if (ibis::gVerbose > 5) {
-	    logMessage("append", "unable to open file \"%s\" "
-		       "for reading ... %s, assume the attribute to "
-		       "have only one value", src.c_str(),
-		       (errno ? strerror(errno) : "no free stdio stream"));
+	else {
+	    LOGGER(ibis::gVerbose > 5)
+		<< "Warning -- " << evt << " failed to open file \"" << src
+		<< "\" for reading ... "
+		<< (errno ? strerror(errno) : "no free stdio stream")
+		<< ", assume the attribute to have only one value";
 	}
     }
     else {
@@ -1035,11 +1062,11 @@ long ibis::category::append(const char* dt, const char* df,
 		for (unsigned i = 0; i < nints; ++ i)
 		    cnt += (ints[i] == 0);
 		if (ints.size() == cnt + nnew) {
-		    if (ibis::gVerbose > 1)
-			logMessage("append", "found %lu element(s), but "
-				   "expecting only %ld, extra ones are likely "
-				   "nill strings, removing nill strings",
-				   nints, ret);
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << evt << " found " << nints
+			<< " element(s), but expected only " << ret
+			<< ", extra ones are likely nill strings, "
+			"removing nill strings";
 		    cnt = 0;
 		    for (unsigned i = 0; i < nints; ++ i) {
 			if (ints[i] != 0) {
@@ -1048,18 +1075,19 @@ long ibis::category::append(const char* dt, const char* df,
 			}
 		    }
 		}
-		else if (ibis::gVerbose > 1)
-		    logMessage("append", "found %lu element(s), but expecting "
-			       "only %ld, truncate the extra elements",
-			       nints, ret);
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << evt << " found "<< nints
+			<< " element(s), but expected only " << ret
+			<< ", truncate the extra elements";
+		}
 		ints.resize(nnew);
 	    }
 	    else if (ints.size() < nnew) {
-		if (ibis::gVerbose > 1)
-		    logMessage("append", "found %lu element(s), but "
-			       "expecting only %ld, adding nill strings to "
-			       "make up the difference",
-			       static_cast<long unsigned>(ints.size()), ret);
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << evt << "found " << ints.size()
+		    << " element(s), but expecting only " << ret
+		    << ", adding nill strings to make up the difference";
 
 		ints.insert(ints.end(), nnew-ints.size(), (uint32_t)0);
 	    }
@@ -1090,10 +1118,10 @@ long ibis::category::append(const char* dt, const char* df,
 		if (ierr < 0) return -2;
 		while ((ierr = UnixRead(fptr, buf, nbuf)) > 0) {
 		    ret = UnixWrite(fdest, buf, ierr);
-		    if (ret != ierr && ibis::gVerbose > 2)
-			logMessage("append", "expected to write %ld bytes "
-				   "to \"%s\" by only wrote %ld", ierr,
-				   dest.c_str(), ret);
+		    LOGGER(ret != ierr && ibis::gVerbose > 2)
+			<< "Warning -- " << evt << " expected to write "
+			<< ierr << " bytes to \"" << dest
+			<< "\" by only wrote " << ret;
 		}
 #if defined(FASTBIT_SYNC_WRITE)
 #if  _POSIX_FSYNC+0 > 0
@@ -1104,17 +1132,19 @@ long ibis::category::append(const char* dt, const char* df,
 #endif
 	    }
 	    else {
-		logMessage("append", "unable to open \"%s\" to appending",
-			   dest.c_str());
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to open \"" << dest
+		    << "\"";
 	    }
 	    if (ierr < 0) return -3;
 	}
 	else {
-	    if (ibis::gVerbose > 5)
-		logMessage("append", "unable to open file \"%s\" "
-			   "for reading ... %s, assume the attribute to "
-			   "have only one value", src.c_str(),
-			   (errno ? strerror(errno) : "no free stdio stream"));
+	    LOGGER(ibis::gVerbose > 5)
+		<< "Warning -- " << evt << " failed to open file \"" << src
+		<< "\" for reading ... "
+		<< (errno ? strerror(errno) : "no free stdio stream")
+		<< ", assume the attribute to have only one value";
+
 	    binp = new ibis::direkte(this, 1, nnew);
 	    cnt = nnew;
 	}
@@ -1130,10 +1160,9 @@ long ibis::category::append(const char* dt, const char* df,
     upper = dic.size();
     dest += ".dic";
     dic.write(dest.c_str());
-    if (ibis::gVerbose > 4)
-	logMessage("append", "appended %lu rows, new dictionary size is %lu",
-		   static_cast<long unsigned>(cnt),
-		   static_cast<long unsigned>(dic.size()));
+    LOGGER(ibis::gVerbose > 4)
+	<< evt << "appended " << cnt << " row" << (cnt>1?"s":"") 
+	<< ", new dictionary size is " << dic.size();
 
     ////////////////////////////////////////
     // STEP 2: extend the null mask
@@ -1141,11 +1170,9 @@ long ibis::category::append(const char* dt, const char* df,
     ibis::bitvector mapp(src.c_str());
     if (mapp.size() != nnew)
 	mapp.adjustSize(cnt, nnew);
-    if (ibis::gVerbose > 7)
-	logMessage("append", "mask file \"%s\" contains %lu set "
-		   "bits out of %lu total bits", src.c_str(),
-		   static_cast<long unsigned>(mapp.cnt()),
-		   static_cast<long unsigned>(mapp.size()));
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << "-- mask file \"" << src << "\" contains " << mapp.cnt()
+	<< " set bits out of " << mapp.size() << " total bits";
 
     dest.erase(dest.size()-3);
     dest += "msk";
@@ -1154,11 +1181,9 @@ long ibis::category::append(const char* dt, const char* df,
 	mtot.set(1, nold);
     else if (mtot.size() != nold)
 	mtot.adjustSize(0, nold);
-    if (ibis::gVerbose > 7)
-	logMessage("append", "mask file \"%s\" contains %lu set "
-		   "bits out of %lu total bits", dest.c_str(),
-		   static_cast<long unsigned>(mtot.cnt()),
-		   static_cast<long unsigned>(mtot.size()));
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " -- mask file \"" << dest << "\" contains "
+	<< mtot.cnt() << " set bits out of " << mtot.size() << " total bits";
 
     mtot += mapp; // append the new ones to the end of the old ones
     if (mtot.size() != nold+nnew) {
@@ -1170,23 +1195,19 @@ long ibis::category::append(const char* dt, const char* df,
     }
     if (mtot.cnt() != mtot.size()) {
 	mtot.write(dest.c_str());
-	if (ibis::gVerbose > 6) {
-	    logMessage("append", "mask file \"%s\" indicates %lu "
-		       "valid records out of %lu", dest.c_str(),
-		       static_cast<long unsigned>(mtot.cnt()),
-		       static_cast<long unsigned>(mtot.size()));
+	LOGGER(ibis::gVerbose > 6)
+	    << evt << " -- mask file \"" << dest << "\" indicates "
+	    << mtot.cnt() << " valid records out of " << mtot.size();
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-	    LOGGER(ibis::gVerbose >= 0) << mtot;
+	LOGGER(ibis::gVerbose > 6) << mtot;
 #endif
-	}
     }
     else {
 	remove(dest.c_str()); // no need to have the file
 	ibis::fileManager::instance().flushFile(dest.c_str());
-	if (ibis::gVerbose > 6)
-	    logMessage("append", "mask file \"%s\" removed, all "
-		       "%lu records valid", dest.c_str(),
-		       static_cast<long unsigned>(mtot.size()));
+	LOGGER(ibis::gVerbose > 6)
+	    << evt << " -- mask file \"" << dest << "\" removed, all "
+	    << mtot.size() << " records are valid";
     }
 
     ////////////////////////////////////////
@@ -1199,9 +1220,8 @@ long ibis::category::append(const char* dt, const char* df,
 		ierr = ind.append(*binp);
 		if (ierr == 0) {
 		    ind.write(dt);
-		    if (ibis::gVerbose > 6)
-			logMessage("append", "successfully extended the index "
-				   "in %s", dt);
+		    LOGGER(ibis::gVerbose > 6)
+			<< evt << " successfully extended the index in " << dt;
 		    if (ibis::gVerbose > 8) {
 			ibis::util::logger lg;
 			ind.print(lg());
@@ -1226,11 +1246,10 @@ long ibis::category::append(const char* dt, const char* df,
 		ierr = 0;
 	    }
 	    else {
-		if (ibis::gVerbose > 2)
-		    logMessage("append", "unexpected index for existing "
-			       "values in %s (nold=%lu, ind.nrows=%lu)",
-			       dt, static_cast<long unsigned>(nold),
-			       static_cast<long unsigned>(ind.getNRows()));
+		LOGGER(ibis::gVerbose > 2)
+		    << "Warning -- " << evt << "encountered an unexpected "
+		    "index for existing values in " << dt << " (nold="
+		    << nold << ", ind.nrows=" << ind.getNRows() << ")";
 		if (ind.getNRows() > 0)
 		    purgeIndexFile(dt);
 		(void) fillIndex(dt);
@@ -1240,19 +1259,18 @@ long ibis::category::append(const char* dt, const char* df,
 	    delete binp;
 	}
 	else {
-	    if (ibis::gVerbose > 2)
-		logMessage("append", "failed to generate the index for "
-			   "data in %s, start scanning all records in %s",
-			   df, dt);
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- " << evt << " failed to generate the index for "
+		"data in " << df << ", start scanning all records in " << dt;
 	    (void) fillIndex(dt);
 	    if (idx != 0)
 		(void) idx->write(dt);
 	}
     }
     catch (...) {
-	if (ibis::gVerbose > 2)
-	    logMessage("append", "absorbed an exception while extending "
-		       "the index, start scanning all records in %s", dt);
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- " << evt << " absorbed an exception while extending "
+	    "the index, start scanning all records in " << dt;
 	(void) fillIndex(dt);
 	if (idx != 0)
 	    (void) idx->write(dt);
@@ -3678,15 +3696,15 @@ int ibis::text::writeStrings(const char *to, const char *from,
     LOGGER(ierr != 8 && ibis::gVerbose >= 0)
 	<< "Warning -- " << evt << " failed to write the last position "
 	<< pos << " to " << spto;
-    if (ibis::gVerbose > 1) {
-	int nr = sel.cnt();
-	logMessage("writeStrings", "copied %d string%s from %s to %s",
-		   nr, (nr > 1 ? "s" : ""), from, to);
-    }
 
     ibis::bitvector bv;
     msk.subset(sel, bv);
     bv.adjustSize(0, sel.cnt());
     bv.swap(msk);
-    return sel.cnt();
+
+    const int nr = sel.cnt();
+    LOGGER(ibis::gVerbose > 1)
+	<< evt << " copied " << nr << " string" << (nr > 1 ? "s" : "")
+	<< " from \"" << from << "\" to \"" << to << '"';
+    return nr;
 } // ibis::text::writeStrings

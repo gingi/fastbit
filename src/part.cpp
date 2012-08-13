@@ -3440,14 +3440,14 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 
     const ibis::column* col = getColumn(cmp.colName());
     if (col != 0) {
-	ibis::bitvector mymask;
-	col->getNullMask(mymask);
-	mymask &= mask;
-	ierr = col->evaluateRange(cmp, mymask, hits);
+	// ibis::bitvector mymask;
+	// col->getNullMask(mymask);
+	// mymask &= mask;
+	ierr = col->evaluateRange(cmp, mask, hits);
 	if (ierr < 0) {
 	    ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 	    unloadIndexes();
-	    ierr = col->evaluateRange(cmp, mymask, hits);
+	    ierr = col->evaluateRange(cmp, mask, hits);
 	}
     }
     else {
@@ -3575,14 +3575,14 @@ long ibis::part::evaluateRange(const ibis::qDiscreteRange &cmp,
     else {
 	const ibis::column* col = getColumn(cmp.colName());
 	if (col != 0) {
-	    ibis::bitvector mymask;
-	    col->getNullMask(mymask);
-	    mymask &= mask;
-	    ierr = col->evaluateRange(cmp, mymask, hits);
+	    // ibis::bitvector mymask;
+	    // col->getNullMask(mymask);
+	    // mymask &= mask;
+	    ierr = col->evaluateRange(cmp, mask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 		unloadIndexes();
-		ierr = col->evaluateRange(cmp, mymask, hits);
+		ierr = col->evaluateRange(cmp, mask, hits);
 	    }
 	}
 	else {
@@ -3707,14 +3707,14 @@ long ibis::part::evaluateRange(const ibis::qIntHod &cmp,
     else {
 	const ibis::column* col = getColumn(cmp.colName());
 	if (col != 0) {
-	    ibis::bitvector mymask;
-	    col->getNullMask(mymask);
-	    mymask &= mask;
-	    ierr = col->evaluateRange(cmp, mymask, hits);
+	    // ibis::bitvector mymask;
+	    // col->getNullMask(mymask);
+	    // mymask &= mask;
+	    ierr = col->evaluateRange(cmp, mask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 		unloadIndexes();
-		ierr = col->evaluateRange(cmp, mymask, hits);
+		ierr = col->evaluateRange(cmp, mask, hits);
 	    }
 	}
 	else {
@@ -3839,14 +3839,14 @@ long ibis::part::evaluateRange(const ibis::qUIntHod &cmp,
     else {
 	const ibis::column* col = getColumn(cmp.colName());
 	if (col != 0) {
-	    ibis::bitvector mymask;
-	    col->getNullMask(mymask);
-	    mymask &= mask;
-	    ierr = col->evaluateRange(cmp, mymask, hits);
+	    // ibis::bitvector mymask;
+	    // col->getNullMask(mymask);
+	    // mymask &= mask;
+	    ierr = col->evaluateRange(cmp, mask, hits);
 	    if (ierr < 0) {
 		ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
 		unloadIndexes();
-		ierr = col->evaluateRange(cmp, mymask, hits);
+		ierr = col->evaluateRange(cmp, mask, hits);
 	    }
 	}
 	else {
@@ -5621,14 +5621,14 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 	vlist.recordVariable(static_cast<const ibis::math::term*>
 			     (cmp.getTerm3()));
 
-    ibis::bitvector mymask;
-    vlist.getNullMask(mymask);
-    mymask &= mask;
+    // ibis::bitvector mymask;
+    // vlist.getNullMask(mymask);
+    // mymask &= mask;
     if (vlist.size() == 0) { // a constant expression
 	if (cmp.inRange())
-	    hits.copy(mymask);
+	    hits.copy(mask);
 	else
-	    hits.set(mymask.size(), 0);
+	    hits.set(mask.size(), 0);
 	ierr = hits.sloppyCount();
 	return ierr;
     }
@@ -5641,19 +5641,19 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 	return ierr;
     }
 
-    const bool uncomp = ((mymask.size() >> 8) < mymask.cnt());
+    const bool uncomp = ((mask.size() >> 8) < mask.cnt());
     if (uncomp) { // use uncompressed hits internally
-	hits.set(0, mymask.size());
+	hits.set(0, mask.size());
 	hits.decompress();
     }
     else {
 	hits.clear();
-	hits.reserve(mymask.size(), mymask.cnt());
+	hits.reserve(mask.size(), mask.cnt());
     }
 
     // attempt to feed the values into vlist and evaluate the arithmetic
     // expression through ibis::compRange::inRange
-    ibis::bitvector::indexSet idx = mymask.firstIndexSet();
+    ibis::bitvector::indexSet idx = mask.firstIndexSet();
     const ibis::bitvector::word_t *iix = idx.indices();
     while (idx.nIndices() > 0) {
 	if (idx.isRange()) {
@@ -6226,9 +6226,11 @@ void ibis::part::loadIndexes(const char* iopt, int ropt) const {
 	 ++it) {
 	(*it).second->loadIndex(iopt, ropt);
     }
-    if (ibis::gVerbose > 6)
-	logMessage("loadIndexes",
-		   "loaded all indexes of this data partition");
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::loadIndexes";
+    LOGGER(ibis::gVerbose > 6)
+	<< evt << " loaded all indexes of this data partition";
 
     const char* expf = ibis::gParameters()["exportBitmapAsCsr"];
     if (expf != 0 && *expf != 0) {
@@ -6253,10 +6255,9 @@ void ibis::part::loadIndexes(const char* iopt, int ropt) const {
 	    }
 	}
 
-	if (ibis::gVerbose > 1)
-	    logMessage("loadIndexes", "attempt to write %lu bitmap(s) (%lu) "
-		       "to %s", static_cast<long unsigned>(cnt.size()),
-		       static_cast<long unsigned>(tot), expf);
+	LOGGER(ibis::gVerbose > 1)
+	    << evt << " attempt to write " << cnt.size() << " bitmap(s) ("
+	    << tot << ") to " << expf;
 	FILE* fptr = fopen(expf, "w"); // write in ASCII text
 	if (fptr) { // ready to write out the data
 	    fprintf(fptr, "%lu %lu %lu\n0\n",
@@ -6295,11 +6296,12 @@ void ibis::part::loadIndexes(const char* iopt, int ropt) const {
 	    } // for (i = 0;
 	    fclose(fptr);
 	}
-	else if (ibis::gVerbose > 0)
-	    logMessage("loadIndexes", "failed to open file \"%s\" to write "
-		       "the bitmaps ... %s", expf,
-		       (errno ? strerror(errno) : "no free stdio stream"));
-
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << "failed to open file \"" << expf
+		<< "\" to write the bitmaps ... "
+		<< (errno ? strerror(errno) : "no free stdio stream");
+	}
 	for (i = 0; i < idx.size(); ++i)
 	    delete idx[i];
     }
@@ -6311,9 +6313,8 @@ void ibis::part::unloadIndexes() const {
 	 ++it) {
 	(*it).second->unloadIndex();
     }
-    if (ibis::gVerbose > 6)
-	logMessage("unloadIndexes",
-		   "unloaded all indexes of this data partition");
+    LOGGER(ibis::gVerbose > 6)
+	<< "part[" << name() << "]::unloadIndexes completed successfully";
 } // ibis::part::unloadIndexes
 
 /// Remove existing index files!
@@ -6325,6 +6326,7 @@ void ibis::part::purgeIndexFiles() const {
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();
 	 ++ it) {
+	(*it).second->unloadIndex();
 	(*it).second->purgeIndexFile();
     }
 } // ibis::part::purgeIndexFiles
