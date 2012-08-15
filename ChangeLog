@@ -1,7 +1,22 @@
+2012-08-15 John Wu <John dot Wu at ACM dot org>
+	* src/util.h, src/util.cpp: add a new variant of readString that
+	directly works with the incoming string
+
+2012-08-14 John Wu <John dot Wu at ACM dot org>
+	* tests/jrf.cpp: quote the strings containing spaces in js (which
+	uses spaces as separator for keywords), mark ' ' as delimiter
+	explicitly in the index specification to avoid the default
+	delimiter handling
+	* tests/scripts/jrf-check.pl: use operator CONTAINS instead of
+	borrowing the operator = in searching for keywords within text
+	fields
+
 2012-08-13 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: replace all logMessage cal with LOGGER
 	* src/parti.cpp: call cleaner and purgeIndexFiles in purgeInactive
 	* src/part.cpp: add call to unload index before purge index files
+	to addres the segmentation fault with purge inactive data reported
+	by Greg Barker
 
 2012-08-10 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp: util::read needs to stop if UnixRead returns 0
@@ -38,7 +53,8 @@
 	this option
 
 2012-08-07 John Wu <John dot Wu at ACM dot org>
-	* src/part.h: replace const char* with ibis::table::stringList
+	* src/part.h: replace const char* with ibis::table::stringList in
+	indexBuilderPool
 	* src/part.cpp: update the index building procedure to reflect the
 	new semantics for indexing each individual column differently
 	* src/ibin.h, src/ibin.cpp: change parseNbins, parsePrec and

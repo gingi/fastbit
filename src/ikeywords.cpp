@@ -971,73 +971,26 @@ ibis::keywords::tokenizer::tokenizer(const char *d) : delim_(d) {
 	<< '"';
 }
 
-/// Tokenizer.  Turn the buffer buf into a list of tokens based on the
-/// following rules.
-///
-/// - If no delimiter is specified, it turns all non-alphanumeric
-/// characters into the null character and returns the starting positions
-/// of groups of alphanumeric characters as tokens.
-///
-/// - If a list of delimiters are provided, any of the delimiters will
-/// terminate a token.  Blank spaces surrounding the delimiters will be
-/// turned into null characters along with the delimiters.
+/// Tokenizer.  Turn the buffer buf into a list of tokens through the
+/// function ibis::util::readString.
 ///
 /// This function returns a negative value to indicate error, 0 to indicate
 /// success, a positive number to indicate completion with some potential
 /// issues.
+/// 
+/// @sa ibis::util::readString
 int ibis::keywords::tokenizer::operator()
     (std::vector<const char*>& tkns, char *buf) {
     tkns.clear();
     if (buf == 0 || *buf == 0)
 	return 0;
 
-    if (delim_.empty()) {
-	while (*buf != 0) {
-	    while (*buf != 0 && std::isalnum(*buf) == 0) {
-		*buf = 0;
-		++ buf;
-	    }
-	    if (*buf != 0) {
-		tkns.push_back(buf);
-		for (++ buf; std::isalnum(*buf) != 0; ++ buf);
-	    }
-	}
-    }
-    else if (delim_.size() == 1) {
-	while (*buf != 0) {
-	    while (*buf != 0 && (*buf == delim_[0] ||
-				 std::isspace(*buf) != 0)) { // leading spaces
-		*buf = 0;
-		++ buf;
-	    }
-	    if (*buf != 0) {
-		tkns.push_back(buf);
-		for (++ buf; *buf != 0 && *buf != delim_[0]; ++ buf);
-		if (buf > tkns.back()) { // trailing spaces
-		    for (char *t=buf-1; std::isspace(*t) != 0; -- t)
-			*t = 0;
-		}
-	    }
-	}
-    }
-    else {
-	while (*buf != 0) {
-	    while (*buf != 0 && (strchr(delim_.c_str(), *buf) != 0 ||
-				 std::isspace(*buf) != 0)) { // leading spaces
-		*buf = 0;
-		++ buf;
-	    }
-	    if (*buf != 0) {
-		tkns.push_back(buf);
-		for (++ buf;
-		     *buf != 0 && strchr(delim_.c_str(), *buf) == 0;
-		     ++ buf);
-		if (buf > tkns.back()) { // tailing spaces
-		    for (char *t=buf-1; std::isspace(*t) != 0; -- t)
-			*t = 0;
-		}
-	    }
-	}
+    while (*buf != 0) {
+	const char *tkn = ibis::util::readString(buf, delim_.c_str());
+	if (tkn != 0 && *tkn != 0)
+	    tkns.push_back(tkn);
+	else
+	    break;
     }
     return 0;
 } // ibis::keywords::tokenizer::operator()

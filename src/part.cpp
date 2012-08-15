@@ -241,12 +241,13 @@ extern "C" {
 
 /// The incoming argument can be a directory name or a data partition name.
 /// If it contains any forward or backward slash, it is assumed to be a
-/// directory name.  Otherwise, it is assumed to be the name of a data
-/// partition.  In which case, this function looks for data directory names
-/// in the global parameter list under the parameters 'name.activeDir' and
-/// 'name.backupDir' or 'name.dataDir1' and 'name.dataDir2'.  If the name
-/// is a directory name, then no attempt shall be made to produce a second
-/// directory name.
+/// directory name.  If it names an existing directory, it is used as the
+/// primary directory for storing the data.  Otherwise, it is assumed to be
+/// the name of a data partition.  In which case, this function looks for
+/// data directory names in the global parameter list under the parameters
+/// 'name.activeDir' and 'name.backupDir' or 'name.dataDir1' and
+/// 'name.dataDir2'.  If the name is a directory name, then no attempt
+/// shall be made to produce a second directory name.
 ///
 /// The default value for name is a nil pointer.  In this case, it will
 /// find 'dataDir1' and 'dataDir2' from the global parameter list.

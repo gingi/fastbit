@@ -30,23 +30,23 @@ const char* JS[] = {
     "A     Strong                        Good       ",
     "A-    Strong                        Good       ",
     "A+    Strong                        Good       ",
-    "AA    Very Strong                   Good       ",
-    "AA-   Very Strong                   Good       ",
-    "AA+   Very Strong                   Good       ",
-    "AAA   Extremely Strong              Good       ",
-    "B     More Vulnerable               Not so good",
-    "B-    More Vulnerable               Not so good",
-    "B+    More Vulnerable               Not so good",
-    "BB    Less Vulnerable               Not so good",
-    "BB-   Less Vulnerable               Not so good",
-    "BB+   Less Vulnerable               Not so good",
+    "AA    'Very Strong'                 Good       ",
+    "AA-   'Very Strong'                 Good       ",
+    "AA+   'Very Strong'                 Good       ",
+    "AAA   'Extremely Strong'            Good       ",
+    "B     'More Vulnerable'             'Not so good'",
+    "B-    'More Vulnerable'             'Not so good'",
+    "B+    'More Vulnerable'             'Not so good'",
+    "BB    'Less Vulnerable'             'Not so good'",
+    "BB-   'Less Vulnerable'             'Not so good'",
+    "BB+   'Less Vulnerable'             'Not so good'",
     "BBB   Adequate                      FiftyFifty ",
     "BBB-  Adequate                      FiftyFifty ",
     "BBB+  Adequate                    	 FiftyFifty ",
-    "C     Currently Highly Vulnerable   Run Away   ",
-    "CC    Currently Highly Vulnerable   Run Away   ",
-    "CCC   Currently Vulnerable          Run Away   ",
-    "D     Failed                        Run Away   ",};
+    "C     'Currently Highly Vulnerable' 'Run Away'   ",
+    "CC    'Currently Highly Vulnerable' 'Run Away'   ",
+    "CCC   'Currently Vulnerable'        'Run Away'   ",
+    "D     Failed                        'Run Away'   ",};
 /// Joining the three keys with coma and space.
 const char* JC[] = {
     "A  ,  Strong                     ,  Good       ",
@@ -146,7 +146,7 @@ static void initColumns(ibis::tablex& tab, ibis::table::row& val) {
     tab.addColumn("jc", ibis::TEXT, "concatenated risk keys",
 		  "keywords, delimiters=','");
     tab.addColumn("js", ibis::TEXT, "concatenated risk keys",
-		  "keywords, docidname=rowid");
+		  "keywords, delimiters=' ', docidname=rowid");
 
     val.clear();
     val.uintsnames.push_back("rowid");

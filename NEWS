@@ -1,6 +1,6 @@
 Version ibis1.3.1
 -- impelement ibis::util::read and ibis::util::write to get around the
-   limitation with POSIX read and write functions in handling large
+   limitations with POSIX read and write functions in handling large
    buffers
 -- add UDT as a new data type for future expansion
 -- support for BLOB with ibis::opaque class
@@ -10,6 +10,11 @@ Version ibis1.3.1
 -- add query expression with the operator "CONTAINS" to allow for a more
    consistent handling of keyword searches (also known as full-text
    search)
+-- reorganize -output option of ibis.cpp to add new flavors for
+   -output-as-binary so that the resulting output can be used direct by
+   FastBit (total three flavors: -output, -output-with-header,
+   -output-as-binary)
+
 
 Mon Apr  2 20:07:36 PDT 2012
 Version ibis1.3.0

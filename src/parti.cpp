@@ -1448,6 +1448,7 @@ long ibis::part::purgeInactive() {
 /// This function attempts to unload all the indexes and then remove all
 /// unused files from the file manager.
 void ibis::part::emptyCache() const {
+    unloadIndexes();
     if (myCleaner != 0)
 	(*myCleaner)(); // invoke the cleaner
     if (backupDir != 0 && *backupDir != 0)

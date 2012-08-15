@@ -450,8 +450,11 @@ namespace ibis {
 		     const char* del=ibis::util::delimiters);
 	int readDouble(double& val, const char *&str,
 		       const char* del=ibis::util::delimiters);
-	FASTBIT_CXX_DLLSPEC int readString(std::string& str, const char*& buf,
-					   const char *delim=0);
+	FASTBIT_CXX_DLLSPEC int
+	readString(std::string& str, const char*& buf,
+		   const char *delim=0);
+	FASTBIT_CXX_DLLSPEC const char*
+	readString(char*& buf, const char *delim=0);
 
 	int64_t read(int, void*, int64_t);
 	int64_t write(int, const void*, int64_t);

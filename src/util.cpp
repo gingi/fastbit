@@ -237,13 +237,13 @@ char* ibis::util::getString(const char* buf) {
 ///
 /// @note Input strings starting with an apostrophe, such as "'twas", must
 /// be quoted as "\"'twas\"" or the apostrophe must be escaped as "\'twas".
-/// Otherwise, the leading apostrophe would be interested as a unmatched
+/// Otherwise, the leading apostrophe would be interpreted as a unmatched
 /// quote which will cause the next string value to extend beyond the
 /// intended word.
 int ibis::util::readString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
-    while (*buf && isspace(*buf)) ++ buf; // skip leading space
+    while (*buf && isgraph(*buf) == 0) ++ buf; // skip leading space
     if (buf == 0 || *buf == 0) return -3;
 
     if (*buf == '\'') { // single quoted string
@@ -329,10 +329,13 @@ int ibis::util::readString(std::string& str, const char *&buf,
     }
     else { // delimiter separated string
 	const char *start = buf;
-	if (delim == 0 || *delim == 0) { // assume space as delimiter
+	if (delim == 0 || *delim == 0) {
+	    // assume space as delimiter, all non-printable characters are
+	    // treated as spaces (i.e., as delimiters)
 	    while (*buf) {
-		if (!isspace(*buf))
+		if (isgraph(*buf)) { // printable and nonspace
 		    str += *buf;
+		}
 		else if (str.size() > 0 && str[str.size()-1] == '\\')
 		    str[str.size()-1] = *buf;
 		else {
@@ -384,6 +387,14 @@ int ibis::util::readString(std::string& str, const char *&buf,
 		++ buf;
 	    } // while (*buf)
 	}
+
+	if (str.size() > 1 && isgraph(str[str.size()-1]) == 0) {
+	    // remove the trailing spaces
+	    size_t end = str.size()-2;
+	    while (end > 0 && isgraph(str[end]) == 0)
+		-- end;
+	    str.erase(end);
+	}
     }
 #if DEBUG+0 > 0 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 0)
@@ -392,6 +403,201 @@ int ibis::util::readString(std::string& str, const char *&buf,
 #endif
     // end of string
     return -2 * (str.empty());
+} // ibis::util::readString
+
+/// Attempt to extract a string token from the incoming buffer.  It uses
+/// the existing buffer without allocating additional space.  It creates
+/// nil terminated strings by converting terminators or space characters
+/// into nil characters.  If it finds a valid string, it will return a
+/// pointer to the string, otherwise it returns a nil pointer or an empty
+/// string.
+///
+/// - If no delimiter is specified, it turns all non-printable characters
+/// into the null character and returns the starting positions of groups of
+/// alphanumeric characters as tokens.
+///
+/// - If a list of delimiters are provided, any of the delimiters will
+/// terminate a token.  Blank spaces surrounding the delimiters will be
+/// turned into null characters along with the delimiters.
+///
+/// @note If a token starts with a quote (any of signle quote, double
+/// quote, or back quote), the token will end with the matching quote.
+/// Note that the back quote can be ended with either another back quote or
+/// a single quote.
+///
+/// @note All non-printable characters are treated as blank spaces.
+const char* ibis::util::readString(char *&buf, const char *delim) {
+    const char* str = 0;
+    while (*buf && isgraph(*buf) == 0) ++ buf; // skip leading space
+    if (buf == 0 || *buf == 0) return str;
+
+    if (*buf == '\'') { // single quoted string
+	++ buf; // skip the openning quote
+	str = buf;
+	while (*buf) {
+	    if (*buf != '\'')
+		++ buf;
+	    else if (buf > str && buf[-1] == '\\')
+		++ buf;
+	    else {
+		*buf = 0;
+		++ buf;
+		if (*buf != 0) {
+		    if (delim == 0 || *delim == 0) {
+			// nothing to do
+		    }
+		    else if (delim[1] == 0) { // skip delimiter
+			if (delim[0] == *buf) {
+			    *buf = 0;
+			    ++ buf;
+			}
+		    }
+		    else { // skip delimiter
+			if (0 != strchr(delim, *buf)) {
+			    *buf = 0;
+			    ++ buf;
+			}
+		    }
+		}
+		return str;
+	    }
+	} // while (*buf)
+    }
+    else if (*buf == '"') { // double quoted string
+	++ buf; // skip the openning quote
+	str = buf;
+	while (*buf) {
+	    if (*buf != '"')
+		++ buf;
+	    else if (buf > str && buf[-1] == '\\')
+		++ buf;
+	    else {
+		++ buf;
+		if (*buf != 0) {
+		    if (delim == 0 || *delim == 0) {
+			// nothing to do
+		    }
+		    else if (delim[1] == 0) { // skip delimiter
+			if (delim[0] == *buf) {
+			    * buf = 0;
+			    ++ buf;
+			}
+		    }
+		    else { // skip delimiter
+			if (0 != strchr(delim, *buf)) {
+			    * buf = 0;
+			    ++ buf;
+			}
+		    }
+		}
+		break;
+	    }
+	} // while (*buf)
+    }
+    else if (*buf == '`') { // left quote
+	++ buf; // skip the openning quote
+	str = buf;
+	while (*buf) {
+	    if (*buf != '`' && *buf != '\'')
+		++ buf;
+	    else if (buf > str && buf[-1] == '\\')
+		++ buf;
+	    else {
+		++ buf;
+		if (*buf != 0) {
+		    if (delim == 0 || *delim == 0) {
+			// nothing to do
+		    }
+		    else if (delim[1] == 0) { // skip delimiter
+			if (delim[0] == *buf) {
+			    *buf = 0;
+			    ++ buf;
+			}
+		    }
+		    else { // skip delimiter
+			if (0 != strchr(delim, *buf)) {
+			    *buf = 0;
+			    ++ buf;
+			}
+		    }
+		}
+		return str;
+	    }
+	} // while (*buf)
+    }
+    else { // delimiter separated string
+	str = buf;
+	if (delim == 0 || *delim == 0) {
+	    // assume space as delimiter, all non-printable characters are
+	    // treated as spaces (i.e., as delimiters)
+	    while (*buf) {
+		if (isgraph(*buf)) { // printable and nonspace
+		    ++ buf;
+		}
+		else {
+		    * buf = 0;
+		    ++ buf;
+		    break;
+		}
+	    } // while (*buf)
+	}
+	else if (delim[1] == 0) { // single character delimiter
+	    while (*buf) {
+		if (*delim != *buf)
+		    ++ buf;
+		else if (buf > str && buf[-1] == '\\')
+		    ++ buf;
+		else {
+		    *buf = 0;
+		    ++ buf;
+		    break;
+		}
+	    } // while (*buf)
+	}
+	else if (delim[2] == 0) { // two delimiters
+	    while (*buf) {
+		if (*delim != *buf && delim[1] != *buf)
+		    ++ buf;
+		else if (buf > str && buf[-1] == '\\')
+		    ++ buf;
+		else {
+		    *buf = 0;
+		    ++ buf;
+		    break;
+		}
+	    } // while (*buf)
+	}
+	else { // long list of delimiters
+	    while (*buf) {
+		if (0 == strchr(delim, *buf))
+		    ++ buf;
+		else if (buf > str && buf[-1] == '\\')
+		    ++ buf;
+		else {
+		    *buf = 0;
+		    ++ buf;
+		    break;
+		}
+	    } // while (*buf)
+	}
+
+	// to remove the trailing spaces
+	char *back = (*buf ? buf - 2 : buf - 1);
+	if (back > str && isgraph(*back) == 0) {
+	    do {
+		*back = 0;
+		-- back;
+	    } while (back > str && isgraph(*back) == 0);
+	}
+    }
+
+#if DEBUG+0 > 0 || _DEBUG+0 > 1
+    LOGGER(ibis::gVerbose > 0)
+	<< "DEBUG -- util::getString retrieved \""
+	<< str << "\", remaining .. " << buf;
+#endif
+    // end of string
+    return str;
 } // ibis::util::readString
 
 /// Attempt to convert the incoming string into an integer.  It skips

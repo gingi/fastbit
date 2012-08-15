@@ -2586,8 +2586,7 @@ static void parse_args(int argc, char** argv, int& mode,
 	}
     }
 
-    if (ibis::gVerbose > 1 &&
-	(testing > 1 || build_index > 0 || ! printcmds.empty())) {
+    if (ibis::gVerbose > 1 && (testing > 1 || build_index > 0)) {
 	for (ibis::partList::const_iterator it = ibis::datasets.begin();
 	     it != ibis::datasets.end(); ++it) {
 	    bool recompute = (testing>5 && ibis::gVerbose>7);

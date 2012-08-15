@@ -27,34 +27,34 @@ for ($j = 0; $j <= $#K1; ++ $j) {
 	$nh1 = -1;
 	++ $nerr1;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K1[$j]\'" 2>&1`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc CONTAINS \'$K1[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhc = $1;
     }
     else {
-	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where jc = \'$K1[$j]\'\"\n";
+	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where jc CONTAINS \'$K1[$j]\'\"\n";
 	$nhc = -2;
 	++ $nerr1;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K1[$j]\'" 2>&1`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js CONTAINS \'$K1[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhs = $1;
     }
     else {
-	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where js = \'$K1[$j]\'\"\n";
+	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where js CONTAINS \'$K1[$j]\'\"\n";
 	$nhs = -3;
 	++ $nerr1;
     }
     print "$K1[$j]\t--> $nh1, $nhc, $nhs\n";
-    if (nh1 != nhc) {
+    if ($nh1 != $nhc) {
 	print "Warning -- nh1 ($nh1) does not match nhc ($nhc)\n";
 	++ $nerr1;
     }
-    if (nh1 != nhs) {
+    if ($nh1 != $nhs) {
 	print "Warning -- nh1 ($nh1) does not match nhs ($nhs)\n";
 	++ $nerr1;
     }
-    if (nhs != nhc) {
+    if ($nhs != $nhc) {
 	print "Warning -- nhs ($nhs) does not match nhc ($nhc)\n";
 	++ $nerr1;
     }
@@ -76,34 +76,34 @@ for ($j = 0; $j <= $#K2; ++ $j) {
 	$nh2 = -1;
 	++ $nerr2;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K2[$j]\'" 2>&1`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc CONTAINS \'$K2[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhc = $1;
     }
     else {
-	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where jc = \'$K2[$j]\'\"\n";
+	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where jc CONTAINS \'$K2[$j]\'\"\n";
 	$nhc = -2;
 	++ $nerr2;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K2[$j]\'" 2>&1`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js CONTAINS \'$K2[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhs = $1;
     }
     else {
-	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where js = \'$K2[$j]\'\"\n";
+	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where js CONTAINS \'$K2[$j]\'\"\n";
 	$nhs = -3;
 	++ $nerr2;
     }
     print "$K2[$j]\t--> $nh2, $nhc, $nhs\n";
-    if (nh2 != nhc) {
+    if ($nh2 != $nhc) {
 	print "Warning -- nh2 ($nh2) does not match nhc ($nhc)\n";
 	++ $nerr2;
     }
-    if (nh2 != nhs) {
+    if ($nh2 != $nhs) {
 	print "Warning -- nh2 ($nh2) does not match nhs ($nhs)\n";
 	++ $nerr2;
     }
-    if (nhs != nhc) {
+    if ($nhs != $nhc) {
 	print "Warning -- nhs ($nhs) does not match nhc ($nhc)\n";
 	++ $nerr2;
     }
@@ -125,34 +125,34 @@ for ($j = 0; $j <= $#K3; ++ $j) {
 	$nh3 = -1;
 	++ $nerr3;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc = \'$K3[$j]\'" 2>&1`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where jc CONTAINS \'$K3[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhc = $1;
     }
     else {
-	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where jc = \'$K3[$j]\'\"\n";
+	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where jc CONTAINS \'$K3[$j]\'\"\n";
 	$nhc = -2;
 	++ $nerr3;
     }
-    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js = \'$K3[$j]\'" 2>&1`;
+    $mesg = `$ARGV[0] -d $ARGV[1] -q "where js CONTAINS \'$K3[$j]\'" 2>&1`;
     if ($mesg =~ /produced (\d+) hit/) {
 	$nhs = $1;
     }
     else {
-	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where js = \'$K3[$j]\'\"\n";
+	print "Warning -- failed to process $ARGV[0] -d $ARGV[1] -q \"where js CONTAINS \'$K3[$j]\'\"\n";
 	$nhs = -3;
 	++ $nerr3;
     }
     print "$K3[$j]\t--> $nh3, $nhc, $nhs\n";
-    if (nh3 != nhc) {
+    if ($nh3 != $nhc) {
 	print "Warning -- nh3 ($nh3) does not match nhc ($nhc)\n";
 	++ $nerr3;
     }
-    if (nh3 != nhs) {
+    if ($nh3 != $nhs) {
 	print "Warning -- nh3 ($nh3) does not match nhs ($nhs)\n";
 	++ $nerr3;
     }
-    if (nhs != nhc) {
+    if ($nhs != $nhc) {
 	print "Warning -- nhs ($nhs) does not match nhc ($nhc)\n";
 	++ $nerr3;
     }
