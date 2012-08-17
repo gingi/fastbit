@@ -1,3 +1,7 @@
+2012-08-17 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.h:616 the copy constructor of ibis::qKeyword assigns
+	the wrong type
+
 2012-08-16 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: add space between [` to correct problems with
 	some versions of bourne sh involve test case 14 - 17 of target

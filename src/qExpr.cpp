@@ -3818,7 +3818,7 @@ ibis::qKeyword::qKeyword(const char* ls, const char* rs) :
 
 void ibis::qKeyword::print(std::ostream& out) const {
     if (name && kword)
-	out << name << " CONTAINS " << kword;
+	out << name << " CONTAINS \'" << kword << '\'';
 }
 
 void ibis::qKeyword::getTableNames(std::set<std::string>& plist) const {
@@ -3890,7 +3890,7 @@ void ibis::qAllWords::print(std::ostream& out) const {
     if (values.size() > 0) {
 	out << values[0];
 	for (uint32_t i = 1; i < values.size(); ++ i)
-	    out << ", " << values[i];
+	    out << ", '" << values[i] << '\'';
     }
     out << ')';
 } // ibis::qAllWords::print

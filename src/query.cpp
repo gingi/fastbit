@@ -3613,6 +3613,8 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht.swap(b1);
+	    else
+		ht.clear();
 	}
 	break;
     }
@@ -3637,6 +3639,8 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 		ht ^= b1;
 		ierr = ht.sloppyCount();
 	    }
+	    else
+		ht.clear();
 	}
 	break;
     }

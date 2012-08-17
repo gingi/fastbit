@@ -108,7 +108,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
 	    lg() << "countQuery::setWhereClause -- ";
 	    if (conds.getString() != 0)
 		lg() << "replace the where clause \""
-			    << conds << "\" with \"" << tmp << "\"";
+		     << conds << "\" with \"" << tmp << "\"";
 	    else
 		lg() << "add a new where clause \"" << tmp << "\"";
 	}
@@ -874,6 +874,8 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	    ierr = doEvaluate(term->getRight(), ht, b1);
 	    if (ierr >= 0)
 		ht.swap(b1);
+	    else
+		ht.clear();
 	}
 	break;}
     case ibis::qExpr::LOGICAL_OR: {

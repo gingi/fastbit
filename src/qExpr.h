@@ -517,6 +517,7 @@ private:
     char* lstr;
     char* rstr;
 
+    /// Copy Constructor.  Deep copy.
     qString(const qString& rhs) : qExpr(STRING),
 	lstr(ibis::util::strnewdup(rhs.lstr)),
 	rstr(ibis::util::strnewdup(rhs.rstr)) {}
@@ -597,7 +598,7 @@ public:
     /// Return the column name.  This is the first argument inside the
     /// CONTAINS operator.
     const char* colName() const {return name;}
-    /// Return the keyword looking for.  This the second argument inside
+    /// Return the keyword looking for.  This is the second argument inside
     /// the CONTAINS operator.
     const char* keyword() const {return kword;}
 
@@ -610,8 +611,9 @@ private:
     char* name;
     char* kword;
 
+    /// Copy Constructor.  Deep copy.
     qKeyword(const qKeyword& rhs)
-	: qExpr(STRING), name(ibis::util::strnewdup(rhs.name)),
+	: qExpr(KEYWORD), name(ibis::util::strnewdup(rhs.name)),
 	kword(ibis::util::strnewdup(rhs.kword)) {}
     qKeyword& operator=(const qKeyword&);
 }; // ibis::qKeyword

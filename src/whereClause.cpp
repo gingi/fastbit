@@ -214,7 +214,7 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
 int ibis::whereClause::verify(const ibis::part& part0,
 			      const ibis::selectClause *sel) const {
     if (expr_ != 0) {
-	ibis::qExpr::simplify(const_cast<ibis::qExpr*&>(expr_));
+	//ibis::qExpr::simplify(const_cast<ibis::qExpr*&>(expr_));
 	if (expr_ == 0) {
 	    return -1;
 	}
