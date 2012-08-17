@@ -34,7 +34,7 @@ EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv \
     vault/hist0 vault/hist1 vault/hist2 vault/hist3 vault/hist4 vault/hist5 vault/hist6 \
     vault/text-0 vault/thula-0 vault/thula-1 vault/tcapi-3 vault/inRange-1 \
     vault/marksdb-1 vault/marksdb-3 vault/marksdb-4 vault/smatch-1 \
-    vault/acmpub-0 vault/acmpub-1 vault/small-1 vault/small-2 vault/small-3 \
+    vault/acmpub-0 vault/acmpub-1 vault/acmpub-2 vault/small-1 vault/small-2 vault/small-3 \
     vault/small-4 vault/small-5 vault/small-6 vault/small-7 vault/small-10 vault/small-11 vault/small-12 \
     vault/join-1 vault/join-2 vault/join-3 vault/join-4 vault/join-5 vault/join-6 vault/join-7 vault/join-8
 
@@ -120,6 +120,8 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt 
 	@if [ `diff $(TESTDIR)/acmpub-0 vault/acmpub-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub -v -o $(TESTDIR)/acmpub-1 -q "select v where a contains ('Jim Gray', 'J. Ullman')" >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `diff $(TESTDIR)/acmpub-1 vault/acmpub-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
+	@$(IBISEXE) -d $(TESTDIR)/acmpub -v -q "select count(*) as c where t contains 'aggregation' and a contains 'Joseph M. Hellerstein'" -ouput-with-header $(TESTDIR)/acmpub-2 >> $(TESTDIR)/check-text.log 2>&1
+	@if [ `diff $(TESTDIR)/acmpub-2 vault/acmpub-2 | wc -l` -eq 0 ] ; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-text.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-text.log; fi
 	@echo
 check-jrf: $(IBISEXE) $(TESTDIR)/jrf/-part.txt
