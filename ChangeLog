@@ -1,3 +1,8 @@
+2012-08-16 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: add space between [` to correct problems with
+	some versions of bourne sh involve test case 14 - 17 of target
+	really-small
+
 2012-08-15 John Wu <John dot Wu at ACM dot org>
 	* src/util.h, src/util.cpp: add a new variant of readString that
 	directly works with the incoming string
