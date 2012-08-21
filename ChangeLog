@@ -1,3 +1,10 @@
+2012-08-21 John Wu <John dot Wu at ACM dot org>
+	* src/query.h, src/query.cpp: clarify the arguments of the
+	constructor and the user of recovery feature.
+	* src/bitvector.cpp, src/bitvector64.cpp: reserve the exact size
+	when writing the serialized version, this should make it possible
+	to write many bitvectors into a single buffer
+
 2012-08-20 John Wu <John dot Wu at ACM dot org>
 	* src/selectParser.yy, src/selectClause.h, src/selectClause.cpp,
 	src/bundles.cpp, src/colValues.cpp: add support for aggregation

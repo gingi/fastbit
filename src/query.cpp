@@ -180,6 +180,7 @@ int ibis::query::setPartition(const part* tbl) {
     return 0;
 } // ibis::query::setPartition
 
+/// Specifies the select clause for the query.
 /// The select clause is a string of attribute names (plus the four
 /// predefined functions, @c avg, @c var, @c max, @c min and @c sum)
 /// separated by spaces, commas (,) or semicolons(;).  Repeated calls to
@@ -237,6 +238,7 @@ int ibis::query::setSelectClause(const char* str) {
     return 0;
 } // ibis::query::setSelectClause
 
+/// Specify the where clause in the string form.
 /// The where clause is a string representing a list of range conditions.
 /// By SQL convention, an empty where clause matches all rows.
 /// This function may be called multiple times and each invocation will
@@ -329,6 +331,7 @@ int ibis::query::setWhereClause(const char* str) {
     return ierr;
 } // ibis::query::setWhereClause
 
+/// Specify the where clause as a set of conjunctive ranges.
 /// This function accepts a set of range conditions expressed by the three
 /// vectors.  The arrays are expected to be of the same size, and each
 /// triplet <names[i], lbounds[i], rbounds[i]> are interpreted as
@@ -463,6 +466,7 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
     return ierr;
 } // ibis::query::setWhereClause
 
+/// Specify the where clause through a qExpr object.
 /// This function accepts a user constructed query expression object.  It
 /// can be used to bypass the parsing of where clause string.
 int ibis::query::setWhereClause(const ibis::qExpr* qx) {
@@ -533,6 +537,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     return ierr;
 } // ibis::query::setWhereClause
 
+/// Specify a list of Row IDs for the query object.
 /// Select the records with an RID in the list of RIDs.
 ///
 /// @note The incoming RIDs are copied.
@@ -1772,11 +1777,25 @@ std::string ibis::query::removeComplexConditions() {
 ////////////////////////////////////////////////////////////////////////////
 //	The following functions are used internally by the query class
 ////////////////////////////////////////////////////////////////////////////
-/// Construct a query object from scratch.  If recovery is desired or the
-/// query objects has its own special prefix, a cache directory is created
-/// to store some information about the query such as the query conditions
-/// and the resulting solutions.  The stored information enables it to be
-/// reconstructed in case of crash.
+/// Constructor.  Generates a new query on the given data partition.
+///
+/// @arg uid the user name to be associated with the query object.  If this
+///      arguemnt is a nil pointer, this function will call
+///      ibis::util::userName to determine the current user name.
+///
+/// @arg et the data partition to be used for queried.  The data partition
+///      to be queried could be altered with the function setPartition.
+///
+/// @arg pref a special prefix to be used for this query.  This prefix is
+///      used primarily to identify the query object and to retrieve
+///      configuration parameters that are intended for a special class of
+///      queries.  For example, if recovery is desired, the user can define
+///      <pref>.enableRecovery = true.
+///      When this feature is enable, it is possible to also define
+///      <pref>.purgeTempFiles = true
+///      to tell the destructor of this class to remove the log file about
+///      a query.  The default value if pref is a nil pointer, which
+///      disables the logging feature.
 ibis::query::query(const char* uid, const part* et, const char* pref) :
     user(ibis::util::strnewdup(uid ? uid : ibis::util::userName())),
     state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
@@ -1797,7 +1816,7 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
 	name += ".enableRecovery";
     }
     else {
-	name = "enableRecovery";
+	name = "query.enableRecovery";
     }
     if (pref != 0 || ibis::gParameters().isTrue(name.c_str())) {
 	setMyDir(pref);
@@ -1806,9 +1825,14 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
 	<< "query " << myID << " constructed for " << user;
 } // constructor for new query
 
-/// Construct a query from the content stored in the named directory.  It
-/// is used to recover a query from crash, not intended for user to
-/// manually construct a query in a directory.
+/// Constructor.  Reconstructs query from stored information in the named
+/// directory @c dir.  This is only used for recovering from program
+/// crashes, not intended for user to manually construct a query in a
+/// directory.
+///
+/// @note that to enable recovery, the query objects must be constructed
+/// with the recovery feature, which is enabled through a configuration
+/// parameter <prefix>.enableRecovery = true.
 ibis::query::query(const char* dir, const ibis::partList& tl) :
     user(0), state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
     myDir(0), rids_in(0), mypart(0), dstime(0) {
@@ -1818,7 +1842,8 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
 	myDir = new char[strlen(dir)+2];
 	strcpy(myDir, dir);
     }
-    else if (ptr[1] == static_cast<char>(0)) { // dir name ends with FASTBIT_DIRSEP
+    else if (ptr[1] == static_cast<char>(0)) {
+	// dir name ends with FASTBIT_DIRSEP
 	myDir = ibis::util::strnewdup(dir);
 	myDir[ptr-dir] = static_cast<char>(0);
 	ptr = strrchr(myDir, FASTBIT_DIRSEP);
@@ -1868,7 +1893,7 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
 	<< "query " << myID << " read from " << dir;
 } // constructor from stored files
 
-// desctructor
+/// Desctructor
 ibis::query::~query() {
     clear();
     delete [] myDir;
@@ -2357,6 +2382,8 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 #endif
 } // ibis::query::logWarning
 
+/// Used to print information about the progress or state of query
+/// processing.  It prefixes each message with a query token.
 void ibis::query::logMessage(const char* event, const char* fmt, ...) const {
     FILE *fptr = ibis::util::getLogFile();
     ibis::util::ioLock lck;
@@ -2849,7 +2876,12 @@ int ibis::query::computeHits() {
     return ierr;
 } // ibis::query::computeHits
 
-// perform a simple sequential scan by using the function doScan
+/// Perform a simple sequential scan.
+/// Return a (new) bitvector that contains the result of directly scan
+/// the raw data to determine what records satisfy the user specified
+/// conditions.  It is mostly used for testing purposes.  It can be
+/// called any time after the where clause is set, and does not change
+/// the state of the current query.
 long ibis::query::sequentialScan(ibis::bitvector& res) const {
     if (conds.empty())
 	return -8;

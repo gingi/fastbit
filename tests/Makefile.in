@@ -887,13 +887,13 @@ large-append-test: do-large-append
 #
 large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(TESTDIR)/test.rc
 	@echo "starting $@ with 185 different combinations of indexing options"
-	@echo > $(TESTDIR)/large-sanity-check.log
+	@date > $(TESTDIR)/large-sanity-check.log
 	@jcase=0; for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
 	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" $(TESTDIR)/?/*/-part.txt; \
 	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
-	echo >> $(TESTDIR)/large-sanity-check.log; \
-	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log; \
+	echo >> $(TESTDIR)/large-sanity-check.log 2>&1; \
+	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem2.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
@@ -909,8 +909,8 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(T
 	@jcase=180; for i in "range/range" "range/bin" "bin/range" "bin/bin" "bit-slice" ; do \
 	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/?/*/-part.txt; \
 	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
-	echo >> $(TESTDIR)/large-sanity-check.log; \
-	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log 2>71; \
+	echo >> $(TESTDIR)/large-sanity-check.log 2>&1; \
+	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
@@ -992,7 +992,7 @@ $(TESTDIR)/sq2: setqgen$(EXEEXT) TESTDIR
 	@test -d $(TESTDIR)/sq2 || ./setqgen$(EXEEXT) $(TESTDIR)/sq2 1e9 3e7 >| $(TESTDIR)/check-sq2.log 2>&1
 #
 TESTDIR:
-	@test -d $(TESTDIR) || (mkdir -p $(TESTDIR) && echo "File $(TESTDIR)/std.log started on " `/bin/date` >> $(TESTDIR)/std.log)
+	@test -d $(TESTDIR) || (mkdir -p $(TESTDIR) && echo "File $(TESTDIR)/std.log started on " `date` >> $(TESTDIR)/std.log)
 $(TESTDIR)/0: $(TESTDIR)
 	@test -d $(TESTDIR)/0 || mkdir $(TESTDIR)/0
 $(TESTDIR)/1: $(TESTDIR)

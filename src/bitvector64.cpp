@@ -1297,7 +1297,7 @@ void ibis::bitvector64::read(const char * fn) {
     }
 } // ibis::bitvector64::read(const char * fn)
 
-// write bitvector64 to file (contents of vector is not changed)
+// // write bitvector64 to file (contents of vector is not changed)
 void ibis::bitvector64::write(const char * fn) const {
     FILE *out = fopen(fn, "wb");
     if (out == 0) {
@@ -1383,7 +1383,7 @@ void ibis::bitvector64::write(FILE* out) const {
 } // ibis::bitvector64::write(FILE* out) const
 
 void ibis::bitvector64::write(array_t<ibis::bitvector64::word_t>& arr) const {
-    arr.reserve(m_vec.size()+2);
+    arr.reserve(m_vec.size()+1+(active.nbits>0));
     arr.resize(m_vec.size());
     (void) memcpy(arr.begin(), m_vec.begin(), sizeof(word_t)*m_vec.size());
     if (active.nbits > 0) {

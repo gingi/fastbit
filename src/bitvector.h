@@ -126,7 +126,7 @@ public:
     void write(const char *fn) const;
     /// Write to a file that is opened by the caller.
     void write(int fdes) const;
-    /// Write the bit vector to an array_t<word_t>.  The serialize version
+    /// Write the bit vector to an array_t<word_t>.  The serialized version
     /// of the bit vector may be passed to another I/O function or sent
     /// through networks.
     void write(array_t<word_t>& arr) const;

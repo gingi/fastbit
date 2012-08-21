@@ -1991,16 +1991,17 @@ void ibis::bitvector::write(int out) const {
 } // ibis::bitvector::write
 
 void ibis::bitvector::write(array_t<ibis::bitvector::word_t>& arr) const {
-    arr.reserve(m_vec.size()+2);
+    arr.reserve(m_vec.size()+1+(active.nbits>0));
     arr.resize(m_vec.size());
     (void) memcpy(arr.begin(), m_vec.begin(), sizeof(word_t)*m_vec.size());
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-    active_word tmp(active);
-    tmp.nbits = active.nbits % MAXBITS;
     LOGGER(active.nbits >= MAXBITS)
 	<< "Warning -- bitvector::write detects a larger than expected "
 	"active.nbits (" << active.nbits << ", MAX=" << MAXBITS
 	<< "), setting it to " << tmp.nbits;
+    active_word tmp(active);
+    if (active.nbits >= MAXBITS)
+	tmp.nbits = MAXBITS-1;
 
     const word_t avmax = (1 << tmp.nbits) - 1;
     tmp.val &= avmax;

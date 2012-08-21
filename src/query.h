@@ -65,17 +65,17 @@ public:
     };
 
     virtual ~query();
-    /// Constructor.  Reconstructs query from stored information in the
-    /// named directory @c dir.  This is only used for recovering from
-    /// program crashes.
     query(const char* dir, const ibis::partList& tl);
-    /// Constructor.  Generates a new query on the given data partition et.
     query(const char* uid=0, const part* et=0, const char* pref=0);
 
-    /// Functions about the identity of the query
-    const char* id() const {return myID;};	///< The query token.
-    const char* dir() const {return myDir;}	///< For persistent data
-    const char* userName() const {return user;} ///< User started the query
+    /// Return an identifier of the query
+    const char* id() const {return myID;}
+    /// Return the directory for any persistent data.  This is not nil only
+    /// if the recovery feature is enabled.  By default, the recovery
+    /// feature is disabled.
+    const char* dir() const {return myDir;}
+    /// User started the query
+    const char* userName() const {return user;}
     /// The time stamp on the data used to process the query.
     time_t timestamp() const {return dstime;}
     /// Return the pointer to the data partition used to process the query.
@@ -83,17 +83,12 @@ public:
     /// Return a list of names specified in the select clause.
     const selectClause& components() const {return comps;};
 
-    /// Specify a list of Row IDs for the query object.
     int setRIDs(const RIDSet& set);
-    /// Specify the where clause in string form.
     int setWhereClause(const char *str);
-    /// Specify the where clause as a set of conjunctive ranges.
     int setWhereClause(const std::vector<const char*>& names,
 		       const std::vector<double>& lbounds,
 		       const std::vector<double>& rbounds);
-    /// Specify the where clause through a qExpr object.
     int setWhereClause(const ibis::qExpr* qexp);
-    /// Specifies the select clause for the query.
     virtual int setSelectClause(const char *str);
     /// Resets the data partition associated with the query.
     int setPartition(const ibis::part* tbl);
@@ -187,21 +182,13 @@ public:
     /// group, the row ID (RID) of the rows are also printed.
     void printSelectedWithRID(std::ostream& out) const;
 
-    /// Return a (new) bitvector that contains the result of directly scan
-    /// the raw data to determine what records satisfy the user specified
-    /// conditions.  It is mostly used for testing purposes.  It can be
-    /// called any time after the where clause is set, and does not change
-    /// the state of the current query.
     long sequentialScan(ibis::bitvector& bv) const;
-
     long getExpandedHits(ibis::bitvector&) const;
 
     // used by ibis::bundle
     RIDSet* readRIDs() const;
     void writeRIDs(const RIDSet* rids) const;
 
-    /// Used to print information about the progress or state of query
-    /// processing.  It prefixes each message with a query token.
     void logMessage(const char* event, const char* fmt, ...) const;
 
     // Functions for cleaning up, retrieving query states
