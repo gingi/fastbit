@@ -800,7 +800,8 @@ public:
     virtual bool         empty() const {return (col==0 || array==0);}
     virtual uint32_t     size() const {return (array ? array->size() : 0);}
     virtual uint32_t     elementSize() const {return 0;}
-    virtual ibis::TYPE_T getType() const {return col->type();}
+    virtual ibis::TYPE_T getType() const {
+	return (col->type()==ibis::CATEGORY?ibis::CATEGORY:ibis::TEXT);}
     virtual void*        getArray() const {return array;}
     virtual void         nosharing() {/* neve shared */}
 

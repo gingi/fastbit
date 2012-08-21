@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.6.  */
+/* A Bison parser, made by GNU Bison 2.6.2.  */
 
 /* Locations for Bison parsers in C++
    
@@ -44,9 +44,8 @@
 
 
 namespace ibis {
-
 /* Line 166 of location.cc  */
-#line 50 "location.hh"
+#line 49 "location.hh"
 
   /// Abstract a location.
   class location
@@ -176,8 +175,7 @@ namespace ibis {
 
 
 } // ibis
-
 /* Line 294 of location.cc  */
-#line 182 "location.hh"
+#line 180 "location.hh"
 
 #endif /* !IBIS_LOCATION_HH  */

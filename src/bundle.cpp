@@ -580,6 +580,12 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
 			<< *(comps.aggExpr(0)) << '"';
 		    col = new ibis::colDoubles(c, hits);
 		    break;
+		case ibis::selectClause::CONCAT:
+		    LOGGER(ibis::gVerbose > 4)
+			<< "bundle1::ctor initializing a colStrings for \""
+			<< *(comps.aggExpr(0)) << '"';
+		    col = new ibis::colStrings(c, hits);
+		    break;
 		default:
 		    LOGGER(ibis::gVerbose > 4)
 			<< "bundle1::ctor initializing a colValues for \""
@@ -694,6 +700,12 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 		    << "bundle1::ctor initializing a colDoubles for \""
 		    << *(comps.aggExpr(icol)) << '"';
 		col = new ibis::colDoubles(c);
+		break;
+	    case ibis::selectClause::CONCAT:
+		LOGGER(ibis::gVerbose > 4)
+		    << "bundle1::ctor initializing a colStrings for \""
+		    << *(comps.aggExpr(icol)) << '"';
+		col = new ibis::colStrings(c);
 		break;
 	    default:
 		LOGGER(ibis::gVerbose > 4)
@@ -1209,6 +1221,11 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
 				(cptr, bdlstore, start,
 				 start+8*sizes[0]);
 			    break;
+			// case ibis::selectClause::CONCAT:
+			//     tmp = new ibis::colStrings
+			// 	(cptr, bdlstore, start,
+			// 	 start+8*sizes[0]);
+			//     break;
 			default:
 			    tmp = ibis::colValues::create
 				(cptr, bdlstore, start,
@@ -1278,6 +1295,9 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
 		    case ibis::selectClause::STDPOP:
 		    case ibis::selectClause::STDSAMP:
 			tmp = new ibis::colDoubles(cptr, *hits);
+			break;
+		    case ibis::selectClause::CONCAT:
+			tmp = new ibis::colStrings(cptr, *hits);
 			break;
 		    default:
 			tmp = ibis::colValues::create(cptr, *hits);
@@ -1357,6 +1377,9 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits,
 		case ibis::selectClause::STDPOP:
 		case ibis::selectClause::STDSAMP:
 		    tmp = new ibis::colDoubles(cptr, hits);
+		    break;
+		case ibis::selectClause::CONCAT:
+		    tmp = new ibis::colStrings(cptr, hits);
 		    break;
 		default:
 		    tmp = ibis::colValues::create(cptr, hits);
@@ -1439,7 +1462,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 
 	    LOGGER(ibis::gVerbose > 6)
 		<< "bundles::ctor is to start a colValues for \""
-		<< *(comps.aggExpr(ic)) << "\" as cols[" << ic << ']';
+		<< *(comps.aggExpr(ic)) << "\" as cols[" << cols.size() << ']';
 	    ibis::colValues* cv = 0;
 	    switch (comps.getAggregator(ic)) {
 	    case ibis::selectClause::AVG:
@@ -1450,6 +1473,9 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    case ibis::selectClause::STDSAMP:
 		cv = new ibis::colDoubles(c);
 		break;
+	    case ibis::selectClause::CONCAT:
+		cv = new ibis::colStrings(c);
+		break;
 	    default:
 		cv = ibis::colValues::create(c);
 		break;
@@ -1459,7 +1485,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 		aggr.push_back(comps.getAggregator(ic));
 		LOGGER(ibis::gVerbose > 2)
 		    << "bundles::ctor created a colValues for \""
-		    << *(comps.aggExpr(ic)) << "\" as cols[" << ic
+		    << *(comps.aggExpr(ic)) << "\" as cols[" << cols.size()
 		    << "] with size " << cv->size();
 	    }
 	    else {

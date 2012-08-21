@@ -1060,20 +1060,20 @@ ibis::colDoubles::colDoubles(const ibis::column* c)
 ibis::colStrings::colStrings(const ibis::column* c)
     : colValues(c), array(0) {
     if (c == 0) return;
-    if (c->type() == ibis::CATEGORY) {
-	ibis::bitvector hits;
-	hits.set(1, c->partition()->nRows());
-	array = c->selectStrings(hits);
-    }
-    else if (c->type() == ibis::TEXT) {
+    if (c->type() == ibis::TEXT) {
 	array =new std::vector<std::string>;
 	(void) c->getValuesArray(array);
     }
     else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- colStrings does not support type "
-	    << ibis::TYPESTRING[(int)(c->type())];
+	ibis::bitvector msk;
+	msk.set(1, c->partition()->nRows());
+	array = c->selectStrings(msk);
     }
+    // else {
+    // 	LOGGER(ibis::gVerbose >= 0)
+    // 	    << "Warning -- colStrings does not support type "
+    // 	    << ibis::TYPESTRING[(int)(c->type())];
+    // }
 } // ibis::colStrings::colStrings
 
 /// Construct ibis::colBlobs from an existing list of values.
@@ -1081,9 +1081,9 @@ ibis::colBlobs::colBlobs(const ibis::column* c)
     : colValues(c), array(0) {
     if (c == 0) return;
     if (c->type() == ibis::BLOB) {
-	ibis::bitvector hits;
-	hits.set(1, c->partition()->nRows());
-	array = c->selectOpaques(hits);
+	ibis::bitvector msk;
+	msk.set(1, c->partition()->nRows());
+	array = c->selectOpaques(msk);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
@@ -4343,8 +4343,11 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 			   ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colInts::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR:// only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -4523,8 +4526,11 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 			    ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colUInts::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR: // only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -4704,8 +4710,11 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 			    ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default: 
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colLongs::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR:// only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -4884,8 +4893,11 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 			     ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colULongs::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR: // only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5065,8 +5077,11 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 			     ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colShorts::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR: // only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5245,8 +5260,11 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
 			      ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colUShorts::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR: // only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5426,8 +5444,11 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 			    ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colBytes::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR: // only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5606,8 +5627,11 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 			     ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colUBytes::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR: // only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5787,8 +5811,11 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 			     ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first few value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colFloats::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR: // only save the first few value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -5967,8 +5994,11 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 			      ibis::selectClause::AGREGADO func) {
     const uint32_t nseg = starts.size() - 1;
     switch (func) {
-    default: // only save the first value
-    case ibis::selectClause::NIL_AGGR:
+    default:
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- colDoubles::reduce encountered an unknown operator "
+	    << (int) func << ", only need the first value";
+    case ibis::selectClause::NIL_AGGR: // only save the first value
 	for (uint32_t i = 0; i < nseg; ++i) 
 	    (*array)[i] = (*array)[starts[i]];
 	break;
@@ -6175,6 +6205,15 @@ void ibis::colStrings::reduce(const array_t<uint32_t>& starts,
 	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
 		if ((*array)[i] < (*array)[j])
 		    (*array)[i] = (*array)[j];
+	}
+	break;
+    case ibis::selectClause::CONCAT: // concatenate the strings
+	for (uint32_t i = 0; i < nseg; ++i) {
+	    (*array)[i].swap((*array)[starts[i]]);
+	    for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j) {
+		(*array)[i] += ", ";
+		(*array)[i] += (*array)[j];
+	    }
 	}
 	break;
     case ibis::selectClause::DISTINCT: // count distinct values

@@ -145,8 +145,11 @@ std::string ibis::selectClause::aggDescription
     case SUM:
 	oss << "SUM(" << *(tm) << ')';
 	break;
+    case CONCAT:
+	oss << "GROUP_CONCAT(" << *(tm) << ')';
+	break;
     case DISTINCT:
-	oss << "DISTINCTCOUNT(" << *(tm) << ')';
+	oss << "COUNTDISTINCT(" << *(tm) << ')';
 	break;
     case VARPOP:
 	oss << "VARPOP(" << *(tm) << ')';
@@ -642,6 +645,9 @@ int ibis::selectClause::find(const char* key) const {
 		    case STDSAMP:
 			oss << "STDSAMP(" << *(atms_[i]) << ')';
 			break;
+		    case CONCAT:
+			oss << "GROUP_CONCAT(" << *(atms_[i]) << ')';
+			break;
 		    case DISTINCT:
 			oss << "COUNTDISTINCT(" << *(atms_[i]) << ')';
 			break;
@@ -706,8 +712,11 @@ void ibis::selectClause::printDetails(std::ostream& out) const {
 	case SUM:
 	    out << "SUM(" << *(atms_[j]) << ')';
 	    break;
+	case CONCAT:
+	    out << "GROUP_CONCAT(" << *(atms_[j]) << ')';
+	    break;
 	case DISTINCT:
-	    out << "DISTINCTCOUNT(" << *(atms_[j]) << ')';
+	    out << "COUNTDISTINCT(" << *(atms_[j]) << ')';
 	    break;
 	case VARPOP:
 	    out << "VARPOP(" << *(atms_[j]) << ')';
@@ -927,6 +936,9 @@ void ibis::selectClause::variable::print(std::ostream& out) const {
 	break;
     case ibis::selectClause::STDSAMP:
 	out << "STD(" << *(sc_->atms_[itrm]) << ')';
+	break;
+    case ibis::selectClause::CONCAT:
+	out << "GROUP_CONCAT(" << *(sc_->atms_[itrm]) << ')';
 	break;
     case ibis::selectClause::DISTINCT:
 	out << "COUNTDISTINCT(" << *(sc_->atms_[itrm]) << ')';

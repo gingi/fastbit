@@ -1,6 +1,18 @@
+2012-08-20 John Wu <John dot Wu at ACM dot org>
+	* src/selectParser.yy, src/selectClause.h, src/selectClause.cpp,
+	src/bundles.cpp, src/colValues.cpp: add support for aggregation
+	function group_concat (requested by Michael Beauregard
+	michael at insightfulminds.com)
+	* src/colValues.h:803 explicitly choose between CATEGORY or TEXT,
+	previously this was enforced by the constructor of
+	ibis::colStrings, however group_concat makes it possible to
+	generate strings from any type
+
 2012-08-17 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h:616 the copy constructor of ibis::qKeyword assigns
 	the wrong type
+	* tests/Makefile.am: add test case 12 to check-text to exercise
+	the issue raised by Aditya <nerur00 at gmail.com>
 
 2012-08-16 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: add space between [` to correct problems with

@@ -241,6 +241,11 @@ mathExpr ADDOP mathExpr {
 	// count distinct values
 	fun = driver.addAgregado(ibis::selectClause::DISTINCT, $3);
     }
+    else if (stricmp($1->c_str(), "concat") == 0 ||
+	     stricmp($1->c_str(), "group_concat") == 0) {
+	// concatenate
+	fun = driver.addAgregado(ibis::selectClause::CONCAT, $3);
+    }
     else if (stricmp($1->c_str(), "avg") == 0) { // aggregation avg
 	ibis::math::term *numer =
 	    driver.addAgregado(ibis::selectClause::SUM, $3);

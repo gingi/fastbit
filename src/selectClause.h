@@ -136,7 +136,7 @@ public:
     ///@{
     /// Aggregation functions.  @note "Agregado" is Spanish for aggregate.
     enum AGREGADO {NIL_AGGR, AVG, CNT, MAX, MIN, SUM, DISTINCT,
-		   VARPOP, VARSAMP, STDPOP, STDSAMP, MEDIAN};
+		   VARPOP, VARSAMP, STDPOP, STDSAMP, MEDIAN, CONCAT};
     /// The number of arithmetic expressions inside the select clause.
     uint32_t aggSize() const {return atms_.size();}
     /// Return the aggregation function used for the ith term.
