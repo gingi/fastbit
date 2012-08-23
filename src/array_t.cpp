@@ -7,8 +7,8 @@
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
-#elif defined(__GNUC__)
-#pragma implementation
+// #elif defined(__GNUC__)
+// #pragma implementation
 #endif
 #include "array_t.h"
 #include "util.h"

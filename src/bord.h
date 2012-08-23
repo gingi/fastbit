@@ -115,10 +115,10 @@ public:
 			   const std::vector<bool>&);
     virtual void reverseRows();
 
+    using ibis::part::buildIndexes;
     virtual int buildIndex(const char*, const char*) {return -1;}
-    virtual int buildIndexes(const char*) {return -1;}
     virtual int buildIndexes(const ibis::table::stringList&) {return -1;}
-    virtual int buildIndexes(const char*, int) {return -1;}
+    virtual int buildIndexes(const char*) {return -1;}
     virtual int getPartitions(constPartList&) const;
     virtual void indexSpec(const char*, const char*) {return;}
     virtual const char* indexSpec(const char*) const {return 0;}

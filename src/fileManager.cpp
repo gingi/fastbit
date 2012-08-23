@@ -628,7 +628,7 @@ ibis::fileManager::fileManager()
 #endif
 #if defined(FOPEN_MAX)
     if (maxOpenFiles < FOPEN_MAX)
-	maxOpenFiles = maxOpenFiles;
+	maxOpenFiles = FOPEN_MAX;
 #endif
     if (pthread_rwlock_init(&lock, 0) != 0)
 	throw ibis::bad_alloc("pthread_rwlock_init failed in fileManager "

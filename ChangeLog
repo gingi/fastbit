@@ -1,3 +1,7 @@
+2012-08-23 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h: add using ibis::part::buildIndexes to address the
+	complaints issued by clang
+
 2012-08-21 John Wu <John dot Wu at ACM dot org>
 	* src/query.h, src/query.cpp: clarify the arguments of the
 	constructor and the user of recovery feature.

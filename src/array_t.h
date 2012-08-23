@@ -18,9 +18,9 @@
 /// @note This implementation uses size_t integers for measuring the number
 /// of elements, therefore, the maximum size it can handle is machine and
 /// compiler dependent.
-#ifdef __GNUC__
-#pragma interface
-#endif
+// #ifdef __GNUC__
+// #pragma interface
+// #endif
 template<class T> class ibis::array_t {
 public:
     typedef       T* iterator; ///< Iterator type.
