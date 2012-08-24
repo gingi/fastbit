@@ -1306,7 +1306,6 @@ void ibis::index::indexFileName(std::string& iname, const char* f) const {
 	    iname += f;
 	    iname += FASTBIT_DIRSEP;
 	    iname += col->name();
-	    iname += FASTBIT_DIRSEP;
 	    iname += ".idx";
 	}
 	else {
