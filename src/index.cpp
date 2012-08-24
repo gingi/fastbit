@@ -1285,17 +1285,60 @@ void ibis::index::dataFileName(std::string& iname, const char* f) const {
 /// to do most of the work.
 void ibis::index::indexFileName(std::string& iname, const char* f) const {
     iname.clear();
-    if (col != 0) {
-	(void) col->dataFileName(iname, f);
-	if (! iname.empty()) {
-	    iname += ".idx";
-	    LOGGER(ibis::gVerbose > 4)
-		<< "index::indexFileName will use \""
-		<< iname << "\" as the index file name for "
-		<< col->partition()->name() << '.'
-		<< col->name();
+    if (f == 0 || *f == 0) {
+	if (col != 0) {
+	    (void) col->dataFileName(iname, f);
+	    if (! iname.empty()) {
+		iname += ".idx";
+	    }
 	}
     }
+    else {
+	unsigned len = strlen(f);
+	if (len > 4 && f[len-4] == '.' && f[len-3] == 'i' &&
+	    f[len-2] == 'd' && f[len-1] == 'x') {
+	    // the incoming name ends with ".idx", use it
+	    iname = f;
+	}
+	else if (col != 0 && col->partition() != 0 &&
+		 col->partition()->currentDataDir() != 0 &&
+		 0 == strcmp(f, col->partition()->currentDataDir())) {
+	    iname += f;
+	    iname += FASTBIT_DIRSEP;
+	    iname += col->name();
+	    iname += FASTBIT_DIRSEP;
+	    iname += ".idx";
+	}
+	else {
+	    Stat_T st0;
+	    if (UnixStat(f, &st0)) { // stat fails, use the name
+		if (col != 0) {
+		    (void) col->dataFileName(iname, f);
+		    if (! iname.empty()) {
+			iname += ".idx";
+		    }
+		}
+	    }
+	    else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
+		// named directory exist
+		iname = f;
+		iname += FASTBIT_DIRSEP;
+		iname += col->name();
+		iname += ".idx";
+	    } 	 
+	    else {
+		// the incoming argument names an existing file, add ".idx"
+		// to create the new index file name
+		iname = f;
+		iname += ".idx";
+	    }
+	}
+    }
+
+    LOGGER(ibis::gVerbose > 4)
+	<< "index::indexFileName will use \"" << iname
+	<< "\" as the index file name for " << col->partition()->name() << '.'
+	<< col->name();
 } // indexFileName
 
 /// Generate the index file name for the composite index fromed on two

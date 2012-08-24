@@ -1,3 +1,8 @@
+2012-08-24 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: change index::indexFileName to use the incoming
+	argument as the index file name if it ends with ".idx" (restoring
+	much of the code deleted on 2012-07-27)
+
 2012-08-23 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h: add using ibis::part::buildIndexes to address the
 	complaints issued by clang
