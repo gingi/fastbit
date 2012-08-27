@@ -1964,10 +1964,10 @@ void ibis::fileManager::storage::copy
     swap(cp);
 } // ibis::fileManager::storage::copy
 
-/// Boost the memory allocated for the storage object.  It increases the
-/// memory reserved to the specified size (in bytes) or by 61.8% if nelm is
-/// 0.  It does nothing if the requested size is less than the current
-/// size.  This implementation uses the copy-and-swap idiom.
+/// Enlarge the current storage object.  It increases the memory reserved
+/// to the specified size (in bytes) or by 61.8% if nelm is zero.  It does
+/// nothing if the requested size is less than the current size but not
+/// zero.  This implementation uses the copy-and-swap idiom.
 void ibis::fileManager::storage::enlarge(size_t nelm) {
     const size_t oldsize = size();
     if (nelm == 0)

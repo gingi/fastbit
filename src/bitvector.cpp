@@ -161,6 +161,7 @@ void ibis::bitvector::set(int val, ibis::bitvector::word_t n) {
     }
 } // ibis::bitvector::set
 
+/// Append a WAH word.
 /// The incoming argument @c w is assumed to be a WAH compressed word.
 void ibis::bitvector::appendWord(ibis::bitvector::word_t w) {
     word_t nb1, nb2;
@@ -215,7 +216,7 @@ void ibis::bitvector::appendWord(ibis::bitvector::word_t w) {
     }
 } // ibis::bitvector::appendWord
 
-// append another bitvector to the current
+ /// Append a bitvector.
 ibis::bitvector& ibis::bitvector::operator+=(const ibis::bitvector& bv) {
     if (nset>0 && bv.nset>0)
 	nset += bv.nset;
@@ -838,7 +839,9 @@ void ibis::bitvector::subset(const ibis::bitvector& mask,
     }
 } // ibis::bitvector::subset
 
-// erase the bit in the range of [i, j)
+/// Remove the bits in the range of [i, j).
+/// The bit positions are counted from 0.  The first position @c i is erased,
+/// but not the last position @c j.
 void ibis::bitvector::erase(ibis::bitvector::word_t i,
 			    ibis::bitvector::word_t j) {
     if (i >= j) {
@@ -953,7 +956,8 @@ ibis::bitvector::count(const ibis::bitvector& mask) const {
     return cnt;
 } // ibis::bitvector::count
 
-// toggle every bit of the bit sequence
+/// Complement all bits of a bit sequence.
+/// Toggle every bit of the bit sequence
 void ibis::bitvector::flip() {
     m_vec.nosharing(); // make sure *this is not shared!
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -1002,7 +1006,8 @@ void ibis::bitvector::flip() {
 #endif
 } // ibis::bitvector::flip
 
-// compare two bitvectors
+/// Compare two bitvectors.
+/// Return 1 if two bit sequences have the same content, 0 otherwise.
 int ibis::bitvector::operator==(const ibis::bitvector& rhs) const {
     if (nbits != rhs.nbits) return 0;
     if (m_vec.size() != rhs.m_vec.size()) return 0;

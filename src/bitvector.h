@@ -80,21 +80,18 @@ public:
     //bitvector& copy(const word_t i, const bitvector& bv);
     void setBit(const word_t i, int val);
     inline void turnOnRawBit(const word_t i);
-    /// Remove the bits in the range of [i, j).
     void erase(word_t i, word_t j);
 
     void set(int val, word_t n);
     void clear();
 
-    bitvector& operator+=(const bitvector& bv); ///< Append a bitvector.
-    inline bitvector& operator+=(int b);	///< Append a single bit.
-    void appendWord(word_t w);		///< Append a WAH word.
+    bitvector& operator+=(const bitvector& bv);
+    inline bitvector& operator+=(int b);
+    void appendWord(word_t w);
     inline void appendFill(int val, word_t n);
 
-    /// Return 1 if two bit sequences have the same content, 0 otherwise
     int operator==(const bitvector& rhs) const;
 
-    /// Complement all bits of a bit sequence.
     void flip();
     ///@brief Perform bitwise AND between this bitvector and @c rhs.
     void operator&=(const bitvector& rhs);
@@ -740,7 +737,7 @@ inline void ibis::bitvector::append_counter(int val, word_t cnt) {
     }
 } // ibis::bitvector::append_counter
 
-// append a single bit
+/// Append a single bit.
 inline ibis::bitvector& ibis::bitvector::operator+=(int b) {
     active.append(b);
     if (active.is_full())

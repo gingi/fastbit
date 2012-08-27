@@ -240,8 +240,6 @@ public:
     /// Return the number of bytes contained in the object.
     size_t bytes() const {
 	return (m_begin!=0 && m_begin<m_end ? m_end-m_begin : 0);}
-    /// Enlarge the current array by 61.8% if @c nelm is smaller than the
-    /// current size, otherwise enlarge to the specified size.
     void enlarge(size_t nelm=0);
 
     /// Starting address of the storage object.

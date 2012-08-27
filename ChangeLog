@@ -1,7 +1,18 @@
+2012-08-26 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.h:195 change atual-inUse() == 1 to actual-filename()
+	== 0 to allow shallow copies to be modified through push_back
+
+2012-08-25 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.cpp: change resize to make use of reserve instead of
+	explicitly allocating space
+
 2012-08-24 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: change index::indexFileName to use the incoming
 	argument as the index file name if it ends with ".idx" (restoring
 	much of the code deleted on 2012-07-27)
+	* src/array_t.cpp: change function reserve to use the copy-and-swap
+	strategy to avoid losing existing content - continuing the effort
+	to make it possible to serialize many bitmaps into a single buffer
 
 2012-08-23 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h: add using ibis::part::buildIndexes to address the

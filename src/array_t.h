@@ -71,13 +71,14 @@ public:
     };
     inline void clear();
 
-    void pop_back() {--m_end;};		///< Remove the last element.
-    void resize(size_t n);	///< Resize array.
-    void reserve(size_t n);	///< Reserve space.
+    /// Remove the last element.
+    void pop_back() {--m_end;}
+    void resize(size_t n);
+    void reserve(size_t n);
     void truncate(size_t keep, size_t start);
     size_t capacity() const;
-    inline void swap(array_t<T>& rhs);	///< Exchange the content.
-    inline void push_back(const T& elm);///< Add one element.
+    inline void swap(array_t<T>& rhs);
+    inline void push_back(const T& elm);
 
     void deduplicate();
     void sort(array_t<uint32_t> &ind) const;
@@ -180,7 +181,7 @@ inline void ibis::array_t<T>::swap(array_t<T>& rhs) {
     m_end = e;
 } // ibis::array_t<T>::swap
 
-/// Add one element from the back.
+/// Add one element from the back.  This function allocates new storage 
 template<class T> 
 inline void ibis::array_t<T>::push_back(const T& elm) {
     if (actual == 0) { // allocate storage
@@ -191,7 +192,7 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
 	*m_begin = elm;
     }
     else if (m_begin != 0 && m_end != 0 && actual->begin() > 0 &&
-	     actual->end() > actual->begin() && actual->inUse() <= 1 &&
+	     actual->end() > actual->begin() && actual->filename() == 0 &&
 	     (char*)(m_end+1) <= actual->end()) { // simply add value
 	*m_end = elm;
 	++ m_end;

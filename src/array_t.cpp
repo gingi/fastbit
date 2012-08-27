@@ -1453,79 +1453,86 @@ void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
     }
 } // ibis::array_t<T>::truncate
 
-/// Change the size of the array so it has no less than @n elements.  If n
-/// is greater than its current capacity, it allocates exactly enough space
-/// for the new array.  If the user needs to perform a series of resize
-/// operations with progressively larger size, call function reserve to
-/// increase the underlying storage to avoid this function copying the data
-/// many times.
+/// Change the size of the array to have @n elements.  If n is greater than
+/// its current capacity, it allocates exactly enough space for the new
+/// array and copy the existing content to the new space.  If the user
+/// needs to perform a series of resize operations with progressively
+/// larger size, call the function reserve to increase the underlying
+/// storage to avoid this function copying the data many times.
+///
+/// @note New space is allocated through the function reserve.
 template<class T>
 void ibis::array_t<T>::resize(size_t n) {
     if (n > 0x7FFFFFFFU) {
 	throw "array_t must have less than 2^31 elements";
     }
 
-    nosharing();
-    if (actual != 0) {
-	m_end = m_begin + n;
-	if (m_end <= (T*)(actual->end()))
-	    return;
+    if (n == 0) {
+	m_end = m_begin;
+	return;
     }
 
-    const size_t newsize = n*sizeof(T);
-    if (actual != 0) {
-	actual->enlarge(newsize);
-	if (actual->size() >= newsize) {
-	    m_begin = (T*)(actual->begin());
-	    m_end = m_begin + n;
-	}
-	else {
-	    m_end = m_begin;
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "array_t: unable to allocate " << n
-		<< " bytes, previous content lost!";
-	    throw ibis::bad_alloc("failed to resize array");
-	}
+    if (actual == 0 || (const T*)actual->end() < m_begin + n)
+	reserve(n);
+
+    if (actual == 0 || (const T*)actual->end() < m_begin + n) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- array_t::resize(" << n << ") failed to allocate "
+	    " sufficient space";
+	throw ibis::bad_alloc("failed to resize array");
     }
     else {
-	actual = new ibis::fileManager::storage(n*sizeof(T));
-	actual->beginUse();
-	m_begin = (T*)(actual->begin());
-	m_end = m_begin ? (m_begin + n) : 0;
+	m_end = m_begin + n;
     }
 } // ibis::array_t<T>::resize
 
 /// Increase the size of the array_t to have the capacity to store at least
-/// @c n elements.  If the current storage object does not have enough
-/// space, enlarge the storage object.
+/// @c n elements.  If the current storage object already has n elements,
+/// nothing is done, otherwise new storage is allocated.  If it fails to
+/// allocate new storage, the current array is unchanged.  In any case, the
+/// content of the array should be unchanged.
+///
+/// @note If the incoming argument is 0, this function will either allocate
+/// 32 / sizeof(T) elements if sizeof(T) is less than 32, or 2 elements if
+/// sizeof(T) is greater or equal to 32.
 template<class T>
 void ibis::array_t<T>::reserve(size_t n) {
     if (n > 0x7FFFFFFFU) {
 	throw "array_t must have less than 2^31 elements";
     }
+    if (n == 0) { // special case with n = 0
+	n = 32 / sizeof(T);
+	if (n == 0)
+	    n = 2;
+    }
 
-    nosharing();
     if (actual != 0) {
-	size_t n0 = (T*)(actual->end()) - m_begin;
-	if (n > n0) { // enlarge to requested size
-	    n0 = (n0+n)*sizeof(T);
-	    const size_t n1 = size();
-	    actual->enlarge(n0);
-	    if (actual->size() >= n0) {
+	const size_t n0 = (T*)(actual->end()) - m_begin;
+	if (n > n0 || actual->filename() != 0) {
+	    // attempt to allocate new storage space
+	    std::auto_ptr<ibis::fileManager::storage>
+		tmp(new ibis::fileManager::storage(n*sizeof(T)));
+	    if (tmp.get() != 0) { // copy and swap
+		(void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));
+		actual->endUse();
+		if (actual->inUse() == 0 && actual->filename() == 0 ) {
+		    ibis::util::mutexLock lock(&(ibis::util::envLock),
+					       "array_t::reserve");
+		    if (actual->inUse() == 0)
+			delete actual;
+		}
+		actual = tmp.release();
 		m_begin = (T*)(actual->begin());
-		m_end = m_begin + n1;
+		actual->beginUse();
+		m_end = m_begin + n0;
 	    }
 	    else {
-		m_end = 0; m_begin = 0;
-		ibis::util::logger lg;
-		lg() << "array_t::reserve: unable to allocate " << n
-		     << ' ' << sizeof(T) << "-byte elements";
-		if (n1) lg() << ", lost previous content of "
-			     << n1 << " elements";
-		throw ibis::bad_alloc("failed to reserve space");
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- array_t::reserve: unable to allocate " << n
+		    << ' ' << sizeof(T) << "-byte elements";
 	    }
 	}
-    } 
+    }
     else {
 	actual = new ibis::fileManager::storage(n*sizeof(T));
 	actual->beginUse();
