@@ -380,13 +380,14 @@ int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
     }
 } // ibis::fileManager::adjustCacheSize
 
-/// The function cleans the memory cache used by FastBit.  It destroys the
-/// two lists of files it holds and therefore make the file not accessible
-/// any new objects.  However, the actual underlying memory may still be
-/// present if they are being actively used.  This function is effective on
-/// if all other operations have ceased!  To force an individual file to be
-/// unloaded use ibis::fileManager::flushFile.  To force all files in a
-/// directory to be unloaded used ibis::fileManager::flushDir.
+/// This function cleans the memory cache used by FastBit.  It destroys the
+/// two lists of files it holds and therefore makes the files not
+/// accessible any new objects.  However, the actual underlying memory may
+/// still be present if they are being actively used.  This function is
+/// effective only if all other operations have ceased!  To force an
+/// individual file to be unloaded use ibis::fileManager::flushFile.  To
+/// force all files in a directory to be unloaded used
+/// ibis::fileManager::flushDir.
 ///
 /// @note This function will not do anything if it is not able to acquire a
 /// write lock in the file manager object.
@@ -414,14 +415,16 @@ void ibis::fileManager::clear() {
 		ibis::util::logger lg;
 		lg() << "Warning -- fileManager::clear failed to "
 		    "acquire a write lock for deleting the in-memory objects\n";
-		if (ibis::gVerbose > 5)
+		if (ibis::gVerbose > 5) {
 		    printStatus(lg());
-		else
+		}
+		else {
 		    lg() << "There are " << mapped.size()
 			 << " memory map" << (mapped.size()>1?"s":"")
 			 << " and " << incore.empty()
 			 << " in-memory file"
 			 << (incore.size()>1?"s":"");
+		}
 	    }
 	    return;
 	}
@@ -451,6 +454,8 @@ void ibis::fileManager::clear() {
 	<< " of storage remain in memory after removing all managed objects";
 } // ibis::fileManager::clear
 
+/// Register an external cleaner functor.  It will be invoked when the file
+/// manager runs out of space.
 void ibis::fileManager::addCleaner(const ibis::fileManager::cleaner* cl) {
     ibis::util::mutexLock lck(&mutex, "fileManager::addCleaner");
     cleanerList::const_iterator it = cleaners.find(cl);
@@ -458,6 +463,9 @@ void ibis::fileManager::addCleaner(const ibis::fileManager::cleaner* cl) {
 	cleaners.insert(cl);
 } // ibis::fileManager::addCleaner
 
+/// Unregister the cleaner functor.  Typically, this is only invoked when
+/// the object is being freed.  For example, in the destructor of
+/// ibis::part, the cleaner associated with the partition is unregistered.
 void ibis::fileManager::removeCleaner(const ibis::fileManager::cleaner* cl) {
     ibis::util::mutexLock lck(&mutex, "fileManager::removeCleaner");
     cleanerList::iterator it = cleaners.find(cl);
@@ -1211,19 +1219,19 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
     return st;
 } // ibis::fileManager::getFileSegment
 
-/// Unload enough space so that a file of size bytes can be loaded.  Caller
-/// must hold a mutex lock to prevent simutaneous invocation of this
+/// Unload enough space so that @c sz bytes can be read into memory.
+/// Caller must hold a mutex lock to prevent simutaneous invocation of this
 /// function.  It will wait a maximum of FASTBIT_MAX_WAIT_TIME seconds if
 /// not enough memory can be freed immediately.
-int ibis::fileManager::unload(size_t size) {
-    if (size > 0 && maxBytes > ibis::fileManager::totalBytes() &&
-	size+ibis::fileManager::totalBytes() <= maxBytes) {
+int ibis::fileManager::unload(size_t sz) {
+    if (sz > 0 && maxBytes > ibis::fileManager::totalBytes() &&
+	sz+ibis::fileManager::totalBytes() <= maxBytes) {
 	// there is enough space
 	return 0;
     }
-    if (size > maxBytes) {
+    if (sz > maxBytes) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- request fileManager::unload(" << size
+	    << "Warning -- request fileManager::unload(" << sz
 	    << ") can not be honored, maxBytes (" << std::setprecision(3)
 	    << static_cast<double>(maxBytes) << ") too small";
 	return -113;
@@ -1234,8 +1242,8 @@ int ibis::fileManager::unload(size_t size) {
 	    printStatus(lg());
 	    lg() << "\n";
 	}
-	if (size > 0)
-	    lg() << "fileManager::unload -- to free up " << size
+	if (sz > 0)
+	    lg() << "fileManager::unload -- to free up " << sz
 		 << " bytes of space (totalBytes="
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
 		 << ", maxBytes=" << ibis::util::groupby1000(maxBytes) << ")";
@@ -1268,7 +1276,7 @@ int ibis::fileManager::unload(size_t size) {
 		}
 	    }
 	    const uint64_t tb = ibis::fileManager::totalBytes();
-	    if (size == 0 || maxBytes <= tb || maxBytes+sum < tb+size)
+	    if (sz == 0 || maxBytes <= tb || maxBytes+sum < tb+sz)
 		// invoke the external cleaners
 		invokeCleaners();
 	}
@@ -1307,7 +1315,7 @@ int ibis::fileManager::unload(size_t size) {
 		}
 	    }
 	}
-	if (size == 0) {
+	if (sz == 0) {
 	    LOGGER(ibis::gVerbose > 4 && candidates.size() > 0)
 		<< "fileManager::unload -- unloading all ("
 		<< candidates.size() << ") inactive files";
@@ -1336,7 +1344,7 @@ int ibis::fileManager::unload(size_t size) {
 	else if (candidates.size() > 0) {
 	    // note: totalBytes is updated when an object is deleted
 	    while (candidates.size() > 0 &&
-		   maxBytes-size < ibis::fileManager::totalBytes())  {
+		   maxBytes-sz < ibis::fileManager::totalBytes())  {
 		it = candidates.back();
 		roFile *tmp = (*it).second;
 		if (ibis::gVerbose > 4) {
@@ -1358,7 +1366,7 @@ int ibis::fileManager::unload(size_t size) {
 		delete tmp; // remove the target selected
 		candidates.resize(candidates.size()-1);
 	    }
-	    if (maxBytes >= size+ibis::fileManager::totalBytes())
+	    if (maxBytes >= sz+ibis::fileManager::totalBytes())
 		return 0;
 	}
 
@@ -1377,7 +1385,7 @@ int ibis::fileManager::unload(size_t size) {
 	if (ibis::gVerbose > 3) {
 	    ibis::util::logger lg;
 	    lg() << "fileManager::unload unable to find "
-		 << ibis::util::groupby1000(size)
+		 << ibis::util::groupby1000(sz)
 		 << " bytes of free space (totalBytes="
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
 		 << ", maxBytes=" << ibis::util::groupby1000(maxBytes)
@@ -1425,12 +1433,12 @@ int ibis::fileManager::unload(size_t size) {
     } while (current < startTime+FASTBIT_MAX_WAIT_TIME); // while (...)
 
     // time-out
-    if (maxBytes < size+ibis::fileManager::totalBytes()) {
+    if (maxBytes < sz+ibis::fileManager::totalBytes()) {
 	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
 	    lg() << "Warning -- fileManager::unload timed-out while waiting for "
-		 << ibis::util::groupby1000(size) << " byte"
-		 << (size>1 ? "s" : "") << " (totalBytes="
+		 << ibis::util::groupby1000(sz) << " byte"
+		 << (sz>1 ? "s" : "") << " (totalBytes="
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
 		 << ", maxBytes=" << ibis::util::groupby1000(maxBytes) << ")";
 	    if (ibis::gVerbose > 3) {
@@ -1451,7 +1459,7 @@ void ibis::fileManager::invokeCleaners() const {
     const uint64_t before = ibis::fileManager::totalBytes();
     if (before == 0) return;
 
-    LOGGER(ibis::gVerbose > 5)
+    LOGGER(ibis::gVerbose > 7)
 	<< "fileManager invoking registered external cleaners ...";
     for (cleanerList::const_iterator it = cleaners.begin();
 	 it != cleaners.end();
@@ -1465,8 +1473,8 @@ void ibis::fileManager::invokeCleaners() const {
     }
     else if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg() << "fileManager -- external cleaners "
-	     << "did not reduce the total bytes ("
+	lg() << "fileManager -- external cleaners (" << cleaners.size()
+	     << ") did not reduce the total bytes ("
 	     << ibis::fileManager::totalBytes() << ")";
 	if (ibis::gVerbose > 10) {
 	    lg() << "\n";

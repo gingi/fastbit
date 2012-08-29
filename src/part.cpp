@@ -1766,7 +1766,7 @@ void ibis::part::updateMetaData() const {
 	}
 	else if (ibis::gVerbose > 1) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- part[" << name() << "::updateMetaData failed "
+		<< "Warning -- part[" << name() << "]::updateMetaData failed "
 		"to acquire a write lock, metadata file is not changed";
 	}
     }

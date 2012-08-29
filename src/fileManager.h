@@ -93,14 +93,18 @@ public:
     /// management of the file manager should hold a readLock.
     class readLock {
     public:
+	/// Constructor.  Acquires a read lock.
 	readLock(const char* m) : mesg(m) {
 	    ibis::fileManager::instance().gainReadAccess(m);
 	}
+	/// Destructor.  Releases the read lock.
 	~readLock() {
 	    ibis::fileManager::instance().releaseAccess(mesg);
 	}
     private:
-	const char* mesg; // mesg identifies the holder of the lock
+	/// A free-form message.  Typically used to identify the holder of
+	/// the lock.
+	const char* mesg;
     };
 
     /// Return the current cache size in bytes.
@@ -187,9 +191,12 @@ private:
     /// The conditional variable for reading list.
     pthread_cond_t readCond;
 
-    mutable pthread_rwlock_t lock; // the multiple read single write lock
-    mutable pthread_mutex_t mutex; // control access to incore and mapped
-    mutable pthread_cond_t cond;   // conditional variable -- unload(), etc..
+    /// The multiple read single write lock
+    mutable pthread_rwlock_t lock;
+    // Control access to incore and mapped
+    mutable pthread_mutex_t mutex;
+    // conditional variable -- unload(), etc..
+    mutable pthread_cond_t cond;
 
     static time_t hbeat;	// a simple counter, no mutex lock
     /// The number of bytes in a page.
@@ -397,8 +404,10 @@ private:
 /// A write lock for controlling access to the two internal lists.
 class ibis::fileManager::writeLock {
 public:
+    /// Constructor.  Acquires a write lock.
     writeLock(const char* m) : mesg(m)
     {ibis::fileManager::instance().gainWriteAccess(mesg);}
+    /// Destructor.  Releases the write lock.
     ~writeLock() {ibis::fileManager::instance().releaseAccess(mesg);}
 private:
     const char* mesg;
@@ -431,6 +440,7 @@ inline uint64_t ibis::fileManager::bytesFree() {
 	    maxBytes - ibis::fileManager::totalBytes() : 0);
 } // ibis::fileManager::bytesFree
 
+/// Release the read/write lock.
 inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     int ierr = pthread_rwlock_unlock(&lock);
     if (0 == ierr) {
@@ -447,6 +457,7 @@ inline void ibis::fileManager::releaseAccess(const char* mesg) const {
     }
 } // ibis::fileManager::releaseAccess
 
+/// Gain read access.  It blocks when waiting to acquire the read lock.
 inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     int ierr = pthread_rwlock_rdlock(&lock);
     if (0 == ierr) {
@@ -463,6 +474,7 @@ inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
     }
 } // ibis::fileManager::gainReadAccess
 
+/// Gain write access.  It blocks when waiting to acquire the write lock.
 inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
     int ierr = pthread_rwlock_wrlock(&lock);
     if (0 == ierr) {

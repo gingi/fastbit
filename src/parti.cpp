@@ -16,10 +16,10 @@
 #include <limits>	// std::numeric_limits
 #include <algorithm>	// std::reverse
 
-/// Sort rows with the lowest cardinality column first.  The lowest
-/// cardinality column is ordered first.  Only integer-valued columns are
-/// used in sorting.  Returns the number of rows reordered when successful,
-/// otherwise return a negative number and the base data is corrupt!
+/// Sort rows with the lowest cardinality column first.  Only
+/// integer-valued columns are used in sorting.  Returns the number of rows
+/// reordered when successful, otherwise return a negative number and the
+/// base data is corrupt!
 ///
 /// @warning <b>Danger</b>: This function does not update null masks!
 long ibis::part::reorder() {
@@ -36,6 +36,9 @@ long ibis::part::reorder() {
     }
 } // ibis::part::reorder
 
+/// Collect a list of column names that might be used as keys for sorting
+/// the rows.  The columns used have integer values and are ordered from
+/// the narrowest range of values to the widest range of values.
 void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
     // first gather all integer-valued columns
     typedef std::vector<column*> colVector;
@@ -75,12 +78,18 @@ void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
     }
 } // ibis::part::getherSortKeys
 
+/// Reorder the rows using the given column list.
 long ibis::part::reorder(const ibis::table::stringList& names) {
     std::vector<bool> direc;
     return reorder(names, direc);
 } // ibis::part::reorder
 
 /// Sort rows according the values of the columns specified in @c names.
+/// It orders the rows according the values of names[0] first, names[1]
+/// second, and so on.  For each column, if the corresponding value of
+/// directions is present, the value of directions is interpreted as
+/// whether or not the column is to be order in ascending order.  The
+/// direction defaults to the ascending order if the value is not present.
 long ibis::part::reorder(const ibis::table::stringList& names,
 			 const std::vector<bool>& directions) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;
@@ -121,20 +130,18 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 
     if (keys.empty()) { // no keys specified
 	if (names.empty()) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< evt << " -- user did not specify ordering keys, "
+	    LOGGER(ibis::gVerbose > 1)
+		<< evt << " did not find any user-specified ordering keys, "
 		"will attempt to use all integer columns as ordering keys";
 	    return reorder();
 	}
 	else if (ibis::gVerbose > 0) {
-	    std::ostringstream oss;
-	    oss << names[0];
+	    ibis::util::logger lg;
+	    lg() << "Warning -- " << evt
+		 << " did not find any suitable columns from \"" << names[0];
 	    for (unsigned i = 1; i < names.size(); ++ i)
-		oss << ", " << names[i];
-	    logMessage("reorder", "user specified ordering keys \"%s\" "
-		       "does not match any numerical columns with more "
-		       "than one distinct value, can not continue",
-		       oss.str().c_str());
+		lg() << ", " << names[i];
+	    lg() << "\", can not continue";
 	}
 	return 0;
     }
@@ -398,7 +405,7 @@ long ibis::part::writeValues(const char *fname,
     return vals.size();
 } // ibis::part::writeValues
 
-/// Reorders elementary data types.  Can not handle string valued data.
+/// Reorders elementary data types.  Can not handle string valued data!
 /// This function opens the data file in read-write mode and modify the
 /// content of the underlying data file.
 template <typename T>
@@ -471,7 +478,7 @@ long ibis::part::reorderValues(const char *fname,
 	for (uint32_t iseg = 0; iseg < nseg; ++ iseg) {
 	    const uint32_t segstart = starts[iseg];
 	    const uint32_t segsize = starts[iseg+1]-starts[iseg];
-	    if (segsize > 1) { // segment has move than one element
+	    if (segsize > 1) { // segment has more than one element
 		array_t<T> tmp(segsize); // copy segement to this array
 		array_t<uint32_t> ind0;
 		for (unsigned i = 0; i < segsize; ++ i)

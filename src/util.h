@@ -729,21 +729,50 @@ namespace ibis {
 	/// ibis::util::logMessage.
 	class quietLock {
 	public:
+	    /// Constructor.
 	    quietLock(pthread_mutex_t *lk) : lock(lk) {
 		if (0 != pthread_mutex_lock(lock))
 		    throw "quietLock failed to obtain a mutex lock";
 	    }
+	    /// Destructor.
 	    ~quietLock() {
 		(void) pthread_mutex_unlock(lock);
 	    }
 
 	private:
+	    /// The pointer to the mutex object.
 	    pthread_mutex_t *lock;
 
 	    quietLock(); // no default constructor
 	    quietLock(const quietLock&); // can not copy
 	    quietLock& operator=(const quietLock&);
 	}; // quietLock
+
+	/// An wrapper class for perform pthread_mutex_trylock/unlock.  It
+	/// does not use ibis::util::logMessage.
+	class softLock {
+	public:
+	    /// Constructor.
+	    softLock(pthread_mutex_t *lk)
+	    : lock_(lk), locked_(pthread_mutex_trylock(lock_)) {}
+	    /// Has a mutex lock being acquired?  Returns true if yes,
+	    /// otherwise false.
+	    bool isLocked() const {return (locked_==0);}
+	    /// Destructor.
+	    ~softLock() {
+		(void) pthread_mutex_unlock(lock_);
+	    }
+
+	private:
+	    /// Pointer to the mutex lock object.
+	    pthread_mutex_t *lock_;
+	    /// The return value from pthread_mutex_trylock.
+	    const int locked_;
+
+	    softLock(); // no default constructor
+	    softLock(const softLock&); // can not copy
+	    softLock& operator=(const softLock&);
+	}; // softLock
 
 	/// An wrapper class for perform pthread_rwlock_rdlock/unlock.
 	class readLock {
@@ -770,12 +799,14 @@ namespace ibis {
 	/// An wrapper class for perform pthread_rwlock_wrlock/unlock.
 	class writeLock {
 	public:
+	    /// Constructor.
 	    writeLock(pthread_rwlock_t* lk, const char* m)
 		: mesg(m), lock(lk) {
 		if (0 != pthread_rwlock_wrlock(lock)) {
 		    throw "writeLock failed to obtain a lock";
 		}
 	    }
+	    /// Destructor.
 	    ~writeLock() {
 		int ierr = pthread_rwlock_unlock(lock);
 		if (ierr != 0) {

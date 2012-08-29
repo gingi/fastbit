@@ -1,3 +1,7 @@
+2012-08-29 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.cpp: clean up in-line documentation while
+	examining a report of deadlock from Petr Velan
+
 2012-08-28 John Wu <John dot Wu at ACM dot org>
 	* src/icegale.cpp, src/icentre.cpp, src/icmoins.cpp: change
 	shallow copying of existing bit vectors into explicit copying in
@@ -8,8 +12,10 @@
 	not nil before calling ibis::bitvector::write
 
 2012-08-26 John Wu <John dot Wu at ACM dot org>
-	* src/array_t.h:195 change atual-inUse() == 1 to actual-filename()
-	== 0 to allow shallow copies to be modified through push_back
+	* src/array_t.h:195 change atual->inUse() == 1 to
+	actual->filename() == 0 to allow shallow copies to be modified
+	through push_back - a feature required for consolidate a large
+	number of bit vectors
 
 2012-08-25 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.cpp: change resize to make use of reserve instead of
@@ -42,7 +48,7 @@
 	* src/colValues.h:803 explicitly choose between CATEGORY or TEXT,
 	previously this was enforced by the constructor of
 	ibis::colStrings, however group_concat makes it possible to
-	generate strings from any type
+	generate strings from many more types
 
 2012-08-17 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h:616 the copy constructor of ibis::qKeyword assigns
