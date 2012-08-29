@@ -252,7 +252,7 @@ int ibis::skive::write32(int fdes) const {
     }
     offset32[0] += sizeof(uint32_t)*card;
     for (uint32_t i = 0; i < nbits; ++i) {
-	bits[i]->write(fdes);
+	if (bits[i]) bits[i]->write(fdes);
 	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
 
@@ -357,7 +357,7 @@ int ibis::skive::write64(int fdes) const {
     }
     offset64[0] += sizeof(uint32_t)*card;
     for (uint32_t i = 0; i < nbits; ++i) {
-	bits[i]->write(fdes);
+	if (bits[i]) bits[i]->write(fdes);
 	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
 

@@ -271,7 +271,7 @@ int ibis::fade::write32(int fdes) const {
     }
     offset32[0] += ierr;
     for (uint32_t i = 0; i < nobs; ++i) {
-	bits[i]->write(fdes);
+	if (bits[i] != 0) bits[i]->write(fdes);
 	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
 
@@ -378,7 +378,7 @@ int ibis::fade::write64(int fdes) const {
     }
     offset64[0] += ierr;
     for (uint32_t i = 0; i < nobs; ++i) {
-	bits[i]->write(fdes);
+	if (bits[i]) bits[i]->write(fdes);
 	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
 
@@ -584,8 +584,14 @@ void ibis::fade::setBit(const uint32_t i, const double val) {
     uint32_t offset = 0; // offset into bits
     for (ii = 0; ii < nb; ++ ii) {
 	jj = kk % bases[ii];
-	if (jj+1 < bases[ii] || bases[ii] == 1)
-	    bits[offset+jj]->setBit(i, 1);
+	if (jj+1 < bases[ii] || bases[ii] == 1) {
+	    if (bits[offset+jj] == 0) {
+		bits[offset+jj] = new ibis::bitvector;
+	    }
+	    if (bits[offset+jj] != 0) {
+		bits[offset+jj]->setBit(i, 1);
+	    }
+	}
 	kk /= bases[ii];
 	offset += (bases[ii] > 1 ? bases[ii]-1 : bases[ii]);
     }
@@ -1252,7 +1258,7 @@ void ibis::fade::construct2(const char* f, const uint32_t nbase) {
 
     // make sure all bit vectors are the same size
     for (uint32_t i = 0; i < nobs; ++i) {
-	bits[i]->adjustSize(0, nrows);
+	if (bits[i]) bits[i]->adjustSize(0, nrows);
     }
     // sum up the bitvectors according to range-encoding
     nobs = 0; // used as a counter now

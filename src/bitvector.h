@@ -116,20 +116,13 @@ public:
     word_t count(const bitvector& mask) const;
 
     // I/O functions.
-    /// Read a bit vector from the file.  Purge current contents before
-    /// read.
     void read(const char *fn);
-    /// Write the bit vector to a file.
     void write(const char *fn) const;
-    /// Write to a file that is opened by the caller.
     void write(int fdes) const;
-    /// Write the bit vector to an array_t<word_t>.  The serialized version
-    /// of the bit vector may be passed to another I/O function or sent
-    /// through networks.
     void write(array_t<word_t>& arr) const;
 
-    void compress();	///< Merge fills into fill words.
-    void decompress();	///< Turn all fill words into literal words.
+    void compress();
+    void decompress();
     word_t compressible() const;
     /// Does this bit vector use less space than the maximum? Return true
     /// if yes, otherwise false.

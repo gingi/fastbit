@@ -84,8 +84,7 @@ temperature values (<code>tmpr</code>) where the temperature is not one of
 the nominal values (55 for MegaBace and 60 for ABI).
 
 <pre>
-/home/kwu/bin/ibis -c /home/kwu/bin/ibis.rc -v
--q "select mchn, tmpr where ! (tmpr == 55 || tmpr == 60)"
+/home/kwu/bin/ibis -c /home/kwu/bin/ibis.rc -v -q "select mchn, tmpr where ! (tmpr == 55 || tmpr == 60)"
 </pre>
 
 On the particular machine, the most current version of the ibis
@@ -186,8 +185,7 @@ itself is treated the same as '-b 1', therefore multple bare -b options will
 inrease the number of threads used to build indexes.
 For example, the following set of -b options,
 <pre>
--b "a%:&lt;binning none/&gt;" -b ".b*:&lt;encoding
-interval-equality/&gt;" -b -b -b "bit-slice"
+-b "a%:&lt;binning none/&gt;" -b ".b*:&lt;encoding interval-equality/&gt;" -b -b -b "bit-slice"
 </pre>
 will build indexes with two threads.  All columns with 'a' as the first
 letter of their name will be index without binning (i.e., "&lt;binning

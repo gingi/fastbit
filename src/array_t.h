@@ -181,7 +181,13 @@ inline void ibis::array_t<T>::swap(array_t<T>& rhs) {
     m_end = e;
 } // ibis::array_t<T>::swap
 
-/// Add one element from the back.  This function allocates new storage 
+/// Add one element from the back.  This function allocates new storage
+/// under one of the following conditions:
+///
+/// - the existing storage object is empty or nil,
+/// - the existing storage object is read-only (i.e., associated with a
+///   named file),
+/// - the existing storage object has no free space for the new data value.
 template<class T> 
 inline void ibis::array_t<T>::push_back(const T& elm) {
     if (actual == 0) { // allocate storage

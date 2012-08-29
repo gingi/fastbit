@@ -1495,6 +1495,10 @@ void ibis::array_t<T>::resize(size_t n) {
 /// @note If the incoming argument is 0, this function will either allocate
 /// 32 / sizeof(T) elements if sizeof(T) is less than 32, or 2 elements if
 /// sizeof(T) is greater or equal to 32.
+///
+/// @note If the underlying storage could not be modified (i.e., is
+/// read-only), new storage will be allocated regardless of the current
+/// available storage.
 template<class T>
 void ibis::array_t<T>::reserve(size_t n) {
     if (n > 0x7FFFFFFFU) {

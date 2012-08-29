@@ -195,13 +195,10 @@ int ibis::moins::write(const char* dt) const {
     return ierr;
 } // ibis::moins::write
 
-/// Convert from the multicomponent equality code to a multicomponent range
-/// code.
+/// Convert from the multicomponent equality encoding to the multicomponent
+/// range encoding.
 void ibis::moins::convert() {
     //activate();
-    // store the current bitvectors in simple
-    array_t<bitvector*> simple(bits);
-
     // count the number of bitvectors to genreate
     uint32_t i;
     nbits = bases[0];
@@ -222,8 +219,10 @@ void ibis::moins::convert() {
 	<< nbases << "-component index from equality encoding to "
 	"interval encoding (using " << nbits << " bitvectors)";
 
+    // store the current bitvectors in simple
+    array_t<bitvector*> simple(nbits, 0);
+    bits.swap(simple);
     // generate the correct bitmaps
-    const uint32_t nrows = simple[0]->size();
     uint32_t offe = 0, offr = 0;
     for (i = 0; i < nbases; ++i) {
 	// copy the first bitvector of the component
@@ -247,7 +246,7 @@ void ibis::moins::convert() {
 	    delete simple[offe];
 	    ++ offe;
 	    bits[offr] = simple[offe];
-	    bits[offr]->flip();
+	    if (bits[offr]) bits[offr]->flip();
 	    ++ offe;
 	    ++ offr;
 	}
@@ -266,10 +265,11 @@ void ibis::moins::convert() {
 	    bits[i]->set(0, nrows);
 	}
     }
+
     optionalUnpack(bits, col->indexSpec());
 } // ibis::moins::convert
 
-// a simple function to test the speed of the bitvector operations
+/// A simple function to test the speed of the bitvector operations.
 void ibis::moins::speedTest(std::ostream& out) const {
     if (nrows == 0) return;
     uint32_t i, nloops = 1000000000 / nrows;

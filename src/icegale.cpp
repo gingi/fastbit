@@ -323,7 +323,7 @@ int ibis::egale::write32(int fdes) const {
     }
     offset32[0] += sizeof(uint32_t)*(nobs+1+nbases);
     for (uint32_t i = 0; i < nbits; ++i) {
-	bits[i]->write(fdes);
+	if (bits[i]) bits[i]->write(fdes);
 	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
 
@@ -423,7 +423,7 @@ int ibis::egale::write64(int fdes) const {
     }
     offset64[0] += sizeof(uint32_t)*(nobs+1+nbases);
     for (uint32_t i = 0; i < nbits; ++i) {
-	bits[i]->write(fdes);
+	if (bits[i]) bits[i]->write(fdes);
 	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
 
@@ -636,13 +636,10 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
    return 0;
 } // ibis::egale::read
 
-// convert from the one component equality code to a multicomponent
-// equality code
+/// Convert from the one-component equality encoding to the multicomponent
+/// equality encoding.
 void ibis::egale::convert() {
     //activate(); // make sure all bitvectors are here
-    // store the current bitvectors in simple
-    array_t<bitvector*> simple(bits);
-
     // count the number of bitvectors to genreate
     uint32_t i;
     nbits = bases[0];
@@ -652,18 +649,22 @@ void ibis::egale::convert() {
 	    nrows = bits[i]->size();
     for (i = 1; i < nbases; ++i)
 	nbits += bases[i];
-    // allocate enough bitvectors in bits
-    bits.resize(nbits);
-    for (i = 0; i < nbits; ++i)
-	bits[i] = 0;
-    cnts.resize(nobs);
     LOGGER(ibis::gVerbose > 4)
 	<< "egale[" << col->partition()->name() << "." << col->name()
 	<< "]::convert -- converting " << nobs << " bitmaps into " << nbases
 	<< "-component equality code (with " << nbits << " bitvectors)";
 
+    cnts.resize(nobs);
+    for (i = 0; i < nobs; ++i) {
+	cnts[i] = (bits[i] ? bits[i]->cnt() : 0);
+    }
+
     // generate the correct bitmaps
     if (nbases > 1) {
+	// store the existing bit vectors in simple
+	ibis::array_t<bitvector*> simple(nbits, 0);
+	simple.swap(bits);
+
 	for (i = 0; i < nobs; ++i) {
 	    if (simple[i] != 0) {
 		uint32_t offset = 0;
@@ -684,11 +685,7 @@ void ibis::egale::convert() {
 		    offset += bases[j];
 		}
 
-		cnts[i] = simple[i]->cnt();
 		delete simple[i]; // no longer need the bitmap
-	    }
-	    else {
-		cnts[i] = 0;
 	    }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	    if (ibis::gVerbose > 11 && (i & 255) == 255) {
@@ -698,6 +695,7 @@ void ibis::egale::convert() {
 #endif
 	}
 
+	simple.clear();
 	for (i = 0; i < nbits; ++i) {
 	    if (bits[i] == 0) {
 		bits[i] = new ibis::bitvector();
@@ -708,13 +706,6 @@ void ibis::egale::convert() {
 	    }
 	}
     }
-    else { // one component -- only need to copy the pointers
-	for (i = 0; i < nobs; ++i) {
-	    bits[i] = simple[i];
-	    cnts[i] = simple[i]->cnt();
-	}
-    }
-    simple.clear();
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 11) {
 	LOGGER(ibis::gVerbose >= 0)
@@ -722,7 +713,7 @@ void ibis::egale::convert() {
     }
 #endif
     optionalUnpack(bits, col->indexSpec());
-} // convert
+} // ibis::egale::convert
 
 /// Compute the basis sizes for a multicomponent index.
 /// Assume that the array bounds is initialized properly.  This function
@@ -746,7 +737,7 @@ void ibis::egale::setBit(const uint32_t i, const double val) {
 	offset += bases[ii];
 	kk /= bases[ii];
     }
-} // setBit
+} // ibis::egale::setBit
 
 /// Generate a new egale index by directly setting the bits in the
 /// multicomponent bitvectors.  The alternative was to build a simple

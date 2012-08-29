@@ -183,26 +183,27 @@ int ibis::entre::write(const char* dt) const {
     return ierr;
 } // ibis::entre::write
 
-// convert from the multicomponent equality code to a multicomponent
-// interval code.
-// NOTE: for a bases of size 2, only one (the first) bit vector is saved.
+/// Convert from the multicomponent equality encoding to the multicomponent
+/// interval encoding.
+///
+/// @note For a bases of size 2, only one (the first) bit vector is saved.
 void ibis::entre::convert() {
     //activate();
-    // store the current bitvectors in simple
-    array_t<bitvector*> simple(bits);
+    uint32_t i, offe = 0;
+    for (i = 0; nrows == 0 && i < bits.size(); ++ i)
+	if (bits[i])
+	    nrows = bits[i]->size();
+    nbases = bases.size();
     LOGGER(ibis::gVerbose > 4)
 	<< "entre[" << col->partition()->name() << '.' << col->name()
 	<< "]::convert -- converting " << nobs << "-bin "
 	<< nbases << "-component index from equality encoding to "
 	"interval encoding (using " << nbits << " bitvectors)";
 
-    nbases = bases.size();
-    // generate the correct bitmaps
+    // store the current bitvectors in simple
+    array_t<bitvector*> simple(nbits, 0);
+    bits.swap(simple);
     bits.clear();
-    uint32_t i, offe = 0;
-    for (i = 0; nrows == 0 && i < bits.size(); ++ i)
-	if (bits[i])
-	    nrows = bits[i]->size();
     for (i = 0; i < nbases; ++i) {
 	if (bases[i] > 2) {
 	    const uint32_t nb2 = (bases[i] - 1) / 2;

@@ -1,3 +1,12 @@
+2012-08-28 John Wu <John dot Wu at ACM dot org>
+	* src/icegale.cpp, src/icentre.cpp, src/icmoins.cpp: change
+	shallow copying of existing bit vectors into explicit copying in
+	function convert
+
+2012-08-27 John Wu <John dot Wu at ACM dot org>
+	* src/i*.cpp: update write32 and write64 to check that bits[i] is
+	not nil before calling ibis::bitvector::write
+
 2012-08-26 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.h:195 change atual-inUse() == 1 to actual-filename()
 	== 0 to allow shallow copies to be modified through push_back

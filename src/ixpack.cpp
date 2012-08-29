@@ -397,7 +397,7 @@ int ibis::pack::write32(int fdes) const {
 	return -8;
     }
     for (i = 0; i < nobs; ++i) {
-	bits[i]->write(fdes);
+	if (bits[i]) bits[i]->write(fdes);
 	offset32[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
     ierr = UnixSeek(fdes, start+sizeof(uint32_t)*2, SEEK_SET);
@@ -538,7 +538,7 @@ int ibis::pack::write64(int fdes) const {
 	return -8;
     }
     for (i = 0; i < nobs; ++i) {
-	bits[i]->write(fdes);
+	if (bits[i]) bits[i]->write(fdes);
 	offset64[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
     }
     ierr = UnixSeek(fdes, start+sizeof(uint32_t)*2, SEEK_SET);

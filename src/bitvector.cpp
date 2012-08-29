@@ -259,7 +259,8 @@ ibis::bitvector& ibis::bitvector::operator+=(const ibis::bitvector& bv) {
     return *this;
 } // ibis::bitvector::operator+=
 
-/// Compress the current m_vec in-place.
+/// Compress the current m_vec in-place.  It may reduces storage
+/// requirement by merging fills into fill words.
 void ibis::bitvector::compress() {
     if (m_vec.size() < 2 || m_vec.incore() == false) // there is nothing to do
 	return;
@@ -353,8 +354,9 @@ void ibis::bitvector::compress() {
     }
 } // ibis::bitvector::compress
 
-/// Decompress the currently compressed bitvector.  Throw an
-/// ibis::bad_alloc exception if it fails to allocate enough memory.
+/// Decompress the currently compressed bitvector.  It turns all fill words
+/// into literal words.  Throws an ibis::bad_alloc exception if it fails to
+/// allocate enough memory.
 void ibis::bitvector::decompress() {
     if (nbits == 0 && m_vec.size() > 0)
 	nbits = do_cnt();
@@ -1744,8 +1746,10 @@ std::ostream& operator<<(std::ostream& o, const ibis::bitvector& b) {
     return b.print(o);
 }
 
-// read vector from file (purge current contents first)
-// minimal amount of integrity checking
+/// Read a bit vector from the file.  Purge current contents before read.
+/// It purges the current contents first.  If the name file does not exist
+/// or the reading operation fails for any reason, the existing content is
+/// lost.
 void ibis::bitvector::read(const char * fn) {
     if (fn == 0 || *fn == 0) return;
     // let the file manager handle the read operation to avoid extra copying
@@ -1819,7 +1823,8 @@ void ibis::bitvector::read(const char * fn) {
     }
 } // ibis::bitvector::read
 
-// write bitvector to file (contents of vector is not changed)
+/// Write the bit vector to a file.
+/// The existing content of the file will be overwritten.
 void ibis::bitvector::write(const char * fn) const {
     if (fn == 0 || *fn == 0) return;
 
@@ -1893,7 +1898,10 @@ void ibis::bitvector::write(const char * fn) const {
 #endif
 } // ibis::bitvector::write
 
-// Write to an open file.
+/// Write to a file that is opened by the caller.  It starts writing at the
+/// current file pointer position and overwrites existing content if there
+/// is any.  The caller is responsible for openning the file and closing
+/// the file.
 void ibis::bitvector::write(int out) const {
     if (out < 0)
 	return;
@@ -1995,6 +2003,9 @@ void ibis::bitvector::write(int out) const {
 #endif
 } // ibis::bitvector::write
 
+/// Write the bit vector to an array_t<word_t>.  The serialized version
+/// of this bit vector may be passed to another I/O function or sent
+/// through networks.
 void ibis::bitvector::write(array_t<ibis::bitvector::word_t>& arr) const {
     arr.reserve(m_vec.size()+1+(active.nbits>0));
     arr.resize(m_vec.size());
