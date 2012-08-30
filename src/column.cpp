@@ -579,8 +579,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    << "Warning -- column::actualMinMax can not handle column type "
 	    << ibis::TYPESTRING[static_cast<int>(m_type)]
 	    << ", only support int, uint, float, double";
-	min = 0;
-	max = (thePart != 0) ? thePart->nRows() : -DBL_MAX;
+	min = DBL_MAX;
+	max = -DBL_MAX;
     } // switch(m_type)
 } // ibis::column::actualMinMax
 
@@ -6344,7 +6344,7 @@ long ibis::column::stringSearch(const char*, ibis::bitvector&) const {
 }
 
 long ibis::column::stringSearch(const char*) const {
-    return (thePart ? (long)thePart->nRows() : -1L);
+    return (thePart ? (long)thePart->nRows() : INT_MAX);
 }
 
 long ibis::column::stringSearch(const std::vector<std::string>&,
@@ -6357,7 +6357,7 @@ long ibis::column::stringSearch(const std::vector<std::string>&,
 }
 
 long ibis::column::stringSearch(const std::vector<std::string>&) const {
-    return (thePart ? (long)thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : INT_MAX);
 }
 
 long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
@@ -6369,7 +6369,7 @@ long ibis::column::keywordSearch(const char*, ibis::bitvector&) const {
 }
 
 long ibis::column::keywordSearch(const char*) const {
-    return (thePart ? (long)thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : INT_MAX);
 }
 
 long ibis::column::keywordSearch(const std::vector<std::string>&,
@@ -6382,11 +6382,11 @@ long ibis::column::keywordSearch(const std::vector<std::string>&,
 }
 
 long ibis::column::keywordSearch(const std::vector<std::string>&) const {
-    return (thePart ? (long)thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : INT_MAX);
 }
 
 long ibis::column::patternSearch(const char*) const {
-    return (thePart ? (long)thePart->nRows() : -1);
+    return (thePart ? (long)thePart->nRows() : INT_MAX);
 }
 
 long ibis::column::patternSearch(const char*, ibis::bitvector &) const {

@@ -517,6 +517,9 @@ public:
     virtual long stringSearch(const std::vector<std::string>&) const;
     virtual long keywordSearch(const char*, ibis::bitvector&) const;
     virtual long keywordSearch(const char*) const;
+    virtual long keywordSearch(const std::vector<std::string>&,
+			       ibis::bitvector&) const;
+    virtual long keywordSearch(const std::vector<std::string>&) const;
     virtual long patternSearch(const char*) const;
     virtual long patternSearch(const char*, ibis::bitvector &) const;
 

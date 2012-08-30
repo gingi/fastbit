@@ -293,31 +293,30 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(T
 	@date > $(TESTDIR)/large-sanity-check.log
 	@jcase=0; for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
-	perl -pi -e "s/index = .*/index = <binning $$b\/> <encoding $$e\/>/" $(TESTDIR)/?/*/-part.txt; \
-	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
 	echo >> $(TESTDIR)/large-sanity-check.log 2>&1; \
-	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log 2>&1; \
+	echo "$@ case # $${jcase}  index = <binning $$b\/> <encoding $$e\/>" >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem2.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	else \
+	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	fi; jcase=`expr 1 + $${jcase}`; \
-	if [ $${test_status} -eq 0 ] ; then echo "  Completed case $${jcase} of $@"; \
+	if [ $${test_status} -eq 0 ] ; then echo "  Completed case # $${jcase} of $@"; \
 	else echo "  Did NOT complete case $${jcase} of $@: $(IBISEXE) exited with $${test_status}"; fi \
 	done; \
 	done
 	@jcase=180; for i in "range/range" "range/bin" "bin/range" "bin/bin" "bit-slice" ; do \
-	perl -pi -e "s#index = .*#index = $$i#" $(TESTDIR)/?/*/-part.txt; \
-	rm -f $(TESTDIR)/?/*/*.idx $(TESTDIR)/?/*/*.bin; \
 	echo >> $(TESTDIR)/large-sanity-check.log 2>&1; \
-	fgrep 'index = ' $(TESTDIR)/0/test0/-part.txt >> $(TESTDIR)/large-sanity-check.log 2>&1; \
+	echo "$@ case # $${jcase}  index = $$i" >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b "$$i" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	else \
+	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -b "$$i" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	fi; jcase=`expr 1 + $${jcase}`; \

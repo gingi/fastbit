@@ -98,20 +98,20 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libfastbit_la_LIBADD =
-am_libfastbit_la_OBJECTS = part.lo bord.lo ibin.lo column.lo index.lo \
-	array_t.lo parth3dw.lo parth3da.lo parth3db.lo parth2d.lo \
-	parth3d.lo meshQuery.lo query.lo colValues.lo bitvector.lo \
-	islice.lo ixambit.lo parth.lo mensa.lo tafel.lo party.lo \
-	qExpr.lo utilidor.lo bitvector64.lo irange.lo category.lo \
-	iroster.lo irelic.lo ixpack.lo fileManager.lo filter.lo \
-	bundle.lo capi.lo ixbylt.lo ixpale.lo util.lo ixzone.lo \
-	ixfuge.lo ixfuzz.lo isbiad.lo icegale.lo ifade.lo ixzona.lo \
-	parti.lo idirekte.lo blob.lo jnatural.lo iskive.lo isapid.lo \
-	idbak2.lo jrange.lo icentre.lo quaere.lo countQuery.lo \
-	imesa.lo ikeywords.lo selectClause.lo dictionary.lo \
-	whereClause.lo idbak.lo icmoins.lo resource.lo fromClause.lo \
-	rids.lo fromLexer.lo whereParser.lo selectLexer.lo \
-	whereLexer.lo fromParser.lo selectParser.lo
+am_libfastbit_la_OBJECTS = part.lo bord.lo ibin.lo bordm.lo column.lo \
+	index.lo array_t.lo parth3dw.lo parth3da.lo parth3db.lo \
+	parth2d.lo parth3d.lo meshQuery.lo query.lo colValues.lo \
+	bitvector.lo islice.lo ixambit.lo parth.lo mensa.lo tafel.lo \
+	party.lo qExpr.lo utilidor.lo bitvector64.lo irange.lo \
+	category.lo iroster.lo irelic.lo ixpack.lo fileManager.lo \
+	filter.lo bundle.lo capi.lo ixbylt.lo ixpale.lo util.lo \
+	ixzone.lo ixfuge.lo ixfuzz.lo isbiad.lo icegale.lo ifade.lo \
+	ixzona.lo parti.lo idirekte.lo blob.lo jnatural.lo iskive.lo \
+	isapid.lo idbak2.lo jrange.lo icentre.lo quaere.lo \
+	countQuery.lo imesa.lo ikeywords.lo selectClause.lo \
+	dictionary.lo whereClause.lo idbak.lo icmoins.lo resource.lo \
+	fromClause.lo rids.lo fromLexer.lo whereParser.lo \
+	selectLexer.lo whereLexer.lo fromParser.lo selectParser.lo
 libfastbit_la_OBJECTS = $(am_libfastbit_la_OBJECTS)
 libfastbit_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -271,7 +271,7 @@ uudecode = @uudecode@
 z_check_pthread_config = @z_check_pthread_config@
 AUTOMAKE_OPTIONS = gnu
 lib_LTLIBRARIES = libfastbit.la
-libfastbit_la_SOURCES = part.cpp bord.cpp ibin.cpp column.cpp index.cpp \
+libfastbit_la_SOURCES = part.cpp bord.cpp ibin.cpp bordm.cpp column.cpp index.cpp \
  array_t.cpp parth3dw.cpp parth3da.cpp parth3db.cpp parth2d.cpp parth3d.cpp \
  meshQuery.cpp query.cpp colValues.cpp bitvector.cpp islice.cpp \
  ixambit.cpp parth.cpp mensa.cpp tafel.cpp party.cpp qExpr.cpp utilidor.cpp \
@@ -381,6 +381,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bitvector64.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/blob.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bord.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bordm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bundle.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/capi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/category.Plo@am__quote@

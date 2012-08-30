@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS=gnu
 
 lib_LTLIBRARIES = libfastbit.la
-libfastbit_la_SOURCES = part.cpp bord.cpp ibin.cpp column.cpp index.cpp \
+libfastbit_la_SOURCES = part.cpp bord.cpp ibin.cpp bordm.cpp column.cpp index.cpp \
  array_t.cpp parth3dw.cpp parth3da.cpp parth3db.cpp parth2d.cpp parth3d.cpp \
  meshQuery.cpp query.cpp colValues.cpp bitvector.cpp islice.cpp \
  ixambit.cpp parth.cpp mensa.cpp tafel.cpp party.cpp qExpr.cpp utilidor.cpp \

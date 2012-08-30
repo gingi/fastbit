@@ -1,6 +1,20 @@
+2012-08-29 Michael Beauregard <michael at insightfulminds dot com>
+	* src/bord.cpp:11380 add case for converting a float to double
+
 2012-08-29 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.cpp: clean up in-line documentation while
 	examining a report of deadlock from Petr Velan
+	* src/index.cpp: when use requested bit-sliced index, use
+	ibis::skive if the data type is not integer or the minimum is less
+	than 0 (address problem encountered with make full-check)
+	* src/bord.cpp, src/category.cpp: add missing versions of
+	stringSearch and keywordSearch in ibis::bord::column and
+	ibis::text
+	* src/bordm.cpp: move all functions related to bord::merge into
+	bordm.cpp in an attempt to make it easier to build FastBit for iOS
+	applications (per suggestion of Michael Beauregard)
+	* tests/Makefile.am: change large-sanity-check to set indexing
+	option through ibis command line (instead of through perl)
 
 2012-08-28 John Wu <John dot Wu at ACM dot org>
 	* src/icegale.cpp, src/icentre.cpp, src/icmoins.cpp: change

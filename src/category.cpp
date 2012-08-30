@@ -1746,6 +1746,14 @@ long ibis::text::append(const char* dt, const char* df,
     return ret;
 } // ibis::text::append
 
+long ibis::text::stringSearch(const char*) const {
+    return (thePart ? thePart->nRows() : INT_MAX);
+} // ibis::text::stringSearch
+
+long ibis::text::stringSearch(const std::vector<std::string>&) const {
+    return (thePart ? thePart->nRows() : INT_MAX);
+} // ibis::text::stringSearch
+
 /// Given a string literal, return a bitvector that marks the strings that
 /// matche it.  This is a relatively slow process since this function
 /// actually reads the string values from disk.
@@ -2354,6 +2362,10 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 	<< " in \"" << data << "\" matching " << strs.size() << " strings";
     return hits.cnt();
 } // ibis::text::stringSearch
+
+long ibis::text::patternSearch(const char*) const {
+    return (thePart ? thePart->nRows() : INT_MAX);
+} // ibis::text::patternSearch
 
 long ibis::text::patternSearch(const char* pat, ibis::bitvector& hits) const {
     hits.clear(); // clear the existing content of hits
@@ -3344,7 +3356,7 @@ long ibis::text::keywordSearch(const std::vector<std::string> &strs) const {
     long ierr = 0;
     try {
 	if (strs.empty())
-	    return (thePart != 0 ? thePart->nRows() : LONG_MAX);
+	    return (thePart != 0 ? thePart->nRows() : INT_MAX);
 
 	indexLock lock(this, "keywordSearch");
 	if (idx != 0 && idx->type() == ibis::index::KEYWORDS) {

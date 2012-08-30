@@ -930,6 +930,7 @@ ibis::index* ibis::index::buildNew
     else if (!usebin) { // <binning none> is specified explicitly
 	INDEX_TYPE t = RELIC;
 	const char* str = strstr(spec, "<encoding ");
+	double lo = c->lowerBound(), hi = c->upperBound();
 	if (str) {
 	    str += 10; // skip "<encoding "
 	    if (strstr(str, "range/equality") ||
@@ -959,11 +960,10 @@ ibis::index* ibis::index::buildNew
 		t = SBIAD;
 	    }
 	    else if (strstr(str, "range")) {
-		if (c->lowerBound() < c->upperBound()) {
+		if (lo < hi) {
 		    t = FADE;
 		}
 		else {
-		    double lo, hi;
 		    c->computeMinMax(dfname, lo, hi);
 		    if (lo < hi)
 			t = FADE;
@@ -983,7 +983,17 @@ ibis::index* ibis::index::buildNew
 	    t = SKIVE;
 	}
 	else if (strstr(spec, "slice") != 0) { // bit-slice, bitslice
-	    t = SLICE;
+	    if (c->isInteger()) {
+		if (! (lo < hi))
+		    c->computeMinMax(dfname, lo, hi);
+		if (lo >= 0)
+		    t = SLICE;
+		else
+		    t = SKIVE;
+	    }
+	    else {
+		t = SKIVE;
+	    }
 	}
 	else {
 	    t = SAPID;

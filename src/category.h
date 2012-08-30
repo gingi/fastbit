@@ -34,14 +34,17 @@ public:
     virtual long keywordSearch(const char* str, ibis::bitvector& hits) const;
     virtual long keywordSearch(const std::vector<std::string>& strs,
 			       ibis::bitvector& hits) const;
-    virtual long keywordSearch(const char* str) const;
-    virtual long keywordSearch(const std::vector<std::string>& strs) const;
+    virtual long keywordSearch(const char*) const;
+    virtual long keywordSearch(const std::vector<std::string>&) const;
 
     virtual long stringSearch(const char* str, ibis::bitvector& hits) const;
     virtual long stringSearch(const std::vector<std::string>& strs,
 			      ibis::bitvector& hits) const;
+    virtual long stringSearch(const char* str) const;
+    virtual long stringSearch(const std::vector<std::string>& strs) const;
 
     virtual long patternSearch(const char*, ibis::bitvector&) const;
+    virtual long patternSearch(const char*) const;
 
     using ibis::column::estimateCost;
     virtual double estimateCost(const ibis::qString& cmp) const;
