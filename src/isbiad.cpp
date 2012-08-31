@@ -262,7 +262,8 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
     }
 #endif
     // sum up the bitvectors according to the interval-encoding
-    array_t<bitvector*> beq(bits);
+    array_t<bitvector*> beq;
+    beq.swap(bits);
     try { // use a try block to ensure the bitvectors in beq are freed
 	uint32_t ke = 0;
 	bits.clear();
@@ -322,10 +323,11 @@ void ibis::sbiad::construct1(const char* f, const uint32_t nbase) {
     }
 } // ibis::sbiad::construct1
 
-// assume that the array vals is initialized properly, this function
-// converts the value val into a set of bits to be stored in the bitvectors
-// contained in bits
-// **** to be used by construct2() to build a new ibis::sbiad index ****
+/// Assign bit values for a given key value.  Assume that the array @c vals
+/// is initialized properly, this function converts the value @cval into a
+/// set of bits to be stored in the bit vectors contained in @c bits.
+///
+/// @note to be used by @c construct2 to build a new ibis::sbiad index.
 void ibis::sbiad::setBit(const uint32_t i, const double val) {
     if (val > vals.back()) return;
     if (val < vals[0]) return;
@@ -369,9 +371,9 @@ void ibis::sbiad::setBit(const uint32_t i, const double val) {
     }
 } // ibis::sbiad::setBit
 
-// generate a new sbiad index by passing through the data twice
-// (1) scan the data to generate a list of distinct values and their count
-// (2) scan the data a second time to produce the bit vectors
+/// Generate a new sbiad index by passing through the data twice.
+/// - (1) scan the data to generate a list of distinct values and their count.
+/// - (2) scan the data a second time to produce the bit vectors.
 void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
     { // a block to limit the scope of hst
 	histogram hst;
@@ -380,28 +382,28 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	    return;
 
 	// convert histogram into two arrays
-	uint32_t tmp = hst.size();
-	vals.resize(tmp);
-	cnts.resize(tmp);
+	const uint32_t nhst = hst.size();
+	vals.resize(nhst);
+	cnts.resize(nhst);
 	histogram::const_iterator it = hst.begin();
-	for (uint32_t i = 0; i < tmp; ++i) {
+	for (uint32_t i = 0; i < nhst; ++i) {
 	    vals[i] = (*it).first;
 	    cnts[i] = (*it).second;
 	    ++ it;
 	}
     }
 
-    // determie the bases
+    // determine the base sizes
     setBases(bases, vals.size(), nbase);
     const uint32_t nb = bases.size();
 
     // allocate the correct number of bitvectors
     uint32_t nobs = 0;
-    for (uint32_t tmp = 0; tmp < nb; ++tmp)
-	nobs += bases[tmp];
+    for (uint32_t ii = 0; ii < nb; ++ii)
+	nobs += bases[ii];
     bits.resize(nobs);
-    for (uint32_t i = 0; i < nobs; ++i)
-	bits[i] = new ibis::bitvector;
+    for (uint32_t ii = 0; ii < nobs; ++ii)
+	bits[ii] = new ibis::bitvector;
 
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
@@ -896,7 +898,8 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	bits[i]->adjustSize(0, nrows);
     }
     // sum up the bitvectors according to interval-encoding
-    array_t<bitvector*> beq(bits);
+    array_t<bitvector*> beq;
+    beq.swap(bits);
     try {    
 	uint32_t ke = 0;
 	bits.clear();

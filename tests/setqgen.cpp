@@ -1,14 +1,15 @@
 /***************************************************************
  *
- * setqbgen.c - data generator for the set query benchmark
+ * setqbgen.cpp - data generator for the set query benchmark
  * <http://www.cs.umb.edu/~poneil/SetQBM.pdf>
  *
  * usage: setqgen <root-data-dir> <#rows> <#rows-per-dir>
  *
- * It generates the data as 32-bit integers for FastBit.  If more than one
- * directory is needed, it will generate a set of subdirectories in the
- * root-data-dir with the names that are a concatenation of the
- * root-data-dir name and hexadecimal version of the partition number.
+ * It generates the data as integers of various sizes in the raw binary
+ * format that can be directly used by FastBit.  If more than one directory
+ * is needed, it will generate a set of subdirectories in the root-data-dir
+ * with the names that are a concatenation of the root-data-dir name and
+ * hexadecimal version of the partition number.
  *
  * Optional 4th and 5th arguments could be given.  When only four arguments
  * are given, if it starts with a decimal digit it program writes out an

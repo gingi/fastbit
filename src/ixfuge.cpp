@@ -182,7 +182,7 @@ ibis::fuge::fuge(const ibis::column* c, ibis::fileManager::storage* st,
 } // ibis::fuge::fuge
 
 int ibis::fuge::write(const char* dt) const {
-    if (nobs <= 1) return -1;
+    if (nobs <= 0) return -1;
 
     std::string fnm;
     indexFileName(fnm, dt);

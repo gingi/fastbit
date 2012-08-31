@@ -209,10 +209,6 @@ void ibis::moins::convert() {
     for (i = 1; i < nbases; ++i)
 	nbits += bases[i];
     nbits -= nbases;
-    // allocate enough bitvectors in bits
-    bits.resize(nbits);
-    for (i = 0; i < nbits; ++i)
-	bits[i] = 0;
     LOGGER(ibis::gVerbose > 4)
 	<< "moins[" << col->partition()->name() << '.' << col->name()
 	<< "]::convert -- converting " << nobs << "-bin "
@@ -235,9 +231,12 @@ void ibis::moins::convert() {
 	++ offr;
 	++ offe;
 	for (uint32_t j = 1; j+2 < bases[i]; ++j) {
-	    if (simple[offe]) {
+	    if (simple[offe]) { // add bit vector for the new bin
 		bits[offr] = *(bits[offr-1]) | *(simple[offe]);
 		delete simple[offe];
+	    }
+	    else { // copy the previous bit vector
+		bits[offr] = new ibis::bitvector(*(bits[offr-1]));
 	    }
 	    ++ offr;
 	    ++ offe;

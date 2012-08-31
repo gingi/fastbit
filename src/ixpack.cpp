@@ -270,7 +270,7 @@ ibis::pack::pack(const ibis::column* c, ibis::fileManager::storage* st,
 /// be a directory name or a file name.  The actualy index file name is
 /// determined by the function indexFileName.
 int ibis::pack::write(const char* dt) const {
-    if (nobs <= 1) return -1;
+    if (nobs <= 0) return -1;
 
     std::string fnm;
     indexFileName(fnm, dt);

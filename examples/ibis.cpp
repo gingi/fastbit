@@ -2489,12 +2489,14 @@ static void parse_args(int argc, char** argv, int& mode,
 	    lg() << ", testing " << testing;
 	if (threading > 0)
 	    lg() << ", threading " << threading;
-	if (estimate_opt < 0)
-	    lg() << ", skipping estimation";
-	else if (estimate_opt > 0)
-	    lg() << ", computing only bounds";
-	else
-	    lg() << ", with estimation";
+	if (mode > 0 || qlist.size() > 0) {
+	    if (estimate_opt < 0)
+		lg() << ", skipping estimation";
+	    else if (estimate_opt > 0)
+		lg() << ", computing only bounds";
+	    else
+		lg() << ", with estimation";
+	}
 	if (! alist.empty()) {
 	    lg() << "\nappending data in the following director"
 		 << (alist.size()>1 ? "ies" : "y");

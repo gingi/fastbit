@@ -409,25 +409,25 @@ void ibis::fileManager::clear() {
     unload(0);
     if (! mapped.empty() || ! incore.empty()) {
 	std::vector<roFile*> tmp; // temporarily holds the read-only files
-	softWriteLock wlck("fileManager::clear");
-	if (! wlck.isLocked()) {
-	    if (ibis::gVerbose > 1) {
-		ibis::util::logger lg;
-		lg() << "Warning -- fileManager::clear failed to "
-		    "acquire a write lock for deleting the in-memory objects\n";
-		if (ibis::gVerbose > 5) {
-		    printStatus(lg());
-		}
-		else {
-		    lg() << "There are " << mapped.size()
-			 << " memory map" << (mapped.size()>1?"s":"")
-			 << " and " << incore.empty()
-			 << " in-memory file"
-			 << (incore.size()>1?"s":"");
-		}
-	    }
-	    return;
-	}
+	// softWriteLock wlck("fileManager::clear");
+	// if (! wlck.isLocked()) {
+	//     if (ibis::gVerbose > 1) {
+	// 	ibis::util::logger lg;
+	// 	lg() << "Warning -- fileManager::clear failed to "
+	// 	    "acquire a write lock for deleting the in-memory objects\n";
+	// 	if (ibis::gVerbose > 5) {
+	// 	    printStatus(lg());
+	// 	}
+	// 	else {
+	// 	    lg() << "There are " << mapped.size()
+	// 		 << " memory map" << (mapped.size()>1?"s":"")
+	// 		 << " and " << incore.empty()
+	// 		 << " in-memory file"
+	// 		 << (incore.size()>1?"s":"");
+	// 	}
+	//     }
+	//     return;
+	// }
 
 	tmp.reserve(mapped.size()+incore.size());
 	for (fileList::const_iterator it=mapped.begin();
@@ -638,9 +638,9 @@ ibis::fileManager::fileManager()
     if (maxOpenFiles < FOPEN_MAX)
 	maxOpenFiles = FOPEN_MAX;
 #endif
-    if (pthread_rwlock_init(&lock, 0) != 0)
-	throw ibis::bad_alloc("pthread_rwlock_init failed in fileManager "
-			      "ctor");
+    // if (pthread_rwlock_init(&lock, 0) != 0)
+    // 	throw ibis::bad_alloc("pthread_rwlock_init failed in fileManager "
+    // 			      "ctor");
     if (pthread_mutex_init(&mutex, 0) != 0)
 	throw ibis::bad_alloc("pthread_mutex_init failed in "
 			      "fileManager ctor");
@@ -660,7 +660,7 @@ ibis::fileManager::fileManager()
 ibis::fileManager::~fileManager() {
     ibis::util::clear(ibis::datasets);
     clear();
-    (void)pthread_rwlock_destroy(&lock);
+    // (void)pthread_rwlock_destroy(&lock);
     (void)pthread_mutex_destroy(&mutex);
     (void)pthread_cond_destroy(&cond);
     LOGGER(ibis::gVerbose > 3)
@@ -1497,48 +1497,48 @@ void ibis::fileManager::signalMemoryAvailable() const {
     }
 } // ibis::fileManager::signalMemoryAvailable
 
-/// Constructor.  It attempts to acquire the lock and records whether a
-/// write lock was acquired as a boolean variable.  The function isLocked
-/// returns whether the lock has been acquired.
-ibis::fileManager::softWriteLock::softWriteLock(const char* m)
-    : mesg(m),
-      locked_(pthread_rwlock_trywrlock(&(ibis::fileManager::instance().lock))) {
-    if (locked_ == 0) {
-	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::softWriteLock acquired the write lock ("
-	    << static_cast<const void*>(&(ibis::fileManager::instance().lock))
-	    << ") for " << m;
-    }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::softWriteLock failed to acquire "
-	    "the write lock ("
-	    << static_cast<const void*>(&(ibis::fileManager::instance().lock))
-	    << ") for " << m << ", error code = " << locked_;
-    }
-}
+// /// Constructor.  It attempts to acquire the lock and records whether a
+// /// write lock was acquired as a boolean variable.  The function isLocked
+// /// returns whether the lock has been acquired.
+// ibis::fileManager::softWriteLock::softWriteLock(const char* m)
+//     : mesg(m),
+//       locked_(pthread_rwlock_trywrlock(&(ibis::fileManager::instance().lock))) {
+//     if (locked_ == 0) {
+// 	LOGGER(ibis::gVerbose > 9)
+// 	    << "fileManager::softWriteLock acquired the write lock ("
+// 	    << static_cast<const void*>(&(ibis::fileManager::instance().lock))
+// 	    << ") for " << m;
+//     }
+//     else {
+// 	LOGGER(ibis::gVerbose >= 0)
+// 	    << "Warning -- fileManager::softWriteLock failed to acquire "
+// 	    "the write lock ("
+// 	    << static_cast<const void*>(&(ibis::fileManager::instance().lock))
+// 	    << ") for " << m << ", error code = " << locked_;
+//     }
+// }
 
-/// Destructor.
-ibis::fileManager::softWriteLock::~softWriteLock() {
-    if (locked_ == 0) {
-	int ierr = pthread_rwlock_unlock(&(ibis::fileManager::instance().lock));
-	if (0 == ierr) {
-	    LOGGER(ibis::gVerbose > 9)
-		<< "fileManager::softWriteLock released the write lock ("
-		<< static_cast<const void*>
-		(&(ibis::fileManager::instance().lock)) << ") for "
-		<< mesg;
-	}
-	else {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- fileManager::softWriteLock failed to release "
-		"the write lock (" << static_cast<const void*>
-		(&(ibis::fileManager::instance().lock))
-		<< ") for " << mesg << " with the error code "
-		<< ierr << " -- " << strerror(ierr);
-	}
-    }
-}
+// /// Destructor.
+// ibis::fileManager::softWriteLock::~softWriteLock() {
+//     if (locked_ == 0) {
+// 	int ierr = pthread_rwlock_unlock(&(ibis::fileManager::instance().lock));
+// 	if (0 == ierr) {
+// 	    LOGGER(ibis::gVerbose > 9)
+// 		<< "fileManager::softWriteLock released the write lock ("
+// 		<< static_cast<const void*>
+// 		(&(ibis::fileManager::instance().lock)) << ") for "
+// 		<< mesg;
+// 	}
+// 	else {
+// 	    LOGGER(ibis::gVerbose >= 0)
+// 		<< "Warning -- fileManager::softWriteLock failed to release "
+// 		"the write lock (" << static_cast<const void*>
+// 		(&(ibis::fileManager::instance().lock))
+// 		<< ") for " << mesg << " with the error code "
+// 		<< ierr << " -- " << strerror(ierr);
+// 	}
+//     }
+// }
 
 //////////////////////////////////////////////////////////////////////
 // functions for the buffer template
@@ -2239,9 +2239,9 @@ ibis::fileManager::roFile::roFile()
 /// Start using a file.  Increments the active reference.
 void ibis::fileManager::roFile::beginUse() {
     // acquire a read lock
-    if (name != 0) {
-	ibis::fileManager::instance().gainReadAccess(name);
-    }
+    // if (name != 0) {
+    // 	ibis::fileManager::instance().gainReadAccess(name);
+    // }
     lastUse = time(0);
     ++ nref;
 #if defined(DEBUG) || defined(_DEBUG)
@@ -2266,7 +2266,7 @@ void ibis::fileManager::roFile::endUse() {
 
     // relinquish the read lock
     if (name != 0) {
-	ibis::fileManager::instance().releaseAccess(name);
+	//ibis::fileManager::instance().releaseAccess(name);
 	// signal to ibis::fileManager that this file is ready for deletion
 	if (nr0 == 0)
 	    pthread_cond_signal(&(ibis::fileManager::instance().cond));

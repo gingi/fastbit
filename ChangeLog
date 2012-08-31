@@ -1,3 +1,20 @@
+2012-08-31 John Wu <John dot Wu at ACM dot org>
+	* src/icmoins.cpp: in function convert, remove leftover statements
+	that assigns bits to nil pointers
+	* src/fileManager.h, src/fileManager.cpp: comment out all
+	statements related to rwlock in an attempt to simplify the logic
+	about access control (to address the deadlock problem reported by
+	Petr Velan)
+	* src/ixpack.cpp, src/ixfuge.cpp: change test of (nobs <= 1) in
+	the function write to be (nobs <= 0) to allow indexes with a
+	single bitmap
+
+2012-08-30 John Wu <John dot Wu at ACM dot org>
+	* src/ifade.cpp, src/isbiad.cpp, src/isapid.cpp: clean up
+	conversion operations to match the changed semantics of
+	ibis::array_t<T>::push_back (problems revealed with 'make
+	large-tests')
+
 2012-08-29 Michael Beauregard <michael at insightfulminds dot com>
 	* src/bord.cpp:11380 add case for converting a float to double
 

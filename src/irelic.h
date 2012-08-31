@@ -7,7 +7,7 @@
 ///@file
 /// Define ibis::relic and its derived classes
 ///@verbatim
-/// relic -> skive, fade, bylt(pack), zona (zone), fuzz
+/// relic -> skive, fade, bylt (pack), zona (zone), fuzz
 /// fade -> sbiad, sapid
 ///@endverbatim
 ///

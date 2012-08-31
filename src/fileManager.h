@@ -85,27 +85,27 @@ public:
     static storage* getFileSegment(const char* name, const int fdes,
 				   const off_t b, const off_t e);
 
-    /// Obtain a read lock on the file manager.
-    inline void gainReadAccess(const char* mesg) const;
-    /// Release a read lock on the file manager.
-    inline void releaseAccess(const char* mesg) const;
+    // /// Obtain a read lock on the file manager.
+    // inline void gainReadAccess(const char* mesg) const;
+    // /// Release a read lock on the file manager.
+    // inline void releaseAccess(const char* mesg) const;
     /// A read lock on the file manager.  Any object using a file under the
-    /// management of the file manager should hold a readLock.
-    class readLock {
-    public:
-	/// Constructor.  Acquires a read lock.
-	readLock(const char* m) : mesg(m) {
-	    ibis::fileManager::instance().gainReadAccess(m);
-	}
-	/// Destructor.  Releases the read lock.
-	~readLock() {
-	    ibis::fileManager::instance().releaseAccess(mesg);
-	}
-    private:
-	/// A free-form message.  Typically used to identify the holder of
-	/// the lock.
-	const char* mesg;
-    };
+    // /// management of the file manager should hold a readLock.
+    // class readLock {
+    // public:
+    // 	/// Constructor.  Acquires a read lock.
+    // 	readLock(const char* m) : mesg(m) {
+    // 	    ibis::fileManager::instance().gainReadAccess(m);
+    // 	}
+    // 	/// Destructor.  Releases the read lock.
+    // 	~readLock() {
+    // 	    ibis::fileManager::instance().releaseAccess(mesg);
+    // 	}
+    // private:
+    // 	/// A free-form message.  Typically used to identify the holder of
+    // 	/// the lock.
+    // 	const char* mesg;
+    // };
 
     /// Return the current cache size in bytes.
     static uint64_t currentCacheSize() {return maxBytes;}
@@ -192,10 +192,11 @@ private:
     pthread_cond_t readCond;
 
     /// The multiple read single write lock
-    mutable pthread_rwlock_t lock;
-    // Control access to incore and mapped
+    //mutable pthread_rwlock_t lock;
+    /// Control access to incore and mapped
     mutable pthread_mutex_t mutex;
-    // conditional variable -- unload(), etc..
+    /// Conditional variable.  Used to control waiting for I/O operations
+    /// and memory allocations.
     mutable pthread_cond_t cond;
 
     static time_t hbeat;	// a simple counter, no mutex lock
@@ -401,20 +402,20 @@ private:
 }; // ibis::fileManager::rofSegment
 #endif
 
-/// A write lock for controlling access to the two internal lists.
-class ibis::fileManager::writeLock {
-public:
-    /// Constructor.  Acquires a write lock.
-    writeLock(const char* m) : mesg(m)
-    {ibis::fileManager::instance().gainWriteAccess(mesg);}
-    /// Destructor.  Releases the write lock.
-    ~writeLock() {ibis::fileManager::instance().releaseAccess(mesg);}
-private:
-    const char* mesg;
+// /// A write lock for controlling access to the two internal lists.
+// class ibis::fileManager::writeLock {
+// public:
+//     /// Constructor.  Acquires a write lock.
+//     writeLock(const char* m) : mesg(m)
+//     {ibis::fileManager::instance().gainWriteAccess(mesg);}
+//     /// Destructor.  Releases the write lock.
+//     ~writeLock() {ibis::fileManager::instance().releaseAccess(mesg);}
+// private:
+//     const char* mesg;
 
-    writeLock(const writeLock&);
-    writeLock& operator=(const writeLock&);
-}; // ibis::fileManager::writeLock
+//     writeLock(const writeLock&);
+//     writeLock& operator=(const writeLock&);
+// }; // ibis::fileManager::writeLock
 
 /// A soft write lock for controlling access to the two internal lists.
 class ibis::fileManager::softWriteLock {
@@ -440,56 +441,56 @@ inline uint64_t ibis::fileManager::bytesFree() {
 	    maxBytes - ibis::fileManager::totalBytes() : 0);
 } // ibis::fileManager::bytesFree
 
-/// Release the read/write lock.
-inline void ibis::fileManager::releaseAccess(const char* mesg) const {
-    int ierr = pthread_rwlock_unlock(&lock);
-    if (0 == ierr) {
-	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::releaseAccess   on "
-	    << static_cast<const void*>(&lock) << " for " << mesg;
-    }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::releaseAccess   on "
-	    << static_cast<const void*>(&lock) << " for " << mesg
-	    << " failed with the error code " << ierr << " -- "
-	    << strerror(ierr);
-    }
-} // ibis::fileManager::releaseAccess
+// /// Release the read/write lock.
+// inline void ibis::fileManager::releaseAccess(const char* mesg) const {
+//     int ierr = pthread_rwlock_unlock(&lock);
+//     if (0 == ierr) {
+// 	LOGGER(ibis::gVerbose > 9)
+// 	    << "fileManager::releaseAccess   on "
+// 	    << static_cast<const void*>(&lock) << " for " << mesg;
+//     }
+//     else {
+// 	LOGGER(ibis::gVerbose >= 0)
+// 	    << "Warning -- fileManager::releaseAccess   on "
+// 	    << static_cast<const void*>(&lock) << " for " << mesg
+// 	    << " failed with the error code " << ierr << " -- "
+// 	    << strerror(ierr);
+//     }
+// } // ibis::fileManager::releaseAccess
 
-/// Gain read access.  It blocks when waiting to acquire the read lock.
-inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
-    int ierr = pthread_rwlock_rdlock(&lock);
-    if (0 == ierr) {
-	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::gainReadAccess  on "
-	    << static_cast<const void*>(&lock) << " for " << mesg;
-    }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::gainReadAccess  on "
-	    << static_cast<const void*>(&lock) << " for " << mesg
-	    << " failed with the error code " << ierr << " -- "
-	    << strerror(ierr);
-    }
-} // ibis::fileManager::gainReadAccess
+// /// Gain read access.  It blocks when waiting to acquire the read lock.
+// inline void ibis::fileManager::gainReadAccess(const char* mesg) const {
+//     int ierr = pthread_rwlock_rdlock(&lock);
+//     if (0 == ierr) {
+// 	LOGGER(ibis::gVerbose > 9)
+// 	    << "fileManager::gainReadAccess  on "
+// 	    << static_cast<const void*>(&lock) << " for " << mesg;
+//     }
+//     else {
+// 	LOGGER(ibis::gVerbose >= 0)
+// 	    << "Warning -- fileManager::gainReadAccess  on "
+// 	    << static_cast<const void*>(&lock) << " for " << mesg
+// 	    << " failed with the error code " << ierr << " -- "
+// 	    << strerror(ierr);
+//     }
+// } // ibis::fileManager::gainReadAccess
 
-/// Gain write access.  It blocks when waiting to acquire the write lock.
-inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
-    int ierr = pthread_rwlock_wrlock(&lock);
-    if (0 == ierr) {
-	LOGGER(ibis::gVerbose > 9)
-	    << "fileManager::gainWriteAccess on "
-	    << static_cast<const void*>(&lock) << " for " << mesg;
-    }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- fileManager::gainWriteAccess on "
-	    << static_cast<const void*>(&lock) << " for " << mesg
-	    << " failed with the error code " << ierr << " -- "
-	    << strerror(ierr);
-    }
-} // ibis::fileManager::gainWriteAccess
+// /// Gain write access.  It blocks when waiting to acquire the write lock.
+// inline void ibis::fileManager::gainWriteAccess(const char* mesg) const {
+//     int ierr = pthread_rwlock_wrlock(&lock);
+//     if (0 == ierr) {
+// 	LOGGER(ibis::gVerbose > 9)
+// 	    << "fileManager::gainWriteAccess on "
+// 	    << static_cast<const void*>(&lock) << " for " << mesg;
+//     }
+//     else {
+// 	LOGGER(ibis::gVerbose >= 0)
+// 	    << "Warning -- fileManager::gainWriteAccess on "
+// 	    << static_cast<const void*>(&lock) << " for " << mesg
+// 	    << " failed with the error code " << ierr << " -- "
+// 	    << strerror(ierr);
+//     }
+// } // ibis::fileManager::gainWriteAccess
 
 /// Given the starting and ending addresses, this function computes the
 /// number of pages involved.  Used by derived classes to record page

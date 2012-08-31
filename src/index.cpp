@@ -7518,13 +7518,11 @@ void ibis::index::sumBits(const array_t<bitvector*>& pile,
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("index", "sumBits operated on %lu bitmap%s "
-			       "(%lu B in %lu B out) took %g sec(CPU), "
-			       "%g sec(elapsed).",
-			       static_cast<long unsigned>(na), (na>1?"s":""),
-			       static_cast<long unsigned>(bytes),
-			       static_cast<long unsigned>(res.bytes()),
-			       timer.CPUTime(), timer.realTime());
+	LOGGER(ibis::gVerbose > 4)
+	    << "index::sumBits operated on " << na << " bitmap"
+	    << (na>1?"s":"") << "(" << bytes << " B in " << res.bytes()
+	    << " B out) took " << timer.CPUTime() << " sec(CPU), "
+	    << timer.realTime() << " sec(elapsed)";
     }
 #endif
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -7634,11 +7632,10 @@ void ibis::index::sumBits(const array_t<bitvector*>& pile,
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	ibis::util::logMessage("index", "sumBits(%lu, %lu) took %g sec(CPU), "
-			       "%g sec(elapsed).",
-			       static_cast<long unsigned>(ib),
-			       static_cast<long unsigned>(ie),
-			       timer.CPUTime(), timer.realTime());
+	LOGGER(ibis::gVerbose > 4)
+	    << "index::sumBits(" << ib << ", " << ie << ") took "
+	    << timer.CPUTime() << " sec(CPU), " << timer.realTime()
+	    << " sec(elapsed)";
     }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
@@ -7649,21 +7646,14 @@ void ibis::index::sumBits(const array_t<bitvector*>& pile,
 } // ibis::index::sumBits
 
 /// Fill the array bases with the values that cover the range [0, card).
-/// Assumes at least two components.  For the one-component case, use
-/// indexes defined explicit for one component.  Since the base size of
-/// each component can not be less two, the maximum number of components
-/// can be used is to have each component uses base size two.  If the input
-/// argument ncomp is larger than ceiling(log_2(card)), the return array
-/// bases shall have ceiling(log_2(card)) elements.
+/// Assumes at least two components.  Since the base size of each component
+/// can not be less two, the maximum number of components could be used is
+/// to have each component uses base size two.  If the input argument ncomp
+/// is larger than ceiling(log_2(card)), the return array bases shall have
+/// ceiling(log_2(card)) elements.
 void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 			   uint32_t ncomp) {
-    if (card < 4) { // very low cardinality, use only one component
-	bases.resize(1);
-	bases[0] = card;
-	return;
-    }
-
-    if (ncomp > 2) { // more than two components
+    if (card > 7 && ncomp > 2) { // more than two components
 	uint32_t b = static_cast<uint32_t>(ceil(pow((double)card, 1.0/ncomp)));
 	if (b > 2) {
 	    bases.resize(ncomp);
@@ -7698,7 +7688,7 @@ void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
 		bases[0] = (uint32_t)(ceil(2.0 * card / tot));
 	}
     }
-    else if (card > 2 && ncomp > 1) { // assume two components
+    else if (card > 3 && ncomp > 1) { // assume two components
 	uint32_t b =
 	    static_cast<uint32_t>(ceil(sqrt(static_cast<double>(card))));
 	bases.resize(2);
@@ -7725,6 +7715,18 @@ void ibis::index::setBases(array_t<uint32_t>& bases, uint32_t card,
     else { // only one component
 	bases.resize(1);
 	bases[0] = card;
+    }
+
+    if (ibis::gVerbose > 3) {
+	ibis::util::logger lg;
+	lg() << "index::setBases divides " << card << " distinct values into "
+	     << bases.size() << " component" << (bases.size()>1?"s":"");
+	if (ibis::gVerbose > 4) {
+	    lg() << " (" << bases[0];
+	    for (unsigned j = 1; j < bases.size(); ++ j)
+		lg() << ", " << bases[j];
+	    lg() << ')';
+	}
     }
 } // ibis::index::setBases
 
