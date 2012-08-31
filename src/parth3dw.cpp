@@ -739,6 +739,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    return ierr;
 	ierr = qq.getNumHits();
 	if (ierr <= 0) return ierr;
+
 	mask.copy(*(qq.getHitVector()));
     }
 

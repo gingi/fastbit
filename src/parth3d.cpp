@@ -2549,6 +2549,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 
     long ierr;
     ibis::bitvector hits;
+    wcol->getNullMask(hits);
     {
 	ibis::countQuery qq(this);
 	// add constraints on the two selected variables
@@ -2568,7 +2569,7 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
 	ierr = qq.getNumHits();
 	if (ierr <= 0)
 	    return ierr;
-	hits.copy(*(qq.getHitVector()));
+	hits &= (*(qq.getHitVector()));
     }
 
     array_t<double> *wts = wcol->selectDoubles(hits);
@@ -5360,6 +5361,7 @@ long ibis::part::get3DDistribution(const char *constraints,
 
     long ierr;
     ibis::bitvector mask;
+    col1->getNullMask(mask);
     { // a block for finding out which records satisfy the constraints
 	ibis::countQuery qq(this);
 	ierr = qq.setWhereClause(constraints);
@@ -5377,7 +5379,12 @@ long ibis::part::get3DDistribution(const char *constraints,
 	    return 0;
 	}
 
-	mask.copy(*(qq.getHitVector()));
+	mask &= (*(qq.getHitVector()));
+	ibis::bitvector tmp;
+	col2->getNullMask(tmp);
+	mask &= tmp;
+	col3->getNullMask(tmp);
+	mask &= tmp;
 	LOGGER(ibis::gVerbose > 1)
 	    << "part[" << (m_name ? m_name : "") << "]::get3DDistribution"
 	    << " -- the constraints \"" << constraints << "\" selects "
@@ -5984,8 +5991,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
     ibis::util::timer atimer(mesg.c_str(), 1);
     ibis::bitvector mask;
     long ierr;
-    if (constraints == 0 || *constraints == 0 || *constraints == '*') {
-	// use all valid records
+    {
 	col1->getNullMask(mask);
 	ibis::bitvector tmp;
 	col2->getNullMask(tmp);
@@ -5993,7 +5999,8 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	col3->getNullMask(tmp);
 	mask &= tmp;
     }
-    else { // process the constraints to compute the mask
+    if (constraints != 0 && *constraints != 0 && *constraints != '*') {
+	// process the constraints to compute the mask
 	ibis::countQuery qq(this);
 	ierr = qq.setWhereClause(constraints);
 	if (ierr < 0)
@@ -6007,7 +6014,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	    bins.clear();
 	    return 0L;
 	}
-	mask.copy(*(qq.getHitVector()));
+	mask &= (*(qq.getHitVector()));
 	LOGGER(ibis::gVerbose > 1)
 	    << mesg << " -- constraints \"" << constraints << "\" select "
 	    << mask.cnt() << " record" << (mask.cnt() > 1 ? "s" : "")

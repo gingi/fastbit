@@ -588,6 +588,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 
     long ierr;
     ibis::bitvector hits;
+    wcol->getNullMask(hits);
     {
 	ibis::countQuery qq(this);
 
@@ -607,7 +608,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	ierr = qq.getNumHits();
 	if (ierr <= 0)
 	    return ierr;
-	hits.copy(*(qq.getHitVector()));
+	hits &= (*(qq.getHitVector()));
     }
 
     array_t<double> *wts = wcol->selectDoubles(hits);
@@ -1400,6 +1401,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	ierr = qq.getNumHits();
 	if (ierr <= 0)
 	    return ierr;
+
 	mask.copy(*(qq.getHitVector()));
     }
 
@@ -1993,6 +1995,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	ierr = qq.getNumHits();
 	if (ierr <= 0)
 	    return ierr;
+
 	mask.copy(*(qq.getHitVector()));
     }
 
@@ -2592,6 +2595,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 
     long ierr;
     ibis::bitvector mask;
+    wcol->getNullMask(mask);
     {
 	ibis::countQuery qq(this);
 	// add constraints on the two selected variables
@@ -2610,7 +2614,8 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	ierr = qq.getNumHits();
 	if (ierr <= 0)
 	    return ierr;
-	mask.copy(*(qq.getHitVector()));
+
+	mask &= (*(qq.getHitVector()));
     }
 
     array_t<double> *wts;
@@ -4517,6 +4522,12 @@ long ibis::part::get2DDistribution(const char *constraints,
     }
 
     ibis::bitvector mask;
+    col1->getNullMask(mask);
+    {
+	ibis::bitvector tmp;
+	col2->getNullMask(tmp);
+	mask &= tmp;
+    }
     if (constraints != 0 && *constraints != 0) {
 	ibis::countQuery q(this);
 	q.setWhereClause(constraints);
@@ -4526,18 +4537,12 @@ long ibis::part::get2DDistribution(const char *constraints,
 	const ibis::bitvector *hits = q.getHitVector();
 	if (hits->cnt() == 0) // nothing to do any more
 	    return 0;
-	mask.copy(*hits);
+	mask &= (*hits);
 	LOGGER(ibis::gVerbose > 1)
 	    << "part[" << (m_name ? m_name : "")
 	    << "]::get2DDistribution -- the constraints \"" << constraints
 	    << "\" selects " << mask.cnt() << " record"
 	    << (mask.cnt() > 1 ? "s" : "") << " out of " << nEvents;
-    }
-    else {
-	col1->getNullMask(mask);
-	ibis::bitvector tmp;
-	col2->getNullMask(tmp);
-	mask &= tmp;
     }
 
     counts.clear();
@@ -5199,6 +5204,12 @@ long ibis::part::old2DDistribution(const char *constraints,
     }
 
     ibis::bitvector mask;
+    col1->getNullMask(mask);
+    {
+	ibis::bitvector tmp;
+	col2->getNullMask(tmp);
+	mask &= tmp;
+    }
     if (constraints != 0 && *constraints != 0) {
 	ibis::countQuery q(this);
 	q.setWhereClause(constraints);
@@ -5208,18 +5219,12 @@ long ibis::part::old2DDistribution(const char *constraints,
 	const ibis::bitvector *hits = q.getHitVector();
 	if (hits->cnt() == 0) // nothing to do any more
 	    return 0;
-	mask.copy(*hits);
+	mask &= (*hits);
 	LOGGER(ibis::gVerbose > 1)
 	    << "part[" << (m_name ? m_name : "")
 	    << "]::old2DDistribution -- the constraints \"" << constraints
 	    << "\" selects " << mask.cnt() << " record"
 	    << (mask.cnt() > 1 ? "s" : "") << " out of " << nEvents;
-    }
-    else {
-	col1->getNullMask(mask);
-	ibis::bitvector tmp;
-	col2->getNullMask(tmp);
-	mask &= tmp;
     }
 
     counts.clear();
@@ -5645,14 +5650,14 @@ long ibis::part::get2DBins(const char *constraints,
     ibis::util::timer atimer(mesg.c_str(), 1);
     ibis::bitvector mask;
     long ierr;
-    if (constraints == 0 || *constraints == 0 || *constraints == '*') {
-	// use all valid records
-	col1->getNullMask(mask);
+    col1->getNullMask(mask);
+    {
 	ibis::bitvector tmp;
 	col2->getNullMask(tmp);
 	mask &= tmp;
     }
-    else { // process the constraints to compute the mask
+    if (constraints != 0 && *constraints != 0 && *constraints != '*') {
+	// process the constraints to compute the mask
 	ibis::countQuery qq(this);
 	ierr = qq.setWhereClause(constraints);
 	if (ierr < 0)
@@ -5666,7 +5671,7 @@ long ibis::part::get2DBins(const char *constraints,
 	    bins.clear();
 	    return 0L;
 	}
-	mask.copy(*(qq.getHitVector()));
+	mask &= (*(qq.getHitVector()));
 	LOGGER(ibis::gVerbose > 1)
 	    << mesg << " -- constraints \"" << constraints << "\" select "
 	    << mask.cnt() << " record" << (mask.cnt() > 1 ? "s" : "")
@@ -5957,6 +5962,12 @@ ibis::part::getJointDistribution(const char *constraints,
 	timer.start();
     }
     ibis::bitvector mask;
+    col1->getNullMask(mask);
+    {
+	ibis::bitvector tmp;
+	col2->getNullMask(tmp);
+	mask &= tmp;
+    }
     if (constraints != 0 && *constraints != 0) {
 	ibis::countQuery q(this);
 	q.setWhereClause(constraints);
@@ -5966,13 +5977,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	const ibis::bitvector *hits = q.getHitVector();
 	if (hits->cnt() == 0) // nothing to do any more
 	    return 0;
-	mask.copy(*hits);
-    }
-    else {
-	col1->getNullMask(mask);
-	ibis::bitvector tmp;
-	col2->getNullMask(tmp);
-	mask &= tmp;
+	mask &= (*hits);
     }
 
     counts.clear();

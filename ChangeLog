@@ -8,6 +8,8 @@
 	* src/ixpack.cpp, src/ixfuge.cpp: change test of (nobs <= 1) in
 	the function write to be (nobs <= 0) to allow indexes with a
 	single bitmap
+	* src/parth*.cpp: retrieve null masks before counting the values
+	(a problem reported by Andrew Olson)
 
 2012-08-30 John Wu <John dot Wu at ACM dot org>
 	* src/ifade.cpp, src/isbiad.cpp, src/isapid.cpp: clean up
