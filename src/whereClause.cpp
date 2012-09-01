@@ -201,6 +201,19 @@ void ibis::whereClause::amplify(const ibis::part& part0) {
     }
 } // ibis::whereClause::amplify
 
+void ibis::whereClause::getNullMask(const ibis::part &part0,
+				    ibis::bitvector &mask) const {
+    if (expr_ == 0) {
+	part0.getNullMask(mask);
+    }
+    else {
+	ibis::part::barrel bar(&part0);
+	bar.recordVariable(expr_);
+	bar.getNullMask(mask);
+    }
+} // ibis::whereClause::getNullMask
+
+/// Verify that the names exist in the data partition.
 /// This function also simplifies the arithmetic expression if
 /// ibis::term::preserveInputExpression is not set and augment the
 /// expressions with implied conditions.

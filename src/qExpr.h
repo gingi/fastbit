@@ -184,9 +184,13 @@ public:
     void getConjunctiveTerms(termTableList&) const;
 
 protected:
-    TYPE   type;	// the type of node, logical operator, type of leaf
-    qExpr* left;	// the left child
-    qExpr* right;	// the right child
+    /// The type of node. It indicates the type of the operator or the leaf
+    /// node.
+    TYPE   type;
+    /// The left child.
+    qExpr* left;
+    /// The right child.
+    qExpr* right;
 
     /// Adjust the tree to favor the sequential evaluation order.
     void adjust();
@@ -739,7 +743,7 @@ namespace ibis {
 	    const double& value(uint32_t i) const {return varvalues[i];}
 	    double& value(uint32_t i) {return varvalues[i];}
 
-	    /// Record the variable names appear in the @c term.
+	    void recordVariable(const qExpr* const t);
 	    void recordVariable(const term* const t);
 	    inline uint32_t recordVariable(const char* name);
 	    /// Is the given @c barrel of variables equivalent to this one?
@@ -769,8 +773,10 @@ namespace ibis {
 	    /// Associate a variable name with a position in @c varvalues and
 	    /// @c namelist.
 	    termMap varmap;
-	    std::vector< double > varvalues; ///< Cast values to double.
-	    std::vector< const char* > namelist; ///< List of variable names.
+	    /// Cast values to double.
+	    std::vector< double > varvalues;
+	    /// List of variable names.
+	    std::vector< const char* > namelist;
 	}; // class barrel
 
 	/// A variable.

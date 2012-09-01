@@ -82,7 +82,7 @@
     -no-estimation
     -o[utput-[with-header|as-binary]] name
     -query [SELECT ...] [FROM ...] WHERE ...
-    -squential-scan
+    -s <sequential-scan or sort-option>
     -rid-check [filename]
     -reorder data_dir[:colname1,colname2...]
     -t[=| ]n
@@ -2319,7 +2319,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		}
 	    break;
 	    case 's':
-	    case 'S': // sequential scan, or scan option
+	    case 'S': // sequential scan, or sort option
 #if defined(TEST_SCAN_OPTIONS)
 		if (i+1 < argc) {
 		    if (isdigit(*argv[i+1])) {

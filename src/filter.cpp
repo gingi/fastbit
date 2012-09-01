@@ -626,7 +626,8 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 	    continue;
 	}
 
-	const ibis::bitvector& msk = (*it)->getNullMask();
+	ibis::bitvector msk;
+	(*it)->getNullMask(msk);
 	ierr = brd1->append(tms, **it, msk);
 	LOGGER(ierr < 0 && ibis::gVerbose > 1)
 	    << "Warning -- " << mesg << " failed to append " << msk.cnt()
@@ -780,7 +781,8 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 	    continue;
 	}
 
-	const ibis::bitvector& msk = (*it)->getNullMask();
+	ibis::bitvector msk;
+	(*it)->getNullMask(msk);
 	ierr = brd1->append(tms, **it, msk);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 1)

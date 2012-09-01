@@ -606,8 +606,10 @@ public:
     long reactivate(const char* conds);
     long purgeInactive();
     void emptyCache() const;
+    /// Copy the mask of active rows.
+    void getNullMask(ibis::bitvector &m) const {m.copy(amask);}
     /// Return a reference to the mask of active rows.
-    const ibis::bitvector& getNullMask() const {return amask;}
+    const ibis::bitvector& getMaskRef() const {return amask;}
 
     static const char* skipPrefix(const char*);
     /// A class function to read the meta tags in the tdc file.

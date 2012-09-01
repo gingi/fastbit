@@ -407,8 +407,8 @@ $(TESTDIR)/maurel/-part.txt: $(ARDEAEXE) maurel.csv TESTDIR
 	@test -f $(TESTDIR)/maurel/-part.txt || $(ARDEAEXE) -t maurel.csv -d $(TESTDIR)/maurel -m "b:k, r:s, c:s, f:s, e:s, y:s, g:k, t:s, n:k, a:k, v:s, i:k, h:s, d:k, p:s, q:k, s:s, m:s, j:k" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/jrf/-part.txt: jrf$(EXEEXT) TESTDIR
 	@test -f $(TESTDIR)/jrf/-part.txt || ./jrf$(EXEEXT) $(TESTDIR)/jrf 1e5 >> $(TESTDIR)/std.log 2>&1
-$(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv readcsv$(EXEEXT) TESTDIR
-	@test -f $(TESTDIR)/0/test0/-part.txt || ./readcsv test0.csv $(TESTDIR)/0/test0 >> $(TESTDIR)/std.log 2>&1
+$(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv $(ARDEAEXE) TESTDIR
+	@test -f $(TESTDIR)/0/test0/-part.txt || $(ARDEAEXE) -v -m "i0:b,i1:f,i2:s" -t test0.csv -d $(TESTDIR)/0/test0 >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT) TESTDIR
 	@test -f $(TESTDIR)/0/test1/-part.txt || ./readcsv test1.csv $(TESTDIR)/0/test1 >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/m0/-part.txt: $(ARDEAEXE) test0.csv TESTDIR

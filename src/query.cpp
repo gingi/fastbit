@@ -2442,13 +2442,14 @@ void ibis::query::getBounds() {
 	logMessage("getBounds", "compute upper and lower bounds of hits");
 
     ibis::bitvector mask;
+    conds.getNullMask(*mypart, mask);
     if (! comps.empty()) {
-	comps.getNullMask(*mypart, mask);
-    }
-    else {
-	mask.copy(mypart->getNullMask());
-	if (ibis::gVerbose > 3)
-	    logMessage("getBounds", "no component selected");
+	ibis::bitvector tmp;
+	comps.getNullMask(*mypart, tmp);
+	if (mask.size() > 0)
+	    mask &= tmp;
+	else
+	    mask.swap(tmp);
     }
 
     if (rids_in != 0) { // RID list
@@ -2780,7 +2781,8 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 #endif
 } // ibis::query::doEstimate
 
-/// Generate the hit vector.
+/// Generate the hit vector.  Make sure mypart is set before calling this
+/// function.
 int ibis::query::computeHits() {
     if (ibis::gVerbose > 7) {
 	ibis::util::logger lg;
@@ -2793,20 +2795,25 @@ int ibis::query::computeHits() {
     int ierr = 0;
     if (hits == 0) { // have not performed an estimate
 	ibis::bitvector mask;
+	conds.getNullMask(*mypart, mask);
 	if (! comps.empty()) {
-	    comps.getNullMask(*mypart, mask);
+	    ibis::bitvector tmp;
+	    comps.getNullMask(*mypart, tmp);
+	    if (mask.size() > 0) {
+		mask &= tmp;
+	    }
+	    else {
+		mask.swap(tmp);
+	    }
 	}
-	else {
-	    mask.copy(mypart->getNullMask());
-	    if (ibis::gVerbose > 3)
-		logMessage("computeHits", "no component selected");
-	}
+
 	if (rids_in != 0) { // has a RID list
 	    ibis::bitvector tmp;
 	    mypart->evaluateRIDSet(*rids_in, tmp);
 	    mask &= tmp;
 	}
-	if (conds.getExpr() != 0) { // usual range query
+
+	if (conds.getExpr() != 0) { // a normal range query
 	    dstime = mypart->timestamp();
 	    hits = new ibis::bitvector;
 #ifndef DONOT_REORDER_EXPRESSION
@@ -2893,7 +2900,9 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
     if (ibis::gVerbose > 2)
 	timer.start();
     try {
-	ierr = doScan(conds.getExpr(), mypart->getNullMask(), res);
+	ibis::bitvector msk;
+	conds.getNullMask(*mypart, msk);
+	ierr = doScan(conds.getExpr(), msk, res);
 	if (ierr < 0)
 	    return ierr - 20;
     }
@@ -3716,7 +3725,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::DRANGE: { // call evalauteRange, use doScan on failure
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qDiscreteRange*>(term)),
-	     mypart->getNullMask(), ht);
+	     mypart->getMaskRef(), ht);
 	if (ierr < 0) { // revert to estimate and scan
 	    ibis::bitvector tmp;
 	    ierr = mypart->estimateRange
@@ -3740,13 +3749,13 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     case ibis::qExpr::INTHOD: { // call evalauteRange, use doScan on failure
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qIntHod*>(term)),
-	     mypart->getNullMask(), ht);
+	     mypart->getMaskRef(), ht);
 	break;
     }
     case ibis::qExpr::UINTHOD: { // call evalauteRange, use doScan on failure
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qUIntHod*>(term)),
-	     mypart->getNullMask(), ht);
+	     mypart->getMaskRef(), ht);
 	break;
     }
     case ibis::qExpr::STRING: {

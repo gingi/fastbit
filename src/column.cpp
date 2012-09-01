@@ -5521,6 +5521,8 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	ierr = low.sloppyCount();
 	LOGGER(ibis::gVerbose > 3)
 	    << evt << " completed with ierr = " << ierr;
+	LOGGER(ibis::gVerbose > 8)
+	    << evt << " result --\n" << low;
 	return ierr;
     }
     catch (std::exception &se) {
@@ -5995,7 +5997,7 @@ long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp,
 				 ibis::bitvector& low,
 				 ibis::bitvector& high) const {
     high.clear();
-    return evaluateRange(cmp, thePart->getNullMask(), low);
+    return evaluateRange(cmp, thePart->getMaskRef(), low);
 } // ibis::column::estimateRange
 
 double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
@@ -6209,7 +6211,7 @@ long ibis::column::estimateRange(const ibis::qIntHod& cmp,
 				 ibis::bitvector& high) const {
     if (thePart != 0) {
 	low.set(0, thePart->nRows());
-	high.copy(thePart->getNullMask());
+	thePart->getNullMask(high);
     }
     return high.sloppyCount();
 } // ibis::column::estimateRange
@@ -6308,7 +6310,7 @@ long ibis::column::estimateRange(const ibis::qUIntHod& cmp,
 				 ibis::bitvector& high) const {
     if (thePart != 0) {
 	low.set(0, thePart->nRows());
-	high.copy(thePart->getNullMask());
+	thePart->getNullMask(high);
     }
     return high.sloppyCount();
 } // ibis::column::estimateRange

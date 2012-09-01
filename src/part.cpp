@@ -3205,7 +3205,7 @@ long ibis::part::stringSearch(const ibis::qString &cmp,
 	    ierr = col->stringSearch(cmp.leftString(), low);
 	}
 	else if (strcmp(cmp.leftString(), cmp.rightString()) == 0) {
-	    low.copy(getNullMask());
+	    getNullMask(low);
 	}
 	else {
 	    // no match -- no hit
@@ -3235,7 +3235,7 @@ long ibis::part::stringSearch(const ibis::qString &cmp) const {
 	    ret = col->stringSearch(cmp.leftString());
 	}
 	else if (strcmp(cmp.leftString(), cmp.rightString()) == 0) {
-	    ret = getNullMask().cnt();
+	    ret = amask.cnt();
 	}
     }
     return ret;
@@ -3351,11 +3351,11 @@ long ibis::part::keywordSearch(const ibis::qKeyword &cmp,
 	    ierr = col->keywordSearch(cmp.keyword(), low);
 	}
 	else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
-	    low.copy(getNullMask());
+	    getNullMask(low);
 	}
     }
     else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
-	low.copy(getNullMask());
+	getNullMask(low);
     }
     else {
 	// no match -- no hit
@@ -3378,11 +3378,11 @@ long ibis::part::keywordSearch(const ibis::qKeyword &cmp) const {
 	    ret = col->keywordSearch(cmp.keyword());
 	}
 	else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
-	    ret = getNullMask().cnt();
+	    ret = amask.cnt();
 	}
     }
     else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
-	ret = getNullMask().cnt();
+	ret = amask.cnt();
     }
     return ret;
 } // ibis::part::keywordSearch
@@ -19159,10 +19159,11 @@ ibis::part::info::~info() {
     cols.clear();
 }
 
+/// Collect the null masks together.
 void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
     if (_tbl == 0) return; // can not do anything
 
-    mask.copy(_tbl->getNullMask());
+    _tbl->getNullMask(mask);
     for (uint32_t i = 0; i < namelist.size(); ++ i) {
 	ibis::bitvector tmp;
 	if (i < cols.size() && cols[i] == 0) {

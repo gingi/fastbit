@@ -1902,9 +1902,75 @@ void ibis::math::variable::getTableNames(std::set<std::string>& plist) const {
     }
 } // ibis::math::variable::getTableNames
 
-/// Record all variables in the math term recursively.
+/// Record the variable names appear in the query expression.  It records
+/// all variables in the expression recursively.
+void ibis::math::barrel::recordVariable(const ibis::qExpr* const t) {
+    if (t == 0) return;
+
+    switch (t->getType()) {
+    default:
+	if (t->getLeft() != 0) {
+	    recordVariable(t->getLeft());
+	}
+	if (t->getRight() != 0) {
+	    recordVariable(t->getRight());
+	}
+	break;
+    case ibis::qExpr::RANGE:
+    case ibis::qExpr::DRANGE:
+    case ibis::qExpr::INTHOD:
+    case ibis::qExpr::UINTHOD:
+	recordVariable(static_cast<const ibis::qRange*>(t)->colName());
+	break;
+    case ibis::qExpr::STRING:
+	recordVariable(static_cast<const ibis::qString*>(t)->leftString());
+	break;
+    case ibis::qExpr::ANYSTRING:
+	recordVariable(static_cast<const ibis::qAnyString*>(t)->colName());
+	break;
+    case ibis::qExpr::KEYWORD:
+	recordVariable(static_cast<const ibis::qKeyword*>(t)->colName());
+	break;
+    case ibis::qExpr::ALLWORDS:
+	recordVariable(static_cast<const ibis::qAllWords*>(t)->colName());
+	break;
+    case ibis::qExpr::LIKE:
+	recordVariable(static_cast<const ibis::qLike*>(t)->colName());
+	break;
+    case ibis::qExpr::COMPRANGE: {
+	const ibis::compRange &cr = *static_cast<const ibis::compRange*>(t);
+	if (cr.getLeft())
+	    recordVariable(static_cast<const ibis::math::term*>(cr.getLeft()));
+	if (cr.getRight())
+	    recordVariable(static_cast<const ibis::math::term*>(cr.getRight()));
+	if (cr.getTerm3())
+	    recordVariable(static_cast<const ibis::math::term*>(cr.getTerm3()));
+	break;}
+    case ibis::qExpr::MATHTERM:
+	recordVariable(static_cast<const ibis::math::term*>(t));
+	break;
+    case ibis::qExpr::DEPRECATEDJOIN: {
+	const ibis::deprecatedJoin &dj =
+	    *static_cast<const ibis::deprecatedJoin*>(t);
+	recordVariable(dj.getName1());
+	recordVariable(dj.getName2());
+	recordVariable(dj.getRange());
+	break;}
+    // case ibis::qExpr::ANYANY: {
+    // 	const char *pref = static_cast<const ibis::qAnyAny*>(t)->getPrefix();
+    // 	const int len = strlen(pref);
+    // 	for (unsigned j = 0; j < part0.nColumns(); ++ j) {
+    // 	    if (strnicmp(part0.getColumn(j)->name(), pref, len) == 0) {
+    // 		recordVariable(part0.getColumn(j)->name());
+    // 	    }
+    // 	}
+    // 	break;}
+    }
+} // ibis::math::barrel::recordVariable
+
+/// Record the variable names appear in the @c term.  It records all
+/// variables in the math term recursively.
 void ibis::math::barrel::recordVariable(const ibis::math::term* const t) {
-    const size_t oldsize = namelist.size();
     if (t != 0) {
 	if (t->termType() == ibis::math::VARIABLE) {
 	    static_cast<const ibis::math::variable*>(t)
@@ -1918,14 +1984,6 @@ void ibis::math::barrel::recordVariable(const ibis::math::term* const t) {
 		recordVariable(static_cast<const ibis::math::term*>
 			       (t->getRight()));
 	}
-    }
-    if (ibis::gVerbose > 5 && namelist.size() > oldsize) {
-	ibis::util::logger lg;
-	lg() << "barrel::recordVariable -- namelist[" << namelist.size()
-	     << "] = (" << namelist[0];
-	for (unsigned j = 1; j < namelist.size(); ++ j)
-	    lg() << ", " << namelist[j];
-	lg() << ")";
     }
 } // ibis::math::barrel::recordVariable
 

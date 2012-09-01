@@ -195,10 +195,15 @@ int ibis::countQuery::estimate() {
 #endif
 
     ibis::bitvector mask;
-    if (m_sel != 0)
-	m_sel->getNullMask(*mypart, mask);
-    else
-	mask.copy(mypart->getNullMask());
+    conds.getNullMask(*mypart, mask);
+    if (m_sel != 0) {
+	ibis::bitvector tmp;
+	m_sel->getNullMask(*mypart, tmp);
+	if (mask.size() > 0)
+	    mask &= tmp;
+	else
+	    mask.swap(tmp);
+    }
     if (mask.size() != mypart->nRows())
 	mask.adjustSize(mypart->nRows(), mypart->nRows());
 
@@ -273,6 +278,19 @@ int ibis::countQuery::evaluate() {
     ibis::util::timer mytime("countQuery::evaluate", 1);
 
     if (hits == 0) { // have not performed an estimate
+	ibis::bitvector mask;
+	conds.getNullMask(*mypart, mask);
+	if (m_sel != 0) {
+	    ibis::bitvector tmp;
+	    m_sel->getNullMask(*mypart, tmp);
+	    if (mask.size() > 0)
+		mask &= tmp;
+	    else
+		mask.swap(tmp);
+	}
+	if (mask.size() != mypart->nRows())
+	    mask.adjustSize(mypart->nRows(), mypart->nRows());
+
 	if (conds.getExpr() != 0) { // usual range query
 #ifndef DONOT_REORDER_EXPRESSION
 	    if (! conds->directEval()) {
@@ -283,47 +301,46 @@ int ibis::countQuery::evaluate() {
 	    delete cand;
 	    cand = 0;
 	    hits = new ibis::bitvector;
-	    ibis::bitvector mask;
-	    if (m_sel != 0)
-		m_sel->getNullMask(*mypart, mask);
-	    else
-		mask.copy(mypart->getNullMask());
-	    if (mask.size() != mypart->nRows())
-		mask.adjustSize(mypart->nRows(), mypart->nRows());
-
 	    ierr = doEvaluate(conds.getExpr(), mask, *hits);
-	    if (ierr < 0)
+	    if (ierr < 0) {
+		delete hits;
+		hits = 0;
 		return ierr - 20;
+	    }
 	    hits->compress();
 	}
 	else { // everything is a hit
-	    hits = new ibis::bitvector(mypart->getNullMask());
+	    hits = new ibis::bitvector(mask);
 	    cand = 0;
 	}
     }
     else if (cand != 0 && cand->cnt() > hits->cnt()) {
-	const ibis::bitvector& msk = mypart->getNullMask();
 	ibis::bitvector delta;
 	(*cand) -= (*hits);
 
-	if (cand->cnt() < (msk.cnt() >> 2)) { // use doScan
+	if (cand->cnt() < (hits->size() >> 2)) { // use doScan
 	    ierr = doScan(conds.getExpr(), *cand, delta);
+	    delete cand;  // no longer need it
+	    cand = 0;
 	    if (ierr >= 0) {
-		delete cand;  // no longer need it
 		*hits |= delta;
-		cand = 0;
 	    }
 	    else {
-		(*cand) |= (*hits);
+		delete hits;
+		hits = 0;
 		return ierr - 20;
 	    }
 	}
 	else { // use doEvaluate
+	    ierr = doEvaluate(conds.getExpr(), *cand, delta);
 	    delete cand;
 	    cand = 0;
-	    ierr = doEvaluate(conds.getExpr(), msk, *hits);
-	    if (ierr < 0)
+	    if (ierr < 0) {
+		delete hits;
+		hits = 0;
 		return ierr - 20;
+	    }
+	    *hits |= delta;
 	    hits->compress();
 	}
     }

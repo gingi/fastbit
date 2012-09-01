@@ -127,8 +127,8 @@ public:
     ibis::qExpr* getExpr(void) {return expr_;}
     /// Simplify the query expression.
     void simplify() {ibis::qExpr::simplify(expr_);}
-    /// Verify that the names exist in the data partition p0.
     int verify(const ibis::part& p0, const ibis::selectClause *sel=0) const;
+    void getNullMask(const ibis::part&, ibis::bitvector&) const;
 
     /// Member access operator redefined to point to ibis::qExpr.
     ibis::qExpr* operator->() {return expr_;}

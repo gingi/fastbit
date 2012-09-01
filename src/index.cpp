@@ -1634,10 +1634,8 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
     col->getNullMask(mask);
 #if defined(MAPVALUES_EXCLUDE_INACTIVE)
     if (col->partition() != 0) {
-	ibis::bitvector tmp(col->partition()->getNullMask());
-	tmp.adjustSize(col->partition()->nRows(), col->partition()->nRows());
-	mask.adjustSize(0, tmp.size());
-	mask &= tmp;
+	mask &= col->partition()->getMaskRef();
+	mask.adjustSize(0, col->partition()->nRows());
     }
 #endif
     // need to do different things for different columns

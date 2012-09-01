@@ -10,6 +10,14 @@
 	single bitmap
 	* src/parth*.cpp: retrieve null masks before counting the values
 	(a problem reported by Andrew Olson)
+	* src/qExpr.cpp: add one more variant of
+	ibis::math::barrel::recordVariable to work with qExpr
+	* src/whereClause.h, src/whereClause.cpp, src/query.cpp: add
+	function whereClause::getNullMask, add call to
+	whereClause::getNullMask in query::computeHits to address an issue
+	reported by Michael Beauregard
+	* src/part.h: make ibis::part::getNullMask consistent with other
+	getNullMask functions, add part::getMaskRef to return a reference
 
 2012-08-30 John Wu <John dot Wu at ACM dot org>
 	* src/ifade.cpp, src/isbiad.cpp, src/isapid.cpp: clean up

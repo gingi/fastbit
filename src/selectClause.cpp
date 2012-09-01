@@ -751,11 +751,11 @@ void ibis::selectClause::getNullMask(const ibis::part& part0,
 	    bar.getNullMask(mask);
 	}
 	else {
-	    mask.copy(part0.getNullMask());
+	    part0.getNullMask(mask);
 	}
     }
     else {
-	mask.copy(part0.getNullMask());
+	part0.getNullMask(mask);
     }
 } // ibis::selectClause::getNullMask
 
