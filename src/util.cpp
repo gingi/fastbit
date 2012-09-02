@@ -767,8 +767,12 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
     val = 0;
     if (str == 0 || *str == 0) return -1;
     for (; isspace(*str); ++ str); // skip leading space
-    if (*str == 0 || (del != 0 && *del != 0 && strchr(del, *str) != 0))
+    if (*str == 0)
 	return -1;
+    if (del != 0 && *del != 0 && strchr(del, *str) != 0) {
+	++ str;
+	return -2;
+    }
 
     double tmp;
     const bool neg = (*str == '-');

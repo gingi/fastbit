@@ -1,3 +1,11 @@
+2012-09-01 John Wu <John dot Wu at ACM dot org>
+	* tests/test0.csv: remove the last value for the second column to
+	make it a NULL value
+	* tests/Makefile.am: update the reading of test0 to use ardea so
+	as to interpret the missing entry as NULL value
+	* src/util.cpp: readDouble skip the delimiter in early return
+	branch
+
 2012-08-31 John Wu <John dot Wu at ACM dot org>
 	* src/icmoins.cpp: in function convert, remove leftover statements
 	that assigns bits to nil pointers
