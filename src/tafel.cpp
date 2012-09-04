@@ -2213,7 +2213,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
 	}
 	md << "\nEnd Column\n";
     }
-    md.close(); // close the file
+    md.close(); // close the metadata file
     ibis::fileManager::instance().flushDir(dir);
     if (ibis::gVerbose > 0) {
 	timer.stop();

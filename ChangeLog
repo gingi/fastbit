@@ -1,3 +1,9 @@
+2012-09-02 John Wu <John dot Wu at ACM dot org>
+	* src/parti.cpp: update part::reorder to avoid calling
+	purgeInactive when the data partition is declared readonly, add
+	function reorderBitmap to work with the null mask during
+	reordering
+
 2012-09-01 John Wu <John dot Wu at ACM dot org>
 	* tests/test0.csv: remove the last value for the second column to
 	make it a NULL value

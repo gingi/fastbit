@@ -21,10 +21,14 @@
 /// reordered when successful, otherwise return a negative number and the
 /// base data is corrupt!
 ///
+/// @note A data partition declared readonly can be reordered because
+/// reordering does not change the logical content of the data.
+///
 /// @warning <b>Danger</b>: This function does not update null masks!
 long ibis::part::reorder() {
-    if (nRows() == 0 || nColumns() == 0 || activeDir == 0 ||
-	amask.cnt() != amask.size()) return 0;
+    if (nRows() == 0 || nColumns() == 0 || activeDir == 0)
+	return 0;
+
     ibis::table::stringList keys;
     gatherSortKeys(keys);
     if (keys.empty()) {
@@ -38,7 +42,9 @@ long ibis::part::reorder() {
 
 /// Collect a list of column names that might be used as keys for sorting
 /// the rows.  The columns used have integer values and are ordered from
-/// the narrowest range of values to the widest range of values.
+/// the narrowest range of values to the widest range of values.  It limits
+/// the number of sort keys so that the number of distinct combinations is
+/// not much large the number of rows in the data partition.
 void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
     // first gather all integer-valued columns
     typedef std::vector<column*> colVector;
@@ -67,11 +73,14 @@ void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
     }
 
     if (keys.size() > 1) {
-	names.resize(keys.size());
+	names.reserve(keys.size());
 	array_t<uint32_t> ind;
 	ranges.stableSort(ind);
-	for (unsigned i = 0; i < ind.size(); ++ i)
-	    names[i] = keys[ind[i]]->name();
+	uint64_t md = 1;
+	for (unsigned i = 0; i < ind.size() && md < nEvents; ++ i) {
+	    names.push_back(keys[ind[i]]->name());
+	    md *= ranges[ind[i]];
+	}
     }
     else if (keys.size() == 1) {
 	names.push_back(keys.front()->name());
@@ -90,6 +99,9 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 /// directions is present, the value of directions is interpreted as
 /// whether or not the column is to be order in ascending order.  The
 /// direction defaults to the ascending order if the value is not present.
+///
+/// @note If the data partition is not readonly, then this function will
+/// attempt to purge the inactive rows.
 long ibis::part::reorder(const ibis::table::stringList& names,
 			 const std::vector<bool>& directions) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;
@@ -98,8 +110,11 @@ long ibis::part::reorder(const ibis::table::stringList& names,
     evt += "]::reorder";
     ibis::util::timer mytimer(evt.c_str(), 1);
 
-    long ierr = purgeInactive();
-    if (ierr <= 0) return ierr;
+    long ierr;
+    if (amask.cnt() < amask.size() && ! readonly) {
+	ierr = purgeInactive();
+	if (ierr <= 0) return ierr;
+    }
 
     // first gather all columns with numerical values
     typedef std::vector<column*> colVector;
@@ -131,9 +146,8 @@ long ibis::part::reorder(const ibis::table::stringList& names,
     if (keys.empty()) { // no keys specified
 	if (names.empty()) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< evt << " did not find any user-specified ordering keys, "
-		"will attempt to use all integer columns as ordering keys";
-	    return reorder();
+		<< evt << " did not find any user-specified ordering keys";
+	    return -4;
 	}
 	else if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
@@ -161,9 +175,6 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 	 it != columns.end();
 	 ++ it) { // purge all index files
 	if (! it->second->isNumeric()) return -1L;
-	ibis::bitvector msk;
-	it->second->getNullMask(msk);
-	if (msk.cnt() != msk.size()) return -2L;
 
 	(*it).second->unloadIndex();
 	(*it).second->purgeIndexFile();
@@ -183,9 +194,10 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 
     // the sorting loop
     ierr = nRows();
-    array_t<uint32_t> ind1;
+    array_t<uint32_t> ind0; // old order
+    array_t<uint32_t> ind1; // new order, sorted[i] = raw[ind1[i]]
     {
-	array_t<uint32_t> starts, ind0;
+	array_t<uint32_t> starts;
 	for (uint32_t i = 0; i < keys.size(); ++ i) {
 	    std::string sname;
 	    const bool asc = (directions.size()>i?directions[i]:true);
@@ -333,6 +345,65 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 	}
     }
 
+    // to deal with null masks
+    // use ind0 to store the inverse of ind1 === sorted[ind0[i]] = raw[i]
+    ind0.resize(ind1.size());
+    for (unsigned j = 0; j < ind1.size(); ++ j)
+	ind0[ind1[j]] = j;
+    if (ibis::gVerbose > 4) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- " << evt << " order arrays (i, ind1[i], ind0[i])";
+	for (unsigned j = 0; j < ind1.size(); ++ j)
+	    lg() << "\n" << j << "\t" << ind1[j] << "\t" << ind0[j];
+    }
+
+    for (columnList::iterator it = columns.begin();
+	 it != columns.end();
+	 ++ it) {
+	ibis::bitvector m0, m1;
+	it->second->getNullMask(m0);
+	ierr = reorderBitmap(m1, m0, ind0);
+	if (ierr >= 0 && m1.size() == m0.size()) {
+	    if (m1.cnt() < m1.size()) {
+		(void) it->second->setNullMask(m1);
+		std::string mfile;
+		if (it->second->nullMaskName(mfile) != 0)
+		    m1.write(mfile.c_str());
+		LOGGER(ibis::gVerbose > 3)
+		    << evt << " wrote the reordered null mask for column "
+		    << it->first;
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << evt
+		<< " failed to reorder the mask for column "
+		<< it->first;
+	}
+    }
+    if (amask.cnt() < amask.size()) {
+	ibis::bitvector m1;
+	ierr = reorderBitmap(m1, amask, ind0);
+	if (ierr >= 0 && m1.size() == amask.size()) {
+	    if (m1.cnt() < m1.size()) {
+		amask.swap(m1);
+		std::string mfile(activeDir);
+		mfile += FASTBIT_DIRSEP;
+		mfile += "-part.msk";
+		amask.write(mfile.c_str());
+		LOGGER(ibis::gVerbose > 3)
+		    << evt << " wrote the reordered null mask for partition "
+		    << m_name << " to " << mfile;
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << evt
+		<< " failed to reorder the mask for partition "
+		<< m_name;
+	}
+    }
+
     if (m_desc.size() < MAX_LINE - 60 - evt.size()) {
 	m_desc += " -- ";
 	m_desc += evt;
@@ -353,20 +424,31 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 template <typename T>
 long ibis::part::writeValues(const char *fname,
 			     const array_t<uint32_t>& ind) {
+    ibis::horometer timer;
+    if (ibis::gVerbose > 2)
+	timer.start();
+
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::writeValues<";
+    evt += typeid(T).name();
+    evt += ">(";
+    evt += fname;
+    evt = ')';
+
     int fdes = UnixOpen(fname, OPEN_READWRITE, OPEN_FILEMODE);
     if (fdes < 0) {
-	if (ibis::gVerbose > 1)
-	    logWarning("writeValues", "failed to open %s for writing "
-		       "reordered values", fname);
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " failed to open "
+	    << fname << " for writing reordered values";
 	return -1; // couldn't open file for writing
     }
     long pos = UnixSeek(fdes, 0L, SEEK_END);
     if (pos != static_cast<long>(ind.size() * sizeof(T))) {
-	if (ibis::gVerbose > 1)
-	    logMessage("writeValues", "expected size of %s is %ld, "
-		       "actual size is %ld", fname,
-		       static_cast<long>(ind.size() * sizeof(T)),
-		       pos);
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " expects " << fname << " to have "
+	    << (ind.size() * sizeof(T)) << " bytes, but it actually has "
+	    << pos;
 	UnixClose(fdes);
 	return -2;
     }
@@ -377,11 +459,10 @@ long ibis::part::writeValues(const char *fname,
     array_t<T> vals;
     vals.read(fdes, 0, pos);
     if (vals.size() != ind.size()) {
-	if (ibis::gVerbose > 1)
-	    logMessage("writeValues", "failed to read %lu elements from %s, "
-		       "actually read %lu",
-		       static_cast<long unsigned>(ind.size()), fname,
-		       static_cast<long unsigned>(vals.size()));
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " failed to read " << ind.size()
+	    << " elements from " << fname << ", actually read "
+	    << vals.size();
 	UnixClose(fdes);
 	return -3;
     }
@@ -397,11 +478,16 @@ long ibis::part::writeValues(const char *fname,
 	LOGGER((long)(asize * sizeof(T)) >
 	       UnixWrite(fdes, buf.begin(), asize * sizeof(T)) &&
 	       ibis::gVerbose > 1)
-	    << "Warning -- part[" << name() << "]::writeValues failed to write "
-	    << asize << " value" << (asize>1?"s":"") << " of type "
-	    << typeid(T).name();
+	    << "Warning -- " << evt << " failed to write " << asize
+	    << " value" << (asize>1?"s":"") << " of type " << typeid(T).name();
     }
     UnixClose(fdes);
+    if (ibis::gVerbose > 2) {
+	timer.stop();
+	LOGGER(ibis::gVerbose > 2)
+	    << evt << " completed writing reordered values to " << fname
+	    << " in " << timer.realTime() << " sec of elapsed time";
+    }
     return vals.size();
 } // ibis::part::writeValues
 
@@ -550,6 +636,40 @@ long ibis::part::reorderValues(const char *fname,
     }
     return nrows;
 } // ibis::part::reorderValues
+
+/// Produce a reordered bit vector through the inverse order array.
+int ibis::part::reorderBitmap(ibis::bitvector &out,
+			      const ibis::bitvector &in,
+			      const ibis::array_t<uint32_t> &iorder) {
+    if (in.size() != iorder.size())
+	return -1;
+
+    if (in.cnt() == 0) {
+	out.set(0, in.size());
+	return 0; // nothing to do
+    }
+    else if (in.cnt() == in.size()) {
+	out.set(1, in.size());
+	return 0;
+    }
+
+    out.set(0, in.size());
+    out.decompress();
+    for (ibis::bitvector::indexSet is = in.firstIndexSet();
+	 is.nIndices() > 0; ++ is) {
+	const ibis::bitvector::word_t *ix = is.indices();
+	if (is.isRange()) {
+	    for (ibis::bitvector::word_t j = ix[0]; j < ix[1]; ++ j)
+		out.setBit(iorder[j], 1);
+	}
+	else {
+	    for (unsigned j = 0; j < is.nIndices(); ++ j)
+		out.setBit(iorder[ix[j]], 1);
+	}
+    }
+    out.compress();
+    return 0;
+} // ibis::part::reorderBitmap
 
 
 /// Append data in dir to the current data partition.  Return the number of

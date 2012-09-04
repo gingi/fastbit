@@ -1313,6 +1313,10 @@ protected:
 			       std::vector<double> &bounds,
 			       std::vector<ibis::bitvector> &detail);
 
+    static int reorderBitmap(ibis::bitvector &,
+			     const ibis::bitvector &,
+			     const ibis::array_t<uint32_t> &);
+
     void gatherSortKeys(ibis::table::stringList& names);
     void composeQueryString(std::string &str,
 			    const ibis::column* col1, const ibis::column* col2,

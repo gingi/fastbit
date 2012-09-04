@@ -539,7 +539,8 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
     myCleaner = new ibis::part::cleaner(this);
     ibis::fileManager::instance().addCleaner(myCleaner);
 
-    if (ibis::gVerbose > 0 && m_name != 0) {
+    if ((ibis::gVerbose > 1 || (ibis::gVerbose > 0 && nEvents > 0)) &&
+	m_name != 0) {
 	ibis::util::logger lg;
 	lg() << "Constructed a";
 	if (nEvents == 0)
@@ -18733,14 +18734,14 @@ int ibis::part::writeColumn(int fdes, ibis::bitvector::word_t nold,
 	totmask += newmask;
     }
     totmask.adjustSize(totmask.size(), nnew+nold);
-    if (ibis::gVerbose > 3) {
+    if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "part::writeColumn wrote " << pos << " bytes of "
-	     << typeid(T).name() << " for " << nnew << " elements\n";
+	     << typeid(T).name() << " for " << nnew << " elements";
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
-		lg() << "mask for new records: " << newmask << "\n";
-	    lg() << "Overall bit mask: "<< totmask;
+		lg() << "\nmask for new records: " << newmask;
+	    lg() << "\nOverall bit mask: "<< totmask;
 	}
     }
     return (-5 * ((uint32_t) pos != nnew*elem));
@@ -18779,7 +18780,7 @@ int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
 
     totmask += newmask;
     totmask.adjustSize(0, nnew+nold);
-    if (ibis::gVerbose > 3) {
+    if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "part::writeString wrote " << pos
 	     << " strings (" << nnew << " expected)";
@@ -18952,14 +18953,14 @@ int ibis::part::writeRaw(int bdes, int sdes,
     totmask.adjustSize(nold1, nold);
     totmask += newmask;
     totmask.adjustSize(totmask.size(), nnew1+nold);
-    if (ibis::gVerbose > 3) {
+    if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "part::writeRaw wrote " << nnew1 << " binary object"
-	     << (nnew1>1?"s":"") << " (" << nnew << " expected)\n";
+	     << (nnew1>1?"s":"") << " (" << nnew << " expected)";
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
-		lg() << "mask for new records: " << newmask << "\n";
-	    lg() << "Overall bit mask: " << totmask;
+		lg() << "\nmask for new records: " << newmask;
+	    lg() << "\nOverall bit mask: " << totmask;
 	}
     }
     return (-17 * (nnew1 != nnew));
@@ -19120,7 +19121,7 @@ int ibis::part::writeOpaques(int bdes, int sdes,
 
     totmask.adjustSize(nold1, nold);
     totmask += newmask;
-    if (ibis::gVerbose > 3) {
+    if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "part::writeOpaques wrote " << nnew1 << " binary object"
 	     << (nnew1>1?"s":"");

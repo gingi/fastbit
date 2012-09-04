@@ -2547,6 +2547,10 @@ static void parse_args(int argc, char** argv, int& mode,
 	    {
 		ibis::part tbl(rdirs[i], static_cast<const char*>(0));
 		ierr = tbl.reorder();
+		LOGGER(ibis::gVerbose >= 0 && ierr < 0)
+		    << "Warning -- " << *argv << " failed to reoder data in "
+		    << rdirs[i] << ", ibis::part::reorder returned "
+		    << ierr;
 		nr = tbl.nRows();
 	    }
 	    if (nr > 0U && (long)nr == ierr)

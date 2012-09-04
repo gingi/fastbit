@@ -1337,14 +1337,15 @@ namespace ibis {
 char* getpass(const char* prompt);
 #endif
 
-/// A very simple pseudo-random number generator.  It produce a floating
+/// A very simple pseudo-random number generator.  It produces a floating
 /// point number between 0 and 1.
 ///
 /// The is a a Linear Congruential pseudo-random number generator.  It
-/// produces a floating-point in the range of [0, 1).  It is very simple
+/// produces a floating-point in the range of (0, 1).  It is very simple
 /// and fast, however, it does not produce high-quality random numbers.  It
-/// may not be thread-safe.  Since the actual computation only involves two
-/// arithmetic operations, it is very unlikely to have thread-safty issues.
+/// is not thread-safe.  However, since the actual computation only
+/// involves two arithmetic operations, it is very unlikely to have
+/// thread-safty issues.
 inline double ibis::util::rand() {
     // The internal variable @c seed is always an odd number.  Don't use it
     // directly.

@@ -366,9 +366,10 @@ private:
     }
 }; // Zipf2 distribution
 
-/// A specialized case of the Zipf distribution f(x) = 1/(1+x).  This
-/// implementation was the result of earlier experimentation, it is not
-/// necessarily faster than the generic version.
+/// A specialized case of the Zipf distribution f(x) = 1/(1+x).
+///
+/// @note This is an experimental approach; not necessarily faster than the
+/// generic version.
 class ibis::discreteZipf1 {
 public:
     discreteZipf1(ibis::uniformRandomNumber& ur, unsigned long imax = 100) :
