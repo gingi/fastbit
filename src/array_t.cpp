@@ -1513,7 +1513,7 @@ void ibis::array_t<T>::reserve(size_t n) {
     }
 
     if (actual != 0 && m_begin != 0 && m_end >= m_begin &&
-	actual->begin() != 0 && actual->end() < actual->begin()) {
+	actual->begin() != 0 && actual->end() >= actual->begin()) {
 	const size_t n0 = (T*)(actual->end()) - m_begin;
 	if (n > n0 || actual->filename() != 0) {
 	    // attempt to allocate new storage space
