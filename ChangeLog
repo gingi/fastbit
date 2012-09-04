@@ -2,6 +2,11 @@
 	* src/islice.cpp: slice::constructT reverses the order of the bits
 	to match the order used in iskive.cpp (in order to correctly reuse
 	the functions such as evalGE and evalEQ)
+	* src/array_t.h: reorganize the tests in function push_back to
+	avoid the possibility of a producing a negative value for nexist
+	(potentially the problem reported by Michael Beauregard about an
+	exception complaining about array_t must have less than 2^31
+	elements)
 
 2012-09-03 John Wu <John dot Wu at ACM dot org>
 	* src/parti.cpp: part::reorderBitmap neglected to use iorder,

@@ -190,23 +190,24 @@ inline void ibis::array_t<T>::swap(array_t<T>& rhs) {
 /// - the existing storage object has no free space for the new data value.
 template<class T> 
 inline void ibis::array_t<T>::push_back(const T& elm) {
-    if (actual == 0) { // allocate storage
+    if (actual == 0 || m_begin == 0 || m_end < m_begin ||
+	actual->begin() == 0 || actual->end() < actual->begin()) {
+	// allocate new storage
 	actual = new ibis::fileManager::storage(3*sizeof(T));
 	actual->beginUse();
 	m_begin = (T*)(actual->begin());
 	m_end = m_begin + 1;
 	*m_begin = elm;
     }
-    else if (m_begin != 0 && m_end != 0 && actual->begin() > 0 &&
-	     actual->end() > actual->begin() && actual->filename() == 0 &&
-	     (char*)(m_end+1) <= actual->end()) { // simply add value
+    else if (actual->filename() == 0 && (char*)(m_end+1) <= actual->end()) {
+	// simply add value
 	*m_end = elm;
 	++ m_end;
     }
     else { // copy-and-swap
 	const difference_type nexist = (m_end - m_begin);
 	const size_t newsize = (nexist >= 7 ? nexist : 7) + nexist;
-	if ((long long) newsize < nexist) {
+	if (newsize > 0x7FFFFFFFU) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 

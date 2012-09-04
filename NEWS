@@ -9,6 +9,9 @@ Version ibis1.3.2
 -- more consistent handling of null masks in query processing and
    reordering of data partitions, modify the built-in test suite to
    exercise the null handling
+-- finalize the class ibis::slice after renaming the previous version to
+   be ibis::skive, ibis::slice is now closer to the original definition
+   of bit-sliced index
 
 
 Wed Aug 15 21:58:00 PDT 2012
