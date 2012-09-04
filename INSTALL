@@ -276,7 +276,7 @@ Known Issues
     should be aware of such problems.
 
 (2) Under cygwin, some times, the read-write lock may print out warning
-    messages, but the operations seem to carry on without any problem.
+    messages, but the operations seem to carry on without any problems.
     We have not tried to figure out what are the causes of these
     warnings, if you have information about them or know how to fix the
     problems, we would like to hear about them.  Email your suggestions
