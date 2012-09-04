@@ -1472,7 +1472,9 @@ void ibis::array_t<T>::resize(size_t n) {
 	return;
     }
 
-    if (actual == 0 || (const T*)actual->end() < m_begin + n)
+    if (actual == 0 || m_begin == 0 || m_end < m_begin ||
+	actual->begin() == 0 || actual->end() < actual->begin() ||
+	(const T*)actual->end() < m_begin + n)
 	reserve(n);
 
     if (actual == 0 || (const T*)actual->end() < m_begin + n) {
@@ -1510,7 +1512,8 @@ void ibis::array_t<T>::reserve(size_t n) {
 	    n = 2;
     }
 
-    if (actual != 0) {
+    if (actual != 0 && m_begin != 0 && m_end >= m_begin &&
+	actual->begin() != 0 && actual->end() < actual->begin()) {
 	const size_t n0 = (T*)(actual->end()) - m_begin;
 	if (n > n0 || actual->filename() != 0) {
 	    // attempt to allocate new storage space
@@ -1558,7 +1561,8 @@ void ibis::array_t<T>::reserve(size_t n) {
 /// 0x7FFFFFFF (2^31-1) elements.
 template<class T> typename ibis::array_t<T>::iterator
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
-    if (actual == 0 || m_begin == 0) {
+    if (actual == 0 || m_begin == 0 || m_end <= m_begin ||
+	actual->begin() == 0) {
 	actual = new ibis::fileManager::storage(4*sizeof(T));
 	actual->beginUse();
 	m_begin = (T*)(actual->begin());
@@ -1605,7 +1609,8 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, size_t n,
 			 const T& val) {
     if (n == 0 || p < m_begin || p > m_end) return;
 
-    if (actual == 0) {
+    if (actual == 0 || m_begin == 0 || m_end < m_begin ||
+        actual->begin() == 0 || actual->end() < actual->begin()) {
 	reserve(n);
 	for (size_t j = 0; j < n; ++ j, ++ m_end)
 	    *m_end = val;
@@ -1656,7 +1661,8 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
     if (back <= front || p < m_begin || p > m_end) return;
     const difference_type n = back - front;
 
-    if (actual == 0) { // no space
+    if (actual == 0 || m_begin == 0 || m_end < m_begin ||
+	actual->begin() == 0 || actual->end() < actual->begin()) { // no space
 	reserve(n);
 	for (const_iterator j = front; j < back; ++ j, ++ m_end)
 	    *m_end = *j;
