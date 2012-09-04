@@ -1,3 +1,15 @@
+2012-09-04 John Wu <John dot Wu at ACM dot org>
+	* src/islice.cpp: slice::constructT reverses the order of the bits
+	to match the order used in iskive.cpp (in order to correctly reuse
+	the functions such as evalGE and evalEQ)
+
+2012-09-03 John Wu <John dot Wu at ACM dot org>
+	* src/parti.cpp: part::reorderBitmap neglected to use iorder,
+	'make check' passes with the null value in test0.csv - reordering
+	functions can work with null masks now
+	* src/part.cpp:372 expand the test on readonly condition (previous
+	version causes an exception)
+
 2012-09-02 John Wu <John dot Wu at ACM dot org>
 	* src/parti.cpp: update part::reorder to avoid calling
 	purgeInactive when the data partition is declared readonly, add

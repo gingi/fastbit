@@ -1229,7 +1229,7 @@ void ibis::skive::print(std::ostream& out) const {
     out << "\n";
 } // ibis::skive::print
 
-// create index based data in dt -- have to start from data directly
+/// Create index based data in dt.  Have to start from data directly.
 long ibis::skive::append(const char* dt, const char* df, uint32_t nnew) {
     clear();		// clear the current content
     construct2(dt);	// generate the new version of the index
@@ -1237,7 +1237,7 @@ long ibis::skive::append(const char* dt, const char* df, uint32_t nnew) {
     return nnew;
 } // ibis::skive::append
 
-// compute the bitvector that is the answer for the query x >= b
+/// Compute the bitvector that is the answer for the query x >= b
 void ibis::skive::evalGE(ibis::bitvector& res, uint32_t b) const {
     if (b >= vals.size()) {
 	res.set(0, nrows);
@@ -1278,7 +1278,7 @@ void ibis::skive::evalGE(ibis::bitvector& res, uint32_t b) const {
     }
 } // evalGE
 
-// compute the bitvector that is the answer for the query x = b
+/// Compute the bitvector that is the answer for the query x = b.
 void ibis::skive::evalEQ(ibis::bitvector& res, uint32_t b) const {
     if (b >= vals.size()) {
 	res.set(0, nrows);

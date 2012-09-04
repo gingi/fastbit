@@ -119,9 +119,9 @@ int main(int argc, char **argv) {
     /* get the number of rows to generate */
     if (argc < 3) {
 	fprintf(stderr,
-		"Usage: setqgen <fastbit-data-dir> <#rows> [<#rows-per-dir>] \n"
+		"Usage:\n%s <fastbit-data-dir> <#rows> [<#rows-per-dir>] \n"
 		"\tIf the third argument is not provided, this program will "
-		"put 10 millions rows in a directory\n");
+		"put around 10 millions rows in a directory\n", *argv);
 	return -1;
     }
 

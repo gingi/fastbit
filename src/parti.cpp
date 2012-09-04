@@ -350,12 +350,14 @@ long ibis::part::reorder(const ibis::table::stringList& names,
     ind0.resize(ind1.size());
     for (unsigned j = 0; j < ind1.size(); ++ j)
 	ind0[ind1[j]] = j;
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "DEBUG -- " << evt << " order arrays (i, ind1[i], ind0[i])";
 	for (unsigned j = 0; j < ind1.size(); ++ j)
 	    lg() << "\n" << j << "\t" << ind1[j] << "\t" << ind0[j];
     }
+#endif
 
     for (columnList::iterator it = columns.begin();
 	 it != columns.end();

@@ -70,7 +70,7 @@ public:
 	/// Pointer to the in-memory storage.  For fix-sized elements, this
 	/// is a pointer to an array_t object.  For null-terminated
 	/// strings, this is a pointer to std::vector<std::string>.  For
-	/// binary objects, it is std::vector<ibis::opaque.
+	/// binary objects, it is std::vector<ibis::opaque>.
 	void* values;
 	/// The default value for the column.  SQL standard allows a column
 	/// to take on a default value if it is not explicitly specified.

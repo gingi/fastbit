@@ -267,12 +267,13 @@ ibis::slice::constructT(const char* f) {
 		if ((T) iv != val[ir] || (iv >> ii) > 0)
 		    return -2;
 
+		ii = 0;
 		++ cnts[iv];
 		while (iv > 0) {
-		    -- ii;
-		    if ((iv & 1) > 0)
+		    if ((iv & 1) != 0)
 			bits[ii]->setBit(ir, 1);
 		    iv >>= 1;
+		    ++ ii;
 		}
 	    }
 	}
@@ -286,12 +287,13 @@ ibis::slice::constructT(const char* f) {
 		if ((T) iv != val[ir] || (iv >> ii) > 0)
 		    return -3;
 
+		ii = 0;
 		++ cnts[iv];
 		while (iv > 0) {
-		    -- ii;
-		    if ((iv & 1) > 0)
+		    if ((iv & 1) != 0)
 			bits[ii]->setBit(ir, 1);
 		    iv >>= 1;
+		    ++ ii;
 		}
 	    }
 	}
@@ -305,12 +307,13 @@ ibis::slice::constructT(const char* f) {
 		    if ((T) iv != val[ir] || (iv >> ii) > 0)
 			return -3;
 
+		    ii = 0;
 		    ++ cnts[iv];
 		    while (iv > 0) {
-			-- ii;
-			if ((iv & 1) > 0)
+			if ((iv & 1) != 0)
 			    bits[ii]->setBit(ir, 1);
 			iv >>= 1;
+			++ ii;
 		    }
 		}
 	    }

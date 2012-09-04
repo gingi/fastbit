@@ -369,11 +369,18 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
 	    }
 	}
 	else {
-	    if (errno == ENOENT && readonly == false) {
-		// no such directory, make one
-		int ierr = ibis::util::makeDir(adir);
-		if (ierr < 0)
-		    throw "Can NOT generate the necessary directory for data";
+	    if (errno == ENOENT) {
+		// no such directory
+		if (readonly) {
+		    return;
+		}
+		else {
+		    // make one
+		    int ierr = ibis::util::makeDir(adir);
+		    if (ierr < 0)
+			throw "part::ctor can NOT generate the "
+			    "specified directory";
+		}
 	    }
 	    else if (errno != 0) {
 		LOGGER(ibis::gVerbose > 5 || errno != ENOENT)

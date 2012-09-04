@@ -1,3 +1,17 @@
+Version ibis1.3.2
+-- add group_concat as a new group-by opertors in the select clauses
+   (requested by Michael Beauregard)
+-- modify handling of array_t in functions reserve, resize and push_back
+   to allow a shallow copy to be used when the modification does not
+   expand beyond the existing storage capacity (a feature necessary to
+   support a more efficient way to combine serialized bitvectors in
+   FastQuery code)
+-- more consistent handling of null masks in query processing and
+   reordering of data partitions, modify the built-in test suite to
+   exercise the null handling
+
+
+Wed Aug 15 21:58:00 PDT 2012
 Version ibis1.3.1
 -- impelement ibis::util::read and ibis::util::write to get around the
    limitations with POSIX read and write functions in handling large
