@@ -106,7 +106,7 @@ public:
     T& operator[](size_t i) {return m_begin[i];};
     void nosharing();
     /// Is the content of the array solely in memory?
-    bool incore() const {return(actual != 0 ? actual->filename() == 0 : false);}
+    bool incore() const {return(actual == 0 || actual->filename() == 0);}
 
     iterator insert(iterator pos, const T& val);
     void insert(iterator p, size_t n, const T& val);
@@ -120,8 +120,8 @@ public:
     void  read(const char*);
     off_t read(const char*, const off_t, const off_t);
     off_t read(const int, const off_t, const off_t);
-    int write(const char*) const;
-    int write(FILE* fptr) const;
+    int   write(const char*) const;
+    int   write(FILE* fptr) const;
 
     // print internal pointer addresses
     void printStatus(std::ostream& out) const;
@@ -129,18 +129,27 @@ public:
     /// Export the actual storage object.
     ///
     /// @note This function returns the internal storage representation of
-    /// the array_t object.  <b>In general, it is very dangarous to expose
-    /// internal implementation details to clients</b>.  <b>Likely to be
-    /// removed in a future release</b>.  Don't rely on this function!
+    /// the array_t object.
+    ///
+    /// @warning <b>Likely to be removed in a future release</b>.  Don't
+    /// rely on this function!
     ibis::fileManager::storage* getStorage() {return actual;}
 
 private:
-    ibis::fileManager::storage *actual; ///< Pointer to the actual space.
-    T* m_begin;	///< The nominal starting point.
-    T* m_end;	///< The nominal ending point.
-    // ibis::horometer timer; // a timer to track usage
+    /// Pointer to the actual space.  This is only for the internally
+    /// allocated storage, the caller could have initialized this objct
+    /// with external memory.
+    ibis::fileManager::storage *actual;
+    /// The nominal starting point.  It usually points to part of the space
+    /// represented by actual, however it could have been initialized the
+    /// caller explicitly.  The array_t object is valid as long as m_begin
+    /// is not nil and m_end is no less than m_begin.
+    T* m_begin;
+    /// The nominal ending point.  This points to the address beyond the
+    /// last element of the array.
+    T* m_end;
 
-    void freeMemory(); ///< Free the associated memory.
+    void freeMemory();
 
     /// Standard two-way partitioning function to quicksort function qsort.
     uint32_t partition(array_t<uint32_t>& ind, uint32_t front,
@@ -190,8 +199,7 @@ inline void ibis::array_t<T>::swap(array_t<T>& rhs) {
 /// - the existing storage object has no free space for the new data value.
 template<class T> 
 inline void ibis::array_t<T>::push_back(const T& elm) {
-    if (actual == 0 || m_begin == 0 || m_end < m_begin ||
-	actual->begin() == 0 || actual->end() < actual->begin()) {
+    if (m_begin == 0 || m_end < m_begin) {
 	// allocate new storage
 	actual = new ibis::fileManager::storage(3*sizeof(T));
 	actual->beginUse();
@@ -199,7 +207,8 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
 	m_end = m_begin + 1;
 	*m_begin = elm;
     }
-    else if (actual->filename() == 0 && (char*)(m_end+1) <= actual->end()) {
+    else if (actual != 0 && actual->filename() == 0 &&
+	     (char*)(m_end+1) <= actual->end()) {
 	// simply add value
 	*m_end = elm;
 	++ m_end;
@@ -223,6 +232,6 @@ inline void ibis::array_t<T>::push_back(const T& elm) {
 /// The maximum number of elements can be stored with the current memory.
 template <class T>
 inline size_t ibis::array_t<T>::capacity() const {
-    return (actual != 0 ? (const T*)actual->end() - m_begin : 0);
+    return (actual!=0 ? (const T*)actual->end()-m_begin : m_end-m_begin);
 } // ibis::array_t<T>::capacity
 #endif // IBIS_ARRAY_T_H

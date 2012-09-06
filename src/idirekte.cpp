@@ -181,42 +181,89 @@ int ibis::direkte::construct0(const char* dfname) {
     nrows = col->partition()->nRows();
     if (nrows == 0) return ierr;
 
+    std::string evt = "direket[";
+    evt += col->partition()->name();
+    evt += '.';
+    evt += col->name();
+    evt += "]::construct0<";
+    evt += typeid(T).name();
+    evt += '>';
     array_t<T> vals;
     LOGGER(ibis::gVerbose > 4)
-	<< "direkte[" << col->partition()->name() << '.' << col->name()
-	<< "]::construct0 -- starting to process file " << dfname << " as "
-	<< typeid(T).name();
+	<< evt << " -- starting to process file " << dfname;
+
+    ibis::bitvector mask;
+    col->getNullMask(mask);
+    if (col->partition() != 0) {
+	ibis::bitvector tmp;
+	col->partition()->getNullMask(tmp);
+	mask &= tmp;
+    }
 
     ierr = ibis::fileManager::instance().getFile(dfname, vals);
     if (ierr == 0) { // got a pointer to the base data
-	if (col->upperBound() > col->lowerBound()) {
-	    const uint32_t nbits = (uint32_t)col->upperBound() + 1;
+	const uint32_t nbits = (uint32_t)col->upperBound() + 1;
 #ifdef RESERVE_SPACE_BEFORE_CREATING_INDEX
-	    const uint32_t nset = (uint32_t)(nrows+nbits-1)/nbits;
+	const uint32_t nset = (uint32_t)(nrows+nbits-1)/nbits;
 #endif
-	    bits.resize(nbits);
-	    for (uint32_t i = 0; i < nbits; ++ i) {
-		bits[i] = new ibis::bitvector();
+	bits.resize(nbits);
+	for (uint32_t i = 0; i < nbits; ++ i) {
+	    bits[i] = new ibis::bitvector();
 #ifdef RESERVE_SPACE_BEFORE_CREATING_INDEX
-		bits[i]->reserve(nbits, nset);
+	    bits[i]->reserve(nbits, nset);
 #endif
-	    }
-	    if (ibis::gVerbose > 6)
-		col->logMessage("direkte::construct", "finished allocating "
-				"%lu bitvectors",
-				static_cast<long unsigned>(nbits));
 	}
+	LOGGER(ibis::gVerbose > 6)
+	    << evt << " allocated " << nbits << " bitvector"
+	    << (nbits>1?"s":"");
 
-	for (uint32_t j = 0; j < nrows; ++ j) {
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *iix = is.indices();
 	    const uint32_t nbits = bits.size();
-	    if (nbits <= static_cast<uint32_t>(vals[j])) {
-		const uint32_t newsize =
-		    (vals[j]+1U>nbits+nbits?vals[j]+1U:nbits+nbits);
-		bits.resize(newsize);
-		for (uint32_t i = nbits; i < newsize; ++ i)
-		    bits[i] = new ibis::bitvector;
+	    uint64_t vmax = bits.size();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = iix[0]; j < iix[1]; ++ j)
+		    if (vmax < vals[j])
+			vmax = vals[j];
+		if (vmax > 0x7FFFFFFFU) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << evt << " can not deal with value "
+			<< vmax;
+		    throw "direkte can not index values larger than 2^31";
+		}
+		if (vmax > nbits) {
+		    const uint32_t newsize =
+			(vmax+1U>nbits+nbits?vmax+1U:nbits+nbits);
+		    bits.resize(newsize);
+		    for (uint32_t i = nbits; i < newsize; ++ i)
+			bits[i] = new ibis::bitvector;
+		}
+
+		for (ibis::bitvector::word_t j = iix[0]; j < iix[1]; ++ j)
+		    bits[vals[j]]->setBit(j, 1);
 	    }
-	    bits[vals[j]]->setBit(j, 1);
+	    else {
+		for (ibis::bitvector::word_t j = 0; j < is.nIndices(); ++ j)
+		    if (vmax < vals[iix[j]])
+			vmax = vals[iix[j]];
+		if (vmax > 0x7FFFFFFFU) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << evt << " can not deal with value "
+			<< vmax;
+		    throw "direkte can not index values larger than 2^31";
+		}
+		if (vmax > nbits) {
+		    const uint32_t newsize =
+			(vmax+1U>nbits+nbits?vmax+1U:nbits+nbits);
+		    bits.resize(newsize);
+		    for (uint32_t i = nbits; i < newsize; ++ i)
+			bits[i] = new ibis::bitvector;
+		}
+
+		for (ibis::bitvector::word_t j = 0; j < is.nIndices(); ++ j)
+		    bits[vals[iix[j]]]->setBit(iix[j], 1);
+	    }
 	}
     }
     else { // failed to read or memory map the data file, try to read the
@@ -229,8 +276,7 @@ int ibis::direkte::construct0(const char* dfname) {
 	}
 
 	LOGGER(ibis::gVerbose > 5)
-	    << "direkte[" << col->partition()->name() << '.' << col->name()
-	    << "]::construct -- starting to read the values from "
+	    << evt << " -- starting to read the values from "
 	    << dfname << " one at a time";
 	if (col->upperBound() > col->lowerBound()) {
 	    const uint32_t nbits = (uint32_t)col->upperBound() + 1;
@@ -253,26 +299,70 @@ int ibis::direkte::construct0(const char* dfname) {
 	    ierr = -2; // failed to open file for reading
 	    return ierr;
 	}
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fdes, _O_BINARY);
+#endif
 
-	for (uint32_t j = 0; j < nrows; ++ j) {
+	for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
 	    T val;
-	    ierr = UnixRead(fdes, &val, elemsize);
-	    if (ierr < static_cast<int>(elemsize)) {
-		ierr = -3;
-		break;
+	    const ibis::bitvector::word_t *iix = is.indices();
+
+	    off_t pos = iix[0] * elemsize;
+	    ierr = UnixSeek(fdes, pos, SEEK_SET);
+	    if (ierr != pos) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << evt << " failed to seek to "
+		    << pos << " in file " << dfname;
+		clear();
+		return -3;
 	    }
 
-	    const uint32_t nbits = bits.size();
-	    if (nbits <= static_cast<uint32_t>(val)) {
-		const uint32_t newsize =
-		    (val+1U>=nbits+nbits?val+1U:nbits+nbits);
-		bits.resize(newsize);
-		for (uint32_t i = nbits; i < newsize; ++ i)
-		    bits[i] = new ibis::bitvector;
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = iix[0]; j < iix[1]; ++ j) {
+		    ierr = UnixRead(fdes, &val, elemsize);
+		    if (ierr < static_cast<int>(elemsize)) {
+			clear();
+			return -4;
+		    }
+
+		    const uint32_t nbits = bits.size();
+		    if (nbits <= static_cast<uint32_t>(val)) {
+			const uint32_t newsize =
+			    (val+1U>=nbits+nbits?val+1U:nbits+nbits);
+			bits.resize(newsize);
+			for (uint32_t i = nbits; i < newsize; ++ i)
+			    bits[i] = new ibis::bitvector;
+		    }
+		    bits[val]->setBit(j, 1);
+		}
 	    }
-	    bits[val]->setBit(j, 1);
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j) {
+		    if (j > 0 && iix[j] > iix[j-1]+1U) {
+			pos = iix[j] * elemsize;
+			(void)UnixSeek(fdes, pos, SEEK_SET);
+		    }
+
+		    ierr = UnixRead(fdes, &val, elemsize);
+		    if (ierr < static_cast<int>(elemsize)) {
+			clear();
+			return -5;
+		    }
+
+		    const uint32_t nbits = bits.size();
+		    if (nbits <= static_cast<uint32_t>(val)) {
+			const uint32_t newsize =
+			    (val+1U>=nbits+nbits?val+1U:nbits+nbits);
+			bits.resize(newsize);
+			for (uint32_t i = nbits; i < newsize; ++ i)
+			    bits[i] = new ibis::bitvector;
+		    }
+		    bits[val]->setBit(iix[j], 1);
+		}
+	    }
 	}
-	UnixClose(fdes);
     }
 
     // remove the empty bitvector at the end
@@ -285,7 +375,7 @@ int ibis::direkte::construct0(const char* dfname) {
     // make sure all bitvectors are of the right size
     for (uint32_t i = 0; i < bits.size(); ++ i)
 	bits[i]->adjustSize(0, nrows);
-    return ierr;
+    return 0;
 } // ibis::direkte::construct0
 
 template <typename T>
@@ -389,6 +479,10 @@ int ibis::direkte::construct(const char* dfname) {
 	    ierr = -2; // failed to open file for reading
 	    return ierr;
 	}
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
+#if defined(_WIN32) && defined(_MSC_VER)
+	(void)_setmode(fdes, _O_BINARY);
+#endif
 
 	for (ibis::bitvector::indexSet iset = mask.firstIndexSet();
 	     iset.nIndices() > 0; ++ iset) {
@@ -399,8 +493,8 @@ int ibis::direkte::construct(const char* dfname) {
 		    T val;
 		    ierr = UnixRead(fdes, &val, elemsize);
 		    if (ierr < static_cast<int>(elemsize)) {
-			ierr = -3;
-			break;
+			clear();
+			return -3;
 		    }
 
 		    const uint32_t nbits = bits.size();
@@ -419,13 +513,13 @@ int ibis::direkte::construct(const char* dfname) {
 		    T val;
 		    ierr = UnixSeek(fdes, j * elemsize, SEEK_SET);
 		    if (ierr < 0 || static_cast<unsigned>(ierr) != j*elemsize) {
-			ierr = -3;
-			break;
+			clear();
+			return -4;
 		    }
 		    ierr = UnixRead(fdes, &val, elemsize);
 		    if (ierr < static_cast<int>(elemsize)) {
-			ierr = -4;
-			break;
+			clear();
+			return -5;
 		    }
 
 		    const uint32_t nbits = bits.size();
@@ -438,16 +532,13 @@ int ibis::direkte::construct(const char* dfname) {
 		    bits[val]->setBit(j, 1);
 		}
 	    }
-
-	    if (ierr < 0) break;
 	}
-	UnixClose(fdes);
     }
 
     // make sure all bitvectors are of the right size
     for (uint32_t i = 0; i < bits.size(); ++ i)
 	bits[i]->adjustSize(0, nrows);
-    return ierr;
+    return 0;
 } // ibis::direkte::construct
 
 /// The printing function.

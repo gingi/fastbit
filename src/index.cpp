@@ -786,7 +786,7 @@ ibis::index* ibis::index::buildNew
     }
     LOGGER(ibis::gVerbose > 3)
 	<< "index::create -- attempt to build a new index with spec `"
-	<< spec << "' and from "
+	<< spec << "' on data from directory "
 	<< (dfname ? dfname : c->partition()->currentDataDir())
 	<< " for column " << c->partition()->name() << '.' << c->name();
 

@@ -1,3 +1,12 @@
+2012-09-05 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.h, src/array_t.cpp: change the test on actual
+	because it might be nil when the caller specifies an extenal piece
+	of storage
+	* src/idirekte.cpp: constructor0 neglected to take into account of
+	the null mask and causes large integers to be treated as normal
+	values (which in turn causes the exception related to array_t size
+	reported by Michael Beauregard)
+
 2012-09-04 John Wu <John dot Wu at ACM dot org>
 	* src/islice.cpp: slice::constructT reverses the order of the bits
 	to match the order used in iskive.cpp (in order to correctly reuse

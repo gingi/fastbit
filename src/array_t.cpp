@@ -135,7 +135,7 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
     : actual(rhs.actual), m_begin(rhs.m_begin), m_end(rhs.m_end) {
     if (actual != 0)
 	actual->beginUse();
-    //timer.start();
+
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
@@ -167,7 +167,7 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t begin,
 	m_end = rhs.m_end;
     if (actual != 0)
 	actual->beginUse();
-    //timer.start();
+
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
@@ -188,7 +188,7 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
     if (diff > 0x7FFFFFFF) {
 	throw "array_t can not handle more than 2 billion elements";
     }
-    //timer.start();
+
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
@@ -263,7 +263,7 @@ ibis::array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
     }
     if (actual != 0)
 	actual->beginUse();
-    //timer.start();
+
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
@@ -454,7 +454,7 @@ void ibis::array_t<T>::nosharing() {
 template<class T>
 void ibis::array_t<T>::freeMemory() {
     if (actual != 0) {
-	actual->endUse();//timer.CPUTime()
+	actual->endUse();
 	LOGGER(ibis::gVerbose > 9)
 	    << "array_t<" << typeid(T).name()
 	    << ">::freeMemory this=" << static_cast<void*>(this)
@@ -1460,7 +1460,9 @@ void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
 /// larger size, call the function reserve to increase the underlying
 /// storage to avoid this function copying the data many times.
 ///
-/// @note New space is allocated through the function reserve.
+/// @note New space is allocated through the function reserve.  The new
+/// elements of the array are not initalized.  They contain random
+/// unspecified values, don't rely their content.
 template<class T>
 void ibis::array_t<T>::resize(size_t n) {
     if (n > 0x7FFFFFFFU) {
@@ -1491,8 +1493,8 @@ void ibis::array_t<T>::resize(size_t n) {
 /// Increase the size of the array_t to have the capacity to store at least
 /// @c n elements.  If the current storage object already has n elements,
 /// nothing is done, otherwise new storage is allocated.  If it fails to
-/// allocate new storage, the current array is unchanged.  In any case, the
-/// content of the array should be unchanged.
+/// allocate new storage, the current array is unchanged.  The newly
+/// allocated space is not initalized to any specific value.
 ///
 /// @note If the incoming argument is 0, this function will either allocate
 /// 32 / sizeof(T) elements if sizeof(T) is less than 32, or 2 elements if
@@ -1512,21 +1514,23 @@ void ibis::array_t<T>::reserve(size_t n) {
 	    n = 2;
     }
 
-    if (actual != 0 && m_begin != 0 && m_end >= m_begin &&
-	actual->begin() != 0 && actual->end() >= actual->begin()) {
-	const size_t n0 = (T*)(actual->end()) - m_begin;
-	if (n > n0 || actual->filename() != 0) {
+    const size_t n0 = (actual ? (const T*)actual->end() - m_begin :
+		       m_end - m_begin);
+    if (m_begin != 0 && m_end >= m_begin) { // a valid existing array
+	if (n > n0 || (actual != 0 && actual->filename() != 0)) {
 	    // attempt to allocate new storage space
 	    std::auto_ptr<ibis::fileManager::storage>
 		tmp(new ibis::fileManager::storage(n*sizeof(T)));
 	    if (tmp.get() != 0) { // copy and swap
-		(void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));
-		actual->endUse();
-		if (actual->inUse() == 0 && actual->filename() == 0 ) {
-		    ibis::util::mutexLock lock(&(ibis::util::envLock),
-					       "array_t::reserve");
-		    if (actual->inUse() == 0)
-			delete actual;
+		(void) memcpy(tmp->begin(), m_begin, (m_end-m_begin)*sizeof(T));
+		if (actual != 0) {
+		    actual->endUse();
+		    if (actual->inUse() == 0 && actual->filename() == 0 ) {
+			ibis::util::mutexLock lock(&(ibis::util::envLock),
+						   "array_t::reserve");
+			if (actual->inUse() == 0)
+			    delete actual;
+		    }
 		}
 		actual = tmp.release();
 		m_begin = (T*)(actual->begin());
@@ -1557,12 +1561,11 @@ void ibis::array_t<T>::reserve(size_t n) {
 /// m_begin and m_end.  If it is outside of this range, the return value
 /// will be set to nil.
 ///
-/// It throws a string exception if the existing array has more than
+/// It throws a string exception if the new array has more than
 /// 0x7FFFFFFF (2^31-1) elements.
 template<class T> typename ibis::array_t<T>::iterator
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
-    if (actual == 0 || m_begin == 0 || m_end <= m_begin ||
-	actual->begin() == 0) {
+    if (m_begin == 0 || m_end <= m_begin) {
 	actual = new ibis::fileManager::storage(4*sizeof(T));
 	actual->beginUse();
 	m_begin = (T*)(actual->begin());
@@ -1573,8 +1576,9 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
     else  if (p < m_begin || p > m_end) {
 	p = 0; // do nothing
     }
-    else if (actual->inUse() == 1 && m_end+1 <= (T*)(actual->end())) {
-	// use existing space
+    else if (actual != 0 && actual->inUse() == 1 &&
+	     m_end+1 <= (T*)(actual->end())) {
+	// use the existing space
 	iterator i = m_end;
 	while (i > p) {
 	    *i = i[-1]; --i;
@@ -1586,9 +1590,11 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 	const difference_type n = m_end - m_begin;
 	const size_t ip = p - m_begin;
 	size_t newsize = static_cast<size_t>((n >= 7 ? n : 7) + n);
-	if ((long long) newsize > 0x7FFFFFFFU) {
+	if (n >= 0x7FFFFFFFU) {
 	    throw "array_t must have less than 2^31 elements";
 	}
+	if (newsize > 0x7FFFFFFFU)
+	    newsize = 0x7FFFFFFFU;
 
 	array_t<T> copy(newsize);
 	copy.resize(static_cast<size_t>(n+1));
@@ -1609,13 +1615,13 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, size_t n,
 			 const T& val) {
     if (n == 0 || p < m_begin || p > m_end) return;
 
-    if (actual == 0 || m_begin == 0 || m_end < m_begin ||
-        actual->begin() == 0 || actual->end() < actual->begin()) {
+    if (m_begin == 0 || m_end < m_begin) {
 	reserve(n);
 	for (size_t j = 0; j < n; ++ j, ++ m_end)
 	    *m_end = val;
     }
-    else if (actual->inUse() == 1 && m_end+n <= (T*)(actual->end())) {
+    else if (actual != 0 && actual->filename() == 0 &&
+	     m_end+n <= (T*)(actual->end())) {
 	// use the existing space
 	m_end += n;
 	// copy all values after p to p+n
@@ -1639,15 +1645,15 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, size_t n,
 	}
 
 	const size_t jp = p - m_begin;
-	ibis::array_t<T> copy(nnew);
-	copy.resize(nold+n);
+	ibis::array_t<T> tmp(nnew);
+	tmp.resize(nold+n);
 	for (size_t j = 0; j < jp; ++ j)
-	    copy[j] = m_begin[j];
+	    tmp[j] = m_begin[j];
 	for (size_t j = 0; j < n; ++ j)
-	    copy[jp+j] = val;
+	    tmp[jp+j] = val;
 	for (size_t j = jp; j < (nold>0?(size_t)nold:0U); ++ j)
-	    copy[n+j] = m_begin[j];
-	swap(copy); // swap this and copy
+	    tmp[n+j] = m_begin[j];
+	swap(tmp); // swap this and tmp
     }
 } // ibis::array<T>::insert
 
@@ -1661,13 +1667,13 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
     if (back <= front || p < m_begin || p > m_end) return;
     const difference_type n = back - front;
 
-    if (actual == 0 || m_begin == 0 || m_end < m_begin ||
-	actual->begin() == 0 || actual->end() < actual->begin()) { // no space
+    if (m_begin == 0 || m_end < m_begin) { // no space
 	reserve(n);
 	for (const_iterator j = front; j < back; ++ j, ++ m_end)
 	    *m_end = *j;
     }
-    else if (actual->inUse() == 1 && m_end+n <= (T*)(actual->end())) {
+    else if (actual != 0 && actual->filename() == 0 &&
+	     m_end+n <= (T*)(actual->end())) {
 	// enough space, simply copy the values
 	m_end += n;
 	iterator i = m_end - 1;
@@ -1687,15 +1693,15 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 	}
 
 	const size_t jp = p - m_begin;
-	ibis::array_t<T> copy(nnew);
-	copy.resize(nold+n);
+	ibis::array_t<T> tmp(nnew);
+	tmp.resize(nold+n);
 	for (size_t j = 0; j < jp; ++ j)
-	    copy[j] = m_begin[j];
+	    tmp[j] = m_begin[j];
 	for (size_t j = 0; j < (size_t)n; ++ j)
-	    copy[jp+j] = front[j];
+	    tmp[jp+j] = front[j];
 	for (size_t j = jp; j < (nold>0?(size_t)nold:0U); ++ j)
-	    copy[n+j] = m_begin[j];
-	swap(copy); // swap this and copy
+	    tmp[n+j] = m_begin[j];
+	swap(tmp); // swap this and tmp
     }
 } // ibis::array_t<T>::insert
 
