@@ -3920,6 +3920,12 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
 
     std::vector<uint32_t> lines;
+    num2 = ibis::meshQuery::bitvectorToCoordinates
+	(*aQuery.getHitVector(), tbl->getMeshShape(), lines);
+    LOGGER(ibis::gVerbose > 0 && num2 != num1)
+	<< "Warning -- meshQuery::bitvectorToCoordinates returned " << num2
+	<< ", expected " << num1;
+
     num2 = aQuery.getHitsAsLines(lines);
     if (num2 < 0) {
 	LOGGER(ibis::gVerbose > 0)

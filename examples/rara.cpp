@@ -3,9 +3,9 @@
 // Copyright 2008-2012 the Regents of the University of California
 /** @file rara.cpp
 
-    This is a simple test program for the querying functions of ibis::query
-    and ibis::part.  It accepts the following fixed list of arguments to
-    simplify the program:
+    This is meant to be the simplest test program for the querying
+    functions of ibis::query and ibis::part.  It accepts the following
+    fixed list of arguments to simplify the program:
 
     data-dir query-conditions [column-to-print [column-to-print ...]]
 

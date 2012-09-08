@@ -118,6 +118,19 @@ Specifies a single row of a table in ASCII form.  Multiple rows may be
 specified by using multiple <code>-r</code> options.  In
 <code>ardea</code> text files are processed before individual rows
 specified by option <code>-r</code>.
+
+  <li><code>-M metadatafilename</code<br>
+  Specifies a file containing the names and types.  The format of this
+  metadata file can be either simple name:type pairs as required by the
+  <code>-m</code> option, or the more verbose form used in '-part.txt'
+  files.
+
+  <li><code>-tags "name1=value1, name2=value2, ..."</code><br>
+  Specifies optional name-value pairs to be associated with the
+  dataset.  These name-value pairs are also called meta tags in FastBit
+  source code.  The names used in meta tags can also be used in query
+  expressions, in which cases, they are equivalent to columns with a
+  single text value (i.e., a categorical value).
 </ul>
 
 Regarding column names, FastBit imposes the following restrictions.  The
@@ -286,7 +299,7 @@ for columns.  Next, we describe the content of these files.
 
 Overall, FastBit views user data as tables consisting of rows and
 columns.  This is similar to most common database systems.  What is
-different is that it organizes column of the data in its own binary
+different is that it organizes each column of the data in its own binary
 file.  In contrast, most existing database management systems organizes
 data of each row together.  A typical layout of data table on paper is
 to show the rows horizontally and the columns vertically, thus the

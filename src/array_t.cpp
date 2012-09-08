@@ -1640,7 +1640,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, size_t n,
 	// copy and swap
 	const difference_type nold = m_end - m_begin;
 	size_t nnew = static_cast<size_t>(nold + (nold>=(long)n?nold:n));
-	if ((long long)nnew > 0x7FFFFFFFU) {
+	if (nnew > 0x7FFFFFFFU) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 
@@ -1688,7 +1688,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
 	const difference_type nold = (m_begin > 0 && m_end > m_begin ?
 				      m_end - m_begin : 0);
 	size_t nnew = static_cast<size_t>(nold + (nold>=n ? nold : n));
-	if ((long long) nnew > 0x7FFFFFFFU) {
+	if (nnew > 0x7FFFFFFFU) {
 	    throw "array_t must have less than 2^31 elements";
 	}
 

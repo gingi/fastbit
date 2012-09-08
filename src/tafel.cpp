@@ -1639,7 +1639,8 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	    }
 	    else { // dir ends with FASTBIT_DIRSEP
 		nmlocal = dir;
-		nmlocal.erase(nmlocal.size()-1); // remove the last FASTBIT_DIRSEP
+		// remove the last FASTBIT_DIRSEP
+		nmlocal.erase(nmlocal.size()-1);
 		uint32_t j = 1 + nmlocal.rfind(FASTBIT_DIRSEP);
 		if (j > nmlocal.size())
 		    j = 1 + nmlocal.rfind('/');
@@ -3685,6 +3686,15 @@ ibis::tablex* ibis::tablex::create() {
     return new ibis::tafel;
 } // ibis::tablex::create
 
+/// Read a file containing the names and types of columns.
+/// The content of the file is either the simple list of "name:type" pairs
+/// or the more verbose version used in '-part.txt' files.  If it is the
+/// plain 'name:type' pair form, the pairs can be either specified one at a
+/// time or a group at a time.  This function attempts to read one line at
+/// a time and will automatically grow the internal buffer used if the
+/// existing buffer is too small to read a long line.  However, it is
+/// typically a good idea to keep the lines relatively short so it can be
+/// examined manually if necessary.
 int ibis::tablex::readNamesAndTypes(const char* filename) {
     if (filename == 0 || *filename == 0) {
 	LOGGER(ibis::gVerbose > 0)
@@ -3788,6 +3798,7 @@ int ibis::tablex::readNamesAndTypes(const char* filename) {
     return ret;
 } // ibis::tablex::readNamesAndTypes
 
+/// Parse names and data types in string form.
 /// A column name must start with an alphabet or a underscore (_); it can be
 /// followed by any number of alphanumeric characters (including
 /// underscores).  For each built-in data types, the type names recognized

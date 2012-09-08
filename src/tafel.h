@@ -94,6 +94,9 @@ protected:
     columnList cols;
     /// Order of columns as they were specified through @c addColumn.
     std::vector<column*> colorder;
+    /// Meta tags.  They are optional name-value pairs meant to describe
+    /// the data partition.
+    std::string metatags;
     /// Number of rows of this table.
     ibis::bitvector::word_t mrows;
 

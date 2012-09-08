@@ -25,6 +25,44 @@ If the user does not specify any new data, it will write a built-in set of
 data (91 rows and 8 columns) and then run 10 built-in queries with known
 numbers of hits.
 
+Here is a list of arguments.
+
+- <code>-b break/delimiters-in-text-data</code> the delimiters to be
+  expected in the input data, the default value is ", ".
+
+- <code>-c conf-file</code> a configuration file for FastBit
+- <code>-d data-dir</code> the output directory to write the data.
+
+- <code>-h</code> print a brief message about usage.  Any unknown options
+  will trigger this print function, which also terminates this program.
+
+- <code>-M metadata-filename</code> name the metadata file that contains
+  the name and type information.  The names and types can be either
+  specified in the form of 'name:type' pairs or in the form of "-part.txt"
+  files.
+- <code>-m name:type[name:type,..]</code> metadata, i.e., the names and
+  types of the columns.
+- <code>-m max-rows-per-file</code> an upper bound on the number of rows
+  in an input file, used to allocate internal read buffer.  This is an
+  optional advisory parameter.
+
+- <code>-n name-of-dataset</code> the name to be associated with the
+  dataset.
+
+- <code>-r a-row-in-ascii</code> give one row of input data.
+
+- <code>-sqldump sqldump-filename</code> name of the SQL dump file to be
+  read. 
+- <code>-select clause</code> a select clause to be used for test queries.
+  There can only be one select clause.
+
+- <code>-t text-filename</code> name of the text file to be read.
+
+- <code>-where clause</code> a where clause to be used for test queries.
+  All where clauses specified on the command line will be tried in turn.
+  A query will be composed of the select clause and one of the where
+  clauses.
+
 @note This file is named after Cattle Egret, whose Latin name is <A
     HREF="http://tinyurl.com/ded8yj">Ardea ibis</A>.
 
@@ -55,7 +93,7 @@ static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
 	"[-d directory-to-write-data] [-n name-of-dataset] "
 	"[-r a-row-in-ASCII] [-t text-file-to-read] "
-	"[-sqldump file-to-read] [-b break/delimiters-in-text-file]"
+	"[-sqldump file-to-read] [-b break/delimiters-in-text-data]"
 	"[-M metadata-file] [-m name:type[,name:type,...]] [-m max-rows-per-file] "
 	"[-tag name-value-pair] "
 	"[-select clause] [-where clause] [-v[=| ]verbose_level]\n\n"

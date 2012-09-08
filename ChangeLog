@@ -1,3 +1,10 @@
+2012-09-07 John Wu <John dot Wu at ACM dot org>
+	* doc/dataLoading.html, examples/ardea.cpp: update documentation
+	about the options of inputing meta tags and long list of column
+	names and types (in response to questions from Andrew Olson)
+	* examples/ibis.cpp: add call to bitvectorToCoordinates to help
+	debug a problem with FastQuery
+
 2012-09-05 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.h, src/array_t.cpp: change the test on actual
 	because it might be nil when the caller specifies an extenal piece

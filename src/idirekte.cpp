@@ -221,18 +221,18 @@ int ibis::direkte::construct0(const char* dfname) {
 	     is.nIndices() > 0; ++ is) {
 	    const ibis::bitvector::word_t *iix = is.indices();
 	    const uint32_t nbits = bits.size();
-	    uint64_t vmax = bits.size();
+	    T vmax = bits.size();
 	    if (is.isRange()) {
 		for (ibis::bitvector::word_t j = iix[0]; j < iix[1]; ++ j)
 		    if (vmax < vals[j])
 			vmax = vals[j];
-		if (vmax > 0x7FFFFFFFU) {
+		if ((uint64_t)vmax > 0x7FFFFFFFU) {
 		    LOGGER(ibis::gVerbose > 1)
 			<< "Warning -- " << evt << " can not deal with value "
 			<< vmax;
 		    throw "direkte can not index values larger than 2^31";
 		}
-		if (vmax > nbits) {
+		if ((uint64_t)vmax > nbits) {
 		    const uint32_t newsize =
 			(vmax+1U>nbits+nbits?vmax+1U:nbits+nbits);
 		    bits.resize(newsize);
@@ -247,13 +247,13 @@ int ibis::direkte::construct0(const char* dfname) {
 		for (ibis::bitvector::word_t j = 0; j < is.nIndices(); ++ j)
 		    if (vmax < vals[iix[j]])
 			vmax = vals[iix[j]];
-		if (vmax > 0x7FFFFFFFU) {
+		if ((uint64_t)vmax > 0x7FFFFFFFU) {
 		    LOGGER(ibis::gVerbose > 1)
 			<< "Warning -- " << evt << " can not deal with value "
 			<< vmax;
 		    throw "direkte can not index values larger than 2^31";
 		}
-		if (vmax > nbits) {
+		if ((uint64_t)vmax > nbits) {
 		    const uint32_t newsize =
 			(vmax+1U>nbits+nbits?vmax+1U:nbits+nbits);
 		    bits.resize(newsize);
@@ -328,7 +328,7 @@ int ibis::direkte::construct0(const char* dfname) {
 		    }
 
 		    const uint32_t nbits = bits.size();
-		    if (nbits <= static_cast<uint32_t>(val)) {
+		    if (nbits <= static_cast<uint64_t>(val)) {
 			const uint32_t newsize =
 			    (val+1U>=nbits+nbits?val+1U:nbits+nbits);
 			bits.resize(newsize);
@@ -352,7 +352,7 @@ int ibis::direkte::construct0(const char* dfname) {
 		    }
 
 		    const uint32_t nbits = bits.size();
-		    if (nbits <= static_cast<uint32_t>(val)) {
+		    if (nbits <= static_cast<uint64_t>(val)) {
 			const uint32_t newsize =
 			    (val+1U>=nbits+nbits?val+1U:nbits+nbits);
 			bits.resize(newsize);
