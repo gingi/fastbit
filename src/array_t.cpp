@@ -431,21 +431,11 @@ void ibis::array_t<T>::nosharing() {
 	    << static_cast<const void*>(this) << ", "
 	    << static_cast<const void*>(tmp->begin()) << ")";
 #endif
+
+	freeMemory();
 	tmp->beginUse();
 	m_begin = (T*)(tmp->begin());
 	m_end = (T*)(tmp->end());
-	if (actual != 0) {
-	    actual->endUse();
-	    // multiple threads may simutaneously call endUse and leave the
-	    // original copy unused
-	    if (actual->inUse() == 0 && actual->filename() == 0 ) {
-		ibis::util::mutexLock lock(&(ibis::util::envLock),
-					   "array_t::nosharing");
-		if (actual->inUse() == 0)
-		    delete actual;
-		actual = 0;
-	    }
-	}
 	actual = tmp.release();
     }
 } // ibis::array_t<T>::nosharing
@@ -1475,7 +1465,6 @@ void ibis::array_t<T>::resize(size_t n) {
     }
 
     if (actual == 0 || m_begin == 0 || m_end < m_begin ||
-	actual->begin() == 0 || actual->end() < actual->begin() ||
 	(const T*)actual->end() < m_begin + n)
 	reserve(n);
 
@@ -1514,7 +1503,8 @@ void ibis::array_t<T>::reserve(size_t n) {
 	    n = 2;
     }
 
-    const size_t n0 = (actual ? (const T*)actual->end() - m_begin :
+    const size_t n0 = (actual != 0 ?
+		       reinterpret_cast<T const *>(actual->end()) - m_begin :
 		       m_end - m_begin);
     if (m_begin != 0 && m_end >= m_begin) { // a valid existing array
 	if (n > n0 || (actual != 0 && actual->filename() != 0)) {
@@ -1523,15 +1513,7 @@ void ibis::array_t<T>::reserve(size_t n) {
 		tmp(new ibis::fileManager::storage(n*sizeof(T)));
 	    if (tmp.get() != 0) { // copy and swap
 		(void) memcpy(tmp->begin(), m_begin, (m_end-m_begin)*sizeof(T));
-		if (actual != 0) {
-		    actual->endUse();
-		    if (actual->inUse() == 0 && actual->filename() == 0 ) {
-			ibis::util::mutexLock lock(&(ibis::util::envLock),
-						   "array_t::reserve");
-			if (actual->inUse() == 0)
-			    delete actual;
-		    }
-		}
+		freeMemory(); // free the old content
 		actual = tmp.release();
 		m_begin = (T*)(actual->begin());
 		actual->beginUse();
@@ -1545,6 +1527,7 @@ void ibis::array_t<T>::reserve(size_t n) {
 	}
     }
     else {
+	freeMemory(); // just in case actual is not nil
 	actual = new ibis::fileManager::storage(n*sizeof(T));
 	actual->beginUse();
 	m_begin = (T*)(actual->begin());

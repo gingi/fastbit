@@ -1,3 +1,7 @@
+2012-09-10 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.cpp: consolidate deletion of actual into the
+	function freeMemory
+
 2012-09-07 John Wu <John dot Wu at ACM dot org>
 	* doc/dataLoading.html, examples/ardea.cpp: update documentation
 	about the options of inputing meta tags and long list of column
