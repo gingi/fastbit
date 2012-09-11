@@ -1,3 +1,8 @@
+2012-09-11 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp: change back the tests for leading and trailing
+	spaces to use the function isspace instead of isgraph based on the
+	suggestion from Gaurav Agarwal
+
 2012-09-10 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.cpp: consolidate deletion of actual into the
 	function freeMemory

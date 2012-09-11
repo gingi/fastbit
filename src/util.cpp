@@ -224,7 +224,7 @@ char* ibis::util::getString(const char* buf) {
 /// first quote to the last character before the matching quote or end of
 /// buffer.  If delim is not provided (i.e., is 0) and the 1st nonblank
 /// character is not a quote, then string will terminate at the 1st space
-/// character following the nonblank character.
+/// (or nonprintable) character following the nonblank character.
 ///
 /// @note A unquoted empty string is considered a null value which is
 /// indicated by a negative return value.  A quoted empty string is a valid
@@ -243,7 +243,7 @@ char* ibis::util::getString(const char* buf) {
 int ibis::util::readString(std::string& str, const char *&buf,
 			   const char *delim) {
     str.erase(); // erase the existing content
-    while (*buf && isgraph(*buf) == 0) ++ buf; // skip leading space
+    while (*buf && isspace(*buf) != 0) ++ buf; // skip leading space
     if (buf == 0 || *buf == 0) return -3;
 
     if (*buf == '\'') { // single quoted string
@@ -388,10 +388,10 @@ int ibis::util::readString(std::string& str, const char *&buf,
 	    } // while (*buf)
 	}
 
-	if (str.size() > 1 && isgraph(str[str.size()-1]) == 0) {
+	if (str.size() > 1 && isspace(str[str.size()-1]) != 0) {
 	    // remove the trailing spaces
 	    size_t end = str.size()-2;
-	    while (end > 0 && isgraph(str[end]) == 0)
+	    while (end > 0 && isspace(str[end]) != 0)
 		-- end;
 	    str.erase(end);
 	}
@@ -428,7 +428,7 @@ int ibis::util::readString(std::string& str, const char *&buf,
 /// @note All non-printable characters are treated as blank spaces.
 const char* ibis::util::readString(char *&buf, const char *delim) {
     const char* str = 0;
-    while (*buf && isgraph(*buf) == 0) ++ buf; // skip leading space
+    while (*buf && isspace(*buf) != 0) ++ buf; // skip leading space
     if (buf == 0 || *buf == 0) return str;
 
     if (*buf == '\'') { // single quoted string
@@ -583,11 +583,11 @@ const char* ibis::util::readString(char *&buf, const char *delim) {
 
 	// to remove the trailing spaces
 	char *back = (*buf ? buf - 2 : buf - 1);
-	if (back > str && isgraph(*back) == 0) {
+	if (back > str && isspace(*back) != 0) {
 	    do {
 		*back = 0;
 		-- back;
-	    } while (back > str && isgraph(*back) == 0);
+	    } while (back > str && isspace(*back) != 0);
 	}
     }
 
