@@ -2,6 +2,13 @@
 	* src/util.cpp: change back the tests for leading and trailing
 	spaces to use the function isspace instead of isgraph based on the
 	suggestion from Gaurav Agarwal
+	* src/colValue.cpp: in function ibis::colValues::create generate
+	ibis::colStrings for columns of type CATEGORY (instead of generate
+	ibis::colUInts)
+	* src/bundles.cpp:1474 get the actual null mask instead of using
+	all 1s
+	* src/bord.cpp:5998 missing 'else' at the beginning of the line
+	(which causes extra values to be inserted to the result table)
 
 2012-09-10 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.cpp: consolidate deletion of actual into the

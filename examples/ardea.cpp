@@ -49,6 +49,9 @@ Here is a list of arguments.
 - <code>-n name-of-dataset</code> the name to be associated with the
   dataset.
 
+- <code>-tag metatags</code> the name=value pairs associated with the data
+  set.
+
 - <code>-r a-row-in-ascii</code> give one row of input data.
 
 - <code>-sqldump sqldump-filename</code> name of the SQL dump file to be

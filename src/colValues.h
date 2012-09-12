@@ -15,15 +15,12 @@ class FASTBIT_CXX_DLLSPEC ibis::colValues {
 public:
     virtual ~colValues() {}
 
-    /// Construct from a hit vector.
+    static colValues* create(const ibis::column* c);
     static colValues* create(const ibis::column* c,
 			     const ibis::bitvector& hits);
-    /// Construct from content of the file (pointed by @c store).
     static colValues* create(const ibis::column* c,
 			     ibis::fileManager::storage* store,
 			     const uint32_t start, const uint32_t end);
-    /// Construct from content of an array_t.
-    static colValues* create(const ibis::column* c);
 
     /// Provide a pointer to the column containing the selected values.
     const ibis::column* operator->() const {return col;}

@@ -236,18 +236,18 @@ $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 $(TESTDIR)/rowlist: $(TESTDIR)/t1/-part.txt TESTDIR
 	@test -f $(TESTDIR)/rowlist || (echo 0 > $(TESTDIR)/rowlist; echo 99 >> $(TESTDIR)/rowlist;)
 $(TESTDIR)/t2/t2a/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@test -f $(TESTDIR)/t2/t2a/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1
+	@test -f $(TESTDIR)/t2/t2a/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t2/t2a -m "a:byte, b:float, c:ubyte" -t test0.csv -tag "OA=1" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/t2/t2b/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 	@if [ ! -f $(TESTDIR)/t2/t2b/-part.txt ] ; then \
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
-	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2b -m "a:byte, b:float, c:ubyte" -t test0.csv -tag "OA=2" >> $(TESTDIR)/std.log 2>&1; \
 	fi
 $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 	@if [ ! -f $(TESTDIR)/t2/t2c/-part.txt ] ; then \
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
 	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
-	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \
+	$(ARDEAEXE) -d $(TESTDIR)/t2/t2c -m "a:byte, b:float, c:ubyte" -t test0.csv -tag "OA=3" >> $(TESTDIR)/std.log 2>&1; \
 	fi
 $(TESTDIR)/acmpub/-part.txt: $(ARDEAEXE) $(IBISEXE) acmpub.csv TESTDIR
 	@rm -rf $(TESTDIR)/acmpub

@@ -323,22 +323,21 @@ ibis::bord::bord(const char *tn, const char *td,
 		if (refcol != 0) {
 		    ibis::TYPE_T t = refcol->type();
 		    if (refcol->type() == ibis::CATEGORY) {
-			unsigned i = 0;
-			bool samecats = true;
+			bool samedict = true;
 			const ibis::dictionary *dic0 = 
 			    static_cast<const ibis::category*>(refcol)
 			    ->getDictionary();
-			for (; samecats && i < ref.size(); ++ i) {
+			for (unsigned i = 1; samedict && i < ref.size(); ++ i) {
 			    const ibis::category *cat1 =
 				dynamic_cast<const ibis::category*>
 				(ref[i]->getColumn(refcol->name()));
 			    if (cat1 != 0) {
 				const ibis::dictionary *dic1 =
 				    cat1->getDictionary();
-				samecats = dic0->equal_to(*dic1);
+				samedict = dic0->equal_to(*dic1);
 			    }
 			}
-			t = (samecats ? ibis::UINT : ibis::CATEGORY);
+			t = (samedict ? ibis::UINT : ibis::CATEGORY);
 		    }
 		    ibis::bord::column *col = new ibis::bord::column
 			(this, t, cname, 0, sc.aggName(j));
@@ -4582,7 +4581,7 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 4)
-		    << mesg << " -- adding " << nqq << " element"
+		    << mesg << " is to add " << nqq << " element"
 		    << (nqq>1?"s":"") << " to column \"" << cit->first
 		    << "\" from column \"" << scol->name()
 		    << "\" of partition " << prt.name();
@@ -4595,7 +4594,7 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	nEvents += nqq;
 	amask.adjustSize(nEvents, nEvents);
 	LOGGER(ibis::gVerbose > 3)
-	    << mesg << " -- added " << nqq << " row" << (nqq>1?"s":"")
+	    << mesg << " added " << nqq << " row" << (nqq>1?"s":"")
 	    << " to make a total of " << nEvents;
     }
     return ierr;
@@ -5996,7 +5995,7 @@ ibis::bord::column::selectShorts(const ibis::bitvector &mask) const {
 	    array->swap(tmp);
 	    i = nprop;
 	}
-	if (nprop >= mask.size()) { // no need to check loop bounds
+	else if (nprop >= mask.size()) { // no need to check loop bounds
 	    while (index.nIndices() > 0) {
 		const ibis::bitvector::word_t *idx0 = index.indices();
 		if (index.isRange()) {

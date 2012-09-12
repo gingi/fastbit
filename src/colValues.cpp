@@ -19,6 +19,46 @@
 
 //////////////////////////////////////////////////////////////////////
 // functions of ibis::colValues and derived classes
+
+/// Construct a colValue object.
+/// Use all rows of the column.
+ibis::colValues* ibis::colValues::create(const ibis::column* c) {
+    if (c == 0) return 0;
+    switch (c->type()) {
+    case ibis::UBYTE:
+	return new colUBytes(c);
+    case ibis::BYTE:
+	return new colBytes(c);
+    case ibis::USHORT:
+	return new colUShorts(c);
+    case ibis::SHORT:
+	return new colShorts(c);
+    case ibis::UINT:
+	return new colUInts(c);
+    case ibis::INT:
+	return new colInts(c);
+    case ibis::ULONG:
+	return new colULongs(c);
+    case ibis::LONG:
+	return new colLongs(c);
+    case ibis::FLOAT:
+	return new colFloats(c);
+    case ibis::DOUBLE:
+	return new colDoubles(c);
+    case ibis::CATEGORY:
+    case ibis::TEXT:
+	return new colStrings(c);
+    case ibis::BLOB:
+	return new colBlobs(c);
+    default:
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- colValues does not support type "
+	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
+	return 0;
+    }
+} // ibis::colValues::create
+
+/// Construct from a hit vector.
 ibis::colValues* ibis::colValues::create(const ibis::column* c,
 					 const ibis::bitvector& hits) {
     if (c == 0) return 0;
@@ -31,7 +71,6 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colUShorts(c, hits);
     case ibis::SHORT:
 	return new colShorts(c, hits);
-    case ibis::CATEGORY:
     case ibis::UINT:
 	return new colUInts(c, hits);
     case ibis::INT:
@@ -44,6 +83,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	return new colFloats(c, hits);
     case ibis::DOUBLE:
 	return new colDoubles(c, hits);
+    case ibis::CATEGORY:
     case ibis::TEXT:
 	return new colStrings(c, hits);
     case ibis::BLOB:
@@ -56,6 +96,7 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
     }
 } // ibis::colValues::create
 
+/// Construct from content of the file (pointed by @c store).
 /// Use values stored in the storage object.
 ibis::colValues* ibis::colValues::create(const ibis::column* c,
 					 ibis::fileManager::storage* store,
@@ -88,43 +129,6 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- colValues does not yet support type "
 	    << ibis::TYPESTRING[(int)(c->type())];
-	return 0;
-    }
-} // ibis::colValues::create
-
-/// Use all rows of the column.
-ibis::colValues* ibis::colValues::create(const ibis::column* c) {
-    if (c == 0) return 0;
-    switch (c->type()) {
-    case ibis::UBYTE:
-	return new colUBytes(c);
-    case ibis::BYTE:
-	return new colBytes(c);
-    case ibis::USHORT:
-	return new colUShorts(c);
-    case ibis::SHORT:
-	return new colShorts(c);
-    case ibis::CATEGORY:
-    case ibis::UINT:
-	return new colUInts(c);
-    case ibis::INT:
-	return new colInts(c);
-    case ibis::ULONG:
-	return new colULongs(c);
-    case ibis::LONG:
-	return new colLongs(c);
-    case ibis::FLOAT:
-	return new colFloats(c);
-    case ibis::DOUBLE:
-	return new colDoubles(c);
-    case ibis::TEXT:
-	return new colStrings(c);
-    case ibis::BLOB:
-	return new colBlobs(c);
-    default:
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- colValues does not support type "
-	    << ibis::TYPESTRING[(int)(c->type())] << " yet";
 	return 0;
     }
 } // ibis::colValues::create

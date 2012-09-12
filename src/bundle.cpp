@@ -1439,7 +1439,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
     id = tbl.name();
     try {
 	ibis::bitvector msk;
-	msk.set(1, tbl.nRows());
+	tbl.getNullMask(msk);
 	for (unsigned ic = 0; ic < comps.aggSize(); ++ ic) {
 	    const ibis::math::term& expr = *comps.aggExpr(ic);
 	    const char* cn = comps.aggName(ic);
@@ -1471,13 +1471,13 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    case ibis::selectClause::VARSAMP:
 	    case ibis::selectClause::STDPOP:
 	    case ibis::selectClause::STDSAMP:
-		cv = new ibis::colDoubles(c);
+		cv = new ibis::colDoubles(c, msk);
 		break;
 	    case ibis::selectClause::CONCAT:
-		cv = new ibis::colStrings(c);
+		cv = new ibis::colStrings(c, msk);
 		break;
 	    default:
-		cv = ibis::colValues::create(c);
+		cv = ibis::colValues::create(c, msk);
 		break;
 	    }
 	    if (cv != 0) {

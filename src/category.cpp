@@ -194,20 +194,24 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 	}
 	else {
 	    const ibis::direkte *dir = dynamic_cast<const ibis::direkte*>(idx);
-	    if (dir != 0)
+	    if (dir != 0) {
 		keys.reset(dir->keys(mask));
-	    const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
-	    if (rlc != 0)
-		keys.reset(rlc->keys(mask));
+	    }
+	    else {
+		const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+		if (rlc != 0)
+		    keys.reset(rlc->keys(mask));
+	    }
 	}
 	if (keys->size() == mask.cnt()) {
-	    std::vector<std::string>* strings = new std::vector<std::string>();
+	    std::auto_ptr< std::vector<std::string> >
+		strings(new std::vector<std::string>());
 	    strings->reserve(keys->size());
 	    for (unsigned i = 0; i < keys->size(); ++i) {
 		const char *ptr = dic[(*keys)[i]];
 		strings->push_back(ptr!=0 ? ptr : "");
 	    }
-	    return strings;
+	    return strings.release();
 	}
     }
 
