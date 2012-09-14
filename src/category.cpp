@@ -223,7 +223,7 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 /// function because it only manipulates mutable data members.  This is
 /// necessary to make it callable from const member function of this class.
 void ibis::category::prepareMembers() const {
-    if (dic.size() > 0) return;
+    if (dic.size() > 0 && idx != 0) return;
 
     mutexLock lock(this, "category::prepareMembers");
     readDictionary();
@@ -476,8 +476,14 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 /// dictionary is provided, this function will replace the internally kept
 /// dictionary and update the index associated with the column.
 int ibis::category::setDictionary(const ibis::dictionary &sup) {
-    if (dic.size() == 0)
+    if (dic.size() == 0 || idx == 0)
 	prepareMembers();
+    if (sup.size() == dic.size()) {
+	return (sup.equal_to(dic) ? 0 : -10);
+    }
+    else if (sup.size() < dic.size()) {
+	return -11;
+    }
 
     ibis::array_t<uint32_t> o2n;
     int ierr = sup.morph(dic, o2n);
@@ -497,7 +503,7 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to obtain a write lock on "
 	    << m_name;
-	return -10;
+	return -12;
     }
 
     ibis::util::timer mytimer(evt.c_str(), 4);
@@ -505,14 +511,14 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " can not proceed because the existing "
 	    "index is in use";
-	return -11;
+	return -13;
     }
 
     std::string fnm;
     if (0 == dataFileName(fnm)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to determine the data file name";
-	return -12;
+	return -14;
     }
 
     bool neednewindex = true;
@@ -587,7 +593,7 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- " << evt << " failed to open data file "
 		<< data << " to create an index";
-	    return -13;
+	    return -15;
 	}
     }
 
@@ -596,7 +602,7 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt << " expects ints.size() to be "
 		<< thePart->nRows() << ", but it is actually " << ints.size();
-	    return -14;
+	    return -16;
 	}
 
 	idx = new ibis::direkte(this, 1+sup.size(), ints);
@@ -604,7 +610,7 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- " << evt << " failed to generate index from "
 		<< ints.size() << " integers";
-	    return -15;
+	    return -17;
 	}
     }
     ierr = idx->write(thePart->currentDataDir());

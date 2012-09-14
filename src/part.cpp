@@ -1603,19 +1603,19 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		plist[prop->name()] = prop;
 		++ mt;
 	    }
-	    else if (static_cast<ibis::category*>(cit->second)->getNumKeys()
-		     != 1) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- part::readMetaData expectd meta tag "
-		    << cit->first << " to have only 1 value, but found "
-		    << static_cast<ibis::category*>(cit->second)->getNumKeys()
-		    << ", regenerating the column";
-		plist.erase(cit);
-		ibis::category* prop =
-		    new ibis::category(this, (*mit).first, (*mit).second,
-				       dir, nrows);
-		plist[prop->name()] = prop;
-	    }
+	    // else if (static_cast<ibis::category*>(cit->second)->getNumKeys()
+	    // 	     != 1) {
+	    // 	LOGGER(ibis::gVerbose > 1)
+	    // 	    << "Warning -- part::readMetaData expectd meta tag "
+	    // 	    << cit->first << " to have only 1 value, but found "
+	    // 	    << static_cast<ibis::category*>(cit->second)->getNumKeys()
+	    // 	    << ", regenerating the column";
+	    // 	plist.erase(cit);
+	    // 	ibis::category* prop =
+	    // 	    new ibis::category(this, (*mit).first, (*mit).second,
+	    // 			       dir, nrows);
+	    // 	plist[prop->name()] = prop;
+	    // }
 	}
 	// try to assign the directory name as the part name
 	if (m_name == 0 || *m_name == 0) {

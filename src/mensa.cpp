@@ -335,7 +335,7 @@ int ibis::mensa::buildIndexes(const ibis::table::stringList &opt) {
     return 0;
 } // ibis::mensa::buildIndexes
 
-int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
+int ibis::mensa::mergeCategories(const ibis::table::stringList &nms) {
     if (parts.size() <= 1 && nms.size() == 0)
 	return 0;
 
@@ -345,7 +345,7 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
 	evt += name_;
 	evt += ']';
     }
-    evt += "::combineCategories";
+    evt += "::mergeCategories";
     if (ibis::gVerbose > 1) {
 	std::ostringstream oss;
 	oss << '(';
@@ -393,7 +393,8 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
 		    LOGGER(ibis::gVerbose > 0 && ierr < 0)
 			<< "Warning -- " << evt
 			<< " failed to merge dictionary for "
-			<< (*it)->name() << '.' << c1->name();
+			<< (*it)->name() << '.' << c1->name()
+			<< ", ierr = " << ierr;
 		}
 	    }
 	}
@@ -410,7 +411,8 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
 		    LOGGER(ibis::gVerbose > 0 && ierr < 0)
 			<< "Warning -- " << evt
 			<< " failed to change dictionary for "
-			<< (*it)->name() << '.' << c1->name();
+			<< (*it)->name() << '.' << c1->name()
+			<< ", ierr = " << ierr;
 		    cnt += (ierr >= 0);
 		}
 	    }
@@ -433,7 +435,8 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
 		    ierr = words.merge(*c1->getDictionary());
 		    LOGGER(ierr < 0 && ibis::gVerbose > 0)
 			<< "Warning -- " << evt << " failed to merge words from "
-			<< (*pit)->name() << '.' << c1->name();
+			<< (*pit)->name() << '.' << c1->name()
+			<< ", ierr = " << ierr;
 		}
 	    }
 	}
@@ -453,7 +456,8 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
 		    ierr = c1->setDictionary(words);
 		    LOGGER(ierr < 0 && ibis::gVerbose > 0)
 			<< "Warning -- " << evt << " failed to update index for "
-			<< (*pit)->name() << '.' << c1->name();
+			<< (*pit)->name() << '.' << c1->name()
+			<< ", ierr = " << ierr;
 		    cnt += (ierr >= 0);
 		}
 	    }
@@ -461,7 +465,7 @@ int ibis::mensa::combineCategories(const ibis::table::stringList &nms) {
     } // merge columns with the specified names
 
     return cnt;
-} // ibis::mensa::combineCateogires
+} // ibis::mensa::mergeCateogires
 
 void ibis::mensa::estimate(const char* cond,
 			   uint64_t& nmin, uint64_t& nmax) const {

@@ -893,6 +893,38 @@ int ibis::direkte::remapKeys(const ibis::array_t<uint32_t> &o2n) {
     return write(0);
 } // ibis::direkte::remapKeys
 
+/// Convert the bitvector into integer values.
+void ibis::direkte::ints(ibis::array_t<uint32_t> &res) const {
+    res.clear();
+    res.insert(res.end(), nrows, 0);
+    std::auto_ptr<ibis::bitvector> tmp(0);
+    uint32_t nobs = bits.size();
+
+    activate(); // need all bitvectors to be in memory
+    for (uint32_t i = 0; i < nobs; ++i) { // work over each bitmap
+	if (bits[i]) {
+	    ibis::bitvector::indexSet is = bits[i]->firstIndexSet();
+	    const ibis::bitvector::word_t *iix = is.indices();
+	    uint32_t nind = is.nIndices();
+	    while (nind > 0) {
+		if (is.isRange()) {
+		    for (uint32_t j = *iix; j < iix[1]; ++j) {
+			res[j] = i;
+		    }
+		}
+		else if (nind > 0) {
+		    for  (uint32_t j = 0; j < nind; ++j) {
+			res[iix[j]] = i;
+		    }
+		}
+
+		++ is;
+		nind =is.nIndices();
+	    }
+	}
+    }
+} // ibis::direkte::keys
+
 /// Convert the bitvector mask into key values.
 ibis::array_t<uint32_t>*
 ibis::direkte::keys(const ibis::bitvector& mask) const {

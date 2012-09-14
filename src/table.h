@@ -242,18 +242,18 @@ public:
     /// Replace the current indexing option.  If no column name is
     /// specified, it resets the indexing option for the table.
     virtual void indexSpec(const char* opt, const char* colname=0) =0;
-    /// Combine the categories.  The argument is to be list of column
-    /// names.  If the incoming list is empty, then dictionaries of
-    /// categorical columns with the same names are combined.  If a list is
-    /// provided by the caller, then all columns with the given names will
-    /// be placed in a single dictionary.  Additionally, all indexes
-    /// associated with the columns will be updated to make use of the new
-    /// combined dictionary.
+    /// Merge the dictionaries of categorical value from different data
+    /// partitions.  The argument is to be list of column names.  If the
+    /// incoming list is empty, then dictionaries of categorical columns
+    /// with the same names are combined.  If a list is provided by the
+    /// caller, then all columns with the given names will be placed in a
+    /// single dictionary.  Additionally, all indexes associated with the
+    /// columns will be updated to make use of the new combined dictionary.
     ///
     /// A default implementation is provided.  This default implementation
     /// does nothing and returns 0.  This action is valid for a table with
     /// only a single partition and the incoming list is empty.
-    virtual int combineCategories(const stringList&) {return 0;}
+    virtual int mergeCategories(const stringList&) {return 0;}
     /// @}
 
     /// Retrieve all values of the named column.  The member functions of

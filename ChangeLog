@@ -1,3 +1,10 @@
+2012-09-13 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: change setDictionary and prepareMembers to
+	make sure idx is no nil
+	* src/part.cpp:1606 comment out the block - by merging the
+	dictionaries for categorical values, getNumKeys can return values
+	larger than 1
+
 2012-09-11 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp: change back the tests for leading and trailing
 	spaces to use the function isspace instead of isgraph based on the

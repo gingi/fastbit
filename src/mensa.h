@@ -125,7 +125,7 @@ public:
     virtual const char* indexSpec(const char*) const;
     virtual void indexSpec(const char*, const char*);
     virtual int getPartitions(ibis::constPartList &) const;
-    virtual int combineCategories(const ibis::table::stringList&);
+    virtual int mergeCategories(const ibis::table::stringList&);
 
     // Cursor class for row-wise data accesses.
     class cursor;

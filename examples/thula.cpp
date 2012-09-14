@@ -967,12 +967,12 @@ int main(int argc, char** argv) {
 	exit(-1);
     }
     if (cats != 0) {
-	std::clog << *argv << " invoking combineCategories with "
+	std::clog << *argv << " invoking mergeCategories with "
 		  << cats->size() << " name" << (cats->size()>1?"s":"")
 		  << std::endl;
-	int ierr = tbl->combineCategories(*cats);
+	int ierr = tbl->mergeCategories(*cats);
 	std::clog << (ierr < 0 ? "Warning -- " : "")
-		  << "combineCategories returned " << ierr << std::endl;
+		  << "mergeCategories returned " << ierr << std::endl;
     }
     if (qcnd.empty() && xfile.is_open() && xfile.good()) {
 	int ierr = tbl->dump(xfile);

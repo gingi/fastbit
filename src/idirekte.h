@@ -63,8 +63,10 @@ public:
 
     long append(const ibis::direkte& tail);
     long append(const array_t<uint32_t>& ind);
-    array_t<uint32_t>* keys(const ibis::bitvector& mask) const;
+
+    void ints(array_t<uint32_t>&) const;
     int remapKeys(const ibis::array_t<uint32_t>&);
+    array_t<uint32_t>* keys(const ibis::bitvector& mask) const;
 
     /// Time some logical operations and print out their speed.  This
     /// version does nothing.
