@@ -1,10 +1,12 @@
 2012-09-14 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: stringSearch function involving multiple
 	strings use strcmp/stricmp incorrectly, which caused the problem
-	reported by Michael Wang
+	reported by Michael Chong
 	* tests/Makefile.am: modify the test case 1 of check-text to use a
 	list of 10 strings on column b (a text column) to repeat the test
-	case used by Michael Wang
+	case used by Michael Chong
+	* src/category.cpp: in function category::prepareMembers, add a
+	if-block in case of losing index for a meta tag column
 
 2012-09-13 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: change setDictionary and prepareMembers to

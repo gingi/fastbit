@@ -224,12 +224,13 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 /// necessary to make it callable from const member function of this class.
 void ibis::category::prepareMembers() const {
     if (dic.size() > 0 && idx != 0) return;
+    if (thePart == 0) return;
 
     mutexLock lock(this, "category::prepareMembers");
     readDictionary();
 
     if (idx == 0) { // attempt to read the index file
-	if (thePart == 0 || thePart->currentDataDir() == 0) return;
+	if (thePart->currentDataDir() == 0) return;
 	std::string idxf = thePart->currentDataDir();
 	idxf += FASTBIT_DIRSEP;
 	idxf += m_name;
@@ -249,6 +250,14 @@ void ibis::category::prepareMembers() const {
 	(void) fillIndex();
 	if (idx != 0)
 	    (void) idx->write(thePart->currentDataDir());
+    }
+    if (idx == 0 && thePart->getMetaTag(m_name.c_str()) != 0) {
+	ibis::category tmp(thePart, m_name.c_str(),
+			   thePart->getMetaTag(m_name.c_str()),
+			   static_cast<const char*>(0),
+			   thePart->nRows());
+	idx = tmp.idx;
+	tmp.idx = 0;
     }
 } // ibis::category::prepareMembers
 
