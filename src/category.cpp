@@ -251,7 +251,8 @@ void ibis::category::prepareMembers() const {
 	if (idx != 0)
 	    (void) idx->write(thePart->currentDataDir());
     }
-    if (idx == 0 && thePart->getMetaTag(m_name.c_str()) != 0) {
+    if (thePart->getMetaTag(m_name.c_str()) != 0 &&
+	(idx == 0 || dic.size() == 0)) {
 	ibis::category tmp(thePart, m_name.c_str(),
 			   thePart->getMetaTag(m_name.c_str()),
 			   static_cast<const char*>(0),
