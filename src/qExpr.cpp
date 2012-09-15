@@ -861,17 +861,21 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 	// }
 	break;}
     case ibis::qExpr::DRANGE: { // break a DRANGE into multiple RANGE
-	// ibis::qDiscreteRange *dr =
-	//     reinterpret_cast<ibis::qDiscreteRange*>(expr);
-	// ibis::qExpr *tmp = dr->convert();
-	// delete expr;
-	// expr = tmp;
+	ibis::qDiscreteRange *dr =
+	    reinterpret_cast<ibis::qDiscreteRange*>(expr);
+	if (dr->nItems() < 3) {
+	    ibis::qExpr *tmp = dr->convert();
+	    delete expr;
+	    expr = tmp;
+	}
 	break;}
     case ibis::qExpr::ANYSTRING: { // break a ANYSTRING into multiple STRING
-	// ibis::qExpr *tmp = reinterpret_cast<ibis::qAnyString*>(expr)
-	//     ->convert();
-	// delete expr;
-	// expr = tmp;
+	ibis::qAnyString *astr = reinterpret_cast<ibis::qAnyString*>(expr);
+	if (astr->valueList().size() < 3) {
+	    ibis::qExpr *tmp = astr->convert();
+	    delete expr;
+	    expr = tmp;
+	}
 	break;}
     case ibis::qExpr::DEPRECATEDJOIN: {
 	ibis::math::term *range =
@@ -895,8 +899,8 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
 		expr->print(lg());
 	}
 	else {
-	    lg() << "Warning -- qExpr::simply has turned a "
-		"non-nil expression into nil";
+	    lg() << "Warning -- qExpr::simply has turned a non-nil "
+		"expression into nil";
 	}
     }
 } // ibis::qExpr::simplify

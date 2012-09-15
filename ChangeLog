@@ -1,3 +1,11 @@
+2012-09-14 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: stringSearch function involving multiple
+	strings use strcmp/stricmp incorrectly, which caused the problem
+	reported by Michael Wang
+	* tests/Makefile.am: modify the test case 1 of check-text to use a
+	list of 10 strings on column b (a text column) to repeat the test
+	case used by Michael Wang
+
 2012-09-13 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: change setDictionary and prepareMembers to
 	make sure idx is no nil

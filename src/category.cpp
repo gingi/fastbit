@@ -2267,9 +2267,9 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 		bool match = false;
 		for (uint32_t i = 0; i < strs.size() && match == false; ++ i) {
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
-		    match = stricmp(strs[i].c_str(), str);
+		    match = (stricmp(strs[i].c_str(), str) == 0);
 #else
-		    match = strcmp(strs[i].c_str(), str);
+		    match = (strcmp(strs[i].c_str(), str) == 0);
 #endif
 		}
 		if (match)
@@ -2328,9 +2328,9 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 		bool match = false;
 		for (uint32_t i = 0; i < strs.size() && match == false; ++ i) {
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
-		    match = stricmp(strs[i].c_str(), str);
+		    match = (stricmp(strs[i].c_str(), str) == 0);
 #else
-		    match = strcmp(strs[i].c_str(), str);
+		    match = (strcmp(strs[i].c_str(), str) == 0);
 #endif
 		}
 		if (match)
