@@ -1,3 +1,7 @@
+2012-09-15 John Wu <John dot Wu at ACM dot org>
+	* src/parti.cpp: allow meta tags in ibis::part::reorder (passes
+	test case 13 of check-ibis after adding the meta tags to t2)
+
 2012-09-14 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: stringSearch function involving multiple
 	strings use strcmp/stricmp incorrectly, which caused the problem

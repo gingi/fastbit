@@ -1685,9 +1685,9 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     bool isActive = (activeDir != 0 ? (strcmp(activeDir, dir) == 0) : false);
     bool isBackup = (backupDir != 0 ? (strcmp(backupDir, dir) == 0) : false);
     char stamp[28];
-    ibis::util::getGMTime(stamp);
+    ibis::util::getLocalTime(stamp);
     fprintf(fptr, "# metadata file written by ibis::part::writeMetaData\n"
-	    "# on %s UTC\n\n", stamp);
+	    "# on %s\n\n", stamp);
     if (m_name != 0) {
 	fprintf(fptr, "BEGIN HEADER\nName = \"%s\"\n", m_name);
     }
@@ -1704,7 +1704,7 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     }
     else {
 	fprintf(fptr, "Description = \"This table was created "
-		"on %s UTC with %lu rows and %lu columns.\"\n",
+		"on %s with %lu rows and %lu columns.\"\n",
 		stamp, static_cast<long unsigned>(nrows),
 		static_cast<long unsigned>(plist.size()));
     }

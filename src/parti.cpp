@@ -174,8 +174,6 @@ long ibis::part::reorder(const ibis::table::stringList& names,
     for (columnList::const_iterator it = columns.begin();
 	 it != columns.end();
 	 ++ it) { // purge all index files
-	if (! it->second->isNumeric()) return -1L;
-
 	(*it).second->unloadIndex();
 	(*it).second->purgeIndexFile();
     }
@@ -235,9 +233,10 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 		ierr = reorderValues<char>(fname, starts, ind0, ind1, asc);
 		break;
 	    default:
-		logWarning("reorder", "column %s type %d is not supported as "
-			   "sort key",
-			   keys[i]->name(), static_cast<int>(keys[i]->type()));
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " does not support column type "
+		    << ibis::TYPESTRING[static_cast<int>(keys[i]->type())]
+		    << " as sort key";
 		continue;
 	    }
 
@@ -314,16 +313,23 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 	case ibis::BYTE:
 	    ierr = writeValues<char>(fname, ind1);
 	    break;
+	case ibis::CATEGORY:
+	    if (0 != getMetaTag(load[i]->name()))
+		break; // nothing to do for a meta tag, otherwise go to default
 	default:
-	    logWarning("reorder", "column %s type %s is not supported in "
-		       "this implementation", keys[i]->name(),
-		       ibis::TYPESTRING[static_cast<int>(keys[i]->type())]);
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " can not reorder values of column "
+		<< keys[i]->name() << " type "
+		<< ibis::TYPESTRING[static_cast<int>(keys[i]->type())];
 	    continue;
 	}
-	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	    << "Warning -- " << evt << " failed to write data to " << fname
-	    << " for column " << load[i]->name() << " (type "
-	    << ibis::TYPESTRING[load[i]->type()] << "), ierr = " << ierr;
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << evt << " failed to write data to " << fname
+		<< " for column " << load[i]->name() << " (type "
+		<< ibis::TYPESTRING[load[i]->type()] << "), ierr = " << ierr;
+	    throw evt;
+	}
     }
 
     if (rids != 0 && rids->size() == nEvents) {

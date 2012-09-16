@@ -861,7 +861,7 @@ $(TESTDIR)/t2/t2c/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 $(TESTDIR)/acmpub/-part.txt: $(ARDEAEXE) $(IBISEXE) acmpub.csv TESTDIR
 	@rm -rf $(TESTDIR)/acmpub
 	@$(ARDEAEXE) -d $(TESTDIR)/acmpub -m "id:u, t:t, a:t, v:k, y:u" -t acmpub.csv >> $(TESTDIR)/std.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/acmpub -b "a:keywords delimiters=','" -b "id:noindex" -b "<binning none/>" -v >> $(TESTDIR)/std.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/acmpub -b "a:keywords delimiters=','" -b "id:noindex" -b "<binning none>" -v >> $(TESTDIR)/std.log 2>&1
 # a simple internal sanity check
 sanity-check: $(TESTDIR)/std.log $(IBISEXE) $(TESTDIR)/append.log
 	@echo
@@ -891,13 +891,13 @@ large-sanity-check: $(IBISEXE) $(TESTDIR)/append.log $(TESTDIR)/smallmem2.rc $(T
 	@jcase=0; for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
 	echo >> $(TESTDIR)/large-sanity-check.log 2>&1; \
-	echo "$@ case # $${jcase}  index = <binning $$b\/> <encoding $$e\/>" >> $(TESTDIR)/large-sanity-check.log 2>&1; \
+	echo "$@ case # $${jcase}  index = <binning $$b> <encoding $$e>" >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	if [ -f $(TESTDIR)/append.rc ] ; then \
-	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c $(TESTDIR)/append.rc -v -b "<binning $$b> <encoding $$e>" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c $(TESTDIR)/append.rc -c $(TESTDIR)/smallmem2.rc -v -t 2 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	else \
-	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -b "<binning $$b/> <encoding $$e/>" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
+	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -b "<binning $$b> <encoding $$e>" -z >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	 $(IBISEXE) -c $(TESTDIR)/test.rc -v -t 5 >> $(TESTDIR)/large-sanity-check.log 2>&1; \
 	test_status=$$?; \
 	fi; jcase=`expr 1 + $${jcase}`; \
@@ -928,7 +928,7 @@ match-counts: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTD
 	@ncases=0; npassed=0; for e in $(ENCODINGS) ; do \
 	for b in $(BINNINGS) ; do \
 	ncases=`expr 1 + $$ncases`; echo; echo "$@ case # $${ncases}"; echo "$@ case # $${ncases}" >> $(TESTDIR)/std.log 2>&1; \
-	$(IBISEXE) -c $(TESTDIR)/test.rc -b "<binning $$b/> <encoding $$e/>" -z -v >> $(TESTDIR)/std.log 2>&1; \
+	$(IBISEXE) -c $(TESTDIR)/test.rc -b "<binning $$b> <encoding $$e>" -z -v >> $(TESTDIR)/std.log 2>&1; \
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR) && npassed=`expr 1 + $$npassed`; \
 	done; done; \
 	perl -pi -e "s/index = .*/index = none/" $(TESTDIR)/0/test?/-part.txt; \
