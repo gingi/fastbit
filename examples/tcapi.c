@@ -86,21 +86,23 @@ static void builtin(const char *nm, FILE* output) {
 
     mult /= 100;
     if (mult > 0) {
+	int nh1, nh2;
+	FastBitQueryHandle h1, h2;
 	for (i = 0; i < 5; ++ i) {
-	    FastBitQueryHandle h = fastbit_build_query(0, dir, conditions[i]);
-	    int nhits = fastbit_get_result_rows(h);
-	    if (nhits != mult * counts[i]) {
+	    h1 = fastbit_build_query(0, dir, conditions[i]);
+	    nh1 = fastbit_get_result_rows(h1);
+	    if (nh1 != mult * counts[i]) {
 		++ nerrors;
 		fprintf(output, "%s: query \"%s\" on %d built-in records found "
 			"%d hits, but %d were expected\n", nm, conditions[i],
-			(int)(mult*100), nhits, (int)(mult*counts[i]));
+			(int)(mult*100), nh1, (int)(mult*counts[i]));
 	    }
-	    fastbit_destroy_query(h);
+	    fastbit_destroy_query(h1);
 	}
 
 	// try the empty where clause
-	FastBitQueryHandle h2 = fastbit_build_query(0, dir, 0);
-	int nh2 = fastbit_get_result_rows(h2);
+	h2 = fastbit_build_query(0, dir, 0);
+	nh2 = fastbit_get_result_rows(h2);
 	if (nh2 != 100 * mult) {
 	    ++ nerrors;
 	    fprintf(output, "%s: query expected to return %d rows, "

@@ -21,7 +21,7 @@ OBJ =  parth3d.obj parth3da.obj parth3db.obj parth3dw.obj \
  array_t.obj \
  bitvector.obj \
  bitvector64.obj \
- bundle.obj \
+ bundle.obj blob.obj \
  capi.obj \
  category.obj \
  colValues.obj \
@@ -34,6 +34,7 @@ OBJ =  parth3d.obj parth3da.obj parth3db.obj parth3dw.obj \
  jrange.obj \
  quaere.obj \
  bord.obj \
+ bordm.obj \
  tafel.obj \
  mensa.obj \
  party.obj \
@@ -56,6 +57,7 @@ OBJ =  parth3d.obj parth3da.obj parth3db.obj parth3dw.obj \
  iroster.obj \
  isapid.obj \
  isbiad.obj \
+ iskive.obj \
  islice.obj \
  ixambit.obj \
  ixbylt.obj \
@@ -144,6 +146,11 @@ bitvector64.obj: ../src/bitvector64.cpp ../src/bitvector64.h \
   ../src/array_t.h ../src/fileManager.h ../src/util.h ../src/const.h \
   ../src/horometer.h ../src/bitvector.h
 	$(CXX) $(CCFLAGS) -c ../src/bitvector64.cpp
+blob.obj: ../src/blob.cpp ../src/blob.h ../src/table.h ../src/const.h \
+  ../src/fastbit-config.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/util.h ../src/horometer.h ../src/column.h \
+  ../src/qExpr.h ../src/part.h ../src/resource.h ../src/utilidor.h
+	$(CXX) $(CCFLAGS) -c ../src/blob.cpp
 bord.obj: ../src/bord.cpp ../src/tab.h ../src/table.h ../src/const.h \
   ../src/bord.h ../src/util.h ../src/part.h ../src/countQuery.h \
   ../src/column.h ../src/qExpr.h ../src/bitvector.h ../src/array_t.h \
@@ -151,6 +158,13 @@ bord.obj: ../src/bord.cpp ../src/tab.h ../src/table.h ../src/const.h \
   ../src/utilidor.h ../src/query.h ../src/whereClause.h ../src/bundle.h \
   ../src/colValues.h
 	$(CXX) $(CCFLAGS) -c ../src/bord.cpp
+bordm.obj: ../src/bordm.cpp ../src/tab.h ../src/table.h ../src/const.h \
+  ../src/bord.h ../src/util.h ../src/part.h ../src/countQuery.h \
+  ../src/column.h ../src/qExpr.h ../src/bitvector.h ../src/array_t.h \
+  ../src/fileManager.h ../src/horometer.h ../src/resource.h \
+  ../src/utilidor.h ../src/query.h ../src/whereClause.h ../src/bundle.h \
+  ../src/colValues.h
+	$(CXX) $(CCFLAGS) -c ../src/bordm.cpp
 bundle.obj: ../src/bundle.cpp ../src/bundle.h ../src/util.h ../src/const.h \
   ../src/array_t.h ../src/fileManager.h \
   ../src/horometer.h ../src/query.h ../src/part.h ../src/column.h \
@@ -286,6 +300,11 @@ isbiad.obj: ../src/isbiad.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
   ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
 	$(CXX) $(CCFLAGS) -c ../src/isbiad.cpp
+iskive.obj: ../src/iskive.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
+  ../src/util.h ../src/const.h  ../src/bitvector.h \
+  ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \
+  ../src/column.h ../src/table.h ../src/resource.h ../src/utilidor.h
+	$(CXX) $(CCFLAGS) -c ../src/iskive.cpp
 islice.obj: ../src/islice.cpp ../src/irelic.h ../src/index.h ../src/qExpr.h \
   ../src/util.h ../src/const.h  ../src/bitvector.h \
   ../src/array_t.h ../src/fileManager.h ../src/horometer.h ../src/part.h \

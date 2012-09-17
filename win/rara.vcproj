@@ -60,7 +60,7 @@
 				BrowseInformation="0"
 				WarningLevel="1"
 				SuppressStartupBanner="true"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
 			<Tool
@@ -234,6 +234,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\bordm.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\bundle.cpp"
 				>
 			</File>
@@ -339,6 +343,10 @@
 			</File>
 			<File
 				RelativePath="..\src\isbiad.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\iskive.cpp"
 				>
 			</File>
 			<File

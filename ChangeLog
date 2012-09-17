@@ -1,3 +1,12 @@
+2012-09-17 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp: update bin::write to match the other variants of
+	the function write
+	* examples/tcapi.c: move declarations to the beginning of code
+	blocks to address the complaints from Visual Studio
+	* win/*.vcproj, win/*.mak: update project files to invlude
+	blob.cpp, bordm.cpp and iskive.cpp, change Debug build of the
+	solution to use Debug option of each VC project
+
 2012-09-16 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: read dictionary again after recreating the
 	columns from meta tags
