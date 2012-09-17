@@ -5205,10 +5205,14 @@ int ibis::bin::write(const char* dt) const {
     std::string fnm;
     indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::write can not overwrite the index file \""
+	    << fnm << "\" while it is used as a read-only file map";
 	return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
-	return 0;
+	activate(); // read everything into memory
+	fname = 0; // break the link with the named file
     }
     ibis::fileManager::instance().flushFile(fnm.c_str());
 

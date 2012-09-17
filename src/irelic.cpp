@@ -223,8 +223,8 @@ int ibis::relic::write(const char* dt) const {
     indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- relic::write can not write overwrite the index "
-	    "file \"" << fnm << "\" while it is used as a read-only file map";
+	    << "Warning -- relic::write can not overwrite the index file \""
+	    << fnm << "\" while it is used as a read-only file map";
 	return 0;
     }
     if (fname != 0 && *fname != 0 && fnm.compare(fname) == 0) {

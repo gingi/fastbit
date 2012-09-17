@@ -163,8 +163,8 @@ int ibis::mesa::write(const char* dt) const {
     indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- mesa::write can not write overwrite the index "
-	    "file \"" << fnm << "\" while it is used as a read-only file map";
+	    << "Warning -- mesa::write can not overwrite the index file \""
+	    << fnm << "\" while it is used as a read-only file map";
 	return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
