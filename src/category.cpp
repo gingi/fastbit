@@ -248,8 +248,6 @@ void ibis::category::prepareMembers() const {
 	delete idx;
 	idx = 0;
 	(void) fillIndex();
-	if (idx != 0)
-	    (void) idx->write(thePart->currentDataDir());
     }
     if (thePart->getMetaTag(m_name.c_str()) != 0 &&
 	(idx == 0 || dic.size() == 0)) {
@@ -257,6 +255,7 @@ void ibis::category::prepareMembers() const {
 			   thePart->getMetaTag(m_name.c_str()),
 			   static_cast<const char*>(0),
 			   thePart->nRows());
+	readDictionary();
 	idx = tmp.idx;
 	tmp.idx = 0;
     }
@@ -292,6 +291,8 @@ void ibis::category::readDictionary(const char *dir) const {
 /// If the dictionary exists and the size is one, it builds a dummy index.
 /// Otherwise, it reads the primary data file to update the dictionary and
 /// complete a new ibis::direkte index.
+///
+/// @note It also writes the index to the same directory.
 ibis::direkte* ibis::category::fillIndex(const char *dir) const {
     std::string dirstr;
     if (dir != 0 && *dir != 0) { // the name may be a filename
@@ -622,11 +623,12 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 		<< ints.size() << " integers";
 	    return -17;
 	}
+
+	ierr = idx->write(thePart->currentDataDir());
+	LOGGER(ierr < 0 && ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to write index to "
+	    << thePart->currentDataDir();
     }
-    ierr = idx->write(thePart->currentDataDir());
-    LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-	<< "Warning -- " << evt << " failed to write index to "
-	<< thePart->currentDataDir();
     if (ierr >= 0)
 	ierr = ints.size();
     return ierr;

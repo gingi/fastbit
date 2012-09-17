@@ -359,9 +359,14 @@ int ibis::range::write(const char* dt) const {
     std::string fnm;
     indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- range::write can not write overwrite the index "
+	    "file \"" << fnm << "\" while it is used as a read-only file map";
 	return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
+	activate(); // read everything into memory
+	fname = 0; // break the link with the named file
 	return 0;
     }
     ibis::fileManager::instance().flushFile(fnm.c_str());

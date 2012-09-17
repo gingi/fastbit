@@ -221,8 +221,16 @@ int ibis::relic::write(const char* dt) const {
 
     std::string fnm;
     indexFileName(fnm, dt);
-    if (fname != 0 && fnm.compare(fname) == 0)
+    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- relic::write can not write overwrite the index "
+	    "file \"" << fnm << "\" while it is used as a read-only file map";
 	return 0;
+    }
+    if (fname != 0 && *fname != 0 && fnm.compare(fname) == 0) {
+	activate(); // read everything into memory
+	fname = 0; // break the link with the file
+    }
     if (fname != 0 || str != 0)
 	activate(); // activate all bitvectors
 

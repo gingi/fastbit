@@ -1,6 +1,15 @@
+2012-09-16 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: read dictionary again after recreating the
+	columns from meta tags
+	* src/i*.cpp: in the function write, all the indexes to be written
+	to the file with the same names as long as the file is not mapped
+	(address the problems with merging dictionaries of categorical
+	values reported by Andrew Olson)
+
 2012-09-15 John Wu <John dot Wu at ACM dot org>
 	* src/parti.cpp: allow meta tags in ibis::part::reorder (passes
-	test case 13 of check-ibis after adding the meta tags to t2)
+	test case 13 of check-ibis after adding the meta tags to test data
+	sets in t2)
 
 2012-09-14 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: stringSearch function involving multiple
