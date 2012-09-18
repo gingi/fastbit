@@ -1344,7 +1344,7 @@ void ibis::index::indexFileName(std::string& iname, const char* f) const {
 	}
     }
 
-    LOGGER(ibis::gVerbose > 4)
+    LOGGER(ibis::gVerbose > 6)
 	<< "index::indexFileName will use \"" << iname
 	<< "\" as the index file name for " << col->partition()->name() << '.'
 	<< col->name();

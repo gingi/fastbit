@@ -6,6 +6,9 @@
 	* win/*.vcproj, win/*.mak: update project files to invlude
 	blob.cpp, bordm.cpp and iskive.cpp, change Debug build of the
 	solution to use Debug option of each VC project
+	* src/category.cpp: add call to prepareMembers inside
+	category::getDictioanry (to address a problem reported by Andrew
+	Olson)
 
 2012-09-16 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: read dictionary again after recreating the

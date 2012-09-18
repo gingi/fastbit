@@ -482,6 +482,14 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
     return rlc;
 } // ibis::category::fillIndex
 
+/// Return a pointer to the dictionary used for the categorical values.
+const ibis::dictionary* ibis::category::getDictionary() const {
+    if (dic.size() == 0) {
+	prepareMembers();
+    }
+    return &dic;
+}
+
 /// Replace the dictionary with the incoming one.  The incoming dictionary
 /// is expected to contain more words than the existing one.  If a larger
 /// dictionary is provided, this function will replace the internally kept

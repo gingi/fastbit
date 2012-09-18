@@ -172,8 +172,7 @@ public:
     virtual void print(std::ostream& out) const;
 
     ibis::direkte* fillIndex(const char *dir=0) const;
-    /// Return a pointer to the dictionary used for the categorical values.
-    virtual const ibis::dictionary* getDictionary() const {return &dic;}
+    virtual const ibis::dictionary* getDictionary() const;
     int setDictionary(const dictionary&);
 
 private:
