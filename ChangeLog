@@ -1,3 +1,8 @@
+2012-09-18 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.h: add function unrecordFile
+	* src/idirekte.cpp: change direkte::write to use the more refined
+	logic to handle file maps
+
 2012-09-17 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp: update bin::write to match the other variants of
 	the function write

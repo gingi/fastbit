@@ -227,8 +227,6 @@ void ibis::category::prepareMembers() const {
     if (thePart == 0) return;
 
     mutexLock lock(this, "category::prepareMembers");
-    readDictionary();
-
     if (idx == 0) { // attempt to read the index file
 	if (thePart->currentDataDir() == 0) return;
 	std::string idxf = thePart->currentDataDir();
@@ -244,21 +242,26 @@ void ibis::category::prepareMembers() const {
 	    ibis::fileManager::instance().flushFile(idxf.c_str());
 	}
     }
+
     if (idx == 0 || idx->getNRows() != thePart->nRows()) {
 	delete idx;
 	idx = 0;
 	(void) fillIndex();
     }
+
     if (thePart->getMetaTag(m_name.c_str()) != 0 &&
 	(idx == 0 || dic.size() == 0)) {
 	ibis::category tmp(thePart, m_name.c_str(),
 			   thePart->getMetaTag(m_name.c_str()),
 			   static_cast<const char*>(0),
 			   thePart->nRows());
-	readDictionary();
+	readDictionary(); // in case the index was accidentially removed
 	idx = tmp.idx;
 	tmp.idx = 0;
     }
+
+    if (dic.size() == 0)
+	readDictionary();
 } // ibis::category::prepareMembers
 
 /// Read the dictionary from the specified directory.  If the incoming

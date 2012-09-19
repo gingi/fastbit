@@ -156,10 +156,11 @@ public:
     }; // buffer
 
 protected:
-    fileManager();  // get its input parameter from ibis::gParameters()
-    ~fileManager(); // it exists forever
+    fileManager();
+    ~fileManager();
 
-    void recordFile(roFile*); // record a new storage
+    void recordFile(roFile*);
+    void unrecordFile(roFile*);
 
     // parameters for controlling the resource usage
     /// The total number of bytes of all managed objects.
@@ -272,7 +273,7 @@ public:
     virtual void printStatus(std::ostream& out) const;
     off_t read(const char* fname, const off_t begin, const off_t end);
     off_t read(const int fdes, const off_t begin, const off_t end);
-    void write(const char* file) const;
+    void  write(const char* file) const;
 
     inline void swap(storage& rhs) throw ();
 //      // compares storage objects according to starting addresses
@@ -283,10 +284,14 @@ public:
 //      };
 
 protected:
-    char* name;		///< Name of the file.  NULL (0) if no file is involved.
-    char* m_begin;	///< Beginning of the storage.
-    char* m_end;	///< End of the storage.
-    unsigned nacc;	///< Number of accesses in the past.
+    /// Name of the file.  NULL (0) if no file is involved.
+    char* name;
+    /// Beginning of the storage.
+    char* m_begin;
+    /// End of the storage.
+    char* m_end;
+    /// Number of accesses in the past.
+    unsigned nacc;
     /// Number of (active) references to this storage.
     ibis::util::sharedInt32 nref;
 
@@ -311,6 +316,7 @@ public:
     virtual void endUse();
     // is the read-only file mapped ?
     virtual bool isFileMap() const {return (mapped != 0);}
+    int disconnectFile();
 
     // IO functions
     virtual void printStatus(std::ostream& out) const;
@@ -362,9 +368,12 @@ protected:
     void printBody(std::ostream& out) const;
 
 private:
-    time_t opened; // time first created, presumably when the file was opened
-    time_t lastUse; // time of last use
-    unsigned mapped; // 0 not a mapped file, otherwise yes
+    /// time first created, presumably when the file was opened
+    time_t opened;
+    /// time of last use
+    time_t lastUse;
+    /// 0 not a mapped file, otherwise yes
+    unsigned mapped;
 
 #if defined(_WIN32) && defined(_MSC_VER)
     HANDLE fdescriptor; // HANDLE to the open file
@@ -422,7 +431,7 @@ class ibis::fileManager::softWriteLock {
 public:
     softWriteLock(const char* m);
     ~softWriteLock();
-    /// Has a write lock be acquired?  Returns true or false to indicate
+    /// Has a write lock been acquired?  Returns true or false to indicate
     /// yes or no.
     bool isLocked() const {return(locked_==0);}
 

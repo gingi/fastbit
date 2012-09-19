@@ -120,7 +120,7 @@ int ibis::fileManager::getFile(const char* name, array_t<T>& arr,
 			       ACCESS_PREFERENCE pref) {
     int ierr;
     try {
-	storage* st = 0;
+	storage *st = 0;
 	ierr = getFile(name, &st, pref);
 	if (ierr == 0) {
 	    if (st) {
@@ -153,7 +153,7 @@ int ibis::fileManager::tryGetFile(const char* name, array_t<T>& arr,
 				  ACCESS_PREFERENCE pref) {
     int ierr;
     try {
-	storage* st = 0;
+	storage *st = 0;
 	ierr = tryGetFile(name, &st, pref);
 	if (ierr == 0) {
 	    if (st) {
@@ -670,25 +670,20 @@ ibis::fileManager::~fileManager() {
 /// Record a newly allocated storage in the two lists.
 /// The caller needs to hold a mutex lock on the file manager to ensure
 /// correct operations.
-void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
-    if (st == 0) return;
+void ibis::fileManager::recordFile(ibis::fileManager::roFile *st) {
+    if (st == 0 || st->filename() == 0) return;
     if (st->begin() == st->end()) return;
     std::string evt = "fileManager::recordFile";
     if (ibis::gVerbose > 6) {
 	std::ostringstream oss;
 	oss << "(" << static_cast<void*>(st) << ", "
-	    << static_cast<void*>(st->begin()) << ", " << st->size();
-	if (st->filename() != 0)
-	    oss << ", " << st->filename();
-	oss << ")";
+	    << static_cast<void*>(st->begin()) << ", " << st->size()
+	    << ", " << st->filename() << ")";
 	evt += oss.str();
     }
 
     LOGGER(ibis::gVerbose > 12)
 	<< evt << " -- record storage object " << (void*)st;
-    if (st->filename() == 0)
-	return;
-
     if (st->mapped) {
 	fileList::const_iterator it = mapped.find(st->filename());
 	if (it == mapped.end()) {
@@ -745,6 +740,34 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
     }
 } // ibis::fileManager::recordFile
 
+/// Remove the file name from the list of files tracked.
+/// This operation can only be performed on a file whose content has been
+/// read into memory, not on a file being mapped.
+///
+/// @note The caller is expected to hold a mutex lock on the file manager.
+void ibis::fileManager::unrecordFile(ibis::fileManager::roFile *st) {
+    if (st == 0 || st->filename() == 0) return;
+    std::string evt = "fileManager::unrecordFile";
+    if (ibis::gVerbose > 6) {
+	std::ostringstream oss;
+	oss << "(" << static_cast<void*>(st) << ", "
+	    << static_cast<void*>(st->begin()) << ", " << st->size()
+	    << ", " << st->filename() << ")";
+	evt += oss.str();
+    }
+
+    fileList::iterator it = incore.find(st->filename());
+    if (it == incore.end()) {
+	LOGGER(ibis::gVerbose > 6)
+	    << evt << " -- the given filename is not on the list incore";
+    }
+    else if (st != (*it).second) {
+	incore.erase(it);
+	LOGGER(ibis::gVerbose > 12)
+	    << evt << " removed " << st->filename() << " from incore";
+    }
+} // ibis::fileManager::unrecordFile
+
 /// Retrieve the file content as a storage object.  The object *st returned
 /// from this function is owned by the fileManager.  The caller should NOT
 /// delete *st!  This function will wait for the fileManager to unload some
@@ -753,7 +776,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile* st) {
 /// Upon successful completion of the task, it returns zero; otherwise, it
 /// returns a non-zero value to indicate an error and it does not modify the
 /// content of storage object.
-int ibis::fileManager::getFile(const char* name, storage** st,
+int ibis::fileManager::getFile(const char* name, storage **st,
 			       ACCESS_PREFERENCE pref) {
     if (name == 0 || *name == 0 || st == 0) return -100;
     int ierr = 0;
@@ -950,7 +973,7 @@ int ibis::fileManager::getFile(const char* name, storage** st,
 /// It returns 0 to indicate success and a negative value to indicate
 /// error.  In particular, it returns -102 if there is not enough space to
 /// read the whole file into memory.
-int ibis::fileManager::tryGetFile(const char* name, storage** st,
+int ibis::fileManager::tryGetFile(const char* name, storage **st,
 				  ACCESS_PREFERENCE pref) {
     if (name == 0 || *name == 0 || st == 0) return -100;
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -2317,6 +2340,25 @@ void ibis::fileManager::roFile::clear() {
     m_end = 0;
     m_begin = 0;
 } // ibis::fileManager::roFile::clear
+
+/// Disconnect the storage object from the file.  This can only be done for
+/// a file whose content has been read into memory, not for a mapped file.
+///
+/// It returns 0 or a positive value to indicate success, otherwise it
+/// returns a negative number to indicate error.
+int ibis::fileManager::roFile::disconnectFile() {
+    if (name == 0 || *name == 0) return 0; // nothing to do, success
+    if (mapped > 0) return -1; // can not do it
+
+    if (m_begin != 0) {
+	ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex, name);
+	ibis::fileManager::instance().unrecordFile(this);
+    }
+
+    delete [] name;
+    name = 0;
+    return 0;
+} // ibis::fileManager::roFile::disconnectFile
 
 void ibis::fileManager::roFile::printStatus(std::ostream& out) const {
     if (name) 

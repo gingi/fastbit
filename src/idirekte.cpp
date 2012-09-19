@@ -595,10 +595,25 @@ int ibis::direkte::write(const char* dt) const {
     std::string fnm;
     indexFileName(fnm, dt);
     if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte::write can not overwrite the index file \""
-	    << fnm << "\" while it is used as a read-only file map";
-	return 0;
+	const ibis::fileManager::roFile *rof =
+	    dynamic_cast<const ibis::fileManager::roFile*>(str);
+	if (rof != 0) {
+	    activate();
+	    if (const_cast<ibis::fileManager::roFile *>(rof)->disconnectFile()
+		>= 0) {
+		fname = 0;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- direkte::write can not overwrite the index "
+		    "file \"" << fnm
+		    << "\" while it is used as a read-only file map";
+		return 0;
+	    }
+	}
+	else { // everything in memory, fname was set by a mistake
+	    fname = 0;
+	}
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
 	activate(); // read everything into memory
