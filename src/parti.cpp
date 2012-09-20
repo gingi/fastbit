@@ -21,13 +21,13 @@
 /// reordered when successful, otherwise return a negative number and the
 /// base data is corrupt!
 ///
-/// @note A data partition declared readonly can be reordered because
-/// reordering does not change the logical content of the data.  However,
-/// since this function actually makes changes to the ibis::part object,
-/// the object itself must be modifiable, i.e., not a const object.
+/// @note A data partition declared readonly at construction time can be
+/// reordered because reordering does not change the relational algebra
+/// view of the data.  However, this function actually makes changes to the
+/// ibis::part object, the object itself must be modifiable, i.e., not a
+/// const object.
 ///
-/// @warning <b>Danger</b>: This function does not work with any string
-/// valued columns.
+/// @warning: This function does not work with any string valued columns.
 long ibis::part::reorder() {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0)
 	return 0;
@@ -62,7 +62,8 @@ void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
 	if ((*it).second->isInteger()) {
 	    if ((*it).second->upperBound() >= (*it).second->lowerBound()) {
 		uint64_t width = static_cast<uint64_t>
-		    ((*it).second->upperBound() - (*it).second->lowerBound()) + 1U;
+		    ((*it).second->upperBound() - (*it).second->lowerBound())
+		    + 1U;
 		keys.push_back((*it).second);
 		ranges.push_back(width);
 	    }
@@ -108,8 +109,9 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 /// direction defaults to the ascending order if the value is not present.
 ///
 /// @note The sorting operation can proceed on a data partition marked as
-/// read-only.  If the data partition is not read-only, then this function
-/// will attempt to purge the inactive rows.
+/// read-only at construction time.  If the data partition is not
+/// read-only, then this function will attempt to purge the inactive rows
+/// which will reduce the number of rows in the data partition.
 long ibis::part::reorder(const ibis::table::stringList& names,
 			 const std::vector<bool>& directions) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;

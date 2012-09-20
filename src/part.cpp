@@ -255,7 +255,9 @@ extern "C" {
 /// The default argument for ro is false, which allows new directory to be
 /// created and new data records to be appended.  If the argument ro is
 /// true, then the specified data directory must already exist, otherwise,
-/// an exception is thrown.
+/// an exception is thrown.  A data partition constructed with ro set to
+/// true will be called a read-only data partition and its content shall
+/// not be changed in the relational algebra view.
 ibis::part::part(const char* name, bool ro) :
     m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
@@ -332,7 +334,9 @@ ibis::part::part(const ibis::resource::vList &mtags, bool ro) :
 /// The default argument for ro is false, which allows new directory to be
 /// created and new data records to be appended.  If the argument ro is
 /// true, then the specified data directory must already exist, otherwise,
-/// an exception is thrown.
+/// an exception is thrown.  A data partition constructed with ro set to
+/// true will be called a read-only data partition and its content shall
+/// not be changed in the relational algebra view.
 ibis::part::part(const char* adir, const char* bdir, bool ro) :
     m_name(0), m_desc(), rids(0), nEvents(0), activeDir(0),
     backupDir(0), switchTime(0), state(UNKNOWN_STATE), idxstr(0),
