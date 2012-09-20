@@ -1,7 +1,16 @@
+2012-09-19 John Wu <John dot Wu at ACM dot org>
+	* src/parti.cpp: clean up the documentation about variations of
+	the function reorder
+	* examples/thula.cpp: add a special case for ordering the data
+	table itself through the option -o (when -w and -t are not
+	present) (to investigate a complaint from Petr Velan)
+
 2012-09-18 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.h: add function unrecordFile
 	* src/idirekte.cpp: change direkte::write to use the more refined
 	logic to handle file maps
+	* examples/Makefile.am: add clean-local to remove .dSYM
+	directories
 
 2012-09-17 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp: update bin::write to match the other variants of

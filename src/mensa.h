@@ -22,7 +22,7 @@ namespace ibis {
 /// Class ibis::mensa contains multiple (horizontal) data partitions (@c
 /// ibis::part) to form a logical data table.  The base data contained in
 /// this table is logically immutable as reordering rows (through function
-/// @c reorder) does not change the overall content of the table.  The
+/// @c orderby) does not change the overall content of the table.  The
 /// functions @c reverseRows and @c groupby are not implmented.
 ///
 /// @note Mensa is a Latin word for "table."

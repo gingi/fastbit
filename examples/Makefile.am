@@ -22,6 +22,9 @@ tcapi_LDADD = ../src/libfastbit.la
 # has to be linked with $(CXXLINK)
 tcapi$(EXEEXT): tcapi.$(OBJEXT) $(tcapi_LDADD)
 	$(CXXLINK) tcapi.$(OBJEXT) $(tcapi_LDADD) $(LIBS)
-distclean: distclean-am clean
-	-rm -rf ./$(DEPDIR) .ibis
-	-rm -f Makefile
+
+clean-local:
+	-rm -rf *.dSYM .ibis
+
+distclean-local:
+	-rm -rf *.dSYM .ibis

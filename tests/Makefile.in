@@ -1073,7 +1073,7 @@ clean-local: clean-tmp
 	-rm -f *~ core core.[0-9]*
 	-rm -f readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} jrf${EXEEXT} *.exe
 clean-tmp:
-	-rm -rf $(TESTDIR) tmp .ibis star2002*
+	-rm -rf $(TESTDIR) tmp .ibis star2002* *.dSYM
 #
 # append the data in test0.csv and test1.csv 10 times
 do-small-append: $(TESTDIR)/append.rc $(TESTDIR)/0/test0/-part.txt $(TESTDIR)/0/test1/-part.txt $(IBISEXE)

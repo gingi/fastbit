@@ -996,6 +996,10 @@ int main(int argc, char** argv) {
 	    doQuery(*tbl, *qit, sel, frm, ord);
 	}
     }
+    else if (ord != 0 && *ord != 0) {
+	// order the rows in the table
+	tbl->orderby(ord);
+    }
     delete tbl;
     return 0;
 } // main

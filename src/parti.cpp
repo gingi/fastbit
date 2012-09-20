@@ -22,9 +22,12 @@
 /// base data is corrupt!
 ///
 /// @note A data partition declared readonly can be reordered because
-/// reordering does not change the logical content of the data.
+/// reordering does not change the logical content of the data.  However,
+/// since this function actually makes changes to the ibis::part object,
+/// the object itself must be modifiable, i.e., not a const object.
 ///
-/// @warning <b>Danger</b>: This function does not update null masks!
+/// @warning <b>Danger</b>: This function does not work with any string
+/// valued columns.
 long ibis::part::reorder() {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0)
 	return 0;
@@ -45,6 +48,10 @@ long ibis::part::reorder() {
 /// the narrowest range of values to the widest range of values.  It limits
 /// the number of sort keys so that the number of distinct combinations is
 /// not much large the number of rows in the data partition.
+///
+/// @note This function is not a const function because it computes the
+/// actual minimum and maximum values of some columns if the existing
+/// minimum is greater than the existing maximum.
 void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
     // first gather all integer-valued columns
     typedef std::vector<column*> colVector;
@@ -53,18 +60,18 @@ void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
     for (columnList::iterator it = columns.begin(); it != columns.end();
 	 ++ it) {
 	if ((*it).second->isInteger()) {
-	    if ((*it).second->upperBound() > (*it).second->lowerBound()) {
+	    if ((*it).second->upperBound() >= (*it).second->lowerBound()) {
 		uint64_t width = static_cast<uint64_t>
-		    ((*it).second->upperBound() - (*it).second->lowerBound());
+		    ((*it).second->upperBound() - (*it).second->lowerBound()) + 1U;
 		keys.push_back((*it).second);
 		ranges.push_back(width);
 	    }
 	    else {
 		(*it).second->computeMinMax();
-		if ((*it).second->upperBound() > (*it).second->lowerBound()) {
+		if ((*it).second->upperBound() >= (*it).second->lowerBound()) {
 		    uint64_t width = static_cast<uint64_t>
 			((*it).second->upperBound() -
-			 (*it).second->lowerBound());
+			 (*it).second->lowerBound()) + 1U;
 		    keys.push_back((*it).second);
 		    ranges.push_back(width);
 		}
@@ -100,8 +107,9 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 /// whether or not the column is to be order in ascending order.  The
 /// direction defaults to the ascending order if the value is not present.
 ///
-/// @note If the data partition is not readonly, then this function will
-/// attempt to purge the inactive rows.
+/// @note The sorting operation can proceed on a data partition marked as
+/// read-only.  If the data partition is not read-only, then this function
+/// will attempt to purge the inactive rows.
 long ibis::part::reorder(const ibis::table::stringList& names,
 			 const std::vector<bool>& directions) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;
@@ -442,7 +450,7 @@ long ibis::part::writeValues(const char *fname,
     evt += typeid(T).name();
     evt += ">(";
     evt += fname;
-    evt = ')';
+    evt += ')';
 
     int fdes = UnixOpen(fname, OPEN_READWRITE, OPEN_FILEMODE);
     if (fdes < 0) {
