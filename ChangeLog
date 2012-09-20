@@ -1,3 +1,8 @@
+2012-09-20 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.h: reorganize the tests in array_t::push_back to
+	avoid losing track of the old actual storage object (a problem
+	reported by Petr Velan and Michael Beauregard)
+
 2012-09-19 John Wu <John dot Wu at ACM dot org>
 	* src/parti.cpp: clean up the documentation about variations of
 	the function reorder

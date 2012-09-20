@@ -986,11 +986,13 @@ namespace ibis {
 	    }
 
 	private:
-	    uint32_t volatile val_; ///< The actual integer value.
+	    /// The actual integer value.
+	    uint32_t volatile val_;
 #if defined(HAVE_GCC_ATOMIC32)
 #elif defined(HAVE_WIN_ATOMIC32)
 #else
-	    pthread_mutex_t mytex; ///< The mutex for this object.
+	    /// The mutex for this object.
+	    pthread_mutex_t mytex;
 #endif
 
 	    sharedInt32(const sharedInt32&); // no copy constructor
@@ -1085,11 +1087,13 @@ namespace ibis {
 	    }
 
 	private:
-	    uint64_t volatile val_; ///< The actual integer value.
+	    /// The actual integer value.
+	    uint64_t volatile val_;
 #if defined(HAVE_GCC_ATOMIC64)
 #elif defined(HAVE_WIN_ATOMIC64)
 #else
-	    pthread_mutex_t mytex; ///< The mutex for this object.
+	    /// The mutex for this object.
+	    pthread_mutex_t mytex;
 #endif
 
 	    sharedInt64(const sharedInt64&); // no copy constructor

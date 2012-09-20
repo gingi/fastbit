@@ -2217,7 +2217,7 @@ void ibis::fileManager::storage::write(const char* file) const {
 void ibis::fileManager::storage::beginUse() {
     ++ nref;
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(ibis::gVerbose > 10)
+    LOGGER(ibis::gVerbose > 9)
 	<< "DEBUG -- fileManager::storage(" << static_cast<const void*>(this)
 	<< ", " << static_cast<const void*>(m_begin)
 	<< ") increased nref to " << nref();
@@ -2229,7 +2229,7 @@ void ibis::fileManager::storage::endUse() {
     -- nref;
     ++ nacc;
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(ibis::gVerbose > 10)
+    LOGGER(ibis::gVerbose > 9)
 	<< "DEBUG -- fileManager::storage(" << static_cast<const void*>(this)
 	<< ", " << static_cast<const void*>(m_begin)
 	<< ") decreased nref to " << nref()
@@ -2280,7 +2280,7 @@ void ibis::fileManager::roFile::endUse() {
     const uint32_t nr0 = -- nref; // number of current references
     ++ nacc; // number of past accesses
 #if defined(DEBUG) || defined(_DEBUG)
-    LOGGER(ibis::gVerbose > 10)
+    LOGGER(ibis::gVerbose > 9)
 	<< "DEBUG -- fileManager::roFile(" << static_cast<const void*>(this)
 	<< ", " << static_cast<const void*>(m_begin) << ", "
 	<< (name ? name : "") << ") decreased nref to " << nref()

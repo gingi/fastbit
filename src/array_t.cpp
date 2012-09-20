@@ -1503,20 +1503,22 @@ void ibis::array_t<T>::reserve(size_t n) {
 	    n = 2;
     }
 
-    const size_t n0 = (actual != 0 ?
-		       reinterpret_cast<T const *>(actual->end()) - m_begin :
-		       m_end - m_begin);
+    size_t n0 = (actual != 0 ?
+		 reinterpret_cast<T const *>(actual->end()) - m_begin :
+		 0);
     if (m_begin != 0 && m_end >= m_begin) { // a valid existing array
 	if (n > n0 || (actual != 0 && actual->filename() != 0)) {
 	    // attempt to allocate new storage space
+	    n0 = (m_end-m_begin);
+	    if (n < n0) n = n0 + 1;
 	    std::auto_ptr<ibis::fileManager::storage>
 		tmp(new ibis::fileManager::storage(n*sizeof(T)));
 	    if (tmp.get() != 0) { // copy and swap
-		(void) memcpy(tmp->begin(), m_begin, (m_end-m_begin)*sizeof(T));
+		(void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));
 		freeMemory(); // free the old content
 		actual = tmp.release();
-		m_begin = (T*)(actual->begin());
 		actual->beginUse();
+		m_begin = (T*)(actual->begin());
 		m_end = m_begin + n0;
 	    }
 	    else {
@@ -1539,28 +1541,25 @@ void ibis::array_t<T>::reserve(size_t n) {
 /// right infront of position p and returns the iterator pointing to the
 /// new element.
 ///
-/// The incoming positon can be anything is the existing array has not be
-/// allocated any memory space.  If it does any memory, p must be between
-/// m_begin and m_end.  If it is outside of this range, the return value
-/// will be set to nil.
+/// In case of failure, it returns the same value as the function end().
+/// The incoming iterator p must be between begin() and end() of this array.
+/// If it is outside of this valid range, the return value will be end().
 ///
 /// It throws a string exception if the new array has more than
 /// 0x7FFFFFFF (2^31-1) elements.
 template<class T> typename ibis::array_t<T>::iterator
 ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
-    if (m_begin == 0 || m_end <= m_begin) {
-	actual = new ibis::fileManager::storage(4*sizeof(T));
-	actual->beginUse();
-	m_begin = (T*)(actual->begin());
-	*m_begin = val;
-	m_end = m_begin + 1;
-	p = m_begin;
+    if (p < m_begin || p > m_end) {
+	return m_end;
     }
-    else  if (p < m_begin || p > m_end) {
-	p = 0; // do nothing
+
+    const difference_type n0 = m_end - m_begin;
+    if (n0 >= 0x7FFFFFFFU) {
+	throw "array_t must have less than 2^31 elements";
     }
-    else if (actual != 0 && actual->inUse() == 1 &&
-	     m_end+1 <= (T*)(actual->end())) {
+
+    if (actual != 0 && actual->filename() == 0 &&
+	(const T*)actual->end() > m_end) {
 	// use the existing space
 	iterator i = m_end;
 	while (i > p) {
@@ -1570,21 +1569,17 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 	++ m_end;
     }
     else { // copy-and-swap
-	const difference_type n = m_end - m_begin;
-	const size_t ip = p - m_begin;
-	size_t newsize = static_cast<size_t>((n >= 7 ? n : 7) + n);
-	if (n >= 0x7FFFFFFFU) {
-	    throw "array_t must have less than 2^31 elements";
-	}
+	const difference_type ip = p - m_begin;
+	size_t newsize = static_cast<size_t>((n0 >= 7 ? n0 : 7) + n0);
 	if (newsize > 0x7FFFFFFFU)
 	    newsize = 0x7FFFFFFFU;
 
 	array_t<T> copy(newsize);
-	copy.resize(static_cast<size_t>(n+1));
-	for (size_t j = 0; j < ip; ++ j)
+	copy.resize(static_cast<size_t>(n0+1));
+	for (difference_type j = 0; j < ip; ++ j)
 	    copy.m_begin[j] = m_begin[j];
 	copy.m_begin[ip] = val;
-	for (size_t j = ip; j < (n>0?(size_t)n:0U); ++ j)
+	for (difference_type j = ip; j < n0; ++ j)
 	    copy.m_begin[j+1] = m_begin[j];
 	swap(copy);
     }

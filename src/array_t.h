@@ -199,39 +199,40 @@ inline void ibis::array_t<T>::swap(array_t<T>& rhs) {
 /// - the existing storage object has no free space for the new data value.
 template<class T> 
 inline void ibis::array_t<T>::push_back(const T& elm) {
-    if (m_begin == 0 || m_end < m_begin) {
-	// allocate new storage
-	actual = new ibis::fileManager::storage(3*sizeof(T));
-	actual->beginUse();
-	m_begin = (T*)(actual->begin());
-	m_end = m_begin + 1;
-	*m_begin = elm;
-    }
-    else if (actual != 0 && actual->filename() == 0 &&
-	     (char*)(m_end+1) <= actual->end()) {
-	// simply add value
+    if (actual != 0 && actual->filename() == 0 &&
+	(char*)(m_end+1) <= actual->end()) {
+	// simply add the value
 	*m_end = elm;
 	++ m_end;
     }
-    else { // copy-and-swap
-	const difference_type nexist = (m_end - m_begin);
-	const size_t newsize = (nexist >= 7 ? nexist : 7) + nexist;
-	if (newsize > 0x7FFFFFFFU) {
+    else { // need space
+	const difference_type nold = (m_end > m_begin ? m_end - m_begin : 0);
+	if (nold > 0x7FFFFFFE) {
 	    throw "array_t must have less than 2^31 elements";
 	}
-
-	array_t<T> tmp(newsize); // allocate new array
-	tmp.resize(static_cast<size_t>(nexist+1));
-	for (difference_type j = 0; j < nexist; ++ j) // copy
-	    tmp.m_begin[j] = m_begin[j];
-	tmp.m_begin[nexist] = elm;
-	swap(tmp); // swap
+	if (actual == 0 || actual->filename() != 0 ||
+	    (const T*)actual->end() <= m_end) {
+	    size_t nnew = (nold >= 7 ? nold : 7) + nold;
+	    if (nnew > 0x7FFFFFFFU)
+		nnew = 0x7FFFFFFFU;
+	    reserve(nnew);
+	}
+	if (actual != 0 && actual->filename() == 0 &&
+	    (char*)(m_end+1) <= actual->end()) {
+	    // simply add the value
+	    *m_end = elm;
+	    ++ m_end;
+	}
+	else { // the function reserve has failed
+	    throw "array_t failed to acquire the necessary memory space";
+	}
     }
 } // ibis::array_t<T>::push_back
 
 /// The maximum number of elements can be stored with the current memory.
 template <class T>
 inline size_t ibis::array_t<T>::capacity() const {
-    return (actual!=0 ? (const T*)actual->end()-m_begin : m_end-m_begin);
+    return (actual!=0 ? (const T*)actual->end()-m_begin :
+	    m_end>=m_begin ? m_end-m_begin : 0);
 } // ibis::array_t<T>::capacity
 #endif // IBIS_ARRAY_T_H
