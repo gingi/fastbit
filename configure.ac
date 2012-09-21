@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.2.6], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.2.7], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -457,7 +457,7 @@ AC_MSG_RESULT([yes])
 else
 if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -D WITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
 AC_MSG_RESULT([no, use ${PWD}/win/FlexLexer.h])
-INCLUDES="${INCLUDES} -I ${PWD}/win"
+AM_CPPFLAGS="${AM_CPPFLAGS} -I ${PWD}/win"
 else
 AC_MSG_ERROR([no, must have FlexLexer.h to continue])
 fi
@@ -723,7 +723,7 @@ AC_DEFINE_UNQUOTED(FASTBIT_IBIS_INT_VERSION,
 OBJDIR=$objdir
 AC_SUBST(BUILD_JAVA_INTERFACE)
 AC_SUBST(LIB_VERSION_INFO)
-AC_SUBST(INCLUDES)
+AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(OBJDIR)
