@@ -67,7 +67,7 @@ if test "$echo_fb_version" = "yes" ; then
 fi
 
 if test "$echo_cflags" = "yes" ; then
-  cflags="@DEFS@ @INCLUDES@"
+  cflags="@DEFS@ @AM_CPPFLAGS@"
   if test "$includedir" != "/usr/include" ; then
     echo $cflags -I$includedir
   else

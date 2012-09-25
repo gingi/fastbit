@@ -453,14 +453,30 @@ CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 #AC_CHECK_HEADER(FlexLexer.h, [], [CFLAGS="${CFLAGS} -I ${PWD}/win" CXXFLAGS="${CXXFLAGS} -I ${PWD}/win"])
 AC_MSG_CHECKING([if the default FlexLexer.h defines yywrap])
 if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/whereLexer.cc) && test -s whereLexer.o; then
-AC_MSG_RESULT([yes])
+  AC_MSG_RESULT([yes])
 else
-if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -D WITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
-AC_MSG_RESULT([no, use ${PWD}/win/FlexLexer.h])
-AM_CPPFLAGS="${AM_CPPFLAGS} -I ${PWD}/win"
-else
-AC_MSG_ERROR([no, must have FlexLexer.h to continue])
-fi
+  T=`which flex`
+  if test ${#T} -gt 9 ; then
+    FLDIR="-I `echo $T | cut -c 1-$((${#T} - 8))`include"
+    if AC_TRY_COMMAND($CXX $CXXFLAGS $FLDIR -c src/whereLexer.cc) && test -s whereLexer.o; then
+      AC_MSG_RESULT([yes, use ${FLDIR}])
+      AM_CPPFLAGS="${AM_CPPFLAGS} ${FLDIR}"
+    else
+      if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -D WITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
+        AC_MSG_RESULT([no, use ${PWD}/win/FlexLexer.h])
+	AM_CPPFLAGS="${AM_CPPFLAGS} -I ${PWD}/win"
+      else
+        AC_MSG_ERROR([no, must have FlexLexer.h to continue])
+      fi
+    fi
+  else
+    if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -D WITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
+      AC_MSG_RESULT([no, use ${PWD}/win/FlexLexer.h])
+      AM_CPPFLAGS="${AM_CPPFLAGS} -I ${PWD}/win"
+    else
+      AC_MSG_ERROR([no, must have FlexLexer.h to continue])
+    fi
+  fi
 fi
 rm -f whereLexer.o
 
