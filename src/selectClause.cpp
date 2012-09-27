@@ -279,9 +279,13 @@ int ibis::selectClause::getAliases(ibis::selectClause::nameMap& nmap) const {
 } // ibis::selectClause::getAliases
  
 /// Record an aggregation function.  Return a math term of the type
-/// variable to caller so the caller can continue to build up a larger
+/// variable to the caller so the caller can continue to build up a larger
 /// expression.  For simplicity, the variable name is simply "__hhh", where
 /// "hhh" is the size of aggr_ in hexadecimal.
+///
+/// @note This function takes charge of expr.  It will free the object if
+/// the object is not passed on to other operations.  This can happen when
+/// the particular variable appeared already in the select clause.
 ibis::math::variable*
 ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
 				ibis::math::term *expr) {
@@ -339,7 +343,8 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
 		return var->dup();
 	    }
 	}
-	else {
+	else { // the variable has appeared before
+	    delete expr;
 	    std::ostringstream oss;
 	    oss << "__" << std::hex << it->second;
 	    return new ibis::selectClause::variable(oss.str().c_str(), this);

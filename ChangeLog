@@ -1,3 +1,8 @@
+2012-09-27 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.cpp: the function addAgregado neglected to free
+	the object expr when it is not used for anything (a problem
+	reported by Michael Beauregard)
+
 2012-09-25 John Wu <John dot Wu at ACM dot org>
 	* tests/scripts/fastbit-config.in:  change INCLUDES to AM_CPPFLAGS
 	as recommended by automake 1.12.4
