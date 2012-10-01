@@ -345,14 +345,10 @@ ibis::bord::bord(const char *tn, const char *td,
 			if (refcol->type() == ibis::CATEGORY &&
 			    t == ibis::UINT) {
 			    col->loadIndex();
-			    col->setDictionary(static_cast<const ibis::category*>
-					       (refcol)->getDictionary());
+			    col->setDictionary(refcol->getDictionary());
 			}
 			else if (refcol->type() == ibis::UINT) {
-			    const ibis::bord::column *bc =
-				dynamic_cast<const ibis::bord::column*>(refcol);
-			    if (bc != 0)
-				col->setDictionary(bc->getDictionary());
+			    col->setDictionary(refcol->getDictionary());
 			}
 			columns[col->name()] = col;
 			colorder.push_back(col);
@@ -3103,7 +3099,17 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
 
 ibis::table*
 ibis::bord::groupby(const ibis::selectClause& sel) const {
-    std::auto_ptr<ibis::bord> brd1(ibis::bord::groupbya(*this, sel));
+    std::auto_ptr<ibis::bord> brd1(0);
+    if (sel.needsEval(*this)) {
+    	std::auto_ptr<ibis::bord> brd0(evaluateTerms(sel, 0));
+    	if (brd0.get() != 0)
+    	    brd1.reset(groupbya(*brd0, sel));
+    	else
+    	    brd1.reset(ibis::bord::groupbya(*this, sel));
+    }
+    else {
+    	brd1.reset(ibis::bord::groupbya(*this, sel));
+    }
     if (brd1.get() == 0)
 	return 0;
 
@@ -4078,7 +4084,7 @@ int ibis::bord::limit(uint32_t nr) {
 
 /// Evaluate the arithmetic expressions in the select clause to derive an
 /// in-memory data table.
-ibis::table*
+ibis::bord*
 ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 			  const char* desc) const {
     std::string mydesc;
@@ -4090,8 +4096,11 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
     }
     std::string tn = ibis::util::shortName(desc);
     if (nEvents == 0 || columns.empty() || sel.empty()) {
-	return new ibis::tabula(tn.c_str(), desc, nEvents);
+	return 0;
     }
+    LOGGER(ibis::gVerbose > 4)
+	<< "bord[" << ibis::part::name() << "]::evaluateTerms processing "
+	<< desc << " to produce an in-memory data partition named " << tn;
 
     long ierr;
     ibis::bitvector msk;
@@ -4101,6 +4110,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
     ibis::table::stringList  cn;
     ibis::table::stringList  cd;
     std::vector<std::string> cdesc;
+    std::vector<const ibis::dictionary*> dct;
     ibis::util::guard gbuf =
 	ibis::util::makeGuard(ibis::table::freeBuffers, ibis::util::ref(buf),
 			      ibis::util::ref(ct));
@@ -4111,6 +4121,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	    << "bord[" << ibis::part::name() << "] -- evaluating \""
 	    << de << '"';
 
+	dct.push_back(0);
 	switch (t->termType()) {
 	default: {
 	    cdesc.push_back(de);
@@ -4170,7 +4181,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 	    cn.push_back(cn1);
 	    cdesc.push_back(de);
 	    ct.push_back(col->type());
-	    switch (ct.back()) {
+	    switch (col->type()) {
 	    default: {
 		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- bord::evaluateTerms(" << desc
@@ -4242,7 +4253,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		    return 0;
 		}
 		break;
-	    case ibis::UINT:
+	    case ibis::UINT: {
 		buf.push_back(new ibis::array_t<uint32_t>);
 		ierr = col->selectValues(msk, buf.back());
 		if (ierr < 0) {
@@ -4254,7 +4265,11 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 			<< "), but got " << ierr;
 		    return 0;
 		}
-		break;
+		const ibis::bord::column *bc =
+		    dynamic_cast<const ibis::bord::column*>(col);
+		if (bc != 0)
+		    dct.back() = bc->getDictionary();
+		break;}
 	    case ibis::LONG:
 		buf.push_back(new ibis::array_t<int64_t>);
 		ierr = col->selectValues(msk, buf.back());
@@ -4323,6 +4338,8 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 			    (buf.back())->size() : 0U);
 		    return 0;
 		}
+		if (col->getDictionary() != 0)
+		    dct.back() = col->getDictionary();
 		break;
 	    }
 	    break;}

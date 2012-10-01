@@ -142,16 +142,23 @@ public:
     /// Return the aggregation function used for the ith term.
     AGREGADO getAggregator(uint32_t i) const {return aggr_[i];}
 
-    /// Fetch the ith term inside the select clause.  No array bound
-    /// checking!
+    /// Fetch the ith term inside the select clause.
+    ///
+    /// @Warning No array bound checking!
     const ibis::math::term* aggExpr(unsigned i) const {return atms_[i];}
     /// Name inside the aggregation function.  To be used together with
     /// aggSize() and aggExpr().
+    ///
+    /// @Warning No array bound checking!
     const char* aggName(unsigned i) const {return names_[i].c_str();}
+    /// Produce a string description for the ith aggregation expression.
+    ///
+    /// @Warning No array bound checking!
     std::string aggDescription(unsigned i) const {
 	return aggDescription(aggr_[i], atms_[i]);}
     std::string aggDescription(AGREGADO, const ibis::math::term*) const;
 
+    bool needsEval(const ibis::part&) const;
     bool isSeparable() const;
     const char* isUnivariate() const;
 

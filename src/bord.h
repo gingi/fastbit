@@ -124,8 +124,8 @@ public:
     virtual const char* indexSpec(const char*) const {return 0;}
 
     int restoreCategoriesAsStrings(const ibis::part&);
-    ibis::table* evaluateTerms(const ibis::selectClause&,
-			       const char*) const;
+    ibis::bord* evaluateTerms(const ibis::selectClause&,
+			      const char*) const;
 
     int merge(const ibis::bord&, const ibis::selectClause&);
     ibis::table* xgroupby(const ibis::selectClause&) const;

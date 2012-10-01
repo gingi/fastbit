@@ -522,5 +522,5 @@ $(TCAPIEXE):
 .PHONY: clean clean-tmp multilevel match-counts large-sanity-check large-tests
 .PHONY: large-append-test append-test sanity-check full-check more-check check
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
-.PHONY: check-marksdb check-maurel small-tests really-small
+.PHONY: check-text check-marksdb check-maurel small-tests really-small
 .PHONY: check-jrf check-labeling TESTDIR check-sq0 check-sq1 check-sq2

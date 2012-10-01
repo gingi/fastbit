@@ -651,5 +651,46 @@ namespace ibis { // for template specialization
     (const char*, const bitvector&, std::vector<std::string>&) const;
     template <> long column::selectToStrings<unsigned char>
     (const char*, const bitvector&, std::vector<std::string>&) const;
+
+    namespace util {
+	/// Is the type for floating-point values?
+	inline bool isFloatType(ibis::TYPE_T t) {
+	    return(t == ibis::FLOAT || t == ibis::DOUBLE);
+	}
+
+	/// Is the type for integer values?
+	inline bool isIntegerType(ibis::TYPE_T t) {
+	    return(t == ibis::BYTE  || t == ibis::UBYTE ||
+		   t == ibis::SHORT || t == ibis::USHORT ||
+		   t == ibis::INT   || t == ibis::UINT ||
+		   t == ibis::LONG  || t == ibis::ULONG);
+	}
+
+	/// Is the type for signed integer values?
+	inline bool isSignedIntegerType(ibis::TYPE_T t) {
+	    return(t == ibis::BYTE || t == ibis::SHORT ||
+		   t == ibis::INT  || t == ibis::LONG);
+	}
+
+	/// Is the type for unsigned integer values?
+	inline bool isUnsignedIntegerType(ibis::TYPE_T t) {
+	    return(t == ibis::UBYTE || t == ibis::USHORT ||
+		   t == ibis::UINT  || t == ibis::ULONG);
+	}
+
+	/// Is the type for numberical values?
+	inline bool isNumericType(ibis::TYPE_T t) {
+	    return(t == ibis::BYTE  || t == ibis::UBYTE ||
+		   t == ibis::SHORT || t == ibis::USHORT ||
+		   t == ibis::INT   || t == ibis::UINT ||
+		   t == ibis::LONG  || t == ibis::ULONG ||
+		   t == ibis::FLOAT || t == ibis::DOUBLE);
+	}
+
+	/// Is the type for strings?
+	inline bool isStringType(ibis::TYPE_T t) {
+	    return(t == ibis::TEXT || t == ibis::CATEGORY);
+	}
+    }
 }
 #endif // IBIS_COLUMN_H

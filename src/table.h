@@ -782,7 +782,7 @@ private:
 
 /// Cursor class for row-wise data accesses.
 /// @note Note that this cursor is associated with a table object and can
-/// only iterate overall rows of a table.  To iterate an arbitrary
+/// only iterate over all rows of a table.  To iterate an arbitrary
 /// selection of rows, use the select function to create a new table and then
 /// iterate over the new table.
 class FASTBIT_CXX_DLLSPEC ibis::table::cursor {

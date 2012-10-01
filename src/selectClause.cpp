@@ -365,6 +365,21 @@ uint32_t ibis::selectClause::numGroupbyKeys() const {
     return ret;
 } // ibis::selectClause::numGroupbyKeys
 
+/// Does any of the atms need further evaluation?  Returns true for yes,
+/// false for no.
+bool ibis::selectClause::needsEval(const ibis::part &prt) const {
+    bool need = false;
+    for (uint32_t j = 0; need == false && j < atms_.size(); ++ j) {
+	if (atms_[j]->termType() != ibis::math::VARIABLE) {
+	    need = true;
+	}
+	else {
+	    need = (0 == prt.getColumn(names_[j].c_str()));
+	}
+    }
+    return need;
+} // ibis::selectClause::needsEval
+
 /// Can the select clause be evaluated in separate parts?  Return true if
 /// there is at least one aggregator and all aggregation operations are
 /// separable operations.  Otherwise return false.

@@ -634,7 +634,7 @@ static void printValues(const ibis::table& tbl) {
     }
 } // printValues
 
-// evaluate a single query, print out the number of hits
+// evaluate a single query
 void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	     const char* fstr, const char* ostr) {
     if (wstr == 0 || *wstr == 0) return;
@@ -657,23 +657,23 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	if (n1 == 0U) return;
     }
     // function select returns a table containing the selected values
-    ibis::table *sel = 0;
+    std::auto_ptr<ibis::table> sel(0);
     if (fstr == 0 || *fstr == 0) {
-	sel = tbl.select(sstr, wstr);
+	sel.reset(tbl.select(sstr, wstr));
     }
     else {
 	const ibis::mensa* mns = dynamic_cast<const ibis::mensa*>(&tbl);
 	if (mns != 0) {
-	    sel = mns->select2(sstr, wstr, fstr);
+	    sel.reset(mns->select2(sstr, wstr, fstr));
 	}
 	else {
 	    std::cout << "Warning -- " << mesg << " can not cast an "
 		"abstract ibis::table to the necessary concrete class.  "
 		"Will ignore the from clause " << fstr << std::endl;
-	    sel = tbl.select(sstr, wstr);
+	    sel.reset(tbl.select(sstr, wstr));
 	}
     }
-    if (sel == 0) {
+    if (sel.get() == 0) {
 	std::cout << mesg << " failed to produce any result"
 		  << std::endl;
 	return;
@@ -755,20 +755,17 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	}
     }
 
-    // exercise function groupby on the table sel
+    // exercise some functions on the in-memory table sel
     if (sel->nColumns() > 0 && ibis::gVerbose > 0 && sstr != 0 && *sstr != 0
 	&& strchr(sstr, '(') == 0) {
-	std::cout << "\n-- *** extra test for function groupby *** --\n";
-	ibis::table* gb = 0;
-	ibis::nameList nl(sstr);
-	if (nl.size() > 0) {
-	    std::vector<std::string> strs;
-	    ibis::table::stringList strc;
-	    if (nl.size() == 1) {
-#if defined(_DEBUG) || defined(DEBUG)
-		strs.resize(1);
-		strs[0] = sstr;
-#else
+	std::cout << "\n-- *** extra test on the in-memory data *** --\n";
+	std::auto_ptr<ibis::table> gb(0);
+	ibis::table::stringList nl = sel->columnNames();
+	ibis::table::typeList tl = sel->columnTypes();
+	std::vector<std::string> strs;
+	ibis::table::stringList strc;
+	if (nl.size() == 1) {
+	    if (ibis::util::isNumericType(tl[0])) {
 		strs.resize(10);
 		strs[0] = sstr;
 		strs[1] = "min(";     strs[1] += sstr; strs[1] += ')';
@@ -780,9 +777,25 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		strs[7] = "stdpop(";  strs[7] += sstr; strs[7] += ')';
 		strs[8] = "stdsamp("; strs[8] += sstr; strs[8] += ')';
 		strs[9] = "distinct(";strs[9] += sstr; strs[9] += ')';
-#endif
 	    }
-	    else if (nl.size() == 2) {
+	    else {
+		strs.resize(1);
+		strs[0] = sstr;
+	    }
+	}
+	else if (nl.size() == 2) {
+	    if (! ibis::util::isNumericType(tl[1])) {
+		if (ibis::util::isNumericType(tl[0])) {
+		    const char* ts = nl[0];
+		    nl[0] = nl[1];
+		    nl[1] = ts;
+		    ibis::TYPE_T tt = tl[0];
+		    tl[0] = tl[1];
+		    tl[1] = tt;
+		}
+	    }
+
+	    if (ibis::util::isNumericType(tl[1])) {
 		strs.resize(10);
 		strs[0] = nl[0];
 		const char* nm2 = nl[1];
@@ -797,14 +810,41 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		strs[9] = "distinct(";strs[9] += nm2; strs[9] += ')';
 	    }
 	    else {
-		strs.resize(nl.size()+8);
+		strs.resize(2);
 		strs[0] = nl[0];
-		const char* nm2 = 0;
-		size_t i;
-		for (i = 1; i < nl.size(); ++ i) {
-		    nm2 = nl[i];
+		strs[1] = nl[1];
+	    }
+	}
+	else {
+	    if (! ibis::util::isNumericType(tl.back())) {
+		// try to find a column that is numeric type
+		size_t num = 0;
+		while (num+1 < tl.size() &&
+		       ! ibis::util::isNumericType(tl[num]))
+		    ++ num;
+		if (num+1 < tl.size()) {
+		    const char *ts = nl.back();
+		    nl.back() = nl[num];
+		    nl[num] = ts;
+		    ibis::TYPE_T tt = tl.back();
+		    tl.back() = tl[num];
+		    tl[num] = tt;
+		}
+	    }
+	    strs.resize(nl.size()+8);
+	    strs[0] = nl[0];
+	    const char* nm2 = 0;
+	    size_t i;
+	    for (i = 1; i < nl.size(); ++ i) {
+		nm2 = nl[i];
+		if (ibis::util::isNumericType(tl[i])) {
 		    strs[i] = "avg("; strs[i] += nm2; strs[i] += ')';
 		}
+		else {
+		    strs[i] = nm2;
+		}
+	    }
+	    if (ibis::util::isNumericType(tl.back())) {
 		strs[i] = "min(";     strs[i] += nm2; strs[i] += ')'; ++ i;
 		strs[i] = "max(";     strs[i] += nm2; strs[i] += ')'; ++ i;
 		strs[i] = "sum(";     strs[i] += nm2; strs[i] += ')'; ++ i;
@@ -812,46 +852,99 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		strs[i] = "varsamp("; strs[i] += nm2; strs[i] += ')'; ++ i;
 		strs[i] = "stdpop(";  strs[i] += nm2; strs[i] += ')'; ++ i;
 		strs[i] = "stdsamp("; strs[i] += nm2; strs[i] += ')'; ++ i; 
-		strs[i] = "distinct(";strs[i] += nm2; strs[i] += ')'; 
+		strs[i] = "distinct(";strs[i] += nm2; strs[i] += ')';
+	    }
+	    else {
+		strs.resize(i);
 	    }
 
-	    strc.resize(strs.size());
-	    for (size_t i = 0; i < strs.size(); ++ i)
-		strc[i] = strs[i].c_str();
-
-	    gb = sel->groupby(strc);
-	    if (gb == 0) {
-		std::cout << "Warning -- groupby(" << strs[0];
-		for (size_t i = 1; i < strs.size(); ++ i)
-		    std::cout << ", " << strs[i];
-		std::cout << ") failed on table " << sel->name()
-			  << std::endl;
-	    }
-	}
-
-	if (gb != 0) {
-	    std::cout << "-- begin output of group by operation --\n";
-	    gb->describe(std::cout);
-
-	    if (gb->nRows() > 0 && gb->nColumns() > 0) {
-		if (xfile.is_open() && xfile.good()) {
-		    gb->dump(xfile);
+	    if (ibis::util::isStringType(tl[0]) && sel->nRows() > 5) {
+		std::auto_ptr<ibis::table> incore(sel);
+		std::auto_ptr<ibis::table::cursor> csr(incore->createCursor());
+		int ierr = csr->fetch();
+		if (ierr < 0) {
+		    std::clog << "Warning -- cursor on " << incore->name()
+			      << " failed to fetch the 1st row, ierr = "
+			      << ierr << std::endl;
 		}
 		else {
-		    try {
-			gb->dump(std::cout);
+		    std::string wtmp, stmp;
+		    ierr = csr->getColumnAsString(nl[0], stmp);
+		    wtmp = nl[0];
+		    wtmp += " = '";
+		    wtmp += stmp;
+		    wtmp += '\'';
+		    stmp = nl[0];
+		    for (i = 1; i < nl.size(); ++ i) {
+			stmp += ", ";
+			stmp += nl[i];
 		    }
-		    catch (...) {
-			printValues(*gb);
-		    }
+		    sel.reset(incore->select(stmp.c_str(), wtmp.c_str()));
+		    if (sel.get() == 0)
+			sel.reset(incore.release());
 		}
 	    }
-	    std::cout << "--  end  output of group by operation --\n"
-		      << std::endl;
-	    delete gb;
+	    if (ibis::util::isNumericType(tl[0]) && sel->nRows() > 5) {
+		std::auto_ptr<ibis::table> incore(sel);
+		std::auto_ptr<ibis::table::cursor> csr(incore->createCursor());
+		int ierr = csr->fetch();
+		if (ierr < 0) {
+		    std::clog << "Warning -- cursor on " << incore->name()
+			      << " failed to fetch the 1st row, ierr = "
+			      << ierr << std::endl;
+		}
+		else {
+		    double vtmp;
+		    std::string stmp;
+		    std::ostringstream wtmp;
+		    ierr = csr->getColumnAsDouble(nl[0], vtmp);
+		    wtmp << nl[0] << " >= " << vtmp;
+		    stmp = nl[0];
+		    for (i = 1; i < nl.size(); ++ i) {
+			stmp += ", ";
+			stmp += nl[i];
+		    }
+		    sel.reset(incore->select
+			      (stmp.c_str(), wtmp.str().c_str()));
+		    if (sel.get() == 0)
+			sel.reset(incore.release());
+		}
+	    }
 	}
+
+	strc.resize(strs.size());
+	for (size_t i = 0; i < strs.size(); ++ i)
+	    strc[i] = strs[i].c_str();
+
+	gb.reset(sel->groupby(strc));
+	if (gb.get() == 0) {
+	    std::cout << "Warning -- groupby(" << strs[0];
+	    for (size_t i = 1; i < strs.size(); ++ i)
+		std::cout << ", " << strs[i];
+	    std::cout << ") failed on table " << sel->name()
+		      << std::endl;
+	    return;
+	}
+
+	std::cout << "-- begin output of group by operation --\n";
+	gb->describe(std::cout);
+
+	if (gb->nRows() > 0 && gb->nColumns() > 0) {
+	    if (xfile.is_open() && xfile.good()) {
+		gb->dump(xfile);
+	    }
+	    else {
+		try {
+		    gb->dump(std::cout);
+		}
+		catch (...) {
+		    printValues(*gb);
+		}
+	    }
+	}
+	std::cout << "--  end  output of group by operation --\n"
+		  << std::endl;
     }
-    delete sel;
 } // doQuery
 
 // Construct a random set of tests that may read a large number of records

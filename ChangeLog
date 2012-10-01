@@ -1,7 +1,13 @@
+2012-10-01 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: in ibis::bord::groupby call
+	selectClause::needsEval to determine if additional evaluation is
+	needed to result the base expressions of the select clause
+
 2012-09-27 John Wu <John dot Wu at ACM dot org>
 	* src/selectClause.cpp: the function addAgregado neglected to free
 	the object expr when it is not used for anything (a problem
 	reported by Michael Beauregard)
+	* src/selectClause.cpp: add function needsEval
 
 2012-09-25 John Wu <John dot Wu at ACM dot org>
 	* tests/scripts/fastbit-config.in:  change INCLUDES to AM_CPPFLAGS

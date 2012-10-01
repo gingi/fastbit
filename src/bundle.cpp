@@ -24,23 +24,28 @@
 /// - = 0 if FASTBIT_ORDER_OUTPUT_RIDS is defined, sort RIDs, otherwise
 ///       don't sort.
 ibis::bundle* ibis::bundle::create(const ibis::query& q, int dir) {
-    ibis::horometer timer;
-    if (ibis::gVerbose > 2)
-	timer.start();
-
     ibis::bundle* bdl = 0;
-    if (q.components().empty())
-	bdl = new ibis::bundle0(q);
-    else if (q.components().aggSize() == 1)
-	bdl = new ibis::bundle1(q, dir);
-    else
-	bdl = new ibis::bundles(q, dir);
+    try {
+	ibis::horometer timer;
+	if (ibis::gVerbose > 2)
+	    timer.start();
 
-    if (ibis::gVerbose > 2) {
-	timer.stop();
-	q.logMessage("createBundle", "time to generate the bundle: "
-		     "%g sec(CPU), %g sec(elapsed)", timer.CPUTime(),
-		     timer.realTime());
+	if (q.components().empty())
+	    bdl = new ibis::bundle0(q);
+	else if (q.components().aggSize() == 1)
+	    bdl = new ibis::bundle1(q, dir);
+	else
+	    bdl = new ibis::bundles(q, dir);
+
+	if (ibis::gVerbose > 2) {
+	    timer.stop();
+	    q.logMessage("createBundle", "time to generate the bundle: "
+			 "%g sec(CPU), %g sec(elapsed)", timer.CPUTime(),
+			 timer.realTime());
+	}
+    }
+    catch (...) {
+	bdl = 0;
     }
     return bdl;
 } // ibis::bundle::create
@@ -51,23 +56,28 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q,
 				   int dir) {
     if (hits.size() == 0 || hits.cnt() == 0)
 	return 0;
-    ibis::horometer timer;
-    if (ibis::gVerbose > 2)
-	timer.start();
-
     ibis::bundle* bdl = 0;
-    if (q.components().empty())
-	bdl = new ibis::bundle0(q, hits);
-    else if (q.components().aggSize() == 1)
-	bdl = new ibis::bundle1(q, hits, dir);
-    else
-	bdl = new ibis::bundles(q, hits, dir);
+    try {
+	ibis::horometer timer;
+	if (ibis::gVerbose > 2)
+	    timer.start();
 
-    if (ibis::gVerbose > 2) {
-	timer.stop();
-	q.logMessage("createBundle", "time to generate the bundle: "
-		     "%g sec(CPU), %g sec(elapsed)", timer.CPUTime(),
-		     timer.realTime());
+	if (q.components().empty())
+	    bdl = new ibis::bundle0(q, hits);
+	else if (q.components().aggSize() == 1)
+	    bdl = new ibis::bundle1(q, hits, dir);
+	else
+	    bdl = new ibis::bundles(q, hits, dir);
+
+	if (ibis::gVerbose > 2) {
+	    timer.stop();
+	    q.logMessage("createBundle", "time to generate the bundle: "
+			 "%g sec(CPU), %g sec(elapsed)", timer.CPUTime(),
+			 timer.realTime());
+	}
+    }
+    catch (...) {
+	bdl = 0;
     }
     return bdl;
 } // ibis::bundle::create
@@ -76,25 +86,30 @@ ibis::bundle* ibis::bundle::create(const ibis::query& q,
 ibis::bundle* ibis::bundle::create(const ibis::part& tbl,
 				   const ibis::selectClause& sel,
 				   int dir) {
-    const uint32_t nc = sel.aggSize();
-    bool cs = (nc == 1 && sel.getAggregator(0) == ibis::selectClause::CNT);
-    // if (cs) {
-    // 	const ibis::math::term *tm = sel.aggExpr(0);
-    // 	if (tm->termType() == ibis::math::VARIABLE)
-    // 	    cs = ('*' == *(static_cast<const ibis::math::variable*>(tm)->
-    // 			   variableName()));
-    // 	else
-    // 	    cs = false;
-    // }
     ibis::bundle* res = 0;
-    if (nc == 0 || cs) {
-	res = new ibis::bundle0(tbl, sel);
+    try {
+	const uint32_t nc = sel.aggSize();
+	bool cs = (nc == 1 && sel.getAggregator(0) == ibis::selectClause::CNT);
+	// if (cs) {
+	// 	const ibis::math::term *tm = sel.aggExpr(0);
+	// 	if (tm->termType() == ibis::math::VARIABLE)
+	// 	    cs = ('*' == *(static_cast<const ibis::math::variable*>(tm)->
+	// 			   variableName()));
+	// 	else
+	// 	    cs = false;
+	// }
+	if (nc == 0 || cs) {
+	    res = new ibis::bundle0(tbl, sel);
+	}
+	else if (nc == 1) {
+	    res = new ibis::bundle1(tbl, sel, dir);
+	}
+	else {
+	    res = new ibis::bundles(tbl, sel, dir);
+	}
     }
-    else if (nc == 1) {
-	res = new ibis::bundle1(tbl, sel, dir);
-    }
-    else {
-	res = new ibis::bundles(tbl, sel, dir);
+    catch (...) {
+	res = 0;
     }
     return res;
 } // ibis::bundle::create
@@ -1453,11 +1468,12 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 				  (expr).variableName());
 	    }
 	    if (c == 0) {
+		clear();
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- bundles(" << tbl.name() << ", "
 		    << comps << ") can not find a column named "
 		    << (cn ? cn : "");
-		continue;
+		throw "bundle1::ctor can not find a column name";
 	    }
 
 	    LOGGER(ibis::gVerbose > 6)
