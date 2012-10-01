@@ -3584,6 +3584,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 ///
 /// @note Any numerical values can be converted to doubles, however for
 /// 64-bit integers this conversion may cause lose of precision.
+///
 /// @note The caller is responsible for freeing the returned array from any
 /// of the selectTypes functions.
 ibis::array_t<double>*
@@ -3600,6 +3601,150 @@ ibis::column::selectDoubles(const ibis::bitvector& mask) const {
     if (fnm == 0) return array.release();
 
     switch(m_type) {
+    case ibis::ULONG: {
+	array_t<uint64_t> prop;
+	ibis::fileManager::ACCESS_PREFERENCE apref =
+	    thePart != 0 ? thePart->accessHint(mask, sizeof(uint64_t))
+	    : ibis::fileManager::MMAP_LARGE_FILES;
+
+	int ierr = ibis::fileManager::instance().getFile(fnm, prop, apref);
+	if (ierr != 0) {
+	    logWarning("selectDoubles"
+		       "the file manager faild to retrieve the content of"
+		       " the data file \"%s\"", fnm);
+	    return array.release();
+	}
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 4) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectDoubles", "retrieving %lu unsigned integer%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::LONG: {
+	array_t<int64_t> prop;
+	ibis::fileManager::ACCESS_PREFERENCE apref =
+	    thePart != 0 ? thePart->accessHint(mask, sizeof(int64_t))
+	    : ibis::fileManager::MMAP_LARGE_FILES;
+
+	int ierr = ibis::fileManager::instance().getFile(fnm, prop, apref);
+	if (ierr != 0) {
+	    logWarning("selectDoubles"
+		       "the file manager faild to retrieve the content of"
+		       " the data file \"%s\"", fnm);
+	    return array.release();
+	}
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectDoubles", "expected to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 4) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectDoubles", "retrieving %lu integer%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
     case ibis::CATEGORY:
     case ibis::UINT: {
 	array_t<uint32_t> prop;

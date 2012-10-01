@@ -2,6 +2,9 @@
 	* src/bord.cpp: in ibis::bord::groupby call
 	selectClause::needsEval to determine if additional evaluation is
 	needed to result the base expressions of the select clause
+	* src/bord.cpp, src/column.cpp: column::getDoubles promises to
+	work with all numerical value types, but have neglected the 8-byte
+	integers (a problem noted by Gaurav Agarwal)
 
 2012-09-27 John Wu <John dot Wu at ACM dot org>
 	* src/selectClause.cpp: the function addAgregado neglected to free

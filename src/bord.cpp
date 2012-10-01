@@ -8142,9 +8142,13 @@ ibis::bord::column::selectFloats(const ibis::bitvector& mask) const {
 } // ibis::bord::column::selectFloats
 
 /// Put the selected values into an array as doubles.
+///
 /// @note Any column type could be selected as doubles.  Other selectXXs
-/// function only work on the same data type.  This is the only function
-/// that allows one to convert to a different type.  This is mainly to 
+/// function only work with data types that can be safely converted.  This
+/// is the only function that allows one to convert to a different type.
+/// This is mainly to support aggregation operations involving arithmetic
+/// operation, however, it will truncate 64-bit integers to only 48-bit
+/// precision (because a double only has 48-bit mantisa).
 ibis::array_t<double>*
 ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
     ibis::array_t<double>* array = new array_t<double>;
@@ -8156,6 +8160,130 @@ ibis::bord::column::selectDoubles(const ibis::bitvector& mask) const {
 	timer.start();
 
     switch(m_type) {
+    case ibis::ULONG: {
+	const array_t<uint64_t> &prop =
+	    * static_cast<const array_t<uint64_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectDoubles", "retrieving %lu unsigned integer%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
+    case ibis::LONG: {
+	const array_t<int64_t> &prop =
+	    * static_cast<const array_t<int64_t>*>(buffer);
+
+	uint32_t i = 0;
+	array->resize(tot);
+	const uint32_t nprop = prop.size();
+	ibis::bitvector::indexSet index = mask.firstIndexSet();
+	if (nprop >= mask.size()) {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0; j<idx0[1]; ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			(*array)[i] = (prop[idx0[j]]);
+		    }
+		}
+		++ index;
+	    }
+	}
+	else {
+	    while (index.nIndices() > 0) {
+		const ibis::bitvector::word_t *idx0 = index.indices();
+		if (*idx0 >= nprop) break;
+		if (index.isRange()) {
+		    for (uint32_t j = *idx0;
+			 j<(idx0[1]<=nprop ? idx0[1] : nprop);
+			 ++j, ++i) {
+			(*array)[i] = (prop[j]);
+		    }
+		}
+		else {
+		    for (uint32_t j = 0; j<index.nIndices(); ++j, ++i) {
+			if (idx0[j] < nprop)
+			    (*array)[i] = (prop[idx0[j]]);
+			else
+			    break;
+		    }
+		}
+		++ index;
+	    }
+	}
+
+	if (i != tot) {
+	    array->resize(i);
+	    logWarning("selectDoubles", "expects to retrieve %lu elements "
+		       "but only got %lu", static_cast<long unsigned>(tot),
+		       static_cast<long unsigned>(i));
+	}
+	else if (ibis::gVerbose > 5) {
+	    timer.stop();
+	    long unsigned cnt = mask.cnt();
+	    logMessage("selectDoubles", "retrieving %lu integer%s "
+		       "took %g sec(CPU), %g sec(elapsed)",
+		       static_cast<long unsigned>(cnt), (cnt > 1 ? "s" : ""),
+		       timer.CPUTime(), timer.realTime());
+	}
+	break;}
     case ibis::CATEGORY:
     case ibis::UINT: {
 	const array_t<uint32_t> &prop =

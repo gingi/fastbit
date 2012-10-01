@@ -34,8 +34,10 @@ namespace ibis {
 ///   distinct(expression).
 /// - avg(expression): compute the average of the expression.  Note that
 ///   the computation is always performed in double-precision
-///   floating-point values.
-/// - sum(expression): compute the sum of the expression.
+///   floating-point values.  This cause 64-bit integer values to be
+///   rounded to 48-bit precision and may produce inaccuracy in the result.
+/// - sum(expression): compute the sum of the expression.  This computation
+///   is performed as double-precision floating-point values.
 /// - max(expression): compute the maximum value of the expression.
 /// - min(expression): compute the minimum value of the expression.
 /// - median(expression): compute the median of the expression.  Note that
@@ -50,19 +52,20 @@ namespace ibis {
 /// - var(expression): compute the sample variance, i.e., the sum of
 ///   squared differences from the mean divided by the number of rows in
 ///   the group minus 1.  This function name may also appears as varsamp or
-///   variance.
+///   variance.  This computation is performed in double precision.
 /// - varp(expression): compute the population variance, i.e., the sum of
 ///   squared differences from the mean divided by the number of rows in
 ///   the group.  This function name may also appears as varpop because the
-///   origianal contributor of this function, Jan, used varpop.
+///   origianal contributor of this function, Jan, used varpop.   This
+///   computation is performed in double precision.
 /// - stdev(expression): compute the sample standard deviation, i.e., the
 ///   square root of the sum of squared differences from the mean divided
 ///   by the number of rows minus 1.  Thisfunction name may also appears as
-///   stdsamp or stddev.
+///   stdsamp or stddev.  This computation is performed in double precision.
 /// - stdevp(expression): compute the population standard deviation, i.e.,
 ///   the square root of the sum of squared differences from the mean
 ///   divided by the number of rows.  This function name may also appears
-///   as stdpop.
+///   as stdpop.  This computation is performed in double precision.
 ///
 /// Each term may optionally be followed by an alias for the term.  The
 /// alias must be a valid SQL name.  The alias may optionally be preceded
