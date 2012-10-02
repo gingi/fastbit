@@ -227,7 +227,7 @@ check-labeling: $(IBISEXE) $(TESTDIR)/m0/-part.txt $(TESTDIR)/m1/-part.txt
 	@echo
 #
 $(TESTDIR)/t0/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
-	@test -f $(TESTDIR)/t0/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ushort" -t test0.csv >> $(TESTDIR)/std.log 2>&1
+	@test -f $(TESTDIR)/t0/-part.txt || $(ARDEAEXE) -d $(TESTDIR)/t0 -m "a:key, b:text, c:ulong" -t test0.csv >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/t1/-part.txt: $(ARDEAEXE) test0.csv TESTDIR
 	@if [ ! -f $(TESTDIR)/t1/-part.txt ] ; then \
 	$(ARDEAEXE) -d $(TESTDIR)/t1 -m "a:byte, b:float, c:ushort" -t test0.csv >> $(TESTDIR)/std.log 2>&1; \

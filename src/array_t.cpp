@@ -518,8 +518,8 @@ size_t ibis::array_t<T>::find(const T& val) const {
 } // ibis::array_t<T>::find
 
 /// Find the first position where the value is greater than @c val.
-/// Assuming the array is already sorted in the ascending order,
-/// it returns the smallest i such that @c operator[](i) > @c val.
+/// Assuming the array is already sorted in the ascending order, it returns
+/// the smallest i such that @c operator[](i) > @c val.
 ///
 /// @note The word upper is used in the same sense as in the STL function
 /// std::upper_bound.
@@ -880,15 +880,15 @@ bool ibis::array_t<T>::isSorted(const array_t<uint32_t>& ind) const {
     return sorted;
 } // ibis::array_t<T>::isSorted
 
-/// Remove the duplicate values.  It sorts the values first and remove any
-/// entry that is not in strictly assending order.
+/// Remove the duplicate values.  It sorts the values first and then
+/// removes any entry that is not in strictly assending order.
 ///
 /// @warning This function uses std::sort to order the values first before
-/// removign duplicates.  The function std::sort normally would places
+/// removing duplicates.  The function std::sort normally would places
 /// not-a-number (nan) at the end of the array which allows this function
 /// to remove them from the list of values.  However, should std::sort
 /// actually places nans at the beginning of the sorted list, this function
-/// will produce an empty array.
+/// would produce an empty array.
 template<class T>
 void ibis::array_t<T>::deduplicate() {
     const size_t oldsize = size();

@@ -323,10 +323,10 @@ ibis::bord::bord(const char *tn, const char *td,
 		if (refcol != 0) {
 		    ibis::TYPE_T t = refcol->type();
 		    if (refcol->type() == ibis::CATEGORY) {
-			bool samedict = true;
 			const ibis::dictionary *dic0 = 
 			    static_cast<const ibis::category*>(refcol)
 			    ->getDictionary();
+			bool samedict = (dic0 != 0);
 			for (unsigned i = 1; samedict && i < ref.size(); ++ i) {
 			    const ibis::category *cat1 =
 				dynamic_cast<const ibis::category*>
@@ -364,7 +364,7 @@ ibis::bord::bord(const char *tn, const char *td,
 		    LOGGER(ibis::gVerbose >= 0)
 			<< "Error -- bord::ctor failed to locate column "
 			<< var.variableName() << " in " << ref.size()
-			<< "data partition" << (ref.size() > 1 ? "s" : "");
+			<< " data partition" << (ref.size() > 1 ? "s" : "");
 		    throw "bord::ctor failed to locate a needed column";
 		}
 	    }
@@ -5147,6 +5147,8 @@ ibis::bord::column::~column() {
 	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
+	if (dic != 0) // just in case we have built a dictionary
+	    delete const_cast<ibis::dictionary*>(dic);
 	delete static_cast<std::vector<std::string>*>(buffer);
 	break;}
     case ibis::OID: {
@@ -5447,9 +5449,14 @@ long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 } // ibis::bord::column::evaluateRange
 
 /// Locate the strings that match the given string.  The comaprison is case
-/// sensitive.  If the incoming strign is a nil pointer, it matches nothing.
+/// sensitive.  If the incoming string is a nil pointer, it matches nothing.
 long ibis::bord::column::stringSearch(const char* str,
-				      ibis::bitvector& hits) const {
+				      ibis::bitvector& hits) const {    
+    if (str == 0) { // null string can not match any thing
+	hits.set(0, thePart ? thePart->nRows() : 0);
+	return 0;
+    }
+
     std::string evt = "column[";
     evt += (thePart ? thePart->name() : "");
     evt += '.';
@@ -5457,86 +5464,120 @@ long ibis::bord::column::stringSearch(const char* str,
     evt += "]::stringSearch(";
     evt += (str ? str : "");
     evt += ')';
-    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " is not supported on column type "
-	    << ibis::TYPESTRING[(int)m_type];
-	return -1;
-    }
     if (buffer == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " can not proceed with a nil buffer";
+	return -1;
+    }
+    if (m_type == ibis::TEXT || m_type == ibis::CATEGORY) {
+	// buffer is std::vector<std::string>*
+	ibis::util::timer mytimer(evt.c_str(), 3);
+	const std::vector<std::string>&
+	    vals(*static_cast<const std::vector<std::string>*>(buffer));
+
+	hits.clear();
+	for (size_t j = 0; j < vals.size(); ++ j) {
+	    if (vals[j].compare(str) == 0)
+		hits.setBit(j, 1);
+	}
+	hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    }
+    else if (m_type == ibis::UINT && dic != 0) {
+	// buffer is ibis::array_t<uint32_t>
+	ibis::util::timer mytimer(evt.c_str(), 3);
+	const uint32_t stri = (*dic)[str];
+	const array_t<uint32_t>&
+	    vals(*static_cast<const array_t<uint32_t>*>(buffer));
+
+	hits.clear();
+	for (size_t j = 0; j < vals.size(); ++ j) {
+	    if (vals[j] == stri)
+		hits.setBit(j, 1);
+	}
+	hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    }
+    else {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " is not supported on column type "
+	    << ibis::TYPESTRING[(int)m_type];
 	return -2;
     }
 
-    const array_t<uint32_t>&
-	vals(*static_cast<const array_t<uint32_t>*>(buffer));
-    
-    if (str == 0) { // null string can not match any thing
-	hits.set(0, thePart ? thePart->nRows() : vals.size());
-	return 0;
-    }
-
-    uint32_t stri = (*dic)[str];
-
-    ibis::util::timer mytimer(evt.c_str(), 3);
-    hits.clear();
-    for (size_t j = 0; j < vals.size(); ++ j) {
-	if (vals[j] == stri)
-	    hits.setBit(j, 1);
-    }
-    hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
     return hits.cnt();
 } // ibis::bord::column::stringSearch
 
 long ibis::bord::column::stringSearch(const std::vector<std::string>& str,
 				      ibis::bitvector& hits) const {
+    if (str.empty()) { // null string can not match any thing
+	hits.set(0, thePart ? thePart->nRows() : 0);
+	return 0;
+    }
+
     std::string evt = "column[";
     evt += (thePart ? thePart->name() : "");
     evt += '.';
     evt += m_name;
     evt += "]::stringSearch(<...>)";
-    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+    if (buffer == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not proceed with a nil buffer";
+	return -1;
+    }
+
+    if (m_type == ibis::TEXT || m_type == ibis::CATEGORY) {
+	// buffer is std::vector<std::string>*
+	ibis::util::timer mytimer(evt.c_str(), 3);
+	const std::vector<std::string>&
+	    vals(*static_cast<const std::vector<std::string>*>(buffer));
+
+	hits.clear();
+	bool hit;
+	for (size_t j = 0; j < vals.size(); ++ j) {
+	    hit = false;
+	    for (size_t i = 0; i < str.size() && !hit; ++ i)
+		hit = (vals[j].compare(str[i]) == 0);
+	    if (hit)
+		hits.setBit(j, 1);
+	}
+	hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    }
+    else if (m_type == ibis::UINT && dic != 0) {
+	// buffer is ibis::array_t<uint32_t>
+	ibis::util::timer mytimer(evt.c_str(), 3);
+	const array_t<uint32_t>&
+	    vals(*static_cast<const array_t<uint32_t>*>(buffer));
+	ibis::array_t<uint32_t> stri(str.size());
+	for (unsigned j = 0; j < str.size(); ++ j)
+	    stri[j] = (*dic)[str[j].c_str()];
+	stri.deduplicate();
+
+	hits.clear();
+	if (hits.size() == 1) {
+	    for (size_t j = 0; j < vals.size(); ++ j) {
+		if (vals[j] == stri[0])
+		    hits.setBit(j, 1);
+	    }
+	}
+	else if (hits.size() == 2) {
+	    for (size_t j = 0; j < vals.size(); ++ j) {
+		if (vals[j] == stri[0] || vals[j] == stri[1])
+		    hits.setBit(j, 1);
+	    }
+	}
+	else {
+	    for (size_t j = 0; j < vals.size(); ++ j) {
+		if (vals[j] == stri[stri.find_upper(vals[j])])
+		    hits.setBit(j, 1);
+	    }
+	}
+	hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    }
+    else {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " is not supported on column type "
 	    << ibis::TYPESTRING[(int)m_type];
 	return -1;
     }
-    if (buffer == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not proceed with a nil buffer";
-	return -2;
-    }
-    const array_t<uint32_t>&
-	vals(*static_cast<const array_t<uint32_t>*>(buffer));
-    if (str.empty()) { // null string can not match any thing
-	hits.set(0, thePart ? thePart->nRows() : vals.size());
-	return 0;
-    }
-
-
-    ibis::util::timer mytimer(evt.c_str(), 3);
-
-    array_t<uint32_t> stri;
-    stri.resize(str.size());
-    for (size_t j = 0; j < str.size(); ++ j) {
-	stri[j] = (*dic)[str[j].c_str()];
-    }
-		
-		 
-
-
-    hits.clear();
-    for (size_t j = 0; j < vals.size(); ++ j) {
-	bool hit = false;
-	for (size_t i = 0; i < str.size() && hit == false; ++ i) {
-	    hit = (stri[i] == vals[j]);
-	}
-	if (hit) {
-	    hits.setBit(j, 1);
-	}
-    }
-    hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
     return hits.cnt();
 } // ibis::bord::column::stringSearch
 
@@ -5545,7 +5586,8 @@ long ibis::bord::column::stringSearch(const std::vector<std::string>& str,
 /// checks.  It simply returns the number of strings in memory as the
 /// estimate.
 long ibis::bord::column::stringSearch(const char* str) const {
-    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY &&
+	(m_type == ibis::UINT && dic != 0)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
 	    << m_name << "]::stringSearch is not supported on column type "
@@ -5560,7 +5602,8 @@ long ibis::bord::column::stringSearch(const char* str) const {
     }
     if (str == 0) return 0;
 
-    const array_t<uint32_t>&vals(*static_cast<const array_t<uint32_t>*>(buffer));
+    const array_t<uint32_t>&
+	vals(*static_cast<const array_t<uint32_t>*>(buffer));
     return vals.size();
 } // ibis::bord::column::stringSearch
 
@@ -5570,7 +5613,8 @@ long ibis::bord::column::stringSearch(const char* str) const {
 /// estimate.
 long
 ibis::bord::column::stringSearch(const std::vector<std::string>& str) const {
-    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
+    if (m_type != ibis::TEXT && m_type != ibis::CATEGORY &&
+	(m_type == ibis::UINT && dic != 0)) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- column[" << (thePart ? thePart->name() : "") << '.'
 	    << m_name << "]::stringSearch is not supported on column type "
@@ -5585,7 +5629,8 @@ ibis::bord::column::stringSearch(const std::vector<std::string>& str) const {
     }
     if (str.empty()) return 0;
 
-    const array_t<uint32_t>&vals(*static_cast<const array_t<uint32_t>*>(buffer));
+    const array_t<uint32_t>&
+	vals(*static_cast<const array_t<uint32_t>*>(buffer));
     return vals.size();
 } // ibis::bord::column::stringSearch
 
@@ -5769,7 +5814,8 @@ long ibis::bord::column::patternSearch(const char* pat) const {
     }
     if (pat == 0) return 0;
 
-    const array_t<uint32_t>&vals(*static_cast<const array_t<uint32_t>*>(buffer));
+    const array_t<uint32_t>&
+	vals(*static_cast<const array_t<uint32_t>*>(buffer));
     return vals.size();
 } // ibis::bord::column::patternSearch
 
@@ -6815,13 +6861,16 @@ ibis::bord::column::selectUInts(const ibis::bitvector& mask) const {
 	}
     }
     else if (m_type == ibis::CATEGORY) {
-	if (dic == 0)
-	    const_cast<ibis::bord::column*>(this)->dic =
-		new ibis::dictionary();
-
 	const std::vector<std::string> *prop =
 	    static_cast<const std::vector<std::string>*>(buffer);
 	const size_t nprop = prop->size();
+	if (dic == 0) {
+	    ibis::dictionary *dic = new ibis::dictionary();
+	    for (size_t j = 0; j < nprop; ++ j)
+		dic->insert((*prop)[j].c_str());
+	    const_cast<ibis::bord::column*>(this)->dic = dic;
+	}
+
 	array->resize(nprop);
 	for (size_t j = 0; j < nprop; ++ j)
 	    (*array)[j] = (*dic)[(*prop)[j].c_str()];
