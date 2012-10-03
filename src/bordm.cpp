@@ -79,7 +79,7 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
     }
     if (keys.size() != keyr.size() || vals.size() != valr.size())
 	return -2;
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
 	lg() << "bord::merge -- merging " << this->part::name() << " ("
 	     << nRows() << ") and " << rhs.part::name() << " ("
@@ -92,6 +92,12 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 	    for (unsigned j = 1; j < keys.size(); ++ j)
 		lg() << ", " << keys[j]->name();
 	    lg() << ") as key" << (keys.size()>1 ? "s" : "");
+	}
+	if (ibis::gVerbose > 6) {
+	    lg() << "\nthis partition:\n";
+	    dump(lg(), ", ");
+	    lg() << "other partition:\n";
+	    rhs.dump(lg(), ", ");
 	}
     }
 
@@ -133,6 +139,12 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 	    nEvents = ierr;
 	else
 	    nEvents = 0;
+    }
+
+    if (ibis::gVerbose > 6) {
+	ibis::util::logger lg;
+	lg() << "bord::merge -- result\n";
+	dump(lg(), ", ");
     }
     return ierr;
 } // ibis::bord::merge

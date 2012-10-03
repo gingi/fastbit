@@ -6676,7 +6676,7 @@ long ibis::colBytes::write(FILE* fptr) const {
 /// Write ith element as text
 void ibis::colBytes::write(std::ostream& out, uint32_t i) const {
     if (array != 0 && array->size() > i)
-	out << (*array)[i];
+	out << (int16_t)(*array)[i];
 }
 
 /// Write out whole array as binary.
@@ -6693,7 +6693,7 @@ long ibis::colUBytes::write(FILE* fptr) const {
 /// Write ith element as text
 void ibis::colUBytes::write(std::ostream& out, uint32_t i) const {
     if (array != 0 && array->size() > i)
-	out << (*array)[i];
+	out << (uint16_t) (*array)[i];
 }
 
 /// Write out whole array as binary.

@@ -4,6 +4,9 @@
 	Michael Chong)
 	* src/bord.cpp: allow a dictionary to be computed for in-memory
 	data when selectUInts is invoked
+	* src/bord.cpp: in column::limit make sure the underlying buffer
+	is not shared (to address a problem in aggregation across
+	multiple data partitions noticed by Petr Velan)
 
 2012-10-01 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: in ibis::bord::groupby call

@@ -407,36 +407,38 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 /// shared by two or more clients.  This does not guarantee that it would
 /// not become shared later.  The complete solution is to implement
 /// copy-on-write in all functions that modifies an array, however, there
-/// are plenty of cases where the copying is unnecessary.  This function
-/// will create a private copy of the data if there are more than one
-/// active references on this object and when the underlying data is
-/// tracked by the file managers.
+/// are plenty of cases where copying is unnecessary.
+///
+/// If this object is not well-formed, it will be reset to be an empty
+/// array.
 template<class T>
 void ibis::array_t<T>::nosharing() {
-    if (m_begin != 0 && m_end != 0 &&
-	(actual == 0 ||
-	 (m_begin != (T*)actual->begin() ||
-	  actual->filename() != 0 ||
-	  actual->inUse() > 1))) {
-	// follow copy-and-swap strategy
-	std::auto_ptr<ibis::fileManager::storage>
-	    tmp(new ibis::fileManager::storage
-		(reinterpret_cast<const char*>(m_begin),
-		 reinterpret_cast<const char*>(m_end)));
+    if (m_begin != 0 && m_end >= m_end) { // a well-formed object
+	if (actual == 0 || m_begin != (T*)actual->begin() ||
+	    actual->filename() != 0 || actual->inUse() > 1) {
+	    // follow copy-and-swap strategy
+	    std::auto_ptr<ibis::fileManager::storage>
+		tmp(new ibis::fileManager::storage
+		    (reinterpret_cast<const char*>(m_begin),
+		     reinterpret_cast<const char*>(m_end)));
 #if defined(DEBUG) || defined(_DEBUG)
-	LOGGER(ibis::gVerbose > 10)
-	    << "array_t<" << typeid(T).name() << ">::nosharing copied ("
-	    << static_cast<const void*>(this) << ", "
-	    << static_cast<const void*>(m_begin) << ") to ("
-	    << static_cast<const void*>(this) << ", "
-	    << static_cast<const void*>(tmp->begin()) << ")";
+	    LOGGER(ibis::gVerbose > 10)
+		<< "array_t<" << typeid(T).name() << ">::nosharing copied ("
+		<< static_cast<const void*>(this) << ", "
+		<< static_cast<const void*>(m_begin) << ") to ("
+		<< static_cast<const void*>(this) << ", "
+		<< static_cast<const void*>(tmp->begin()) << ")";
 #endif
 
+	    freeMemory();
+	    tmp->beginUse();
+	    m_begin = (T*)(tmp->begin());
+	    m_end = (T*)(tmp->end());
+	    actual = tmp.release();
+	}
+    }
+    else { // ill-formed array_t object, clean up
 	freeMemory();
-	tmp->beginUse();
-	m_begin = (T*)(tmp->begin());
-	m_end = (T*)(tmp->end());
-	actual = tmp.release();
     }
 } // ibis::array_t<T>::nosharing
 
@@ -1445,10 +1447,12 @@ void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
 
 /// Change the size of the array to have @n elements.  If n is greater than
 /// its current capacity, it allocates exactly enough space for the new
-/// array and copy the existing content to the new space.  If the user
-/// needs to perform a series of resize operations with progressively
-/// larger size, call the function reserve to increase the underlying
-/// storage to avoid this function copying the data many times.
+/// array and copy the existing content to the new space.  The existing
+/// content is copied while the new elements are left uninitialized.  If
+/// the user needs to perform a series of resize operations with
+/// progressively larger sizes, call the function reserve with the final
+/// size to increase the underlying storage and avoid copying the data
+/// multiple times.
 ///
 /// @note New space is allocated through the function reserve.  The new
 /// elements of the array are not initalized.  They contain random
@@ -1506,7 +1510,7 @@ void ibis::array_t<T>::reserve(size_t n) {
     size_t n0 = (actual != 0 ?
 		 reinterpret_cast<T const *>(actual->end()) - m_begin :
 		 0);
-    if (m_begin != 0 && m_end >= m_begin) { // a valid existing array
+    if (m_begin != 0 && m_end > m_begin) { // a valid existing array
 	if (n > n0 || (actual != 0 && actual->filename() != 0)) {
 	    // attempt to allocate new storage space
 	    n0 = (m_end-m_begin);

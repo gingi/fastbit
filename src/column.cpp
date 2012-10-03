@@ -702,13 +702,12 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 		    << mask.cnt() << " out of " << mask.size()
 		    << " set bits, wrote to " << fnm;
 	    }
-	    if (ibis::gVerbose > 3)
-		logMessage("getNullMask", "get null mask (%lu, %lu) "
-			   "[st.st_size=%lu, sz=%lu, ierr=%d]",
-			   static_cast<long unsigned>(mask.cnt()),
-			   static_cast<long unsigned>(mask.size()),
-			   static_cast<long unsigned>(st.st_size),
-			   static_cast<long unsigned>(sz), ierr);
+	    LOGGER(ibis::gVerbose > 5)
+		<< "column["
+		<< (thePart->name()?thePart->name():"?") << '.' << m_name
+		<< "]::getNullMask -- get null mask (" << mask.cnt() << ", "
+		<< mask.size() << ") [st.st_size=" << st.st_size
+		<< ", sz=" << sz << ", ierr=" << ierr << "]";
 	}
 	else { // no data file, assume every value is valid
 	    mask.set(1, thePart->nRows());
@@ -717,11 +716,10 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 	ibis::bitvector tmp(mask);
 	const_cast<column*>(this)->mask_.swap(tmp);
     }
-    if (ibis::gVerbose > 6) {
-	logMessage("getNullMask", "mask size = %lu, cnt = %lu",
-		   static_cast<long unsigned>(mask.size()),
-		   static_cast<long unsigned>(mask.cnt()));
-    }
+    LOGGER(ibis::gVerbose > 6)
+	<< "column[" << (thePart->name()?thePart->name():"?") << '.' << m_name
+	<< "]::getNullMask -- mask size = " << mask.size() << ", cnt = "
+	<< mask.cnt();
 } // ibis::column::getNullMask
 
 /// Change the null mask to the user specified one.  The incoming mask

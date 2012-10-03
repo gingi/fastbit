@@ -3143,8 +3143,7 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 /// there is any further computation on the aggregated values, the user
 /// need to call groupbyc to complete those operations.  This separation
 /// allows one to possibly conduct group by operations on multiple data
-/// partitions on partition at a time, which should reduce the memory
-/// requirement.
+/// partitions one at a time, which should reduce the memory requirement.
 ibis::bord*
 ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
     if (sel.empty() || sel.aggSize() == 0 || src.nRows() == 0)
@@ -3255,16 +3254,7 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
 	case ibis::UINT: {
 	    buf[i] = new array_t<uint32_t>
 		(* static_cast<const array_t<uint32_t>*>(bptr));
-	    if (refcol->type() == ibis::CATEGORY) {
-		dct[i] = static_cast<const ibis::category*>(refcol)
-		    ->getDictionary();
-	    }
-	    else {
-		const ibis::bord::column *bc =
-		    dynamic_cast<const ibis::bord::column*>(refcol);
-		if (bc != 0)
-		    dct[i] = bc->getDictionary();
-	    }
+	    dct[i] = refcol->getDictionary();
 	    break;}
 	case ibis::LONG:
 	    buf[i] = new array_t<int64_t>
@@ -4518,11 +4508,11 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
     std::string mesg    = "bord[";
     mesg += m_name;
     mesg += "]::append";
-    if (ibis::gVerbose > 3) {
+    if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- to process " << nqq << " row" << (nqq>1?"s":"")
-	     << " from " << prt.name() << ", # of existing rows = " << nh;
-	if (ibis::gVerbose > 5) {
+	     << " from partition " << prt.name() << ", # of existing rows = " << nh;
+	if (ibis::gVerbose > 6) {
 	    lg() << "\n    colmap[" << colmap.size() << "]";
 	    for (ibis::selectClause::StringToInt::const_iterator it
                      = colmap.begin(); it != colmap.end(); ++ it) {
@@ -10368,60 +10358,70 @@ int ibis::bord::column::limit(uint32_t nr) {
 	    * static_cast<array_t<uint64_t>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::LONG: {
 	array_t<int64_t> &prop =
 	    * static_cast<array_t<int64_t>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::UINT: {
 	array_t<uint32_t> &prop =
 	    * static_cast<array_t<uint32_t>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::INT: {
 	array_t<int32_t> &prop =
 	    * static_cast<array_t<int32_t>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::USHORT: {
 	array_t<uint16_t> &prop =
 	    * static_cast<array_t<uint16_t>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::SHORT: {
 	array_t<int16_t> &prop =
 	    * static_cast<array_t<int16_t>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::UBYTE: {
 	array_t<unsigned char> &prop =
 	    * static_cast<array_t<unsigned char>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::BYTE: {
 	array_t<signed char> &prop =
 	    * static_cast<array_t<signed char>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::FLOAT: {
 	array_t<float> &prop =
 	    * static_cast<array_t<float>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::DOUBLE: {
 	array_t<double> &prop =
 	    * static_cast<array_t<double>*>(buffer);
 	if (nr < prop.size())
 	    prop.resize(nr);
+	prop.nosharing();
 	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
@@ -10431,7 +10431,7 @@ int ibis::bord::column::limit(uint32_t nr) {
 	    prop.resize(nr);
 	break;}
     default: {
-	logWarning("reverseRows", "incompatible data type");
+	logWarning("limit", "incompatible data type");
 	ierr = -1;
 	break;}
     }
