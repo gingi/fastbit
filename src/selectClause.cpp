@@ -365,17 +365,15 @@ uint32_t ibis::selectClause::numGroupbyKeys() const {
     return ret;
 } // ibis::selectClause::numGroupbyKeys
 
-/// Does any of the atms need further evaluation?  Returns true for yes,
-/// false for no.
+/// Does the data partition need additional processing to process the
+/// select clause?  If any of the (lower-level) names is not present in the
+/// incoming data partition, then it is we presume additional evaluation is
+/// needed.  That is, this function will return true.  If all the names are
+/// present in the data partition, then this function returns false.
 bool ibis::selectClause::needsEval(const ibis::part &prt) const {
     bool need = false;
     for (uint32_t j = 0; need == false && j < atms_.size(); ++ j) {
-	if (atms_[j]->termType() != ibis::math::VARIABLE) {
-	    need = true;
-	}
-	else {
-	    need = (0 == prt.getColumn(names_[j].c_str()));
-	}
+	need = (0 == prt.getColumn(names_[j].c_str()));
     }
     return need;
 } // ibis::selectClause::needsEval

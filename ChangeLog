@@ -1,3 +1,8 @@
+2012-10-03 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.cpp: in needsEval chnage the test to simply try
+	all the internal lower-level names (don't look at the term type).
+	This removes the warning message from 'make check'
+
 2012-10-02 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: fix stringSearch functions to work with different
 	versions of in-memory data (to address a problem reported by

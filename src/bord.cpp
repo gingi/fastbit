@@ -90,7 +90,7 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 	    colorder.push_back(tmp);
 	}
 	else { // duplicate name
-	    LOGGER(ibis::gVerbose > 0)
+	    LOGGER(ibis::gVerbose > 2)
 		<< "Warning -- bord::ctor found column " << i << " ("
 		<< cnm0 << ") to be a duplicate, discarding it...";
 	    // free the buffer because it will not be freed anywhere else

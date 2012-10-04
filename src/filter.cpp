@@ -1449,7 +1449,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     }
 
     if (brd1.get() == 0) return 0;
-    if (ibis::gVerbose > 2 && brd1.get() != 0) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << mesg << " created an in-memory data partition with "
 	     << brd1->nRows() << " row" << (brd1->nRows()>1?"s":"")
