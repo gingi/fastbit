@@ -915,7 +915,7 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
     swap(res);
 } // ibis::bitvector::erase
 
-/// Count the number of bits that are 1 that also marked 1.  A
+/// Count the number of bits that are 1 that also marked as 1 in mask.  A
 /// straightforward implement of this is to perform a bitwise AND and then
 /// count the number of bits that are 1.  However, such an approach will
 /// generate a bitvector that is only used for counting.  This is an

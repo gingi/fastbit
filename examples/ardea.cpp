@@ -800,7 +800,8 @@ int main(int argc, char** argv) {
     ibis::init();
     parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
     const bool usersupplied = (! sqlfiles.empty()) ||
-	((! namestypes.empty() || metadatafile != 0));
+	((! namestypes.empty() || metadatafile != 0) &&
+	 (! csvfiles.empty() || ! inputrows.empty()));
     // create a new table that does not support querying
     std::auto_ptr<ibis::tablex> ta(ibis::tablex::create());
     if (usersupplied) { // use user-supplied data
@@ -912,6 +913,8 @@ int main(int argc, char** argv) {
     }
     else { // use hard-coded data and queries
 	int64_t buf[] = {10, -21, 32, -43, 54, -65, 76, -87, 98, -127};
+	if (ibis::gVerbose >= 0)
+	    std::cout << *argv << " to use hard-coded data ..." << std::endl;
 
 	ta->addColumn("s1", ibis::SHORT);
 	ta->addColumn("i2", ibis::INT);
