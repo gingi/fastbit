@@ -38,6 +38,9 @@
 #define pclose _pclose
 #endif
 
+// a higher quality random number generator with the file scope
+static ibis::MersenneTwister _ibis_part_urand;
+
 extern "C" {
     /// A thread function to run the function queryTest or quickTest.
     static void* ibis_part_threadedTestFun1(void* arg) {
@@ -715,10 +718,9 @@ void ibis::part::rename(const ibis::partAssoc& known) {
 	return;
     }
     // try 3: add random numbers
-    ibis::MersenneTwister urand;
     while (true) {
 	// add a new random number
-	rands.push_back(urand.nextInt());
+	rands.push_back(_ibis_part_urand.nextInt());
 	ibis::util::int2string(tmp2, rands);
 	tmp1.erase(stem);
 	tmp1 += tmp2;
@@ -7557,12 +7559,13 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
 	std::vector<double> lower1, lower2, upper1, upper2;
     };
     group *grp = new group[nc-1];
-    ibis::MersenneTwister urand; // a higher quality random number generator
     for (unsigned i = 0; i < nc-1; ++ i) {
 	grp[i].col1 = cols[i];
 	grp[i].col2 = cols[i+1];
-	const double mid1 = lower[i] + (upper[i] - lower[i]) * urand();
-	const double mid2 = lower[i+1] + (upper[i+1] - lower[i+1]) * urand();
+	const double mid1 = lower[i] + (upper[i] - lower[i]) *
+	    _ibis_part_urand();
+	const double mid2 = lower[i+1] + (upper[i+1] - lower[i+1]) *
+	    _ibis_part_urand();
 	grp[i].pos.resize(2);
 	grp[i].lower1.resize(2);
 	grp[i].lower2.resize(2);
@@ -7607,7 +7610,8 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
 	    for (unsigned i = 0; i < grp[ig].lower1.size() && more; ++ i) {
 		if (expand1) { // subdivide the range of col1
 		    double mid1 = grp[ig].lower1[i] +
-			(grp[ig].upper1[i]-grp[ig].lower1[i]) * urand();
+			(grp[ig].upper1[i]-grp[ig].lower1[i]) *
+			_ibis_part_urand();
 		    std::string front, back;
 		    lower1[i+i] = grp[ig].lower1[i];
 		    upper1[i+i] = mid1;
@@ -7645,7 +7649,8 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
 		}
 		else { // subdivide the range of col2
 		    double mid2 = grp[ig].lower2[i] +
-			(grp[ig].upper2[i]-grp[ig].lower2[i]) * urand();
+			(grp[ig].upper2[i]-grp[ig].lower2[i]) *
+			_ibis_part_urand();
 		    std::string front, back;
 		    lower1[i+i] = grp[ig].lower1[i];
 		    upper1[i+i] = grp[ig].upper1[i];

@@ -254,7 +254,7 @@ $(TESTDIR)/acmpub/-part.txt: $(ARDEAEXE) $(IBISEXE) acmpub.csv TESTDIR
 	@$(ARDEAEXE) -d $(TESTDIR)/acmpub -m "id:u, t:t, a:t, v:k, y:u" -t acmpub.csv >> $(TESTDIR)/std.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/acmpub -b "a:keywords delimiters=','" -b "id:noindex" -b "<binning none>" -v >> $(TESTDIR)/std.log 2>&1
 # a simple internal sanity check
-sanity-check: $(TESTDIR)/std.log $(IBISEXE) $(TESTDIR)/append.log
+sanity-check: TESTDIR $(IBISEXE) $(TESTDIR)/append.log
 	@echo
 	@if [ -f $(TESTDIR)/append.rc ] ; then \
 	$(IBISEXE) -c $(TESTDIR)/append.rc -v -t 2 > $(TESTDIR)/sanity-check.log 2>&1; \

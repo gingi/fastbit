@@ -16,7 +16,7 @@
  This file also contains additional classes that generate discrete Zipf and
  Poisson distributions (named discreteZipf and discretePoisson)
 */
-#include <time.h>	// time_t time clock_t clock
+#include <time.h>	// time_t time
 #include <limits.h>	// DBL_MIN, ULONG_MAX
 #include <float.h>	// DBL_MIN
 #include <math.h>	// sqrt, log, exp, pow
@@ -46,11 +46,23 @@ public:
 /// further used in other random number generators.
 class ibis::MersenneTwister : public ibis::uniformRandomNumber {
 public:
-    /// Constructor.  This default constructor uses a seed based on
-    /// the current time.
-    MersenneTwister() {setSeed(time(0) ^ clock());}
+    /// Constructor.  This default constructor uses a value from
+    /// /dev/random or the current time as the seed to initialize.
+    MersenneTwister() {
+	unsigned seed;
+	FILE* fptr = fopen("/dev/random", "rb");
+	if (fptr != 0) {
+	    (void) fread(&seed, sizeof(seed), 1, fptr);
+	    if (seed == 0)
+		seed = time(0);
+	}
+	else {
+	    seed = time(0);
+	}
+	setSeed(seed);
+    }
     /// Constructor.  Uses a user specified integer as seed.
-    MersenneTwister(unsigned seed) {setSeed(seed);}
+    explicit MersenneTwister(unsigned seed) {setSeed(seed);}
 
     /// Return a floating-point value in the range of [0, 1).
     virtual double operator()() {return nextDouble();}
@@ -129,7 +141,7 @@ private:
 class ibis::randomGaussian {
 public:
     /// Constructor.  Must be supplied with a uniform random number generator.
-    randomGaussian(uniformRandomNumber& ur)
+    explicit randomGaussian(uniformRandomNumber& ur)
 	: urand(ur), has_extra(false), extra(0.0) {}
     /// Operator that returns the next random numbers.
     double operator()() {return next();}
@@ -225,7 +237,8 @@ private:
 /// Specialized version of the Poisson distribution exp(-x).
 class ibis::discretePoisson1 {
 public:
-    discretePoisson1(ibis::uniformRandomNumber& ur) : urand(ur) {init();}
+    explicit discretePoisson1(ibis::uniformRandomNumber& ur)
+	: urand(ur) {init();}
 
     long operator()() {return next();}
     long next() {

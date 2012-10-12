@@ -263,7 +263,8 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 	    const ibis::column* col = part0.getColumn(range->colName());
 	    if (col == 0 && sel != 0) {
 		int isel = sel->find(range->colName());
-		if (isel >= 0 && (unsigned)isel < sel->aggSize()) {
+		if (isel >= 0 && (unsigned)isel < sel->aggSize() &&
+		    sel->getAggregator(isel) == ibis::selectClause::NIL_AGGR) {
 		    const ibis::math::term *tm = sel->aggExpr(isel);
 		    switch (tm->termType()) {
 		    default: break; // can not do anything

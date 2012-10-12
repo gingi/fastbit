@@ -1,3 +1,23 @@
+2012-10-11 John Wu <John dot Wu at ACM dot org>
+	* src/ixbylt.cpp: update functions estimateCost and evaluate to
+	clarify the uses of ncoarse (number of coarse bitmaps) and the
+	testing for coffset32 and coffset64 (to address the warnings
+	revealed by make large-sanity-check)
+
+2012-10-08 John Wu <John dot Wu at ACM dot org>
+	* src/ixbylt.cpp:1235 update testing on c0
+
+2012-10-05 John Wu <John dot Wu at ACM dot org>
+	* src/whereClause.cpp:266 check to make sure the term from the
+	select clause does not have any aggregation operator
+
+2012-10-04 John Wu <John dot Wu at ACM dot org>
+	* src/twister.h: change the constructor of MersenneTwister to use
+	/dev/random when it is available
+	* src/part.cpp: move urand out of individual functions and into a
+	file scope global variable to avoid repeated initialization of the
+	variable
+
 2012-10-03 John Wu <John dot Wu at ACM dot org>
 	* src/selectClause.cpp: in needsEval chnage the test to simply try
 	all the internal lower-level names (don't look at the term type).
