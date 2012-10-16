@@ -1,3 +1,22 @@
+Tue Oct 16 08:43:28 PDT 2012
+Version ibis1.3.3
+-- index direkts neglected to take into account of null mask (a problem
+   reported by Michael Beauregard)
+-- consolidate the handling of deletion in array_t to function
+   freeMemory, streamline the test of current size to address a problem
+   with push_back reported by Petr Velan and Michael Beauregard
+-- use the null masks when constructing bundles (was assuming all values
+   to be valid)
+-- allow dictionaries of meta tags to be merged like other type of
+   categorical values, allow meta tags in tables to be reordered (other
+   types of string-valued columns are still not allowed)
+-- allow column::getDoubles to convert all other numerical types to
+   double.  This was promised in the documentation, but actually missed
+   the case for 8-byte integers (a problem reported by Gaurav Agarwal).
+-- update the testing on array bounds in ibis::bylt to address the new
+   problems revealed after the modification to random number generators
+   used in src/part.cpp
+
 Tue Sep  4 16:36:53 PDT 2012
 Version ibis1.3.2
 -- add group_concat as a new group-by opertors in the select clauses
