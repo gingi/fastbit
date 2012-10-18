@@ -3469,30 +3469,18 @@ ibis::qIntHod::qIntHod(const char* col, const char* nums)
     values.deduplicate();
 } // ibis::qIntHod::qIntHod
 
-/// Constructor.  It converts all incoming values into 64-bit signed
-/// integers, which may fail for certain data types.
-///
-/// @warning During the coversion process, fractional values will be
-/// dropped and large floating-point values will be translated into
-/// undefined integers.
-template <typename T>
-ibis::qIntHod::qIntHod(const char* col, const std::vector<T>& nums)
+/// Constructor.  The incoming values are sorted to ascending order and
+/// duplciates are removed.
+ibis::qIntHod::qIntHod(const char* col, const std::vector<int64_t>& nums)
     : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(nums.size()) {
     std::copy(nums.begin(), nums.end(), values.begin());
     values.deduplicate();
 } // ibis::qIntHod::qIntHod
 
-/// Constructor.  It converts all incoming values into 64-bit signed
-/// integers, which may fail for certain data types.
-///
-/// @warning During the coversion process, fractional values will be
-/// dropped and large floating-point values will be translated into
-/// undefined integers.  Unsigned 64-bit integers could be treated as
-/// negative numbers if they are large.
-template <typename T>
-ibis::qIntHod::qIntHod(const char* col, const ibis::array_t<T>& nums)
-    : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(nums.size()) {
-    std::copy(nums.begin(), nums.end(), values.begin());
+/// Constructor.  The incoming values are sorted to the ascending order and
+/// duplicates are removed.
+ibis::qIntHod::qIntHod(const char* col, const ibis::array_t<int64_t>& nums)
+    : ibis::qRange(ibis::qExpr::INTHOD), name(col), values(nums) {
     values.deduplicate();
 } // ibis::qIntHod::qIntHod
 
@@ -3603,30 +3591,18 @@ ibis::qUIntHod::qUIntHod(const char* col, const char* nums)
     values.deduplicate();
 } // ibis::qUIntHod::qUIntHod
 
-/// Constructor.  It converts all incoming values into 64-bit unsigned
-/// integers.  This conversion process may fail for certain data types.
-///
-/// @warning During the coversion process, fractional values will be
-/// dropped and large floating-point values will be translated into
-/// undefined integers.
-template <typename T>
-ibis::qUIntHod::qUIntHod(const char* col, const std::vector<T>& nums)
+/// Constructor.  The incoming values are sorted into ascending order and
+/// duplicates are removed.
+ibis::qUIntHod::qUIntHod(const char* col, const std::vector<uint64_t>& nums)
     : ibis::qRange(ibis::qExpr::UINTHOD), name(col), values(nums.size()) {
     std::copy(nums.begin(), nums.end(), values.begin());
     values.deduplicate();
 } // ibis::qUIntHod::qUIntHod
 
-/// Constructor.  It converts all incoming values into 64-bit signed
-/// integers, which may fail for certain data types.
-///
-/// @warning During the coversion process, fractional values will be
-/// dropped and large floating-point values will be translated into
-/// undefined integers.  Unsigned 64-bit integers could be treated as
-/// negative numbers if they are large.
-template <typename T>
-ibis::qUIntHod::qUIntHod(const char* col, const ibis::array_t<T>& nums)
-    : ibis::qRange(ibis::qExpr::UINTHOD), name(col), values(nums.size()) {
-    std::copy(nums.begin(), nums.end(), values.begin());
+/// Constructor.  The incoming values are sorted into ascending order and
+/// duplicates are removed.
+ibis::qUIntHod::qUIntHod(const char* col, const ibis::array_t<uint64_t>& nums)
+    : ibis::qRange(ibis::qExpr::UINTHOD), name(col), values(nums) {
     values.deduplicate();
 } // ibis::qUIntHod::qUIntHod
 

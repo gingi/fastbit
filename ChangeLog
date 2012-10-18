@@ -1,3 +1,10 @@
+2012-10-17 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.h, src/qExpr.cpp: change the templated constructor of
+	qIntHod and qUIntHod to fixed type to avoid the explicit
+	instantiation, these constructors are not actually used and
+	therefore the templated versions are not generated in the FastBit
+	library (a problem noticed by Andrew Olson)
+
 2012-10-11 John Wu <John dot Wu at ACM dot org>
 	* src/ixbylt.cpp: update functions estimateCost and evaluate to
 	clarify the uses of ncoarse (number of coarse bitmaps) and the

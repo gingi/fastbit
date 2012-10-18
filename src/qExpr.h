@@ -392,10 +392,8 @@ public:
     qIntHod(const char* col, int64_t v1);
     qIntHod(const char* col, int64_t v1, int64_t v2);
     qIntHod(const char* col, const char* nums);
-    template <typename T>
-    qIntHod(const char* col, const std::vector<T>& nums);
-    template <typename T>
-    qIntHod(const char* col, const ibis::array_t<T>& nums);
+    qIntHod(const char* col, const std::vector<int64_t>& nums);
+    qIntHod(const char* col, const ibis::array_t<int64_t>& nums);
 
     /// Copy constructor.
     qIntHod(const qIntHod& ih)
@@ -449,10 +447,8 @@ public:
     qUIntHod(const char* col, uint64_t v1);
     qUIntHod(const char* col, uint64_t v1, uint64_t v2);
     qUIntHod(const char* col, const char* nums);
-    template <typename T>
-    qUIntHod(const char* col, const std::vector<T>& nums);
-    template <typename T>
-    qUIntHod(const char* col, const ibis::array_t<T>& nums);
+    qUIntHod(const char* col, const std::vector<uint64_t>& nums);
+    qUIntHod(const char* col, const ibis::array_t<uint64_t>& nums);
 
     /// Copy constructor.
     qUIntHod(const qUIntHod& ih)
