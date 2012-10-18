@@ -42,8 +42,8 @@ ibis::array_t<T>::array_t()
 	    << "array_t<" << typeid(T).name() << "> constructed at "
 	    << static_cast<void*>(this) << " with actual="
 	    << static_cast<void*>(actual) << ", m_begin="
-	    << static_cast<void*>(m_begin) << " and actual->size()="
-	    << actual->size();
+	    << static_cast<void*>(m_begin) << " and m_end="
+	    << static_cast<void*>(m_end);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
@@ -67,8 +67,8 @@ ibis::array_t<T>::array_t(size_t n)
 	    << static_cast<void*>(this) << " with " << n << " element"
 	    << (n>1?"s":"") << ", actual="
 	    << static_cast<void*>(actual) << ", m_begin="
-	    << static_cast<void*>(m_begin) << " and actual->size()="
-	    << actual->size();
+	    << static_cast<void*>(m_begin) << " and m_end="
+	    << static_cast<void*>(m_end);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
@@ -96,8 +96,8 @@ ibis::array_t<T>::array_t(size_t n, const T& val)
 	    << static_cast<void*>(this) << " with " << n << " element"
 	    << (n>1?"s":"") << " of " << val << ", actual="
 	    << static_cast<void*>(actual) << ", m_begin="
-	    << static_cast<void*>(m_begin) << " and actual->size()="
-	    << actual->size();
+	    << static_cast<void*>(m_begin) << " and m_end="
+	    << static_cast<void*>(m_end);
     }
     else {
 	LOGGER(ibis::gVerbose >= 0)
@@ -123,8 +123,8 @@ ibis::array_t<T>::array_t(const std::vector<T>& rhs)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
 	<< static_cast<void*>(actual) << ", m_begin="
-	<< static_cast<void*>(m_begin) << " and actual->size()="
-	<< actual->size() << ", copied from "
+	<< static_cast<void*>(m_begin) << " and m_end="
+	<< static_cast<void*>(m_end) << ", copied from "
 	<< static_cast<const void*>(&rhs);
 }
 
@@ -140,8 +140,8 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
 	<< static_cast<void*>(actual) << ", m_begin="
-	<< static_cast<void*>(m_begin) << " and actual->size()="
-	<< actual->size() << ", copied from "
+	<< static_cast<void*>(m_begin) << " and m_end="
+	<< static_cast<void*>(m_end) << ", copied from "
 	<< static_cast<const void*>(&rhs);
 }
 
@@ -172,8 +172,8 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t begin,
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
 	<< static_cast<void*>(actual) << " m_begin="
-	<< static_cast<void*>(m_begin) << " and actual->size()="
-	<< actual->size() << " using section [" << begin << ", "
+	<< static_cast<void*>(m_begin) << " and m_end="
+	<< static_cast<void*>(m_end) << " using section [" << begin << ", "
 	<< end << ") from " << static_cast<const void*>(&rhs);
 }
 
@@ -193,8 +193,8 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
 	<< "array_t<" << typeid(T).name() << "> constructed at "
 	<< static_cast<void*>(this) << " with actual="
 	<< static_cast<void*>(actual) << " m_begin="
-	<< static_cast<void*>(m_begin) << " and actual->size()="
-	<< actual->size();
+	<< static_cast<void*>(m_begin) << " and m_end="
+	<< static_cast<void*>(m_end);
 }
 
 /// Construct an array from a section of the raw storage.  No new storage

@@ -293,20 +293,8 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
 	 it != parts.end(); ++ it) {
 	ibis::column* col = (*it)->getColumn(colname);
 	if (col != 0) {
-	    ibis::index* ind = ibis::index::create(col, 0, option);
-	    if (ind != 0) {
-		++ ierr;
-		delete ind;
-		if (option != 0 && *option != 0) {
-		    col->indexSpec(option);
-		    (*it)->updateMetaData();
-		}
-	    }
-	    else {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- mensa::buildIndex(" << colname << ", "
-		    << (option != 0 ? option : col->indexSpec()) << ") failed";
-	    }
+	    col->loadIndex(option);
+	    col->unloadIndex();
 	}
     }
 

@@ -4,6 +4,12 @@
 	instantiation, these constructors are not actually used and
 	therefore the templated versions are not generated in the FastBit
 	library (a problem noticed by Andrew Olson)
+	* src/array_t.cpp: avoid using member variable actual in the
+	constructor to avoid problem with it being 0
+	* src/mensa.cpp: change function buildIndex to use
+	column::loadIndex and column::unloadIndex instead of directly
+	calling index::create (to address a problem related to building
+	index for ibis::category object reported by Gaurav Agrawal)
 
 2012-10-11 John Wu <John dot Wu at ACM dot org>
 	* src/ixbylt.cpp: update functions estimateCost and evaluate to
