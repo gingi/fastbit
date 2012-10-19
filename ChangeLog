@@ -1,3 +1,10 @@
+2012-10-19 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: in a couple of versions of evaluateRange, the
+	mask is neglected when using sorted values (a problem pointed out
+	by Andrew Olson)
+	* src/idirekte.cpp: update the constructor to make use of the
+	column mask, instead of assuming all values are the same
+
 2012-10-17 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp: change the templated constructor of
 	qIntHod and qUIntHod to fixed type to avoid the explicit

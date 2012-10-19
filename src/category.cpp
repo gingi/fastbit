@@ -21,7 +21,7 @@
 // functions for ibis::category
 ibis::category::category(const part* tbl, FILE* file)
     : text(tbl, file), dic() {
-#ifdef FASTBIT_EAGER_INIT_TEXT
+#ifdef FASTBIT_EAGER_INIT
     prepareMembers();
     lower = 1;
     upper = dic.size();
@@ -31,19 +31,19 @@ ibis::category::category(const part* tbl, FILE* file)
 /// Construct a category object from a name.
 ibis::category::category(const part* tbl, const char* name)
     : text(tbl, name, ibis::CATEGORY), dic() {
-#ifdef FASTBIT_EAGER_INIT_TEXT
+#ifdef FASTBIT_EAGER_INIT
     prepareMembers();
     lower = 1;
     upper = dic.size();
 #endif
 } // ibis::category::category
 
-/// Copy constructor.  Copy from a collumn object with CATEGORY type.
+/// Copy constructor.  Copy from a collumn object of the type CATEGORY.
 ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
     if (m_type != ibis::CATEGORY) {
 	throw ibis::bad_alloc("Must be type CATEGORY");
     }
-#ifdef FASTBIT_EAGER_INIT_TEXT
+#ifdef FASTBIT_EAGER_INIT
     prepareMembers();
     lower = 1;
     upper = dic.size();
@@ -356,7 +356,7 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 
     ibis::direkte *rlc = 0;
     if (dic.size() == 1) { // assume every entry has the given value
-	rlc = new ibis::direkte(this, 1);
+	rlc = new ibis::direkte(this, 1, thePart->nRows());
     }
     else { // actually read the raw data to build an index
 	const bool iscurrent =
@@ -1409,7 +1409,7 @@ const char* ibis::category::isKey(const char* str) const {
 ////////////////////////////////////////////////////////////////////////
 // functions for ibis::text
 ibis::text::text(const part* tbl, FILE* file) : ibis::column(tbl, file) {
-#ifdef FASTBIT_EAGER_INIT_TEXT
+#ifdef FASTBIT_EAGER_INIT
     if (thePart != 0)
 	startPositions(thePart->currentDataDir(), 0, 0);
 #endif
@@ -1418,18 +1418,18 @@ ibis::text::text(const part* tbl, FILE* file) : ibis::column(tbl, file) {
 /// Construct a text object for a data partition with the given name.
 ibis::text::text(const part* tbl, const char* name, ibis::TYPE_T t)
     : ibis::column(tbl, t, name) {
-#ifdef FASTBIT_EAGER_INIT_TEXT
+#ifdef FASTBIT_EAGER_INIT
     if (thePart != 0 && thePart->currentDataDir() != 0)
 	startPositions(thePart->currentDataDir(), 0, 0);
 #endif
 }
 
-/// Copy constructor.  Copy from a column with TEXT type.
+/// Copy constructor.  Copy from a column of the type TEXT.
 ibis::text::text(const ibis::column& col) : ibis::column(col) {
     if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
 	throw "Must be either TEXT or CATEGORY";
     }
-#ifdef FASTBIT_EAGER_INIT_TEXT
+#ifdef FASTBIT_EAGER_INIT
     if (thePart != 0 && thePart->urrentDataDir() != 0)
 	startPositions(thePart->currentDataDir(), 0, 0);
 #endif

@@ -91,11 +91,11 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     }
 } // ibis::direkte::direkte
 
-/// Construct a dummy index.  All entries have the same value @c popu.
-/// This is used to generate index for meta tags from STAR data.
+/// Construct a dummy index.  All valid entries have the same value @c
+/// popu.  This is used to generate index for meta tags.
 ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     : ibis::index(c) {
-    if (c == 0 || popu == 0 || ntpl == 0) return;
+    if (c == 0 || popu == 0) return;
     try {
 	if (ntpl == 0)
 	    ntpl = c->partition()->nRows();
@@ -104,7 +104,7 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	for (unsigned j = 0; j < popu; ++ j)
 	    bits[j] = 0;
 	bits[popu] = new ibis::bitvector();
-	bits[popu]->set(1, ntpl);
+	c->getNullMask(*bits[popu]);
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
 	    print(lg());

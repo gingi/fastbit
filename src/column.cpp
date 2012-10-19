@@ -5936,6 +5936,10 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	else { // no index
 	    if (m_sorted) {
 		ierr = searchSorted(cmp, low);
+		if (ierr >= 0) {
+		    low &= mask;
+		    ierr = low.sloppyCount();
+		}
 	    }
 	    else {
 		ierr = -1;
@@ -5946,6 +5950,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		    ierr = ros.locate(cmp.getValues(), low);
 		    if (ierr >= 0) {
 			low &= mask;
+		    ierr = low.sloppyCount();
 		    }
 		}
 		if (ierr < 0)
@@ -6306,6 +6311,10 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
 	ierr = -1;
 	if (m_sorted) {
 	    ierr = searchSorted(cmp, low);
+	    if (ierr > 0) {
+		low &= mask;
+		ierr = low.sloppyCount();
+	    }
 	}
 	else if (thePart != 0 && thePart->currentDataDir() != 0) {
 	    // use a sorted list
@@ -6406,6 +6415,10 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 	ierr = -1;
 	if (m_sorted) {
 	    ierr = searchSorted(cmp, low);
+	    if (ierr > 0) {
+		low &= mask;
+		ierr = low.sloppyCount();
+	    }
 	}
 	else if (thePart != 0 && thePart->currentDataDir() != 0) {
 	    // use a sorted list
