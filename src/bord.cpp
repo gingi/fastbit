@@ -2824,14 +2824,14 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
     if (sel.empty())
 	return 0;
 
-    std::string td = "GROUP BY ";
+    std::string td = "Select ";
     td += *sel;
-    td += " on table ";
+    td += " From ";
     td += m_name;
     td += " (";
     td += m_desc;
     td += ')';
-    LOGGER(ibis::gVerbose > 3) << "bord::groupby -- " << td;
+    LOGGER(ibis::gVerbose > 3) << "bord::groupby -- \"" << td << '"';
     readLock lock(this, td.c_str());
     std::string tn = ibis::util::shortName(td);
     if (nEvents == 0)
@@ -3149,16 +3149,16 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
     if (sel.empty() || sel.aggSize() == 0 || src.nRows() == 0)
 	return 0;
 
-    std::string td = "GROUP BY ";
+    std::string td = "Select ";
     td += sel.aggDescription(0);
     for (unsigned j = 1; j < sel.aggSize(); ++ j) {
 	td += ", ";
 	td += sel.aggDescription(j);
     }
-    td += " on table ";
+    td += " From ";
     td += src.part::name();
     LOGGER(ibis::gVerbose > 3)
-	<< "bord::groupbya -- processing aggregations for " << td;
+	<< "bord::groupbya -- processing aggregations for \"" << td << '"';
     std::string tn = ibis::util::randName(td);
 
     readLock lock(&src, td.c_str());
@@ -3329,16 +3329,16 @@ ibis::bord::groupbyc(const ibis::bord& src, const ibis::selectClause& sel) {
     if (nr == 0 || ncx == 0)
 	return 0;
 
-    std::string td = "GROUP BY ";
+    std::string td = "Select ";
     td += *sel;
-    td += " on table ";
+    td += " From ";
     td += src.part::name();
     td += " (";
     td += src.part::description();
     td += ')';
     LOGGER(ibis::gVerbose > 3)
-	<< "bord::groupbyc -- starting the final computations for "
-	<< td;
+	<< "bord::groupbyc -- starting the final computations for \""
+	<< td << '"';
     readLock lock(&src, td.c_str());
     std::string tn = ibis::util::shortName(td);
 
@@ -4511,12 +4511,13 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << mesg << " -- to process " << nqq << " row" << (nqq>1?"s":"")
-	     << " from partition " << prt.name() << ", # of existing rows = " << nh;
+	     << " from partition " << prt.name() << ", # of existing rows = "
+	     << nh;
 	if (ibis::gVerbose > 6) {
 	    lg() << "\n    colmap[" << colmap.size() << "]";
 	    for (ibis::selectClause::StringToInt::const_iterator it
                      = colmap.begin(); it != colmap.end(); ++ it) {
-                lg() << "\n\t" << it->first << " --> " << it->second;
+                lg() << "\n\t" << it->first << "\t--> " << it->second;
                 if (it->second < nagg)
                     lg() << " (" << *(sc.aggExpr(it->second)) << ")";
             }
@@ -4548,8 +4549,8 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		<< " into term " << itm << " which is outside of " << sc;
 	    return -14;
 	}
-	const ibis::math::term *aterm = sc.aggExpr(itm);
 
+	const ibis::math::term *aterm = sc.aggExpr(itm);
 	if (aterm->termType() != ibis::math::VARIABLE) {
 	    if (aterm->termType() == ibis::math::UNDEF_TERM) {
 		LOGGER(ibis::gVerbose > 1)
@@ -4572,7 +4573,6 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 	else {
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(aterm);
-
 	    const ibis::column* scol = prt.getColumn(var.variableName());
 	    if (scol == 0) {
 		if (*(var.variableName()) == '*') { // counts
@@ -4616,7 +4616,7 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 int ibis::bord::append(const ibis::selectClause &sc, const ibis::part& prt,
 		       const ibis::qContinuousRange &cnd) {
     const ibis::column *scol = prt.getColumn(cnd.colName());
-    if (scol == 0) return -18;
+    if (scol == 0) return -12;
     std::string mesg = "bord[";
     mesg += m_name;
     mesg += "]::append";

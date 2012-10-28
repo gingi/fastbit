@@ -89,7 +89,9 @@ ibis::category::~category() {
 
 ibis::array_t<uint32_t>*
 ibis::category::selectUInts(const ibis::bitvector& mask) const {
-    prepareMembers();
+    if (idx == 0)
+	prepareMembers();
+
     std::string fname;
     bool tryintfile = (0 != dataFileName(fname));
     if (tryintfile) {
@@ -128,17 +130,33 @@ std::vector<std::string>*
 ibis::category::selectStrings(const ibis::bitvector& mask) const {
     if (mask.cnt() == 0)
 	return new std::vector<std::string>();
-    if (dic.size() == 0)
+    if (dic.size() == 0 || idx == 0)
 	prepareMembers();
     if (dic.size() == 0) // return empty strings
 	return new std::vector<std::string>(mask.cnt(), "");
 
-    // The dictionary size may be 1 because some values are empty string
-    // which will be mapped to integer id 0.  In this case, the dictionary
-    // size is 1, but there are actually two different values.
-    // if (dic.size() == 1) {
-    // 	return new std::vector<std::string>(mask.cnt(), dic[1]);
-    // }
+    if (idx != 0 && (idx->getBitvector(0) == 0 ||
+		     idx->getBitvector(0)->cnt() == 0)) {
+	// an index exist and there is no null value, try to see if all
+	// values are the same
+	unsigned j = 1;
+	while (j < idx->numBitvectors()) {
+	    if (idx->getBitvector(j) == 0) {
+		++ j;
+	    }
+	    else {
+		unsigned nb = idx->getBitvector(j)->cnt();
+		if (nb == 0)
+		    ++ j;
+		else if (nb == mask.size())
+		    break;
+		else
+		    j = UINT_MAX;
+	    }
+	}
+	if (j <= dic.size())
+	    return new std::vector<std::string>(mask.cnt(), dic[j]);
+    }
 
     unsigned int opt = 0; // 0: raw data, 1: int file, 2: idx
     std::string fname;
@@ -223,6 +241,8 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 /// function because it only manipulates mutable data members.  This is
 /// necessary to make it callable from const member function of this class.
 void ibis::category::prepareMembers() const {
+    if (dic.size() == 0)
+	readDictionary();
     if (dic.size() > 0 && idx != 0) return;
     if (thePart == 0) return;
 
@@ -249,8 +269,8 @@ void ibis::category::prepareMembers() const {
 	(void) fillIndex();
     }
 
-    if (thePart->getMetaTag(m_name.c_str()) != 0 &&
-	(idx == 0 || dic.size() == 0)) {
+    if ((idx == 0 || dic.size() == 0) &&
+	thePart->getMetaTag(m_name.c_str()) != 0) {
 	ibis::category tmp(thePart, m_name.c_str(),
 			   thePart->getMetaTag(m_name.c_str()),
 			   static_cast<const char*>(0),
@@ -259,9 +279,6 @@ void ibis::category::prepareMembers() const {
 	idx = tmp.idx;
 	tmp.idx = 0;
     }
-
-    if (dic.size() == 0)
-	readDictionary();
 } // ibis::category::prepareMembers
 
 /// Read the dictionary from the specified directory.  If the incoming

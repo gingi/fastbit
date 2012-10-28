@@ -4645,7 +4645,7 @@ int ibis::bord::merge20(ibis::bord::column &k11,
 			const std::vector<ibis::bord::column*> &v2,
 			const std::vector<ibis::selectClause::AGREGADO> &agg) {
     int ierr = -1;
-    if (k11.type() != k21.type()) return ierr;
+    if (k11.type() != k12.type()) return ierr;
 
     switch (k11.type()) {
     default:

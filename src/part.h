@@ -117,7 +117,6 @@ public:
     array_t<rid_t>* getRIDs(const ibis::bitvector &mask) const;// some RIDs
     bool hasRIDs() const {return (rids!=0) ? (rids->size()==nEvents) : false;}
 
-    /// Estimate the cost of evaluate the query expression.
     virtual double estimateCost(const ibis::qContinuousRange &cmp) const;
     virtual double estimateCost(const ibis::qDiscreteRange &cmp) const;
     virtual double estimateCost(const ibis::qIntHod &cmp) const;

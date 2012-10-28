@@ -1,9 +1,29 @@
+2012-10-27 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: in category::prepareMembers, read the
+	dictionary first before doing anything else
+
+2012-10-26 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: category::selectStrings to work with columns
+	with only a single string value (to address a problem reported by
+	Andrew Olson)
+	* src/bordm.cpp:4648 change k21.type() to be k12.type()
+
+2012-10-22 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: investigating why FastQuery complains about
+	missing versions of estimateCost
+	* runconfig: modify the command for hopper to use PGI compilers
+	(in order to work with ADIOS software)
+
 2012-10-19 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: in a couple of versions of evaluateRange, the
 	mask is neglected when using sorted values (a problem pointed out
 	by Andrew Olson)
 	* src/idirekte.cpp: update the constructor to make use of the
 	column mask, instead of assuming all values are the same
+	* examples/Makefile.am: add targets MagNullQueryIndex and
+	MagNullQueryScan
+	* examples/MagNull*.cpp, examples/BP*.cpp: update files so that
+	they can be compiled (still need debugging)
 
 2012-10-17 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp: change the templated constructor of
