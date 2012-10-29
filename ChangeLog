@@ -1,3 +1,8 @@
+2012-10-29 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h: expand functions copyValue, column::equal_to,
+	column::less_than and column::append to handle string values (to
+	address a problem raised by Andrew Olson)
+
 2012-10-28 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: use /usr/libexec/java_home to determine the home
 	directory of java when it is present (to enable the option

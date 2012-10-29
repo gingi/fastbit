@@ -102,9 +102,9 @@ public:
 				std::vector<uint32_t>&) const;
 
     virtual void estimate(const char* cond,
-			  uint64_t& nmin, uint64_t& nmax) const;
+			  uint64_t &nmin, uint64_t &nmax) const;
     virtual void estimate(const ibis::qExpr* cond,
-			  uint64_t& nmin, uint64_t& nmax) const;
+			  uint64_t &nmin, uint64_t &nmax) const;
     using table::select;
     virtual table* select(const char* sel, const char* cond) const;
     virtual table* groupby(const ibis::table::stringList&) const;
@@ -148,21 +148,21 @@ public:
     int limit(uint32_t);
 
     template <typename T>
-	long sortValues(array_t<T>& vals,
-			array_t<uint32_t>& starts,
-			array_t<uint32_t>& indout,
-			const array_t<uint32_t>& indin,
+	long sortValues(array_t<T> &vals,
+			array_t<uint32_t> &starts,
+			array_t<uint32_t> &indout,
+			const array_t<uint32_t> &indin,
 			bool ascending) const;
     template <typename T>
-	long reorderValues(array_t<T>& vals,
-			   const array_t<uint32_t>& ind) const;
-    long sortStrings(std::vector<std::string>& vals,
-		     array_t<uint32_t>& starts,
-		     array_t<uint32_t>& idxout,
-		     const array_t<uint32_t>& idxin,
+	long reorderValues(array_t<T> &vals,
+			   const array_t<uint32_t> &ind) const;
+    long sortStrings(std::vector<std::string> &vals,
+		     array_t<uint32_t> &starts,
+		     array_t<uint32_t> &idxout,
+		     const array_t<uint32_t> &idxin,
 		     bool ascending) const;
-    long reorderStrings(std::vector<std::string>& vals,
-			const array_t<uint32_t>& ind) const;
+    long reorderStrings(std::vector<std::string> &vals,
+			const array_t<uint32_t> &ind) const;
 
 
     void copyColumn(const char*, ibis::TYPE_T&, void*&,
@@ -205,20 +205,20 @@ protected:
 		       const std::vector<ibis::selectClause::AGREGADO>&);
     template <typename Tk> static int
 	merge10T(ibis::array_t<Tk> &kout,
-		 std::vector<ibis::bord::column*>& vout,
+		 std::vector<ibis::bord::column*> &vout,
 		 const ibis::array_t<Tk> &kin1,
 		 const std::vector<ibis::bord::column*> &vin1,
 		 const ibis::array_t<Tk> &kin2,
 		 const std::vector<ibis::bord::column*> &vin2,
-		 const std::vector<ibis::selectClause::AGREGADO>& agg);
+		 const std::vector<ibis::selectClause::AGREGADO> &agg);
     static int
 	merge10S(std::vector<std::string> &kout,
-		 std::vector<ibis::bord::column*>& vout,
+		 std::vector<ibis::bord::column*> &vout,
 		 const std::vector<std::string> &kin1,
 		 const std::vector<ibis::bord::column*> &vin1,
 		 const std::vector<std::string> &kin2,
 		 const std::vector<ibis::bord::column*> &vin2,
-		 const std::vector<ibis::selectClause::AGREGADO>& agg);
+		 const std::vector<ibis::selectClause::AGREGADO> &agg);
 
     static int merge11(ibis::bord::column&,
 		       ibis::bord::column&,
@@ -478,7 +478,7 @@ protected:
 private:
     // disallow copying.
     bord(const bord&);
-    bord& operator=(const bord&);
+    bord &operator=(const bord&);
 
     friend class cursor;
 }; // ibis::bord
@@ -498,18 +498,18 @@ public:
 	   void *buf=0, const char* desc="", double low=DBL_MAX,
 	   double high=-DBL_MAX);
     column(const ibis::bord*, const ibis::column&, void *buf);
-    column(const column& rhs);
+    column(const column &rhs);
     virtual ~column();
 
     virtual ibis::fileManager::storage* getRawData() const;
 
     using ibis::column::evaluateRange;
-    virtual long evaluateRange(const ibis::qContinuousRange& cmp,
-			       const ibis::bitvector& mask,
-			       ibis::bitvector& res) const;
-    virtual long evaluateRange(const ibis::qDiscreteRange& cmp,
-			       const ibis::bitvector& mask,
-			       ibis::bitvector& res) const;
+    virtual long evaluateRange(const ibis::qContinuousRange &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &res) const;
+    virtual long evaluateRange(const ibis::qDiscreteRange &cmp,
+			       const ibis::bitvector &mask,
+			       ibis::bitvector &res) const;
     virtual long stringSearch(const char*, ibis::bitvector&) const;
     virtual long stringSearch(const std::vector<std::string>&,
 			      ibis::bitvector&) const;
@@ -534,16 +534,16 @@ public:
     virtual array_t<float>*         selectFloats(const ibis::bitvector&) const;
     virtual array_t<double>*        selectDoubles(const ibis::bitvector&) const;
     virtual std::vector<std::string>*
-	selectStrings(const bitvector& mask) const;
+	selectStrings(const bitvector &mask) const;
     virtual std::vector<ibis::opaque>*
-	selectOpaques(const bitvector& mask) const;
+	selectOpaques(const bitvector &mask) const;
 
     virtual long append(const char* dt, const char* df, const uint32_t nold,
 			const uint32_t nnew, uint32_t nbuf, char* buf);
-    virtual long append(const void* vals, const ibis::bitvector& msk);
-    virtual long append(const ibis::column& scol, const ibis::bitvector& msk);
-    virtual long append(const ibis::column& scol,
-			const ibis::qContinuousRange& cnd);
+    virtual long append(const void* vals, const ibis::bitvector &msk);
+    virtual long append(const ibis::column &scol, const ibis::bitvector &msk);
+    virtual long append(const ibis::column &scol,
+			const ibis::qContinuousRange &cnd);
 
     virtual void computeMinMax() {
 	computeMinMax(thePart->currentDataDir(), lower, upper);}
@@ -556,9 +556,9 @@ public:
     void reverseRows();
     int  limit(uint32_t nr);
 
-    void*& getArray() {return buffer;}
+    void* &getArray() {return buffer;}
     void*  getArray() const {return buffer;}
-    int dump(std::ostream& out, uint32_t i) const;
+    int dump(std::ostream &out, uint32_t i) const;
 
     bool equal_to(const column&) const;
     inline bool equal_to(const column&, uint32_t, uint32_t) const;
@@ -572,7 +572,7 @@ public:
     /// Append new data (in @c from) to a larger array (pointed to by
     /// @c to).
     template <typename T> static int 
-	addIncoreData(array_t<T>*& to, uint32_t nold, const array_t<T>& from,
+	addIncoreData(array_t<T>* &to, uint32_t nold, const array_t<T> &from,
 		      const T special);
     static int addStrings(std::vector<std::string>*&, uint32_t,
 			  const std::vector<std::string>&);
@@ -595,12 +595,12 @@ protected:
     /// ibis::UINT.
     const ibis::dictionary *dic;
 
-    column& operator=(const column&); // no assignment
+    column &operator=(const column&); // no assignment
 }; // ibis::bord::column
 
 class FASTBIT_CXX_DLLSPEC ibis::bord::cursor : public ibis::table::cursor {
 public:
-    cursor(const ibis::bord& t);
+    cursor(const ibis::bord &t);
     virtual ~cursor() {};
 
     virtual uint64_t nRows() const {return tab.nRows();}
@@ -614,7 +614,7 @@ public:
     virtual int fetch(ibis::table::row&);
     virtual int fetch(uint64_t, ibis::table::row&);
     virtual uint64_t getCurrentRowNumber() const {return curRow;}
-    virtual int dump(std::ostream& out, const char* del) const;
+    virtual int dump(std::ostream &out, const char* del) const;
 
     virtual int getColumnAsByte(const char*, char&) const;
     virtual int getColumnAsUByte(const char*, unsigned char&) const;
@@ -655,16 +655,16 @@ protected:
     typedef std::map<const char*, uint32_t, ibis::lessi> bufferMap;
     std::vector<bufferElement> buffer;
     bufferMap bufmap;
-    const ibis::bord& tab;
+    const ibis::bord &tab;
     int64_t curRow; // the current row number
 
-    void fillRow(ibis::table::row& res) const;
+    void fillRow(ibis::table::row &res) const;
     int dumpIJ(std::ostream&, uint32_t, uint32_t) const;
 
 private:
     cursor();
     cursor(const cursor&);
-    cursor& operator=(const cursor&);
+    cursor &operator=(const cursor&);
 }; // ibis::bord::cursor
 
 /// Copy a single value from inbuf to outbuf.  The output buffer must have
@@ -675,6 +675,9 @@ ibis::bord::copyValue(ibis::TYPE_T type, void* outbuf, size_t outpos,
 		      const void* inbuf, size_t inpos) {
     switch (type) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::copyValue can not copy a value of type "
+	    << ibis::TYPESTRING[(int)type];
 	break;
     case ibis::BYTE: {
 	(*static_cast<array_t<signed char>*>(outbuf))[outpos]
@@ -716,11 +719,14 @@ ibis::bord::copyValue(ibis::TYPE_T type, void* outbuf, size_t outpos,
 	(*static_cast<array_t<double>*>(outbuf))[outpos]
 	    = (*static_cast<const array_t<double>*>(inbuf))[inpos];
 	break;}
-    case ibis::BLOB:
+    case ibis::BLOB: {
+	(*static_cast<std::vector<ibis::opaque>*>(outbuf))[outpos]
+	    = (*static_cast<const std::vector<ibis::opaque>*>(inbuf))[inpos];
+	break;}
     case ibis::TEXT:
     case ibis::CATEGORY: {
 	(*static_cast<std::vector<std::string>*>(outbuf))[outpos]
-	= (*static_cast<const std::vector<std::string>*>(inbuf))[inpos];
+	    = (*static_cast<const std::vector<std::string>*>(inbuf))[inpos];
 	break;}
     }
 } //ibis::bord::copyValue
@@ -731,10 +737,14 @@ ibis::bord::column::equal_to(const ibis::bord::column &other,
 			     uint32_t i, uint32_t j) const {
     if (m_type != other.m_type) return false;
     if (buffer == 0 || other.buffer == 0) return false;
-    if (buffer == other.buffer && i == j) return true;
+    if (buffer == other.buffer  && i == j) return true;
 
     switch (m_type) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::column[" << (thePart ? thePart->name() : "")
+	    << '.' << m_name << "]::equal_to can not compare values of type "
+	    << ibis::TYPESTRING[(int)m_type];
 	return false;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &v0 =
@@ -778,6 +788,7 @@ ibis::bord::column::equal_to(const ibis::bord::column &other,
 	const ibis::array_t<int64_t> &v1 =
 	    *static_cast<const ibis::array_t<int64_t>*>(other.buffer);
 	return (v0[i] == v1[j]);}
+    case ibis::OID:
     case ibis::ULONG: {
 	const ibis::array_t<uint64_t> &v0 =
 	    *static_cast<const ibis::array_t<uint64_t>*>(buffer);
@@ -796,6 +807,22 @@ ibis::bord::column::equal_to(const ibis::bord::column &other,
 	const ibis::array_t<double> &v1 =
 	    *static_cast<const ibis::array_t<double>*>(other.buffer);
 	return (v0[i] == v1[j]);}
+    case ibis::BLOB: {
+	const ibis::opaque &v0 =
+	    (*static_cast<const std::vector<ibis::opaque>*>(buffer))[i];
+	const ibis::opaque &v1 =
+	    (*static_cast<const std::vector<ibis::opaque>*>(other.buffer))[j];
+	bool match = (v0.size() == v1.size());
+	for (size_t j = 0; match  && j < v0.size(); ++ j)
+	    match = (v0.address()[j] == v1.address()[j]);
+	return match;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	const std::string &v0 =
+	    (*static_cast<const std::vector<std::string>*>(buffer))[i];
+	const std::string &v1 =
+	    (*static_cast<const std::vector<std::string>*>(other.buffer))[j];
+	return (v0 == v1);}
     }
 } // ibis::bord::column::equal_to
 
@@ -805,10 +832,14 @@ ibis::bord::column::less_than(const ibis::bord::column &other,
 			      uint32_t i, uint32_t j) const {
     if (m_type != other.m_type) return false;
     if (buffer == 0 || other.buffer == 0) return false;
-    if (buffer == other.buffer && i == j) return true;
+    if (buffer == other.buffer  && i == j) return true;
 
     switch (m_type) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::column[" << (thePart ? thePart->name() : "")
+	    << '.' << m_name << "]::less_than can not compare values of type "
+	    << ibis::TYPESTRING[(int)m_type];
 	return false;
     case ibis::BYTE: {
 	const ibis::array_t<signed char> &v0 =
@@ -852,6 +883,7 @@ ibis::bord::column::less_than(const ibis::bord::column &other,
 	const ibis::array_t<int64_t> &v1 =
 	    *static_cast<const ibis::array_t<int64_t>*>(other.buffer);
 	return (v0[i] < v1[j]);}
+    case ibis::OID:
     case ibis::ULONG: {
 	const ibis::array_t<uint64_t> &v0 =
 	    *static_cast<const ibis::array_t<uint64_t>*>(buffer);
@@ -870,6 +902,25 @@ ibis::bord::column::less_than(const ibis::bord::column &other,
 	const ibis::array_t<double> &v1 =
 	    *static_cast<const ibis::array_t<double>*>(other.buffer);
 	return (v0[i] < v1[j]);}
+    case ibis::BLOB: {
+	const ibis::opaque &v0 =
+	    (*static_cast<const std::vector<ibis::opaque>*>(buffer))[i];
+	const ibis::opaque &v1 =
+	    (*static_cast<const std::vector<ibis::opaque>*>(other.buffer))[j];
+	const size_t minlen = (v0.size() <= v1.size() ? v0.size() : v1.size());
+	int cmp = 0;
+	for (size_t j = 0; cmp == 0  && j < v0.size(); ++ j)
+	    cmp = ((int)(v0.address()[j]) - (int)(v1.address()[j]));
+	if (cmp == 0  && v1.size() > minlen)
+	    cmp = -1;
+	return (cmp < 0);}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	const std::string &v0 =
+	    (*static_cast<const std::vector<std::string>*>(buffer))[i];
+	const std::string &v1 =
+	    (*static_cast<const std::vector<std::string>*>(other.buffer))[j];
+	return (v0 < v1);}
     }
 } // ibis::bord::column::less_than
 
@@ -881,75 +932,94 @@ inline void
 ibis::bord::column::append(const void* c1, uint32_t i1) {
     switch (m_type) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::column[" << (thePart ? thePart->name() : "")
+	    << '.' << m_name << "]::append can not handle data type "
+	    << ibis::TYPESTRING[(int)m_type];
 	break;
     case ibis::BYTE: {
-	ibis::array_t<signed char>& v0 =
+	ibis::array_t<signed char> &v0 =
 	    *(static_cast<array_t<signed char>*>(buffer));
-	const ibis::array_t<signed char>& v1 =
+	const ibis::array_t<signed char> &v1 =
 	    *(static_cast<const array_t<signed char>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::UBYTE: {
-	ibis::array_t<unsigned char>& v0 =
+	ibis::array_t<unsigned char> &v0 =
 	    *(static_cast<array_t<unsigned char>*>(buffer));
-	const ibis::array_t<unsigned char>& v1 =
+	const ibis::array_t<unsigned char> &v1 =
 	    *(static_cast<const array_t<unsigned char>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::SHORT: {
-	ibis::array_t<int16_t>& v0 =
+	ibis::array_t<int16_t> &v0 =
 	    *(static_cast<array_t<int16_t>*>(buffer));
-	const ibis::array_t<int16_t>& v1 =
+	const ibis::array_t<int16_t> &v1 =
 	    *(static_cast<const array_t<int16_t>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::USHORT: {
-	ibis::array_t<uint16_t>& v0 =
+	ibis::array_t<uint16_t> &v0 =
 	    *(static_cast<array_t<uint16_t>*>(buffer));
-	const ibis::array_t<uint16_t>& v1 =
+	const ibis::array_t<uint16_t> &v1 =
 	    *(static_cast<const array_t<uint16_t>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::INT: {
-	ibis::array_t<int32_t>& v0 =
+	ibis::array_t<int32_t> &v0 =
 	    *(static_cast<array_t<int32_t>*>(buffer));
-	const ibis::array_t<int32_t>& v1 =
+	const ibis::array_t<int32_t> &v1 =
 	    *(static_cast<const array_t<int32_t>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::UINT: {
-	ibis::array_t<uint32_t>& v0 =
+	ibis::array_t<uint32_t> &v0 =
 	    *(static_cast<array_t<uint32_t>*>(buffer));
-	const ibis::array_t<uint32_t>& v1 =
+	const ibis::array_t<uint32_t> &v1 =
 	    *(static_cast<const array_t<uint32_t>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::LONG: {
-	ibis::array_t<int64_t>& v0 =
+	ibis::array_t<int64_t> &v0 =
 	    *(static_cast<array_t<int64_t>*>(buffer));
-	const ibis::array_t<int64_t>& v1 =
+	const ibis::array_t<int64_t> &v1 =
 	    *(static_cast<const array_t<int64_t>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::ULONG: {
-	ibis::array_t<uint64_t>& v0 =
+	ibis::array_t<uint64_t> &v0 =
 	    *(static_cast<array_t<uint64_t>*>(buffer));
-	const ibis::array_t<uint64_t>& v1 =
+	const ibis::array_t<uint64_t> &v1 =
 	    *(static_cast<const array_t<uint64_t>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::FLOAT: {
-	ibis::array_t<float>& v0 =
+	ibis::array_t<float> &v0 =
 	    *(static_cast<array_t<float>*>(buffer));
-	const ibis::array_t<float>& v1 =
+	const ibis::array_t<float> &v1 =
 	    *(static_cast<const array_t<float>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     case ibis::DOUBLE: {
-	ibis::array_t<double>& v0 =
+	ibis::array_t<double> &v0 =
 	    *(static_cast<array_t<double>*>(buffer));
-	const ibis::array_t<double>& v1 =
+	const ibis::array_t<double> &v1 =
 	    *(static_cast<const array_t<double>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::TEXT:
+    case ibis::CATEGORY: {
+	std::vector<std::string> &v0 =
+	    *(static_cast<std::vector<std::string>*>(buffer));
+	const std::vector<std::string> &v1 =
+	    *(static_cast<const std::vector<std::string>*>(c1));
+	v0.push_back(v1[i1]);
+	break;}
+    case ibis::BLOB: {
+	std::vector<ibis::opaque> &v0 =
+	    *(static_cast<std::vector<ibis::opaque>*>(buffer));
+	const std::vector<ibis::opaque> &v1 =
+	    *(static_cast<const std::vector<ibis::opaque>*>(c1));
 	v0.push_back(v1[i1]);
 	break;}
     }
@@ -966,13 +1036,17 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 			   ibis::selectClause::AGREGADO agg) {
     switch (m_type) {
     default:
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord::column[" << (thePart ? thePart->name() : "")
+	    << '.' << m_name << "]::append can not handle data type "
+	    << ibis::TYPESTRING[(int)m_type] << " with aggregations";
 	return;
     case ibis::BYTE: {
-	ibis::array_t<signed char>& v0 =
+	ibis::array_t<signed char> &v0 =
 	    *(static_cast<array_t<signed char>*>(buffer));
-	const ibis::array_t<signed char>& v1 =
+	const ibis::array_t<signed char> &v1 =
 	    *(static_cast<const array_t<signed char>*>(c1));
-	const ibis::array_t<signed char>& v2 =
+	const ibis::array_t<signed char> &v2 =
 	    *(static_cast<const array_t<signed char>*>(c2));
 	signed char tmp = 0;
 	switch (agg) {
@@ -992,11 +1066,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::UBYTE: {
-	ibis::array_t<unsigned char>& v0 =
+	ibis::array_t<unsigned char> &v0 =
 	    *(static_cast<array_t<unsigned char>*>(buffer));
-	const ibis::array_t<unsigned char>& v1 =
+	const ibis::array_t<unsigned char> &v1 =
 	    *(static_cast<const array_t<unsigned char>*>(c1));
-	const ibis::array_t<unsigned char>& v2 =
+	const ibis::array_t<unsigned char> &v2 =
 	    *(static_cast<const array_t<unsigned char>*>(c2));
 	unsigned char tmp = 0;
 	switch (agg) {
@@ -1016,11 +1090,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::SHORT: {
-	ibis::array_t<int16_t>& v0 =
+	ibis::array_t<int16_t> &v0 =
 	    *(static_cast<array_t<int16_t>*>(buffer));
-	const ibis::array_t<int16_t>& v1 =
+	const ibis::array_t<int16_t> &v1 =
 	    *(static_cast<const array_t<int16_t>*>(c1));
-	const ibis::array_t<int16_t>& v2 =
+	const ibis::array_t<int16_t> &v2 =
 	    *(static_cast<const array_t<int16_t>*>(c2));
 	int16_t tmp = 0;
 	switch (agg) {
@@ -1040,11 +1114,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::USHORT: {
-	ibis::array_t<uint16_t>& v0 =
+	ibis::array_t<uint16_t> &v0 =
 	    *(static_cast<array_t<uint16_t>*>(buffer));
-	const ibis::array_t<uint16_t>& v1 =
+	const ibis::array_t<uint16_t> &v1 =
 	    *(static_cast<const array_t<uint16_t>*>(c1));
-	const ibis::array_t<uint16_t>& v2 =
+	const ibis::array_t<uint16_t> &v2 =
 	    *(static_cast<const array_t<uint16_t>*>(c2));
 	uint16_t tmp = 0;
 	switch (agg) {
@@ -1064,11 +1138,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::INT: {
-	ibis::array_t<int32_t>& v0 =
+	ibis::array_t<int32_t> &v0 =
 	    *(static_cast<array_t<int32_t>*>(buffer));
-	const ibis::array_t<int32_t>& v1 =
+	const ibis::array_t<int32_t> &v1 =
 	    *(static_cast<const array_t<int32_t>*>(c1));
-	const ibis::array_t<int32_t>& v2 =
+	const ibis::array_t<int32_t> &v2 =
 	    *(static_cast<const array_t<int32_t>*>(c2));
 	int32_t tmp = 0;
 	switch (agg) {
@@ -1088,11 +1162,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::UINT: {
-	ibis::array_t<uint32_t>& v0 =
+	ibis::array_t<uint32_t> &v0 =
 	    *(static_cast<array_t<uint32_t>*>(buffer));
-	const ibis::array_t<uint32_t>& v1 =
+	const ibis::array_t<uint32_t> &v1 =
 	    *(static_cast<const array_t<uint32_t>*>(c1));
-	const ibis::array_t<uint32_t>& v2 =
+	const ibis::array_t<uint32_t> &v2 =
 	    *(static_cast<const array_t<uint32_t>*>(c2));
 	uint32_t tmp = 0;
 	switch (agg) {
@@ -1112,11 +1186,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::LONG: {
-	ibis::array_t<int64_t>& v0 =
+	ibis::array_t<int64_t> &v0 =
 	    *(static_cast<array_t<int64_t>*>(buffer));
-	const ibis::array_t<int64_t>& v1 =
+	const ibis::array_t<int64_t> &v1 =
 	    *(static_cast<const array_t<int64_t>*>(c1));
-	const ibis::array_t<int64_t>& v2 =
+	const ibis::array_t<int64_t> &v2 =
 	    *(static_cast<const array_t<int64_t>*>(c2));
 	int64_t tmp = 0;
 	switch (agg) {
@@ -1136,11 +1210,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::ULONG: {
-	ibis::array_t<uint64_t>& v0 =
+	ibis::array_t<uint64_t> &v0 =
 	    *(static_cast<array_t<uint64_t>*>(buffer));
-	const ibis::array_t<uint64_t>& v1 =
+	const ibis::array_t<uint64_t> &v1 =
 	    *(static_cast<const array_t<uint64_t>*>(c1));
-	const ibis::array_t<uint64_t>& v2 =
+	const ibis::array_t<uint64_t> &v2 =
 	    *(static_cast<const array_t<uint64_t>*>(c2));
 	uint64_t tmp = 0;
 	switch (agg) {
@@ -1160,11 +1234,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::FLOAT: {
-	ibis::array_t<float>& v0 =
+	ibis::array_t<float> &v0 =
 	    *(static_cast<array_t<float>*>(buffer));
-	const ibis::array_t<float>& v1 =
+	const ibis::array_t<float> &v1 =
 	    *(static_cast<const array_t<float>*>(c1));
-	const ibis::array_t<float>& v2 =
+	const ibis::array_t<float> &v2 =
 	    *(static_cast<const array_t<float>*>(c2));
 	float tmp = 0;
 	switch (agg) {
@@ -1184,11 +1258,11 @@ ibis::bord::column::append(const void* c1, uint32_t i1,
 	v0.push_back(tmp);
 	break;}
     case ibis::DOUBLE: {
-	ibis::array_t<double>& v0 =
+	ibis::array_t<double> &v0 =
 	    *(static_cast<array_t<double>*>(buffer));
-	const ibis::array_t<double>& v1 =
+	const ibis::array_t<double> &v1 =
 	    *(static_cast<const array_t<double>*>(c1));
-	const ibis::array_t<double>& v2 =
+	const ibis::array_t<double> &v2 =
 	    *(static_cast<const array_t<double>*>(c2));
 	double tmp = 0;
 	switch (agg) {
@@ -1225,7 +1299,7 @@ inline int ibis::bord::cursor::fetch(uint64_t irow) {
     }
 } // ibis::bord::cursor::fetch
 
-inline int ibis::bord::cursor::fetch(ibis::table::row& res) {
+inline int ibis::bord::cursor::fetch(ibis::table::row &res) {
     ++ curRow;
     if ((uint64_t) curRow < tab.nRows()) {
 	fillRow(res);
@@ -1236,7 +1310,7 @@ inline int ibis::bord::cursor::fetch(ibis::table::row& res) {
     }
 } // ibis::bord::cursor::fetch
 
-inline int ibis::bord::cursor::fetch(uint64_t irow, ibis::table::row& res) {
+inline int ibis::bord::cursor::fetch(uint64_t irow, ibis::table::row &res) {
     if (irow < tab.nRows()) {
 	curRow = static_cast<int64_t>(irow);
 	fillRow(res);
@@ -1248,7 +1322,7 @@ inline int ibis::bord::cursor::fetch(uint64_t irow, ibis::table::row& res) {
 } // ibis::bord::cursor::fetch
 
 inline int
-ibis::bord::cursor::dumpIJ(std::ostream& out, uint32_t i,
+ibis::bord::cursor::dumpIJ(std::ostream &out, uint32_t i,
 			   uint32_t j) const {
     if (buffer[j].cval == 0) return -1;
 
@@ -1324,7 +1398,7 @@ ibis::bord::cursor::dumpIJ(std::ostream& out, uint32_t i,
 } // ibis::bord::cursor::dumpIJ
 
 inline int
-ibis::bord::cursor::getColumnAsByte(const char* cn, char& val) const {
+ibis::bord::cursor::getColumnAsByte(const char* cn, char &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1336,7 +1410,7 @@ ibis::bord::cursor::getColumnAsByte(const char* cn, char& val) const {
 
 inline int
 ibis::bord::cursor::getColumnAsUByte(const char* cn,
-				     unsigned char& val) const {
+				     unsigned char &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1347,7 +1421,7 @@ ibis::bord::cursor::getColumnAsUByte(const char* cn,
 } // ibis::bord::cursor::getColumnAsUByte
 
 inline int
-ibis::bord::cursor::getColumnAsShort(const char* cn, int16_t& val) const {
+ibis::bord::cursor::getColumnAsShort(const char* cn, int16_t &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1358,7 +1432,7 @@ ibis::bord::cursor::getColumnAsShort(const char* cn, int16_t& val) const {
 } // ibis::bord::cursor::getColumnAsShort
 
 inline int
-ibis::bord::cursor::getColumnAsUShort(const char* cn, uint16_t& val) const {
+ibis::bord::cursor::getColumnAsUShort(const char* cn, uint16_t &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1369,7 +1443,7 @@ ibis::bord::cursor::getColumnAsUShort(const char* cn, uint16_t& val) const {
 } // ibis::bord::cursor::getColumnAsUShort
 
 inline int
-ibis::bord::cursor::getColumnAsInt(const char* cn, int32_t& val) const {
+ibis::bord::cursor::getColumnAsInt(const char* cn, int32_t &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1380,7 +1454,7 @@ ibis::bord::cursor::getColumnAsInt(const char* cn, int32_t& val) const {
 } // ibis::bord::cursor::getColumnAsInt
 
 inline int
-ibis::bord::cursor::getColumnAsUInt(const char* cn, uint32_t& val) const {
+ibis::bord::cursor::getColumnAsUInt(const char* cn, uint32_t &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1391,7 +1465,7 @@ ibis::bord::cursor::getColumnAsUInt(const char* cn, uint32_t& val) const {
 } // ibis::bord::cursor::getColumnAsUInt
 
 inline int
-ibis::bord::cursor::getColumnAsLong(const char* cn, int64_t& val) const {
+ibis::bord::cursor::getColumnAsLong(const char* cn, int64_t &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1402,7 +1476,7 @@ ibis::bord::cursor::getColumnAsLong(const char* cn, int64_t& val) const {
 } // ibis::bord::cursor::getColumnAsLong
 
 inline int
-ibis::bord::cursor::getColumnAsULong(const char* cn, uint64_t& val) const {
+ibis::bord::cursor::getColumnAsULong(const char* cn, uint64_t &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1413,7 +1487,7 @@ ibis::bord::cursor::getColumnAsULong(const char* cn, uint64_t& val) const {
 } // ibis::bord::cursor::getColumnAsULong
 
 inline int
-ibis::bord::cursor::getColumnAsFloat(const char* cn, float& val) const {
+ibis::bord::cursor::getColumnAsFloat(const char* cn, float &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1424,7 +1498,7 @@ ibis::bord::cursor::getColumnAsFloat(const char* cn, float& val) const {
 } // ibis::bord::cursor::getColumnAsFloat
 
 inline int
-ibis::bord::cursor::getColumnAsDouble(const char* cn, double& val) const {
+ibis::bord::cursor::getColumnAsDouble(const char* cn, double &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1436,7 +1510,7 @@ ibis::bord::cursor::getColumnAsDouble(const char* cn, double& val) const {
 
 inline int
 ibis::bord::cursor::getColumnAsString(const char* cn,
-				      std::string& val) const {
+				      std::string &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);
@@ -1448,7 +1522,7 @@ ibis::bord::cursor::getColumnAsString(const char* cn,
 
 inline int
 ibis::bord::cursor::getColumnAsOpaque(const char* cn,
-				      ibis::opaque& val) const {
+				      ibis::opaque &val) const {
     if (curRow < 0 || curRow >= (int64_t) tab.nRows() || cn == 0 || *cn == 0)
 	return -1;
     bufferMap::const_iterator it = bufmap.find(cn);

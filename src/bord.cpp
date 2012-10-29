@@ -5085,6 +5085,11 @@ ibis::bord::column::column(const ibis::bord::column &c)
     case ibis::TEXT: {
 	buffer = new std::vector<std::string>
 	    (* static_cast<std::vector<std::string>*>(c.buffer));
+	// const std::vector<std::string> &rhs
+	//     (* static_cast<std::vector<std::string>*>(c.buffer));
+	// std::vector<std::string> *lhs = new std::vector<std::string>;
+	// lhs->insert(lhs->end(), rhs.begin(), rhs.end());
+	// buffer = lhs;
 	break;}
     case ibis::OID: {
 	buffer = new array_t<rid_t>

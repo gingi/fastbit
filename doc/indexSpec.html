@@ -212,12 +212,21 @@ of different encoding schemes.
 
 <dd> This encoding scheme uses the same number of bitmaps as the
      equality encoding, but is designed to make range queries more
-     efficiently.
+     efficiently at the cost of more disk storage.  With the range
+     encoding most of the bitmaps have enough 1s in them to make them
+     unlikely to be compressed.  On large cardinality columns, a
+     range-encoded index could take up a lot more space than the base
+     data or the equality-encoded index.  This encoding method is only
+     recommended for columns with low column cardinalities.
 
 <DT>&#8226;&nbsp;<code>interval</code>
 
 <dd> This encoding scheme uses about half as many bitmaps as equality
-     encoding, and is also efficient for range queries.
+     encoding, and is also efficient for range queries.  An
+     interval-encoded index takes about half as much space as the range
+     encoded index, however, it may still be many times larger than the
+     corresponding equality-encoded index.  This encoding method is only
+     recommended for columns with low column cardinalities.
 
 <DT>&#8226;&nbsp;<code>ncomp=ddd</code>
 
