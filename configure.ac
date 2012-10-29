@@ -675,6 +675,8 @@ elif test "x$JAVA_HOME" = "x" ; then # guess where is JDK
      elif test -x "$JAVA_PATH"/bin/javac$EXEEXT ; then
        JAVA_HOME="$JAVA_PATH"
      fi
+  elif test -x /usr/libexec/java_home ; then
+    JAVA_HOME=`/usr/libexec/java_home`
   else
     case "${host_os}" in
     # On Darwin the JDK, if present, is installed in /Library/Java/Home .
@@ -739,6 +741,8 @@ AC_DEFINE_UNQUOTED(FASTBIT_IBIS_INT_VERSION,
 OBJDIR=$objdir
 AC_SUBST(BUILD_JAVA_INTERFACE)
 AC_SUBST(LIB_VERSION_INFO)
+AC_SUBST(PTHREAD_CFLAGS)
+AC_SUBST(PTHREAD_LIBS)
 AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(CFLAGS)

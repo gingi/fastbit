@@ -641,6 +641,7 @@ LTLIBOBJS
 LIBOBJS
 OBJDIR
 AM_CPPFLAGS
+PTHREAD_LIBS
 LIB_VERSION_INFO
 BUILD_JAVA_INTERFACE
 BUILD_CONTRIB
@@ -16326,6 +16327,8 @@ elif test "x$JAVA_HOME" = "x" ; then # guess where is JDK
      elif test -x "$JAVA_PATH"/bin/javac$EXEEXT ; then
        JAVA_HOME="$JAVA_PATH"
      fi
+  elif test -x /usr/libexec/java_home ; then
+    JAVA_HOME=`/usr/libexec/java_home`
   else
     case "${host_os}" in
     # On Darwin the JDK, if present, is installed in /Library/Java/Home .
@@ -16408,7 +16411,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16411 "configure" */
+/* #line 16414 "configure" */
 public class Test {
 }
 EOF
@@ -16539,7 +16542,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 16542: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 16545: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -16616,7 +16619,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16619 "configure" */
+/* #line 16622 "configure" */
 public class Test {
 }
 EOF
@@ -16651,7 +16654,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 16654 "configure" */
+/* [#]line 16657 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
@@ -16811,6 +16814,8 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 OBJDIR=$objdir
+
+
 
 
 

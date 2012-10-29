@@ -1,3 +1,10 @@
+2012-10-28 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: use /usr/libexec/java_home to determine the home
+	directory of java when it is present (to enable the option
+	--with-java to locate the latest version of java through
+	java_home)
+	* tests/scripts/fastbit-config.in: add PTHREAD_CFLAGS to CFLAGS
+
 2012-10-27 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: in category::prepareMembers, read the
 	dictionary first before doing anything else

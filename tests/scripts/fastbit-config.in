@@ -67,7 +67,7 @@ if test "$echo_fb_version" = "yes" ; then
 fi
 
 if test "$echo_cflags" = "yes" ; then
-  cflags="@DEFS@ @AM_CPPFLAGS@"
+  cflags="@DEFS@ @AM_CPPFLAGS@ @PTHREAD_CFLAGS@"
   if test "$includedir" != "/usr/include" ; then
     echo $cflags -I$includedir
   else
@@ -76,7 +76,7 @@ if test "$echo_cflags" = "yes" ; then
 fi
 
 if test "$echo_libs" = "yes" ; then
-  libs="-lfastbit @LIBS@"
+  libs="-lfastbit @LIBS@ @PTHREAD_LIBS@"
   if test "$libdir" != "/usr/lib" && test "$libdir" != "/usr/lib64"; then
     echo -L$libdir $libs
   else
