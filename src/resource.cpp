@@ -90,7 +90,7 @@ void ibis::resource::read(const char* fn) {
 	// the fifth choice is .ibisrc in the home directory
 	name = getenv("HOME");
 	if (name != 0 && *name != 0) {
-#if defined(sun) && defined(__GNUC__) && __GNUC__ <= 2
+#if defined(__GNUC__) && __GNUC__ <= 2
 	    long ierr = sprintf(line, "%s%c.ibisrc", name, FASTBIT_DIRSEP);
 #else
 	    long ierr = UnixSnprintf(line, MAX_LINE, "%s%c.ibisrc",

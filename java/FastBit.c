@@ -19,15 +19,13 @@ JNIEXPORT void JNICALL Java_gov_lbl_fastbit_FastBit_init
     else
 	crcfile = NULL;
     fastbit_init(crcfile);
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jrcfile, crcfile);
-    // end
-} // Java_gov_lbl_fastbit_FastBit_init
+} /* Java_gov_lbl_fastbit_FastBit_init */
 
 JNIEXPORT void JNICALL Java_gov_lbl_fastbit_FastBit_cleanup
 (JNIEnv * env, jobject jo) {
     fastbit_cleanup();
-}				// Java_gov_lbl_fastbit_FastBit_cleanup
+} /* Java_gov_lbl_fastbit_FastBit_cleanup */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_number_1of_1rows
 (JNIEnv * env, jobject jo, jstring jdir) {
@@ -41,11 +39,9 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_number_1of_1rows
 
     cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     ierr = fastbit_rows_in_partition(cdir);
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_number_1of_1rows
+} /* Java_gov_lbl_fastbit_FastBit_number_1of_1rows */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_number_1of_1columns
 (JNIEnv * env, jobject jo, jstring jdir) {
@@ -59,11 +55,10 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_number_1of_1columns
 
     cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     ierr = fastbit_columns_in_partition(cdir);
-    // add by lzb
+    /* add by lzb */
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_number_1of_1columns
+} /* Java_gov_lbl_fastbit_FastBit_number_1of_1columns */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_build_1indexes
 (JNIEnv * env, jobject jo, jstring jdir, jstring jopt) {
@@ -83,15 +78,13 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_build_1indexes
 	copt = NULL;
     ierr = fastbit_build_indexes(cdir, copt);
 
-    // add by lzb
     if (NULL != copt) {
 	(*env)->ReleaseStringUTFChars(env, jopt, copt);
     }
 
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_build_1indexes
+} /* Java_gov_lbl_fastbit_FastBit_build_1indexes */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_purge_1indexes
 (JNIEnv * env, jobject jo, jstring jdir) {
@@ -105,11 +98,9 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_purge_1indexes
 
     cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     ierr = fastbit_purge_indexes(cdir);
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_purge_1indexes
+} /* Java_gov_lbl_fastbit_FastBit_purge_1indexes */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_build_1index
 (JNIEnv * env, jobject jo, jstring jdir, jstring jcol, jstring jopt) {
@@ -132,15 +123,13 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_build_1index
 
     ierr = fastbit_build_index(cdir, ccol, copt);
 
-    // add by lzb
     if (NULL != copt) {
 	(*env)->GetStringUTFChars(env, jopt, &iscopy);
     }
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_build_1index
+} /* Java_gov_lbl_fastbit_FastBit_build_1index */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_purge_1index
 (JNIEnv * env, jobject jo, jstring jdir, jstring jcol) {
@@ -161,14 +150,12 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_purge_1index
 
     ierr = fastbit_purge_index(cdir, ccol);
 
-    // add by lzb
     if (NULL != ccol) {
 	(*env)->ReleaseStringUTFChars(env, jcol, ccol);
     }
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_purge_1index
+} /* Java_gov_lbl_fastbit_FastBit_purge_1index */
 
 JNIEXPORT jobject JNICALL Java_gov_lbl_fastbit_FastBit_build_1query
 (JNIEnv * env, jobject jo, jstring jsel, jstring jdir, jstring jwhere) {
@@ -191,21 +178,19 @@ JNIEXPORT jobject JNICALL Java_gov_lbl_fastbit_FastBit_build_1query
 	jobject         jret =
 	    (*env)->NewDirectByteBuffer(env, handle, sizeof(handle));
 
-	// add by lzb
+	/* add by lzb */
 	(*env)->ReleaseStringUTFChars(env, jsel, csel);
 	(*env)->ReleaseStringUTFChars(env, jwhere, cwhere);
 	(*env)->ReleaseStringUTFChars(env, jdir, cdir);
-	// end
 	return jret;
     } else {
-	// add by lzb
+	/* add by lzb */
 	(*env)->ReleaseStringUTFChars(env, jsel, csel);
 	(*env)->ReleaseStringUTFChars(env, jwhere, cwhere);
 	(*env)->ReleaseStringUTFChars(env, jdir, cdir);
-	// end
 	return (jobject) (0);
     }
-} // Java_gov_lbl_fastbit_FastBit_build_1query
+} /* Java_gov_lbl_fastbit_FastBit_build_1query */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_destroy_1query
 (JNIEnv * env, jobject jo, jobject jhandle) {
@@ -214,7 +199,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_destroy_1query
 	((*env)->GetDirectBufferAddress(env, jhandle));
     jint ierr = fastbit_destroy_query(chandle);
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_destroy_1query
+} /* Java_gov_lbl_fastbit_FastBit_destroy_1query */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_get_1result_1size
 (JNIEnv * env, jobject jo, jobject jhandle) {
@@ -222,7 +207,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_get_1result_1size
 	((*env)->GetDirectBufferAddress(env, jhandle));
     jint            ierr = fastbit_get_result_rows(chandle);
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_get_1result_1size
+} /* Java_gov_lbl_fastbit_FastBit_get_1result_1size */
 
 JNIEXPORT jbyteArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
@@ -254,11 +239,9 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
     } else {
 	ret = NULL;
     }
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ret;
-} // Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes
+} /* Java_gov_lbl_fastbit_FastBit_get_1qualified_1bytes */
 
 JNIEXPORT jshortArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts
@@ -289,11 +272,9 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts
     } else {
 	ret = NULL;
     }
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ret;
-} // Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts
+} /* Java_gov_lbl_fastbit_FastBit_get_1qualified_1shorts */
 
 JNIEXPORT jintArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1ints
@@ -325,11 +306,9 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1ints
 	ret = NULL;
     }
 
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ret;
-} // Java_gov_lbl_fastbit_FastBit_get_1qualified_1ints
+} /* Java_gov_lbl_fastbit_FastBit_get_1qualified_1ints */
 
 JNIEXPORT jlongArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
@@ -360,11 +339,9 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
     } else {
 	ret = NULL;
     }
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ret;
-} // Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs
+} /* Java_gov_lbl_fastbit_FastBit_get_1qualified_1longs */
 
 JNIEXPORT jfloatArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
@@ -395,11 +372,9 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
     } else {
 	ret = NULL;
     }
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ret;
-} // Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats
+} /* Java_gov_lbl_fastbit_FastBit_get_1qualified_1floats */
 
 JNIEXPORT jdoubleArray JNICALL
 Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles
@@ -430,21 +405,19 @@ Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles
     } else {
 	ret = NULL;
     }
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ret;
-} // Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles
+} /* Java_gov_lbl_fastbit_FastBit_get_1qualified_1doubles */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_get_1message_1level
 (JNIEnv * env, jobject jo) {
     return fastbit_get_verbose_level();
-} // Java_gov_lbl_fastbit_FastBit_get_1message_1level
+} /* Java_gov_lbl_fastbit_FastBit_get_1message_1level */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_set_1message_1level
 (JNIEnv * env, jobject jo, jint jlvl) {
     return fastbit_set_verbose_level(jlvl);
-} // Java_gov_lbl_fastbit_FastBit_set_1message_1level
+} /* Java_gov_lbl_fastbit_FastBit_set_1message_1level */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_set_1logfile
 (JNIEnv * env, jobject jo, jstring jfn) {
@@ -457,16 +430,15 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_set_1logfile
     else
 	cfn = 0;
 
-    // modified by lzb
     ji = fastbit_set_logfile(cfn);
     (*env)->ReleaseStringUTFChars(env, jfn, cfn);
     return ji;
-} // Java_gov_lbl_fastbit_FastBit_set_1logfile
+} /* Java_gov_lbl_fastbit_FastBit_set_1logfile */
 
 JNIEXPORT jstring JNICALL Java_gov_lbl_fastbit_FastBit_get_1logfile
 (JNIEnv * env, jobject jo) {
     return (*env)->NewStringUTF(env, fastbit_get_logfile());
-} // Java_gov_lbl_fastbit_FastBit_get_1logfile
+} /* Java_gov_lbl_fastbit_FastBit_get_1logfile */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_write_1buffer
 (JNIEnv * env, jobject jo, jstring jdir) {
@@ -480,11 +452,9 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_write_1buffer
 
     cdir = (*env)->GetStringUTFChars(env, jdir, &iscopy);
     ierr = fastbit_flush_buffer(cdir);
-    // add by lzb
     (*env)->ReleaseStringUTFChars(env, jdir, cdir);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_write_1buffer
+} /* Java_gov_lbl_fastbit_FastBit_write_1buffer */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1doubles
 (JNIEnv * env, jobject jo, jstring jcol, jdoubleArray jvals) {
@@ -503,17 +473,15 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1doubles
      * (ccol, type, (*env)->GetDoubleArrayElements(env, jvals, &iscopy),
      * nelm, 0U);
      */
-    // modified by lzb
+    /* modified by lzb */
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
     dblArr = (*env)->GetDoubleArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, dblArr, nelm, 0U);
-    // add by lzb
     (*env)->ReleaseDoubleArrayElements(env, jvals, dblArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_add_1doubles
+} /* Java_gov_lbl_fastbit_FastBit_add_1doubles */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1floats
 (JNIEnv * env, jobject jo, jstring jcol, jfloatArray jvals) {
@@ -529,16 +497,13 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1floats
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
 
-    // modified by lzb
     fltArr = (*env)->GetFloatArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, fltArr, nelm, 0U);
 
-    // add by lzb
     (*env)->ReleaseFloatArrayElements(env, jvals, fltArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_add_1floats
+} /* Java_gov_lbl_fastbit_FastBit_add_1floats */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1longs
 (JNIEnv * env, jobject jo, jstring jcol, jlongArray jvals) {
@@ -554,16 +519,13 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1longs
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
 
-    // modified by lzb
     lArr = (*env)->GetLongArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, lArr, nelm, 0U);
 
-    // add by lzb
     (*env)->ReleaseLongArrayElements(env, jvals, lArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_add_1longs
+} /* Java_gov_lbl_fastbit_FastBit_add_1longs */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1ints
 (JNIEnv * env, jobject jo, jstring jcol, jintArray jvals) {
@@ -579,16 +541,13 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1ints
     ccol = (*env)->GetStringUTFChars(env, jcol, &iscopy);
     nelm = (*env)->GetArrayLength(env, jvals);
 
-    // modified by lzb
     iArr = (*env)->GetIntArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, iArr, nelm, 0U);
 
-    // add by lzb
     (*env)->ReleaseIntArrayElements(env, jvals, iArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_add_1ints
+} /* Java_gov_lbl_fastbit_FastBit_add_1ints */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1shorts
 (JNIEnv * env, jobject jo, jstring jcol, jshortArray jvals) {
@@ -607,12 +566,10 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1shorts
     shtArr = (*env)->GetShortArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, shtArr, nelm, 0U);
 
-    // add by lzb
     (*env)->ReleaseShortArrayElements(env, jvals, shtArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_add_1shorts
+} /* Java_gov_lbl_fastbit_FastBit_add_1shorts */
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1bytes
 (JNIEnv * env, jobject jo, jstring jcol, jbyteArray jvals) {
@@ -630,9 +587,7 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_add_1bytes
     btArr = (*env)->GetByteArrayElements(env, jvals, &iscopy);
     ierr = fastbit_add_values(ccol, type, btArr, nelm, 0U);
 
-    // add by lzb
     (*env)->ReleaseByteArrayElements(env, jvals, btArr, 0);
     (*env)->ReleaseStringUTFChars(env, jcol, ccol);
-    // end
     return ierr;
-} // Java_gov_lbl_fastbit_FastBit_add_1bytes
+} /* Java_gov_lbl_fastbit_FastBit_add_1bytes */

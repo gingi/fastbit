@@ -13,7 +13,7 @@
 #include "horometer.h"
 #include "resource.h"
 #include <stdarg.h>	// vsprintf
-#if defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
+#if defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
 #include <pwd.h>	// getpwuid
 #include <unistd.h>	// getuid, rmdir, sysconf
 #include <sys/stat.h>	// stat
@@ -1041,7 +1041,7 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 	ibis::util::logMessage("Warning", "%s failed to popen(%s) ... %s",
 			       event.c_str(), cmd, strerror(errno));
      }
-#elif defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
+#elif defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
     char* olddir = getcwd(buf, PATH_MAX);
     if (olddir) {
 	olddir = ibis::util::strnewdup(buf);
@@ -1783,7 +1783,7 @@ const char* ibis::util::userName() {
 	// MinGW does not have support for user names?!
 #elif defined(HAVE_GETPWUID)
 #if (defined(HAVE_GETPWUID_R) || defined(_REENTRANT) || \
-     defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(sun) || \
+     defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(__sun) || \
      defined(_THREAD_SAFE) || defined(__APPLE__) || defined(__FreeBSD__)) && \
     defined(_SC_GETPW_R_SIZE_MAX)
 	// use the thread-safe version of getpwuid_r
@@ -2841,7 +2841,7 @@ char* getpass(const char *prompt) {
 } // getpass
 #endif
 
-#if !defined(unix) && defined(_WIN32)
+#if !defined(__unix__) && defined(_WIN32)
 // truncate the named file to specified bytes
 int truncate(const char* name, uint32_t bytes) {
     int ierr = 0;

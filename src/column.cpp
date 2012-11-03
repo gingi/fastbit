@@ -5687,7 +5687,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     try {
 	if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
 	    ibis::util::quietLock lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 	    sleep(1);
 #endif
 	}
@@ -5983,7 +5983,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	try {
 	    if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
 		ibis::util::quietLock lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 		sleep(1);
 #endif
 	    }
@@ -8110,7 +8110,7 @@ long ibis::column::truncateData(const char* dir, uint32_t nent,
     if (dir == 0)
 	return -1;
     char fn[MAX_LINE];
-#if defined(sun) && defined(__GNUC__) && __GNUC__ <= 2
+#if defined(__sun) && defined(__GNUC__) && __GNUC__ <= 2
     ierr = sprintf(fn, "%s%c%s", dir, FASTBIT_DIRSEP, m_name.c_str());
 #else
     ierr = UnixSnprintf(fn, MAX_LINE, "%s%c%s", dir, FASTBIT_DIRSEP,

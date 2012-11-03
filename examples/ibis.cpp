@@ -4761,7 +4761,7 @@ static void parseString(const char* uid, const char* qstr,
 	    catch (...) {
 		if (ibis::util::serialNumber() % 3 == 0) {
 		    ibis::util::quietLock lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 		    sleep(1);
 #endif
 		}
@@ -4781,7 +4781,7 @@ static void parseString(const char* uid, const char* qstr,
 	    catch (...) {
 		if (ibis::util::serialNumber() % 3 == 0) {
 		    ibis::util::quietLock lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 		    sleep(1);
 #endif
 		}
@@ -4813,7 +4813,7 @@ static void parseString(const char* uid, const char* qstr,
 			    if (ibis::util::serialNumber() % 3 == 0) {
 				ibis::util::quietLock
 				    lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 				sleep(1);
 #endif
 			    }
@@ -4832,7 +4832,7 @@ static void parseString(const char* uid, const char* qstr,
 			    if (ibis::util::serialNumber() % 3 == 0) {
 				ibis::util::quietLock
 				    lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 				sleep(1);
 #endif
 			    }
@@ -4850,7 +4850,7 @@ static void parseString(const char* uid, const char* qstr,
 			    if (ibis::util::serialNumber() % 3 == 0) {
 				ibis::util::quietLock
 				    lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 				sleep(1);
 #endif
 			    }
@@ -4875,7 +4875,7 @@ static void parseString(const char* uid, const char* qstr,
 		catch (...) {
 		    if (ibis::util::serialNumber() % 3 == 0) {
 			ibis::util::quietLock lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 			sleep(1);
 #endif
 		    }
@@ -4891,7 +4891,7 @@ static void parseString(const char* uid, const char* qstr,
 		catch (...) {
 		    if (ibis::util::serialNumber() % 3 == 0) {
 			ibis::util::quietLock lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 			sleep(1);
 #endif
 		    }
@@ -4907,7 +4907,7 @@ static void parseString(const char* uid, const char* qstr,
 		catch (...) {
 		    if (ibis::util::serialNumber() % 3 == 0) {
 			ibis::util::quietLock lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 			sleep(1);
 #endif
 		    }

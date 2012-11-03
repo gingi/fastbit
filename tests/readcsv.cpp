@@ -54,7 +54,7 @@
 #include <sys/stat.h>	// mkdir
 #elif defined(_WIN32)
 #include <direct.h>	// _mkdir, _chdir
-#elif defined(linux) || defined(unix) || defined(__APPLE__) || defined(__FreeBSD__)
+#elif defined(__linux__) || defined(__unix__) || defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/stat.h>	// mkdir
 #include <sys/types.h>
 #endif
@@ -478,7 +478,7 @@ int main(int argc, char** argv) {
     // generate output file pointers
     int ierr = 0;
     const char *dest = (argc>2 ? argv[2] : "tmp");
-#if defined(__CYGWIN__) || defined(linux) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__CYGWIN__) || defined(__linux__) || defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
     mkdir(dest, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP);
     ierr = chdir(dest);
 #elif defined(_WIN32)

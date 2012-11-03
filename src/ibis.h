@@ -288,7 +288,7 @@ namespace ibis {
     ///
     /// One may call ibis::util::closeLogFile to close the log file,
     /// however it is fine to leave the OS to close it upon the termination
-    /// of this program.
+    /// of the user program.
     inline void init(const char* rcfile=0,
 		     const char* mesgfile=0) {
 #if defined(DEBUG) || defined(_DEBUG)

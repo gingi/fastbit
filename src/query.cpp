@@ -877,7 +877,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	    try {
 		if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
 		    ibis::util::quietLock lock(&ibis::util::envLock);
-#if defined(unix) || defined(linux) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+#if defined(unix) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
 		    sleep(1);
 #endif
 		}

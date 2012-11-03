@@ -67,8 +67,8 @@ public:
 
     /// Insert a new name-value pair.
     void add(const char *name, const char *value);
-    /// Read the content of the file and add it to the existing lists of
-    /// name-value pairs.
+    /// Read the content of the named file.  Add its content to the
+    /// existing lists of name-value pairs.
     void read(const char* fn=0);
     /// Write the name-value pairs to the named file.  If the file name is
     /// a nil pointer, the pairs are written to the standard output.  If it

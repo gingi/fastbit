@@ -56,7 +56,7 @@ int truncate(const char*, uint32_t);
 #  elif defined(_POSIX_C_SOURCE)
 #    define HAVE_MMAP _POSIX_C_SOURCE - 0 >= 0
 #  else
-#    define HAVE_MMAP defined(unix)||defined(linux)||defined(__APPLE__)||defined(__CYGWIN__)
+#    define HAVE_MMAP defined(unix)||defined(__linux__)||defined(__APPLE__)||defined(__CYGWIN__)
 #  endif
 #endif
 
@@ -81,13 +81,13 @@ int truncate(const char*, uint32_t);
 
 /// Guess about GCC atomic operations
 #if !defined(HAVE_GCC_ATOMIC32) && defined(WITHOUT_FASTBIT_CONFIG_H)
-#if __GNUC__+0 >= 4 && defined(LINUX)
+#if __GNUC__+0 >= 4 && defined(__linux__)
 #define HAVE_GCC_ATOMIC32 2
 #endif
 #endif
 #if !defined(HAVE_GCC_ATOMIC64) && defined(WITHOUT_FASTBIT_CONFIG_H)
 #if defined(__IA64__) || defined(__x86_64__) || defined(__ppc64__)
-#if __GNUC__+0 >= 4 && defined(LINUX)
+#if __GNUC__+0 >= 4 && defined(__linux__)
 #define HAVE_GCC_ATOMIC64 2
 #endif
 #endif

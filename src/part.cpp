@@ -29,7 +29,7 @@
 #include <stdarg.h>	// vsprintf, ...
 #include <ctype.h>	// tolower
 
-#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__)	\
+#if defined(HAVE_DIRENT_H) || defined(__unix__) || defined(__HOS_AIX__)	\
     || defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW32__) \
     || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
 #include <dirent.h>
@@ -18569,7 +18569,7 @@ void ibis::part::doBackup() {
     if ((state == UNKNOWN_STATE || state == PRETRANSITION_STATE ||
 	 state == POSTTRANSITION_STATE) && nEvents > 0) {
 	// only make copy nonempty tables in some states
-#if (defined(unix) && !defined(__CYGWIN__) && !(defined(sun) && defined(__GNUC__) && __GNUC__ <= 2)) || defined(__HOS_AIX__)
+#if (defined(__unix__) && !defined(__CYGWIN__) && !(defined(__sun) && defined(__GNUC__) && __GNUC__ <= 2)) || defined(__HOS_AIX__)
 	// block SIGHUP and SIGINT to this thread
 	sigset_t sigs;
 	sigemptyset(&sigs);
@@ -18586,7 +18586,7 @@ void ibis::part::doBackup() {
 		       activeDir, backupDir);
 
 	char* cmd = new char[strlen(activeDir)+strlen(backupDir)+32];
-#if defined(unix) || defined(linux) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__unix__) || defined(__linux__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
 	sprintf(cmd, "/bin/cp -fr \"%s\" \"%s\"", activeDir, backupDir);
 #elif defined(_WIN32)
 	sprintf(cmd, "xcopy /i /s /e /h /r /q \"%s\" \"%s\"", activeDir,
@@ -18623,7 +18623,7 @@ void ibis::part::doBackup() {
 		     "errno = %d", cmd, errno);
 	}
 	delete [] cmd;
-#if (defined(unix) && !defined(__CYGWIN__) && !(defined(sun) && defined(__GNUC__) && __GNUC__ <= 2)) || defined(__HOS_AIX__)
+#if (defined(__unix__) && !defined(__CYGWIN__) && !(defined(__sun) && defined(__GNUC__) && __GNUC__ <= 2)) || defined(__HOS_AIX__)
 	pthread_sigmask(SIG_UNBLOCK, &sigs, 0);
 #endif
     }
@@ -18662,7 +18662,7 @@ void ibis::part::makeBackupCopy() {
 		   "to set detached stat (ierr = %d ... %s)", ierr,
 		   strerror(ierr));
     }
-#elif defined(unix) || defined(__HOS_AIX__)
+#elif defined(__unix__) || defined(__HOS_AIX__)
     ierr = pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
     if (ierr
 #if defined(ENOTSUP)
@@ -20106,7 +20106,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
     catch (...) {
 	logMessage("gatherParts", "received an unexpected exception");
     }
-#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__)	\
+#if defined(HAVE_DIRENT_H) || defined(__unix__) || defined(__HOS_AIX__)	\
     || defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW32__) \
     || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
     // on unix machines, we know how to traverse the subdirectories
@@ -20238,7 +20238,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist,
 	logMessage("gatherParts", "received an unexpected "
 		   "exception");
     }
-#if defined(HAVE_DIRENT_H) || defined(unix) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
+#if defined(HAVE_DIRENT_H) || defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
     if (bdir == 0) return cnt; // must have both adir and bdir
     // on unix machines, the directories adir and bdir may contain
     // subdirectories -- this section of code reads the subdirectories to

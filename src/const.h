@@ -41,7 +41,7 @@
 #    define _XOPEN_VERSION 4
 #  endif
 #endif
-//  #if defined(unix) && !defined(__USE_UNIX98)
+//  #if defined(__unix__) && !defined(__USE_UNIX98)
 //  #define __USE_UNIX98
 //  #endif
 #if defined(__CYGWIN__) && !defined(HAVE_STRUCT_TIMESPEC)
@@ -78,7 +78,7 @@
 #    include <stdint.h>
 #  endif
 #else
-#  if defined(unix)||defined(linux)||defined(__APPLE__)||defined(__CYGWIN__)||defined(__FreeBSD__)
+#  if defined(__unix__)||defined(__linux__)||defined(__APPLE__)||defined(__CYGWIN__)||defined(__FreeBSD__)
 #    define HAVE_VPRINTF 1
 #    define HAVE_DIRENT_H 1
 #  endif
@@ -150,7 +150,7 @@
 #  define  __LIM_H_PARAM_
 #  include <sys/param.h>
 
-#elif defined(sun)
+#elif defined(__sun)
 #  include <limits.h>	// PATH_MAX, OPEN_MAX
 #  include <inttypes.h>	// int32_t, ...
 
@@ -168,7 +168,7 @@
 #    define PTHREAD_RWLOCK_INITIALIZER DEFAULTRWLOCK;
 #  endif
 
-#elif defined(unix) || defined(__HOS_AIX__)
+#elif defined(__unix__) || defined(__HOS_AIX__)
 #  include <stdint.h>	// int32_t, ...
 #  include <limits.h>	// PATH_MAX, OPEN_MAX
 #  ifdef __CYGWIN__ // cygwin port of gcc compiler
@@ -235,7 +235,7 @@
 // their corresponding MAX values are also defined with #define.  Since the
 // types themselves may be typedefs, the corresponding INTx_MAX are more
 // reliable checks.
-#if !(defined(HAVE_STDINT_H) || defined(unix) || defined(_WIN32) || defined(__APPLE__) || defined(__x86_64__) || defined(_STDINT_H))
+#if !(defined(HAVE_STDINT_H) || defined(__unix__) || defined(_WIN32) || defined(__APPLE__) || defined(__x86_64__) || defined(_STDINT_H))
 #  ifndef INT16_MAX
 #    define int16_t short int
 #    define INT16_MAX (32767)

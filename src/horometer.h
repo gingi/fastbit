@@ -5,7 +5,7 @@
 #define IBIS_HOROMETER_H
 #include <stdio.h>
 #include <time.h> // clock, clock_gettime
-#if defined(sun) || defined(linux) || defined(__HOS_AIX__) || \
+#if defined(__sun) || defined(__linux__) || defined(__HOS_AIX__) || \
     defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD__)
 #   include <limits.h> // CLK_TCK
 #   include <sys/time.h> // gettimeofday, timeval
@@ -126,8 +126,8 @@ inline double ibis::horometer::readWallClock() {
 	gettimeofday(&cpt, 0);
 	return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);
     }
-#elif defined(HAVE_GETTIMEOFDAY) || defined(unix) || defined(CRAY) || \
-    defined(linux) || defined(__HOS_AIX__) || defined(__APPLE__) || \
+#elif defined(HAVE_GETTIMEOFDAY) || defined(__unix__) || defined(CRAY) || \
+    defined(__linux__) || defined(__HOS_AIX__) || defined(__APPLE__) || \
     defined(__FreeBSD__)
     struct timeval cpt;
     gettimeofday(&cpt, 0);
@@ -159,7 +159,7 @@ inline double ibis::horometer::readWallClock() {
 /// Read the CPU timer.  It tries to use getrusage first, if not available,
 /// it falls back to times and clock.
 inline double ibis::horometer::readCPUClock() {
-#if defined(sun) || defined(sgi) || defined(linux) || defined(__APPLE__) \
+#if defined(__sun) || defined(sgi) || defined(__linux__) || defined(__APPLE__) \
     || defined(__HOS_AIX__) || defined(__CYGWIN__) || defined(__FreeBSD__)
     // on sun and linux, we can access getrusage to get more accurate time
     double time=0;
@@ -181,7 +181,7 @@ inline double ibis::horometer::readCPUClock() {
 	      "RUSAGE_CHILDRED", stderr);
     }
     return time;
-#elif defined(unix) || defined(CRAY)
+#elif defined(__unix__) || defined(CRAY)
 #if defined(__STDC__)
     struct tms cpt;
     times(&cpt);

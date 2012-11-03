@@ -66,7 +66,7 @@ static void builtin(const char *nm, FILE* output) {
     const char* conditions[] =
 	{"a<5", "a+b>150", "a < 60 and c < 60", "c > 90", "c > a"};
 
-    // prepare a sample data
+    /* prepare a sample data */
     for (i = 0; i < 100; ++ i) {
 	ivals[i] = i;
 	svals[i] = (int16_t) i;
@@ -76,7 +76,7 @@ static void builtin(const char *nm, FILE* output) {
     fastbit_add_values("b", "short", svals, 100, 0);
     fastbit_add_values("c", "float", fvals, 100, 0);
     fastbit_flush_buffer(dir);
-    // test the queries
+    /* test the queries */
     mult = fastbit_rows_in_partition(dir);
     if (mult % 100 != 0) { /* no an exact multiple */
 	fprintf(output, "Directory %s contains %d rows, but expected 100, "
@@ -100,7 +100,7 @@ static void builtin(const char *nm, FILE* output) {
 	    fastbit_destroy_query(h1);
 	}
 
-	// try the empty where clause
+	/* try the empty where clause */
 	h2 = fastbit_build_query(0, dir, 0);
 	nh2 = fastbit_get_result_rows(h2);
 	if (nh2 != 100 * mult) {
@@ -111,12 +111,12 @@ static void builtin(const char *nm, FILE* output) {
 	fastbit_destroy_query(h2);
     }
 
-    // try to append the same data again
+    /* try to append the same data again */
     fastbit_add_values("a", "int", ivals, 100, 0);
     fastbit_add_values("b", "short", svals, 100, 0);
     fastbit_add_values("c", "float", fvals, 100, 0);
     fastbit_flush_buffer(dir);
-    // test the same queries once more
+    /* test the same queries once more */
     ++ mult;
     for (i = 0; i < 5; ++ i) {
 	FastBitQueryHandle h = fastbit_build_query(0, dir, conditions[i]);
@@ -131,7 +131,7 @@ static void builtin(const char *nm, FILE* output) {
     }
     fprintf(output, "%s: built-in tests finished with nerrors = %d\n",
 	    nm, nerrors);
-} // builtin
+} /* builtin */
 
 int main(int argc, char **argv) {
     int ierr, nhits, vselect;

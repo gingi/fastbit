@@ -1,3 +1,11 @@
+2012-11-02 John Wu <John dot Wu at ACM dot org>
+	* src: replace compiler macros linux with __linux__, sun with
+	__sun, and unix with __unix__ to conform to the C standard
+	requirement on machine specific predefined macros (based on a
+	report from Hari Krishnan)
+	* src/capi.h, examples/tcapi.c, java/FastBit.c: change C++
+	comments to C-style comments (to compile with gcc -ansi)
+
 2012-10-29 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h: expand functions copyValue, column::equal_to,
 	column::less_than and column::append to handle string values (to
