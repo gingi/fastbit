@@ -1,3 +1,7 @@
+2012-11-08 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.h, src/bitvector.cpp: add function
+	bitvector::operator<
+
 2012-11-02 John Wu <John dot Wu at ACM dot org>
 	* src: replace compiler macros linux with __linux__, sun with
 	__sun, and unix with __unix__ to conform to the C standard

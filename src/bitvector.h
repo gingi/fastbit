@@ -111,6 +111,7 @@ public:
     ///@brief Perform bitwise subtraction and return the result as a new
     /// bitvector.
     bitvector* operator-(const bitvector&) const;
+    bool operator<(const bitvector&) const;
 
     void subset(const bitvector& mask, bitvector& res) const;
     word_t count(const bitvector& mask) const;

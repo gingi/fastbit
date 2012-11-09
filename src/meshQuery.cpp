@@ -27,21 +27,21 @@ ibis::meshQuery::~meshQuery() {
 } // desctuctor
 
 /**
-   This function converts the input bitmap to a list of blocks.
-   The bitmap is assumed to be a mapping of a regular mesh with dimensions
-   specified in variable dim.  A row-major ordering (C style multiple
-   dimensional arrays, NOT Fortran style) is assumed, that is the slowest
-   varying dimension is dim[0].
+   This function converts the input bitmap to a list of blocks.  The bitmap
+   is assumed to be a mapping of a regular mesh with dimensions specified
+   in variable @c dim.  A row-major ordering (the C style multiple
+   dimensional arrays, NOT the Fortran style) is assumed, that is the
+   slowest varying dimension is dim[0].
 
    @param reg The return value that contains the list of blocks as
    hypercubes.  Following the convention of typical C/C++ indexing scheme,
    the lower bounds of the blocks are inclusive and the upper bounds of the
    blocks are exclusive.  For example, a 2D block [2, 3, 5, 10] covers
    points with coordinates [2, 5], [2, 6], [2, 7], [2, 8] and [2, 9].  This
-   is an example of a line segment with five points.  This function may
-   generate hypercubes of any shape or size.  In general, the lower and
-   upper bounds of each dimension is specified together, where the lower
-   bound is inclusive but the upper bound is exclusive.
+   is an example of a line segment with five points.  In short, the lower
+   and upper bounds of each dimension is specified together, where the
+   lower bound is inclusive but the upper bound is exclusive.  This
+   function may generate hypercubes of any shape or size.
  
    @param dim The size of the mesh.  The value dim.size() is the number of
    dimensions.  Input argument, not modified.

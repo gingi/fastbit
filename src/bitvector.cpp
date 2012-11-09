@@ -1672,6 +1672,115 @@ ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
     return res;
 } // ibis::bitvector::operator-
 
+/// Provide an ordering among the bit vectors.  The comparison proceeds in
+/// three stages:
+/// - the bit vector with fewer total number of bits, as represented by the
+///   function size, will be declared "smaller";
+/// - for two bit vectors with the same number of bits, the one with fewer
+///   1s is declared as "smaller";
+/// - for two bit vectors with the same number of bits and the same number
+///   of 1s, the actual bit values are compared, in which case, a bit of 0
+///   is considered as smaller than a bit of 1.
+///
+/// Note that it is fine to compare two bit vectors that are compressed
+/// differently.  However, it is generally more efficient to compare bit
+/// vectors that have been compressed properly.
+bool ibis::bitvector::operator<(const ibis::bitvector &rhs) const {
+    // compare the number of bits in the two bit vectors
+    word_t nl = size();
+    word_t nr = rhs.size();
+    if (nl < nr) return true;
+    else if (nl > nr) return false;
+
+    // compare the number of set bits in the two bit vectors
+    nl = cnt();
+    nr = rhs.cnt();
+    if (nl < nr) return true;
+    else if (nl > nr) return false;
+
+    // compare the actual bit values through struct run
+    run x, y;
+    x.it = m_vec.begin();
+    y.it = rhs.m_vec.begin();
+    while (x.it < m_vec.end() && y.it < rhs.m_vec.end()) {
+	if (x.nWords == 0)
+	    x.decode();
+	if (y.nWords == 0)
+	    y.decode();
+
+	if (x.isFill != 0) {
+	    if (y.isFill != 0) {
+		if (x.fillBit < y.fillBit) {
+		    return true;
+		}
+		else if (x.fillBit > y.fillBit) {
+		    return false;
+		}
+		else if (x.nWords <= y.nWords) {
+		    y -= x.nWords;
+		    x.nWords = 0;
+		    ++ x.it;
+		}
+		else {
+		    x -= y.nWords;
+		    y.nWords = 0;
+		    ++ y.it;
+		}
+	    }
+	    else if (x.fillBit > 0) {
+		if (*y.it < ALLONES) {
+		    return false;
+		}
+		else {
+		    -- x;
+		    y.nWords = 0;
+		    ++ y.it;
+		}
+	    }
+	    else if (*y.it > 0) {
+		return true;
+	    }
+	    else {
+		-- x;
+		y.nWords = 0;
+		++ y.it;
+	    }
+	}
+	else if (y.isFill != 0) {
+	    if (y.fillBit > 0) {
+		if (*x.it < ALLONES) {
+		    return true;
+		}
+		else {
+		    -- y;
+		    x.nWords = 0;
+		    ++ x.it;
+		}
+	    }
+	    else if (*x.it > 0) {
+		return false;
+	    }
+	    else {
+		-- y;
+		x.nWords = 0;
+		++ x.it;
+	    }
+	}
+	else {
+	    if (*x.it < *y.it) return true;
+	    else if (*y.it < *x.it) return false;
+	    x.nWords = 0;
+	    y.nWords = 0;
+	    ++ x.it;
+	    ++ y.it;
+	}
+    }
+
+    if (x.it != m_vec.end()) return false;
+    if (y.it != rhs.m_vec.end()) return true;
+    return (active.val < rhs.active.val);
+} // ibis::bitvector::operator<
+
 /// Print each word in bitvector on a line.
 std::ostream& ibis::bitvector::print(std::ostream& o) const {
     if (! m_vec.empty()) {
