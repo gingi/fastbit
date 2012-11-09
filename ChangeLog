@@ -1,6 +1,10 @@
 2012-11-08 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h, src/bitvector.cpp: add function
 	bitvector::operator<
+	* src/bitvector.cpp:895 move casting operator inside the
+	parenthesis to correct a problem with converting -1 to a large
+	positive number (which leads to a very long delay in the function
+	bitvector::erase)
 
 2012-11-02 John Wu <John dot Wu at ACM dot org>
 	* src: replace compiler macros linux with __linux__, sun with

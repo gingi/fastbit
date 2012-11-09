@@ -887,12 +887,12 @@ void ibis::bitvector::erase(ibis::bitvector::word_t i,
 	}
 	// copy the remaining whole words
 	++ (iq.it);
-	while (iq.it != m_vec.end()) {
+	while (iq.it < m_vec.end()) {
 	    res.appendWord(*(iq.it));
 	    ++ (iq.it);
 	}
 	// copy the active word
-	for (long ii = (long)(active.nbits-1); ii >= 0; -- ii) {
+	for (long ii = ((long)active.nbits-1); ii >= 0; -- ii) {
 	    res += (int) ((active.val >> ii) & 1);
 	}
     }
