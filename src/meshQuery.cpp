@@ -6293,7 +6293,7 @@ int ibis::meshQuery::getHitsAsLines(std::vector<uint32_t>& lines,
 
     timer.stop();
     LOGGER(ibis::gVerbose > 2)
-	<< "meshQuery::getHitsAsLines -- coverting " << hits->cnt()
+	<< "meshQuery::getHitsAsLines -- converting " << hits->cnt()
 	<< " hit" << (hits->cnt()>1?"s":"") << " into " << ret
 	<< " line segement" << (ret > 1 ? "s" : "") << " took "
 	<< timer.realTime() << " sec (elapsed)";
@@ -6550,7 +6550,7 @@ int ibis::meshQuery::linesIn3D(std::vector<uint32_t>& lines,
 	    else { // spanning multiple planes
 		// complete the current line
 		lines.back() = nx;
-		// whole lines in the maining part of plane
+		// whole lines in the remaining part of plane
 		for (++ jy0; jy0 < dim[1]; ++ jy0) {
 		    lines.push_back(jz0);
 		    lines.push_back(jy0);
@@ -6569,7 +6569,7 @@ int ibis::meshQuery::linesIn3D(std::vector<uint32_t>& lines,
 		// while lines in the trailing plane
 		for (jy0 = 0; jy0 < jy1; ++ jy0) {
 		    lines.push_back(jz1);
-		    lines.push_back(jy1);
+		    lines.push_back(jy0);
 		    lines.push_back(0U);
 		    lines.push_back(nx);
 		}
@@ -6688,7 +6688,7 @@ int ibis::meshQuery::linesIn4D(std::vector<uint32_t>& lines,
 		else { // spanning multiple planes
 		    // complete the current line
 		    lines.back() = nw;
-		    // whole lines in the maining part of plane
+		    // whole lines in the remaining part of plane
 		    for (++ jx0; jx0 < dim[2]; ++ jx0) {
 			lines.push_back(jz0);
 			lines.push_back(jy0);

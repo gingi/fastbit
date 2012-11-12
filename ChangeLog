@@ -1,3 +1,6 @@
+2012-11-11 John Wu <John dot Wu at ACM dot org>
+	* src/meshQuery.cpp:6572 jy1 should have been jy0
+
 2012-11-08 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h, src/bitvector.cpp: add function
 	bitvector::operator<
