@@ -1,3 +1,8 @@
+2012-11-13 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp:619,686 split the test for delimiter from the test
+	for null terminators in readInt and readUInt to address a problem
+	reported by Michael Beauregard
+
 2012-11-11 John Wu <John dot Wu at ACM dot org>
 	* src/meshQuery.cpp:6572 jy1 should have been jy0
 

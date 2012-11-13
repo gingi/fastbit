@@ -615,8 +615,12 @@ int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
     val = 0;
     if (str == 0 || *str == 0) return -1;
     for (; isspace(*str); ++ str); // skip leading space
-    if (*str == 0 || (del != 0 && *del != 0 && strchr(del, *str) != 0))
+    if (*str == 0)
 	return -1;
+    if (del != 0 && *del != 0 && strchr(del, *str) != 0) {
+	++ str;
+	return -2;
+    }
 
     if (*str == '0' && (str[1] == 'x' || str[1] == 'X')) { // hexadecimal
 	return readUInt(reinterpret_cast<uint64_t&>(val), str, del);
@@ -636,7 +640,7 @@ int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
 		<< ", reset val to 0";
 	    val = 0;
 	    while (*str != 0 && isdigit(*str) != 0) ++ str;
-	    return -2;
+	    return -3;
 	}
 	++ str;
     }
@@ -679,8 +683,12 @@ int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
     val = 0;
     if (str == 0 || *str == 0) return -1;
     for (; isspace(*str); ++ str); // skip leading space
-    if (*str == 0 || (del != 0 && *del != 0 && strchr(del, *str) != 0))
+    if (*str == 0)
 	return -1;
+    if (del != 0 && *del != 0 && strchr(del, *str) != 0) {
+	++ str;
+	return -2;
+    }
 
     if (*str == '0' && (str[1] == 'x' || str[1] == 'X')) { // hexadecimal
 	while ((*str >= '0' && *str <= '9') ||
@@ -706,7 +714,7 @@ int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
 		    << ", reset val to 0";
 		val = 0;
 		while (*str != 0 && isdigit(*str) != 0) ++ str;
-		return -2;
+		return -3;
 	    }
 	    ++ str;
 	}
@@ -724,7 +732,7 @@ int ibis::util::readUInt(uint64_t& val, const char *&str, const char* del) {
 		    << ", reset val to 0";
 		val = 0;
 		while (*str != 0 && isdigit(*str) != 0) ++ str;
-		return -2;
+		return -4;
 	    }
 	    ++ str;
 	}
