@@ -52,8 +52,8 @@ public:
 	unsigned seed;
 	FILE* fptr = fopen("/dev/random", "rb");
 	if (fptr != 0) {
-	    (void) fread(&seed, sizeof(seed), 1, fptr);
-	    if (seed == 0)
+	    int ierr = fread(&seed, sizeof(seed), 1, fptr);
+	    if (ierr < 1 || seed == 0)
 		seed = time(0);
 	}
 	else {

@@ -1,7 +1,12 @@
+2012-11-15 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: mark the current source code as ibis1.3.4
+
 2012-11-13 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp:619,686 split the test for delimiter from the test
 	for null terminators in readInt and readUInt to address a problem
 	reported by Michael Beauregard
+	* src/twister.h:55 record the return value from fread to avoid
+	complaints from GCC compilers
 
 2012-11-11 John Wu <John dot Wu at ACM dot org>
 	* src/meshQuery.cpp:6572 jy1 should have been jy0
@@ -56,10 +61,6 @@
 	by Andrew Olson)
 	* src/idirekte.cpp: update the constructor to make use of the
 	column mask, instead of assuming all values are the same
-	* examples/Makefile.am: add targets MagNullQueryIndex and
-	MagNullQueryScan
-	* examples/MagNull*.cpp, examples/BP*.cpp: update files so that
-	they can be compiled (still need debugging)
 
 2012-10-17 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp: change the templated constructor of

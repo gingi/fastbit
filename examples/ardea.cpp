@@ -331,16 +331,16 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 	}
     } // for (int i=1; ...)
 
-    std::cout << argv[0] << ": verbose level " << ibis::gVerbose << "\n";
+    std::cout << argv[0] << " -d \"" << outdir << "\" -v " << ibis::gVerbose;
     if (sqlfiles.size() > 0) {
-	std::cout << "Will attempt to parse sql dump file"
+	std::cout << "\nWill attempt to parse sql dump file"
 		  << (sqlfiles.size()>1?"s":"") << ":";
 	for (size_t i = 0; i < sqlfiles.size(); ++ i)
 	    std::cout << "\n\t" << sqlfiles[i];
 	std::cout << std::endl;
     }
     if (inputrows.size() > 0 || csvfiles.size() > 0) {
-	std::cout << "Will attempt to parse ";
+	std::cout << "\nWill attempt to parse ";
 	if (inputrows.size() > 0)
 	    std::cout << inputrows.size() << " row"
 		      << (inputrows.size() > 1 ? "s" : "");

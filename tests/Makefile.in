@@ -651,15 +651,13 @@ uninstall-am:
 #
 # tests with different levels of thoroughness
 check: clean-tmp check-am TESTDIR
-	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} setqgen${EXEEXT} >> $(TESTDIR)/std.log 2>&1
-	@$(MAKE) check-thula && $(MAKE) check-tcapi && \
-	$(MAKE) check-text && $(MAKE) check-marksdb && \
-	$(MAKE) really-small && $(MAKE) check-maurel && \
-	$(MAKE) check-ibis && $(MAKE) check-join && $(MAKE) check-labeling
-more-check:
-	$(MAKE) check && $(MAKE) check-jrf && $(MAKE) small-tests && $(MAKE) check-sq0
-full-check:
-	$(MAKE) more-check && $(MAKE) large-tests && $(MAKE) check-sq1 && $(MAKE) check-sq2
+	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} >> $(TESTDIR)/std.log 2>&1
+	make really-small check-thula check-tcapi check-text check-marksdb check-maurel check-ibis check-join check-labeling
+more-check: check
+	@$(MAKE) setqgen${EXEEXT} jrf${EXEEXT} >> $(TESTDIR)/std.log 2>&1
+	make check-jrf small-tests check-sq0
+full-check: more-check
+	make large-tests check-sq1 check-sq2
 #
 # small scale tests, may take about ten minutes on a typical Linux machine
 small-tests: append-test sanity-check match-counts
@@ -667,8 +665,7 @@ small-tests: append-test sanity-check match-counts
 # the following target excercises larger tests and also excercieses
 # obselete index options
 # the tests run on the same set of data files and can not be run in parallel
-large-tests: large-append-test
-	 $(MAKE) multilevel && $(MAKE) large-sanity-check
+large-tests: large-append-test multilevel large-sanity-check
 #
 check-thula: $(THULAEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@rm -f $(TESTDIR)/thula-0 $(TESTDIR)/thula-1
@@ -1101,8 +1098,8 @@ do-large-append: do-small-append $(TESTDIR)/at0 $(TESTDIR)/at1
 	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at0 appendTest0 >> $(TESTDIR)/append.log 2>&1; \
 	$(IBISEXE) -c $(TESTDIR)/append.rc -v -append $(TESTDIR)/at1 appendTest1 >> $(TESTDIR)/append.log 2>&1; \
 	done
-	@$(IBISEXE) -v -reorder $(TESTDIR)/1/appendTest0 \
-	-reorder $(TESTDIR)/2/appendTest0 >> $(TESTDIR)/append.log 2>&1
+	@$(IBISEXE) -v -reorder $(TESTDIR)/1/appendTest0 >> $(TESTDIR)/append.log 2>&1
+	@$(IBISEXE) -v -reorder $(TESTDIR)/2/appendTest0 >> $(TESTDIR)/append.log 2>&1
 #
 $(IBISEXE):
 	@cd $(EXDIR) && $(MAKE) ibis$(EXEEXT)
