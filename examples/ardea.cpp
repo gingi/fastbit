@@ -331,16 +331,22 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 	}
     } // for (int i=1; ...)
 
-    std::cout << argv[0] << " -d \"" << outdir << "\" -v " << ibis::gVerbose;
+    std::cout << argv[0] << " -v " << ibis::gVerbose;
+    if (outdir != 0 && *outdir != 0)
+	std::cout << " -d \"" << outdir << '"';
+    else
+	std::cout << "\n  Will not write data to disk";
+
     if (sqlfiles.size() > 0) {
-	std::cout << "\nWill attempt to parse sql dump file"
+	std::cout << "\n  Will attempt to parse sql dump file"
 		  << (sqlfiles.size()>1?"s":"") << ":";
 	for (size_t i = 0; i < sqlfiles.size(); ++ i)
 	    std::cout << "\n\t" << sqlfiles[i];
 	std::cout << std::endl;
     }
+
     if (inputrows.size() > 0 || csvfiles.size() > 0) {
-	std::cout << "\nWill attempt to parse ";
+	std::cout << "\n  Will attempt to parse ";
 	if (inputrows.size() > 0)
 	    std::cout << inputrows.size() << " row"
 		      << (inputrows.size() > 1 ? "s" : "");
@@ -371,10 +377,11 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 	}
 	std::cout << std::endl;
     }
+
     if (qcnd.size() > 0) {
-	std::cout << "Will also exercise the following queries: ";
+	std::cout << "  Will exercise the following queries: ";
 	for (qList::const_iterator it = qcnd.begin(); it != qcnd.end(); ++it)
-	    std::cout << "  " << *it << "\n";
+	    std::cout << "\t" << *it << "\n";
     }
     std::cout << std::endl;
 } // parse_args
@@ -785,6 +792,7 @@ static void doQuery(const ibis::table& tbl, const char* wstr,
 } // doQuery
 
 int main(int argc, char** argv) {
+    ibis::util::timer mytimer(*argv, 0);
     const char* outdir = ""; // default to keep data in memory
     const char* sel;
     const char* dsn = 0;
@@ -914,7 +922,7 @@ int main(int argc, char** argv) {
     else { // use hard-coded data and queries
 	int64_t buf[] = {10, -21, 32, -43, 54, -65, 76, -87, 98, -127};
 	if (ibis::gVerbose >= 0)
-	    std::cout << *argv << " to use hard-coded data ..." << std::endl;
+	    std::cout << *argv << " to use hard-coded test data ..." << std::endl;
 
 	ta->addColumn("s1", ibis::SHORT);
 	ta->addColumn("i2", ibis::INT);
@@ -1024,7 +1032,7 @@ int main(int argc, char** argv) {
 	    std::cout << "Warning -- ";
 	std::cout << *argv << " processed 10 hard-coded queries on " << multi
 		  << " cop" << (multi > 1 ? "ies" : "y")
-		  << " of hard-coded data, found " << ierr
+		  << " of hard-coded test data, found " << ierr
 		  << " unexpected result" << (ierr > 1 ? "s" : "")
 		  << std::endl;
     }

@@ -1,3 +1,9 @@
+2012-11-21 John Wu <John dot Wu at ACM dot org>
+	* examples/ardea.cpp: add timer to main to report the total
+	elapsed time within main, minor adjustment to print out about the
+	input parameters to make it clear that no output to disk with the
+	option -d is not specified
+
 2012-11-15 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: mark the current source code as ibis1.3.4
 

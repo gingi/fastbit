@@ -1100,15 +1100,14 @@ namespace ibis {
 	    sharedInt64& operator=(const sharedInt64&); // no assignment
 	}; // sharedInt64
 
-	/// Print simply-formated timing information.  It starts the clock
-	/// in the constructor, stops the clock in the destructor, and
-	/// reports the CPU time and elapsed time in between.  Typically
-	/// one would declare an object of this class in a block of code,
-	/// and let the object be cleaned up by compiler generated code at
-	/// the end of its scope.  Upon destruction of this object, it
-	/// prints its lifespan.  To distiguish the different time
-	/// durations, the user should provide a meaningful description to
-	/// the constructor.
+	/// Print simply timing information.  It starts the clock in the
+	/// constructor, stops the clock in the destructor, and reports the
+	/// CPU time and elapsed time in between.  Typically one would
+	/// declare an object of this class in a block of code, and let the
+	/// object be cleaned up by compiler generated code at the end of
+	/// its scope.  Upon destruction of this object, it prints its
+	/// lifespan.  To distiguish the different time durations, the user
+	/// should provide a meaningful description to the constructor.
 	class timer {
 	public:
 	    explicit timer(const char* msg, int lvl=1);
