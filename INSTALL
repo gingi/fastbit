@@ -25,13 +25,17 @@ full-check' must be run as serial jobs (with only one thread of
 execution).
 
 If you are compiling with GCC, please choose version 4 for better
-support of the extensive template use.
+support of the extensive template uses.
+
+
+*** NOTE: It is highly recommended that FastBit to be installed in its
+***       own directory, not mixed with other packages.
 
 To place the executable files and libraries in their expected locations,
 execute 'make install'.  As usual, the location of the installed files
 is specified by the variable 'prefix', e.g., (it is usually better to
 specify installation direcotry on the command line of configure, see
-note 13 )
+note 13)
 
 make prefix=${HOME} install
 
