@@ -46,11 +46,14 @@ public:
 /// further used in other random number generators.
 class ibis::MersenneTwister : public ibis::uniformRandomNumber {
 public:
-    /// Constructor.  This default constructor uses a value from
-    /// /dev/random or the current time as the seed to initialize.
+    /// Constructor.  This default constructor uses a value of the current
+    /// time as the seed to initialize.  Define FASTBIT_USE_DEV_URANDOM if
+    /// one desires to initialize the random number generator with a more
+    /// unpredictable seed.
     MersenneTwister() {
 	unsigned seed;
-	FILE* fptr = fopen("/dev/random", "rb");
+#if defined(FASTBIT_USE_DEV_URANDOM)
+	FILE* fptr = fopen("/dev/urandom", "rb");
 	if (fptr != 0) {
 	    int ierr = fread(&seed, sizeof(seed), 1, fptr);
 	    if (ierr < 1 || seed == 0)
@@ -59,6 +62,9 @@ public:
 	else {
 	    seed = time(0);
 	}
+#else
+	seed = time(0);
+#endif
 	setSeed(seed);
     }
     /// Constructor.  Uses a user specified integer as seed.

@@ -1,3 +1,15 @@
+2012-11-28 John Wu <John dot Wu at ACM dot org>
+	* src/twister.h: add macro FASTBIT_USE_DEV_URANDOM to control the
+	use of system generated seed for the random number generator
+	MersenneTwister.  The use of /dev/random causes the initializer to
+	block on compute node linux and other low entropy environments,
+	which introduces unpredictable delays (a problem raised by Preeti
+	Gupta)
+	* src/part.cpp: change _ibis_part_urand to a function to allow the
+	initialization of the random number generator to be possibly
+	delayed (the decision of when the intialization actually happens
+	is determined by the compiler)
+
 2012-11-21 John Wu <John dot Wu at ACM dot org>
 	* examples/ardea.cpp: add timer to main to report the total
 	elapsed time within main, minor adjustment to print out about the

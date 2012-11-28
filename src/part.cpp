@@ -38,8 +38,12 @@
 #define pclose _pclose
 #endif
 
-// a higher quality random number generator with the file scope
-static ibis::MersenneTwister _ibis_part_urand;
+// A higher quality random number generator within the file scope.  Use a
+// function to (possibly) delay the invocation of the constructor.
+static ibis::MersenneTwister& _ibis_part_urand() {
+    static ibis::MersenneTwister mt;
+    return mt;
+} // _ibis_part_urand
 
 extern "C" {
     /// A thread function to run the function queryTest or quickTest.
@@ -675,7 +679,7 @@ void ibis::part::rename(const ibis::partAssoc& known) {
     ibis::util::mutexLock ml(&mutex, "part::rename");
     if (switchTime == 0) // presume to be not yet set
 	switchTime = time(0);
-    // try 0: use the description
+    // attempt 0: use the description
     if (m_name == 0 || *m_name == 0) {
 	if (activeDir != 0 && *activeDir != 0) {
 	    tmp1 = activeDir;
@@ -694,7 +698,7 @@ void ibis::part::rename(const ibis::partAssoc& known) {
 	    return;
 	}
     }
-    // try 1: use the time stamp
+    // attempt 1: use the time stamp
     rands.push_back(switchTime);
     ibis::util::int2string(tmp2, rands[0]);
     if (m_name != 0 && *m_name != 0)
@@ -707,7 +711,7 @@ void ibis::part::rename(const ibis::partAssoc& known) {
 	m_name = ibis::util::strnewdup(tmp1.c_str());
 	return;
     }
-    // try 2: add ibeat
+    // attempt 2: add ibeat
     rands.push_back(ibis::fileManager::iBeat());
     ibis::util::int2string(tmp2, rands[0], rands[1]);
     tmp1.erase(stem);
@@ -717,10 +721,10 @@ void ibis::part::rename(const ibis::partAssoc& known) {
 	m_name = ibis::util::strnewdup(tmp1.c_str());
 	return;
     }
-    // try 3: add random numbers
+    // attempt 3: add random numbers
     while (true) {
 	// add a new random number
-	rands.push_back(_ibis_part_urand.nextInt());
+	rands.push_back(_ibis_part_urand().nextInt());
 	ibis::util::int2string(tmp2, rands);
 	tmp1.erase(stem);
 	tmp1 += tmp2;
@@ -7563,6 +7567,7 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
 	}
     }
 
+    ibis::MersenneTwister &mt = _ibis_part_urand();
     struct group {
 	const ibis::column *col1;
 	const ibis::column *col2;
@@ -7573,10 +7578,8 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
     for (unsigned i = 0; i < nc-1; ++ i) {
 	grp[i].col1 = cols[i];
 	grp[i].col2 = cols[i+1];
-	const double mid1 = lower[i] + (upper[i] - lower[i]) *
-	    _ibis_part_urand();
-	const double mid2 = lower[i+1] + (upper[i+1] - lower[i+1]) *
-	    _ibis_part_urand();
+	const double mid1 = lower[i] + (upper[i] - lower[i]) * mt();
+	const double mid2 = lower[i+1] + (upper[i+1] - lower[i+1]) * mt();
 	grp[i].pos.resize(2);
 	grp[i].lower1.resize(2);
 	grp[i].lower2.resize(2);
@@ -7621,8 +7624,7 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
 	    for (unsigned i = 0; i < grp[ig].lower1.size() && more; ++ i) {
 		if (expand1) { // subdivide the range of col1
 		    double mid1 = grp[ig].lower1[i] +
-			(grp[ig].upper1[i]-grp[ig].lower1[i]) *
-			_ibis_part_urand();
+			(grp[ig].upper1[i]-grp[ig].lower1[i]) * mt();
 		    std::string front, back;
 		    lower1[i+i] = grp[ig].lower1[i];
 		    upper1[i+i] = mid1;
@@ -7660,8 +7662,7 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
 		}
 		else { // subdivide the range of col2
 		    double mid2 = grp[ig].lower2[i] +
-			(grp[ig].upper2[i]-grp[ig].lower2[i]) *
-			_ibis_part_urand();
+			(grp[ig].upper2[i]-grp[ig].lower2[i]) * mt();
 		    std::string front, back;
 		    lower1[i+i] = grp[ig].lower1[i];
 		    upper1[i+i] = grp[ig].upper1[i];
