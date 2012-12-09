@@ -11102,7 +11102,7 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 	    }
 	    break;}
 	case ibis::UBYTE: {
-	    res.bytesnames.push_back(buffer[j].cname);
+	    res.ubytesnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval) {
 		res.ubytesvalues.push_back
 		    ((* static_cast<const array_t<const unsigned char>*>
@@ -11124,7 +11124,7 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 	    }
 	    break;}
 	case ibis::USHORT: {
-	    res.shortsnames.push_back(buffer[j].cname);
+	    res.ushortsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval) {
 		res.ushortsvalues.push_back
 		    ((* static_cast<const array_t<const uint16_t>*>
@@ -11146,7 +11146,7 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 	    }
 	    break;}
 	case ibis::UINT: {
-	    res.intsnames.push_back(buffer[j].cname);
+	    res.uintsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval) {
 		res.uintsvalues.push_back
 		    ((* static_cast<const array_t<const uint32_t>*>
@@ -11168,7 +11168,7 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 	    }
 	    break;}
 	case ibis::ULONG: {
-	    res.longsnames.push_back(buffer[j].cname);
+	    res.ulongsnames.push_back(buffer[j].cname);
 	    if (buffer[j].cval) {
 		res.ulongsvalues.push_back
 		    ((* static_cast<const array_t<const uint64_t>*>

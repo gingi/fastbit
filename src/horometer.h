@@ -116,9 +116,9 @@ private:
 /// Read the system's wallclock timer.  It tries to use clock_gettime if it
 /// is available, otherwise it falls back to gettimeofday and clock.
 inline double ibis::horometer::readWallClock() {
-#if defined(CLOCK_REALTIME) && !defined(__CYGWIN__)
+#if defined(CLOCK_MONOTONIC) && !defined(__CYGWIN__)
     struct timespec tb;
-    if (0 == clock_gettime(CLOCK_REALTIME, &tb)) {
+    if (0 == clock_gettime(CLOCK_MONOTONIC, &tb)) {
 	return static_cast<double>(tb.tv_sec) + (1e-9 * tb.tv_nsec);
     }
     else {

@@ -129,27 +129,30 @@ ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
 int ibis::moins::write(const char* dt) const {
     if (nobs == 0) return -1;
 
-    std::string name;
-    indexFileName(name, dt);
-    if (0 != str && 0 != str->filename() &&
-	0 == name.compare(str->filename())) {
+    std::string fnm;
+    indexFileName(fnm, dt);
+    if (fnm.empty()) {
 	return 0;
     }
-    else if (fname != 0 && *fname != 0 && 0 == name.compare(fname)) {
+    else if (0 != str && 0 != str->filename() &&
+	     0 == fnm.compare(str->filename())) {
 	return 0;
     }
-    ibis::fileManager::instance().flushFile(name.c_str());
+    else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
+	return 0;
+    }
+    ibis::fileManager::instance().flushFile(fnm.c_str());
 
     if (fname != 0 || str != 0)
 	activate();
 
-    int fdes = UnixOpen(name.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-	ibis::fileManager::instance().flushFile(name.c_str());
-	fdes = UnixOpen(name.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    col->logWarning("moins::write", "unable to open \"%s\" for write",
-			    name.c_str());
+			    fnm.c_str());
 	    return -2;
 	}
     }
@@ -170,7 +173,7 @@ int ibis::moins::write(const char* dt) const {
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- moins[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << name
+	    << col->name() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
@@ -189,7 +192,7 @@ int ibis::moins::write(const char* dt) const {
 	LOGGER(ibis::gVerbose > 3)
 	    << "moins[" << col->partition()->name() << '.' << col->name()
 	    << "]::write -- wrote " << nbits << " bitmap"
-	    << (nbits>1?"s":"") << " to file " << name << " for " << nrows
+	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
 	    << " object" << (nrows>1?"s":"");
     }
     return ierr;

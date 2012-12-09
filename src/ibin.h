@@ -176,7 +176,7 @@ public:
 	ibis::bitvector* locm; ///< Values less than the target.
 	ibis::bitvector* locp; ///< Values greater than the target.
 
-	/// Construct.  User has to explicitly allocated the bitvectors.
+	/// Constructor.  User has to explicitly allocated the bitvectors.
 	granule() : minm(DBL_MAX), maxm(-DBL_MAX), minp(DBL_MAX),
 		    maxp(-DBL_MAX), loce(0), locm(0), locp(0) {};
 	/// Destructor.
@@ -253,6 +253,10 @@ public:
 	}
     }; // comparevalpos
 
+    void construct(const char*);
+    template <typename E>
+    void construct(const array_t<E>& varr);
+
 protected:
     // member variables shared by all derived classes -- the derived classes
     // are allowed to interpret the actual content differently.
@@ -265,8 +269,6 @@ protected:
     bin(const ibis::column* c, const uint32_t nbits,
 	ibis::fileManager::storage* st, size_t offset = 8);
 
-    /// Construct a binned bitmap index.
-    void construct(const char*);
     /// Generate bins according to the specified boundaries.
     void binning(const char* f, const std::vector<double>& bd);
     void binning(const char* f, const array_t<double>& bd);
@@ -296,8 +298,6 @@ protected:
 		       const array_t<uint32_t> cnt1,
 		       const array_t<uint32_t> cnt0) const;
     // functions to deal with in-memory arrays
-    template <typename E>
-    void construct(const array_t<E>& varr);
     template <typename E>
     void binning(const array_t<E>& varr);
     template <typename E>

@@ -3456,30 +3456,33 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 	hits.set(0, nEvents);
 	return ierr;
     }
-
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::evaluateRange";
     const ibis::column* col = getColumn(cmp.colName());
     if (col != 0) {
-	// ibis::bitvector mymask;
-	// col->getNullMask(mymask);
-	// mymask &= mask;
+	if (ibis::gVerbose > 2) {
+	    std::ostringstream oss;
+	    oss << '(' << cmp << ')';
+	    evt += oss.str();
+	}
+
 	ierr = col->evaluateRange(cmp, mask, hits);
 	if (ierr < 0) {
-	    ibis::util::mutexLock lock(&mutex, "part::evaluateRange");
+	    ibis::util::mutexLock lock(&mutex, evt.c_str());
 	    unloadIndexes();
 	    ierr = col->evaluateRange(cmp, mask, hits);
 	}
     }
     else {
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- part[" << name()
-	    << "]::evaluateRangeun failed to find a column named "
+	    << "Warning -- " << evt << " failed to find a column named "
 	    << cmp.colName();
 	hits.set(0, nEvents);
     }
 
     LOGGER(ibis::gVerbose > 7)
-	<< "part[" << name() << "]::evaluateRange("
-	<< cmp << "), ierr = " << ierr;
+	<< evt << " completed with ierr = " << ierr;
     return ierr;
 } // ibis::part::evaluateRange
 
@@ -3498,8 +3501,17 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
 	return 0;
     }
 
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::estimateRange";
     const ibis::column* col = getColumn(cmp.colName());
     if (col != 0) {
+	if (ibis::gVerbose > 2) {
+	    std::ostringstream oss;
+	    oss << '(' << cmp << ')';
+	    evt += oss.str();
+	}
+
 	ierr = col->estimateRange(cmp, low, high);
 	if (amask.size() == low.size()) {
 	    low &= amask;
@@ -3509,8 +3521,7 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
     }
     else {
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- part[" << name()
-	    << "]::estimateRange failed to find a column named "
+	    << "Warning -- " << evt << " failed to find a column named "
 	    << cmp.colName();
 	high.set(0, nEvents);
 	low.set(0, nEvents);
@@ -3518,13 +3529,11 @@ long ibis::part::estimateRange(const ibis::qContinuousRange &cmp,
 
     if (high.size() == low.size() && high.cnt() > low.cnt()) {
 	LOGGER(ibis::gVerbose > 7)
-	    << "part[" << name() << "]::estimateRange("
-	    << cmp << ") --> [" << low.cnt() << ", " << high.cnt() << "]";
+	    << evt << " --> [" << low.cnt() << ", " << high.cnt() << "]";
     }
     else {
 	LOGGER(ibis::gVerbose > 7)
-	    << "part[" << name() << "]::estimateRange("
-	    << cmp << ") = " << low.cnt();
+	    << evt << " = " << low.cnt();
     }
     return ierr;
 } // ibis::part::estimateRange
@@ -4172,55 +4181,32 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	mask.size() == 0 || mask.cnt() == 0)
 	return 0;
 
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::doScan";
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- part[" << name()
-	    << "]::doScan failed to find named column "
+	    << "Warning -- " << evt << " failed to find named column "
 	    << cmp.colName();
 	return -1;
     }
-
-    std::string sname;
-    ibis::fileManager::storage *st = col->getRawData();
-    if (st == 0) {
-	const char* file = col->dataFileName(sname);
-	if (file == 0) {
-	    logWarning("doScan", "unable to locate the vertically "
-		       "partitioned data file");
-	    return -2;
-	}
-	if (col->elementSize() > 0) {
-	    off_t fsize = ibis::util::getFileSize(file);
-	    if (fsize <= 0 || (unsigned long)fsize !=
-		col->elementSize() * nEvents) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- part[" << (m_name?m_name:"?")
-		    << "]::doScan(" << cmp
-		    << ") can not proceed because of missing data file \""
-		    << file << "\" or unexpected file size (actual " << fsize
-		    << ", expected " << col->elementSize() * nEvents << ")";
-		return -3;
-	    }
-	}
-	else {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- part[" << (m_name?m_name:"?")
-		<< "]::doScan(" << cmp
-		<< ") can not process the condition on column type "
-		<< ibis::TYPESTRING[(int)col->type()];
-	    return -4;
-	}
+    if (ibis::gVerbose > 2) {
+	std::ostringstream oss;
+	oss << '(' << cmp << ')';
+	evt += oss.str();
     }
 
+    std::string sname;
+    (void) col->dataFileName(sname);
     long ierr = 0;
     switch (col->type()) {
     default:
-	logWarning("doScan", "unable to process data type %d (%s)",
-		   col->type(),
-		   ibis::TYPESTRING[(int)col->type()]);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not process data type "
+	    << col->type() << " (" << ibis::TYPESTRING[(int)col->type()] << ")";
 	hits.set(0, nEvents);
-	ierr = -5;
+	ierr = -2;
 	break;
 
     case ibis::CATEGORY: {
@@ -4267,8 +4253,9 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	break;}
 
     case ibis::LONG: {
-	if (st != 0) {
-	    ibis::array_t<int64_t> intarray(st);
+	ibis::array_t<int64_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    switch (cmp.getType()) {
 	    default: {
 		ierr = doCompare(intarray, cmp, mask, hits);
@@ -4290,7 +4277,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    switch (cmp.getType()) {
 	    default:
 		ierr = doCompare<int64_t>(sname.c_str(), cmp, mask, hits);
@@ -4307,11 +4294,18 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::ULONG: {
-	if (st != 0) {
-	    ibis::array_t<uint64_t> intarray(st);
+	ibis::array_t<uint64_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    switch (cmp.getType()) {
 	    default: {
 		ierr = doCompare(intarray, cmp, mask, hits);
@@ -4333,7 +4327,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    switch (cmp.getType()) {
 	    default:
 		ierr = doCompare<uint64_t>(sname.c_str(), cmp, mask, hits);
@@ -4350,11 +4344,18 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::INT: {
-	if (st != 0) {
-	    ibis::array_t<int32_t> intarray(st);
+	ibis::array_t<int32_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4364,14 +4365,21 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		ierr = doCompare(intarray, cmp, mask, hits);
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<int32_t>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::UINT: {
-	if (st != 0) {
-	    ibis::array_t<uint32_t> intarray(st);
+	ibis::array_t<uint32_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4381,14 +4389,21 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		ierr = doCompare(intarray, cmp, mask, hits);
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<uint32_t>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::SHORT: {
-	if (st != 0) {
-	    ibis::array_t<int16_t> intarray(st);
+	ibis::array_t<int16_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4398,14 +4413,21 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		ierr = doCompare(intarray, cmp, mask, hits);
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<int16_t>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::USHORT: {
-	if (st != 0) {
-	    ibis::array_t<uint16_t> intarray(st);
+	ibis::array_t<uint16_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4415,14 +4437,21 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		ierr = doCompare(intarray, cmp, mask, hits);
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<uint16_t>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::BYTE: {
-	if (st != 0) {
-	    ibis::array_t<signed char> intarray(st);
+	ibis::array_t<signed char> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4432,14 +4461,21 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		ierr = doCompare(intarray, cmp, mask, hits);
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<signed char>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::UBYTE: {
-	if (st != 0) {
-	    ibis::array_t<unsigned char> intarray(st);
+	ibis::array_t<unsigned char> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4449,14 +4485,21 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		ierr = doCompare(intarray, cmp, mask, hits);
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<unsigned char>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::FLOAT: {
-	if (st != 0) {
-	    ibis::array_t<float> floatarray(st);
+	ibis::array_t<float> floatarray;
+	ierr = col->getValuesArray(&floatarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE)
 		ierr = doScan
 		    (floatarray,
@@ -4465,14 +4508,21 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    else
 		ierr = doCompare(floatarray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<float>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::DOUBLE: {
-	if (st != 0) {
-	    ibis::array_t<double> doublearray(st);
+	ibis::array_t<double> doublearray;
+	ierr = col->getValuesArray(&doublearray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE)
 		ierr = doScan
 		    (doublearray,
@@ -4481,23 +4531,27 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	    else
 		ierr = doCompare(doublearray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<double>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
     }
 
     if (hits.size() != nEvents) {
-	if (ibis::gVerbose > 3) // could happen when no hits
-	    logMessage("doScan", "result array contains %lu bits, reset "
-		       "size to %lu", static_cast<long unsigned>(hits.size()),
-		       static_cast<long unsigned>(nEvents));
+	LOGGER(ibis::gVerbose > 3) // could happen when no hits
+	    << evt << " need to reset the result bit vector from "
+	    << hits.size() << " to " << nEvents;
 	hits.adjustSize(0, nEvents); // append 0 bits or remove extra bits
     }
-    LOGGER(ibis::gVerbose > 11)
-	<< "part[" << name() << "]: comparison " << cmp
-	<< " is evaluated to have " << hits.cnt()
-	<< " hits out of " << mask.cnt() << " candidates";
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " examined " << mask.cnt() << " candidates and found "
+	<< hits.cnt() << " hits";
     return ierr;
 } // ibis::part::doScan
 
@@ -4512,61 +4566,38 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	mask.size() == 0 || mask.cnt() == 0)
 	return 0;
 
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::doScan";
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << (m_name?m_name:"?")
-	    << "]::doScan failed to find named column " << cmp.colName();
+	    << "Warning -- " << evt << " failed to find named column "
+	    << cmp.colName();
 	return -1;
+    }
+    if (ibis::gVerbose > 2) {
+	std::ostringstream oss;
+	oss << '(' << cmp << ')';
+	evt += oss.str();
     }
 
     std::string sname;
-    ibis::fileManager::storage *st = col->getRawData();
-    if (st == 0) {
-	const char* file = col->dataFileName(sname);
-	if (file == 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- part[" << (m_name?m_name:"?")
-		<< "]::doScan failed to locate the data file for column "
-		<< col->name();
-	    return -2;
-	}
-	if (col->elementSize() > 0) {
-	    off_t fsize = ibis::util::getFileSize(file);
-	    if (fsize <= 0 || (unsigned long)fsize !=
-		col->elementSize() * nEvents) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- part[" << (m_name?m_name:"?")
-		    << "]::doScan(" << cmp
-		    << ") can not proceed because of missing data file \""
-		    << file << "\" or unexpected file size (actual " << fsize
-		    << ", expected " << col->elementSize() * nEvents << ")";
-		return -3;
-	    }
-	}
-	else {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- part[" << (m_name?m_name:"?")
-		<< "]::doScan(" << cmp
-		<< ") can not process the condition on column type "
-		<< ibis::TYPESTRING[(int)col->type()];
-	    return -4;
-	}
-    }
+    (void) col->dataFileName(sname);
 
     long ierr = 0;
     switch (col->type()) {
     default:
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << (m_name?m_name:"?")
-	    << "]::doScan can not process data type " << col->type() << " ("
-	    << ibis::TYPESTRING[(int)col->type()] << ")";
-	ierr = -5;
+	    << "Warning -- " << evt << " can not process data type "
+	    << col->type() << " (" << ibis::TYPESTRING[(int)col->type()] << ")";
+	ierr = -2;
 	break;
 
     case ibis::LONG: {
-	if (st != 0) {
-	    ibis::array_t<int64_t> intarray(st);
+	ibis::array_t<int64_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    switch (cmp.getType()) {
 	    default: {
 		ierr = doCompare(intarray, cmp, mask,
@@ -4580,16 +4611,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<int64_t>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<int64_t>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::ULONG: {
-	if (st != 0) {
-	    ibis::array_t<uint64_t> intarray(st);
+	ibis::array_t<uint64_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    switch (cmp.getType()) {
 	    default: {
 		ierr = doCompare
@@ -4604,16 +4641,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<uint64_t>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<uint64_t>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::INT: {
-	if (st != 0) {
-	    ibis::array_t<int32_t> intarray(st);
+	ibis::array_t<int32_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4625,16 +4668,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				 *static_cast<array_t<int32_t>*>(res));
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<int32_t>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<int32_t>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::UINT: {
-	if (st != 0) {
-	    ibis::array_t<uint32_t> intarray(st);
+	ibis::array_t<uint32_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4646,16 +4695,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				 *static_cast<array_t<uint32_t>*>(res));
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<uint32_t>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<uint32_t>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::SHORT: {
-	if (st != 0) {
-	    ibis::array_t<int16_t> intarray;
+	ibis::array_t<int16_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4667,16 +4722,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				 *static_cast<array_t<int16_t>*>(res));
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<int16_t>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<int16_t>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::USHORT: {
-	if (st != 0) {
-	    ibis::array_t<uint16_t> intarray(st);
+	ibis::array_t<uint16_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4688,16 +4749,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				 *static_cast<array_t<uint16_t>*>(res));
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<uint16_t>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<uint16_t>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::BYTE: {
-	if (st != 0) {
-	    ibis::array_t<signed char> intarray(st);
+	ibis::array_t<signed char> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4709,16 +4776,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				 *static_cast<array_t<signed char>*>(res));
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<signed char>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<signed char>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::UBYTE: {
-	if (st != 0) {
-	    ibis::array_t<unsigned char> intarray(st);
+	ibis::array_t<unsigned char> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE) {
 		const ibis::qContinuousRange &rng =
 		    static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4731,16 +4804,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		     *static_cast<array_t<unsigned char>*>(res));
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<unsigned char>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<unsigned char>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::FLOAT: {
-	if (st != 0) {
-	    ibis::array_t<float> floatarray(st);
+	ibis::array_t<float> floatarray;
+	ierr = col->getValuesArray(&floatarray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE)
 		ierr = doScan
 		    (floatarray,
@@ -4751,16 +4830,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		ierr = doCompare(floatarray, cmp, mask,
 				 *static_cast<array_t<float>*>(res));
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<float>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<float>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::DOUBLE: {
-	if (st != 0) {
-	    ibis::array_t<double> doublearray(st);
+	ibis::array_t<double> doublearray;
+	ierr = col->getValuesArray(&doublearray);
+	if (ierr >= 0) {
 	    if (cmp.getType() == ibis::qExpr::RANGE)
 		ierr = doScan
 		    (doublearray,
@@ -4770,18 +4855,22 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		ierr = doCompare(doublearray, cmp, mask,
 				 *static_cast<array_t<double>*>(res));
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = doCompare<double>
 		(sname.c_str(), cmp, mask,
 		 *static_cast<array_t<double>*>(res));
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    ierr = -3;
+	}
 	break;}
     }
 
-    LOGGER(ibis::gVerbose > 11)
-	<< "part[" << name() << "]: comparison " << cmp
-	<< " is evaluated to have " << ierr
-	<< " hits out of " << mask.cnt() << " candidates";
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " evaluated to have " << mask.cnt() << " candidates and found "
+	<< ierr << " hits";
     return ierr;
 } // ibis::part::doScan
 
@@ -4796,60 +4885,37 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	mask.size() == 0 || mask.cnt() == 0)
 	return 0;
 
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::doScan";
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << (m_name?m_name:"?")
-	    << "]::doScan failed to find named column " << cmp.colName();
+	    << "Warning -- " << evt << " failed to find named column "
+	    << cmp.colName();
 	return -1;
+    }
+    if (ibis::gVerbose > 2) {
+	std::ostringstream oss;
+	oss << '(' << cmp << ')';
+	evt += oss.str();
     }
 
     std::string sname;
-    const char* file = col->dataFileName(sname);
-    if (file == 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << (m_name?m_name:"?")
-	    << "]::doScan failed to locate the data file for column "
-	    << col->name();
-	return -2;
-    }
-    if (col->elementSize() > 0) {
-	off_t fsize = ibis::util::getFileSize(file);
-	if (fsize <= 0 || (unsigned long)fsize !=
-	    col->elementSize() * nEvents) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- part[" << (m_name?m_name:"?")
-		<< "]::doScan(" << cmp
-		<< ") can not proceed because of missing data file \""
-		<< file << "\" or unexpected file size (actual " << fsize
-		<< ", expected " << col->elementSize() * nEvents << ")";
-	    return -3;
-	}
-    }
-    else {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- part[" << (m_name?m_name:"?")
-	    << "]::doScan(" << cmp
-	    << ") can not process the condition on column type "
-	    << ibis::TYPESTRING[(int)col->type()];
-	return -4;
-    }
-
+    (void) col->dataFileName(sname);
     long ierr = 0;
     switch (col->type()) {
     default:
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << (m_name?m_name:"?")
-	    << "]::doScan can not process data type " << col->type() << " ("
-	    << ibis::TYPESTRING[(int)col->type()] << ")";
-	ierr = -5;
+	    << "Warning -- " << evt << " can not process data type "
+	    << col->type() << " (" << ibis::TYPESTRING[(int)col->type()] << ")";
+	ierr = -2;
 	break;
 
     case ibis::LONG: {
 	try {
 	    ibis::array_t<int64_t> intarray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), intarray) == 0) {
+	    if (col->getValuesArray(&intarray) >= 0) {
 		switch (cmp.getType()) {
 		default: {
 		    ierr = doCompare(intarray, cmp, mask,
@@ -4864,16 +4930,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    break;}
 		}
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<int64_t>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<int64_t>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<int64_t>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<int64_t>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<int64_t>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<int64_t>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -4883,8 +4963,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::ULONG: {
 	try {
 	    ibis::array_t<uint64_t> intarray;
-	    if (ibis::fileManager::instance().getFile(sname.c_str(), intarray)
-		== 0) {
+	    if (col->getValuesArray(&intarray) == 0) {
 		switch (cmp.getType()) {
 		default: {
 		    ierr = doCompare
@@ -4900,16 +4979,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    break;}
 		}
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<uint64_t>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<uint64_t>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<uint64_t>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<uint64_t>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<uint64_t>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<uint64_t>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -4919,8 +5012,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::INT: {
 	try {
 	    ibis::array_t<int32_t> intarray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), intarray) == 0) {
+	    if (col->getValuesArray(&intarray) >= 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4934,16 +5026,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				     hits);
 		}
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<int32_t>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<int32_t>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<int32_t>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<int32_t>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<int32_t>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<int32_t>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -4953,8 +5059,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::UINT: {
 	try {
 	    ibis::array_t<uint32_t> intarray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), intarray) == 0) {
+	    if (col->getValuesArray(&intarray) == 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -4968,16 +5073,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 			 *static_cast<array_t<uint32_t>*>(res), hits);
 		}
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<uint32_t>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<uint32_t>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<uint32_t>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<uint32_t>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<uint32_t>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<uint32_t>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -4987,8 +5106,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::SHORT: {
 	try {
 	    ibis::array_t<int16_t> intarray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), intarray) == 0) {
+	    if (col->getValuesArray(&intarray) >= 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -5002,16 +5120,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				     hits);
 		}
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<int16_t>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<int16_t>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<int16_t>
-		(sname.c_str(), cmp, mask, *static_cast<array_t<int16_t>*>(res),
-		 hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<int16_t>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<int16_t>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -5021,8 +5153,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::USHORT: {
 	try {
 	    ibis::array_t<uint16_t> intarray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), intarray) == 0) {
+	    if (col->getValuesArray(&intarray) >= 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -5036,16 +5167,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 			 *static_cast<array_t<uint16_t>*>(res), hits);
 		}
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<uint16_t>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<uint16_t>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<uint16_t>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<uint16_t>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<uint16_t>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<uint16_t>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -5055,8 +5200,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::BYTE: {
 	try {
 	    ibis::array_t<signed char> intarray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), intarray) == 0) {
+	    if (col->getValuesArray(&intarray) >= 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -5070,16 +5214,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				     hits);
 		}
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<signed char>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<signed char>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<signed char>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<signed char>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<signed char>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<signed char>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -5089,8 +5247,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::UBYTE: {
 	try {
 	    ibis::array_t<unsigned char> intarray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), intarray) == 0) {
+	    if (col->getValuesArray(&intarray) >= 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE) {
 		    const ibis::qContinuousRange &rng =
 			static_cast<const ibis::qContinuousRange&>(cmp);
@@ -5105,17 +5262,31 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 			 hits);
 		}
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<unsigned char>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<unsigned char>*>(res),
 		     hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<unsigned char>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<unsigned char>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<unsigned char>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<unsigned char>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -5125,8 +5296,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::FLOAT: {
 	try {
 	    ibis::array_t<float> floatarray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), floatarray) == 0) {
+	    if (col->getValuesArray(&floatarray) >= 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE)
 		    ierr = doScan
 			(floatarray,
@@ -5136,16 +5306,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 		    ierr = doCompare(floatarray, cmp, mask,
 				     *static_cast<array_t<float>*>(res), hits);
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<float>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<float>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<float>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<float>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<float>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<float>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -5155,8 +5339,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
     case ibis::DOUBLE: {
 	try {
 	    ibis::array_t<double> doublearray;
-	    if (ibis::fileManager::instance().getFile
-		(sname.c_str(), doublearray) == 0) {
+	    if (col->getValuesArray(&doublearray) >= 0) {
 		if (cmp.getType() == ibis::qExpr::RANGE)
 		    ierr = doScan
 			(doublearray,
@@ -5167,16 +5350,30 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 				     *static_cast<array_t<double>*>(res),
 				     hits);
 	    }
-	    else {
+	    else if (! sname.empty()) {
 		ierr = doCompare<double>
 		    (sname.c_str(), cmp, mask,
 		     *static_cast<array_t<double>*>(res), hits);
 	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (const std::bad_alloc&) {
-	    ierr = doCompare<double>
-		(sname.c_str(), cmp, mask,
-		 *static_cast<array_t<double>*>(res), hits);
+	    if (! sname.empty()) {
+		ierr = doCompare<double>
+		    (sname.c_str(), cmp, mask,
+		     *static_cast<array_t<double>*>(res), hits);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt << " failed to locate any data";
+		hits.set(0, nEvents);
+		ierr = -3;
+	    }
 	}
 	catch (...) {
 	    throw;
@@ -5184,10 +5381,9 @@ long ibis::part::doScan(const ibis::qRange &cmp,
 	break;}
     }
 
-    LOGGER(ibis::gVerbose > 11)
-	<< "part[" << name() << "]: comparison " << cmp
-	<< " is evaluated to have " << ierr
-	<< " hits out of " << mask.cnt() << " candidates";
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " examined " << mask.cnt() << " candidates"
+	<< " and found " << ierr << " hits";
     return ierr;
 } // ibis::part::doScan
 
@@ -5267,47 +5463,27 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 	mask.size() == 0 || mask.cnt() == 0)
 	return 0;
 
+    std::string evt = "part[";
+    evt += m_name;
+    evt += "]::negativeScan";
     const ibis::column* col = getColumn(cmp.colName());
     if (col == 0) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- part[" << name()
-	    << "]::negativeScan failed to find named column "
+	    << "Warning -- " << evt << " failed to find named column "
 	    << cmp.colName();
 	return -1;
     }
 
+    long ierr = 0;
     std::string sname;
-    ibis::fileManager::storage *st = col->getRawData();
-    if (st == 0) {
-	const char* file = col->dataFileName(sname);
-	if (file == 0) {
-	    logWarning("negativeScan", "unable to locate the vertically "
-		       "partitioned data file");
-	    return -2;
-	}
-	if (col->elementSize() > 0) {
-	    off_t fsize = ibis::util::getFileSize(file);
-	    if (fsize <= 0 || (unsigned long)fsize !=
-		col->elementSize() * nEvents) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- part[" << (m_name?m_name:"?")
-		    << "]::negativeScan(" << cmp << "can not proceed"
-		    "because of missing data file \"" << file
-		    << "\" or unexpected file size (actual " << fsize
-		    << ", expected " << col->elementSize() * nEvents << ")";
-		return -3;
-	    }
-	}
-    }
-
-    long ierr = -4;
+    (void) col->dataFileName(sname);
     switch (col->type()) {
     default:
-	logWarning("negativeScan",
-		   "unable to process data type %d (%s)",
-		   col->type(),
-		   ibis::TYPESTRING[(int)col->type()]);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not process data type "
+	    << col->type() << " (" << ibis::TYPESTRING[(int)col->type()] << ")";
 	hits.set(0, nEvents);
+	ierr = -2;
 	break;
 
     case CATEGORY: {
@@ -5325,8 +5501,9 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 	break;}
 
     case ibis::LONG: {
-	if (st != 0) {
-	    array_t<int64_t> intarray(st);
+	array_t<int64_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    switch (cmp.getType()) {
 	    default:
 		ierr = negativeCompare(intarray, cmp, mask, hits);
@@ -5343,7 +5520,7 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    switch (cmp.getType()) {
 	    default:
 		ierr = negativeCompare<int64_t>(sname.c_str(), cmp, mask, hits);
@@ -5360,11 +5537,18 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::ULONG: {
-	if (st != 0) {
-	    array_t<uint64_t> intarray(st);
+	array_t<uint64_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    switch (cmp.getType()) {
 	    default:
 		ierr = negativeCompare(intarray, cmp, mask, hits);
@@ -5381,7 +5565,7 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
-	else {
+	else if (! sname.empty()) {
 	    switch (cmp.getType()) {
 	    default:
 		ierr = negativeCompare<uint64_t>
@@ -5401,102 +5585,159 @@ long ibis::part::negativeScan(const ibis::qRange &cmp,
 		break;}
 	    }
 	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
+	}
 	break;}
 
     case ibis::INT: {
-	if (st != 0) {
-	    array_t<int32_t> intarray(st);
+	array_t<int32_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = negativeCompare<int32_t>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case TEXT:
     case ibis::UINT: {
-	if (st != 0) {
-	    array_t<uint32_t> intarray(st);
+	array_t<uint32_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = negativeCompare<uint32_t>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::SHORT: {
-	if (st != 0) {
-	    array_t<int16_t> intarray(st);
+	array_t<int16_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = negativeCompare<int16_t>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::USHORT: {
-	if (st != 0) {
-	    array_t<uint16_t> intarray(st);
+	array_t<uint16_t> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = negativeCompare<uint16_t>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::BYTE: {
-	if (st != 0) {
-	    array_t<signed char> intarray(st);
+	array_t<signed char> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = negativeCompare<signed char>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::UBYTE: {
-	if (st != 0) {
-	    array_t<unsigned char> intarray(st);
+	array_t<unsigned char> intarray;
+	ierr = col->getValuesArray(&intarray);
+	if (ierr >= 0) {
 	    ierr = negativeCompare(intarray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = negativeCompare<unsigned char>
 		(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::FLOAT: {
-	if (st != 0) {
-	    array_t<float> floatarray(st);
+	array_t<float> floatarray;
+	ierr = col->getValuesArray(&floatarray);
+	if (ierr >= 0) {
 	    ierr = negativeCompare(floatarray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = negativeCompare<float>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
 
     case ibis::DOUBLE: {
-	if (st != 0) {
-	    array_t<double> doublearray(st);
+	array_t<double> doublearray;
+	ierr = col->getValuesArray(&doublearray);
+	if (ierr >= 0) {
 	    ierr = negativeCompare(doublearray, cmp, mask, hits);
 	}
-	else {
+	else if (! sname.empty()) {
 	    ierr = negativeCompare<double>(sname.c_str(), cmp, mask, hits);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to locate any data";
+	    hits.set(0, nEvents);
+	    ierr = -3;
 	}
 	break;}
     }
 
     if (hits.size() != nEvents) {
-	logError("negativeScan",
-		 "result array contains %lu bits, reset size to %lu",
-		 static_cast<long unsigned>(hits.size()),
-		 static_cast<long unsigned>(nEvents));
-	// hits.adjustSize(0, nEvents); // append 0 bits or remove extra bits
+	hits.adjustSize(0, nEvents); // append 0 bits or remove extra bits
     }
-    LOGGER(ibis::gVerbose > 11)
-	<< "part[" << name() << "]: negative comparison "
-	<< cmp << " is evaluated to have " << hits.cnt()
-	<< " hits out of " << mask.cnt() << " candidates";
+    LOGGER(ibis::gVerbose > 7)
+	<< evt << " examined " << mask.cnt() << " candidates and found "
+	<< hits.cnt() << " hits";
     return ierr;
 } // ibis::part::negativeScan
 

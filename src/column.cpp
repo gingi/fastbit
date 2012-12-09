@@ -424,7 +424,6 @@ uint32_t ibis::column::numBins() const {
 /// values.  This function reads the data in the active data directory and
 /// modifies the member variables to record the actual min/max.
 void ibis::column::computeMinMax() {
-    if (thePart == 0 || thePart->currentDataDir() == 0) return;
     std::string sname;
     const char* name = dataFileName(sname);
     if (name != 0) {
@@ -438,14 +437,11 @@ void ibis::column::computeMinMax() {
 /// values.  This function reads the data in the given directory and
 /// modifies the member variables to record the actual min/max.
 void ibis::column::computeMinMax(const char *dir) {
-    if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0)) return;
     std::string sname;
     const char* name = dataFileName(sname, dir);
-    if (name != 0) {
-	ibis::bitvector msk;
-	getNullMask(msk);
-	actualMinMax(name, msk, lower, upper);
-    }
+    ibis::bitvector msk;
+    getNullMask(msk);
+    actualMinMax(name, msk, lower, upper);
 } // ibis::column::computeMinMax
 
 /// Compute the actual min/max of the data in directory @c dir.  Report the
@@ -454,18 +450,11 @@ void ibis::column::computeMinMax(const char *dir) {
 /// object.
 void ibis::column::computeMinMax(const char *dir, double &min,
 				 double &max) const {
-    if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0)) return;
     std::string sname;
     const char* name = dataFileName(sname, dir);
-    if (name != 0) {
-	ibis::bitvector msk;
-	getNullMask(msk);
-	actualMinMax(name, msk, min, max);
-    }
-    else {
-	min = DBL_MAX;
-	max = -DBL_MAX;
-    }
+    ibis::bitvector msk;
+    getNullMask(msk);
+    actualMinMax(name, msk, min, max);
 } // ibis::column::computeMinMax
 
 /// Compute the actual minimum and maximum values.  Given a data file name,
@@ -477,8 +466,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
     switch (m_type) {
     case ibis::UBYTE: {
 	array_t<unsigned char> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -487,8 +482,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::BYTE: {
 	array_t<signed char> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -496,8 +497,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::USHORT: {
 	array_t<uint16_t> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -506,8 +513,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::SHORT: {
 	array_t<int16_t> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -516,8 +529,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::UINT: {
 	array_t<uint32_t> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -526,8 +545,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::INT: {
 	array_t<int32_t> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -536,8 +561,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::ULONG: {
 	array_t<uint64_t> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -546,8 +577,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::LONG: {
 	array_t<int64_t> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -556,8 +593,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::FLOAT: {
 	array_t<float> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -566,8 +609,14 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     case ibis::DOUBLE: {
 	array_t<double> val;
-	int ierr = ibis::fileManager::instance().getFile(name, val);
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
 	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
 	    logWarning("actualMinMax", "unable to retrieve file %s", name);
 	    return;
 	}
@@ -5478,15 +5527,20 @@ void ibis::column::binWeights(std::vector<uint32_t>& tmp) const {
     }
 } // ibis::column::binWeights
 
-/// Compute the index size (in bytes).
-/// Return a negative value if the index file does not exist.
+/// Compute the index size (in bytes).  Return a negative value if the
+/// index is not in memory and the index file does not exist.
 long ibis::column::indexSize() const {
-    std::string sname;
-    if (dataFileName(sname) == 0) return -1;
+    if (idx != 0) { // index in memory
+	return idx->sizeInBytes();
+    }
+    else { // use the file size
+	std::string sname;
+	if (dataFileName(sname) == 0) return -1;
 
-    sname += ".idx";
-    readLock lock(this, "indexSize");
-    return ibis::util::getFileSize(sname.c_str());
+	sname += ".idx";
+	readLock lock(this, "indexSize");
+	return ibis::util::getFileSize(sname.c_str());
+    }
 } // ibis::column::indexSize
 
 /// Compute the number of rows captured by the index of this column.  This

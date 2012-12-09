@@ -100,7 +100,11 @@ int ibis::slice::write(const char* dt) const {
 
     std::string fnm;
     indexFileName(fnm, dt);
-    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+    if (fnm.empty()) {
+	return 0;
+    }
+    else if (0 != str && 0 != str->filename() &&
+	     0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- slice::write can not overwrite the index file \""
 	    << fnm << "\" while it is used as a read-only file map";
@@ -228,7 +232,11 @@ ibis::slice::constructT(const char* f) {
     array_t<T> val;
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
-    int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+    int ierr;
+    if (! fnm.empty())
+	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+    else
+	ierr = col->getValuesArray(&val);
     if (ierr < 0 || val.empty()) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- slice::construct<" << typeid(T).name()

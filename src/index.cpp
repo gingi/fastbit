@@ -313,7 +313,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		<< "index::create create an empty index for "
 		<< c->name();
 	}
-	else if (dfname != 0 || ind->getNRows() == c->partition()->nRows()) {
+	else if (ind->getNRows() == c->partition()->nRows()) {
 	    // having built a valid index, write out its content
 	    try {
 		if (! isRead) 
@@ -1589,6 +1589,8 @@ void ibis::index::computeMinMax(const char* f, double& min,
 /// A value of any supported type is supposed to be able to fit in a
 /// double with no rounding, no approximation and no overflow.
 void ibis::index::mapValues(const char* f, VMap& bmap) const {
+    if (col == 0) return;
+
     horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
@@ -1597,35 +1599,55 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     bmap.clear();
     dataFileName(fnm, f);
+    std::string evt = "index";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	if (col->partition() != 0) {
+	    evt += col->partition()->name();
+	    evt += '.';
+	}
+	evt += col->name();
+	evt += ']';
+    }
+    evt += "::mapValues";
+    if (ibis::gVerbose > 2 && ! fnm.empty()) {
+	evt += '(';
+	evt += fnm;
+	evt += ')';
+    }
     if (fnm.empty()) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- index::mapValues failed to determine the data file "
-	    "name from \"" << (f ? f : "") << '"';
-	return;
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- " << evt << " failed to determine the data file "
+	    "name from \"" << (f ? f : "") << "\" for column " << col->name()
+	    << ", will attempt to use in-memory data";
     }
 
-    k = ibis::util::getFileSize(fnm.c_str());
-    if (k > 0) {
-	if (ibis::gVerbose > 1)
-	    col->logMessage("mapValues", "attempting to map the positions "
-			    "of every value in \"%s\"", fnm.c_str());
-    }
-    else {
-	if (col->partition() != 0 && col->partition()->nRows() > 0) {
-	    if (col->type() == ibis::CATEGORY) {
-		if (col->partition()->getState() ==
-		    ibis::part::PRETRANSITION_STATE) {
-		    ibis::bitvector *tmp = new ibis::bitvector;
-		    tmp->set(1, col->partition()->nRows());
-		    bmap[1] = tmp;
+    if (! fnm.empty()) {
+	k = ibis::util::getFileSize(fnm.c_str());
+	if (k > 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< evt << " attempt to map the positions of every value in \""
+		<< fnm << '"';
+	}
+	else {
+	    if (col->partition() != 0 && col->partition()->nRows() > 0) {
+		if (col->type() == ibis::CATEGORY) {
+		    if (col->partition()->getState() ==
+			ibis::part::PRETRANSITION_STATE) {
+			ibis::bitvector *tmp = new ibis::bitvector;
+			tmp->set(1, col->partition()->nRows());
+			bmap[1] = tmp;
+		    }
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 4)
+			<< "Warning -- " << evt
+			<< " failed to determine the size of data file \""
+			<< fnm << "\"";
 		}
 	    }
-	    else if (ibis::gVerbose > 4) {
-		col->logMessage("mapValues", "data file \"%s\"does not "
-				"exist or is empty", fnm.c_str());
-	    }
+	    return;
 	}
-	return;
     }
 
     int ierr = 0;
@@ -1644,7 +1666,12 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
     case ibis::UINT:
     case ibis::CATEGORY: {// if data file exists, must be unsigned int
 	array_t<uint32_t> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else if (col->type() == ibis::UINT)
+	    ierr = col->getValuesArray(&val);
+	else
+	    ierr = -1;
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -1708,7 +1735,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::INT: {// signed int
 	array_t<int32_t> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -1772,7 +1802,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::FLOAT: {// (4-byte) floating-point values
 	array_t<float> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -1836,7 +1869,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::DOUBLE: {// (8-byte) floating-point values
 	array_t<double> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -1900,7 +1936,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::BYTE: {// (1-byte) integer values
 	array_t<signed char> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -1964,7 +2003,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::UBYTE: {// (1-byte) integer values
 	array_t<unsigned char> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -2028,7 +2070,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::SHORT: {// (2-byte) integer values
 	array_t<int16_t> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -2092,7 +2137,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::USHORT: {// (2-byte) integer values
 	array_t<uint16_t> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -2156,7 +2204,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::ULONG: {// if data file exists, must be unsigned int64_t
 	array_t<uint64_t> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -2220,7 +2271,10 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 
     case ibis::LONG: {// signed int64_t
 	array_t<int64_t> val;
-	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
 	nev = val.size();
 	if (ierr < 0 || val.size() == 0)
 	    break;
@@ -2283,19 +2337,21 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 	break;}
 
     default:
-	col->logWarning("index::mapValues", "unable to maps values of "
-			"this type of column");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not process column type "
+	    << ibis::TYPESTRING[(int)col->type()];
 	return;
     }
 
     if (ierr < 0) {
-	col->logWarning("index::mapValues", "unable to read %s, ierr=%d",
-			fnm.c_str(), ierr);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to read data, ierr="
+	    << ierr;
 	return;
     }
     else if (nev == 0) {
-	col->logWarning("index::mapValues", "data file %s is empty",
-			fnm.c_str());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " read on data entry";
 	return;
     }
 
@@ -2308,35 +2364,30 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
 	    (*it).second->setBit(j, 0);
 	}
 	else if ((*it).second->size() > nev) {
-	    col->logWarning("index::mapValues", "bitvector for value %.9g "
-			    "contains %lu bits while %lu are expected -- "
-			    "removing the extra bits",
-			    (*it).first,
-			    static_cast<long unsigned>((*it).second->size()),
-			    static_cast<long unsigned>(nev));
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << ": bitvector for value "
+		<< (*it).first << "contains " << (*it).second->size()
+		<< " bits while " << nev << " are expected -- "
+		"removing the extra bits";
 	    (*it).second->adjustSize(nev, nev);
 	}
     }
     if (ibis::gVerbose > 4) {
 	timer.stop();
-	col->logMessage("index::mapValues", "mapping %lu values from file %s "
-			"generated %lu bitvectors of %lu-bit each "
-			"in %g sec(elapsed)",
-			static_cast<long unsigned>(nev), fnm.c_str(),
-			static_cast<long unsigned>(bmap.size()),
-			static_cast<long unsigned>(nev), timer.realTime());
+	ibis::util::logger lg;
+	lg() << evt << " mapped " << nev << " values to " << bmap.size()
+	     << " bitvectors of " << nev << "-bit each in " << timer.realTime()
+	     << " sec(elapsed)";
 	if (ibis::gVerbose > 30 || ((1U<<ibis::gVerbose)>bmap.size())) {
-	    ibis::util::logger lg;
 	    lg() << "value, count (extracted from the bitvector)\n";
 	    for (it = bmap.begin(); it != bmap.end(); ++it)
 		lg() << (*it).first << ",\t" << (*it).second->cnt() << "\n";
 	}
     }
-    else if (ibis::gVerbose > 2) {
-	col->logMessage("index::mapValues", "mapping file %s generated %lu "
-			"bitvectors of %lu-bit each", fnm.c_str(),
-			static_cast<long unsigned>(bmap.size()),
-			static_cast<long unsigned>(nev));
+    else {
+	LOGGER(ibis::gVerbose > 2) 
+	    << evt << " mapped " << nev << " values to " << bmap.size()
+	    << " bitvectors of " << nev << "-bit each";
     }
 } // ibis::index::mapValues
 
@@ -2471,18 +2522,35 @@ void ibis::index::mapValues(const char* f, histogram& hist,
     horometer timer;
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
+    std::string evt = "index";
+    if (ibis::gVerbose > 0) {
+	evt += '[';
+	if (col->partition() != 0) {
+	    evt += col->partition()->name();
+	    evt += '.';
+	}
+	evt += col->name();
+	evt += ']';
+    }
+    evt += "::mapValues";
+    if (ibis::gVerbose > 2 && ! fnm.empty()) {
+	evt += '(';
+	evt += fnm;
+	evt += ')';
+    }
     if (fnm.empty()) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- index::mapValues failed to determine the data file "
+	    << "Warning -- " << evt << " failed to determine the data file "
 	    "name from \"" << (f ? f : "") << '"';
 	return;
     }
     if (ibis::gVerbose > 4) {
 	timer.start();
-	col->logMessage("mapValues", "attempting to generate a histogram "
-			"for data in \"%s\"", fnm.c_str());
+	LOGGER(ibis::gVerbose > 4)
+	    << evt << " -- attempting to generate a histogram";
     }
 
+    int ierr;
     histogram::iterator it;
     ibis::bitvector mask;
     col->getNullMask(mask);
@@ -2514,31 +2582,54 @@ void ibis::index::mapValues(const char* f, histogram& hist,
     case ibis::TEXT:
     case ibis::UINT: {// unsigned int
 	array_t<uint32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(static_cast<double>(val[i]));
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else if (col->type() == ibis::UINT)
+	    ierr = col->getValuesArray(&val);
+	else
+	    ierr = -1;
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(static_cast<double>(val[i]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
 			it = hist.find(static_cast<double>(val[k]));
 			if (it != hist.end()) {
 			    ++ ((*it).second);
@@ -2548,57 +2639,60 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(static_cast<double>(val[k]));
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::INT: {// signed int
 	array_t<int32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(static_cast<double>(val[i]));
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(static_cast<double>(val[i]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
 			it = hist.find(static_cast<double>(val[k]));
 			if (it != hist.end()) {
 			    ++ ((*it).second);
@@ -2608,57 +2702,60 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(static_cast<double>(val[k]));
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
 	array_t<float> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(static_cast<double>(val[i]));
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(static_cast<double>(val[i]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
 			it = hist.find(static_cast<double>(val[k]));
 			if (it != hist.end()) {
 			    ++ ((*it).second);
@@ -2668,58 +2765,61 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(static_cast<double>(val[k]));
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
 	array_t<double> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(val[i]);
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(val[i]);
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			it = hist.find(static_cast<double>(val[k]));
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
+			it = hist.find(val[k]);
 			if (it != hist.end()) {
 			    ++ ((*it).second);
 			}
@@ -2728,58 +2828,61 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(val[k]);
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::BYTE: {// (1-byte) integer values
 	array_t<signed char> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(val[i]);
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(val[i]);
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			it = hist.find(static_cast<double>(val[k]));
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
+			it = hist.find(val[k]);
 			if (it != hist.end()) {
 			    ++ ((*it).second);
 			}
@@ -2788,58 +2891,61 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(val[k]);
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::UBYTE: {// (1-byte) integer values
 	array_t<unsigned char> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(val[i]);
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(val[i]);
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			it = hist.find(static_cast<double>(val[k]));
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
+			it = hist.find(val[k]);
 			if (it != hist.end()) {
 			    ++ ((*it).second);
 			}
@@ -2848,58 +2954,61 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(val[k]);
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::SHORT: {// (2-byte) integer values
 	array_t<int16_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(val[i]);
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(val[i]);
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			it = hist.find(static_cast<double>(val[k]));
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
+			it = hist.find(val[k]);
 			if (it != hist.end()) {
 			    ++ ((*it).second);
 			}
@@ -2908,58 +3017,61 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(val[k]);
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::USHORT: {// (2-byte) integer values
 	array_t<uint16_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(val[i]);
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(val[i]);
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			it = hist.find(static_cast<double>(val[k]));
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
+			it = hist.find(val[k]);
 			if (it != hist.end()) {
 			    ++ ((*it).second);
 			}
@@ -2968,64 +3080,67 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(val[k]);
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::LONG: {// (8-byte) integer values
 	array_t<int64_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(val[i]);
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(val[i]);
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-			    LOGGER(ibis::gVerbose > 5)
-				<< "DEBUG -- index::mapValues adding value "
-				<< val[i] << " to the histogram of size "
-				<< hist.size();
+			LOGGER(ibis::gVerbose > 5)
+			    << "DEBUG -- index::mapValues adding value "
+			    << val[i] << " to the histogram of size "
+			    << hist.size();
 #endif
-			    hist[val[i]] = 1;
-			}
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			it = hist.find(static_cast<double>(val[k]));
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
+			it = hist.find(val[k]);
 			if (it != hist.end()) {
 			    ++ ((*it).second);
 			}
@@ -3034,58 +3149,61 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(val[k]);
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::ULONG: {// unsigned (8-byte) integer values
 	array_t<uint64_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
-	    nev = val.size();
-	    if (nev > mask.size())
-		mask.adjustSize(nev, nev);
-	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
-	    uint32_t nind = iset.nIndices();
-	    const ibis::bitvector::word_t *iix = iset.indices();
-	    while (nind) { // count the occurances
-		if (iset.isRange()) { // a range
-		    k = (iix[1] < nev ? iix[1] : nev);
-		    for (i = *iix; i < k; ++i) {
-			it = hist.find(val[i]);
-			if (it != hist.end()) {
-			    ++ ((*it).second);
-			}
-			else {
-			    hist[val[i]] = 1;
-			}
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.empty()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to retrieve values";
+	    return;
+	}
+
+	nev = val.size();
+	if (nev > mask.size())
+	    mask.adjustSize(nev, nev);
+	ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	uint32_t nind = iset.nIndices();
+	const ibis::bitvector::word_t *iix = iset.indices();
+	while (nind) { // count the occurances
+	    if (iset.isRange()) { // a range
+		k = (iix[1] < nev ? iix[1] : nev);
+		for (i = *iix; i < k; ++i) {
+		    it = hist.find(val[i]);
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[i]] = 1;
 		    }
 		}
-		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-		    // a list of indices within the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			it = hist.find(static_cast<double>(val[k]));
+	    }
+	    else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		// a list of indices within the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    it = hist.find(static_cast<double>(val[k]));
+		    if (it != hist.end()) {
+			++ ((*it).second);
+		    }
+		    else {
+			hist[val[k]] = 1;
+		    }
+		}
+	    }
+	    else { // some indices may be out of the valid range
+		for (i = 0; i < nind; ++i) {
+		    k = iix[i];
+		    if (k < nev) {
+			it = hist.find(val[k]);
 			if (it != hist.end()) {
 			    ++ ((*it).second);
 			}
@@ -3094,29 +3212,11 @@ void ibis::index::mapValues(const char* f, histogram& hist,
 			}
 		    }
 		}
-		else { // some indices may be out of the valid range
-		    for (i = 0; i < nind; ++i) {
-			k = iix[i];
-			if (k < nev) {
-			    it = hist.find(val[k]);
-			    if (it != hist.end()) {
-				++ ((*it).second);
-			    }
-			    else {
-				hist[val[k]] = 1;
-			    }
-			}
-		    }
-		}
-		++iset;
-		nind = iset.nIndices();
-		if (*iix >= nev) nind = 0;
-	    } // while (nind)
-	}
-	else {
-	    col->logWarning("index::mapValues", "unable to read %s",
-			    fnm.c_str());
-	}
+	    }
+	    ++iset;
+	    nind = iset.nIndices();
+	    if (*iix >= nev) nind = 0;
+	} // while (nind)
 	break;}
     case ibis::CATEGORY: // no need for a separate index
 	col->logWarning("index::mapValues", "no value to compute a "

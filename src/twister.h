@@ -60,10 +60,26 @@ public:
 		seed = time(0);
 	}
 	else {
-	    seed = time(0);
-	}
+#if defined(CLOCK_MONOTONIC) && !defined(__CYGWIN__)
+	    struct timespec tb;
+	    if (0 == clock_gettime(CLOCK_MONOTONIC, &tb))
+		seed = (tb.tv_sec ^ tb.tv_nsec);
+	    else
+		seed = time(0);
 #else
 	seed = time(0);
+#endif
+	}
+#else
+#if defined(CLOCK_MONOTONIC) && !defined(__CYGWIN__)
+	struct timespec tb;
+	if (0 == clock_gettime(CLOCK_MONOTONIC, &tb))
+	    seed = (tb.tv_sec ^ tb.tv_nsec);
+	else
+	    seed = time(0);
+#else
+	seed = time(0);
+#endif
 #endif
 	setSeed(seed);
     }

@@ -4265,7 +4265,7 @@ static void doAppend(const char* dir) {
 	    int nth = static_cast<int>(ibis::gVerbose < 20
 				       ? 1+sqrt((double)ibis::gVerbose)
 				       : 3+log((double)ibis::gVerbose));
-	    tbl->buildIndexes();
+	    tbl->buildIndexes(0, 1);
 	    ierr = tbl->selfTest(nth);
 	}
 	else { // very quiet, skip self testing
@@ -4314,7 +4314,7 @@ static void doAppend(const char* dir) {
 
 	// self test after commit,
 	if (ibis::gVerbose > 4 || (ibis::gVerbose > 0 && testing > 0)) {
-	    tbl->buildIndexes();
+	    tbl->buildIndexes(0, 1);
 	    ierr = tbl->selfTest(0);
 	    LOGGER(ibis::gVerbose > 0)
 		<< "doAppend(" << dir << "): selfTest on partition \""
@@ -4325,7 +4325,7 @@ static void doAppend(const char* dir) {
 	}
     }
     else if (ibis::gVerbose > 3 || (ibis::gVerbose >= 0 && testing > 0)) {
-	tbl->buildIndexes();
+	tbl->buildIndexes(0, 1);
 	ierr = tbl->selfTest(0);
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- doAppend(" << dir << "): selfTest on partition \""
@@ -5073,7 +5073,8 @@ int main(int argc, char** argv) {
 		 it != ibis::datasets.end(); ++ it) {
 		if (indexingOptions.size() == 1 &&
 		    ((*it)->indexSpec() == 0 ||
-		     stricmp(indexingOptions.back(), (*it)->indexSpec()) != 0)) {
+		     stricmp(indexingOptions.back(), (*it)->indexSpec())
+		     != 0)) {
 		    (*it)->indexSpec(indexingOptions.back());
 		    (*it)->purgeIndexFiles();
 		}

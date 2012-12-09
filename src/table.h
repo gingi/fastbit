@@ -234,7 +234,7 @@ public:
     /// will be replaced.  If an indexing option is not specified, the
     /// internally recorded options will be used.
     /// @sa buildIndex
-    virtual int buildIndexes(const char* options=0) =0;
+    virtual int buildIndexes(const char* options) =0;
     virtual int buildIndexes(const stringList&) =0;
     /// Retrieve the current indexing option.  If no column name is
     /// specified, it retrieve the indexing option for the table.

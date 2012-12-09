@@ -166,7 +166,7 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
 
 	t = _capi_tlist->find(dir);
 	if (t != 0 && t->nRows() > 0 && t->nColumns() > 0) {
-	    ierr = t->buildIndexes(opt);
+	    ierr = t->buildIndexes(opt, 1);
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)

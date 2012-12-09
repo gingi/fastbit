@@ -189,7 +189,11 @@ int ibis::egale::write(const char* dt) const {
 
     std::string fnm;
     indexFileName(fnm, dt);
-    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+    if (fnm.empty()) {
+	return 0;
+    }
+    else if (0 != str && 0 != str->filename() &&
+	     0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- egale::write can not overwrite the index file \""
 	    << fnm << "\" while it is used as a read-only file map";
@@ -774,14 +778,9 @@ void ibis::egale::construct(const char* f) {
 	cnts[i] = 0;
     }
 
+    int ierr;
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
-    if (fnm.empty()) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale::construct failed to determine the data file "
-	    "name from \"" << (f ? f : "") << '"';
-	return;
-    }
 
     nrows = col->partition()->nRows();
     ibis::bitvector mask;
@@ -800,7 +799,13 @@ void ibis::egale::construct(const char* f) {
     case ibis::TEXT:
     case ibis::UINT: {// unsigned int
 	array_t<uint32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if  (ierr < 0)
+	    throw "cegale::construct failed to retrieve data values";
+
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
 		col->logWarning("egale::construct", "the data file \"%s\" "
@@ -846,7 +851,13 @@ void ibis::egale::construct(const char* f) {
 	break;}
     case ibis::INT: {// signed int
 	array_t<int32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if  (ierr < 0)
+	    throw "cegale::construct failed to retrieve data values";
+
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
 		col->logWarning("egale::construct", "the data file \"%s\" "
@@ -892,7 +903,13 @@ void ibis::egale::construct(const char* f) {
 	break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
 	array_t<float> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if  (ierr < 0)
+	    throw "cegale::construct failed to retrieve data values";
+
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
 		col->logWarning("egale::construct", "the data file \"%s\" "
@@ -938,7 +955,13 @@ void ibis::egale::construct(const char* f) {
 	break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
 	array_t<double> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if  (ierr < 0)
+	    throw "cegale::construct failed to retrieve data values";
+
 	if (val.size() > 0) {
 	    if (val.size() > mask.size()) {
 		col->logWarning("egale::construct", "the data file \"%s\" "

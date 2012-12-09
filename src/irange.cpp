@@ -358,7 +358,11 @@ int ibis::range::write(const char* dt) const {
 
     std::string fnm;
     indexFileName(fnm, dt);
-    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+    if (fnm.empty()) {
+	return 0;
+    }
+    else if (0 != str && 0 != str->filename() &&
+	     0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- range::write can not overwrite the index file \""
 	    << fnm << "\" while it is used as a read-only file map";
@@ -702,6 +706,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
     max1 = -DBL_MAX;
     min1 = DBL_MAX;
 
+    int ierr;
     std::string fnm; // name of the data file / index file
     if (f == 0) {
 	fnm = col->partition()->currentDataDir();
@@ -758,8 +763,11 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
     case ibis::TEXT:
     case ibis::UINT: {// unsigned int
 	array_t<uint32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() <= 0)
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.size() <= 0)
 	    col->logWarning("range::construct", "unable to read %s",
 			    fnm.c_str());
 
@@ -784,8 +792,11 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	break;}
     case ibis::INT: {// signed int
 	array_t<int32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() <= 0)
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.size() <= 0)
 	    col->logWarning("range::construct", "unable to read %s",
 			    fnm.c_str());
 
@@ -810,8 +821,11 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
 	array_t<float> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() <= 0)
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.size() <= 0)
 	    col->logWarning("range::construct", "unable to read %s",
 			    fnm.c_str());
 
@@ -836,8 +850,11 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
 	array_t<double> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() <= 0)
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if (ierr < 0 || val.size() <= 0)
 	    col->logWarning("range::construct", "unable to read %s",
 			    fnm.c_str());
 

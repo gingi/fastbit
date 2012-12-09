@@ -190,7 +190,8 @@ int ibis::direkte::construct0(const char* dfname) {
     evt += '>';
     array_t<T> vals;
     LOGGER(ibis::gVerbose > 4)
-	<< evt << " -- starting to process file " << dfname;
+	<< evt << " -- starting to process "
+	<< (dfname && *dfname ? dfname : "in-memory data");
 
     ibis::bitvector mask;
     col->getNullMask(mask);
@@ -200,7 +201,10 @@ int ibis::direkte::construct0(const char* dfname) {
 	mask &= tmp;
     }
 
-    ierr = ibis::fileManager::instance().getFile(dfname, vals);
+    if (dfname && *dfname)
+	ierr = ibis::fileManager::instance().getFile(dfname, vals);
+    else
+	ierr = col->getValuesArray(&vals);
     if (ierr == 0) { // got a pointer to the base data
 	const uint32_t nbits = (uint32_t)col->upperBound() + 1;
 #ifdef RESERVE_SPACE_BEFORE_CREATING_INDEX
@@ -393,7 +397,10 @@ int ibis::direkte::construct(const char* dfname) {
 	<< typeid(T).name();
     ibis::bitvector mask;
     col->getNullMask(mask);
-    ierr = ibis::fileManager::instance().getFile(dfname, vals);
+    if (dfname && *dfname)
+	ierr = ibis::fileManager::instance().getFile(dfname, vals);
+    else
+	ierr = col->getValuesArray(&vals);
     if (ierr == 0) { // got a pointer to the base data
 	if (col->upperBound() > col->lowerBound()) {
 	    const uint32_t nbits = (uint32_t)col->upperBound() + 1;
@@ -445,8 +452,9 @@ int ibis::direkte::construct(const char* dfname) {
 	    }
 	}
     }
-    else { // failed to read or memory map the data file, try to read the
-	   // values one at a time
+    else if (dfname && *dfname) {
+	// failed to read or memory map the data file, try to read the
+	// values one at a time
 	const unsigned elemsize = sizeof(T);
 	uint32_t sz = ibis::util::getFileSize(dfname);
 	if (sz == 0) {
@@ -594,7 +602,11 @@ void ibis::direkte::print(std::ostream& out) const {
 int ibis::direkte::write(const char* dt) const {
     std::string fnm;
     indexFileName(fnm, dt);
-    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+    if (fnm.empty()) {
+	return 0;
+    }
+    else if (0 != str && 0 != str->filename() &&
+	     0 == fnm.compare(str->filename())) {
 	const ibis::fileManager::roFile *rof =
 	    dynamic_cast<const ibis::fileManager::roFile*>(str);
 	if (rof != 0) {

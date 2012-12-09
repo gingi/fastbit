@@ -38,6 +38,14 @@ value for TESTDIR.  Because the test scripts generate a few files with
 the same names as those in this directory, NEVER sets TESTDIR to
 the name of this directory!
 
+On many linux/unix systems, the elapsed time (or real time) reported by
+'time make check' should be about 15s.  Under sygwin on MS Windows, it
+might be quite a bit longer because the process of launching a shell
+script takes significantly longer there.  If you are running on a
+linux/unix variant and 'time make check' reports significantly more time
+than 15s, it is possible there might be something wrong and we would
+like to hear about it.
+
 
 ----------
 KNOWN PROBLEMS

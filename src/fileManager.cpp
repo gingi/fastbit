@@ -1420,10 +1420,10 @@ int ibis::fileManager::unload(size_t sz) {
 	}
 	int ierr = 0;
 	// has to wait for condition to change
-#if defined(CLOCK_REALTIME) && (defined(HAVE_STRUCT_TIMESPEC) || defined(__USE_POSIX) || _POSIX_VERSION+0 > 199900)
+#if defined(CLOCK_MONOTONIC) && (defined(HAVE_STRUCT_TIMESPEC) || defined(__USE_POSIX) || _POSIX_VERSION+0 > 199900)
 	// has clock_gettime to get the current time
 	struct timespec tsp;
-	ierr = clock_gettime(CLOCK_REALTIME, &tsp);
+	ierr = clock_gettime(CLOCK_MONOTONIC, &tsp);
 	if (ierr == 0) {
 	    tsp.tv_sec += (FASTBIT_MAX_WAIT_TIME > 4 ?
 			   (FASTBIT_MAX_WAIT_TIME  >> 2) : 1);

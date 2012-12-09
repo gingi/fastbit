@@ -1,3 +1,33 @@
+2012-12-08 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: introduce variable evt to evaluateRange and
+	estimateRange to simplifying logging statements
+
+2012-12-07 Patrik Nisen <patrik at nisen dot name>
+	* src/bord.cpp: ibis::bord::cursor::fillRow used incorrect names
+	for unsigned integers
+
+2012-12-07 John Wu <John dot Wu at ACM dot org>
+	* src/i*.cpp: allow getValuesArray to be used when generating new
+	indexes
+	* src/table.h, src/part.h: remove the default arguments from the
+	versions of buildIndexes, they can be easily confused in
+	ibis::bord
+	* src/part.cpp: change most of getRawData to getValuesArray to
+	accomodate in-memmory data partition
+
+2012-12-06 John Wu <John dot Wu at ACM dot org>
+	* src/i*.cpp: check for empty file name returned from
+	indexFileName in function write
+	* src/column.cpp: allow actualMinMax to make use of arrays
+	returned by column::getValuesArray
+	* src/index.cpp: allow getValuesArray to be used when a file name
+	can not be determined
+
+2012-11-29 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.h, src/irelic.h: move the two functions name construct
+	to be public so that the users may directly build a binned with
+	in-memory data without inheriting these classes.
+
 2012-11-28 John Wu <John dot Wu at ACM dot org>
 	* src/twister.h: add macro FASTBIT_USE_DEV_URANDOM to control the
 	use of system generated seed for the random number generator
@@ -9,6 +39,9 @@
 	initialization of the random number generator to be possibly
 	delayed (the decision of when the intialization actually happens
 	is determined by the compiler)
+	* src/horometer.h, src/twister.h, src/fileManager.cpp: use
+	CLOCK_MONOTONIC instead of CLOCK_REALTIME to avoid possible clock
+	jumps
 
 2012-11-21 John Wu <John dot Wu at ACM dot org>
 	* examples/ardea.cpp: add timer to main to report the total

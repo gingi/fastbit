@@ -177,6 +177,10 @@ public:
 	}
     }; // comparevalpos
 
+    void construct(const char* f = 0);
+    template <typename E>
+    void construct(const array_t<E>& arr);
+
 protected:
     // protected member variables
     array_t<double> vals;
@@ -194,13 +198,6 @@ protected:
     virtual void clear();
     virtual double computeSum() const;
     virtual size_t getSerialSize() const throw();
-
-    /// Construct an index from in-memory values.  The type @c E is
-    /// intended to be element types supported in column.h.
-    template <typename E>
-    void construct(const array_t<E>& arr);
-    /// Construct a new index in memory.
-    void construct(const char* f = 0);
 
     long mergeValues(uint32_t, uint32_t, void*) const;
     template <typename T> static long

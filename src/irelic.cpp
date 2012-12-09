@@ -221,7 +221,11 @@ int ibis::relic::write(const char* dt) const {
 
     std::string fnm;
     indexFileName(fnm, dt);
-    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+    if (fnm.empty()) {
+	return 0;
+    }
+    else if (0 != str && 0 != str->filename() &&
+	     0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- relic::write can not overwrite the index file \""
 	    << fnm << "\" while it is used as a read-only file map";
@@ -612,10 +616,13 @@ void ibis::relic::clear() {
     ibis::index::clear();
 } // ibis::relic::clear
 
-/// Generate a new index.  The basic bitmap index contains one bitmap per
-/// distinct value.  The string f can be the name of the index file (the
-/// corresponding data file is assumed to be without the '.idx' suffix),
-/// the name of the data file, or the directory contain the data file
+/// Construct a new index in memory.  This function generates the basic
+/// bitmap index that contains one bitmap per distinct value.  The string f
+/// can be the name of the index file (the corresponding data file is
+/// assumed to be without the '.idx' suffix), the name of the data file, or
+/// the directory contain the data file.  The bitmaps may be optionally
+/// uncompressed based on the directives in the indexing specification
+/// returned by ibis::column::indexSpec.
 void ibis::relic::construct(const char* f) {
     VMap bmap;
     try {
@@ -657,6 +664,10 @@ void ibis::relic::construct(const char* f) {
     }
 } // ibis::relic::construct
 
+/// Construct an index from in-memory values.  The type @c E is intended to
+/// be element types supported in column.h.  It only generates the basic
+/// equality encoded index.  Only part of the indexing option that is
+/// checked in this function is the directives for compression.
 template <typename E>
 void ibis::relic::construct(const array_t<E>& arr) {
     VMap bmap;

@@ -53,7 +53,7 @@ public:
     /// Return the current state of data partition.
     TABLE_STATE getStateNoLocking() const {return state;}
 
-    virtual int buildIndexes(const char* iopt=0, int nthr=1);
+    virtual int buildIndexes(const char* iopt, int nthr);
     virtual int buildIndexes(const ibis::table::stringList&, int nthr=1);
     void buildSorted(const char* colname) const;
     void loadIndexes(const char* iopt=0, int ropt=0) const;

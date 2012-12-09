@@ -111,7 +111,7 @@ uint32_t ibis::bak::locate(const double& val) const {
 	}
     }
     return nobs;
-} // ibis::bak::locate()
+} // ibis::bak::locate
 
 // This function reads the data file and records the locations of the values
 // in bakMap

@@ -215,7 +215,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
     try {
 	nrows = *(reinterpret_cast<uint32_t*>(st->begin()+start));
 	LOGGER(c->partition()->getState() == ibis::part::STABLE_STATE &&
-	    nrows != c->partition()->nRows() && ibis::gVerbose > 2)
+	       nrows != c->partition()->nRows() && ibis::gVerbose > 2)
 	    << "Warning -- bin[" << col->partition()->name() << '.'
 	    << col->name() << "]::bin found nrows (" << nrows
 	    << ") to be different from that of the data partition "
@@ -236,11 +236,11 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- initialization completed with "
-		<< nobs << " bin" << (nobs>1?"s":"") << " for "
-		<< nrows << " row" << (nrows>1?"s":"")
-		<< " from a storage object @ " << st << " offset " << start;
+	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- initialization completed with "
+		 << nobs << " bin" << (nobs>1?"s":"") << " for "
+		 << nrows << " row" << (nrows>1?"s":"")
+		 << " from a storage object @ " << st << " offset " << start;
 	    if (ibis::gVerbose > 8) {
 		lg() << "\n";
 		print(lg());
@@ -324,9 +324,9 @@ int ibis::bin::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg()<< "Warning -- bin[" << col->partition()->name() << '.'
-		<< col->name() << "]::read the header from " << fnm
-		<< " (";
+	    lg() << "Warning -- bin[" << col->partition()->name() << '.'
+		 << col->name() << "]::read the header from " << fnm
+		 << " (";
 	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
 	}
@@ -2401,9 +2401,13 @@ void ibis::bin::scanAndPartition(const array_t<E> &varr, unsigned eqw) {
 #endif
 } // ibis::bin::scanAndPartition
 
+/// Construct a binned bitmap index.  It reads data from disk.  The
+/// arguement df can be the name of the directory containing the data or
+/// the data file name.  The actual file name is determined by the function
+/// ibis::column::dataFilename.
+///
 /// This construction function is designed to handle the full spectrum of
-/// binning specifications.  It invokes ibis::bak2 to handle reduced
-/// precision binning.
+/// binning specifications.
 void ibis::bin::construct(const char* df) {
     if (col == 0 || col->partition() == 0) return;
     if (col->partition()->nRows() == 0) return;
@@ -2418,6 +2422,13 @@ void ibis::bin::construct(const char* df) {
     }
     const bool reorder = (spec != 0 ? strstr(spec, "reorder") != 0 :
 			  false);
+    std::string fname;
+    if (0 == col->dataFileName(fname, df)) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "bin::construct can not determine the data file name "
+	    "for column " << col->name()
+	    << ", assume the data is already in memory";
+    }
 
     if (spec != 0 &&
 	(strstr(spec, "precision=") || strstr(spec, "prec="))) {
@@ -2437,87 +2448,123 @@ void ibis::bin::construct(const char* df) {
 	// there is now one more bins than before
 	++ nobs;
 #else
-	std::string fname;
-	if (0 == col->dataFileName(fname, df)) {
-	    throw "bin::construct failed to generate a name for raw data";
-	}
 	switch (col->type()) {
 	case ibis::DOUBLE: {
 	    array_t<double> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::FLOAT: {
 	    array_t<float> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::ULONG: {
 	    array_t<uint64_t> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::LONG: {
 	    array_t<int64_t> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::UINT: {
 	    array_t<uint32_t> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::INT: {
 	    array_t<int32_t> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.c_str())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::USHORT: {
 	    array_t<uint16_t> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.c_str())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::SHORT: {
 	    array_t<int16_t> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::UBYTE: {
 	    array_t<unsigned char> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.c_str())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
 	    break;}
 	case ibis::BYTE: {
 	    array_t<signed char> vals;
-	    int ierr = ibis::fileManager::instance().getFile
-		(fname.c_str(), vals);
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
 	    if (ierr < 0)
 		throw "bin::construct failed to read raw data";
 	    construct(vals);
@@ -2530,10 +2577,11 @@ void ibis::bin::construct(const char* df) {
 	    throw "Unexpected data type for ibis::bin";
 	}
 #endif
-	if (reorder)
+	if (reorder && ! fname.empty())
 	    binOrder(df);
     }
-    else { // may read the data file to determine the bin boundaries
+    else if (! fname.empty()) {
+	// read the data file to determine the bin boundaries
 	setBoundaries(df);
 	if (reorder) {
 	    switch (col->type()) { // binning with reordering
@@ -2579,6 +2627,87 @@ void ibis::bin::construct(const char* df) {
 	    binning(df);
 	}
     }
+    else {
+	switch (col->type()) {
+	case ibis::DOUBLE: {
+	    array_t<double> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::UBYTE: {
+	    array_t<unsigned char> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::BYTE: {
+	    array_t<signed char> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- unable to bin column " << col->name()
+		<< " (type " << (int)(col->type()) << ", "
+		<< ibis::TYPESTRING[(int)(col->type())] << ')';
+	    throw "Unexpected data type for ibis::bin";
+	}
+    }
+
     optionalUnpack(bits, col->indexSpec());
     nobs = bits.size();
     if (nobs > 0) {
@@ -2590,10 +2719,10 @@ void ibis::bin::construct(const char* df) {
     }
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-	    << "]::construct(" << (df ? df : "") << ") -- finished "
+	lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	     << "]::construct(" << (df ? df : "") << ") -- finished "
 	    "constructing a simple equality index with " << nobs
-	    << " bin" << (nobs>1?"s":"");
+	     << " bin" << (nobs>1?"s":"");
 	if (ibis::gVerbose > 8) {
 	    lg() << "\n";
 	    print(lg());
@@ -2613,6 +2742,8 @@ template void ibis::bin::construct(const array_t<uint64_t>&);
 template void ibis::bin::construct(const array_t<float>&);
 template void ibis::bin::construct(const array_t<double>&);
 
+/// Construction function for in-memory data.  It reads the indexing option
+/// from using the function ibis::column::indexSpec.
 template <typename E>
 void ibis::bin::construct(const array_t<E>& varr) {
     if (varr.empty()) return; // can not do anything with an empty array
@@ -2633,10 +2764,10 @@ void ibis::bin::construct(const array_t<E>& varr) {
     optionalUnpack(bits, spec);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg()<< "bin[" << col->partition()->name() << '.' << col->name()
-	    << "]::construct<" << typeid(E).name() << '[' << varr.size()
-	    << "]> -- finished constructing a simple equality index with "
-	    << nobs << " bin" << (nobs>1?"s":"");
+	lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	     << "]::construct<" << typeid(E).name() << '[' << varr.size()
+	     << "]> -- finished constructing a simple equality index with "
+	     << nobs << " bin" << (nobs>1?"s":"");
 	if (ibis::gVerbose > 8) {
 	    lg() << "\n";
 	    print(lg());
@@ -5204,7 +5335,11 @@ int ibis::bin::write(const char* dt) const {
     if (nobs <= 0 || nrows <= 0) return -1;
     std::string fnm;
     indexFileName(fnm, dt);
-    if (0 != str && 0 != str->filename() && 0 == fnm.compare(str->filename())) {
+    if (fnm.empty()) {
+	return 0;
+    }
+    else if (0 != str && 0 != str->filename() &&
+	     0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin::write can not overwrite the index file \""
 	    << fnm << "\" while it is used as a read-only file map";
@@ -8697,8 +8832,8 @@ void ibis::bin::equiJoin(ibis::bitvector64& sure,
 
 // A range join on the same variable.
 void ibis::bin::deprecatedJoin(const double& delta,
-			  ibis::bitvector64& sure,
-			  ibis::bitvector64& iffy) const {
+			       ibis::bitvector64& sure,
+			       ibis::bitvector64& iffy) const {
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
 	    ("bin::deprecatedJoin", "start processing a range-join ("
@@ -8986,9 +9121,9 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 
 /// A range join on two different columns.
 void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
-			  const double& delta,
-			  ibis::bitvector64& sure,
-			  ibis::bitvector64& iffy) const {
+			       const double& delta,
+			       ibis::bitvector64& sure,
+			       ibis::bitvector64& iffy) const {
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
 	    ("bin::deprecatedJoin", "start processing a range-join ("
@@ -9039,12 +9174,12 @@ void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
 		if (il2+1 == im2 && in2 == iu2) {
 		    // only idx2.bits[il2]
 		    ibis::util::outerProduct(*(bits[il1]), *(idx2.bits[il2]),
-				       iffy);
+					     iffy);
 		}
 		else if (il2 == im2 && in2+1 == iu2) {
 		    // only idx2.bits[in2]
 		    ibis::util::outerProduct(*(bits[il1]), *(idx2.bits[in2]),
-				       iffy);
+					     iffy);
 		}
 		else if (il2+1 == im2 && in2+1 == iu2) {
 		    // only idx2.bits[il2] and idex.bits[in2]
@@ -9293,9 +9428,9 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
 
 // A range join on the same variable.
 void ibis::bin::deprecatedJoin(const double& delta,
-			  const ibis::bitvector& mask,
-			  ibis::bitvector64& sure,
-			  ibis::bitvector64& iffy) const {
+			       const ibis::bitvector& mask,
+			       ibis::bitvector64& sure,
+			       ibis::bitvector64& iffy) const {
     if (delta <= 0.0) {
 	equiJoin(mask, sure, iffy);
 	return;
@@ -9654,11 +9789,11 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
 
 // A range join on the same variable.
 void ibis::bin::deprecatedJoin(const double& delta,
-			  const ibis::bitvector& mask,
-			  const ibis::qRange* const range1,
-			  const ibis::qRange* const range2,
-			  ibis::bitvector64& sure,
-			  ibis::bitvector64& iffy) const {
+			       const ibis::bitvector& mask,
+			       const ibis::qRange* const range1,
+			       const ibis::qRange* const range2,
+			       ibis::bitvector64& sure,
+			       ibis::bitvector64& iffy) const {
     if (mask.cnt() == 0) {
 	uint64_t np = mask.size();
 	np *= np;
@@ -10042,9 +10177,9 @@ int64_t ibis::bin::equiJoin(const ibis::bitvector& mask,
 
 // A range join on the same variable.
 int64_t ibis::bin::deprecatedJoin(const double& delta,
-			     const ibis::bitvector& mask,
-			     const ibis::qRange* const range1,
-			     const ibis::qRange* const range2) const {
+				  const ibis::bitvector& mask,
+				  const ibis::qRange* const range1,
+				  const ibis::qRange* const range2) const {
     int64_t cnt = 0;
     if (mask.cnt() == 0)
 	return cnt;
@@ -10336,10 +10471,10 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 
 /// A range join on two different columns.
 void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
-			  const double& delta,
-			  const ibis::bitvector& mask,
-			  ibis::bitvector64& sure,
-			  ibis::bitvector64& iffy) const {
+			       const double& delta,
+			       const ibis::bitvector& mask,
+			       ibis::bitvector64& sure,
+			       ibis::bitvector64& iffy) const {
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
 	    ("bin::deprecatedJoin", "start processing a range-join ("
@@ -10698,12 +10833,12 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 
 /// A range join on two different columns.
 void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
-			  const double& delta,
-			  const ibis::bitvector& mask,
-			  const ibis::qRange* const range1,
-			  const ibis::qRange* const range2,
-			  ibis::bitvector64& sure,
-			  ibis::bitvector64& iffy) const {
+			       const double& delta,
+			       const ibis::bitvector& mask,
+			       const ibis::qRange* const range1,
+			       const ibis::qRange* const range2,
+			       ibis::bitvector64& sure,
+			       ibis::bitvector64& iffy) const {
     if (mask.cnt() == 0) {
 	uint64_t np = mask.size();
 	np *= np;
@@ -11107,10 +11242,10 @@ int64_t ibis::bin::equiJoin(const ibis::bin& idx2,
 
 /// A range join on two different columns.
 int64_t ibis::bin::deprecatedJoin(const ibis::bin& idx2,
-			     const double& delta,
-			     const ibis::bitvector& mask,
-			     const ibis::qRange* const range1,
-			     const ibis::qRange* const range2) const {
+				  const double& delta,
+				  const ibis::bitvector& mask,
+				  const ibis::qRange* const range1,
+				  const ibis::qRange* const range2) const {
     int64_t cnt = 0;
     if (mask.cnt() == 0) {
 	return cnt;
@@ -11513,7 +11648,7 @@ long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
 
     // a heap to organize the values
     ibis::util::heap< ibis::bin::valpos<T>,
-		      ibis::bin::comparevalpos<T> > hp;
+	ibis::bin::comparevalpos<T> > hp;
     // values in the edge bins that satisfying the range condition
     ibis::array_t<T> v0, v1; 
     // position of the values in the edge bins

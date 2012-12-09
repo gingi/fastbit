@@ -310,7 +310,7 @@ int ibis::mensa::buildIndex(const char* colname, const char* option) {
 int ibis::mensa::buildIndexes(const char* opt) {
     for (ibis::partList::const_iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
-	(*it)->buildIndexes(opt);
+	(*it)->buildIndexes(opt, 1);
     }
     return 0;
 } // ibis::mensa::buildIndexes
