@@ -24,12 +24,10 @@ namespace ibis {
 /// class, the same where clause is applied to all known data partitions.
 class ibis::filter : public ibis::quaere {
 public:
-    /// Constructor.
-    explicit filter(const ibis::whereClause* w);
-    /// Constructor.
-    filter(const ibis::selectClause* s, const ibis::constPartList* p,
-	   const ibis::whereClause* w);
-    /// Destructor.
+    explicit filter(const ibis::whereClause *);
+    filter(const ibis::selectClause *, const ibis::constPartList *,
+	   const ibis::whereClause *);
+    filter(const ibis::bitvector &, const ibis::part &);
     virtual ~filter();
 
     virtual void    roughCount(uint64_t& nmin, uint64_t& nmax) const;

@@ -18,24 +18,24 @@
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
 
-/// The incoming where clause is applied to all known data partitions in
-/// ibis::datasets.
-ibis::filter::filter(const ibis::whereClause* w)
+/// Constructor.  The incoming where clause is applied to all known data
+/// partitions in ibis::datasets.
+ibis::filter::filter(const ibis::whereClause *w)
     : wc_(w != 0 && w->empty() == false ? new whereClause(*w) : 0),
       parts_(0), sel_(0) {
     LOGGER(ibis::gVerbose > 5)
 	<< "Constructed a filter @ " << this << " with a where clause";
 } // constructor
 
-/// The user supplies all three clauses of a SQL select statement.  The
-/// objects are copied if they are not empty.
+/// Constructor.  The caller supplies all three clauses of a SQL select
+/// statement.  The arguments are copied if they are not empty.
 ///
 /// @note This constructor makes a copy of the container for the data
 /// partitions, but not the data partitions themselves.  In the
 /// destructor, only the container is freed, not the data partitions.
-ibis::filter::filter(const ibis::selectClause* s,
-		     const ibis::constPartList* p,
-		     const ibis::whereClause* w)
+ibis::filter::filter(const ibis::selectClause *s,
+		     const ibis::constPartList *p,
+		     const ibis::whereClause *w)
     : wc_(w == 0 || w->empty() ? 0 : new whereClause(*w)),
       parts_(p == 0 || p->empty() ? 0 : new constPartList(*p)),
       sel_(s == 0 || s->empty() ? 0 : new selectClause(*s)) {
@@ -43,6 +43,24 @@ ibis::filter::filter(const ibis::selectClause* s,
 	<< "Constructed a filter @ " << this << " with three components";
 } // constructor
 
+/// Constructor.  This constructor takes a bit vector and a single data
+/// partition.  It is intended to regenerate a query result set saved as a
+/// hit vector.  The caller can use various versions of the function select
+/// to reprocess the result from another query.
+ibis::filter::filter(const ibis::bitvector &s, const ibis::part &p)
+    : wc_(0), parts_(new ibis::constPartList(1, &p)), sel_(0), hits_(1) {
+    // put a copy of the bitvector as the hits_[0]
+    hits_[0] = new ibis::bitvector(s);
+    LOGGER(ibis::gVerbose > 5)
+	<< "Constructed a filter @ " << this
+	<< " with a bit vector on data partition " << p.name();
+    LOGGER(s.size() != p.nRows() && ibis::gVerbose > 0)
+	<< "Warning -- filter::ctor received a bitvector with " << s.size()
+	<< " bit" << (s.size()>1?"s":"") << ", but a data partition with "
+	<< p.nRows() << " row" << (p.nRows()>1?"s":"");
+} // constructor
+
+/// Destructor.
 ibis::filter::~filter() {
     LOGGER(ibis::gVerbose > 5)
 	<< "Freeing filter @ " << this;
@@ -54,7 +72,7 @@ ibis::filter::~filter() {
 } // ibis::filter::~filter
 
 /// Produce a rough count of the number of hits.
-void ibis::filter::roughCount(uint64_t& nmin, uint64_t& nmax) const {
+void ibis::filter::roughCount(uint64_t &nmin, uint64_t &nmax) const {
     const ibis::constPartList &myparts =
 	(parts_ != 0 ? *parts_ :
 	 reinterpret_cast<const ibis::constPartList&>(ibis::datasets));

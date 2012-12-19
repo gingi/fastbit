@@ -1,3 +1,8 @@
+2012-12-19 John Wu <John dot Wu at ACM dot org>
+	* src/filter.h, src/filter.cpp: add a new constructor to work with
+	previously saved query results (as a bitvector) in response to a
+	request from Patrik Nisen
+
 2012-12-08 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: introduce variable evt to evaluateRange and
 	estimateRange to simplifying logging statements

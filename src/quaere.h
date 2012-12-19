@@ -26,8 +26,8 @@ namespace ibis {
 ///
 /// @warning This is an experimental feature of FastBit.  The current
 /// design is very limited and is likely to go through major revisions
-/// frequently.  Feel free to express your opinions on the FastBit mailing
-/// list fastbit-users@hpcrdm.lbl.gov.
+/// frequently.  Feel free to express your opinions about the design of
+/// this class on the FastBit mailing list fastbit-users@hpcrdm.lbl.gov.
 ///
 /// @note The word quaere is the latin equivalent of query.  Once the
 /// implementation of this class stablizes, we intend to swap the names
