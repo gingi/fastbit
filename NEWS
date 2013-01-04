@@ -1,3 +1,20 @@
+Thu Jan  3 21:05:47 PST 2013
+Version ibis1.3.5
+-- in ardea.cpp, do not write the data if a data directory is not
+   specified by the caller - this allows the all queries to be performed
+   on in-memory data
+-- replace the use of /dev/random to /dev/urandom to avoid blocking,
+   change the default option to initialize the random number generator
+   to use the current time (to address a unexpected delay in starting up
+   of FastBit code raised by Preeti Gupta)
+-- change the protected construction function of index classes ibis::bin
+   and ibis::relic to be public functions to avoid the need of
+   inheriting from them in client code
+-- Patrik Nisen fixed incorrect names in ibis::bord::cursor::fillRow
+-- change filter class to take previously saved query results at the
+   request of Patrik Nisen
+
+
 Thu Nov 15 17:01:37 PST 2012
 Version ibis1.3.4
 -- change the templated constructor of qIntHod and qUIntHod to use fixed

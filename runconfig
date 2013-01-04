@@ -23,8 +23,8 @@ if (${HOSTNAME} =~ m/^bit/) {
   # $cmd="./configure --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
   $cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
 } elsif (${HOSTNAME} =~ m/^cvr\w+[\.nersc\.gov]?$/) {
-  # on carver at NERSC, use the default PGI compilers, no debugging
-  $cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver/fastbit";
+  # on carver at NERSC, use the GNU compilers, no debugging
+  $cmd="./configure --without-getpwuid --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver/fastbit";
 } elsif (${HOSTNAME} =~ m/\.nersc\.gov$/) {
   # on other NERSC machines, use the default compilers, no debugging
   $cmd="./configure --without-getpwuid --disable-debug --enable-xopt";
