@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2000-2012 the Regents of the University of California
+// Copyright 2000-2013 the Regents of the University of California
 //
 // This file contains the implementation of the classes defined in index.h
 // The primary function from the database point of view is a function
@@ -2941,7 +2941,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
     return cnt;
 } // ibis::relic::compJoin
 
-/// Estiamte the size of the index in a file.
+/// Compute the size of the index in a file.
 size_t ibis::relic::getSerialSize() const throw() {
     size_t res = 24 + 8 * (bits.size() + vals.size());
     for (unsigned j = 0; j < bits.size(); ++ j)

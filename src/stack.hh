@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.6.2.  */
+/* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Stack handling for Bison parsers in C++
    
@@ -35,14 +35,14 @@
  ** Define the ibis::stack class.
  */
 
-#ifndef IBIS_STACK_HH
-# define IBIS_STACK_HH
+#ifndef YY_IBIS_STACK_HH_INCLUDED
+# define YY_IBIS_STACK_HH_INCLUDED
 
 # include <deque>
 
 
 namespace ibis {
-/* Line 37 of stack.hh  */
+/* Line 34 of stack.hh  */
 #line 47 "stack.hh"
   template <class T, class S = std::deque<T> >
   class stack
@@ -127,7 +127,7 @@ namespace ibis {
   };
 
 } // ibis
-/* Line 119 of stack.hh  */
+/* Line 116 of stack.hh  */
 #line 132 "stack.hh"
 
-#endif /* !IBIS_STACK_HH  */
+#endif /* !YY_IBIS_STACK_HH_INCLUDED  */

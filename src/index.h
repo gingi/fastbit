@@ -1,7 +1,7 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright 2000-2012 the Regents of the University of California
+// Copyright 2000-2013 the Regents of the University of California
 #ifndef IBIS_INDEX_H
 #define IBIS_INDEX_H
 ///@file
@@ -383,6 +383,7 @@ protected:
     virtual void activate(uint32_t i, uint32_t j) const;
     /// Clear the existing content
     virtual void clear();
+    virtual size_t getSerialSize() const throw();
 
     ////////////////////////////////////////////////////////////////////////
     // both VMap and histogram assume that all supported data types can be
@@ -429,8 +430,10 @@ public:
 }; // ibis::index::barrel
 
 
-/// Estiamte the number of bytes this index takes.  Do not intend to be
-/// precise.
+/// Estiamte the size of this index object measured in bytes.  Do not
+/// intend to be precise, but should be good enough for operations such as
+/// comparing index size against base data size to determine which
+/// operation to use for answering a query.
 inline float ibis::index::sizeInBytes() const {
     if (offset64.size() > bits.size()) {
 	return (float)offset64[bits.size()];

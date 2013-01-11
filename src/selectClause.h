@@ -1,7 +1,7 @@
 // $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 2007-2012 the Regents of the University of California
+// Copyright 2007-2013 the Regents of the University of California
 /** @file
     Declares ibis::selectClause class.
 */

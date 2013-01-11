@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.6.2.  */
+/* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Positions for Bison parsers in C++
    
@@ -35,11 +35,11 @@
  ** Define the ibis::position class.
  */
 
-#ifndef IBIS_POSITION_HH
-# define IBIS_POSITION_HH
+#ifndef YY_IBIS_POSITION_HH_INCLUDED
+# define YY_IBIS_POSITION_HH_INCLUDED
 
 # include <algorithm> // std::max
-# include <iosfwd>
+# include <iostream>
 # include <string>
 
 # ifndef YY_NULL
@@ -52,7 +52,7 @@
 
 
 namespace ibis {
-/* Line 38 of location.cc  */
+/* Line 36 of location.cc  */
 #line 57 "position.hh"
   /// Abstract a position.
   class position
@@ -105,7 +105,7 @@ namespace ibis {
   };
 
   /// Add and assign a position.
-  inline const position&
+  inline position&
   operator+= (position& res, const int width)
   {
     res.columns (width);
@@ -121,7 +121,7 @@ namespace ibis {
   }
 
   /// Add and assign a position.
-  inline const position&
+  inline position&
   operator-= (position& res, const int width)
   {
     return res += -width;
@@ -156,8 +156,9 @@ namespace ibis {
    ** \param ostr the destination output stream
    ** \param pos a reference to the position to redirect
    */
-  inline std::ostream&
-  operator<< (std::ostream& ostr, const position& pos)
+  template <typename YYChar>
+  inline std::basic_ostream<YYChar>&
+  operator<< (std::basic_ostream<YYChar>& ostr, const position& pos)
   {
     if (pos.filename)
       ostr << *pos.filename << ':';
@@ -166,6 +167,6 @@ namespace ibis {
 
 
 } // ibis
-/* Line 149 of location.cc  */
-#line 171 "position.hh"
-#endif /* !IBIS_POSITION_HH  */
+/* Line 148 of location.cc  */
+#line 172 "position.hh"
+#endif /* !YY_IBIS_POSITION_HH_INCLUDED  */

@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.6.2.  */
+/* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Skeleton implementation for Bison LALR(1) parsers in C++
    
@@ -30,7 +30,7 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 /* "%code top" blocks.  */
-/* Line 271 of lalr1.cc  */
+/* Line 272 of lalr1.cc  */
 #line 6 "selectParser.yy"
 
 /** \file Defines the parser for the select clause accepted by FastBit
@@ -39,7 +39,7 @@
 #include <iostream>
 
 
-/* Line 271 of lalr1.cc  */
+/* Line 272 of lalr1.cc  */
 #line 44 "selectParser.cc"
 
 // Take the name prefix into account.
@@ -47,14 +47,14 @@
 
 /* First part of user declarations.  */
 
-/* Line 278 of lalr1.cc  */
+/* Line 279 of lalr1.cc  */
 #line 52 "selectParser.cc"
 
 
 #include "selectParser.hh"
 
 /* User implementation prologue.  */
-/* Line 284 of lalr1.cc  */
+/* Line 285 of lalr1.cc  */
 #line 66 "selectParser.yy"
 
 #include "selectLexer.h"
@@ -62,7 +62,7 @@
 #undef yylex
 #define yylex driver.lexer->lex
 
-/* Line 284 of lalr1.cc  */
+/* Line 285 of lalr1.cc  */
 #line 67 "selectParser.cc"
 
 
@@ -141,9 +141,9 @@ do {					\
 #else /* !YYDEBUG */
 
 # define YYCDEBUG if (false) std::cerr
-# define YY_SYMBOL_PRINT(Title, Type, Value, Location)
-# define YY_REDUCE_PRINT(Rule)
-# define YY_STACK_PRINT()
+# define YY_SYMBOL_PRINT(Title, Type, Value, Location) YYUSE(Type)
+# define YY_REDUCE_PRINT(Rule)        static_cast<void>(0)
+# define YY_STACK_PRINT()             static_cast<void>(0)
 
 #endif /* !YYDEBUG */
 
@@ -157,7 +157,7 @@ do {					\
 
 
 namespace ibis {
-/* Line 352 of lalr1.cc  */
+/* Line 353 of lalr1.cc  */
 #line 162 "selectParser.cc"
 
   /* Return YYSTR after stripping away unnecessary quotes and
@@ -255,24 +255,25 @@ namespace ibis {
     YYUSE (yymsg);
     YYUSE (yyvaluep);
 
-    YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
+    if (yymsg)
+      YY_SYMBOL_PRINT (yymsg, yytype, yyvaluep, yylocationp);
 
     switch (yytype)
       {
         case 13: /* "name" */
-/* Line 453 of lalr1.cc  */
+/* Line 455 of lalr1.cc  */
 #line 63 "selectParser.yy"
-	{ delete ((*yyvaluep).stringVal); };
-/* Line 453 of lalr1.cc  */
-#line 268 "selectParser.cc"
-	break;
+        { delete ((*yyvaluep).stringVal); };
+/* Line 455 of lalr1.cc  */
+#line 269 "selectParser.cc"
+        break;
       case 20: /* mathExpr */
-/* Line 453 of lalr1.cc  */
+/* Line 455 of lalr1.cc  */
 #line 64 "selectParser.yy"
-	{ delete ((*yyvaluep).selectNode); };
-/* Line 453 of lalr1.cc  */
-#line 275 "selectParser.cc"
-	break;
+        { delete ((*yyvaluep).selectNode); };
+/* Line 455 of lalr1.cc  */
+#line 276 "selectParser.cc"
+        break;
 
 	default:
 	  break;
@@ -333,17 +334,18 @@ namespace ibis {
     int yychar = yyempty_;
     int yytoken = 0;
 
-    /* State.  */
+    // State.
     int yyn;
     int yylen = 0;
     int yystate = 0;
 
-    /* Error handling.  */
+    // Error handling.
     int yynerrs_ = 0;
     int yyerrstatus_ = 0;
 
     /// Semantic value of the lookahead.
-    semantic_type yylval;
+    static semantic_type yyval_default;
+    semantic_type yylval = yyval_default;
     /// Location of the lookahead.
     location_type yylloc;
     /// The locations where the error started and ended.
@@ -356,17 +358,21 @@ namespace ibis {
 
     int yyresult;
 
+    // FIXME: This shoud be completely indented.  It is not yet to
+    // avoid gratuitous conflicts when merging into the master branch.
+    try
+      {
     YYCDEBUG << "Starting parse" << std::endl;
 
 
 /* User initialization code.  */
-/* Line 538 of lalr1.cc  */
+/* Line 545 of lalr1.cc  */
 #line 28 "selectParser.yy"
 { // initialize location object
     yylloc.begin.filename = yylloc.end.filename = &(driver.clause_);
 }
-/* Line 538 of lalr1.cc  */
-#line 370 "selectParser.cc"
+/* Line 545 of lalr1.cc  */
+#line 376 "selectParser.cc"
 
     /* Initialize the stacks.  The initial state will be pushed in
        yynewstate, since the latter expects the semantical and the
@@ -400,10 +406,9 @@ namespace ibis {
     /* Read a lookahead token.  */
     if (yychar == yyempty_)
       {
-	YYCDEBUG << "Reading a token: ";
-	yychar = yylex (&yylval, &yylloc);
+        YYCDEBUG << "Reading a token: ";
+        yychar = yylex (&yylval, &yylloc);
       }
-
 
     /* Convert token to internal form.  */
     if (yychar <= yyeof_)
@@ -475,15 +480,18 @@ namespace ibis {
     else
       yyval = yysemantic_stack_[0];
 
+    // Compute the default @$.
     {
       slice<location_type, location_stack_type> slice (yylocation_stack_, yylen);
       YYLLOC_DEFAULT (yyloc, slice, yylen);
     }
+
+    // Perform the reduction.
     YY_REDUCE_PRINT (yyn);
     switch (yyn)
       {
-	  case 4:
-/* Line 661 of lalr1.cc  */
+          case 4:
+/* Line 670 of lalr1.cc  */
 #line 75 "selectParser.yy"
     {
     driver.addTerm((yysemantic_stack_[(2) - (1)].selectNode), 0);
@@ -491,7 +499,7 @@ namespace ibis {
     break;
 
   case 5:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 78 "selectParser.yy"
     {
     driver.addTerm((yysemantic_stack_[(2) - (1)].selectNode), 0);
@@ -499,7 +507,7 @@ namespace ibis {
     break;
 
   case 6:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 81 "selectParser.yy"
     {
     driver.addTerm((yysemantic_stack_[(3) - (1)].selectNode), (yysemantic_stack_[(3) - (2)].stringVal));
@@ -508,7 +516,7 @@ namespace ibis {
     break;
 
   case 7:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 85 "selectParser.yy"
     {
     driver.addTerm((yysemantic_stack_[(3) - (1)].selectNode), (yysemantic_stack_[(3) - (2)].stringVal));
@@ -517,7 +525,7 @@ namespace ibis {
     break;
 
   case 8:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 89 "selectParser.yy"
     {
     driver.addTerm((yysemantic_stack_[(4) - (1)].selectNode), (yysemantic_stack_[(4) - (3)].stringVal));
@@ -526,7 +534,7 @@ namespace ibis {
     break;
 
   case 9:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 93 "selectParser.yy"
     {
     driver.addTerm((yysemantic_stack_[(4) - (1)].selectNode), (yysemantic_stack_[(4) - (3)].stringVal));
@@ -535,7 +543,7 @@ namespace ibis {
     break;
 
   case 10:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 100 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -552,7 +560,7 @@ namespace ibis {
     break;
 
   case 11:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 112 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -569,7 +577,7 @@ namespace ibis {
     break;
 
   case 12:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 124 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -586,7 +594,7 @@ namespace ibis {
     break;
 
   case 13:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 136 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -603,7 +611,7 @@ namespace ibis {
     break;
 
   case 14:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 148 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -620,7 +628,7 @@ namespace ibis {
     break;
 
   case 15:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 160 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -637,7 +645,7 @@ namespace ibis {
     break;
 
   case 16:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 172 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -654,7 +662,7 @@ namespace ibis {
     break;
 
   case 17:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 184 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -671,7 +679,7 @@ namespace ibis {
     break;
 
   case 18:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 196 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -695,7 +703,7 @@ namespace ibis {
     break;
 
   case 19:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 215 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -896,7 +904,7 @@ namespace ibis {
     break;
 
   case 20:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 411 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -914,7 +922,7 @@ namespace ibis {
     break;
 
   case 21:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 424 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -929,7 +937,7 @@ namespace ibis {
     break;
 
   case 22:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 434 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(2) - (2)].selectNode);
@@ -937,7 +945,7 @@ namespace ibis {
     break;
 
   case 23:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 437 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(3) - (2)].selectNode);
@@ -945,7 +953,7 @@ namespace ibis {
     break;
 
   case 24:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 440 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -958,7 +966,7 @@ namespace ibis {
     break;
 
   case 25:
-/* Line 661 of lalr1.cc  */
+/* Line 670 of lalr1.cc  */
 #line 448 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -970,11 +978,12 @@ namespace ibis {
     break;
 
 
-/* Line 661 of lalr1.cc  */
-#line 975 "selectParser.cc"
-	default:
-          break;
+/* Line 670 of lalr1.cc  */
+#line 983 "selectParser.cc"
+      default:
+        break;
       }
+
     /* User semantic actions sometimes alter yychar, and that requires
        that yytoken be updated with the new translation.  We take the
        approach of translating immediately before every use of yytoken.
@@ -1025,20 +1034,19 @@ namespace ibis {
     yyerror_range[1] = yylloc;
     if (yyerrstatus_ == 3)
       {
-	/* If just tried and failed to reuse lookahead token after an
-	 error, discard it.  */
-
-	if (yychar <= yyeof_)
-	  {
-	  /* Return failure if at end of input.  */
-	  if (yychar == yyeof_)
-	    YYABORT;
-	  }
-	else
-	  {
-	    yydestruct_ ("Error: discarding", yytoken, &yylval, &yylloc);
-	    yychar = yyempty_;
-	  }
+        /* If just tried and failed to reuse lookahead token after an
+           error, discard it.  */
+        if (yychar <= yyeof_)
+          {
+            /* Return failure if at end of input.  */
+            if (yychar == yyeof_)
+              YYABORT;
+          }
+        else
+          {
+            yydestruct_ ("Error: discarding", yytoken, &yylval, &yylloc);
+            yychar = yyempty_;
+          }
       }
 
     /* Else will try to reuse lookahead token after shifting the error
@@ -1087,7 +1095,7 @@ namespace ibis {
 
 	/* Pop the current state because it cannot handle the error token.  */
 	if (yystate_stack_.height () == 1)
-	YYABORT;
+	  YYABORT;
 
 	yyerror_range[1] = yylocation_stack_[0];
 	yydestruct_ ("Error: popping",
@@ -1135,16 +1143,42 @@ namespace ibis {
     /* Do not reclaim the symbols of the rule which action triggered
        this YYABORT or YYACCEPT.  */
     yypop_ (yylen);
-    while (yystate_stack_.height () != 1)
+    while (1 < yystate_stack_.height ())
       {
-	yydestruct_ ("Cleanup: popping",
-		   yystos_[yystate_stack_[0]],
-		   &yysemantic_stack_[0],
-		   &yylocation_stack_[0]);
-	yypop_ ();
+        yydestruct_ ("Cleanup: popping",
+                     yystos_[yystate_stack_[0]],
+                     &yysemantic_stack_[0],
+                     &yylocation_stack_[0]);
+        yypop_ ();
       }
 
     return yyresult;
+    }
+    catch (...)
+      {
+        YYCDEBUG << "Exception caught: cleaning lookahead and stack"
+                 << std::endl;
+        // Do not try to display the values of the reclaimed symbols,
+        // as their printer might throw an exception.
+        if (yychar != yyempty_)
+          {
+            /* Make sure we have latest lookahead translation.  See
+               comments at user semantic actions for why this is
+               necessary.  */
+            yytoken = yytranslate_ (yychar);
+            yydestruct_ (YY_NULL, yytoken, &yylval, &yylloc);
+          }
+
+        while (1 < yystate_stack_.height ())
+          {
+            yydestruct_ (YY_NULL,
+                         yystos_[yystate_stack_[0]],
+                         &yysemantic_stack_[0],
+                         &yylocation_stack_[0]);
+            yypop_ ();
+          }
+        throw;
+      }
   }
 
   // Generate an error message.
@@ -1494,9 +1528,9 @@ namespace ibis {
 
 
 } // ibis
-/* Line 1106 of lalr1.cc  */
-#line 1499 "selectParser.cc"
-/* Line 1107 of lalr1.cc  */
+/* Line 1141 of lalr1.cc  */
+#line 1533 "selectParser.cc"
+/* Line 1142 of lalr1.cc  */
 #line 457 "selectParser.yy"
 
 void ibis::selectParser::error(const ibis::selectParser::location_type& l,

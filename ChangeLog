@@ -1,3 +1,8 @@
+2012-01-10 John Wu <John dot Wu at ACM dot org>
+	* src/*, examples/*: update copyright year to 2013
+	* src/index.h: add function getSerialSize as a protected member
+	function since it already exist in all the derived classes
+
 2012-12-19 John Wu <John dot Wu at ACM dot org>
 	* src/filter.h, src/filter.cpp: add a new constructor to work with
 	previously saved query results (as a bitvector) in response to a

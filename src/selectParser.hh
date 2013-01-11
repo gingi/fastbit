@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.6.2.  */
+/* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
    
@@ -37,17 +37,17 @@
 
 /* C++ LALR(1) parser skeleton written by Akim Demaille.  */
 
-#ifndef IBIS_SELECTPARSER_HH
-# define IBIS_SELECTPARSER_HH
+#ifndef YY_IBIS_SELECTPARSER_HH_INCLUDED
+# define YY_IBIS_SELECTPARSER_HH_INCLUDED
 
 /* "%code requires" blocks.  */
-/* Line 36 of lalr1.cc  */
+/* Line 33 of lalr1.cc  */
 #line 12 "selectParser.yy"
 
 #include "selectClause.h"	// class selectClause
 
 
-/* Line 36 of lalr1.cc  */
+/* Line 33 of lalr1.cc  */
 #line 52 "selectParser.hh"
 
 
@@ -63,7 +63,7 @@
 
 
 namespace ibis {
-/* Line 36 of lalr1.cc  */
+/* Line 33 of lalr1.cc  */
 #line 68 "selectParser.hh"
 
   /// A Bison parser.
@@ -74,7 +74,7 @@ namespace ibis {
 #ifndef YYSTYPE
     union semantic_type
     {
-/* Line 36 of lalr1.cc  */
+/* Line 33 of lalr1.cc  */
 #line 34 "selectParser.yy"
 
     int			integerVal;
@@ -83,7 +83,7 @@ namespace ibis {
     ibis::math::term	*selectNode;
 
 
-/* Line 36 of lalr1.cc  */
+/* Line 33 of lalr1.cc  */
 #line 88 "selectParser.hh"
     };
 #else
@@ -254,6 +254,7 @@ namespace ibis {
 
     /// \brief Reclaim the memory associated to a symbol.
     /// \param yymsg        Why this token is reclaimed.
+    ///                     If null, do not display the symbol, just free it.
     /// \param yytype       The symbol type.
     /// \param yyvaluep     Its semantic value.
     /// \param yylocationp  Its location.
@@ -283,9 +284,9 @@ namespace ibis {
   };
 
 } // ibis
-/* Line 36 of lalr1.cc  */
-#line 288 "selectParser.hh"
+/* Line 33 of lalr1.cc  */
+#line 289 "selectParser.hh"
 
 
 
-#endif /* !IBIS_SELECTPARSER_HH  */
+#endif /* !YY_IBIS_SELECTPARSER_HH_INCLUDED  */

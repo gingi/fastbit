@@ -1,7 +1,7 @@
 // File: $Id$
 // Author: K. John Wu <John.Wu at acm.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright 2000-2012 Univeristy of California
+// Copyright 2000-2013 Univeristy of California
 //
 // the implementation file of the ibis::array_t<T> class
 //

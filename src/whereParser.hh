@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.6.  */
+/* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
    
@@ -37,20 +37,18 @@
 
 /* C++ LALR(1) parser skeleton written by Akim Demaille.  */
 
-#ifndef IBIS_WHEREPARSER_HH
-# define IBIS_WHEREPARSER_HH
+#ifndef YY_IBIS_WHEREPARSER_HH_INCLUDED
+# define YY_IBIS_WHEREPARSER_HH_INCLUDED
 
 /* "%code requires" blocks.  */
-
-/* Line 36 of lalr1.cc  */
+/* Line 33 of lalr1.cc  */
 #line 13 "whereParser.yy"
 
 #include "whereClause.h"	// class whereClause
 
 
-
-/* Line 36 of lalr1.cc  */
-#line 54 "whereParser.hh"
+/* Line 33 of lalr1.cc  */
+#line 52 "whereParser.hh"
 
 
 #include <string>
@@ -65,9 +63,8 @@
 
 
 namespace ibis {
-
-/* Line 36 of lalr1.cc  */
-#line 71 "whereParser.hh"
+/* Line 33 of lalr1.cc  */
+#line 68 "whereParser.hh"
 
   /// A Bison parser.
   class whereParser
@@ -77,8 +74,7 @@ namespace ibis {
 #ifndef YYSTYPE
     union semantic_type
     {
-
-/* Line 36 of lalr1.cc  */
+/* Line 33 of lalr1.cc  */
 #line 35 "whereParser.yy"
 
     int		 integerVal;
@@ -89,9 +85,8 @@ namespace ibis {
     ibis::qExpr *whereNode;
 
 
-
-/* Line 36 of lalr1.cc  */
-#line 95 "whereParser.hh"
+/* Line 33 of lalr1.cc  */
+#line 90 "whereParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -285,6 +280,7 @@ namespace ibis {
 
     /// \brief Reclaim the memory associated to a symbol.
     /// \param yymsg        Why this token is reclaimed.
+    ///                     If null, do not display the symbol, just free it.
     /// \param yytype       The symbol type.
     /// \param yyvaluep     Its semantic value.
     /// \param yylocationp  Its location.
@@ -314,10 +310,9 @@ namespace ibis {
   };
 
 } // ibis
-
-/* Line 36 of lalr1.cc  */
-#line 320 "whereParser.hh"
-
+/* Line 33 of lalr1.cc  */
+#line 315 "whereParser.hh"
 
 
-#endif /* !IBIS_WHEREPARSER_HH  */
+
+#endif /* !YY_IBIS_WHEREPARSER_HH_INCLUDED  */

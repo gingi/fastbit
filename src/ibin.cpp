@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2000-2012 the Regents of the University of California
+// Copyright 2000-2013 the Regents of the University of California
 //
 // This file contains the implementation of the classes ibis::bin.  The
 // header for the class is in ibin.h.
@@ -11477,7 +11477,7 @@ int64_t ibis::bin::compJoin(const ibis::bin& idx2,
     return cnt;
 } // ibis::bin::compJoin
 
-/// Estimate the size of the serialized version of the index.  Return the
+/// Compute the size of the serialized version of the index.  Return the
 /// size in bytes.
 size_t ibis::bin::getSerialSize() const throw () {
     size_t res = (nobs << 5) + 16;

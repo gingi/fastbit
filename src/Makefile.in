@@ -98,7 +98,7 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libfastbit_la_LIBADD =
-am_libfastbit_la_OBJECTS = part.lo bord.lo ibin.lo bordm.lo column.lo \
+am_libfastbit_la_OBJECTS = part.lo bordm.lo bord.lo ibin.lo column.lo \
 	index.lo array_t.lo parth3dw.lo parth3da.lo parth3db.lo \
 	parth2d.lo parth3d.lo meshQuery.lo query.lo colValues.lo \
 	bitvector.lo islice.lo ixambit.lo parth.lo mensa.lo tafel.lo \
@@ -317,7 +317,7 @@ uudecode = @uudecode@
 z_check_pthread_config = @z_check_pthread_config@
 AUTOMAKE_OPTIONS = gnu
 lib_LTLIBRARIES = libfastbit.la
-libfastbit_la_SOURCES = part.cpp bord.cpp ibin.cpp bordm.cpp column.cpp index.cpp \
+libfastbit_la_SOURCES = part.cpp bordm.cpp bord.cpp ibin.cpp column.cpp index.cpp \
  array_t.cpp parth3dw.cpp parth3da.cpp parth3db.cpp parth2d.cpp parth3d.cpp \
  meshQuery.cpp query.cpp colValues.cpp bitvector.cpp islice.cpp \
  ixambit.cpp parth.cpp mensa.cpp tafel.cpp party.cpp qExpr.cpp utilidor.cpp \

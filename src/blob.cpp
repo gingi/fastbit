@@ -1,6 +1,6 @@
-//File: $Id: blob.cpp,v 1.5 2012/08/09 20:03:43 kewu Exp $
+//File: $Id: blob.cpp,v 1.6 2013/01/11 00:31:23 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2009-2012 the Regents of the University of California
+// Copyright 2009-2013 the Regents of the University of California
 ///@file
 /// Define the class ibis::blob.
 #include "blob.h"

@@ -1,7 +1,7 @@
 /* $Id$ -*- mode: c++ -*- */
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 2009-2012 the Regents of the University of California
+// Copyright 2009-2013 the Regents of the University of California
 
 %code top {
 /** \file Defines the parser for the from clause accepted by FastBit

@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.6.2.  */
+/* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Locations for Bison parsers in C++
    
@@ -35,17 +35,15 @@
  ** Define the ibis::location class.
  */
 
-#ifndef IBIS_LOCATION_HH
-# define IBIS_LOCATION_HH
+#ifndef YY_IBIS_LOCATION_HH_INCLUDED
+# define YY_IBIS_LOCATION_HH_INCLUDED
 
-# include <iostream>
-# include <string>
 # include "position.hh"
 
 
 namespace ibis {
 /* Line 166 of location.cc  */
-#line 49 "location.hh"
+#line 47 "location.hh"
 
   /// Abstract a location.
   class location
@@ -158,7 +156,9 @@ namespace ibis {
    **
    ** Avoid duplicate information.
    */
-  inline std::ostream& operator<< (std::ostream& ostr, const location& loc)
+  template <typename YYChar>
+  inline std::basic_ostream<YYChar>&
+  operator<< (std::basic_ostream<YYChar>& ostr, const location& loc)
   {
     position last = loc.end - 1;
     ostr << loc.begin;
@@ -175,7 +175,7 @@ namespace ibis {
 
 
 } // ibis
-/* Line 294 of location.cc  */
+/* Line 296 of location.cc  */
 #line 180 "location.hh"
 
-#endif /* !IBIS_LOCATION_HH  */
+#endif /* !YY_IBIS_LOCATION_HH_INCLUDED  */
