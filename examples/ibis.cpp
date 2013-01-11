@@ -4628,12 +4628,15 @@ static void parseString(const char* uid, const char* qstr,
     if (str == 0 || *str == 0) {
 	if (sstr.empty()) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Unable to fund a where clause in the query string \""
-		<< qstr << "\"";
+		<< "Unable to fund a where clause or a select clause in the "
+		"query string \"" << qstr << "\"";
 	    return;
 	}
+	else {
+	    str = "where 1=1";
+	}
     }
-    else if (0 == strnicmp(str, "where ", 6)) {
+    if (0 == strnicmp(str, "where ", 6)) {
 	str += 6;
     }
     else if (ibis::gVerbose > 1) {

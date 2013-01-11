@@ -458,11 +458,10 @@ int ibis::mensa::mergeCategories(const ibis::table::stringList &nms) {
 void ibis::mensa::estimate(const char* cond,
 			   uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;
-    nmax = 0;
+    nmax = nRows();
     ibis::countQuery qq;
     int ierr = qq.setWhereClause(cond);
     if (ierr < 0) {
-	nmax = nRows();
 	return;
     }
 
@@ -488,11 +487,10 @@ void ibis::mensa::estimate(const char* cond,
 void ibis::mensa::estimate(const ibis::qExpr* cond,
 			   uint64_t& nmin, uint64_t& nmax) const {
     nmin = 0;
-    nmax = 0;
+    nmax = nRows();
     ibis::countQuery qq;
     int ierr = qq.setWhereClause(cond);
     if (ierr < 0) {
-	nmax = nRows();
 	return;
     }
 
@@ -516,7 +514,13 @@ void ibis::mensa::estimate(const ibis::qExpr* cond,
 } // ibis::mensa::estimate
 
 ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
-    if (cond == 0 || *cond == 0) return 0;
+    if (cond == 0 || *cond == 0 || nRows() == 0 || nColumns() == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- mensa::select requires a non-empty table "
+	    "and a valid where clause";
+	return 0;
+    }
+
     if (sel != 0) // skip leading space
 	while (isspace(*sel)) ++ sel;
     if (sel == 0 || *sel == 0) {
@@ -563,7 +567,13 @@ ibis::table* ibis::mensa::select(const char* sel, const char* cond) const {
 /// empty string
 ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 				  const char* pts) const {
-    if (cond == 0 || *cond == 0 || pts == 0 || *pts == 0) return 0;
+    if (cond == 0 || *cond == 0 || pts == 0 || *pts == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- mensa::select2 requires a non-empty table "
+	    "and a valid where clause";
+	return 0;
+    }
+
     while (isspace(*pts)) ++ pts;
     while (isspace(*cond)) ++ cond;
     if (sel != 0) // skip leading space
@@ -4514,8 +4524,12 @@ void ibis::table::orderby(const char* str) {
 /// table when the select clause is empty or nil.
 ibis::table*
 ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
-    if (sel == 0 || *sel == 0 || cond == 0 || nRows() == 0 || nColumns() == 0)
+    if (sel == 0 || *sel == 0 || cond == 0 || nRows() == 0 || nColumns() == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- table::select requires a non-empty table, "
+	    "a valid select clause, and a valid where clause";
 	return 0;
+    }
 
     ibis::constPartList parts;
     int ierr = getPartitions(parts);
@@ -4571,8 +4585,11 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
 /// It iterates through all data partitions to compute the number of hits.
 int64_t ibis::table::computeHits(const ibis::constPartList& pts,
 				 const char* cond) {
-    if (cond == 0 || *cond == 0)
+    if (cond == 0 || *cond == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- table::computeHits requires a query expression";
 	return -1;
+    }
 
     int ierr;
     uint64_t nhits = 0;
@@ -4602,8 +4619,11 @@ int64_t ibis::table::computeHits(const ibis::constPartList& pts,
 /// It iterates through all data partitions to compute the number of hits.
 int64_t ibis::table::computeHits(const ibis::constPartList& pts,
 				 const ibis::qExpr* cond) {
-    if (cond == 0)
+    if (cond == 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- table::computeHits requires a query expression";
 	return -1;
+    }
 
     int ierr;
     uint64_t nhits = 0;

@@ -2,6 +2,8 @@
 	* src/*, examples/*: update copyright year to 2013
 	* src/index.h: add function getSerialSize as a protected member
 	function since it already exist in all the derived classes
+	* examples/ibis.cpp: add a default where clause "1=1" when the
+	user does not provide one
 
 2012-12-19 John Wu <John dot Wu at ACM dot org>
 	* src/filter.h, src/filter.cpp: add a new constructor to work with
