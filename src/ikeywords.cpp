@@ -408,7 +408,7 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
 
 	const size_t sz = end - start;
 	if (buf.size() < sz) { // buffer too small
-	    buf.resize((sz+2047)/2048);
+	    buf.resize(((sz+2047)/2048)*2048);
 	    if (buf.size() < sz) {
 		LOGGER(ibis::gVerbose > 2)
 		    << "Warning -- keywords::parseTextFile failed to allocate "

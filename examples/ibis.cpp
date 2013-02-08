@@ -4643,7 +4643,7 @@ static void parseString(const char* uid, const char* qstr,
 	ibis::util::logger lg;
 	lg() << "parseString(" << qstr
 	     << ") is unable to locate key word WHERE.  "
-	     << "assume the string is the where clause.";
+	    "assume the string is the where clause.";
     }
     // the end of the where clause is marked by the key words "order by" or
     // "limit" or the end of the string

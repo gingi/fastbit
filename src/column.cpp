@@ -5367,8 +5367,7 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
 /// @note Accesses to this function are serialized through a write lock on
 /// the column.  It blocks while acquire the write lock.
 void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
-    if (idx != 0 || thePart == 0 || thePart->nRows() == 0 ||
-	thePart->currentDataDir() == 0)
+    if (idx != 0 || thePart == 0 || thePart->nRows() == 0)
 	return;
 
     std::string evt = "column[";
@@ -5384,7 +5383,8 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     try { // if an index is not available, create one
 	LOGGER(ibis::gVerbose > 7)
 	    << evt << " -- loading the index from "
-	    << thePart->currentDataDir();
+	    << (thePart->currentDataDir() ? thePart->currentDataDir()
+		: "memory");
 	if (tmp == 0) {
 	    tmp = ibis::index::create(this, thePart->currentDataDir(),
 				      iopt, ropt);

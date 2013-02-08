@@ -1,3 +1,11 @@
+2012-02-07 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: in function loadIndex, allow
+	thePart->currentDataDir() to be nil (for in memory data)
+
+2012-02-05 John Wu <John dot Wu at ACM dot org>
+	* src/ikeywords.cpp:411 neglected to multiply 2048 in the size
+	computation (a problem reported by Julian Suszko <suszko @ a9.com>
+
 2012-01-10 John Wu <John dot Wu at ACM dot org>
 	* src/*, examples/*: update copyright year to 2013
 	* src/index.h: add function getSerialSize as a protected member
