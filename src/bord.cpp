@@ -11146,14 +11146,23 @@ void ibis::bord::cursor::fillRow(ibis::table::row& res) const {
 	    }
 	    break;}
 	case ibis::UINT: {
-	    res.uintsnames.push_back(buffer[j].cname);
-	    if (buffer[j].cval) {
-		res.uintsvalues.push_back
-		    ((* static_cast<const array_t<const uint32_t>*>
-		      (buffer[j].cval))[curRow]);
+	    if (buffer[j].cval && buffer[j].dic ) { // categorical values
+		const array_t<uint32_t> *vals =
+		    static_cast<const array_t<uint32_t>*>(buffer[j].cval);
+		const uint32_t val = (*vals)[curRow];
+		res.catsnames.push_back(buffer[j].cname);
+		res.catsvalues.push_back((*buffer[j].dic)[val]);
 	    }
-	    else {
-		res.uintsvalues.push_back(0xFFFFFFFF);
+	    else { // uint32_t
+		res.uintsnames.push_back(buffer[j].cname);
+		if (buffer[j].cval) {
+		    res.uintsvalues.push_back
+			((* static_cast<const array_t<const uint32_t>*>
+			  (buffer[j].cval))[curRow]);
+		}
+		else {
+		    res.uintsvalues.push_back(0xFFFFFFFF);
+		}
 	    }
 	    break;}
 	case ibis::LONG: {

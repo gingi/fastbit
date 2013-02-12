@@ -1,3 +1,7 @@
+2012-02-08 Patrik Nisen <patrik at nisen dot name>
+	* src/bord.cpp:11149 add block to convert intern integer
+	representation of categories back as strings for output
+
 2012-02-07 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: in function loadIndex, allow
 	thePart->currentDataDir() to be nil (for in memory data)
