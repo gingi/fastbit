@@ -1,5 +1,10 @@
+2012-03-06 John Wu <John dot Wu at ACM dot org>
+	* examples/ardea.cpp, src/table.h: add comment about end of line
+	character based on the input from Stanislav Seltser <sseltser at
+	soroki.com>
+
 2012-02-08 Patrik Nisen <patrik at nisen dot name>
-	* src/bord.cpp:11149 add block to convert intern integer
+	* src/bord.cpp:11149 add block to convert internal integer
 	representation of categories back as strings for output
 
 2012-02-07 John Wu <John dot Wu at ACM dot org>

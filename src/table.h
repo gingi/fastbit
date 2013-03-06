@@ -569,6 +569,17 @@ public:
     ///
     /// @note The return value is intentionally left as 32-bit integer,
     /// which limits the maximum number of rows can be correctly handled.
+    ///
+    /// @note This function processes the input text file one line at a
+    /// time by using the standard unix read function to perform the actual
+    /// I/O operations.  Depending on the I/O libraries used, it may expect
+    /// the end-of-line character to be unix-style.  If your text file is
+    /// not terminated with the unix-style end-of-line character, then it
+    /// is possible for this function to understand the lines incorrectly.
+    /// If you see an entire line being read as one single field, then it
+    /// is likely that you are have problem with the end-of-line character.
+    /// Please try to convert the end-of-line character and give it another
+    /// try.
     virtual int readCSV(const char* inputfile, int maxrows=0,
 			const char* outputdir=0, const char* delimiters=0) =0;
     /// Read a SQL dump from database systems such as MySQL.  The entire

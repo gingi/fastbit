@@ -18,10 +18,14 @@ if (${HOSTNAME} =~ m/^bit/) {
   # on sdm group's linux machines, know where is java and where to install
   $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.7.0 --prefix=/fastbit/`uname -s`/fastbit";
 } elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/) {
-  # on hopper at NERSC, use the default GCC compilers, no debugging # Cray compilers wrappers CC=cc CXX=CC
+  # on hopper at NERSC, there is a choice to be made about what compiler to use
   # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-pgi PrgEnv-gnu'\n\n";
   # $cmd="./configure --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
   $cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
+} elsif (${HOSTNAME} =~ m/^sith\w+[.ornl.gov]?$/) {
+  # on sith at ORNL, need to choose between PGI and GNU compilers
+  # currently the first choice is PGI compiler
+  $cmd="env CC=pgcc CXX=pgCC ./configure --prefix=${HOME}/`uname -s`/fastbit/pgi --without-java --enable-xopt --disable-debug"
 } elsif (${HOSTNAME} =~ m/^cvr\w+[\.nersc\.gov]?$/) {
   # on carver at NERSC, use the GNU compilers, no debugging
   $cmd="./configure --without-getpwuid --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver/fastbit";

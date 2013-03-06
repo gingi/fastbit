@@ -66,6 +66,14 @@ Here is a list of arguments.
   A query will be composed of the select clause and one of the where
   clauses.
 
+@note This program uses standard unix functions to perform the read and
+      write operations.  If your input data file is not using unix-style
+      end-of-line character, then it is possible that this program will not
+      process the end-of-line correctly.  If you see this program putting
+      an entire line of text into one field, it is likely that you are
+      experiencing this problem.  Please convert the end-of-line to
+      unix-type.
+
 @note This file is named after Cattle Egret, whose Latin name is <A
     HREF="http://tinyurl.com/ded8yj">Ardea ibis</A>.
 

@@ -206,7 +206,8 @@ private:
 	active_word() : val(0), nbits(0) {};
 	void reset() {val = 0; nbits = 0;};
 	int is_full() const {return (nbits >= MAXBITS);};
-	void append(int b) { // append a single bit
+        /// Append a single bit.  The argument must be either 0 or 1.
+	void append(int b) {
 	    val <<= 1; nbits ++; val += b;
 	};
     }; // struct active_word
@@ -731,7 +732,7 @@ inline void ibis::bitvector::append_counter(int val, word_t cnt) {
     }
 } // ibis::bitvector::append_counter
 
-/// Append a single bit.
+/// Append a single bit.  The incoming value must be 0 or 1.
 inline ibis::bitvector& ibis::bitvector::operator+=(int b) {
     active.append(b);
     if (active.is_full())
