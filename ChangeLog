@@ -1,3 +1,6 @@
+2012-03-13 John Wu <John dot Wu at ACM dot org>
+	* INSTALL: restore the lost file from SVN revision 604
+
 2012-03-06 John Wu <John dot Wu at ACM dot org>
 	* examples/ardea.cpp, src/table.h: add comment about end of line
 	character based on the input from Stanislav Seltser <sseltser at
