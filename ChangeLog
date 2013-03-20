@@ -1,3 +1,7 @@
+2012-03-17 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp: add note about not accepting any group-by
+	clause (in response to question from Amihay Gonen)
+
 2012-03-13 John Wu <John dot Wu at ACM dot org>
 	* INSTALL: restore the lost file from SVN revision 604
 

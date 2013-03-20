@@ -110,6 +110,9 @@
     print the number of hits.  In either case, one gets back the number of
     hits, but different handling is required.
 
+    @note Only implicit group by operation is performed.  This program does
+    not accept a group by clause!
+
     @ingroup FastBitExamples
 */
 #if defined(_WIN32) && defined(_MSC_VER)
