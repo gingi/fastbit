@@ -444,7 +444,7 @@ inline float ibis::index::sizeInBytes() const {
     else if (str != 0) {
 	return (float)str->size();
     }
-    else if (*fname != 0) {
+    else if (fname != 0 && *fname != 0) {
 	return (float)ibis::util::getFileSize(fname);
     }
     else {

@@ -1,3 +1,7 @@
+2012-03-20 John Wu <John dot Wu at ACM dot org>
+	* src/index.h:470 add check for fname != 0 based on feedback from
+	Jong Choi
+
 2012-03-17 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp: add note about not accepting any group-by
 	clause (in response to question from Amihay Gonen)
