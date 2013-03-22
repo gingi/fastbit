@@ -1210,6 +1210,39 @@ size_t ibis::index::getSerialSize() const throw () {
     return 0U;
 } // ibis::index::getSerialSize
 
+/// Estiamte the size of this index object measured in bytes.  Do not
+/// intend to be precise, but should be good enough for operations such as
+/// comparing index size against base data size to determine which
+/// operation to use for answering a query.
+float ibis::index::sizeInBytes() const {
+    if (offset64.size() > bits.size()) {
+	return (float)offset64[bits.size()];
+    }
+    else if (offset32.size() > bits.size()) {
+	return (float)offset32[bits.size()];
+    }
+    else if (str != 0) {
+	return (float)str->size();
+    }
+    else if (fname != 0 && *fname != 0) {
+	return (float)ibis::util::getFileSize(fname);
+    }
+    else if (! bits.empty()) {
+        offset32.clear();
+        offset64.clear();
+        offset64.resize(bits.size()+1);
+        offset64[0] = 0;
+        for (size_t j = 0; j < bits.size(); ++ j) {
+            offset64[j+1] = offset64[j] +
+                (bits[j] != 0 ? bits[j]->getSerialSize() : 0U);
+        }
+        return (float)offset64[bits.size()];
+    }
+    else {
+	return FLT_MAX;
+    }
+} // ibis::index::sizeInBytes
+
 void ibis::index::printHeader(std::ostream &out, const char *header) const {
     if (isprint(header[0]) != 0)
 	out << header[0];

@@ -1721,7 +1721,7 @@ long ibis::direkte::getDistribution
     return cts.size();
 } // ibis::direkte::getDistribution
 
-/// Estiamte the size of the index file.  The index file contains primarily
+/// Estimate the size of the index file.  The index file contains primarily
 /// the bitmaps.
 size_t ibis::direkte::getSerialSize() const throw () {
     size_t res = 16;

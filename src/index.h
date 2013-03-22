@@ -252,7 +252,7 @@ public:
     /// Extend the index.
     virtual long append(const char*, const char*, uint32_t) {return -1;}
 
-    inline float sizeInBytes() const;
+    float sizeInBytes() const;
     /// Time some logical operations and print out their speed.
     virtual void speedTest(std::ostream&) const {};
     /// Returns the number of bit vectors used by the index.
@@ -428,28 +428,5 @@ public:
 
     void setValue(uint32_t i, double v) {varvalues[i] = v;}
 }; // ibis::index::barrel
-
-
-/// Estiamte the size of this index object measured in bytes.  Do not
-/// intend to be precise, but should be good enough for operations such as
-/// comparing index size against base data size to determine which
-/// operation to use for answering a query.
-inline float ibis::index::sizeInBytes() const {
-    if (offset64.size() > bits.size()) {
-	return (float)offset64[bits.size()];
-    }
-    else if (offset32.size() > bits.size()) {
-	return (float)offset32[bits.size()];
-    }
-    else if (str != 0) {
-	return (float)str->size();
-    }
-    else if (fname != 0 && *fname != 0) {
-	return (float)ibis::util::getFileSize(fname);
-    }
-    else {
-	return FLT_MAX;
-    }
-} // ibis::index::sizeInBytes
 
 #endif // IBIS_INDEX_H
