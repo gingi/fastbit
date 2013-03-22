@@ -168,6 +168,58 @@ int ibis::mensa::addPartition(const char* dir) {
     return newparts;
 } // ibis::mensa::addPartition
 
+int ibis::mensa::dropPartition(const char *nm) {
+    if (nm == 0) return -1;
+    ibis::util::mutexLock lock(&ibis::util::envLock, nm);
+
+    int cnt = 0;
+    if (*nm == 0) { // drop every partition
+        cnt = parts.size();
+        parts.clear();
+        naty.clear();
+        nrows = 0;
+        return cnt;
+    }
+
+    // loop to check the names, all partition names are assumed to be unique
+    for (size_t j = 0; j < parts.size(); ++ j) {
+        if (stricmp(nm, parts[j]->name()) == 0) {
+            nrows -= parts[j]->nRows();
+            while (j+1 < parts.size()) {
+                parts[j] = parts[j+1];
+                ++ j;
+            }
+            parts.resize(parts.size()-1);
+            return 1;
+        }
+    }
+
+    // did not match any partition names, try directory names
+    size_t nmlen = strlen(nm);
+    size_t j, k;
+    j = 0;
+    k = parts.size();
+    while (j < k) {
+        const char *dir = parts[j]->currentDataDir();
+        if (strncmp(nm, dir, nmlen) == 0 &&
+            (dir[nmlen] == 0 || dir[nmlen] == FASTBIT_DIRSEP)) {
+            -- k;
+            nrows -= parts[j]->nRows();
+            if (k > j) {
+                ibis::part *tmp = parts[j];
+                parts[j] = parts[k];
+                parts[k] = tmp;
+            }
+        }
+        else {
+            ++ j;
+        }
+    }
+    cnt = parts.size() - k;
+    parts.resize(k);
+    return cnt;
+} // ibis::mensa::dropPartition
+
 int ibis::mensa::getPartitions(ibis::constPartList &lst) const {
     lst.resize(parts.size());
     for (uint32_t i = 0; i < parts.size(); ++ i)
@@ -422,7 +474,8 @@ int ibis::mensa::mergeCategories(const ibis::table::stringList &nms) {
 		    c1->loadIndex(0, 0); // force initalization of all members
 		    ierr = words.merge(*c1->getDictionary());
 		    LOGGER(ierr < 0 && ibis::gVerbose > 0)
-			<< "Warning -- " << evt << " failed to merge words from "
+			<< "Warning -- " << evt
+                        << " failed to merge words from "
 			<< (*pit)->name() << '.' << c1->name()
 			<< ", ierr = " << ierr;
 		}
@@ -443,7 +496,8 @@ int ibis::mensa::mergeCategories(const ibis::table::stringList &nms) {
 		if (c1 != 0) {
 		    ierr = c1->setDictionary(words);
 		    LOGGER(ierr < 0 && ibis::gVerbose > 0)
-			<< "Warning -- " << evt << " failed to update index for "
+			<< "Warning -- " << evt
+                        << " failed to update index for "
 			<< (*pit)->name() << '.' << c1->name()
 			<< ", ierr = " << ierr;
 		    cnt += (ierr >= 0);

@@ -1,3 +1,7 @@
+2012-03-22 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/mensa.h, src/mensa.cpp: add function
+	dropPartition as the reverse of addPartition
+
 2012-03-21 John Wu <John dot Wu at ACM dot org>
 	* src/index.h, src/index.cpp: move sizeInBytes from index.h to
 	index.cpp, add code to update offset64 as needed (to address the

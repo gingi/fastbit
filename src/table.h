@@ -211,6 +211,16 @@ public:
     /// subdirecories when possible.  Therefore it may find an arbitrary
     /// number of data partitions.
     virtual int addPartition(const char*) {return -1;}
+    /// Remove the named data partition from this data table.  The incoming
+    /// argument is expected to the name of the data partition.
+    ///
+    /// @note If it is not a name of any data partition, we check if it is
+    /// the name of the data directory.  In the process of matching
+    /// directory names, we will match the leading port of the directory
+    /// name only.  This allows the data partitions added through a single
+    /// call of addPartition to be dropped with a single call to this
+    /// function using the same arguement.
+    virtual int dropPartition(const char*) {return -1;}
     /// Retrieve the list of partitions.
     virtual int getPartitions(ibis::constPartList&) const {
 	return -1;}

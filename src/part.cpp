@@ -6333,7 +6333,8 @@ int ibis::part::buildIndexes(const char* iopt, int nthr) {
 	    void *j;
 	    pthread_join(tid[i], &j);
 	    LOGGER(j != 0 && ibis::gVerbose > 0)
-		<< "Warning -- part[" << name() << "]::buildIndexes -- thread # "
+		<< "Warning -- part[" << name()
+                << "]::buildIndexes -- thread # "
 		<< i << " returned a nonzero code " << j;
 	}
 	++ nthr; // restore the original value
