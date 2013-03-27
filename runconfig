@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # A script used by the authors of FastBit to configure the package.
 # Terse comments are provided in hoping they might be instructive for
 # configuring the package on other machines.
@@ -29,9 +29,10 @@ if (${HOSTNAME} =~ m/^bit/) {
 } elsif (${HOSTNAME} =~ m/^cvr\w+[\.nersc\.gov]?$/) {
   # on carver at NERSC, use the GNU compilers, no debugging
   $cmd="./configure --without-getpwuid --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver/fastbit";
-} elsif (${HOSTNAME} =~ m/\.nersc\.gov$/) {
+} elsif (defined $ENV{"NERSC_HOST"}) {
   # on other NERSC machines, use the default compilers, no debugging
-  $cmd="./configure --without-getpwuid --disable-debug --enable-xopt";
+  use Env qw(NERSC_HOST);
+  $cmd="./configure --prefix=/project/projectdirs/m1248/${NERSC_HOST}/gcc/fastbit --without-getpwuid --disable-debug --enable-xopt";
 } else {	# use all default options on generic linux/unix machines
   $cmd="./configure --prefix=${PWD}";
 }

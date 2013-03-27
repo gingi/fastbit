@@ -1,3 +1,10 @@
+Wed Mar 27 08:44:25 PDT 2013
+Version ibis1.3.6
+-- update index building functions to work with in-memory data
+-- convert internal integer representation back to string in output
+-- add ibis::table::dropPartition as the opposite of addPartition
+
+
 Thu Jan  3 21:05:47 PST 2013
 Version ibis1.3.5
 -- in ardea.cpp, do not write the data if a data directory is not
