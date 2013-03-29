@@ -1,3 +1,7 @@
+2012-03-28 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: update documentation of ibis::bord::groupbya to
+	clarify the operations carried out
+
 2012-03-27 John Wu <John dot Wu at ACM dot org>
 	* runconfig: update the handling of generic NERSC host with GCC
 	compilers
@@ -7,7 +11,7 @@
 2012-03-22 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/mensa.h, src/mensa.cpp: add function
 	dropPartition as the reverse of addPartition per request of Lin
-	Qian
+	Qiao
 
 2012-03-21 John Wu <John dot Wu at ACM dot org>
 	* src/index.h, src/index.cpp: move sizeInBytes from index.h to

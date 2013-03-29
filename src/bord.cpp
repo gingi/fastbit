@@ -3141,9 +3141,10 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 
 /// Perform the aggregation operations specified in the select clause.  If
 /// there is any further computation on the aggregated values, the user
-/// need to call groupbyc to complete those operations.  This separation
+/// needs to call groupbyc to complete those operations.  This separation
 /// allows one to possibly conduct group by operations on multiple data
-/// partitions one at a time, which should reduce the memory requirement.
+/// partitions one partition at a time, which reduces the memory
+/// requirement.
 ibis::bord*
 ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
     if (sel.empty() || sel.aggSize() == 0 || src.nRows() == 0)
@@ -3162,7 +3163,7 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
     std::string tn = ibis::util::randName(td);
 
     readLock lock(&src, td.c_str());
-    // create bundle
+    // create bundle -- perform the actual aggregation operations here
     std::auto_ptr<ibis::bundle> bdl(ibis::bundle::create(src, sel));
     if (bdl.get() == 0) {
 	LOGGER(ibis::gVerbose > 0)
@@ -3190,6 +3191,8 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
 #ifdef FASTBIT_ALWAYS_OUTPUT_COUNTS
     bool countstar = false;
 #endif
+    // loop through each column of the aggregation results to reformat the
+    // in-memory data for an ibis::bord object
     for (uint32_t i = 0; i < nca; ++ i) {
 	void *bptr = 0;
 	nms[i] = sel.aggName(i);

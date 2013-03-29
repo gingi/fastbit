@@ -3634,10 +3634,12 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	}
 	else {
 	    ibis::util::logger lg;
-	    if (ibis::gVerbose > 8 || verify_rid)
+	    if (ibis::gVerbose > 8 || verify_rid) {
 		bdl->printAll(lg());
-	    else
+            }
+	    else {
 		bdl->print(lg());
+            }
 	}
     }
     if (ibis::gVerbose >= 0) {
@@ -5113,8 +5115,8 @@ int main(int argc, char** argv) {
 	    timer2.stop();
 	    if (ibis::gVerbose >= 0) {
 		ibis::util::logger lg;
-		lg() << *argv << ": building sorted versions of " << slist.size()
-		     << " column" << (slist.size()>1 ? "s" : "")
+		lg() << *argv << ": building sorted versions of "
+		     << slist.size() << " column" << (slist.size()>1 ? "s" : "")
 		     << ibis::datasets.size() << " data partition"
 		     << (ibis::datasets.size()>1 ? "s" : "");
 		if (ibis::gVerbose > 0)
