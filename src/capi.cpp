@@ -624,7 +624,69 @@ fastbit_destroy_query(FastBitQueryHandle qhandle) {
     }
 } // fastbit_destroy_query
 
-extern "C" int fastbit_get_result_rows(FastBitQueryHandle qhandle) {
+/// Return the number of ids placed in ids.  The row ids are limited to be
+/// uint32_t so that no more than 4 billion rows could be stored in a
+/// single data partition.
+///
+/// The caller must have allocated enough space.
+extern "C" int
+fastbit_get_result_row_ids(FastBitQueryHandle qhandle, uint32_t *ids) {
+    int ret = -1;
+    if (qhandle == 0 || ids == 0) return ret;
+    if (qhandle->t == 0)
+	return ret;
+    try {
+	if (qhandle->q.getState() != ibis::query::FULL_EVALUATE)
+	    qhandle->q.evaluate();
+
+        const ibis::bitvector *bv = qhandle->q.getHitVector();
+	ret = 0;
+        for (ibis::bitvector::indexSet is = bv->firstIndexSet();
+             is.nIndices() > 0;
+             ++ is) {
+            const ibis::bitvector::word_t *ii = is.indices();
+            if (is.isRange()) {
+                for (ibis::bitvector::word_t j = *ii;
+                     j < ii[1];
+                     ++ j) {
+                    ids[ret] = j;
+                    ++ ret;
+                }
+            }
+            else {
+                for (unsigned j = 0; j < is.nIndices(); ++ j) {
+                    ids[ret] = ii[j];
+                    ++ ret;
+                }
+            }
+        }
+    }
+    catch (const std::exception& e) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_result_row_ids failed for query "
+	    << static_cast<const void*>(qhandle) << " due to exception: "
+	    << e.what();
+	ret = -2;
+    }
+    catch (const char* s) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_result_row_ids failed for query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a string exception: " << s;
+	ret = -3;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- fastbit_get_result_row_ids failed for query "
+	    << static_cast<const void*>(qhandle)
+	    << " due to a unknown exception";
+	ret = -4;
+    }
+    return ret;
+} // fastbit_get_result_row_ids
+
+extern "C" int
+fastbit_get_result_rows(FastBitQueryHandle qhandle) {
     int ret = -1;
     if (qhandle == 0) return ret;
     if (qhandle->t == 0)

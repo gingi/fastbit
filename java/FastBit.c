@@ -201,11 +201,32 @@ JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_destroy_1query
     return ierr;
 } /* Java_gov_lbl_fastbit_FastBit_destroy_1query */
 
+JNIEXPORT jintArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1result_1row_1ids
+(JNIEnv * env, jobject jo, jobject jhandle) {
+    FastBitQueryHandle chandle = (FastBitQueryHandle)
+	((*env)->GetDirectBufferAddress(env, jhandle));
+    jintArray ret;
+    jint ierr = fastbit_get_result_rows(chandle);
+    if (ierr < 0) {
+        return (jintArray) NULL;
+    }
+    ret = (*env)->NewIntArray(env, ierr);
+    if (ierr == 0 || ret == NULL)
+        return ret;
+    ierr = fastbit_get_result_row_ids(chandle, (uint32_t*)ret);
+    if (ierr < 0) {
+        return (jintArray) NULL;
+    }
+    else {
+        return ret;
+    }
+} /* Java_gov_lbl_fastbit_FastBit_get_1result_1size */
+
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_get_1result_1size
 (JNIEnv * env, jobject jo, jobject jhandle) {
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
-    jint            ierr = fastbit_get_result_rows(chandle);
+    jint ierr = fastbit_get_result_rows(chandle);
     return ierr;
 } /* Java_gov_lbl_fastbit_FastBit_get_1result_1size */
 

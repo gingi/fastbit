@@ -1,3 +1,11 @@
+2012-04-01 John Wu <John dot Wu at ACM dot org>
+	* java/gov/lbl/fastbitFastBit.java, java/FastBit.h,
+	java/FastBit.c: add function fastbit_get_result_row_ids
+
+2012-03-31 John Wu <John dot Wu at ACM dot org>
+	* src/capi.h, src/capi.cpp: add function
+	fastbit_get_result_row_ids
+
 2012-03-28 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: update documentation of ibis::bord::groupbya to
 	clarify the operations carried out

@@ -108,7 +108,7 @@ void ibis::filter::roughCount(uint64_t &nmin, uint64_t &nmax) const {
     ibis::countQuery qq;
     int ierr = qq.setWhereClause(wc_->getExpr());
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- filter::roughCount failed to assign the "
 	    "where clause, assume all rows may be hits";
 	for (ibis::constPartList::const_iterator it = myparts.begin();
@@ -119,7 +119,7 @@ void ibis::filter::roughCount(uint64_t &nmin, uint64_t &nmax) const {
     if (sel_ != 0) {
 	ierr = qq.setSelectClause(sel_);
 	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- filter::roughCount failed to assign the "
 		"select clause, assume all rows may be hits";
 	    for (ibis::constPartList::const_iterator it = myparts.begin();
@@ -238,7 +238,7 @@ int64_t ibis::filter::count() const {
     ibis::countQuery qq;
     int ierr = qq.setWhereClause(wc_->getExpr());
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- filter::count failed to assign the "
 	    "where clause";
 	nhits = ierr;
@@ -247,7 +247,7 @@ int64_t ibis::filter::count() const {
     if (sel_ != 0) {
 	ierr = qq.setSelectClause(sel_);
 	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- filter::count failed to assign the "
 		"select clause";
 	    nhits = ierr;
@@ -290,14 +290,14 @@ int64_t ibis::filter::count() const {
 		    }
 		}
 		else {
-		    LOGGER(ibis::gVerbose > 1)
+		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- filter::count failed to evaluate "
 			<< qq.getWhereClause() << " on " << myparts[j]->name()
 			<< ", ierr = " << ierr;
 		}
 	    }
 	    else {
-		LOGGER(ibis::gVerbose > 1)
+		LOGGER(ibis::gVerbose > 0)
 		    << "Warning -- filter::count failed to assign "
 		    << qq.getWhereClause() << " on " << myparts[j]->name()
 		    << ", ierr = " << ierr;
@@ -647,7 +647,7 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 	ibis::bitvector msk;
 	(*it)->getNullMask(msk);
 	ierr = brd1->append(tms, **it, msk);
-	LOGGER(ierr < 0 && ibis::gVerbose > 1)
+	LOGGER(ierr < 0 && ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to append " << msk.cnt()
 	    << " row" << (msk.cnt() > 1 ? "s" : "") << " from "
 	    << (*it)->name() << ", ierr = " << ierr;
@@ -803,7 +803,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 	(*it)->getNullMask(msk);
 	ierr = brd1->append(tms, **it, msk);
 	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << mesg << " failed to append " << msk.cnt()
 		<< " row" << (msk.cnt() > 1 ? "s" : "") << " from "
 		<< (*it)->name() << ", ierr = " << ierr;
@@ -1042,7 +1042,7 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
 	ierr = brd1->append(tms, **it,
 			    *static_cast<const ibis::qContinuousRange*>
 			    (cond.getExpr()));
-	LOGGER(ierr < 0 && ibis::gVerbose > 1)
+	LOGGER(ierr < 0 && ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to append rows satisfying "
 	    << cond << " from " << (*it)->name() << ", ierr = " << ierr;
     }
@@ -1192,7 +1192,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 			    *static_cast<const ibis::qContinuousRange*>
 			    (cond.getExpr()));
 	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << mesg << " failed to append rows satisfying "
 		<< cond << " from " << (*it)->name() << ", ierr = " << ierr;
 	    continue;
@@ -1392,7 +1392,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     ibis::countQuery qq;
     ierr = qq.setWhereClause(cond.getExpr());
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to assign externally "
 	    "provided query expression \"" << cond
 	    << "\" to a countQuery object, ierr=" << ierr;
@@ -1460,7 +1460,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	if (hits == 0 || hits->cnt() == 0) continue;
 
 	ierr = brd1->append(tms, **it, *hits);
-	LOGGER(ierr < 0 && ibis::gVerbose > 1)
+	LOGGER(ierr < 0 && ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to append " << hits->cnt()
 	    << " row" << (hits->cnt() > 1 ? "s" : "") << " from "
 	    << (*it)->name() << ", ierr = " << ierr;
@@ -1610,7 +1610,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	}
 
 	ierr = brd1->append(tms, *plist[j], *hv);
-	LOGGER(ierr < 0 && ibis::gVerbose > 1)
+	LOGGER(ierr < 0 && ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to append " << hv->cnt()
 	    << " row" << (hv->cnt() > 1 ? "s" : "") << " from "
 	    << plist[j]->name() << ", ierr = " << ierr;
@@ -1718,7 +1718,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
     ibis::countQuery qq;
     ierr = qq.setWhereClause(cond.getExpr());
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to assign externally "
 	    "provided query expression \"" << cond
 	    << "\" to a countQuery object, ierr=" << ierr;
@@ -1901,7 +1901,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     ibis::countQuery qq;
     ierr = qq.setWhereClause(cond.getExpr());
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to assign externally "
 	    "provided query expression \"" << cond
 	    << "\" to a countQuery object, ierr=" << ierr;
@@ -1982,7 +1982,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 
 	ierr = brd1->append(tms, **it, *hits);
 	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << mesg << " failed to append " << hits->cnt()
 		<< " row" << (hits->cnt() > 1 ? "s" : "") << " from "
 		<< (*it)->name() << ", ierr = " << ierr;
@@ -2217,7 +2217,7 @@ ibis::table* ibis::filter::sift2S
 
 	ierr = brd1->append(tms, *plist[j], *hv);
 	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 1)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << mesg << " failed to append " << hv->cnt()
 		<< " row" << (hv->cnt() > 1 ? "s" : "") << " from "
 		<< plist[j]->name() << ", ierr = " << ierr;
@@ -2416,7 +2416,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     ibis::countQuery qq;
     ierr = qq.setWhereClause(cond.getExpr());
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 1)
+	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << mesg << " failed to assign externally "
 	    "provided query expression \"" << cond
 	    << "\" to a countQuery object, ierr=" << ierr;

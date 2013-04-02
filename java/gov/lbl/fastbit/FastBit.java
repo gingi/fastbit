@@ -1,6 +1,6 @@
 // $Id$
 // Authors: John Wu and Aaron Hong, Lawrence Berkeley National Laboratory
-// Copyright 2006-2010 the Regents of the University of California
+// Copyright 2006-2013 the Regents of the University of California
 
 /// @defgroup FastBitJava FastBit Java API.
 /// @{
@@ -75,6 +75,8 @@ public class FastBit {
     */
     public native int destroy_query(QueryHandle handle);
 
+    /** Retrieve the ids of rows satisfying the query conditions. */
+    public native int[] get_result_row_ids(QueryHandle handle);
     /** Return the number of records/rows satisfying the query conditions. */
     public native int get_result_size(QueryHandle handle);
     /** Retrieve the values of the named column from the rows satisfying

@@ -110,14 +110,17 @@ extern "C" {
 	@note The handle becomes invalid. */
     FASTBIT_DLLSPEC int fastbit_destroy_query(FastBitQueryHandle query);
 
-    /**
-       Return the number of hits in the query.  It is also the number of
-       rows in the result set.  The arrays returned by
-       fastbit_get_qualified_floats shall have this many elements. */
-    FASTBIT_DLLSPEC int fastbit_get_result_rows(FastBitQueryHandle query);
-    /** @brief Count the number of columns selected in the select clause of the
+    /** Count the number of columns selected in the select clause of the
 	query. */
     FASTBIT_DLLSPEC int fastbit_get_result_columns(FastBitQueryHandle query);
+    /** Retrieve the number of hits in the query.  It is also the number of
+        rows in the result set.  The arrays returned by
+        fastbit_get_qualified_floats shall have this many elements. */
+    FASTBIT_DLLSPEC int fastbit_get_result_rows(FastBitQueryHandle query);
+    /** Retrieve the row number of those satisfying the query conditions. */
+    FASTBIT_DLLSPEC int fastbit_get_result_row_ids(FastBitQueryHandle,
+                                                   uint32_t *);
+
     /** @brief Return the string form of the select clause. */
     FASTBIT_DLLSPEC const char*
     fastbit_get_select_clause(FastBitQueryHandle query);
