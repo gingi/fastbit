@@ -1,0 +1,5 @@
+language: cpp
+before_install:
+install:
+    - "./configure"
+    - "make && make check"
