@@ -1,0 +1,9 @@
+*.o
+*.lo
+Makefile
+.deps
+stamp-h1
+config.log
+config.status
+libtool
+fastbit-config*
