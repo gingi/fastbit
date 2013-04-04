@@ -100,14 +100,13 @@ static void builtin(const char *nm, FILE* output) {
 	    }
             else if (msglvl > 1) {
                 int j;
-                uint32_t *rids = malloc(sizeof(uint32_t)*nh1);
+                uint32_t rids[nh1];
                 int ierr = fastbit_get_result_row_ids(h1, rids);
                 fprintf(output, "%s: fastbit_get_result_ids returned %u, "
                         "expected %d\n", nm, ierr, nh1);
                 for (j = 0; j < nh1; ++ j)
                     (void) fprintf(output, "  rid[%u] = %u\n",
                                    j, (unsigned int)rids[j]);
-                free(rids);
             }
 	    fastbit_destroy_query(h1);
 	}
@@ -141,14 +140,13 @@ static void builtin(const char *nm, FILE* output) {
 	}
         else if (msglvl > 1) {
             int j;
-            uint32_t *rids = malloc(sizeof(uint32_t)*nhits);
+            uint32_t rids[nhits];
             int ierr = fastbit_get_result_row_ids(h, rids);
             fprintf(output, "%s: fastbit_get_result_ids returned %u, "
                     "expected %d\n", nm, ierr, nhits);
             for (j = 0; j < nhits; ++ j)
                 (void) fprintf(output, "  rid[%u] = %u\n",
                                j, (unsigned int)rids[j]);
-            free(rids);
         }
 	fastbit_destroy_query(h);
     }
@@ -259,14 +257,13 @@ int main(int argc, char **argv) {
 	return 0;
     if (msglvl > 1) {
         int j;
-        uint32_t *rids = malloc(sizeof(uint32_t)*nhits);
+        uint32_t rids[nhits];
         int ierr = fastbit_get_result_row_ids(qh, rids);
         fprintf(output, "%s: fastbit_get_result_ids returned %u, expected %d\n",
                 *argv, ierr, nhits);
         for (j = 0; j < nhits; ++ j)
             (void) fprintf(output, "  rid[%u] = %u\n",
                            j, (unsigned int)rids[j]);
-        free(rids);
     }
 
     /* print the selected values specified in the select clause.  Since the

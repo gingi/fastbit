@@ -223,7 +223,7 @@ JNIEXPORT jintArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1result_1row_1ids
         return (jintArray) NULL;
     }
     else {
-        (*env)->SetIntArrayRegion(env, ret, 0, nrows, (int*)tmp);
+        (*env)->SetIntArrayRegion(env, ret, 0, nrows, tmp);
         free(tmp);
         return ret;
     }
