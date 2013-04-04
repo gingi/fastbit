@@ -206,18 +206,24 @@ JNIEXPORT jintArray JNICALL Java_gov_lbl_fastbit_FastBit_get_1result_1row_1ids
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
     jintArray ret;
-    jint ierr = fastbit_get_result_rows(chandle);
-    if (ierr < 0) {
+    jint ierr, nrows = fastbit_get_result_rows(chandle);
+    if (nrows < 0) {
         return (jintArray) NULL;
     }
-    ret = (*env)->NewIntArray(env, ierr);
-    if (ierr == 0 || ret == NULL)
+    ret = (*env)->NewIntArray(env, nrows);
+    if (nrows == 0 || ret == NULL)
         return ret;
-    ierr = fastbit_get_result_row_ids(chandle, (uint32_t*)ret);
+    uint32_t *tmp = (uint32_t*)malloc(sizeof(uint32_t)*nrows);
+    if (tmp == 0)
+        return (jintArray)NULL;
+    ierr = fastbit_get_result_row_ids(chandle, tmp);
     if (ierr < 0) {
+        free(tmp);
         return (jintArray) NULL;
     }
     else {
+        (*env)->SetIntArrayRegion(env, ret, 0, nrows, tmp);
+        free(tmp);
         return ret;
     }
 } /* Java_gov_lbl_fastbit_FastBit_get_1result_1size */

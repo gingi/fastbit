@@ -58,13 +58,14 @@ void usage(const char *name) {
 static void builtin(const char *nm, FILE* output) {
     int nerrors = 0;
     int i, mult;
-    int32_t ivals[100];
-    int16_t svals[100];
-    float fvals[100];
+    int msglvl=fastbit_get_verbose_level();
     const char *dir = "tmp";
     int counts[] = {5, 24, 19, 10, 50};
     const char* conditions[] =
 	{"a<5", "a+b>150", "a < 60 and c < 60", "c > 90", "c > a"};
+    int32_t ivals[100];
+    int16_t svals[100];
+    float fvals[100];
 
     /* prepare a sample data */
     for (i = 0; i < 100; ++ i) {
@@ -97,6 +98,16 @@ static void builtin(const char *nm, FILE* output) {
 			"%d hits, but %d were expected\n", nm, conditions[i],
 			(int)(mult*100), nh1, (int)(mult*counts[i]));
 	    }
+            else if (msglvl > 1) {
+                int j;
+                uint32_t rids[nh1];
+                int ierr = fastbit_get_result_row_ids(h1, rids);
+                fprintf(output, "%s: fastbit_get_result_ids returned %u, "
+                        "expected %d\n", nm, ierr, nh1);
+                for (j = 0; j < nh1; ++ j)
+                    (void) fprintf(output, "  rid[%u] = %u\n",
+                                   j, (unsigned int)rids[j]);
+            }
 	    fastbit_destroy_query(h1);
 	}
 
@@ -127,6 +138,16 @@ static void builtin(const char *nm, FILE* output) {
 		    "%d hits, but %d were expected\n", nm, conditions[i],
 		    (int)(mult*100), nhits, (int)(mult*counts[i]));
 	}
+        else if (msglvl > 1) {
+            int j;
+            uint32_t rids[nhits];
+            int ierr = fastbit_get_result_row_ids(h, rids);
+            fprintf(output, "%s: fastbit_get_result_ids returned %u, "
+                    "expected %d\n", nm, ierr, nhits);
+            for (j = 0; j < nhits; ++ j)
+                (void) fprintf(output, "  rid[%u] = %u\n",
+                               j, (unsigned int)rids[j]);
+        }
 	fastbit_destroy_query(h);
     }
     fprintf(output, "%s: built-in tests finished with nerrors = %d\n",
@@ -134,7 +155,7 @@ static void builtin(const char *nm, FILE* output) {
 } /* builtin */
 
 int main(int argc, char **argv) {
-    int ierr, nhits, vselect;
+    int ierr, msglvl, nhits, vselect;
     const char *conffile;
     const char *logfile;
     FILE* output;
@@ -142,18 +163,19 @@ int main(int argc, char **argv) {
     FastBitResultSetHandle rh;
 
     ierr = 0;
+    msglvl = 0;
     vselect = 1;
     logfile = 0;
     conffile = 0;
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
-    ierr = INT_MAX;
+    msglvl = INT_MAX;
 #elif DEBUG + 0 > 0
-    ierr += 7 * DEBUG;
+    msglvl += 7 * DEBUG;
 #elif _DEBUG + 0 > 0
-    ierr += 5 * _DEBUG;
+    msglvl += 5 * _DEBUG;
 #else
-    ierr += 3;
+    msglvl += 3;
 #endif
 #endif
     /* process arguments started with - */
@@ -188,11 +210,11 @@ int main(int argc, char **argv) {
 		(isdigit(argv[vselect+1][0]) != 0 ||
 		 (argv[vselect+1][0] == '-' &&
 		  isdigit(argv[vselect+1][1]) != 0))) {
-		ierr += atoi(argv[vselect+1]);
+		msglvl += atoi(argv[vselect+1]);
 		vselect += 2;
 	    }
 	    else {
-		ierr += 1;
+		msglvl += 1;
 		vselect += 1;
 	    }
 	}
@@ -203,7 +225,7 @@ int main(int argc, char **argv) {
     }
 
     fastbit_init((const char*)conffile);
-    fastbit_set_verbose_level(ierr);
+    fastbit_set_verbose_level(msglvl);
     fastbit_set_logfile(logfile);
 #if defined(TCAPI_USE_LOGFILE)
     output = fastbit_get_logfilepointer();
@@ -233,6 +255,16 @@ int main(int argc, char **argv) {
 	    (nhits>1 ? "s" : ""));
     if (nhits <= 0)
 	return 0;
+    if (msglvl > 1) {
+        int j;
+        uint32_t rids[nhits];
+        int ierr = fastbit_get_result_row_ids(qh, rids);
+        fprintf(output, "%s: fastbit_get_result_ids returned %u, expected %d\n",
+                *argv, ierr, nhits);
+        for (j = 0; j < nhits; ++ j)
+            (void) fprintf(output, "  rid[%u] = %u\n",
+                           j, (unsigned int)rids[j]);
+    }
 
     /* print the selected values specified in the select clause.  Since the
        select clause was nil in the call to fastbit_build_query, there

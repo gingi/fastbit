@@ -79,7 +79,7 @@ public class milky {
 	    traverseDir(fb, cmds);
 	}
 	else {
-	    buildin(fb);
+	    builtin(fb);
 	}
     }
 
@@ -100,16 +100,17 @@ public class milky {
 	     "java milky dir 'c1 = 15 and c2 > 23' c1 i c3 d\n");
     }
 
-    private static void buildin(gov.lbl.fastbit.FastBit fb) {
+    private static void builtin(gov.lbl.fastbit.FastBit fb) {
 	int nerrors = 0;
 	int mult;
-	int[] ivals = new int[100];
-	short[] svals = new short[100];
-	float[] fvals = new float[100];
+	int msglvl = fb.get_message_level();
 	String dir = "tmp";
 	int[] counts = {5, 24, 19, 10, 50};
 	String[] conditions =
 	    {"a<5", "a+b>150", "a < 60 and c < 60", "c > 90", "c > a"};
+	int[] ivals = new int[100];
+	short[] svals = new short[100];
+	float[] fvals = new float[100];
 
 	System.out.println("milky -- starting built-in tests ...");
 	// prepare a sample data
@@ -143,6 +144,16 @@ public class milky {
 				   nhits + " hits, but " + mult*counts[i] +
 				   " were expected");
 	    }
+            else if (msglvl > 1) {
+                int[] rowIds= fb.get_result_row_ids(h);
+                if (rowIds!=null) {
+                    System.out.println("START row ids");
+                    for (int j = 0; j < rowIds.length; ++j) {
+                        System.out.println(rowIds[j]);
+                    }
+                    System.out.println("END row ids");
+                }
+            }
 	    fb.destroy_query(h);
 	}
 	System.out.println("milky -- built-in tests finished with nerrors = " +
@@ -205,7 +216,7 @@ public class milky {
 	    System.out.println("\nstarting to process directory " + cmds[0]);
 	    starttime = System.currentTimeMillis();
 	}
-	if (cmds.length == iarg+1) { // building index only
+	if (cmds.length == iarg+1) { // builting index only
 	    ierr = fb.build_indexes(cmds[iarg], "");
 	    if (msglvl >= 0)
 		System.out.println("FastBit.build_indexes returned "
@@ -229,6 +240,16 @@ public class milky {
 		msglvl > 0 ? (1 << msglvl) : -1);
 	if (nprt+nprt > nhits)
 	    nprt = nhits;
+        if (msglvl > 1) {
+            int[] rowIds= fb.get_result_row_ids(h);
+            if (rowIds!=null) {
+                System.out.println("START row ids");
+                for (int i = 0; i < rowIds.length; i++) {
+                    System.out.println(rowIds[i]);
+                }
+                System.out.println("END row ids");
+            }
+        }
 
 	iarg += 2;
 	for (int i = iarg; i < cmds.length; i += 2) {
