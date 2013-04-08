@@ -4,6 +4,9 @@
 	problems (per discussion with Alexandre Maurel)
 	* tests/Makefile.am: update really-small to exercise the modified
 	versions of standard deviation
+	* src/fileManager.cpp: remove the restrict on memory usage based
+	ULONG_MAX (when ULONG is a 32-bit int, this unnecessarily limits
+	the memory use to 3GB)
 
 2012-04-04 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.cpp: change the verboseness level to 2 for

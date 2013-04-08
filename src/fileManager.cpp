@@ -540,9 +540,7 @@ ibis::fileManager::fileManager()
 	    << "fileManager::ctor found the physical memory size to be "
 	    << mem << " bytes";
 	mem /= 2; // allow half to be used by fileManager
-	if (mem > ULONG_MAX)
-	    maxBytes = (ULONG_MAX - (ULONG_MAX>>2));
-	else if (mem > 0)
+	if (mem > 0)
 	    maxBytes = mem;
 #elif defined(CTL_HW) && (defined(HW_MEMSIZE) || defined(HW_PHYSMEM))
 	// BSD flavored systems provides sysctl for finding out the
@@ -560,9 +558,7 @@ ibis::fileManager::fileManager()
 		<< "fileManager::ctor found the physical memory size to be "
 		<< mem << " bytes";
 	    mem >>= 1;
-	    if (mem > ULONG_MAX)
-		maxBytes = (ULONG_MAX - (ULONG_MAX>>2));
-	    else if (mem > 0)
+	    if (mem > 0)
 		maxBytes = mem;
 	}
 	else {
@@ -586,10 +582,8 @@ ibis::fileManager::fileManager()
 		<< "fileManager::ctor found the physical memory size to be "
 		<< pi.PhysicalTotal * pi.PageSize << " bytes";
 	    if (avail > mem) mem = avail; // take it if available
-	    if (mem < (ULONG_MAX / pi.PageSize))
+	    if (mem > 0)
 		maxBytes = mem * pi.PageSize;
-	    else
-		maxBytes = (ULONG_MAX - (ULONG_MAX >> 2));
 	}
 	else {
 	    char *lpMsgBuf;
