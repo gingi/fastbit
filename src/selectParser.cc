@@ -754,7 +754,7 @@ namespace ibis {
     else if (stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "varp") == 0 ||
 	     stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "varpop") == 0) {
 	// population variance is computed as
-	// (sum (x^2) / count(*) - (sum (x) / count(*))^2)
+	// fabs(sum (x^2) / count(*) - (sum (x) / count(*))^2)
 	ibis::math::term *x = (yysemantic_stack_[(4) - (3)].selectNode);
 	ibis::math::number *two = new ibis::math::number(2.0);
 	ibis::math::variable *star = new ibis::math::variable("*");
@@ -775,16 +775,18 @@ namespace ibis {
 	ibis::math::term *t24 = new ibis::math::bediener(ibis::math::POWER);
 	t24->setLeft(t23);
 	t24->setRight(two->dup());
-	fun = new ibis::math::bediener(ibis::math::MINUS);
-	fun->setLeft(t13);
-	fun->setRight(t24);
+        ibis::math::term *t0 = new ibis::math::bediener(ibis::math::MINUS);
+	t0->setLeft(t13);
+	t0->setRight(t24);
+        fun = new ibis::math::stdFunction1("fabs");
+        fun->setLeft(t0);
 	//fun = driver.addAgregado(ibis::selectClause::VARPOP, $3);
     }
     else if (stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "var") == 0 ||
 	     stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "varsamp") == 0 ||
 	     stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "variance") == 0) {
 	// sample variance is computed as
-	// (sum (x^2) / count(*) - (sum (x) / count(*))^2) * (count(*) / (count(*)-1))
+	// fabs((sum (x^2) / count(*) - (sum (x) / count(*))^2) * (count(*) / (count(*)-1)))
 	ibis::math::term *x = (yysemantic_stack_[(4) - (3)].selectNode);
 	ibis::math::number *two = new ibis::math::number(2.0);
 	ibis::math::variable *star = new ibis::math::variable("*");
@@ -815,15 +817,17 @@ namespace ibis {
 	ibis::math::term *t33 = new ibis::math::bediener(ibis::math::DIVIDE);
 	t33->setLeft(t12->dup());
 	t33->setRight(t32);
-	fun = new ibis::math::bediener(ibis::math::MULTIPLY);
-	fun->setLeft(t31);
-	fun->setRight(t33);
+        ibis::math::term *t0 = new ibis::math::bediener(ibis::math::MULTIPLY);
+	t0->setLeft(t31);
+	t0->setRight(t33);
+        fun = new ibis::math::stdFunction1("fabs");
+        fun->setLeft(t0);
 	//fun = driver.addAgregado(ibis::selectClause::VARSAMP, $3);
     }
     else if (stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "stdevp") == 0 ||
 	     stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "stdpop") == 0) {
 	// population standard deviation is computed as
-	// sqrt(sum (x^2) / count(*) - (sum (x) / count(*))^2)
+	// sqrt(fabs(sum (x^2) / count(*) - (sum (x) / count(*))^2))
 	ibis::math::term *x = (yysemantic_stack_[(4) - (3)].selectNode);
 	ibis::math::number *two = new ibis::math::number(2.0);
 	ibis::math::variable *star = new ibis::math::variable("*");
@@ -847,8 +851,10 @@ namespace ibis {
 	ibis::math::term *t31 = new ibis::math::bediener(ibis::math::MINUS);
 	t31->setLeft(t13);
 	t31->setRight(t24);
+        ibis::math::term *t0 = new ibis::math::stdFunction1("fabs");
+        t0->setLeft(t31);
 	fun = new ibis::math::stdFunction1("sqrt");
-	fun->setLeft(t31);
+	fun->setLeft(t0);
 	//fun = driver.addAgregado(ibis::selectClause::STDPOP, $3);
     }
     else if (stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "std") == 0 ||
@@ -856,7 +862,7 @@ namespace ibis {
 	     stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "stddev") == 0 ||
 	     stricmp((yysemantic_stack_[(4) - (1)].stringVal)->c_str(), "stdsamp") == 0) {
 	// sample standard deviation is computed as
-	// sqrt((sum (x^2) / count(*) - (sum (x) / count(*))^2) * (count(*) / (count(*)-1)))
+	// sqrt(fabs(sum (x^2) / count(*) - (sum (x) / count(*))^2) * (count(*) / (count(*)-1))))
 	ibis::math::term *x = (yysemantic_stack_[(4) - (3)].selectNode);
 	ibis::math::number *two = new ibis::math::number(2.0);
 	ibis::math::variable *star = new ibis::math::variable("*");
@@ -890,8 +896,10 @@ namespace ibis {
 	ibis::math::term *t34 = new ibis::math::bediener(ibis::math::MULTIPLY);
 	t34->setLeft(t31);
 	t34->setRight(t33);
+        ibis::math::term *t0 = new ibis::math::stdFunction1("fabs");
+        t0->setLeft(t34);
 	fun = new ibis::math::stdFunction1("sqrt");
-	fun->setLeft(t34);
+	fun->setLeft(t0);
 	// fun = driver.addAgregado(ibis::selectClause::STDSAMP, $3);
     }
     else { // assume it is a standard math function
@@ -905,7 +913,7 @@ namespace ibis {
 
   case 20:
 /* Line 670 of lalr1.cc  */
-#line 411 "selectParser.yy"
+#line 419 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -923,7 +931,7 @@ namespace ibis {
 
   case 21:
 /* Line 670 of lalr1.cc  */
-#line 424 "selectParser.yy"
+#line 432 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -938,7 +946,7 @@ namespace ibis {
 
   case 22:
 /* Line 670 of lalr1.cc  */
-#line 434 "selectParser.yy"
+#line 442 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(2) - (2)].selectNode);
 }
@@ -946,7 +954,7 @@ namespace ibis {
 
   case 23:
 /* Line 670 of lalr1.cc  */
-#line 437 "selectParser.yy"
+#line 445 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(3) - (2)].selectNode);
 }
@@ -954,7 +962,7 @@ namespace ibis {
 
   case 24:
 /* Line 670 of lalr1.cc  */
-#line 440 "selectParser.yy"
+#line 448 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -967,7 +975,7 @@ namespace ibis {
 
   case 25:
 /* Line 670 of lalr1.cc  */
-#line 448 "selectParser.yy"
+#line 456 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -979,7 +987,7 @@ namespace ibis {
 
 
 /* Line 670 of lalr1.cc  */
-#line 983 "selectParser.cc"
+#line 991 "selectParser.cc"
       default:
         break;
       }
@@ -1440,7 +1448,7 @@ namespace ibis {
   {
          0,    74,    74,    74,    75,    78,    81,    85,    89,    93,
      100,   112,   124,   136,   148,   160,   172,   184,   196,   215,
-     411,   424,   434,   437,   440,   448
+     419,   432,   442,   445,   448,   456
   };
 
   // Print the state stack on the debug stream.
@@ -1529,9 +1537,9 @@ namespace ibis {
 
 } // ibis
 /* Line 1141 of lalr1.cc  */
-#line 1533 "selectParser.cc"
+#line 1541 "selectParser.cc"
 /* Line 1142 of lalr1.cc  */
-#line 457 "selectParser.yy"
+#line 465 "selectParser.yy"
 
 void ibis::selectParser::error(const ibis::selectParser::location_type& l,
 			       const std::string& m) {

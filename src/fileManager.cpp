@@ -651,7 +651,7 @@ ibis::fileManager::fileManager()
 	throw ibis::bad_alloc("pthread_cond_init(readCond) failed in "
 			      "fileManager ctor");
 
-    LOGGER(ibis::gVerbose > 3)
+    LOGGER(ibis::gVerbose > 1)
 	<< "fileManager initialization complete -- maxBytes="
 	<< maxBytes << ", maxOpenFiles=" << maxOpenFiles;
 } // ibis::fileManager::fileManager
@@ -663,7 +663,7 @@ ibis::fileManager::~fileManager() {
     // (void)pthread_rwlock_destroy(&lock);
     (void)pthread_mutex_destroy(&mutex);
     (void)pthread_cond_destroy(&cond);
-    LOGGER(ibis::gVerbose > 3)
+    LOGGER(ibis::gVerbose > 1)
 	<< "fileManager decommissioned";
 } // ibis::fileManager::~fileManager
 

@@ -438,7 +438,7 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 	    if (bdlstore->bytes() == expected) {
 		if (aggr == ibis::selectClause::NIL_AGGR) {
 		    LOGGER(ibis::gVerbose > 4)
-			<< "bundle1::ctor reconstructing a colValues for \""
+			<< "bundle1::ctor constructing a colValues for \""
 			<< comps.aggName(0) << '"';
 		    col = ibis::colValues::create
 			(c, bdlstore, 3*sizeof(uint32_t), sizes[0]);
@@ -452,7 +452,7 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 		    case ibis::selectClause::STDPOP:
 		    case ibis::selectClause::STDSAMP:
 			LOGGER(ibis::gVerbose > 4)
-			    << "bundle1::ctor reconstructing a colDoubles for \""
+			    << "bundle1::ctor constructing a colDoubles for \""
 			    << *(comps.aggExpr(0)) << '"';
 			col = new ibis::colDoubles
 			    (c, bdlstore, 3*sizeof(uint32_t),
@@ -460,7 +460,7 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 			break;
 		    default:
 			LOGGER(ibis::gVerbose > 4)
-			    << "bundle1::ctor reconstructing a colValues for \""
+			    << "bundle1::ctor constructing a colValues for \""
 			    << *(comps.aggExpr(0)) << '"';
 			col = ibis::colValues::create
 			    (c, bdlstore, 3*sizeof(uint32_t),

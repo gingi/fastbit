@@ -4441,24 +4441,24 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>(variance/count);
+		    (*array)[i] = static_cast<int>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<int>
-			(((*array)[starts[i]]-avg)
-			 *((*array)[starts[i]]-avg)/count);
+			(fabs(((*array)[starts[i]]-avg)
+                              *((*array)[starts[i]]-avg)/count));
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -4625,24 +4625,24 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>(variance/count);
+		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<unsigned>
-			(((*array)[starts[i]]-avg)
-			 *((*array)[starts[i]]-avg)/count);
+			(fabs(((*array)[starts[i]]-avg)
+                              *((*array)[starts[i]]-avg)/count));
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -4808,24 +4808,24 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>(variance/count);
+		    (*array)[i] = static_cast<int>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<int>
-			(((*array)[starts[i]]-avg)
-			 *((*array)[starts[i]]-avg)/count);
+			(fabs(((*array)[starts[i]]-avg)
+                              *((*array)[starts[i]]-avg)/count));
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -4992,24 +4992,24 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>(variance/count);
+		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<unsigned>
-			(((*array)[starts[i]]-avg)
-			 *((*array)[starts[i]]-avg)/count);
+			(fabs(((*array)[starts[i]]-avg)
+                              *((*array)[starts[i]]-avg)/count));
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -5175,24 +5175,24 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>(variance/count);
+		    (*array)[i] = static_cast<int>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<int>
-			(((*array)[starts[i]]-avg)
-			 *((*array)[starts[i]]-avg)/count);
+			(fabs(((*array)[starts[i]]-avg)
+                              *((*array)[starts[i]]-avg)/count));
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -5359,24 +5359,24 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>(variance/count);
+		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<unsigned>
-			(((*array)[starts[i]]-avg)
-			 *((*array)[starts[i]]-avg)/count);
+			(fabs(((*array)[starts[i]]-avg)
+                              *((*array)[starts[i]]-avg)/count));
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -5542,24 +5542,24 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>(variance/count);
+		    (*array)[i] = static_cast<int>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<int>
-			(((*array)[starts[i]]-avg)
-			 *((*array)[starts[i]]-avg)/count);
+			(fabs(((*array)[starts[i]]-avg)
+                              *((*array)[starts[i]]-avg)/count));
 		}
 		else {
 		    (*array)[i] = static_cast<int>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -5726,24 +5726,24 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>(variance/count);
+		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
 		    (*array)[i] = static_cast<unsigned>
-			(((*array)[starts[i]]-avg)
-			 *((*array)[starts[i]]-avg)/count);
+			(fabs(((*array)[starts[i]]-avg)
+                              *((*array)[starts[i]]-avg)/count));
 		}
 		else {
 		    (*array)[i] = static_cast<unsigned>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -5910,23 +5910,23 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<float>(variance/count);
+		    (*array)[i] = static_cast<float>(fabs(variance/count));
 		}
 		else {
 		    (*array)[i] = static_cast<float>
-			(sqrt(variance/count));
+			(sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = ((*array)[starts[i]]-avg)
-			*((*array)[starts[i]]-avg)/count;
+		    (*array)[i] = fabs(((*array)[starts[i]]-avg)
+                                       *((*array)[starts[i]]-avg)/count);
 		}
 		else {
 		    (*array)[i] = static_cast<float>
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
@@ -6092,22 +6092,22 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = variance/count;
+		    (*array)[i] = fabs(variance/count);
 		}
 		else {
-		    (*array)[i] = (sqrt(variance/count));
+		    (*array)[i] = (sqrt(fabs(variance/count)));
 		}
 	    }
 	    else {
 		if (func == ibis::selectClause::VARPOP ||
 		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = ((*array)[starts[i]]-avg)
-			*((*array)[starts[i]]-avg)/count;
+		    (*array)[i] = fabs(((*array)[starts[i]]-avg)
+                                       *((*array)[starts[i]]-avg)/count);
 		}
 		else {
 		    (*array)[i] =
-			(sqrt(((*array)[starts[i]]-avg)
-			      *((*array)[starts[i]]-avg)/count));
+			(sqrt(fabs(((*array)[starts[i]]-avg)
+                                   *((*array)[starts[i]]-avg)/count)));
 		}
 	    }
 	}
