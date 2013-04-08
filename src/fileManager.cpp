@@ -658,8 +658,8 @@ ibis::fileManager::fileManager()
                               "fileManager ctor");
 
     LOGGER(ibis::gVerbose > 1)
-        << "fileManager initialization complete -- maxBytes="
-        << maxBytes << ", maxOpenFiles=" << maxOpenFiles;
+	<< "fileManager initialization complete -- maxBytes="
+	<< maxBytes << ", maxOpenFiles=" << maxOpenFiles;
 } // ibis::fileManager::fileManager
 
 /// Destructor.
@@ -670,7 +670,7 @@ ibis::fileManager::~fileManager() {
     (void)pthread_mutex_destroy(&mutex);
     (void)pthread_cond_destroy(&cond);
     LOGGER(ibis::gVerbose > 1)
-        << "fileManager decommissioned\n";
+	<< "fileManager decommissioned";
 } // ibis::fileManager::~fileManager
 
 /// Record a newly allocated storage in the two lists.

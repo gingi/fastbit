@@ -1,3 +1,14 @@
+2012-04-08 John Wu <John dot Wu at ACM dot org>
+	* src/colValues.cpp, src/selectParser.yy: add call to fabs when
+	computing variance and standard deviation to avoid numerical
+	problems (per discussion with Alexandre Maurel)
+	* tests/Makefile.am: update really-small to exercise the modified
+	versions of standard deviation
+
+2012-04-04 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.cpp: change the verboseness level to 2 for
+	printing fileManager construction and destruction message
+
 2012-04-03 John Wu <John dot Wu at ACM dot org>
 	* examples/tcapi.c: add code to use fastbit_get_result_row_ids
 	* java/FastBit.c:

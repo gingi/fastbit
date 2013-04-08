@@ -4618,40 +4618,40 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<int>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<int>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<int>
-                        (fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<int>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<int>
+			(fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-                }
-                else {
-                    (*array)[i] = static_cast<int>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -4802,40 +4802,40 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<unsigned>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<unsigned>
-                        (fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>
+			(fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-                }
-                else {
-                    (*array)[i] = static_cast<unsigned>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -4985,40 +4985,40 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<int>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<int>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<int>
-                        (fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<int>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<int>
+			(fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-                }
-                else {
-                    (*array)[i] = static_cast<int>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5169,40 +5169,40 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<unsigned>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<unsigned>
-                        (fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>
+			(fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-                }
-                else {
-                    (*array)[i] = static_cast<unsigned>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5352,40 +5352,40 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<int>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<int>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<int>
-                        (fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<int>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<int>
+			(fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-                }
-                else {
-                    (*array)[i] = static_cast<int>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5536,40 +5536,40 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<unsigned>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<unsigned>
-                        (fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>
+			(fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-                }
-                else {
-                    (*array)[i] = static_cast<unsigned>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5719,40 +5719,40 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<int>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<int>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<int>
-                        (fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<int>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<int>
+			(fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-                }
-                else {
-                    (*array)[i] = static_cast<int>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<int>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5903,40 +5903,40 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<unsigned>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<unsigned>
-                        (fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<unsigned>
+			(fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-                }
-                else {
-                    (*array)[i] = static_cast<unsigned>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<unsigned>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -6087,39 +6087,39 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = static_cast<float>(fabs(variance/count));
-                }
-                else {
-                    (*array)[i] = static_cast<float>
-                        (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = static_cast<float>(fabs(variance/count));
+		}
+		else {
+		    (*array)[i] = static_cast<float>
+			(sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = fabs(((*array)[starts[i]]-avg)
                                        *((*array)[starts[i]]-avg)/count);
-                }
-                else {
-                    (*array)[i] = static_cast<float>
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] = static_cast<float>
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -6269,38 +6269,38 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-                -- count; // sample version denominator is number of rows -1
-            }
+		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+		-- count; // sample version denominator is number of rows -1
+	    }
 
-            if (starts[i+1] > starts[i]+1) {
-                double variance = (((*array)[starts[i]])-avg)
-                    *(((*array)[starts[i]]-avg));
-                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+	    if (starts[i+1] > starts[i]+1) {
+		double variance = (((*array)[starts[i]])-avg)
+		    *(((*array)[starts[i]]-avg));
+		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = fabs(variance/count);
-                }
-                else {
-                    (*array)[i] = (sqrt(fabs(variance/count)));
-                }
-            }
-            else {
-                if (func == ibis::selectClause::VARPOP ||
-                    func == ibis::selectClause::VARSAMP) {
-                    (*array)[i] = fabs(((*array)[starts[i]]-avg)
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = fabs(variance/count);
+		}
+		else {
+		    (*array)[i] = (sqrt(fabs(variance/count)));
+		}
+	    }
+	    else {
+		if (func == ibis::selectClause::VARPOP ||
+		    func == ibis::selectClause::VARSAMP) {
+		    (*array)[i] = fabs(((*array)[starts[i]]-avg)
                                        *((*array)[starts[i]]-avg)/count);
-                }
-                else {
-                    (*array)[i] =
-                        (sqrt(fabs(((*array)[starts[i]]-avg)
+		}
+		else {
+		    (*array)[i] =
+			(sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-                }
-            }
-        }
-        break;
+		}
+	    }
+	}
+	break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];

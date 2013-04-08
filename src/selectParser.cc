@@ -915,8 +915,8 @@ namespace ibis {
     break;
 
   case 20:
-/* Line 664 of lalr1.cc  */
-#line 423 "selectParser.yy"
+/* Line 670 of lalr1.cc  */
+#line 419 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1001,9 +1001,9 @@ namespace ibis {
 }
     break;
 
-  case 25:
-/* Line 664 of lalr1.cc  */
-#line 485 "selectParser.yy"
+  case 21:
+/* Line 670 of lalr1.cc  */
+#line 432 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1016,25 +1016,25 @@ namespace ibis {
 }
     break;
 
-  case 26:
-/* Line 664 of lalr1.cc  */
-#line 495 "selectParser.yy"
+  case 22:
+/* Line 670 of lalr1.cc  */
+#line 442 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(2) - (2)].selectNode);
 }
     break;
 
-  case 27:
-/* Line 664 of lalr1.cc  */
-#line 498 "selectParser.yy"
+  case 23:
+/* Line 670 of lalr1.cc  */
+#line 445 "selectParser.yy"
     {
     (yyval.selectNode) = (yysemantic_stack_[(3) - (2)].selectNode);
 }
     break;
 
-  case 28:
-/* Line 664 of lalr1.cc  */
-#line 501 "selectParser.yy"
+  case 24:
+/* Line 670 of lalr1.cc  */
+#line 448 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1045,22 +1045,9 @@ namespace ibis {
 }
     break;
 
-  case 29:
-/* Line 664 of lalr1.cc  */
-#line 509 "selectParser.yy"
-    {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " got a string literal " << *(yysemantic_stack_[(1) - (1)].stringVal);
-#endif
-    (yyval.selectNode) = new ibis::math::literal((yysemantic_stack_[(1) - (1)].stringVal)->c_str());
-    delete (yysemantic_stack_[(1) - (1)].stringVal);
-}
-    break;
-
-  case 30:
-/* Line 664 of lalr1.cc  */
-#line 517 "selectParser.yy"
+  case 25:
+/* Line 670 of lalr1.cc  */
+#line 456 "selectParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1071,8 +1058,8 @@ namespace ibis {
     break;
 
 
-/* Line 664 of lalr1.cc  */
-#line 1076 "selectParser.cc"
+/* Line 670 of lalr1.cc  */
+#line 991 "selectParser.cc"
       default:
         break;
       }
@@ -1552,10 +1539,9 @@ namespace ibis {
   const unsigned short int
   selectParser::yyrline_[] =
   {
-         0,    78,    78,    78,    79,    82,    85,    89,    93,    97,
-     104,   116,   128,   140,   152,   164,   176,   188,   200,   219,
-     423,   435,   447,   459,   471,   485,   495,   498,   501,   509,
-     517
+         0,    74,    74,    74,    75,    78,    81,    85,    89,    93,
+     100,   112,   124,   136,   148,   160,   172,   184,   196,   215,
+     419,   432,   442,   445,   448,   456
   };
 
   // Print the state stack on the debug stream.
@@ -1644,10 +1630,10 @@ namespace ibis {
 
 
 } // ibis
-/* Line 1135 of lalr1.cc  */
-#line 1649 "selectParser.cc"
-/* Line 1136 of lalr1.cc  */
-#line 526 "selectParser.yy"
+/* Line 1141 of lalr1.cc  */
+#line 1541 "selectParser.cc"
+/* Line 1142 of lalr1.cc  */
+#line 465 "selectParser.yy"
 
 void ibis::selectParser::error(const ibis::selectParser::location_type& l,
 			       const std::string& m) {
