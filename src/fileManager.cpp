@@ -537,12 +537,12 @@ ibis::fileManager::fileManager()
         pagesize = sysconf(_SC_PAGE_SIZE);
         mem = static_cast<uint64_t>(sysconf(_SC_PHYS_PAGES)) * pagesize;
 #endif
-        LOGGER(ibis::gVerbose > 4 && mem > 0)
-            << "fileManager::ctor found the physical memory size to be "
-            << mem << " bytes";
-        mem /= 2; // allow half to be used by fileManager
-        if (mem > 0)
-            maxBytes = mem;
+	LOGGER(ibis::gVerbose > 4 && mem > 0)
+	    << "fileManager::ctor found the physical memory size to be "
+	    << mem << " bytes";
+	mem /= 2; // allow half to be used by fileManager
+	if (mem > 0)
+	    maxBytes = mem;
 #elif defined(CTL_HW) && (defined(HW_MEMSIZE) || defined(HW_PHYSMEM))
         // BSD flavored systems provides sysctl for finding out the
         // physical memory size
@@ -554,56 +554,56 @@ ibis::fileManager::fileManager()
 #else
         mib[1] = HW_PHYSMEM;
 #endif
-        if (sysctl(mib, 2, &mem, &len, NULL, 0) == 0 && len <= sizeof(mem)) {
-            LOGGER(ibis::gVerbose > 4 && mem > 0)
-                << "fileManager::ctor found the physical memory size to be "
-                << mem << " bytes";
-            mem >>= 1;
-            if (mem > 0)
-                maxBytes = mem;
-        }
-        else {
-            LOGGER(ibis::gVerbose > 1)
-                << "fileManager failed to determine the physical memory size "
-                << "with sysctl(CTL_HW=" << CTL_HW << ", HW_PHYSMEM="
-                << HW_PHYSMEM << ") -- "
-                << (errno != 0 ? strerror(errno) :
-                    (len != sizeof(mem)) ? "return value of incorrect size" :
-                    "unknwon error")
-                << ", mem=" << mem;
-            maxBytes = _FASTBIT_DEFAULT_MEMORY_SIZE;
-        }
+	if (sysctl(mib, 2, &mem, &len, NULL, 0) == 0 && len <= sizeof(mem)) {
+	    LOGGER(ibis::gVerbose > 4 && mem > 0)
+		<< "fileManager::ctor found the physical memory size to be "
+		<< mem << " bytes";
+	    mem >>= 1;
+	    if (mem > 0)
+		maxBytes = mem;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "fileManager failed to determine the physical memory size "
+		<< "with sysctl(CTL_HW=" << CTL_HW << ", HW_PHYSMEM="
+		<< HW_PHYSMEM << ") -- "
+		<< (errno != 0 ? strerror(errno) :
+		    (len != sizeof(mem)) ? "return value of incorrect size" :
+		    "unknwon error")
+		<< ", mem=" << mem;
+	    maxBytes = _FASTBIT_DEFAULT_MEMORY_SIZE;
+	}
 #elif defined(_PSAPI_H_)
-        // MS Windows uses psapi to physical memory size
-        PERFORMANCE_INFORMATION pi;
-        if (GetPerformanceInfo(&pi, sizeof(pi))) {
-            size_t avail = pi.PhysicalAvailable;
-            size_t mem = (pi.PhysicalTotal >> 1);
-            LOGGER(ibis::gVerbose > 4 && mem > 0)
-                << "fileManager::ctor found the physical memory size to be "
-                << pi.PhysicalTotal * pi.PageSize << " bytes";
-            if (avail > mem) mem = avail; // take it if available
-            if (mem > 0)
-                maxBytes = mem * pi.PageSize;
-        }
-        else {
-            char *lpMsgBuf;
-            FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-                          FORMAT_MESSAGE_FROM_SYSTEM | 
-                          FORMAT_MESSAGE_IGNORE_INSERTS,
-                          NULL, GetLastError(),
-                          MAKELANGID(LANG_NEUTRAL,
-                                     SUBLANG_DEFAULT),
-                          (LPTSTR) &lpMsgBuf, 0, NULL);
-            LOGGER(ibis::gVerbose >= 0)
-                << "fileManager::ctor -- failed to determine the physical "
-                << "memory size -- " << lpMsgBuf;
-            LocalFree(lpMsgBuf);        // Free the buffer.
-        }
-        pagesize = pi.PageSize;
-        //      SYSTEM_INFO sysinfo;
-        //      GetSystemInfo(&sysinfo);
-        //      pagesize = sysinfo.dwPageSize;
+	// MS Windows uses psapi to physical memory size
+	PERFORMANCE_INFORMATION pi;
+	if (GetPerformanceInfo(&pi, sizeof(pi))) {
+	    size_t avail = pi.PhysicalAvailable;
+	    size_t mem = (pi.PhysicalTotal >> 1);
+	    LOGGER(ibis::gVerbose > 4 && mem > 0)
+		<< "fileManager::ctor found the physical memory size to be "
+		<< pi.PhysicalTotal * pi.PageSize << " bytes";
+	    if (avail > mem) mem = avail; // take it if available
+	    if (mem > 0)
+		maxBytes = mem * pi.PageSize;
+	}
+	else {
+	    char *lpMsgBuf;
+	    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+			  FORMAT_MESSAGE_FROM_SYSTEM | 
+			  FORMAT_MESSAGE_IGNORE_INSERTS,
+			  NULL, GetLastError(),
+			  MAKELANGID(LANG_NEUTRAL,
+				     SUBLANG_DEFAULT),
+			  (LPTSTR) &lpMsgBuf, 0, NULL);
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "fileManager::ctor -- failed to determine the physical "
+		<< "memory size -- " << lpMsgBuf;
+	    LocalFree(lpMsgBuf);	// Free the buffer.
+	}
+	pagesize = pi.PageSize;
+	// 	SYSTEM_INFO sysinfo;
+	// 	GetSystemInfo(&sysinfo);
+	// 	pagesize = sysinfo.dwPageSize;
 #else
         maxBytes = _FASTBIT_DEFAULT_MEMORY_SIZE;
         LOGGER(ibis::gVerbose > 2)
