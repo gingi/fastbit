@@ -1476,15 +1476,16 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	if (ibis::gVerbose > 4) {
 	    lg() << "\n";
 	    brd1->describe(lg());
-	    uint32_t nr = (ibis::gVerbose < 30 ? 1U << ibis::gVerbose : 0);
-	    if ((nr >> ibis::gVerbose) < 2)
-		nr = brd1->nRows();
-	    if (nr <= brd1->nRows()) {
+	    uint32_t nr = (ibis::gVerbose < 30 ?
+                           1U << ibis::gVerbose :
+                           brd1->nRows());
+	    if (nr > brd1->nRows()/2) {
 		brd1->dump(lg(), ", ");
 	    }
 	    else {
-		lg() << "\t... first " << nr << " row" << (nr>1?"s":"");
+		lg() << "\t... first " << nr << " row" << (nr>1?"s":"") << "\n";
 		brd1->dump(lg(), nr, ", ");
+                lg() << "\t... skipping " << brd1->nRows() - nr;
 	    }
 	}
     }
@@ -1519,15 +1520,15 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	if (ibis::gVerbose > 4) {
 	    lg() << "\n";
 	    brd2->describe(lg());
-	    uint32_t nr = (ibis::gVerbose < 30 ? 1U << ibis::gVerbose : 0);
-	    if ((nr >> ibis::gVerbose) < 2)
-		nr = brd2->nRows();
-	    if (nr <= brd2->nRows()) {
+	    uint32_t nr = (ibis::gVerbose < 30 ? 1U << ibis::gVerbose :
+                           brd2->nRows());
+	    if (nr > brd2->nRows()/2) {
 		brd2->dump(lg(), ", ");
 	    }
 	    else {
-		lg() << "\t... first " << nr << " row" << (nr>1?"s":"");
+		lg() << "\t... first " << nr << " row" << (nr>1?"s":"") << "\n";
 		brd2->dump(lg(), nr, ", ");
+                lg() << "\t... skipping " << brd2->nRows() - nr;
 	    }
 	}
     }

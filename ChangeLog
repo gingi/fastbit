@@ -1,3 +1,7 @@
+2012-04-09 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: add function text::readStrings to deal with
+	the case where the content of .sp file can not be read into memory
+
 2012-04-08 John Wu <John dot Wu at ACM dot org>
 	* src/colValues.cpp, src/selectParser.yy: add call to fabs when
 	computing variance and standard deviation to avoid numerical

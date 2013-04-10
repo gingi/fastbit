@@ -95,13 +95,12 @@ public:
     }; // struct tokenizer
 
 protected:
-    /// Locate the starting position of each string.
+
     void startPositions(const char *dir, char *buf, uint32_t nbuf) const;
-    /// Read the string value of <code>i</code>th row.
     int  readString(uint32_t i, std::string &val) const;
-    /// Read one string from an open file.
     int  readString(std::string&, int, long, long, char*, uint32_t,
 		    uint32_t&, off_t&) const;
+    int  readStrings(const ibis::bitvector &, std::vector<std::string> &) const;
     int  writeStrings(const char *to, const char *from,
 		      const char *spto, const char *spfrom,
 		      ibis::bitvector &msk, const ibis::bitvector &sel,

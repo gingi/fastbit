@@ -1032,7 +1032,7 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
 	nbits = do_cnt();
     LOGGER((rhs.nbits > 0 && nbits != rhs.nbits) ||
 	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator&= can not operate on two bitvectors "
+	<< "Warning -- bitvector::operator&= is to operate on two bitvectors "
 	"of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -1129,7 +1129,7 @@ ibis::bitvector* ibis::bitvector::operator&(const ibis::bitvector& rhs)
 #if defined(WAH_CHECK_SIZE)
     LOGGER((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator& can not operate on two bitvectors "
+	<< "Warning -- bitvector::operator& is to operate on two bitvectors "
 	"of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
     ibis::bitvector *res = new ibis::bitvector;
@@ -1251,7 +1251,7 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
 	nbits = do_cnt();
     LOGGER((rhs.nbits > 0 && nbits != rhs.nbits) ||
 	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator|= cannot operate on two bitvectors "
+	<< "Warning -- bitvector::operator|= is to operate on two bitvectors "
 	"of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -1325,7 +1325,7 @@ ibis::bitvector* ibis::bitvector::operator|(const ibis::bitvector& rhs)
 #if defined(WAH_CHECK_SIZE)
     LOGGER((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator| can not operate on two bitvectors "
+	<< "Warning -- bitvector::operator| is to operate on two bitvectors "
 	"of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
     ibis::bitvector *res = new ibis::bitvector;
@@ -1395,7 +1395,7 @@ void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
 	nbits = do_cnt();
     LOGGER((rhs.nbits > 0 && nbits != rhs.nbits) ||
 	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator^= cannot operate on two bitvectors "
+	<< "Warning -- bitvector::operator^= is to operate on two bitvectors "
 	"of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -1461,7 +1461,7 @@ ibis::bitvector* ibis::bitvector::operator^(const ibis::bitvector& rhs)
 #if defined(WAH_CHECK_SIZE)
     LOGGER((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator^ can not operate on two bitvectors "
+	<< "Warning -- bitvector::operator^ is to operate on two bitvectors "
 	"of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
     ibis::bitvector *res = new ibis::bitvector;
@@ -1523,7 +1523,7 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
 	nbits = do_cnt();
     LOGGER((rhs.nbits > 0 && nbits != rhs.nbits) ||
 	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator-= can not operate on two bitvectors "
+	<< "Warning -- bitvector::operator-= is to operate on two bitvectors "
 	"of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -1605,7 +1605,7 @@ ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
 #if defined(WAH_CHECK_SIZE)
     LOGGER((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
 	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator- can not operate on two bitvectors "
+	<< "Warning -- bitvector::operator- is to operate on two bitvectors "
 	"of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
     ibis::bitvector *res = new ibis::bitvector;

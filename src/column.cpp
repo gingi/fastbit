@@ -5379,7 +5379,7 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     if (idx != 0 || thePart->nRows() == 0)
 	return;
 
-    ibis::index* tmp = idx;
+    ibis::index* tmp = 0;
     try { // if an index is not available, create one
 	LOGGER(ibis::gVerbose > 7)
 	    << evt << " -- loading the index from "
@@ -5570,6 +5570,9 @@ void ibis::column::indexSpeedTest() const {
 void ibis::column::purgeIndexFile(const char *dir) const {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0))
 	return;
+    delete idx;
+    idx = 0;
+
     std::string fnm = (dir ? dir :
 		       thePart != 0 ? thePart->currentDataDir() : ".");
     if (fnm[fnm.size()-1] != FASTBIT_DIRSEP)
@@ -11379,7 +11382,7 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
 		<< mesg;
 	}
 
-	++ theColumn->idxcnt; // increment counter
+	++ theColumn->idxcnt; // increment the counter
     }
 }
 
