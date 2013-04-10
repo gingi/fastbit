@@ -5954,7 +5954,7 @@ void ibis::column::indexSpeedTest() const {
 /// Purge the index files assocated with the current column.
 void ibis::column::purgeIndexFile(const char *dir) const {
     if (dir == 0 && (thePart == 0 || thePart->currentDataDir() == 0))
-        return;
+	return;
     delete idx;
     idx = 0;
 
@@ -12074,25 +12074,30 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
     if (toload)
         theColumn->loadIndex();
     if (theColumn->idx != 0) {
-        int ierr = pthread_rwlock_rdlock(&(col->rwlock));
-        std::string evt = "column[";
-        evt += theColumn->fullname();
-        evt += "]::indexLock";
-        if (0 != ierr) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- " << evt << " -- pthread_rwlock_rdlock("
-                << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-                << mesg << " returned " << ierr << " (" << strerror(ierr)
-                << ')';
-        }
-        else {
-            LOGGER(ibis::gVerbose > 9)
-                << evt << " -- pthread_rwlock_rdlock("
-                << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-                << mesg;
-        }
+	int ierr = pthread_rwlock_rdlock(&(col->rwlock));
+	std::string evt = "column[";
+	if (theColumn->partition() != 0 && theColumn->partition()->name() != 0)
+	    evt += theColumn->partition()->name();
+	else
+	    evt += '?';
+	evt += '.';
+	evt += theColumn->name();
+	evt += "]::indexLock";
+	if (0 != ierr) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << evt << " -- pthread_rwlock_rdlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg << " returned " << ierr << " (" << strerror(ierr)
+		<< ')';
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 9)
+		<< evt << " -- pthread_rwlock_rdlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg;
+	}
 
-        ++ theColumn->idxcnt; // increment the counter
+	++ theColumn->idxcnt; // increment the counter
     }
 }
 

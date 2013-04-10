@@ -1468,26 +1468,26 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 
     if (brd1.get() == 0) return 0;
     if (ibis::gVerbose > 2) {
-        ibis::util::logger lg;
-        lg() << mesg << " created an in-memory data partition with "
-             << brd1->nRows() << " row" << (brd1->nRows()>1?"s":"")
-             << " and " << brd1->nColumns() << " column"
-             << (brd1->nColumns()>1?"s":"");
-        if (ibis::gVerbose > 4) {
-            lg() << "\n";
-            brd1->describe(lg());
-            uint32_t nr = (ibis::gVerbose < 30 ?
+	ibis::util::logger lg;
+	lg() << mesg << " created an in-memory data partition with "
+	     << brd1->nRows() << " row" << (brd1->nRows()>1?"s":"")
+	     << " and " << brd1->nColumns() << " column"
+	     << (brd1->nColumns()>1?"s":"");
+	if (ibis::gVerbose > 4) {
+	    lg() << "\n";
+	    brd1->describe(lg());
+	    uint32_t nr = (ibis::gVerbose < 30 ?
                            1U << ibis::gVerbose :
                            brd1->nRows());
-            if (nr > brd1->nRows()/2) {
-                brd1->dump(lg(), ", ");
-            }
-            else {
-                lg() << "\t... first " << nr << " row" << (nr>1?"s":"") << "\n";
-                brd1->dump(lg(), nr, ", ");
+	    if (nr > brd1->nRows()/2) {
+		brd1->dump(lg(), ", ");
+	    }
+	    else {
+		lg() << "\t... first " << nr << " row" << (nr>1?"s":"") << "\n";
+		brd1->dump(lg(), nr, ", ");
                 lg() << "\t... skipping " << brd1->nRows() - nr;
-            }
-        }
+	    }
+	}
     }
     if (brd1->nRows() == 0) {
         if (ierr >= 0) {
@@ -1512,25 +1512,25 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 
     std::unique_ptr<ibis::table> brd2(brd1->groupby(tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
-        ibis::util::logger lg;
-        lg() << mesg << " produced an in-memory data partition with "
-             << brd2->nRows() << " row" << (brd2->nRows()>1?"s":"")
-             << " and " << brd2->nColumns() << " column"
-             << (brd2->nColumns()>1?"s":"");
-        if (ibis::gVerbose > 4) {
-            lg() << "\n";
-            brd2->describe(lg());
-            uint32_t nr = (ibis::gVerbose < 30 ? 1U << ibis::gVerbose :
+	ibis::util::logger lg;
+	lg() << mesg << " produced an in-memory data partition with "
+	     << brd2->nRows() << " row" << (brd2->nRows()>1?"s":"")
+	     << " and " << brd2->nColumns() << " column"
+	     << (brd2->nColumns()>1?"s":"");
+	if (ibis::gVerbose > 4) {
+	    lg() << "\n";
+	    brd2->describe(lg());
+	    uint32_t nr = (ibis::gVerbose < 30 ? 1U << ibis::gVerbose :
                            brd2->nRows());
-            if (nr > brd2->nRows()/2) {
-                brd2->dump(lg(), ", ");
-            }
-            else {
-                lg() << "\t... first " << nr << " row" << (nr>1?"s":"") << "\n";
-                brd2->dump(lg(), nr, ", ");
+	    if (nr > brd2->nRows()/2) {
+		brd2->dump(lg(), ", ");
+	    }
+	    else {
+		lg() << "\t... first " << nr << " row" << (nr>1?"s":"") << "\n";
+		brd2->dump(lg(), nr, ", ");
                 lg() << "\t... skipping " << brd2->nRows() - nr;
-            }
-        }
+	    }
+	}
     }
     return brd2.release();
 } // ibis::filter::sift2
