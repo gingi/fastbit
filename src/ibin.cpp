@@ -3038,7 +3038,8 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 						      DBL_MAX));
 	}
 	else if (spec != 0) {
-	    col->logWarning("bin::binning", "bad index spec \"%s\"", spec);
+	    col->logWarning("bin::binning", "bad index spec \"%s\", "
+                            "do you mean \"<binning %s/>\"", spec, spec);
 	}
 	else {
 	    col->logWarning("bin::binning", "do not know how to bin");
@@ -5634,7 +5635,7 @@ void ibis::bin::binBoundaries(std::vector<double>& ret) const {
     ret.reserve(nobs + 1);
     for (uint32_t i = 0; i < nobs; ++ i)
 	ret.push_back(bounds[i]);
-} // ibis::bin::binBoundaries()
+} // ibis::bin::binBoundaries
 
 void ibis::bin::binWeights(std::vector<uint32_t>& ret) const {
     try {
