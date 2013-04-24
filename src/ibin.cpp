@@ -2980,277 +2980,264 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
         scanAndPartition(varr, eqw);
     }
     else { // other type of specifications
-        const char* spec = (col ? col->indexSpec() : 0);
-        const char* str = (spec ? strstr(spec, "<binning ") : 0);
-        E vmin = 0, vmax = 0; // to store the computed min/max from varr
-        ibis::bitvector mask;
-        mask.set(1, varr.size());
-        if (str != 0) {
-            // new style of bin specification <binning ... />
-            // start=xx, end=xx, nbins=xx, scale=linear|log
-            // (start, end, nbins, scale)(start, end, nbins, scale)...
-            double r0=0.0, r1=0.0, tmp;
-            uint32_t progress = 0;
-            const char *ptr = 0;
-            uint32_t nb = 1;
-            str += 9;
-            while (isspace(*str))
-                ++ str;
-            bool longSpec = (*str == '(');
-            if (longSpec)
-                ++ str;
-            while (str != 0 && *str != 0 && *str != '/' && *str != '>') {
-                std::string binfile;
-                if (*str == 's' || *str == 'S') { // start=|scale=
-                    ptr = str + 6;
-                    if (*ptr == 'l' || *ptr == 'L') {
-                        // assume scale=[linear | log]
-                        eqw = 1 + (ptr[1]=='o' || ptr[1]=='O');
-                        progress |= 8;
-                    }
-                    else if (isdigit(*ptr) || *ptr == '.' ||
-                             *ptr == '+' || *ptr == '-') {
-                        // assume start=...
-                        char *ptr2 = 0;
-                        tmp = strtod(ptr, &ptr2);
-                        if (tmp == 0.0 && ptr == ptr2) {
-                            if (r1 > r0)
-                                r0 = r1;
-                            else
-                                r0 = (col ? col->lowerBound() :
-                                      ibis::column::computeMin(varr, mask));
-                            LOGGER(ibis::gVerbose > 1)
-                                <<"Warning -- bin::setBoundaries encountered a "
-                                "bad indexing option \"" << str
-                                << "\", assume it to be \"start=" << r0 << "\"";
-                        }
-                        else {
-                            r0 = tmp;
-                            str = ptr2;
-                        }
-                        progress |= 1;
-                    }
-                    else if (isalpha(*ptr)) {
-                        eqw = 0; // default to simple a linear scale
-                        progress |= 8;
-                    }
-                    else { // bad options
-                        if (r1 > r0)
-                            r0 = r1;
-                        else
-                            r0 = (col ? col->lowerBound() :
-                                  ibis::column::computeMin(varr, mask));
-                        progress |= 1;
-                        if (ibis::gVerbose > 1)
-                            ibis::util::logMessage
-                                ("index::setBoundaries",
-                                 "bad option \"%s\", assume it to be "
-                                 "\"start=%G\"", str, r0);
-                    }
-                }
-                else if (*str == 'e' || *str == 'E') { // end=
-                    char *ptr2 = 0;
-                    ptr = str + 4;
-                    r1 = strtod(ptr, &ptr2);
-                    if (r1 == 0.0 && ptr == ptr2) {
-                        r1 = (col ? col->upperBound() :
-                              ibis::column::computeMax(varr, mask));
-                        LOGGER(ibis::gVerbose > 1)
-                            <<"Warning -- bin::setBoundaries encountered a "
-                            "bad indexing option \"" << str
-                            << "\", assume it to be \"end=" << r1 << "\"";
-                    }
-                    else {
-                        str = ptr2;
-                    }
-                    progress |= 2;
-                }
-                else if (*str == 'n' || *str == 'N') { // nbins=
-                    ptr = strchr(str, '=');
-                    if (ptr)
-                        nb = static_cast<uint32_t>(strtod(ptr+1, 0));
-                    if (nb == 0)
-                        nb = (longSpec ? 1 : IBIS_DEFAULT_NBINS);
-                    progress |= 4;
-                }
-                else if (isdigit(*str) || *str == '.' ||
-                         *str == '+' || *str == '-') {
-                    // get a number, try start, end, and nbins successively
-                    tmp = strtod(str, 0);
-                    if ((progress&7) == 0) {
-                        r0 = tmp;
-                        progress |= 1;
-                    }
-                    else if ((progress&7) == 1) {
-                        r1 = tmp;
-                        progress |= 3;
-                    }
-                    else if ((progress&7) == 3) {
-                        nb = static_cast<uint32_t>(tmp);
-                        progress |= 7;
-                    }
-                    else {
-                        LOGGER(ibis::gVerbose > 0)
-                            << "Warning -- index::setBoundaries encountered "
-                            "a syntax error: labeled elements must appear "
-                            "after the unlabeled ones -- skipping value " << tmp;
-                    }
-                }
-                else if (*str == 'l' || *str == 'L') {
-                    eqw = 1 + (str[1]=='o' || str[1]=='O');
-                    progress |= 8;
-                }
-                else if (strnicmp(str, "binFile=", 8) == 0 ||
-                         strnicmp(str, "file=", 5) == 0) {
-                    str += (*str=='b'?8:5);
-                    int ierr =
-                        ibis::util::readString(binfile, str, ",; \t()/>");
-                    if (ierr >= 0 && ! binfile.empty())
-                        progress |= 11;
-                }
-                str = strpbrk(str, ",; \t()/>");
-                str += strspn(str, ",; \t"); // skip space
-                bool add = (progress == 15);
-                if (str == 0) { // end of string
-                    add = 1;
-                }
-                else if (*str == '/' || *str == '>') {
-                    add = 1;
-                }
-                else if (*str == ')' || *str == '(') {
-                    if ((progress&3) == 3)
-                        add = 1;
-                }
-                if (add) {
-                    if (binfile.empty()) {
-                        if ((progress & 1) == 0)
-                            r0 = (col ? col->lowerBound() :
-                                  ibis::column::computeMin(varr, mask));
-                        if ((progress & 2) == 0)
-                            r1 = (col ? col->upperBound() :
-                                  ibis::column::computeMax(varr, mask));
-                        if ((progress & 4) == 0)
-                            nb = (longSpec ? 1 : IBIS_DEFAULT_NBINS);
-                        if (r0 > r1 && (progress & 3) < 3) {
-                            // no expected range
-                            if (vmin == vmax && vmin == 0 &&
-                                (vmin != varr[0] || vmin != varr.back())) {
-                                // need to compute the actual min/max
-                                vmin = varr[0];
-                                vmax = varr[0];
-                                for (uint32_t i = 1; i < varr.size(); ++ i) {
-                                    if (vmin > varr[i])
-                                        vmin = varr[i];
-                                    if (vmax < varr[i])
-                                        vmax = varr[i];
-                                }
-                            }
-                            if ((progress & 1) == 0)
-                                r0 = vmin;
-                            if ((progress & 2) == 0)
-                                r1 = vmax;
-                        }
-                        addBounds(r0, r1, nb, eqw);
-                    }
-                    else { // attempt to read the named file
-                        if ((progress & 4) == 0)
-                            readBinBoundaries(binfile.c_str(), 0);
-                        else
-                            readBinBoundaries(binfile.c_str(), nb);
-                        binfile.erase();
-                    }
-                    progress = 0;
-                }
-                if (str != 0) {
-                    if (*str == ')' || *str == '(') {
-                        str += strspn(str, ",; \t)(");
-                    }
-                }
-            }
-        }
-        else if ((str = (spec ? strstr(spec, "bins:") : 0)) != 0) {
-            // use explicitly specified bin boundaries
-            double r0, r1;
-            const char* ptr = strchr(str, '[');
-            while (ptr) {
-                ++ ptr;
-                while (isspace(*ptr)) // skip leading space
-                    ++ ptr;
-                str = strpbrk(ptr, ",; \t)");
-                if (ptr == str) {
-                    r0 = (col ? col->lowerBound() :
-                          ibis::column::computeMin(varr, mask));
-                }
-                else {
-                    r0 = strtod(ptr, 0);
-                }
-                if (str != 0) {
-                    ptr = str + (*str != ')');
-                    while (isspace(*ptr))
-                        ++ ptr;
-                    str = strpbrk(ptr, ",; \t)");
-                    if (ptr == str) {
-                        r1 = (col ? col->upperBound() :
-                              ibis::column::computeMax(varr, mask));
-                    }
-                    else {
-                        r1 = strtod(ptr, 0);
-                    }
-                }
-                else {
-                    r1 = (col ? col->upperBound() :
-                          ibis::column::computeMax(varr, mask));
-                }
-                if (r0 > r1) { // no expected range
-                    if (vmin == vmax && vmin == 0 &&
-                        (0 != varr[0] || 0 != varr.back())) {
-                        // need to compute the actual min/max
-                        vmin = varr[0];
-                        vmax = varr[0];
-                        for (uint32_t i = 1; i < varr.size(); ++ i) {
-                            if (vmin > varr[i])
-                                vmin = varr[i];
-                            if (vmax < varr[i])
-                                vmax = varr[i];
-                        }
-                    }
-                    r0 = vmin;
-                    r1 = vmax;
-                }
+	const char* spec = col->indexSpec();
+	const char* str = (spec ? strstr(spec, "<binning ") : 0);
+	E vmin = 0, vmax = 0; // to store the computed min/max from varr
+	if (str != 0) {
+	    // new style of bin specification <binning ... />
+	    // start=xx, end=xx, nbins=xx, scale=linear|log
+	    // (start, end, nbins, scale)(start, end, nbins, scale)...
+	    double r0=0.0, r1=0.0, tmp;
+	    uint32_t progress = 0;
+	    const char *ptr = 0;
+	    uint32_t nb = 1;
+	    str += 9;
+	    while (isspace(*str))
+		++ str;
+	    bool longSpec = (*str == '(');
+	    if (longSpec)
+		++ str;
+	    while (str != 0 && *str != 0 && *str != '/' && *str != '>') {
+		std::string binfile;
+		if (*str == 's' || *str == 'S') { // start=|scale=
+		    ptr = str + 6;
+		    if (*ptr == 'l' || *ptr == 'L') {
+			// assume scale=[linear | log]
+			eqw = 1 + (ptr[1]=='o' || ptr[1]=='O');
+			progress |= 8;
+		    }
+		    else if (isdigit(*ptr) || *ptr == '.' ||
+			     *ptr == '+' || *ptr == '-') {
+			// assume start=...
+			char *ptr2 = 0;
+			tmp = strtod(ptr, &ptr2);
+			if (tmp == 0.0 && ptr == ptr2) {
+			    if (r1 > r0)
+				r0 = r1;
+			    else
+				r0 = col->lowerBound();
+			    LOGGER(ibis::gVerbose > 1)
+				<<"Warning -- bin::setBoundaries encountered a "
+				"bad indexing option \"" << str
+				<< "\", assume it to be \"start=" << r0 << "\"";
+			}
+			else {
+			    r0 = tmp;
+			    str = ptr2;
+			}
+			progress |= 1;
+		    }
+		    else if (isalpha(*ptr)) {
+			eqw = 0; // default to simple a linear scale
+			progress |= 8;
+		    }
+		    else { // bad options
+			if (r1 > r0)
+			    r0 = r1;
+			else
+			    r0 = col->lowerBound();
+			progress |= 1;
+			if (ibis::gVerbose > 1)
+			    ibis::util::logMessage
+				("index::setBoundaries",
+				 "bad option \"%s\", assume it to be "
+				 "\"start=%G\"", str, r0);
+		    }
+		}
+		else if (*str == 'e' || *str == 'E') { // end=
+		    char *ptr2 = 0;
+		    ptr = str + 4;
+		    r1 = strtod(ptr, &ptr2);
+		    if (r1 == 0.0 && ptr == ptr2) {
+			r1 = col->upperBound();
+			LOGGER(ibis::gVerbose > 1)
+			    <<"Warning -- bin::setBoundaries encountered a "
+			    "bad indexing option \"" << str
+			    << "\", assume it to be \"end=" << r1 << "\"";
+		    }
+		    else {
+			str = ptr2;
+		    }
+		    progress |= 2;
+		}
+		else if (*str == 'n' || *str == 'N') { // nbins=
+		    ptr = strchr(str, '=');
+		    if (ptr)
+			nb = static_cast<uint32_t>(strtod(ptr+1, 0));
+		    if (nb == 0)
+			nb = (longSpec ? 1 : IBIS_DEFAULT_NBINS);
+		    progress |= 4;
+		}
+		else if (isdigit(*str) || *str == '.' ||
+			 *str == '+' || *str == '-') {
+		    // get a number, try start, end, and nbins successively
+		    tmp = strtod(str, 0);
+		    if ((progress&7) == 0) {
+			r0 = tmp;
+			progress |= 1;
+		    }
+		    else if ((progress&7) == 1) {
+			r1 = tmp;
+			progress |= 3;
+		    }
+		    else if ((progress&7) == 3) {
+			nb = static_cast<uint32_t>(tmp);
+			progress |= 7;
+		    }
+		    else {
+			col->logWarning("index::setBoundaries",
+					"labeled elements must appear "
+					"after the unlabeled ones -- "
+					"skipping value %g", tmp);
+		    }
+		}
+		else if (*str == 'l' || *str == 'L') {
+		    eqw = 1 + (str[1]=='o' || str[1]=='O');
+		    progress |= 8;
+		}
+		else if (strnicmp(str, "binFile=", 8) == 0 ||
+			 strnicmp(str, "file=", 5) == 0) {
+		    str += (*str=='b'?8:5);
+		    int ierr =
+			ibis::util::readString(binfile, str, ",; \t()/>");
+		    if (ierr >= 0 && ! binfile.empty())
+			progress |= 11;
+		}
+		str = strpbrk(str, ",; \t()/>");
+		str += strspn(str, ",; \t"); // skip space
+		bool add = (progress == 15);
+		if (str == 0) { // end of string
+		    add = 1;
+		}
+		else if (*str == '/' || *str == '>') {
+		    add = 1;
+		}
+		else if (*str == ')' || *str == '(') {
+		    if ((progress&3) == 3)
+			add = 1;
+		}
+		if (add) {
+		    if (binfile.empty()) {
+			if ((progress & 1) == 0)
+			    r0 = col->lowerBound();
+			if ((progress & 2) == 0)
+			    r1 = col->upperBound();
+			if ((progress & 4) == 0)
+			    nb = (longSpec ? 1 : IBIS_DEFAULT_NBINS);
+			if (r0 > r1 && (progress & 3) < 3) {
+			    // no expected range
+			    if (vmin == vmax && vmin == 0 &&
+				(vmin != varr[0] || vmin != varr.back())) {
+				// need to compute the actual min/max
+				vmin = varr[0];
+				vmax = varr[0];
+				for (uint32_t i = 1; i < varr.size(); ++ i) {
+				    if (vmin > varr[i])
+					vmin = varr[i];
+				    if (vmax < varr[i])
+					vmax = varr[i];
+				}
+			    }
+			    if ((progress & 1) == 0)
+				r0 = vmin;
+			    if ((progress & 2) == 0)
+				r1 = vmax;
+			}
+			addBounds(r0, r1, nb, eqw);
+		    }
+		    else { // attempt to read the named file
+			if ((progress & 4) == 0)
+			    readBinBoundaries(binfile.c_str(), 0);
+			else
+			    readBinBoundaries(binfile.c_str(), nb);
+			binfile.erase();
+		    }
+		    progress = 0;
+		}
+		if (str != 0) {
+		    if (*str == ')' || *str == '(') {
+			str += strspn(str, ",; \t)(");
+		    }
+		}
+	    }
+	}
+	else if ((str = (spec ? strstr(spec, "bins:") : 0)) != 0) {
+	    // use explicitly specified bin boundaries
+	    double r0, r1;
+	    const char* ptr = strchr(str, '[');
+	    while (ptr) {
+		++ ptr;
+		while (isspace(*ptr)) // skip leading space
+		    ++ ptr;
+		str = strpbrk(ptr, ",; \t)");
+		if (ptr == str) {
+		    r0 = col->lowerBound();
+		}
+		else {
+		    r0 = strtod(ptr, 0);
+		}
+		if (str != 0) {
+		    ptr = str + (*str != ')');
+		    while (isspace(*ptr))
+			++ ptr;
+		    str = strpbrk(ptr, ",; \t)");
+		    if (ptr == str) {
+			r1 = col->upperBound();
+		    }
+		    else {
+			r1 = strtod(ptr, 0);
+		    }
+		}
+		else {
+		    r1 = col->upperBound();
+		}
+		if (r0 > r1) { // no expected range
+		    if (vmin == vmax && vmin == 0 &&
+			(0 != varr[0] || 0 != varr.back())) {
+			// need to compute the actual min/max
+			vmin = varr[0];
+			vmax = varr[0];
+			for (uint32_t i = 1; i < varr.size(); ++ i) {
+			    if (vmin > varr[i])
+				vmin = varr[i];
+			    if (vmax < varr[i])
+				vmax = varr[i];
+			}
+		    }
+		    r0 = vmin;
+		    r1 = vmax;
+		}
 
-                uint32_t nb = 1;
-                ptr = str + (*str != ')');
-                while (isspace(*ptr))
-                    ++ ptr;
-                if (*ptr == 'n') {
-                    ptr += strspn(ptr, "nobins= \t");
-                    nb = static_cast<uint32_t>(strtod(ptr, 0));
-                }
-                else if (isdigit(*ptr) || *ptr == '.') {
-                    nb = static_cast<uint32_t>(strtod(ptr, 0));
-                }
-                if (nb == 0)
-                    nb = 1;
+		uint32_t nb = 1;
+		ptr = str + (*str != ')');
+		while (isspace(*ptr))
+		    ++ ptr;
+		if (*ptr == 'n') {
+		    ptr += strspn(ptr, "nobins= \t");
+		    nb = static_cast<uint32_t>(strtod(ptr, 0));
+		}
+		else if (isdigit(*ptr) || *ptr == '.') {
+		    nb = static_cast<uint32_t>(strtod(ptr, 0));
+		}
+		if (nb == 0)
+		    nb = 1;
 
-                // the bulk of the work is done here
-                addBounds(r0, r1, nb, eqw);
+		// the bulk of the work is done here
+		addBounds(r0, r1, nb, eqw);
 
-                // ready for the next group
-                ptr = strchr(ptr, '[');
-            }
-            bounds.push_back(ibis::util::compactValue
-                             (bounds.back(), DBL_MAX));
-        }
-        else if (spec != 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- bin::binning encountered a bad index spec \""
-                << spec << "\", do you mean \"<binning " << spec << "/>\"";
-        }
-        else {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- bin::binning does not know how to bin the "
-                "given values";
-        }
+		// ready for the next group
+		ptr = strchr(ptr, '[');
+	    }
+	    bounds.push_back(ibis::util::compactValue(bounds.back(),
+						      DBL_MAX));
+	}
+	else if (spec != 0) {
+	    col->logWarning("bin::binning", "bad index spec \"%s\", "
+                            "do you mean \"<binning %s/>\"", spec, spec);
+	}
+	else {
+	    col->logWarning("bin::binning", "do not know how to bin");
+	}
     }
 
     if (bounds.empty()) {
@@ -5887,7 +5874,7 @@ void ibis::bin::clear() {
 void ibis::bin::binBoundaries(std::vector<double>& ret) const {
     ret.reserve(nobs + 1);
     for (uint32_t i = 0; i < nobs; ++ i)
-        ret.push_back(bounds[i]);
+	ret.push_back(bounds[i]);
 } // ibis::bin::binBoundaries
 
 void ibis::bin::binWeights(std::vector<uint32_t>& ret) const {
