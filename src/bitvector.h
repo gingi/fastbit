@@ -79,6 +79,7 @@ public:
     // the first of bv, return reference to self
     //bitvector& copy(const word_t i, const bitvector& bv);
     void setBit(const word_t i, int val);
+    int  getBit(const word_t i) const;
     inline void turnOnRawBit(const word_t i);
     void erase(word_t i, word_t j);
 
@@ -1182,6 +1183,9 @@ inline double ibis::bitvector::markovSize(word_t nb, word_t nc, double f) {
 } // ibis::bitvector::markovSize
 
 /// Turn on a single bit in a uncompressed bitvector.
+///
+/// @warning Use only if you are sure that the bitvector object represents
+/// a uncompressed bitmap!
 inline void ibis::bitvector::turnOnRawBit(const word_t ind) {
     if (ind < nbits) { // in regular words
 	m_vec[ind / MAXBITS] |= (1 << (SECONDBIT - (ind % MAXBITS)));
