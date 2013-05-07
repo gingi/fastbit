@@ -1,3 +1,8 @@
+2012-05-07 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector64.cpp: add extract checks in bitwise logical
+	operations to deal with 0-length fills (a problem reported by
+	Srikanth Sundarrajan <srikanth.sundarrajan at inmobi.com>)
+
 2012-05-06 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h, src/bitvector.cpp: add function getBit at the
 	request of Suprio Ray <suprio at cs.toronto.edu>
