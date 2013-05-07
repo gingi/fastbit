@@ -1,3 +1,7 @@
+2012-05-06 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.h, src/bitvector.cpp: add function getBit at the
+	request of Suprio Ray <suprio at cs.toronto.edu>
+
 2012-04-09 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: add function text::readStrings to deal with
 	the case where the content of .sp file can not be read into memory
