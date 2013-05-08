@@ -626,7 +626,7 @@ int ibis::bitvector64::getBit(const ibis::bitvector64::word_t ind) const {
                 jnd -= cnt;
             }
             else if (jnd < MAXBITS) {
-                return ((*it >> (SECONDBIT - jnd)) & 1U);
+                return ((*it >> (SECONDBIT - jnd - 1)) & 1U);
             }
             else {
                 jnd -= MAXBITS;

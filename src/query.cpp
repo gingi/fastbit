@@ -939,7 +939,7 @@ long ibis::query::getMinNumHits() const {
     readLock lck(this, "getMinNumHits");
     long nHits = (hits != 0 ? static_cast<long>(hits->cnt()) : -1);
     LOGGER(ibis::gVerbose > 11)
-        << "query[" << myID << "]::getMinNumHits -- minHits = " << nHits;
+	<< "query[" << myID << "]::getMinNumHits -- minHits = " << nHits;
 
     return nHits;
 }
@@ -948,9 +948,9 @@ long ibis::query::getMinNumHits() const {
 long ibis::query::getMaxNumHits() const {
     readLock lck(this, "getMaxNumHits");
     long nHits = (sup != 0 ? static_cast<long>(sup->cnt()) :
-                  (hits ? static_cast<long>(hits->cnt()) : -1));
+		  (hits ? static_cast<long>(hits->cnt()) : -1));
     LOGGER(ibis::gVerbose > 11)
-        << "query[" << myID << "]::getMaxNumHits -- maxHits = " << nHits;
+	<< "query[" << myID << "]::getMaxNumHits -- maxHits = " << nHits;
     return nHits;
 }
 
@@ -962,32 +962,32 @@ long ibis::query::getMaxNumHits() const {
 /// rids.size().
 long ibis::query::getCandidateRows(std::vector<uint32_t> &rids) const {
     if (hits == 0 && sup == 0)
-        return -1; // no estimate yet
+	return -1; // no estimate yet
 
     const ibis::bitvector *tmp = (hits != 0 ? hits : sup);
     long ierr = tmp->cnt();
     try {
-        rids.clear();
-        rids.reserve(ierr);
-        for (ibis::bitvector::indexSet is = tmp->firstIndexSet();
-             is.nIndices() > 0; ++ is) {
-            const ibis::bitvector::word_t *ii = is.indices();
-            if (is.isRange()) {
-                for (ibis::bitvector::word_t j = *ii; j < ii[1]; ++ j)
-                    rids.push_back(j);
-            }
-            else {
-                for (unsigned j = 0; j < is.nIndices(); ++ j)
-                    rids.push_back(ii[j]);
-            }
-        }
-        return ierr;
+	rids.clear();
+	rids.reserve(ierr);
+	for (ibis::bitvector::indexSet is = tmp->firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *ii = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = *ii; j < ii[1]; ++ j)
+		    rids.push_back(j);
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j)
+		    rids.push_back(ii[j]);
+	    }
+	}
+	return ierr;
     }
     catch (...) {
-        LOGGER(ibis::gVerbose > 1)
-            << "query[" << myID
-            << "]::getCandidateRows failed to extract the 1s in hits";
-        return -2;
+	LOGGER(ibis::gVerbose > 1)
+	    << "query[" << myID
+	    << "]::getCandidateRows failed to extract the 1s in hits";
+	return -2;
     }
 } // ibis::countQuery::getCandidateRows
 

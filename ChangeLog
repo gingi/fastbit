@@ -1,3 +1,9 @@
+2012-05-08 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector64.h, src/bitvector64.cpp: add function getBit
+	* src/query.h, src/query.cpp: add functions getCandidateVector and
+	getCandiateRows (per request of Nan Zhou <nanzhou1987 at
+	hotmail.com>)
+
 2012-05-07 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector64.cpp: add extract checks in bitwise logical
 	operations to deal with 0-length fills (a problem reported by
