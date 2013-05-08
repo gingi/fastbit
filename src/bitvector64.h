@@ -71,6 +71,7 @@ public:
     /// Replace a single bit at position @c i.
     ///@note @c val must be either 0 or 1.
     void setBit(const word_t i, int val);
+    int  getBit(const word_t i) const;
     /// Remove the bits in the range of [i, j).
     void erase(word_t i, word_t j);
 

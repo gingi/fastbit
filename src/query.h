@@ -111,6 +111,10 @@ public:
     int estimate();
     long getMinNumHits() const;
     long getMaxNumHits() const;
+    /// Return a pointer to the bit vector representing the candidates.
+    const ibis::bitvector* getCandidateVector() const
+    {return (sup!=0?sup:hits);}
+    long getCandidateRows(std::vector<uint32_t>&) const;
 
     // Functions related to full evaluation.
 

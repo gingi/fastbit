@@ -589,6 +589,49 @@ void ibis::bitvector64::setBit(const word_t ind, int val) {
 	nset += val?1:-1;
 } // ibis::bitvector64::setBit
 
+/// Return the value of a bit.
+///
+/// @note If the incoming position is beyond the end of this bitmap, this
+/// function returns 0.
+///
+/// @warning To access the ith bit, this function essentially has to
+/// determine the values of bits 0 through i-1, therefore, it is highly
+/// recommended that you don't use this function.  A compressed bitmap data
+/// structure is simply not the right data structure to support random
+/// accesses!
+int ibis::bitvector64::getBit(const ibis::bitvector64::word_t ind) const {
+    if (ind >= size()) {
+        return 0;
+    }
+    else if (ind >= nbits) {
+        return ((active.val >> (active.nbits - (ind - nbits) - 1)) & 1U);
+    }
+    else if (m_vec.size()*MAXBITS == nbits) { // uncompressed
+        return ((m_vec[ind/MAXBITS] >> (SECONDBIT - (ind % MAXBITS))) & 1U);
+    }
+    else { // need to decompress the compressed words
+        word_t jnd = ind;
+        array_t<word_t>::const_iterator it = m_vec.begin();
+        while (it < m_vec.end()) {
+            if (*it > HEADER0) { // a fill
+                const word_t cnt = ((*it) & MAXCNT) * MAXBITS;
+                if (cnt > jnd) {
+                    return (*it >= HEADER1);
+                }
+                jnd -= cnt;
+            }
+            else if (jnd < MAXBITS) {
+                return ((*it >> (SECONDBIT - jnd - 1)) & 1U);
+            }
+            else {
+                jnd -= MAXBITS;
+            }
+            ++ it;
+        }
+    }
+    return 0;
+} // ibis::bitvector64::getBit
+
 // erase the bit in the range of [i, j)
 void ibis::bitvector64::erase(word_t i, word_t j) {
     if (i >= j) {

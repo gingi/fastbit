@@ -768,8 +768,8 @@ int ibis::query::estimate() {
 long ibis::query::getMinNumHits() const {
     readLock lck(this, "getMinNumHits");
     long nHits = (hits != 0 ? static_cast<long>(hits->cnt()) : -1);
-    if (ibis::gVerbose > 11)
-	logMessage("getMinNumHits", "minHits = %d", nHits);
+    LOGGER(ibis::gVerbose > 11)
+	<< "query[" << myID << "]::getMinNumHits -- minHits = " << nHits;
 
     return nHits;
 }
@@ -779,10 +779,47 @@ long ibis::query::getMaxNumHits() const {
     readLock lck(this, "getMaxNumHits");
     long nHits = (sup != 0 ? static_cast<long>(sup->cnt()) :
 		  (hits ? static_cast<long>(hits->cnt()) : -1));
-    if (ibis::gVerbose > 11)
-	logMessage("getMaxNumHits", "maxHits = %d", nHits);
+    LOGGER(ibis::gVerbose > 11)
+	<< "query[" << myID << "]::getMaxNumHits -- maxHits = " << nHits;
     return nHits;
 }
+
+/// Extract the positions of candidates.  This is meant to be used after
+/// calling the function estimate.  It will return the position the hits if
+/// they are known already.  If no estimate is known or the query is formed
+/// yet, it will return a negative number to indicate error.  Upon a
+/// successful completion of this function, the return value should be the
+/// rids.size().
+long ibis::query::getCandidateRows(std::vector<uint32_t> &rids) const {
+    if (hits == 0 && sup == 0)
+	return -1; // no estimate yet
+
+    const ibis::bitvector *tmp = (hits != 0 ? hits : sup);
+    long ierr = tmp->cnt();
+    try {
+	rids.clear();
+	rids.reserve(ierr);
+	for (ibis::bitvector::indexSet is = tmp->firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    const ibis::bitvector::word_t *ii = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = *ii; j < ii[1]; ++ j)
+		    rids.push_back(j);
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j)
+		    rids.push_back(ii[j]);
+	    }
+	}
+	return ierr;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "query[" << myID
+	    << "]::getCandidateRows failed to extract the 1s in hits";
+	return -2;
+    }
+} // ibis::countQuery::getCandidateRows
 
 /// Computes the exact hits.  The same answer shall be computed whether
 /// there is any index or not.  The argument evalSelect indicates whether
