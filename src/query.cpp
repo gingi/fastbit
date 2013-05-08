@@ -757,19 +757,19 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
 /// Returns 0 for success, a negative value for error.
 int ibis::query::estimate() {
     if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
-        return -1;
+	return -1;
     std::string evt = "query[";
     evt += myID;
     evt += "]::estimate";
     if (rids_in == 0 && conds.empty() && comps.empty()) {
-        // not ready for this yet
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt << " must have either a valid query "
+	// not ready for this yet
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " must have either a valid query "
             "condition (the WHERE clause) or a list of RIDs";
-        return -8;
+	return -8;
     }
     LOGGER(ibis::gVerbose > 3)
-        << evt << " -- starting to estimate query";
+	<< evt << " -- starting to estimate query";
 
     double pcnt = ibis::fileManager::instance().pageCount();
     if (dstime != 0 && dstime != mypart->timestamp()) {
@@ -805,131 +805,131 @@ int ibis::query::estimate() {
                 if (conds.getExpr() != 0 && false == conds->directEval())
                     reorderExpr();
 #endif
-                getBounds(); // actual function to perform the estimation
-                state = QUICK_ESTIMATE;
-            }
-            catch (const ibis::bad_alloc& e) {
-                if (dslock != 0) {
-                    delete dslock;
-                    dslock = 0;
-                }
+		getBounds(); // actual function to perform the estimation
+		state = QUICK_ESTIMATE;
+	    }
+	    catch (const ibis::bad_alloc& e) {
+		if (dslock != 0) {
+		    delete dslock;
+		    dslock = 0;
+		}
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** " << evt << '('
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed due to a memory allocation problem -- "
-                    << e.what();
-                return -9;
-            }
-            catch (const std::exception& e) {
-                if (dslock != 0) {
-                    delete dslock;
-                    dslock = 0;
-                }
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error *** " << evt << '('
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
+		    << ") failed due to a memory allocation problem -- "
+		    << e.what();
+		return -9;
+	    }
+	    catch (const std::exception& e) {
+		if (dslock != 0) {
+		    delete dslock;
+		    dslock = 0;
+		}
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** " << evt << '('
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expressioin>" : "<RID query>")
-                    << ") failed -- " << e.what();
-                return -9;
-            }
-            catch (const char* s) {
-                if (dslock != 0) {
-                    delete dslock;
-                    dslock = 0;
-                }
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error *** " << evt << '('
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expressioin>" : "<RID query>")
+		    << ") failed -- " << e.what();
+		return -9;
+	    }
+	    catch (const char* s) {
+		if (dslock != 0) {
+		    delete dslock;
+		    dslock = 0;
+		}
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** " << evt << '('
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed -- " << s;
-                return -9;
-            }
-            catch (...) {
-                if (dslock != 0) {
-                    delete dslock;
-                    dslock = 0;
-                }
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error *** " << evt << '('
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
+		    << ") failed -- " << s;
+		return -9;
+	    }
+	    catch (...) {
+		if (dslock != 0) {
+		    delete dslock;
+		    dslock = 0;
+		}
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** " << evt << '('
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed due to a unexpected exception ";
-                return -9;
-            }
-            if (ibis::gVerbose > 0) {
-                timer.stop();
-                LOGGER(ibis::gVerbose > 0)
+		LOGGER(ibis::gVerbose >= 0)
+		    << " Error *** " << evt << '('
+		    << (conds.getString() ? conds.getString() :
+			conds.getExpr() ? "<long expression>" : "<RID query>")
+		    << ") failed due to a unexpected exception ";
+		return -9;
+	    }
+	    if (ibis::gVerbose > 0) {
+		timer.stop();
+		LOGGER(ibis::gVerbose > 0)
                     << evt << " -- time to compute the bounds: "
                     << timer.CPUTime() << " sec(CPU), "
                     << timer.realTime() << " sec(elapsed)";
-            }
-        }
+	    }
+	}
     }
 
     if (hits==0 && sup==0) {
         logWarning("estimate", "failed to generate estimated hits");
     }
     else if (ibis::gVerbose > 0) {
-        if (conds.getExpr()) {
-            if (hits && sup && hits != sup) {
-                LOGGER(ibis::gVerbose > 0)
+	if (conds.getExpr()) {
+	    if (hits && sup && hits != sup) {
+		LOGGER(ibis::gVerbose > 0)
                     << evt << " -- # of hits for query \"" 
                     << (conds.getString() ? conds.getString() :
                         "<long expression>")
                     << "\" is between " << hits->cnt() << " and " << sup->cnt();
-            }
-            else if (hits) {
-                LOGGER(ibis::gVerbose > 0)
+	    }
+	    else if (hits) {
+		LOGGER(ibis::gVerbose > 0)
                     << evt << " -- # of hits for query \""
                     << (conds.getString() ? conds.getString() :
                         "<long expression>")
                     << "\" is " << hits->cnt();
-            }
-            else {
+	    }
+	    else {
                 if (sup == 0) {
                     sup = new ibis::bitvector;
                     mypart->getNullMask(*sup);
                 }
                 sup->adjustSize(0, mypart->nRows());
-                hits = new ibis::bitvector;
-                hits->set(0, sup->size());
-                LOGGER(ibis::gVerbose > 0)
+		hits = new ibis::bitvector;
+		hits->set(0, sup->size());
+		LOGGER(ibis::gVerbose > 0)
                     << "Warning -- " << evt << " failed to estimate the hits,"
                     " assume the number of hits to be in between 0 and "
                     << sup->cnt();
-            }
-        }
-        else {
-            LOGGER(ibis::gVerbose > 0)
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
                 << evt << " -- # of hits for the OID query is "
                 << hits->cnt();
-        }
-        if (ibis::gVerbose > 4) {
-            pcnt = ibis::fileManager::instance().pageCount() - pcnt;
-            LOGGER(pcnt > 0.0)
-                << evt << " -- read(unistd.h) accessed " << pcnt
+	}
+	if (ibis::gVerbose > 4) {
+	    pcnt = ibis::fileManager::instance().pageCount() - pcnt;
+	    LOGGER(pcnt > 0.0)
+		<< evt << " -- read(unistd.h) accessed " << pcnt
                 << " pages during the execution of this function";
-        }
-        if ((rids_in != 0 || conds.getExpr() != 0) &&
-            (ibis::gVerbose > 30 ||
-             (ibis::gVerbose > 8 &&
-              (1U<<ibis::gVerbose) >=
-              (hits?hits->bytes():0)+(sup?sup->bytes():0)))) {
-            if (hits == sup) {
-                LOGGER(ibis::gVerbose >= 0) << "The hit vector" << *hits;
-            }
-            else {
-                LOGGER(ibis::gVerbose >= 0 && hits != 0)
-                    << "The sure hits" << *hits;
-                LOGGER(ibis::gVerbose >= 0 && sup != 0)
-                    << "The possible hit" << *sup;
-            }
-        }
+	}
+	if ((rids_in != 0 || conds.getExpr() != 0) &&
+	    (ibis::gVerbose > 30 ||
+	     (ibis::gVerbose > 8 &&
+	      (1U<<ibis::gVerbose) >=
+	      (hits?hits->bytes():0)+(sup?sup->bytes():0)))) {
+	    if (hits == sup) {
+		LOGGER(ibis::gVerbose >= 0) << "The hit vector" << *hits;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose >= 0 && hits != 0)
+		    << "The sure hits" << *hits;
+		LOGGER(ibis::gVerbose >= 0 && sup != 0)
+		    << "The possible hit" << *sup;
+	    }
+	}
     }
     return 0;
 } // ibis::query::estimate

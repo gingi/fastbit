@@ -860,7 +860,7 @@ inline void ibis::bitvector::copy_runsn(run& it, word_t& nw) {
             nw -= it.nWords;
         }
         else if (it.nWords == 1) {
-            active.val = (it.fillBit != 0 ? 0 : ALLONES);
+            active.val = (it.fillBit != 0 ? ALLONES : 0);
             append_active();
             -- nw;
         }

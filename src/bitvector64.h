@@ -578,36 +578,10 @@ inline ibis::bitvector64& ibis::bitvector64::operator+=(int b) {
     return *this;
 } // ibis::bitvector64& ibis::bitvector64::operator+=(int b)
 
-/// Append all 8 bits of the incoming bytes as literal bits.
-void ibis::bitvector64::appendByte(unsigned char c) {
-    if (active.nbits >= MAXBITS)
-        append_active();
-
-    if (active.nbits+8 < MAXBITS) {
-        active.val <<= 8;
-        active.nbits += 8;
-        active.val += c;
-    }
-    else if (active.nbits+8 > MAXBITS) {
-        unsigned na = MAXBITS - nbits;
-        unsigned hi = (c >> (8 - na));
-        active.val <<= na;
-        active.val += hi;
-        append_active();
-        active.nbits = 8 - na;
-        active.val = ((hi << active.nbits) ^ c);
-    }
-    else {
-        active.val <<= 8;
-        active.val += c;
-        append_active();
-    }
-} // ibis::bitvector64::appendByte
-
 /// Append n bits of val.  The value of n may be arbitrary integer, but the
 /// value of val must be either 0 or 1.
-inline void ibis::bitvector64::appendFill
-(int val, ibis::bitvector64::word_t n) {
+inline void ibis::bitvector64::appendFill(int val,
+					  ibis::bitvector64::word_t n) {
     if (active.nbits > 0) {
 	word_t tmp = (MAXBITS - active.nbits);
 	if (tmp > n) tmp = n;
