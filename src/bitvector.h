@@ -710,26 +710,25 @@ inline void ibis::bitvector::append_active() {
 } // ibis::bitvector::append_active
 
 /// A private function to append a single counter when the active word is
-/// empty.  The value of @c cnt is assumed to be a multiple of MAXBITS and
-/// strictly larger than MAXBITS.
+/// empty.  The value of @c cnt is assumed to be greater than 0.
 inline void ibis::bitvector::append_counter(int val, word_t cnt) {
     word_t head = 2 + val;
     word_t w = (head << SECONDBIT) + cnt;
     nbits += cnt*MAXBITS;
     if (m_vec.empty()) {
-	m_vec.push_back(w);
+        m_vec.push_back(w);
     }
     else if ((m_vec.back()>>SECONDBIT) == head) {
-	m_vec.back() += cnt;
+        m_vec.back() += cnt;
     }
     else if ((m_vec.back()==ALLONES) && head==3) {
-	m_vec.back() = w + 1;
+        m_vec.back() = w + 1;
     }
     else if ((m_vec.back() == 0) && head==2) {
-	m_vec.back() = w + 1;
+        m_vec.back() = w + 1;
     }
     else {
-	m_vec.push_back(w);
+        m_vec.push_back(w);
     }
 } // ibis::bitvector::append_counter
 
@@ -786,8 +785,15 @@ inline void ibis::bitvector::appendFill(int val, word_t n) {
 inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
     // deal with the first word -- attach it to the last word in m_vec
     if (it.isFill != 0) {
-	append_counter(it.fillBit, it.nWords);
-	nw -= it.nWords;
+        if (it.nWords > 1) {
+            append_counter(it.fillBit, it.nWords);
+            nw -= it.nWords;
+        }
+        else if (it.nWords == 1) {
+            active.val = (it.fillBit != 0 ? ALLONES : 0);
+            append_active();
+            -- nw;
+        }
     }
     else {
 	active.val = *(it.it);
@@ -819,8 +825,15 @@ inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 inline void ibis::bitvector::copy_runsn(run& it, word_t& nw) {
     // deal with the first word -- need to attach it to the last word in m_vec
     if (it.isFill != 0) {
-	append_counter(!it.fillBit, it.nWords);
-	nw -= it.nWords;
+        if (it.nWords > 1) {
+            append_counter(!it.fillBit, it.nWords);
+            nw -= it.nWords;
+        }
+        else if (it.nWords == 1) {
+            active.val = (it.fillBit != 0 ? ALLONES : 0);
+            append_active();
+            -- nw;
+        }
     }
     else {
 	active.val = ALLONES ^ *(it.it);

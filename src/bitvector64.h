@@ -547,8 +547,8 @@ inline void ibis::bitvector64::append_active() {
     nset = 0;
 } // void ibis::bitvector64::append_active()
 
-// a private function to append a single counter when the active word is
-// empty cnt is assumed to be multiples of MAXBITS (more than MAXBITS)
+/// Append a counter.  A private function to append a single counter when
+/// the active word is empty cnt is greater than 0.
 inline void ibis::bitvector64::append_counter(int val, word_t cnt) {
     word_t head = 2 + val;
     word_t w = (head << SECONDBIT) + cnt;
@@ -568,17 +568,17 @@ inline void ibis::bitvector64::append_counter(int val, word_t cnt) {
     else {
 	m_vec.push_back(w);
     }
-} // void append_counter()
+} // ibis::bitvector64::append_counter
 
-// append a single bit
+/// Append a single bit
 inline ibis::bitvector64& ibis::bitvector64::operator+=(int b) {
     active.append(b);
     if (active.is_full()) append_active();
     return *this;
 } // ibis::bitvector64& ibis::bitvector64::operator+=(int b)
 
-// append n bits of val (n may be arbitrary integer, value must be either 0
-// or 1)
+/// Append n bits of val.  The value of n may be arbitrary integer, but the
+/// value of val must be either 0 or 1.
 inline void ibis::bitvector64::appendFill(int val,
 					  ibis::bitvector64::word_t n) {
     if (active.nbits > 0) {
@@ -609,15 +609,22 @@ inline void ibis::bitvector64::appendFill(int val,
 	active.nbits = n;
 	active.val = val*((static_cast<word_t>(1)<<n)-1);
     }
-} // ibis::bitvector64::appendFill(val, n)
+} // ibis::bitvector64::appendFill
 
 // append nw words starting from 'it' to the current bit vector -- assume
 // active is empty
 inline void ibis::bitvector64::copy_runs(run& it, word_t& nw) {
     // deal with the first word -- need to attach it to the last word in m_vec
     if (it.isFill) {
-	append_counter(it.fillBit, it.nWords);
-	nw -= it.nWords;
+        if (it.nWords > 1) {
+            append_counter(it.fillBit, it.nWords);
+            nw -= it.nWords;
+        }
+        else if (it.nWords == 1) {
+            active.val = (it.fillBit != 0 ? ALLONES : 0);
+            append_active();
+            -- nw;
+        }
     }
     else {
 	active.val = *(it.it);
@@ -643,8 +650,15 @@ inline void ibis::bitvector64::copy_runs(run& it, word_t& nw) {
 inline void ibis::bitvector64::copy_runsn(run& it, word_t& nw) {
     // deal with the first word -- need to attach it to the last word in m_vec
     if (it.isFill) {
-	append_counter(!it.fillBit, it.nWords);
-	nw -= it.nWords;
+        if (it.nWords > 1) {
+            append_counter(!it.fillBit, it.nWords);
+            nw -= it.nWords;
+        }
+        else if (it.nWords == 1) {
+            active.val = (it.fillBit != 0 ? 0 : ALLONES);
+            append_active();
+            -- nw;
+        }
     }
     else {
 	active.val = ALLONES ^ *(it.it);

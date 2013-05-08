@@ -586,26 +586,29 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
     return 0;
 } // ibis::query::setRIDs
 
-/// Function to perform estimation.  It computes a lower and an upper bound
-/// of hits.  This is done by using the indexes.  If necessary it will
-/// build new indexes.  The lower bound contains only records that are hits
+/// Function to perform estimation.  It computes a lower bound and an upper
+/// bound of hits.  It uses the indexes only.  If necessary it will build
+/// new indexes.  The lower bound contains records that are definitely hits
 /// and the upper bound contains all hits but may also contain some records
-/// that are not hits.
+/// that are not hits.  We also call the records in the upper bound
+/// candidates.
 ///
 /// Returns 0 for success, a negative value for error.
 int ibis::query::estimate() {
     if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
 	return -1;
+    std::string evt = "query[";
+    evt += myID;
+    evt += "]::estimate";
     if (rids_in == 0 && conds.empty() && comps.empty()) {
 	// not ready for this yet
-	if (ibis::gVerbose > 1)
-	    logMessage("estimate", "must have either a valid query "
-		       "condition (the WHERE clause) or a list of RIDs");
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " must have either a valid query "
+            "condition (the WHERE clause) or a list of RIDs";
 	return -8;
     }
-    if (ibis::gVerbose > 3) {
-	logMessage("estimate", "starting to estimate query");
-    }
+    LOGGER(ibis::gVerbose > 3)
+	<< evt << " -- starting to estimate query";
 
     double pcnt = ibis::fileManager::instance().pageCount();
     if (dstime != 0 && dstime != mypart->timestamp()) {
@@ -651,7 +654,7 @@ int ibis::query::estimate() {
 		}
 
 		LOGGER(ibis::gVerbose >= 0)
-		    << " Error *** ibis::query[" << myID << "]::estimate("
+		    << " Error *** " << evt << '('
 		    << (conds.getString() ? conds.getString() :
 			conds.getExpr() ? "<long expression>" : "<RID query>")
 		    << ") failed due to a memory allocation problem -- "
@@ -665,7 +668,7 @@ int ibis::query::estimate() {
 		}
 
 		LOGGER(ibis::gVerbose >= 0)
-		    << " Error *** ibis::query[" << myID << "]::estimate("
+		    << " Error *** " << evt << '('
 		    << (conds.getString() ? conds.getString() :
 			conds.getExpr() ? "<long expressioin>" : "<RID query>")
 		    << ") failed -- " << e.what();
@@ -678,7 +681,7 @@ int ibis::query::estimate() {
 		}
 
 		LOGGER(ibis::gVerbose >= 0)
-		    << " Error *** ibis::query[" << myID << "]::estimate("
+		    << " Error *** " << evt << '('
 		    << (conds.getString() ? conds.getString() :
 			conds.getExpr() ? "<long expression>" : "<RID query>")
 		    << ") failed -- " << s;
@@ -691,7 +694,7 @@ int ibis::query::estimate() {
 		}
 
 		LOGGER(ibis::gVerbose >= 0)
-		    << " Error *** ibis::query[" << myID << "]::estimate("
+		    << " Error *** " << evt << '('
 		    << (conds.getString() ? conds.getString() :
 			conds.getExpr() ? "<long expression>" : "<RID query>")
 		    << ") failed due to a unexpected exception ";
@@ -699,9 +702,10 @@ int ibis::query::estimate() {
 	    }
 	    if (ibis::gVerbose > 0) {
 		timer.stop();
-		logMessage("estimate", "time to compute the bounds: "
-			   "%g sec(CPU), %g sec(elapsed).", timer.CPUTime(),
-			   timer.realTime());
+		LOGGER(ibis::gVerbose > 0)
+                    << evt << " -- time to compute the bounds: "
+                    << timer.CPUTime() << " sec(CPU), "
+                    << timer.realTime() << " sec(elapsed)";
 	    }
 	}
     }
@@ -712,38 +716,43 @@ int ibis::query::estimate() {
     else if (ibis::gVerbose > 0) {
 	if (conds.getExpr()) {
 	    if (hits && sup && hits != sup) {
-		logMessage("estimate", "# of hits for query \"%s\" is in "
-			   "[%lu, %lu]",
-			   (conds.getString() ? conds.getString() :
-			    "<long expression>"),
-			   static_cast<long unsigned>(hits->cnt()),
-			   static_cast<long unsigned>(sup->cnt()));
+		LOGGER(ibis::gVerbose > 0)
+                    << evt << " -- # of hits for query \"" 
+                    << (conds.getString() ? conds.getString() :
+                        "<long expression>")
+                    << "\" is between " << hits->cnt() << " and " << sup->cnt();
 	    }
 	    else if (hits) {
-		logMessage("estimate", "# of hits for query \"%s\" is %lu",
-			   (conds.getString() ? conds.getString() :
-			    "<long expression>"),
-			    static_cast<long unsigned>(hits->cnt()));
+		LOGGER(ibis::gVerbose > 0)
+                    << evt << " -- # of hits for query \""
+                    << (conds.getString() ? conds.getString() :
+                        "<long expression>")
+                    << "\" is " << hits->cnt();
 	    }
 	    else {
+                if (sup == 0) {
+                    sup = new ibis::bitvector;
+                    mypart->getNullMask(*sup);
+                }
+                sup->adjustSize(0, mypart->nRows());
 		hits = new ibis::bitvector;
 		hits->set(0, sup->size());
-		logWarning("estimate", "the lower bound is expected to be "
-			   "computed, but it is not!\n# of hits is likely "
-			   "in the range of [0, %lu]",
-			   static_cast<long unsigned>(sup->cnt()));
+		LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- " << evt << " failed to estimate the hits,"
+                    " assume the number of hits to be in between 0 and "
+                    << sup->cnt();
 	    }
 	}
 	else {
-	    logMessage("estimate", "# of hits for the OID query is %lu",
-		       static_cast<long unsigned>(hits->cnt()));
+	    LOGGER(ibis::gVerbose > 0)
+                << evt << " -- # of hits for the OID query is "
+                << hits->cnt();
 	}
 	if (ibis::gVerbose > 4) {
 	    pcnt = ibis::fileManager::instance().pageCount() - pcnt;
-	    if (pcnt > 0.0)
-		logMessage("estimate", "read(unistd.h) accessed "
-			   "%g pages during the execution of this function",
-			   pcnt);
+	    LOGGER(pcnt > 0.0)
+		<< evt << " -- read(unistd.h) accessed " << pcnt
+                << " pages during the execution of this function";
 	}
 	if ((rids_in != 0 || conds.getExpr() != 0) &&
 	    (ibis::gVerbose > 30 ||

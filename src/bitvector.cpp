@@ -742,7 +742,7 @@ int ibis::bitvector::getBit(const ibis::bitvector::word_t ind) const {
                 jnd -= cnt;
             }
             else if (jnd < MAXBITS) {
-                return ((*it >> (SECONDBIT - jnd - 1)) & 1U);
+                return ((*it >> (SECONDBIT - jnd)) & 1U);
             }
             else {
                 jnd -= MAXBITS;
