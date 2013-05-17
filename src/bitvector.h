@@ -158,8 +158,8 @@ public:
     /// Is the bitvector empty?  For efficiency reasons, this funciton
     /// only works correctly on a properly compressed bitvector.
     bool empty() const {return all0s() && active.val == 0;}
-
-    std::ostream& print(std::ostream &) const; ///< The print function
+    /// The print function.
+    std::ostream& print(std::ostream &) const;
 
     /// Iterator that supports modification of individual bit.
     class iterator;

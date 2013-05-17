@@ -1,4 +1,8 @@
 2012-05-08 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: add timers to ibis::index::create to print the
+	time used to create and write the index
+
+2012-05-08 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector64.h, src/bitvector64.cpp: add function getBit
 	* src/query.h, src/query.cpp: add functions getCandidateVector and
 	getCandiateRows (per request of Nan Zhou <nanzhou1987 at
