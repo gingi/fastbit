@@ -1353,6 +1353,14 @@ ibis::index* ibis::index::buildNew
             << c->fullname() << " to be "
             << c->lowerBound() << " and " << c->upperBound();
     }
+    if (ind != 0 && c->lowerBound() >= c->upperBound()) {
+        const_cast<ibis::column*>(c)->lowerBound(ind->getMin());
+        const_cast<ibis::column*>(c)->upperBound(ind->getMax());
+        LOGGER(ibis::gVerbose > 1)
+            << "index::create updated column min and max of column "
+            << c->partition()->name() << '.' << c->name() << " to be "
+            << c->lowerBound() << " and " << c->upperBound();
+    }
     return ind;
 } // ibis::index::buildNew
 

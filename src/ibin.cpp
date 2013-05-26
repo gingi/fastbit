@@ -1710,7 +1710,9 @@ void ibis::bin::binningT(const char* f) {
     if (col == 0) return;
 
     std::string evt="coumn[";
-    evt += col->fullname();
+    evt += col->partition()->name();
+    evt += '.';
+    evt += col->name();
     evt += "]::bin::binningT<";
     evt += typeid(E).name();
     evt += ">(";
@@ -1736,9 +1738,12 @@ void ibis::bin::binningT(const char* f) {
 
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
-    LOGGER(fnm.empty() && ibis::gVerbose > 2)
-        << evt << " failed to determine the data file name from \""
-        << (f ? f : "") << '"';
+    if (fnm.empty()) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to determine the data file "
+	    "name from \"" << (f ? f : "") << '"';
+	return;
+    }
 
     ibis::bitvector mask;
     col->getNullMask(mask);
@@ -1758,7 +1763,7 @@ void ibis::bin::binningT(const char* f) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- " << evt << " failed to read " << fnm << " as "
             << typeid(E).name();
-        throw ibis::bad_alloc("fail to read data file");
+	throw ibis::bad_alloc("fail to read data file");
     }
     else {
         nrows = val.size();
@@ -1875,64 +1880,64 @@ void ibis::bin::binningT(const char* f) {
 #if defined(_WIN32) && defined(_MSC_VER)
         (void)_setmode(fdes, _O_BINARY);
 #endif
-        long ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
-        if (ierr < (long)sizeof(nobs)) { // write operation failed
-            (void) UnixClose(fdes);
-            remove(fnm.c_str());
-            return;
-        }
-        const uint32_t elem = sizeof(E);
-        array_t<int32_t> pos(nobs+1);
-        pos[0] = sizeof(nobs) + (nobs+1) * sizeof(int32_t);
-        ierr = UnixSeek(fdes, pos[0], SEEK_SET);
-        if (ierr != pos[0]) { // write operation failed
-            (void) UnixClose(fdes);
-            remove(fnm.c_str());
-            return;
-        }
-        for (uint32_t i = 0; i < nobs; ++ i) {
-            if (maxval[i] > minval[i])
-                ierr = ibis::util::write(fdes, binned[i]->begin(),
-                                         elem * binned[i]->size());
-            delete binned[i];
-            pos[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
-        }
-        ierr = UnixSeek(fdes, sizeof(uint32_t), SEEK_SET);
-        ierr = ibis::util::write(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
-        ierr = UnixSeek(fdes, pos.back(), SEEK_SET);
-        UnixClose(fdes);
-        LOGGER(ibis::gVerbose > 3)
-            << evt << " wrote bin-ordered values to " << fnm;
+	long ierr = UnixWrite(fdes, &nobs, sizeof(nobs));
+	if (ierr < (long)sizeof(nobs)) { // write operation failed
+	    (void) UnixClose(fdes);
+	    remove(fnm.c_str());
+	    return;
+	}
+	const uint32_t elem = sizeof(E);
+	array_t<int32_t> pos(nobs+1);
+	pos[0] = sizeof(nobs) + (nobs+1) * sizeof(int32_t);
+	ierr = UnixSeek(fdes, pos[0], SEEK_SET);
+	if (ierr != pos[0]) { // write operation failed
+	    (void) UnixClose(fdes);
+	    remove(fnm.c_str());
+	    return;
+	}
+	for (uint32_t i = 0; i < nobs; ++ i) {
+	    if (maxval[i] > minval[i])
+		ierr = ibis::util::write(fdes, binned[i]->begin(),
+					 elem * binned[i]->size());
+	    delete binned[i];
+	    pos[i+1] = UnixSeek(fdes, 0, SEEK_CUR);
+	}
+	ierr = UnixSeek(fdes, sizeof(uint32_t), SEEK_SET);
+	ierr = ibis::util::write(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
+	ierr = UnixSeek(fdes, pos.back(), SEEK_SET);
+	UnixClose(fdes);
+	LOGGER(ibis::gVerbose > 3)
+	    << evt << " wrote bin-ordered values to " << fnm;
     }
     else {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- " << evt << " failed to write bin-ordered values to "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to write bin-ordered values to "
             << fnm;
-        for (uint32_t i = 0; i < nobs; ++ i) {
-            if (binned[i] != 0)
-                delete binned[i];
-        }
+	for (uint32_t i = 0; i < nobs; ++ i) {
+	    if (binned[i] != 0)
+		delete binned[i];
+	}
     }
 
     // write info about the bins
     if (ibis::gVerbose > 2) {
         ibis::util::logger lg;
         if (ibis::gVerbose > 4) {
-            timer.stop();
-            lg() << evt << " partitioned " << nrows << " values into " << nobs-2
+	    timer.stop();
+	    lg() << evt << " partitioned " << nrows << " values into " << nobs-2
                  << " bin(s) + 2 outside bins in " << timer.realTime()
                  << " sec(elapsed)";
-        }
-        else {
-            lg() << evt << "partitioned " << nrows << " values into "
+	}
+	else {
+	    lg() << evt << "partitioned " << nrows << " values into "
                  << nobs-2 << " bin(s) + 2 outside bins";
-        }
-        if (ibis::gVerbose > 6) {
-            lg() << "[minval, maxval]\tbound\tcount\n";
-            for (uint32_t i = 0; i < nobs; ++i)
-                lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
-                     << bounds[i] << "\t" << bits[i]->cnt() << "\n";
-        }
+	}
+	if (ibis::gVerbose > 6) {
+	    lg() << "[minval, maxval]\tbound\tcount\n";
+	    for (uint32_t i = 0; i < nobs; ++i)
+		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
+		     << bounds[i] << "\t" << bits[i]->cnt() << "\n";
+	}
     }
 } // ibis::bin::binningT
 

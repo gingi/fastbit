@@ -1203,274 +1203,247 @@ namespace ibis {
             /// The actual integer value.
             uint64_t volatile val_;
 #else
-            /// The actual integer value.
-            uint64_t volatile val_;
-            /// The mutex for this object.
-            pthread_mutex_t mytex;
+	    /// The mutex for this object.
+	    pthread_mutex_t mytex;
 #endif
 
-            sharedInt64(const sharedInt64&); // no copy constructor
-            sharedInt64& operator=(const sharedInt64&); // no assignment
-        }; // sharedInt64
+	    sharedInt64(const sharedInt64&); // no copy constructor
+	    sharedInt64& operator=(const sharedInt64&); // no assignment
+	}; // sharedInt64
 
-        /// Print simple timing information.  It starts the clock in the
-        /// constructor, stops the clock in the destructor, and reports the
-        /// CPU time and elapsed time in between.  Typically one would
-        /// declare an object of this class in a block of code, and let the
-        /// object be cleaned up by compiler generated code at the end of
-        /// its scope.  Upon destruction of this object, it prints its
-        /// lifespan.  To distiguish the different time durations, the user
-        /// should provide a meaningful description to the constructor.
-        class timer {
-        public:
-            explicit timer(const char* msg, int lvl=1);
-            ~timer();
+	/// Print simple timing information.  It starts the clock in the
+	/// constructor, stops the clock in the destructor, and reports the
+	/// CPU time and elapsed time in between.  Typically one would
+	/// declare an object of this class in a block of code, and let the
+	/// object be cleaned up by compiler generated code at the end of
+	/// its scope.  Upon destruction of this object, it prints its
+	/// lifespan.  To distiguish the different time durations, the user
+	/// should provide a meaningful description to the constructor.
+	class timer {
+	public:
+	    explicit timer(const char* msg, int lvl=1);
+	    ~timer();
 
-        private:
-            ibis::horometer *chrono_; ///!< The actual timer object.
-            std::string mesg_; ///!< Holds a private copy of the message.
+	private:
+	    ibis::horometer *chrono_; ///< The actual timer object.
+	    std::string mesg_; ///< Holds a private copy of the message.
 
-            timer(); // no default constructor
-            timer(const timer&); // no copying
-            timer& operator=(const timer&); // no assignment
-        }; // timer
+	    timer(); // no default constructor
+	    timer(const timer&); // no copying
+	    timer& operator=(const timer&); // no assignment
+	}; // timer
 
-        /// A template to hold a reference to an object.
-        template <class T> class refHolder {
-        public:
-            refHolder(T& r) : ref_(r) {}
-            operator T& () const {return ref_;}
+	/// A template to hold a reference to an object.
+	template <class T> class refHolder {
+	public:
+	    refHolder(T& r) : ref_(r) {}
+	    operator T& () const {return ref_;}
 
-        private:
-            T& ref_;
+	private:
+	    T& ref_;
 
-            refHolder();
-        }; // refHolder
+	    refHolder();
+	}; // refHolder
 
-        /// A function template to produce refHolder.
-        template <class T>
-        inline refHolder<T> ref(T& r) {return refHolder<T>(r);}
+	/// A function template to produce refHolder.
+	template <class T>
+	inline refHolder<T> ref(T& r) {return refHolder<T>(r);}
 
-        /// A class hierarchy for cleaning up after durable resources.  It
-        /// follows the example set by Loki::ScopeGuard, but simpler.
-        class guardBase {
-        public:
-            /// Tell the guard that it does not need to invoke clean up
-            /// function any more.
-            void dismiss() const {done_ = true;}
+	/// A class hierarchy for cleaning up after durable resources.  It
+	/// follows the example set by Loki::ScopeGuard, but simpler.
+	class guardBase {
+	public:
+	    /// Tell the guard that it does not need to invoke clean up
+	    /// function any more.
+	    void dismiss() const {done_ = true;}
 
-        protected:
-            mutable volatile bool done_;
+	protected:
+	    mutable volatile bool done_;
 
-            /// Destructor.  No need to be virtual.
-            ~guardBase() {};
-            guardBase() : done_(false) {}; ///!< Default constructor.
-            /// Copy constructor.  Allows all derived classes to use the
-            /// compiler generated copy constructors.
-            guardBase(const guardBase& rhs) : done_(rhs.done_) {
-                rhs.dismiss();
-            }
+	    /// Destructor.  No need to be virtual.
+	    ~guardBase() {};
+	    guardBase() : done_(false) {}; ///< Default constructor.
+	    /// Copy constructor.  Allows all derived classes to use the
+	    /// compiler generated copy constructors.
+	    guardBase(const guardBase& rhs) : done_(rhs.done_) {
+		rhs.dismiss();
+	    }
 
-            /// A template to invoke the function registered.  Also absorbs
-            /// all exceptions.
-            template <typename T>
-            static void cleanup(T& task) throw () {
-                try {
-                    if (!task.done_)
-                        task.execute();
-                }
-                catch (const std::exception& e) {
-                    LOGGER(ibis::gVerbose > 1)
-                        << " ... caught a std::exception (" << e.what()
-                        << ") in util::gard";
-                }
-                catch (const char* s) {
-                    LOGGER(ibis::gVerbose > 1)
-                        << " ... caught a string exception (" << s
-                        << ") in util::guard";
-                }
-                catch (...) {
-                    LOGGER(ibis::gVerbose > 1)
-                        << " ... caught a unknown exception in util::guard";
-                }
-                task.done_ = true;
-            }
-        }; // guardBase
+	    /// A template to invoke the function registered.  Also absorbs
+	    /// all exceptions.
+	    template <typename T>
+	    static void cleanup(T& task) throw () {
+		try {
+		    if (!task.done_)
+			task.execute();
+		}
+		catch (const std::exception& e) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< " ... caught a std::exception (" << e.what()
+			<< ") in util::gard";
+		}
+		catch (const char* s) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< " ... caught a string exception (" << s
+			<< ") in util::guard";
+		}
+		catch (...) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< " ... caught a unknown exception in util::guard";
+		}
+		task.done_ = true;
+	    }
+	}; // guardBase
 
-        /// The type to be used by client code.  User code uses type
-        /// ibis::util::guard along with the overloaded function
-        /// ibis::util::makeGuard, as in
-        /// @code
-        /// ibis::util::guard myguard = ibis::util::makeGuard...;
-        /// @endcode
-        ///
-        /// @note The parameters passed to the function that does the
-        /// actual clean up jobs are taken as they are at the construction
-        /// time.  If such parameters are modified, the caller needs to
-        /// either create the guard variable after the parameters take on
-        /// their final values, or dismiss the old gard and create another
-        /// one.
-        typedef const guardBase& guard;
+	/// The type to be used by client code.  User code uses type
+	/// ibis::util::guard along with the overloaded function
+	/// ibis::util::makeGuard, as in
+	/// @code
+	/// ibis::util::guard myguard = ibis::util::makeGuard...;
+	/// @endcode
+	///
+	/// @note The parameters passed to the function that does the
+	/// actual clean up jobs are taken as they are at the construction
+	/// time.  If such parameters are modified, the caller needs to
+	/// either create the guard variable after the parameters take on
+	/// their final values, or dismiss the old gard and create another
+	/// one.
+	typedef const guardBase& guard;
 
-        /// A concrete class for cleanup jobs that take a function without
-        /// any argument.
-        template <typename F>
-        class guardImpl0 : public guardBase {
-        public:
-            static guardImpl0<F> makeGuard(F f) {
-                return guardImpl0<F>(f);
-            }
+	/// A concrete class for cleanup jobs that take a function without
+	/// any argument.
+	template <typename F>
+	class guardImpl0 : public guardBase {
+	public:
+	    static guardImpl0<F> makeGuard(F f) {
+		return guardImpl0<F>(f);
+	    }
 
-            /// Destructor calls the cleanup function of the base class.
-            ~guardImpl0() {cleanup(*this);}
+	    /// Destructor calls the cleanup function of the base class.
+	    ~guardImpl0() {cleanup(*this);}
 
-        protected:
-            friend class guardBase; // to call function execute
-            void execute() {fun_();}
+	protected:
+	    friend class guardBase; // to call function execute
+	    void execute() {fun_();}
 
-            /// Construct a guard object from a function.
-            explicit guardImpl0(F f) : fun_(f) {}
+	    /// Construct a guard object from a function.
+	    explicit guardImpl0(F f) : fun_(f) {}
 
-        private:
-            /// Copy of the function pointer.
-            F fun_;
+	private:
+	    /// Copy of the function pointer.
+	    F fun_;
 
-            guardImpl0();
-            guardImpl0& operator=(const guardImpl0&);
-        }; // guardImpl0
+	    guardImpl0();
+	    guardImpl0& operator=(const guardImpl0&);
+	}; // guardImpl0
 
-        template <typename F>
-        inline guardImpl0<F> makeGuard(F f) {
-            return guardImpl0<F>::makeGuard(f);
-        }
+	template <typename F>
+	inline guardImpl0<F> makeGuard(F f) {
+	    return guardImpl0<F>::makeGuard(f);
+	}
 
-        /// A concrete class for cleanup jobs that take a function with one
-        /// argument.
-        template <typename F, typename A>
-        class guardImpl1 : public guardBase {
-        public:
-            static guardImpl1<F, A> makeGuard(F f, A a) {
-                return guardImpl1<F, A>(f, a);
-            }
+	/// A concrete class for cleanup jobs that take a function with one
+	/// argument.
+	template <typename F, typename A>
+	class guardImpl1 : public guardBase {
+	public:
+	    static guardImpl1<F, A> makeGuard(F f, A a) {
+		return guardImpl1<F, A>(f, a);
+	    }
 
-            /// Destructor calls the cleanup function of the base class.
-            ~guardImpl1() {cleanup(*this);}
+	    /// Destructor calls the cleanup function of the base class.
+	    ~guardImpl1() {cleanup(*this);}
 
-        protected:
-            friend class guardBase; // to call function execute
-            void execute() {fun_(arg_);}
+	protected:
+	    friend class guardBase; // to call function execute
+	    void execute() {fun_(arg_);}
 
-            /// Construct a guard object from a function.
-            explicit guardImpl1(F f, A a) : fun_(f), arg_(a) {}
+	    /// Construct a guard object from a function.
+	    explicit guardImpl1(F f, A a) : fun_(f), arg_(a) {}
 
-        private:
-            /// The function pinter.
-            F fun_;
-            /// The argument to the function.
-            A arg_;
+	private:
+	    /// The function pinter.
+	    F fun_;
+	    /// The argument to the function.
+	    A arg_;
 
-            guardImpl1();
-            guardImpl1& operator=(const guardImpl1&);
-        }; // guardImpl1
+	    guardImpl1();
+	    guardImpl1& operator=(const guardImpl1&);
+	}; // guardImpl1
 
-        template <typename F, typename A>
-        inline guardImpl1<F, A> makeGuard(F f, A a) {
-            return guardImpl1<F, A>::makeGuard(f, a);
-        }
+	template <typename F, typename A>
+	inline guardImpl1<F, A> makeGuard(F f, A a) {
+	    return guardImpl1<F, A>::makeGuard(f, a);
+	}
 
-        /// A concrete class for cleanup jobs that take a function with two
-        /// arguments.
-        template <typename F, typename A1, typename A2>
-        class guardImpl2 : public guardBase {
-        public:
-            static guardImpl2<F, A1, A2> makeGuard(F f, A1 a1, A2 a2) {
-                return guardImpl2<F, A1, A2>(f, a1, a2);
-            }
+	/// A concrete class for cleanup jobs that take a function with two
+	/// arguments.
+	template <typename F, typename A1, typename A2>
+	class guardImpl2 : public guardBase {
+	public:
+	    static guardImpl2<F, A1, A2> makeGuard(F f, A1 a1, A2 a2) {
+		return guardImpl2<F, A1, A2>(f, a1, a2);
+	    }
 
-            /// Destructor calls the cleanup function of the base class.
-            ~guardImpl2() {cleanup(*this);}
+	    /// Destructor calls the cleanup function of the base class.
+	    ~guardImpl2() {cleanup(*this);}
 
-        protected:
-            friend class guardBase; // to call function execute
-            void execute() {fun_(arg1_, arg2_);}
+	protected:
+	    friend class guardBase; // to call function execute
+	    void execute() {fun_(arg1_, arg2_);}
 
-            /// Construct a guard object from a function.
-            explicit guardImpl2(F f, A1 a1, A2 a2)
-                : fun_(f), arg1_(a1), arg2_(a2) {}
+	    /// Construct a guard object from a function.
+	    explicit guardImpl2(F f, A1 a1, A2 a2)
+		: fun_(f), arg1_(a1), arg2_(a2) {}
 
-        private:
-            /// The function pinter.
-            F fun_;
-            /// The argument 1 to the function.
-            A1 arg1_;
-            /// The argument 2 to the function.
-            A2 arg2_;
+	private:
+	    /// The function pinter.
+	    F fun_;
+	    /// The argument 1 to the function.
+	    A1 arg1_;
+	    /// The argument 2 to the function.
+	    A2 arg2_;
 
-            guardImpl2();
-            //guardImpl2(const guardImpl2&);
-            guardImpl2& operator=(const guardImpl2&);
-        }; // guardImpl2
+	    guardImpl2();
+	    //guardImpl2(const guardImpl2&);
+	    guardImpl2& operator=(const guardImpl2&);
+	}; // guardImpl2
 
-        template <typename F, typename A1, typename A2>
-        inline guardImpl2<F, A1, A2> makeGuard(F f, A1 a1, A2 a2) {
-            return guardImpl2<F, A1, A2>::makeGuard(f, a1, a2);
-        }
+	template <typename F, typename A1, typename A2>
+	inline guardImpl2<F, A1, A2> makeGuard(F f, A1 a1, A2 a2) {
+	    return guardImpl2<F, A1, A2>::makeGuard(f, a1, a2);
+	}
 
-        /// A class to work with class member functions with no arguments.
-        template <class C, typename F>
-        class guardObj0 : public guardBase {
-        public:
-            static guardObj0<C, F> makeGuard(C& o, F f) {
-                return guardObj0<C, F>(o, f);
-            }
+	/// A class to work with class member functions with no arguments.
+	template <class C, typename F>
+	class guardObj0 : public guardBase {
+	public:
+	    static guardObj0<C, F> makeGuard(C& o, F f) {
+		return guardObj0<C, F>(o, f);
+	    }
 
-            /// Desutructor.
-            ~guardObj0() {cleanup(*this);}
+	    /// Desutructor.
+	    ~guardObj0() {cleanup(*this);}
 
-        protected:
-            friend class guardBase; // to call function execute
-            void execute() {(obj_.*fun_)();}
+	protected:
+	    friend class guardBase; // to call function execute
+	    void execute() {(obj_.*fun_)();}
 
-            /// Constructor.
-            guardObj0(C& o, F f) : obj_(o), fun_(f) {}
+	    /// Constructor.
+	    guardObj0(C& o, F f) : obj_(o), fun_(f) {}
 
-        private:
-            C& obj_; ///!< A reference to the class object.
-            F fun_;  ///!< A pointer to the member function.
+	private:
+	    C& obj_; ///< A reference to the class object.
+	    F fun_;  ///< A pointer to the member function.
 
-            guardObj0();
-            guardObj0& operator=(const guardObj0&);
-        }; // guardObj0
+	    guardObj0();
+	    guardObj0& operator=(const guardObj0&);
+	}; // guardObj0
 
-        template <class C, typename F>
-        inline guardObj0<C, F> objectGuard(C o, F f) {
-            return guardObj0<C, F>::makeGuard(o, f);
-        }
-
-#if defined(HAVE_FLOCK)
-        /// A simple wrapper on flock.
-        class flock {
-        public:
-            /// Constructor.  Take a file descriptor of type int, created
-            /// by function open.
-            flock(int fd)
-                : fd_(fd),
-                  locked(0 == ::flock(fd, LOCK_EX|LOCK_NB)) {
-            }
-            /// Destructor.
-            ~flock() {
-                if (locked)
-                    (void) ::flock(fd_, LOCK_UN);
-            }
-            /// Was a lock acquired successfully?  Returns true for yes,
-            /// otherwise no.
-            bool isLocked() const {return locked;}
-
-        private:
-            const int  fd_;
-            const bool locked;
-        }; // FLock
-#endif
+	template <class C, typename F>
+	inline guardObj0<C, F> objectGuard(C o, F f) {
+	    return guardObj0<C, F>::makeGuard(o, f);
+	}
     } // namespace util
 } // namespace ibis
 
