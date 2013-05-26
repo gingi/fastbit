@@ -1,6 +1,10 @@
+2012-05-25 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp:1195 add code to update the min and max of a
+	collumn
+
 2012-05-08 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: add timers to ibis::index::create to print the
-	time used to create and write the index
+	time used to create and write the index (per request of Qian Sun)
 
 2012-05-08 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector64.h, src/bitvector64.cpp: add function getBit

@@ -1100,7 +1100,7 @@ namespace ibis {
 	    sharedInt64& operator=(const sharedInt64&); // no assignment
 	}; // sharedInt64
 
-	/// Print simply timing information.  It starts the clock in the
+	/// Print simple timing information.  It starts the clock in the
 	/// constructor, stops the clock in the destructor, and reports the
 	/// CPU time and elapsed time in between.  Typically one would
 	/// declare an object of this class in a block of code, and let the

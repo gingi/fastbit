@@ -1520,6 +1520,17 @@ void ibis::bin::binningT(const char* f) {
     if (col == 0 || col->partition() == 0) return;
     if (col->partition()->nRows() == 0) return;
 
+    std::string evt="coumn[";
+    evt += col->partition()->name();
+    evt += '.';
+    evt += col->name();
+    evt += "]::bin::binningT<";
+    evt += typeid(E).name();
+    evt += ">(";
+    if (f != 0) {
+        evt += f;
+    }
+    evt += ')';
     horometer timer;
     if (ibis::gVerbose > 4)
 	timer.start();
@@ -1541,7 +1552,7 @@ void ibis::bin::binningT(const char* f) {
     dataFileName(fnm, f);
     if (fnm.empty()) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin::binning failed to determine the data file "
+	    << "Warning -- " << evt << " failed to determine the data file "
 	    "name from \"" << (f ? f : "") << '"';
 	return;
     }
@@ -1562,8 +1573,9 @@ void ibis::bin::binningT(const char* f) {
     std::vector<array_t<E>*> binned(nobs, 0); // binned version of values
     ibis::fileManager::instance().getFile(fnm.c_str(), val);
     if (val.size() <= 0) {
-	col->logWarning("bin::binning", "unable to read %s (as %s)",
-			fnm.c_str(), typeid(E).name());
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to read " << fnm << " as "
+            << typeid(E).name();
 	throw ibis::bad_alloc("fail to read data file");
     }
     else {
@@ -1707,14 +1719,13 @@ void ibis::bin::binningT(const char* f) {
 	ierr = ibis::util::write(fdes, pos.begin(), sizeof(int32_t)*(nobs+1));
 	ierr = UnixSeek(fdes, pos.back(), SEEK_SET);
 	UnixClose(fdes);
-	if (ibis::gVerbose > 3)
-	    col->logMessage("bin::binning", "wrote bin-ordered values to %s",
-			    fnm.c_str());
+	LOGGER(ibis::gVerbose > 3)
+	    << evt << " wrote bin-ordered values to " << fnm;
     }
     else {
-	if (ibis::gVerbose > -1)
-	    col->logMessage("bin::binning", "unable to write bin-ordered "
-			    "values to %s", fnm.c_str());
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " failed to write bin-ordered values to "
+            << fnm;
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    if (binned[i] != 0)
 		delete binned[i];
@@ -1723,24 +1734,18 @@ void ibis::bin::binningT(const char* f) {
 
     // write info about the bins
     if (ibis::gVerbose > 2) {
-	if (ibis::gVerbose > 4) {
+        ibis::util::logger lg;
+        if (ibis::gVerbose > 4) {
 	    timer.stop();
-	    col->logMessage("bin::binning", "partitioned %lu %s values into "
-			    "%lu bin(s) + 2 outside bins in %g "
-			    "sec(elapsed)", static_cast<long unsigned>(nrows),
-			    typeid(E).name(),
-			    static_cast<long unsigned>(nobs-2),
-			    timer.realTime());
+	    lg() << evt << " partitioned " << nrows << " values into " << nobs-2
+                 << " bin(s) + 2 outside bins in " << timer.realTime()
+                 << " sec(elapsed)";
 	}
 	else {
-	    col->logMessage("bin::binning", "partitioned %lu %s values into "
-			    "%lu bin(s) + 2 outside bins",
-			    static_cast<long unsigned>(nrows),
-			    typeid(E).name(),
-			    static_cast<long unsigned>(nobs-2));
+	    lg() << evt << "partitioned " << nrows << " values into "
+                 << nobs-2 << " bin(s) + 2 outside bins";
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg;
 	    lg() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
 		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
