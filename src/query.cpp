@@ -3098,7 +3098,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
     }
     case ibis::qExpr::LOGICAL_OR: {
 	ierr = doScan(term->getLeft(), ht);
-	if (ierr >= 0) {
+	if (ierr >= 0 && ht.cnt() < ht.size()) {
 	    ibis::bitvector b1;
 	    ierr = doScan(term->getRight(), b1);
 	    if (ierr > 0)
@@ -3272,7 +3272,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	// to ht.cnt()
 	// since there are no good estimates on the coefficients, we will
 	// simply directly compare the two
-	if (ierr >= 0) {
+	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
 		std::auto_ptr<ibis::bitvector> newmask(mask - ht);
@@ -3707,13 +3707,13 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
     case ibis::qExpr::LOGICAL_OR: {
 	ierr = doEvaluate(term->getLeft(), ht);
-	if (ierr >= 0) {
+	if (ierr >= 0 && ht.cnt() < ht.size()) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), b1);
 	    if (ierr >= 0) {
 		ht |= b1;
-		ierr = ht.sloppyCount();
 	    }
+            ierr = ht.sloppyCount();
 	}
 	break;
     }
@@ -3952,13 +3952,13 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
     case ibis::qExpr::LOGICAL_OR: {
 	ierr = doEvaluate(term->getLeft(), mask, ht);
-	if (ierr >= 0) {
+	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), mask, b1);
 	    if (ierr >= 0) {
 		ht |= b1;
-		ierr = ht.sloppyCount();
 	    }
+            ierr = ht.sloppyCount();
 	}
 	break;
     }

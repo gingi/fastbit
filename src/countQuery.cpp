@@ -909,8 +909,8 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	    }
 	    if (ierr > 0) {
 		ht |= b1;
-		ierr = ht.sloppyCount();
 	    }
+            ierr = ht.sloppyCount();
 	}
 	break;}
     case ibis::qExpr::LOGICAL_XOR: {
