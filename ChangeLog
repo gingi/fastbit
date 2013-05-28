@@ -1,3 +1,10 @@
+2012-05-27 John Wu <John dot Wu at ACM dot org>
+	* src/countQuery.cpp, src/query.cpp: the cases for LOGICAL_OR
+	returns the wrong flag, an error pointed out by Steven Enns
+	<saenns at a9.com>
+	* tests/Makefile.am: modify check-ibis case 2 to exercise the
+	combination of operators used by Steven
+
 2012-05-25 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp:1195 add code to update the min and max of a
 	collumn
@@ -9,7 +16,7 @@
 2012-05-08 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector64.h, src/bitvector64.cpp: add function getBit
 	* src/query.h, src/query.cpp: add functions getCandidateVector and
-	getCandiateRows (per request of Nan Zhou <nanzhou1987 at
+	getCandidateRows (per request of Nan Zhou <nanzhou1987 at
 	hotmail.com>)
 	* src/bitvector.h, src/bitvector64.h: modify copy_runs and
 	copy_runsn to skip zero-length fills

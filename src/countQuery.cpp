@@ -962,22 +962,23 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
         }
         break;}
     case ibis::qExpr::LOGICAL_OR: {
-        ierr = doEvaluate(term->getLeft(), mask, ht);
-        if (ierr >= 0 && ht.cnt() < mask.cnt()) {
-            ibis::bitvector b1;
-            if (ht.cnt() > mask.bytes() + ht.bytes()) {
-                std::unique_ptr<ibis::bitvector> newmask(mask - ht);
-                ierr = doEvaluate(term->getRight(), *newmask, b1);
-            }
-            else {
-                ierr = doEvaluate(term->getRight(), mask, b1);
-            }
-            if (ierr > 0)
-                ht |= b1;
-            if (ierr >= 0)
-                ierr = ht.sloppyCount();
-        }
-        break;}
+	ierr = doEvaluate(term->getLeft(), mask, ht);
+	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
+	    ibis::bitvector b1;
+	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
+		ibis::bitvector* newmask = mask - ht;
+		ierr = doEvaluate(term->getRight(), *newmask, b1);
+		delete newmask;
+	    }
+	    else {
+		ierr = doEvaluate(term->getRight(), mask, b1);
+	    }
+	    if (ierr > 0) {
+		ht |= b1;
+	    }
+            ierr = ht.sloppyCount();
+	}
+	break;}
     case ibis::qExpr::LOGICAL_XOR: {
         ierr = doEvaluate(term->getLeft(), mask, ht);
         if (ierr >= 0) {
