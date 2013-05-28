@@ -1,23 +1,25 @@
-2012-05-28 John Wu <John dot Wu at ACM dot org>
+2013-05-28 John Wu <John dot Wu at ACM dot org>
 	* src/countQuery.cpp, src/query.cpp: refine the retturn value from
 	LOGICAL_OR (previous version hides error from the right-operand)
+	* src/whereClause.h: add doxygen documentation about experessions
+	for pattern searches and keyword searches
 
-2012-05-27 John Wu <John dot Wu at ACM dot org>
+2013-05-27 John Wu <John dot Wu at ACM dot org>
 	* src/countQuery.cpp, src/query.cpp: the cases for LOGICAL_OR
 	returns the wrong flag, an error pointed out by Steven Enns
 	<saenns at a9.com>
 	* tests/Makefile.am: modify check-ibis case 2 to exercise the
 	combination of operators used by Steven
 
-2012-05-25 John Wu <John dot Wu at ACM dot org>
+2013-05-25 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp:1195 add code to update the min and max of a
 	collumn
 
-2012-05-08 John Wu <John dot Wu at ACM dot org>
+2013-05-08 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: add timers to ibis::index::create to print the
 	time used to create and write the index (per request of Qian Sun)
 
-2012-05-08 John Wu <John dot Wu at ACM dot org>
+2013-05-08 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector64.h, src/bitvector64.cpp: add function getBit
 	* src/query.h, src/query.cpp: add functions getCandidateVector and
 	getCandidateRows (per request of Nan Zhou <nanzhou1987 at
@@ -25,20 +27,20 @@
 	* src/bitvector.h, src/bitvector64.h: modify copy_runs and
 	copy_runsn to skip zero-length fills
 
-2012-05-07 John Wu <John dot Wu at ACM dot org>
+2013-05-07 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector64.cpp: add extract checks in bitwise logical
 	operations to deal with 0-length fills (a problem reported by
 	Srikanth Sundarrajan <srikanth.sundarrajan at inmobi.com>)
 
-2012-05-06 John Wu <John dot Wu at ACM dot org>
+2013-05-06 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h, src/bitvector.cpp: add function getBit at the
 	request of Suprio Ray <suprio at cs.toronto.edu>
 
-2012-04-09 John Wu <John dot Wu at ACM dot org>
+2013-04-09 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: add function text::readStrings to deal with
 	the case where the content of .sp file can not be read into memory
 
-2012-04-08 John Wu <John dot Wu at ACM dot org>
+2013-04-08 John Wu <John dot Wu at ACM dot org>
 	* src/colValues.cpp, src/selectParser.yy: add call to fabs when
 	computing variance and standard deviation to avoid numerical
 	problems (per discussion with Alexandre Maurel)
@@ -48,17 +50,17 @@
 	ULONG_MAX (when ULONG is a 32-bit int, this unnecessarily limits
 	the memory use to 3GB)
 
-2012-04-04 John Wu <John dot Wu at ACM dot org>
+2013-04-04 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.cpp: change the verboseness level to 2 for
 	printing fileManager construction and destruction message
 
-2012-04-03 John Wu <John dot Wu at ACM dot org>
+2013-04-03 John Wu <John dot Wu at ACM dot org>
 	* examples/tcapi.c: add code to use fastbit_get_result_row_ids
 	* java/FastBit.c:
 	Java_gov_lbl_fastbit_FastBit_get_1result_1row_1ids mistakenly
 	passed jintArray as uint32_t* to fastbit_get_result_row_ids
 
-2012-04-01 John Wu <John dot Wu at ACM dot org>
+2013-04-01 John Wu <John dot Wu at ACM dot org>
 	* java/gov/lbl/fastbitFastBit.java, java/FastBit.h,
 	java/FastBit.c: add function fastbit_get_result_row_ids
 

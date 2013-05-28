@@ -108,56 +108,6 @@ namespace ibis {
 ///   the string is parsd into the correct elements of the sets.  This
 ///   expression is used to identify sets with the speicified list of
 ///   elements.
-///
-/// - Operator NOT NULL
-///   The only way to mention NULL values in a query expression is through
-///   this operator.
-///   @code
-///   column_name NOT NULL
-///   @endcode
-/// 
-///   Note that there is no support for NULL as an operator.  The way to
-///   select only NULL values is through (NOT column_name NOT NULL).
-/// 
-/// - Time handling functions
-///   An integer valued column could be used to store Unix time stamps
-///   (i.e., seconds since beginning of 1970), in which case, it might be
-///   useful to perform comparison on day of the week or hours of a day in
-///   a where clause.  To support such operations, four functions are
-///   provided.
-/// 
-///   -- from_unixtime_local(timestamp, "format"): extract a number from
-///      the time stamp.  The timestamp should be the name of column to be
-///      interpreted as Unix time stamps.  The format string follows the
-///      convention of function @c strftime from @c libc.  Note that this
-///      function actuall uses @c strftime to extract the information in
-///      string form first and then interpret the leading portion of the
-///      string as a floating-point number.  The tailing portion of the
-///      string that could not be interpreted as part of a floating-point
-///      number is ignored.  If this process results no number at all, for
-///      example, @c strftime prints the first date and time with an
-///      alphabet as the first character, then this function returns a NaN
-///      (Not-a-number).
-/// 
-///      This function assumes the time stamps are in the local time zone.
-/// 
-///      Note that the format string must be quoted.
-/// 
-///   -- from_unixtime_gmt(timestamp, "format"): same functionality as
-///      from_unixtime_local, but assumes the time stamps are in time zone
-///      GMT/UTC.
-/// 
-///      Note that the format string must be quoted.
-/// 
-///   -- to_unixtime_local("date-time-string", "format"): This function
-///      attempts to be the inverse of from_unixtime_local.  It is a
-///      constant function at this time and only transform one specific
-///      time value to unix time stamp.  Therefore this is only useful for
-///      generating a constant for bounding a unix time stamp.
-/// 
-///   -- to_unixtime_gmt("date-time-string", "format"): the inverse of
-///      from_unixtime_gmt, but only works with a simple time constant.
-/// 
 class ibis::whereClause {
 public:
     /// Construct a where clause from a string.
