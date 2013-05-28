@@ -74,6 +74,40 @@ namespace ibis {
 /// @note Operators & and | are reserved for bitwise logical operations
 /// within an arithmetic expression, while && and || are for logical
 /// operations between query conditions.
+///
+/// The following operations on text fields are also supported.  For the
+/// purpose of query composition, they can be tought of as alternative form
+/// of discrete ranges.
+///
+/// - Operator LIKE, e.g.,
+///   @code
+///   column_name LIKE regular_expression
+///   @endcode
+///
+///   Note that the regular expression can only contain wild characters %
+///   and _ per SQL standard.  Internally, this is referred to as pattern
+///   matching and treats a string as a single atomic unit of data.  @sa
+///   ibis::category
+///
+/// - Operator CONTAINS, e.g.,
+///   @code
+///   column_name CONTAINS literal_word
+///   column_name CONTAINS ( list_of_literal_words )
+///   @endcode
+///
+///   When multiple keywords are given, this operator is meant to look for
+///   rows containing all of the given keywords.  Internally, this is
+///   referred to as keyword matching and treats a string field as a list
+///   of words.  Typically, the column is of type TEXT and a KEYWORD index
+///   has been built on the column.  Note that the KEYWORD index could take
+///   a user provided parser to extract the keywords.  @sa ibis::keywords
+///
+///   This operator can work with set-valued data, in which case, each row
+///   of this column is a set but expressed as a string.  The user provides
+///   a parser during the construction of the KEYWORD index to make sure
+///   the string is parsd into the correct elements of the sets.  This
+///   expression is used to identify sets with the speicified list of
+///   elements.
 class ibis::whereClause {
 public:
     /// Construct a where clause from a string.
