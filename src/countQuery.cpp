@@ -751,34 +751,35 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
         }
         break;}
     case ibis::qExpr::LOGICAL_OR: {
-        ibis::bitvector b1;
-        ierr = doScan(term->getLeft(), mask, ht);
-        // decide whether to update the mask use for the next evalutation
-        // the reason for using the new mask is that we can avoid examining
-        // the rows that already known to satisfy the query condition (i.e.,
-        // already known to be hits)
-        // want to make sure the cost of generating the new mask is less
-        // than the time saved by using the new task
-        // cost of generating new mask is roughly proportional
-        // (mask.bytes() + ht.bytes())
-        // the reduction in query evalution time is likely to be proportional
-        // to ht.cnt()
-        // since there are no good estimates on the coefficients, we will
-        // simply directly compare the two
-        if (ierr >= 0 && ht.cnt() < mask.cnt()) {
-            if (ht.cnt() > mask.bytes() + ht.bytes()) {
-                std::unique_ptr<ibis::bitvector> newmask(mask - ht);
-                ierr = doScan(term->getRight(), *newmask, b1);
-            }
-            else {
-                ierr = doScan(term->getRight(), mask, b1);
-            }
-            if (ierr > 0)
-                ht |= b1;
+	ibis::bitvector b1;
+	ierr = doScan(term->getLeft(), mask, ht);
+	// decide whether to update the mask use for the next evalutation
+	// the reason for using the new mask is that we can avoid examining
+	// the rows that already known to satisfy the query condition (i.e.,
+	// already known to be hits)
+	// want to make sure the cost of generating the new mask is less
+	// than the time saved by using the new task
+	// cost of generating new mask is roughly proportional
+	// (mask.bytes() + ht.bytes())
+	// the reduction in query evalution time is likely to be proportional
+	// to ht.cnt()
+	// since there are no good estimates on the coefficients, we will
+	// simply directly compare the two
+	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
+	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
+		ibis::bitvector* newmask = mask - ht;
+		ierr = doScan(term->getRight(), *newmask, b1);
+		delete newmask;
+	    }
+	    else {
+		ierr = doScan(term->getRight(), mask, b1);
+	    }
+	    if (ierr > 0)
+		ht |= b1;
             if (ierr >= 0)
                 ierr = ht.sloppyCount();
-        }
-        break;}
+	}
+	break;}
     case ibis::qExpr::LOGICAL_XOR: {
         ierr = doScan(term->getLeft(), mask, ht);
         if (ierr >= 0) {
@@ -973,10 +974,10 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	    else {
 		ierr = doEvaluate(term->getRight(), mask, b1);
 	    }
-	    if (ierr > 0) {
+	    if (ierr > 0)
 		ht |= b1;
-	    }
-            ierr = ht.sloppyCount();
+	    if (ierr >= 0)
+                ierr = ht.sloppyCount();
 	}
 	break;}
     case ibis::qExpr::LOGICAL_XOR: {

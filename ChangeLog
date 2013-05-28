@@ -1,3 +1,7 @@
+2012-05-28 John Wu <John dot Wu at ACM dot org>
+	* src/countQuery.cpp, src/query.cpp: refine the retturn value from
+	LOGICAL_OR (previous version hides error from the right-operand)
+
 2012-05-27 John Wu <John dot Wu at ACM dot org>
 	* src/countQuery.cpp, src/query.cpp: the cases for LOGICAL_OR
 	returns the wrong flag, an error pointed out by Steven Enns
