@@ -1,3 +1,7 @@
+2013-05-30 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: some versions of bord::column::evaluateRange
+	negected to check if an index is available
+
 2013-05-28 John Wu <John dot Wu at ACM dot org>
 	* src/countQuery.cpp, src/query.cpp: refine the retturn value from
 	LOGICAL_OR (previous version hides error from the right-operand)

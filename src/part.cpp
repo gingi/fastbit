@@ -5519,15 +5519,15 @@ long ibis::part::doScan(const array_t<E> &varr,
     } // main loop
 
     hits.compress();
-    if (ibis::gVerbose > 3 && ierr >= 0) {
-        timer.stop();
-        ibis::util::logger lg;
-        lg() << "part::doScan<" << typeid(E).name() << "> -- evaluating "
-             << cmp << " on " << mask.cnt()
-             << (mask.cnt() > 1 ? " values" : " value")
-             << " (total: " << mask.size() << ") took "
-             << timer.realTime() << " sec elapsed time and produced "
-             << ierr << (ierr > 1 ? " hits" : " hit");
+    if (ibis::gVerbose > 1 && ierr >= 0) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg() << "part::doScan<" << typeid(E).name() << "> -- evaluating "
+	     << cmp << " on " << mask.cnt()
+	     << (mask.cnt() > 1 ? " values" : " value")
+	     << " (total: " << mask.size() << ") took "
+	     << timer.realTime() << " sec elapsed time and produced "
+	     << ierr << (ierr > 1 ? " hits" : " hit");
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
         lg() << "\nmask\n" << mask;
         lg() << "\nhit vector\n" << hits << "\n";

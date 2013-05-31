@@ -6053,88 +6053,54 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 
     ibis::util::timer mytimer(evt.c_str(), 4);
     try {
-        ibis::bitvector high;
-        { // use a block to limit the scope of index lock
-            indexLock lock(this, evt.c_str());
-            if (idx != 0) {
-                if (dataflag == 0) {
-                    std::string dfname;
-                    const char *str = dataFileName(dfname);
-                    if (str == 0) {
-                        dataflag = (hasRawData() ? 1 : -1);
-                    }
-                    else {
-                        off_t fs = ibis::util::getFileSize(str);
-                        if (fs < 0) {
-                            dataflag = -1;
-                        }
-                        else if (nRows() * elementSize() == (off_t)fs) {
-                            dataflag = 1;
-                        }
-                        else {
-                            dataflag = -1;
-                        }
-                    }
-                }
-                if (dataflag < 0) {
-                    idx->estimate(cmp, low, high);
-                }
-                else {
-                    // Using the index only if the cost of using the index
-                    // (icost) is less than the cost of using the sequential
-                    // scan (scost).  Both costs are estimated based on the
-                    // expected number of bytes to be accessed.
-                    const double icost = idx->estimateCost(cmp);
-                    const double scost = ibis::fileManager::pageSize() *
-                        ibis::part::countPages(mask, elementSize()) +
-                        8.0 * mask.size() / ibis::fileManager::pageSize();
-                    LOGGER(ibis::gVerbose > 2)
-                        << evt << " -- estimated cost with index = "
-                        << icost << ", with sequential scan = " << scost;
-                    if (icost < scost) {
-                        idx->estimate(cmp, low, high);
-                    }
-                }
-            }
-            else if (m_sorted && dataflag >= 0) {
-                ierr = searchSorted(cmp, low);
-                if (ierr < 0)
-                    low.clear();
-            }
-        }
-        if (low.size() != mask.size() && m_sorted && dataflag >= 0) {
-            ierr = searchSorted(cmp, low);
-            if (ierr < 0)
-                low.clear();
-        }
-        if (low.size() != mask.size()) { // short index
-            if (high.size() != low.size())
-                high.copy(low);
-            high.adjustSize(mask.size(), mask.size());
-            low.adjustSize(0, mask.size());
-        }
-        low &= mask;
-        if (low.size() == high.size()) { // computed high
-            ibis::bitvector b2;
-            high &= mask;
-            high -= low;
-            if (high.sloppyCount() > 0) { // need scan
-                ierr = thePart->doScan(cmp, high, b2);
-                if (ierr >= 0) {
-                    low |= b2;
-                    ierr = low.sloppyCount();
-                }
-                else {
-                    low.clear();
-                }
-            }
-            else {
-                ierr = low.sloppyCount();
-            }
-        }
-        else if (ierr >= 0) {
-            ierr = low.sloppyCount();
-        }
+	ibis::bitvector high;
+	{ // use a block to limit the scope of index lock
+	    indexLock lock(this, evt.c_str());
+	    if (idx != 0) {
+		double cost = idx->estimateCost(cmp);
+		// use index only if the cost of using its estimate cost is
+		// less than N/2 bytes
+		if (cost < thePart->nRows() * 0.5 + 999.0) {
+		    idx->estimate(cmp, low, high);
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< evt << ") will not use the index because the cost ("
+			<< cost << ") is too high";
+		}
+	    }
+	    else if (m_sorted) {
+		ierr = searchSorted(cmp, low);
+		if (ierr < 0)
+		    low.clear();
+	    }
+	}
+	if (low.size() != mask.size() && m_sorted) {
+	    ierr = searchSorted(cmp, low);
+	    if (ierr < 0)
+		low.clear();
+	}
+	if (low.size() != mask.size()) { // short index
+	    if (high.size() != low.size())
+		high.copy(low);
+	    high.adjustSize(mask.size(), mask.size());
+	    low.adjustSize(0, mask.size());
+	}
+	low &= mask;
+	if (low.size() == high.size()) { // need scan
+	    ibis::bitvector b2;
+	    high &= mask;
+	    high -= low;
+	    if (high.sloppyCount() > 0) {
+		ierr = thePart->doScan(cmp, high, b2);
+		if (ierr >= 0) {
+		    low |= b2;
+		}
+		else {
+		    low.clear();
+		}
+	    }
+	}
 
         LOGGER(ibis::gVerbose > 3)
             << evt << " completed with ierr = " << ierr;
@@ -6306,25 +6272,27 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
         return 0;
     }
     if (thePart == 0)
-        return -9;
+	return -9;
     std::string evt = "column[";
-    evt += fullname();
+    evt += thePart->name();
+    evt += ".";
+    evt += m_name;
     evt += "]::evaluateRange";
     if (ibis::gVerbose > 0) {
-        std::ostringstream oss;
-        oss << '(' << cmp;
-        if (ibis::gVerbose > 3)
-            oss << ", mask(" << mask.cnt() << ", " << mask.size() << ')';
-        oss << ')';
-        evt += oss.str();
+	std::ostringstream oss;
+	oss << '(' << cmp;
+	if (ibis::gVerbose > 3)
+	    oss << ", mask(" << mask.cnt() << ", " << mask.size() << ')';
+	oss << ')';
+	evt += oss.str();
     }
 
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- " << evt << " not applicable on the column type "
-            << ibis::TYPESTRING[(int)m_type];
-        ierr = -4;
-        return ierr;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " not applicable on the column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -4;
+	return ierr;
     }
     if (m_type != ibis::FLOAT && m_type != ibis::DOUBLE &&
         cmp.getValues().size() ==
@@ -6349,32 +6317,31 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 
     ibis::util::timer mytimer(evt.c_str(), 4);
     try {
-        indexLock lock(this, evt.c_str());
-        if (idx != 0) {
-            const unsigned elem = elementSize();
-            const double idxcost = idx->estimateCost(cmp) *
-                (1.0 + log((double)cmp.nItems()));
-            if (m_sorted && idxcost >= 6.0*mask.cnt()) {
-                ierr = searchSorted(cmp, low);
-                if (ierr >= 0) {
-                    low &= mask;
-                    ierr = low.sloppyCount();
-                }
-            }
-            if (ierr < 0 && hasRoster() && idxcost >= (elem+4.0) * 
-                (mask.cnt()+mask.size()/ibis::fileManager::pageSize())) {
-                // using a sorted list may be faster
-                ibis::roster ros(this);
-                if (ros.size() == thePart->nRows()) {
-                    ierr = ros.locate(cmp.getValues(), low);
-                    if (ierr >= 0) {
-                        low &= mask;
-                        return low.sloppyCount();
-                    }
-                }
-            }
-            if (ierr < 0 && idxcost <= ibis::fileManager::pageSize() *
-                ibis::part::countPages(mask, elem)) {
+	indexLock lock(this, evt.c_str());
+	if (idx != 0) {
+	    double idxcost = idx->estimateCost(cmp) *
+		(1.0 + log((double)cmp.getValues().size()));
+	    if (m_sorted && idxcost > mask.size()) {
+		ierr = searchSorted(cmp, low);
+		if (ierr == 0) {
+		    low &= mask;
+		    return low.sloppyCount();
+		}
+	    }
+	    if (idxcost > (elementSize()+4.0) * mask.size() &&
+		thePart->currentDataDir() != 0) {
+		// using a sorted list may be faster
+		ibis::roster ros(this);
+		if (ros.size() == thePart->nRows()) {
+		    ierr = ros.locate(cmp.getValues(), low);
+		    if (ierr >= 0) {
+			low &= mask;
+			return low.sloppyCount();
+		    }
+		}
+	    }
+
+	    if (idxcost <= (elementSize()+4.0) * mask.size() + 999.0) {
                 // the normal indexing option
                 ierr = idx->evaluate(cmp, low);
                 if (ierr >= 0) {
@@ -6391,55 +6358,88 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
                     low &= mask;
                 }
             }
-        }
-        // fall back options
-        if (ierr < 0) {
-            if (m_sorted) {
-                ierr = searchSorted(cmp, low);
-                if (ierr >= 0) {
-                    low &= mask;
-                    ierr = low.sloppyCount();
-                }
-            }
-        }
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 4)
-                << "INFO -- " << evt << ": the cost of using roster ~ "
-                << (thePart->nRows()+cmp.nItems())*0.15
-                << ", the cost of using scan ~ "
-                << (2.0+log((double)cmp.nItems()))*mask.cnt();
-            if (hasRoster() &&
-                (thePart->nRows()+cmp.nItems())*0.15 <
-                (2.0+log((double)cmp.nItems()))*mask.cnt()) {
-                ibis::roster ros(this);
-                if (ros.size() == thePart->nRows()) {
-                    ierr = ros.locate(cmp.getValues(), low);
-                    if (ierr >= 0) {
-                        low &= mask;
-                        ierr = low.sloppyCount();
-                    }
-                }
-            }
-        }
-        if (ierr < 0)
-            ierr = thePart->doScan(cmp, mask, low);
+	    if (ierr < 0) { // try again
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		LOGGER(ibis::gVerbose > 2)
+		    << "INFO -- " << evt << " -- idx(" << idx->name()
+		    << ")->evaluate returned " << ierr
+		    << ", attempting other alternatives";
+#endif
+		if (m_sorted) {
+		    ierr = searchSorted(cmp, low);
+		    if (ierr >= 0) {
+			low &= mask;
+		    }
+		}
 
-        LOGGER(ibis::gVerbose > 3)
-            << evt << " completed with ierr = " << ierr;
-        return ierr;
+		if (ierr < 0) {
+		    ibis::bitvector high;
+		    idx->estimate(cmp, low, high);
+		    if (low.size() != mask.size()) {
+			if (high.size() == low.size()) {
+			    high.adjustSize(mask.size(), mask.size());
+			}
+			else if (high.size() == 0) {
+			    high.copy(low);
+			    high.adjustSize(mask.size(), mask.size());
+			}
+			low.adjustSize(0, mask.size());
+		    }
+		    low &= mask;
+		    if (high.size() == low.size()) {
+			high &= mask;
+			high -= low;
+			if (high.sloppyCount() > 0) {
+			    ibis::bitvector delta;
+			    ierr = thePart->doScan(cmp, high, delta);
+			    if (ierr > 0)
+				low |= delta;
+			}
+		    }
+		}
+	    }
+	}
+	else { // no index
+	    if (m_sorted) {
+		ierr = searchSorted(cmp, low);
+		if (ierr >= 0) {
+		    low &= mask;
+		    ierr = low.sloppyCount();
+		}
+	    }
+	    else {
+		ierr = -1;
+	    }
+	    if (ierr < 0) {
+		ibis::roster ros(this);
+		if (ros.size() == thePart->nRows()) {
+		    ierr = ros.locate(cmp.getValues(), low);
+		    if (ierr >= 0) {
+			low &= mask;
+		    ierr = low.sloppyCount();
+		    }
+		}
+		if (ierr < 0)
+		    ierr = thePart->doScan(cmp, mask, low);
+	    }
+	}
+
+	LOGGER(ibis::gVerbose > 3)
+	    << evt << " completed with ierr = " << ierr;
+	return ierr;
     }
     catch (std::exception &se) {
-        LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 0)
             << "Warning-- " << evt << " received a std::exception -- "
             << se.what();
     }
     catch (const char* str) {
-        LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 0)
             << "Warning -- " << evt << " received a string exception -- "
             << str;
     }
     catch (...) {
-        LOGGER(ibis::gVerbose > 0)
+	LOGGER(ibis::gVerbose > 0)
             << "Warning" << evt << " received a unanticipated excetpion";
     }
 
@@ -6453,43 +6453,43 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
                 sleep(1);
 #endif
-            }
-            thePart->emptyCache();
-            if (m_sorted) {
-                ierr = searchSorted(cmp, low);
-            }
-            else {
-                indexLock lock(this, evt.c_str());
-                if (idx != 0) {
-                    idx->evaluate(cmp, low);
-                    if (low.size() < mask.size()) {
-                        ibis::bitvector high, delta;
-                        high.adjustSize(low.size(), mask.size());
-                        high.flip();
-                        ierr = thePart->doScan(cmp, high, delta);
-                        low |= delta;
-                    }
-                    low &= mask;
-                }
-                else {
-                    ierr = thePart->doScan(cmp, mask, low);
-                }
-            }
-        }
-        catch (...) {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- " << evt << " receied an exception "
-                "from doScan in the exception handling code, giving up...";
-            low.clear();
-            ierr = -2;
-        }
+	    }
+	    thePart->emptyCache();
+	    if (m_sorted) {
+		ierr = searchSorted(cmp, low);
+	    }
+	    else {
+		indexLock lock(this, evt.c_str());
+		if (idx != 0) {
+		    idx->evaluate(cmp, low);
+		    if (low.size() < mask.size()) {
+			ibis::bitvector high, delta;
+			high.adjustSize(low.size(), mask.size());
+			high.flip();
+			ierr = thePart->doScan(cmp, high, delta);
+			low |= delta;
+		    }
+		    low &= mask;
+		}
+		else {
+		    ierr = thePart->doScan(cmp, mask, low);
+		}
+	    }
+	}
+	catch (...) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << evt << " receied an exception "
+		"from doScan in the exception handling code, giving up...";
+	    low.clear();
+	    ierr = -2;
+	}
     }
     else {
         ierr = -3;
     }
 
     LOGGER(ibis::gVerbose > 3)
-        << evt << " completed the fallback option with ierr = " << ierr;
+	<< evt << " completed the fallback option with ierr = " << ierr;
     return ierr;
 } // ibis::column::evaluateRange
 
