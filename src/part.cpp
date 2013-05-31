@@ -5439,8 +5439,8 @@ long ibis::part::doScan(const array_t<E> &varr,
     if (ibis::gVerbose > 1 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
-	lg() << "part::doScan -- evaluating " << cmp << " on "
-	     << mask.cnt() << typeid(E).name()
+	lg() << "part::doScan<" << typeid(E).name() << "> -- evaluating "
+	     << cmp << " on " << mask.cnt()
 	     << (mask.cnt() > 1 ? " values" : " value")
 	     << " (total: " << mask.size() << ") took "
 	     << timer.realTime() << " sec elapsed time and produced "

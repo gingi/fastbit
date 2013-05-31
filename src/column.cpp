@@ -5671,7 +5671,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     try {
 	ibis::bitvector high;
 	{ // use a block to limit the scope of index lock
-	    indexLock lock(this, "evaluateRange");
+	    indexLock lock(this, evt.c_str());
 	    if (idx != 0) {
 		double cost = idx->estimateCost(cmp);
 		// use index only if the cost of using its estimate cost is
@@ -5883,12 +5883,23 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     }
     if (thePart == 0)
 	return -9;
+    std::string evt = "column[";
+    evt += thePart->name();
+    evt += ".";
+    evt += m_name;
+    evt += "]::evaluateRange";
+    if (ibis::gVerbose > 0) {
+	std::ostringstream oss;
+	oss << '(' << cmp;
+	if (ibis::gVerbose > 3)
+	    oss << ", mask(" << mask.cnt() << ", " << mask.size() << ')';
+	oss << ')';
+	evt += oss.str();
+    }
 
     if (m_type == ibis::OID || m_type == ibis::TEXT) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
-	    << "." << m_name << "]::evaluateRange(" << cmp.colName()
-	    << " IN ...) -- condition is not applicable on the column type "
+	    << "Warning -- " << evt << " not applicable on the column type "
 	    << ibis::TYPESTRING[(int)m_type];
 	ierr = -4;
 	return ierr;
@@ -5908,7 +5919,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     }
 
     try {
-	indexLock lock(this, "evaluateRange");
+	indexLock lock(this, evt.c_str());
 	if (idx != 0) {
 	    double idxcost = idx->estimateCost(cmp) *
 		(1.0 + log((double)cmp.getValues().size()));
@@ -5932,27 +5943,27 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		}
 	    }
 
-	    // fall back to the normal indexing option
-	    ierr = idx->evaluate(cmp, low);
-	    if (ierr >= 0) {
-		if (low.size() < mask.size()) { // short index, scan
-		    ibis::bitvector b1, b2;
-		    b1.appendFill(0, low.size());
-		    b1.appendFill(1, mask.size()-low.size());
-		    ierr = thePart->doScan(cmp, b1, b2);
-		    if (ierr >= 0) {
-			low.adjustSize(0, mask.size());
-			low |= b2;
-		    }
-		}
-		low &= mask;
-	    }
-	    else { // index::evaluate failed
+	    if (idxcost <= (elementSize()+4.0) * mask.size() + 999.0) {
+                // the normal indexing option
+                ierr = idx->evaluate(cmp, low);
+                if (ierr >= 0) {
+                    if (low.size() < mask.size()) { // short index, scan
+                        ibis::bitvector b1, b2;
+                        b1.appendFill(0, low.size());
+                        b1.appendFill(1, mask.size()-low.size());
+                        ierr = thePart->doScan(cmp, b1, b2);
+                        if (ierr >= 0) {
+                            low.adjustSize(0, mask.size());
+                            low |= b2;
+                        }
+                    }
+                    low &= mask;
+                }
+            }
+	    if (ierr < 0) { // try again
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 		LOGGER(ibis::gVerbose > 2)
-		    << "INFO -- column[" << (thePart->name()?thePart->name():"?")
-		    << "." << name() << "]::evaluateRange(" << cmp.colName()
-		    << " IN ...) -- idx(" << idx->name()
+		    << "INFO -- " << evt << " -- idx(" << idx->name()
 		    << ")->evaluate returned " << ierr
 		    << ", attempting other alternatives";
 #endif
@@ -6016,21 +6027,22 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	}
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "column[" << (thePart->name()?thePart->name():"?") << "."
-	    << name() << "]::evaluateRange(" << cmp.colName() << " IN ...) "
-	    << "completed with ierr = " << ierr;
+	    << evt << " completed with ierr = " << ierr;
 	return ierr;
     }
     catch (std::exception &se) {
-	logWarning("evaluateRange", "received a std::exception -- %s",
-		   se.what());
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning-- " << evt << " received a std::exception -- "
+            << se.what();
     }
     catch (const char* str) {
-	logWarning("evaluateRange", "received a string exception -- %s",
-		   str);
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " received a string exception -- "
+            << str;
     }
     catch (...) {
-	logWarning("evaluateRange", "received a unanticipated excetpion");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning" << evt << " received a unanticipated excetpion";
     }
 
     // Common exception handling -- retry the basic options
@@ -6049,7 +6061,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		ierr = searchSorted(cmp, low);
 	    }
 	    else {
-		indexLock lock(this, "evaluateRange");
+		indexLock lock(this, evt.c_str());
 		if (idx != 0) {
 		    idx->evaluate(cmp, low);
 		    if (low.size() < mask.size()) {
@@ -6068,10 +6080,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "column[" << (thePart->name()?thePart->name():"?") << "."
-		<< name() << "]::evaluateRange(" << cmp.colName()
-		<< "IN ...) receied an exception from doScan in the exception "
-		"handling code, giving up...";
+		<< "Warning -- " << evt << " receied an exception "
+		"from doScan in the exception handling code, giving up...";
 	    low.clear();
 	    ierr = -2;
 	}
@@ -6081,9 +6091,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     }
 
     LOGGER(ibis::gVerbose > 3)
-	<< "column[" << (thePart->name()?thePart->name():"?") << "." << name()
-	<< "]::evaluateRange(" << cmp.colName() << " IN ...) "
-	<< "completed the fallback option with ierr = " << ierr;
+	<< evt << " completed the fallback option with ierr = " << ierr;
     return ierr;
 } // ibis::column::evaluateRange
 

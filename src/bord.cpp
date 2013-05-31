@@ -5309,67 +5309,193 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	mymask &= mask_;
     if (thePart != 0)
 	mymask.adjustSize(0, thePart->nRows());
-	
+
+    std::string evt = "column[";
+    evt += (thePart ? thePart->name() : "?");
+    evt += ".";
+    evt += m_name;
+    evt += "]::evaluateRange";
+    if (ibis::gVerbose > 1) {
+	std::ostringstream oss;
+	oss << '(' << cmp;
+	if (ibis::gVerbose > 3)
+	    oss << ", mask(" << mymask.cnt() << ", " << mymask.size() << ')';
+	oss << ')';
+	evt += oss.str();
+    }
+
+    if (cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
+	cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED) {
+	getNullMask(res);
+	res &= mymask;
+	return res.sloppyCount();
+    }
+
+    if (m_type == ibis::OID || m_type == ibis::TEXT) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " can not work with column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -4;
+	return ierr;
+    }
+    if (cmp.overlap(lower, upper) == false) {
+	res.set(0, mymask.size());
+	return 0;
+    }
+
+    ibis::bitvector bv2;
+    try {
+	{ // use a block to limit the scope of index lock
+	    indexLock lock(this, evt.c_str());
+	    if (idx != 0) {
+		double cost = idx->estimateCost(cmp);
+		// use index only if the cost of using its estimate cost is
+		// less than N/2 bytes
+		if (cost < thePart->nRows() * 0.5 + 999.0) {
+		    idx->estimate(cmp, res, bv2);
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< evt << " will not use the index because the cost ("
+			<< cost << ") is too high";
+		}
+	    }
+	    else if (m_sorted) {
+		ierr = searchSorted(cmp, res);
+		if (ierr < 0)
+		    res.clear();
+	    }
+	}
+	if (res.size() != mymask.size() && m_sorted) {
+	    ierr = searchSorted(cmp, res);
+	    if (ierr < 0)
+		res.clear();
+	}
+	if (res.size() != mymask.size()) { // short index
+	    if (bv2.size() != res.size())
+		bv2.copy(res);
+	    bv2.adjustSize(mymask.size(), mymask.size());
+	    res.adjustSize(0, mymask.size());
+	}
+	res &= mymask;
+	if (res.size() == bv2.size()) { // need scan
+	    bv2 &= mymask;
+	    bv2 -= res;
+	    if (bv2.cnt() > 0) {
+                mymask.swap(bv2);
+	    }
+	}
+        else {
+            mymask.clear();
+        }
+
+        if (mymask.cnt() == 0) {
+            ierr = res.sloppyCount();
+            LOGGER(ibis::gVerbose > 3)
+                << evt << " completed with ierr = " << ierr;
+            LOGGER(ibis::gVerbose > 8)
+                << evt << " result --\n" << res;
+            return ierr;
+        }
+    }
+    catch (std::exception &se) {
+	LOGGER(ibis::gVerbose > 0)
+	    << evt << " received a std::exception -- " << se.what();
+        mymask.copy(mask);
+        mymask &= mask_;
+        res.clear();
+    }
+    catch (const char* str) {
+	LOGGER(ibis::gVerbose > 0)
+	    << evt << " received a string exception -- " << str;
+        mymask.copy(mask);
+        mymask &= mask_;
+        res.clear();
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+	    << evt << " received a unanticipated excetpion";
+        mymask.copy(mask);
+        mymask &= mask_;
+        res.clear();
+    }
+
+    if (mymask.cnt() == 0) {
+        res.swap(mymask);
+        return 0;
+    }
+
     switch (m_type) {
     case ibis::UBYTE: {
 	const array_t<unsigned char> &val =
 	    * static_cast<const array_t<unsigned char>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char> &val =
 	    * static_cast<const array_t<signed char>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t> &val =
 	    * static_cast<const array_t<uint16_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t> &val =
 	    * static_cast<const array_t<int16_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::UINT: {
 	const array_t<uint32_t> &val =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::INT: {
 	const array_t<int32_t> &val =
 	    * static_cast<const array_t<int32_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::OID:
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t> &val =
 	    * static_cast<const array_t<int64_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float> &val =
 	    * static_cast<const array_t<float>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double> &val =
 	    * static_cast<const array_t<double>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv2);
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- column[" << (thePart ? thePart->name() : "?")
-	    << '.' << m_name << "]::evaluateRange deos not support column type "
+	    << "Warning -- " << evt << " deos not support column type "
 	    << TYPESTRING[static_cast<int>(m_type)]
 	    << ", only supports integers and floats";
 	ierr = -2;
     } // switch(m_type)
+
+    if (ierr > 0) {
+        if (res.sloppyCount() > 0)
+            res |= bv2;
+        else
+            res.swap(bv2);
+    }
+    else if (ierr == 0) {
+        ierr = res.sloppyCount();
+    }
+    LOGGER(ibis::gVerbose > 3)
+        << evt << " completed with ierr = " << ierr;
     return ierr;
 } // ibis::bord::column::evaluateRange
 
@@ -5377,72 +5503,211 @@ long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 				       const ibis::bitvector& mask,
 				       ibis::bitvector& res) const {
     long ierr = -1;
-    ibis::bitvector mymask(mask);
+    std::string evt = "column[";
+    evt += (thePart ? thePart->name() : "?");
+    evt += ".";
+    evt += m_name;
+    evt += "]::evaluateRange";
+    if (ibis::gVerbose > 1) {
+	std::ostringstream oss;
+	oss << '(' << cmp;
+	if (ibis::gVerbose > 3)
+	    oss << ", mask(" << mask.cnt() << ", " << mask.size() << ')';
+	oss << ')';
+	evt += oss.str();
+    }
+
+    if (m_type == ibis::OID || m_type == ibis::TEXT) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " can not work with column type "
+	    << ibis::TYPESTRING[(int)m_type];
+	ierr = -4;
+	return ierr;
+    }
+    if (m_type != ibis::FLOAT && m_type != ibis::DOUBLE &&
+	cmp.getValues().size() ==
+	1+(cmp.getValues().back()-cmp.getValues().front())) {
+	// a special case -- actually a continuous range
+	ibis::qContinuousRange cr(cmp.getValues().front(), ibis::qExpr::OP_LE,
+				  cmp.colName(), ibis::qExpr::OP_LE,
+				  cmp.getValues().back());
+	return evaluateRange(cr, mask, res);
+    }
+    if (cmp.overlap(lower, upper) == false) {
+	res.set(0, mask.size());
+	return 0;
+    }
+
+    ibis::bitvector bv1, mymask(mask);
     if (mask_.size() > 0)
 	mymask &= mask_;
     if (thePart != 0)
 	mymask.adjustSize(0, thePart->nRows());
 
+    try {
+	indexLock lock(this, evt.c_str());
+	if (idx != 0) {
+	    double idxcost = idx->estimateCost(cmp) *
+		(1.0 + log((double)cmp.getValues().size()));
+	    if (m_sorted && idxcost > mymask.size()) {
+		ierr = searchSorted(cmp, res);
+		if (ierr == 0) {
+		    res &= mymask;
+		    return res.sloppyCount();
+		}
+	    }
+
+	    if (idxcost <= (elementSize()+4.0) * mask.size() + 999.0) {
+                // the normal indexing option
+                ierr = idx->evaluate(cmp, res);
+                if (ierr >= 0) {
+                    if (res.size() < mymask.size()) { // short index, scan
+                        bv1.appendFill(0, res.size());
+                        bv1.appendFill(1, mymask.size()-res.size());
+                        bv1 &= mymask;
+                        if (bv1.cnt() == 0) {
+                            res &= mymask;
+                            return res.sloppyCount();
+                        }
+                        else {
+                            res &= mymask;
+                            mymask.swap(bv1);
+                        }
+                    }
+                    else {
+                        res &= mymask;
+                        return res.sloppyCount();
+                    }
+                }
+	    }
+	    if (ierr < 0) { // index::evaluate failed, try index::estimate
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+		LOGGER(ibis::gVerbose > 2)
+		    << "INFO -- " << evt << " -- idx(" << idx->name()
+		    << ")->evaluate returned " << ierr
+		    << ", try index::estimate";
+#endif
+                idx->estimate(cmp, res, bv1);
+                if (res.size() != mymask.size()) {
+                    if (bv1.size() == res.size()) {
+                        bv1.adjustSize(mymask.size(), mymask.size());
+                    }
+                    else if (bv1.size() == 0) {
+                        bv1.copy(res);
+                        bv1.adjustSize(mymask.size(), mymask.size());
+                    }
+                    res.adjustSize(0, mymask.size());
+                }
+                res &= mymask;
+                if (bv1.size() == res.size()) {
+                    bv1 &= mymask;
+                    bv1 -= res;
+                    if (bv1.cnt() == 0) {
+                        return res.sloppyCount();
+                    }
+                    else {
+                        mymask.swap(bv1);
+		    }
+		}
+                else { // assume to have exact answer already
+                    return res.sloppyCount();
+                }
+	    }
+	}
+
+        if (mymask.cnt() == 0) {
+            ierr = res.sloppyCount();
+            LOGGER(ibis::gVerbose > 3)
+                << evt << " completed with ierr = " << ierr;
+            return ierr;
+        }
+    }
+    catch (std::exception &se) {
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning-- " << evt << " received a std::exception -- "
+            << se.what();
+    }
+    catch (const char* str) {
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " received a string exception -- "
+            << str;
+    }
+    catch (...) {
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning" << evt << " received a unanticipated excetpion";
+    }
+
     switch (m_type) {
     case ibis::UBYTE: {
 	const array_t<unsigned char> &val =
 	    * static_cast<const array_t<unsigned char>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char> &val =
 	    * static_cast<const array_t<signed char>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t> &val =
 	    * static_cast<const array_t<uint16_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t> &val =
 	    * static_cast<const array_t<int16_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::UINT: {
 	const array_t<uint32_t> &val =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::INT: {
 	const array_t<int32_t> &val =
 	    * static_cast<const array_t<int32_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::OID:
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t> &val =
 	    * static_cast<const array_t<int64_t>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float> &val =
 	    * static_cast<const array_t<float>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double> &val =
 	    * static_cast<const array_t<double>*>(buffer);
-	ierr = ibis::part::doScan(val, cmp, mymask, res);
+	ierr = ibis::part::doScan(val, cmp, mymask, bv1);
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- column[" << (thePart ? thePart->name() : "?")
-	    << '.' << m_name << "]::evaluateRange deos not support column type "
+	    << "Warning -- " << evt << " deos not support column type "
 	    << TYPESTRING[static_cast<int>(m_type)]
 	    << ", only supports integers and floats";
 	ierr = -2;
     } // switch(m_type)
+
+    if (ierr > 0) {
+        if (res.sloppyCount() > 0)
+            res |= bv1;
+        else
+            res.swap(bv1);
+    }
+    else if (ierr >= 0) {
+        ierr = res.sloppyCount();
+    }
+    LOGGER(ibis::gVerbose > 3)
+        << evt << " completed with ierr = " << ierr;
     return ierr;
 } // ibis::bord::column::evaluateRange
 
