@@ -141,34 +141,40 @@ int fastbit_part_list::clear() {
 ///
 /// @note the caller must hold the lock to the shared object.
 ibis::part* fastbit_part_list::find(const char* dir) {
-    LOGGER(ibis::gVerbose > 12)
+    LOGGER(ibis::gVerbose > 7)
         << "fastbit_part_list::find(" << dir << ") start with " << parts.size()
         << " known partitions";
+    ibis::util::mutexLock lock(&mutex, "fastbit_part_list");
     ibis::partAssoc::const_iterator it = parts.find(dir);
     if (it != parts.end()) {
-        if (it->second != 0) {
-            (void) it->second->updateData();
-            LOGGER(ibis::gVerbose > 11)
-                << "fastbit_part_list::find(" << dir << ") found the partition "
-                "from the named directory, partition name = "
-                << it->second->name() << " with nRows = " << it->second->nRows()
-                << " and nColumns = " << it->second->nColumns();
-            if (it->second->gainReadAccess() == 0) {
-                return it->second;
-            }
-            else {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- fastbit_part_list::find(" << dir
-                    << ") located a data partition from the given directory, "
-                    "but it is not readable at this time";
-                return 0;
-            }
-        }
+        LOGGER(ibis::gVerbose > 7)
+            << "fastbit_part_list::find(" << dir << ") found the partition "
+            "from the named directory, partition name = " << it->second->name();
+	return (*it).second;
     }
-
-    ibis::part *tmp;
-    try {
-        tmp = new ibis::part(dir, static_cast<const char*>(0));
+    else { // need to generate a new table object
+	ibis::part *tmp;
+	try {
+	    tmp = new ibis::part(dir, static_cast<const char*>(0));
+	}
+	catch (...) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- failed to construct a table from directory \""
+		<< dir << "\"";
+	    tmp = 0;
+	}
+	if (tmp != 0 && (tmp->name() == 0 || tmp->nRows() == 0 ||
+			 tmp->nColumns() == 0)) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- directory " << dir
+		<< " contains an empty data partition";
+	    delete tmp;
+	    tmp = 0;
+	}
+	if (tmp != 0) {
+	    parts[ibis::util::strnewdup(dir)] = tmp;
+	}
+	return tmp;
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)

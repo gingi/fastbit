@@ -1,3 +1,12 @@
+2013-06-02 John Wu <John dot Wu at ACM dot org>
+	* java/gov/lbl/fastbit/FastBitStringWriter.java: in addRow change
+	getAndAdd to addAndGet to get the new offset instead of the old
+
+2013-06-01 John Wu <John dot Wu at ACM dot org>
+	* java/gov/lbl/fastbit/FastBitStringWriter.java: add code to deal
+	with the initial value of the offset to be written to .sp file
+	(a problem reported by Bailu Ding)
+
 2013-05-30 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: some versions of bord::column::evaluateRange
 	negected to check if an index is available

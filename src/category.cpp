@@ -1921,70 +1921,70 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
         }
     }
     if (spbuf.size() > 1 && (str == 0 || *str == 0)) {
-        // match empty strings, with a buffer for starting positions
-        uint32_t jsp, nsp;
-        ierr = fread(spbuf.address(), sizeof(int64_t), spbuf.size(), fsp);
-        if (ierr <= 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- " << evt << " failed to read file " << sp;
-            fclose(fsp);
-            fclose(fdata);
-            return -6L;
-        }
-        next = spbuf[0];
-        nsp = ierr;
-        jsp = 1;
-        while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
-            bool moresp = true;
-            if (next > begin+jbuf) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << "Warning -- " << evt
-                    << " expects string # " << irow << " in file \""
-                    << data << "\" to be " << (next-begin) << "-byte long, but "
-                    << (jbuf<(long)nbuf ? "can only read " :
-                        "the internal buffer is only ")
-                    << jbuf << ", skipping " << jbuf
-                    << (jbuf > 1 ? " bytes" : " byte");
-                curr += jbuf;
-            }
-            while (begin + jbuf >= next) {
-                if (buf[curr-begin] == 0)
-                    hits.setBit(irow, 1);
-                ++ irow;
-                curr = next;
-                LOGGER(ibis::gVerbose > 2 && irow % 1000000 == 0)
-                    << evt << " processed " << irow
-                    << " strings from file " << data;
+	// match empty strings, with a buffer for starting positions
+	uint32_t jsp, nsp;
+	ierr = fread(spbuf.address(), sizeof(int64_t), spbuf.size(), fsp);
+	if (ierr <= 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- " << evt << " failed to read file " << sp;
+	    fclose(fsp);
+	    fclose(fdata);
+	    return -6L;
+	}
+	next = spbuf[0];
+	nsp = ierr;
+	jsp = 1;
+	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0) {
+	    bool moresp = true;
+	    if (next > begin+jbuf) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt
+		    << " expects string # " << irow << " in file \""
+		    << data << "\" to be " << (next-begin) << "-byte long, but "
+		    << (jbuf<(long)nbuf ? "can only read " :
+			"the internal buffer is only ")
+		    << jbuf << ", skipping " << jbuf
+		    << (jbuf > 1 ? " bytes" : " byte");
+		curr += jbuf;
+	    }
+	    while (begin + jbuf >= next) {
+		if (buf[curr-begin] == 0)
+		    hits.setBit(irow, 1);
+		++ irow;
+		curr = next;
+		LOGGER(ibis::gVerbose > 2 && irow % 1000000 == 0)
+		    << evt << " processed " << irow
+		    << " strings from file " << data;
 
-                if (moresp) {
-                    if (jsp >= nsp) {
-                        ierr = fread(spbuf.address(), sizeof(int64_t),
-                                     spbuf.size(), fsp);
-                        if (ierr <= 0) {
-                            LOGGER(ierr < 0 && ibis::gVerbose >= 0)
-                                << "Warning -- " << evt << " failed to read "
-                                << sp;
-                            moresp = false;
-                            nsp = 0;
-                            break;
-                        }
-                        else {
-                            nsp = ierr;
-                        }
-                        jsp = 0;
-                    }
-                    moresp = (jsp < nsp);
-                    next = spbuf[jsp];
-                    ++ jsp;
-                }
-            }
-            if (moresp) {// move back file pointer for fdata
-                fseek(fdata, curr, SEEK_SET);
-                begin = curr;
-            }
-            else
-                break;
-        }
+		if (moresp) {
+		    if (jsp >= nsp) {
+			ierr = fread(spbuf.address(), sizeof(int64_t),
+				     spbuf.size(), fsp);
+			if (ierr <= 0) {
+			    LOGGER(ibis::gVerbose >= 0)
+				<< "Warning -- " << evt << " failed to read "
+				<< sp;
+			    moresp = false;
+			    nsp = 0;
+			    break;
+			}
+			else {
+			    nsp = ierr;
+			}
+			jsp = 0;
+		    }
+		    moresp = (jsp < nsp);
+		    next = spbuf[jsp];
+		    ++ jsp;
+		}
+	    }
+	    if (moresp) {// move back file pointer for fdata
+		fseek(fdata, curr, SEEK_SET);
+		begin = curr;
+	    }
+	    else
+		break;
+	}
     }
     else if (spbuf.size() > 1)  { // normal strings, use the second buffer
         std::string pat = str;
@@ -2224,13 +2224,13 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
     ibis::fileManager::instance().recordPages
         (0, sizeof(uint64_t)*thePart->nRows());
     if (hits.size() != thePart->nRows()) {
-        LOGGER(irow != thePart->nRows() && ibis::gVerbose >= 0)
-            << "Warning -- " << evt << " expects " << thePart->nRows()
+	LOGGER(irow != thePart->nRows() && ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " expects " << thePart->nRows()
             << " entr" << (irow>1?"ies":"y") << " in file \"" << data
-            << "\", but finds " << irow;
-        if (irow < thePart->nRows())
-            startPositions(thePart->currentDataDir(), buf, nbuf);
-        hits.adjustSize(0, thePart->nRows());
+	    << "\", but finds " << irow;
+	if (irow < thePart->nRows())
+	    startPositions(thePart->currentDataDir(), buf, nbuf);
+	hits.adjustSize(0, thePart->nRows());
     }
 
     LOGGER(ibis::gVerbose > 4)
@@ -2442,13 +2442,13 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
     ibis::fileManager::instance().recordPages
         (0, sizeof(uint64_t)*thePart->nRows());
     if (hits.size() != thePart->nRows()) {
-        LOGGER(irow != thePart->nRows() && ibis::gVerbose >= 0)
-            << "Warning -- " << evt << " expects " << thePart->nRows()
+	LOGGER(irow != thePart->nRows() && ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " expects " << thePart->nRows()
             << " entr" << (irow>1?"ies":"y") << " in file \"" << data
-            << "\", but finds " << irow;
-        if (hits.size() < thePart->nRows())
-            startPositions(thePart->currentDataDir(), buf, nbuf);
-        hits.adjustSize(0, thePart->nRows());
+	    << "\", but finds " << irow;
+	if (hits.size() < thePart->nRows())
+	    startPositions(thePart->currentDataDir(), buf, nbuf);
+	hits.adjustSize(0, thePart->nRows());
     }
 
     LOGGER(ibis::gVerbose > 4)
