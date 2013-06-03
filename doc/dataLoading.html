@@ -87,39 +87,39 @@ necessary to supply this information from elsewhere.  The executable
 <code>ardea</code> has four options that deals with reading CSV data.
 
 <ul>
-<li><code>-d output-dir</code><br>
+  <li><code>-d output-dir</code><br>
 
-Specifies the output directory to contain the data partition generated.
-Only one <code>-d</code> option is expected, if multiple of them are
-specified, the last one overwrite all previous ones.
+  Specifies the output directory to contain the data partition generated.
+  Only one <code>-d</code> option is expected, if multiple of them are
+  specified, the last one overwrite all previous ones.
 
-<li><code>-n name-of-partition</code><br>
+  <li><code>-n name-of-partition</code><br>
 
-Specifies the name of the data partition.  If a name is not specified,
-it will keep the name of the existing data in the output directory,
-however, if the output directory is empty, it will use the directory
-name.  If the directory name is '.' or '..', then it will use a digest
-of the time stamp and size information as the name of the data
-partition.
+  Specifies the name of the data partition.  If a name is not specified,
+  it will keep the name of the existing data in the output directory,
+  however, if the output directory is empty, it will use the directory
+  name.  If the directory name is '.' or '..', then it will use a digest
+  of the time stamp and size information as the name of the data
+  partition.
 
-<li><code>-m name:type[, name:type, ...]</code><br>
+  <li><code>-m name:type[, name:type, ...]</code><br>
 
-Specifies the names and types of the columns.  The names and types given
-here must in the same order as the columns in the CSV file.  When multiple
-option <code>-m</code> are specified, they are concatenated together.
+  Specifies the names and types of the columns.  The names and types given
+  here must in the same order as the columns in the CSV file.  When multiple
+  option <code>-m</code> are specified, they are concatenated together.
 
-<li><code>-t text-filename</code><br>
+  <li><code>-t text-filename</code><br>
 
-Specifies the name of the text file to be read.  Multiple
-<code>-t</code> options may be used to specify multiple text files.
+  Specifies the name of the text file to be read.  Multiple
+  <code>-t</code> options may be used to specify multiple text files.
 
-<li><code>-r a-row-in-text-form</code><br>
-Specifies a single row of a table in ASCII form.  Multiple rows may be
-specified by using multiple <code>-r</code> options.  In
-<code>ardea</code> text files are processed before individual rows
-specified by option <code>-r</code>.
+  <li><code>-r a-row-in-text-form</code><br>
+  Specifies a single row of a table in ASCII form.  Multiple rows may be
+  specified by using multiple <code>-r</code> options.  In
+  <code>ardea</code> text files are processed before individual rows
+  specified by option <code>-r</code>.
 
-  <li><code>-M metadatafilename</code<br>
+  <li><code>-M metadatafilename</code><br>
   Specifies a file containing the names and types.  The format of this
   metadata file can be either simple name:type pairs as required by the
   <code>-m</code> option, or the more verbose form used in '-part.txt'
@@ -131,6 +131,17 @@ specified by option <code>-r</code>.
   source code.  The names used in meta tags can also be used in query
   expressions, in which cases, they are equivalent to columns with a
   single text value (i.e., a categorical value).
+
+<li><code>-b delimiters</code><br>
+
+Specifies delimiters to use to parsing fields in the CSV files.  When
+any one of the delimiters is encountered, the current field being
+processed is terminated.  By default, the delimiters are any type of
+space or the coma, which means that any space can terminate a field as
+well as the coma.  To use coma alone, specify "<code>-b ,</code>"
+explicitly.  Consecutive apparences of delimiters are treated a single
+delimiter.  There is NO support for multi-character delimiter.
+
 </ul>
 
 Regarding column names, FastBit imposes the following restrictions.  The
@@ -144,10 +155,10 @@ underscore, parentheses, brackets.
 </ul>
 
 Following the above specification, some examples of valid column names
-are "col1", "c0ll" and "c01l" (clearly they are too confusing and should
-not be used).  Some examples of invalid names are "6e5", "e-f", and
-"e.f".  Note also that columns named "name" and "NaMe" are treated as a
-single column.
+are "col1", "c0ll" and "c01l" (clearly they are too confusing and only
+one of them should be used).  Some examples of invalid names are "6e5",
+"e-f", and "e.f".  Note also that columns named "name" and "NaMe" are
+treated as a single column.
 
 <p>
 The executable <code>ardea</code> supports a subset of the data types
@@ -184,6 +195,9 @@ examples/ardea -d tmp -m "a:i,b:f,c:s" -t tests/test0.csv
 <p>
 <em>NOTE</em>: String values containing blank spaces must quoted because
 blank space is assumed to be delimiter as well.
+
+<p>
+<em>NOTE</em>: Quotes inside strings can be escaped with backslash.
 
 <p>
 If the data directory specified in <code>-d</code> option already

@@ -39,7 +39,7 @@ public class FastBitStringWriter {
     /**
      * FastBitStringWriter constructor with default buffer size
      */
-    public FastBitStringWriter () {
+    public FastBitStringWriter() {
 	this.bufferLength=DEFAULT_BUFFER_LENGTH;
     }
 
@@ -47,7 +47,7 @@ public class FastBitStringWriter {
      * FastBitStringWriter constructor
      * @param bufferLength
      */
-    public FastBitStringWriter (int bufferLength) {
+    public FastBitStringWriter(int bufferLength) {
 	this.bufferLength=bufferLength;
     }
 
@@ -85,13 +85,13 @@ public class FastBitStringWriter {
 	Set<String> keys = new HashSet<String>();
 	Set<String> oldkeys = new HashSet<String>();
 
-	File dicFile = new File (dicFileName);
+	File dicFile = new File(dicFileName);
 	FileLock dicLock = null;
 
 	try {
 	    if (dicFile.exists()) {
 		dicLock =
-		    new RandomAccessFile (dicFile,"rw").getChannel().lock();
+		    new RandomAccessFile(dicFile,"rw").getChannel().lock();
 		// Dictionary must fit in the heap memory
 		ByteBuffer oldBuffer = ByteBuffer.allocate
 		    (new Long(dicLock.channel().size()).intValue());
@@ -100,7 +100,7 @@ public class FastBitStringWriter {
 		oldkeys = getOldDicValues(oldBuffer, oldkeys, charsetName);
 	    } else {
 		dicLock =
-		    new RandomAccessFile (dicFile,"rw").getChannel().lock();
+		    new RandomAccessFile(dicFile,"rw").getChannel().lock();
 	    }
 	} catch (FileNotFoundException ex) {
 	    throw new FastBitStringWriterException(ex.getMessage());
@@ -155,7 +155,7 @@ public class FastBitStringWriter {
      */
     private synchronized Set<String>
 	getOldDicValues(ByteBuffer buf, final Set<String> keys,
-			String charsetName )
+			String charsetName)
 	throws UnsupportedEncodingException {
 	if (buf.position() == buf.capacity()) {
 	    return keys;
@@ -170,7 +170,7 @@ public class FastBitStringWriter {
 	if (!keys.contains(key)) {
 	    keys.add(key);
 	}
-	return getOldDicValues (buf, keys, charsetName);
+	return getOldDicValues(buf, keys, charsetName);
     }
 
     /**
@@ -181,17 +181,16 @@ public class FastBitStringWriter {
      * @param fileName
      * @throws FastBitStringWriterException
      */
-    public void saveDictionary (final WriteHandle handler,
-				final Set<String> keys,  String fileName)
+    public void saveDictionary(final WriteHandle handler,
+                               final Set<String> keys,  String fileName)
 	throws FastBitStringWriterException {
-
 	try {
 	    FileLock dicLock =
 		new FileOutputStream(fileName).getChannel().lock();
 	    saveDictionary(handler, keys, dicLock);
 	    dicLock.release();
 	} catch (IOException ex) {
-	    throw new FastBitStringWriterException (ex.getMessage());
+	    throw new FastBitStringWriterException(ex.getMessage());
 	}
     }
 
@@ -200,8 +199,8 @@ public class FastBitStringWriter {
      * @param handler
      * @param keys
      */
-    private void saveDictionary (final WriteHandle handler,
-				 final Set<String> keys,  FileLock dicLock)
+    private void saveDictionary(final WriteHandle handler,
+                                final Set<String> keys, FileLock dicLock)
 	throws FastBitStringWriterException {
 	try {
 	    // rewind to the end of the file
@@ -210,8 +209,8 @@ public class FastBitStringWriter {
 	    ByteBuffer dicbuf = ByteBuffer.allocate(bufferLength);
 	    for (String key: keys) {
 
-		byte [] ar = key.getBytes(handler.getCharsetName());
-		if (bufferLength - dicbuf.position() < ar.length +1 ) {
+		byte[] ar = key.getBytes(handler.getCharsetName());
+		if (bufferLength - dicbuf.position() < ar.length +1) {
 		    flushBuffer(dicbuf, dicLock.channel());
 		}
 		dicbuf.put(ar);
@@ -220,20 +219,20 @@ public class FastBitStringWriter {
 	    flushBuffer(dicbuf, dicLock.channel());
 
 	} catch (IOException ex) {
-	    throw new FastBitStringWriterException (ex.getMessage());
+	    throw new FastBitStringWriterException(ex.getMessage());
 	}
     }
 
     /**
-     * Add row by row String values
-     * @param handler
-     * @param row
+     * Add String values row by row.
+     * @param handler  The object to handle the actual write operation.
+     * @param row The content of the row to be written.
      * @throws FastBitStringWriterException
      */
-    public void addRow (final WriteHandle handler, String row)
+    public void addRow(final WriteHandle handler, String row)
 	throws FastBitStringWriterException {
 	try {
-	    byte [] ar = row.getBytes(handler.getCharsetName());
+	    byte[] ar = row.getBytes(handler.getCharsetName());
 	    if (bufferLength - handler.getDatabuf().position() < ar.length +1) {
 		flushBuffer(handler.getDatabuf(),
 			    handler.getDatalock().channel());
@@ -241,15 +240,13 @@ public class FastBitStringWriter {
 	    handler.getDatabuf().put(ar);
 	    handler.getDatabuf().put(zero);
 
-	    if (bufferLength - handler.getSpbuf().position() < LONG_LENGTH ) {
+	    if (bufferLength - handler.getSpbuf().position() < LONG_LENGTH) {
 		flushBuffer(handler.getSpbuf(), handler.getSplock().channel());
 	    }
-
 	    handler.getSpbuf().put
-		(getBytes(handler.getOffset().getAndAdd(1 + ar.length)));
-
+		(getBytes(handler.getOffset().addAndGet(1 + ar.length)));
 	} catch (IOException ex) {
-	    throw new FastBitStringWriterException (ex.getMessage());
+	    throw new FastBitStringWriterException(ex.getMessage());
 	}
     }
 
@@ -260,63 +257,64 @@ public class FastBitStringWriter {
      * @param type
      * @throws FastBitStringWriterException
      */
-    public synchronized void
-	addStringColumnToMetadata(String partitionDirectory, String columnName,
-				  String type )
-	    throws FastBitStringWriterException {
-	File header =
-	    checkMetadata(partitionDirectory, columnName, type, false);
+    public synchronized void addStringColumnToMetadata
+        (String partitionDirectory, String columnName, String type)
+        throws FastBitStringWriterException {
+        File header =
+            checkMetadata(partitionDirectory, columnName, type, false);
 
-	RandomAccessFile raf=null;
-	FileLock lock=null;
-	try {
-	    raf = new RandomAccessFile (header, "rw");
-	    lock = raf.getChannel().lock();
-	    Pattern p1 = Pattern.compile("^Number_of_columns = \\d+");
+        RandomAccessFile raf=null;
+        FileLock lock=null;
+        try {
+            raf = new RandomAccessFile(header, "rw");
+            lock = raf.getChannel().lock();
+            Pattern p1 = Pattern.compile("^Number_of_columns = \\d+");
 
-	    String str ="";
-	    StringBuffer outStr = new StringBuffer();
-	    do {
-		str = raf.readLine();
-		if (str != null) {
-		    Matcher m1 = p1.matcher(str);
-		    if (m1.matches()) {
-			Pattern p2 = Pattern.compile("\\d+");
-			Matcher m2 = p2.matcher(str);
-			m2.find();
-			int oldColumnCount = Integer.parseInt(m2.group());
-			outStr.append("Number_of_columns = ");
-			outStr.append(++oldColumnCount);
-			outStr.append("\n");
-		    } else {
-			outStr.append(str);
-			outStr.append("\n");
-		    }
-		}
-	    } while (str != null);
+            String str ="";
+            StringBuffer outStr = new StringBuffer();
+            do {
+                str = raf.readLine();
+                if (str != null) {
+                    Matcher m1 = p1.matcher(str);
+                    if (m1.matches()) {
+                        Pattern p2 = Pattern.compile("\\d+");
+                        Matcher m2 = p2.matcher(str);
+                        m2.find();
+                        int oldColumnCount = Integer.parseInt(m2.group());
+                        outStr.append("Number_of_columns = ");
+                        outStr.append(++oldColumnCount);
+                        outStr.append("\n");
+                    } else {
+                        outStr.append(str);
+                        outStr.append("\n");
+                    }
+                }
+            } while (str != null);
 
-	    outStr.append("\n");
-	    outStr.append("Begin Column\n");
-	    outStr.append("name = ").append(columnName).append("\n");
-	    outStr.append("data_type = ").append(type.toUpperCase()).append("\n");
-	    if (type.toUpperCase().equals("TEXT")) {
-		outStr.append("index=none\n");
-	    }
-	    outStr.append("End Column\n");
+            outStr.append("\n");
+            outStr.append("Begin Column\n");
+            outStr.append("name = ").append(columnName);
+            outStr.append("\n");
+            outStr.append("data_type = ").append(type.toUpperCase());
+            outStr.append("\n");
+            if (type.toUpperCase().equals("TEXT")) {
+                outStr.append("index=none\n");
+            }
+            outStr.append("End Column\n");
 
-	    String resString = new String(outStr);
-	    raf.seek(0);
-	    raf.write(resString.getBytes());
-	} catch (IOException ex) {
-	    throw new FastBitStringWriterException (ex.getMessage());
-	} finally {
-	    try {
-		lock.release();
-		raf.close();
-	    } catch(IOException ex){
-		throw new FastBitStringWriterException (ex.getMessage());
-	    }
-	}
+            String resString = new String(outStr);
+            raf.seek(0);
+            raf.write(resString.getBytes());
+        } catch (IOException ex) {
+            throw new FastBitStringWriterException(ex.getMessage());
+        } finally {
+            try {
+                lock.release();
+                raf.close();
+            } catch(IOException ex) {
+                throw new FastBitStringWriterException(ex.getMessage());
+            }
+        }
     }
 
     /**
@@ -331,12 +329,12 @@ public class FastBitStringWriter {
     private File checkMetadata(String partitionDirectory, String columnName,
 			       String type,  boolean newHeader)
 	throws FastBitStringWriterException {
-	File header = new File (partitionDirectory+"/-part.txt");
+	File header = new File(partitionDirectory+"/-part.txt");
 	if (newHeader) {
 	    try {
 		header.createNewFile();
 	    } catch (IOException ex) {
-		throw new FastBitStringWriterException (ex.getMessage());
+		throw new FastBitStringWriterException(ex.getMessage());
 	    }
 	} else {
 	    if (!header.exists()) {
@@ -345,7 +343,7 @@ public class FastBitStringWriter {
 	    }
 	}
 
-	File column = new File (partitionDirectory+"/"+columnName);
+	File column = new File(partitionDirectory+"/"+columnName);
 	if (!column.exists()) {
 	    throw new FastBitStringWriterException
 		("File "+partitionDirectory+"/"+columnName+" not found");
@@ -366,54 +364,56 @@ public class FastBitStringWriter {
      * @param rowCount Number of rows.
      * @throws FastBitStringWriterException
      */
-    public synchronized void
-	createMetadata(String partitionDirectory, String columnName,
-		       String type, int rowCount)
-	    throws FastBitStringWriterException {
-	File header = checkMetadata(partitionDirectory, columnName, type, true);
+    public synchronized void createMetadata
+        (String partitionDirectory, String columnName, String type,
+         int rowCount)
+        throws FastBitStringWriterException {
+        File header = checkMetadata(partitionDirectory, columnName, type,
+                                    true);
 
-	StringBuffer outStr = new StringBuffer();
-	outStr.append("# meta data for data partition ").append
-	    (header.getParentFile().getName()).append
-	    (" written by java FastBitStringWriter::createMetadata on ").append
-	    (new Date()).append("\n");
-	outStr.append("\n");
-	outStr.append("BEGIN HEADER\n");
-	outStr.append("Name = ").append(columnName).append("\n");
-	outStr.append("Description = user-supplied data parsed by java FastBitStringWriter\n");
-	outStr.append("Number_of_rows = ").append(rowCount).append("\n");
-	outStr.append("Number_of_columns = 1\n");
-	outStr.append("Timestamp  = ").append(new Date().getTime()/1000).append("\n");
-	outStr.append("END HEADER\n");
-	outStr.append("\n");
-	outStr.append("Begin Column\n");
-	outStr.append("name = ").append(columnName).append("\n");
-	outStr.append("data_type = ").append(type.toUpperCase()).append("\n");
-	if (type.toUpperCase().equals("TEXT")) {
-	    outStr.append("index=none\n");
-	}
-	outStr.append("End Column\n");
+        StringBuffer outStr = new StringBuffer();
+        outStr.append("# meta data for data partition ");
+        outStr.append(header.getParentFile().getName());
+        outStr.append(" by FastBitStringWriter::createMetadata on ");
+        outStr.append(new Date()).append("\n");
+        outStr.append("\n");
+        outStr.append("BEGIN HEADER\n");
+        outStr.append("Name = ").append(columnName).append("\n");
+        outStr.append("Description = user-supplied data parsed by FastBitStringWriter\n");
+        outStr.append("Number_of_rows = ").append(rowCount).append("\n");
+        outStr.append("Number_of_columns = 1\n");
+        outStr.append("Timestamp  = ").append(new Date().getTime()/1000);
+        outStr.append("\n");
+        outStr.append("END HEADER\n");
+        outStr.append("\n");
+        outStr.append("Begin Column\n");
+        outStr.append("name = ").append(columnName).append("\n");
+        outStr.append("data_type = ").append(type.toUpperCase()).append("\n");
+        if (type.toUpperCase().equals("TEXT")) {
+            outStr.append("index=none\n");
+        }
+        outStr.append("End Column\n");
 
-	RandomAccessFile raf=null;
-	FileLock lock=null;
-	try {
-	    raf = new RandomAccessFile (header, "rw");
-	    lock = raf.getChannel().lock();
-	    raf.setLength(0);
+        RandomAccessFile raf=null;
+        FileLock lock=null;
+        try {
+            raf = new RandomAccessFile(header, "rw");
+            lock = raf.getChannel().lock();
+            raf.setLength(0);
 
-	    String resString = new String(outStr);
-	    raf.seek(0);
-	    raf.write(resString.getBytes());
-	} catch (IOException ex) {
-	    throw new FastBitStringWriterException (ex.getMessage());
-	} finally {
-	    try {
-		lock.release();
-		raf.close();
-	    } catch(IOException ex) {
-		throw new FastBitStringWriterException (ex.getMessage());
-	    }
-	}
+            String resString = new String(outStr);
+            raf.seek(0);
+            raf.write(resString.getBytes());
+        } catch (IOException ex) {
+            throw new FastBitStringWriterException(ex.getMessage());
+        } finally {
+            try {
+                lock.release();
+                raf.close();
+            } catch(IOException ex) {
+                throw new FastBitStringWriterException(ex.getMessage());
+            }
+        }
     }
 
     /**
@@ -426,17 +426,17 @@ public class FastBitStringWriter {
      * @throws FastBitStringWriterException
      */
     public WriteHandle
-	getHandle (String partition, String colname, String charsetName)
-	throws FastBitStringWriterException{
+	getHandle(String partition, String colname, String charsetName)
+	throws FastBitStringWriterException {
 	String dataFileName =
 	    new String(new StringBuffer(partition).append("/").append(colname));
 	String spFileName =
 	    new String(new StringBuffer(partition).append("/").append(colname).append(".sp"));
 
 	try {
-	    return new WriteHandle (dataFileName, spFileName, charsetName);
+	    return new WriteHandle(dataFileName, spFileName, charsetName);
 	} catch (IOException ex) {
-	    throw new FastBitStringWriterException (ex.getMessage());
+	    throw new FastBitStringWriterException(ex.getMessage());
 	}
     }
 
@@ -466,14 +466,17 @@ public class FastBitStringWriter {
 	final String charsetName;
 
 	// String data file offset
-	AtomicLong offset = new AtomicLong (0);
+	AtomicLong offset = new AtomicLong(0);
 
-	private WriteHandle (String dataFileName, String spFileName,
-			     String charsetName) throws IOException {
+	private WriteHandle(String dataFileName, String spFileName,
+                            String charsetName) throws IOException {
+	    this.charsetName = charsetName;
 	    this.dataFileName = dataFileName;
 	    datalock =
-		new RandomAccessFile (dataFileName,"rw").getChannel().lock();
-	    splock = new RandomAccessFile (spFileName,"rw").getChannel().lock();
+		new RandomAccessFile(dataFileName,"rw").getChannel().lock();
+            FileChannel spch =
+                new RandomAccessFile(spFileName,"rw").getChannel();
+	    splock = spch.lock();
 
 	    // rewind to the end of the file
 	    datalock.channel().position(datalock.channel().size());
@@ -482,7 +485,22 @@ public class FastBitStringWriter {
 	    databuf = ByteBuffer.allocate(bufferLength);
 	    spbuf = ByteBuffer.allocate(bufferLength);
 
-	    this.charsetName = charsetName;
+            long splength = spch.size();
+            if (splength % 8 != 0) {
+                // truncate the file to be multiple of 8 bytes
+                splength = 8 * (splength / 8);
+                spch.truncate(splength);
+            }
+            if (splength == 0) { // write the first 0 to spbuf
+                spbuf.put(getBytes(0));
+            }
+            else { // read the last 8 bytes from the file
+                splength -= 8;
+                spch.read(spbuf, splength);
+                splength = spbuf.getLong();
+                offset.getAndSet(splength);
+                spbuf.clear(); // no longer need the value in the buffer
+            }
 	}
 
 	public void close() throws FastBitStringWriterException {
@@ -497,7 +515,7 @@ public class FastBitStringWriter {
 		databuf.clear();
 		spbuf.clear();
 	    } catch (IOException ex) {
-		throw new FastBitStringWriterException (ex.getMessage());
+		throw new FastBitStringWriterException(ex.getMessage());
 	    }
 	}
 

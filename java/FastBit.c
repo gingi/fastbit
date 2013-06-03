@@ -175,7 +175,7 @@ JNIEXPORT jobject JNICALL Java_gov_lbl_fastbit_FastBit_build_1query
     cwhere = (*env)->GetStringUTFChars(env, jwhere, &iscopy);
     handle = fastbit_build_query(csel, cdir, cwhere);
     if (handle != 0) {
-	jobject         jret =
+	jobject jret =
 	    (*env)->NewDirectByteBuffer(env, handle, sizeof(handle));
 
 	/* add by lzb */
@@ -194,7 +194,6 @@ JNIEXPORT jobject JNICALL Java_gov_lbl_fastbit_FastBit_build_1query
 
 JNIEXPORT jint JNICALL Java_gov_lbl_fastbit_FastBit_destroy_1query
 (JNIEnv * env, jobject jo, jobject jhandle) {
-
     FastBitQueryHandle chandle = (FastBitQueryHandle)
 	((*env)->GetDirectBufferAddress(env, jhandle));
     jint ierr = fastbit_destroy_query(chandle);

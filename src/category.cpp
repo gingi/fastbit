@@ -1910,7 +1910,7 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 		++ irow;
 		curr = next;
 		LOGGER(ibis::gVerbose > 2 && irow % 1000000 == 0)
-		    << evt << " -- processed " << irow
+		    << evt << " processed " << irow
 		    << " strings from file " << data;
 
 		if (moresp) {
@@ -2182,9 +2182,9 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
 	(0, sizeof(uint64_t)*thePart->nRows());
     if (hits.size() != thePart->nRows()) {
 	LOGGER(irow != thePart->nRows() && ibis::gVerbose >= 0)
-	    << "Warning -- " << evt << "data file \"" << data
-	    << "\" contains " << irow << " string" << (irow>1?"s":"")
-	    << ", but expected " << thePart->nRows();
+	    << "Warning -- " << evt << " expects " << thePart->nRows()
+            << " entr" << (irow>1?"ies":"y") << " in file \"" << data
+	    << "\", but finds " << irow;
 	if (irow < thePart->nRows())
 	    startPositions(thePart->currentDataDir(), buf, nbuf);
 	hits.adjustSize(0, thePart->nRows());
@@ -2399,10 +2399,10 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
     ibis::fileManager::instance().recordPages
 	(0, sizeof(uint64_t)*thePart->nRows());
     if (hits.size() != thePart->nRows()) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt <<  " data file \"" << data 
-	    << "\" contains " << hits.size() << " strings, but "
-	    "expected " << thePart->nRows();
+	LOGGER(irow != thePart->nRows() && ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " expects " << thePart->nRows()
+            << " entr" << (irow>1?"ies":"y") << " in file \"" << data
+	    << "\", but finds " << irow;
 	if (hits.size() < thePart->nRows())
 	    startPositions(thePart->currentDataDir(), buf, nbuf);
 	hits.adjustSize(0, thePart->nRows());
