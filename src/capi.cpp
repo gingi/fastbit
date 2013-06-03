@@ -141,15 +141,18 @@ int fastbit_part_list::clear() {
 ///
 /// @note the caller must hold the lock to the shared object.
 ibis::part* fastbit_part_list::find(const char* dir) {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 12)
         << "fastbit_part_list::find(" << dir << ") start with " << parts.size()
         << " known partitions";
     ibis::util::mutexLock lock(&mutex, "fastbit_part_list");
     ibis::partAssoc::const_iterator it = parts.find(dir);
     if (it != parts.end()) {
-        LOGGER(ibis::gVerbose > 7)
+        (void) it->second->updateData();
+        LOGGER(ibis::gVerbose > 11)
             << "fastbit_part_list::find(" << dir << ") found the partition "
-            "from the named directory, partition name = " << it->second->name();
+            "from the named directory, partition name = " << it->second->name()
+            << " with nRows = " << it->second->nRows() << " and nColumns = "
+            << it->second->nColumns();
 	return (*it).second;
     }
     else { // need to generate a new table object
@@ -517,13 +520,13 @@ fastbit_build_query(const char *select, const char *datadir,
             }
         }
 
-        // evaluate the query here
-        ierr = h->q.evaluate();
-        if (ierr < 0) {
-            fastbit_destroy_query(h);
-            h = 0;
-        }
-        return h;
+	// evaluate the query here
+	ierr = h->q.evaluate();
+	if (ierr < 0) {
+	    fastbit_destroy_query(h);
+	    h = 0;
+	}
+	return h;
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
