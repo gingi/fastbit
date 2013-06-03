@@ -1,6 +1,12 @@
 2013-06-02 John Wu <John dot Wu at ACM dot org>
 	* java/gov/lbl/fastbit/FastBitStringWriter.java: in addRow change
 	getAndAdd to addAndGet to get the new offset instead of the old
+	* src/capi.cpp: in function fastbit_part_list::find invoke
+	part::updateData to make sure the information about the data
+	partition is up-to-date (to address a problem reported by Bailu
+	Ding)
+	* src/query.cpp:1849 change uid to user to allow the default user
+	name to be used for creating new query token
 
 2013-06-01 John Wu <John dot Wu at ACM dot org>
 	* java/gov/lbl/fastbit/FastBitStringWriter.java: add code to deal

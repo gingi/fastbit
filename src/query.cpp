@@ -1843,10 +1843,10 @@ std::string ibis::query::removeComplexConditions() {
 ///      a query.  The default value if pref is a nil pointer, which
 ///      disables the logging feature.
 ibis::query::query(const char* uid, const part* et, const char* pref) :
-    user(ibis::util::strnewdup(uid ? uid : ibis::util::userName())),
+    user(ibis::util::strnewdup((uid && *uid) ? uid : ibis::util::userName())),
     state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
     myDir(0), rids_in(0), mypart(et), dstime(0) {
-    myID = newToken(uid);
+    myID = newToken(user);
     lastError[0] = static_cast<char>(0);
 
     if (pthread_rwlock_init(&lock, 0) != 0) {

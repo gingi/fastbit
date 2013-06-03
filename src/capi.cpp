@@ -99,15 +99,18 @@ fastbit_part_list::~fastbit_part_list() {
 /// Locate the named directory in the list of data partitions.  If the
 /// named directory is not already in the list, it is added to the list.
 ibis::part* fastbit_part_list::find(const char* dir) {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 12)
         << "fastbit_part_list::find(" << dir << ") start with " << parts.size()
         << " known partitions";
     ibis::util::mutexLock lock(&mutex, "fastbit_part_list");
     ibis::partAssoc::const_iterator it = parts.find(dir);
     if (it != parts.end()) {
-        LOGGER(ibis::gVerbose > 7)
+        (void) it->second->updateData();
+        LOGGER(ibis::gVerbose > 11)
             << "fastbit_part_list::find(" << dir << ") found the partition "
-            "from the named directory, partition name = " << it->second->name();
+            "from the named directory, partition name = " << it->second->name()
+            << " with nRows = " << it->second->nRows() << " and nColumns = "
+            << it->second->nColumns();
 	return (*it).second;
     }
     else { // need to generate a new table object
@@ -486,7 +489,6 @@ fastbit_build_query(const char *select, const char *from, const char *where) {
 	if (ierr < 0) {
 	    fastbit_destroy_query(h);
 	    h = 0;
-	    return h;
 	}
 	return h;
     }
