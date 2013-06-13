@@ -486,193 +486,194 @@ void ibis::column::computeMinMax(const char *dir, double &min,
 /// data values.  Only deal with four types of values, unsigned int, signed
 /// int, float and double.
 void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
-                                double &min, double &max, bool &asc) const {
+				double &min, double &max) const {
     std::string evt = "column";
     if (ibis::gVerbose > 2) {
         evt += '[';
-        evt += fullname();
+        evt += (thePart != 0 ? thePart->name() : "?");
+        evt += '.';
+        evt += m_name;
         evt += ']';
     }
     evt += "::actualMinMax";
 
     switch (m_type) {
     case ibis::UBYTE: {
-        array_t<unsigned char> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<unsigned char> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     case ibis::BYTE: {
-        array_t<signed char> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<signed char> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
-        actualMinMax(val, mask, min, max, asc);
-        break;}
+	    return;
+	}
+	actualMinMax(val, mask, min, max);
+	break;}
     case ibis::USHORT: {
-        array_t<uint16_t> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<uint16_t> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     case ibis::SHORT: {
-        array_t<int16_t> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<int16_t> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     case ibis::UINT: {
-        array_t<uint32_t> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<uint32_t> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     case ibis::INT: {
-        array_t<int32_t> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<int32_t> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     case ibis::ULONG: {
-        array_t<uint64_t> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<uint64_t> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     case ibis::LONG: {
-        array_t<int64_t> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<int64_t> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     case ibis::FLOAT: {
-        array_t<float> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<float> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     case ibis::DOUBLE: {
-        array_t<double> val;
-        int ierr;
-        if (name != 0 && *name != 0)
-            ierr = ibis::fileManager::instance().getFile(name, val);
-        else
-            ierr = getValuesArray(&val);
-        if (ierr != 0) {
-            min = DBL_MAX;
-            max = -DBL_MAX;
+	array_t<double> val;
+	int ierr;
+	if (name != 0 && *name != 0)
+	    ierr = ibis::fileManager::instance().getFile(name, val);
+	else
+	    ierr = getValuesArray(&val);
+	if (ierr != 0) {
+	    min = DBL_MAX;
+	    max = -DBL_MAX;
             LOGGER(ibis::gVerbose > 3)
                 << "Warning -- " << evt << "failed to retrieve file " << name;
-            return;
-        }
+	    return;
+	}
 
         actualMinMax(val, mask, min, max, asc);
         break;}
     default:
-        LOGGER(ibis::gVerbose > 2)
-            << evt << " can not handle column type "
-            << ibis::TYPESTRING[static_cast<int>(m_type)]
-            << ", only support int, uint, float, double";
-        max = -DBL_MAX;
-        min = DBL_MAX;
-        asc = false;
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- " << evt << " can not handle column type "
+	    << ibis::TYPESTRING[static_cast<int>(m_type)]
+	    << ", only support int, uint, float, double";
+	min = DBL_MAX;
+	max = -DBL_MAX;
     } // switch(m_type)
 } // ibis::column::actualMinMax
 
@@ -5789,30 +5790,31 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 #else
             >
 #endif
-            thePart->nRows()) {
-            LOGGER(ibis::gVerbose > 2)
-                << evt << " an index with nRows=" << tmp->getNRows()
-                << ", but the data partition nRows=" << thePart->nRows()
-                << ", try to recreate the index";
-            delete tmp;
-            // create a brand new index from data in the current working
-            // directory
-            tmp = ibis::index::create(this, static_cast<const char*>(0), iopt);
-            if (tmp != 0 && tmp->getNRows() != thePart->nRows()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- " << evt
-                    <<" created an index with nRows=" << tmp->getNRows()
-                    << ", but the data partition nRows=" << thePart->nRows()
-                    << ", failed on retry!";
-                delete tmp;
+	    thePart->nRows()) {
+	    LOGGER(ibis::gVerbose > 2)
+		<< evt << " an index with nRows=" << tmp->getNRows()
+		<< ", but the data partition nRows=" << thePart->nRows()
+		<< ", try to recreate the index";
+	    delete tmp;
+	    // create a brand new index from data in the current working
+	    // directory
+	    tmp = ibis::index::create(this, static_cast<const char*>(0), iopt);
+	    if (tmp != 0 && tmp->getNRows() != thePart->nRows()) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- " << evt
+		    <<" created an index with nRows=" << tmp->getNRows()
+		    << ", but the data partition nRows=" << thePart->nRows()
+		    << ", failed on retry!";
+		delete tmp;
                 tmp = 0;
-            }
-        }
-        if (tmp != 0) {
-            if (ibis::gVerbose > 10) {
-                ibis::util::logger lg;
-                tmp->print(lg());
-            }
+		purgeIndexFile();
+	    }
+	}
+	if (tmp != 0) {
+	    if (ibis::gVerbose > 10) {
+		ibis::util::logger lg;
+		tmp->print(lg());
+	    }
 
             ibis::util::mutexLock lck2(&mutex, "loadIndex");
             if (! (lower <= upper)) { // use negation to catch NaNs

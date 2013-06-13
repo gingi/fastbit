@@ -707,32 +707,32 @@ uint32_t ibis::bin::locate(const double& val) const {
             << "bin::locate -- element " << i1 << " (" << bounds[i1]
             << ") out of " << bounds.size() << " is no less than " << val;
 #endif
-        LOGGER(ibis::gVerbose > 10)
-            << "column[" << (col ? col->fullname() : "?.?")
-            << "]::bin::locate -- "
-            << std::setprecision(16) << val << " in ["
-            << std::setprecision(16) << bounds[i0] << ", "
-            << std::setprecision(16) << bounds[i1] << ") ==> " << i1;
-        return i1;
+	LOGGER(ibis::gVerbose > 10)
+	    << "column[" << col->partition()->name() << "." << col->name()
+	    << "]::bin::locate -- " << std::setprecision(16) << val << " in ["
+	    << std::setprecision(16) << bounds[i0] << ", "
+	    << std::setprecision(16) << bounds[i1] << ") ==> " << i1;
+	return i1;
     }
     else { // do linear search
-        for (uint32_t i = 1; i < nobs; ++i) {
-            if (val < bounds[i]) {
+	for (uint32_t i = 1; i < nobs; ++i) {
+	    if (val < bounds[i]) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 1
-                LOGGER(ibis::gVerbose > 5)
-                    << "bin[" << (col ? col->fullname() : "?.?")
-                    << "]::locate -- element " << i << " (" << bounds[i]
-                    << ") out of " << bounds.size() << " is no less than "
-                    << val;
+		col->logMessage
+		    ("bin::locate", "element %lu (%g) out of %lu is no "
+		     "less than %g",
+		     static_cast<long unsigned>(i), bounds[i],
+		     static_cast<long unsigned>(bounds.size()), val);
 #endif
-                LOGGER(ibis::gVerbose > 10)
-                    << "column[" << (col ? col->fullname() : "?.?")
-                    << "]::bin::locate -- " << std::setprecision(16) << val
-                    << " in [" << std::setprecision(16) << bounds[i-1] << ", "
-                    << std::setprecision(16) << bounds[i] << ") ==> " << i;
-                return i;
-            }
-        }
+		LOGGER(ibis::gVerbose > 10)
+		    << "column[" << col->partition()->name() << "."
+		    << col->name() << "]::bin::locate -- "
+		    << std::setprecision(16) << val << " in ["
+		    << std::setprecision(16) << bounds[i-1] << ", "
+		    << std::setprecision(16) << bounds[i] << ") ==> " << i;
+		return i;
+	    }
+	}
     }
     return nobs;
 } // ibis::bin::locate
@@ -1028,85 +1028,82 @@ void ibis::bin::binning(const char* f) {
         }
         break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
-        array_t<float> val;
-        if (! fnm.empty())
-            ibis::fileManager::instance().getFile(fnm.c_str(), val);
-        else
-            col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
+	array_t<float> val;
+	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
 #if defined(DBUG) || defined(_DEBUG)
                         LOGGER(ibis::gVerbose > 8 && i%1000==0)
                             << "DEBUG -- binning val[" << i << "] = "
                             << val[i] << " ==> bin " << j
                             << (j<nobs?"":" ***out-of-range***");
 #endif
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > val[i])
-                                minval[j] = val[i];
-                            if (maxval[j] < val[i])
-                                maxval[j] = val[i];
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > val[k])
-                                minval[j] = val[k];
-                            if (maxval[j] < val[k])
-                                maxval[j] = val[k];
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > val[k])
-                                    minval[j] = val[k];
-                                if (maxval[j] < val[k])
-                                    maxval[j] = val[k];
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > val[i])
+				minval[j] = val[i];
+			    if (maxval[j] < val[i])
+				maxval[j] = val[i];
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > val[k])
+				minval[j] = val[k];
+			    if (maxval[j] < val[k])
+				maxval[j] = val[k];
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > val[k])
+				    minval[j] = val[k];
+				if (maxval[j] < val[k])
+				    maxval[j] = val[k];
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
 
-            // reset the nominal boundaries of the bins
-            for (uint32_t i = 0; i < nobs-1; ++ i) {
-                if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-                    bounds[i] = ibis::util::compactValue
-                        (maxval[i], minval[i+1]);
-            }
-        }
-        break;}
+	    // reset the nominal boundaries of the bins
+	    for (uint32_t i = 0; i < nobs-1; ++ i) {
+		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
+		    bounds[i] = ibis::util::compactValue(maxval[i],
+							 minval[i+1]);
+	    }
+	}
+	break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
         array_t<double> val;
         if (! fnm.empty())
@@ -4990,12 +4987,12 @@ void ibis::bin::setBoundaries(const char* f) {
             bounds.resize(i+1);
         }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-        {
-            ibis::util::logger lg(4);
-            lg() << "DEBUG -- bin bounds after duplicate removal\n";
-            for (unsigned i = 0; i < bounds.size(); ++ i)
-                lg() << std::setprecision(16) << bounds[i] << " ";
-        }
+	{
+	    ibis::util::logger lg(4);
+	    lg() << "DEBUG -- bin bounds after duplicate removal\n";
+	    for (unsigned i = 0; i < bounds.size(); ++ i)
+		lg() << std::setprecision(16) << bounds[i] << " ";
+	}
 #endif
     }
 
@@ -6032,71 +6029,52 @@ void ibis::bin::print(std::ostream& out) const {
 
     // activate(); -- activate may invoke ioLock and cause deadlocking
     out << "index (equality encoded, binned) for "
-        << (col ? col->fullname() : "?")
-        << " contains " << nobs << " bitvectors for "
-        << nrows << " objects \n";
-    if (ibis::gVerbose > 3 || nobs == 1) { // print the long form
-        uint32_t i, cnt = 0;
-        if (ibis::gVerbose > 7)
-            out << std::setprecision(18);
-        else if (ibis::gVerbose > 5)
-            out << std::setprecision(14);
-        else
-            out << std::setprecision(10);
-        out << "0: ";
-        if (bits[0]) {
-            out << bits[0]->cnt();
-            cnt += bits[0]->cnt();
-        }
-        else {
-            out << "??";
-        }
-        out << "\t(..., " << bounds[0] << ")\t[" << minval[0]
-            << ", " << maxval[0] << "]\n";
-        if (nobs == 1) return;
-
-        for (i = 1; i < npr; ++i) {
-            if (bits[i] != 0) {
-                out << i << ": " << bits[i]->cnt() << "\t["
-                    << bounds[i-1] << ", " << bounds[i] << ")\t["
-                    << minval[i] << ", " << maxval[i] << "]\n";
-                cnt += bits[i]->cnt();
-            }
-            else {
-                ++ omt;
-            }
-        }
-        omt += nobs-1-npr;
-        i = nobs-1;
-        if (omt > 0) {
-            out << " ...\t(" << omt << " omitted)\n";
-        }
-
-        out << i << ": ";
-        if (bits[i] != 0) {
-            out << bits[i]->cnt();
-            cnt += bits[i]->cnt();
-        }
-        else {
-            out << "??";
-        }
-        out << "\t[" << bounds[i-1] << ", " << bounds[i]
-            << ")\t[" << minval[i] << ", " << maxval[i] << "]\n";
-        for (i = 0; i < nobs; ++i) {
-            if (bits[i] != 0 && nrows != bits[i]->size())
-                out << "Warning -- bits[" << i << "] contains "
-                    << bits[i]->size() << " bits, but expected " << nrows;
-        }
-        if (nrows < cnt) {
-            out << "Warning -- There are a total " << cnt << " set bits out of "
-                << nrows << " bits in an index for " << (col ? col->name() : "?")
-                << "\n";
-        }
-        else if (nrows > cnt) {
-            out << "There are a total " << cnt << " set bits out of " << nrows
-                << " bits -- there are probably NULL values in column "
-                << (col ? col->name() : "?") << "\n";
-        }
+	<< col->partition()->name() << '.' << col->name()
+	<< " contains " << nobs << " bitvectors for "
+	<< nrows << " objects \n";
+    if (ibis::gVerbose > 4) { // print the long form
+	uint32_t i, cnt = 0;
+	if (bits[0]) {
+	    out << "0: " << bits[0]->cnt() << "\t(..., "
+                << std::setprecision(12) << bounds[0]
+		<< ")\t[" << std::setprecision(12) << minval[0]
+                << ", " << std::setprecision(12) << maxval[0] << "]\n";
+	    cnt += bits[0]->cnt();
+	}
+	for (i = 1; i < nobs; ++i) {
+	    if (bits[i] != 0) {
+		if (i < npr)
+		    out << i << ": " << bits[i]->cnt() << "\t["
+                        << std::setprecision(12)<< bounds[i-1]
+			<< ", " << std::setprecision(12) << bounds[i]
+                        << ")\t[" << std::setprecision(12) << minval[i] << ", "
+                        << std::setprecision(12)<< maxval[i] << "]\n";
+		else
+		    ++ omt;
+		// out << *(bits[i]);
+		cnt += bits[i]->cnt();
+	    }
+	    else {
+		++ omt;
+	    }
+	}
+	for (i = 0; i < nobs; ++i) {
+	    if (bits[i] != 0 && nrows != bits[i]->size())
+		out << "Warning: bits[" << i << "] contains "
+		    << bits[i]->size()
+		    << " bits, but " << nrows << " are expected\n";
+	}
+	if (nrows < cnt) {
+	    out << "Warning: There are a total " << cnt << " set bits out of "
+		<< nrows << " bits in an index for " << col->name()
+		<< std::endl;
+	}
+	else if (nrows > cnt) {
+	    out << "There are a total " << cnt << " set bits out of "
+		<< nrows
+		<< " bits -- there are probably NULL values in column "
+		<< col->name() << std::endl;
+	}
     }
     else if (nobs > 0) { // the short form
         out << "The three columns are (1) center of bin, (2) bin weight, "

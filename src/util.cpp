@@ -2005,8 +2005,8 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
         ierr = fprintf(fptr, "\n%s\nLog file %s opened on %s\n",
                        str, fname, tstr);
     else if (ibis::gVerbose > 1)
-        ierr = fprintf(fptr, "\n%s\nLog started on %s\n",
-                       str, tstr);
+	ierr = fprintf(fptr, "\n%s\nLog started on %s\n",
+		       str, tstr);
     else
         ierr = fprintf(fptr, "\n");
     if (ierr > 0) {

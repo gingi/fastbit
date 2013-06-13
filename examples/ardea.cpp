@@ -857,24 +857,24 @@ int main(int argc, char** argv) {
     std::unique_ptr<ibis::tablex> ta(ibis::tablex::create());
     ta->setPartitionMax(pmax);
     if (usersupplied) { // use user-supplied data
-        // process the SQL dump files first just in case the CSV files
-        // require the metadata from them
-        for (size_t i = 0; i < sqlfiles.size(); ++ i) {
-            if (ibis::gVerbose >= 0)
-                std::cout << *argv << " is to read SQL dump file "
-                          << sqlfiles[i] << " ..." << std::endl;
-            std::string tname;
-            ierr = ta->readSQLDump(sqlfiles[i], tname, nrpf, outdir);
-            if (ierr < 0) {
-                std::clog << *argv << " failed to process file \""
-                          << sqlfiles[i] << "\", readSQLDump returned "
-                          << ierr << std::endl;
-            }
-            else if (outdir != 0 && *outdir != 0) {
-                if (ibis::gVerbose >= 0)
-                    std::cout << *argv << " read " << ierr << " row"
-                              << (ierr>1?"s":"") << " from " << csvfiles[i]
-                              << std::endl;
+	// process the SQL dump files first just in case the CSV files
+	// require the metadata from them
+	for (size_t i = 0; i < sqlfiles.size(); ++ i) {
+	    if (ibis::gVerbose >= 0)
+		std::cout << *argv << " is to read SQL dump file " << sqlfiles[i]
+			  << " ..." << std::endl;
+	    std::string tname;
+	    ierr = ta->readSQLDump(sqlfiles[i], tname, nrpf, outdir);
+	    if (ierr < 0) {
+		std::clog << *argv << " failed to process file \""
+			  << sqlfiles[i] << "\", readSQLDump returned "
+			  << ierr << std::endl;
+	    }
+	    else if (outdir != 0 && *outdir != 0) {
+		if (ibis::gVerbose >= 0)
+		    std::cout << *argv << " read " << ierr << " row"
+			      << (ierr>1?"s":"") << " from " << csvfiles[i]
+			      << std::endl;
 
                 ierr = ta->write(outdir, (tname.empty()?dsn:tname.c_str()),
                                  oss.str().c_str(), indexing, metatags.c_str());
@@ -904,21 +904,21 @@ int main(int argc, char** argv) {
             ta->setASCIIDictionary(userdicts[j], userdicts[j+1]);
         }
 
-        // process the CSV files
-        for (size_t i = 0; i < csvfiles.size(); ++ i) {
-            if (ibis::gVerbose >= 0)
-                std::cout << *argv << " is to read CSV file " << csvfiles[i]
-                          << " ..." << std::endl;
-            ierr = ta->readCSV(csvfiles[i], nrpf, outdir, del);
-            if (ierr < 0)
-                std::clog << *argv << " failed to parse file \""
-                          << csvfiles[i] << "\", readCSV returned "
-                          << ierr << std::endl;
-            else if (outdir != 0 && *outdir != 0) {
-                if (ibis::gVerbose >= 0)
-                    std::cout << *argv << " read " << ierr << " row"
-                              << (ierr>1?"s":"") << " from " << csvfiles[i]
-                              << std::endl;
+	// process the CSV files
+	for (size_t i = 0; i < csvfiles.size(); ++ i) {
+	    if (ibis::gVerbose >= 0)
+		std::cout << *argv << " is to read CSV file " << csvfiles[i]
+			  << " ..." << std::endl;
+	    ierr = ta->readCSV(csvfiles[i], nrpf, outdir, del);
+	    if (ierr < 0)
+		std::clog << *argv << " failed to parse file \""
+			  << csvfiles[i] << "\", readCSV returned "
+			  << ierr << std::endl;
+	    else if (outdir != 0 && *outdir != 0) {
+		if (ibis::gVerbose >= 0)
+		    std::cout << *argv << " read " << ierr << " row"
+			      << (ierr>1?"s":"") << " from " << csvfiles[i]
+			      << std::endl;
 
                 ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
                                  metatags.c_str());

@@ -446,6 +446,29 @@ explicit a 'GROUP BY' clause.
   run out of memory and crash!
 </ul>
 
+<p>  The supported functions are:
+<ul>
+  <li> AVG: average
+  <li> MAX: maximum
+  <li> MIN: minimum
+  <li> SUM: sum
+  <li> COUNT: count the number of rows of the named variable.  The
+  actual value of the name is ignored, it may be '*'.
+  <li> COUNTDISTINCT: count the number of distinct value of the named variable.
+  <li> VAR: variance
+  <li> VARP: population variance
+  <li> STDEV: standard deviation
+  <li> STDEVP: population standard deviation
+  <li> GROUP_CONCAT: concatenate the string version of the values using
+  coma as separator
+  <li> MEDIAN: median of the column values.  Note that this function can
+  not be evaluated progressively.  Any select clause including this
+  function will require all intermediate values to be stored in memory
+  before this function can be evaluated.  This can significantly
+  increase the memory requirement and may lead to <code>ibis</code> to
+  run out of memory and crash!
+</ul>
+
 <p>
 The key word FROM must be followed by a list of table names.
 Conceptually, the data under the management of IBIS are organized into

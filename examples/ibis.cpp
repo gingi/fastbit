@@ -4315,10 +4315,10 @@ static void doAppend(const char* dir) {
         newtable = true;
     }
     if (tbl == 0) {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- doAppend(" << dir << ") failed to allocate an "
-            "ibis::part object.  Can NOT continue.\n";
-        return;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- doAppend(" << dir << ") failed to allocate an "
+	    "ibis::part object.  Can NOT continue.\n";
+	return;
     }
 
     ibis::horometer timer;
@@ -4346,81 +4346,81 @@ static void doAppend(const char* dir) {
     }
     const long napp = ierr;
     if (tbl->getState() != ibis::part::STABLE_STATE) {
-        if (ibis::gVerbose > 3 ||
-            (ibis::gVerbose >= 0 && testing > 0)) {// self test after append
-            int nth = static_cast<int>(ibis::gVerbose < 20
-                                       ? 1+sqrt((double)ibis::gVerbose)
-                                       : 3+log((double)ibis::gVerbose));
-            tbl->buildIndexes(0, 1);
-            ierr = tbl->selfTest(nth);
-        }
-        else { // very quiet, skip self testing
-            ierr = 0;
-        }
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- doAppend(" << dir << "): selfTest encountered "
-                << ierr << " error" << (ierr > 1 ? "s." : ".")
-                << " Will attempt to roll back the changes.";
-            ierr = tbl->rollback();
-            LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
-                << "doAppend(" << dir << "): rollback returned with "
-                << ierr << "\n";
-            if (newtable)
-                delete tbl;
-            return;
-        }
+	if (ibis::gVerbose > 3 ||
+	    (ibis::gVerbose >= 0 && testing > 0)) {// self test after append
+	    int nth = static_cast<int>(ibis::gVerbose < 20
+				       ? 1+sqrt((double)ibis::gVerbose)
+				       : 3+log((double)ibis::gVerbose));
+	    tbl->buildIndexes(0, 1);
+	    ierr = tbl->selfTest(nth);
+	}
+	else { // very quiet, skip self testing
+	    ierr = 0;
+	}
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doAppend(" << dir << "): selfTest encountered "
+		<< ierr << " error" << (ierr > 1 ? "s." : ".")
+		<< " Will attempt to roll back the changes.";
+	    ierr = tbl->rollback();
+	    LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
+		<< "doAppend(" << dir << "): rollback returned with "
+		<< ierr << "\n";
+	    if (newtable)
+		delete tbl;
+	    return;
+	}
 
-        timer.start();
-        ierr = tbl->commit(dir);
-        timer.stop();
-        if (ierr != napp) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- doAppend(" << dir
-                << "): expected commit to return "
-                << napp << ", but it actually retruned " << ierr
-                << ".  Unrecoverable error!\n";
-            return;
-        }
-        else if (ibis::gVerbose >= 0) {
-            ibis::util::logger lg;
-            lg() << "doAppend(" << dir << "): committing " << napp
-                 << " rows to partition \"" << tbl->name() << "\"";
-            if (ibis::gVerbose > 0)
-                lg() << " took " << timer.CPUTime() << " CPU seconds, "
-                     << timer.realTime() << " elapsed seconds";
-            lg() << ".  Total number of rows is " << tbl->nRows() << ".";
-        }
+	timer.start();
+	ierr = tbl->commit(dir);
+	timer.stop();
+	if (ierr != napp) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doAppend(" << dir
+		<< "): expected commit to return "
+		<< napp << ", but it actually retruned " << ierr
+		<< ".  Unrecoverable error!\n";
+	    return;
+	}
+	else if (ibis::gVerbose >= 0) {
+	    ibis::util::logger lg;
+	    lg() << "doAppend(" << dir << "): committing " << napp
+		 << " rows to partition \"" << tbl->name() << "\"";
+	    if (ibis::gVerbose > 0)
+		lg() << " took " << timer.CPUTime() << " CPU seconds, "
+		     << timer.realTime() << " elapsed seconds";
+	    lg() << ".  Total number of rows is " << tbl->nRows() << ".";
+	}
 
-        if (ierr <= 0) {
-            if (newtable) // new partition, delete it
-                delete tbl;
-            return;
-        }
+	if (ierr <= 0) {
+	    if (newtable) // new partition, delete it
+		delete tbl;
+	    return;
+	}
 
-        // self test after commit
-        if (ibis::gVerbose > 4 || (ibis::gVerbose > 0 && testing > 0)) {
-            tbl->buildIndexes(0, 1);
-            ierr = tbl->selfTest(0);
-            LOGGER(ibis::gVerbose > 0)
+	// self test after commit
+	if (ibis::gVerbose > 4 || (ibis::gVerbose > 0 && testing > 0)) {
+	    tbl->buildIndexes(0, 1);
+	    ierr = tbl->selfTest(0);
+	    LOGGER(ibis::gVerbose > 0)
                 << (ierr>0?"Warning -- ":"")
-                << "doAppend(" << dir << "): selfTest on partition \""
-                << tbl->name() << "\" (after committing " << napp
-                << (napp > 1 ? " rows" : " row")
-                << ") encountered " << ierr
-                << (ierr > 1 ? " errors\n" : " error\n");
-        }
+		<< "doAppend(" << dir << "): selfTest on partition \""
+		<< tbl->name() << "\" (after committing " << napp
+		<< (napp > 1 ? " rows" : " row")
+		<< ") encountered " << ierr
+		<< (ierr > 1 ? " errors\n" : " error\n");
+	}
     }
     else if (ibis::gVerbose > 3 || (ibis::gVerbose >= 0 && testing > 0)) {
-        tbl->buildIndexes(0, 1);
-        ierr = tbl->selfTest(0);
-        LOGGER(ibis::gVerbose > 0)
-            << (ierr>0?"Warning -- ":"")
+	tbl->buildIndexes(0, 1);
+	ierr = tbl->selfTest(0);
+	LOGGER(ibis::gVerbose > 0)
+	    << (ierr>0?"Warning -- ":"")
             << "doAppend(" << dir << "): selfTest on partition \""
-            << tbl->name() << "\" (after appending " << napp
-            << (napp > 1 ? " rows" : " row")
-            << ") encountered " << ierr
-            << (ierr > 1 ? " errors\n" : " error\n");
+	    << tbl->name() << "\" (after appending " << napp
+	    << (napp > 1 ? " rows" : " row")
+	    << ") encountered " << ierr
+	    << (ierr > 1 ? " errors\n" : " error\n");
     }
     if (newtable) // new partition, add it to the list of partitions
         ibis::datasets.push_back(tbl);
