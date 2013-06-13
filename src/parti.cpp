@@ -721,24 +721,26 @@ long ibis::part::append(const char* dir) {
     try {
 	if (backupDir != 0 && *backupDir != 0 && activeDir != backupDir &&
 	    strcmp(activeDir, backupDir) != 0) {
-	    ibis::fileManager::instance().flushDir(backupDir);
+	    //ibis::fileManager::instance().flushDir(backupDir);
 	    ierr = append2(dir);
 	}
 	else {
-	    ibis::fileManager::instance().flushDir(activeDir);
+	    //ibis::fileManager::instance().flushDir(activeDir);
 	    ierr = append1(dir);
 	}
     }
     catch (const char* s) { // revert to previous state
-	logWarning("append", "received the following error message, "
-		   "will reverse changes made so far.\n%s", s);
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " received the following error "
+            "message, will reverse changes made so far.\n\t" << s;
 	state = UNKNOWN_STATE;
 	makeBackupCopy();
 	ierr = -2021;
     }
     catch (...) {
-	logWarning("append", "received a unknown exception, "
-		   "will reverse changes made so far.");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning" << evt << " received a unexpected exception, "
+            "will reverse changes made so far.";
 	state = UNKNOWN_STATE;
 	makeBackupCopy();
 	ierr = -2020;
@@ -764,10 +766,6 @@ long ibis::part::append1(const char *dir) {
 	delete rids;	// remove the RID list
 	rids = 0;
 	ibis::fileManager::instance().flushDir(activeDir);
-	columnList::iterator it;
-	for (it = columns.begin(); it != columns.end(); ++it)
-	    delete (*it).second;
-	columns.clear();
     }
 
     // assign backupDir so that appendToBackup will work correctly
@@ -780,8 +778,10 @@ long ibis::part::append1(const char *dir) {
 
     // reset backupDir to null
     activeDir = backupDir; backupDir = 0;
-
     // retrieve the new column list
+    for (columnList::iterator it = columns.begin(); it != columns.end(); ++it)
+        delete (*it).second;
+    columns.clear();
     readMetaData(nEvents, columns, activeDir);
     if (ntot > 0 && ntot != nEvents) {
 	logWarning("append", "expected %lu rows, but the table.tdc "
@@ -1161,6 +1161,15 @@ long ibis::part::appendToBackup(const char* dir) {
 	return ierr;
     }
 
+    if (ibis::gVerbose > 1)
+	logMessage("appendToBackup", "starting to append new data in \"%s\" "
+		   "(%lu rows) to %s", dir, static_cast<long unsigned>(napp),
+		   backupDir);
+    ibis::horometer timer;
+    if (ibis::gVerbose > 0)
+	timer.start();
+
+    std::string fn;
     bool has_rids = true;
     if (nEvents > 0) {
 	if (rids == 0)
@@ -1168,33 +1177,26 @@ long ibis::part::appendToBackup(const char* dir) {
 	else if (rids->empty())
 	    has_rids = false;
     }
-    std::string fn;
-    fn = dir;
-    fn += FASTBIT_DIRSEP;
-    fn += "-rids";
-    long tmp = ibis::util::getFileSize(fn.c_str());
-    if (tmp > 0) {
-	tmp /= sizeof(ibis::rid_t);
-	if (static_cast<uint32_t>(tmp) != napp) {
-	    logWarning("appendToBackup", "table.tdc file indicates that "
-		       "directory %s has %lu rows, but there are %ld "
-		       "rids.  Assume %ld rows are available.", dir,
-		       static_cast<long unsigned>(napp), tmp, tmp);
-	    napp = tmp;
-	}
-	has_rids = true;
+    if (! has_rids) {
+        fn = dir;
+        fn += FASTBIT_DIRSEP;
+        fn += "-rids";
+        long tmp = ibis::util::getFileSize(fn.c_str());
+        if (tmp > 0) {
+            tmp /= sizeof(ibis::rid_t);
+            if (static_cast<uint32_t>(tmp) != napp) {
+                logWarning("appendToBackup", "table.tdc file indicates that "
+                           "directory %s has %lu rows, but there are %ld "
+                           "rids.  Assume %ld rows are available.", dir,
+                           static_cast<long unsigned>(napp), tmp, tmp);
+                napp = tmp;
+            }
+            has_rids = true;
+        }
+        else {
+            has_rids = false;
+        }
     }
-    else {
-	has_rids = false;
-    }
-
-    if (ibis::gVerbose > 1)
-	logMessage("appendToBackup", "starting to append new data in \"%s\""
-		   "(%lu rows) to %s", dir, static_cast<long unsigned>(napp),
-		   backupDir);
-    ibis::horometer timer;
-    if (ibis::gVerbose > 0)
-	timer.start();
 
     // meta tags were not included when fetching raw data, need to add them
     for (ibis::resource::vList::const_iterator mit = metaList.begin();
@@ -1210,7 +1212,7 @@ long ibis::part::appendToBackup(const char* dir) {
     }
 
     // integerate the two column list, the combined list is stored in clist
-    for (cit = clist.begin(); cit != clist.end(); ++cit) {
+    for (cit = clist.begin(); cit != clist.end(); ++ cit) {
 	pit = columns.find((*cit).first);
 	if (pit != columns.end()) { // update the min/max pair
 	    if ((*pit).second->upperBound() >
@@ -1224,7 +1226,7 @@ long ibis::part::appendToBackup(const char* dir) {
 	    }
 	}
     }
-    for (pit = columns.begin(); pit != columns.end(); ++pit) {
+    for (pit = columns.begin(); pit != columns.end(); ++ pit) {
 	cit = clist.find((*pit).first);
 	if (cit == clist.end()) { // attribute in columns but not in clist
 	    ibis::column* prop = 0;
@@ -1244,7 +1246,7 @@ long ibis::part::appendToBackup(const char* dir) {
 	ibis::util::logger lg;
 	lg() << "part::appendToBackup -- The combined (new) "
 	    "attribute list (" << clist.size() << ")\n";
-	for (cit = clist.begin(); cit != clist.end(); ++cit)
+	for (cit = clist.begin(); cit != clist.end(); ++ cit)
 	    lg() << *((*cit).second) << "\n";
     }
 
@@ -1283,12 +1285,12 @@ long ibis::part::appendToBackup(const char* dir) {
     ierr = napp;
 
     // go through each column in the combined column list
-    for (cit = clist.begin(); cit != clist.end(); ++cit) {
-	if (ibis::gVerbose > 14)
+    for (cit = clist.begin(); cit != clist.end(); ++ cit) {
+	if (ibis::gVerbose > 6)
 	    logMessage("appendToBackup", "processing %s (%s)", (*cit).first,
 		       ibis::TYPESTRING[(*cit).second->type()]);
-	tmp = (*cit).second->append(backupDir, dir, nold, napp,
-				    nbuf, buf);
+	long tmp = (*cit).second->append
+            (backupDir, dir, nold, napp, nbuf, buf);
 	if (tmp != ierr)
 	    logWarning("appendToBackup", "expected to add %ld elements "
 		       "of \"%s\", but actually added %ld", ierr,

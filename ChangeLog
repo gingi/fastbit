@@ -1,3 +1,22 @@
+2013-06-13 John Wu <John dot Wu at ACM dot org>
+	* src/parti.cpp: in function append1 move the section of code that
+	clears the existing list of columns to be after the call of
+	appendToBackup (to provide an opportunity for appendToBackup to
+	produce a combined list of columns, a problem reported by Mark
+	Hansen mark at digitalbrandmine.com)
+	* src/column.cpp:5448 assign tmp to 0 after delete statement (to
+	prevent it being used again)
+	* src/category.cpp: in function startPositions, add code to deal
+	with empty data file
+
+2013-06-12 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: change call to logWarning in actualMinMax to use
+	LOGGER
+
+2013-06-07 John Wu <John dot Wu at ACM dot org>
+	* doc/ibisCommandLine.html: update the description of the select
+	clause
+
 2013-06-02 John Wu <John dot Wu at ACM dot org>
 	* java/gov/lbl/fastbit/FastBitStringWriter.java: in addRow change
 	getAndAdd to addAndGet to get the new offset instead of the old

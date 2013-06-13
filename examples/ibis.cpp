@@ -4236,7 +4236,7 @@ static void doAppend(const char* dir) {
     if (tbl == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- doAppend(" << dir << ") failed to allocate an "
-	    "ibis::part object. Can NOT continue.\n";
+	    "ibis::part object.  Can NOT continue.\n";
 	return;
     }
 
@@ -4278,7 +4278,7 @@ static void doAppend(const char* dir) {
 	}
 	if (ierr != 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "doAppend(" << dir << "): selfTest encountered "
+		<< "Warning -- doAppend(" << dir << "): selfTest encountered "
 		<< ierr << " error" << (ierr > 1 ? "s." : ".")
 		<< " Will attempt to roll back the changes.";
 	    ierr = tbl->rollback();
@@ -4317,11 +4317,12 @@ static void doAppend(const char* dir) {
 	    return;
 	}
 
-	// self test after commit,
+	// self test after commit
 	if (ibis::gVerbose > 4 || (ibis::gVerbose > 0 && testing > 0)) {
 	    tbl->buildIndexes(0, 1);
 	    ierr = tbl->selfTest(0);
 	    LOGGER(ibis::gVerbose > 0)
+                << (ierr>0?"Warning -- ":"")
 		<< "doAppend(" << dir << "): selfTest on partition \""
 		<< tbl->name() << "\" (after committing " << napp
 		<< (napp > 1 ? " rows" : " row")
@@ -4333,7 +4334,8 @@ static void doAppend(const char* dir) {
 	tbl->buildIndexes(0, 1);
 	ierr = tbl->selfTest(0);
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- doAppend(" << dir << "): selfTest on partition \""
+	    << (ierr>0?"Warning -- ":"")
+            << "doAppend(" << dir << "): selfTest on partition \""
 	    << tbl->name() << "\" (after appending " << napp
 	    << (napp > 1 ? " rows" : " row")
 	    << ") encountered " << ierr

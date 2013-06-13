@@ -1469,6 +1469,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	dir = thePart->currentDataDir();
     if (dir == 0 || *dir == 0) return;
 
+    int64_t pos = 0;
+    uint32_t nold;
     std::string evt = "text[";
     evt += thePart->name();
     evt += '.';
@@ -1484,8 +1486,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     FILE *fsp = fopen(spfile.c_str(), "r+b"); // mostly for writing
     if (fsp == 0) // probably because the file does not exist, try again
 	fsp = fopen(spfile.c_str(), "wb");
-
-    if (fdata == 0 || fsp == 0) { // at least one of the files did not open
+    if (fsp == 0) { // again failed to open .sp file
 	if (fdata == 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt << " failed to open file "
@@ -1494,31 +1495,29 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	else {
 	    fclose(fdata);
 	}
-	if (fsp == 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << " failed to open file "
-		<< spfile;
-	}
-	else {
-	    fclose(fsp);
-	    remove(spfile.c_str());
-	}
-
-	return;
-    }
-
-    long ierr = fseek(fdata, 0, SEEK_END);
-    int64_t dfbytes = ftell(fdata);
-    if (dfbytes <= 0) { // empty data file
-	fclose(fsp);
-	fclose(fdata);
-	remove(spfile.c_str());
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to open file "
+            << spfile;
 	return;
     }
     const bool isActiveData =
 	(thePart->getStateNoLocking() == ibis::part::STABLE_STATE &&
 	 (dir == thePart->currentDataDir() ||
 	  strcmp(dir, thePart->currentDataDir()) == 0));
+    if (fdata == 0) { // failed to open data file, assume it is empty
+        if ((isActiveData || thePart->currentDataDir()== 0)
+            && thePart->nRows() > 0) {
+            rewind(fsp);
+            nold = thePart->nRows();
+            for (unsigned j = 0; j <= nold; ++ j)
+                (void) fwrite(&pos, sizeof(int64_t), 1, fsp);
+        }
+        fclose(fsp);
+        return;
+    }
+
+    long ierr = fseek(fdata, 0, SEEK_END);
+    int64_t dfbytes = ftell(fdata);
     ierr = fseek(fsp, 0, SEEK_END);
     ierr = ftell(fsp);
     if (isActiveData && ierr > (long)(8 * thePart->nRows())) {
@@ -1534,8 +1533,6 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	buf = mybuf.address();
     }
 
-    int64_t pos = 0;
-    uint32_t nold = 0;
     if (ierr > (long)sizeof(uint64_t)) // .sp contains at least two integers
 	ierr = fseek(fsp, -static_cast<long>(sizeof(int64_t)), SEEK_END);
     else
@@ -1549,7 +1546,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    fclose(fdata);
 	    return;
 	}
-	if (pos > 0 && pos <= dfbytes) {// within the valid range
+	if (pos >= 0 && pos <= dfbytes) {// within the valid range
 	    nold = ftell(fsp) / sizeof(int64_t) - 1;
 	    if (nold > thePart->nRows()) { // start from beginning
 		pos = 0;
@@ -1570,6 +1567,15 @@ void ibis::text::startPositions(const char *dir, char *buf,
     else {
 	rewind(fsp);
 	pos = 0;
+    }
+    if (dfbytes <= 0) { // empty data file
+        if (isActiveData) {
+            for (unsigned j = nold; j <= thePart->nRows(); ++ j)
+                (void) fwrite(&pos, sizeof(int64_t), 1, fsp);
+        }
+	fclose(fsp);
+	fclose(fdata);
+	return;
     }
 
     ibis::fileManager::buffer<int64_t> sps;

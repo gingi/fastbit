@@ -463,6 +463,16 @@ void ibis::column::computeMinMax(const char *dir, double &min,
 /// int, float and double.
 void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 				double &min, double &max) const {
+    std::string evt = "column";
+    if (ibis::gVerbose > 2) {
+        evt += '[';
+        evt += (thePart != 0 ? thePart->name() : "?");
+        evt += '.';
+        evt += m_name;
+        evt += ']';
+    }
+    evt += "::actualMinMax";
+
     switch (m_type) {
     case ibis::UBYTE: {
 	array_t<unsigned char> val;
@@ -474,7 +484,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -490,7 +501,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 	actualMinMax(val, mask, min, max);
@@ -505,7 +517,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -521,7 +534,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -537,7 +551,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -553,7 +568,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -569,7 +585,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -585,7 +602,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -601,7 +619,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -617,7 +636,8 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	if (ierr != 0) {
 	    min = DBL_MAX;
 	    max = -DBL_MAX;
-	    logWarning("actualMinMax", "unable to retrieve file %s", name);
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
 
@@ -625,7 +645,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- column::actualMinMax can not handle column type "
+	    << "Warning -- " << evt << " can not handle column type "
 	    << ibis::TYPESTRING[static_cast<int>(m_type)]
 	    << ", only support int, uint, float, double";
 	min = DBL_MAX;
@@ -5425,6 +5445,7 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 		    << ", but the data partition nRows=" << thePart->nRows()
 		    << ", failed on retry!";
 		delete tmp;
+                tmp = 0;
 		purgeIndexFile();
 	    }
 	}

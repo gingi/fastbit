@@ -549,29 +549,29 @@ uint32_t ibis::bin::locate(const double& val) const {
 			static_cast<long unsigned>(i1), bounds[i1],
 			static_cast<long unsigned>(bounds.size()), val);
 #endif
-	LOGGER(ibis::gVerbose > 8)
+	LOGGER(ibis::gVerbose > 10)
 	    << "column[" << col->partition()->name() << "." << col->name()
-	    << "]::bin::locate -- " << std::setprecision(8) << val << " in ["
-	    << std::setprecision(8) << bounds[i0] << ", "
-	    << std::setprecision(8) << bounds[i1] << ") ==> " << i1;
+	    << "]::bin::locate -- " << std::setprecision(16) << val << " in ["
+	    << std::setprecision(16) << bounds[i0] << ", "
+	    << std::setprecision(16) << bounds[i1] << ") ==> " << i1;
 	return i1;
     }
     else { // do linear search
 	for (uint32_t i = 1; i < nobs; ++i) {
 	    if (val < bounds[i]) {
-#if DEBUG+0 > 1 || _DEBUG+0 > 1
+#if DEBUG+0 > 0 || _DEBUG+0 > 1
 		col->logMessage
 		    ("bin::locate", "element %lu (%g) out of %lu is no "
 		     "less than %g",
 		     static_cast<long unsigned>(i), bounds[i],
 		     static_cast<long unsigned>(bounds.size()), val);
 #endif
-		LOGGER(ibis::gVerbose > 8)
+		LOGGER(ibis::gVerbose > 10)
 		    << "column[" << col->partition()->name() << "."
 		    << col->name() << "]::bin::locate -- "
-		    << std::setprecision(8) << val << " in ["
-		    << std::setprecision(8) << bounds[i-1] << ", "
-		    << std::setprecision(8) << bounds[i] << ") ==> " << i;
+		    << std::setprecision(16) << val << " in ["
+		    << std::setprecision(16) << bounds[i-1] << ", "
+		    << std::setprecision(16) << bounds[i] << ") ==> " << i;
 		return i;
 	    }
 	}
@@ -887,6 +887,12 @@ void ibis::bin::binning(const char* f) {
 		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
 		    for (uint32_t i = *iix; i < k; ++i) {
 			uint32_t j = locate(val[i]);
+#if defined(DBUG) || defined(_DEBUG)
+                        LOGGER(ibis::gVerbose > 8 && i%1000==0)
+                            << "DEBUG -- binning val[" << i << "] = "
+                            << val[i] << " ==> bin " << j
+                            << (j<nobs?"":" ***out-of-range***");
+#endif
 			if (j < nobs) {
 			    bits[j]->setBit(i, 1);
 			    if (minval[j] > val[i])
@@ -4808,7 +4814,7 @@ void ibis::bin::setBoundaries(const char* f) {
 	    ibis::util::logger lg(4);
 	    lg() << "DEBUG -- bin bounds after duplicate removal\n";
 	    for (unsigned i = 0; i < bounds.size(); ++ i)
-		lg() << std::setprecision(8) << bounds[i] << " ";
+		lg() << std::setprecision(16) << bounds[i] << " ";
 	}
 #endif
     }
@@ -5793,17 +5799,20 @@ void ibis::bin::print(std::ostream& out) const {
     if (ibis::gVerbose > 4) { // print the long form
 	uint32_t i, cnt = 0;
 	if (bits[0]) {
-	    out << "0: " << bits[0]->cnt() << "\t(..., " << bounds[0]
-		<< ")\t[" << minval[0] << ", " << maxval[0] << "]\n";
+	    out << "0: " << bits[0]->cnt() << "\t(..., "
+                << std::setprecision(12) << bounds[0]
+		<< ")\t[" << std::setprecision(12) << minval[0]
+                << ", " << std::setprecision(12) << maxval[0] << "]\n";
 	    cnt += bits[0]->cnt();
 	}
 	for (i = 1; i < nobs; ++i) {
 	    if (bits[i] != 0) {
 		if (i < npr)
 		    out << i << ": " << bits[i]->cnt() << "\t["
-			<< bounds[i-1]
-			<< ", " << bounds[i] << ")\t[" << minval[i] << ", "
-			<< maxval[i] << "]\n";
+                        << std::setprecision(12)<< bounds[i-1]
+			<< ", " << std::setprecision(12) << bounds[i]
+                        << ")\t[" << std::setprecision(12) << minval[i] << ", "
+                        << std::setprecision(12)<< maxval[i] << "]\n";
 		else
 		    ++ omt;
 		// out << *(bits[i]);

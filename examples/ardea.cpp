@@ -825,7 +825,7 @@ int main(int argc, char** argv) {
 	// require the metadata from them
 	for (size_t i = 0; i < sqlfiles.size(); ++ i) {
 	    if (ibis::gVerbose >= 0)
-		std::cout << *argv << " to read SQL dump file " << sqlfiles[i]
+		std::cout << *argv << " is to read SQL dump file " << sqlfiles[i]
 			  << " ..." << std::endl;
 	    std::string tname;
 	    ierr = ta->readSQLDump(sqlfiles[i], tname, nrpf, outdir);
@@ -867,7 +867,7 @@ int main(int argc, char** argv) {
 	// process the CSV files
 	for (size_t i = 0; i < csvfiles.size(); ++ i) {
 	    if (ibis::gVerbose >= 0)
-		std::cout << *argv << " to read CSV file " << csvfiles[i]
+		std::cout << *argv << " is to read CSV file " << csvfiles[i]
 			  << " ..." << std::endl;
 	    ierr = ta->readCSV(csvfiles[i], nrpf, outdir, del);
 	    if (ierr < 0)

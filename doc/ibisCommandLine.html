@@ -389,13 +389,13 @@ processing.
 <h2><A name="select">Query statement syntax</A></h2>
 <p>
 The command line tool <code>ibis</code> supports a limited version of
-the SQL select statement.  It recognizes three key words, SELECT, FROM
-and WHERE.  The key words are not case-sensitive, neither are the names
-of variables and functions described next.</p>
+the SQL select statement.  It recognizes four key words, SELECT, FROM
+WHERE and ORDER BY.  The key words are not case-sensitive, neither are
+the names of variables or functions described below.</p>
 
 <p>
 The key word SELECT must be followed by a list of attribute names or one
-of the four functions AVG, MAX, MIN and SUM, separated by commas (,).
+of the supported functions, separated by commas (,).
 The attribute names must be from the available datasets.  If any name is
 not in the available dataset, IBIS treats it same as no attribute
 provided.  If no attribute is provided, the SELECT key must not be used.
@@ -411,14 +411,37 @@ computed.  In the printout, the number of selected records is printed at
 the end.  This is equivalent to adding 'count(*)' to the end of every
 (non-empty) select clause.</p>
 
+<p>  The supported functions are:
+<ul>
+  <li> AVG: average
+  <li> MAX: maximum
+  <li> MIN: minimum
+  <li> SUM: sum
+  <li> COUNT: count the number of rows of the named variable.  The
+  actual value of the name is ignored, it may be '*'.
+  <li> COUNTDISTINCT: count the number of distinct value of the named variable.
+  <li> VAR: variance
+  <li> VARP: population variance
+  <li> STDEV: standard deviation
+  <li> STDEVP: population standard deviation
+  <li> GROUP_CONCAT: concatenate the string version of the values using
+  coma as separator
+  <li> MEDIAN: median of the column values.  Note that this function can
+  not be evaluated progressively.  Any select clause including this
+  function will require all intermediate values to be stored in memory
+  before this function can be evaluated.  This can significantly
+  increase the memory requirement and may lead to <code>ibis</code> to
+  run out of memory and crash!
+</ul>
+
 <p>
 The key word FROM must be followed by a list of table names.
 Conceptually, the data under the management of IBIS are organized into
-tables; and each table must have a name.  The table names may contain
-wild cards, '%' and '_', where '%' matches zero or more any characters
-and '_' matches exactly one character as in SQL "LIKE" expression.  If
-no table name is specified, the key word FROM must not be used.  In
-which case, all know data table would be queried.
+tables; and each table must have a name.  The table names in this clause
+may contain wild cards, '%' and '_', where '%' matches zero or more any
+characters and '_' matches exactly one character as in SQL "LIKE"
+expression.  If no table name is specified, the key word FROM must not
+be used.  In which case, all know data table would be queried.
 
 <p>
 The key word WHERE must be followed by a set of range conditions joined
@@ -446,6 +469,12 @@ row and one column as dictacted by the SQL standard.  One would have to
 examine the content of this trivial table to find out exactly how many
 hits are produced.  To bypass this extra step, simply omitting the
 select clause in this case.
+
+<p>
+The key word ORDER BY is optional.  If it appears, it can only be
+followed by list of column names, no wild cards, no arithmetic
+function.  Furthermore, the column names in the ORDER BY clause must be
+a subset of columns specified as output from the SELECT clause.
 
 <h2><A name="output">Sample output</A></h2>
 Here is a sample output produced on June 13, 2005 using the sample
