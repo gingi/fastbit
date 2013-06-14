@@ -4441,42 +4441,75 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
     mapValues(f, hist, (eqw==10 ? 0 : nbins));
     const uint32_t ncnt = hist.size();
     if (ncnt > nbins * 3 / 2) { // more distinct values than the number of bins
-        array_t<double> val(ncnt);
-        array_t<uint32_t> cnt(ncnt);
-        array_t<uint32_t> bnds(nbins);
-        {
-            uint32_t i = 0;
-            for (histogram::const_iterator it = hist.begin();
+	array_t<double> val(ncnt);
+	array_t<uint32_t> cnt(ncnt);
+	array_t<uint32_t> bnds(nbins);
+	{
+	    uint32_t i = 0;
+	    for (histogram::const_iterator it = hist.begin();
                  it != hist.end(); ++ it, ++ i) {
-                cnt[i] = (*it).second;
-                val[i] = (*it).first;
-            }
-        }
-        hist.clear();
-        divideCounts(bnds, cnt);
+		cnt[i] = (*it).second;
+		val[i] = (*it).first;
+	    }
+	}
+	hist.clear();
+	divideCounts(bnds, cnt);
 
 #if defined(DBUG) && DEBUG+0 > 2
-        {
-            ibis::util::logger lg(4);
-            lg() << "expected bounds  size(" << bounds.size() << ")\n";
-            for (array_t<uint32_t>::const_iterator itt = bnds.begin();
-                 itt != bnds.end(); ++ itt)
-                lg() << val[*itt] << " (" << *itt << ") ";
-        }
+	{
+	    ibis::util::logger lg(4);
+	    lg() << "expected bounds  size(" << bounds.size() << ")\n";
+	    for (array_t<uint32_t>::const_iterator itt = bnds.begin();
+		 itt != bnds.end(); ++ itt)
+		lg() << val[*itt] << " (" << *itt << ") ";
+	}
 #endif
-        if (bounds.empty()) {
-            if (val[0] >= 0)
-                bounds.push_back(0.0);
-            else
-                bounds.push_back(ibis::util::compactValue
-                                 (val[0], -DBL_MAX));
-        }
-        else if (bounds.back() < val[0]) {
-            bounds.push_back(ibis::util::compactValue
-                             (bounds.back(), val[0]));
-        }
-        if (col->type() == ibis::FLOAT ||
-            col->type() == ibis::DOUBLE) {
+	if (bounds.empty()) {
+	    if (val[0] >= 0)
+		bounds.push_back(0.0);
+	    else
+		bounds.push_back(ibis::util::compactValue
+				 (val[0], -DBL_MAX));
+	}
+	else if (bounds.back() < val[0]) {
+	    bounds.push_back(ibis::util::compactValue
+			     (bounds.back(), val[0]));
+	}
+	if (col->type() == ibis::FLOAT ||
+	    col->type() == ibis::DOUBLE) {
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+	    {
+		ibis::util::logger lg(4);
+		lg() << "scanAndPartition: raw bin boundaries\n"
+		     << bounds.back();
+		for (array_t<uint32_t>::const_iterator ii = bnds.begin();
+		     ii != bnds.end(); ++ii)
+		    if (*ii < val.size())
+			lg() << " " << val[*ii];
+	    }
+#endif
+	    // for floating-point values, try to round the boundaries
+	    for (array_t<uint32_t>::const_iterator ii = bnds.begin();
+		 ii != bnds.end(); ++ii) {
+		double tmp;
+		if (*ii == 1) {
+		    tmp = ibis::util::compactValue
+			(0.5*(val[0]+val[1]), val[1]);
+		}
+		else if (*ii < ncnt) {
+		    tmp = ibis::util::compactValue(val[*ii-1], val[*ii]);
+		}
+		else {
+		    tmp = col->upperBound();
+		    if (val.back() <= tmp) {
+			tmp = ibis::util::compactValue(val.back(), tmp);
+		    }
+		    else {
+			tmp = ibis::util::compactValue(val.back(), DBL_MAX);
+		    }
+		}
+		bounds.push_back(tmp);
+	    }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
             {
                 ibis::util::logger lg(4);
@@ -4546,56 +4579,56 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
         }
     }
     else if (ncnt > 1) { // one bin per value
-        uint32_t threshold;
-        if (ncnt >= nbins) {
-            threshold = col->partition()->nRows();
-        }
-        else if (ncnt+ncnt <= nbins) { // enough room to double every value
-            threshold = 0;
-        }
-        else { // there is room for additional bin boundaries
-            array_t<uint32_t> tmp;
-            tmp.reserve(ncnt);
-            threshold = 0;
-            for (histogram::const_iterator it = hist.begin();
+	uint32_t threshold;
+	if (ncnt >= nbins) {
+	    threshold = col->partition()->nRows();
+	}
+	else if (ncnt+ncnt <= nbins) { // enough room to double every value
+	    threshold = 0;
+	}
+	else { // there is room for additional bin boundaries
+	    array_t<uint32_t> tmp;
+	    tmp.reserve(ncnt);
+	    threshold = 0;
+	    for (histogram::const_iterator it = hist.begin();
                  it != hist.end(); ++ it) {
-                tmp.push_back((*it).second);
-                threshold += (*it).second;
-            }
-            threshold /= ncnt;
-            std::sort(tmp.begin(), tmp.end());
+		tmp.push_back((*it).second);
+		threshold += (*it).second;
+	    }
+	    threshold /= ncnt;
+	    std::sort(tmp.begin(), tmp.end());
 
-            uint32_t j = ncnt + ncnt - nbins;
-            while (j < ncnt && (tmp[j] == tmp[j-1] || tmp[j] < threshold))
-                ++ j;
-            if (j < ncnt)
-                threshold = tmp[j];
-            else
-                threshold = col->partition()->nRows();
-        }
-        for (histogram::const_iterator it = hist.begin();
+	    uint32_t j = ncnt + ncnt - nbins;
+	    while (j < ncnt && (tmp[j] == tmp[j-1] || tmp[j] < threshold))
+		++ j;
+	    if (j < ncnt)
+		threshold = tmp[j];
+	    else
+		threshold = col->partition()->nRows();
+	}
+	for (histogram::const_iterator it = hist.begin();
              it != hist.end(); ++ it) {
-            if ((*it).second < threshold) {
-                bounds.push_back((*it).first);
-            }
-            else {
-                bounds.push_back((*it).first);
-                bounds.push_back(ibis::util::incrDouble((*it).first));
-            }
-        }
+	    if ((*it).second < threshold) {
+		bounds.push_back((*it).first);
+	    }
+	    else {
+		bounds.push_back((*it).first);
+		bounds.push_back(ibis::util::incrDouble((*it).first));
+	    }
+	}
     }
     else if (ncnt > 0) { // one value only
-        histogram::const_iterator it = hist.begin();
-        if (fabs((*it).first - 1) < 0.5) {
-            bounds.push_back(0.0);
-            bounds.push_back(2.0);
-        }
-        else {
-            bounds.push_back(ibis::util::compactValue
-                             ((*it).first, -DBL_MAX));
-            bounds.push_back(ibis::util::compactValue
-                             ((*it).first, DBL_MAX));
-        }
+	histogram::const_iterator it = hist.begin();
+	if (fabs((*it).first - 1) < 0.5) {
+	    bounds.push_back(0.0);
+	    bounds.push_back(2.0);
+	}
+	else {
+	    bounds.push_back(ibis::util::compactValue
+			     ((*it).first, -DBL_MAX));
+	    bounds.push_back(ibis::util::compactValue
+			     ((*it).first, DBL_MAX));
+	}
     }
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     {

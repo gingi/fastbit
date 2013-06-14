@@ -2156,14 +2156,14 @@ ibis::util::logger::logger(int lvl) {
 ibis::util::logger::~logger() {
     const std::string& mystr = mybuffer.str();
     if (ibis::gVerbose >= 0 && ! mystr.empty()) {
-        FILE* fptr = ibis::util::getLogFile();
-        // The lock is still necessary because other logging functions use
-        // multiple fprintf statements.
-        ibis::util::ioLock lock;
-        (void) fwrite(mystr.c_str(), mystr.size(), 1U, fptr);
+	FILE* fptr = ibis::util::getLogFile();
+	// The lock is still necessary because other logging functions use
+	// multiple fprintf statements.
+	ibis::util::ioLock lock;
+	(void) fwrite(mystr.c_str(), mystr.size(), 1U, fptr);
         (void) fwrite("\n", 1U, 1U, fptr);
 #if defined(_DEBUG) || defined(DEBUG) || defined(FASTBIT_SYNC_WRITE)
-        (void) fflush(fptr);
+	(void) fflush(fptr);
 #endif
     }
 } // ibis::util::logger::~logger

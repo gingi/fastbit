@@ -1,3 +1,10 @@
+2013-06-14 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp:2132 replace fprintf with fwrite (in hope to avoid
+	deadlock during closing of the logger object on windows, not sure
+	what exactly was going on, but have seen it stuck in fprintf)
+	* src/category.cpp:1473 initialize nold to 0 to avoid problem with
+	incorrect values later
+
 2013-06-13 John Wu <John dot Wu at ACM dot org>
 	* src/parti.cpp: in function append1 move the section of code that
 	clears the existing list of columns to be after the call of
