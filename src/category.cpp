@@ -1470,7 +1470,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     if (dir == 0 || *dir == 0) return;
 
     int64_t pos = 0;
-    uint32_t nold;
+    uint32_t nold=0;
     std::string evt = "text[";
     evt += thePart->name();
     evt += '.';

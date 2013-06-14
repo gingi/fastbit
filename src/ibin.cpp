@@ -4283,14 +4283,14 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 
     mapValues(f, hist, (eqw==10 ? 0 : nbins));
     const uint32_t ncnt = hist.size();
-    histogram::const_iterator it;
     if (ncnt > nbins * 3 / 2) { // more distinct values than the number of bins
 	array_t<double> val(ncnt);
 	array_t<uint32_t> cnt(ncnt);
 	array_t<uint32_t> bnds(nbins);
 	{
 	    uint32_t i = 0;
-	    for (it = hist.begin(); it != hist.end(); ++it, ++i) {
+	    for (histogram::const_iterator it = hist.begin();
+                 it != hist.end(); ++ it, ++ i) {
 		cnt[i] = (*it).second;
 		val[i] = (*it).first;
 	    }
@@ -4400,7 +4400,8 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 	    array_t<uint32_t> tmp;
 	    tmp.reserve(ncnt);
 	    threshold = 0;
-	    for (it = hist.begin(); it != hist.end(); ++ it) {
+	    for (histogram::const_iterator it = hist.begin();
+                 it != hist.end(); ++ it) {
 		tmp.push_back((*it).second);
 		threshold += (*it).second;
 	    }
@@ -4415,7 +4416,8 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 	    else
 		threshold = col->partition()->nRows();
 	}
-	for (it = hist.begin(); it != hist.end(); ++ it) {
+	for (histogram::const_iterator it = hist.begin();
+             it != hist.end(); ++ it) {
 	    if ((*it).second < threshold) {
 		bounds.push_back((*it).first);
 	    }
@@ -4426,7 +4428,7 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 	}
     }
     else if (ncnt > 0) { // one value only
-	it = hist.begin();
+	histogram::const_iterator it = hist.begin();
 	if (fabs((*it).first - 1) < 0.5) {
 	    bounds.push_back(0.0);
 	    bounds.push_back(2.0);
