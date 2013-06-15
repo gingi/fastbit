@@ -1,3 +1,16 @@
+Sat Jun 15 14:55:28 PDT 2013
+Version ibis1.3.7
+-- add function fastbit_get_result_row_ids to C API and JNI
+-- add guard to deal with 0-length bit fills in bitwise logical
+   operations per suggestion of Srikanth Sundarrajan
+-- add functions ibis::query::getCandiateVector and getCandidateRows per
+   request of Nan Zhou
+-- address problem with logical OR operations in selection conditions (a
+   problem reported by Steven Enns)
+-- address problems in handling text columns reported by Bailu Ding
+-- address problem with memory leaks based on the test case from Amihay
+   Genon
+
 Wed Mar 27 08:44:25 PDT 2013
 Version ibis1.3.6
 -- update index building functions to work with in-memory data

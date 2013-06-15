@@ -1,3 +1,7 @@
+2013-06-15 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp:3529-3530 free the granule object to address the
+	memory leak problem reported by Amihay Gonen
+
 2013-06-14 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp:2132 replace fprintf with fwrite (in hope to avoid
 	deadlock during closing of the logger object on windows, not sure
@@ -76,7 +80,7 @@
 	copy_runsn to skip zero-length fills
 
 2013-05-07 John Wu <John dot Wu at ACM dot org>
-	* src/bitvector64.cpp: add extract checks in bitwise logical
+	* src/bitvector64.cpp: add extra checks in bitwise logical
 	operations to deal with 0-length fills (a problem reported by
 	Srikanth Sundarrajan <srikanth.sundarrajan at inmobi.com>)
 

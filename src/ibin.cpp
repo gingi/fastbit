@@ -3525,6 +3525,9 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
             delete (*it).second->locp;
         }
         (*it).second->locp = 0;
+
+        delete (*it).second;
+        (*it).second = 0;
     }
     // append DBL_MAX as the bin boundary at the end
     bounds.push_back(DBL_MAX);
