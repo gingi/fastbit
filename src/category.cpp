@@ -1628,80 +1628,80 @@ void ibis::text::startPositions(const char *dir, char *buf,
     ierr = fflush(fsp); // get ready for writing
     ierr = fseek(fdata, pos, SEEK_SET);
     if (sps.size() <= 1) { // write one sp value at a time
-        while (0 < (ierr = fread(buf+offset, 1, nbuf-offset, fdata))) {
-            const char* const end = buf + offset + ierr;
-            for (const char *s = buf+offset; s < end; ++ s, ++ pos) {
-                if (*s == 0) { // find a terminator
-                    if (1 > fwrite(&last, sizeof(last), 1, fsp)) {
-                        LOGGER(ibis::gVerbose >= 0)
+	while (0 < (ierr = fread(buf+offset, 1, nbuf-offset, fdata))) {
+	    const char* const end = buf + offset + ierr;
+	    for (const char *s = buf+offset; s < end; ++ s, ++ pos) {
+		if (*s == 0) { // find a terminator
+		    if (1 > fwrite(&last, sizeof(last), 1, fsp)) {
+			LOGGER(ibis::gVerbose >= 0)
                             << "Warning -- "
-                            << evt << " failed to write integer value "
-                            << last << " to file \"" << spfile << "\"";
-                    }
-                    last = pos+1;
-                    ++ nnew;
-                    LOGGER(ibis::gVerbose > 4 && nnew % 1000000 == 0)
-                        << evt << " -- processed "
-                        << nnew << " strings from " << dfile;
-                }
-            }
-            offset = pos - last;
-            if (static_cast<uint64_t>(offset) < nbuf) {
-                // copy the string without a terminator
-                const int tmp = ierr - offset;
-                for (int i = 0; i < offset; ++ i)
-                    buf[i] = buf[i+tmp];
-            }
-            else {
-                offset = 0;
-            }
-        }
+			    << evt << " failed to write integer value "
+			    << last << " to file \"" << spfile << "\"";
+		    }
+		    last = pos+1;
+		    ++ nnew;
+		    LOGGER(ibis::gVerbose > 4 && nnew % 1000000 == 0)
+			<< evt << " -- processed "
+			<< nnew << " strings from " << dfile;
+		}
+	    }
+	    offset = pos - last;
+	    if (static_cast<uint64_t>(offset) < nbuf) {
+		// copy the string without a terminator
+		const int tmp = ierr - offset;
+		for (int i = 0; i < offset; ++ i)
+		    buf[i] = buf[i+tmp];
+	    }
+	    else {
+		offset = 0;
+	    }
+	}
     }
     else { // temporarily store sp values in sps
-        const uint32_t nsps = sps.size();
-        uint32_t jsps = 0;
-        while (0 < (ierr = fread(buf+offset, 1, nbuf-offset, fdata))) {
-            const char* const end = buf + offset + ierr;
-            for (const char *s = buf+offset; s < end; ++ s, ++ pos) {
-                if (*s == 0) { // find a terminator
-                    sps[jsps] = last;
-                    ++ jsps;
-                    if (jsps >= nsps) {
-                        if (jsps >
-                            fwrite(sps.address(), sizeof(last), jsps, fsp)) {
-                            LOGGER(ibis::gVerbose >= 0)
+	const uint32_t nsps = sps.size();
+	uint32_t jsps = 0;
+	while (0 < (ierr = fread(buf+offset, 1, nbuf-offset, fdata))) {
+	    const char* const end = buf + offset + ierr;
+	    for (const char *s = buf+offset; s < end; ++ s, ++ pos) {
+		if (*s == 0) { // find a terminator
+		    sps[jsps] = last;
+		    ++ jsps;
+		    if (jsps >= nsps) {
+			if (jsps >
+			    fwrite(sps.address(), sizeof(last), jsps, fsp)) {
+			    LOGGER(ibis::gVerbose >= 0)
                                 << "Warning -- "
-                                << evt << " failed to write " << jsps
-                                << " integers to file \"" << spfile << "\"";
-                        }
-                        jsps = 0;
-                    }
-                    last = pos+1;
-                    ++ nnew;
-                    LOGGER(ibis::gVerbose > 4 && nnew % 1000000 == 0)
-                        << evt << " -- processed "
-                        << nnew << " strings from " << dfile;
-                }
-            }
-            offset = pos - last;
-            if (static_cast<uint64_t>(offset) < nbuf) {
-                // copy the string without a terminator
-                const int tmp = ierr - offset;
-                for (int i = 0; i < offset; ++ i)
-                    buf[i] = buf[i+tmp];
-            }
-            else {
-                offset = 0;
-            }
-        }
-        if (jsps > 0) {
-            if (jsps >
-                fwrite(sps.address(), sizeof(last), jsps, fsp)) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << "Warning -- " << evt << " failed to write " << jsps
-                    << " integers to file \"" << spfile << "\"";
-            }
-        }
+				<< evt << " failed to write " << jsps
+				<< " integers to file \"" << spfile << "\"";
+			}
+			jsps = 0;
+		    }
+		    last = pos+1;
+		    ++ nnew;
+		    LOGGER(ibis::gVerbose > 4 && nnew % 1000000 == 0)
+			<< evt << " -- processed "
+			<< nnew << " strings from " << dfile;
+		}
+	    }
+	    offset = pos - last;
+	    if (static_cast<uint64_t>(offset) < nbuf) {
+		// copy the string without a terminator
+		const int tmp = ierr - offset;
+		for (int i = 0; i < offset; ++ i)
+		    buf[i] = buf[i+tmp];
+	    }
+	    else {
+		offset = 0;
+	    }
+	}
+	if (jsps > 0) {
+	    if (jsps >
+		fwrite(sps.address(), sizeof(last), jsps, fsp)) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- " << evt << " failed to write " << jsps
+		    << " integers to file \"" << spfile << "\"";
+	    }
+	}
     }
 
     if (nold + nnew < thePart->nRows() && thePart->currentDataDir() != 0 &&

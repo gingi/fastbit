@@ -3526,8 +3526,8 @@ void ibis::bin::mapGranules(const array_t<E>& val,
 void ibis::bin::printGranules(std::ostream& out,
                               const ibis::bin::granuleMap& bmap) const {
     out << "bin::printGranules(" << bmap.size()
-        << (bmap.size() > 1 ? " entries" : " entry")
-        << ")\nkey: count=, count_, min_, max_, count^, min^, max^\n";
+	<< (bmap.size() > 1 ? " entries" : " entry")
+	<< ")\nkey: count=, count_, min_, max_, count^, min^, max^\n";
     if (ibis::gVerbose > 7)
         out << std::setprecision(18);
     else if (ibis::gVerbose > 5)
@@ -3615,52 +3615,49 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 
     // copy the values
     for (granuleMap::iterator it = gmap.begin(); it != gmap.end(); ++it) {
-        if ((*it).second->locm != 0 && (*it).second->locm->cnt() > 0) {
-            if (maxval.size() > 0)
-                bounds.push_back(ibis::util::compactValue
-                                 (maxval.back(), (*it).second->minm));
-            if (nrows < (*it).second->locm->size())
-                nrows = (*it).second->locm->size();
-            minval.push_back((*it).second->minm);
-            maxval.push_back((*it).second->maxm);
-            bits.push_back((*it).second->locm);
-        }
+	if ((*it).second->locm != 0 && (*it).second->locm->cnt() > 0) {
+	    if (maxval.size() > 0)
+		bounds.push_back(ibis::util::compactValue
+				 (maxval.back(), (*it).second->minm));
+	    if (nrows < (*it).second->locm->size())
+		nrows = (*it).second->locm->size();
+	    minval.push_back((*it).second->minm);
+	    maxval.push_back((*it).second->maxm);
+	    bits.push_back((*it).second->locm);
+	}
         else {
             delete (*it).second->locm;
         }
         (*it).second->locm = 0;
 
-        if ((*it).second->loce != 0 && (*it).second->loce->cnt() > 0) {
-            if (maxval.size() > 0)
-                bounds.push_back((*it).first);
-            if (nrows < (*it).second->loce->size())
-                nrows = (*it).second->loce->size();
-            minval.push_back((*it).first);
-            maxval.push_back((*it).first);
-            bits.push_back((*it).second->loce);
-        }
+	if ((*it).second->loce != 0 && (*it).second->loce->cnt() > 0) {
+	    if (maxval.size() > 0)
+		bounds.push_back((*it).first);
+	    if (nrows < (*it).second->loce->size())
+		nrows = (*it).second->loce->size();
+	    minval.push_back((*it).first);
+	    maxval.push_back((*it).first);
+	    bits.push_back((*it).second->loce);
+	}
         else {
             delete (*it).second->loce;
         }
         (*it).second->loce = 0;
 
-        if ((*it).second->locp != 0 && (*it).second->locp->cnt() > 0) {
-            if (maxval.size() > 0)
-                bounds.push_back(ibis::util::compactValue
-                                 (maxval.back(), (*it).second->minp));
-            if (nrows < (*it).second->locp->size())
-                nrows = (*it).second->locp->size();
-            minval.push_back((*it).second->minp);
-            maxval.push_back((*it).second->maxp);
-            bits.push_back((*it).second->locp);
-        }
+	if ((*it).second->locp != 0 && (*it).second->locp->cnt() > 0) {
+	    if (maxval.size() > 0)
+		bounds.push_back(ibis::util::compactValue
+				 (maxval.back(), (*it).second->minp));
+	    if (nrows < (*it).second->locp->size())
+		nrows = (*it).second->locp->size();
+	    minval.push_back((*it).second->minp);
+	    maxval.push_back((*it).second->maxp);
+	    bits.push_back((*it).second->locp);
+	}
         else {
             delete (*it).second->locp;
         }
         (*it).second->locp = 0;
-
-        delete (*it).second;
-        (*it).second = 0;
     }
     // append DBL_MAX as the bin boundary at the end
     bounds.push_back(DBL_MAX);
@@ -6065,23 +6062,27 @@ void ibis::bin::print(std::ostream& out) const {
 	<< col->partition()->name() << '.' << col->name()
 	<< " contains " << nobs << " bitvectors for "
 	<< nrows << " objects \n";
-    if (ibis::gVerbose > 4) { // print the long form
+    if (ibis::gVerbose > 3) { // print the long form
 	uint32_t i, cnt = 0;
+        if (ibis::gVerbose > 7)
+            out << std::setprecision(18);
+        else if (ibis::gVerbose > 5)
+            out << std::setprecision(14);
+        else
+            out << std::setprecision(10);
 	if (bits[0]) {
 	    out << "0: " << bits[0]->cnt() << "\t(..., "
-                << std::setprecision(12) << bounds[0]
-		<< ")\t[" << std::setprecision(12) << minval[0]
-                << ", " << std::setprecision(12) << maxval[0] << "]\n";
+                << bounds[0] << ")\t[" << minval[0]
+                << ", " << maxval[0] << "]\n";
 	    cnt += bits[0]->cnt();
 	}
 	for (i = 1; i < nobs; ++i) {
 	    if (bits[i] != 0) {
 		if (i < npr)
 		    out << i << ": " << bits[i]->cnt() << "\t["
-                        << std::setprecision(12)<< bounds[i-1]
-			<< ", " << std::setprecision(12) << bounds[i]
-                        << ")\t[" << std::setprecision(12) << minval[i] << ", "
-                        << std::setprecision(12)<< maxval[i] << "]\n";
+                        << bounds[i-1] << ", " << bounds[i]
+                        << ")\t[" << minval[i] << ", "
+                        << maxval[i] << "]\n";
 		else
 		    ++ omt;
 		// out << *(bits[i]);
@@ -6093,9 +6094,8 @@ void ibis::bin::print(std::ostream& out) const {
 	}
 	for (i = 0; i < nobs; ++i) {
 	    if (bits[i] != 0 && nrows != bits[i]->size())
-		out << "Warning: bits[" << i << "] contains "
-		    << bits[i]->size()
-		    << " bits, but " << nrows << " are expected\n";
+		out << "Warning -- bits[" << i << "] contains "
+		    << bits[i]->size() << " bits, but expected ";
 	}
 	if (nrows < cnt) {
 	    out << "Warning: There are a total " << cnt << " set bits out of "

@@ -4,6 +4,9 @@
 	what exactly was going on, but have seen it stuck in fprintf)
 	* src/category.cpp:1473 initialize nold to 0 to avoid problem with
 	incorrect values later
+	* src/ibin.cpp: in bin::convertGranules add code to delete the bit
+	vectors that are not copied to bits - they were lost in the
+	previous version
 
 2013-06-13 John Wu <John dot Wu at ACM dot org>
 	* src/parti.cpp: in function append1 move the section of code that

@@ -5095,11 +5095,11 @@ static void clean_up(bool sane=true) {
             << ", outblock = " << ruse0.ru_oublock + ruse1.ru_oublock;
     }
 #endif
-    // #if defined(_MSC_VER) && defined(_WIN32) && defined(_DEBUG)
-    //     std::cout << "\n*** DEBUG: report from _CrtMemDumpAllObjectsSince\n";
-    //     _CrtMemDumpAllObjectsSince(NULL);
-    //     _CrtDumpMemoryLeaks();
-    // #endif
+// #if defined(_MSC_VER) && defined(_WIN32) && defined(_DEBUG)
+//     std::cout << "\n*** DEBUG: report from _CrtMemDumpAllObjectsSince\n";
+//     _CrtMemDumpAllObjectsSince(NULL);
+//     _CrtDumpMemoryLeaks();
+// #endif
 } // clean_up
 
 int main(int argc, char** argv) {
