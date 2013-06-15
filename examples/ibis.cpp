@@ -5012,11 +5012,11 @@ static void clean_up(bool sane=true) {
 	    << ", outblock = " << ruse0.ru_oublock + ruse1.ru_oublock;
     }
 #endif
-#if defined(_MSC_VER) && defined(_WIN32) && (defined(_DEBUG) || defined(DEBUG))
-    std::cout << "\n*** DEBUG: report from _CrtMemDumpAllObjectsSince\n";
-    _CrtMemDumpAllObjectsSince(NULL);
-    _CrtDumpMemoryLeaks();
-#endif
+// #if defined(_MSC_VER) && defined(_WIN32) && defined(_DEBUG)
+//     std::cout << "\n*** DEBUG: report from _CrtMemDumpAllObjectsSince\n";
+//     _CrtMemDumpAllObjectsSince(NULL);
+//     _CrtDumpMemoryLeaks();
+// #endif
 } // clean_up
 
 int main(int argc, char** argv) {
@@ -5024,7 +5024,10 @@ int main(int argc, char** argv) {
 	usage(*argv);
 	return 0;
     }
-
+#if defined(_WIN32) && defined(_MSC_VER) && defined(_DEBUG)
+    // macro to turn on reporting of memory leaks
+    _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#endif
     try {
 	int interactive;
 	std::vector<const char*> alist, qlist, slist;

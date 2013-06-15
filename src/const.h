@@ -66,6 +66,13 @@
 
 //
 // common headers needed
+#if defined(_WIN32) && defined(_MSC_VER) && defined(_DEBUG)
+// Enable memory debugging on windows environments
+#  define _CRTDBG_MAP_ALLOC
+#  include <stdlib.h>
+#  include <crtdbg.h>
+#endif
+
 #include <errno.h>	// errno
 #include <string.h>	// strerr, strcasecmp, strcmp, memcpy
 #include <pthread.h>	// mutex lock, rwlock, conditional variables
@@ -192,9 +199,6 @@
 #  include <direct.h>	// _mkdir
 #  define mkdir(x,y) _mkdir(x)
 #  define chmod _chmod
-#  if defined(_DEBUG)
-#    include <crtdbg.h>
-#  endif
 
 #  if defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__)
 #    include <stdint.h>

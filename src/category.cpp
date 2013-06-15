@@ -1584,14 +1584,15 @@ void ibis::text::startPositions(const char *dir, char *buf,
     uint32_t nnew = 0;
     ierr = fflush(fsp); // get ready for writing
     ierr = fseek(fdata, pos, SEEK_SET);
-    if (sps.size() <= 1) {
+    if (sps.size() <= 1) { // write one sp value at a time
 	while (0 < (ierr = fread(buf+offset, 1, nbuf-offset, fdata))) {
 	    const char* const end = buf + offset + ierr;
 	    for (const char *s = buf+offset; s < end; ++ s, ++ pos) {
 		if (*s == 0) { // find a terminator
 		    if (1 > fwrite(&last, sizeof(last), 1, fsp)) {
 			LOGGER(ibis::gVerbose >= 0)
-			    << evt << " -- unable to write integer value "
+                            << "Warning -- "
+			    << evt << " failed to write integer value "
 			    << last << " to file \"" << spfile << "\"";
 		    }
 		    last = pos+1;
@@ -1613,7 +1614,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    }
 	}
     }
-    else {
+    else { // temporarily store sp values in sps
 	const uint32_t nsps = sps.size();
 	uint32_t jsps = 0;
 	while (0 < (ierr = fread(buf+offset, 1, nbuf-offset, fdata))) {
@@ -1626,7 +1627,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
 			if (jsps >
 			    fwrite(sps.address(), sizeof(last), jsps, fsp)) {
 			    LOGGER(ibis::gVerbose >= 0)
-				<< evt << " -- failed to write " << jsps
+                                << "Warning -- "
+				<< evt << " failed to write " << jsps
 				<< " integers to file \"" << spfile << "\"";
 			}
 			jsps = 0;
@@ -1653,7 +1655,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
 	    if (jsps >
 		fwrite(sps.address(), sizeof(last), jsps, fsp)) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << evt << " -- failed to write " << jsps
+		    << "Warning -- " << evt << " failed to write " << jsps
 		    << " integers to file \"" << spfile << "\"";
 	    }
 	}

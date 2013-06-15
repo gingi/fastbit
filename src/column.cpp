@@ -645,7 +645,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- " << evt << " can not handle column type "
+	    << evt << " can not handle column type "
 	    << ibis::TYPESTRING[static_cast<int>(m_type)]
 	    << ", only support int, uint, float, double";
 	min = DBL_MAX;

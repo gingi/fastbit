@@ -3395,6 +3395,12 @@ void ibis::bin::printGranules(std::ostream& out,
     out << "bin::printGranules(" << bmap.size()
 	<< (bmap.size() > 1 ? " entries" : " entry")
 	<< ")\nkey: count=, count_, min_, max_, count^, min^, max^\n";
+    if (ibis::gVerbose > 7)
+        out << std::setprecision(18);
+    else if (ibis::gVerbose > 5)
+        out << std::setprecision(14);
+    else if (ibis::gVerbose > 3)
+        out << std::setprecision(10);
     uint32_t prt = (ibis::gVerbose > 30 ? bmap.size() : (1 << ibis::gVerbose));
     if (prt < 5) prt = 5;
     if (prt+1 >= bmap.size()) { // print all
@@ -3461,9 +3467,10 @@ void ibis::bin::printGranules(std::ostream& out,
 } //ibis::bin::printGranules
 
 /// Convert the granule map into binned index.  The bitmaps that are not
-/// empty are transferred to the array bits, therefore, the content of gmap
-/// is no longer valid after calling this function.  However, it is still
-/// necessary for the called to free gmap.
+/// empty are transferred to the array bits, and the empty bitmaps are
+/// deleted.  Therefore, the content of gmap is no longer valid after
+/// calling this function.  The only thing that could be done to the
+/// granuleMap object is to free it.
 void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
     // clear the existing content
     clear();
@@ -3484,8 +3491,12 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 	    minval.push_back((*it).second->minm);
 	    maxval.push_back((*it).second->maxm);
 	    bits.push_back((*it).second->locm);
-	    (*it).second->locm = 0;
 	}
+        else {
+            delete (*it).second->locm;
+        }
+        (*it).second->locm = 0;
+
 	if ((*it).second->loce != 0 && (*it).second->loce->cnt() > 0) {
 	    if (maxval.size() > 0)
 		bounds.push_back((*it).first);
@@ -3494,8 +3505,12 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 	    minval.push_back((*it).first);
 	    maxval.push_back((*it).first);
 	    bits.push_back((*it).second->loce);
-	    (*it).second->loce = 0;
 	}
+        else {
+            delete (*it).second->loce;
+        }
+        (*it).second->loce = 0;
+
 	if ((*it).second->locp != 0 && (*it).second->locp->cnt() > 0) {
 	    if (maxval.size() > 0)
 		bounds.push_back(ibis::util::compactValue
@@ -3505,8 +3520,11 @@ void ibis::bin::convertGranules(ibis::bin::granuleMap& gmap) {
 	    minval.push_back((*it).second->minp);
 	    maxval.push_back((*it).second->maxp);
 	    bits.push_back((*it).second->locp);
-	    (*it).second->locp = 0;
 	}
+        else {
+            delete (*it).second->locp;
+        }
+        (*it).second->locp = 0;
     }
     // append DBL_MAX as the bin boundary at the end
     bounds.push_back(DBL_MAX);
@@ -5798,23 +5816,27 @@ void ibis::bin::print(std::ostream& out) const {
 	<< col->partition()->name() << '.' << col->name()
 	<< " contains " << nobs << " bitvectors for "
 	<< nrows << " objects \n";
-    if (ibis::gVerbose > 4) { // print the long form
+    if (ibis::gVerbose > 3) { // print the long form
 	uint32_t i, cnt = 0;
+        if (ibis::gVerbose > 7)
+            out << std::setprecision(18);
+        else if (ibis::gVerbose > 5)
+            out << std::setprecision(14);
+        else
+            out << std::setprecision(10);
 	if (bits[0]) {
 	    out << "0: " << bits[0]->cnt() << "\t(..., "
-                << std::setprecision(12) << bounds[0]
-		<< ")\t[" << std::setprecision(12) << minval[0]
-                << ", " << std::setprecision(12) << maxval[0] << "]\n";
+                << bounds[0] << ")\t[" << minval[0]
+                << ", " << maxval[0] << "]\n";
 	    cnt += bits[0]->cnt();
 	}
 	for (i = 1; i < nobs; ++i) {
 	    if (bits[i] != 0) {
 		if (i < npr)
 		    out << i << ": " << bits[i]->cnt() << "\t["
-                        << std::setprecision(12)<< bounds[i-1]
-			<< ", " << std::setprecision(12) << bounds[i]
-                        << ")\t[" << std::setprecision(12) << minval[i] << ", "
-                        << std::setprecision(12)<< maxval[i] << "]\n";
+                        << bounds[i-1] << ", " << bounds[i]
+                        << ")\t[" << minval[i] << ", "
+                        << maxval[i] << "]\n";
 		else
 		    ++ omt;
 		// out << *(bits[i]);
@@ -5826,9 +5848,8 @@ void ibis::bin::print(std::ostream& out) const {
 	}
 	for (i = 0; i < nobs; ++i) {
 	    if (bits[i] != 0 && nrows != bits[i]->size())
-		out << "Warning: bits[" << i << "] contains "
-		    << bits[i]->size()
-		    << " bits, but " << nrows << " are expected\n";
+		out << "Warning -- bits[" << i << "] contains "
+		    << bits[i]->size() << " bits, but expected ";
 	}
 	if (nrows < cnt) {
 	    out << "Warning: There are a total " << cnt << " set bits out of "
