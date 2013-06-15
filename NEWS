@@ -1,87 +1,3 @@
-Mon Mar 23 23:14:31 PDT 2015
-Version 2.0.2
--- address thread safty issue with bitvector::do_cnt
--- modify dictionary impelementation to allow users to specify arbitrary
-   non-negative values (reserve -1 for NULL values)
--- install header files in subdirectory fastbit (requiring #include
-   <fastbit/ibis.h> instead of #include <ibis.h>)
--- accept a patch from Chen HANG to improve the performance of reading a
-   small number of string values in the query results
--- add support for ibis::BIT as a data type
--- accept a patch from Justin Swnhart to fix problem in tafel::writeData
--- fix problem with bitvecotr::do_cnt zeroing out the incorrect data
-   elements
--- accept a patch from Divya Chandrasekar in sorting string values in
-   colValues.cpp
--- fix the problem of part::countPages returning 0 when all data are
-   located on the same page
-
-
-Mon Dec 15 01:26:31 PST 2014
-Version 2.0.1
--- fixing problem with html documentation
--- clear the output when ibis.cpp encounters an error (suggested by Jon Strabala)
--- add test cases to exercise the option of using external dictionary
--- fixing problem with indexing a single value in iapi.cpp
--- update the compilation instructions in INSTALL to reflect the requirement of C++11 features by FastBit
-
-
-Fri Nov 21 21:38:00 PST 2014
-Version 2.0.0
--- remove the prefix 'ibis' from the version number based on a
-   recommendation from lscott@kiemaadvisors.com 
--- accepted a patch from Sean McNamara to fix a problem with testing C++ versions
--- add entry in runconfig to support edison.nersc.gov
--- accepted a patch from Zhongbo Tian on handling string-valued data
--- zero out the memory allocated through ibis::array_t<T>::reserve
--- change the default binned index option to be 2-digit precision bins
--- modify index generation code so that they will run without col object
-   if possible
--- correct a set of problems identified by Zhongbo Tian in getColumnAsTypes
--- accepted a patch from Zhongbo Tian that fixes the order of bound
-   check in ibis::mensa::cursor
--- add iapi for operations on in-memory data with the help in design and
-   debugging from Junmin Gu
--- address thread-safety issue report by Dominique Prunier
--- address data type recognition problem reported by Li Jun
--- address index file locking problem reported by Petr Velan
--- address pointer access problem reported by Jerome Soumagne
--- add support for treating integers as time_t with extensive help from
-   Jon Strabala, who suggested the idea, provided sample code for
-   implementation, provided test cases, and helped with debugging
--- Received a new license on the software
-
-
-Thu Mar 13 21:31:45 PDT 2014
-Version ibis1.3.9
--- bug fix in ibis::bitvector
--- update ibis::tafel::write and friends
--- update quickstart.html to fix inconsistency reported by Neils Johnson
--- add function addConditions to allow query conditions to be modified
--- streamline the evaluation of discrete range conditions, adjust the
-   scoring option to prefer sorted values
--- use linear interpolation to accelerate binary searches
--- replace auto_ptr with unique_ptr
--- change ibis::dictionary to use hash map, and write the dictionary with
-   a new version number
--- merge the strings in a dictionary before writing the values to a file
-   to accelerate the writing
--- correctly detect select clause without aggregation operatioins as not
-   separable as the inline documentation promised (a problem reported by
-   Sean McNamara)
-
-
-Fri Oct 18 22:54:36 PDT 2013
-Version ibis1.3.8
--- add macro FASTBIT_ESTIMATION_IGNORE_COST
--- allow relative path to be used in specifying data directory
--- rename function distinct to countd (meaning count distinct)
--- updated configure script for ORNL machines
--- add function EXISTS to test the presence of the named column
--- fix a bad test in array_t<T>::deepCopy based on a test case provided
-   by Wang JiLong
-
-
 Sat Jun 15 14:55:28 PDT 2013
 Version ibis1.3.7
 -- add function fastbit_get_result_row_ids to C API and JNI
@@ -91,11 +7,9 @@ Version ibis1.3.7
    request of Nan Zhou
 -- address problem with logical OR operations in selection conditions (a
    problem reported by Steven Enns)
--- address problems in handling text columns reported by Bailu Ding and
-   Mark Hansen
+-- address problems in handling text columns reported by Bailu Ding
 -- address problem with memory leaks based on the test case from Amihay
    Genon
-
 
 Wed Mar 27 08:44:25 PDT 2013
 Version ibis1.3.6

@@ -53,7 +53,7 @@
 and
 <A HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>.
 
-\Copyright (c) 2000-2015
+\copyright 2000-2013
 <A HREF="http://www.universityofcalifornia.edu/">University of California</A>
 
 \section intro Introduction

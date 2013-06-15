@@ -47,7 +47,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="C:\Tools\pthread\include;..\src;."
-				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;_DEBUG;_CONSOLE;FASTBIT_MAX_WAIT_TIME=10;FASTBIT_USE_LONG_OFFSETS;WAH_CHECK_SIZE;_CRTDBG_MAP_ALLOC"
+				PreprocessorDefinitions="WITHOUT_FASTBIT_CONFIG_H;WIN32;_DEBUG;_CONSOLE;FASTBIT_MAX_WAIT_TIME=10;FASTBIT_USE_LONG_OFFSETS;WAH_CHECK_SIZE"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="true"
 				RuntimeLibrary="1"
