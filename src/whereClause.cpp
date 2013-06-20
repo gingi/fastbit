@@ -13,7 +13,39 @@ ibis::whereClause::~whereClause() {
 } // destructor
 
 ibis::whereClause::whereClause(const char* cl) : expr_(0) {
-    (void) parse(cl);
+    int ierr = 0;
+    if (cl != 0 && *cl != 0) {
+	LOGGER(ibis::gVerbose > 5)
+	    << "whereClause::ctor to parse \"" << cl << "\"";
+
+	clause_ = cl;
+	std::istringstream iss(clause_);
+	ibis::util::logger lg;
+	whereLexer lx(&iss, &(lg()));
+	whereParser parser(*this);
+	lexer = &lx;
+#if DEBUG+0 > 2
+	parser.set_debug_level(DEBUG-1);
+#elif _DEBUG+0 > 2
+	parser.set_debug_level(_DEBUG-1);
+#endif
+	parser.set_debug_stream(lg());
+	ierr = parser.parse();
+	lexer = 0;
+	if (ierr == 0 && expr_ != 0) {
+	    ibis::qExpr::simplify(expr_);
+        }
+        else {
+            delete expr_;
+            expr_ = 0;
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- whereClause(" << cl
+                << ") failed to parse the string into an expression tree";
+#ifdef FASTBIT_HALT_ON_PARSER_ERROR
+            throw "whereClause failed to parse query conditions";
+#endif
+        }
+    }
 } // constructor
 
 ibis::whereClause::whereClause(const ibis::whereClause& rhs)
@@ -51,10 +83,10 @@ int ibis::whereClause::parse(const char* cl) {
         delete expr_;
         expr_ = 0;
 
-        ierr = parser.parse();
-        lexer = 0;
-        if (ierr == 0 && expr_ != 0) {
-            ibis::qExpr::simplify(expr_);
+	ierr = parser.parse();
+	lexer = 0;
+	if (ierr == 0 && expr_ != 0) {
+	    ibis::qExpr::simplify(expr_);
         }
         else {
             delete expr_;

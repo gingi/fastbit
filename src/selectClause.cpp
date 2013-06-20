@@ -103,12 +103,12 @@ int ibis::selectClause::parse(const char *cl) {
 #elif _DEBUG+0 > 2
         parser.set_debug_level(_DEBUG-1);
 #endif
-        parser.set_debug_stream(lg());
-        ierr = parser.parse();
-        lexer = 0;
-        if (ierr == 0) {
-            fillNames();
-        }
+	parser.set_debug_stream(lg());
+	ierr = parser.parse();
+	lexer = 0;
+	if (ierr == 0) {
+	    fillNames();
+	}
         else {
             clear();
             LOGGER(ibis::gVerbose > 0)
