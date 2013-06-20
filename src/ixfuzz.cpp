@@ -767,7 +767,7 @@ long ibis::fuzz::coarseEvaluate(uint32_t lo, uint32_t hi,
 double ibis::fuzz::estimateCost(const ibis::qContinuousRange& expr) const {
     double res = static_cast<double>(col->elementSize() * nrows);
     if (bits.empty() || (offset64.empty() && offset32.empty())) {
-        return res;
+	return res;
     }
 
     // values in the range [hit0, hit1) satisfy the query

@@ -127,22 +127,22 @@ ibis::relic::relic(const ibis::column *c, const char *f)
 ibis::relic::relic(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     : ibis::index(c) {
     try {
-        if (ntpl == 0)
-            ntpl = c->partition()->nRows();
-        nrows = ntpl;
-        vals.resize(1);
-        bits.resize(1);
-        vals[0] = popu;
-        bits[0] = new ibis::bitvector();
-        bits[0]->set(1, ntpl);
+	if (ntpl == 0)
+	    ntpl = c->partition()->nRows();
+	nrows = ntpl;
+	vals.resize(1);
+	bits.resize(1);
+	vals[0] = popu;
+	bits[0] = new ibis::bitvector();
+	bits[0]->set(1, ntpl);
         offset64.resize(2);
         offset64[0] = 0;
         offset64[1] = bits[0]->getSerialSize();
         offset32.clear();
-        if (ibis::gVerbose > 5) {
-            ibis::util::logger lg;
-            print(lg());
-        }
+	if (ibis::gVerbose > 5) {
+	    ibis::util::logger lg;
+	    print(lg());
+	}
     }
     catch (...) {
         LOGGER(ibis::gVerbose > 1)
@@ -162,19 +162,19 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
     if (ind.empty()) return;
 
     try {
-        vals.resize(card);
-        bits.resize(card);
+	vals.resize(card);
+	bits.resize(card);
         offset32.clear();
         offset64.resize(card+1);
-        for (uint32_t i = 0; i < card; ++i) {
-            vals[i] = i;
-            bits[i] = new ibis::bitvector();
-        }
-        nrows = ind.size();
-        for (uint32_t i = 0; i < nrows; ++i) {
-            if (ind[i] < card) {
-                bits[ind[i]]->setBit(i, 1);
-            }
+	for (uint32_t i = 0; i < card; ++i) {
+	    vals[i] = i;
+	    bits[i] = new ibis::bitvector();
+	}
+	nrows = ind.size();
+	for (uint32_t i = 0; i < nrows; ++i) {
+	    if (ind[i] < card) {
+		bits[ind[i]]->setBit(i, 1);
+	    }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             else {
                 LOGGER(ibis::gVerbose >= 0)
@@ -182,24 +182,24 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
                     << "]::ctor ind[" << i << "]=" << ind[i] << " >=" << card;
             }
 #endif
-        }
+	}
 
         offset64[0] = 0;
-        for (uint32_t i = 0; i < card; ++i) {
-            bits[i]->adjustSize(0, nrows);
+	for (uint32_t i = 0; i < card; ++i) {
+	    bits[i]->adjustSize(0, nrows);
             offset64[i+1] = offset64[i] + bits[i]->getSerialSize();
-        }
-        if (ibis::gVerbose > 2) {
-            ibis::util::logger lg;
-            lg() << "relic[" << (col ? col->fullname() : "?.?")
-                 << "]::ctor -- constructed an equality index with "
-                 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
-                 << " for " << nrows << " row" << (nrows>1?"s":"");
-            if (ibis::gVerbose > 6) {
-                lg() << "\n";
-                print(lg());
-            }
-        }
+	}
+	if (ibis::gVerbose > 2) {
+	    ibis::util::logger lg;
+	    lg() << "relic[" << col->partition()->name() << '.' << col->name()
+		 << "]::ctor -- constructed an equality index with "
+		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+		 << " for " << nrows << " row" << (nrows>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg() << "\n";
+		print(lg());
+	    }
+	}
     }
     catch (...) {
         LOGGER(ibis::gVerbose > 1)
