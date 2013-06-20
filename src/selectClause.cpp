@@ -105,16 +105,19 @@ int ibis::selectClause::parse(const char *cl) {
 #endif
 	parser.set_debug_stream(lg());
 	ierr = parser.parse();
+	lexer = 0;
 	if (ierr == 0) {
 	    fillNames();
 	}
-	lexer = 0;
-    }
-    if (ierr != 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- selectClause::parse failed to parse string \""
-	    << cl << "\"";
-	clear();
+        else {
+            clear();
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- selectClause::parse failed to parse string \""
+                << cl << "\"";
+#ifdef FASTBIT_HALT_ON_PARSER_ERROR
+            throw "selectClause failed to parse the incoming string";
+#endif
+        }
     }
     return ierr;
 } // ibis::selectClause::parse

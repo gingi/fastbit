@@ -6,6 +6,9 @@
 	constructors
 	* src/ixfuzz.cpp:769 add test for both offset64 and offset32 being
 	empty (per suggestion of Per Christian Engberg)
+	* src/whereClause.cpp, src/selectClause.cpp: add macro
+	FASTBIT_HALT_ON_PARSER_ERROR to satisfy the request from Steven
+	Enns
 
 2013-06-19 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:6504 add conditional compilation macro

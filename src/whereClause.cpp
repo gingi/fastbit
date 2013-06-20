@@ -31,18 +31,20 @@ ibis::whereClause::whereClause(const char* cl) : expr_(0) {
 #endif
 	parser.set_debug_stream(lg());
 	ierr = parser.parse();
-	if (ierr == 0 && expr_ != 0)
-	    ibis::qExpr::simplify(expr_);
 	lexer = 0;
-    }
-    if (ierr != 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- whereClause(" << cl
-	    << ") failed to parse the string into an expression tree";
-	if (expr_ != 0) {
-	    delete expr_;
-	    expr_ = 0;
-	}
+	if (ierr == 0 && expr_ != 0) {
+	    ibis::qExpr::simplify(expr_);
+        }
+        else {
+            delete expr_;
+            expr_ = 0;
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- whereClause(" << cl
+                << ") failed to parse the string into an expression tree";
+#ifdef FASTBIT_HALT_ON_PARSER_ERROR
+            throw "whereClause failed to parse query conditions";
+#endif
+        }
     }
 } // constructor
 
@@ -82,18 +84,20 @@ int ibis::whereClause::parse(const char* cl) {
 	expr_ = 0;
 
 	ierr = parser.parse();
-	if (ierr == 0 && expr_ != 0)
-	    ibis::qExpr::simplify(expr_);
 	lexer = 0;
-    }
-    if (ierr != 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- whereClause(" << cl
-	    << ") failed to parse the string into an expression tree";
-	if (expr_ != 0) {
-	    delete expr_;
-	    expr_ = 0;
-	}
+	if (ierr == 0 && expr_ != 0) {
+	    ibis::qExpr::simplify(expr_);
+        }
+        else {
+            delete expr_;
+            expr_ = 0;
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- whereClause(" << cl
+                << ") failed to parse the string into an expression tree";
+#ifdef FASTBIT_HALT_ON_PARSER_ERROR
+            throw "whereClause failed to parse query conditions";
+#endif
+        }
     }
     return ierr;
 } // ibis::whereClause::parse
