@@ -6501,6 +6501,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     // changed to sumBins to take advantage of automatic activation
     // Feb. 8, 2011 -- check the cost first before operating on the bitmaps
     double cost = 0.0; // the total cost of resolving the expression
+#ifndef FASTBIT_ESTIMATION_IGNORE_COST
     if (offset64.size() > bits.size()) {
 	if (cand0 < cand1 && cand1 < offset64.size()) {
 	    const int64_t tot = offset64.back() - offset64[0];
@@ -6522,11 +6523,12 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
 	}
     }
     if (hit0 > cand0 && cand1 > hit1) {
-	cost = (col->elementSize() * (double)nrows / nobs) * 2.0;
+	cost += (col->elementSize() * (double)nrows / nobs) * 2.0;
     }
     else if (hit0 > cand0 || cand1 > hit1) {
-	cost = (col->elementSize() * nrows / nobs);
+	cost += (col->elementSize() * (double)nrows / nobs);
     }
+#endif
     if (cand0 >= cand1) {
 	lower.set(0, nrows);
 	upper.set(0, nrows);

@@ -144,7 +144,7 @@ static unsigned testing = 0;
 static unsigned threading = 0;
 static unsigned build_index = 0;
 // <0 skip estimation, =0 do estimation, >0 estimation only
-static int estimate_opt = -1;
+static int estimation_opt = -1;
 static bool sequential_scan = false;
 static bool verify_rid = false;
 static bool zapping = false;
@@ -2155,7 +2155,7 @@ static void parse_args(int argc, char** argv, int& mode,
 	    break;
 	    case 'e':
 	    case 'E': // estiamtion option
-		estimate_opt += 1;
+		estimation_opt += 1;
 	    break;
 	    case 'f':
 	    case 'F': // query file, multiple files allowed
@@ -2258,13 +2258,13 @@ static void parse_args(int argc, char** argv, int& mode,
 	    case 'n':
 	    case 'N': {
 		// no-estimation, directly call function evaluate
-		estimate_opt = -1;
+		estimation_opt = -1;
 		break;}
 	    case 'o':
 	    case 'O':
 		if (argv[i][2] == 'n' || argv[i][2] == 'N') {
 		    // only-evaluate, directly call function evaluate
-		    estimate_opt = -1;
+		    estimation_opt = -1;
 		}
 		else if (i+1 < argc && argv[i+1][0] != '-') {
 		    // output file specified
@@ -2493,9 +2493,9 @@ static void parse_args(int argc, char** argv, int& mode,
 	if (threading > 0)
 	    lg() << ", threading " << threading;
 	if (mode > 0 || qlist.size() > 0) {
-	    if (estimate_opt < 0)
+	    if (estimation_opt < 0)
 		lg() << ", skipping estimation";
-	    else if (estimate_opt > 0)
+	    else if (estimation_opt > 0)
 		lg() << ", computing only bounds";
 	    else
 		lg() << ", with estimation";
@@ -2677,7 +2677,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	asstr = aQuery.getSelectClause();
     }
 
-    if (estimate_opt >= 0) {
+    if (estimation_opt >= 0) {
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -2694,7 +2694,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg() << "between " << num1 << " and ";
 	    lg() << num2;
 	}
-	if (estimate_opt > 0)
+	if (estimation_opt > 0)
 	    return;
     }
 
@@ -2917,7 +2917,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
     ibis::horometer timer;
     timer.start();
 
-    if (estimate_opt >= 0) {
+    if (estimation_opt >= 0) {
 	uint64_t num1, num2;
 	tbl->estimate(wstr, num1, num2);
 	if (ibis::gVerbose > 0) {
@@ -2927,7 +2927,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		lg() << "between " << num1 << " and ";
 	    lg() << num2;
 	}
-	if (estimate_opt > 0 || num2 == 0) {
+	if (estimation_opt > 0 || num2 == 0) {
 	    if (ibis::gVerbose > 0) {
 		timer.stop();
 		ibis::util::logger lg;
@@ -3121,7 +3121,7 @@ static void doQuaere(const ibis::partList& pl,
 	<< "doQuaere -- processing \"" << sqlstring << '\"';
 
     std::auto_ptr<ibis::table> res;
-    if (estimate_opt < 0) { // directly evaluate the select clause
+    if (estimation_opt < 0) { // directly evaluate the select clause
 	std::auto_ptr<ibis::quaere>
 	    qq(ibis::quaere::create(0, fstr, wstr, pl));
 	if (qq.get() == 0) {
@@ -3154,7 +3154,7 @@ static void doQuaere(const ibis::partList& pl,
 		<< "doQuaere -- " << wstr << " --> " << nhits
 		<< " hit" << (hmax>1?"s":"");
 	}
-	if (estimate_opt > 0) return;
+	if (estimation_opt > 0) return;
 
 	int64_t cnts = qq->count();
 	if (cnts < 0) {
@@ -3538,7 +3538,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	return;
     }
 
-    if (estimate_opt >= 0) {
+    if (estimation_opt >= 0) {
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -3555,7 +3555,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg() << "between " << num1 << " and ";
 	    lg() << num2;
 	}
-	if (estimate_opt > 0 || num2 == 0) {
+	if (estimation_opt > 0 || num2 == 0) {
 	    if (ibis::gVerbose >= 0) {
 		timer.stop();
 		ibis::util::logger lg;
@@ -3876,7 +3876,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	aQuery.setSelectClause(sstr);
 	asstr = aQuery.getSelectClause();
     }
-    if (estimate_opt >= 0) {
+    if (estimation_opt >= 0) {
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -3893,7 +3893,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg() << "between " << num1 << " and ";
 	    lg() << num2;
 	}
-	if (estimate_opt > 0 || num2 == 0) {
+	if (estimation_opt > 0 || num2 == 0) {
 	    if (ibis::gVerbose > 0) {
 		timer.stop();
 		ibis::util::logger lg;

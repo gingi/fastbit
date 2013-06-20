@@ -1,3 +1,8 @@
+2013-06-19 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp:6504 add conditional compilation macro
+	FASTBIT_ESTIMATION_IGNORE_COST to allow estimation to always
+	continue with the equality binned index
+
 2013-06-15 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:3529-3530 free the granule object to address the
 	memory leak problem reported by Amihay Gonen

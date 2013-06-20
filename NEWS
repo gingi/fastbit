@@ -7,7 +7,8 @@ Version ibis1.3.7
    request of Nan Zhou
 -- address problem with logical OR operations in selection conditions (a
    problem reported by Steven Enns)
--- address problems in handling text columns reported by Bailu Ding
+-- address problems in handling text columns reported by Bailu Ding and
+   Mark Hansen
 -- address problem with memory leaks based on the test case from Amihay
    Genon
 
