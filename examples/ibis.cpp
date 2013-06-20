@@ -2062,199 +2062,187 @@ static void parse_args(int argc, char** argv, int& mode,
     std::vector<const char*> printcmds; // printing commands
     const char* mesgfile = 0;
     for (int i=1; i<argc; ++i) {
-        if (*argv[i] == '-') { // normal arguments starting with -
-            switch (argv[i][1]) {
-            case 'a': // append a directory of data (must have a directory
-            case 'A': // name, optionally specify data partition name with "to
-                      // name", where the name can be a data partition name
-                      // or a directory name)
-                if (i+1 < argc) {
-                    alist.push_back(argv[i+1]);
-                    if (i+3 < argc && stricmp(argv[i+2], "to")==0 &&
-                        argv[i+3][0] != '-') {
-                        appendTarget = argv[i+3];
-                        i += 3;
-                    }
-                    else if (i+2 < argc && argv[i+2][0] != '-') {
-                        appendTarget = argv[i+2];
-                        i += 2;
-                    }
-                    else {
-                        ++ i;
-                    }
-                }
-                break;
-            case 'b':
-            case 'B': { // build indexes,
-                // if this argument is followed by an integer, the integer
-                // is taken to be the number of threads to use for building
-                // indexes; if this argument is followed by anything else,
-                // it is assumed to be an index speicification.
-                char *ptr = strchr(argv[i], '=');
-                if (ptr == 0) {
-                    if (i+1 < argc) {
-                        if (isdigit(*argv[i+1])) {
-                            build_index += strtol(argv[i+1], 0, 0);
-                            i = i + 1;
-                        }
-                        else if (*argv[i+1] != '-') {
-                            // assume to be an index specification
-                            char *str1 = argv[i+1];
-                            char *str2 = strchr(argv[i+1], ':');
-                            if (str2 != 0) {
-                                *str2 = 0;
-                                ++ str2;
-                                indexingOptions.push_back(str1);
-                                indexingOptions.push_back(str2);
-                            }
-                            else {
-                                defaultIndexing = argv[i+1];
-                            }
-                            i = i + 1;
-                        }
-                        else {
-                            ++ build_index;
-                        }
-                    }
-                    else {
-                        ++ build_index;
-                    }
-                }
-                else {
-                    build_index += strtol(++ptr, 0, 0);
-                    if (i+1 < argc && *argv[i+1] != '-') {
-                        // assume to be an index specification
-                        char *str1 = argv[i+1];
-                        char *str2 = strchr(argv[i+1], ':');
-                        if (str2 != 0) {
-                            *str2 = 0;
-                            ++ str2;
-                            indexingOptions.push_back(str1);
-                            indexingOptions.push_back(str2);
-                        }
-                        else {
-                            defaultIndexing = argv[i+1];
-                        }
-                        i = i + 1;
-                    }
-                }
-                break;}
-            case 'c':
-            case 'C': // configuration file, multiple files allowed
-                if (i+1 < argc) {
-                    confs.push_back(argv[i+1]);
-                    ++ i;
-                }
-                break;
-            case 'd':
-            case 'D': // data directory, multiple directory allowed
-                if (i+1 < argc && argv[i+1][0] != '-') {
-                    dirs.push_back(argv[i+1]);
-                    i = i + 1;
-                }
-                else {
-                    std::clog << "Warning -- argument -d must be followed by "
-                              << "a directory name" << std::endl;
-                }
-                break;
-            case 'e':
-            case 'E': // estiamtion option
-                estimation_opt += 1;
-                break;
-            case 'f':
-            case 'F': // query file, multiple files allowed
-                if (i+1 < argc) {
-                    readQueryFile(argv[i+1], queff);
-                    ++ i;
-                }
-                break;
-            default:
-            case 'h':
-            case 'H': // print usage
-                usage(*argv);
-                if (argc <= 2)
-                    exit(0);
-                break;
-            case 'i':
-            case 'I': // interactive mode or independent parts
-                if (argv[i][3] == 'd' || argv[i][3] == 'D') {
-                    independent_parts = 1;
-                }
-                else {
-                    mode = 1;
-                }
-                break;
-            case 'j':
-            case 'J': {// join part1 part2 join-column constraints1 constratint2
-                ibis::joinspec js;
-                if (i+3 < argc) {
-                    js.part1 = argv[i+1];
-                    js.part2 = argv[i+2];
-                    js.jcol  = argv[i+3];
-                    i += 3;
-                }
-                if (i+1 < argc && *argv[i+1] != '-') {
-                    ++ i;
-                    if (*argv[i] != '*' && *argv[i] != 0 &&
-                        ! std::isspace(*argv[i]))
-                        js.cond1 = argv[i];
-                }
-                if (i+1 < argc && *argv[i+1] != '-') {
-                    ++ i;
-                    if (*argv[i] != '*' && *argv[i] != 0 &&
-                        ! std::isspace(*argv[i]))
-                        js.cond2 = argv[i];
-                }
-                while (i+1 < argc && *argv[i+1] != '-') {
-                    ++ i;
-                    if (js.selcol.empty()) {
-                        js.selcol = argv[i];
-                    }
-                    else {
-                        js.selcol += ", ";
-                        js.selcol += argv[i];
-                    }
-                }
-                if (js.part1 != 0 && js.part2 != 0 && js.jcol != 0) {
-                    joins.push_back(new ibis::joinspec(js));
-                }
-                else {
-                    LOGGER(1) << *argv << " -j option did not specify a "
-                        "complete join operation, discard it.\nUsage\n\t-j "
-                        "part1 part2 join-column conditions1 conditions2 "
-                        "[columns ...]\n\nNote: Table care not to have any "
-                        "of the strings start with -";
-                }
-                break;}
-            case 'k':
-            case 'K': // keep temporary query files or reverse -y
-                if (i+1 < argc && *argv[i+1] != '-') { // reverse -y
-                    keepstring = argv[i+1];
-                    i = i + 1;
-                }
-                else { // keep temporary files
-                    ibis::query::keepQueryRecords();
-                }
-                break;
-            case 'l':
-            case 'L': // logfile or load index in one-shot
-                if (i+1 < argc && argv[i+1][0] != '-') {
-                    mesgfile = argv[i+1];
-                    ++ i;
-                }
-                else if ((argv[i][2] == 'o' || argv[i][2] == 'O') &&
-                         (argv[i][3] == 'g' || argv[i][3] == 'G')) {
-                    mesgfile = 0; // reset the log file to stdout
-                }
-                else {
-                    accessIndexInWhole = 1;
-                }
-                break;
-            case 'm':
-            case 'M': {
-                // mesh query can only be run on independent data
-                // partitions
-                independent_parts = 2;
+	if (*argv[i] == '-') { // normal arguments starting with -
+	    switch (argv[i][1]) {
+	    case 'a': // append a directory of data (must have a directory
+	    case 'A': // name, optionally specify data partition name with "to
+		      // name", where the name can be a data partition name
+		      // or a directory name)
+		if (i+1 < argc) {
+		    alist.push_back(argv[i+1]);
+		    if (i+3 < argc && stricmp(argv[i+2], "to")==0 &&
+			argv[i+3][0] != '-') {
+			appendTarget = argv[i+3];
+			i += 3;
+		    }
+		    else if (i+2 < argc && argv[i+2][0] != '-') {
+			appendTarget = argv[i+2];
+			i += 2;
+		    }
+		    else {
+			++ i;
+		    }
+		}
+	    break;
+	    case 'b':
+	    case 'B': { // build indexes,
+		// if this argument is followed by an integer, the integer
+		// is taken to be the number of threads to use for building
+		// indexes; if this argument is followed by anything else,
+		// it is assumed to be an index speicification.
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    build_index += strtol(argv[i+1], 0, 0);
+			    i = i + 1;
+			}
+			else if (*argv[i+1] != '-') {
+			    // assume to be an index specification
+			    char *str1 = argv[i+1];
+			    char *str2 = strchr(argv[i+1], ':');
+			    if (str2 != 0) {
+				*str2 = 0;
+				++ str2;
+				indexingOptions.push_back(str1);
+				indexingOptions.push_back(str2);
+			    }
+			    else {
+				defaultIndexing = argv[i+1];
+			    }
+			    i = i + 1;
+			}
+			else {
+			    ++ build_index;
+			}
+		    }
+		    else {
+			++ build_index;
+		    }
+		}
+		else {
+		    build_index += strtol(++ptr, 0, 0);
+		    if (i+1 < argc && *argv[i+1] != '-') {
+			// assume to be an index specification
+			char *str1 = argv[i+1];
+			char *str2 = strchr(argv[i+1], ':');
+			if (str2 != 0) {
+			    *str2 = 0;
+			    ++ str2;
+			    indexingOptions.push_back(str1);
+			    indexingOptions.push_back(str2);
+			}
+			else {
+			    defaultIndexing = argv[i+1];
+			}
+			i = i + 1;
+		    }
+		}
+		break;}
+	    case 'c':
+	    case 'C': // configuration file, multiple files allowed
+		if (i+1 < argc) {
+		    confs.push_back(argv[i+1]);
+		    ++ i;
+		}
+	    break;
+	    case 'd':
+	    case 'D': // data directory, multiple directory allowed
+		if (i+1 < argc && argv[i+1][0] != '-') {
+		    dirs.push_back(argv[i+1]);
+		    i = i + 1;
+		}
+		else {
+		    std::clog << "Warning -- argument -d must be followed by "
+			      << "a directory name" << std::endl;
+		}
+	    break;
+	    case 'e':
+	    case 'E': // estiamtion option
+		estimation_opt += 1;
+	    break;
+	    case 'f':
+	    case 'F': // query file, multiple files allowed
+		if (i+1 < argc) {
+		    readQueryFile(argv[i+1], queff);
+		    ++ i;
+		}
+	    break;
+	    default:
+	    case 'h':
+	    case 'H': // print usage
+		usage(*argv);
+	    if (argc <= 2)
+		exit(0);
+	    break;
+	    case 'i':
+	    case 'I': // interactive mode
+		mode = 1;
+	    break;
+	    case 'j':
+	    case 'J': {// join part1 part2 join-column constraints1 constratint2
+		ibis::joinspec js;
+		if (i+3 < argc) {
+		    js.part1 = argv[i+1];
+		    js.part2 = argv[i+2];
+		    js.jcol  = argv[i+3];
+		    i += 3;
+		}
+		if (i+1 < argc && *argv[i+1] != '-') {
+		    ++ i;
+		    if (*argv[i] != '*' && *argv[i] != 0 && !isspace(*argv[i]))
+			js.cond1 = argv[i];
+		}
+		if (i+1 < argc && *argv[i+1] != '-') {
+		    ++ i;
+		    if (*argv[i] != '*' && *argv[i] != 0 && !isspace(*argv[i]))
+			js.cond2 = argv[i];
+		}
+		while (i+1 < argc && *argv[i+1] != '-') {
+		    ++ i;
+		    if (js.selcol.empty()) {
+			js.selcol = argv[i];
+		    }
+		    else {
+			js.selcol += ", ";
+			js.selcol += argv[i];
+		    }
+		}
+		if (js.part1 != 0 && js.part2 != 0 && js.jcol != 0) {
+		    joins.push_back(new ibis::joinspec(js));
+		}
+		else {
+		    LOGGER(1) << *argv << " -j option did not specify a "
+			"complete join operation, discard it.\nUsage\n\t-j "
+			"part1 part2 join-column conditions1 conditions2 "
+			"[columns ...]\n\nNote: Table care not to have any "
+			"of the strings start with -";
+		}
+		break;}
+	    case 'k':
+	    case 'K': // keep temporary query files or reverse -y
+		if (i+1 < argc && *argv[i+1] != '-') { // reverse -y
+		    keepstring = argv[i+1];
+		    i = i + 1;
+		}
+		else { // keep temporary files
+		    ibis::query::keepQueryRecords();
+		}
+	    break;
+	    case 'l':
+	    case 'L': // logfile or load index in one-shot
+		if (i+1 < argc && argv[i+1][0] != '-') {
+		    mesgfile = argv[i+1];
+		    ++ i;
+		}
+		else if ((argv[i][2] == 'o' || argv[i][2] == 'O') &&
+			 (argv[i][3] == 'g' || argv[i][3] == 'G')) {
+		    mesgfile = 0; // reset the log file to stdout
+		}
+		else {
+		    accessIndexInWhole = 1;
+		}
+	    break;
 #if defined(TEST_SUMBINS_OPTIONS)
                 // _sumBins_option
                 char* ptr = strchr(argv[i], '=');
@@ -2269,75 +2257,74 @@ static void parse_args(int argc, char** argv, int& mode,
                     }
                 }
 #endif
-                break;}
-            case 'n':
-            case 'N': {
-                // no-estimation, directly call function evaluate
-                estimation_opt = -1;
-                break;}
-            case 'o':
-            case 'O':
-                if (argv[i][2] == 'n' || argv[i][2] == 'N') {
-                    // only-evaluate, directly call function evaluate
-                    estimation_opt = -1;
-                }
-                else if (i+1 < argc && argv[i+1][0] != '-') {
-                    // output file specified
-                    if (! outputbinary)
-                        outputbinary =
-                            (0 != strchr(argv[i]+2, 'b') ||
-                             0 != strchr(argv[i]+2, 'B'));
-                    if (! showheader && ! outputbinary)
-                        showheader =
-                            (0 != strchr(argv[i]+2, 'h') ||
-                             0 != strchr(argv[i]+2, 'H'));
-                    outputname = argv[i+1];
-                    i = i + 1;
-                }
-                break;
-            case 'p':
-            case 'P': // collect the print options
-                if (i+1 < argc) {
-                    if (argv[i+1][0] != '-') {
-                        printcmds.push_back(argv[i+1]);
-                        ++ i;
-                    }
-                    else if (printcmds.empty()) {
-                        printcmds.push_back("parts");
-                    }
-                }
-                else  if (printcmds.empty()) { // at least print partition names
-                    printcmds.push_back("parts");
-                }
-                break;
-            case 'q':
-            case 'Q': // specify a query "[select ...] [from ...] where ..."
-                if (i+1 < argc) {
-                    qlist.push_back(argv[i+1]);
-                    ++ i;
-                }
-                break;
-            case 'r':
-            case 'R': // RID/result check or reorder
-                if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
-                    recheckvalues = true;
-                    if (i+1 < argc) { // there is one more argument
-                        if (argv[i+1][0] != '-') { // assume to be a file name
-                            ridfile = argv[i+1];
-                            ++ i;
-                        }
-                    }
-                }
-                else if (i+1 < argc && argv[i+1][0] != '-') { // reorder
-                    rdirs.push_back(argv[i+1]);
-                    ++ i;
-                }
-                else { // rid
-                    recheckvalues = true;
-                }
-                break;
-            case 's':
-            case 'S': // sequential scan, or sort option
+	    case 'n':
+	    case 'N': {
+		// no-estimation, directly call function evaluate
+		estimation_opt = -1;
+		break;}
+	    case 'o':
+	    case 'O':
+		if (argv[i][2] == 'n' || argv[i][2] == 'N') {
+		    // only-evaluate, directly call function evaluate
+		    estimation_opt = -1;
+		}
+		else if (i+1 < argc && argv[i+1][0] != '-') {
+		    // output file specified
+		    if (! outputbinary)
+			outputbinary =
+			    (0 != strchr(argv[i]+2, 'b') ||
+			     0 != strchr(argv[i]+2, 'B'));
+		    if (! showheader && ! outputbinary)
+			showheader =
+			    (0 != strchr(argv[i]+2, 'h') ||
+			     0 != strchr(argv[i]+2, 'H'));
+		    outputname = argv[i+1];
+		    i = i + 1;
+		}
+	    break;
+	    case 'p':
+	    case 'P': // collect the print options
+		if (i+1 < argc) {
+		    if (argv[i+1][0] != '-') {
+			printcmds.push_back(argv[i+1]);
+			++ i;
+		    }
+		    else if (printcmds.empty()) {
+			printcmds.push_back("parts");
+		    }
+		}
+		else  if (printcmds.empty()) { // at least print partition names
+		    printcmds.push_back("parts");
+		}
+	    break;
+	    case 'q':
+	    case 'Q': // specify a query "[select ...] [from ...] where ..."
+		if (i+1 < argc) {
+		    qlist.push_back(argv[i+1]);
+		    ++ i;
+		}
+	    break;
+	    case 'r':
+	    case 'R': // RID/result check or reorder
+		if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
+		    verify_rid = true;
+		    if (i+1 < argc) { // there is one more argument
+			if (argv[i+1][0] != '-') { // assume to be a file name
+			    ridfile = argv[i+1];
+			    ++ i;
+			}
+		    }
+		}
+		else if (i+1 < argc && argv[i+1][0] != '-') { // reorder
+		    rdirs.push_back(argv[i+1]);
+		    ++ i;
+		}
+		else { // rid
+		    verify_rid = true;
+		}
+	    break;
+	    case 's':
+	    case 'S': // sequential scan, or sort option
 #if defined(TEST_SCAN_OPTIONS)
                 if (i+1 < argc) {
                     if (isdigit(*argv[i+1])) {
@@ -2488,42 +2475,42 @@ static void parse_args(int argc, char** argv, int& mode,
                       << std::endl;
     }
     if (ibis::gVerbose > 1) {
-        ibis::util::logger lg;
-        lg() << "\n" << *argv;
-        if (ibis::gVerbose > 5) {
-            for (int i = 1; i < argc; ++ i)
-                lg() << ' ' << argv[i];
-            lg() << "\n";
-        }
-        lg() << "\nOptions summary: "
-             << (mode ? "interactive mode" : "batch mode")
-             << ", log level " << ibis::gVerbose;
-        if (build_index > 0) {
-            lg() << ", building indexes";
-            if (zapping)
-                lg() << " (remove any existing indexes)";
-        }
-        if (testing > 0)
-            lg() << ", testing " << testing;
-        if (threading > 0)
-            lg() << ", threading " << threading;
-        if (mode > 0 || qlist.size() > 0) {
-            if (estimation_opt < 0)
-                lg() << ", skipping estimation";
-            else if (estimation_opt > 0)
-                lg() << ", computing only bounds";
-            else
-                lg() << ", with estimation";
-        }
-        if (! alist.empty()) {
-            lg() << "\nappending data in the following director"
-                 << (alist.size()>1 ? "ies" : "y");
-            if (appendTarget)
-                lg() << " to " << appendTarget;
-            for (uint32_t i = 0; i < alist.size(); ++ i)
-                lg() << "\n" << alist[i];
-        }
-        lg() << "\n";
+	ibis::util::logger lg;
+	lg() << "\n" << *argv;
+	if (ibis::gVerbose > 5) {
+	    for (int i = 1; i < argc; ++ i)
+		lg() << ' ' << argv[i];
+	    lg() << "\n";
+	}
+	lg() << "\nOptions summary: "
+	     << (mode ? "interactive mode" : "batch mode")
+	     << ", log level " << ibis::gVerbose;
+	if (build_index > 0) {
+	    lg() << ", building indexes";
+	    if (zapping)
+		lg() << " (remove any existing indexes)";
+	}
+	if (testing > 0)
+	    lg() << ", testing " << testing;
+	if (threading > 0)
+	    lg() << ", threading " << threading;
+	if (mode > 0 || qlist.size() > 0) {
+	    if (estimation_opt < 0)
+		lg() << ", skipping estimation";
+	    else if (estimation_opt > 0)
+		lg() << ", computing only bounds";
+	    else
+		lg() << ", with estimation";
+	}
+	if (! alist.empty()) {
+	    lg() << "\nappending data in the following director"
+		 << (alist.size()>1 ? "ies" : "y");
+	    if (appendTarget)
+		lg() << " to " << appendTarget;
+	    for (uint32_t i = 0; i < alist.size(); ++ i)
+		lg() << "\n" << alist[i];
+	}
+	lg() << "\n";
     }
     if (confs.size() > 1) {
         // read all configuration files except the last one
@@ -2737,29 +2724,29 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
     const char* asstr = 0;
     if (sstr != 0) {
-        aQuery.setSelectClause(sstr);
-        asstr = aQuery.getSelectClause();
+	aQuery.setSelectClause(sstr);
+	asstr = aQuery.getSelectClause();
     }
 
     if (estimation_opt >= 0) {
-        num2 = aQuery.estimate();
-        if (num2 < 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- xdoQuery failed to estimate \"" << wstr
-                << "\", error code = " << num2;
-            return;
-        }
-        num1 = aQuery.getMinNumHits();
-        num2 = aQuery.getMaxNumHits();
-        if (ibis::gVerbose > 0) {
-            ibis::util::logger lg;
-            lg() << "xdoQuery -- the number of hits is ";
-            if (num2 > num1)
-                lg() << "between " << num1 << " and ";
-            lg() << num2;
-        }
-        if (estimation_opt > 0)
-            return;
+	num2 = aQuery.estimate();
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "xdoQuery -- failed to estimate \"" << wstr
+		<< "\", error code = " << num2;
+	    return;
+	}
+	num1 = aQuery.getMinNumHits();
+	num2 = aQuery.getMaxNumHits();
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg() << "xdoQuery -- the number of hits is ";
+	    if (num2 > num1) 
+		lg() << "between " << num1 << " and ";
+	    lg() << num2;
+	}
+	if (estimation_opt > 0)
+	    return;
     }
 
     num2 = aQuery.evaluate();
@@ -2972,37 +2959,27 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 
     ibis::horometer timer;
     timer.start();
-    std::ofstream outputstream;
-    if (outputname != 0 && *outputname != 0 &&
-        0 != strcmp(outputname, "/dev/null")) {
-        // open the file now to clear the existing content, in cases of
-        // error, the output file would have been cleared
-        outputstream.open(outputname,
-                          std::ios::out |
-                          (appendToOutput ? std::ios::app : std::ios::trunc));
-        appendToOutput = true; // all query output go to the same file
-    }
 
     if (estimation_opt >= 0) {
-        uint64_t num1, num2;
-        tbl->estimate(wstr, num1, num2);
-        if (ibis::gVerbose > 0) {
-            ibis::util::logger lg;
-            lg() << "tableSelect -- the number of hits is ";
-            if (num2 > num1)
-                lg() << "between " << num1 << " and ";
-            lg() << num2;
-        }
-        if (estimation_opt > 0 || num2 == 0) {
-            if (ibis::gVerbose > 0) {
-                timer.stop();
-                ibis::util::logger lg;
-                lg() << "tableSelect:: estimate(" << wstr << ") took "
-                     << timer.CPUTime() << " CPU seconds, "
-                     << timer.realTime() << " elapsed seconds";
-            }
-            return; // stop here is only want to estimate
-        }
+	uint64_t num1, num2;
+	tbl->estimate(wstr, num1, num2);
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg() << "tableSelect -- the number of hits is ";
+	    if (num2 > num1)
+		lg() << "between " << num1 << " and ";
+	    lg() << num2;
+	}
+	if (estimation_opt > 0 || num2 == 0) {
+	    if (ibis::gVerbose > 0) {
+		timer.stop();
+		ibis::util::logger lg;
+		lg() << "tableSelect:: estimate(" << wstr << ") took "
+		     << timer.CPUTime() << " CPU seconds, "
+		     << timer.realTime() << " elapsed seconds";
+	    }
+	    return; // stop here is only want to estimate
+	}
     }
 
     std::unique_ptr<ibis::table> sel1(tbl->select(sstr, wstr));
@@ -3185,86 +3162,76 @@ static void doQuaere(const ibis::partList& pl,
         sqlstring = ostr.str();
     }
     LOGGER(ibis::gVerbose > 1)
-        << "doQuaere -- processing \"" << sqlstring << '\"';
-    std::ofstream outputstream;
-    if (outputname != 0 && *outputname != 0 &&
-        0 != strcmp(outputname, "/dev/null")) {
-        // open the file now to clear the existing content, in cases of
-        // error, the output file would have been cleared
-        outputstream.open(outputname,
-                          std::ios::out |
-                          (appendToOutput ? std::ios::app : std::ios::trunc));
-        appendToOutput = true; // all query output go to the same file
-    }
+	<< "doQuaere -- processing \"" << sqlstring << '\"';
 
-    std::unique_ptr<ibis::table> res;
+    std::auto_ptr<ibis::table> res;
     if (estimation_opt < 0) { // directly evaluate the select clause
-        std::unique_ptr<ibis::quaere>
-            qq(ibis::quaere::create(0, fstr, wstr, pl));
-        if (qq.get() == 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- doQuaere(" << sqlstring
-                << ") failed to create an ibis::quaere object";
-            return;
-        }
-        res.reset(qq->select(sstr));
+	std::auto_ptr<ibis::quaere>
+	    qq(ibis::quaere::create(0, fstr, wstr, pl));
+	if (qq.get() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to create an ibis::quaere object";
+	    return;
+	}
+	res.reset(qq->select(sstr));
     }
     else {
-        std::unique_ptr<ibis::quaere>
-            qq(ibis::quaere::create(sstr, fstr, wstr, pl));
-        if (qq.get() == 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- doQuaere(" << sqlstring
-                << ") failed to create an ibis::quaere object";
-            return;
-        }
+	std::auto_ptr<ibis::quaere>
+	    qq(ibis::quaere::create(sstr, fstr, wstr, pl));
+	if (qq.get() == 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to create an ibis::quaere object";
+	    return;
+	}
 
-        uint64_t nhits=1, hmax=0;
-        qq->roughCount(nhits, hmax);
-        if (nhits < hmax) {
-            LOGGER(ibis::gVerbose > 0)
-                << "doQuaere -- " << wstr << " --> [" << nhits << ", "
-                << hmax << ']';
-        }
-        else {
-            LOGGER(ibis::gVerbose > 0)
-                << "doQuaere -- " << wstr << " --> " << nhits
-                << " hit" << (hmax>1?"s":"");
-        }
-        if (estimation_opt > 0) return;
+	uint64_t nhits=1, hmax=0;
+	qq->roughCount(nhits, hmax);
+	if (nhits < hmax) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "doQuaere -- " << wstr << " --> [" << nhits << ", "
+		<< hmax << ']';
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "doQuaere -- " << wstr << " --> " << nhits
+		<< " hit" << (hmax>1?"s":"");
+	}
+	if (estimation_opt > 0) return;
 
-        int64_t cnts = qq->count();
-        if (cnts < 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- doQuaere(" << sqlstring
-                << ") failed to produce a count of the number of hits"
-                << ", ierr = " << cnts;
-            return;
-        }
-        else if (nhits < hmax) {
-            LOGGER(ibis::gVerbose >= 0 &&
-                   ((uint64_t)cnts < nhits || (uint64_t)cnts > hmax))
-                << "Warning -- doQuaere(" << sqlstring
-                << ") expects the return of count to be between "
-                << nhits << " and " << hmax
-                << ", but the actual return value is " << cnts;
-            nhits = cnts;
-        }
-        else if ((uint64_t)cnts != nhits) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- doQuaere(" << sqlstring
-                << ") expects the return of count to be " << nhits
-                << ", but the actual return value is " << cnts;
-            nhits = cnts;
-        }
+	int64_t cnts = qq->count();
+	if (cnts < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") failed to produce a count of the number of hits"
+		<< ", ierr = " << cnts;
+	    return;
+	}
+	else if (nhits < hmax) {
+	    LOGGER(ibis::gVerbose >= 0 &&
+		   ((uint64_t)cnts < nhits || (uint64_t)cnts > hmax))
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") expects the return of count to be between "
+		<< nhits << " and " << hmax
+		<< ", but the actual return value is " << cnts;
+	    nhits = cnts;
+	}
+	else if ((uint64_t)cnts != nhits) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- doQuaere(" << sqlstring
+		<< ") expects the return of count to be " << nhits
+		<< ", but the actual return value is " << cnts;
+	    nhits = cnts;
+	}
 
-        res.reset(qq->select());
+	res.reset(qq->select());
     }
     if (res.get() == 0) {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- doQuaere(" << sqlstring
-            << ") failed to produce a result table";
-        return;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- doQuaere(" << sqlstring
+	    << ") failed to produce a result table";
+	return;
     }
 
     if (res->nRows() > 1 && ((ordkeys && *ordkeys) || limit > 0)) {
@@ -3607,54 +3574,39 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
                 return;
             }
 
-            num2 = btmp.cnt();
-        }
-        if (ibis::gVerbose >= 0) {
-            timer.stop();
-            ibis::util::logger lg;
-            lg() << "doQuery:: sequentialScan("
-                 << aQuery.getWhereClause() << ") produced "
-                 << num2 << " hit" << (num2>1 ? "s" : "");
-            if (ibis::gVerbose > 0)
-                lg () << ", took " << timer.CPUTime() << " CPU seconds, "
-                      << timer.realTime() << " elapsed seconds";
-        }
-        return;
-    }
-
     if (estimation_opt >= 0) {
-        num2 = aQuery.estimate();
-        if (num2 < 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- doQuery failed to estimate \"" << wstr
-                << "\", error code = " << num2;
-            return;
-        }
-        num1 = aQuery.getMinNumHits();
-        num2 = aQuery.getMaxNumHits();
-        if (ibis::gVerbose > 1) {
-            ibis::util::logger lg;
-            lg() << "doQuery -- the number of hits is ";
-            if (num2 > num1)
-                lg() << "between " << num1 << " and ";
-            lg() << num2;
-        }
-        if (estimation_opt > 0 || num2 == 0) {
-            if (ibis::gVerbose >= 0) {
-                timer.stop();
-                ibis::util::logger lg;
-                lg() << "doQuery:: estimate("
-                     << aQuery.getWhereClause() << ") took "
-                     << timer.CPUTime() << " CPU seconds, "
-                     << timer.realTime() << " elapsed seconds.";
-                if (num1 == num2)
-                    lg() << "  The number of hits is " << num1;
-                else
-                    lg() << "  The number of hits is between "
-                         << num1 << " and " << num2;
-            }
-            return; // stop here is only want to estimate
-        }
+	num2 = aQuery.estimate();
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "doQuery -- failed to estimate \"" << wstr
+		<< "\", error code = " << num2;
+	    return;
+	}
+	num1 = aQuery.getMinNumHits();
+	num2 = aQuery.getMaxNumHits();
+	if (ibis::gVerbose > 1) {
+	    ibis::util::logger lg;
+	    lg() << "doQuery -- the number of hits is ";
+	    if (num2 > num1)
+		lg() << "between " << num1 << " and ";
+	    lg() << num2;
+	}
+	if (estimation_opt > 0 || num2 == 0) {
+	    if (ibis::gVerbose >= 0) {
+		timer.stop();
+		ibis::util::logger lg;
+		lg() << "doQuery:: estimate("
+		     << aQuery.getWhereClause() << ") took "
+		     << timer.CPUTime() << " CPU seconds, "
+		     << timer.realTime() << " elapsed seconds.";
+		if (num1 == num2)
+		    lg() << "  The number of hits is " << num1;
+		else
+		    lg() << "  The number of hits is between "
+			 << num1 << " and " << num2;
+	    }
+	    return; // stop here is only want to estimate
+	}
     }
 
     num2 = aQuery.evaluate();
@@ -3961,37 +3913,37 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 
     const char* asstr = 0;
     if (sstr != 0 && *sstr != 0) {
-        aQuery.setSelectClause(sstr);
-        asstr = aQuery.getSelectClause();
+	aQuery.setSelectClause(sstr);
+	asstr = aQuery.getSelectClause();
     }
     if (estimation_opt >= 0) {
-        num2 = aQuery.estimate();
-        if (num2 < 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- doMeshQuery failed to estimate \"" << wstr
-                << "\", error code = " << num2;
-            return;
-        }
-        num1 = aQuery.getMinNumHits();
-        num2 = aQuery.getMaxNumHits();
-        if (ibis::gVerbose > 0) {
-            ibis::util::logger lg;
-            lg() << "doMeshQuery -- the number of hits is ";
-            if (num1 < num2)
-                lg() << "between " << num1 << " and ";
-            lg() << num2;
-        }
-        if (estimation_opt > 0 || num2 == 0) {
-            if (ibis::gVerbose > 0) {
-                timer.stop();
-                ibis::util::logger lg;
-                lg() << "doMeshQuery:: estimate("
-                     << aQuery.getWhereClause() << ") took "
-                     << timer.CPUTime() << " CPU seconds, "
-                     << timer.realTime() << " elapsed seconds";
-            }
-            return; // stop here is only want to estimate
-        }
+	num2 = aQuery.estimate();
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "doMeshQuery -- failed to estimate \"" << wstr
+		<< "\", error code = " << num2;
+	    return;
+	}
+	num1 = aQuery.getMinNumHits();
+	num2 = aQuery.getMaxNumHits();
+	if (ibis::gVerbose > 0) {
+	    ibis::util::logger lg;
+	    lg() << "doMeshQuery -- the number of hits is ";
+	    if (num1 < num2)
+		lg() << "between " << num1 << " and ";
+	    lg() << num2;
+	}
+	if (estimation_opt > 0 || num2 == 0) {
+	    if (ibis::gVerbose > 0) {
+		timer.stop();
+		ibis::util::logger lg;
+		lg() << "doMeshQuery:: estimate("
+		     << aQuery.getWhereClause() << ") took "
+		     << timer.CPUTime() << " CPU seconds, "
+		     << timer.realTime() << " elapsed seconds";
+	    }
+	    return; // stop here is only want to estimate
+	}
     }
 
     num2 = aQuery.evaluate();

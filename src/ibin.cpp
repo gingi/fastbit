@@ -7513,22 +7513,20 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
         }
     }
     else if (offset32.size() > bits.size()) {
-        if (cand0 < cand1 && cand1 < offset32.size()) {
-            const int32_t tot = offset32.back() - offset32[0];
-            const int32_t mid = offset32[cand1] - offset32[cand0];
-            if ((tot >> 1) >= mid)
-                cost = mid;
-            else
-                cost = tot - mid;
-        }
+	if (cand0 < cand1 && cand1 < offset32.size()) {
+	    const int32_t tot = offset32.back() - offset32[0];
+	    const int32_t mid = offset32[cand1] - offset32[cand0];
+	    if ((tot >> 1) >= mid)
+		cost = mid;
+	    else
+		cost = tot - mid;
+	}
     }
-    if (col != 0) {
-        if (hit0 > cand0 && cand1 > hit1) {
-            cost += (col->elementSize() * (double)nrows / nobs) * 2.0;
-        }
-        else if (hit0 > cand0 || cand1 > hit1) {
-            cost += (col->elementSize() * (double)nrows / nobs);
-        }
+    if (hit0 > cand0 && cand1 > hit1) {
+	cost += (col->elementSize() * (double)nrows / nobs) * 2.0;
+    }
+    else if (hit0 > cand0 || cand1 > hit1) {
+	cost += (col->elementSize() * (double)nrows / nobs);
     }
 #endif
     if (cand0 >= cand1) {
