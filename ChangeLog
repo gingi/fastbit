@@ -1,3 +1,12 @@
+2013-06-20 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp:4491 retry fopen with the file assumed to be in the
+	current data directory of the data partition (so avoid assuming
+	full path)
+	* src/irelic.cpp: initialize offset64 in the special case
+	constructors
+	* src/ixfuzz.cpp:769 add test for both offset64 and offset32 being
+	empty (per suggestion of Per Christian Engberg)
+
 2013-06-19 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:6504 add conditional compilation macro
 	FASTBIT_ESTIMATION_IGNORE_COST to allow estimation to always

@@ -4473,18 +4473,34 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 #endif
 } // ibis::bin::scanAndPartition
 
-// read the values in the named file and add them to bounds.  If nb > 0,
-// read first nb values or till the end of the file.  The file contains one
-// value in each line.  Sine this function only reads the first value, the
-// line may contain other thing after the value.
-// The sharp '#' symbol is used to indicate comments in the file.
+/// Read a file containing a list of floating-point numbers.
+///
+/// If nb > 0, read first nb values or till the end of the file.  The file
+/// contains one value in each line.  Sine this function only reads the
+/// first value, the line may contain other thing after the value.  The
+/// sharp '#' symbol is used to indicate comments in the file.
+///
+/// The file name can use either an absolute path or a relative path
+/// (relative to the current data directory of the data partition).
 void ibis::bin::readBinBoundaries(const char *fnm, uint32_t nb) {
+    if (fnm == 0 || *fnm == 0) return;
+
     char buf[MAX_LINE];
     FILE *fptr = fopen(fnm, "r");
     if (fptr == 0) {
-	col->logWarning("bin::readBinBoundaries", "unable to open file \"%s\"",
-			fnm);
-	return;
+        if (col != 0 && col->partition() != 0 &&
+            col->partition()->currentDataDir() != 0) {
+            std::string fullname = col->partition()->currentDataDir();
+            fullname += FASTBIT_DIRSEP;
+            fullname += fnm;
+            fptr = fopen(fullname.c_str(), "r");
+            if (fptr == 0) {
+                col->logWarning("bin::readBinBoundaries",
+                                "unable to open file \"%s\"",
+                                fnm);
+                return;
+            }
+        }
     }
 
     uint32_t cnt = 0;

@@ -73,6 +73,10 @@ ibis::relic::relic(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	vals[0] = popu;
 	bits[0] = new ibis::bitvector();
 	bits[0]->set(1, ntpl);
+        offset64.resize(2);
+        offset64[0] = 0;
+        offset64[1] = bits[0]->getSerialSize();
+        offset32.clear();
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
 	    print(lg());
@@ -96,6 +100,8 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
     try {
 	vals.resize(card);
 	bits.resize(card);
+        offset32.clear();
+        offset64.resize(card+1);
 	for (uint32_t i = 0; i < card; ++i) {
 	    vals[i] = i;
 	    bits[i] = new ibis::bitvector();
@@ -114,8 +120,11 @@ ibis::relic::relic(const ibis::column* c, uint32_t card,
 	    }
 #endif
 	}
+
+        offset64[0] = 0;
 	for (uint32_t i = 0; i < card; ++i) {
 	    bits[i]->adjustSize(0, nrows);
+            offset64[i+1] = offset64[i] + bits[i]->getSerialSize();
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;

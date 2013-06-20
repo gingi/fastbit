@@ -311,7 +311,6 @@ protected:
     void printGranules(std::ostream& out, const granuleMap& gmap) const;
     void convertGranules(granuleMap& gmap);
 
-    /// Read a file containing a list of floating-point numbers.
     void readBinBoundaries(const char* name, uint32_t nb);
     /// Partition the range based on the (approximate) histogram of the data
     void scanAndPartition(const char*, unsigned, uint32_t nbins=0);
