@@ -27,16 +27,16 @@ namespace ibis {
 	UNKNOWN_TYPE=0,
 	/// A special eight-byte ID type for internal use.
 	OID,
-	BYTE,	///< One-byte signed integers, internally char.
-	UBYTE,	///< One-byte unsigned integers, internally unsigned char.
-	SHORT,	///< Two-byte signed integers, internally int16_t.
-	USHORT, ///< Two-byte unsigned integers, internally uint16_t.
-	INT,	///< Four-byte signed integers, internally int32_t.
-	UINT,	///< Four-byte unsigned integers, internally uint32_t.
-	LONG,	///< Eight-byte signed integers, internally int64_t.
-	ULONG,	///< Eight-byte unsigned integers, internally uint64_t.
-	FLOAT,	///< Four-byte IEEE floating-point numbers, internally float.
-	DOUBLE, ///< Eight-byte IEEE floating-point numbers, internally double.
+	BYTE,	///!< One-byte signed integers, internally char.
+	UBYTE,	///!< One-byte unsigned integers, internally unsigned char.
+	SHORT,	///!< Two-byte signed integers, internally int16_t.
+	USHORT, ///!< Two-byte unsigned integers, internally uint16_t.
+	INT,	///!< Four-byte signed integers, internally int32_t.
+	UINT,	///!< Four-byte unsigned integers, internally uint32_t.
+	LONG,	///!< Eight-byte signed integers, internally int64_t.
+	ULONG,	///!< Eight-byte unsigned integers, internally uint64_t.
+	FLOAT,	///!< Four-byte IEEE floating-point numbers, internally float.
+	DOUBLE, ///!< Eight-byte IEEE floating-point numbers, internally double.
 	/// Low cardinality null-terminated strings.  Strings are
 	/// internally stored with the null terminators.  Each string value
 	/// is intended to be treated as a single atomic item.
@@ -122,8 +122,8 @@ public:
     /// An associative array of names and types.
     typedef std::map<const char*, ibis::TYPE_T, ibis::lessi> namesTypes;
 
-    virtual stringList columnNames() const =0; ///< Return column names.
-    virtual typeList columnTypes() const =0; ///< Return data types.
+    virtual stringList columnNames() const =0; ///!< Return column names.
+    virtual typeList columnTypes() const =0; ///!< Return data types.
 
     /// Print a description of the table to the specified output stream.
     virtual void describe(std::ostream&) const =0;
@@ -393,31 +393,31 @@ public:
 
     /// A simple struct for storing a row of a table.
     struct row {
-	std::vector<std::string>   bytesnames; ///< For ibis::BYTE.
+	std::vector<std::string>   bytesnames; ///!< For ibis::BYTE.
 	std::vector<signed char>   bytesvalues;
-	std::vector<std::string>   ubytesnames; ///< For ibis::UBYTE.
+	std::vector<std::string>   ubytesnames; ///!< For ibis::UBYTE.
 	std::vector<unsigned char> ubytesvalues;
-	std::vector<std::string>   shortsnames; ///< For ibis::SHORT.
+	std::vector<std::string>   shortsnames; ///!< For ibis::SHORT.
 	std::vector<int16_t>       shortsvalues;
-	std::vector<std::string>   ushortsnames; ///< For ibis::USHORT.
+	std::vector<std::string>   ushortsnames; ///!< For ibis::USHORT.
 	std::vector<uint16_t>      ushortsvalues;
-	std::vector<std::string>   intsnames; ///< For ibis::INT.
+	std::vector<std::string>   intsnames; ///!< For ibis::INT.
 	std::vector<int32_t>       intsvalues;
-	std::vector<std::string>   uintsnames; ///< For ibis::UINT.
+	std::vector<std::string>   uintsnames; ///!< For ibis::UINT.
 	std::vector<uint32_t>      uintsvalues;
-	std::vector<std::string>   longsnames; ///< For ibis::LONG.
+	std::vector<std::string>   longsnames; ///!< For ibis::LONG.
 	std::vector<int64_t>       longsvalues;
-	std::vector<std::string>   ulongsnames; ///< For ibis::ULONG.
+	std::vector<std::string>   ulongsnames; ///!< For ibis::ULONG.
 	std::vector<uint64_t>      ulongsvalues;
-	std::vector<std::string>   floatsnames; ///< For ibis::FLOAT.
+	std::vector<std::string>   floatsnames; ///!< For ibis::FLOAT.
 	std::vector<float>         floatsvalues;
-	std::vector<std::string>   doublesnames; ///< For ibis::DOUBLE.
+	std::vector<std::string>   doublesnames; ///!< For ibis::DOUBLE.
 	std::vector<double>        doublesvalues;
-	std::vector<std::string>   catsnames; ///< For ibis::CATEGORY.
+	std::vector<std::string>   catsnames; ///!< For ibis::CATEGORY.
 	std::vector<std::string>   catsvalues;
-	std::vector<std::string>   textsnames; ///< For ibis::TEXT.
+	std::vector<std::string>   textsnames; ///!< For ibis::TEXT.
 	std::vector<std::string>   textsvalues;
-	std::vector<std::string>   blobsnames; ///< For ibis::BLOB
+	std::vector<std::string>   blobsnames; ///!< For ibis::BLOB
 	std::vector<ibis::opaque>  blobsvalues;
 
 	/// Clear all names and values.
@@ -449,8 +449,8 @@ public:
 
 protected:
 
-    std::string name_;	///< Name of the table.
-    std::string desc_;	///< Description of the table.
+    std::string name_;	///!< Name of the table.
+    std::string desc_;	///!< Description of the table.
 
     /// The default constructor.
     table() {};

@@ -210,9 +210,9 @@ protected:
     /// structure is active.
     /// TODO: unify this with ibis::tafel::column.
     struct bufferElement {
-	const char* cname; ///< Column name.
-	ibis::TYPE_T ctype; ///< Column type.
-	mutable void* cval; ///< Pointer to raw data.
+	const char* cname; ///!< Column name.
+	ibis::TYPE_T ctype; ///!< Column type.
+	mutable void* cval; ///!< Pointer to raw data.
 
 	bufferElement() : cname(0), ctype(ibis::UNKNOWN_TYPE), cval(0) {}
 	~bufferElement();
@@ -223,10 +223,10 @@ protected:
     const ibis::mensa& tab;
     unsigned curPart;
     unsigned preferred_block_size;
-    uint64_t pBegin; ///< the first row number of the current partition
-    uint64_t bBegin; ///< the first row number of the current block
-    uint64_t bEnd;   ///< end of the current block
-    int64_t  curRow; ///< the current row number
+    uint64_t pBegin; ///!< the first row number of the current partition
+    uint64_t bBegin; ///!< the first row number of the current block
+    uint64_t bEnd;   ///!< end of the current block
+    int64_t  curRow; ///!< the current row number
 
     void clearBuffers();
     int  fillBuffers() const;

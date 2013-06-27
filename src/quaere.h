@@ -75,7 +75,7 @@ public:
     virtual ~quaere() {};
 
 protected:
-    quaere() {} //< Default constructor.  Only used by derived classes.
+    quaere() {} //!< Default constructor.  Only used by derived classes.
 
 private:
     quaere(const quaere&); // no copying

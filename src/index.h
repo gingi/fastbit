@@ -85,37 +85,37 @@ public:
     /// differentiate the indexes.
     /// **** Reordering the list will make some index files invalid ****
     enum INDEX_TYPE {
-	BINNING=0,	///< ibis::bin.
-	RANGE,	///< ibis::range.
-	MESA,	///< ibis::interval.
-	AMBIT,	///< ibis::ambit, range-range two level encoding on bins.
-	PALE,	///< ibis::pale, equality-range encoding on bins.
-	PACK,	///< ibis::pack, range-equality encoding on bins.
-	ZONE,	///< ibis::zone, equality-equality encoding on bins.
-	RELIC,	///< ibis::relic, the basic bitmap index.
-	ROSTER,	///< ibis::roster, RID list.
-	SKIVE,	///< ibis::skive, binary encoding with recoding of key values.
-	FADE,	///< ibis::fade, multicomponent range encoding (unbinned).
-	SBIAD,	///< ibis::sbiad, multicomponent interval encoding (unbinned).
-	SAPID,	///< ibis::sapid, multicomponent equality encoding (unbinned).
-	EGALE,	///< ibis::egale, multicomponent equality encoding on bins.
-	MOINS,	///< ibis::moins, multicomponent range encoding on bins.
-	ENTRE,	///< ibis::entre, multicomponent interval encoding on bins.
-	BAK,	///< ibis::bak, reduced precision mapping, equality code.
-	BAK2,	///< ibis::bak2, splits each BAK bin in two, one less than
+	BINNING=0,	///!< ibis::bin.
+	RANGE,	///!< ibis::range.
+	MESA,	///!< ibis::interval.
+	AMBIT,	///!< ibis::ambit, range-range two level encoding on bins.
+	PALE,	///!< ibis::pale, equality-range encoding on bins.
+	PACK,	///!< ibis::pack, range-equality encoding on bins.
+	ZONE,	///!< ibis::zone, equality-equality encoding on bins.
+	RELIC,	///!< ibis::relic, the basic bitmap index.
+	ROSTER,	///!< ibis::roster, RID list.
+	SKIVE,	///!< ibis::skive, binary encoding with recoding of key values.
+	FADE,	///!< ibis::fade, multicomponent range encoding (unbinned).
+	SBIAD,	///!< ibis::sbiad, multicomponent interval encoding (unbinned).
+	SAPID,	///!< ibis::sapid, multicomponent equality encoding (unbinned).
+	EGALE,	///!< ibis::egale, multicomponent equality encoding on bins.
+	MOINS,	///!< ibis::moins, multicomponent range encoding on bins.
+	ENTRE,	///!< ibis::entre, multicomponent interval encoding on bins.
+	BAK,	///!< ibis::bak, reduced precision mapping, equality code.
+	BAK2,	///!< ibis::bak2, splits each BAK bin in two, one less than
 		/// the mapped value, one greater and equal
 		/// to the mapped value.
-	KEYWORDS,	///< ibis::keywords, boolean term-document matrix.
-	MESH,	///< not used.
-	BAND,	///< not used.
-	DIREKTE,///< ibis::direkte, hash value to bitmaps.
-	GENERIC,///< not used.
-	BYLT,	///< ibis::bylt, unbinned range-equality encoding.
-	FUZZ,	///< ibis::fuzz, unbinned interval-equality encoding.
-	ZONA,	///< ibis::zona, unbinned equality-equality encoding.
-	FUGE,	///< ibis::fuge, binned interval-equality encoding.
-	SLICE,	///< ibis::slice, bit-sliced index.
-	EXTERN	///< externally defined index
+	KEYWORDS,	///!< ibis::keywords, boolean term-document matrix.
+	MESH,	///!< not used.
+	BAND,	///!< not used.
+	DIREKTE,///!< ibis::direkte, hash value to bitmaps.
+	GENERIC,///!< not used.
+	BYLT,	///!< ibis::bylt, unbinned range-equality encoding.
+	FUZZ,	///!< ibis::fuzz, unbinned interval-equality encoding.
+	ZONA,	///!< ibis::zona, unbinned equality-equality encoding.
+	FUGE,	///!< ibis::fuge, binned interval-equality encoding.
+	SLICE,	///!< ibis::slice, bit-sliced index.
+	EXTERN	///!< externally defined index
     };
 
     static index* create(const column* c, const char* name=0,

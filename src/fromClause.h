@@ -103,8 +103,8 @@ protected:
     /// specified in the from clause.
     ibis::compRange* jcond_;
 
-    std::string clause_;	///< String version of the from clause.
-    ibis::fromLexer *lexer;	///< A pointer for the parser.
+    std::string clause_;	///!< String version of the from clause.
+    ibis::fromLexer *lexer;	///!< A pointer for the parser.
 
     friend class ibis::fromParser;
 }; // class ibis::fromClause

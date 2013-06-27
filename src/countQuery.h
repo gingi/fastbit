@@ -71,11 +71,11 @@ public:
     void clear();
 
 protected:
-    whereClause conds;	///< Query conditions.
-    const part* mypart;	///< Data partition used to process the query.
-    const selectClause *m_sel;	///< Select clause.
-    ibis::bitvector* hits;///< Solution in bitvector form (or lower bound)
-    ibis::bitvector* cand;///< Candidate query results.
+    whereClause conds;	///!< Query conditions.
+    const part* mypart;	///!< Data partition used to process the query.
+    const selectClause *m_sel;	///!< Select clause.
+    ibis::bitvector* hits;///!< Solution in bitvector form (or lower bound)
+    ibis::bitvector* cand;///!< Candidate query results.
 
     /// Estimate one term of a query expression.
     void doEstimate(const qExpr* term, ibis::bitvector& low,

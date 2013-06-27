@@ -172,9 +172,9 @@ public:
     struct granule {
 	double minm, maxm; // min and max of values less than the target
 	double minp, maxp; // min and max of values greater than the target
-	ibis::bitvector* loce; ///< Values equal to the target.
-	ibis::bitvector* locm; ///< Values less than the target.
-	ibis::bitvector* locp; ///< Values greater than the target.
+	ibis::bitvector* loce; ///!< Values equal to the target.
+	ibis::bitvector* locm; ///!< Values less than the target.
+	ibis::bitvector* locp; ///!< Values greater than the target.
 
 	/// Constructor.  User has to explicitly allocated the bitvectors.
 	granule() : minm(DBL_MAX), maxm(-DBL_MAX), minp(DBL_MAX),
@@ -260,10 +260,10 @@ public:
 protected:
     // member variables shared by all derived classes -- the derived classes
     // are allowed to interpret the actual content differently.
-    uint32_t nobs;		///< Number of bitvectors.
-    array_t<double> bounds;	///< The nominal boundaries.
-    array_t<double> maxval;	///< The maximal values in each bin.
-    array_t<double> minval;	///< The minimal values in each bin.
+    uint32_t nobs;		///!< Number of bitvectors.
+    array_t<double> bounds;	///!< The nominal boundaries.
+    array_t<double> maxval;	///!< The maximal values in each bin.
+    array_t<double> minval;	///!< The minimal values in each bin.
 
     /// A constructor to accommodate multicomponent encodings.
     bin(const ibis::column* c, const uint32_t nbits,
@@ -1271,9 +1271,9 @@ public:
     /// minimum and maximum value encountered.
     struct grain {
 	double minm, maxm, minp, maxp;
-	ibis::bitvector* locm; ///< Values less than the target.
-	ibis::bitvector* loce; ///< Values exactly equal to the target.
-	ibis::bitvector* locp; ///< Values greater than the target.
+	ibis::bitvector* locm; ///!< Values less than the target.
+	ibis::bitvector* loce; ///!< Values exactly equal to the target.
+	ibis::bitvector* locp; ///!< Values greater than the target.
 
 	// the default construct, user to explicitly allocated the bitvector
 	grain() : minm(DBL_MAX), maxm(-DBL_MAX), minp(DBL_MAX), maxp(-DBL_MAX),

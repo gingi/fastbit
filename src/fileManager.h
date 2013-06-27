@@ -148,8 +148,8 @@ public:
 	}
 
     private:
-	T* buf; ///< The address of the buffer.
-	size_t nbuf; ///< The number of elements in the buffer.
+	T* buf; ///!< The address of the buffer.
+	size_t nbuf; ///!< The number of elements in the buffer.
 
 	buffer(const buffer<T>&);
 	buffer<T>& operator=(const buffer<T>&);

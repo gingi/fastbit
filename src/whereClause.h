@@ -186,8 +186,8 @@ public:
     static int removeAlias(ibis::qContinuousRange*&, const ibis::column*);
 
 protected:
-    std::string clause_;	///< String version of the where clause.
-    ibis::qExpr *expr_;		///< The expression tree.
+    std::string clause_;	///!< String version of the where clause.
+    ibis::qExpr *expr_;		///!< The expression tree.
 
     void amplify(const ibis::part&);
 

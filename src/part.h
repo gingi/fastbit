@@ -633,11 +633,11 @@ public:
     struct thrArg {
 	const part* et;
 	const char* pref;
-	long* nerrors;	///< Number of errors encountered.
+	long* nerrors;	///!< Number of errors encountered.
 	ibis::util::counter cnt;
-	std::vector<std::string> conds; ///< List of query conditions.
-	std::vector<unsigned> super;///< The condition encompassing this one.
-	std::vector<unsigned> hits; ///< The number of hits.
+	std::vector<std::string> conds; ///!< List of query conditions.
+	std::vector<unsigned> super;///!< The condition encompassing this one.
+	std::vector<unsigned> hits; ///!< The number of hits.
     };
     /// A struct to pack arguments to the function ibis_part_build_index.
     struct indexBuilderPool {
@@ -662,7 +662,7 @@ public:
     void logWarning(const char* event, const char* fmt, ...) const;
     void logMessage(const char* event, const char* fmt, ...) const;
 
-    void doBackup(); ///< A function to start backing up the active dir.
+    void doBackup(); ///!< A function to start backing up the active dir.
 
     class barrel;
     class vault;
@@ -708,25 +708,25 @@ protected:
     /******************************************************************/
     // protected member variables
     //
-    char* m_name;		///< Name of the data partition.
-    std::string m_desc;		///< Free form description of the partition.
-    ibis::resource::vList metaList;	///< Meta tags as name-value pairs.
-    mutable array_t<rid_t>* rids;	///< The object IDs (row id).
-    columnList columns;		///< List of the columns.
-    uint32_t nEvents;		///< Number of events (rows) in the partition.
-    char* activeDir;		///< The active data directory.
-    char* backupDir;		///< The backup data directory.
-    time_t switchTime;		///< Time of last switch operation.
+    char* m_name;		///!< Name of the data partition.
+    std::string m_desc;		///!< Free form description of the partition.
+    ibis::resource::vList metaList;	///!< Meta tags as name-value pairs.
+    mutable array_t<rid_t>* rids;	///!< The object IDs (row id).
+    columnList columns;		///!< List of the columns.
+    uint32_t nEvents;		///!< Number of events (rows) in the partition.
+    char* activeDir;		///!< The active data directory.
+    char* backupDir;		///!< The backup data directory.
+    time_t switchTime;		///!< Time of last switch operation.
     TABLE_STATE state;
-    char* idxstr;		///< Index specification.
+    char* idxstr;		///!< Index specification.
 
-    ibis::bitvector amask;	///< Active rows are maked 1.
-    std::vector<const column*> colorder;///< An ordering of columns.
-    std::vector<std::string> shapeName;	///< Names of the dimensions.
-    std::vector<uint32_t> shapeSize;	///< Sizes of the dimensions.
+    ibis::bitvector amask;	///!< Active rows are maked 1.
+    std::vector<const column*> colorder;///!< An ordering of columns.
+    std::vector<std::string> shapeName;	///!< Names of the dimensions.
+    std::vector<uint32_t> shapeSize;	///!< Sizes of the dimensions.
 
-    ibis::part::cleaner* myCleaner;	///< The cleaner for the file manager.
-    bool readonly;			///< Don't change the data.
+    ibis::part::cleaner* myCleaner;	///!< The cleaner for the file manager.
+    bool readonly;			///!< Don't change the data.
 
 
     /******************************************************************/
@@ -737,8 +737,8 @@ protected:
     /// Write metadata file -part.txt.
     void writeMetaData(const uint32_t nrows, const columnList &plist,
 		       const char* dir) const;
-    void readRIDs() const; ///< Read RIDs from file 'rids'.
-    void freeRIDs() const; ///< Remove the rids list from memory.
+    void readRIDs() const; ///!< Read RIDs from file 'rids'.
+    void freeRIDs() const; ///!< Remove the rids list from memory.
 
     // functions to deal with meta tags -- those attributes that are
     // associated with a whole partition but are expected to be processed
@@ -1331,20 +1331,20 @@ private:
 
     /******************************************************************/
     // private member variables
-    mutable pthread_mutex_t mutex;	///< Mutex for partition manipulation.
-    mutable pthread_rwlock_t rwlock;	///< Rwlock for access control.
+    mutable pthread_mutex_t mutex;	///!< Mutex for partition manipulation.
+    mutable pthread_rwlock_t rwlock;	///!< Rwlock for access control.
 
     /******************************************************************/
     // private funcations
 
-    void init(const char* prefix); ///< Get directory names from gParameters.
+    void init(const char* prefix); ///!< Get directory names from gParameters.
 
     void gainReadAccess(const char* mesg) const;
     void releaseAccess(const char* mesg) const;
     void gainWriteAccess(const char* mesg) const;
 
-    void   fillRIDs(const char* fn) const; ///< Generate new RIDs.
-    void   sortRIDs() const; ///< Sort current list of RIDs.
+    void   fillRIDs(const char* fn) const; ///!< Generate new RIDs.
+    void   sortRIDs() const; ///!< Sort current list of RIDs.
     uint32_t searchSortedRIDs(const ibis::rid_t &rid) const;
     uint32_t searchRIDs(const ibis::rid_t &rid) const;
     void   searchSortedRIDs(const ibis::RIDSet&, ibis::bitvector&) const;
@@ -1432,10 +1432,10 @@ namespace ibis {
 /// public and read-only.  An info object can not last longer than the
 /// ibis::part object used to create it.
 struct FASTBIT_CXX_DLLSPEC ibis::part::info {
-    const char* name;		///< Partition name.
-    const char* description;	///< A free-form description of the partition.
-    const char* metaTags;	///< A string of name-value pairs.
-    const uint64_t nrows;	///< The number of rows in the partition.
+    const char* name;		///!< Partition name.
+    const char* description;	///!< A free-form description of the partition.
+    const char* metaTags;	///!< A string of name-value pairs.
+    const uint64_t nrows;	///!< The number of rows in the partition.
     /// The list of columns in the partition.
     std::vector<ibis::column::info*> cols;
 
@@ -1560,11 +1560,11 @@ private:
 class ibis::part::barrel : public ibis::math::barrel {
 public:
     barrel(const ibis::part *t=0) : _tbl(t), position(0) {};
-    virtual ~barrel() {close();} ///< Destructor closes the open files.
+    virtual ~barrel() {close();} ///!< Destructor closes the open files.
 
-    virtual long open(const ibis::part *t=0); ///< Open all data files.
-    virtual long close(); ///< Close all open files.
-    virtual long read(); ///< Read one value for each variable.
+    virtual long open(const ibis::part *t=0); ///!< Open all data files.
+    virtual long close(); ///!< Close all open files.
+    virtual long read(); ///!< Read one value for each variable.
     /// Move the file pointers to the posth record.  Return 0 for success
     /// and other integer for error.
     virtual long seek(uint32_t pos);
@@ -1588,9 +1588,9 @@ public:
     vault(const ibis::roster &r);
     virtual ~vault() {close();}
 
-    virtual long open(const ibis::part *t=0); ///< Open all data files.
-    virtual long read(); ///< Read the values at the current position.
-    virtual long seek(uint32_t pos); ///< Move the logical position.
+    virtual long open(const ibis::part *t=0); ///!< Open all data files.
+    virtual long read(); ///!< Read the values at the current position.
+    virtual long seek(uint32_t pos); ///!< Move the logical position.
     /// Move to the first position that value(var) >= val.
     long seek(double val);
     /// Tell the physical record number.  User may called _roster[tell()]

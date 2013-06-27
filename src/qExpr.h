@@ -13,19 +13,19 @@
 #include "array_t.h"
 
 namespace ibis { // additional names related to qExpr
-    class qRange;	///< A simple range defined on a single attribute.
-    class qContinuousRange;///< A range defined with one or two boundaries.
-    class qDiscreteRange;	///< A range defined with discrete values.
-    class qString;	///< An equality expression with a string literal.
-    class qAnyString;	///< A range condition involving multiple strings.
-    class qKeyword;	///< A keyword search
-    class qAllWords;	///< A range condition involving multiple strings.
-    class compRange;	///< A comparisons involving arithmetic expression.
-    class deprecatedJoin;	///< A deprecated range join operations.
-    class qAnyAny;	///< A special form of any-match-any query.
-    class qLike;	///< A representation of the operator LIKE.
-    class qIntHod;	///< A container of signed integers.
-    class qUIntHod;	///< A container of unsigned integers.
+    class qRange;	///!< A simple range defined on a single attribute.
+    class qContinuousRange;///!< A range defined with one or two boundaries.
+    class qDiscreteRange;	///!< A range defined with discrete values.
+    class qString;	///!< An equality expression with a string literal.
+    class qAnyString;	///!< A range condition involving multiple strings.
+    class qKeyword;	///!< A keyword search
+    class qAllWords;	///!< A range condition involving multiple strings.
+    class compRange;	///!< A comparisons involving arithmetic expression.
+    class deprecatedJoin;	///!< A deprecated range join operations.
+    class qAnyAny;	///!< A special form of any-match-any query.
+    class qLike;	///!< A representation of the operator LIKE.
+    class qIntHod;	///!< A container of signed integers.
+    class qUIntHod;	///!< A container of unsigned integers.
 }
 
 /// @ingroup FastBitIBIS
@@ -121,7 +121,7 @@ public:
 	virtual double operator()(const qExpr* ex) const = 0;
 	virtual ~weight() {};
     };
-    double reorder(const weight&); ///< Reorder the expressions tree.
+    double reorder(const weight&); ///!< Reorder the expressions tree.
     /// Duplicate this query expression.  Return the pointer to the new object.
     virtual qExpr* dup() const {
 	qExpr* res = new qExpr(type);
@@ -371,8 +371,8 @@ public:
     virtual void printFull(std::ostream& out) const {print(out);}
 
 private:
-    std::string name; ///< Column name.
-    ibis::array_t<double> values; ///< Values are sorted in ascending order.
+    std::string name; ///!< Column name.
+    ibis::array_t<double> values; ///!< Values are sorted in ascending order.
 
     qDiscreteRange& operator=(const qDiscreteRange&);
 }; // ibis::qDiscreteRange
@@ -1092,8 +1092,8 @@ public:
     virtual void getTableNames(std::set<std::string>& plist) const;
 
 private:
-    std::string prefix; ///< The prefix of the column names to search.
-    ibis::array_t<double> values; ///< The list of values to match.
+    std::string prefix; ///!< The prefix of the column names to search.
+    ibis::array_t<double> values; ///!< The list of values to match.
 }; // class ibis::qAnyAny
 
 inline void ibis::qContinuousRange::foldBoundaries() {

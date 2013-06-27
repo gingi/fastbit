@@ -215,9 +215,9 @@ protected:
     /// Names of the top-level terms.
     std::vector<std::string> xnames_;
 
-    std::string clause_;	///< String version of the select clause.
+    std::string clause_;	///!< String version of the select clause.
 
-    ibis::selectLexer *lexer;	///< A pointer for the parser.
+    ibis::selectLexer *lexer;	///!< A pointer for the parser.
 
     friend class ibis::selectParser;
 

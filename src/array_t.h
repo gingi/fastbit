@@ -23,15 +23,15 @@
 // #endif
 template<class T> class ibis::array_t {
 public:
-    typedef       T* iterator; ///< Iterator type.
-    typedef const T* const_iterator; ///< Const iterator type.
-    typedef       T* pointer; ///< Pointer to a value.
-    typedef const T* const_pointer; ///< Pointer to a constant value.
-    typedef       T& reference; ///< Reference to a value.
-    typedef const T& const_reference; ///< Reference to a constant value.
-    typedef       T  value_type; ///< Type of values.
-    typedef  size_t  size_type; ///< For array size.
-    typedef std::ptrdiff_t difference_type;///< For difference between pointers.
+    typedef       T* iterator; ///!< Iterator type.
+    typedef const T* const_iterator; ///!< Const iterator type.
+    typedef       T* pointer; ///!< Pointer to a value.
+    typedef const T* const_pointer; ///!< Pointer to a constant value.
+    typedef       T& reference; ///!< Reference to a value.
+    typedef const T& const_reference; ///!< Reference to a constant value.
+    typedef       T  value_type; ///!< Type of values.
+    typedef  size_t  size_type; ///!< For array size.
+    typedef std::ptrdiff_t difference_type;///!< For difference between pointers.
 
     // constructor and destructor
     ~array_t<T>() {freeMemory();}
@@ -66,7 +66,7 @@ public:
     const T& back() const {return m_end[-1];};
 
     bool empty() const {return (m_begin == 0 || m_begin >= m_end);};
-    size_t size() const {	///< Return the number of elements.
+    size_t size() const {	///!< Return the number of elements.
 	return (m_begin > 0 && m_end > m_begin ? m_end - m_begin : 0);
     };
     inline void clear();

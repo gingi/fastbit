@@ -102,8 +102,8 @@ public:
 
 private:
     static const char* delimiters;
-    gList groups;	///< Names for Groups of values.
-    vList values;	///< Name-value pairs.
+    gList groups;	///!< Names for Groups of values.
+    vList values;	///!< Name-value pairs.
     const char *prefix;
     const resource* context;
 

@@ -61,7 +61,7 @@ Encoding format <http://lbl.gov/~kwu/ps/LBNL-49626.html>
 */
 class FASTBIT_CXX_DLLSPEC ibis::bitvector {
 public:
-    typedef uint32_t word_t;///< The basic unit of data storage.
+    typedef uint32_t word_t;///!< The basic unit of data storage.
 
     /// Destructor.
     ~bitvector() {clear();};
@@ -221,7 +221,7 @@ private:
 	word_t nWords;
 	array_t<word_t>::const_iterator it;
 	run() : isFill(0), fillBit(0), nWords(0), it(0) {};
-	void decode() { ///< Decode the word pointed by @c it.
+	void decode() { ///!< Decode the word pointed by @c it.
 	    fillBit = (*it > HEADER1);
 	    if (*it > ALLONES) {
 		nWords = (*it & MAXCNT);
@@ -256,10 +256,10 @@ private:
     friend struct active_word;
 
     // member variables of bitvector class
-    mutable word_t nbits;	///< Number of bits in @c m_vec.
-    mutable word_t nset;	///< Number of bits that are 1 in @c m_vec.
-    active_word active;		///< The active word.
-    array_t<word_t> m_vec;	///< Store whole words.
+    mutable word_t nbits;	///!< Number of bits in @c m_vec.
+    mutable word_t nset;	///!< Number of bits that are 1 in @c m_vec.
+    active_word active;		///!< The active word.
+    array_t<word_t> m_vec;	///!< Store whole words.
 
     // private functions of bitvector class
     word_t count_c1(const bitvector& mask) const;

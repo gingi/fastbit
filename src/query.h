@@ -53,15 +53,15 @@
 class FASTBIT_CXX_DLLSPEC ibis::query {
 public:
     enum QUERY_STATE {
-	UNINITIALIZED,	//< The query object is currently empty.
-	SET_COMPONENTS,	//< The query object has a select clause.
-	SET_RIDS,	//< The query object contains a list of RIDs.
-	SET_PREDICATE,	//< The query object has a where clause.
-	SPECIFIED,	//< SET_COMPONENTS & (SET_RIDS | SET_PREDICATE).
-	QUICK_ESTIMATE, //< A upper and a lower bound are computed.
-	FULL_EVALUATE,	//< The exact hits are computed.
-	BUNDLES_TRUNCATED,	//< Only top-K results are stored.
-	HITS_TRUNCATED	//< The hit vector has been updated to match bundles.
+	UNINITIALIZED,	//!< The query object is currently empty.
+	SET_COMPONENTS,	//!< The query object has a select clause.
+	SET_RIDS,	//!< The query object contains a list of RIDs.
+	SET_PREDICATE,	//!< The query object has a where clause.
+	SPECIFIED,	//!< SET_COMPONENTS & (SET_RIDS | SET_PREDICATE).
+	QUICK_ESTIMATE, //!< A upper and a lower bound are computed.
+	FULL_EVALUATE,	//!< The exact hits are computed.
+	BUNDLES_TRUNCATED,	//!< Only top-K results are stored.
+	HITS_TRUNCATED	//!< The hit vector has been updated to match bundles.
     };
 
     virtual ~query();
@@ -230,14 +230,14 @@ public:
     friend class writeLock;
 
 protected:
-    char* user; 	///< Name of the user who specified the query
-    whereClause conds;	///< Query conditions
-    selectClause comps;	///< Select clause
-    QUERY_STATE state;	///< Status of the query
-    ibis::bitvector* hits;///< Solution in bitvector form (or lower bound)
-    ibis::bitvector* sup;///< Estimated upper bound
-    mutable ibis::part::readLock* dslock;	///< A read lock on the mypart
-    mutable char lastError[MAX_LINE+PATH_MAX];	///< The warning/error message
+    char* user; 	///!< Name of the user who specified the query
+    whereClause conds;	///!< Query conditions
+    selectClause comps;	///!< Select clause
+    QUERY_STATE state;	///!< Status of the query
+    ibis::bitvector* hits;///!< Solution in bitvector form (or lower bound)
+    ibis::bitvector* sup;///!< Estimated upper bound
+    mutable ibis::part::readLock* dslock;	///!< A read lock on the mypart
+    mutable char lastError[MAX_LINE+PATH_MAX];	///!< The warning/error message
 
     void logError(const char* event, const char* fmt, ...) const;
     void logWarning(const char* event, const char* fmt, ...) const;
@@ -353,7 +353,7 @@ private:
     mutable pthread_rwlock_t lock; // Rwlock for access control
 
     // private functions
-    static char* newToken(const char*); ///< Generate a new unique token.
+    static char* newToken(const char*); ///!< Generate a new unique token.
     /// Determine a directory for storing information about the query.
     void setMyDir(const char *pref);
 

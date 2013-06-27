@@ -69,8 +69,8 @@ public:
     // virtual std::vector<ibis::opaque>*
     // selectOpaques(const bitvector& mask) const;
 
-    virtual void write(FILE* file) const; ///< Write the metadata entry.
-    virtual void print(std::ostream& out) const; ///< Print header info.
+    virtual void write(FILE* file) const; ///!< Write the metadata entry.
+    virtual void print(std::ostream& out) const; ///!< Print header info.
 
     const column* IDColumnForKeywordIndex() const;
     void TDListForKeywordIndex(std::string&) const;

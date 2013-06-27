@@ -94,7 +94,7 @@ public:
     virtual double getDouble(uint32_t) const = 0;
 
 protected:
-    const ibis::column* col; ///< The column where the value is from.
+    const ibis::column* col; ///!< The column where the value is from.
 
     colValues() : col(0) {}
     colValues(const ibis::column* c) : col(c) {};

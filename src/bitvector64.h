@@ -53,7 +53,7 @@ Encoding format
 */
 class ibis::bitvector64 {
 public:
-    typedef uint64_t word_t;///< The basic unit of data storage is 64-bit.
+    typedef uint64_t word_t;///!< The basic unit of data storage is 64-bit.
 
     // constructors of bitvector64 class
     bitvector64() : nbits(0), nset(0), active(), m_vec() {};
@@ -61,9 +61,9 @@ public:
     bitvector64(const bitvector64& bv) : nbits(bv.nbits), nset(bv.nset),
 	active(bv.active), m_vec(bv.m_vec) {};
     bitvector64(const array_t<word_t>& arr);
-    bitvector64(const char* file); ///< Read the content of the named file.
-    inline bitvector64& operator=(const bitvector64& bv); ///<@note Deep copy.
-    inline bitvector64& copy(const bitvector64& bv);      ///<@note Deep copy.
+    bitvector64(const char* file); ///!< Read the content of the named file.
+    inline bitvector64& operator=(const bitvector64& bv); ///!<@note Deep copy.
+    inline bitvector64& copy(const bitvector64& bv);      ///!<@note Deep copy.
     inline bitvector64& swap(bitvector64& bv);
     // use bv to replace part of the existing value, match the ith bit with
     // the first of bv, return reference to self
@@ -81,9 +81,9 @@ public:
     /// Remove the existing content of a bitvector64.
     void clear() {nbits = 0; nset = 0; active.reset(); m_vec.clear();}
 
-    bitvector64& operator+=(const bitvector64& bv); ///< Append a bitvector64.
-    inline bitvector64& operator+=(int b);	///< Append a single bit.
-    void appendWord(word_t w);			///< Append a WAH word.
+    bitvector64& operator+=(const bitvector64& bv); ///!< Append a bitvector64.
+    inline bitvector64& operator+=(int b);	///!< Append a single bit.
+    void appendWord(word_t w);			///!< Append a WAH word.
     /// Append @c n bits of @c val.
     inline void appendFill(int val, word_t n);
 
@@ -120,8 +120,8 @@ public:
     /// Write the bit vector to an array_t<word_t>.
     void write(array_t<word_t>& arr) const;
 
-    void compress();	///< Merge fills into fill words.
-    void decompress();	///< Turn all fill words into literal words.
+    void compress();	///!< Merge fills into fill words.
+    void decompress();	///!< Turn all fill words into literal words.
     /// Return the number of word saved if the function compress is called.
     word_t compressible() const;
     /// Does this bit vector use less space than the maximum? Return true
@@ -167,7 +167,7 @@ public:
     /// so that there are @c nt total bits.  The final result always
     /// contains @c nt bits.
     void adjustSize(word_t nv, word_t nt);
-    std::ostream& print(std::ostream &) const; ///< The print function
+    std::ostream& print(std::ostream &) const; ///!< The print function
 
     /// Iterator that supports modification of individual bit.
     class iterator;
@@ -228,7 +228,7 @@ private:
 	word_t nWords;
 	array_t<word_t>::const_iterator it;
 	run() : isFill(0), fillBit(0), nWords(0), it(0) {};
-	void decode() { ///< Decode the word pointed by @c it.
+	void decode() { ///!< Decode the word pointed by @c it.
 	    fillBit = (*it > HEADER1);
 	    if (*it > ALLONES) {
 		nWords = (*it & MAXCNT);
@@ -263,10 +263,10 @@ private:
     friend struct active_word;
 
     // member variables of bitvector64 class
-    word_t nbits;	///< Number of bits in @c m_vec.
-    mutable word_t nset;///< Number of bits that are 1 in @c m_vec.
-    active_word active;	///< The active word.
-    array_t<word_t> m_vec;	///< Store whole words.
+    word_t nbits;	///!< Number of bits in @c m_vec.
+    mutable word_t nset;///!< Number of bits that are 1 in @c m_vec.
+    active_word active;	///!< The active word.
+    array_t<word_t> m_vec;	///!< Store whole words.
 
     // private functions of bitvector64 class
     // The following three functions all performs or operation, _c2 and _c1

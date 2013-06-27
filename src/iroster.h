@@ -111,9 +111,9 @@ protected:
 
 private:
     // private member variables
-    const ibis::column* col;    ///< Each roster is for one column.
-    array_t<uint32_t> ind;	///< @c [ind[i]] is the ith smallest value.
-    mutable int inddes;		///< The descriptor for the @c .ind file.
+    const ibis::column* col;    ///!< Each roster is for one column.
+    array_t<uint32_t> ind;	///!< @c [ind[i]] is the ith smallest value.
+    mutable int inddes;		///!< The descriptor for the @c .ind file.
 
     // private member functions
     void clear() {ind.clear(); if (inddes>=0) UnixClose(inddes);};

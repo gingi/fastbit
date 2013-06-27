@@ -76,7 +76,7 @@ public:
     bool isSignedInteger() const;
     bool isUnsignedInteger() const;
     bool isNumeric() const;
-    bool isSorted() const {return m_sorted;} ///< Are the values sorted?
+    bool isSorted() const {return m_sorted;} ///!< Are the values sorted?
     void description(const char* d) {m_desc = d;}
     void lowerBound(double d) {lower = d;}
     void upperBound(double d) {upper = d;}
@@ -84,8 +84,8 @@ public:
     void isSorted(bool);
 
     // function related to index/bin
-    const char* indexSpec() const; ///< Retrieve the index specification.
-    uint32_t numBins() const; ///< Retrieve the number of bins used.
+    const char* indexSpec() const; ///!< Retrieve the index specification.
+    uint32_t numBins() const; ///!< Retrieve the number of bins used.
     /// Set the index specification.
     void indexSpec(const char* spec) {m_bins=spec;}
     /// Retrive the bin boundaries if the index currently in use.
@@ -320,15 +320,15 @@ public:
 
 protected:
     // protected member variables
-    const part* thePart; ///< Data partition containing this column.
+    const part* thePart; ///!< Data partition containing this column.
     ibis::bitvector mask_;/// The entries marked 1 are valid.
-    ibis::TYPE_T m_type;///< Data type.
-    std::string m_name;	///< Name of the column.
-    std::string m_desc;	///< Free-form description of the column.
-    std::string m_bins;	///< Index/binning specification.
-    bool m_sorted;	///< Are the column values in ascending order?
-    double lower;	///< The minimum value.
-    double upper;	///< The maximum value.
+    ibis::TYPE_T m_type;///!< Data type.
+    std::string m_name;	///!< Name of the column.
+    std::string m_desc;	///!< Free-form description of the column.
+    std::string m_bins;	///!< Index/binning specification.
+    bool m_sorted;	///!< Are the column values in ascending order?
+    double lower;	///!< The minimum value.
+    double upper;	///!< The maximum value.
     /// The index for this column.  It is not consider as a must-have member.
     mutable ibis::index* idx;
     /// The number of functions using the index.
@@ -468,11 +468,11 @@ private:
 /// original column used to generate the info object exists in memory.
 class FASTBIT_CXX_DLLSPEC ibis::column::info {
  public:
-    const char* name;		///< Column name.
-    const char* description;	///< A description about the column.
-    const double expectedMin;	///< The expected lower bound.
-    const double expectedMax;	///< The expected upper bound.
-    const ibis::TYPE_T type;	///< The type of the values.
+    const char* name;		///!< Column name.
+    const char* description;	///!< A description about the column.
+    const double expectedMin;	///!< The expected lower bound.
+    const double expectedMax;	///!< The expected upper bound.
+    const ibis::TYPE_T type;	///!< The type of the values.
     info(const ibis::column& col);
     info(const info& rhs)
 	: name(rhs.name), description(rhs.description),
