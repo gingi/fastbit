@@ -37,7 +37,6 @@ namespace ibis {
 	ULONG,	///!< Eight-byte unsigned integers, internally uint64_t.
 	FLOAT,	///!< Four-byte IEEE floating-point numbers, internally float.
 	DOUBLE, ///!< Eight-byte IEEE floating-point numbers, internally double.
-        BIT,    ///!< One bit per record, represented by a bit vector.
 	/// Low cardinality null-terminated strings.  Strings are
 	/// internally stored with the null terminators.  Each string value
 	/// is intended to be treated as a single atomic item.

@@ -361,22 +361,22 @@ namespace std { // extend namespace std slightly
 namespace ibis {
     /// @defgroup FastBitIBIS FastBit IBIS implementation core objects.
     /// @{
-    class resource;     ///!< To store configuration parameters.
-    class bitvector;    ///!< To store one bit sequence/bitmap.
-    class column;       ///!< One column/attribute of a table.
-    class fileManager;  ///!< A simple file manager.
-    class horometer;    ///!< A timer class.
-    class index;        ///!< The base class of indices.
-    class roster;       ///!< A projection of a column in ascending order.
-    class bitvector64;  ///!< The 64-bit version of bitvector class.
+    class resource;	///!< To store configuration parameters.
+    class bitvector;	///!< To store one bit sequence/bitmap.
+    class column;	///!< One column/attribute of a table.
+    class fileManager;	///!< A simple file manager.
+    class horometer;	///!< A timer class.
+    class index;	///!< The base class of indices.
+    class roster;	///!< A projection of a column in ascending order.
+    class bitvector64;	///!< The 64-bit version of bitvector class.
 
-    class dictionary;   ///!< Map strings to integers and back.
-    class bundle;       ///!< To organize in-memory data for group-by.
-    class colValues;    ///!< To store a column of in-memory data.
+    class dictionary;	///!< Map strings to integers and back.
+    class bundle;	///!< To organize in-memory data for group-by.
+    class colValues;	///!< To store a column of in-memory data.
 
-    class fromClause;   ///!< From clause.
-    class whereClause;  ///!< Where clause.
-    class selectClause; ///!< Select clause.
+    class fromClause;	///!< From clause.
+    class whereClause;	///!< Where clause.
+    class selectClause;	///!< Select clause.
     /// @}
 
     /// A global list of data partitions.
@@ -912,35 +912,34 @@ namespace ibis {
 #if defined(HAVE_GCC_ATOMIC32)
 #elif defined(HAVE_WIN_ATOMIC32)
 #else
-            mutable pthread_mutex_t lock_; ///!< The mutex lock.
+	    mutable pthread_mutex_t lock_; ///!< The mutex lock.
 #endif
-            volatile uint32_t count_; ///!< The counter value.
+	    volatile uint32_t count_; ///!< The counter value.
 
-            /// Copy constructor.  Decleared but not implemented.
-            counter(const counter&);
-            /// Assignment operator.  Decleared but not implemented.
-            counter& operator=(const counter&);
-        }; // counter
+	    /// Copy constructor.  Decleared but not implemented.
+	    counter(const counter&);
+	    /// Assignment operator.  Decleared but not implemented.
+	    counter& operator=(const counter&);
+	}; // counter
 
-        /// A shared unsigned 32-bit integer class.  Multiply threads may
-        /// safely perform different operations on this integer at the same
-        /// time.  It serializes the operations by using the atomic
-        /// operations provided by GCC extension.  The availability of
-        /// automic operations is indicated by whether or not the compiler
-        /// macro HAVE_GCC_ATOMIC32 is defined.  If the atomic extension is
-        /// not available, it falls back on the mutual exclusion lock
-        /// provided by pthread library.
-        ///
-        /// @note The overhead of using mutual exclusion lock is large.  In
-        /// one test that acquires and release three locks a million time
-        /// each, using the locks took about 10 seconds, while using the
-        /// atomic extension to perform the same arithmetic operations took
-        /// about 0.1 seconds.
-        class FASTBIT_CXX_DLLSPEC sharedInt32 {
-        public:
-            sharedInt32() : val_(0) {
-#if defined(HAVE_ATOMIC_TEMPLATE)
-#elif defined(HAVE_GCC_ATOMIC32)
+	/// A shared integer class.  Multiply threads may safely perform
+	/// different operations on this integer at the same time.  It
+	/// serializes the operations by using the atomic operations
+	/// provided by GCC extension.  The availability of automic
+	/// operations is indicated by whether or not the compiler macro
+	/// HAVE_GCC_ATOMIC32 is defined.  If the atomic extension is not
+	/// available, it falls back on the mutual exclusion lock provided
+	/// by pthread library.
+	///
+	/// @note The overhead of using mutual exclusion lock is large.  In
+	/// one test that acquires and release three locks a million time
+	/// each, using the locks took about 10 seconds, while using the
+	/// atomic extension to perform the same arithmetic operations took
+	/// about 0.1 seconds.
+	class FASTBIT_CXX_DLLSPEC sharedInt32 {
+	public:
+	    sharedInt32() : val_(0) {
+#if defined(HAVE_GCC_ATOMIC32)
 #elif defined(HAVE_WIN_ATOMIC32)
 #else
                 if (pthread_mutex_init(&mytex, 0) != 0)
@@ -1225,8 +1224,8 @@ namespace ibis {
 	    ~timer();
 
 	private:
-	    ibis::horometer *chrono_; ///< The actual timer object.
-	    std::string mesg_; ///< Holds a private copy of the message.
+	    ibis::horometer *chrono_; ///!< The actual timer object.
+	    std::string mesg_; ///!< Holds a private copy of the message.
 
 	    timer(); // no default constructor
 	    timer(const timer&); // no copying
@@ -1262,7 +1261,7 @@ namespace ibis {
 
 	    /// Destructor.  No need to be virtual.
 	    ~guardBase() {};
-	    guardBase() : done_(false) {}; ///< Default constructor.
+	    guardBase() : done_(false) {}; ///!< Default constructor.
 	    /// Copy constructor.  Allows all derived classes to use the
 	    /// compiler generated copy constructors.
 	    guardBase(const guardBase& rhs) : done_(rhs.done_) {
@@ -1433,8 +1432,8 @@ namespace ibis {
 	    guardObj0(C& o, F f) : obj_(o), fun_(f) {}
 
 	private:
-	    C& obj_; ///< A reference to the class object.
-	    F fun_;  ///< A pointer to the member function.
+	    C& obj_; ///!< A reference to the class object.
+	    F fun_;  ///!< A pointer to the member function.
 
 	    guardObj0();
 	    guardObj0& operator=(const guardObj0&);

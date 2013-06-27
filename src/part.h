@@ -667,6 +667,10 @@ public:
     void testRangeOperators(const ibis::column* col,
 			    long* nerrors) const;
 
+    // These functions are used in classes barrel and vault
+    void logWarning(const char* event, const char* fmt, ...) const;
+    void logMessage(const char* event, const char* fmt, ...) const;
+
     void doBackup(); ///!< A function to start backing up the active dir.
 
     /// An associative array for columns of data.
@@ -1353,6 +1357,10 @@ private:
     // private funcations
 
     void init(const char* prefix); ///!< Get directory names from gParameters.
+
+    void gainReadAccess(const char* mesg) const;
+    void releaseAccess(const char* mesg) const;
+    void gainWriteAccess(const char* mesg) const;
 
     void   fillRIDs(const char* fn) const; ///!< Generate new RIDs.
     void   sortRIDs() const; ///!< Sort current list of RIDs.

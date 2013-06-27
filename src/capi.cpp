@@ -50,18 +50,18 @@
 extern "C" {
     /// The object underlying the FastBit query handle.
     struct FastBitQuery {
-        const ibis::part *t; ///!< The ibis::part this query refers to.
-        ibis::query q; ///!< The ibis::query object
-        typedef std::map< int, void* > typeValues;
-        typedef std::map< const char*, typeValues*, ibis::lessi > valList;
-        /// List of values that has been selected and sent to user.
-        valList vlist;
+	const ibis::part *t; ///!< The ibis::part this query refers to.
+	ibis::query q; ///!< The ibis::query object
+	typedef std::map< int, void* > typeValues;
+	typedef std::map< const char*, typeValues*, ibis::lessi > valList;
+	/// List of values that has been selected and sent to user.
+	valList vlist;
 
-        /// For storing null-terminated strings.
-        struct NullTerminatedStrings {
-            const char **pointers; ///!< The pointer passed to the caller.
-            std::vector<std::string> *values; ///!< Actual string values.
-        }; // NullTerminatedStrings
+	/// For storing null-terminated strings.
+	struct NullTerminatedStrings {
+	    const char * * pointers; ///!< The pointer passed to the caller.
+	    std::vector<std::string> *values; ///!< Actual string values.
+	}; // NullTerminatedStrings
     };
 
     /// A @c FastBitResultSet holds the results of a query in memory and

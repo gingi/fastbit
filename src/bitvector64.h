@@ -83,7 +83,6 @@ public:
 
     bitvector64& operator+=(const bitvector64& bv); ///!< Append a bitvector64.
     inline bitvector64& operator+=(int b);	///!< Append a single bit.
-    inline void appendByte(unsigned char);
     void appendWord(word_t w);			///!< Append a WAH word.
     /// Append @c n bits of @c val.
     inline void appendFill(int val, word_t n);

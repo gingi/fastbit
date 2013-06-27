@@ -26,7 +26,6 @@ namespace ibis { // additional names related to qExpr
     class qLike;	///!< A representation of the operator LIKE.
     class qIntHod;	///!< A container of signed integers.
     class qUIntHod;	///!< A container of unsigned integers.
-    class qExists;	///!< A test for existence of a name.
 }
 
 /// @ingroup FastBitIBIS
