@@ -74,11 +74,10 @@
 /// @code
 /// <table-name>.<column-name>.delimiters=","
 /// @endcode
-/// Note that this particular choice might be suitable for useful for
-/// set-valued columns, where the values are stored as coma-separated ASCII
-/// text strings.  For example, in a data set about automobiles for
-/// different manufactures, the column about color choices might have the
-/// following values:
+/// This particular choice is suitable for indexing set-valued columns,
+/// where the values are stored as coma-separated ASCII text strings.  For
+/// example, in a data set about automobiles from different manufactures,
+/// the column about color choices might have the following values:
 /// @verbatim
 /// "model A", "red, white, tan", ...
 /// "model B', "black, maroon, silver", ...

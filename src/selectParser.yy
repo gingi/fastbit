@@ -236,14 +236,14 @@ mathExpr ADDOP mathExpr {
     else if (stricmp($1->c_str(), "median") == 0) { // aggregation median
 	fun = driver.addAgregado(ibis::selectClause::MEDIAN, $3);
     }
-    else if (stricmp($1->c_str(), "distinct") == 0 ||
+    else if (stricmp($1->c_str(), "countd") == 0 ||
 	     stricmp($1->c_str(), "countdistinct") == 0) {
 	// count distinct values
 	fun = driver.addAgregado(ibis::selectClause::DISTINCT, $3);
     }
     else if (stricmp($1->c_str(), "concat") == 0 ||
 	     stricmp($1->c_str(), "group_concat") == 0) {
-	// concatenate
+	// concatenate all values as ASCII strings
 	fun = driver.addAgregado(ibis::selectClause::CONCAT, $3);
     }
     else if (stricmp($1->c_str(), "avg") == 0) { // aggregation avg

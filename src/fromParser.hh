@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 2.7.  */
+/* A Bison parser, made by GNU Bison 2.7.12-4996.  */
 
 /* Skeleton interface for Bison LALR(1) parsers in C++
    
-      Copyright (C) 2002-2012 Free Software Foundation, Inc.
+      Copyright (C) 2002-2013 Free Software Foundation, Inc.
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -148,6 +148,10 @@ namespace ibis {
 #endif
 
   private:
+    /// This class is not copyable.
+    fromParser (const fromParser&);
+    fromParser& operator= (const fromParser&);
+
     /// Report a syntax error.
     /// \param loc    where the syntax error is found.
     /// \param msg    a description of the syntax error.
@@ -296,7 +300,7 @@ namespace ibis {
 
 } // ibis
 /* Line 33 of lalr1.cc  */
-#line 300 "fromParser.hh"
+#line 304 "fromParser.hh"
 
 
 
