@@ -156,13 +156,13 @@ check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 #
 really-small: $(IBISEXE) $(TCAPIEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTDIR)/w3/-part.txt $(TESTDIR)/w4/-part.txt $(TESTDIR)/w5/-part.txt $(TESTDIR)/w6/-part.txt $(TESTDIR)/w7/-part.txt
 	@date >| $(TESTDIR)/really-small.log
-	@$(IBISEXE) -d $(TESTDIR)/w1 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/w2 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-3 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), round(stdev(c_2)/avg(c_2), 6), count(*) where c_1 > 0" -output $(TESTDIR)/small-4 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), stdev(c_2), count(*) where c_3 = '1010'" -output $(TESTDIR)/small-5 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/w5 -v -q "select distinct(c_1), floor(1000*stdev(c_2)), count(*) where c_1 > 100" -output $(TESTDIR)/small-6 >> $(TESTDIR)/really-small.log 2>&1
-	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select distinct(c_1), round(stdev(c_2)/var(c_2)), count(*) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w1 -v -q "select countd(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w2 -v -q "select countd(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select countd(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-3 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select countd(c_1), round(stdev(c_2)/avg(c_2), 6), count(*) where c_1 > 0" -output $(TESTDIR)/small-4 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select countd(c_1), stdev(c_2), count(*) where c_3 = '1010'" -output $(TESTDIR)/small-5 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w5 -v -q "select countd(c_1), floor(1000*stdev(c_2)), count(*) where c_1 > 100" -output $(TESTDIR)/small-6 >> $(TESTDIR)/really-small.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select countd(c_1), round(stdev(c_2)/var(c_2)), count(*) where c_3 like '101_'" -output $(TESTDIR)/small-7 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -d $(TESTDIR)/w2 -v -q "select avg(w2.c_1), w3.c_2, count(*) where w2.c_1 = w3.c_1 and w3.c_1 > 0" -output $(TESTDIR)/small-10 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w5 -v -q "select a.c_2, sum(a.c_3)/count(*), avg(a.c_3) from w5 as a, w5 as b where a.c_1 = b.c_1" -output $(TESTDIR)/small-11 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -d $(TESTDIR)/w5 -v -q "select b.c_2, ceil(1000*stdev(a.c_2)), avg(a.c_3)/median(a.c_3), count(*) from w5 as a, w3 as b where a.c_1 = w3.c_1 and a.c_3 > 1" -output $(TESTDIR)/small-12 >> $(TESTDIR)/really-small.log 2>&1
@@ -201,7 +201,7 @@ check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $
 	@if [ -f $(TESTDIR)/join-4 -a -f vault/join-4 -a `diff -w $(TESTDIR)/join-4 vault/join-4 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a, t2a.a from t2a as s where s.a - t2a.a between 0 and 1 and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-5 2>&1 | if [ `fgrep ' produced a table with 7 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ -f $(TESTDIR)/join-5 -a -f vault/join-5 -a `diff -w $(TESTDIR)/join-5 vault/join-5 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a-t.a, distinct(s.a)/count(s.a) from t2a as s, t2b as t where t.a - s.a between 0 and 1 and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-6 2>&1 | if [ `fgrep ' produced a table with 2 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a-t.a, countd(s.a)/count(s.a) from t2a as s, t2b as t where t.a - s.a between 0 and 1 and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-6 2>&1 | if [ `fgrep ' produced a table with 2 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
 	@if [ -f $(TESTDIR)/join-6 -a -f vault/join-6 -a `diff -w $(TESTDIR)/join-6 vault/join-6 | wc -l` -eq 0 ]; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
 	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2c -q "select s.a, t.b+s.c/4 from t2a as s, t2c as t where s.a-0.1 < t.a < s.a+1.1 and s.a < 10 and t.b < 5" -o $(TESTDIR)/join-7 2>&1 | if [ `fgrep ' produced a table with 36 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
 	@if [ -f $(TESTDIR)/join-7 -a -f vault/join-7 -a `diff -w $(TESTDIR)/join-7 vault/join-7 | wc -l` -eq 0 ]; then echo Passed $@ case 16; else echo Did NOT pass $@ case 16; fi

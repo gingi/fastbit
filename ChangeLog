@@ -3,6 +3,7 @@
 	set-valued columns
 	* src/selectParser.yy: change keyword "distinct" to "countd" to
 	avoid the confusion with the standard SQL keyword distinct
+	* tests/Makefile.am: change distinct to countd in tests
 
 2013-06-20 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:4491 retry fopen with the file assumed to be in the
