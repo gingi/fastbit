@@ -34,7 +34,7 @@ ibis::quaere* ibis::quaere::create(const char* sel, const char* from,
 /// if any name is not associated with a known column.
 ibis::quaere*
 ibis::quaere::create(const char* sel, const char* fr, const char* wh,
-                     const ibis::partList& prts) {
+		     const ibis::partList& prts) {
     if (prts.empty()) return 0;
     std::string sql;
     if (fr != 0 && *fr != 0) {
@@ -48,7 +48,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 
     int ierr;
     try {
-        ibis::selectClause sc;
+	ibis::selectClause sc;
         if (sel == 0 || *sel == 0) {
         }
         else if (*sel == '*' && sel[1] == 0) {
@@ -62,14 +62,14 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
                 << "Warning -- quaere::create failed to parse \"" << sel
                 << "\" into a selectClause, ierr = " << ierr;
         }
-        ibis::fromClause fc(fr);
-        ibis::whereClause wc(wh);
-        if (wc.empty()) {
-            LOGGER(ibis::gVerbose >= 2)
-                << "Warning -- quaere::create(" << sql
-                << ") has an empty where clause";
-            return 0;
-        }
+	ibis::fromClause fc(fr);
+	ibis::whereClause wc(wh);
+	if (wc.empty()) {
+	    LOGGER(ibis::gVerbose >= 2)
+		<< "Warning -- quaere::create(" << sql
+		<< ") has an empty where clause";
+	    return 0;
+	}
 
         std::set<std::string> plist;
         wc.getExpr()->getTableNames(plist);
