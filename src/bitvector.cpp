@@ -1722,8 +1722,8 @@ ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
 /// - for two bit vectors with the same number of bits, the one with fewer
 ///   1s is declared as "smaller";
 /// - for two bit vectors with the same number of bits and the same number
-///   of 1s, the actual bit values are compared, in which case, a bit of 0
-///   is considered as smaller than a bit of 1.
+///   of 1s, the actual bit values are compared one bit at a time, in which
+///   case, a bit of 0 is considered as smaller than a bit of 1.
 ///
 /// Note that it is fine to compare two bit vectors that are compressed
 /// differently.  However, it is generally more efficient to compare bit

@@ -1983,6 +1983,9 @@ void ibis::part::combineNames(ibis::table::namesTypes &metalist) const {
 
 /// Return column names in a list.  The list contains raw pointers.  These
 /// pointers are valid as long as the part objects are present in memory.
+/// The names are in the same order as specified during the construction of
+/// the data partition.  If no order was specified at that time, the
+/// columns are in alphabetical order.
 ibis::table::stringList ibis::part::columnNames() const {
     ibis::table::stringList res(columns.size());
     if (columns.empty()) return res;

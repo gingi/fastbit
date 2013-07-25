@@ -193,20 +193,30 @@ int ibis::query::setSelectClause(const char* str) {
     if (str == 0 || *str == 0) return -2;
     if (*comps != 0 && stricmp(*comps, str) == 0) return 0;
 
-    ibis::selectClause sc(str);
-    if (mypart != 0) {
-	int ierr = sc.verify(*mypart);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose > 2)
-		<< "Warning -- query[" << myID << "]::setSelectClause(" << str
-		<< ") failed to find all column names in data partition "
-		<< mypart->name();
-	    return -3;
-	}
+    if (*str == '*' && str[1] == 0) {
+        if (mypart != 0) {
+            const ibis::table::stringList sl = mypart->columnNames();
+            ibis::selectClause sc(sl);
+            writeLock control(this, "setSelectClause");
+            comps.swap(sc);
+        }
     }
+    else {
+        ibis::selectClause sc(str);
+        if (mypart != 0) {
+            int ierr = sc.verify(*mypart);
+            if (ierr != 0) {
+                LOGGER(ibis::gVerbose > 2)
+                    << "Warning -- query[" << myID << "]::setSelectClause("
+                    << str << ") failed to find column names in data partition "
+                    << mypart->name();
+                return -3;
+            }
+        }
 
-    writeLock control(this, "setSelectClause");
-    comps.swap(sc);
+        writeLock control(this, "setSelectClause");
+        comps.swap(sc);
+    }
 
     if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
 	state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {

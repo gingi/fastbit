@@ -35,6 +35,7 @@ ibis::quaere* ibis::quaere::create(const char* sel, const char* from,
 ibis::quaere*
 ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 		     const ibis::partList& prts) {
+    if (prts.empty()) return 0;
     std::string sql;
     if (fr != 0 && *fr != 0) {
 	sql += "From ";
@@ -47,7 +48,20 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 
     int ierr;
     try {
-	ibis::selectClause sc(sel);
+	ibis::selectClause sc;
+        if (sel == 0 || *sel == 0) {
+        }
+        else if (*sel == '*' && sel[1] == 0) {
+            const ibis::table::stringList sl = prts[0]->columnNames();
+            ibis::selectClause sc1(sl);
+            sc.swap(sc1);
+        }
+        else {
+            int ierr = sc.parse(sel);
+            LOGGER(ierr < 0 && ibis::gVerbose > 0)
+                << "Warning -- quaere::create failed to parse \"" << sel
+                << "\" into a selectClause, ierr = " << ierr;
+        }
 	ibis::fromClause fc(fr);
 	ibis::whereClause wc(wh);
 	if (wc.empty()) {
