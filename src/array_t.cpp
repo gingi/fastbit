@@ -1512,37 +1512,35 @@ void ibis::array_t<T>::reserve(size_t n) {
         throw "array_t must have less than 2^31 elements";
     }
     if (n == 0) { // special case with n = 0
-        n = 32 / sizeof(T);
-        if (n == 0)
-            n = 2;
+	n = 32 / sizeof(T);
+	if (n == 0)
+	    n = 2;
     }
 
     size_t n0 = 0;
     if (actual != 0)
         n0 = (reinterpret_cast<T const *>(actual->end()) - m_begin);
-    if (m_begin != 0 && m_end >= m_begin) { // a valid existing array
-        if (n > n0 || (actual != 0 && actual->filename() != 0)) {
-            // attempt to allocate new storage space
-            n0 = (m_end-m_begin);
-            if (n < n0) n = n0;
-            std::unique_ptr<ibis::fileManager::storage>
-                tmp(new ibis::fileManager::storage(n*sizeof(T)));
-            if (tmp.get() != 0) { // copy and swap
-                (void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));
-                if (n > n0)
-                    memset(tmp->begin()+n0*sizeof(T), 0, (n-n0)*sizeof(T));
-                freeMemory(); // free the old content
-                actual = tmp.release();
-                actual->beginUse();
-                m_begin = (T*)(actual->begin());
-                m_end = m_begin + n0;
-            }
-            else {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- array_t::reserve failed to allocate " << n
-                    << ' ' << sizeof(T) << "-byte elements";
-            }
-        }
+    if (m_begin != 0 && m_end > m_begin) { // a valid existing array
+	if (n > n0 || (actual != 0 && actual->filename() != 0)) {
+	    // attempt to allocate new storage space
+	    n0 = (m_end-m_begin);
+	    if (n < n0) n = n0 + 1;
+	    std::auto_ptr<ibis::fileManager::storage>
+		tmp(new ibis::fileManager::storage(n*sizeof(T)));
+	    if (tmp.get() != 0) { // copy and swap
+		(void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));
+		freeMemory(); // free the old content
+		actual = tmp.release();
+		actual->beginUse();
+		m_begin = (T*)(actual->begin());
+		m_end = m_begin + n0;
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- array_t::reserve: unable to allocate " << n
+		    << ' ' << sizeof(T) << "-byte elements";
+	    }
+	}
     }
     else {
         freeMemory(); // just in case actual is not nil

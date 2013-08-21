@@ -6221,25 +6221,6 @@ int ibis::bin::write(ibis::array_t<double> &keys,
     return 0;
 } // ibis::bin::write
 
-void ibis::bin::serialSizes(uint64_t &wkeys, uint64_t &woffsets,
-                            uint64_t &wbitmaps) const {
-    if (nobs == 0) {
-        wkeys = 0;
-        woffsets = 0;
-        wbitmaps = 0;
-    }
-    else {
-        wkeys = nobs + nobs;
-        woffsets = nobs + 1;
-        wbitmaps = 0;
-        for (unsigned j = 0; j < nobs; ++ j) {
-            if (bits[j] != 0)
-                wbitmaps += bits[j]->getSerialSize();
-        }
-        wbitmaps /= 4;
-    }
-} // ibis::bin::serialSizes
-
 void ibis::bin::clear() {
     bounds.clear();
     minval.clear();

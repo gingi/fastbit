@@ -806,26 +806,6 @@ int ibis::direkte::write(ibis::array_t<double> &keys,
     return 0;
 } // ibis::direkte::write
 
-void ibis::direkte::serialSizes(uint64_t &wkeys, uint64_t &woffsets,
-                                uint64_t &wbitmaps) const {
-    const uint32_t nobs = bits.size();
-    if (nobs == 0) {
-        wkeys = 0;
-        woffsets = 0;
-        wbitmaps = 0;
-    }
-    else {
-        wkeys = nobs;
-        woffsets = nobs + 1;
-        wbitmaps = 0;
-        for (unsigned j = 0; j < nobs; ++ j) {
-            if (bits[j] != 0)
-                wbitmaps += bits[j]->getSerialSize();
-        }
-        wbitmaps /= 4;
-    }
-} // ibis::direkte::serialSizes
-
 /// Read index from the specified location.
 int ibis::direkte::read(const char* f) {
     std::string fnm;

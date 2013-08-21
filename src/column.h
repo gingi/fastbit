@@ -308,10 +308,9 @@ public:
     virtual long truncateData(const char* dir, uint32_t nent,
 			      ibis::bitvector& mask) const;
 
-    virtual int indexWrite(ibis::array_t<double> &,
+    virtual int writeIndex(ibis::array_t<double> &,
                            ibis::array_t<int64_t> &,
                            ibis::array_t<uint32_t> &) const;
-    virtual void indexSerialSizes(uint64_t&, uint64_t&, uint64_t&) const;
 
     /// A group of functions to compute some basic statistics for the
     /// column values.

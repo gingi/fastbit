@@ -665,48 +665,12 @@ int ibis::keywords::write(const char* dt) const {
 int ibis::keywords::write(ibis::array_t<double> &keys,
                           ibis::array_t<int64_t> &starts,
                           ibis::array_t<uint32_t> &bitmaps) const {
-    const uint32_t nobs = bits.size();
     keys.resize(0);
-    if (nobs == 0) {
-        starts.resize(0);
-        bitmaps.resize(0);
-        return 0;
-    }
-
-    keys.resize(nobs);
-    starts.resize(nobs+1);
-    starts[0] = 0;
-    for (unsigned j = 0; j < nobs; ++ j) { // iterate over bitmaps
-        if (bits[j] != 0) {
-            ibis::array_t<ibis::bitvector::word_t> tmp;
-            bits[j]->write(tmp);
-            bitmaps.insert(bitmaps.end(), tmp.begin(), tmp.end());
-        }
-        starts[j+1] = bitmaps.size();
-        keys[j] = j;
-    }
-    return 0;
+    starts.resize(0);
+    bitmaps.resize(0);
+    // NOT IMPLEMENTED
+    return -1;
 }
-
-void ibis::keywords::serialSizes
-(uint64_t &wkeys, uint64_t &woffsets, uint64_t &wbitmaps) const {
-    const uint32_t nobs = bits.size();
-    if (nobs == 0) {
-        wkeys = 0;
-        woffsets = 0;
-        wbitmaps = 0;
-    }
-    else {
-        wkeys = nobs;
-        woffsets = nobs + 1;
-        wbitmaps = 0;
-        for (unsigned j = 0; j < nobs; ++ j) {
-            if (bits[j] != 0)
-                wbitmaps += bits[j]->getSerialSize();
-        }
-        wbitmaps /= 4;
-    }
-} // ibis::keywords::serialSizes
 
 int ibis::keywords::read(const char* f) {
     std::string fnm;

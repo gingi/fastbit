@@ -385,8 +385,7 @@ void ibis::column::write(FILE* file) const {
     fputs("End Column\n", file);
 } // ibis::column::write
 
-/// Write the index into three arrays.
-int ibis::column::indexWrite(ibis::array_t<double> &keys,
+int ibis::column::writeIndex(ibis::array_t<double> &keys,
                              ibis::array_t<int64_t> &starts,
                              ibis::array_t<uint32_t> &bitmaps) const {
     if (idx != 0)
@@ -394,20 +393,6 @@ int ibis::column::indexWrite(ibis::array_t<double> &keys,
     else
         return -1;
 } // ibis::column::writeIndex
-
-/// Compute the sizes (in number of elements) of three arrays that would be
-/// produced by writeIndex.
-void ibis::column::indexSerialSizes(uint64_t &wkeys, uint64_t &woffsets,
-                                    uint64_t &wbitmaps) const {
-    if (idx != 0) {
-        idx->serialSizes(wkeys, woffsets, wbitmaps);
-    }
-    else {
-        wkeys = 0;
-        woffsets = 0;
-        wbitmaps = 0;
-    }
-} // ibis::column::indexSerialSizes
 
 const char* ibis::column::indexSpec() const {
     return (m_bins.empty() ? (thePart ? thePart->indexSpec() : 0)

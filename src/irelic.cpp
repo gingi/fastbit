@@ -641,18 +641,18 @@ int ibis::relic::write64(int fdes) const {
     return (ierr == offset64[nobs] ? 0 : -12);
 } // ibis::relic::write64
 
-int ibis::relic::write(ibis::array_t<double> &kvs,
+int ibis::relic::write(ibis::array_t<double> &keys,
                        ibis::array_t<int64_t> &starts,
                        ibis::array_t<uint32_t> &bitmaps) const {
     const uint32_t nobs = (vals.size()<=bits.size()?vals.size():bits.size());
+    keys.resize(0);
     if (nobs == 0) {
-        kvs.resize(0);
         starts.resize(0);
         bitmaps.resize(0);
         return 0;
     }
 
-    kvs.copy(vals);
+    keys.copy(vals);
     starts.resize(nobs+1);
     starts[0] = 0;
     for (unsigned j = 0; j < nobs; ++ j) { // iterate over bitmaps
@@ -665,26 +665,6 @@ int ibis::relic::write(ibis::array_t<double> &kvs,
     }
     return 0;
 } // ibis::relic::write
-
-void ibis::relic::serialSizes(uint64_t &wkeys, uint64_t &woffsets,
-                              uint64_t &wbitmaps) const {
-    const uint32_t nobs = (vals.size()<=bits.size()?vals.size():bits.size());
-    if (nobs == 0) {
-        wkeys = 0;
-        woffsets = 0;
-        wbitmaps = 0;
-    }
-    else {
-        wkeys = nobs;
-        woffsets = nobs + 1;
-        wbitmaps = 0;
-        for (unsigned j = 0; j < nobs; ++ j) {
-            if (bits[j] != 0)
-                wbitmaps += bits[j]->getSerialSize();
-        }
-        wbitmaps /= 4;
-    }
-} // ibis::relic::serialSizes
 
 /// Read the index contained from the speficied location.
 int ibis::relic::read(const char* f) {
