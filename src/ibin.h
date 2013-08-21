@@ -36,7 +36,10 @@ public:
     bin(const ibis::column* c, const char* f, const std::vector<double>& bd);
 
     virtual void print(std::ostream& out) const;
-    virtual int write(const char* dt) const; // write to the named file
+    virtual int write(ibis::array_t<double> &,
+                      ibis::array_t<int64_t> &,
+                      ibis::array_t<uint32_t> &) const;
+    virtual int write(const char* dt) const;
     virtual int read(const char* idxfile);
     virtual int read(ibis::fileManager::storage* st);
     virtual long append(const char* dt, const char* df, uint32_t nnew);

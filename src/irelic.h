@@ -28,6 +28,9 @@ public:
 	  size_t start = 8);
 
     virtual void print(std::ostream& out) const;
+    virtual int write(ibis::array_t<double> &,
+                      ibis::array_t<int64_t> &,
+                      ibis::array_t<uint32_t> &) const;
     virtual int  write(const char* dt) const;
     virtual int  read(const char* idxfile);
     virtual int  read(ibis::fileManager::storage* st);

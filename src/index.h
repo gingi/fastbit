@@ -241,6 +241,10 @@ public:
     /// to the named file or directory.  The index file contains a header
     /// that can be identified by the function isIndex.
     virtual int write(const char* name) const = 0;
+    /// Save index to three arrays.  Serialize the index in memory.
+    virtual int write(ibis::array_t<double> &,
+                      ibis::array_t<int64_t> &,
+                      ibis::array_t<uint32_t> &) const =0;
     /// Reconstructs an index from the named file.  The name can be the
     /// directory containing an index file.  In this case, the name of the
     /// index file must be the name of the column followed by ".idx" suffix.

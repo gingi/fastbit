@@ -385,6 +385,15 @@ void ibis::column::write(FILE* file) const {
     fputs("End Column\n", file);
 } // ibis::column::write
 
+int ibis::column::writeIndex(ibis::array_t<double> &keys,
+                             ibis::array_t<int64_t> &starts,
+                             ibis::array_t<uint32_t> &bitmaps) const {
+    if (idx != 0)
+        return idx->write(keys, starts, bitmaps);
+    else
+        return -1;
+} // ibis::column::writeIndex
+
 const char* ibis::column::indexSpec() const {
     return (m_bins.empty() ? (thePart ? thePart->indexSpec() : 0)
 	    : m_bins.c_str());

@@ -1,3 +1,11 @@
+2013-08-20 John Wu <John dot Wu at ACM dot org>
+	* src/column.h, src/column.cpp: add fucntion writeIndex
+	* src/index.h, src/irelic.h, src/irelic.cpp, src/ibin.h,
+	src/ibin.cpp, idirekte.h, idirekte.cpp, ikeywords.h,
+	ikeywords.cpp: add function write that produce three arrays in
+	memory
+	* java/FastBit.c: add #include <stdlib.h>
+
 2013-07-24 John Wu <John dot Wu at ACM dot org>
 	* src/query.cpp, src/quaere.cpp: convert select * into a concrete
 	list of names based on the current data partition (per request of

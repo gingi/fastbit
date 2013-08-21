@@ -281,6 +281,10 @@ public:
     virtual long truncateData(const char* dir, uint32_t nent,
 			      ibis::bitvector& mask) const;
 
+    virtual int writeIndex(ibis::array_t<double> &,
+                           ibis::array_t<int64_t> &,
+                           ibis::array_t<uint32_t> &) const;
+
     /// A group of functions to compute some basic statistics for the
     /// attribute values.
     ///@{

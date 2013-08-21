@@ -490,6 +490,31 @@ int ibis::relic::write64(int fdes) const {
     return (ierr == offset64[nobs] ? 0 : -12);
 } // ibis::relic::write64
 
+int ibis::relic::write(ibis::array_t<double> &keys,
+                       ibis::array_t<int64_t> &starts,
+                       ibis::array_t<uint32_t> &bitmaps) const {
+    const uint32_t nobs = (vals.size()<=bits.size()?vals.size():bits.size());
+    keys.resize(0);
+    if (nobs == 0) {
+        starts.resize(0);
+        bitmaps.resize(0);
+        return 0;
+    }
+
+    keys.copy(vals);
+    starts.resize(nobs+1);
+    starts[0] = 0;
+    for (unsigned j = 0; j < nobs; ++ j) { // iterate over bitmaps
+        if (bits[j] != 0) {
+            ibis::array_t<ibis::bitvector::word_t> tmp;
+            bits[j]->write(tmp);
+            bitmaps.insert(bitmaps.end(), tmp.begin(), tmp.end());
+        }
+        starts[j+1] = bitmaps.size();
+    }
+    return 0;
+} // ibis::relic::write
+
 /// Read the index contained from the speficied location.
 int ibis::relic::read(const char* f) {
     std::string fnm;

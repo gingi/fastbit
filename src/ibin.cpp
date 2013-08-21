@@ -5673,6 +5673,32 @@ int ibis::bin::write64(int fdes) const {
     return (ierr == offset64[nobs] ? 0 : -17);
 } // ibis::bin::write64
 
+int ibis::bin::write(ibis::array_t<double> &keys,
+                     ibis::array_t<int64_t> &starts,
+                     ibis::array_t<uint32_t> &bitmaps) const {
+    keys.resize(0);
+    if (nobs == 0) {
+        starts.resize(0);
+        bitmaps.resize(0);
+        return 0;
+    }
+
+    keys.reserve(nobs+nobs);
+    keys.copy(minval);
+    keys.insert(keys.end(), maxval.begin(), maxval.end());
+    starts.resize(nobs+1);
+    starts[0] = 0;
+    for (unsigned j = 0; j < nobs; ++ j) { // iterate over bitmaps
+        if (bits[j] != 0) {
+            ibis::array_t<ibis::bitvector::word_t> tmp;
+            bits[j]->write(tmp);
+            bitmaps.insert(bitmaps.end(), tmp.begin(), tmp.end());
+        }
+        starts[j+1] = bitmaps.size();
+    }
+    return 0;
+} // ibis::bin::write
+
 void ibis::bin::clear() {
     bounds.clear();
     minval.clear();

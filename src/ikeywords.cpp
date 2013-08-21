@@ -643,6 +643,16 @@ int ibis::keywords::write(const char* dt) const {
     return 0;
 } // ibis::keywords::write
 
+int ibis::keywords::write(ibis::array_t<double> &keys,
+                          ibis::array_t<int64_t> &starts,
+                          ibis::array_t<uint32_t> &bitmaps) const {
+    keys.resize(0);
+    starts.resize(0);
+    bitmaps.resize(0);
+    // NOT IMPLEMENTED
+    return -1;
+}
+
 int ibis::keywords::read(const char* f) {
     std::string fnm;
     dataFileName(fnm, f);

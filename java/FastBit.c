@@ -1,5 +1,7 @@
 #include "FastBit.h"
 #include "capi.h"
+#include <stdlib.h>	// malloc, free
+
 /**
    @File FastBit.c  Implements the Java Native Interface for FastBit.  This
    implementation is based on the C API defined in capi.h.
