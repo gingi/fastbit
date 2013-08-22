@@ -1375,45 +1375,15 @@ ibis::index::index(const ibis::column* c, ibis::fileManager::storage* s) :
         << static_cast<const void*>(s);
 } // ibis::index::index
 
-/// Copy constructor.
-ibis::index::index(const ibis::index &rhs)
-    : col(rhs.col), str(rhs.str), fname(ibis::util::strnewdup(rhs.fname)),
-      breader(rhs.breader!=0 ? new bitmapReader(*rhs.breader) : 0),
-      offset32(rhs.offset32), offset64(rhs.offset64), bits(rhs.bits.size()),
-      nrows(rhs.nrows) {
-    for (size_t j = 0; j < rhs.bits.size(); ++ j) {
-        if (rhs.bits[j] != 0) {
-            bits[j] = new ibis::bitvector(*rhs.bits[j]);
-        }
-        else {
-            bits[j] = 0;
-        }
-    }
-    LOGGER(ibis::gVerbose > 3)
-        << "index::ctor copied an index for "
-        << (col!=0 ? col->fullname() : "?.?") << " from the existing index @ "
-        << static_cast<const void*>(&rhs);
-} // ibis::index::index
-
-/// Assignment operator.
-ibis::index& ibis::index::operator=(const ibis::index &rhs) {
-    clear(); // clear the existing content
-    col = rhs.col;
-    str = rhs.str;
-    fname = ibis::util::strnewdup(rhs.fname);
-    breader = (rhs.breader!=0 ? new ibis::index::bitmapReader(*rhs.breader) : 0);
-    offset32.copy(rhs.offset32);
-    offset64.copy(rhs.offset64);
-    bits.copy(rhs.bits);
-    nrows = rhs.nrows;
-    return *this;
-} // ibis::index::operator=
-
 /// Free the bitmap objectes common to all index objects.
 void ibis::index::clear() {
-    for (uint32_t i = 0; i < bits.size(); ++ i) {
-        delete bits[i];
-        bits[i] = 0;
+    if (bits.size() > 0) {
+        LOGGER(ibis::gVerbose > 7 && col != 0)
+            << "clearing index on column " << col->name();
+        for (uint32_t i = 0; i < bits.size(); ++ i) {
+            delete bits[i];
+            bits[i] = 0;
+        }
     }
     bits.clear();
     offset32.clear();

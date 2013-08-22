@@ -597,7 +597,7 @@ ibis::part::~part() {
     LOGGER(ibis::gVerbose > 3 && m_name != 0)
         << "clearing data partition " << name();
     {   // make sure all read accesses have finished
-        writeLock lock(this, "~part");
+	writeLock lock(this, "~part");
 
         // Because the key in the std::map that defined the columns are
         // part of the objects to be deleted, need to copy the columns into

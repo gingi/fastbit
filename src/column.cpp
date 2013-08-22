@@ -327,10 +327,10 @@ ibis::column::column(const ibis::column& rhs) :
 /// have completed.
 ibis::column::~column() {
     LOGGER(ibis::gVerbose > 5 && !m_name.empty())
-        << "clearing column " << fullname() << " @ " << this;
+        << "clearing column " << (thePart?thePart->name():"?") << '.' << m_name;
     { // must not be used for anything else
-        writeLock wk(this, "~column");
-        delete idx;
+	writeLock wk(this, "~column");
+	delete idx;
     }
 
     pthread_mutex_destroy(&mutex);
