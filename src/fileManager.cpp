@@ -1474,7 +1474,7 @@ int ibis::fileManager::unload(size_t sz) {
 /// Invoke the external cleanup function registered with the file manager.
 void ibis::fileManager::invokeCleaners() const {
     const uint64_t before = ibis::fileManager::totalBytes();
-    if (before == 0) return;
+    if (before == 0 || cleaners.empty()) return;
 
     LOGGER(ibis::gVerbose > 7)
 	<< "fileManager invoking registered external cleaners ...";

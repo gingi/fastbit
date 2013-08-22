@@ -22,9 +22,9 @@ namespace ibis {
 /// results.
 ///
 /// @note Since all data records are stored in memory, the number of rows
-/// that can be stored are limited.  Even when there is sufficient memory,
-/// because the number of rows is internally stored in a 32-bit unsigned
-/// integer, it can store no more than 4 billion rows.
+/// that can be stored is limited.  Even when there is sufficient memory,
+/// because the number of rows is internally stored as a 32-bit integer, it
+/// can represent no more than 2 billion rows.
 ///
 /// @note Bord is a Danish word for "table."
 class FASTBIT_CXX_DLLSPEC ibis::bord : public ibis::table, public ibis::part {

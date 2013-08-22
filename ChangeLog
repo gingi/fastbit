@@ -1,3 +1,9 @@
+2013-08-21 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: add print statement to ibis::index::clear (need
+	to refrain from call pure virtual functions)
+	* src/util.cpp: in constructor of timer class, move the new
+	statement inside the code body
+
 2013-08-20 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: add fucntion writeIndex
 	* src/index.h, src/irelic.h, src/irelic.cpp, src/ibin.h,

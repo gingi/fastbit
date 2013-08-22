@@ -396,6 +396,8 @@ ibis::bord::bord(const char *tn, const char *td,
 
 /// Clear the existing content.
 void ibis::bord::clear() {
+    LOGGER(ibis::gVerbose > 5 && name_.empty() == false)
+        << "bord::clear -- clearing " << ibis::table::name_;
 } // ibis::bord::clear
 
 /// @note The pointers returned are pointing to names stored internally.

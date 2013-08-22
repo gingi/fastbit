@@ -322,9 +322,14 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
 	<< " beginning at " << begin << " ending at " << end;
 }
 
-/// Constructor.  Directly use the raw pointer provided.  Note that the
-/// second argument is the number of elements starting at the given
-/// address.
+/// Constructor.  Directly use the raw pointer provided.
+///
+/// @note The second argument is the number of elements starting at the
+/// given address.
+///
+/// @note This object does not copy the content at the given address, nor
+/// take the responsibility of freeing the content at the given address.
+/// The caller needs to free the memory after use.
 template <class T>
 ibis::array_t<T>::array_t(T* addr, size_t nelm)
     : actual(0), m_begin(addr), m_end(addr+nelm) {

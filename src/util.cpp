@@ -2146,10 +2146,11 @@ ibis::util::logger::~logger() {
 /// @note This class holds a private copy of the message to avoid relying
 /// on the incoming message being present at the destruction time.  @sa
 /// ibis::horometer
-ibis::util::timer::timer(const char* msg, int lvl) :
-    chrono_(ibis::gVerbose >= lvl && msg != 0 && *msg != 0 ?
-	    new ibis::horometer : 0),
-    mesg_(ibis::gVerbose >= lvl && msg != 0 && *msg != 0 ? msg : "") {
+ibis::util::timer::timer(const char* msg, int lvl) : chrono_(0) {
+    if (ibis::gVerbose >= lvl && msg != 0 && *msg != 0) {
+        mesg_ = msg;
+        chrono_ = new ibis::horometer;
+    }
     if (chrono_ != 0) {
 	chrono_->start();
 	LOGGER(ibis::gVerbose > lvl+1)

@@ -325,12 +325,11 @@ ibis::column::column(const ibis::column& rhs) :
 /// Destructor.  It acquires a write lock to make sure all other operations
 /// have completed.
 ibis::column::~column() {
+    LOGGER(ibis::gVerbose > 5 && !m_name.empty())
+        << "clearing column " << (thePart?thePart->name():"?") << '.' << m_name;
     { // must not be used for anything else
 	writeLock wk(this, "~column");
 	delete idx;
-	LOGGER(ibis::gVerbose > 5 && !m_name.empty() && thePart != 0)
-	    << "clearing column " << (thePart->name()?thePart->name():"?")
-	    << '.' << m_name;
     }
 
     pthread_mutex_destroy(&mutex);
