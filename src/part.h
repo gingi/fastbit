@@ -115,7 +115,10 @@ public:
     long evaluateRIDSet(const ibis::RIDSet&, ibis::bitvector&) const; 
     array_t<rid_t>* getRIDs() const {return rids;} // all RIDs
     array_t<rid_t>* getRIDs(const ibis::bitvector &mask) const;// some RIDs
-    bool hasRIDs() const {return (rids!=0) ? (rids->size()==nEvents) : false;}
+    /// Does this partition have an explicit RID column?  Returns true for
+    /// yes, false for no.
+    bool explicitRIDs() const {
+        return (rids!=0) ? (rids->size()==nEvents) : false;}
 
     virtual double estimateCost(const ibis::qContinuousRange &cmp) const;
     virtual double estimateCost(const ibis::qDiscreteRange &cmp) const;

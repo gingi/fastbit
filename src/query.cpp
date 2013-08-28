@@ -590,9 +590,9 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
     else {
 	state = SET_RIDS;
     }
-    if (ibis::gVerbose > 0)
-	logMessage("setRIDs", "selected %lu RID(s) for an RID query",
-		   static_cast<long unsigned>(rids_in->size()));
+    LOGGER(ibis::gVerbose > 0)
+	<< "query[" << myID << "]::setRIDs selected "
+        << rids_in->size() << " RID(s) for an RID query";
     return 0;
 } // ibis::query::setRIDs
 
@@ -1289,7 +1289,6 @@ ibis::RIDSet* ibis::query::getRIDs() const {
 	return 0;
     }
 
-    const bool exrids = mypart->hasRIDs();
     readLock lck(this, "getRIDs");
     ibis::RIDSet* rids = readRIDs();
     bool gotRIDs = (rids != 0);
@@ -1305,7 +1304,8 @@ ibis::RIDSet* ibis::query::getRIDs() const {
 	rids = 0;
     }
 
-    if (exrids && !gotRIDs) { // need to get RIDs from the part object
+    if (gotRIDs==false && mypart->explicitRIDs()) {
+        // need to get RIDs from the part object
 	ibis::part::readLock rock(mypart, "getRIDs");
 	if (hits && (dstime == mypart->timestamp() || dstime == 0)) {
 	    rids = mypart->getRIDs(*hits);
@@ -1326,7 +1326,7 @@ ibis::RIDSet* ibis::query::getRIDs() const {
 		       "re-evaluate the query");
 	}
     }
-    else if (!gotRIDs) {
+    else if (false==gotRIDs) {
 	rids = new ibis::RIDSet;
 	rids->reserve(hits->cnt());
 	for (ibis::bitvector::indexSet is = hits->firstIndexSet();
