@@ -742,7 +742,7 @@ int ibis::query::setRIDs(const ibis::RIDSet& rids) {
         state = SET_RIDS;
     }
     LOGGER(ibis::gVerbose > 0)
-        << "query[" << myID << "]::setRIDs selected "
+	<< "query[" << myID << "]::setRIDs selected "
         << rids_in->size() << " RID(s) for an RID query";
     return 0;
 } // ibis::query::setRIDs
@@ -1466,53 +1466,53 @@ ibis::RIDSet* ibis::query::getRIDs() const {
         delete tmp;
     }
     else {
-        gotRIDs = false;
-        delete rids;
-        rids = 0;
+	gotRIDs = false;
+	delete rids;
+	rids = 0;
     }
 
     if (gotRIDs==false && mypart->explicitRIDs()) {
         // need to get RIDs from the part object
-        ibis::part::readLock rock(mypart, "getRIDs");
-        if (hits && (dstime == mypart->timestamp() || dstime == 0)) {
-            rids = mypart->getRIDs(*hits);
-            writeRIDs(rids);
-            if (rids->size() != hits->cnt())
-                logWarning("getRIDs", "retrieved %lu row IDs, but "
-                           "expect %lu",
-                           static_cast<long unsigned>(rids->size()),
-                           static_cast<long unsigned>(hits->cnt()));
-            else if (ibis::gVerbose > 5)
-                logMessage("getRIDs", "retrieved %lu row IDs "
-                           "(hits->cnt() = %lu)",
-                           static_cast<long unsigned>(rids->size()),
-                           static_cast<long unsigned>(hits->cnt()));
-        }
-        else {
-            logWarning("getRIDs", "database has changed, "
-                       "re-evaluate the query");
-        }
+	ibis::part::readLock rock(mypart, "getRIDs");
+	if (hits && (dstime == mypart->timestamp() || dstime == 0)) {
+	    rids = mypart->getRIDs(*hits);
+	    writeRIDs(rids);
+	    if (rids->size() != hits->cnt())
+		logWarning("getRIDs", "retrieved %lu row IDs, but "
+			   "expect %lu",
+			   static_cast<long unsigned>(rids->size()),
+			   static_cast<long unsigned>(hits->cnt()));
+	    else if (ibis::gVerbose > 5)
+		logMessage("getRIDs", "retrieved %lu row IDs "
+			   "(hits->cnt() = %lu)",
+			   static_cast<long unsigned>(rids->size()),
+			   static_cast<long unsigned>(hits->cnt()));
+	}
+	else {
+	    logWarning("getRIDs", "database has changed, "
+		       "re-evaluate the query");
+	}
     }
     else if (false==gotRIDs) {
-        rids = new ibis::RIDSet;
-        rids->reserve(hits->cnt());
-        for (ibis::bitvector::indexSet is = hits->firstIndexSet();
-             is.nIndices() > 0; ++ is) {
-            ibis::rid_t tmp;
-            const ibis::bitvector::word_t *ii = is.indices();
-            if (is.isRange()) {
-                for (ibis::bitvector::word_t j = *ii; j < ii[1]; ++j) {
-                    tmp.value = j;
-                    rids->push_back(tmp);
-                }
-            }
-            else {
-                for (unsigned j = 0; j < is.nIndices(); ++ j) {
-                    tmp.value = ii[j];
-                    rids->push_back(tmp);
-                }
-            }
-        }
+	rids = new ibis::RIDSet;
+	rids->reserve(hits->cnt());
+	for (ibis::bitvector::indexSet is = hits->firstIndexSet();
+	     is.nIndices() > 0; ++ is) {
+	    ibis::rid_t tmp;
+	    const ibis::bitvector::word_t *ii = is.indices();
+	    if (is.isRange()) {
+		for (ibis::bitvector::word_t j = *ii; j < ii[1]; ++j) {
+		    tmp.value = j;
+		    rids->push_back(tmp);
+		}
+	    }
+	    else {
+		for (unsigned j = 0; j < is.nIndices(); ++ j) {
+		    tmp.value = ii[j];
+		    rids->push_back(tmp);
+		}
+	    }
+	}
     }
 
     if (ibis::gVerbose > 6 && rids != 0)
