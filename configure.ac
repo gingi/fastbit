@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.7.5], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.7.6], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -683,9 +683,15 @@ elif test "x$JAVA_HOME" = "x" ; then # guess where is JDK
     darwin*)
       JAVA_HOME="/Library/Java/Home"
       ;;
-    # On Fedora Core systems the JDK is usually in /usr/java/default .
+    # On Fedora Core systems the JDK is usually in /usr/java/default , others use /usr
     linux*)
-      JAVA_HOME="/usr/java/default"
+      if test -x "/usr/java/default/bin/javac" ; then
+        JAVA_HOME="/usr/java/default"
+      elif test -x "/usr/bin/javac" ; then
+        JAVA_HOME="/usr"
+      else # don't use java
+        JAVA_HOME=""
+      fi
       ;;
     *)
     ;;

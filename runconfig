@@ -22,10 +22,14 @@ if (${HOSTNAME} =~ m/^bit/) {
   # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-pgi PrgEnv-gnu'\n\n";
   # $cmd="./configure --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
   $cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
+} elsif (${HOSTNAME} =~ m/^sith/) {# sith.ccs.ornl.gov
+  # on sith at ORNL, try GNU compilers
+  $cmd="./configure --prefix=${HOME}/`uname -s`/fastbit/sith-gnu --without-java --enable-xopt --disable-debug"
 } elsif (${HOSTNAME} =~ m/^titan/) {#[-\w+]?[.ornl.gov]?$
+  # on titan at ORNL, try GNU compilers
+  $cmd="./configure --prefix=${HOME}/`uname -s`/fastbit/titan-gnu --without-java --enable-xopt --disable-debug --disable-shared --without-getpwuid"
   # on titan at ORNL, need to choose between PGI and GNU compilers
-  # currently the first choice is PGI compiler
-  $cmd="env CC=pgcc CXX=pgCC ./configure --prefix=${HOME}/`uname -s`/fastbit/pgi --without-java --enable-xopt --disable-debug --disable-shared"
+  #$cmd="env CC=pgcc CXX=pgCC ./configure --prefix=${HOME}/`uname -s`/fastbit/tital-pgi --without-java --enable-xopt --disable-debug --disable-shared"
 } elsif (${HOSTNAME} =~ m/^cvr\w+[\.nersc\.gov]?$/) {
   # on carver at NERSC, use the GNU compilers, no debugging
   $cmd="./configure --without-getpwuid --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver/fastbit";
