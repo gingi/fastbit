@@ -1,3 +1,9 @@
+2013-09-08 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: add test for /usr/bin/java when --with-java option
+	is not specified
+	* runconfig: add case for sith, update case for titan to use GNU
+	compilers
+
 2013-08-28 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/query.cpp: rename ibis::part::hasRIDs to
 	ibis::part::explicitRIDs
