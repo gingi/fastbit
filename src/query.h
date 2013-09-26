@@ -23,14 +23,9 @@
 /// where clause is considered hits.  A query may retrieve values of
 /// variables/columns specified in the select clause.  A select clause is
 /// optional.  If specified, it contains a list of column names.  These
-/// attributes must not be NULL in order for a record to be a hit.  The
-/// select clause may also contain column names appearing as the argument
-/// to one of the four aggregation functions: @c avg, @c var, @c max, @c
-/// min and @c sum.  For example, "temperature, pressure,
-/// average(ho2_concentration)" may be a select statement for a Chemistry
-/// application.  Note that If one needs to include arithmetic expressions in
-/// the select clause, use the function ibis::table::select instead of
-/// using this class.
+/// attributes must not be NULL in order for a record to be a hit.  If any
+/// additional functions are needed in the select clause, use the function
+/// ibis::table::select instead of using this class.
 ///
 /// The hits can be computed in two ways by using functions @c estimate or
 /// @c evaluate.  The function @c estimate can take advantage of the
@@ -249,7 +244,7 @@ protected:
     void doEstimate(const qExpr* term, ibis::bitvector& low,
 		    ibis::bitvector& high) const;
 
-    int  computeHits();
+    int computeHits();
     int doEvaluate(const qExpr* term, ibis::bitvector& hits) const;
     int doEvaluate(const qExpr* term, const ibis::bitvector& mask,
 		   ibis::bitvector& hits) const;

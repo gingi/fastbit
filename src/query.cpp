@@ -180,15 +180,13 @@ int ibis::query::setPartition(const part* tbl) {
     return 0;
 } // ibis::query::setPartition
 
-/// Specifies the select clause for the query.
-/// The select clause is a string of attribute names (plus the four
-/// predefined functions, @c avg, @c var, @c max, @c min and @c sum)
-/// separated by spaces, commas (,) or semicolons(;).  Repeated calls to
-/// this function simply overwrite the previous definition of the select
-/// clause.  If no select clause is specified, the where clause alone
-/// determines whether record is a hit or not.  The select clause will be
-/// reordered to make the plain column names without functions appear
-/// before with functions.
+/// Specifies the select clause for the query.  The select clause is a
+/// string of attribute names separated by spaces, commas (,) or
+/// semicolons(;).  Repeated calls to this function simply overwrite the
+/// previous definition of the select clause.  If no select clause is
+/// specified, the where clause alone determines whether record is a hit or
+/// not.  The select clause will be reordered to make the plain column
+/// names without functions appear before with functions.
 int ibis::query::setSelectClause(const char* str) {
     if (str == 0 || *str == 0) return -2;
     if (*comps != 0 && stricmp(*comps, str) == 0) return 0;

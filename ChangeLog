@@ -1,3 +1,9 @@
+2013-09-26 John Wu <John dot Wu at ACM dot org>
+	* src/quaere.h: update the inline documentation of some functions
+	* src/query.h, src/query.cpp: remove mentioning of operations in
+	the select clauses because they are not well supported, redirect
+	users to use ibis::quaere
+
 2013-09-08 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: add test for /usr/bin/java when --with-java option
 	is not specified
