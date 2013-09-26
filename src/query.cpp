@@ -187,7 +187,7 @@ int ibis::query::setPartition(const part* tbl) {
 } // ibis::query::setPartition
 
 /// Specifies the select clause for the query.  The select clause is a
-/// string of column names separated by spaces, commas (,) or
+/// string of attribute names separated by spaces, commas (,) or
 /// semicolons(;).  Repeated calls to this function simply overwrite the
 /// previous definition of the select clause.  If no select clause is
 /// specified, the where clause alone determines whether record is a hit or

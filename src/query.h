@@ -23,7 +23,7 @@
 /// where clause is considered hits.  A query may retrieve values of
 /// variables/columns specified in the select clause.  A select clause is
 /// optional.  If specified, it contains a list of column names.  These
-/// columns must not be NULL in order for a record to be a hit.  If any
+/// attributes must not be NULL in order for a record to be a hit.  If any
 /// additional functions are needed in the select clause, use the function
 /// ibis::table::select instead of using this class.
 ///
