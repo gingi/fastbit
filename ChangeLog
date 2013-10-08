@@ -1,3 +1,7 @@
+2013-10-06 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.h: update the inline documentation for functions
+	of bitvector::iterator and bitvector::const_iterator
+
 2013-09-26 John Wu <John dot Wu at ACM dot org>
 	* src/quaere.h: update the inline documentation of some functions
 	* src/query.h, src/query.cpp: remove mentioning of operations in
