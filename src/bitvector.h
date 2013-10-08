@@ -1017,7 +1017,7 @@ inline ibis::bitvector::const_iterator ibis::bitvector::begin() const {
     return it;
 } // ibis::bitvector::begin
 
-// dereference -- no error checking
+/// Dereference the current bit.  No error checking.
 inline bool ibis::bitvector::iterator::operator*() const {
 #if defined(DEBUG) && DEBUG + 0 > 1
     if (vec==0 || it<vec->begin() ||  it>vec->end())
@@ -1029,25 +1029,29 @@ inline bool ibis::bitvector::iterator::operator*() const {
 	return (1 & (literalvalue >> (bitvector::SECONDBIT - ind)));
 } // ibis::bitvector::iterator::operator*
 
-// comparison only based on the iterator
+/// Comparing two iterators.  It only compare the content of the iterator
+/// to m_vec.
 inline int ibis::bitvector::iterator::operator!=
 (const ibis::bitvector::const_iterator& rhs) const throw () {
     return (it != rhs.it);
 }
+
 inline int ibis::bitvector::iterator::operator==
 (const ibis::bitvector::const_iterator& rhs) const throw () {
     return (it == rhs.it);
 }
+
 inline int ibis::bitvector::iterator::operator!=
 (const ibis::bitvector::iterator& rhs) const throw () {
     return (it != rhs.it);
 }
+
 inline int ibis::bitvector::iterator::operator==
 (const ibis::bitvector::iterator& rhs) const throw () {
     return (it == rhs.it);
 }
 
-// increment by one
+/// Increment the interator.  Move on to the next bit.
 inline ibis::bitvector::iterator& ibis::bitvector::iterator::operator++() {
 #if defined(DEBUG) && DEBUG + 0 > 1
     if (vec==0 || it<vec->begin() || it>vec->end())
@@ -1058,7 +1062,7 @@ inline ibis::bitvector::iterator& ibis::bitvector::iterator::operator++() {
     return *this;
 }
 
-// decrement by one
+/// Decrement the interator.  Move back by one bit.
 inline ibis::bitvector::iterator& ibis::bitvector::iterator::operator--() {
 #if defined(DEBUG) && DEBUG + 0 > 1
     if (vec==0 || it<vec->begin() || it>vec->end()+1)
@@ -1087,9 +1091,9 @@ inline ibis::bitvector::const_iterator ibis::bitvector::end() const {
     it.end   = m_vec.end();
     it.active = &active;
     return it;
-} // ibis::bitvector::end()
+} // ibis::bitvector::end
 
-// dereference -- no error checking
+/// Dereference the current bit value.  No error checking.
 inline bool ibis::bitvector::const_iterator::operator*() const {
 #if defined(DEBUG) && DEBUG + 0 > 1
     if (it==0 || end==0 || it>end || nbits<=ind)
@@ -1101,7 +1105,8 @@ inline bool ibis::bitvector::const_iterator::operator*() const {
 	return (1 & (literalvalue >> (bitvector::SECONDBIT - ind)));
 }
 
-// comparison only based on the iterator
+/// Comparing two iterators.  It actually only check the value of the
+/// iterator pointing to m_vec.
 inline int ibis::bitvector::const_iterator::operator!=
 (const ibis::bitvector::const_iterator& rhs) const throw (){
     return (it != rhs.it);
@@ -1111,7 +1116,7 @@ inline int ibis::bitvector::const_iterator::operator==
     return (it == rhs.it);
 }
 
-// increment by one
+/// Increment the iterator.  Move on to the next bit.
 inline ibis::bitvector::const_iterator&
 ibis::bitvector::const_iterator::operator++() {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1123,7 +1128,7 @@ ibis::bitvector::const_iterator::operator++() {
     return *this;
 }
 
-// decrement by one
+/// Decrement the iterator.  Move back one bit.
 inline ibis::bitvector::const_iterator&
 ibis::bitvector::const_iterator::operator--() {
 #if defined(DEBUG) && DEBUG + 0 > 1
