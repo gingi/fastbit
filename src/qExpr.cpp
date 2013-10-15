@@ -1906,6 +1906,23 @@ void ibis::math::variable::getTableNames(std::set<std::string>& plist) const {
     }
 } // ibis::math::variable::getTableNames
 
+/// Record the specified name.  Return the number that is to be used
+/// in later functions for retrieving the variable name and
+/// its value.
+uint32_t ibis::math::barrel::recordVariable(const char* name) {
+    uint32_t ind = varmap.size();
+    termMap::const_iterator it = varmap.find(name);
+    if (it == varmap.end()) {
+	varmap[name] = ind;
+	namelist.push_back(name);
+	varvalues.push_back(0.0);
+    }
+    else {
+	ind = (*it).second;
+    }
+    return ind;
+} // ibis::math::barrel::recordVariable
+
 /// Record the variable names appear in the query expression.  It records
 /// all variables in the expression recursively.
 void ibis::math::barrel::recordVariable(const ibis::qExpr* const t) {
@@ -1919,6 +1936,8 @@ void ibis::math::barrel::recordVariable(const ibis::qExpr* const t) {
 	if (t->getRight() != 0) {
 	    recordVariable(t->getRight());
 	}
+	break;
+    case ibis::qExpr::EXISTS:
 	break;
     case ibis::qExpr::RANGE:
     case ibis::qExpr::DRANGE:
@@ -3660,6 +3679,16 @@ void ibis::qUIntHod::printFull(std::ostream& out) const {
     }
     out << ')';
 } // ibis::qUIntHod::printFull
+
+void ibis::qExists::print(std::ostream& out) const {
+    if (name.empty()) return;
+    out << "EXISTS(" << name << ')';
+} // ibis::qExists::print
+
+void ibis::qExists::printFull(std::ostream& out) const {
+    if (name.empty()) return;
+    out << "EXISTS(" << name << ')';
+} // ibis::qExists::printFull
 
 ibis::qAnyString::qAnyString(const char *col, const char *sval)
     : ibis::qExpr(ibis::qExpr::ANYSTRING) {

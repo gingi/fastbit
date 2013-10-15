@@ -556,6 +556,17 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 	}
 	break;
     }
+    case ibis::qExpr::EXISTS: {
+        const ibis::qExists *qex = reinterpret_cast<const ibis::qExists*>(term);
+        if (qex != 0 && mypart->getColumn(qex->colName())) { // does exist
+            mypart->getNullMask(low);
+            mypart->getNullMask(high);
+        }
+        else { // does not exist
+	    high.set(0, mypart->nRows());
+	    low.set(0, mypart->nRows());
+        }
+        break;}
     case ibis::qExpr::RANGE:
 	mypart->estimateRange
 	    (*(reinterpret_cast<const ibis::qContinuousRange*>(term)),
@@ -745,6 +756,17 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	    ierr = ht.sloppyCount();
 	}
 	break;}
+    case ibis::qExpr::EXISTS: {
+        const ibis::qExists *qex = reinterpret_cast<const ibis::qExists*>(term);
+        if (qex != 0 && mypart->getColumn(qex->colName())) { // does exist
+            mypart->getNullMask(ht);
+            ht &= mask;
+        }
+        else { // does not exist
+	    ht.set(0, mypart->nRows());
+        }
+        ierr = ht.sloppyCount();
+        break;}
     case ibis::qExpr::RANGE: {
 	ierr = mypart->doScan
 	    (*(reinterpret_cast<const ibis::qRange*>(term)), mask, ht);
@@ -935,6 +957,17 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	    ierr = ht.sloppyCount();
 	}
 	break;}
+    case ibis::qExpr::EXISTS: {
+        const ibis::qExists *qex = reinterpret_cast<const ibis::qExists*>(term);
+        if (qex != 0 && mypart->getColumn(qex->colName())) { // does exist
+            mypart->getNullMask(ht);
+            ht &= mask;
+        }
+        else { // does not exist
+	    ht.set(0, mypart->nRows());
+        }
+        ierr = ht.sloppyCount();
+        break;}
     case ibis::qExpr::RANGE: {
 	ierr = mypart->evaluateRange
 	    (*(reinterpret_cast<const ibis::qContinuousRange*>(term)),

@@ -113,27 +113,28 @@ namespace ibis {
      XOROP = 269,
      BETWEENOP = 270,
      CONTAINSOP = 271,
-     INOP = 272,
-     LIKEOP = 273,
-     ANYOP = 274,
-     BITOROP = 275,
-     BITANDOP = 276,
-     ADDOP = 277,
-     MINUSOP = 278,
-     MULTOP = 279,
-     DIVOP = 280,
-     REMOP = 281,
-     EXPOP = 282,
-     INT64 = 283,
-     UINT64 = 284,
-     NUMBER = 285,
-     INTSEQ = 286,
-     UINTSEQ = 287,
-     NOUNSTR = 288,
-     NUMSEQ = 289,
-     STRSEQ = 290,
-     STRLIT = 291,
-     CONSTAINSOP = 292
+     EXISTSOP = 272,
+     INOP = 273,
+     LIKEOP = 274,
+     ANYOP = 275,
+     BITOROP = 276,
+     BITANDOP = 277,
+     ADDOP = 278,
+     MINUSOP = 279,
+     MULTOP = 280,
+     DIVOP = 281,
+     REMOP = 282,
+     EXPOP = 283,
+     INT64 = 284,
+     UINT64 = 285,
+     NUMBER = 286,
+     INTSEQ = 287,
+     UINTSEQ = 288,
+     NOUNSTR = 289,
+     NUMSEQ = 290,
+     STRSEQ = 291,
+     STRLIT = 292,
+     CONSTAINSOP = 293
    };
 
     };
@@ -242,7 +243,7 @@ namespace ibis {
     static const unsigned char yytable_[];
     static const signed char yytable_ninf_;
 
-    static const signed char yycheck_[];
+    static const short int yycheck_[];
 
     /// For a state, its accessing symbol.
     static const unsigned char yystos_[];
@@ -315,7 +316,7 @@ namespace ibis {
 
 } // ibis
 /* Line 33 of lalr1.cc  */
-#line 319 "whereParser.hh"
+#line 320 "whereParser.hh"
 
 
 

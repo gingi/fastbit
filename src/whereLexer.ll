@@ -83,6 +83,7 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 [lL][iI][kK][eE] {return token::LIKEOP;}
 [mM][iI][nN][uU][sS] {return token::ANDNOTOP;}
 [aA][nN][dD][nN][oO][tT] {return token::ANDNOTOP;}
+[eE][xX][iI][sS][tT][sS] {return token::EXISTSOP;}
 [bB][eE][tT][wW][eE][eE][nN] {return token::BETWEENOP;}
 [cC][oO][nN][tT][aA][iI][nN][sS] {return token::CONTAINSOP;}
 

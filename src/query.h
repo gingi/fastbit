@@ -19,11 +19,11 @@
 ///
 /// It contains a list of range conditions joined together with logical
 /// operators, such as "temperature > 700 and 100 <= presessure < 350".
-/// Records whose attribute values satisfy the conditions defined in the
+/// Records whose values satisfy the conditions defined in the
 /// where clause is considered hits.  A query may retrieve values of
 /// variables/columns specified in the select clause.  A select clause is
 /// optional.  If specified, it contains a list of column names.  These
-/// attributes must not be NULL in order for a record to be a hit.  If any
+/// columns must not be NULL in order for a record to be a hit.  If any
 /// additional functions are needed in the select clause, use the function
 /// ibis::table::select instead of using this class.
 ///
@@ -40,7 +40,7 @@
 /// recorded as a bit vector.  The user may use ibis::bitvector::indexSet
 /// to extract the record numbers of the hits or use one of the functions
 /// @c getQualifiedInts, @c getQualifiedFloats, and @c getQualifiedDoubles
-/// to retrieve the values of the selected attributes.  Additionally, one
+/// to retrieve the values of the selected columns.  Additionally, one
 /// may call either @c printSelected or @c printSelectedWithRID to print
 /// the selected values to the specified I/O stream.
 ///

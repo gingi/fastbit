@@ -286,7 +286,7 @@ public:
                            ibis::array_t<uint32_t> &) const;
 
     /// A group of functions to compute some basic statistics for the
-    /// attribute values.
+    /// column values.
     ///@{
     /// Compute the actual minimum value by reading the data or examining
     /// the index.  It returns DBL_MAX in case of error.

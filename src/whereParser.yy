@@ -56,6 +56,7 @@
 %token <integerVal> XOROP	"xor"
 %token <integerVal> BETWEENOP	"between"
 %token <integerVal> CONTAINSOP	"contains"
+%token <integerVal> EXISTSOP	"exists"
 %token <integerVal> INOP	"in"
 %token <integerVal> LIKEOP	"like"
 %token <integerVal> ANYOP	"any"
@@ -80,7 +81,7 @@
 %left OROP
 %left XOROP
 %left ANDOP ANDNOTOP
-%nonassoc ANYOP INOP LIKEOP CONSTAINSOP
+%nonassoc ANYOP INOP LIKEOP CONSTAINSOP EXISTSOP
 %nonassoc EQOP NEQOP
 %left BITOROP
 %left BITANDOP
@@ -161,7 +162,39 @@ qexpr OROP qexpr {
 ;
 
 simpleRange:
-NOUNSTR INOP NUMSEQ {
+EXISTSOP NOUNSTR {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- EXISTS(" << *$2 << ')';
+#endif
+    $$ = new ibis::qExists($2->c_str());
+    delete $2;
+}
+| EXISTSOP STRLIT {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- EXISTS(" << *$2 << ')';
+#endif
+    $$ = new ibis::qExists($2->c_str());
+    delete $2;
+}
+| EXISTSOP '(' NOUNSTR ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- EXISTS(" << *$3 << ')';
+#endif
+    $$ = new ibis::qExists($3->c_str());
+    delete $3;
+}
+| EXISTSOP '(' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- EXISTS(" << *$3 << ')';
+#endif
+    $$ = new ibis::qExists($3->c_str());
+    delete $3;
+}
+| NOUNSTR INOP NUMSEQ {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << " IN ("

@@ -7840,7 +7840,7 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
     }
     else if (m_type == ibis::CATEGORY ||
 	     m_type == ibis::TEXT) {
-	// data type TEXT/CATEGORY -- string valued attributes to check the
+	// data type TEXT/CATEGORY -- string valued columns to check the
 	// size properly, we will have to go through the whole file.  To
 	// avoid that expense, only do a minimum amount of checking
 	uint32_t oldbytes = ninfile;
