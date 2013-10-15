@@ -330,8 +330,9 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
 /// given address.
 ///
 /// @note This object does not copy the content at the given address, nor
-/// take the responsibility of freeing the content at the given address.
-/// The caller needs to free the memory after use.
+/// takes the responsibility of freeing the content at the given address.
+/// It merely provide a reference to the content at the given address.  The
+/// caller needs to free the memory after use.
 template <class T>
 ibis::array_t<T>::array_t(T *addr, size_t nelm)
     : actual(0), m_begin(addr), m_end(addr+nelm) {
@@ -380,21 +381,21 @@ void ibis::array_t<T>::copy(const array_t<T>& rhs) {
 template<class T> 
 void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
     if (rhs.m_begin != 0 && rhs.m_end != 0) { // valid rhs
-        if (actual != 0 && actual->inUse() < 2U &&
-            actual->end() >= rhs.size() * sizeof(T) + actual->begin()) {
-            // already has enough memory allocated, stay with it
-            const size_t n = rhs.size();
-            m_begin = (T*)(actual->begin());
-            m_end = m_begin + n;
-            for (size_t i = 0; i < n; ++ i)
-                m_begin[i] = rhs[i];
-        }
-        else {
-            array_t<T> tmp(rhs.size()); // allocate memory
-            for (size_t i = 0; i < rhs.size(); ++ i)
-                tmp[i] = rhs[i];
-            swap(tmp);
-        }
+	if (actual != 0 && actual->inUse() < 2U &&
+	    actual->end() >= rhs.size() * sizeof(T) + actual->begin()) {
+	    // already has enough memory allocated, stay with it
+	    const size_t n = rhs.size();
+	    m_begin = (T*)(actual->begin());
+	    m_end = m_begin + n;
+	    for (size_t i = 0; i < n; ++ i)
+		m_begin[i] = rhs[i];
+	}
+	else {
+	    array_t<T> tmp(rhs.size()); // allocate memory
+	    for (size_t i = 0; i < rhs.size(); ++ i)
+		tmp[i] = rhs[i];
+	    swap(tmp);
+	}
     }
     else { // invalid rhs, mark existing array as empty
         m_end = m_begin;

@@ -1,3 +1,9 @@
+2013-10-15 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.cpp: array_t<T>::deepCopy has an incorrect test for
+	the validity of the incoming array (which causes the error
+	reported by Wang JiLong <wang.jilong at huawei.com>, original
+	email message at <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2013-October/001810.html>)
+
 2013-10-14 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp, src/whereParser.yy: add support for
 	keyword EXISTS to test the presence of a named column
