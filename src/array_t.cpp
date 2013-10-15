@@ -328,8 +328,9 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
 /// given address.
 ///
 /// @note This object does not copy the content at the given address, nor
-/// take the responsibility of freeing the content at the given address.
-/// The caller needs to free the memory after use.
+/// takes the responsibility of freeing the content at the given address.
+/// It merely provide a reference to the content at the given address.  The
+/// caller needs to free the memory after use.
 template <class T>
 ibis::array_t<T>::array_t(T* addr, size_t nelm)
     : actual(0), m_begin(addr), m_end(addr+nelm) {
@@ -377,7 +378,7 @@ void ibis::array_t<T>::copy(const array_t<T>& rhs) {
 /// resulting in an empty array.
 template<class T> 
 void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
-    if (rhs.actual != 0 && rhs.m_begin != 0 && rhs.m_end != 0) { // valid rhs
+    if (rhs.m_begin != 0 && rhs.m_end != 0) { // valid rhs
 	if (actual != 0 && actual->inUse() < 2U &&
 	    actual->end() >= rhs.size() * sizeof(T) + actual->begin()) {
 	    // already has enough memory allocated, stay with it
