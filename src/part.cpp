@@ -3665,11 +3665,11 @@ double ibis::part::estimateCost(const ibis::qContinuousRange &cmp) const {
         ret = col->estimateCost(cmp);
     }
     else {
-        LOGGER(ibis::gVerbose > 2)
-            << "Warning -- part[" << name()
-            << "]::estimateCost failed to find a column named "
-            << cmp.colName();
-        ret = nEvents;
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
+	ret = nEvents;
     }
     return ret;
 } // ibis::part::estimateCost
@@ -3799,10 +3799,10 @@ double ibis::part::estimateCost(const ibis::qDiscreteRange &cmp) const {
         ret = col->estimateCost(cmp);
     }
     else {
-        LOGGER(ibis::gVerbose > 2)
-            << "Warning -- part["<< name()
-            << "]::estimateCost failed to find a column named "
-            << cmp.colName();
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part["<< name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
         ret = nEvents;
     }
     return ret;
@@ -3933,11 +3933,11 @@ double ibis::part::estimateCost(const ibis::qIntHod &cmp) const {
         ret = col->estimateCost(cmp);
     }
     else {
-        LOGGER(ibis::gVerbose > 2)
-            << "Warning -- part[" << name()
-            << "]::estimateCost failed to find a column named "
-            << cmp.colName();
-        ret = nEvents;
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
+	ret = nEvents;
     }
     return ret;
 } // ibis::part::estimateCost
@@ -4067,11 +4067,11 @@ double ibis::part::estimateCost(const ibis::qUIntHod &cmp) const {
         ret = col->estimateCost(cmp);
     }
     else {
-        LOGGER(ibis::gVerbose > 2)
-            << "Warning -- part[" << name()
-            << "]::estimateCost failed to find a column named "
-            << cmp.colName();
-        ret = nEvents;
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
+	ret = nEvents;
     }
     return ret;
 } // ibis::part::estimateCost
@@ -4091,11 +4091,11 @@ double ibis::part::estimateCost(const ibis::qString &cmp) const {
         ret = col->estimateCost(cmp);
     }
     else {
-        LOGGER(ibis::gVerbose > 2)
-            << "Warning -- part[" << name()
-            << "]::estimateCost failed to find a column named "
-            <<  cmp.leftString() << " or " << cmp.rightString();
-        ret = nEvents;
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    <<  cmp.leftString() << " or " << cmp.rightString();
+	ret = nEvents;
     }
     return ret;
 } // ibis::part::estimateCost
@@ -4113,11 +4113,11 @@ double ibis::part::estimateCost(const ibis::qAnyString &cmp) const {
         ret = col->estimateCost(cmp);
     }
     else {
-        LOGGER(ibis::gVerbose > 2)
-            << "Warning -- part[" << name()
-            << "]::estimateCost failed to find a column named "
-            << cmp.colName();
-        ret = nEvents;
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << name()
+	    << "]::estimateCost failed to find a column named "
+	    << cmp.colName();
+	ret = nEvents;
     }
     return ret;
 } // ibis::part::estimateCost

@@ -26,6 +26,7 @@ namespace ibis { // additional names related to qExpr
     class qLike;	///!< A representation of the operator LIKE.
     class qIntHod;	///!< A container of signed integers.
     class qUIntHod;	///!< A container of unsigned integers.
+    class qExists;	///!< A test for existence of a name.
 }
 
 /// @ingroup FastBitIBIS
@@ -143,8 +144,6 @@ public:
     {return (type==RANGE || type==STRING || type==COMPRANGE ||
 	     type==DRANGE || type==ANYSTRING || type==ANYANY ||
 	     type==INTHOD || type==UINTHOD || type==EXISTS ||
-             type==KEYWORD || type==ALLWORDS || type==LIKE ||
-             type==LOGICAL_UNDEFINED || type==TOPK || type==ANYANY ||
 	     (type==LOGICAL_NOT && left && left->directEval()));}
 
     /// Is the expression simple? A simple expression contains only range

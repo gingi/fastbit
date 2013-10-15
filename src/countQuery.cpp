@@ -589,8 +589,8 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
             mypart->getNullMask(high);
         }
         else { // does not exist
-            high.set(0, mypart->nRows());
-            low.set(0, mypart->nRows());
+	    high.set(0, mypart->nRows());
+	    low.set(0, mypart->nRows());
         }
         break;}
     case ibis::qExpr::RANGE:
@@ -791,15 +791,15 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
         }
         break;}
     case ibis::qExpr::LOGICAL_MINUS: {
-        ierr = doScan(term->getLeft(), mask, ht);
-        if (ierr >= 0) {
-            ibis::bitvector b1;
-            ierr = doScan(term->getRight(), ht, b1);
-            if (ierr >= 0)
-                ht -= b1;
-            ierr = ht.sloppyCount();
-        }
-        break;}
+	ierr = doScan(term->getLeft(), mask, ht);
+	if (ierr >= 0) {
+	    ibis::bitvector b1;
+	    ierr = doScan(term->getRight(), ht, b1);
+	    if (ierr >= 0)
+		ht -= b1;
+	    ierr = ht.sloppyCount();
+	}
+	break;}
     case ibis::qExpr::EXISTS: {
         const ibis::qExists *qex = reinterpret_cast<const ibis::qExists*>(term);
         if (qex != 0 && mypart->getColumn(qex->colName())) { // does exist
@@ -807,7 +807,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
             ht &= mask;
         }
         else { // does not exist
-            ht.set(0, mypart->nRows());
+	    ht.set(0, mypart->nRows());
         }
         ierr = ht.sloppyCount();
         break;}
@@ -992,15 +992,15 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
         break;
     }
     case ibis::qExpr::LOGICAL_MINUS: {
-        ierr = doEvaluate(term->getLeft(), mask, ht);
-        if (ierr >= 0) {
-            ibis::bitvector b1;
-            ierr = doEvaluate(term->getRight(), ht, b1);
-            if (ierr >= 0)
-                ht -= b1;
-            ierr = ht.sloppyCount();
-        }
-        break;}
+	ierr = doEvaluate(term->getLeft(), mask, ht);
+	if (ierr >= 0) {
+	    ibis::bitvector b1;
+	    ierr = doEvaluate(term->getRight(), ht, b1);
+	    if (ierr >= 0)
+		ht -= b1;
+	    ierr = ht.sloppyCount();
+	}
+	break;}
     case ibis::qExpr::EXISTS: {
         const ibis::qExists *qex = reinterpret_cast<const ibis::qExists*>(term);
         if (qex != 0 && mypart->getColumn(qex->colName())) { // does exist
@@ -1008,7 +1008,7 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
             ht &= mask;
         }
         else { // does not exist
-            ht.set(0, mypart->nRows());
+	    ht.set(0, mypart->nRows());
         }
         ierr = ht.sloppyCount();
         break;}

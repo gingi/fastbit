@@ -730,18 +730,18 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
         ierr += verifyExpr(t, part0, sel);
         break;}
     default: {
-        if (xp0->getLeft() != 0) {
+	if (xp0->getLeft() != 0) {
             if (xp0->getLeft()->getType() == ibis::qExpr::EXISTS ||
                 (xp0->getLeft()->getType() == ibis::qExpr::LOGICAL_NOT &&
                  xp0->getLeft()->getLeft() != 0 &&
                  xp0->getLeft()->getLeft()->getType() == ibis::qExpr::EXISTS))
                 break;
-            ierr += verifyExpr(xp0->getLeft(), part0, sel);
+	    ierr += verifyExpr(xp0->getLeft(), part0, sel);
         }
-        if (xp0->getRight() != 0) {
-            ierr += verifyExpr(xp0->getRight(), part0, sel);
+	if (xp0->getRight() != 0) {
+	    ierr += verifyExpr(xp0->getRight(), part0, sel);
         }
-        break;}
+	break;}
     } // end switch
 
     return ierr;
@@ -867,18 +867,18 @@ int ibis::whereClause::verifyExpr(const ibis::qExpr *xp0,
         ierr += verifyExpr(rj->getRange(), part0, sel);
         break;}
     default: {
-        if (xp0->getLeft() != 0) {
+	if (xp0->getLeft() != 0) {
             if (xp0->getLeft()->getType() == ibis::qExpr::EXISTS ||
                 (xp0->getLeft()->getType() == ibis::qExpr::LOGICAL_NOT &&
                  xp0->getLeft()->getLeft() != 0 &&
                  xp0->getLeft()->getLeft()->getType() == ibis::qExpr::EXISTS))
                 break;
-            ierr += verifyExpr(xp0->getLeft(), part0, sel);
+	    ierr += verifyExpr(xp0->getLeft(), part0, sel);
         }
-        if (xp0->getRight() != 0) {
-            ierr += verifyExpr(xp0->getRight(), part0, sel);
+	if (xp0->getRight() != 0) {
+	    ierr += verifyExpr(xp0->getRight(), part0, sel);
         }
-        break;}
+	break;}
     } // end switch
 
     return ierr;

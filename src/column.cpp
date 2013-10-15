@@ -8209,27 +8209,27 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
         }
     }
     else if (m_type == ibis::CATEGORY ||
-             m_type == ibis::TEXT) {
-        // data type TEXT/CATEGORY -- string valued columns to check the
-        // size properly, we will have to go through the whole file.  To
-        // avoid that expense, only do a minimum amount of checking
-        uint32_t oldbytes = ninfile;
-        if (nold > 0) { // check with mask file for ninfile
-            char tmp[1024];
-            (void) memset(tmp, 0, 1024);
-            ninfile = mask.size();
-            if (nold > ninfile) {
-                LOGGER(ibis::gVerbose > 2)
-                    << evt << " adding " << (nold-ninfile)
-                    << " null string(s) (mask.size()=" << ninfile
-                    << ", nold=" << nold << ")";
-                for (uint32_t i = ninfile; i < nold; i += 1024)
-                    fwrite(tmp, 1, (nold-i>1024)?1024:(nold-i), fdat);
-            }
-        }
-        else {
-            ninfile = 0;
-        }
+	     m_type == ibis::TEXT) {
+	// data type TEXT/CATEGORY -- string valued columns to check the
+	// size properly, we will have to go through the whole file.  To
+	// avoid that expense, only do a minimum amount of checking
+	uint32_t oldbytes = ninfile;
+	if (nold > 0) { // check with mask file for ninfile
+	    char tmp[1024];
+	    (void) memset(tmp, 0, 1024);
+	    ninfile = mask.size();
+	    if (nold > ninfile) {
+		LOGGER(ibis::gVerbose > 2)
+		    << evt << " adding " << (nold-ninfile)
+		    << " null string(s) (mask.size()=" << ninfile
+		    << ", nold=" << nold << ")";
+		for (uint32_t i = ninfile; i < nold; i += 1024)
+		    fwrite(tmp, 1, (nold-i>1024)?1024:(nold-i), fdat);
+	    }
+	}
+	else {
+	    ninfile = 0;
+	}
 
         const char* arr = reinterpret_cast<const char*>(va1);
         const uint32_t nbytes =

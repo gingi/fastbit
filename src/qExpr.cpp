@@ -1963,12 +1963,12 @@ uint32_t ibis::math::barrel::recordVariable(const char* name) {
     uint32_t ind = varmap.size();
     termMap::const_iterator it = varmap.find(name);
     if (it == varmap.end()) {
-        varmap[name] = ind;
-        namelist.push_back(name);
-        varvalues.push_back(0.0);
+	varmap[name] = ind;
+	namelist.push_back(name);
+	varvalues.push_back(0.0);
     }
     else {
-        ind = (*it).second;
+	ind = (*it).second;
     }
     return ind;
 } // ibis::math::barrel::recordVariable
@@ -1980,15 +1980,15 @@ void ibis::math::barrel::recordVariable(const ibis::qExpr* const t) {
 
     switch (t->getType()) {
     default:
-        if (t->getLeft() != 0) {
-            recordVariable(t->getLeft());
-        }
-        if (t->getRight() != 0) {
-            recordVariable(t->getRight());
-        }
-        break;
+	if (t->getLeft() != 0) {
+	    recordVariable(t->getLeft());
+	}
+	if (t->getRight() != 0) {
+	    recordVariable(t->getRight());
+	}
+	break;
     case ibis::qExpr::EXISTS:
-        break;
+	break;
     case ibis::qExpr::RANGE:
     case ibis::qExpr::DRANGE:
     case ibis::qExpr::INTHOD:

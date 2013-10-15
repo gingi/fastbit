@@ -39,7 +39,7 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
     double res = dataset->nRows();
     switch (ex->getType()) {
     case ibis::qExpr::EXISTS: {
-        res = (res>1.0 ? 1.0 : 0.0);
+        res = dataset->nColumns()*0.0078125;
         break;}
     case ibis::qExpr::RANGE: {
         const ibis::qContinuousRange* tmp =
@@ -187,7 +187,7 @@ int ibis::query::setPartition(const part* tbl) {
 } // ibis::query::setPartition
 
 /// Specifies the select clause for the query.  The select clause is a
-/// string of attribute names separated by spaces, commas (,) or
+/// string of column names separated by spaces, commas (,) or
 /// semicolons(;).  Repeated calls to this function simply overwrite the
 /// previous definition of the select clause.  If no select clause is
 /// specified, the where clause alone determines whether record is a hit or
@@ -2886,8 +2886,8 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
             mypart->getNullMask(high);
         }
         else { // does not exist
-            high.set(0, mypart->nRows());
-            low.set(0, mypart->nRows());
+	    high.set(0, mypart->nRows());
+	    low.set(0, mypart->nRows());
         }
         break;}
     case ibis::qExpr::RANGE:
@@ -3324,7 +3324,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
             mypart->getNullMask(ht);
         }
         else { // does not exist
-            ht.set(0, mypart->nRows());
+	    ht.set(0, mypart->nRows());
         }
         ierr = ht.sloppyCount();
         break;}
@@ -3515,7 +3515,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
             mypart->getNullMask(ht);
         }
         else { // does not exist
-            ht.set(0, mypart->nRows());
+	    ht.set(0, mypart->nRows());
         }
         ierr = ht.sloppyCount();
         break;}
@@ -3959,7 +3959,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
             mypart->getNullMask(ht);
         }
         else { // does not exist
-            ht.set(0, mypart->nRows());
+	    ht.set(0, mypart->nRows());
         }
         ierr = ht.sloppyCount();
         break;}
@@ -4213,7 +4213,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
             ht &= mask;
         }
         else { // does not exist
-            ht.set(0, mypart->nRows());
+	    ht.set(0, mypart->nRows());
         }
         ierr = ht.sloppyCount();
         break;}
