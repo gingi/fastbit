@@ -2,7 +2,7 @@
 	* src/array_t.cpp: array_t<T>::deepCopy has an incorrect test for
 	the validity of the incoming array (which causes the error
 	reported by Wang JiLong <wang.jilong at huawei.com>, original
-	email message at <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2013-October/001810.html>)
+	email message is at <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2013-October/001810.html>)
 
 2013-10-14 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp, src/whereParser.yy: add support for
@@ -63,7 +63,7 @@
 
 2013-06-20 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:4491 retry fopen with the file assumed to be in the
-	current data directory of the data partition (so avoid assuming
+	current data directory of the data partition (to avoid assuming
 	full path)
 	* src/irelic.cpp: initialize offset64 in the special case
 	constructors
