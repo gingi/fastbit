@@ -1,3 +1,14 @@
+Fri Oct 18 22:54:36 PDT 2013
+Version ibis1.3.8
+-- add macro FASTBIT_ESTIMATION_IGNORE_COST
+-- allow relative path to be used in specifying data directory
+-- rename function distinct to countd (meaning count distinct)
+-- updated configure script for ORNL machines
+-- add function EXISTS to test the presence of the named column
+-- fix a bad test in array_t<T>::deepCopy based on a test case provided
+   by Wang JiLong
+
+
 Sat Jun 15 14:55:28 PDT 2013
 Version ibis1.3.7
 -- add function fastbit_get_result_row_ids to C API and JNI
@@ -11,6 +22,7 @@ Version ibis1.3.7
    Mark Hansen
 -- address problem with memory leaks based on the test case from Amihay
    Genon
+
 
 Wed Mar 27 08:44:25 PDT 2013
 Version ibis1.3.6

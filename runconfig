@@ -20,8 +20,8 @@ if (${HOSTNAME} =~ m/^bit/) {
 } elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/) {
   # on hopper at NERSC, there is a choice to be made about what compiler to use
   # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-pgi PrgEnv-gnu'\n\n";
-  # $cmd="./configure --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
-  $cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
+  $cmd="./configure --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
+  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
 } elsif (${HOSTNAME} =~ m/^sith/) {# sith.ccs.ornl.gov
   # on sith at ORNL, try GNU compilers
   $cmd="./configure --prefix=${HOME}/`uname -s`/fastbit/sith-gnu --without-java --enable-xopt --disable-debug"
