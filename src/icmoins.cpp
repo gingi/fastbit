@@ -5,7 +5,7 @@
 // This file contains the implementation of the class called ibis::moins
 // -- the multicomponent range code on bins
 //
-// moins is French word for "less"
+// moins is a French word for "less"
 //
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -319,8 +319,8 @@ void ibis::moins::print(std::ostream& out) const {
 		<< bits[i]->bytes() << "\n";
 	}
     }
-    if (ibis::gVerbose > 6) { // also print the list of distinct values
-	out << "bin boundary [minval, maxval in bin] number of records\n";
+    if (ibis::gVerbose > 7) { // also print the list of distinct values
+	out << "bin boundary, [minval, maxval] in bin, number of records\n";
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    out.precision(12);
 	    out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]
@@ -375,7 +375,7 @@ long ibis::moins::append(const char* dt, const char* df, uint32_t nnew) {
     return nnew;
 } // ibis::moins::append
 
-// compute the bitvector that is the answer for the query x = b
+/// compute the bitvector that is the answer for the query x = b
 void ibis::moins::evalEQ(ibis::bitvector& res, uint32_t b) const {
     if (b >= nobs) {
 	res.set(0, nrows);
@@ -409,7 +409,7 @@ void ibis::moins::evalEQ(ibis::bitvector& res, uint32_t b) const {
     }
 } // evalEQ
 
-// compute the bitvector that is the answer for the query x <= b
+/// compute the bitvector that is the answer for the query x <= b
 void ibis::moins::evalLE(ibis::bitvector& res, uint32_t b) const {
     if (b+1 >= nobs) {
 	res.set(1, nrows);
@@ -470,7 +470,7 @@ void ibis::moins::evalLE(ibis::bitvector& res, uint32_t b) const {
     }
 } // evalLE
 
-// compute the bitvector that answers the query b0 < x <= b1
+/// compute the bitvector that answers the query b0 < x <= b1
 void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
     if (b0 >= b1) { // no hit
 	res.set(0, nrows);
@@ -479,7 +479,7 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
 	evalLE(res, b0);
 	res.flip();
     }
-    else { // the intended general case
+    else { // the general case
 	// res temporarily stores the result of x <= b1
 	ibis::bitvector low; // x <= b0
 	uint32_t k0, k1;
@@ -499,7 +499,7 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
 		break;
 	    }
 	}
-	// the first non-maximum component
+	// the first (least-significant) non-maximum component
 	if (i < bases.size()) {
 	    k0 = b0 % bases[i];
 	    k1 = b1 % bases[i];
@@ -537,7 +537,7 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
 	++ i;
 	// deal with the remaining components
 	while (i < bases.size()) {
-	    if (b1 > b0) { // low and res has to be separated
+	    if (b1 > b0) { // low and res have to be processed separately
 		k0 = b0 % bases[i];
 		k1 = b1 % bases[i];
 		b0 /= bases[i];
@@ -577,7 +577,19 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
 		offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
 	    }
 	    else { // the more significant components are the same
+                // LOGGER(ibis::gVerbose > 5)
+                //     << "res: " << res << "\nlow: " << low;
+                // ibis::bitvector tmp(res);
 		res -= low;
+                // LOGGER(ibis::gVerbose > 5)
+                //     << "res-low: " << res;
+                // low.flip(); // NOT
+                // tmp &= low;
+                // low = res;
+                // low.flip();
+                // tmp &= low;
+                // LOGGER(ibis::gVerbose > 5)
+                //     << "tmp (expected to all 0s): " << tmp;
 		low.clear(); // no longer need low
 		while (i < bases.size()) {
 		    k1 = b1 % bases[i];

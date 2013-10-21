@@ -696,10 +696,8 @@ void ibis::egale::convert() {
 		delete simple[i]; // no longer need the bitmap
 	    }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-	    if (ibis::gVerbose > 11 && (i & 255) == 255) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "DEBUG -- egale::convert " << i << " ...";
-	    }
+	    LOGGER(ibis::gVerbose > 11 && (i & 255) == 255)
+                << "DEBUG -- egale::convert " << i << " ...";
 #endif
 	}
 
@@ -715,10 +713,8 @@ void ibis::egale::convert() {
 	}
     }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-    if (ibis::gVerbose > 11) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "DEBUG -- egale::convert " << nobs << " DONE";
-    }
+    LOGGER(ibis::gVerbose > 11)
+        << "DEBUG -- egale::convert " << nobs << " DONE";
 #endif
     optionalUnpack(bits, col->indexSpec());
 } // ibis::egale::convert
@@ -1080,8 +1076,8 @@ void ibis::egale::print(std::ostream& out) const {
 		<< bits[i]->bytes() << "\n";
 	}
     }
-    if (ibis::gVerbose > 6) { // also print the list of distinct values
-	out << "bin boundary [minval, maxval in bin] number of records\n";
+    if (ibis::gVerbose > 7) { // also print the list of distinct values
+	out << "bin boundary, [minval, maxval] in bin, number of records\n";
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    out.precision(12);
 	    out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]

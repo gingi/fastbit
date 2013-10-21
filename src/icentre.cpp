@@ -307,8 +307,8 @@ void ibis::entre::print(std::ostream& out) const {
 		<< bits[i]->bytes() << "\n";
 	}
     }
-    if (ibis::gVerbose > 6) { // also print the list of distinct values
-	out << "bin boundary [minval, maxval in bin] number of records\n";
+    if (ibis::gVerbose > 7) { // also print the list of distinct values
+	out << "bin boundary, [minval, maxval] in bin, number of records\n";
 	for (uint32_t i = 0; i < nobs; ++ i) {
 	    out.precision(12);
 	    out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]

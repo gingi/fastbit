@@ -5703,8 +5703,8 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    indexLock lock(this, evt.c_str());
 	    if (idx != 0) {
 		double cost = idx->estimateCost(cmp);
-		// use index only if the cost of using its estimate cost is
-		// less than N/2 bytes
+		// use index only if the estimated cost is less than N/2
+		// bytes
 		if (cost < thePart->nRows() * 0.5 + 999.0) {
 		    idx->estimate(cmp, low, high);
 		}
