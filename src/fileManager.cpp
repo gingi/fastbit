@@ -670,7 +670,7 @@ ibis::fileManager::~fileManager() {
     (void)pthread_mutex_destroy(&mutex);
     (void)pthread_cond_destroy(&cond);
     LOGGER(ibis::gVerbose > 1)
-	<< "fileManager decommissioned";
+	<< "fileManager decommissioned\n";
 } // ibis::fileManager::~fileManager
 
 /// Record a newly allocated storage in the two lists.

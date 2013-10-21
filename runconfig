@@ -12,8 +12,8 @@ if (! ${HOSTNAME}) {
 print "Configuring on ${HOSTNAME}\n";
 
 if (${HOSTNAME} =~ m/^bit/) {
-  # on a Mac used by a developer, enable maintainer mode, use debug options # CC=gcc-mp-4.7 CXX=g++-mp-4.7 # CC=clang CXX=clang++ -gdwarf-2 
-  $cmd="./configure --prefix=${HOME}/tmp --enable-maintainer-mode --with-java CFLAGS='-g -O0 -Wall' CXXFLAGS='-g -O0 -Wall'";
+  # on a Mac used by a developer, enable maintainer mode, use debug options # CC=gcc-mp-4.7 CXX=g++-mp-4.7 # CC=clang CXX=clang++
+  $cmd="./configure --prefix=${HOME}/tmp/fastbit --enable-maintainer-mode --with-java CFLAGS='-g -O0 -Wall -ansi' CXXFLAGS='-g -O0 -Wall -ansi'";
 } elsif (${HOSTNAME} =~ m/^data5[.lbl.gov]?$/) {
   # on data5, know where is java and where to install, use extra optimization
   $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.7.0 --prefix=/data/john/Linux";

@@ -332,18 +332,18 @@ void ibis::moins::print(std::ostream& out) const {
     out << "\nbitvector information (number of set bits, number of "
         "bytes)\n";
     for (uint32_t i = 0; i < nbits; ++ i) {
-        if (bits[i]) {
-            out << i << '\t' << bits[i]->cnt() << '\t'
-                << bits[i]->bytes() << "\n";
-        }
+	if (bits[i]) {
+	    out << i << '\t' << bits[i]->cnt() << '\t'
+		<< bits[i]->bytes() << "\n";
+	}
     }
     if (ibis::gVerbose > 7) { // also print the list of distinct values
-        out << "bin boundary, [minval, maxval] in bin, number of records\n";
-        for (uint32_t i = 0; i < nobs; ++ i) {
-            out.precision(12);
-            out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]
-                << "]\t" << cnts[i] << "\n";
-        }
+	out << "bin boundary, [minval, maxval] in bin, number of records\n";
+	for (uint32_t i = 0; i < nobs; ++ i) {
+	    out.precision(12);
+	    out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]
+		<< "]\t" << cnts[i] << "\n";
+	}
     }
     out << std::endl;
 } // ibis::moins::print
@@ -494,111 +494,111 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
         res.set(0, nrows);
     }
     else if (b1+1 >= nobs) { // x > b0
-        evalLE(res, b0);
-        res.flip();
+	evalLE(res, b0);
+	res.flip();
     }
     else { // the general case
-        // res temporarily stores the result of x <= b1
-        ibis::bitvector low; // x <= b0
-        uint32_t k0, k1;
-        uint32_t i = 0;
-        uint32_t offset = 0;
-        // skip till the first component that isn't the maximum value
-        while (i < bases.size()) {
-            k0 = b0 % bases[i];
-            k1 = b1 % bases[i];
-            if (k0 == bases[i]-1 && k1 == bases[i]-1) {
-                offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
-                b0 /= bases[i];
-                b1 /= bases[i];
-                ++ i;
-            }
-            else {
-                break;
-            }
-        }
-        // the first (least-significant) non-maximum component
-        if (i < bases.size()) {
-            k0 = b0 % bases[i];
-            k1 = b1 % bases[i];
-            if (k0+1 < bases[i]) {
-                const uint32_t j = offset + k0;
-                if (bits[j] == 0)
-                    activate(j);
-                if (bits[j])
-                    low = *(bits[j]);
-                else
-                    low.set(0, nrows);
-            }
-            else {
-                low.set(1, nrows);
-            }
-            if (k1+1 < bases[i]) {
-                const uint32_t j = offset + k1;
-                if (bits[j] == 0)
-                    activate(j);
-                if (bits[j])
-                    res = *(bits[j]);
-                else
-                    res.set(0, nrows);
-            }
-            else {
-                res.set(1, nrows);
-            }
-            offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
-            b0 /= bases[i];
-            b1 /= bases[i];
-        }
-        else {
-            res.set(0, nrows);
-        }
-        ++ i;
-        // deal with the remaining components
-        while (i < bases.size()) {
-            if (b1 > b0) { // low and res have to be processed separately
-                k0 = b0 % bases[i];
-                k1 = b1 % bases[i];
-                b0 /= bases[i];
-                b1 /= bases[i];
-                if (k0+1 < bases[i] || bases[i] == 1) {
-                    const uint32_t j = offset + k0;
-                    if (bits[j] == 0)
-                        activate(j);
-                    if (bits[j])
-                        low &= *(bits[j]);
-                    else
-                        low.set(0, low.size());
-                }
-                if (k1+1 < bases[i] || bases[i] == 1) {
-                    const uint32_t j = offset + k1;
-                    if (bits[j] == 0)
-                        activate(j);
-                    if (bits[j])
-                        res &= *(bits[j]);
-                    else
-                        res.set(0, low.size());
-                }
-                if (k0 > 0) {
-                    const uint32_t j = offset + k0 - 1;
-                    if (bits[j] == 0)
-                        activate(j);
-                    if (bits[j])
-                        low |= *(bits[j]);
-                }
-                if (k1 > 0) {
-                    const uint32_t j = offset + k1 - 1;
-                    if (bits[j] == 0)
-                        activate(j);
-                    if (bits[j])
-                        res |= *(bits[j]);
-                }
-                offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
-            }
-            else { // the more significant components are the same
+	// res temporarily stores the result of x <= b1
+	ibis::bitvector low; // x <= b0
+	uint32_t k0, k1;
+	uint32_t i = 0;
+	uint32_t offset = 0;
+	// skip till the first component that isn't the maximum value
+	while (i < bases.size()) {
+	    k0 = b0 % bases[i];
+	    k1 = b1 % bases[i];
+	    if (k0 == bases[i]-1 && k1 == bases[i]-1) {
+		offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
+		b0 /= bases[i];
+		b1 /= bases[i];
+		++ i;
+	    }
+	    else {
+		break;
+	    }
+	}
+	// the first (least-significant) non-maximum component
+	if (i < bases.size()) {
+	    k0 = b0 % bases[i];
+	    k1 = b1 % bases[i];
+	    if (k0+1 < bases[i]) {
+		const uint32_t j = offset + k0;
+		if (bits[j] == 0)
+		    activate(j);
+		if (bits[j])
+		    low = *(bits[j]);
+		else
+		    low.set(0, nrows);
+	    }
+	    else {
+		low.set(1, nrows);
+	    }
+	    if (k1+1 < bases[i]) {
+		const uint32_t j = offset + k1;
+		if (bits[j] == 0)
+		    activate(j);
+		if (bits[j])
+		    res = *(bits[j]);
+		else
+		    res.set(0, nrows);
+	    }
+	    else {
+		res.set(1, nrows);
+	    }
+	    offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
+	    b0 /= bases[i];
+	    b1 /= bases[i];
+	}
+	else {
+	    res.set(0, nrows);
+	}
+	++ i;
+	// deal with the remaining components
+	while (i < bases.size()) {
+	    if (b1 > b0) { // low and res have to be processed separately
+		k0 = b0 % bases[i];
+		k1 = b1 % bases[i];
+		b0 /= bases[i];
+		b1 /= bases[i];
+		if (k0+1 < bases[i] || bases[i] == 1) {
+		    const uint32_t j = offset + k0;
+		    if (bits[j] == 0)
+			activate(j);
+		    if (bits[j])
+			low &= *(bits[j]);
+		    else
+			low.set(0, low.size());
+		}
+		if (k1+1 < bases[i] || bases[i] == 1) {
+		    const uint32_t j = offset + k1;
+		    if (bits[j] == 0)
+			activate(j);
+		    if (bits[j])
+			res &= *(bits[j]);
+		    else
+			res.set(0, low.size());
+		}
+		if (k0 > 0) {
+		    const uint32_t j = offset + k0 - 1;
+		    if (bits[j] == 0)
+			activate(j);
+		    if (bits[j])
+			low |= *(bits[j]);
+		}
+		if (k1 > 0) {
+		    const uint32_t j = offset + k1 - 1;
+		    if (bits[j] == 0)
+			activate(j);
+		    if (bits[j])
+			res |= *(bits[j]);
+		}
+		offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
+	    }
+	    else { // the more significant components are the same
                 // LOGGER(ibis::gVerbose > 5)
                 //     << "res: " << res << "\nlow: " << low;
                 // ibis::bitvector tmp(res);
-                res -= low;
+		res -= low;
                 // LOGGER(ibis::gVerbose > 5)
                 //     << "res-low: " << res;
                 // low.flip(); // NOT
@@ -608,36 +608,36 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
                 // tmp &= low;
                 // LOGGER(ibis::gVerbose > 5)
                 //     << "tmp (expected to all 0s): " << tmp;
-                low.clear(); // no longer need low
-                while (i < bases.size()) {
-                    k1 = b1 % bases[i];
-                    if (k1+1 < bases[i] || bases[i] == 1) {
-                        const uint32_t j = offset + k1;
-                        if (bits[j] == 0)
-                            activate(j);
-                        if (bits[j])
-                            res &= *(bits[j]);
-                        else
-                            res.set(0, res.size());
-                    }
-                    if (k1 > 0) {
-                        const uint32_t j = offset + k1 - 1;
-                        if (bits[j] == 0)
-                            activate(j);
-                        if (bits[j])
-                            res -= *(bits[j]);
-                    }
-                    offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
-                    b1 /= bases[i];
-                    ++ i;
-                }
-            }
-            ++ i;
-        }
-        if (low.size() == res.size()) { // subtract low from res
-            res -= low;
-            low.clear();
-        }
+		low.clear(); // no longer need low
+		while (i < bases.size()) {
+		    k1 = b1 % bases[i];
+		    if (k1+1 < bases[i] || bases[i] == 1) {
+			const uint32_t j = offset + k1;
+			if (bits[j] == 0)
+			    activate(j);
+			if (bits[j])
+			    res &= *(bits[j]);
+			else
+			    res.set(0, res.size());
+		    }
+		    if (k1 > 0) {
+			const uint32_t j = offset + k1 - 1;
+			if (bits[j] == 0)
+			    activate(j);
+			if (bits[j])
+			    res -= *(bits[j]);
+		    }
+		    offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
+		    b1 /= bases[i];
+		    ++ i;
+		}
+	    }
+	    ++ i;
+	}
+	if (low.size() == res.size()) { // subtract low from res
+	    res -= low;
+	    low.clear();
+	}
     }
 } // evalLL
 

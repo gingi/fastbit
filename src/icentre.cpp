@@ -326,12 +326,12 @@ void ibis::entre::print(std::ostream& out) const {
         }
     }
     if (ibis::gVerbose > 7) { // also print the list of distinct values
-        out << "bin boundary, [minval, maxval] in bin, number of records\n";
-        for (uint32_t i = 0; i < nobs; ++ i) {
-            out.precision(12);
-            out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]
-                << "]\t" << cnts[i] << "\n";
-        }
+	out << "bin boundary, [minval, maxval] in bin, number of records\n";
+	for (uint32_t i = 0; i < nobs; ++ i) {
+	    out.precision(12);
+	    out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]
+		<< "]\t" << cnts[i] << "\n";
+	}
     }
     out << std::endl;
 } // ibis::entre::print
