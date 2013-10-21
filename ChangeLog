@@ -1,5 +1,7 @@
 2013-10-21 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h:833 neglected to flip the bits
+	* src/column.cpp: print warning about trywrlock failure only when
+	gVerbose > 2
 
 2013-10-15 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.cpp: array_t<T>::deepCopy has an incorrect test for

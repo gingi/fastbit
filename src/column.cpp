@@ -12125,11 +12125,11 @@ ibis::column::readLock::readLock(const ibis::column* col, const char* m)
             << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
     else {
-        LOGGER(ibis::gVerbose > 9)
-            << "column[" << theColumn->fullname()
-            << "]::readLock -- pthread_rwlock_rdlock("
-            << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-            << mesg;
+	LOGGER(ibis::gVerbose > 9)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::readLock -- pthread_rwlock_rdlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
     }
 }
 
@@ -12144,11 +12144,11 @@ ibis::column::readLock::~readLock() {
             << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
     else {
-        LOGGER(ibis::gVerbose > 9)
-            << "column[" << theColumn->fullname()
-            << "]::readLock -- pthread_rwlock_unlock("
-            << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-            << mesg;
+	LOGGER(ibis::gVerbose > 9)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::readLock -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
     }
 }
 
@@ -12164,11 +12164,11 @@ ibis::column::writeLock::writeLock(const ibis::column* col, const char* m)
             << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
     else {
-        LOGGER(ibis::gVerbose > 9)
-            << "column[" << theColumn->fullname()
-            << "]::writeLock -- pthread_rwlock_wrlock("
-            << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-            << mesg;
+	LOGGER(ibis::gVerbose > 9)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::writeLock -- pthread_rwlock_wrlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
     }
 }
 
@@ -12183,11 +12183,11 @@ ibis::column::writeLock::~writeLock() {
             << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
     else {
-        LOGGER(ibis::gVerbose > 9)
-            << "column[" << theColumn->fullname()
-            << "]::writeLock -- pthread_rwlock_unlock("
-            << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-            << mesg;
+	LOGGER(ibis::gVerbose > 9)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name() << "]::writeLock -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
     }
 }
 
@@ -12197,41 +12197,45 @@ ibis::column::softWriteLock::softWriteLock(const ibis::column* col,
     : theColumn(col), mesg(m),
       locked(pthread_rwlock_trywrlock(&(col->rwlock))) {
     if (0 != locked) {
-        LOGGER(ibis::gVerbose > 2)
-            << "Warning -- column[" << theColumn->fullname()
-            << "]::softWriteLock -- pthread_rwlock_trywrlock("
-            << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-            << mesg << " returned " << locked << " (" << strerror(locked)
-            << ')';
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg << " returned " << locked << " (" << strerror(locked)
+	    << ')';
     }
     else {
-        LOGGER(ibis::gVerbose > 9)
-            << "column[" << theColumn->fullname()
-            << "]::softWriteLock -- pthread_rwlock_trywrlock("
-            << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-            << mesg;
+	LOGGER(ibis::gVerbose > 9)
+	    << "column[" << theColumn->partition()->name() << '.'
+	    << theColumn->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+	    << mesg;
     }
 }
 
 /// Destructor.
 ibis::column::softWriteLock::~softWriteLock() {
     if (locked == 0) {
-        int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
-        if (0 != ierr) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- column[" << theColumn->fullname()
-                << "]::softWriteLock -- pthread_rwlock_unlock("
-                << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-                << mesg << " returned " << ierr << " (" << strerror(ierr)
-                << ')';
-        }
-        else {
-            LOGGER(ibis::gVerbose > 9)
-                << "column[" << theColumn->fullname()
-                << "]::softWriteLock -- pthread_rwlock_unlock("
-                << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
-                << mesg;
-        }
+	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
+	if (0 != ierr) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- column[" << theColumn->partition()->name() << '.'
+		<< theColumn->name()
+		<< "]::softWriteLock -- pthread_rwlock_unlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg << " returned " << ierr << " (" << strerror(ierr)
+		<< ')';
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 9)
+		<< "column[" << theColumn->partition()->name() << '.'
+		<< theColumn->name()
+		<< "]::softWriteLock -- pthread_rwlock_unlock("
+		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
+		<< mesg;
+	}
     }
 }
 
