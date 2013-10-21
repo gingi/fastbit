@@ -11464,8 +11464,8 @@ ibis::column::readLock::readLock(const ibis::column* col, const char* m)
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
-    else if (ibis::gVerbose > 9) {
-	LOGGER(ibis::gVerbose >= 0)
+    else {
+	LOGGER(ibis::gVerbose > 9)
 	    << "column[" << theColumn->partition()->name() << '.'
 	    << theColumn->name() << "]::readLock -- pthread_rwlock_rdlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
@@ -11483,8 +11483,8 @@ ibis::column::readLock::~readLock() {
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
-    else if (ibis::gVerbose > 9) {
-	LOGGER(ibis::gVerbose >= 0)
+    else {
+	LOGGER(ibis::gVerbose > 9)
 	    << "column[" << theColumn->partition()->name() << '.'
 	    << theColumn->name() << "]::readLock -- pthread_rwlock_unlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
@@ -11503,8 +11503,8 @@ ibis::column::writeLock::writeLock(const ibis::column* col, const char* m)
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
-    else if (ibis::gVerbose > 9) {
-	LOGGER(ibis::gVerbose >= 0)
+    else {
+	LOGGER(ibis::gVerbose > 9)
 	    << "column[" << theColumn->partition()->name() << '.'
 	    << theColumn->name() << "]::writeLock -- pthread_rwlock_wrlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
@@ -11522,8 +11522,8 @@ ibis::column::writeLock::~writeLock() {
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
-    else if (ibis::gVerbose > 9) {
-	LOGGER(ibis::gVerbose >= 0)
+    else {
+	LOGGER(ibis::gVerbose > 9)
 	    << "column[" << theColumn->partition()->name() << '.'
 	    << theColumn->name() << "]::writeLock -- pthread_rwlock_unlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
@@ -11531,13 +11531,13 @@ ibis::column::writeLock::~writeLock() {
     }
 }
 
-/// Constructor.  No error checking, both incoming arguments must be valid.
+/// Constructor.  No argument checking, both incoming arguments must be valid.
 ibis::column::softWriteLock::softWriteLock(const ibis::column* col,
 					   const char* m)
     : theColumn(col), mesg(m),
       locked(pthread_rwlock_trywrlock(&(col->rwlock))) {
     if (0 != locked) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 2)
 	    << "Warning -- column[" << theColumn->partition()->name() << '.'
 	    << theColumn->name()
 	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
@@ -11545,8 +11545,8 @@ ibis::column::softWriteLock::softWriteLock(const ibis::column* col,
 	    << mesg << " returned " << locked << " (" << strerror(locked)
 	    << ')';
     }
-    else if (ibis::gVerbose > 9) {
-	LOGGER(ibis::gVerbose >= 0)
+    else {
+	LOGGER(ibis::gVerbose > 9)
 	    << "column[" << theColumn->partition()->name() << '.'
 	    << theColumn->name()
 	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
@@ -11568,8 +11568,8 @@ ibis::column::softWriteLock::~softWriteLock() {
 		<< mesg << " returned " << ierr << " (" << strerror(ierr)
 		<< ')';
 	}
-	else if (ibis::gVerbose > 9) {
-	    LOGGER(ibis::gVerbose >= 0)
+	else {
+	    LOGGER(ibis::gVerbose > 9)
 		<< "column[" << theColumn->partition()->name() << '.'
 		<< theColumn->name()
 		<< "]::softWriteLock -- pthread_rwlock_unlock("
