@@ -1765,14 +1765,4 @@ inline int64_t ibis::part::evaluateJoin
  const ibis::bitvector &mask, ibis::bitvector64 &pairs) const {
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
-
-/// Unload the indexes to free up some resources.
-inline void ibis::part::cleaner::operator()() const {
-    const uint32_t sz = ibis::fileManager::bytesInUse();
-    thePart->unloadIndexes();
-    if (sz == ibis::fileManager::bytesInUse() &&
-	thePart->getStateNoLocking() == ibis::part::STABLE_STATE) {
-	thePart->freeRIDs();
-    }
-} // ibis::part::cleaner::operator
 #endif // IBIS_PART_H

@@ -1782,7 +1782,7 @@ void ibis::part::updateMetaData() const {
 	if (lock.isLocked()) {
 	    writeMetaData(nEvents, columns, activeDir);
 	}
-	else if (ibis::gVerbose > 1) {
+	else {
 	    LOGGER(ibis::gVerbose > 1)
 		<< "Warning -- part[" << name() << "]::updateMetaData failed "
 		"to acquire a write lock, metadata file is not changed";
@@ -1801,8 +1801,14 @@ void ibis::part::setMeshShape(const char *shape) {
 
     if (activeDir != 0 && *activeDir != 0) {
 	softWriteLock lock(this, "setMeshShape");
-	if (lock.isLocked())
+	if (lock.isLocked()) {
 	    writeMetaData(nEvents, columns, activeDir);
+        }
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- part[" << name() << "]::setMeshShape failed "
+		"to acquire a write lock, metadata file is not changed";
+	}
     }
 }
 
@@ -2123,7 +2129,8 @@ void ibis::part::readRIDs() const {
 	<< rids->size() << ")";
 } // ibis::part::readRIDs
 
-/// If only complete the task if it can acquire a write lock on the
+/// Attempt to free the RID column.
+/// Complete the task if it can acquire a write lock on the
 /// ibis::part object.  Otherwise, the rids will be left unchanged.
 void ibis::part::freeRIDs() const {
     if (rids != 0) {
@@ -2132,6 +2139,11 @@ void ibis::part::freeRIDs() const {
 	    // only perform deletion if it actually acquired a write lock
 	    delete rids;
 	    rids = 0;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- part[" << name() << "]::freeRIDs failed "
+		"to acquire a write lock, metadata file is not changed";
 	}
     }
 } // ibis::part::freeRIDs
@@ -8129,16 +8141,16 @@ ibis::part::softWriteLock::softWriteLock(const part* tbl, const char* m)
     : thePart(tbl), mesg(m),
       lckd(pthread_rwlock_trywrlock(&(tbl->rwlock))) {
     if (lckd != 0) {
-	LOGGER(ibis::gVerbose >= 0)
+	LOGGER(ibis::gVerbose > 2)
 	    << "Warning -- part[" << thePart->name()
-	    << "]::gainWriteAccess -- pthread_rwlock_trywrlock("
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
 	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg
 	    << " returned " << lckd << " (" << strerror(lckd) << ')';
     }
     else if (ibis::gVerbose > 9) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "part[" << thePart->name()
-	    << "]::gainWriteAccess -- pthread_rwlock_trywrlock("
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
 	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg;
     }
 }
@@ -19407,6 +19419,20 @@ int ibis::part::writeOpaques(int bdes, int sdes,
     }
     return nnew1;
 } // ibis::part::writeOpaques
+
+/// Unload the indexes to free up some resources.
+void ibis::part::cleaner::operator()() const {
+    const uint32_t sz = ibis::fileManager::bytesInUse();
+    thePart->unloadIndexes();
+    if (sz == ibis::fileManager::bytesInUse() &&
+	thePart->getStateNoLocking() == ibis::part::STABLE_STATE) {
+	thePart->freeRIDs();
+        LOGGER(sz == ibis::fileManager::bytesInUse() &&
+               ibis::gVerbose > 0)
+            << "Warning -- part[" << thePart->name() << "]::cleaner failed "
+            "to reduce memory usage, expect slow operations";
+    }
+} // ibis::part::cleaner::operator
 
 // Construct an info object from a list of columns
 ibis::part::info::info(const char* na, const char* de, const uint64_t &nr,

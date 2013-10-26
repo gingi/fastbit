@@ -1,3 +1,7 @@
+2013-10-25 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/part.cpp: move ibis::part::cleaner::operator()
+	to part.cpp, add a warning message
+
 2013-10-21 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h:833 neglected to flip the bits
 	* src/column.cpp: print warning about trywrlock failure only when
