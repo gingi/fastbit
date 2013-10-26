@@ -7088,11 +7088,11 @@ long ibis::column::append(const char* dt, const char* df,
     // open destination file, position the file pointer
     int dest = UnixOpen(to.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
     if (dest < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt <<  " failed to open file \"" << to
-            << "\" for append ... "
-            << (errno ? strerror(errno) : "no free stdio stream");
-        return -3;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt <<  " unable to open file \"" << to
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -3;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(dest, _O_BINARY);
@@ -7113,11 +7113,11 @@ long ibis::column::append(const char* dt, const char* df,
     }
     long ret = UnixSeek(dest, sz, SEEK_SET);
     if (ret < static_cast<long>(sz)) {
-        // can not move file pointer to the expected location
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning" << evt << " failed to seek to " << sz << " in " << to
-            << ", seek returned " << ret;
-        return -4;
+	// can not move file pointer to the expected location
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning" << evt << " failed to seek to " << sz << " in " << to
+	    << ", seek returned " << ret;
+	return -4;
     }
 
     ret = 0;    // to count the number of bytes written
@@ -7239,7 +7239,7 @@ long ibis::column::append(const char* dt, const char* df,
                        static_cast<long unsigned>(mtot.cnt()),
                        static_cast<long unsigned>(mtot.size()));
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
-            LOGGER(ibis::gVerbose > 0) << mtot;
+	    LOGGER(ibis::gVerbose > 0) << mtot;
 #endif
         }
     }
@@ -7535,10 +7535,10 @@ long ibis::column::appendValues(const array_t<T>& vals,
     fn += m_name;
     int curr = UnixOpen(fn.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
     if (curr < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " failed to open file " << fn
-            << " for writing -- " << (errno != 0 ? strerror(errno) : "??");
-        return -5L;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open file " << fn
+	    << " for writing -- " << (errno != 0 ? strerror(errno) : "??");
+	return -5L;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(curr, _O_BINARY);
@@ -7612,10 +7612,10 @@ long ibis::column::appendStrings(const std::vector<std::string>& vals,
     fn += m_name;
     int curr = UnixOpen(fn.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (curr < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " failed to open file " << fn
-            << " for writing -- " << (errno != 0 ? strerror(errno) : "??");
-        return -5L;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open file " << fn
+	    << " for writing -- " << (errno != 0 ? strerror(errno) : "??");
+	return -5L;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(curr, _O_BINARY);
@@ -8250,11 +8250,11 @@ long ibis::column::writeData(const char *dir, uint32_t nold, uint32_t nnew,
         }
     }
     else {
-        fclose(fdat);
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << "does not yet supported type "
-            << ibis::TYPESTRING[(int)(m_type)];
-        return 0;
+	fclose(fdat);
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << "does not yet supported type "
+	    << ibis::TYPESTRING[(int)(m_type)];
+	return 0;
     }
 
     if (ibis::gVerbose > 5) {
@@ -10838,11 +10838,11 @@ int ibis::column::searchSortedOOCC(const char* fname,
 
     int ierr = UnixSeek(fdes, 0, SEEK_END);
     if (ierr < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- column[" << fullname() << "]::searchSortedOOCC<"
-            << typeid(T).name() << ">(" << fname << ", " << rng
-            << ") failed to seek to the end of file";
-        return -2;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOCC<" << typeid(T).name() << ">("
+	    << fname << ", " << rng << ") failed to seek to the end of file";
+	return -2;
     }
     const uint32_t nrows = ierr / sizeof(T);
     const uint32_t sz = sizeof(T);

@@ -1829,15 +1829,15 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 /// be acquired, it will not write the metadata to file -part.txt.
 void ibis::part::updateMetaData() const {
     if (activeDir != 0 && *activeDir != 0) {
-        softWriteLock lock(this, "updateMetaData");
-        if (lock.isLocked()) {
-            writeMetaData(nEvents, columns, activeDir);
-        }
-        else {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- part[" << name() << "]::updateMetaData failed "
-                "to acquire a write lock, metadata file is not changed";
-        }
+	softWriteLock lock(this, "updateMetaData");
+	if (lock.isLocked()) {
+	    writeMetaData(nEvents, columns, activeDir);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- part[" << name() << "]::updateMetaData failed "
+		"to acquire a write lock, metadata file is not changed";
+	}
     }
 }
 
@@ -1851,15 +1851,15 @@ void ibis::part::setMeshShape(const char *shape) {
     digestMeshShape(shape);
 
     if (activeDir != 0 && *activeDir != 0) {
-        softWriteLock lock(this, "setMeshShape");
-        if (lock.isLocked()) {
-            writeMetaData(nEvents, columns, activeDir);
+	softWriteLock lock(this, "setMeshShape");
+	if (lock.isLocked()) {
+	    writeMetaData(nEvents, columns, activeDir);
         }
-        else {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- part[" << name() << "]::setMeshShape failed "
-                "to acquire a write lock, metadata file is not changed";
-        }
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- part[" << name() << "]::setMeshShape failed "
+		"to acquire a write lock, metadata file is not changed";
+	}
     }
 }
 
@@ -2192,17 +2192,17 @@ void ibis::part::readRIDs() const {
 /// ibis::part object.  Otherwise, the rids will be left unchanged.
 void ibis::part::freeRIDs() const {
     if (rids != 0) {
-        softWriteLock lock(this, "freeRIDs");
-        if (lock.isLocked()) {
-            // only perform deletion if it actually acquired a write lock
-            delete rids;
-            rids = 0;
-        }
-        else {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- part[" << name() << "]::freeRIDs failed "
-                "to acquire a write lock, metadata file is not changed";
-        }
+	softWriteLock lock(this, "freeRIDs");
+	if (lock.isLocked()) {
+	    // only perform deletion if it actually acquired a write lock
+	    delete rids;
+	    rids = 0;
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- part[" << name() << "]::freeRIDs failed "
+		"to acquire a write lock, metadata file is not changed";
+	}
     }
 } // ibis::part::freeRIDs
 
@@ -8248,6 +8248,75 @@ void ibis::part::logMessage(const char* event,
     fprintf(fptr, "\n");
     fflush(fptr);
 } // ibis::part::logMessage
+
+void ibis::part::releaseAccess(const char* mesg) const {
+    int ierr = pthread_rwlock_unlock(&rwlock);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::releaseAccess -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg
+	    << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << (m_name?m_name:"?")
+	    << "]::releaseAccess -- pthread_rwlock_unlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg;
+    }
+} // ibis::part::releaseAccess
+
+void ibis::part::gainReadAccess(const char* mesg) const {
+    int ierr = pthread_rwlock_rdlock(&rwlock);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::gainReadAccess -- pthread_rwlock_rdlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg
+	    << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << (m_name?m_name:"?")
+	    << "]::gainReadAccess -- pthread_rwlock_rdlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg;
+    }
+} // ibis::part::gainReadAccess
+
+void ibis::part::gainWriteAccess(const char* mesg) const {
+    int ierr = pthread_rwlock_wrlock(&rwlock);
+    if (0 != ierr) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name?m_name:"?")
+	    << "]::gainWriteAccess -- pthread_rwlock_wrlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg
+	    << " returned " << ierr << " (" << strerror(ierr) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << (m_name?m_name:"?")
+	    << "]::gainWriteAccess -- pthread_rwlock_wrlock("
+	    << static_cast<const void*>(&rwlock) << ") for " << mesg;
+    }
+} // ibis::part::gainWriteAccess
+
+ibis::part::softWriteLock::softWriteLock(const part* tbl, const char* m)
+    : thePart(tbl), mesg(m),
+      lckd(pthread_rwlock_trywrlock(&(tbl->rwlock))) {
+    if (lckd != 0) {
+	LOGGER(ibis::gVerbose > 2)
+	    << "Warning -- part[" << thePart->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg
+	    << " returned " << lckd << " (" << strerror(lckd) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << thePart->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg;
+    }
+}
 
 /// Perform comparisons with data in the named file.  It attempts to
 /// allocate a buffer so the reading can be done in relatively large-size
@@ -19542,12 +19611,12 @@ void ibis::part::cleaner::operator()() const {
     const uint32_t sz = ibis::fileManager::bytesInUse();
     thePart->unloadIndexes();
     if (sz == ibis::fileManager::bytesInUse() &&
-        thePart->getStateNoLocking() == ibis::part::STABLE_STATE) {
-        thePart->freeRIDs();
+	thePart->getStateNoLocking() == ibis::part::STABLE_STATE) {
+	thePart->freeRIDs();
         LOGGER(sz == ibis::fileManager::bytesInUse() &&
-               ibis::gVerbose > 3)
-            << "part[" << thePart->name() << "]::cleaner did not "
-            "remove anything from memory";
+               ibis::gVerbose > 0)
+            << "Warning -- part[" << thePart->name() << "]::cleaner failed "
+            "to reduce memory usage, expect slow operations";
     }
 } // ibis::part::cleaner::operator
 
