@@ -49,7 +49,7 @@ public:
 			      const char* nvpairs=0) const;
 
     virtual void clearData();
-    virtual int32_t reserveBuffer(uint32_t);
+    virtual int32_t reserveSpace(uint32_t);
     virtual uint32_t bufferCapacity() const;
 
     virtual uint32_t mRows() const {return mrows;}

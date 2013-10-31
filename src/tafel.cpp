@@ -10,11 +10,11 @@
 #include "bord.h"       // ibis::part, ibis::bord
 #include "blob.h"       // ibis::opaque
 
-#include <fstream>      // std::ofstream
-#include <limits>       // std::numeric_limits
-#include <typeinfo>     // typeid
-#include <memory>       // std::unique_ptr
-#include <iomanip>      // std::setfill
+#include <fstream>	// std::ofstream
+#include <limits>	// std::numeric_limits
+#include <typeinfo>	// typeid
+#include <memory>	// std::auto_ptr
+#include <iomanip>	// std::setfill
 
 #include <stdlib.h>     // strtol strtoul [strtoll strtoull]
 // This file definte does not use the min and max macro.  Their presence
@@ -1856,7 +1856,7 @@ int ibis::tafel::write(const char* dir, const char* tname,
     int ierr = 0;
     ibis::horometer timer;
     if (ibis::gVerbose > 0)
-        timer.start();
+	timer.start();
     do {
         int jerr = writeData(dir, tname, tdesc, idx, nvpairs, ierr);
         if (jerr < 0) {
@@ -1877,15 +1877,15 @@ int ibis::tafel::write(const char* dir, const char* tname,
         }
     } while ((unsigned)ierr < mrows);
     if (ierr >= (long)mrows && ibis::gVerbose > 0) {
-        timer.stop();
-        ibis::util::logger()()
-            << "tafel::write completed writing partition '" 
-            << (tname?tname:"") << "' (" << (tdesc?tdesc:"") << ") with "
-            << cols.size() << " column" << (cols.size()>1 ? "s" : "")
-            << " and " << mrows << " row" << (mrows>1 ? "s" : "")
+	timer.stop();
+	ibis::util::logger()()
+	    << "tafel::write completed writing partition '" 
+	    << (tname?tname:"") << "' (" << (tdesc?tdesc:"") << ") with "
+	    << cols.size() << " column" << (cols.size()>1 ? "s" : "")
+	    << " and " << mrows << " row" << (mrows>1 ? "s" : "")
             << " to " << (dir?dir:"tmp")
-            << " using " << timer.CPUTime() << " sec(CPU), "
-            << timer.realTime() << " sec(elapsed)";
+	    << " using " << timer.CPUTime() << " sec(CPU), "
+	    << timer.realTime() << " sec(elapsed)";
     }
     else if (ierr < (long)mrows) {
         LOGGER(ibis::gVerbose > 0)
@@ -1898,18 +1898,15 @@ int ibis::tafel::write(const char* dir, const char* tname,
 int ibis::tafel::writeData(const char* dir, const char* tname,
                            const char* tdesc, const char* idx,
                            const char* nvpairs, uint32_t voffset) const {
-    const uint32_t prows =
-        (maxpart>0 ? (mrows-voffset>=maxpart ? maxpart : mrows-voffset) :
-         mrows);
-    if (cols.empty() || prows == 0) return 0; // nothing new to write
+    if (cols.empty() || mrows == 0) return 0; // nothing new to write
     if (dir == 0 || *dir == 0) {
         dir = "tmp";
-        LOGGER(ibis::gVerbose >= 0)
-            << "tafel::writeData sets the output directory name to be tmp";
+	LOGGER(ibis::gVerbose >= 0)
+	    << "tafel::writeData sets the output directory name to be tmp";
     }
     ibis::horometer timer;
     if (ibis::gVerbose > 2)
-        timer.start();
+	timer.start();
 
     std::string oldnm, olddesc, oldidx, oldtags, dirstr;
     ibis::bitvector::word_t nold = 0;
@@ -1917,7 +1914,7 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
     bool again = false;
     do { // read the existing meta data
         if (ipart > 0) {
-            const bool needdirsep = (FASTBIT_DIRSEP != dir[std::strlen(dir)-1]);
+            const bool needdirsep = (FASTBIT_DIRSEP != dir[strlen(dir)-1]);
             do {
                 std::ostringstream oss;
                 oss << dir;
@@ -1954,75 +1951,75 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
             mydir = dirstr.c_str();
         }
 
-        ibis::part tmp(mydir, static_cast<const char*>(0));
-        nold = static_cast<ibis::bitvector::word_t>(tmp.nRows());
-        if (nold > 0 && tmp.nColumns() > 0) {
-            if (tname == 0 || *tname == 0) {
-                oldnm = tmp.name();
-                tname = oldnm.c_str();
-            }
-            if (tdesc == 0 || *tdesc == 0) {
-                olddesc = tmp.description();
-                tdesc = olddesc.c_str();
-            }
+	ibis::part tmp(mydir, static_cast<const char*>(0));
+	nold = static_cast<ibis::bitvector::word_t>(tmp.nRows());
+	if (nold > 0 && tmp.nColumns() > 0) {
+	    if (tname == 0 || *tname == 0) {
+		oldnm = tmp.name();
+		tname = oldnm.c_str();
+	    }
+	    if (tdesc == 0 || *tdesc == 0) {
+		olddesc = tmp.description();
+		tdesc = olddesc.c_str();
+	    }
 
-            if (nvpairs == 0 || *nvpairs == 0)
-                oldtags = tmp.metaTags();
-            if (tmp.indexSpec() != 0 && *(tmp.indexSpec()) != 0)
-                oldidx = tmp.indexSpec();
-            unsigned nconflicts = 0;
-            for (columnList::const_iterator it = cols.begin();
-                 it != cols.end(); ++ it) {
-                const column& col = *((*it).second);
-                const ibis::column* old = tmp.getColumn((*it).first);
-                if (old != 0) { // check for conflicting types
-                    bool conflict = false;
-                    switch (col.type) {
-                    default:
-                        conflict = (old->type() != col.type); break;
-                    case ibis::BYTE:
-                    case ibis::UBYTE:
-                        conflict = (old->type() != ibis::BYTE &&
-                                    old->type() != ibis::UBYTE);
-                        break;
-                    case ibis::SHORT:
-                    case ibis::USHORT:
-                        conflict = (old->type() != ibis::SHORT &&
-                                    old->type() != ibis::USHORT);
-                        break;
-                    case ibis::INT:
-                    case ibis::UINT:
-                        conflict = (old->type() != ibis::INT &&
-                                    old->type() != ibis::UINT);
-                        break;
-                    case ibis::LONG:
-                    case ibis::ULONG:
-                        conflict = (old->type() != ibis::LONG &&
-                                    old->type() != ibis::ULONG);
-                        break;
-                    }
-                    if (conflict) {
-                        ++ nconflicts;
-                        LOGGER(ibis::gVerbose >= 0)
-                            << "Warning -- tafel::writeData(" << mydir
-                            << ") column " << (*it).first
-                            << " has conflicting types specified, previously "
-                            << ibis::TYPESTRING[(int)old->type()]
-                            << ", currently "
-                            << ibis::TYPESTRING[(int)col.type];
-                    }
-                }
-            }
-            if (nconflicts > 0) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << "tafel::writeData(" << mydir
-                    << ") can not proceed because " << nconflicts
-                    << " column" << (nconflicts>1 ? "s" : "")
-                    << " contains conflicting type specifications, "
+	    if (nvpairs == 0 || *nvpairs == 0)
+		oldtags = tmp.metaTags();
+	    if (tmp.indexSpec() != 0 && *(tmp.indexSpec()) != 0)
+		oldidx = tmp.indexSpec();
+	    unsigned nconflicts = 0;
+	    for (columnList::const_iterator it = cols.begin();
+		 it != cols.end(); ++ it) {
+		const column& col = *((*it).second);
+		const ibis::column* old = tmp.getColumn((*it).first);
+		if (old != 0) { // check for conflicting types
+		    bool conflict = false;
+		    switch (col.type) {
+		    default:
+			conflict = (old->type() != col.type); break;
+		    case ibis::BYTE:
+		    case ibis::UBYTE:
+			conflict = (old->type() != ibis::BYTE &&
+				    old->type() != ibis::UBYTE);
+			break;
+		    case ibis::SHORT:
+		    case ibis::USHORT:
+			conflict = (old->type() != ibis::SHORT &&
+				    old->type() != ibis::USHORT);
+			break;
+		    case ibis::INT:
+		    case ibis::UINT:
+			conflict = (old->type() != ibis::INT &&
+				    old->type() != ibis::UINT);
+			break;
+		    case ibis::LONG:
+		    case ibis::ULONG:
+			conflict = (old->type() != ibis::LONG &&
+				    old->type() != ibis::ULONG);
+			break;
+		    }
+		    if (conflict) {
+			++ nconflicts;
+			LOGGER(ibis::gVerbose >= 0)
+			    << "Warning -- tafel::writeData(" << mydir
+			    << ") column " << (*it).first
+			    << " has conflicting types specified, previously "
+			    << ibis::TYPESTRING[(int)old->type()]
+			    << ", currently "
+			    << ibis::TYPESTRING[(int)col.type];
+		    }
+		}
+	    }
+	    if (nconflicts > 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "tafel::writeData(" << mydir
+		    << ") can not proceed because " << nconflicts
+		    << " column" << (nconflicts>1 ? "s" : "")
+		    << " contains conflicting type specifications, "
                     "will try another name";
-                again = true;
+		again = true;
                 ++ ipart;
-            }
+	    }
             else if (maxpart > 0 && nold >= maxpart) {
                 LOGGER(ibis::gVerbose > 1)
                     << "tafel::writeData(" << mydir << ") found " << mydir
@@ -2031,20 +2028,20 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
                 again = true;
                 ++ ipart;
             }
-            else {
+	    else {
                 again = false;
-                LOGGER(ibis::gVerbose > 2) 
-                    << "tafel::writeData(" << mydir
-                    << ") found existing data partition named "
-                    << tmp.name() << " with " << tmp.nRows()
-                    << " row" << (tmp.nRows()>1 ? "s" : "")
-                    << " and " << tmp.nColumns() << " column"
-                    << (tmp.nColumns()>1?"s":"")
-                    << ", will append " << prows << " new row"
-                    << (prows>1 ? "s" : "");
-            }
-            tmp.emptyCache(); // empty cached content from mydir
-        }
+		LOGGER(ibis::gVerbose > 2) 
+		    << "tafel::writeData(" << mydir
+		    << ") found existing data partition named "
+		    << tmp.name() << " with " << tmp.nRows()
+		    << " row" << (tmp.nRows()>1 ? "s" : "")
+		    << " and " << tmp.nColumns() << " column"
+		    << (tmp.nColumns()>1?"s":"")
+		    << ", will append " << mrows << " new row"
+		    << (mrows>1 ? "s" : "");
+	    }
+	    tmp.emptyCache(); // empty cached content from mydir
+	}
     } while (again);
     if (maxpart > 0 && nold >= maxpart) {
         // can not write more entries into this directory
@@ -2064,52 +2061,52 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
         tdesc = olddesc.c_str();
     }
     if (tname == 0 || *tname == 0) { // use the directory name as table name
-        tname = strrchr(mydir, FASTBIT_DIRSEP);
-        if (tname == 0)
-            tname = strrchr(mydir, '/');
-        if (tname != 0) {
-            if (tname[1] != 0) {
-                ++ tname;
-            }
-            else { // mydir ends with FASTBIT_DIRSEP
-                oldnm = mydir;
-                oldnm.erase(oldnm.size()-1); // remove the last FASTBIT_DIRSEP
-                uint32_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
-                if (j > oldnm.size())
-                    j = 1 + oldnm.rfind('/');
-                if (j < oldnm.size())
-                    oldnm.erase(0, j);
-                if (! oldnm.empty())
-                    tname = oldnm.c_str();
-                else
-                    tname = 0;
-            }
-        }
-        else if (tname == 0 && *mydir != '.') { // no directory separator
-            tname = mydir;
-        }
-        if (tname == 0) {
-            uint32_t sum = ibis::util::checksum(tdesc, std::strlen(tdesc));
-            ibis::util::int2string(oldnm, sum);
-            if (! isalpha(oldnm[0]))
-                oldnm[0] = 'A' + (oldnm[0] % 26);
-        }
+	tname = strrchr(mydir, FASTBIT_DIRSEP);
+	if (tname == 0)
+	    tname = strrchr(mydir, '/');
+	if (tname != 0) {
+	    if (tname[1] != 0) {
+		++ tname;
+	    }
+	    else { // mydir ends with FASTBIT_DIRSEP
+		oldnm = mydir;
+		oldnm.erase(oldnm.size()-1); // remove the last FASTBIT_DIRSEP
+		uint32_t j = 1 + oldnm.rfind(FASTBIT_DIRSEP);
+		if (j > oldnm.size())
+		    j = 1 + oldnm.rfind('/');
+		if (j < oldnm.size())
+		    oldnm.erase(0, j);
+		if (! oldnm.empty())
+		    tname = oldnm.c_str();
+		else
+		    tname = 0;
+	    }
+	}
+	else if (tname == 0 && *mydir != '.') { // no directory separator
+	    tname = mydir;
+	}
+	if (tname == 0) {
+	    uint32_t sum = ibis::util::checksum(tdesc, strlen(tdesc));
+	    ibis::util::int2string(oldnm, sum);
+	    if (! isalpha(oldnm[0]))
+		oldnm[0] = 'A' + (oldnm[0] % 26);
+	}
     }
     LOGGER(ibis::gVerbose > 1)
-        << "tafel::writeData starting to write " << prows << " row"
-        << (prows>1?"s":"") << " and " << cols.size() << " column"
-        << (cols.size()>1?"s":"") << " to " << mydir << " as data partition "
-        << tname;
+	<< "tafel::writeData starting to write " << mrows << " row"
+	<< (mrows>1?"s":"") << " and " << cols.size() << " column"
+	<< (cols.size()>1?"s":"") << " to " << mydir << " as data partition "
+	<< tname;
 
     std::string mdfile = mydir;
     mdfile += FASTBIT_DIRSEP;
     mdfile += "-part.txt";
     std::ofstream md(mdfile.c_str());
     if (! md) {
-        LOGGER(ibis::gVerbose > 0)
-            << "tafel::writeData(" << mydir << ") failed to open metadata file "
-            "\"-part.txt\"";
-        return -3; // metadata file not ready
+	LOGGER(ibis::gVerbose > 0)
+	    << "tafel::writeData(" << mydir << ") failed to open metadata file "
+	    "\"-part.txt\"";
+	return -3; // metadata file not ready
     }
 
     md << "# meta data for data partition " << tname
@@ -2145,211 +2142,211 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
                 nold+mrows <= maxpart ? mrows : maxpart-nold);
     const_cast<tafel*>(this)->normalize();
     for (columnList::const_iterator it = cols.begin();
-         it != cols.end(); ++ it) {
-        const column& col = *((*it).second);
-        std::string cnm = mydir;
-        cnm += FASTBIT_DIRSEP;
-        cnm += (*it).first;
-        int fdes = UnixOpen(cnm.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
-        if (fdes < 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "tafel::writeData(" << mydir << ") failed to open file "
-                << cnm << " for writing";
-            return -4;
-        }
-        IBIS_BLOCK_GUARD(UnixClose, fdes);
+	 it != cols.end(); ++ it) {
+	const column& col = *((*it).second);
+	std::string cnm = mydir;
+	cnm += FASTBIT_DIRSEP;
+	cnm += (*it).first;
+	int fdes = UnixOpen(cnm.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "tafel::writeData(" << mydir << ") failed to open file "
+		<< cnm << " for writing";
+	    return -4;
+	}
+	IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
         (void)_setmode(fdes, _O_BINARY);
 #endif
-        LOGGER(ibis::gVerbose > 2)
-            << "tafel::writeData opened file " << cnm
-            << " to write data for column " << (*it).first;
-        std::string mskfile = cnm; // mask file name
-        mskfile += ".msk";
-        ibis::bitvector msk(mskfile.c_str());
+	LOGGER(ibis::gVerbose > 2)
+	    << "tafel::writeData opened file " << cnm
+	    << " to write data for column " << (*it).first;
+	std::string mskfile = cnm; // mask file name
+	mskfile += ".msk";
+	ibis::bitvector msk(mskfile.c_str());
 
-        switch (col.type) {
-        case ibis::BYTE:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<signed char>*>(col.values),
-                     *static_cast<const signed char*>(col.defval),
-                     msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<signed char>*>(col.values),
-                     (signed char)0x7F, msk, col.mask);
-            }
-            break;
-        case ibis::UBYTE:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<unsigned char>*>(col.values),
-                     *static_cast<const unsigned char*>(col.defval),
-                     msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<unsigned char>*>(col.values),
-                     (unsigned char)0xFF, msk, col.mask);
-            }
-            break;
-        case ibis::SHORT:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<int16_t>*>(col.values),
-                     *static_cast<const int16_t*>(col.defval), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<int16_t>*>(col.values),
-                     (int16_t)0x7FFF, msk, col.mask);
-            }
-            break;
-        case ibis::USHORT:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<uint16_t>*>(col.values),
-                     *static_cast<const uint16_t*>(col.defval), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<uint16_t>*>(col.values),
-                     (uint16_t)0xFFFF, msk, col.mask);
-            }
-            break;
-        case ibis::INT:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<int32_t>*>(col.values),
-                     *static_cast<const int32_t*>(col.defval), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<int32_t>*>(col.values),
-                     (int32_t)0x7FFFFFFF, msk, col.mask);
-            }
-            break;
-        case ibis::UINT:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<uint32_t>*>(col.values),
-                     *static_cast<const uint32_t*>(col.defval), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<uint32_t>*>(col.values),
-                     (uint32_t)0xFFFFFFFF, msk, col.mask);
-            }
-            break;
-        case ibis::LONG:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn<int64_t>
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<int64_t>*>(col.values),
-                     *static_cast<const int64_t*>(col.defval), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn<int64_t>
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<int64_t>*>(col.values),
-                     0x7FFFFFFFFFFFFFFFLL, msk, col.mask);
-            }
-            break;
-        case ibis::OID:
-        case ibis::ULONG:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn<uint64_t>
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<uint64_t>*>(col.values),
-                     *static_cast<const uint64_t*>(col.defval), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn<uint64_t>
-                    (fdes, nold, nnew, voffset,
+	switch (col.type) {
+	case ibis::BYTE:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<signed char>*>(col.values),
+		     *static_cast<const signed char*>(col.defval),
+		     msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<signed char>*>(col.values),
+		     (signed char)0x7F, msk, col.mask);
+	    }
+	    break;
+	case ibis::UBYTE:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<unsigned char>*>(col.values),
+		     *static_cast<const unsigned char*>(col.defval),
+		     msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<unsigned char>*>(col.values),
+		     (unsigned char)0xFF, msk, col.mask);
+	    }
+	    break;
+	case ibis::SHORT:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<int16_t>*>(col.values),
+		     *static_cast<const int16_t*>(col.defval), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<int16_t>*>(col.values),
+		     (int16_t)0x7FFF, msk, col.mask);
+	    }
+	    break;
+	case ibis::USHORT:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<uint16_t>*>(col.values),
+		     *static_cast<const uint16_t*>(col.defval), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<uint16_t>*>(col.values),
+		     (uint16_t)0xFFFF, msk, col.mask);
+	    }
+	    break;
+	case ibis::INT:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<int32_t>*>(col.values),
+		     *static_cast<const int32_t*>(col.defval), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<int32_t>*>(col.values),
+		     (int32_t)0x7FFFFFFF, msk, col.mask);
+	    }
+	    break;
+	case ibis::UINT:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<uint32_t>*>(col.values),
+		     *static_cast<const uint32_t*>(col.defval), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<uint32_t>*>(col.values),
+		     (uint32_t)0xFFFFFFFF, msk, col.mask);
+	    }
+	    break;
+	case ibis::LONG:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn<int64_t>
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<int64_t>*>(col.values),
+		     *static_cast<const int64_t*>(col.defval), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn<int64_t>
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<int64_t>*>(col.values),
+		     0x7FFFFFFFFFFFFFFFLL, msk, col.mask);
+	    }
+	    break;
+	case ibis::OID:
+	case ibis::ULONG:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn<uint64_t>
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<uint64_t>*>(col.values),
+		     *static_cast<const uint64_t*>(col.defval), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn<uint64_t>
+		    (fdes, nold, nnew, voffset,
                      *static_cast<const array_t<uint64_t>*>(col.values),
                      0xFFFFFFFFFFFFFFFFULL, msk, col.mask);
-            }
-            break;
-        case ibis::FLOAT:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<float>*>(col.values),
-                     *static_cast<const float*>(col.defval), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<float>*>(col.values),
-                     FASTBIT_FLOAT_NULL, msk, col.mask);
-            }
-            break;
-        case ibis::DOUBLE:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<double>*>(col.values), 
-                     *static_cast<const double*>(col.defval), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const array_t<double>*>(col.values), 
-                     FASTBIT_DOUBLE_NULL, msk, col.mask);
-            }
-            break;
-        case ibis::TEXT:
-        case ibis::CATEGORY:
-            if (col.defval != 0) {
-                ierr = ibis::part::writeString
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const std::vector<std::string>*>
-                     (col.values), msk, col.mask);
-            }
-            else {
-                ierr = ibis::part::writeString
-                    (fdes, nold, nnew, voffset,
-                     *static_cast<const std::vector<std::string>*>
-                     (col.values), msk, col.mask);
-            }
-            break;
-        case ibis::BLOB: {
-            std::string spname = cnm;
-            spname += ".sp";
-            int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
-            if (sdes < 0) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << "tafel::writeData(" << mydir << ") failed to open file "
-                    << spname << " for writing the starting positions";
-                return -4;
-            }
-            IBIS_BLOCK_GUARD(UnixClose, sdes);
+	    }
+	    break;
+	case ibis::FLOAT:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<float>*>(col.values),
+		     *static_cast<const float*>(col.defval), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<float>*>(col.values),
+		     FASTBIT_FLOAT_NULL, msk, col.mask);
+	    }
+	    break;
+	case ibis::DOUBLE:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<double>*>(col.values), 
+		     *static_cast<const double*>(col.defval), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const array_t<double>*>(col.values), 
+		     FASTBIT_DOUBLE_NULL, msk, col.mask);
+	    }
+	    break;
+	case ibis::TEXT:
+	case ibis::CATEGORY:
+	    if (col.defval != 0) {
+		ierr = ibis::part::writeString
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const std::vector<std::string>*>
+		     (col.values), msk, col.mask);
+	    }
+	    else {
+		ierr = ibis::part::writeString
+		    (fdes, nold, nnew, voffset,
+		     *static_cast<const std::vector<std::string>*>
+		     (col.values), msk, col.mask);
+	    }
+	    break;
+	case ibis::BLOB: {
+	    std::string spname = cnm;
+	    spname += ".sp";
+	    int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
+	    if (sdes < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "tafel::writeData(" << mydir << ") failed to open file "
+		    << spname << " for writing the starting positions";
+		return -4;
+	    }
+	    IBIS_BLOCK_GUARD(UnixClose, sdes);
 #if defined(_WIN32) && defined(_MSC_VER)
             (void)_setmode(sdes, _O_BINARY);
 #endif
 
-            ierr = ibis::part::writeOpaques
-                (fdes, sdes, nold, nnew, voffset,
-                 *static_cast<const std::vector<ibis::opaque>*>(col.values),
-                 msk, col.mask);
-            break;}
-        default:
-            break;
-        }
+	    ierr = ibis::part::writeOpaques
+		(fdes, sdes, nold, nnew, voffset,
+		 *static_cast<const std::vector<ibis::opaque>*>(col.values),
+		 msk, col.mask);
+	    break;}
+	default:
+	    break;
+	}
 #if defined(FASTBIT_SYNC_WRITE)
 #if _POSIX_FSYNC+0 > 0
         (void) UnixFlush(fdes); // write to disk
@@ -2357,97 +2354,60 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
         (void) _commit(fdes);
 #endif
 #endif
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "tafel::writeData(" << mydir << ") failed to write column "
-                << (*it).first << " (type " << ibis::TYPESTRING[(int)col.type]
-                << ") to " << cnm;
-            return ierr;
-        }
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "tafel::writeData(" << mydir << ") failed to write column "
+		<< (*it).first << " (type " << ibis::TYPESTRING[(int)col.type]
+		<< ") to " << cnm;
+	    return ierr;
+	}
 
-        if (msk.size() != nold+nnew) {
-            if (col.defval != 0) { // fill default value, not NULL
-                msk.adjustSize(nold+nnew, nold+nnew);
-            }
-            else { // fill with NULL
-                msk.adjustSize(0, nold+nnew);
-            }
-        }
-        if (msk.cnt() != msk.size()) {
-            msk.write(mskfile.c_str());
-        }
-        else { // remove the mask file
-            remove(mskfile.c_str());
-        }
+	if (msk.size() != nold+nnew) {
+	    if (col.defval != 0) { // fill default value, not NULL
+		msk.adjustSize(nold+nnew, nold+nnew);
+	    }
+	    else { // fill with NULL
+		msk.adjustSize(0, nold+nnew);
+	    }
+	}
+	if (msk.cnt() != msk.size()) {
+	    msk.write(mskfile.c_str());
+	}
+	else { // remove the mask file
+	    remove(mskfile.c_str());
+	}
 
-        md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
-           << ibis::TYPESTRING[(int) col.type];
-        if (! col.indexSpec.empty()) {
-            md << "\nindex = " << col.indexSpec;
-        }
-        else if (col.type == ibis::BLOB) {
-            md << "\nindex=none";
-        }
-        else {
-            std::string idxkey = "ibis.";
-            idxkey += tname;
-            idxkey += ".";
-            idxkey += (*it).first;
-            idxkey += ".index";
-            const char* str = ibis::gParameters()[idxkey.c_str()];
-            if (str != 0)
-                md << "\nindex = " << str;
-        }
-        md << "\nEnd Column\n";
-        if (! col.dictfile.empty()) {
-            // read the ASCII dictionary, then write it out in binary
-            ibis::dictionary tmp;
-            std::ifstream dfile(col.dictfile.c_str());
-            if (! dfile) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- tafel::writeData failed to open \""
-                    << col.dictfile << '"';
-                continue;
-            }
-            ierr = tmp.fromASCII(dfile);
-            dfile.close();
-            if (ierr < 0) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- tafel::writeData failed to read the "
-                    "content of user supplied ASCII dictionary file \""
-                    << col.dictfile << '"';
-                continue;
-            }
-            else {
-                LOGGER(ibis::gVerbose > 2)
-                    << "tafel::writeData read " << tmp.size()
-                    << " dictionary entries from " << col.dictfile
-                    << " for column " << col.name;
-            }
-
-            // successfully read the ASCII dictionary
-            std::string dictname = dir;
-            dictname += FASTBIT_DIRSEP;
-            dictname += col.name;
-            dictname += ".dic";
-            ierr = tmp.write(dictname.c_str());
-            LOGGER(ierr < 0 && ibis::gVerbose > 0)
-                << "Warning -- tafel::writeData failed to write the "
-                "content of \"" << col.dictfile
-                << "\" in the binary format to \"" << dictname << '"';
-        }
+	md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
+	   << ibis::TYPESTRING[(int) col.type];
+	if (! col.indexSpec.empty()) {
+	    md << "\nindex = " << col.indexSpec;
+	}
+	else if (col.type == ibis::BLOB) {
+	    md << "\nindex=none";
+	}
+	else {
+	    std::string idxkey = "ibis.";
+	    idxkey += tname;
+	    idxkey += ".";
+	    idxkey += (*it).first;
+	    idxkey += ".index";
+	    const char* str = ibis::gParameters()[idxkey.c_str()];
+	    if (str != 0)
+		md << "\nindex = " << str;
+	}
+	md << "\nEnd Column\n";
     }
     md.close(); // close the metadata file
     ibis::fileManager::instance().flushDir(mydir);
     if (ibis::gVerbose > 2) {
-        timer.stop();
-        ibis::util::logger()()
-            << "tafel::writeData outputted " 
-            << cols.size() << " column" << (cols.size()>1 ? "s" : "")
-            << " and " << nnew << " row" << (nnew>1 ? "s" : "")
-            << " (total " << nold+nnew << ") to " << mydir
-            << " using " << timer.CPUTime() << " sec(CPU), "
-            << timer.realTime() << " sec(elapsed)";
+	timer.stop();
+	ibis::util::logger()()
+	    << "tafel::writeData outputted " 
+	    << cols.size() << " column" << (cols.size()>1 ? "s" : "")
+	    << " and " << nnew << " row" << (nnew>1 ? "s" : "")
+	    << " (total " << nold+nnew << ") to " << mydir
+	    << " using " << timer.CPUTime() << " sec(CPU), "
+	    << timer.realTime() << " sec(elapsed)";
     }
 
     return nnew;

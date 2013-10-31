@@ -689,7 +689,7 @@ public:
     /// needed expand memory used to hold the data.  The implementation of
     /// this function is not required, and the user is not required to call
     /// this function.
-    virtual int32_t reserveBuffer(uint32_t) {return 0;}
+    virtual int32_t reserveSpace(uint32_t) {return 0;}
     /// Capacity of the memory buffer.  Report the maximum number of rows
     /// can be stored with this object before more memory will be
     /// allocated.  A return value of zero (0) may also indicate that it
@@ -716,16 +716,10 @@ public:
     /// object.
     virtual table* toTable(const char* nm=0, const char* de=0) =0;
 
-    /// Set the recommended number of rows in a data partition.
+    /// Set the recommended data partition size.
     virtual void setPartitionMax(uint32_t m) {maxpart=m;}
-    /// Get the recommended number of rows in a data partition.
+    /// Get the recommended data partition size.
     virtual uint32_t getPartitionMax() const {return maxpart;}
-    /// Set the name of the ASCII dictionary file for a column of
-    /// categorical values.
-    virtual void setASCIIDictionary(const char*, const char*) =0;
-    /// Retrieve the name of the ASCII dictionary file associated with a
-    /// column of categorical values.
-    virtual const char* getASCIIDictionary(const char*) const =0;
 
 protected:
     /// Protected default constructor.  Derived classes need a default

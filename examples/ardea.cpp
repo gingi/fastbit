@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright (c) 2007-2015 the Regents of the University of California
+// Copyright 2007-2013 the Regents of the University of California
 
 /// @defgroup FastBitExamples FastBit IBIS example programs.
 /** @file ardea.cpp
@@ -109,25 +109,20 @@ static unsigned xrepeats = 0;
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] "
-        "[-d directory-to-write-data] [-n name-of-dataset] "
-        "[-r a-row-in-ASCII] [-t text-file-to-read] "
-        "[-sqldump file-to-read] [-b break/delimiters-in-text-data]"
-        "[-M metadata-file] [-m name:type[,name:type,...]] "
-        "[-k column-name dictionary-filename] "
-        "[-m max-rows-per-file] [-tag name-value-pair] [-p max-per-partition]"
-        "[-select clause] [-where clause] [-v[=| ]verbose_level]\n\n"
-        "Note:\n\tColumn name must start with an alphabet and can only "
-        "contain alphanumeric values, and max-rows-per-file must start "
-        "with a decimal digit\n"
-        "\tThe option -k must be followed by a column name and a filename\n"
-        "\tThis program only recognize the following column types:\n"
-        "\tbyte, short, int, long, float, double, key, and text\n"
-        "\tIt only checks the first character of the types.\n"
-        "\tFor example, one can load the data in tests/test0.csv either "
-        "one of the following command lines:\n"
-        "\tardea -d somwhere1 -m a:i,b:i,c:i -t tests/test0.csv\n"
-        "\tardea -d somwhere2 -m a:i -m b:f -m c:d -t tests/test0.csv\n"
-              << std::endl;
+	"[-d directory-to-write-data] [-n name-of-dataset] "
+	"[-r a-row-in-ASCII] [-t text-file-to-read] "
+	"[-sqldump file-to-read] [-b break/delimiters-in-text-data]"
+	"[-M metadata-file] [-m name:type[,name:type,...]] [-m max-rows-per-file] "
+	"[-tag name-value-pair] [-p max-per-partition]"
+	"[-select clause] [-where clause] [-v[=| ]verbose_level]\n\n"
+	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values, and max-rows-per-file must start with a decimal digit\n"
+	"\tThis program only recognize the following column types:\n"
+	"\tbyte, short, int, long, float, double, key, and text\n"
+	"\tIt only checks the first character of the types.\n"
+	"\tFor example, one can load the data in tests/test0.csv either one of the following command lines:\n"
+	"\tardea -d somwhere1 -m a:i,b:i,c:i -t tests/test0.csv\n"
+	"\tardea -d somwhere2 -m a:i -m b:f -m c:d -t tests/test0.csv\n"
+	      << std::endl;
 } // usage
 
 // // Adds a table defined in the named directory.
@@ -159,8 +154,8 @@ static void usage(const char* name) {
 //           specify a value for this variable, the value will be set by
 //           readCSV or readSQLDump internally based on available memory.
 static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
-                       const char*& outdir, const char*& dsname,
-                       const char*& del, int& nrpf, int& pmax) {
+		       const char*& outdir, const char*& dsname,
+		       const char*& del, int& nrpf, int& pmax) {
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
     ibis::gVerbose = INT_MAX;
@@ -176,202 +171,189 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
     nrpf = 0;
     pmax = 0;
     for (int i=1; i<argc; ++i) {
-        if (*argv[i] == '-') { // normal arguments starting with -
-            switch (argv[i][1]) {
-            default:
-            case 'h':
-            case 'H':
-                usage(*argv);
-                exit(0);
-            case 'b':
-            case 'B': // break/delimiters or build indexes
-                if (i+1 < argc && argv[i+1][0] != '-') {
-                    ++ i;
-                    del = argv[i];
-                }
-                else {
-                    build_indexes = 1;
-                }
-                break;
-            case 'c':
-            case 'C': // conf or csv? default conf
-                if (i+1 < argc) {
-                    if (argv[i][2] == 's' || argv[i][2] == 'S')
-                        csvfiles.push_back(argv[i+1]);
-                    else
-                        ibis::gParameters().read(argv[i+1]);
-                    ++ i;
-                }
-                break;
-            case 'd':
-            case 'D':
-            case 'o':
-            case 'O':
-                if (i+1 < argc) {
-                    ++ i;
-                    outdir = argv[i];
-                }
-                break;
-            case 'i':
-            case 'I':
-                if (i+1 < argc && argv[i+1][0] != '-') {
-                    ++ i;
-                    indexing = argv[i];
-                }
-                else {
-                    build_indexes = 1;
-                }
-                break;
-            case 'k':
-            case 'K': { // key (aka dictionary)
-                if (i+2 < argc) {
-                    userdicts.push_back(argv[i+1]);
-                    userdicts.push_back(argv[i+2]);
-                    i += 2;
-                }
-                else {
-                    std::clog << *argv << " skipping option -k because it is "
-                        "not followed by two-argument <columname, "
-                        "dictfilename> pair";
-                }
-                break;}
-            case 'm':
-                if (i+1 < argc) {
-                    ++ i;
-                    if (isdigit(*argv[i])) {
-                        int nn = (int)strtod(argv[i], 0);
-                        if (nn > 1)
-                            nrpf = nn;
-                    }
-                    else {
-                        if (! namestypes.empty())
-                            namestypes += ", ";
-                        namestypes += argv[i];
-                    }
-                }
-                break;
-            case 'M':
-                if (i+1 < argc) {
-                    ++ i;
-                    metadatafile = argv[i];
-                }
-                break;
-            case 'n':
-            case 'N':
-                if (i+1 < argc) {
-                    ++ i;
-                    if (isdigit(*argv[i])) {
-                        int nn = strtol(argv[i], 0, 0);
-                        if (nn > nrpf)
-                            nrpf = nn;
-                    }
-                    else {
-                        dsname = argv[i];
-                    }
-                }
-                break;
-            case 'p':
-            case 'P':
-                if (i+1 < argc) {
-                    ++ i;
+	if (*argv[i] == '-') { // normal arguments starting with -
+	    switch (argv[i][1]) {
+	    default:
+	    case 'h':
+	    case 'H':
+		usage(*argv);
+		exit(0);
+	    case 'b':
+	    case 'B': // break/delimiters or build indexes
+		if (i+1 < argc && argv[i+1][0] != '-') {
+		    ++ i;
+		    del = argv[i];
+		}
+		else {
+		    build_indexes = 1;
+		}
+		break;
+	    case 'c':
+	    case 'C': // conf or csv? default conf
+		if (i+1 < argc) {
+		    if (argv[i][2] == 's' || argv[i][2] == 'S')
+			csvfiles.push_back(argv[i+1]);
+		    else
+			ibis::gParameters().read(argv[i+1]);
+		    ++ i;
+		}
+		break;
+	    case 'd':
+	    case 'D':
+	    case 'o':
+	    case 'O':
+		if (i+1 < argc) {
+		    ++ i;
+		    outdir = argv[i];
+		}
+		break;
+	    case 'i':
+	    case 'I':
+		if (i+1 < argc && argv[i+1][0] != '-') {
+		    ++ i;
+		    indexing = argv[i];
+		}
+		else {
+		    build_indexes = 1;
+		}
+		break;
+	    case 'm':
+		if (i+1 < argc) {
+		    ++ i;
+		    if (isdigit(*argv[i])) {
+			int nn = (int)strtod(argv[i], 0);
+			if (nn > 1)
+			    nrpf = nn;
+		    }
+		    else {
+			if (! namestypes.empty())
+			    namestypes += ", ";
+			namestypes += argv[i];
+		    }
+		}
+		break;
+	    case 'M':
+		if (i+1 < argc) {
+		    ++ i;
+		    metadatafile = argv[i];
+		}
+		break;
+	    case 'n':
+	    case 'N':
+		if (i+1 < argc) {
+		    ++ i;
+		    if (isdigit(*argv[i])) {
+			int nn = strtol(argv[i], 0, 0);
+			if (nn > nrpf)
+			    nrpf = nn;
+		    }
+		    else {
+			dsname = argv[i];
+		    }
+		}
+		break;
+	    case 'p':
+	    case 'P':
+		if (i+1 < argc) {
+		    ++ i;
                     int nn = (int)strtod(argv[i], 0);
                     if (nn > 1)
                         pmax = nn;
-                }
-                break;
-            case 'r':
-            case 'R':
-                if (i+1 < argc) {
-                    ++ i;
-                    inputrows.push_back(argv[i]);
-                }
-                break;
-            case 't':
-            case 'T': // tag or text, default text
-                if (i+1 < argc) {
-                    if (argv[i][2] == 'a' || argv[i][2] == 'A') {
-                        if (metatags.empty()) {
-                            metatags = argv[i+1];
-                        }
-                        else {
-                            metatags += ", ";
-                            metatags += argv[i+1];
-                        }
-                    }
-                    else {
-                        csvfiles.push_back(argv[i+1]);
-                    }
-                    ++ i;
-                }
-                break;
-            case 'q':
-            case 'Q':
-            case 'w':
-            case 'W':
-                if (i+1 < argc) {
-                    ++ i;
-                    qcnd.insert(argv[i]);
-                }
-                break;
-            case 's':
-            case 'S': // sql dump file or select clause
-                if (i+1 < argc) {
-                    ++ i;
-                    if (argv[i][2] == 'e' || argv[i][2] == 'E') {
-                        sel = argv[i];
-                    }
-                    else { // assume to be sql dump file
-                        sqlfiles.push_back(argv[i]);
-                    }
-                }
-                break;
-            case 'v':
-            case 'V': {
-                char *ptr = strchr(argv[i], '=');
-                if (ptr == 0) {
-                    if (i+1 < argc) {
-                        if (isdigit(*argv[i+1])) {
-                            ibis::gVerbose += strtol(argv[i+1], 0, 0);
-                            i = i + 1;
-                        }
-                        else {
-                            ++ ibis::gVerbose;
-                        }
-                    }
-                    else {
-                        ++ ibis::gVerbose;
-                    }
-                }
-                else {
-                    ibis::gVerbose += strtol(++ptr, 0, 0);
-                }
-                break;}
-            case 'x':
-            case 'X': { // repeat the user supplied data xrepeats times
-                char *ptr = strchr(argv[i], '=');
-                if (ptr == 0) {
-                    if (i+1 < argc) {
-                        if (isdigit(*argv[i+1])) {
-                            xrepeats += strtol(argv[i+1], 0, 0);
-                            i = i + 1;
-                        }
-                        else {
-                            ++ xrepeats;
-                        }
-                    }
-                    else {
-                        ++ xrepeats;
-                    }
-                }
-                else {
-                    xrepeats += strtol(++ptr, 0, 0);
-                }
-                break;}
-            } // switch (argv[i][1])
-        } // normal arguments
-        else { // assume to be a set of query conditioins
-            qcnd.insert(argv[i]);
-        }
+		}
+		break;
+	    case 'r':
+	    case 'R':
+		if (i+1 < argc) {
+		    ++ i;
+		    inputrows.push_back(argv[i]);
+		}
+		break;
+	    case 't':
+	    case 'T': // tag or text, default text
+		if (i+1 < argc) {
+		    if (argv[i][2] == 'a' || argv[i][2] == 'A') {
+			if (metatags.empty()) {
+			    metatags = argv[i+1];
+			}
+			else {
+			    metatags += ", ";
+			    metatags += argv[i+1];
+			}
+		    }
+		    else {
+			csvfiles.push_back(argv[i+1]);
+		    }
+		    ++ i;
+		}
+		break;
+	    case 'q':
+	    case 'Q':
+	    case 'w':
+	    case 'W':
+		if (i+1 < argc) {
+		    ++ i;
+		    qcnd.insert(argv[i]);
+		}
+		break;
+	    case 's':
+	    case 'S': // sql dump file or select clause
+		if (i+1 < argc) {
+		    ++ i;
+		    if (argv[i][2] == 'e' || argv[i][2] == 'E') {
+			sel = argv[i];
+		    }
+		    else { // assume to be sql dump file
+			sqlfiles.push_back(argv[i]);
+		    }
+		}
+		break;
+	    case 'v':
+	    case 'V': {
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    ibis::gVerbose += strtol(argv[i+1], 0, 0);
+			    i = i + 1;
+			}
+			else {
+			    ++ ibis::gVerbose;
+			}
+		    }
+		    else {
+			++ ibis::gVerbose;
+		    }
+		}
+		else {
+		    ibis::gVerbose += strtol(++ptr, 0, 0);
+		}
+		break;}
+	    case 'x':
+	    case 'X': { // repeat the user supplied data xrepeats times
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    xrepeats += strtol(argv[i+1], 0, 0);
+			    i = i + 1;
+			}
+			else {
+			    ++ xrepeats;
+			}
+		    }
+		    else {
+			++ xrepeats;
+		    }
+		}
+		else {
+		    xrepeats += strtol(++ptr, 0, 0);
+		}
+		break;}
+	    } // switch (argv[i][1])
+	} // normal arguments
+	else { // assume to be a set of query conditioins
+	    qcnd.insert(argv[i]);
+	}
     } // for (int i=1; ...)
 
     std::cout << argv[0] << " -v " << ibis::gVerbose;
@@ -854,15 +836,15 @@ int main(int argc, char** argv) {
         ((! namestypes.empty() || metadatafile != 0) &&
          (! csvfiles.empty() || ! inputrows.empty()));
     // create a new table that does not support querying
-    std::unique_ptr<ibis::tablex> ta(ibis::tablex::create());
+    std::auto_ptr<ibis::tablex> ta(ibis::tablex::create());
     ta->setPartitionMax(pmax);
     if (usersupplied) { // use user-supplied data
 	// process the SQL dump files first just in case the CSV files
 	// require the metadata from them
 	for (size_t i = 0; i < sqlfiles.size(); ++ i) {
 	    if (ibis::gVerbose >= 0)
-		std::cout << *argv << " is to read SQL dump file " << sqlfiles[i]
-			  << " ..." << std::endl;
+		std::cout << *argv << " is to read SQL dump file "
+			  << sqlfiles[i] << " ..." << std::endl;
 	    std::string tname;
 	    ierr = ta->readSQLDump(sqlfiles[i], tname, nrpf, outdir);
 	    if (ierr < 0) {
@@ -969,9 +951,9 @@ int main(int argc, char** argv) {
         }
     }
     else { // use hard-coded data and queries
-        int64_t buf[] = {10, -21, 32, -43, 54, -65, 76, -87, 98, -127};
-        if (ibis::gVerbose >= 0)
-            std::cout << *argv << " to use hard-coded test data ..."
+	int64_t buf[] = {10, -21, 32, -43, 54, -65, 76, -87, 98, -127};
+	if (ibis::gVerbose >= 0)
+	    std::cout << *argv << " to use hard-coded test data ..."
                       << std::endl;
 
         ta->addColumn("s1", ibis::SHORT);

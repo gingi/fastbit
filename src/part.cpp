@@ -19145,12 +19145,12 @@ double ibis::part::getColumnSum(const char *name) const {
 template <typename T>
 int ibis::part::writeColumn(int fdes,
                             ibis::bitvector::word_t nold,
-                            ibis::bitvector::word_t nnew,
-                            ibis::bitvector::word_t voffset,
-                            const array_t<T>& vals,
+			    ibis::bitvector::word_t nnew,
+			    ibis::bitvector::word_t voffset,
+			    const array_t<T>& vals,
                             const T& fill,
-                            ibis::bitvector& totmask,
-                            const ibis::bitvector& newmask) {
+			    ibis::bitvector& totmask,
+			    const ibis::bitvector& newmask) {
     const uint32_t elem = sizeof(T);
     off_t pos = UnixSeek(fdes, 0, SEEK_END);
     if (pos < 0) {
@@ -19179,26 +19179,26 @@ int ibis::part::writeColumn(int fdes,
     }
 
     if (vals.size() >= nnew+voffset) {
-        pos = UnixWrite(fdes, vals.begin()+voffset, nnew*elem);
-        totmask += newmask;
+	pos = UnixWrite(fdes, vals.begin()+voffset, nnew*elem);
+	totmask += newmask;
     }
     else {
-        pos = UnixWrite(fdes, vals.begin()+voffset, (vals.size()-voffset)*elem);
-        for (uint32_t j = vals.size(); j < nnew; ++ j)
-            pos += UnixWrite(fdes, &fill, elem);
-        totmask += newmask;
+	pos = UnixWrite(fdes, vals.begin()+voffset, (vals.size()-voffset)*elem);
+	for (uint32_t j = vals.size(); j < nnew; ++ j)
+	    pos += UnixWrite(fdes, &fill, elem);
+	totmask += newmask;
     }
     totmask.adjustSize(totmask.size(), nnew+nold);
     if (ibis::gVerbose > 4) {
-        ibis::util::logger lg;
-        lg() << "part::writeColumn wrote " << pos << " bytes of "
-             << typeid(T).name() << " for " << nnew << " element"
+	ibis::util::logger lg;
+	lg() << "part::writeColumn wrote " << pos << " bytes of "
+	     << typeid(T).name() << " for " << nnew << " element"
              << (nnew>1?"s":"") << " starting from " << voffset;
-        if (ibis::gVerbose > 6) {
-            if (ibis::gVerbose > 7)
-                lg() << "\nmask for new records: " << newmask;
-            lg() << "\nOverall bit mask: "<< totmask;
-        }
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg() << "\nmask for new records: " << newmask;
+	    lg() << "\nOverall bit mask: "<< totmask;
+	}
     }
     return (pos / elem);
 } // ibis::part::writeColumn
@@ -19210,11 +19210,11 @@ int ibis::part::writeColumn(int fdes,
 /// Return the number of strings written to the open file or an error code.
 int ibis::part::writeString(int fdes,
                             ibis::bitvector::word_t nold,
-                            ibis::bitvector::word_t nnew,
+			    ibis::bitvector::word_t nnew,
                             ibis::bitvector::word_t voffset,
-                            const std::vector<std::string>& vals,
-                            ibis::bitvector& totmask,
-                            const ibis::bitvector& newmask) {
+			    const std::vector<std::string>& vals,
+			    ibis::bitvector& totmask,
+			    const ibis::bitvector& newmask) {
     off_t pos = UnixSeek(fdes, 0, SEEK_END);
     if (pos < 0) {
         LOGGER(ibis::gVerbose > 0)
@@ -19226,17 +19226,17 @@ int ibis::part::writeString(int fdes,
     pos = 0;
     totmask.adjustSize(nold, nold);
     if (vals.size() >= nnew+voffset) {
-        for (uint32_t j = voffset; j < voffset+nnew; ++ j)
-            pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
+	for (uint32_t j = voffset; j < voffset+nnew; ++ j)
+	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
     }
     else {
-        for (uint32_t j = voffset; j < vals.size(); ++ j)
-            pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
-        char buf[MAX_LINE];
-        memset(buf, 0, MAX_LINE);
-        for (uint32_t j = (vals.size()>voffset?vals.size()-voffset:0);
+	for (uint32_t j = voffset; j < vals.size(); ++ j)
+	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
+	char buf[MAX_LINE];
+	memset(buf, 0, MAX_LINE);
+	for (uint32_t j = (vals.size()>voffset?vals.size()-voffset:0);
              j < nnew; j += MAX_LINE)
-            pos += UnixWrite(fdes, buf, (j+MAX_LINE<=nnew?MAX_LINE:nnew-j));
+	    pos += UnixWrite(fdes, buf, (j+MAX_LINE<=nnew?MAX_LINE:nnew-j));
     }
 
     totmask += newmask;
@@ -19266,22 +19266,22 @@ int ibis::part::writeString(int fdes,
 /// Return the number of raw objects written to the open file or an error
 /// code.  Note that the error code is always less than 0.
 int ibis::part::writeRaw(int bdes, int sdes,
-                         ibis::bitvector::word_t nold,
-                         ibis::bitvector::word_t nnew,
-                         ibis::bitvector::word_t voffset,
-                         const ibis::array_t<unsigned char>& bytes,
-                         const ibis::array_t<int64_t>& starts,
-                         ibis::bitvector& totmask,
-                         const ibis::bitvector& newmask) {
+			 ibis::bitvector::word_t nold,
+			 ibis::bitvector::word_t nnew,
+			 ibis::bitvector::word_t voffset,
+			 const ibis::array_t<unsigned char>& bytes,
+			 const ibis::array_t<int64_t>& starts,
+			 ibis::bitvector& totmask,
+			 const ibis::bitvector& newmask) {
     off_t ierr;
     const uint32_t selem = sizeof(int64_t);
     int64_t bpos = UnixSeek(bdes, 0, SEEK_END);
     if (bpos < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- part::writeRaw(" << bdes << ", " << sdes << ", "
-            << nold << ", " << nnew << " ...) failed to seek to end of file "
-            << bdes << ", seek returned " << bpos;
-        return -3; // failed to find the EOF position
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part::writeRaw(" << bdes << ", " << sdes << ", "
+	    << nold << ", " << nnew << " ...) failed to seek to end of file "
+	    << bdes << ", seek returned " << bpos;
+	return -3; // failed to find the EOF position
     }
     off_t spos = UnixSeek(sdes, 0, SEEK_END);
     if (spos < 0) {
@@ -19393,18 +19393,18 @@ int ibis::part::writeRaw(int bdes, int sdes,
     }
 
     ibis::bitvector::word_t nnew1 = (starts.size() > voffset+nnew+1 ? nnew :
-                                     (starts.size()>voffset+1 ?
+				     (starts.size()>voffset+1 ?
                                       starts.size()-voffset-1 : 0));
     for (bitvector::word_t j = voffset; j < voffset+nnew1; ++ j) {
-        bpos += starts[j+1] - starts[j];
-        ierr = UnixWrite(sdes, &bpos, selem);
-        if (ierr < (int64_t)selem) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- part::writeRaw failed to write " << bpos
-                << " to file "<< sdes << " for starting positions, "
-                "write returned " << ierr;
-            return -15;
-        }
+	bpos += starts[j+1] - starts[j];
+	ierr = UnixWrite(sdes, &bpos, selem);
+	if (ierr < (int64_t)selem) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeRaw failed to write " << bpos
+		<< " to file "<< sdes << " for starting positions, "
+		"write returned " << ierr;
+	    return -15;
+	}
     }
     stmp = starts[voffset+nnew1] - starts[voffset];
     ierr = UnixWrite(bdes, bytes.begin()+starts[voffset], stmp);
@@ -19419,15 +19419,15 @@ int ibis::part::writeRaw(int bdes, int sdes,
     totmask += newmask;
     totmask.adjustSize(totmask.size(), nnew1+nold);
     if (ibis::gVerbose > 4) {
-        ibis::util::logger lg;
-        lg() << "part::writeRaw wrote " << nnew1 << " binary object"
-             << (nnew1>1?"s":"") << " starting from " << voffset
+	ibis::util::logger lg;
+	lg() << "part::writeRaw wrote " << nnew1 << " binary object"
+	     << (nnew1>1?"s":"") << " starting from " << voffset
              << " (" << nnew << " expected)";
-        if (ibis::gVerbose > 6) {
-            if (ibis::gVerbose > 7)
-                lg() << "\nmask for new records: " << newmask;
-            lg() << "\nOverall bit mask: " << totmask;
-        }
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg() << "\nmask for new records: " << newmask;
+	    lg() << "\nOverall bit mask: " << totmask;
+	}
     }
     return (nnew1);
 } // ibis::part::writeRaw
@@ -19438,12 +19438,12 @@ int ibis::part::writeRaw(int bdes, int sdes,
 /// Return the number of raw objects written to the open file or an error
 /// code.  Note that the error code is always less than 0.
 int ibis::part::writeOpaques(int bdes, int sdes,
-                             ibis::bitvector::word_t nold,
-                             ibis::bitvector::word_t nnew,
+			     ibis::bitvector::word_t nold,
+			     ibis::bitvector::word_t nnew,
                              ibis::bitvector::word_t voffset,
-                             const std::vector<ibis::opaque>& opq,
-                             ibis::bitvector& totmask,
-                             const ibis::bitvector& newmask) {
+			     const std::vector<ibis::opaque>& opq,
+			     ibis::bitvector& totmask,
+			     const ibis::bitvector& newmask) {
     off_t ierr;
     const uint32_t selem = sizeof(int64_t);
     int64_t bpos = UnixSeek(bdes, 0, SEEK_END);
@@ -19570,16 +19570,16 @@ int ibis::part::writeOpaques(int bdes, int sdes,
     if (nnew1 > nnew) nnew1 = nnew;
     ibis::array_t<int64_t> starts(nnew1);
     for (bitvector::word_t j = voffset; j < voffset+nnew1; ++ j) {
-        ierr = UnixWrite(bdes, opq[j].address(), opq[j].size());
-        if (ierr < (off_t)opq[j].size()) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- part::writeOpaques failed to write "
-                << opq[j].size() << " byte" << (opq[j].size()>1?"s":"")
-                << " to file " << bdes << ", write returned " << ierr;
-            return -15;
-        }
-        bpos += ierr;
-        starts[j] = bpos;
+	ierr = UnixWrite(bdes, opq[j].address(), opq[j].size());
+	if (ierr < (off_t)opq[j].size()) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- part::writeOpaques failed to write "
+		<< opq[j].size() << " byte" << (opq[j].size()>1?"s":"")
+		<< " to file " << bdes << ", write returned " << ierr;
+	    return -15;
+	}
+	bpos += ierr;
+	starts[j] = bpos;
     }
     stmp = nnew1 * selem;
     ierr = UnixWrite(sdes, starts.begin(), stmp);
@@ -19594,14 +19594,14 @@ int ibis::part::writeOpaques(int bdes, int sdes,
     totmask.adjustSize(nold1, nold);
     totmask += newmask;
     if (ibis::gVerbose > 4) {
-        ibis::util::logger lg;
-        lg() << "part::writeOpaques wrote " << nnew1 << " binary object"
-             << (nnew1>1?"s":"") << " starting from " << voffset;
-        if (ibis::gVerbose > 6) {
-            if (ibis::gVerbose > 7)
-                lg() << "\nmask for new records: " << newmask;
-            lg() << "\nOverall bit mask: " << totmask;
-        }
+	ibis::util::logger lg;
+	lg() << "part::writeOpaques wrote " << nnew1 << " binary object"
+	     << (nnew1>1?"s":"") << " starting from " << voffset;
+	if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 7)
+		lg() << "\nmask for new records: " << newmask;
+	    lg() << "\nOverall bit mask: " << totmask;
+	}
     }
     return nnew1;
 } // ibis::part::writeOpaques
@@ -19614,9 +19614,9 @@ void ibis::part::cleaner::operator()() const {
 	thePart->getStateNoLocking() == ibis::part::STABLE_STATE) {
 	thePart->freeRIDs();
         LOGGER(sz == ibis::fileManager::bytesInUse() &&
-               ibis::gVerbose > 0)
-            << "Warning -- part[" << thePart->name() << "]::cleaner failed "
-            "to reduce memory usage, expect slow operations";
+               ibis::gVerbose > 3)
+            << "part[" << thePart->name() << "]::cleaner did not "
+            "remove anything from memory";
     }
 } // ibis::part::cleaner::operator
 
@@ -20612,13 +20612,13 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
             continue;
         }
 
-        sprintf(nm1, "%s%c%s", dir1, FASTBIT_DIRSEP, ent->d_name);
-        Stat_T st1;
-        if (UnixStat(nm1, &st1)==0) {
-            if ((st1.st_mode & S_IFDIR) == S_IFDIR) {
-                cnt += gatherParts(tlist, nm1, ro);
-            }
-        }
+	sprintf(nm1, "%s%c%s", dir1, FASTBIT_DIRSEP, ent->d_name);
+	Stat_T st1;
+	if (UnixStat(nm1, &st1)==0) {
+	    if ((st1.st_mode & S_IFDIR) == S_IFDIR) {
+		cnt += gatherParts(tlist, nm1, ro);
+	    }
+	}
     }
     closedir(dirp);
 #endif

@@ -2766,150 +2766,150 @@ int ibis::bord::backup(const char* dir, const char* tname,
 #if defined(_WIN32) && defined(_MSC_VER)
         (void)_setmode(fdes, _O_BINARY);
 #endif
-        LOGGER(ibis::gVerbose > 2)
-            << "bord::backup opened file " << cnm
-            << " to write data for column " << (*it).first;
-        std::string mskfile = cnm; // mask file name
-        mskfile += ".msk";
-        msk1.read(mskfile.c_str());
+	LOGGER(ibis::gVerbose > 2)
+	    << "bord::backup opened file " << cnm
+	    << " to write data for column " << (*it).first;
+	std::string mskfile = cnm; // mask file name
+	mskfile += ".msk";
+	msk1.read(mskfile.c_str());
 
-        switch (col.type()) {
-        case ibis::BYTE: {
-            std::unique_ptr< array_t<signed char> >
-                values(col.selectBytes(msk0));
-            if (values.get() != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nEvents, 0, *values,
-                     (signed char)0x7F, msk1, msk0);
-            }
-            else {
-                ierr = -4;
-            }
-            break;}
-        case ibis::UBYTE: {
-            std::unique_ptr< array_t<unsigned char> >
-                values(col.selectUBytes(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nEvents, 0, *values,
-                     (unsigned char)0xFF, msk1, msk0);
-            else
-                ierr = -4;
-            break;}
-        case ibis::SHORT: {
-            std::unique_ptr< array_t<int16_t> > values(col.selectShorts(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nEvents, 0, *values,
-                     (int16_t)0x7FFF, msk1, msk0);
-            else
-                ierr = -4;
-            break;}
-        case ibis::USHORT: {
-            std::unique_ptr< array_t<uint16_t> > values(col.selectUShorts(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nEvents, 0, *values,
-                     (uint16_t)0xFFFF, msk1, msk0);
-            else
-                ierr = -4;
-            break;}
-        case ibis::INT: {
-            std::unique_ptr< array_t<int32_t> > values(col.selectInts(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nEvents, 0, *values,
-                     (int32_t)0x7FFFFFFF, msk1, msk0);
-            else
-                ierr = -4;
-            break;}
-        case ibis::UINT: {
-            std::unique_ptr< array_t<uint32_t> > values(col.selectUInts(msk0));
-            if (values.get() != 0) {
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nEvents, 0, *values,
-                     (uint32_t)0xFFFFFFFF, msk1, msk0);
-            }
-            else
-                ierr = -4;
-            break;}
-        case ibis::LONG: {
-            std::unique_ptr< array_t<int64_t> > values(col.selectLongs(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeColumn<int64_t>
-                    (fdes, nold, nEvents, 0, *values,
-                     0x7FFFFFFFFFFFFFFFLL, msk1, msk0);
-            else
-                ierr = -4;
-            break;}
-        case ibis::OID:
-        case ibis::ULONG: {
-            std::unique_ptr< array_t<uint64_t> > values(col.selectULongs(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeColumn<uint64_t>
-                    (fdes, nold, nEvents, 0, *values,
-                     0xFFFFFFFFFFFFFFFFULL, msk1, msk0);
-            else
-                ierr = -4;
-            break;}
-        case ibis::FLOAT: {
-            std::unique_ptr< array_t<float> > values(col.selectFloats(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nEvents, 0, *values, FASTBIT_FLOAT_NULL,
-                     msk1, msk0);
-            else
-                ierr = -4;
-            break;}
-        case ibis::DOUBLE: {
-            std::unique_ptr< array_t<double> > values(col.selectDoubles(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeColumn
-                    (fdes, nold, nEvents, 0, *values, FASTBIT_DOUBLE_NULL,
-                     msk1, msk0);
-            else
-                ierr = -4;
-            break;}
-        case ibis::TEXT:
-        case ibis::CATEGORY: {
-            std::unique_ptr< std::vector<std::string> >
-                values(col.selectStrings(msk0));
-            if (values.get() != 0)
-                ierr = ibis::part::writeString
-                    (fdes, nold, nEvents, 0, *values, msk1, msk0);
-            else
-                ierr =-4;
-            break;}
-        case ibis::BLOB: {
-            std::unique_ptr< std::vector<ibis::opaque> >
-                values(col.selectOpaques(msk0));
-            std::string spname = cnm;
-            spname += ".sp";
-            int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
-            if (sdes < 0) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << "bord::backup(" << dir << ") failed to open file "
-                    << spname << " for writing the starting positions";
-                return -5;
-            }
-            IBIS_BLOCK_GUARD(UnixClose, sdes);
+	switch (col.type()) {
+	case ibis::BYTE: {
+	    std::auto_ptr< array_t<signed char> >
+		values(col.selectBytes(msk0));
+	    if (values.get() != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nEvents, 0, *values,
+		     (signed char)0x7F, msk1, msk0);
+	    }
+	    else {
+		ierr = -4;
+	    }
+	    break;}
+	case ibis::UBYTE: {
+	    std::auto_ptr< array_t<unsigned char> >
+		values(col.selectUBytes(msk0));
+	    if (values.get() != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nEvents, 0, *values,
+		     (unsigned char)0xFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::SHORT: {
+	    std::auto_ptr< array_t<int16_t> > values(col.selectShorts(msk0));
+	    if (values.get() != 0) 
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nEvents, 0, *values,
+		     (int16_t)0x7FFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::USHORT: {
+	    std::auto_ptr< array_t<uint16_t> > values(col.selectUShorts(msk0));
+	    if (values.get() != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nEvents, 0, *values,
+		     (uint16_t)0xFFFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::INT: {
+	    std::auto_ptr< array_t<int32_t> > values(col.selectInts(msk0));
+	    if (values.get() != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nEvents, 0, *values,
+		     (int32_t)0x7FFFFFFF, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::UINT: {
+	    std::auto_ptr< array_t<uint32_t> > values(col.selectUInts(msk0));
+	    if (values.get() != 0) {
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nEvents, 0, *values,
+		     (uint32_t)0xFFFFFFFF, msk1, msk0);
+	    }
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::LONG: {
+	    std::auto_ptr< array_t<int64_t> > values(col.selectLongs(msk0));
+	    if (values.get() != 0)
+		ierr = ibis::part::writeColumn<int64_t>
+		    (fdes, nold, nEvents, 0, *values,
+		     0x7FFFFFFFFFFFFFFFLL, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::OID:
+	case ibis::ULONG: {
+	    std::auto_ptr< array_t<uint64_t> > values(col.selectULongs(msk0));
+	    if (values.get() != 0)
+		ierr = ibis::part::writeColumn<uint64_t>
+		    (fdes, nold, nEvents, 0, *values,
+		     0xFFFFFFFFFFFFFFFFULL, msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::FLOAT: {
+	    std::auto_ptr< array_t<float> > values(col.selectFloats(msk0));
+	    if (values.get() != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nEvents, 0, *values, FASTBIT_FLOAT_NULL,
+		     msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::DOUBLE: {
+	    std::auto_ptr< array_t<double> > values(col.selectDoubles(msk0));
+	    if (values.get() != 0)
+		ierr = ibis::part::writeColumn
+		    (fdes, nold, nEvents, 0, *values, FASTBIT_DOUBLE_NULL,
+		     msk1, msk0);
+	    else
+		ierr = -4;
+	    break;}
+	case ibis::TEXT:
+	case ibis::CATEGORY: {
+	    std::auto_ptr< std::vector<std::string> >
+		values(col.selectStrings(msk0));
+	    if (values.get() != 0)
+		ierr = ibis::part::writeString
+		    (fdes, nold, nEvents, 0, *values, msk1, msk0);
+	    else
+		ierr =-4;
+	    break;}
+	case ibis::BLOB: {
+	    std::auto_ptr< std::vector<ibis::opaque> >
+		values(col.selectOpaques(msk0));
+	    std::string spname = cnm;
+	    spname += ".sp";
+	    int sdes = UnixOpen(spname.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
+	    if (sdes < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "bord::backup(" << dir << ") failed to open file "
+		    << spname << " for writing the starting positions";
+		return -5;
+	    }
+	    IBIS_BLOCK_GUARD(UnixClose, sdes);
 #if defined(_WIN32) && defined(_MSC_VER)
             (void)_setmode(sdes, _O_BINARY);
 #endif
-            if (values.get() != 0) {
-                ierr = ibis::part::writeOpaques
-                    (fdes, sdes, nold, nEvents, 0,
-                     *static_cast< const std::vector<ibis::opaque>* >
-                     (values.get()),
-                     msk1, msk0);
-            }
-            else {
-                ierr = -4;
-            }
-            break;}
-        default:
-            break;
-        }
+	    if (values.get() != 0) {
+		ierr = ibis::part::writeOpaques
+		    (fdes, sdes, nold, nEvents, 0,
+		     *static_cast< const std::vector<ibis::opaque>* >
+		     (values.get()),
+		     msk1, msk0);
+	    }
+	    else {
+		ierr = -4;
+	    }
+	    break;}
+	default:
+	    break;
+	}
 #if defined(FASTBIT_SYNC_WRITE)
 #if _POSIX_FSYNC+0 > 0
         (void) UnixFlush(fdes); // write to disk
