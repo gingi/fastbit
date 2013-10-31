@@ -18976,10 +18976,16 @@ double ibis::part::getColumnSum(const char *name) const {
 
 /// Write the content of vals to an open file.  This template function
 /// works with fixed size elements stored in array_t.
+///
+/// Return the number of elements written or an error code.  The error code
+/// is always less than 0.
 template <typename T>
-int ibis::part::writeColumn(int fdes, ibis::bitvector::word_t nold,
+int ibis::part::writeColumn(int fdes,
+                            ibis::bitvector::word_t nold,
 			    ibis::bitvector::word_t nnew,
-			    const array_t<T>& vals, const T& fill,
+			    ibis::bitvector::word_t voffset,
+			    const array_t<T>& vals,
+                            const T& fill,
 			    ibis::bitvector& totmask,
 			    const ibis::bitvector& newmask) {
     const uint32_t elem = sizeof(T);
@@ -19009,12 +19015,12 @@ int ibis::part::writeColumn(int fdes, ibis::bitvector::word_t nold,
 	totmask.adjustSize(nold, nold);
     }
 
-    if (vals.size() >= nnew) {
-	pos = UnixWrite(fdes, vals.begin(), nnew*elem);
+    if (vals.size() >= nnew+voffset) {
+	pos = UnixWrite(fdes, vals.begin()+voffset, nnew*elem);
 	totmask += newmask;
     }
     else {
-	pos = UnixWrite(fdes, vals.begin(), vals.size()*elem);
+	pos = UnixWrite(fdes, vals.begin()+voffset, (vals.size()-voffset)*elem);
 	for (uint32_t j = vals.size(); j < nnew; ++ j)
 	    pos += UnixWrite(fdes, &fill, elem);
 	totmask += newmask;
@@ -19023,21 +19029,26 @@ int ibis::part::writeColumn(int fdes, ibis::bitvector::word_t nold,
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "part::writeColumn wrote " << pos << " bytes of "
-	     << typeid(T).name() << " for " << nnew << " elements";
+	     << typeid(T).name() << " for " << nnew << " element"
+             << (nnew>1?"s":"") << " starting from " << voffset;
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
 		lg() << "\nmask for new records: " << newmask;
 	    lg() << "\nOverall bit mask: "<< totmask;
 	}
     }
-    return (-5 * ((uint32_t) pos != nnew*elem));
+    return (pos / elem);
 } // ibis::part::writeColumn
 
 /// Write strings to an open file.  The strings are stored in a
 /// std::vector<std::string>.  The strings are null-terminated and
 /// therefore can not contain null characters in them.
-int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
+///
+/// Return the number of strings written to the open file or an error code.
+int ibis::part::writeString(int fdes,
+                            ibis::bitvector::word_t nold,
 			    ibis::bitvector::word_t nnew,
+                            ibis::bitvector::word_t voffset,
 			    const std::vector<std::string>& vals,
 			    ibis::bitvector& totmask,
 			    const ibis::bitvector& newmask) {
@@ -19051,16 +19062,17 @@ int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
 
     pos = 0;
     totmask.adjustSize(nold, nold);
-    if (vals.size() >= nnew) {
-	for (uint32_t j = 0; j < nnew; ++ j)
+    if (vals.size() >= nnew+voffset) {
+	for (uint32_t j = voffset; j < voffset+nnew; ++ j)
 	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
     }
     else {
-	for (uint32_t j = 0; j < vals.size(); ++ j)
+	for (uint32_t j = voffset; j < vals.size(); ++ j)
 	    pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
 	char buf[MAX_LINE];
 	memset(buf, 0, MAX_LINE);
-	for (uint32_t j = vals.size(); j < nnew; j += MAX_LINE)
+	for (uint32_t j = (vals.size()>voffset?vals.size()-voffset:0);
+             j < nnew; j += MAX_LINE)
 	    pos += UnixWrite(fdes, buf, (j+MAX_LINE<=nnew?MAX_LINE:nnew-j));
     }
 
@@ -19082,14 +19094,18 @@ int ibis::part::writeString(int fdes, ibis::bitvector::word_t nold,
 	    lg() << "\nOverall bit mask: " << totmask;
 	}
     }
-    return (-5 * ((uint32_t) pos != nnew));
+    return nnew;
 } // ibis::part::writeString
 
 /// Write raw bytes to an open file.  It also requires a second file to
 /// store starting positions of the raw binary objects.
+///
+/// Return the number of raw objects written to the open file or an error
+/// code.  Note that the error code is always less than 0.
 int ibis::part::writeRaw(int bdes, int sdes,
 			 ibis::bitvector::word_t nold,
 			 ibis::bitvector::word_t nnew,
+			 ibis::bitvector::word_t voffset,
 			 const ibis::array_t<unsigned char>& bytes,
 			 const ibis::array_t<int64_t>& starts,
 			 ibis::bitvector& totmask,
@@ -19100,7 +19116,7 @@ int ibis::part::writeRaw(int bdes, int sdes,
     if (bpos < 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- part::writeRaw(" << bdes << ", " << sdes << ", "
-	    << nold << ", " << nnew << " ...) failed to seek to the end of file "
+	    << nold << ", " << nnew << " ...) failed to seek to end of file "
 	    << bdes << ", seek returned " << bpos;
 	return -3; // failed to find the EOF position
     }
@@ -19213,10 +19229,10 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	}
     }
 
-    ibis::bitvector::word_t nnew1 = (starts.size() <= nnew+1 ?
-				     (starts.size()>1 ? starts.size()-1 : 0)
-				     : nnew);
-    for (bitvector::word_t j = 0; j < nnew1; ++ j) {
+    ibis::bitvector::word_t nnew1 = (starts.size() > voffset+nnew+1 ? nnew :
+				     (starts.size()>voffset+1 ?
+                                      starts.size()-voffset-1 : 0));
+    for (bitvector::word_t j = voffset; j < voffset+nnew1; ++ j) {
 	bpos += starts[j+1] - starts[j];
 	ierr = UnixWrite(sdes, &bpos, selem);
 	if (ierr < (int64_t)selem) {
@@ -19227,8 +19243,8 @@ int ibis::part::writeRaw(int bdes, int sdes,
 	    return -15;
 	}
     }
-    stmp = starts[nnew1] - starts[0];
-    ierr = UnixWrite(bdes, bytes.begin(), stmp);
+    stmp = starts[voffset+nnew1] - starts[voffset];
+    ierr = UnixWrite(bdes, bytes.begin()+starts[voffset], stmp);
     if (ierr != stmp) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- part::writeRaw expects to write " << stmp << " byte"
@@ -19242,20 +19258,26 @@ int ibis::part::writeRaw(int bdes, int sdes,
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "part::writeRaw wrote " << nnew1 << " binary object"
-	     << (nnew1>1?"s":"") << " (" << nnew << " expected)";
+	     << (nnew1>1?"s":"") << " starting from " << voffset
+             << " (" << nnew << " expected)";
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
 		lg() << "\nmask for new records: " << newmask;
 	    lg() << "\nOverall bit mask: " << totmask;
 	}
     }
-    return (-17 * (nnew1 != nnew));
+    return (nnew1);
 } // ibis::part::writeRaw
 
 /// Write raw bytes to an open file.  It also requires a second file to
 /// store starting positions of the raw binary objects.
+///
+/// Return the number of raw objects written to the open file or an error
+/// code.  Note that the error code is always less than 0.
 int ibis::part::writeOpaques(int bdes, int sdes,
 			     ibis::bitvector::word_t nold,
+			     ibis::bitvector::word_t nnew,
+                             ibis::bitvector::word_t voffset,
 			     const std::vector<ibis::opaque>& opq,
 			     ibis::bitvector& totmask,
 			     const ibis::bitvector& newmask) {
@@ -19381,9 +19403,10 @@ int ibis::part::writeOpaques(int bdes, int sdes,
 	}
     }
 
-    ibis::bitvector::word_t nnew1 = opq.size();
+    ibis::bitvector::word_t nnew1 = (opq.size()>voffset?opq.size()-voffset:0U);
+    if (nnew1 > nnew) nnew1 = nnew;
     ibis::array_t<int64_t> starts(nnew1);
-    for (bitvector::word_t j = 0; j < nnew1; ++ j) {
+    for (bitvector::word_t j = voffset; j < voffset+nnew1; ++ j) {
 	ierr = UnixWrite(bdes, opq[j].address(), opq[j].size());
 	if (ierr < (off_t)opq[j].size()) {
 	    LOGGER(ibis::gVerbose > 0)
@@ -19410,7 +19433,7 @@ int ibis::part::writeOpaques(int bdes, int sdes,
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "part::writeOpaques wrote " << nnew1 << " binary object"
-	     << (nnew1>1?"s":"");
+	     << (nnew1>1?"s":"") << " starting from " << voffset;
 	if (ibis::gVerbose > 6) {
 	    if (ibis::gVerbose > 7)
 		lg() << "\nmask for new records: " << newmask;
@@ -19428,9 +19451,9 @@ void ibis::part::cleaner::operator()() const {
 	thePart->getStateNoLocking() == ibis::part::STABLE_STATE) {
 	thePart->freeRIDs();
         LOGGER(sz == ibis::fileManager::bytesInUse() &&
-               ibis::gVerbose > 0)
-            << "Warning -- part[" << thePart->name() << "]::cleaner failed "
-            "to reduce memory usage, expect slow operations";
+               ibis::gVerbose > 3)
+            << "part[" << thePart->name() << "]::cleaner did not "
+            "remove anything from memory";
     }
 } // ibis::part::cleaner::operator
 
@@ -20406,7 +20429,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
 	sprintf(nm1, "%s%c%s", dir1, FASTBIT_DIRSEP, ent->d_name);
 	Stat_T st1;
 	if (UnixStat(nm1, &st1)==0) {
-	    if ((st1.st_mode  &S_IFDIR) == S_IFDIR) {
+	    if ((st1.st_mode & S_IFDIR) == S_IFDIR) {
 		cnt += gatherParts(tlist, nm1, ro);
 	    }
 	}
@@ -20705,46 +20728,46 @@ ibis::part::doCompare<signed char>
  const ibis::bitvector&, ibis::bitvector&);
 
 template int ibis::part::writeColumn<ibis::rid_t>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<ibis::rid_t>&, const ibis::rid_t&, ibis::bitvector&,
  const ibis::bitvector&);
 template int ibis::part::writeColumn<signed char>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<signed char>&, const signed char&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<unsigned char>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<unsigned char>&, const unsigned char&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<int16_t>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<int16_t>&, const int16_t&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<uint16_t>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<uint16_t>&, const uint16_t&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<int32_t>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<int32_t>&, const int32_t&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<uint32_t>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<uint32_t>&, const uint32_t&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<int64_t>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<int64_t>&, const int64_t&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<uint64_t>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<uint64_t>&, const uint64_t&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<float>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<float>&, const float&,
  ibis::bitvector&, const ibis::bitvector&);
 template int ibis::part::writeColumn<double>
-(int, ibis::bitvector::word_t, ibis::bitvector::word_t,
+(int, ibis::bitvector::word_t, ibis::bitvector::word_t, ibis::bitvector::word_t,
  const array_t<double>&, const double&,
  ibis::bitvector&, const ibis::bitvector&);

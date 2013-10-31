@@ -558,9 +558,9 @@ public:
     virtual int appendRows(const std::vector<ibis::table::row>&) =0;
 
     /// Read the content of the named file as comma-separated values.
-    /// Append the records to this table.  If the argument maxrows is
+    /// Append the records to this table.  If the argument memrows is
     /// greater than 0, this function will reserve space to read this many
-    /// records.  If the total number of records is more than maxrows and
+    /// records.  If the total number of records is more than memrows and
     /// the output directory name is specified, then the records will be
     /// written the outputdir and the memory is made available for later
     /// records.  If outputdir is not specified, this function attempts to
@@ -590,14 +590,14 @@ public:
     /// is likely that you are have problem with the end-of-line character.
     /// Please try to convert the end-of-line character and give it another
     /// try.
-    virtual int readCSV(const char* inputfile, int maxrows=0,
+    virtual int readCSV(const char* inputfile, int memrows=0,
 			const char* outputdir=0, const char* delimiters=0) =0;
     /// Read a SQL dump from database systems such as MySQL.  The entire
-    /// file will be read into memory in one shot unless both maxrows and
-    /// outputdir are specified.  In cases where both maxrows and outputdir
-    /// are specified, this function reads a maximum of maxrows before
+    /// file will be read into memory in one shot unless both memrows and
+    /// outputdir are specified.  In cases where both memrows and outputdir
+    /// are specified, this function reads a maximum of memrows before
     /// write the data to outputdir under the name tname, which leaves no
-    /// more than maxrows number of rows in memory.  The value returned
+    /// more than memrows number of rows in memory.  The value returned
     /// from this function is the number of rows processed including those
     /// written to disk.  Use function mRows to determine how many are
     /// still in memory.
@@ -606,7 +606,7 @@ public:
     /// existing metadata is overwritten.  Otherwise, it reads insert
     /// statements and convert the ASCII data into binary format in memory.
     virtual int readSQLDump(const char* inputfile, std::string& tname,
-			    int maxrows=0, const char* outputdir=0) =0;
+			    int memrows=0, const char* outputdir=0) =0;
 
     /// Read a file containing the names and types of columns.
     virtual int readNamesAndTypes(const char* filename);
@@ -650,6 +650,9 @@ public:
     /// on a simple regular k-dimensional mesh of size nd1 x ... x ndk.
     /// Internally, these name-value pairs associated with a data table is
     /// known as meta tags or simply tags.
+    ///
+    /// Return the number of rows written to the specified directory on
+    /// successful completion.
     virtual int write(const char* dir, const char* tname=0,
 		      const char* tdesc=0, const char* idx=0,
 		      const char* nvpairs=0) const =0;
@@ -686,7 +689,7 @@ public:
     /// this function is not required, and the user is not required to call
     /// this function.
     virtual int32_t reserveSpace(uint32_t) {return 0;}
-    /// Capacity of the memory cache.  Report the maximum number of rows
+    /// Capacity of the memory buffer.  Report the maximum number of rows
     /// can be stored with this object before more memory will be
     /// allocated.  A return value of zero (0) may also indicate that it
     /// does not know about its capacity.
@@ -695,9 +698,10 @@ public:
     /// allocating space required for the actual string values.  Thus it is
     /// possible to run out of memory before the number of rows reported by
     /// mRows reaches the value returned by this function.
-    virtual uint32_t capacity() const {return 0;}
+    virtual uint32_t bufferCapacity() const {return 0;}
 
-    /// The maximum number of rows in any column.
+    /// The number of rows in memory.  It is the maximum number of rows in
+    /// any column.
     virtual uint32_t mRows() const =0;
     /// The number of columns in this table.
     virtual uint32_t mColumns() const =0;
@@ -711,8 +715,20 @@ public:
     /// object.
     virtual table* toTable(const char* nm=0, const char* de=0) =0;
 
+    /// Set the recommended data partition size.
+    virtual void setPartitionMax(uint32_t m) {maxpart=m;}
+    /// Get the recommended data partition size.
+    virtual uint32_t getPartitionMax() const {return maxpart;}
+
 protected:
-    tablex() {}; // Derived classes need this.
+    /// Protected default constructor.  Derived classes need a default
+    /// constructor.
+    tablex() : maxpart(0), ipart(0) {};
+
+    /// Recommended size of data partitions to be created.
+    uint32_t maxpart;
+    /// Current partition number being used for writing.
+    mutable uint32_t ipart;
 
 private:
     tablex(const tablex&); // no copying

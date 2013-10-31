@@ -1,6 +1,7 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright 2007-2013 the Regents of the University of California
+
 /// @defgroup FastBitExamples FastBit IBIS example programs.
 /** @file ardea.cpp
 
@@ -106,7 +107,7 @@ static void usage(const char* name) {
 	"[-r a-row-in-ASCII] [-t text-file-to-read] "
 	"[-sqldump file-to-read] [-b break/delimiters-in-text-data]"
 	"[-M metadata-file] [-m name:type[,name:type,...]] [-m max-rows-per-file] "
-	"[-tag name-value-pair] "
+	"[-tag name-value-pair] [-p max-per-partition]"
 	"[-select clause] [-where clause] [-v[=| ]verbose_level]\n\n"
 	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values, and max-rows-per-file must start with a decimal digit\n"
 	"\tThis program only recognize the following column types:\n"
@@ -148,7 +149,7 @@ static void usage(const char* name) {
 //           readCSV or readSQLDump internally based on available memory.
 static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		       const char*& outdir, const char*& dsname,
-		       const char*& del, int& nrpf) {
+		       const char*& del, int& nrpf, int& pmax) {
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
     ibis::gVerbose = INT_MAX;
@@ -162,6 +163,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 #endif
     sel = 0;
     nrpf = 0;
+    pmax = 0;
     for (int i=1; i<argc; ++i) {
 	if (*argv[i] == '-') { // normal arguments starting with -
 	    switch (argv[i][1]) {
@@ -242,6 +244,15 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		    else {
 			dsname = argv[i];
 		    }
+		}
+		break;
+	    case 'p':
+	    case 'P':
+		if (i+1 < argc) {
+		    ++ i;
+                    int nn = (int)strtod(argv[i], 0);
+                    if (nn > 1)
+                        pmax = nn;
 		}
 		break;
 	    case 'r':
@@ -805,7 +816,7 @@ int main(int argc, char** argv) {
     const char* sel;
     const char* dsn = 0;
     const char* del = ", "; // delimiters
-    int ierr, nrpf;
+    int ierr, nrpf, pmax;
     qList qcnd;
     std::ostringstream oss;
     for (int i = 0; i < argc; ++ i) {
@@ -814,19 +825,20 @@ int main(int argc, char** argv) {
     }
 
     ibis::init();
-    parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf);
+    parse_args(argc, argv, qcnd, sel, outdir, dsn, del, nrpf, pmax);
     const bool usersupplied = (! sqlfiles.empty()) ||
 	((! namestypes.empty() || metadatafile != 0) &&
 	 (! csvfiles.empty() || ! inputrows.empty()));
     // create a new table that does not support querying
     std::auto_ptr<ibis::tablex> ta(ibis::tablex::create());
+    ta->setPartitionMax(pmax);
     if (usersupplied) { // use user-supplied data
 	// process the SQL dump files first just in case the CSV files
 	// require the metadata from them
 	for (size_t i = 0; i < sqlfiles.size(); ++ i) {
 	    if (ibis::gVerbose >= 0)
-		std::cout << *argv << " is to read SQL dump file " << sqlfiles[i]
-			  << " ..." << std::endl;
+		std::cout << *argv << " is to read SQL dump file "
+			  << sqlfiles[i] << " ..." << std::endl;
 	    std::string tname;
 	    ierr = ta->readSQLDump(sqlfiles[i], tname, nrpf, outdir);
 	    if (ierr < 0) {
@@ -930,7 +942,8 @@ int main(int argc, char** argv) {
     else { // use hard-coded data and queries
 	int64_t buf[] = {10, -21, 32, -43, 54, -65, 76, -87, 98, -127};
 	if (ibis::gVerbose >= 0)
-	    std::cout << *argv << " to use hard-coded test data ..." << std::endl;
+	    std::cout << *argv << " to use hard-coded test data ..."
+                      << std::endl;
 
 	ta->addColumn("s1", ibis::SHORT);
 	ta->addColumn("i2", ibis::INT);

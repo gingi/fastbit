@@ -1,3 +1,19 @@
+2013-10-31 John Wu <John dot Wu at ACM dot org>
+	* src/tafel: add function writeData to perform the actual write
+	operations, change the original write to manage the calls to
+	writeData
+	* examples/ardea.cpp: add option -p to allow the users to specify
+	a maximum size for data partitions
+
+2013-10-30 John Wu <John dot Wu at ACM dot org>
+	* src/part.h, src/part.cpp: add argument voffset to the arguments
+	of writeColumn and friends, change their return value to be the
+	numbe rof elements written
+
+2013-10-29 John Wu <John dot Wu at ACM dot org>
+	* src/table.h: rename tablex::capacity to tablex::bufferCapacity,
+	add variables maxpart and access functions
+
 2013-10-25 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/part.cpp: move ibis::part::cleaner::operator()
 	to part.cpp, add a warning message

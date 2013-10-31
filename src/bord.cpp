@@ -2603,7 +2603,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		values(col.selectBytes(msk0));
 	    if (values.get() != 0) {
 		ierr = ibis::part::writeColumn
-		    (fdes, nold, nEvents, *values,
+		    (fdes, nold, nEvents, 0, *values,
 		     (signed char)0x7F, msk1, msk0);
 	    }
 	    else {
@@ -2615,7 +2615,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		values(col.selectUBytes(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
-		    (fdes, nold, nEvents, *values,
+		    (fdes, nold, nEvents, 0, *values,
 		     (unsigned char)0xFF, msk1, msk0);
 	    else
 		ierr = -4;
@@ -2624,7 +2624,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    std::auto_ptr< array_t<int16_t> > values(col.selectShorts(msk0));
 	    if (values.get() != 0) 
 		ierr = ibis::part::writeColumn
-		    (fdes, nold, nEvents, *values,
+		    (fdes, nold, nEvents, 0, *values,
 		     (int16_t)0x7FFF, msk1, msk0);
 	    else
 		ierr = -4;
@@ -2633,7 +2633,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    std::auto_ptr< array_t<uint16_t> > values(col.selectUShorts(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
-		    (fdes, nold, nEvents, *values,
+		    (fdes, nold, nEvents, 0, *values,
 		     (uint16_t)0xFFFF, msk1, msk0);
 	    else
 		ierr = -4;
@@ -2642,7 +2642,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    std::auto_ptr< array_t<int32_t> > values(col.selectInts(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
-		    (fdes, nold, nEvents, *values,
+		    (fdes, nold, nEvents, 0, *values,
 		     (int32_t)0x7FFFFFFF, msk1, msk0);
 	    else
 		ierr = -4;
@@ -2651,7 +2651,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    std::auto_ptr< array_t<uint32_t> > values(col.selectUInts(msk0));
 	    if (values.get() != 0) {
 		ierr = ibis::part::writeColumn
-		    (fdes, nold, nEvents, *values,
+		    (fdes, nold, nEvents, 0, *values,
 		     (uint32_t)0xFFFFFFFF, msk1, msk0);
 	    }
 	    else
@@ -2661,7 +2661,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    std::auto_ptr< array_t<int64_t> > values(col.selectLongs(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn<int64_t>
-		    (fdes, nold, nEvents, *values,
+		    (fdes, nold, nEvents, 0, *values,
 		     0x7FFFFFFFFFFFFFFFLL, msk1, msk0);
 	    else
 		ierr = -4;
@@ -2671,8 +2671,8 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    std::auto_ptr< array_t<uint64_t> > values(col.selectULongs(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn<uint64_t>
-		    (fdes, nold, nEvents, *values, 0xFFFFFFFFFFFFFFFFULL,
-		     msk1, msk0);
+		    (fdes, nold, nEvents, 0, *values,
+		     0xFFFFFFFFFFFFFFFFULL, msk1, msk0);
 	    else
 		ierr = -4;
 	    break;}
@@ -2680,7 +2680,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    std::auto_ptr< array_t<float> > values(col.selectFloats(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
-		    (fdes, nold, nEvents, *values, FASTBIT_FLOAT_NULL,
+		    (fdes, nold, nEvents, 0, *values, FASTBIT_FLOAT_NULL,
 		     msk1, msk0);
 	    else
 		ierr = -4;
@@ -2689,7 +2689,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    std::auto_ptr< array_t<double> > values(col.selectDoubles(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
-		    (fdes, nold, nEvents, *values, FASTBIT_DOUBLE_NULL,
+		    (fdes, nold, nEvents, 0, *values, FASTBIT_DOUBLE_NULL,
 		     msk1, msk0);
 	    else
 		ierr = -4;
@@ -2700,7 +2700,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		values(col.selectStrings(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeString
-		    (fdes, nold, nEvents, *values, msk1, msk0);
+		    (fdes, nold, nEvents, 0, *values, msk1, msk0);
 	    else
 		ierr =-4;
 	    break;}
@@ -2722,7 +2722,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 #endif
 	    if (values.get() != 0) {
 		ierr = ibis::part::writeOpaques
-		    (fdes, sdes, 0,
+		    (fdes, sdes, nold, nEvents, 0,
 		     *static_cast< const std::vector<ibis::opaque>* >
 		     (values.get()),
 		     msk1, msk0);

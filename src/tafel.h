@@ -50,7 +50,7 @@ public:
 
     virtual void clearData();
     virtual int32_t reserveSpace(uint32_t);
-    virtual uint32_t capacity() const;
+    virtual uint32_t bufferCapacity() const;
 
     virtual uint32_t mRows() const {return mrows;}
     virtual uint32_t mColumns() const {return cols.size();}
@@ -106,6 +106,9 @@ protected:
     /// Make all short columns catch up with the longest one.
     void normalize();
 
+    int writeData(const char* dir, const char* tname,
+                  const char* tdesc, const char* idx,
+                  const char* nvpairs, uint32_t offset) const;
     template <typename T>
     void append(const T* in, ibis::bitvector::word_t be,
 		ibis::bitvector::word_t en, array_t<T>& out,
