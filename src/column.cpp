@@ -437,7 +437,7 @@ void ibis::column::computeMinMax() {
     if (name != 0) {
 	ibis::bitvector msk;
 	getNullMask(msk);
-	actualMinMax(name, msk, lower, upper);
+	actualMinMax(name, msk, lower, upper, m_sorted);
     }
 } // ibis::column::computeMinMax
 
@@ -449,7 +449,7 @@ void ibis::column::computeMinMax(const char *dir) {
     const char* name = dataFileName(sname, dir);
     ibis::bitvector msk;
     getNullMask(msk);
-    actualMinMax(name, msk, lower, upper);
+    actualMinMax(name, msk, lower, upper, m_sorted);
 } // ibis::column::computeMinMax
 
 /// Compute the actual min/max of the data in directory @c dir.  Report the
@@ -457,12 +457,12 @@ void ibis::column::computeMinMax(const char *dir) {
 /// This version does not modify the min/max recorded in this column
 /// object.
 void ibis::column::computeMinMax(const char *dir, double &min,
-				 double &max) const {
+				 double &max, bool &asc) const {
     std::string sname;
     const char* name = dataFileName(sname, dir);
     ibis::bitvector msk;
     getNullMask(msk);
-    actualMinMax(name, msk, min, max);
+    actualMinMax(name, msk, min, max, asc);
 } // ibis::column::computeMinMax
 
 /// Compute the actual minimum and maximum values.  Given a data file name,
@@ -470,7 +470,7 @@ void ibis::column::computeMinMax(const char *dir, double &min,
 /// data values.  Only deal with four types of values, unsigned int, signed
 /// int, float and double.
 void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
-				double &min, double &max) const {
+				double &min, double &max, bool &asc) const {
     std::string evt = "column";
     if (ibis::gVerbose > 2) {
         evt += '[';
@@ -497,7 +497,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::BYTE: {
 	array_t<signed char> val;
@@ -513,7 +513,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
                 << "Warning -- " << evt << "failed to retrieve file " << name;
 	    return;
 	}
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::USHORT: {
 	array_t<uint16_t> val;
@@ -530,7 +530,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::SHORT: {
 	array_t<int16_t> val;
@@ -547,7 +547,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::UINT: {
 	array_t<uint32_t> val;
@@ -564,7 +564,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::INT: {
 	array_t<int32_t> val;
@@ -581,7 +581,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::ULONG: {
 	array_t<uint64_t> val;
@@ -598,7 +598,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::LONG: {
 	array_t<int64_t> val;
@@ -615,7 +615,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::FLOAT: {
 	array_t<float> val;
@@ -632,7 +632,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     case ibis::DOUBLE: {
 	array_t<double> val;
@@ -649,15 +649,16 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
 	    return;
 	}
 
-	actualMinMax(val, mask, min, max);
+	actualMinMax(val, mask, min, max, asc);
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 2)
 	    << evt << " can not handle column type "
 	    << ibis::TYPESTRING[static_cast<int>(m_type)]
 	    << ", only support int, uint, float, double";
-	min = DBL_MAX;
 	max = -DBL_MAX;
+	min = DBL_MAX;
+        asc = false;
     } // switch(m_type)
 } // ibis::column::actualMinMax
 
@@ -8442,13 +8443,16 @@ long ibis::column::castAndWrite(const array_t<double>& vals,
 template <typename T>
 void ibis::column::actualMinMax(const array_t<T>& vals,
 				const ibis::bitvector& mask,
-				double& min, double& max) const {
+				double& min, double& max, bool &asc) const {
+    asc = true;
     min = DBL_MAX;
     max = - DBL_MAX;
     if (vals.empty() || mask.cnt() == 0) return;
 
     T amin = std::numeric_limits<T>::max();
     T amax = std::numeric_limits<T>::min();
+    if (amax > 0) amax = -amin;
+    T aprev = amax;
     for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
 	 ix.nIndices() > 0; ++ ix) {
 	const ibis::bitvector::word_t *idx = ix.indices();
@@ -8458,6 +8462,9 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
 	    for (uint32_t i = *idx; i < last; ++ i) {
 		amin = (amin > vals[i] ? vals[i] : amin);
 		amax = (amax < vals[i] ? vals[i] : amax);
+                if (asc)
+                    asc = (vals[i] >= aprev);
+                aprev = vals[i];
 	    }
 	}
 	else {
@@ -8465,6 +8472,9 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
 		 ++ i) {
 		amin = (amin > vals[idx[i]] ? vals[idx[i]] : amin);
 		amax = (amax < vals[idx[i]] ? vals[idx[i]] : amax);
+                if (asc)
+                    asc = (vals[idx[i]] >= aprev);
+                aprev = vals[idx[i]];
 	    }
 	}
     }
@@ -8475,7 +8485,7 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
 	<< "column[" << (thePart!=0 ? thePart->name() : "") << "."
 	<< m_name << "]::actualMinMax -- vals.size() = "
 	<< vals.size() << ", mask.cnt() = " << mask.cnt()
-	<< ", min = " << min << ", max = " << max;
+	<< ", min = " << min << ", max = " << max << ", asc = " << asc;
 } // ibis::column::actualMinMax
 
 template <typename T>
@@ -8520,6 +8530,7 @@ template <typename T>
 T ibis::column::computeMax(const array_t<T>& vals,
 			   const ibis::bitvector& mask) const {
     T res = std::numeric_limits<T>::min();
+    if (res > 0) res = -std::numeric_limits<T>::max();
     if (vals.empty() || mask.cnt() == 0) return res;
 
     for (ibis::bitvector::indexSet ix = mask.firstIndexSet();

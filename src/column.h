@@ -96,7 +96,7 @@ public:
     virtual void computeMinMax();
     virtual void computeMinMax(const char *dir);
     virtual void computeMinMax(const char *dir,
-			       double& min, double &max) const;
+			       double& min, double &max, bool &asc) const;
 
     virtual void loadIndex(const char* iopt=0, int ropt=0) const throw ();
     virtual void unloadIndex() const;
@@ -353,11 +353,11 @@ protected:
     /// Given the name of the data file, compute the actual minimum and the
     /// maximum value.
     void actualMinMax(const char *fname, const ibis::bitvector& mask,
-		      double &min, double &max) const;
+		      double &min, double &max, bool &asc) const;
     /// Compute the minimum and maximum of the values in the array.
     template <typename T>
     void actualMinMax(const array_t<T>& vals, const ibis::bitvector& mask,
-		      double& min, double& max) const;
+		      double& min, double& max, bool &asc) const;
     /// Compute the minimum value in the array.
     template <typename T>
     T computeMin(const array_t<T>& vals,

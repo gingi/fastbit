@@ -1,6 +1,16 @@
+2013-11-15 John Wu <John dot Wu at ACM dot org>
+	* src/column.h, src/column.cpp: add extra check for ordering of
+	the values in actualMinMax
+
+2013-11-14 John Wu <John dot Wu at ACM dot org>
+	* src/parti.cpp:289 add block to check for the case of sorted
+	input data
+	* src/column.cpp: replace numeric_limits<T>::min() with an
+	equivalent of numeric_limits<T>::lowest()
+
 2013-10-31 John Wu <John dot Wu at ACM dot org>
-	* src/tafel: add function writeData to perform the actual write
-	operations, change the original write to manage the calls to
+	* src/tafel.cpp: add function writeData to perform the actual
+	write operations, change the original write to manage the calls to
 	writeData
 	* examples/ardea.cpp: add option -p to allow the users to specify
 	a maximum size for data partitions
@@ -27,7 +37,8 @@
 	* src/array_t.cpp: array_t<T>::deepCopy has an incorrect test for
 	the validity of the incoming array (which causes the error
 	reported by Wang JiLong <wang.jilong at huawei.com>, original
-	email message is at <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2013-October/001810.html>)
+	email message is at
+	<https://hpcrdm.lbl.gov/pipermail/fastbit-users/2013-October/001810.html>)
 
 2013-10-14 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp, src/whereParser.yy: add support for

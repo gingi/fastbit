@@ -7495,8 +7495,10 @@ void ibis::part::testRangeOperators(const ibis::column* col,
 	 ibis::qExpr::OP_GT, ibis::qExpr::OP_GE, ibis::qExpr::OP_EQ};
     double b1 = col->lowerBound();
     double b2 = col->upperBound();
-    if (b2 <= b1)
-	col->computeMinMax(currentDataDir(), b1, b2);
+    if (b2 <= b1) {
+        bool asc;
+	col->computeMinMax(currentDataDir(), b1, b2, asc);
+    }
     if (b2 <= b1) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- part[" << (m_name ? m_name : "?")

@@ -286,6 +286,13 @@ long ibis::part::reorder(const ibis::table::stringList& names,
 	 ++ it) { // update the m_sorted flag of each column
 	(*it).second->isSorted((*it).second == keys[0]);
     }
+    ierr = 0;
+    for (uint32_t i = 0; 0 == ierr && i < ind1.size(); ++ i)
+        ierr = (ind1[i] != i);
+    if (ierr == 0) {// no need for further action
+        writeMetaData(nEvents, columns, activeDir);
+        return ierr;
+    }
 
     LOGGER(ibis::gVerbose > 2 && load.size() > 0)
 	<< evt << " start moving unsorted columns ...";

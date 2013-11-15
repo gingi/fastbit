@@ -2651,7 +2651,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 		return -9L;
 	    }
 	    vmin = 127; //std::numeric_limits<char>::max();
-	    vmax = -128; //std::numeric_limits<char>::min();
+	    vmax = -128; //std::numeric_limits<char>::lowest();
 	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 		 is.nIndices() > 0; ++ is) {
 		const ibis::bitvector::word_t nind = is.nIndices();
@@ -3324,7 +3324,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 		return -41L;
 	    }
 	    vmin = std::numeric_limits<float>::max();
-	    vmax = std::numeric_limits<float>::min();
+	    vmax = -std::numeric_limits<float>::max();
 	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 		 is.nIndices() > 0; ++ is) {
 		const ibis::bitvector::word_t nind = is.nIndices();
@@ -3404,7 +3404,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
 		return -45L;
 	    }
 	    vmin = std::numeric_limits<double>::max();
-	    vmax = std::numeric_limits<double>::min();
+	    vmax = -std::numeric_limits<double>::max();
 	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
 		 is.nIndices() > 0; ++ is) {
 		const ibis::bitvector::word_t nind = is.nIndices();

@@ -3467,7 +3467,7 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 	    }
 	}
 	else {
-	    LOGGER(ibis::gVerbose > 2)
+	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt << " can not find a column named "
 		<< *nit;
 	}
@@ -3507,8 +3507,9 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
 				(*it).second->lowerBound());
 	    }
 	    else {
+                bool asc;
 		double cmin, cmax;
-		(*it).second->computeMinMax(0, cmin, cmax);
+		(*it).second->computeMinMax(0, cmin, cmax, asc);
 		if (cmax > cmin) {
 		    keys.push_back((*it).second);
 		    width.push_back(cmax - cmin);
@@ -5225,8 +5226,16 @@ ibis::bord::column::getRawData() const {
     return str;
 } // ibis::bord::column::getRawData
 
-void ibis::bord::column::computeMinMax(const char *,
-				       double &min, double &max) const {
+void ibis::bord::column::computeMinMax() {
+    computeMinMax(thePart->currentDataDir(), lower, upper, m_sorted);
+} // ibis::bord::column::computeMinMax
+
+void ibis::bord::column::computeMinMax(const char *dir) {
+    computeMinMax(dir, lower, upper, m_sorted);
+} // ibis::bord::column::computeMinMax
+
+void ibis::bord::column::computeMinMax(const char *, double &min,
+                                       double &max, bool &asc) const {
     if (buffer == 0) return;
 
     switch (m_type) {
@@ -5234,62 +5243,62 @@ void ibis::bord::column::computeMinMax(const char *,
 	const array_t<unsigned char> &val =
 	    * static_cast<const array_t<unsigned char>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::BYTE: {
 	const array_t<signed char> &val =
 	    * static_cast<const array_t<signed char>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::USHORT: {
 	const array_t<uint16_t> &val = 
 	    * static_cast<const array_t<uint16_t>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::SHORT: {
 	const array_t<int16_t> &val =
 	    * static_cast<const array_t<int16_t>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::UINT: {
 	const array_t<uint32_t> &val =
 	    * static_cast<const array_t<uint32_t>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::INT: {
 	const array_t<int32_t> &val =
 	    *static_cast<const array_t<int32_t>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::OID:
     case ibis::ULONG: {
 	const array_t<uint64_t> &val =
 	    * static_cast<const array_t<uint64_t>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::LONG: {
 	const array_t<int64_t> &val =
 	    *static_cast<const array_t<int64_t>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::FLOAT: {
 	const array_t<float> &val =
 	    * static_cast<const array_t<float>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     case ibis::DOUBLE: {
 	const array_t<double> &val =
 	    * static_cast<const array_t<double>*>(buffer);
 
-	ibis::column::actualMinMax(val, mask_, min, max);
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 4)
@@ -5297,6 +5306,7 @@ void ibis::bord::column::computeMinMax(const char *,
 	    << '.' << m_name << "]::computeMinMax -- column type "
 	    << TYPESTRING[static_cast<int>(m_type)] << " is not one of the "
 	    "supported types (int, uint, float, double)";
+        asc = false;
 	min = 0;
 	max = (thePart != 0) ? thePart->nRows() : -DBL_MAX;
     } // switch(m_type)

@@ -545,16 +545,15 @@ public:
     virtual long append(const ibis::column &scol,
 			const ibis::qContinuousRange &cnd);
 
-    virtual void computeMinMax() {
-	computeMinMax(thePart->currentDataDir(), lower, upper);}
-    virtual void computeMinMax(const char *dir) {
-	computeMinMax(dir, lower, upper);}
-    virtual void computeMinMax(const char *, double &min, double &max) const;
-    virtual int  getString(uint32_t, std::string &) const;
-    virtual int  getValuesArray(void*) const;
+    virtual void computeMinMax();
+    virtual void computeMinMax(const char *);
+    virtual void computeMinMax(const char *, double &, double &, bool &) const;
 
     void reverseRows();
     int  limit(uint32_t nr);
+
+    virtual int  getString(uint32_t, std::string &) const;
+    virtual int  getValuesArray(void*) const;
 
     void* &getArray() {return buffer;}
     void*  getArray() const {return buffer;}

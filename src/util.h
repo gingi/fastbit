@@ -516,7 +516,7 @@ namespace ibis {
 	/// types, and Tout must be an elementary integral type.
 	template <typename Tin, typename Tout>
 	void round_down(const Tin& inval, Tout& outval) {
-	    outval = ((double)std::numeric_limits<Tout>::min() > inval ?
+	    outval = (std::numeric_limits<Tout>::min() > inval ?
 		      std::numeric_limits<Tout>::min() :
 		      (double)std::numeric_limits<Tout>::max() <= inval ?
 		      std::numeric_limits<Tout>::max() :
@@ -527,7 +527,7 @@ namespace ibis {
 	/// data types, and Tout must be an elementary integral type.
 	template <typename Tin, typename Tout>
 	void round_up(const Tin& inval, Tout& outval) {
-	    outval = ((double)std::numeric_limits<Tout>::min() >= inval ?
+	    outval = (std::numeric_limits<Tout>::min() >= inval ?
 		      std::numeric_limits<Tout>::min() :
 		      (double) std::numeric_limits<Tout>::max() < inval ?
 		      std::numeric_limits<Tout>::max() :

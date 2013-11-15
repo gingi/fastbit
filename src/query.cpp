@@ -13,7 +13,7 @@
 #include "query.h"	// class query (prototypes for all functions here)
 #include "bundle.h"	// class bundle
 #include "ibin.h"	// ibis::bin
-#include "iroster.h"	// ibis::roster, used by ibis::part::vault
+#include "iroster.h"	// ibis::roster
 #include "irelic.h"	// ibis::join::estimate
 #include "bitvector64.h"
 
