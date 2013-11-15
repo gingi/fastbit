@@ -7655,6 +7655,10 @@ void ibis::part::testRangeOperators(const ibis::column* col,
     double b2 = col->upperBound();
     if (b2 <= b1) {
         bool asc;
+	col->computeMinMax(currentDataDir(), b1, b2, asc);
+    }
+    if (b2 <= b1) {
+        bool asc;
         col->computeMinMax(currentDataDir(), b1, b2, asc);
     }
     if (b2 <= b1) {

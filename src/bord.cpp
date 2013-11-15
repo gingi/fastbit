@@ -3641,26 +3641,26 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
     std::set<const char*, ibis::lessi> used;
     colVector keys, load; // sort according to the keys
     for (ibis::table::stringList::const_iterator nit = cols.begin();
-         nit != cols.end(); ++ nit) {
-        ibis::part::columnList::iterator it = columns.find(*nit);
-        if (it != columns.end()) {
-            used.insert((*it).first);
-            if ((*it).second->upperBound() > (*it).second->lowerBound()) {
-                keys.push_back((*it).second);
-            }
-            else {
-                (*it).second->computeMinMax();
-                if ((*it).second->upperBound() > (*it).second->lowerBound())
-                    keys.push_back((*it).second);
-                else
-                    load.push_back((*it).second);
-            }
-        }
-        else {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << evt << " can not find a column named "
-                << *nit;
-        }
+	 nit != cols.end(); ++ nit) {
+	ibis::part::columnList::iterator it = columns.find(*nit);
+	if (it != columns.end()) {
+	    used.insert((*it).first);
+	    if ((*it).second->upperBound() > (*it).second->lowerBound()) {
+		keys.push_back((*it).second);
+	    }
+	    else {
+		(*it).second->computeMinMax();
+		if ((*it).second->upperBound() > (*it).second->lowerBound())
+		    keys.push_back((*it).second);
+		else
+		    load.push_back((*it).second);
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " can not find a column named "
+		<< *nit;
+	}
     }
 
     if (keys.empty()) { // use all integral values
@@ -3683,41 +3683,41 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
             }
         }
 
-        load.clear();
-        keys.clear();
-        array_t<double> width;
-        for (ibis::part::columnList::iterator it = columns.begin();
-             it != columns.end(); ++ it) {
-            if (! (*it).second->isInteger()) {
-                load.push_back((*it).second);
-            }
-            else if ((*it).second->upperBound() > (*it).second->lowerBound()) {
-                keys.push_back((*it).second);
-                width.push_back((*it).second->upperBound() -
-                                (*it).second->lowerBound());
-            }
-            else {
+	load.clear();
+	keys.clear();
+	array_t<double> width;
+	for (ibis::part::columnList::iterator it = columns.begin();
+	     it != columns.end(); ++ it) {
+	    if (! (*it).second->isInteger()) {
+		load.push_back((*it).second);
+	    }
+	    else if ((*it).second->upperBound() > (*it).second->lowerBound()) {
+		keys.push_back((*it).second);
+		width.push_back((*it).second->upperBound() -
+				(*it).second->lowerBound());
+	    }
+	    else {
                 bool asc;
-                double cmin, cmax;
-                (*it).second->computeMinMax(0, cmin, cmax, asc);
-                if (cmax > cmin) {
-                    keys.push_back((*it).second);
-                    width.push_back(cmax - cmin);
-                }
-                else {
-                    load.push_back((*it).second);
-                }
-            }
-        }
-        if (keys.empty()) return -1; //no integral values to use as key
-        if (keys.size() > 1) {
-            colVector tmp(keys.size());
-            array_t<uint32_t> idx;
-            width.sort(idx);
-            for (uint32_t i = 0; i < keys.size(); ++ i)
-                tmp[i] = keys[idx[i]];
-            tmp.swap(keys);
-        }
+		double cmin, cmax;
+		(*it).second->computeMinMax(0, cmin, cmax, asc);
+		if (cmax > cmin) {
+		    keys.push_back((*it).second);
+		    width.push_back(cmax - cmin);
+		}
+		else {
+		    load.push_back((*it).second);
+		}
+	    }
+	}
+	if (keys.empty()) return -1; //no integral values to use as key
+	if (keys.size() > 1) {
+	    colVector tmp(keys.size());
+	    array_t<uint32_t> idx;
+	    width.sort(idx);
+	    for (uint32_t i = 0; i < keys.size(); ++ i)
+		tmp[i] = keys[idx[i]];
+	    tmp.swap(keys);
+	}
     }
     else {
         for (ibis::part::columnList::const_iterator it = columns.begin();
@@ -5699,7 +5699,7 @@ ibis::bord::column::getRawData() const {
 } // ibis::bord::column::getRawData
 
 void ibis::bord::column::computeMinMax() {
-    computeMinMax(static_cast<const char*>(0), lower, upper, m_sorted);
+    computeMinMax(thePart->currentDataDir(), lower, upper, m_sorted);
 } // ibis::bord::column::computeMinMax
 
 void ibis::bord::column::computeMinMax(const char *dir) {
@@ -5720,72 +5720,72 @@ void ibis::bord::column::computeMinMax(const char *, double &min,
         const array_t<unsigned char> &val =
             * static_cast<const array_t<unsigned char>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::BYTE: {
         const array_t<signed char> &val =
             * static_cast<const array_t<signed char>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::USHORT: {
         const array_t<uint16_t> &val =
             * static_cast<const array_t<uint16_t>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::SHORT: {
         const array_t<int16_t> &val =
             * static_cast<const array_t<int16_t>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::UINT: {
         const array_t<uint32_t> &val =
             * static_cast<const array_t<uint32_t>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::INT: {
         const array_t<int32_t> &val =
             *static_cast<const array_t<int32_t>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::OID:
     case ibis::ULONG: {
         const array_t<uint64_t> &val =
             * static_cast<const array_t<uint64_t>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::LONG: {
         const array_t<int64_t> &val =
             *static_cast<const array_t<int64_t>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::FLOAT: {
         const array_t<float> &val =
             * static_cast<const array_t<float>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     case ibis::DOUBLE: {
         const array_t<double> &val =
             * static_cast<const array_t<double>*>(buffer);
 
-        ibis::column::actualMinMax(val, mask_, min, max, asc);
-        break;}
+	ibis::column::actualMinMax(val, mask_, min, max, asc);
+	break;}
     default:
-        LOGGER(ibis::gVerbose > 4)
-            << "column[" << (thePart ? thePart->name() : "")
-            << '.' << m_name << "]::computeMinMax -- column type "
-            << TYPESTRING[static_cast<int>(m_type)] << " is not one of the "
-            "supported types (int, uint, float, double)";
+	LOGGER(ibis::gVerbose > 4)
+	    << "column[" << (thePart ? thePart->name() : "")
+	    << '.' << m_name << "]::computeMinMax -- column type "
+	    << TYPESTRING[static_cast<int>(m_type)] << " is not one of the "
+	    "supported types (int, uint, float, double)";
         asc = false;
-        min = 0;
-        max = (thePart != 0) ? thePart->nRows() : -DBL_MAX;
+	min = 0;
+	max = (thePart != 0) ? thePart->nRows() : -DBL_MAX;
     } // switch(m_type)
 } // ibis::bord::column::computeMinMax
 

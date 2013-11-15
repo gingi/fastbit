@@ -1120,8 +1120,8 @@ ibis::index* ibis::index::buildNew
                     t = BYLT;
                 }
                 else {
-                    double lo, hi;
-                    c->computeMinMax(dfname, lo, hi);
+                    bool asc;
+                    c->computeMinMax(dfname, lo, hi, asc);
                     if (lo < hi)
                         t = BYLT;
                 }
@@ -1145,7 +1145,8 @@ ibis::index* ibis::index::buildNew
                     t = FADE;
                 }
                 else {
-                    c->computeMinMax(dfname, lo, hi);
+                    bool asc;
+                    c->computeMinMax(dfname, lo, hi, asc);
                     if (lo < hi)
                         t = FADE;
                 }
@@ -1165,8 +1166,10 @@ ibis::index* ibis::index::buildNew
         }
         else if (strstr(spec, "slice") != 0) { // bit-slice, bitslice
             if (c->isInteger()) {
-                if (! (lo < hi))
-                    c->computeMinMax(dfname, lo, hi);
+                if (! (lo < hi)) {
+                    bool asc;
+                    c->computeMinMax(dfname, lo, hi, asc);
+                }
                 if (lo >= 0)
                     t = SLICE;
                 else

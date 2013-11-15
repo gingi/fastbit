@@ -10,11 +10,11 @@
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)   // some identifier longer than 256 characters
 #endif
-#include "query.h"      // class query (prototypes for all functions here)
-#include "bundle.h"     // class bundle
-#include "ibin.h"       // ibis::bin
-#include "iroster.h"    // ibis::roster
-#include "irelic.h"     // ibis::join::estimate
+#include "query.h"	// class query (prototypes for all functions here)
+#include "bundle.h"	// class bundle
+#include "ibin.h"	// ibis::bin
+#include "iroster.h"	// ibis::roster
+#include "irelic.h"	// ibis::join::estimate
 #include "bitvector64.h"
 
 #include <stdio.h>      // remove()

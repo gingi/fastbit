@@ -448,200 +448,199 @@ namespace ibis {
 
     /// Organize the miscellaneous functions under the name util.
     namespace util {
-        /// charTable lists the 64 printable characters to be used for names
-        extern const char* charTable;
-        /// charIndex maps the characters (ASCII) back to integer [0-64]
-        extern const short unsigned charIndex[];
-        /// Delimiters used to separate a string of names. @sa ibis::nameList
-        extern const char* delimiters;
-        /// log base 2 of an integer, the lookup table
-        extern const int log2table[256];
-        /// A mutex for serialize operations FastBit wide.  Currently it is
-        /// used by the functions that generating user name, asking for
-        /// password, backing up active tables, cleaning up the list of
-        /// tables.  It is also used extensively in the implementation of C
-        /// API functions to ensure the cache maintained for C users are
-        /// manipulated by one user at a time.
-        extern FASTBIT_CXX_DLLSPEC pthread_mutex_t envLock;
+	/// charTable lists the 64 printable characters to be used for names
+	extern const char* charTable;
+	/// charIndex maps the characters (ASCII) back to integer [0-64]
+	extern const short unsigned charIndex[];
+	/// Delimiters used to separate a string of names. @sa ibis::nameList
+	extern const char* delimiters;
+	/// log base 2 of an integer, the lookup table
+	extern const int log2table[256];
+	/// A mutex for serialize operations FastBit wide.  Currently it is
+	/// used by the functions that generating user name, asking for
+	/// password, backing up active tables, cleaning up the list of
+	/// tables.  It is also used extensively in the implementation of C
+	/// API functions to ensure the cache maintained for C users are
+	/// manipulated by one user at a time.
+	extern FASTBIT_CXX_DLLSPEC pthread_mutex_t envLock;
 
-        /// Remove leading and trailing blank space.
-        inline char* trim(char* str);
-        /// Duplicate string content with C++ default new operator.
-        char* strnewdup(const char* s);
-        /// Duplicate no more than n characters.
-        char* strnewdup(const char* s, const uint32_t n);
-        /// Remove trailing character 'tail' from str.
-        inline void removeTail(char* str, char tail);
-        char* getString(const char* buf);
-        const char* getToken(char*& str, const char* tok_chrs);
-        int readInt(int64_t& val, const char *&str,
-                    const char* del=ibis::util::delimiters);
-        int readUInt(uint64_t& val, const char *&str,
-                     const char* del=ibis::util::delimiters);
-        int readDouble(double& val, const char *&str,
-                       const char* del=ibis::util::delimiters);
-        FASTBIT_CXX_DLLSPEC int
-        readString(std::string& str, const char*& buf,
-                   const char *delim=0);
-        FASTBIT_CXX_DLLSPEC const char*
-        readString(char*& buf, const char *delim=0);
+	/// Remove leading and trailing blank space.
+	inline char* trim(char* str);
+	/// Duplicate string content with C++ default new operator.
+	char* strnewdup(const char* s);
+	/// Duplicate no more than n characters.
+	char* strnewdup(const char* s, const uint32_t n);
+	/// Remove trailing character 'tail' from str.
+	inline void removeTail(char* str, char tail);
+	char* getString(const char* buf);
+	const char* getToken(char*& str, const char* tok_chrs);
+	int readInt(int64_t& val, const char *&str,
+		    const char* del=ibis::util::delimiters);
+	int readUInt(uint64_t& val, const char *&str,
+		     const char* del=ibis::util::delimiters);
+	int readDouble(double& val, const char *&str,
+		       const char* del=ibis::util::delimiters);
+	FASTBIT_CXX_DLLSPEC int
+	readString(std::string& str, const char*& buf,
+		   const char *delim=0);
+	FASTBIT_CXX_DLLSPEC const char*
+	readString(char*& buf, const char *delim=0);
 
-        int64_t read(int, void*, int64_t);
-        int64_t write(int, const void*, int64_t);
+	int64_t read(int, void*, int64_t);
+	int64_t write(int, const void*, int64_t);
 
-        void removeDir(const char* name, bool leaveDir=false);
-        int makeDir(const char* dir);
-        FASTBIT_CXX_DLLSPEC off_t getFileSize(const char* name);
-        int copy(const char* to, const char* from);
+	void removeDir(const char* name, bool leaveDir=false);
+	int makeDir(const char* dir);
+	FASTBIT_CXX_DLLSPEC off_t getFileSize(const char* name);
+	int copy(const char* to, const char* from);
 
-        /// Set the verboseness level.  Unless the code is compiled with
-        /// DEBUG macro set, the default verboseness level is 0, which will
-        /// only print out information about major errors.
-        inline void setVerboseLevel(int v) {ibis::gVerbose=v;}
-        /// Return the user name.
-        FASTBIT_CXX_DLLSPEC const char* userName();
-        uint32_t serialNumber();
-        void uniformFraction(const long unsigned idx,
-                             long unsigned &denominator,
-                             long unsigned &numerator);
-        inline double rand();
+	/// Set the verboseness level.  Unless the code is compiled with
+	/// DEBUG macro set, the default verboseness level is 0, which will
+	/// only print out information about major errors.
+	inline void setVerboseLevel(int v) {ibis::gVerbose=v;}
+	/// Return the user name.
+	FASTBIT_CXX_DLLSPEC const char* userName();
+	uint32_t serialNumber();
+	void uniformFraction(const long unsigned idx,
+			     long unsigned &denominator,
+			     long unsigned &numerator);
+	inline double rand();
 
-        ///@{
-        FASTBIT_CXX_DLLSPEC uint32_t checksum(const char* str, uint32_t sz);
-        inline uint32_t checksum(uint32_t a, uint32_t b);
-        std::string shortName(const std::string& longname);
-        std::string randName(const std::string& longname);
-        ///@}
+	///@{
+	FASTBIT_CXX_DLLSPEC uint32_t checksum(const char* str, uint32_t sz);
+	inline uint32_t checksum(uint32_t a, uint32_t b);
+	std::string shortName(const std::string& longname);
+	std::string randName(const std::string& longname);
+	///@}
 
-        ///@{
-        void int2string(std::string &str, unsigned val);
-        void int2string(std::string &str, unsigned v1, unsigned v2);
-        void int2string(std::string &str, unsigned v1,
-                        unsigned v2, unsigned v3);
-        void int2string(std::string &str, const std::vector<unsigned>& val);
-        void encode64(uint64_t, std::string&);
-        int  decode64(uint64_t&, const std::string&);
-        int  decode16(uint64_t&, const char*);
-        std::string groupby1000(uint64_t);
-        ///@}
+	///@{
+	void int2string(std::string &str, unsigned val);
+	void int2string(std::string &str, unsigned v1, unsigned v2);
+	void int2string(std::string &str, unsigned v1,
+			unsigned v2, unsigned v3);
+	void int2string(std::string &str, const std::vector<unsigned>& val);
+	void encode64(uint64_t, std::string&);
+	int  decode64(uint64_t&, const std::string&);
+	int  decode16(uint64_t&, const char*);
+	std::string groupby1000(uint64_t);
+	///@}
 
-        /// Functions to handle manipulation of floating-point numbers.
-        ///@{
-        double incrDouble(const double&);
-        double decrDouble(const double&);
-        void   eq2range(const double&, double&, double&);
-        /// Reduce the decimal precision of the incoming floating-point
-        /// value to specified precision. 
-        inline double coarsen(const double in, unsigned prec=2);
-        /// Compute a compact 64-bit floating-point value with a short
-        /// decimal representation.
-        double compactValue(double left, double right,
-                            double start=0.0);
+	/// Functions to handle manipulation of floating-point numbers.
+	///@{
+	double incrDouble(const double&);
+	double decrDouble(const double&);
+	void   eq2range(const double&, double&, double&);
+	/// Reduce the decimal precision of the incoming floating-point
+	/// value to specified precision. 
+	inline double coarsen(const double in, unsigned prec=2);
+	/// Compute a compact 64-bit floating-point value with a short
+	/// decimal representation.
+	double compactValue(double left, double right,
+			    double start=0.0);
 
-        /// Compute a compact 64-bit floating-point value with a short
-        /// binary representation.
-        double compactValue2(double left, double right,
-                             double start=0.0);
+	/// Compute a compact 64-bit floating-point value with a short
+	/// binary representation.
+	double compactValue2(double left, double right,
+			     double start=0.0);
 
-        /// Set a double to NaN.
-        void setNaN(double& val);
-        void setNaN(float& val);
+	/// Set a double to NaN.
+	void setNaN(double& val);
+	void setNaN(float& val);
 
-        /// Round the incoming value to the largest output value that is no
-        /// more than the input.  Both Tin and Tout must be elementary data
-        /// types, and Tout must be an elementary integral type.
-        template <typename Tin, typename Tout>
-        void round_down(const Tin& inval, Tout& outval) {
-            outval = (std::numeric_limits<Tout>::min() > inval ?
-                      std::numeric_limits<Tout>::min() :
-                      (double)std::numeric_limits<Tout>::max() <= inval ?
-                      std::numeric_limits<Tout>::max() :
-                      static_cast<Tout>(inval));
-        }
-        /// Round the incoming value to the smallest output value that is
-        /// no less than the input.  Both Tin and Tout must be elementary
-        /// data types, and Tout must be an elementary integral type.
-        template <typename Tin, typename Tout>
-        void round_up(const Tin& inval, Tout& outval) {
-            outval = (std::numeric_limits<Tout>::min() >= inval ?
-                      std::numeric_limits<Tout>::min() :
-                      (double) std::numeric_limits<Tout>::max() < inval ?
-                      std::numeric_limits<Tout>::max() :
-                      static_cast<Tout>(inval) +
-                      ((inval-static_cast<Tin>(static_cast<Tout>(inval))) > 0));
-        }
-        /// A specialization of round_up for the output type float.
-        template <typename Tin>
-        void round_up(const Tin& inval, float&);
-        /// A specialization of round_up for the output in double.
-        template <typename Tin>
-        void round_up(const Tin& inval, double& outval) {
-            outval = static_cast<double>(inval);
-        }
+	/// Round the incoming value to the largest output value that is no
+	/// more than the input.  Both Tin and Tout must be elementary data
+	/// types, and Tout must be an elementary integral type.
+	template <typename Tin, typename Tout>
+	void round_down(const Tin& inval, Tout& outval) {
+	    outval = (std::numeric_limits<Tout>::min() > inval ?
+		      std::numeric_limits<Tout>::min() :
+		      (double)std::numeric_limits<Tout>::max() <= inval ?
+		      std::numeric_limits<Tout>::max() :
+		      static_cast<Tout>(inval));
+	}
+	/// Round the incoming value to the smallest output value that is
+	/// no less than the input.  Both Tin and Tout must be elementary
+	/// data types, and Tout must be an elementary integral type.
+	template <typename Tin, typename Tout>
+	void round_up(const Tin& inval, Tout& outval) {
+	    outval = (std::numeric_limits<Tout>::min() >= inval ?
+		      std::numeric_limits<Tout>::min() :
+		      (double) std::numeric_limits<Tout>::max() < inval ?
+		      std::numeric_limits<Tout>::max() :
+		      static_cast<Tout>(inval) +
+		      ((inval-static_cast<Tin>(static_cast<Tout>(inval))) > 0));
+	}
+	/// A specialization of round_up for the output type float.
+	template <typename Tin>
+	void round_up(const Tin& inval, float&);
+	/// A specialization of round_up for the output in double.
+	template <typename Tin>
+	void round_up(const Tin& inval, double& outval) {
+	    outval = static_cast<double>(inval);
+	}
 
-        /// Log_2 of a 32-bit integer.
-        inline int log2(uint32_t x) {
-            uint32_t xx, xxx;
-            return (xx = x >> 16)
-                ? (xxx = xx >> 8) ? 24 + log2table[xxx] : 16 + log2table[xx]
-                : (xxx = x >> 8) ? 8 + log2table[xxx] : log2table[x];
-        }
-        /// Log_2 of a 64-bit integer.
-        inline int log2(uint64_t x) {
-            uint32_t xx;
-            return (xx = x >> 32)
-                ? 32 + log2(xx)
-                : log2(static_cast<uint32_t>(x));
-        }
-        ///@}
+	/// Log_2 of a 32-bit integer.
+	inline int log2(uint32_t x) {
+	    register uint32_t xx, xxx;
+	    return (xx = x >> 16)
+		? (xxx = xx >> 8) ? 24 + log2table[xxx] : 16 + log2table[xx]
+		: (xxx = x >> 8) ? 8 + log2table[xxx] : log2table[x];
+	}
+	/// Log_2 of a 64-bit integer.
+	inline int log2(uint64_t x) {
+	    register uint32_t xx;
+	    return (xx = x >> 32)
+		? 32 + log2(xx)
+		: log2(static_cast<uint32_t>(x));
+	}
+	///@}
 
-        FASTBIT_CXX_DLLSPEC void
-        logMessage(const char* event, const char* fmt, ...);
-        FASTBIT_CXX_DLLSPEC FILE* getLogFile();
-        int writeLogFileHeader(FILE *fptr, const char* fname);
-        FASTBIT_CXX_DLLSPEC void closeLogFile();
-        FASTBIT_CXX_DLLSPEC int setLogFileName(const char* filename);
-        FASTBIT_CXX_DLLSPEC const char* getLogFileName();
+	FASTBIT_CXX_DLLSPEC void
+	logMessage(const char* event, const char* fmt, ...);
+	FASTBIT_CXX_DLLSPEC FILE* getLogFile();
+	int writeLogFileHeader(FILE *fptr, const char* fname);
+	FASTBIT_CXX_DLLSPEC void closeLogFile();
+	FASTBIT_CXX_DLLSPEC int setLogFileName(const char* filename);
+	FASTBIT_CXX_DLLSPEC const char* getLogFileName();
 
-        FASTBIT_CXX_DLLSPEC bool strMatch(const char* str, const char* pat);
-        FASTBIT_CXX_DLLSPEC bool nameMatch(const char* str, const char* pat);
+	FASTBIT_CXX_DLLSPEC bool strMatch(const char* str, const char* pat);
+	FASTBIT_CXX_DLLSPEC bool nameMatch(const char* str, const char* pat);
 
-        /// Compute the outer product of @c a and @c b, add the result to @c c.
-        const ibis::bitvector64& outerProduct(const ibis::bitvector& a,
-                                              const ibis::bitvector& b,
-                                              ibis::bitvector64& c);
-        /// Add the strict upper triangular portion of the outer production
-        /// between @c a and @c b to @c c.
-        const ibis::bitvector64& outerProductUpper(const ibis::bitvector& a,
-                                                   const ibis::bitvector& b,
-                                                   ibis::bitvector64& c);
+	/// Compute the outer product of @c a and @c b, add the result to @c c.
+	const ibis::bitvector64& outerProduct(const ibis::bitvector& a,
+					      const ibis::bitvector& b,
+					      ibis::bitvector64& c);
+	/// Add the strict upper triangular portion of the outer production
+	/// between @c a and @c b to @c c.
+	const ibis::bitvector64& outerProductUpper(const ibis::bitvector& a,
+						   const ibis::bitvector& b,
+						   ibis::bitvector64& c);
 
-        /// Intersect two sets of bit vectors.
-        long intersect(const std::vector<ibis::bitvector> &bits1,
-                       const std::vector<ibis::bitvector> &bits2,
-                       std::vector<ibis::bitvector> &res);
-        /// Intersect three sets of bit vectors.
-        long intersect(const std::vector<ibis::bitvector> &bits1,
-                       const std::vector<ibis::bitvector> &bits2,
-                       const std::vector<ibis::bitvector> &bits3,
-                       std::vector<ibis::bitvector> &res);
-        void clear(ibis::array_t<ibis::bitvector*> &bv) throw();
-        void clear(ibis::partList &pl) throw();
-        void updateDatasets(void);
-        void cleanDatasets(void);
+	/// Intersect two sets of bit vectors.
+	long intersect(const std::vector<ibis::bitvector> &bits1,
+		       const std::vector<ibis::bitvector> &bits2,
+		       std::vector<ibis::bitvector> &res);
+	/// Intersect three sets of bit vectors.
+	long intersect(const std::vector<ibis::bitvector> &bits1,
+		       const std::vector<ibis::bitvector> &bits2,
+		       const std::vector<ibis::bitvector> &bits3,
+		       std::vector<ibis::bitvector> &res);
+	void clear(ibis::array_t<ibis::bitvector*> &bv) throw();
+	void clear(ibis::partList &pl) throw();
+	void updateDatasets(void);
 
-        /// Return a pointer to the string designating the version of this
-        /// software.
-        inline const char* getVersionString() {
-            return FASTBIT_STRING;
-        }
-        /// Return an integer designating the version of this software.
-        /// The version number is composed of four segments each with two
-        /// decimal digits.  For example, version 1.3.0.2 will be
-        /// represented as 1030002.  The stable releases typically have
-        /// the last segment as zero, which is generally referred to
-        /// without the last ".0".
-        inline int getVersionNumber() {
+	/// Return a pointer to the string designating the version of this
+	/// software.
+	inline const char* getVersionString() {
+	    return FASTBIT_STRING;
+	}
+	/// Return an integer designating the version of this software.
+	/// The version number is composed of four segments each with two
+	/// decimal digits.  For example, version 1.3.0.2 will be
+	/// represented as 1030002.  The stable releases typically have
+	/// the last segment as zero, which is generally referred to
+	/// without the last ".0".
+	inline int getVersionNumber() {
 #ifdef FASTBIT_IBIS_INT_VERSION
             return FASTBIT_IBIS_INT_VERSION;
 #else
