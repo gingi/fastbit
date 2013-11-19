@@ -5064,56 +5064,145 @@ int main(int argc, char** argv) {
     _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
     try {
-        int interactive;
-        std::vector<const char*> alist, qlist, slist;
-        ibis::joinlist joins;
-        std::vector<std::string> queff; // queries read from files (-f)
-        const char* uid = ibis::util::userName();
-        ibis::horometer timer; // total elapsed time
-        timer.start();
+	int interactive;
+	std::vector<const char*> alist, qlist, slist;
+	ibis::joinlist joins;
+	std::vector<std::string> queff; // queries read from files (-f)
+	const char* uid = ibis::util::userName();
+	ibis::horometer timer; // total elapsed time
+	timer.start();
 
-        // parse the command line arguments
-        parse_args(argc, argv, interactive, alist, slist, qlist,
-                   queff, joins);
+	// parse the command line arguments
+	parse_args(argc, argv, interactive, alist, slist, qlist,
+		   queff, joins);
 
-        // append new data one directory at a time, the same directory may
-        // be used many times, all incoming directories appended to the
-        // same output directory specified by appendTarget
-        for (std::vector<const char*>::const_iterator it = alist.begin();
-             it != alist.end();
-             ++ it) { // add new data before doing anything else
-            doAppend(*it);
-        }
-        alist.clear(); // no more use for it
+	// append new data one directory at a time, the same directory may
+	// be used many times, all incoming directories appended to the
+	// same output directory specified by appendTarget
+	for (std::vector<const char*>::const_iterator it = alist.begin();
+	     it != alist.end();
+	     ++ it) { // add new data before doing anything else
+	    doAppend(*it);
+	}
+	alist.clear(); // no more use for it
 
-        if (yankstring != 0 && *yankstring != 0)
-            doDeletion();
-        if (keepstring != 0 && *keepstring != 0)
-            reverseDeletion();
+	if (yankstring != 0 && *yankstring != 0)
+	    doDeletion();
+	if (keepstring != 0 && *keepstring != 0)
+	    reverseDeletion();
 
-        // build new indexes
-        if (build_index > 0 && ! ibis::datasets.empty()) {
-            if (ibis::gVerbose > 0) {
-                ibis::util::logger lg;
-                lg() << *argv << ": start building indexes (nthreads="
-                     << build_index << ", indexingOption";
-                if (indexingOptions.empty()) {
-                    lg() << "= -";
-                }
-                else if (indexingOptions.size() == 1) {
-                    lg() << "= " << indexingOptions.back();
-                }
-                else {
-                    lg() << "s= {";
-                    for (unsigned j = 0; j+1 < indexingOptions.size(); j += 2)
-                        lg() << (j>0?", ":"") << indexingOptions[j] << ':'
-                             << indexingOptions[j+1];
-                    if (indexingOptions.size() % 2 > 0)
-                        lg() << ", *:" << indexingOptions.back();
-                    lg() << "}";
-                }
-                lg() << ") ...";
-            }
+	// build new indexes
+	if (build_index > 0 && ! ibis::datasets.empty()) {
+	    if (ibis::gVerbose > 0) {
+		ibis::util::logger lg;
+		lg() << *argv << ": start building indexes (nthreads="
+		     << build_index << ", indexingOption";
+		if (indexingOptions.empty()) {
+		    lg() << "= -";
+		}
+		else if (indexingOptions.size() == 1) {
+		    lg() << "= " << indexingOptions.back();
+		}
+		else {
+		    lg() << "s= {";
+		    for (unsigned j = 0; j+1 < indexingOptions.size(); j += 2)
+			lg() << (j>0?", ":"") << indexingOptions[j] << ':'
+			     << indexingOptions[j+1];
+		    if (indexingOptions.size() % 2 > 0)
+			lg() << ", *:" << indexingOptions.back();
+		    lg() << "}";
+		}
+		lg() << ") ...";
+	    }
+
+	    ibis::horometer timer1;
+	    timer1.start();
+	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
+		 it != ibis::datasets.end(); ++ it) {
+		if (indexingOptions.size() == 1 &&
+		    ((*it)->indexSpec() == 0 ||
+		     stricmp(indexingOptions.back(), (*it)->indexSpec())
+		     != 0)) {
+		    (*it)->indexSpec(indexingOptions.back());
+		    (*it)->purgeIndexFiles();
+		}
+		else if (zapping) {
+		    (*it)->purgeIndexFiles();
+		}
+		(*it)->buildIndexes(indexingOptions, build_index);
+	    }
+	    timer1.stop();
+	    if (ibis::gVerbose >= 0) {
+		ibis::util::logger lg;
+		lg() << *argv << ": building indexes for "
+		     << ibis::datasets.size() << " data partition"
+		     << (ibis::datasets.size()>1 ? "s" : "");
+		if (ibis::gVerbose > 0)
+		    lg() << " took " << timer1.CPUTime() << " CPU seconds, "
+			 << timer1.realTime() << " elapsed seconds\n";
+	    }
+	    zapping = false;
+	}
+	// sort the specified columns
+	if (slist.size() > 0) {
+	    ibis::horometer timer2;
+	    timer2.start();
+	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
+		 it != ibis::datasets.end(); ++ it) {
+		for (size_t j = 0; j < slist.size(); ++ j)
+		    (*it)->buildSorted(slist[j]);
+	    }
+	    timer2.stop();
+	    if (ibis::gVerbose >= 0) {
+		ibis::util::logger lg;
+		lg() << *argv << ": building sorted version of "
+		     << slist.size() << " column" << (slist.size()>1 ? "s" : "")
+		     << " for " << ibis::datasets.size() << " data partition"
+		     << (ibis::datasets.size()>1 ? "s" : "");
+		if (ibis::gVerbose > 0)
+		    lg() << " took " << timer2.CPUTime() << " CPU seconds, "
+			 << timer2.realTime() << " elapsed seconds\n";
+	    }
+	    slist.clear(); // no longer needed
+	}
+
+	if (testing > 0 && ! ibis::datasets.empty() && threading > 0 &&
+	    qlist.empty()) { // generate random queries
+	    const unsigned mq = (threading > 1 ? threading : 2) *
+		(testing > 0 ? testing+1 : 5);
+	    randomQueries(*ibis::datasets[0], mq, qlist, queff);
+	}
+	else if (testing > 0 && ! ibis::datasets.empty()) {
+	    // performing self test
+	    LOGGER(ibis::gVerbose > 0) << *argv << ": start testing ...";
+	    ibis::horometer timer3;
+	    timer3.start();
+	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
+		 it != ibis::datasets.end(); ++ it) {
+		// tell the partition to perform self tests
+		long nerr = (*it)->selfTest(testing);
+		(*it)->unloadIndexes();
+
+		if (ibis::gVerbose >= 0) {
+		    ibis::util::logger lg;
+		    lg() << "self tests on " << (*it)->name();
+		    if (nerr == 0)
+			lg() << " found no error";
+		    else if (nerr == 1)
+			lg() << " found 1 error";
+		    else if (nerr > 1)
+			lg() << " found " << nerr << " errors";
+		    else
+			lg() << " returned unexpected value " << nerr;
+		}
+	    }
+	    timer3.stop();
+	    LOGGER(ibis::gVerbose > 0)
+		<< *argv << ": testing " << ibis::datasets.size()
+		<< " data partition" << (ibis::datasets.size()>1 ? "s" : "")
+		<< " took " << timer3.CPUTime() << " CPU seconds, "
+		<< timer3.realTime() << " elapsed seconds\n";
+	}
 
             ibis::horometer timer1;
             timer1.start();
