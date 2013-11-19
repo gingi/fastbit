@@ -102,18 +102,18 @@ For additional information about preparing data, read <A
 HREF="dataLoading.html">dataLoading.html</A>.
 </p>
 <H3>FastBit Data organization</H3>
+
+<p> FastBit treats data as tables with rows and columns.  A large table
+may be partitioned into many data partitions.  To prepare data for
+FastBit, one needs to build these partition separately.  Each partition
+is stored in a directory in you file system, with each column stored as
+a separated file in raw binary form.  The name of the data file is the
+name of the column.  The column name can only contain alphanumeric
+characters plus the underscore (_) and must start with an alphabet.
+Furthermore, all column names are case insensitive.</p>
+
 <p>
-FastBit treats data as tables with rows and columns.  A large table may
-be partitioned into many data partitions.
-To prepare data for FastBit,
-one needs to build these partition.  Each partition is stored in a
-directory in you file system, with each column stored as a separated
-file in raw binary form.  The name of the data file is the name of the
-column.  The column name can only contain alphanumeric characters plus
-the underscore (_) and must start with an alphabet.  Furthermore, all
-column names are case insensitive.</p>
-<p>
-There must be a metadata file named <code>-part.txt</code> in a directory
+There must be a metadata file named <code>-part.txt</code> in the directory
 for a data partition.  This file contains information such as the name
 of the partition, the number of rows in the partition, the number of
 columns, column names and so on.  Here is an example with the minimal
@@ -139,12 +139,12 @@ END Column
 Once the binary data files and the metadata file <code>-part.txt</code> are
 in place, FastBit can make use of the data partition and we can query
 the data with the command line tool named <code>ibis</code> built from
-<code>../examples/ibis.cpp</code>.
+<code>examples/ibis.cpp</code>.
 </p>
 <p>
-FastBit often reads a whole data file containing a column into memory
+FastBit typically reads a whole data file containing a column into memory
 when part of the file is needed.  This imposes a limit on the number of
-rows that can be stored in partition.  In addition, the size of a
+rows that can be stored in a partition.  In addition, the size of a
 partition is internally recorded with a 32-bit unsigned integer, which
 has a limit of 2<sup>32</sup> rows, which is a hard upper bound on the
 number rows for a partition.  Typically, for a machine with a few
@@ -157,7 +157,7 @@ million and 100 million rows.</p>
 
 <H2>Querying Existing Data</H2>
 <p>
-After preparing a data partition, it is time to try some queries.
+After preparing a data partition, we can try some queries.
 Both programs <code>ibis</code> and <code>thula</code> can be used accomplish
 this task.  Assuming directry <code>tmp</code> has been prepared with the above
 <code>ardea</code> command line, the following two commands should both
@@ -166,7 +166,7 @@ produce 1 hit.
 examples/ibis -d tmp -q "where a = 0"
 examples/thula -d tmp -w "a = 0"
 </pre>
-The following two commands both produce 10 hits.
+The following two commands both produce 9 hits.
 <pre>
 examples/ibis -d tmp -q "where a = b and c < 10"
 examples/thula -d tmp -w "a = b and c < 10"
@@ -190,12 +190,13 @@ option <code>-c rc-filename</code>.
 With all command line tools, a useful option is <code>-h</code>, which will
 cause them to print out usage information.  Another useful option is
 <code>-v</code>, which can be used to instruct them to print out more
-information about their progress.
+information about their progress.  Multiple <code>-v</code> options can
+be used if more verbose output is desired.
 </p>
 <p>
 Note that both <code>ibis</code> and <code>thula</code> answer queries, but
-exercise different interfaces to the underlying indexing functions.  In
-addition, <code>ibis</code> also supports a lot more functions.  A
+they exercise different interfaces to the underlying indexing functions.  In
+addition, <code>ibis</code> also supports a lot more operations.  A
 description of these functions are available in <A
 HREF="ibisCommandLine.html">ibisCommandLine.html</A>.
 </p>
@@ -212,18 +213,18 @@ examples/ibis -v -d tmp -b "&lt;binning none/&gt;&lt;encoding equality/&gt;"
 </pre>
 
 which builds the basic bitmap index (with no binning, equality
-encoding), other possible indexes are fully described in <A
+encoding), other possible indexes are described in <A
 HREF="indexSpec.html">indexSpec.html</A>.</p>
 <p>
 When an index exists, the above command does not check whether the
 existing index is of the specified type.  To remove the existing indexes
-and build new ones, add <code>-z</code> to option <code>-b</code>.  The existing
-query processing function can only work with one index per column (per
-data partition).  There is no need to build multiple indexes for one
-column in a data partition.</p>
+and build new ones, add <code>-z</code> in addition to option
+<code>-b</code>.  The existing query processing function can only work
+with one index per column (per data partition).  There is no way to
+build multiple indexes for one column in a data partition.</p>
 <p>
 Alternatively, one may manually remove all index (<code>*.idx</code>) files
-from a directory and edit the file <code>-part.txt</code> to specify
+from a directory or edit the file <code>-part.txt</code> to specify
 indexing options to the whole partition or a specific column.  For
 example, the following <code>-part.txt</code> modifies the above one by
 adding an indexing option to the whole partition and one for column
@@ -253,8 +254,8 @@ END Column
 <H2>Calling FastBit Functions</H2>
 <p>
 All useful FastBit functions and classes are in the name space of
-<code>ibis</code>.  There are two levels of interfaces, one more abstract
-and the other more concrete.  The abstract interface is implemented as
+<code>ibis</code>.  There are two levels of interfaces, one is more abstract
+and the other is more concrete.  The abstract interface is implemented as
 class <code>ibis::table</code>, and the concrete interface is implemented as
 class <code>ibis::part</code> (a shorthand for partition).  We will next
 briefly describe a handful of key functions from these two classes.
@@ -263,8 +264,8 @@ read the configuration file if there is one.</p>
 
 <h3>Class <code>ibis::table</code></h3>
 <p>
-One normally instantiate an <code>ibis::table</code> object by calling
-function <code>ibis::table::create</code> with the data directory as the
+One normally instantiates an <code>ibis::table</code> object by calling
+the function <code>ibis::table::create</code> with the data directory as the
 argument.  This is done in file <code>example/thula.cpp</code>.</p>
 <p>
 There are two functions, <code>ibis::table::estimate</code>, which gives a
@@ -272,7 +273,7 @@ lower and a upper bound on the number of hits, and
 <code>ibis::table::select</code>, which produces another table containing
 the selected values.  Both of these functions are documented in <A
 HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1table.html">table.h</A>.
-The following is a snipets of source code that build an
+The following is a snipet of source code that builds an
 <code>ibis::table</code> object from directory <code>tmp</code>, and estimate
 the number of hits of query condition "a = 0".
 <pre>
@@ -293,7 +294,7 @@ HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/table_8h.html">table.h</A>.
 The more concrete interface is represented by class <code>ibis::part</code>.
 Each <code>ibis::part</code> corresponds to exactly one data directory
 described above.  Currently, the constructor of <code>ibis::part</code>
-requires two arguments both being directory names, though it is safe to
+requires two arguments both being directory names.  It is safe to
 pass the data directory name as the first argument and pass a nil
 pointer as the second argument, see <code>examples/ibis.cpp</code> for an
 example.</p>
@@ -318,8 +319,8 @@ A more realistic example can be found in <code>examples/ibis.cpp</code>.
 
 <h3>Class <code>ibis::index</code></h3>
 <p>
-The most unique component of FastBit is the class hierarchy of
-<code>ibis::index</code>.  A potentially interesting task is to extend these
+The most interesting component of FastBit is the class hierarchy of
+<code>ibis::index</code>.  A potentially useful task is to extend these
 compressed bitmap indexes in this class hierarchy.  The class
 <code>ibis::index</code> is documented in <A
 HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1index.html">index.h</A>.
@@ -327,7 +328,7 @@ Inside FastBit, an index is created through the class
 <code>ibis::column::indexLock</code>, which in turn calls
 <code>ibis::column::loadIndex</code>, which then invokes the index factory
 <code>ibis::index::create</code>.  The main reason for using
-<code>ibis::column::indexLock</code> is to provide a way to track how many
+<code>ibis::column::indexLock</code> is to track how many
 queries are using an index simultaneously.  It is possible to bypass all
 these layers of code by directly invoking the constructor of a concrete
 index class.</p>
@@ -346,8 +347,7 @@ letter <code>i</code>.</p>
 <A HREF="contact.html">Contact us</a><BR>
 <A HREF="http://www.lbl.gov/Disclaimers.html">Disclaimers</a><br>
 <A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/">FastBit web site</A><br>
-<A HREF="https://hpcrdm.lbl.gov/pipermail/fastbit-users">FastBit mailing
-list</A><br>
+<A HREF="https://hpcrdm.lbl.gov/pipermail/fastbit-users">FastBit mailing list</A><br>
 <SCRIPT language=JavaScript>
         document.write(document.lastModified)
 </SCRIPT>

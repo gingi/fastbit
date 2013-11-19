@@ -5120,9 +5120,9 @@ int main(int argc, char** argv) {
 	    timer2.stop();
 	    if (ibis::gVerbose >= 0) {
 		ibis::util::logger lg;
-		lg() << *argv << ": building sorted versions of "
+		lg() << *argv << ": building sorted version of "
 		     << slist.size() << " column" << (slist.size()>1 ? "s" : "")
-		     << ibis::datasets.size() << " data partition"
+		     << " for " << ibis::datasets.size() << " data partition"
 		     << (ibis::datasets.size()>1 ? "s" : "");
 		if (ibis::gVerbose > 0)
 		    lg() << " took " << timer2.CPUTime() << " CPU seconds, "

@@ -217,7 +217,7 @@ public:
     static void keepQueryRecords()
     {ibis::gParameters().add("query.purgeTempFiles", "false");}
 
-    class result; // Forward declaration only
+    class result; // Forward declaration, defined in bundles.h
     class weight;
     class readLock;
     class writeLock;

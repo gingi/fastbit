@@ -269,7 +269,7 @@ private:
 /// The binary encoded index with recoding of keyvalues.
 ///
 /// @note The work skive is the Danish for slice.  This is a weired version
-/// of the bit-sliced index because it recodes the keyvalues to be between
+/// of the bit-sliced index because it encodes the keyvalues to be between
 /// 0 and cnts.size()-1.  The alternative version ibis::slice will use bit
 /// slices more strictly.
 class ibis::skive : public ibis::relic {

@@ -1,3 +1,8 @@
+2013-11-18 John Wu <John dot Wu at ACM dot org>
+	* doc/quickstart.html: update the number of hits for query "a = b
+	and c < 10" to be 9 instead of 10 (an error spotted by Neils
+	Johson <nielsjohnson at gmail.com>)
+
 2013-11-15 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: add extra check for ordering of
 	the values in actualMinMax
