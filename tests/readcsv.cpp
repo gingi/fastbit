@@ -62,6 +62,7 @@
 #include <iostream>	// std::cout, std::cerr, std::endl
 #include <vector>	// std::vector
 #include <string>	// std::string
+#include <limits>	// std::numeric_limits
 #include <cmath>	// std::pow
 
 enum DATA_TYPE {INT, DOUBLE, STRING};
@@ -89,8 +90,33 @@ DATA_TYPE determineType(const char* val) {
     if (*val == 0) return type;
 
     unsigned len = (isdigit(*val) ? 1 : 0); // input string length
-    if (len == 0 && *val != '-' && *val != '+' && *val != '.')
+    if (val[3] == 0 && ((val[0]=='N' || val[0]=='n') &&
+                        (val[1]=='A' || val[1]=='a') &&
+                        (val[2]=='N' || val[2]=='n'))) {
+        return DOUBLE;
+    }
+    else if (val[7] == 0 && ((val[0]=='I' || val[0]=='i') &&
+                             (val[1]=='N' || val[1]=='n') &&
+                             (val[2]=='F' || val[2]=='f') &&
+                             (val[3]=='I' || val[3]=='i') &&
+                             (val[4]=='N' || val[4]=='n') &&
+                             (val[5]=='I' || val[5]=='i') &&
+                             (val[6]=='T' || val[6]=='t'))) {
+        return DOUBLE;
+    }
+    else if (val[8] == 0 && ((val[0]=='+' || val[0]=='-') &&
+                             (val[1]=='I' || val[0]=='i') &&
+                             (val[2]=='N' || val[1]=='n') &&
+                             (val[3]=='F' || val[2]=='f') &&
+                             (val[4]=='I' || val[3]=='i') &&
+                             (val[5]=='N' || val[4]=='n') &&
+                             (val[6]=='I' || val[5]=='i') &&
+                             (val[7]=='T' || val[6]=='t'))) {
+        return DOUBLE;
+    }
+    else if (len == 0 && *val != '-' && *val != '+' && *val != '.') {
 	return STRING;
+    }
 
     bool seenExp = false;
     for (++ val; *val != 0; ++ val) {
@@ -162,6 +188,37 @@ int readDouble(char *&str, double& val) {
     val = 0;
     if (str == 0 || *str == 0) return 0;
     for (; isspace(*str); ++ str); // skip leading space
+    if (str[3] == 0 && ((str[0]=='N' || str[0]=='n') &&
+                        (str[1]=='A' || str[1]=='a') &&
+                        (str[2]=='N' || str[2]=='n'))) {
+        val = std::numeric_limits<double>::quiet_NaN();
+        str += 4;
+        return 0;
+    }
+    else if (str[7] == 0 && ((str[0]=='I' || str[0]=='i') &&
+                             (str[1]=='N' || str[1]=='n') &&
+                             (str[2]=='F' || str[2]=='f') &&
+                             (str[3]=='I' || str[3]=='i') &&
+                             (str[4]=='N' || str[4]=='n') &&
+                             (str[5]=='I' || str[5]=='i') &&
+                             (str[6]=='T' || str[6]=='t'))) {
+        val = std::numeric_limits<double>::infinity();
+        str += 8;
+        return 0;
+    }
+    else if (str[8] == 0 && ((str[0]=='+' || str[0]=='-') &&
+                             (str[1]=='I' || str[0]=='i') &&
+                             (str[2]=='N' || str[1]=='n') &&
+                             (str[3]=='F' || str[2]=='f') &&
+                             (str[4]=='I' || str[3]=='i') &&
+                             (str[5]=='N' || str[4]=='n') &&
+                             (str[6]=='I' || str[5]=='i') &&
+                             (str[7]=='T' || str[6]=='t'))) {
+        val = (str[0]=='+' ? std::numeric_limits<double>::infinity() :
+               -std::numeric_limits<double>::infinity());
+        str += 9;
+        return 0;
+    }
 
     double tmp;
     const char *s0 = str;
