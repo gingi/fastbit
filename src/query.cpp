@@ -556,7 +556,6 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 /// Add a set of conditions to the existing where clause.  The new query
 /// expression is joined with the existing conditions with the AND operator.
 ///
-/// @note This object will have a copy of the incoming query expression.
 int ibis::query::addConditions(const ibis::qExpr* qx) {
     if (qx == 0) return -4;
 
@@ -607,22 +606,22 @@ int ibis::query::addConditions(const ibis::qExpr* qx) {
         }
     }
     if (mypart != 0) {
-        int ierr = conds.verify(*mypart);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- query[" << myID << "]::addConditions failed "
-                "to find some names used in qExpr "
-                << static_cast<const void*>(conds.getExpr())
+	int ierr = conds.verify(*mypart);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::addConditions failed "
+		"to find some names used in qExpr "
+		<< static_cast<const void*>(conds.getExpr())
                 << " in data partition " << mypart->name()
                 << ", the function verify returned " << ierr;
-            ierr = -6;
-        }
+	    ierr = -6;
+	}
     }
     LOGGER(ibis::gVerbose > 1)
-        << "query[" << myID
-        << "]::addConditions accepted new query conditions \""
-        << (conds.getString() ? conds.getString() : "<long expression>")
-        << "\"";
+	<< "query[" << myID
+	<< "]::addConditions accepted new query conditions \""
+	<< (conds.getString() ? conds.getString() : "<long expression>")
+	<< "\"";
     return ierr;
 } // ibis::query::addConditions
 
@@ -679,22 +678,22 @@ int ibis::query::addConditions(const char* qx) {
         }
     }
     if (mypart != 0) {
-        int ierr = conds.verify(*mypart);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- query[" << myID << "]::addConditions failed "
-                "to find some names used in qExpr "
-                << static_cast<const void*>(conds.getExpr())
+	int ierr = conds.verify(*mypart);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::addConditions failed "
+		"to find some names used in qExpr "
+		<< static_cast<const void*>(conds.getExpr())
                 << " in data partition " << mypart->name()
                 << ", the function verify returned " << ierr;
-            ierr = -6;
-        }
+	    ierr = -6;
+	}
     }
     LOGGER(ibis::gVerbose > 1)
-        << "query[" << myID
-        << "]::addConditions accepted new query conditions \""
-        << (conds.getString() ? conds.getString() : "<long expression>")
-        << "\"";
+	<< "query[" << myID
+	<< "]::addConditions accepted new query conditions \""
+	<< (conds.getString() ? conds.getString() : "<long expression>")
+	<< "\"";
     return ierr;
 } // ibis::query::addConditions
 

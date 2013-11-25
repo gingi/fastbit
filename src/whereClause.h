@@ -130,8 +130,7 @@ public:
 	    clause_.clear();
 	}
     }
-    /// Assign a new set of conditions directly.  The new set of conditions
-    /// is copied here.
+    /// Assign a new set of conditions directly.
     void setExpr(const ibis::qExpr *ex) {
 	clause_.clear();
 	delete expr_;
