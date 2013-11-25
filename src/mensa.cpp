@@ -221,6 +221,12 @@ int ibis::mensa::dropPartition(const char *nm) {
 } // ibis::mensa::dropPartition
 
 int ibis::mensa::getPartitions(ibis::constPartList &lst) const {
+    if (! lst.empty()) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- mensa::getPartitions is to clear the "
+            "partitions in the incoming argument";
+    }
+
     lst.resize(parts.size());
     for (uint32_t i = 0; i < parts.size(); ++ i)
 	lst[i] = parts[i];

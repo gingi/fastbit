@@ -548,6 +548,150 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     return ierr;
 } // ibis::query::setWhereClause
 
+/// Add a set of conditions to the existing where clause.  The new query
+/// expression is joined with the existing conditions with the AND operator.
+///
+int ibis::query::addConditions(const ibis::qExpr* qx) {
+    if (qx == 0) return -4;
+
+    int ierr = 0;
+    {
+        writeLock lck(this, "addConditions");
+        conds.addExpr(qx);
+
+        if (conds.getExpr() == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- query[" << myID << "]::addConditions failed "
+                "to combine the incoming qExpr " << static_cast<const void*>(qx)
+                << " with the existing ones";
+            if (! comps.empty())
+                state = SET_COMPONENTS;
+            else
+                state = UNINITIALIZED;
+            return -5;
+        }
+        if (ibis::gVerbose > 0 && conds.getExpr()->nItems() <=
+            static_cast<unsigned>(ibis::gVerbose)) {
+            conds.resetString(); // regenerate the string form
+        }
+
+        if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
+            state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
+            dstime = 0;
+            if (hits == sup) {
+                delete hits;
+                hits = 0;
+                sup = 0;
+            }
+            else {
+                delete hits;
+                delete sup;
+                hits = 0;
+                sup = 0;
+            }
+            removeFiles();
+        }
+
+        if (! comps.empty()) {
+            state = SPECIFIED;
+            writeQuery();
+        }
+        else {
+            state = SET_PREDICATE;
+        }
+    }
+    if (mypart != 0) {
+	int ierr = conds.verify(*mypart);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::addConditions failed "
+		"to find some names used in qExpr "
+		<< static_cast<const void*>(conds.getExpr())
+                << " in data partition " << mypart->name()
+                << ", the function verify returned " << ierr;
+	    ierr = -6;
+	}
+    }
+    LOGGER(ibis::gVerbose > 1)
+	<< "query[" << myID
+	<< "]::addConditions accepted new query conditions \""
+	<< (conds.getString() ? conds.getString() : "<long expression>")
+	<< "\"";
+    return ierr;
+} // ibis::query::addConditions
+
+/// Add a set of conditions to the existing where clause.  The new query
+/// expression is joined with the existing conditions with the AND operator.
+///
+int ibis::query::addConditions(const char* qx) {
+    if (qx == 0 || *qx == 0) return -4;
+
+    int ierr = 0;
+    {
+        writeLock lck(this, "addConditions");
+        conds.addConditions(qx);
+
+        if (conds.getExpr() == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- query[" << myID << "]::addConditions failed "
+                "to combine the incoming qExpr \"" << qx
+                << "\" with the existing ones";
+            if (! comps.empty())
+                state = SET_COMPONENTS;
+            else
+                state = UNINITIALIZED;
+            return -5;
+        }
+        if (ibis::gVerbose > 0 && conds.getExpr()->nItems() <=
+            static_cast<unsigned>(ibis::gVerbose)) {
+            conds.resetString(); // regenerate the string form
+        }
+
+        if (state == FULL_EVALUATE || state == BUNDLES_TRUNCATED ||
+            state == HITS_TRUNCATED || state == QUICK_ESTIMATE) {
+            dstime = 0;
+            if (hits == sup) {
+                delete hits;
+                hits = 0;
+                sup = 0;
+            }
+            else {
+                delete hits;
+                delete sup;
+                hits = 0;
+                sup = 0;
+            }
+            removeFiles();
+        }
+
+        if (! comps.empty()) {
+            state = SPECIFIED;
+            writeQuery();
+        }
+        else {
+            state = SET_PREDICATE;
+        }
+    }
+    if (mypart != 0) {
+	int ierr = conds.verify(*mypart);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- query[" << myID << "]::addConditions failed "
+		"to find some names used in qExpr "
+		<< static_cast<const void*>(conds.getExpr())
+                << " in data partition " << mypart->name()
+                << ", the function verify returned " << ierr;
+	    ierr = -6;
+	}
+    }
+    LOGGER(ibis::gVerbose > 1)
+	<< "query[" << myID
+	<< "]::addConditions accepted new query conditions \""
+	<< (conds.getString() ? conds.getString() : "<long expression>")
+	<< "\"";
+    return ierr;
+} // ibis::query::addConditions
+
 /// Specify a list of Row IDs for the query object.
 /// Select the records with an RID in the list of RIDs.
 ///
@@ -853,7 +997,10 @@ long ibis::query::getCandidateRows(std::vector<uint32_t> &rids) const {
 /// different from the values extracted while processing this function.
 ///
 /// Returns 0 or a positive integer for success, a negative value for
-/// error.
+/// error.  Note that when it returns 0, it indicates that the number of
+/// hits is 0.  However, when it returns a positive value, the return value
+/// may not be the number of hits.  This semantics is actually implemented
+/// in the support functions such as computeHits, doEvaluate, and doScan.
 ///
 /// @see getQualifiedInts
 int ibis::query::evaluate(const bool evalSelect) {

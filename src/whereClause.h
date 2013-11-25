@@ -119,12 +119,6 @@ public:
 
     /// Parse a new string.
     int parse(const char *cl);
-    /// Assign a new set of conditions directly.
-    void setExpr(const ibis::qExpr *ex) {
-	clause_.clear();
-	delete expr_;
-	expr_ = ex->dup();
-    }
     /// Regenerate the string version of the query conditions.
     void resetString() {
 	if (expr_ != 0) {
@@ -136,6 +130,14 @@ public:
 	    clause_.clear();
 	}
     }
+    /// Assign a new set of conditions directly.
+    void setExpr(const ibis::qExpr *ex) {
+	clause_.clear();
+	delete expr_;
+	expr_ = ex->dup();
+    }
+    void addExpr(const ibis::qExpr *);
+    void addConditions(const char *);
 
     /// Clear the existing content.
     void clear() throw ();

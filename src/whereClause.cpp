@@ -13,39 +13,7 @@ ibis::whereClause::~whereClause() {
 } // destructor
 
 ibis::whereClause::whereClause(const char* cl) : expr_(0) {
-    int ierr = 0;
-    if (cl != 0 && *cl != 0) {
-	LOGGER(ibis::gVerbose > 5)
-	    << "whereClause::ctor to parse \"" << cl << "\"";
-
-	clause_ = cl;
-	std::istringstream iss(clause_);
-	ibis::util::logger lg;
-	whereLexer lx(&iss, &(lg()));
-	whereParser parser(*this);
-	lexer = &lx;
-#if DEBUG+0 > 2
-	parser.set_debug_level(DEBUG-1);
-#elif _DEBUG+0 > 2
-	parser.set_debug_level(_DEBUG-1);
-#endif
-	parser.set_debug_stream(lg());
-	ierr = parser.parse();
-	lexer = 0;
-	if (ierr == 0 && expr_ != 0) {
-	    ibis::qExpr::simplify(expr_);
-        }
-        else {
-            delete expr_;
-            expr_ = 0;
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- whereClause(" << cl
-                << ") failed to parse the string into an expression tree";
-#ifdef FASTBIT_HALT_ON_PARSER_ERROR
-            throw "whereClause failed to parse query conditions";
-#endif
-        }
-    }
+    (void) parse(cl);
 } // constructor
 
 ibis::whereClause::whereClause(const ibis::whereClause& rhs)
@@ -101,6 +69,50 @@ int ibis::whereClause::parse(const char* cl) {
     }
     return ierr;
 } // ibis::whereClause::parse
+
+/// Append a set of conditions to the existing where clause.  The new
+/// conditions are joined together with the existing ones with the AND
+/// operator.
+void ibis::whereClause::addConditions(const char *cl) {
+    if (cl == 0 || *cl == 0) return;
+
+    if (expr_ != 0) {
+        ibis::qExpr *old = expr_;
+        expr_ = 0;
+        int ierr = parse(cl);
+        if (ierr == 0) {
+            ibis::qExpr *tmp = expr_;
+            expr_ = old;
+            addExpr(tmp);
+        }
+        else {
+            LOGGER(ibis::gVerbose > 1)
+                << "whereClause::addConditions failed to parse " << cl
+                << ", ierr = " << ierr;
+            expr_ = old;
+        }
+    }
+    else {
+        (void) parse(cl);
+    }
+} // ibis::whereClause::addConditions
+
+/// Append a set of conditions to the existing where clause.  The new
+/// conditions are joined together with the existing ones with the AND
+/// operator.
+void ibis::whereClause::addExpr(const ibis::qExpr *ex) {
+    if (ex == 0) return;
+
+    clause_.clear();
+    if (expr_ == 0) {
+        expr_ = ex->dup();
+    }
+    else {
+        ibis::qExpr *root =
+            new ibis::qExpr(ibis::qExpr::LOGICAL_AND, expr_, ex->dup());
+        expr_ = root;
+    }
+} // ibis::whereClause::addExpr
 
 void ibis::whereClause::clear() throw () {
     clause_.clear();

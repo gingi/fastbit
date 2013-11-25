@@ -84,6 +84,8 @@ public:
 		       const std::vector<double>& lbounds,
 		       const std::vector<double>& rbounds);
     int setWhereClause(const ibis::qExpr* qexp);
+    int addConditions(const ibis::qExpr* qexp);
+    int addConditions(const char*);
     virtual int setSelectClause(const char *str);
     /// Resets the data partition associated with the query.
     int setPartition(const ibis::part* tbl);
