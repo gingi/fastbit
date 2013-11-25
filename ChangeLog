@@ -3,6 +3,7 @@
 	query::addConditions
 	* src/whereClause.h, src/whereClause.cpp: add functions
 	whereClause::addExpr and whereClause::addConditions
+	* src/readcsv.cpp: add code to parse infinity and NaN as doubles
 
 2013-11-18 John Wu <John dot Wu at ACM dot org>
 	* doc/quickstart.html: update the number of hits for query "a = b

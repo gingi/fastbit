@@ -781,6 +781,37 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
 	++ str;
 	return -2;
     }
+    if (str[3] == 0 && ((str[0]=='N' || str[0]=='n') &&
+                        (str[1]=='A' || str[1]=='a') &&
+                        (str[2]=='N' || str[2]=='n'))) {
+        val = std::numeric_limits<double>::quiet_NaN();
+        str += 4;
+        return 0;
+    }
+    else if (str[7] == 0 && ((str[0]=='I' || str[0]=='i') &&
+                             (str[1]=='N' || str[1]=='n') &&
+                             (str[2]=='F' || str[2]=='f') &&
+                             (str[3]=='I' || str[3]=='i') &&
+                             (str[4]=='N' || str[4]=='n') &&
+                             (str[5]=='I' || str[5]=='i') &&
+                             (str[6]=='T' || str[6]=='t'))) {
+        val = std::numeric_limits<double>::infinity();
+        str += 8;
+        return 0;
+    }
+    else if (str[8] == 0 && ((str[0]=='+' || str[0]=='-') &&
+                             (str[1]=='I' || str[0]=='i') &&
+                             (str[2]=='N' || str[1]=='n') &&
+                             (str[3]=='F' || str[2]=='f') &&
+                             (str[4]=='I' || str[3]=='i') &&
+                             (str[5]=='N' || str[4]=='n') &&
+                             (str[6]=='I' || str[5]=='i') &&
+                             (str[7]=='T' || str[6]=='t'))) {
+        val = (str[0]=='+' ? std::numeric_limits<double>::infinity() :
+               -std::numeric_limits<double>::infinity());
+        str += 9;
+        return 0;
+    }
 
     double tmp;
     const bool neg = (*str == '-');
