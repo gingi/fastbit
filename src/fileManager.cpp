@@ -19,12 +19,12 @@
 #include "resource.h"
 #include "array_t.h"
 
-#include <typeinfo>     // typeid
-#include <string>       // std::string
-#include <stdio.h>      // fopen, fread, remove
-#include <stdlib.h>     // malloc, free
-#include <sys/stat.h>   // stat, open
-#include <sys/resource.h>       // getrlimit
+#include <typeinfo>	// typeid
+#include <string>	// std::string
+#include <stdio.h>	// fopen, fread, remove
+#include <stdlib.h>	// malloc, free
+#include <sys/stat.h>	// stat, open
+#include <sys/resource.h>	// getrlimit
 #include <time.h>
 #include <stdexcept>    // std::runtime_error
 #include <iomanip>      // std::setprecision
