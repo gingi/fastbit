@@ -24,6 +24,7 @@
 #include <stdio.h>	// fopen, fread, remove
 #include <stdlib.h>	// malloc, free
 #include <sys/stat.h>	// stat, open
+#include <sys/resource.h>	// getrlimit
 #include <time.h>
 #include <stdexcept>	// std::runtime_error
 #include <iomanip>	// std::setprecision
@@ -610,7 +611,18 @@ ibis::fileManager::fileManager()
 	    << " bytes";
 #endif
     }
-
+#ifdef RLIMIT_DATA
+    // limit on data size defined, check its value
+    struct rlimit rlim;
+    if (getrlimit(RLIMIT_DATA, &rlim) == 0) {
+        LOGGER(ibis::gVerbose > 3)
+            << "  current data limit: " << rlim.rlim_cur << " (soft), "
+            << rlim.rlim_max << " (hard)";
+        if (maxBytes >= rlim.rlim_max)
+            maxBytes = (rlim.rlim_cur > _FASTBIT_DEFAULT_MEMORY_SIZE ?
+                        rlim.rlim_cur : _FASTBIT_DEFAULT_MEMORY_SIZE);
+    }
+#endif
     if (maxOpenFiles < 8) { // maxOpenFiles is too small
 #if defined(_SC_OPEN_MAX)
 	// maximum number of open files is defined in sysconf

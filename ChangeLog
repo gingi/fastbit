@@ -4,6 +4,8 @@
 	* src/whereClause.h, src/whereClause.cpp: add functions
 	whereClause::addExpr and whereClause::addConditions
 	* src/readcsv.cpp: add code to parse infinity and NaN as doubles
+	* src/fileManager.cpp: check RLIM_DATA when setting the maxBytes
+	(to avoid the problem on systems with low per user limit)
 
 2013-11-18 John Wu <John dot Wu at ACM dot org>
 	* doc/quickstart.html: update the number of hits for query "a = b
