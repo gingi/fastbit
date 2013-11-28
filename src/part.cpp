@@ -5421,7 +5421,7 @@ long ibis::part::doScan(const array_t<E> &varr,
 			ibis::bitvector &hits) {
     long ierr = 0;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     hits.set(0, mask.size());
     hits.decompress();
@@ -5455,7 +5455,7 @@ long ibis::part::doScan(const array_t<E> &varr,
     } // main loop
 
     hits.compress();
-    if (ibis::gVerbose > 1 && ierr >= 0) {
+    if (ibis::gVerbose > 3 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan<" << typeid(E).name() << "> -- evaluating "
@@ -5890,8 +5890,8 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 	return 0;
 
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) {
-	LOGGER(ibis::gVerbose > 2)
+    if (ibis::gVerbose > 3) {
+	LOGGER(ibis::gVerbose > 4)
 	    << "part[" << name()
 	    << "]::doScan - starting scanning data for \"" << cmp
 	    << "\" with mask (" << mask.cnt() << " out of "
@@ -5974,7 +5974,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
 	hits.setBit(nEvents-1, 0);
 
     if (ierr >= 0) {
-	if (ibis::gVerbose > 1) {
+	if (ibis::gVerbose > 3) {
 	    timer.stop();
 	    ierr = hits.cnt();
 	    ibis::util::logger lg;
@@ -6010,8 +6010,8 @@ long ibis::part::calculate(const ibis::math::term &trm,
 
     long ierr = 0;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) {
-	LOGGER(ibis::gVerbose > 2)
+    if (ibis::gVerbose > 3) {
+	LOGGER(ibis::gVerbose > 4)
 	    << "part[" << name()
 	    << "]::calculate - starting to evaluate \"" << trm
 	    << "\" with mask (" << msk.cnt() << " out of "
@@ -6076,7 +6076,7 @@ long ibis::part::calculate(const ibis::math::term &trm,
 	++ idx;
     } // while (idx.nIndices() > 0)
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part[" << (m_name ? m_name : "?")
@@ -6107,8 +6107,8 @@ long ibis::part::doScan(const ibis::math::term &trm,
     }
 
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) {
-	LOGGER(ibis::gVerbose > 2)
+    if (ibis::gVerbose > 3) {
+	LOGGER(ibis::gVerbose > 4)
 	    << "part[" << name()
 	    << "]::doScan - starting to evaluate \"" << trm
 	    << "\" with mask (" << msk.cnt() << " out of "
@@ -6162,7 +6162,7 @@ long ibis::part::doScan(const ibis::math::term &trm,
     } // while (idx.nIndices() > 0)
 
     if (ierr >= 0) {
-	if (ibis::gVerbose > 1) {
+	if (ibis::gVerbose > 3) {
 	    timer.stop();
 	    ierr = res.cnt();
 	    ibis::util::logger lg;
@@ -8170,7 +8170,7 @@ long ibis::part::doCompare(const char* file,
 			   const ibis::bitvector &mask,
 			   ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start(); // start the timer
 
     int fdes = UnixOpen(file, OPEN_READONLY);
@@ -8383,7 +8383,7 @@ long ibis::part::doCompare(const char* file,
     if (hits.size() != mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -8414,7 +8414,7 @@ long ibis::part::doCompare(const char* file,
 			   const ibis::bitvector &mask,
 			   ibis::array_t<T> &res) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start(); // start the timer
 
     res.clear();
@@ -8619,7 +8619,7 @@ long ibis::part::doCompare(const char* file,
     }
 
     ierr = res.size();
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -8645,7 +8645,7 @@ long ibis::part::doCompare(const char* file,
 			   ibis::array_t<T> &res,
 			   ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start(); // start the timer
 
     res.clear();
@@ -8865,7 +8865,7 @@ long ibis::part::doCompare(const char* file,
     if (hits.size() != mask.size())
 	hits.adjustSize(0, mask.size());
     ierr = res.size();
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -8891,7 +8891,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			   const ibis::bitvector &mask,
 			   ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
+    if (ibis::gVerbose > 3) timer.start(); // start the timer
 
     long ierr = 0;
     uint32_t i=0, j=0;
@@ -8987,7 +8987,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     else if (hits.size() != mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1 && ierr >= 0) {
+    if (ibis::gVerbose > 3 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -9018,7 +9018,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			   const ibis::bitvector &mask,
 			   ibis::array_t<T> &res) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
+    if (ibis::gVerbose > 3) timer.start(); // start the timer
 
     res.clear();
     res.nosharing();
@@ -9104,7 +9104,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 	ierr = -6;
     }
 
-    if (ibis::gVerbose > 1 && ierr >= 0) {
+    if (ibis::gVerbose > 3 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -9133,7 +9133,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			   ibis::array_t<T> &res,
 			   ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
+    if (ibis::gVerbose > 3) timer.start(); // start the timer
 
     res.clear();
     res.nosharing();
@@ -9219,7 +9219,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 	ierr = -6;
     }
 
-    if (ibis::gVerbose > 1 && ierr >= 0) {
+    if (ibis::gVerbose > 3 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -9240,7 +9240,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 				 const ibis::bitvector &mask,
 				 ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
+    if (ibis::gVerbose > 3) timer.start(); // start the timer
 
     uint32_t i=0, j=0;
     long ierr=0;
@@ -9296,7 +9296,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1 && ierr >= 0) {
+    if (ibis::gVerbose > 3 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::negativeCompare -- performing comparison with column "
@@ -9319,7 +9319,7 @@ long ibis::part::negativeCompare(const char* file,
 				 const ibis::bitvector &mask,
 				 ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start(); // start the timer
 
     hits.clear(); // clear the existing content
@@ -9532,7 +9532,7 @@ long ibis::part::negativeCompare(const char* file,
 	hits.adjustSize(0, mask.size());
 
     if (ierr >= 0) {
-	if (ibis::gVerbose > 1) {
+	if (ibis::gVerbose > 3) {
 	    timer.stop();
 	    ierr = hits.cnt();
 	    ibis::util::logger lg;
@@ -9565,7 +9565,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			   const ibis::bitvector &mask,
 			   ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
+    if (ibis::gVerbose > 3) timer.start(); // start the timer
 
     long ierr = 0;
     uint32_t i=0, j=0;
@@ -9661,7 +9661,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ierr >= 0 && ibis::gVerbose > 1) {
+    if (ierr >= 0 && ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -9686,7 +9686,7 @@ long ibis::part::doCompare(const char* file,
 			   const ibis::bitvector &mask,
 			   ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start(); // start the timer
 
     int fdes = UnixOpen(file, OPEN_READONLY);
@@ -9901,7 +9901,7 @@ long ibis::part::doCompare(const char* file,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1 && ierr >= 0) {
+    if (ibis::gVerbose > 3 && ierr >= 0) {
 	timer.stop();
 	ierr = hits.cnt();
 	ibis::util::logger lg;
@@ -9930,7 +9930,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 				 const ibis::bitvector &mask,
 				 ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
+    if (ibis::gVerbose > 3) timer.start(); // start the timer
 
     uint32_t i=0, j=0;
     long ierr=0;
@@ -9986,7 +9986,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ierr >= 0 && ibis::gVerbose > 1) {
+    if (ierr >= 0 && ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::negativeCompare -- performing comparison with column "
@@ -10012,7 +10012,7 @@ long ibis::part::negativeCompare(const char* file,
 				 const ibis::bitvector &mask,
 				 ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start(); // start the timer
 
     hits.clear(); // clear the existing content
@@ -10225,7 +10225,7 @@ long ibis::part::negativeCompare(const char* file,
 	hits.adjustSize(0, mask.size());
 
     if (ierr >= 0) {
-	if (ibis::gVerbose > 1) {
+	if (ibis::gVerbose > 3) {
 	    timer.stop();
 	    ierr = hits.cnt();
 	    ibis::util::logger lg;
@@ -10258,7 +10258,7 @@ long ibis::part::doCompare(const array_t<T> &array,
 			   const ibis::bitvector &mask,
 			   ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
+    if (ibis::gVerbose > 3) timer.start(); // start the timer
 
     long ierr = 0;
     uint32_t i=0, j=0;
@@ -10354,7 +10354,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ierr >= 0 && ibis::gVerbose > 1) {
+    if (ierr >= 0 && ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doCompare -- performing comparison with column "
@@ -10377,7 +10377,7 @@ long ibis::part::doCompare(const char* file,
 			   const ibis::bitvector &mask,
 			   ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start(); // start the timer
 
     int fdes = UnixOpen(file, OPEN_READONLY);
@@ -10593,7 +10593,7 @@ long ibis::part::doCompare(const char* file,
 	hits.adjustSize(0, mask.size());
 
     if (ierr >= 0) {
-	if (ibis::gVerbose > 1) {
+	if (ibis::gVerbose > 3) {
 	    timer.stop();
 	    ierr = hits.cnt();
 	    ibis::util::logger lg;
@@ -10621,7 +10621,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
 				 const ibis::bitvector &mask,
 				 ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1) timer.start(); // start the timer
+    if (ibis::gVerbose > 3) timer.start(); // start the timer
 
     uint32_t i=0, j=0;
     long ierr=0;
@@ -10677,7 +10677,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     else if (hits.size() < mask.size())
 	hits.adjustSize(0, mask.size());
 
-    if (ibis::gVerbose > 1 && ierr >= 0) {
+    if (ibis::gVerbose > 3 && ierr >= 0) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::negativeCompare -- performing comparison with column "
@@ -10700,7 +10700,7 @@ long ibis::part::negativeCompare(const char* file,
 				 const ibis::bitvector &mask,
 				 ibis::bitvector &hits) {
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start(); // start the timer
 
     hits.clear(); // clear the existing content
@@ -10913,7 +10913,7 @@ long ibis::part::negativeCompare(const char* file,
 	hits.adjustSize(0, mask.size());
 
     if (ierr >= 0) {
-	if (ibis::gVerbose > 1) {
+	if (ibis::gVerbose > 3) {
 	    timer.stop();
 	    ierr = hits.cnt();
 	    ibis::util::logger lg;
@@ -10944,7 +10944,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 			ibis::bitvector &hits) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     T leftBound, rightBound;
     ibis::qExpr::COMPARE lop = rng.leftOperator();
@@ -11877,7 +11877,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	break;}
     }
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -11904,7 +11904,7 @@ long ibis::part::doScan(const array_t<float> &vals,
 			ibis::bitvector &hits) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     const double leftBound = rng.leftBound();
     const double rightBound = rng.rightBound();
@@ -12633,7 +12633,7 @@ long ibis::part::doScan(const array_t<float> &vals,
 	break;}
     }
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -12659,7 +12659,7 @@ long ibis::part::doScan(const array_t<double> &vals,
 			ibis::bitvector &hits) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     const double leftBound = rng.leftBound();
     const double rightBound = rng.rightBound();
@@ -13380,7 +13380,7 @@ long ibis::part::doScan(const array_t<double> &vals,
 	break;}
     }
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -13408,7 +13408,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 			array_t<T>& res) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     T leftBound, rightBound;
     ibis::qExpr::COMPARE lop = rng.leftOperator();
@@ -13990,7 +13990,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 	break;}
     }
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -14014,7 +14014,7 @@ long ibis::part::doScan(const array_t<T> &vals,
 			array_t<T> &res, ibis::bitvector &hits) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     T leftBound, rightBound;
     ibis::qExpr::COMPARE lop = rng.leftOperator();
@@ -14597,7 +14597,7 @@ long ibis::part::doScan(const array_t<T> &vals,
     }
 
     hits.adjustSize(0, mask.size());
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -14620,7 +14620,7 @@ long ibis::part::doScan(const array_t<float> &vals,
 			array_t<float> &res) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     const double leftBound = rng.leftBound();
     const double rightBound = rng.rightBound();
@@ -15075,7 +15075,7 @@ long ibis::part::doScan(const array_t<float> &vals,
 	break;}
     }
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -15101,7 +15101,7 @@ long ibis::part::doScan(const array_t<double> &vals,
 			array_t<double> &res) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     const double leftBound = rng.leftBound();
     const double rightBound = rng.rightBound();
@@ -15577,7 +15577,7 @@ long ibis::part::doScan(const array_t<double> &vals,
 	break;}
     }
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -15604,7 +15604,7 @@ long ibis::part::doScan(const array_t<float> &vals,
 			array_t<float> &res, ibis::bitvector &hits) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     const double leftBound = rng.leftBound();
     const double rightBound = rng.rightBound();
@@ -16086,7 +16086,7 @@ long ibis::part::doScan(const array_t<float> &vals,
     }
 
     hits.adjustSize(0, mask.size());
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -16112,7 +16112,7 @@ long ibis::part::doScan(const array_t<double> &vals,
 			array_t<double> &res, ibis::bitvector &hits) {
     long ierr = -2;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     const double leftBound = rng.leftBound();
     const double rightBound = rng.rightBound();
@@ -16594,7 +16594,7 @@ long ibis::part::doScan(const array_t<double> &vals,
     }
 
     hits.adjustSize(0, mask.size());
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part::doScan -- evaluating " << rng
@@ -17222,7 +17222,7 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
 
     long ierr = 0;
     ibis::horometer timer;
-    if (ibis::gVerbose > 1)
+    if (ibis::gVerbose > 3)
 	timer.start();
     switch (col->type()) {
     case ibis::UBYTE:
@@ -17264,7 +17264,7 @@ long ibis::part::countHits(const ibis::qRange &cmp) const {
 	break;
     }
 
-    if (ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 3) {
 	timer.stop();
 	ibis::util::logger lg;
 	lg() << "part[" << (m_name ? m_name : "?")

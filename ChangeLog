@@ -4,6 +4,7 @@
 	attempting to use it
 	* src/column.cpp: adjust the estimated cost for qDiscreteRange
 	assuming numbers are uniformly distributed
+	* src/category.cpp: add timers to stringSearch and keywordSearch
 
 2013-11-26 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: streamline the evaluation options in evaluating
