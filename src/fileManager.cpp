@@ -1290,140 +1290,140 @@ int ibis::fileManager::unload(size_t sz) {
     time_t current = startTime;
 
     do { // will wait
-        {
-            size_t sum = 0; // the total bytes that can can be unloaded
-            for (it=mapped.begin(); it!=mapped.end(); ++it) {
-                if ((*it).second->inUse() == 0 &&
-                    (*it).second->pastUse() > 0) {
-                    sum += (*it).second->size();
-                }
-            }
-            for (it=incore.begin(); it!=incore.end(); ++it) {
-                if ((*it).second->inUse() == 0 &&
-                    (*it).second->pastUse() > 0) {
-                    sum += (*it).second->size();
-                }
-            }
-            const uint64_t tb = ibis::fileManager::totalBytes();
-            if (sz == 0 || maxBytes <= tb || maxBytes+sum < tb+sz)
-                // invoke the external cleaners
-                invokeCleaners();
-        }
+	{
+	    size_t sum = 0; // the total bytes that can can be unloaded
+	    for (it=mapped.begin(); it!=mapped.end(); ++it) {
+		if ((*it).second->inUse() == 0 &&
+		    (*it).second->pastUse() > 0) {
+		    sum += (*it).second->size();
+		}
+	    }
+	    for (it=incore.begin(); it!=incore.end(); ++it) {
+		if ((*it).second->inUse() == 0 &&
+		    (*it).second->pastUse() > 0) {
+		    sum += (*it).second->size();
+		}
+	    }
+	    const uint64_t tb = ibis::fileManager::totalBytes();
+	    if (sz == 0 || maxBytes <= tb || maxBytes+sum < tb+sz)
+		// invoke the external cleaners
+		invokeCleaners();
+	}
 
-        // collects the candidates to be removed
-        for (it=mapped.begin(); it!=mapped.end(); ++it) {
-            if ((*it).second->inUse() == 0 &&
-                (*it).second->pastUse() > 0) {
-                candidates.push_back(it);
-            }
-        }
-        for (it=incore.begin(); it!=incore.end(); ++it) {
-            if ((*it).second->inUse() == 0 &&
-                (*it).second->pastUse() > 0) {
-                candidates.push_back(it);
-            }
-        }
+	// collects the candidates to be removed
+	for (it=mapped.begin(); it!=mapped.end(); ++it) {
+	    if ((*it).second->inUse() == 0 &&
+		(*it).second->pastUse() > 0) {
+		candidates.push_back(it);
+	    }
+	}
+	for (it=incore.begin(); it!=incore.end(); ++it) {
+	    if ((*it).second->inUse() == 0 &&
+		(*it).second->pastUse() > 0) {
+		candidates.push_back(it);
+	    }
+	}
 
-        if (candidates.size() > 1) {
-            // sort the candidates in descending order of scores
-            const size_t ncand = candidates.size();
-            std::vector<float> scores(candidates.size());
-            for (unsigned i = 0; i < ncand; ++ i) {
-                scores[i] = (*(candidates[i])).second->score();
-            }
-            for (unsigned stride = ncand/2; stride > 0; stride /= 2) {
-                for (unsigned i = 0; i < ncand - stride; ++ i) {
-                    if (scores[i] < scores[i+stride]) {
-                        float tmp = scores[i];
-                        scores[i] = scores[i+stride];
-                        scores[i+stride] = tmp;
-                        it = candidates[i];
-                        candidates[i] = candidates[i+stride];
-                        candidates[i+stride] = it;
-                    }
-                }
-            }
-        }
-        if (sz == 0) {
-            LOGGER(ibis::gVerbose > 4 && candidates.size() > 0)
-                << "fileManager::unload -- to unload all ("
-                << candidates.size() << ") inactive files";
-            for (size_t i = 0; i < candidates.size(); ++ i) {
-                it = candidates[i];
-                roFile *tmp = (*it).second; // fileManager::roFile to delete
-                if (ibis::gVerbose > 4) {
-                    ibis::util::logger lg;
-                    lg() << "fileManager::unload " << (*it).first;
-                    if (ibis::gVerbose > 7) {
-                        lg() << "\n";
-                        (*it).second->printStatus(lg());
-                    }
-                }
-                if (tmp->mapped) {
-                    mapped.erase(it);
-                }
-                else {
-                    incore.erase(it);
-                }
-                delete tmp;
-            }
-            return 0;
-        }
-        else if (candidates.size() > 0) {
-            // note: totalBytes is updated when an object is deleted
-            while (candidates.size() > 0 &&
-                   maxBytes-sz < ibis::fileManager::totalBytes())  {
-                it = candidates.back();
-                roFile *tmp = (*it).second;
-                if (ibis::gVerbose > 4) {
-                    ibis::util::logger lg;
-                    lg() << "fileManager::unload " << (*it).first;
-                    if (ibis::gVerbose > 7) {
-                        lg() << "\n";
-                        (*it).second->printStatus(lg());
-                    }
-                }
+	if (candidates.size() > 1) {
+	    // sort the candidates in descending order of scores
+	    const size_t ncand = candidates.size();
+	    std::vector<float> scores(candidates.size());
+	    for (unsigned i = 0; i < ncand; ++ i) {
+		scores[i] = (*(candidates[i])).second->score();
+	    }
+	    for (unsigned stride = ncand/2; stride > 0; stride /= 2) {
+		for (unsigned i = 0; i < ncand - stride; ++ i) {
+		    if (scores[i] < scores[i+stride]) {
+			float tmp = scores[i];
+			scores[i] = scores[i+stride];
+			scores[i+stride] = tmp;
+			it = candidates[i];
+			candidates[i] = candidates[i+stride];
+			candidates[i+stride] = it;
+		    }
+		}
+	    }
+	}
+	if (sz == 0) {
+	    LOGGER(ibis::gVerbose > 4 && candidates.size() > 0)
+		<< "fileManager::unload -- to unload all ("
+		<< candidates.size() << ") inactive files";
+	    for (size_t i = 0; i < candidates.size(); ++ i) {
+		it = candidates[i];
+		roFile *tmp = (*it).second; // fileManager::roFile to delete
+		if (ibis::gVerbose > 4) {
+		    ibis::util::logger lg;
+		    lg() << "fileManager::unload " << (*it).first;
+		    if (ibis::gVerbose > 7) {
+			lg() << "\n";
+			(*it).second->printStatus(lg());
+		    }
+		}
+		if (tmp->mapped) {
+		    mapped.erase(it);
+		}
+		else {
+		    incore.erase(it);
+		}
+		delete tmp;
+	    }
+	    return 0;
+	}
+	else if (candidates.size() > 0) {
+	    // note: totalBytes is updated when an object is deleted
+	    while (candidates.size() > 0 &&
+		   maxBytes-sz < ibis::fileManager::totalBytes())  {
+		it = candidates.back();
+		roFile *tmp = (*it).second;
+		if (ibis::gVerbose > 4) {
+		    ibis::util::logger lg;
+		    lg() << "fileManager::unload " << (*it).first;
+		    if (ibis::gVerbose > 7) {
+			lg() << "\n";
+			(*it).second->printStatus(lg());
+		    }
+		}
 
-                if (tmp->mapped) {
-                    mapped.erase(it);
-                }
-                else {
-                    incore.erase(it);
-                }
-                delete tmp; // remove the target selected
-                candidates.resize(candidates.size()-1);
-            }
-            if (maxBytes >= sz+ibis::fileManager::totalBytes())
-                return 0;
-        }
+		if (tmp->mapped) {
+		    mapped.erase(it);
+		}
+		else {
+		    incore.erase(it);
+		}
+		delete tmp; // remove the target selected
+		candidates.resize(candidates.size()-1);
+	    }
+	    if (maxBytes >= sz+ibis::fileManager::totalBytes())
+		return 0;
+	}
 
-        candidates.clear(); // remove space taken up by candiates
+	candidates.clear(); // remove space taken up by candiates
 
-        if (nwaiting > 0) {
-            // a primitive strategy: only one thread can wait for any
-            // positive amount of space
-            LOGGER(ibis::gVerbose > 2)
-                << "Warning -- fileManager::unload yields to another thread "
-                << "already waiting for memory ...";
-            return -108;
-        }
+	if (nwaiting > 0) {
+	    // a primitive strategy: only one thread can wait for any
+	    // positive amount of space
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- fileManager::unload yields to another thread "
+		<< "already waiting for memory ...";
+	    return -108;
+	}
 
-        ++ nwaiting;
-        if (ibis::gVerbose > 3) {
-            ibis::util::logger lg;
-            lg() << "fileManager::unload failed to find "
-                 << ibis::util::groupby1000(sz)
-                 << " bytes of free space (totalBytes="
-                 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
-                 << ", maxBytes=" << ibis::util::groupby1000(maxBytes)
-                 << "), will wait...";
-            if (ibis::gVerbose > 5) {
-                lg() << "\n";
-                printStatus(lg());
-            }
-        }
-        int ierr = 0;
-        // has to wait for condition to change
+	++ nwaiting;
+	if (ibis::gVerbose > 3) {
+	    ibis::util::logger lg;
+	    lg() << "fileManager::unload unable to find "
+		 << ibis::util::groupby1000(sz)
+		 << " bytes of free space (totalBytes="
+		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
+		 << ", maxBytes=" << ibis::util::groupby1000(maxBytes)
+		 << "), will wait...";
+	    if (ibis::gVerbose > 6) {
+		lg() << "\n";
+		printStatus(lg());
+	    }
+	}
+	int ierr = 0;
+	// has to wait for condition to change
 #if defined(CLOCK_MONOTONIC) && (defined(HAVE_STRUCT_TIMESPEC) || defined(__USE_POSIX) || _POSIX_VERSION+0 > 199900)
         // has clock_gettime to get the current time
         struct timespec tsp;

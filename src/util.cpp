@@ -1062,25 +1062,25 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 
     FILE* fptr = popen(cmd, "r");
     if (fptr) {
-        while (fgets(buf, PATH_MAX, fptr)) {
-            LOGGER(ibis::gVerbose > 4)
-                << event << " got message -- " << buf;
-        }
+	while (fgets(buf, PATH_MAX, fptr)) {
+	    LOGGER(ibis::gVerbose > 4)
+		<< event << " got message -- " << buf;
+	}
 
-        int ierr = pclose(fptr);
-        if (ierr != 0) {
+	int ierr = pclose(fptr);
+	if (ierr != 0) {
             LOGGER(ibis::gVerbose >= 0)
                 << "Warning -- command \"" << cmd << "\" returned with error "
                 << ierr << " ... " << strerror(errno);
-        }
-        else {
-            LOGGER(ibis::gVerbose > 0)
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
                 << event << " -- command \"" << cmd << "\" succeeded";
-        }
+	}
     }
     else {
         LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- " << event << " failed to popen(" << cmd << ") ... "
+            << "Warning -- " << event << " failed to popen(" << cmd << ") ... ",
             << strerror(errno);
     }
 #elif defined(_WIN32) && defined(_MSC_VER)

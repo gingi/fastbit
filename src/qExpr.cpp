@@ -51,7 +51,7 @@ bool ibis::math::preserveInputExpressions = false;
 void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     if (expr == 0) return;
     LOGGER(ibis::gVerbose > 5)
-        << "qExpr::simplify --  input expression " << *expr;
+	<< "qExpr::simplify --  input expression " << *expr;
 
     switch (expr->getType()) {
     default:
@@ -889,19 +889,19 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
     } // switch(...
 
     if (ibis::gVerbose > 5 || (ibis::gVerbose >= 0 && expr == 0)) {
-        ibis::util::logger lg;
-        if (expr != 0) {
-            lg() << "qExpr::simplify -- output expression "
-                 << "(@" << static_cast<const void*>(expr) << ") ";
-            if (ibis::gVerbose > 7)
-                expr->printFull(lg());
-            else
-                expr->print(lg());
-        }
-        else {
-            lg() << "Warning -- qExpr::simplify has turned a non-nil "
-                "expression into nil";
-        }
+	ibis::util::logger lg;
+	if (expr != 0) {
+	    lg() << "qExpr::simplify -- output expression "
+		 << "(@" << static_cast<const void*>(expr) << ") ";
+	    if (ibis::gVerbose > 8)
+		expr->printFull(lg());
+	    else
+		expr->print(lg());
+	}
+	else {
+	    lg() << "Warning -- qExpr::simplify has turned a non-nil "
+		"expression into nil";
+	}
     }
 } // ibis::qExpr::simplify
 
@@ -1175,13 +1175,13 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
     }
 
     if (ibis::gVerbose > 4) {
-        ibis::util::logger lg;
-        lg() << "qExpr::reorder -- output (" << ret << ", @"
-             << static_cast<const void*>(this) << "): ";
-        if (ibis::gVerbose > 7)
-            printFull(lg());
-        else
-            print(lg());
+	ibis::util::logger lg;
+	lg() << "qExpr::reorder -- output (" << ret << ", @"
+	     << static_cast<const void*>(this) << "): ";
+	if (ibis::gVerbose > 8)
+	    printFull(lg());
+	else
+	    print(lg());
     }
     return ret;
 } // ibis::qExpr::reorder

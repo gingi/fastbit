@@ -93,6 +93,9 @@ public:
     bool isUnsignedInteger() const;
     bool isNumeric() const;
     bool isSorted() const {return m_sorted;} ///!< Are the values sorted?
+    bool hasIndex() const;
+    bool hasRoster() const;
+
     void description(const char* d) {m_desc = d;}
     void lowerBound(double d) {lower = d;}
     void upperBound(double d) {upper = d;}
@@ -102,6 +105,8 @@ public:
 
     const part*  partition() const {return thePart;}
     const part*& partition() {return thePart;}
+
+    int elementSize() const;
 
     // function related to index/bin
     const char* indexSpec() const; ///!< Retrieve the index specification.
