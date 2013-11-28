@@ -863,25 +863,19 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
 /// Return size of the file in bytes.  The value 0 is returned if
 /// file does not exist.
 off_t ibis::util::getFileSize(const char* name) {
-    Stat_T buf;
-    if (name == 0) {
-	return 0;
+    if (name != 0 && *name != 0) {
+        Stat_T buf;
+        if (UnixStat(name, &buf) == 0) {
+            if ((buf.st_mode & S_IFREG) == S_IFREG)
+                return buf.st_size;
+        }
+        else {
+            LOGGER(ibis::gVerbose > 11 || errno != ENOENT)
+                << "Warning -- getFileSize(" << name << ") failed ... "
+                << strerror(errno);
+        }
     }
-    else if (*name == 0) {
-	return 0;
-    }
-    else if (UnixStat(name, &buf) == 0) {
-	if ((buf.st_mode & S_IFREG) == S_IFREG)
-	    return buf.st_size;
-	else
-	    return 0;
-    }
-    else {
-	if (ibis::gVerbose > 11 || errno != ENOENT)
-	    ibis::util::logMessage("Warning", "getFileSize(%s) failed ... %s",
-				   name, strerror(errno));
-	return 0;
-    }
+    return 0;
 }
 
 /// Copy file named "from" to a file named "to".  It overwrites the content
@@ -1039,19 +1033,20 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 	}
 
 	int ierr = pclose(fptr);
-	if (ierr && ibis::gVerbose >= 0) {
-	    ibis::util::logMessage("Warning ", "command \"%s\" returned with "
-				   "error %d ... %s", cmd, ierr,
-				   strerror(errno));
+	if (ierr != 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- command \"" << cmd << "\" returned with error "
+                << ierr << " ... " << strerror(errno);
 	}
-	else if (ibis::gVerbose > 0) {
-	    ibis::util::logMessage(event.c_str(), "command \"%s\" succeeded",
-				   cmd);
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+                << event << " -- command \"" << cmd << "\" succeeded";
 	}
     }
-    else if (ibis::gVerbose >= 0) {
-	ibis::util::logMessage("Warning", "%s failed to popen(%s) ... %s",
-			       event.c_str(), cmd, strerror(errno));
+    else {
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- " << event << " failed to popen(" << cmd << ") ... ",
+            << strerror(errno);
     }
 #elif defined(_WIN32) && defined(_MSC_VER)
     sprintf(cmd, "rmdir /s /q \"%s\"", name); // "/s /q" are available on NT

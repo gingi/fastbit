@@ -2544,7 +2544,10 @@ ibis::part::getRIDs(const ibis::bitvector &mask) const {
     return ret;
 } // ibis::part::getRIDs
 
-/// Assumes the pages are packed with values.
+/// Assuming the pages are packed with values of wordsize bytes, this
+/// function examines the given bitvector to determine the number of pages
+/// would be accessed in order to read all the positions marked 1.  The
+/// page size is determine by the function ibis::fileManager::pageSize.
 uint32_t ibis::part::countPages(const ibis::bitvector &mask,
 				unsigned wordsize) {
     uint32_t res = 0;

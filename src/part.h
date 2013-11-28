@@ -625,7 +625,7 @@ public:
     void rename(const ibis::partAssoc& known);
     void rename(const char*);
 
-    /// Given a @c bitvector, compute the number of pages would be accessed.
+    /// Estimate the number of pages to be accessed.
     static uint32_t countPages(const ibis::bitvector &mask,
 			       unsigned elemsize=4);
     /// Evaluate the strategy for accessing a data file.

@@ -70,18 +70,22 @@ public:
     /// The upper bound of the values.
     const double& upperBound() const {return upper;}
 
-    int elementSize() const;
     bool isFloat() const;
     bool isInteger() const;
     bool isSignedInteger() const;
     bool isUnsignedInteger() const;
     bool isNumeric() const;
     bool isSorted() const {return m_sorted;} ///!< Are the values sorted?
+    bool hasIndex() const;
+    bool hasRoster() const;
+
     void description(const char* d) {m_desc = d;}
     void lowerBound(double d) {lower = d;}
     void upperBound(double d) {upper = d;}
     const part* partition() const {return thePart;}
     void isSorted(bool);
+
+    int elementSize() const;
 
     // function related to index/bin
     const char* indexSpec() const; ///!< Retrieve the index specification.

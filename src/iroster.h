@@ -41,10 +41,11 @@ public:
     inline uint32_t operator[](uint32_t i) const;
 
     /// Locate the values and set their positions in the bitvector.
-    /// Return the positions of the matching entries as a bitvector.
+    ///
     /// Return a negative value for error, zero or a positive value for in
     /// case of success.
-    /// The input values are assumed to be sorted in ascending order.
+    /// 
+    /// @note The input values are assumed to be sorted in ascending order.
     template <typename T>
     int locate(const ibis::array_t<T>& vals,
 	       ibis::bitvector& positions) const;

@@ -33,7 +33,7 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
 	// need to build a new roster list
 	if (col->partition()->nRows() <
 	    ibis::fileManager::bytesFree() / (8+col->elementSize()))
-	    icSort(dir); // in core sorting
+	    icSort(dir);	// in core sorting
 	if (ind.size() != col->partition()->nRows())
 	    oocSort(dir);	// out of core sorting
     }
@@ -149,10 +149,22 @@ int ibis::roster::writeSorted(const char *df) const {
 	(off_t)(col->elementSize()*ind.size()))
 	return 0;
 
+    std::string evt;
+    if (ibis::gVerbose > 1) {
+	evt = "roster[";
+        evt += col->partition()->name();
+        evt += '.';
+        evt += col->name();
+	evt += "]::writeSorted";
+    }
+    else {
+        evt = "roster::writeSorted";
+    }
     FILE *fptr = fopen(fnm.c_str(), "wb");
     if (fptr == 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- roster::writeSorted failed to fopen " << fnm;
+	    << "Warning -- roster::writeSorted failed to fopen " << fnm
+            << " for writing";
 	return -3;
     }
 
@@ -177,21 +189,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(tmp), 1, fptr);
 			LOGGER(ierr < sizeof(tmp) && ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to write value # " << i << " (" << tmp
+			    << "Warning -- " << evt
+                            << " failed to write value # " << i << " (" << tmp
 			    << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to read value # " << i
+			    << "Warning -- " << evt
+			    << " failed to read value # " << i
 			    << " (ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::BYTE: {
@@ -212,21 +222,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(tmp), 1, fptr);
 			LOGGER (ierr < sizeof(tmp) && ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to write value # " << i << " (" << tmp
+			    << "Warning -- " << evt
+			    << " failed to write value # " << i << " (" << tmp
 			    << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to read value # " << i
+			    << "Warning -- " << evt
+			    << " failed to read value # " << i
 			    << " (ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::USHORT: {
@@ -247,21 +255,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(tmp), 1, fptr);
 			LOGGER(ierr < sizeof(tmp) && ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to write value # " << i << " (" << tmp
+			    << "Warning -- " << evt
+			    << " failed to write value # " << i << " (" << tmp
 			    << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to read value # " << i
+			    << "Warning -- " << evt
+			    << " failed to read value # " << i
 			    << " (ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::SHORT: {
@@ -282,21 +288,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(tmp), 1, fptr);
 			LOGGER (ierr < sizeof(tmp) && ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to write value # " << i << " (" << tmp
+			    << "Warning -- " << evt
+			    << " failed to write value # " << i << " (" << tmp
 			    << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to read value # " << i
+			    << "Warning -- " << evt
+			    << " failed to read value # " << i
 			    << " (ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::UINT: {
@@ -317,21 +321,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(tmp), 1, fptr);
 			LOGGER(ierr < sizeof(tmp) && ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to write value # " << i << " (" << tmp
+			    << "Warning -- " << evt
+			    << " failed to write value # " << i << " (" << tmp
 			    << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to read value # " << i
+			    << "Warning -- " << evt
+			    << " failed to read value # " << i
 			    << " (ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::INT: {
@@ -352,21 +354,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(tmp), 1, fptr);
 			LOGGER (ierr < sizeof(tmp) && ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to write value # " << i << " (" << tmp
+			    << "Warning -- " << evt
+			    << " failed to write value # " << i << " (" << tmp
 			    << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to read value # " << i
+			    << "Warning -- " << evt
+			    << " failed to read value # " << i
 			    << " (ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::ULONG: {
@@ -387,21 +387,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(tmp), 1, fptr);
 			LOGGER(ierr < sizeof(tmp) && ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to write value # " << i << " (" << tmp
+			    << "Warning -- " << evt
+			    << " failed to write value # " << i << " (" << tmp
 			    << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to read value # " << i
+			    << "Warning -- " << evt
+			    << " failed to read value # " << i
 			    << " (ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::LONG: {
@@ -422,21 +420,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(tmp), 1, fptr);
 			LOGGER (ierr < sizeof(tmp) && ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to write value # " << i << " (" << tmp
+			    << "Warning -- " << evt
+			    << " failed to write value # " << i << " (" << tmp
 			    << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "Warning -- column[" << col->partition()->name()
-			    << "." << col->name() << "]::roster::writeSorted"
-			    << "-- failed to read value # " << i
+			    << "Warning -- " << evt
+			    << " failed to read value # " << i
 			    << " (ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::FLOAT: {
@@ -457,19 +453,19 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(float), 1, fptr);
 			LOGGER(ierr < sizeof(float) && ibis::gVerbose > 0)
-			    << "Warning -- roster::writeSorted "
+			    << "Warning -- " << evt
 			    << "failed to write value # " << i
 			    << " (" << tmp << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- roster::writeSorted "
+			    << "Warning -- " << evt
 			    << "failed to read value # " << i
 			    << "(ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     case ibis::DOUBLE: {
@@ -490,25 +486,25 @@ int ibis::roster::writeSorted(const char *df) const {
 		    if (ierr > 0) {
 			ierr = fwrite(&tmp, sizeof(double), 1, fptr);
 			LOGGER(ierr < sizeof(double) && ibis::gVerbose > 0)
-			    << "Warning -- roster::writeSorted "
+			    << "Warning -- " << evt
 			    << "failed to write value # " << i << " ("
 			    << tmp << ") to " << fnm;
 		    }
 		    else {
 			LOGGER(ibis::gVerbose > 0)
-			    << "Warning -- roster::writeSorted "
+			    << "Warning -- " << evt
 			    << "failed to read value # " << i
 			    << "(ind[" << i << "]=" << ind[i] << ")";
 		    }
 		}
+                ierr = 0;
 	    }
-	    ierr = 0;
 	}
 	break;}
     default: {
 	const int t = static_cast<int>(col->type());
 	LOGGER(ibis::gVerbose > 0)	
-	    << "Warning -- roster::writeSorted unable to write column type "
+	    << "Warning -- " << evt << " does not support column type "
 	    << ibis::TYPESTRING[t] << "(" << t << ")";
 	ierr = 0;
 	break;}
@@ -520,9 +516,9 @@ int ibis::roster::writeSorted(const char *df) const {
     }
     else {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- roster::writeSorted failed to write to data file "
-	    << fnm;
-	return -4;
+	    << "Warning -- " << evt << " failed to open data file "
+	    << fnm << " for reading";
+	return ierr;
     }
 } // ibis::roster::writeSorted
 
@@ -2076,7 +2072,7 @@ uint32_t ibis::roster::size() const {
 	    col->partition()->nRows() : 0);
 } // ibis::roster::size
 
-// return the smallest i such that val >= val[ind[i]]
+/// Return the smallest i such that val >= val[ind[i]].
 uint32_t ibis::roster::locate(const double& v) const {
     uint32_t hit = ind.size();
     if (hit == 0) return hit;
@@ -2244,8 +2240,8 @@ uint32_t ibis::roster::locate(const double& v) const {
     }
     default: {
 	ibis::util::logger lg;
-	lg() << "Warning -- column[" << col->partition()->name() << "."
-	     << col->name() << "]::roster -- no roster list for column type "
+	lg() << "Warning -- roster[" << col->partition()->name() << "."
+	     << col->name() << "]::locate -- no roster list for column type "
 	     << ibis::TYPESTRING[static_cast<int>(col->type())];
 	break;}
     }
@@ -2263,8 +2259,24 @@ uint32_t ibis::roster::locate(const double& v) const {
 template <typename T> int
 ibis::roster::icSearch(const ibis::array_t<T>& vals,
 		       std::vector<uint32_t>& pos) const {
+    std::string evt;
+    if (ibis::gVerbose > 3) {
+        evt = "roster[";
+        evt += col->partition()->name();
+        evt += '.';
+        evt += col->name();
+        evt += "]::icSearch<";
+        evt += typeid(T).name();
+        evt += '>';
+    }
+    else {
+        evt = "roster::icSearch";
+    }
     const uint32_t nrows = col->partition()->nRows();
     if (ind.size() != nrows) { // not a valid index array
+        LOGGER(ibis::gVerbose > 3)
+            << "Warning -- " << evt << " can not continue with ind["
+            << ind.size() << "], need ind to have " << nrows << " rows";
 	return -1;
     }
 
@@ -2280,8 +2292,7 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
     const uint32_t nvals = vals.size();
 
     LOGGER(ibis::gVerbose > 4)
-	<< "roster::icSearch<" << typeid(T).name()
-	<< "> attempting to read the content of " << fname
+        << evt << " attempt to read the content of " << fname
 	<< " to locate " << vals.size() << " value"
 	<< (vals.size()>1?"s":"");
     int ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
@@ -2303,16 +2314,14 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 	}
 
 	LOGGER(ibis::gVerbose > 4)
-	    << "roster::icSearch<" << typeid(T).name()
-	    << "> read the content of " << fname
+	    << evt << " read the content of " << fname
 	    << " and found " << pos.size() << " match"
 	    << (pos.size()>1?"es":"");
 	return (pos.size() > 0);
     }
     else {
 	LOGGER(ibis::gVerbose > 3)
-	    << "roster::icSearch<" << typeid(T).name()
-	    << "> failed to read data file " << fname
+            << evt << " failed to read data file " << fname
 	    << ", see whether the base data file is usable";
     }
 
@@ -2340,8 +2349,8 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
     }
     else {
 	LOGGER(ibis::gVerbose > 1)
-	    << "roster::icSearch<" << typeid(T).name()
-	    << "> failed to read data files " << fname << ".srt and " << fname;
+	    << "Warning -- " << evt
+	    << " failed to read data files " << fname << ".srt and " << fname;
 	ierr = -2;
     }
     return ierr;
@@ -2359,14 +2368,26 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
     int ierr = writeSorted(static_cast<const char*>(0));
     if (ierr < 0) return ierr;
 
+    std::string evt;
+    if (ibis::gVerbose > 3) {
+        evt = "roster[";
+        evt += col->partition()->name();
+        evt += '.';
+        evt += col->name();
+        evt += "]::oocSearch<";
+        evt += typeid(T).name();
+        evt += '>';
+    }
+    else {
+        evt = "roster::oocSearch";
+    }
     std::string fname = col->partition()->currentDataDir();
     fname += FASTBIT_DIRSEP;
     fname += col->name();
     int len = fname.size();
     fname += ".srt";
     LOGGER(ibis::gVerbose > 4)
-	<< "roster::oocSearch<" << typeid(T).name()
-	<< "> attempting to read the content of " << fname
+	<< evt << " attempt to read the content of " << fname
 	<< " to locate " << vals.size() << " value"
 	<< (vals.size()>1?"s":"");
 
@@ -2375,7 +2396,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
     int srtdes = UnixOpen(fname.c_str(), OPEN_READONLY);
     if (srtdes < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- roster::oocSearch failed to open the file "
+	    << "Warning -- " << evt << " failed to open the file "
 	    << fname;
 	return -5;
     }
@@ -2421,8 +2442,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	}
 
 	LOGGER(ibis::gVerbose > 4)
-	    << "roster::oocSearch<" << typeid(T).name()
-	    << "> read the content of " << fname
+	    << evt << " read the content of " << fname
 	    << " and found " << pos.size() << " match"
 	    << (pos.size()>1?"es":"");
 	return (pos.size() > 0);
@@ -2434,7 +2454,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	inddes = UnixOpen(fname.c_str(), OPEN_READONLY);
 	if (inddes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning roster::oocSearch failed to open index file "
+		<< "Warning -- " << evt << " failed to open index file "
 		<< fname;
 	    return -7;
 	}
@@ -2468,7 +2488,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
 			LOGGER(ibis::gVerbose > 1)
-			    << "Warning -- roster::oocSearch failed to "
+			    << "Warning -- " << evt << " failed to "
 			    "read index value # " << ir;
 			return -9;
 		    }
@@ -2486,7 +2506,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 	ierr = UnixRead(srtdes, &curr, tbytes);
 	if (ierr < static_cast<int>(tbytes)) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- roster::oocSearch failed to read value # "
+		<< "Warning -- " << evt << " failed to read value # "
 		<< ir << " from the sorted file";
 	    return -10;
 	}
@@ -2501,7 +2521,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
 		    LOGGER(ibis::gVerbose > 1)
-			<< "Warning -- roster::oocSearch failed to read value # "
+			<< "Warning -- " << evt << " failed to read value # "
 			<< ir << " from the sorted file";
 		    return -11;
 		}
@@ -2517,7 +2537,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
 			LOGGER(ibis::gVerbose > 1)
-			    << "Warning -- roster::oocSearch failed to read "
+			    << "Warning -- " << evt << " failed to read "
 			    "index value # " << ir;
 			return -12;
 		    }
@@ -2526,7 +2546,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
 		    LOGGER(ibis::gVerbose > 1)
-			<< "Warning -- roster::oocSearch failed to read "
+			<< "Warning -- " << evt << " failed to read "
 			"value # " << ir << " from the sorted file";
 		    return -13;
 		}
@@ -2536,8 +2556,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
     }
 
     LOGGER(ibis::gVerbose > 4)
-	<< "roster::oocSearch<" << typeid(T).name()
-	<< "> read the content of " << fname
+	<< evt << " read the content of " << fname
 	<< " and found " << pos.size() << " match"
 	<< (pos.size()>1?"es":"");
     return (pos.size() > 0);
@@ -2551,8 +2570,24 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 template <typename T> int
 ibis::roster::icSearch(const std::vector<T>& vals,
 		       std::vector<uint32_t>& pos) const {
+    std::string evt;
+    if (ibis::gVerbose > 3) {
+        evt = "roster[";
+        evt += col->partition()->name();
+        evt += '.';
+        evt += col->name();
+        evt += "]::icSearch<";
+        evt += typeid(T).name();
+        evt += '>';
+    }
+    else {
+        evt = "roster::icSearch";
+    }
     const uint32_t nrows = col->partition()->nRows();
     if (ind.size() != nrows) { // not a valid index array
+        LOGGER(ibis::gVerbose > 3)
+            << "Warning -- " << evt << " can not continue with ind["
+            << ind.size() << "], need ind to have " << nrows << " rows";
 	return -1;
     }
 
@@ -2568,8 +2603,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
     const uint32_t nvals = vals.size();
 
     LOGGER(ibis::gVerbose > 4)
-	<< "roster::icSearch<" << typeid(T).name()
-	<< "> attempting to read the content of " << fname
+	<< evt << " attempt to read the content of " << fname
 	<< " to locate " << vals.size() << " value"
 	<< (vals.size()>1?"s":"");
     int ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
@@ -2591,16 +2625,14 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 	}
 
 	LOGGER(ibis::gVerbose > 4)
-	    << "roster::icSearch<" << typeid(T).name()
-	    << "> read the content of " << fname
+	    << evt << " read the content of " << fname
 	    << " and found " << pos.size() << " match"
 	    << (pos.size()>1?"es":"");
 	return (pos.size() > 0);
     }
     else {
 	LOGGER(ibis::gVerbose > 3)
-	    << "roster::icSearch<" << typeid(T).name()
-	    << "> failed to read data file " << fname
+	    << evt << " failed to read data file " << fname
 	    << ", see whether the base data file is usable";
     }
 
@@ -2627,8 +2659,8 @@ ibis::roster::icSearch(const std::vector<T>& vals,
     }
     else {
 	LOGGER(ibis::gVerbose > 1)
-	    << "roster::icSearch<" << typeid(T).name()
-	    << "> failed to read data files " << fname << ".srt and " << fname;
+	    << "Warning -- " << evt << " failed to read data files "
+            << fname << ".srt and " << fname;
 	return -2;
     }
     return (pos.size() > 0);
@@ -2646,14 +2678,26 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
     int ierr = writeSorted(static_cast<const char*>(0));
     if (ierr < 0) return ierr;
 
+    std::string evt;
+    if (ibis::gVerbose > 3) {
+        evt = "roster[";
+        evt += col->partition()->name();
+        evt += '.';
+        evt += col->name();
+        evt += "]::oocSearch<";
+        evt += typeid(T).name();
+        evt += '>';
+    }
+    else {
+        evt = "roster::oocSearch";
+    }
     std::string fname = col->partition()->currentDataDir();
     fname += FASTBIT_DIRSEP;
     fname += col->name();
     int len = fname.size();
     fname += ".srt";
     LOGGER(ibis::gVerbose > 4)
-	<< "roster::oocSearch<" << typeid(T).name()
-	<< "> attempting to read the content of " << fname
+	<< evt << " attempt to read the content of " << fname
 	<< " to locate " << vals.size() << " value"
 	<< (vals.size()>1?"s":"");
 
@@ -2662,7 +2706,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
     int srtdes = UnixOpen(fname.c_str(), OPEN_READONLY);
     if (srtdes < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- roster::oocSearch failed to open the file "
+	    << "Warning -- " << evt << " failed to open the file "
 	    << fname;
 	return -5;
     }
@@ -2708,8 +2752,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	}
 
 	LOGGER(ibis::gVerbose > 4)
-	    << "roster::oocSearch<" << typeid(T).name()
-	    << "> read the content of " << fname
+	    << evt << " read the content of " << fname
 	    << " and found " << pos.size() << " match"
 	    << (pos.size()>1?"es":"");
 	return (pos.size() > 0);
@@ -2721,7 +2764,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	inddes = UnixOpen(fname.c_str(), OPEN_READONLY);
 	if (inddes < 0) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- roster::oocSearch failed to open index file "
+		<< "Warning -- " << evt << " failed to open index file "
 		<< fname;
 	    return -7;
 	}
@@ -2755,7 +2798,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
 			LOGGER(ibis::gVerbose > 1)
-			    << "Warning -- roster::oocSearch failed to read "
+			    << "Warning -- " << evt << " failed to read "
 			    "index value # " << ir;
 			return -9;
 		    }
@@ -2773,7 +2816,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 	ierr = UnixRead(srtdes, &curr, tbytes);
 	if (ierr < static_cast<int>(tbytes)) {
 	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- roster::oocSearch failed to read value # "
+		<< "Warning -- " << evt << " failed to read value # "
 		<< ir << " from the sorted file";
 	    return -10;
 	}
@@ -2788,7 +2831,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
 		    LOGGER(ibis::gVerbose > 1)
-			<< "Warning -- roster::oocSearch failed to read value # "
+			<< "Warning -- " << evt << " failed to read value # "
 			<< ir << " from the sorted file";
 		    return -11;
 		}
@@ -2804,7 +2847,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		    ierr = UnixRead(inddes, &tmp, sizeof(tmp));
 		    if (ierr <= 0) {
 			LOGGER(ibis::gVerbose > 1)
-			    << "Warning -- roster::oocSearch failed to read "
+			    << "Warning -- " << evt << " failed to read "
 			    "index value #" << ir;
 			return -12;
 		    }
@@ -2813,7 +2856,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
 		ierr = UnixRead(srtdes, &curr, tbytes);
 		if (ierr < static_cast<int>(tbytes)) {
 		    LOGGER(ibis::gVerbose > 1)
-			<< "Warning -- roster::oocSearch failed to read "
+			<< "Warning -- " << evt << " failed to read "
 			"value #" << ir << " from the sorted file";
 		    return -13;
 		}
@@ -2823,8 +2866,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
     }
 
     LOGGER(ibis::gVerbose > 4)
-	<< "roster::oocSearch<" << typeid(T).name()
-	<< "> read the content of " << fname
+	<< evt << " read the content of " << fname
 	<< " and found " << pos.size() << " match"
 	<< (pos.size()>1?"es":"");
     return (pos.size() > 0);
@@ -2851,8 +2893,8 @@ ibis::roster::locate(const ibis::array_t<T>& vals,
     ierr = icSearch(vals, positions);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "column[" << col->partition()->name() << "." << col->name()
-	    << "]::roster::locate<" << typeid(T).name() << ">(" << vals.size()
+	    << "roster[" << col->partition()->name() << "." << col->name()
+	    << "]::locate<" << typeid(T).name() << ">(" << vals.size()
 	    << ") failed icSearch with ierr = " << ierr
 	    << ", attempting oocSearch";
 
@@ -2860,8 +2902,8 @@ ibis::roster::locate(const ibis::array_t<T>& vals,
 	ierr = oocSearch(vals, positions);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "column[" << col->partition()->name() << "." << col->name()
-		<< "]::roster::locate<" << typeid(T).name() << ">("
+		<< "roster[" << col->partition()->name() << "." << col->name()
+		<< "]::locate<" << typeid(T).name() << ">("
 		<< vals.size() << ") failed oocSearch with ierr = " << ierr;
 	    return -3;
 	}
@@ -2882,11 +2924,14 @@ ibis::roster::locate(const ibis::array_t<double>& vals,
     }
 
     std::string evt;
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 1) {
 	std::ostringstream oss;
-	oss << "column[" << col->partition()->name() << '.' << col->name()
-	    << "]::roster::locate<double>(" << vals.size() << ')';
+	oss << "roster[" << col->partition()->name() << '.' << col->name()
+	    << "]::locate<double>(" << vals.size() << ')';
 	evt = oss.str();
+    }
+    else {
+        evt = "roster::locate";
     }
     ibis::util::timer mytime(evt.c_str(), 3);
     std::vector<uint32_t> ipos; // integer positions
@@ -3000,7 +3045,7 @@ ibis::roster::locate(const ibis::array_t<T>& vals,
     ierr = icSearch(vals, ipos);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << evt << " failed icSearch with ierr = " << ierr
+            << evt << " failed icSearch with ierr = " << ierr
 	    << ", attempting oocSearch";
 
 	ipos.clear();
@@ -3048,22 +3093,29 @@ ibis::roster::locate(const std::vector<T>& vals,
 	return ierr;
     }
 
+    std::string evt;
+    if (ibis::gVerbose > 1) {
+	std::ostringstream oss;
+	oss << "roster[" << col->partition()->name() << '.' << col->name()
+	    << "]::locate<" << typeid(T).name()<< ">(" << vals.size() << ')';
+	evt = oss.str();
+    }
+    else {
+        evt = "roster::locate";
+    }
     positions.clear();
     ierr = icSearch(vals, positions);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "column[" << col->partition()->name() << "." << col->name()
-	    << "]::roster::locate<" << typeid(T).name() << ">(" << vals.size()
-	    << ") failed icSearch with ierr = " << ierr
+	    << evt << " failed icSearch with ierr = " << ierr
 	    << ", attempting oocSearch";
 
 	positions.clear();
 	ierr = oocSearch(vals, positions);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "column[" << col->partition()->name() << "." << col->name()
-		<< "]::roster::locate<" << typeid(T).name() << ">("
-		<< vals.size() << ") failed oocSearch with ierr = " << ierr;
+		<< "Warning -- " << evt << " failed oocSearch with ierr = "
+                << ierr;
 	    return -3;
 	}
     }
@@ -3087,19 +3139,21 @@ ibis::roster::locate(const std::vector<T>& vals,
     positions.clear();
 
     std::string evt;
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 1) {
 	std::ostringstream oss;
-	oss << "column[" << col->partition()->name() << '.' << col->name()
-	    << "]::roster::locate<" << typeid(T).name()<< ">("
-	    << vals.size() << ')';
+        oss << "roster[" << col->partition()->name() << '.' << col->name()
+            << "]::locate<" << typeid(T).name()<< ">(" << vals.size() << ')';
 	evt = oss.str();
+    }
+    else {
+        evt = "roster::locate";
     }
     ibis::util::timer mytime(evt.c_str(), 3);
     std::vector<uint32_t> ipos; // integer positions
     ierr = icSearch(vals, ipos);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << evt << " failed icSearch with ierr = " << ierr
+            << evt << " failed icSearch with ierr = " << ierr
 	    << ", attempting oocSearch";
 
 	ipos.clear();
@@ -3167,8 +3221,8 @@ ibis::roster::locate(const std::vector<double>& vals,
     std::string evt;
     if (ibis::gVerbose >= 0) {
 	std::ostringstream oss;
-	oss << "column[" << col->partition()->name() << '.' << col->name()
-	    << "]::roster::locate<double>(" << vals.size() << ')';
+	oss << "roster[" << col->partition()->name() << '.' << col->name()
+	    << "]::locate<double>(" << vals.size() << ')';
 	evt = oss.str();
     }
     ibis::util::timer mytime(evt.c_str(), 3);

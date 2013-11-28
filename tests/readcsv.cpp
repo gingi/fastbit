@@ -619,7 +619,7 @@ int main(int argc, char** argv) {
 	std::string dname = argv[1]; // data set name
 	unsigned len = dname.rfind('/');
 	if (len < dname.size())
-	    dname.erase(0, len);
+	    dname.erase(0, len+1);
 	len = dname.find('.');
 	if (len < dname.size())
 	    dname.erase(len);

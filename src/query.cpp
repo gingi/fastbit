@@ -4735,8 +4735,8 @@ void ibis::query::clear() {
 	pnm += ".purgeTempFiles";
 	if (ibis::gParameters().isTrue(pnm.c_str())) {
 	    ibis::util::removeDir(myDir);
-	    if (ibis::gVerbose > 6)
-		logMessage("clear", "removed %s", myDir);
+	    LOGGER(ibis::gVerbose > 6)
+		<< "query[" << myID << "]::clear removed " << myDir;
 	}
     }
 } // ibis::query::clear

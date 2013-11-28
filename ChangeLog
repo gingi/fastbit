@@ -1,9 +1,21 @@
 2013-11-27 John Wu <John dot Wu at ACM dot org>
+	* src/column.h: add functions hasIndex and hasRoster
+	* src/column.cpp: check the existence of ibis::roster before
+	attempting to use it
+	* src/column.cpp: adjust the estimated cost for qDiscreteRange
+	assuming numbers are uniformly distributed
+
+2013-11-26 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: streamline the evaluation options in evaluating
+	qDiscreteRange, add a cost evaluation before using ibis::roster
+	* tests/readcsv.cpp: remove the character / from the data set name
+
+2013-11-25 John Wu <John dot Wu at ACM dot org>
 	* src/query.h, src/query.cpp: add member function
 	query::addConditions
 	* src/whereClause.h, src/whereClause.cpp: add functions
 	whereClause::addExpr and whereClause::addConditions
-	* src/readcsv.cpp: add code to parse infinity and NaN as doubles
+	* tests/readcsv.cpp: add code to parse infinity and NaN as doubles
 	* src/fileManager.cpp: check RLIM_DATA when setting the maxBytes
 	(to avoid the problem on systems with low per user limit)
 

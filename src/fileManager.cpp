@@ -1346,15 +1346,14 @@ int ibis::fileManager::unload(size_t sz) {
 	}
 	if (sz == 0) {
 	    LOGGER(ibis::gVerbose > 4 && candidates.size() > 0)
-		<< "fileManager::unload -- unloading all ("
+		<< "fileManager::unload -- to unload all ("
 		<< candidates.size() << ") inactive files";
 	    for (size_t i = 0; i < candidates.size(); ++ i) {
 		it = candidates[i];
 		roFile *tmp = (*it).second; // fileManager::roFile to delete
 		if (ibis::gVerbose > 4) {
 		    ibis::util::logger lg;
-		    lg() << "fileManager::unload -- "
-			"unloading file \"" << (*it).first << "\"";
+		    lg() << "fileManager::unload " << (*it).first;
 		    if (ibis::gVerbose > 7) {
 			lg() << "\n";
 			(*it).second->printStatus(lg());
@@ -1378,8 +1377,7 @@ int ibis::fileManager::unload(size_t sz) {
 		roFile *tmp = (*it).second;
 		if (ibis::gVerbose > 4) {
 		    ibis::util::logger lg;
-		    lg() << "fileManager::unload -- "
-			"unloading file \"" << (*it).first << "\"";
+		    lg() << "fileManager::unload " << (*it).first;
 		    if (ibis::gVerbose > 7) {
 			lg() << "\n";
 			(*it).second->printStatus(lg());
