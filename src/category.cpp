@@ -680,47 +680,46 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 
 /// Find rows with the exact string as the argument.
 long ibis::category::stringSearch(const char* str,
-                                  ibis::bitvector& hits) const {
+				  ibis::bitvector& hits) const {
+    if (str == 0 || *str == 0) return -1;
+
     std::string evt;
     if (ibis::gVerbose > 1) {
-        evt = "category[";
+        evt = "text[";
         evt += thePart->name();
         evt += '.';
         evt += m_name;
         evt += "]::stringSearch(";
-        if (str != 0)
-            evt += str;
-        else
-            evt += "<NULL>";
+        evt += str;
         evt += ')';
     }
     else {
-        evt = "category::stringSearch";
+        evt = "text::stringSearch";
     }
     ibis::util::timer mytimer(evt.c_str(), 4);
     prepareMembers();
     uint32_t ind = dic[str];
-    if (ind < dic.size()) { // found it in the dictionary
-        indexLock lock(this, evt.c_str());
-        if (idx != 0) {
-            ibis::qContinuousRange expr(m_name.c_str(),
-                                        ibis::qExpr::OP_EQ, ind);
-            long ierr = idx->evaluate(expr, hits);
-            if (ierr < 0) {
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- " << evt
-                    << " failed because idx->evaluate(" << expr
-                    << ") returned " << ierr << ", attempt to work directly"
-                    " with raw string values";
-                return ibis::text::stringSearch(str, hits);
-            }
-        }
-        else {
-            LOGGER(ibis::gVerbose > 2)
-                << "Warning -- " << evt << ") failed to reconstruct the "
-                "index, try to use the raw string values";
-            return ibis::text::stringSearch(str, hits);
-        }
+    if (ind <= dic.size()) { // found it in the dictionary
+	indexLock lock(this, evt.c_str());
+	if (idx != 0) {
+	    ibis::qContinuousRange expr(m_name.c_str(),
+					ibis::qExpr::OP_EQ, ind);
+	    long ierr = idx->evaluate(expr, hits);
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << evt
+		    << " failed because idx->evaluate(" << expr
+		    << ") returned " << ierr << ", attempt to work directly"
+		    " with raw string values";
+		return ibis::text::stringSearch(str, hits);
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- " << evt << ") failed to reconstruct the "
+		"index, try to use the raw string values";
+	    return ibis::text::stringSearch(str, hits);
+	}
     }
     else { // not in the dictionary
         hits.set(0, thePart->nRows());
@@ -1861,7 +1860,7 @@ long ibis::text::stringSearch(const std::vector<std::string>&) const {
 /// actually reads the string values from disk.
 long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
     hits.clear(); // clear the existing content of hits
-    if (thePart == 0) return -1L;
+    if (thePart == 0 || str == 0 || *str == 0) return -1L;
 
     std::string evt = "text[";
     if (thePart != 0 && thePart->name() != 0) {
@@ -3568,13 +3567,13 @@ long ibis::text::keywordSearch(const char* str, ibis::bitvector& hits) const {
             evt = "text::keywordSearch";
         }
         ibis::util::timer mytimer(evt.c_str(), 4);
-        indexLock lock(this, evt.c_str());
-        if (idx != 0 && idx->type() == ibis::index::KEYWORDS) {
-            ierr = reinterpret_cast<ibis::keywords*>(idx)->search(str, hits);
-        }
-        else {
-            ierr = -2;
-        }
+	indexLock lock(this, evt.c_str());
+	if (idx != 0 && idx->type() == ibis::index::KEYWORDS) {
+	    ierr = reinterpret_cast<ibis::keywords*>(idx)->search(str, hits);
+	}
+	else {
+	    ierr = -2;
+	}
     }
     catch (...) {
         ierr = -1;

@@ -6059,7 +6059,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		else {
 		    LOGGER(ibis::gVerbose > 2)
 			<< evt << ") will not use the index because the cost ("
-			<< icost << ") is than that of sequential scan ("
+			<< icost << ") is more than that of sequential scan ("
                         << scost << ')';
 		}
 	    }
