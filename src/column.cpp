@@ -6319,12 +6319,12 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		(1.0 + log((double)cmp.nItems()));
 	    if (m_sorted && idxcost >= 6.0*mask.cnt()) {
 		ierr = searchSorted(cmp, low);
-		if (ierr == 0) {
+		if (ierr >= 0) {
 		    low &= mask;
-		    return low.sloppyCount();
+		    ierr = low.sloppyCount();
 		}
 	    }
-	    if (hasRoster() && idxcost >= (elem+4.0) * 
+	    if (ierr < 0 && hasRoster() && idxcost >= (elem+4.0) * 
                 (mask.cnt()+mask.size()/ibis::fileManager::pageSize())) {
 		// using a sorted list may be faster
 		ibis::roster ros(this);
@@ -6336,7 +6336,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 		    }
 		}
 	    }
-	    if (idxcost <= ibis::fileManager::pageSize() *
+	    if (ierr < 0 && idxcost <= ibis::fileManager::pageSize() *
                 ibis::part::countPages(mask, elem)) {
                 // the normal indexing option
                 ierr = idx->evaluate(cmp, low);
