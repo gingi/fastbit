@@ -2302,6 +2302,7 @@ uint32_t ibis::roster::locate(const double& v) const {
 template <typename T> int
 ibis::roster::icSearch(const ibis::array_t<T>& vals,
 		       std::vector<uint32_t>& pos) const {
+    int ierr;
     std::string evt;
     if (ibis::gVerbose > 3) {
         evt = "roster[";
@@ -2317,10 +2318,18 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
     }
     const uint32_t nrows = col->partition()->nRows();
     if (ind.size() != nrows) { // not a valid index array
-        LOGGER(ibis::gVerbose > 3)
-            << "Warning -- " << evt << " can not continue with ind["
-            << ind.size() << "], need ind to have " << nrows << " rows";
-	return -1;
+        if (col->partition()->currentDataDir() != 0) { // one more try
+            ierr = const_cast<ibis::roster*>(this)->read((const char*)0);
+        }
+        else {
+            ierr = -1;
+        }
+        if (ierr < 0 || ind.size() != nrows) {
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << " can not continue with ind["
+                << ind.size() << "], need ind to have " << nrows << " rows";
+            return -1;
+        }
     }
 
     std::string fname = col->partition()->currentDataDir();
@@ -2338,7 +2347,7 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
         << evt << " attempt to read the content of " << fname
 	<< " to locate " << vals.size() << " value"
 	<< (vals.size()>1?"s":"");
-    int ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
+    ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
     if (ierr == 0) { // got the sorted values
 	while (iv < nvals && it < nrows) {
 	    // move iv so that vals[iv] is not less than tmp[it]
@@ -2420,7 +2429,7 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 /// to initialize the output array as necessary.
 template <typename T> int
 ibis::roster::oocSearch(const ibis::array_t<T>& vals,
-                        std::vector<uint32_t>& pos) const {
+			std::vector<uint32_t>& pos) const {
     const uint32_t nvals = vals.size();
     const uint32_t nrows = col->partition()->nRows();
     // attempt to ensure the sorted values are available
@@ -2637,6 +2646,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
 template <typename T> int
 ibis::roster::icSearch(const std::vector<T>& vals,
 		       std::vector<uint32_t>& pos) const {
+    int ierr;
     std::string evt;
     if (ibis::gVerbose > 3) {
         evt = "roster[";
@@ -2652,10 +2662,18 @@ ibis::roster::icSearch(const std::vector<T>& vals,
     }
     const uint32_t nrows = col->partition()->nRows();
     if (ind.size() != nrows) { // not a valid index array
-        LOGGER(ibis::gVerbose > 3)
-            << "Warning -- " << evt << " can not continue with ind["
-            << ind.size() << "], need ind to have " << nrows << " rows";
-	return -1;
+        if (col->partition()->currentDataDir() != 0) { // one more try
+            ierr = const_cast<ibis::roster*>(this)->read((const char*)0);
+        }
+        else {
+            ierr = -1;
+        }
+        if (ierr < 0 || ind.size() != nrows) {
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- " << evt << " can not continue with ind["
+                << ind.size() << "], need ind to have " << nrows << " rows";
+            return -1;
+        }
     }
 
     std::string fname = col->partition()->currentDataDir();
@@ -2673,7 +2691,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 	<< evt << " attempt to read the content of " << fname
 	<< " to locate " << vals.size() << " value"
 	<< (vals.size()>1?"s":"");
-    int ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
+    ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
     if (ierr == 0) { // got the sorted values
 	while (iv < nvals && it < nrows) {
 	    // move iv so that vals[iv] is not less than tmp[it]
@@ -2744,7 +2762,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
 /// to initialize the output array if necessary.
 template <typename T> int
 ibis::roster::oocSearch(const std::vector<T>& vals,
-                        std::vector<uint32_t>& pos) const {
+			std::vector<uint32_t>& pos) const {
     const uint32_t nvals = vals.size();
     const uint32_t nrows = col->partition()->nRows();
     // attempt to ensure the sorted values are available

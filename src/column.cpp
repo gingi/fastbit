@@ -6290,8 +6290,8 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 	return ierr;
     }
     if (m_type != ibis::FLOAT && m_type != ibis::DOUBLE &&
-        cmp.getValues().size() ==
-        1+(cmp.getValues().back()-cmp.getValues().front())) {
+	cmp.getValues().size() ==
+	1+(cmp.getValues().back()-cmp.getValues().front())) {
         bool convert = (! hasRoster()); // no roster
         if (false == convert) {
             // has roster, prefer coversion only if the index is very small
@@ -6305,9 +6305,9 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
             return evaluateRange(cr, mask, low);
         }
     }
-    if (! cmp.overlap(lower, upper)) {
-        low.set(0, mask.size());
-        return 0;
+    if (cmp.overlap(lower, upper) == false) {
+	low.set(0, mask.size());
+	return 0;
     }
 
     ibis::util::timer mytimer(evt.c_str(), 4);
@@ -9400,7 +9400,7 @@ bool ibis::column::hasRoster() const {
     fname.erase(fnlen);
     fname += ".ind";
     if (UnixStat(fname.c_str(), &buf) != 0) return false;
-    return (buf.st_size == sizeof(uint32_t) * thePart->nRows());
+    return ((unsigned long)buf.st_size == sizeof(uint32_t) * thePart->nRows());
 } // ibis::column::hasRoster
 
 /// Change the flag m_sorted.  If the flag m_sorted is set to true, the
