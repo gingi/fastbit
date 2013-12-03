@@ -665,8 +665,6 @@ int ibis::category::setDictionary(const ibis::dictionary &sup) {
 /// Find rows with the exact string as the argument.
 long ibis::category::stringSearch(const char* str,
 				  ibis::bitvector& hits) const {
-    if (str == 0 || *str == 0) return -1;
-
     std::string evt;
     if (ibis::gVerbose > 1) {
         evt = "text[";
@@ -674,7 +672,10 @@ long ibis::category::stringSearch(const char* str,
         evt += '.';
         evt += m_name;
         evt += "]::stringSearch(";
-        evt += str;
+        if (str != 0)
+            evt += str;
+        else
+            evt += "<NULL>";
         evt += ')';
     }
     else {
@@ -1833,7 +1834,7 @@ long ibis::text::stringSearch(const std::vector<std::string>&) const {
 /// actually reads the string values from disk.
 long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
     hits.clear(); // clear the existing content of hits
-    if (thePart == 0 || str == 0 || *str == 0) return -1L;
+    if (thePart == 0) return -1L;
 
     std::string evt = "text[";
     if (thePart != 0 && thePart->name() != 0) {

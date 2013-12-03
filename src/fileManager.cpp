@@ -354,7 +354,7 @@ void ibis::fileManager::flushDir(const char* name) {
 ///
 /// This function simply changes the maximum bytes allowed, without
 /// enforcing this limit.  Future operations that require more memory will
-/// be subject to the new cache size limit.
+/// be subjected to the new cache size limit.
 ///
 /// Reducing the cache size while there are on-going operations can have
 /// very undesirable effects, therefore this function will not accept a new

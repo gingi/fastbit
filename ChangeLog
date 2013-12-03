@@ -1,3 +1,13 @@
+2013-12-03 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: in evaluateRange check the cost before
+	converting a discrete range to a continuous range
+	* src/category.cpp: allow null strings as arguments to
+	stringSearch
+
+2013-12-02 John Wu <John dot Wu at ACM dot org>
+	* src/iroster.cpp: in icSearch and oocSearch add one more attempt
+	to read the .ind file into memory
+
 2013-11-27 John Wu <John dot Wu at ACM dot org>
 	* src/column.h: add functions hasIndex and hasRoster
 	* src/column.cpp: check the existence of ibis::roster before

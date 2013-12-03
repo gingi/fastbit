@@ -5953,11 +5953,18 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     if (m_type != ibis::FLOAT && m_type != ibis::DOUBLE &&
 	cmp.getValues().size() ==
 	1+(cmp.getValues().back()-cmp.getValues().front())) {
-	// a special case -- actually a continuous range
-	ibis::qContinuousRange cr(cmp.getValues().front(), ibis::qExpr::OP_LE,
-				  cmp.colName(), ibis::qExpr::OP_LE,
-				  cmp.getValues().back());
-	return evaluateRange(cr, mask, low);
+        bool convert = (! hasRoster()); // no roster
+        if (false == convert) {
+            // has roster, prefer coversion only if the index is very small
+            convert = (indexSize() < (thePart->nRows() >> 2));
+        }
+        if (convert) {
+            // a special case -- actually a continuous range
+            ibis::qContinuousRange
+                cr(cmp.getValues().front(), ibis::qExpr::OP_LE,
+                   cmp.colName(), ibis::qExpr::OP_LE, cmp.getValues().back());
+            return evaluateRange(cr, mask, low);
+        }
     }
     if (cmp.overlap(lower, upper) == false) {
 	low.set(0, mask.size());
@@ -9101,7 +9108,7 @@ bool ibis::column::hasRoster() const {
     fname.erase(fnlen);
     fname += ".ind";
     if (UnixStat(fname.c_str(), &buf) != 0) return false;
-    return (buf.st_size == sizeof(uint32_t) * thePart->nRows());
+    return ((unsigned long)buf.st_size == sizeof(uint32_t) * thePart->nRows());
 } // ibis::column::hasRoster
 
 /// Change the flag m_sorted.  If the flag m_sorted is set to true, the
