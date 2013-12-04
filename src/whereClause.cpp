@@ -350,29 +350,29 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
         }
         break;}
     case ibis::qExpr::STRING: {
-        const ibis::qString* str =
-            static_cast<const ibis::qString*>(xp0);
-        const ibis::column* col = 0;
-        if (str->leftString()) { // try the left side
-            col = part0.getColumn(str->leftString());
-        }
-        if (col == 0 && str->rightString()) { // try the right side
-            const ibis::column* col = part0.getColumn(str->rightString());
-            if (col != 0) {
-                const_cast<ibis::qString*>(str)->swapLeftRight();
-            }
-        }
-        if (col != 0) {
-            if (col->type() == ibis::UINT && col->getDictionary() != 0) {
-                uint32_t ind = (*col->getDictionary())[str->rightString()];
-                if (ind <= col->getDictionary()->size()) {
-                    ibis::qContinuousRange *cr = new
-                        ibis::qContinuousRange(col->name(),
-                                               ibis::qExpr::OP_EQ, ind);
-                    delete xp0;
-                    xp0 = cr;
-                }
-            }
+	const ibis::qString* str =
+	    static_cast<const ibis::qString*>(xp0);
+	const ibis::column* col = 0;
+	if (str->leftString()) { // try the left side
+	    col = part0.getColumn(str->leftString());
+	}
+	if (col == 0 && str->rightString()) { // try the right side
+	    const ibis::column* col = part0.getColumn(str->rightString());
+	    if (col != 0) {
+		const_cast<ibis::qString*>(str)->swapLeftRight();
+	    }
+	}
+	if (col != 0) {
+	    if (col->type() == ibis::UINT && col->getDictionary() != 0) {
+		uint32_t ind = (*col->getDictionary())[str->rightString()];
+		if (ind <= col->getDictionary()->size()) {
+		    ibis::qContinuousRange *cr = new
+			ibis::qContinuousRange(col->name(),
+					       ibis::qExpr::OP_EQ, ind);
+		    delete xp0;
+		    xp0 = cr;
+		}
+	    }
             else if (col->isFloat()) {
                 // convert the string on the right hand side to a numeric
                 // value
@@ -478,8 +478,8 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
                     xp0 = cr;
                 }
             }
-        }
-        break;}
+	}
+	break;}
     case ibis::qExpr::LIKE: {
         const ibis::qLike* str =
             static_cast<const ibis::qLike*>(xp0);
