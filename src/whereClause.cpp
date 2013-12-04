@@ -373,12 +373,112 @@ int ibis::whereClause::verifyExpr(ibis::qExpr *&xp0, const ibis::part& part0,
 		    xp0 = cr;
 		}
 	    }
-	}
+            else if (col->isFloat()) {
+                // convert the string on the right hand side to a numeric
+                // value
+                double dval;
+                const char *sval = str->rightString();
+                if (0 == ibis::util::readDouble(dval, sval)) {
+                    ibis::qContinuousRange *cr = new
+                        ibis::qContinuousRange(col->name(),
+                                               ibis::qExpr::OP_EQ, dval);
+                    delete xp0;
+                    xp0 = cr;
+                }
+                else {
+                    ++ ierr;
+                    LOGGER(ibis::gVerbose > 2)
+                        << "Warning -- whereClause::verifyExpr -- column "
+                        << col->name() << " can not be matched with string "
+                        << str->rightString();
+                }
+            }
+            else if ((col->type() == ibis::BYTE || col->type() == ibis::UBYTE)
+                     && str->rightString()[1] == 0) {
+                const unsigned int ival = *(str->rightString());
+                ibis::qContinuousRange *cr = new
+                    ibis::qContinuousRange(col->name(),
+                                           ibis::qExpr::OP_EQ, ival);
+                delete xp0;
+                xp0 = cr;
+            }
+            else if (col->isInteger()) {
+                int64_t ival = 0;
+                const char *sval = str->rightString();
+                if (sval[0] == '0' && (sval[1] == 'x' || sval[1] == 'X')) {
+                    // hexadecimal
+                    for (sval += 2; *sval != 0; ++ sval) {
+                        ival <<= 4;
+                        if (*sval >= '0' && *sval <= '9') {
+                            ival += *sval - '0';
+                        }
+                        else if (*sval >= 'A' && *sval <= 'F') {
+                            ival += 10 + (*sval - 'A');
+                        }
+                        else if (*sval >= 'a' && *sval <= 'f') {
+                            ival += 10 + (*sval - 'a');
+                        }
+                        else {
+                            ++ ierr;
+                            LOGGER(ibis::gVerbose > 2)
+                                << "Warning -- whereClause::verifyExpr failed "
+                                " to convert string " << str->rightString()
+                                << " to a hexadecimal integer";
+                            return ierr;
+                        }
+                    }
+                }
+                else if (sval[0] == '0') {
+                    // octal
+                    for (++ sval; *sval != 0; ++ sval) {
+                        ival <<= 3;
+                        if (*sval >= '0' && *sval < '8') {
+                            ival += *sval - '0';
+                        }
+                        else {
+                            ++ ierr;
+                            LOGGER(ibis::gVerbose > 2)
+                                << "Warning -- whereClause::verifyExpr failed "
+                                " to convert string " << str->rightString()
+                                << " to an octal integer";
+                            return ierr;
+                        }
+                    }
+                }
+                else if (sval[0] == '+' || sval[0] == '-' || isdigit(sval[0])) {
+                    if (0 > ibis::util::readInt(ival, sval)) {
+                        ++ ierr;
+                        LOGGER(ibis::gVerbose > 2)
+                            << "Warning -- whereClause::verifyExpr failed "
+                            " to convert string " << str->rightString()
+                            << " to an octal integer";
+                        return ierr;
+                    }
+                }
+                else {
+                    ++ ierr;
+                    LOGGER(ibis::gVerbose > 2)
+                        << "Warning -- whereClause::verifyExpr failed to "
+                        "convert string " << str->rightString()
+                        << " to an integer";
+                    return ierr;
+                }
 
-	LOGGER(col == 0 && ibis::gVerbose > 2)
-	    << "Warning -- whereClause::verifyExpr -- data partition "
-	    << part0.name() << " does not contain a column named in "
-	    << *str;
+                ibis::qExpr *cr = 0;
+                const double dval = static_cast<double>(ival);
+                if (ival == static_cast<int64_t>(dval)) {
+                    cr = new ibis::qContinuousRange(col->name(),
+                                                    ibis::qExpr::OP_EQ, dval);
+                }
+                else {
+                    cr = new ibis::qIntHod(col->name(), ival);
+                }
+                if (cr != 0) {
+                    delete xp0;
+                    xp0 = cr;
+                }
+            }
+	}
 	break;}
     case ibis::qExpr::LIKE: {
 	const ibis::qLike* str =

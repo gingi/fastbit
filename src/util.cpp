@@ -602,14 +602,15 @@ const char* ibis::util::readString(char *&buf, const char *delim) {
 
 /// Attempt to convert the incoming string into an integer.  It skips
 /// leading space and converts an optional +/- sign followed by a list of
-/// decimal digits to an integer.  On successful completion of this
-/// function, the argument val contains the converted value and str points
-/// to the next unused character in the input string.  In this case, it
-/// returns 0.  It returns -1 if the input string is a null string, is an
-/// empty string, has only blank spaces or have one of the delimiters
-/// immediately following the leading blank spaces.  It returns -2 to
-/// indicate overflow, in which case, it resets val to 0 and moves str to
-/// the next character that is not a decimal digit.
+/// decimal digits to an integer.
+///
+/// On successful completion of this function, the argument val contains
+/// the converted value and str points to the next unused character in the
+/// input string.  In this case, it returns 0.  It returns -1 if the input
+/// string is a null string, is an empty string, has only blank spaces, or
+/// has a delimiter immediately following the leading blank spaces.  It
+/// returns -2 to indicate overflow, in which case, it resets val to 0 and
+/// moves str to the next character that is not a decimal digit.
 int ibis::util::readInt(int64_t& val, const char *&str, const char* del) {
     int64_t tmp = 0;
     val = 0;

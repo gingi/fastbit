@@ -1,4 +1,9 @@
 2013-12-03 John Wu <John dot Wu at ACM dot org>
+	* src/whereClause.cpp: in verifyExpr convert the string value of a
+	qString expression to a number if the column named is of a numeric
+	type
+
+2013-12-03 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: in evaluateRange check the cost before
 	converting a discrete range to a continuous range
 	* src/category.cpp: allow null strings as arguments to
