@@ -1,7 +1,15 @@
-2013-12-03 John Wu <John dot Wu at ACM dot org>
+2013-12-04 John Wu <John dot Wu at ACM dot org>
 	* src/whereClause.cpp: in verifyExpr convert the string value of a
 	qString expression to a number if the column named is of a numeric
 	type
+	* src/utilidor.h, src/utilidor.cpp: add a variation of function
+	find that take a starting position, use array values to project
+	the expect position instead of using the straightforward binary
+	search (have to be separate from the template ibis::array_t
+	because there are types of array_t that can not support addition,
+	subtraction or casting to double)
+	* src/iroster.cpp: change icSearch to use the new ibis::util::find
+	instead of simple loops
 
 2013-12-03 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: in evaluateRange check the cost before

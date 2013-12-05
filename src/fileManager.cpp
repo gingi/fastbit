@@ -789,30 +789,30 @@ int ibis::fileManager::getFile(const char* name, storage **st,
     uint64_t bytes = 0; // the file size in bytes
     std::string evt = "fileManager::getFile";
     if (ibis::gVerbose > 2) {
-        evt += '(';
-        evt += name;
-        evt += ')';
+	evt += '(';
+	evt += name;
+	evt += ')';
     }
     {   // determine the file size, whether the file exists or not
-        Stat_T tmp;
-        if (0 == UnixStat(name, &tmp)) {
-            bytes = tmp.st_size;
-            if (bytes == 0) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << evt << ": the named file is empty";
-                ierr = -106;
-                return ierr;
-            }
-        }
-        else {
-            if (ibis::gVerbose > 11 || errno != ENOENT) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << "fileManager::getFile(" << name
-                    << ") -- command stat failed: " << strerror(errno);
-            }
-            ierr = -101;
-            return ierr;
-        }
+	Stat_T tmp;
+	if (0 == UnixStat(name, &tmp)) {
+	    bytes = tmp.st_size;
+	    if (bytes == 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << evt << ": the named file is empty";
+		ierr = -106;
+		return ierr;
+	    }
+	}
+	else {
+	    if (ibis::gVerbose > 11 || errno != ENOENT) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "fileManager::getFile(" << name
+		    << ") -- command stat failed: " << strerror(errno);
+	    }
+	    ierr = -101;
+	    return ierr;
+	}
     }
 
     //20100922readLock rock(evt.c_str());
@@ -931,32 +931,32 @@ int ibis::fileManager::getFile(const char* name, storage **st,
     tmp->doRead(name);
 #endif
     if (tmp->size() == bytes) {
-        recordFile(tmp);
-        LOGGER(ibis::gVerbose > 4)
-            << evt << " -- completed "
-            << (tmp->isFileMap()?"mmapping":"retrieving") << " "
-            << tmp->size() << " bytes from " << name;
+	recordFile(tmp);
+	LOGGER(ibis::gVerbose > 4)
+	    << evt << " -- completed "
+	    << (tmp->isFileMap()?"mmapping":"retrieving") << " "
+	    << tmp->size() << " bytes from " << name;
 
-        if (ibis::gVerbose > 7) {
-            timer.stop();
-            double tcpu = timer.CPUTime();
-            double treal = timer.realTime();
-            double rt1 = tcpu > 0 ? (1e-6*tmp->size()/tcpu) : 0.0;
-            double rt2 = treal > 0 ? (1e-6*tmp->size()/treal) : 0.0;
-            ibis::util::logger lg;
-            lg() << evt << " took " << treal << " sec(elapsed) ["
-                 << tcpu << " sec(CPU)] to "
-                 << (tmp->isFileMap()?"mmap ":"read ") << tmp->size()
-                 << " bytes at a speed of " << rt2
-                 << " MB/s [" << rt1 << "]";
-            if (ibis::gVerbose > 11) {
-                lg() << "\n";
-                (void) tmp->printStatus(lg());
-            }
-        }
+	if (ibis::gVerbose > 7) {
+	    timer.stop();
+	    double tcpu = timer.CPUTime();
+	    double treal = timer.realTime();
+	    double rt1 = tcpu > 0 ? (1e-6*tmp->size()/tcpu) : 0.0;
+	    double rt2 = treal > 0 ? (1e-6*tmp->size()/treal) : 0.0;
+	    ibis::util::logger lg;
+	    lg() << evt << " took " << treal << " sec(elapsed) ["
+		 << tcpu << " sec(CPU)] to "
+		 << (tmp->isFileMap()?"mmap ":"read ") << tmp->size()
+		 << " bytes at a speed of " << rt2
+		 << " MB/s [" << rt1 << "]";
+	    if (ibis::gVerbose > 11) {
+		lg() << "\n";
+		(void) tmp->printStatus(lg());
+	    }
+	}
 
-        *st = tmp; // pass tmp to the caller
-        ierr = 0;
+	*st = tmp; // pass tmp to the caller
+	ierr = 0;
     }
     else {
         LOGGER(ibis::gVerbose > 2)
@@ -1082,32 +1082,32 @@ int ibis::fileManager::tryGetFile(const char* name, storage **st,
     tmp->doRead(name);
 #endif
     if (tmp->size() == bytes) {
-        recordFile(tmp);
-        LOGGER(ibis::gVerbose > 4)
-            << evt << " completed "
-            << (tmp->isFileMap()?"mmapping":"retrieving") << " "
-            << tmp->size() << " bytes";
+	recordFile(tmp);
+	LOGGER(ibis::gVerbose > 4)
+	    << evt << " completed "
+	    << (tmp->isFileMap()?"mmapping":"retrieving") << " "
+	    << tmp->size() << " bytes";
 
-        if (ibis::gVerbose > 7) {
-            timer.stop();
-            double tcpu = timer.CPUTime();
-            double treal = timer.realTime();
-            double rt1 = tcpu > 0 ? (1e-6*tmp->size()/tcpu) : 0.0;
-            double rt2 = treal > 0 ? (1e-6*tmp->size()/treal) : 0.0;
-            ibis::util::logger lg;
-            lg() << evt << " took " << treal << " sec(elapsed) ["
-                 << tcpu  << " sec(CPU)] to "
-                 << (tmp->isFileMap()?"mmap ":"read ") << tmp->size()
-                 << " bytes at a speed of " << rt2
-                 << " MB/s [" << rt1 << "]";
-            if (ibis::gVerbose > 11) {
-                lg() << "\n";
-                (void) tmp->printStatus(lg());
-            }
-        }
+	if (ibis::gVerbose > 7) {
+	    timer.stop();
+	    double tcpu = timer.CPUTime();
+	    double treal = timer.realTime();
+	    double rt1 = tcpu > 0 ? (1e-6*tmp->size()/tcpu) : 0.0;
+	    double rt2 = treal > 0 ? (1e-6*tmp->size()/treal) : 0.0;
+	    ibis::util::logger lg;
+	    lg() << evt << " took " << treal << " sec(elapsed) ["
+		 << tcpu  << " sec(CPU)] to "
+		 << (tmp->isFileMap()?"mmap ":"read ") << tmp->size()
+		 << " bytes at a speed of " << rt2
+		 << " MB/s [" << rt1 << "]";
+	    if (ibis::gVerbose > 11) {
+		lg() << "\n";
+		(void) tmp->printStatus(lg());
+	    }
+	}
 
-        *st = tmp; // pass tmp to the caller
-        ierr = 0;
+	*st = tmp; // pass tmp to the caller
+	ierr = 0;
     }
     else {
         LOGGER(ibis::gVerbose > 2)
@@ -1146,10 +1146,10 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
     uint64_t bytes = e - b; // the size (in bytes) of the file segment
     std::string evt = "fileManager::getFileSegment";
     if (ibis::gVerbose > 4) {
-        std::ostringstream oss;
-        oss << "(" << (name != 0 && *name != 0 ? name : "?") << ", "
-            << fdes << ", " << b << ", " << e << ")";
-        evt += oss.str();
+	std::ostringstream oss;
+	oss << "(" << (name != 0 && *name != 0 ? name : "?") << ", "
+	    << fdes << ", " << b << ", " << e << ")";
+	evt += oss.str();
     }
     LOGGER(ibis::gVerbose > 5) << evt << " ...";
 
@@ -1218,27 +1218,27 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
     }
 #endif
     if (st->size() == bytes) {
-        LOGGER(ibis::gVerbose > 4)
-            << evt <<" completed " << (ismapped?"mmapping":"reading")
-            << " " << st->size() << " bytes";
+	LOGGER(ibis::gVerbose > 4)
+	    << evt <<" completed " << (ismapped?"mmapping":"reading")
+	    << " " << st->size() << " bytes";
 
-        if (ibis::gVerbose > 7) {
-            timer.stop();
-            double tcpu = timer.CPUTime();
-            double treal = timer.realTime();
-            double rt1 = tcpu > 0 ? (1e-6*st->size()/tcpu) : 0.0;
-            double rt2 = treal > 0 ? (1e-6*st->size()/treal) : 0.0;
-            ibis::util::logger lg;
-            lg() << evt << " took " << treal <<  " sec(elapsed) ["
-                 << tcpu << " sec(CPU)] to "
-                 << (st->isFileMap()?"mmap ":"read ") << st->size()
-                 << " bytes at a speed of " << rt2 << " MB/s ["
-                 << rt1 << "]";
-            if (ibis::gVerbose > 11) {
-                lg() << "\n";
-                (void) st->printStatus(lg());
-            }
-        }
+	if (ibis::gVerbose > 7) {
+	    timer.stop();
+	    double tcpu = timer.CPUTime();
+	    double treal = timer.realTime();
+	    double rt1 = tcpu > 0 ? (1e-6*st->size()/tcpu) : 0.0;
+	    double rt2 = treal > 0 ? (1e-6*st->size()/treal) : 0.0;
+	    ibis::util::logger lg;
+	    lg() << evt << " took " << treal <<  " sec(elapsed) ["
+		 << tcpu << " sec(CPU)] to "
+		 << (st->isFileMap()?"mmap ":"read ") << st->size()
+		 << " bytes at a speed of " << rt2 << " MB/s ["
+		 << rt1 << "]";
+	    if (ibis::gVerbose > 11) {
+		lg() << "\n";
+		(void) st->printStatus(lg());
+	    }
+	}
     }
     else {
         LOGGER(ibis::gVerbose > 2)
@@ -1461,20 +1461,20 @@ int ibis::fileManager::unload(size_t sz) {
 
     // time-out
     if (maxBytes < sz+ibis::fileManager::totalBytes()) {
-        if (ibis::gVerbose > 1) {
-            ibis::util::logger lg;
-            lg() << "Warning -- fileManager::unload time-out while waiting for "
-                 << ibis::util::groupby1000(sz) << " byte"
-                 << (sz>1 ? "s" : "") << " (totalBytes="
-                 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
-                 << ", maxBytes=" << ibis::util::groupby1000(maxBytes) << ")";
-            if (ibis::gVerbose > 3) {
-                lg() << "\n";
-                printStatus(lg());
-                lg() << "\n";
-            }
-        }
-        return -109;
+	if (ibis::gVerbose > 1) {
+	    ibis::util::logger lg;
+	    lg() << "Warning -- fileManager::unload time-out while waiting for "
+		 << ibis::util::groupby1000(sz) << " byte"
+		 << (sz>1 ? "s" : "") << " (totalBytes="
+		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
+		 << ", maxBytes=" << ibis::util::groupby1000(maxBytes) << ")";
+	    if (ibis::gVerbose > 3) {
+		lg() << "\n";
+		printStatus(lg());
+		lg() << "\n";
+	    }
+	}
+	return -109;
     }
     else {
         return 0;

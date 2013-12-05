@@ -3568,9 +3568,6 @@ uint32_t ibis::util::find(const array_t<T> &arr, const array_t<uint32_t> &ind,
         // checked *arr at the beginning already, no need to check again
     }
     // invariant at this point: [i0] < val <= [i1]
-    LOGGER(ibis::gVerbose > 7)
-        << "util::find -- arr[ind[" << i0 << "]] (" << arr[ind[i0]] << ") < "
-        << val << " <= arr[ind[" << i1 << "] (" << arr[ind[i1]] << ')';
 
     // attempt 1 to narrow the gap between i0 and i1: large gap, use
     // computed address
@@ -3700,9 +3697,6 @@ ibis::util::find(const array_t<T> &arr, const T &val, size_t i0) {
         // checked *arr at the beginning already, no need to check again
     }
     // invariant at this point: [i0] < val <= [i1]
-    LOGGER(ibis::gVerbose > 7)
-        << "util::find -- arr[" << i0 << "] (" << arr[i0] << ")< " << val
-        << " <= arr[" << i1 << "] (" << arr[i1] << ')';
 
     // attempt 1 to narrow the gap between i0 and i1: large gap, use
     // computed address
@@ -3831,9 +3825,6 @@ ibis::util::find(const std::vector<T> &arr, const T &val, size_t i0) {
         // checked *arr at the beginning already, no need to check again
     }
     // invariant at this point: [i0] < val <= [i1]
-    LOGGER(ibis::gVerbose > 7)
-        << "util::find -- arr[" << i0 << "] (" << arr[i0] << ")< " << val
-        << " <= arr[" << i1 << "] (" << arr[i1] << ')';
 
     // attempt 1 to narrow the gap between i0 and i1: large gap, use
     // computed address

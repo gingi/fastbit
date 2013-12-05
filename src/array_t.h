@@ -31,7 +31,7 @@ public:
     typedef const T& const_reference; ///!< Reference to a constant value.
     typedef       T  value_type; ///!< Type of values.
     typedef  size_t  size_type; ///!< For array size.
-    typedef std::ptrdiff_t difference_type;///!< For difference between pointers.
+    typedef std::ptrdiff_t difference_type;///!<For difference between pointers.
 
     // constructor and destructor
     ~array_t<T>() {freeMemory();}
