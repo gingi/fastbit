@@ -376,6 +376,14 @@ namespace ibis { // forward definition of all the classes in IBIS
 	bool operator>=(const rid_t& r) const {return(value >= r.value);}
 	bool operator==(const rid_t& r) const {return(value == r.value);}
 	bool operator!=(const rid_t& r) const {return(value != r.value);}
+        rid_t operator+(const rid_t& r) const {
+            rid_t tmp; tmp.value = value + r.value; return tmp;}
+        rid_t operator-(const rid_t& r) const {
+            rid_t tmp; tmp.value = value - r.value; return tmp;}
+        rid_t operator*(const rid_t& r) const {
+            rid_t tmp; tmp.value = value * r.value; return tmp;}
+        rid_t operator/(const rid_t& r) const {
+            rid_t tmp; tmp.value = value / r.value; return tmp;}
     }; // rid_t
 
     /// A simple class representing an opaque object.

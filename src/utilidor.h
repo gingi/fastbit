@@ -11,7 +11,7 @@
 
    @note About the name: I was going to name this utilsort.h, but what is
    the fun in that.  According to answers.com, utilsort might be a
-   misspelling of utilidor, which is an civil engineering term describing
+   misspelling of utilidor, which is a civil engineering term describing
    an insulated, heated conduit built below the ground surface or supported
    above the ground surface to protect the contained water, steam, sewage,
    and fire lines from freezing.
@@ -79,6 +79,13 @@ namespace ibis {
 	/// Sorting function with string as keys and uint32_t as payload.
 	void FASTBIT_CXX_DLLSPEC
 	sortStrings(array_t<const char*>& keys, array_t<uint32_t>& vals);
+
+        template <typename T> size_t
+        find(const std::vector<T>&, const T&, size_t);
+        template <typename T> size_t
+        find(const array_t<T>&, const T&, size_t);
+        template <typename T> uint32_t
+        find(const array_t<T>&, const array_t<uint32_t>&, const T&, uint32_t);
 
 	/// A simple heap based on std::push_heap and std::pop_heap.
 	template <typename T, class C>

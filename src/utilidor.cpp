@@ -3465,6 +3465,396 @@ ibis::util::sortMerge(array_t<T>& valR, array_t<uint32_t>& indR,
     return cnt;
 } // ibis::util::sortMerge
 
+/// Find the position of the first element that is no less than @c val.
+/// The search starts with the given position @c i0.
+/// Assuming @c ind was produced by the sort function,
+/// it returns the smallest i such that @c operator[](ind[i]) >= @c val.
+///
+/// @note Because the explicit use of uint32_t to denote the positions,
+/// that array can not have more than 2^32 elements.
+template<class T>
+uint32_t ibis::util::find(const array_t<T> &arr, const array_t<uint32_t> &ind,
+                          const T &val, uint32_t i0) {
+    const uint32_t ntot = arr.size();
+    if (ntot == 0) return 0; // empty array
+    else if (! (arr[ind[0]] < val))
+        return 0; // 1st value is larger than val
+    if (i0 >= ntot)
+        i0 = ntot - 1;
+    uint32_t i1, i2;
+    double d0;
+    if (arr[ind[i0]] < val) { // look for [i1] >= val
+        i2 = 1;
+        i1 = i0 + 1;
+        while (i1 < ntot && arr[ind[i1]] < val) {
+            if (arr[ind[i1]] > arr[ind[i0]]) {
+                d0 = ceil(i2 * static_cast<double>(val - arr[ind[i1]]) /
+                          (double)(arr[ind[i1]] - arr[ind[i0]]));
+                i0 = i1;
+                if (! (d0 < ntot - i1)) {
+                    i2 = ntot - i1 - 1;
+                    i1 = ntot - 1;
+                    if (i2 == 0) {
+                        i1 = ntot;
+                        i2 = 1;
+                    }
+                }
+                else if (d0 > 1.0) {
+                    i1 += static_cast<size_t>(d0);
+                    i2 = static_cast<size_t>(d0);
+                }
+                else {
+                    i2 = 1;
+                    ++ i1;
+                }
+            }
+            else {
+                i0 = i1;
+                i2 += i2;
+                i1 += i2;
+            }
+        }
+        if (i1 >= ntot) {// all values less than val
+            LOGGER(ibis::gVerbose > 0 && !(arr[ind[ntot-1]] < val))
+                << "Warning -- util::find<" << typeid(T).name()
+                << "> is to return " << ntot << ", but [" << ntot-1 << "] ("
+                << arr[ind[ntot-1]] << ") is not less than " << val;
+            return ntot;
+        }
+    }
+    else { // look for [i0] < val
+        i1 = i0;
+        i0 = i1 - 1;
+        i2 = 1;
+        while (i0 > 0 && arr[ind[i0]] >= val) {
+            if (arr[ind[i0]] < arr[ind[i1]]) {
+                d0 = ceil(i2 * static_cast<double>(arr[ind[i0]] - val) /
+                          (double)(arr[ind[i1]] - arr[ind[01]]));
+                i1 = i0;
+                if (! (d0 < i0)) {
+                    i0 = 0;
+                    i2 = i0;
+                }
+                else if (d0 > 1.0) {
+                    i0 -= static_cast<size_t>(d0);
+                    i2 = static_cast<size_t>(d0);
+                }
+                else {
+                    i2 = 1;
+                    -- i0;
+                }
+            }
+            else {
+                i1 = i0;
+                i2 += i2;
+                if (i2 < i0)
+                    i0 -= i2;
+                else
+                    i0 = 0;
+            }
+        }
+        // checked *arr at the beginning already, no need to check again
+    }
+    // invariant at this point: [i0] < val <= [i1]
+
+    // attempt 1 to narrow the gap between i0 and i1: large gap, use
+    // computed address
+    while (i0+FASTBIT_QSORT_MIN < i1 && arr[ind[i1]] > val) {
+        i2 = i0 + (i1 - i0) * (val - arr[ind[i0]]) /
+            (arr[ind[i1]] - arr[ind[i0]]);
+        if (i2 == i0)
+            i2 = (i1 + i0) / 2;
+        if (arr[ind[i2]] < val)
+            i0 = i2;
+        else
+            i1 = i2;
+    }
+    if (arr[i1] == val) {
+        for (i2 = 1; i0+i2 < i1; i2 += i2) {
+            if (arr[i1-i2] < val) {
+                i0 = i1 - i2;
+                break;
+            }
+            else {
+                i1 = i1 - i2;
+            }
+        }
+    }
+    // attempt 2 to narrow the gap between i0 and i1: basic binary search
+    i2 = (i0 + i1) / 2;
+    while (i0 < i2) {
+        if (arr[ind[i2]] < val)
+            i0 = i2;
+        else
+            i1 = i2;
+
+        i2 = (i0 + i1) / 2;
+    }
+
+    LOGGER(ibis::gVerbose > 0 && !(arr[ind[i1]] >= val))
+        << "Warning -- util::find<" << typeid(T).name() << "> is to return "
+        << i1 << ", but [" << i1 << "] (" << arr[ind[i1]] << ") is less than "
+        << val;
+
+    return i1;
+} // ibis::util::find
+
+/// Find the first position where the value is no less than @c val.
+/// Start the searching operation with position start.
+/// Assuming the array is already sorted in the ascending order,
+/// it returns the smallest i such that @c operator[](i) >= @c val.
+template<class T> size_t
+ibis::util::find(const array_t<T> &arr, const T &val, size_t i0) {
+    const size_t ntot = arr.size();
+    if (ntot == 0) return 0; // empty array
+    else if (! (arr[0] < val)) return 0; // 1st value is larger than val
+    if (i0 >= ntot)
+        i0 = ntot - 1;
+    size_t i1, i2;
+    double d0;
+    if (arr[i0] < val) { // look for [i1] >= val
+        i2 = 1;
+        i1 = i0 + 1;
+        while (i1 < ntot && arr[i1] < val) {
+            if (arr[i1] > arr[i0]) {
+                d0 = ceil(i2 * static_cast<double>(val - arr[i1]) /
+                          static_cast<double>(arr[i1] - arr[i0]));
+                i0 = i1;
+                if (! (d0 < ntot - i1)) {
+                    i2 = ntot - i1 - 1;
+                    i1 = ntot - 1;
+                    if (i2 == 0) {
+                        i1 = ntot;
+                        i2 = 1;
+                    }
+                }
+                else if (d0 > 1.0) {
+                    i1 += static_cast<size_t>(d0);
+                    i2 = static_cast<size_t>(d0);
+                }
+                else {
+                    i2 = 1;
+                    ++ i1;
+                }
+            }
+            else {
+                i0 = i1;
+                i2 += i2;
+                i1 += i2;
+            }
+        }
+        if (i1 >= ntot) {// all values less than val
+            LOGGER(ibis::gVerbose > 0 && !(arr[ntot-1] < val))
+                << "Warning -- util::find<" << typeid(T).name()
+                << "> is to return " << ntot << ", but [" << ntot-1
+                << "] (" << arr[ntot-1] << ") is not less than " << val;
+            return ntot;
+        }
+    }
+    else { // look for [i0] < val
+        i1 = i0;
+        i0 = i1 - 1;
+        i2 = 1;
+        while (i0 > 0 && arr[i0] >= val) {
+            if (arr[i0] < arr[i1]) {
+                d0 = ceil(i2 * static_cast<double>(arr[i0] - val) /
+                          static_cast<double>(arr[i1] - arr[01]));
+                i1 = i0;
+                if (! (d0 < i0)) {
+                    i0 = 0;
+                    i2 = i0;
+                }
+                else if (d0 > 1.0) {
+                    i0 -= static_cast<size_t>(d0);
+                    i2 = static_cast<size_t>(d0);
+                }
+                else {
+                    i2 = 1;
+                    -- i0;
+                }
+            }
+            else {
+                i1 = i0;
+                i2 += i2;
+                if (i2 < i0)
+                    i0 -= i2;
+                else
+                    i0 = 0;
+            }
+        }
+        // checked *arr at the beginning already, no need to check again
+    }
+    // invariant at this point: [i0] < val <= [i1]
+
+    // attempt 1 to narrow the gap between i0 and i1: large gap, use
+    // computed address
+    while (i0+FASTBIT_QSORT_MIN < i1 && arr[i1] > val) {
+        i2 = i0 + (i1 - i0) * (val - arr[i0]) / (arr[i1] - arr[i0]);
+        if (i2 == i0)
+            i2 = (i1 + i0) / 2;
+        if (arr[i2] < val)
+            i0 = i2;
+        else
+            i1 = i2;
+    }
+    if (arr[i1] == val) {
+        for (i2 = 1; i0+i2 < i1; i2 += i2) {
+            if (arr[i1-i2] < val) {
+                i0 = i1 - i2;
+                break;
+            }
+            else {
+                i1 = i1 - i2;
+            }
+        }
+    }
+    // attempt 2 to narrow the gap between i0 and i1: basic binary search
+    i2 = (i0 + i1) / 2;
+    while (i0 < i2) {
+        if (arr[i2] < val)
+            i0 = i2;
+        else
+            i1 = i2;
+
+        i2 = (i0 + i1) / 2;
+    }
+
+    LOGGER(ibis::gVerbose > 0 && !(arr[i1] >= val))
+        << "Warning -- util::find<" << typeid(T).name() << "> is to return "
+        << i1 << ", but [" << i1 << "] (" << arr[i1] << ") is less than "
+        << val;
+
+    return i1;
+} // ibis::util::find
+
+/// Find the first position where the value is no less than @c val.
+/// Start the searching operation with position start.
+/// Assuming the array is already sorted in the ascending order,
+/// it returns the smallest i such that @c operator[](i) >= @c val.
+template<class T> size_t
+ibis::util::find(const std::vector<T> &arr, const T &val, size_t i0) {
+    const size_t ntot = arr.size();
+    if (ntot == 0) return 0; // empty array
+    else if (! (arr[0] < val)) return 0; // 1st value is larger than val
+    if (i0 >= ntot)
+        i0 = ntot - 1;
+    size_t i1, i2;
+    double d0;
+    if (arr[i0] < val) { // look for [i1] >= val
+        i2 = 1;
+        i1 = i0 + 1;
+        while (i1 < ntot && arr[i1] < val) {
+            if (arr[i1] > arr[i0]) {
+                d0 = ceil(i2 * static_cast<double>(val - arr[i1]) /
+                          static_cast<double>(arr[i1] - arr[i0]));
+                i0 = i1;
+                if (! (d0 < ntot - i1)) {
+                    i2 = ntot - i1 - 1;
+                    i1 = ntot - 1;
+                    if (i2 == 0) {
+                        i1 = ntot;
+                        i2 = 1;
+                    }
+                }
+                else if (d0 > 1.0) {
+                    i1 += static_cast<size_t>(d0);
+                    i2 = static_cast<size_t>(d0);
+                }
+                else {
+                    i2 = 1;
+                    ++ i1;
+                }
+            }
+            else {
+                i0 = i1;
+                i2 += i2;
+                i1 += i2;
+            }
+        }
+        if (i1 >= ntot) {// all values less than val
+            LOGGER(ibis::gVerbose > 0 && !(arr[ntot-1] < val))
+                << "Warning -- util::find<" << typeid(T).name()
+                << "> is to return " << ntot << ", but [" << ntot-1
+                << "] (" << arr[ntot-1] << ") is not less than " << val;
+            return ntot;
+        }
+    }
+    else { // look for [i0] < val
+        i1 = i0;
+        i0 = i1 - 1;
+        i2 = 1;
+        while (i0 > 0 && arr[i0] >= val) {
+            if (arr[i0] < arr[i1]) {
+                d0 = ceil(i2 * static_cast<double>(arr[i0] - val) /
+                          static_cast<double>(arr[i1] - arr[01]));
+                i1 = i0;
+                if (! (d0 < i0)) {
+                    i0 = 0;
+                    i2 = i0;
+                }
+                else if (d0 > 1.0) {
+                    i0 -= static_cast<size_t>(d0);
+                    i2 = static_cast<size_t>(d0);
+                }
+                else {
+                    i2 = 1;
+                    -- i0;
+                }
+            }
+            else {
+                i1 = i0;
+                i2 += i2;
+                if (i2 < i0)
+                    i0 -= i2;
+                else
+                    i0 = 0;
+            }
+        }
+        // checked *arr at the beginning already, no need to check again
+    }
+    // invariant at this point: [i0] < val <= [i1]
+
+    // attempt 1 to narrow the gap between i0 and i1: large gap, use
+    // computed address
+    while (i0+FASTBIT_QSORT_MIN < i1 && arr[i1] > val) {
+        i2 = i0 + (i1 - i0) * (val - arr[i0]) / (arr[i1] - arr[i0]);
+        if (i2 == i0)
+            i2 = (i1 + i0) / 2;
+        if (arr[i2] < val)
+            i0 = i2;
+        else
+            i1 = i2;
+    }
+    if (arr[i1] == val) {
+        for (i2 = 1; i0+i2 < i1; i2 += i2) {
+            if (arr[i1-i2] < val) {
+                i0 = i1 - i2;
+                break;
+            }
+            else {
+                i1 = i1 - i2;
+            }
+        }
+    }
+    // attempt 2 to narrow the gap between i0 and i1: basic binary search
+    i2 = (i0 + i1) / 2;
+    while (i0 < i2) {
+        if (arr[i2] < val)
+            i0 = i2;
+        else
+            i1 = i2;
+
+        i2 = (i0 + i1) / 2;
+    }
+
+    LOGGER(ibis::gVerbose > 0 && !(arr[i1] >= val))
+        << "Warning -- util::find<" << typeid(T).name() << "> is to return "
+        << i1 << ", but [" << i1 << "] (" << arr[i1] << ") is less than "
+        << val;
+
+    return i1;
+} // ibis::util::find
+
 // explicit template instantiations
 template int64_t
 ibis::util::sortMerge<signed char>(array_t<signed char>&, array_t<uint32_t>&,
@@ -3751,3 +4141,76 @@ template void
 ibis::util::sortKeys(array_t<float>&, array_t<ibis::rid_t>&);
 template void
 ibis::util::sortKeys(array_t<double>&, array_t<ibis::rid_t>&);
+
+template size_t
+ibis::util::find(const std::vector<signed char>&, const signed char&, size_t);
+template size_t
+ibis::util::find(const std::vector<unsigned char>&, const unsigned char&, size_t);
+template size_t
+ibis::util::find(const std::vector<int16_t>&, const int16_t&, size_t);
+template size_t
+ibis::util::find(const std::vector<uint16_t>&, const uint16_t&, size_t);
+template size_t
+ibis::util::find(const std::vector<int32_t>&, const int32_t&, size_t);
+template size_t
+ibis::util::find(const std::vector<uint32_t>&, const uint32_t&, size_t);
+template size_t
+ibis::util::find(const std::vector<int64_t>&, const int64_t&, size_t);
+template size_t
+ibis::util::find(const std::vector<uint64_t>&, const uint64_t&, size_t);
+template size_t
+ibis::util::find(const std::vector<float>&, const float&, size_t);
+template size_t
+ibis::util::find(const std::vector<double>&, const double&, size_t);
+
+template size_t
+ibis::util::find(const array_t<signed char>&, const signed char&, size_t);
+template size_t
+ibis::util::find(const array_t<unsigned char>&, const unsigned char&, size_t);
+template size_t
+ibis::util::find(const array_t<int16_t>&, const int16_t&, size_t);
+template size_t
+ibis::util::find(const array_t<uint16_t>&, const uint16_t&, size_t);
+template size_t
+ibis::util::find(const array_t<int32_t>&, const int32_t&, size_t);
+template size_t
+ibis::util::find(const array_t<uint32_t>&, const uint32_t&, size_t);
+template size_t
+ibis::util::find(const array_t<int64_t>&, const int64_t&, size_t);
+template size_t
+ibis::util::find(const array_t<uint64_t>&, const uint64_t&, size_t);
+template size_t
+ibis::util::find(const array_t<float>&, const float&, size_t);
+template size_t
+ibis::util::find(const array_t<double>&, const double&, size_t);
+
+template uint32_t
+ibis::util::find(const array_t<signed char>&, const array_t<uint32_t>&,
+                 const signed char&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<unsigned char>&, const array_t<uint32_t>&,
+                 const unsigned char&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<int16_t>&, const array_t<uint32_t>&,
+                 const int16_t&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<uint16_t>&, const array_t<uint32_t>&,
+                 const uint16_t&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<int32_t>&, const array_t<uint32_t>&,
+                 const int32_t&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<uint32_t>&, const array_t<uint32_t>&,
+                 const uint32_t&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<int64_t>&, const array_t<uint32_t>&,
+                 const int64_t&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<uint64_t>&, const array_t<uint32_t>&,
+                 const uint64_t&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<float>&, const array_t<uint32_t>&,
+                 const float&, uint32_t);
+template uint32_t
+ibis::util::find(const array_t<double>&, const array_t<uint32_t>&,
+                 const double&, uint32_t);

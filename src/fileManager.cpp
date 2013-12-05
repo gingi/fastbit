@@ -788,12 +788,12 @@ int ibis::fileManager::getFile(const char* name, storage **st,
     int ierr = 0;
     uint64_t bytes = 0; // the file size in bytes
     std::string evt = "fileManager::getFile";
-    if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose > 2) {
 	evt += '(';
 	evt += name;
 	evt += ')';
     }
-    {   // determine the file size, whether the file exist or not
+    {   // determine the file size, whether the file exists or not
 	Stat_T tmp;
 	if (0 == UnixStat(name, &tmp)) {
 	    bytes = tmp.st_size;
@@ -932,7 +932,7 @@ int ibis::fileManager::getFile(const char* name, storage **st,
 #endif
     if (tmp->size() == bytes) {
 	recordFile(tmp);
-	LOGGER(ibis::gVerbose > 5)
+	LOGGER(ibis::gVerbose > 4)
 	    << evt << " -- completed "
 	    << (tmp->isFileMap()?"mmapping":"retrieving") << " "
 	    << tmp->size() << " bytes from " << name;
@@ -1083,7 +1083,7 @@ int ibis::fileManager::tryGetFile(const char* name, storage **st,
 #endif
     if (tmp->size() == bytes) {
 	recordFile(tmp);
-	LOGGER(ibis::gVerbose > 5)
+	LOGGER(ibis::gVerbose > 4)
 	    << evt << " completed "
 	    << (tmp->isFileMap()?"mmapping":"retrieving") << " "
 	    << tmp->size() << " bytes";
@@ -1145,7 +1145,7 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
     int ierr = 0;
     uint64_t bytes = e - b; // the size (in bytes) of the file segment
     std::string evt = "fileManager::getFileSegment";
-    if (ibis::gVerbose > 5) {
+    if (ibis::gVerbose > 4) {
 	std::ostringstream oss;
 	oss << "(" << (name != 0 && *name != 0 ? name : "?") << ", "
 	    << fdes << ", " << b << ", " << e << ")";
@@ -1218,7 +1218,7 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
     }
 #endif
     if (st->size() == bytes) {
-	LOGGER(ibis::gVerbose > 5)
+	LOGGER(ibis::gVerbose > 4)
 	    << evt <<" completed " << (ismapped?"mmapping":"reading")
 	    << " " << st->size() << " bytes";
 
@@ -1463,7 +1463,7 @@ int ibis::fileManager::unload(size_t sz) {
     if (maxBytes < sz+ibis::fileManager::totalBytes()) {
 	if (ibis::gVerbose > 1) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- fileManager::unload timed-out while waiting for "
+	    lg() << "Warning -- fileManager::unload time-out while waiting for "
 		 << ibis::util::groupby1000(sz) << " byte"
 		 << (sz>1 ? "s" : "") << " (totalBytes="
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())

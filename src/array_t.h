@@ -31,7 +31,7 @@ public:
     typedef const T& const_reference; ///!< Reference to a constant value.
     typedef       T  value_type; ///!< Type of values.
     typedef  size_t  size_type; ///!< For array size.
-    typedef std::ptrdiff_t difference_type;///!< For difference between pointers.
+    typedef std::ptrdiff_t difference_type;///!<For difference between pointers.
 
     // constructor and destructor
     ~array_t<T>() {freeMemory();}
@@ -84,9 +84,9 @@ public:
     void sort(array_t<uint32_t> &ind) const;
     void topk(uint32_t k, array_t<uint32_t> &ind) const;
     void bottomk(uint32_t k, array_t<uint32_t> &ind) const;
-    uint32_t find(const array_t<uint32_t>& ind, const T& val) const;
-    size_t find(const T& val) const;
-    size_t find_upper(const T& val) const;
+    size_t find(const T&) const;
+    size_t find_upper(const T&) const;
+    uint32_t find(const array_t<uint32_t>&, const T&) const;
     void stableSort(array_t<T>& tmp);
     void stableSort(array_t<uint32_t>& ind) const;
     void stableSort(array_t<uint32_t>& ind, array_t<T>& sorted) const;

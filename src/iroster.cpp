@@ -8,9 +8,10 @@
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
-#include "iroster.h"
-#include "column.h"
 #include "part.h"
+#include "column.h"
+#include "iroster.h"
+#include "utilidor.h"
 
 #include <sstream> 	// std::ostringstream
 #include <algorithm>	// std::sort
@@ -205,7 +206,7 @@ int ibis::roster::writeSorted(const char *df) const {
 	}
 	break;}
     case ibis::BYTE: {
-	array_t<char> arr;
+	array_t<signed char> arr;
 	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), arr);
 	if (ierr == 0) {
 	    for (uint32_t i = 0; i < ind.size(); ++ i) {
@@ -655,10 +656,10 @@ void ibis::roster::icSort(const char* fin) {
 	break;
     }
     case ibis::BYTE: { // signed char
-	array_t<char> val;
+	array_t<signed char> val;
 	ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (val.size() > 0) {
-	    const_cast<const array_t<char>&>(val).stableSort(indim);
+	    const_cast<const array_t<signed char>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    char tmp;
 	    uint32_t i = 0, j = 0;
@@ -1203,7 +1204,7 @@ void ibis::roster::oocSort(const char *fin) {
 	}
 	break;}
     case ibis::BYTE: {
-	array_t<char> dbuf1(mblock), dbuf2(mblock);
+	array_t<signed char> dbuf1(mblock), dbuf2(mblock);
 	if (isodd) {
 	    ierr = oocSortBlocks(datafile.c_str(), nsrt.c_str(), nind.c_str(),
 				 mblock, dbuf1, dbuf2, ibuf1);
@@ -2100,10 +2101,10 @@ uint32_t ibis::roster::locate(const double& v) const {
 	break;
     }
     case ibis::BYTE: { // signed char
-	array_t<char> val;
+	array_t<signed char> val;
 	ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
 	if (ierr == 0 && val.size() == ind.size()) {
-	    char bnd = static_cast<char>(v);
+	    char bnd = static_cast<signed char>(v);
 	    if (bnd < v)
 		++ bnd;
 	    hit = val.find(ind, bnd);
@@ -2295,26 +2296,31 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
     int len = fname.size();
     fname += ".srt";
 
-    uint32_t iv = 0;
-    uint32_t it = 0;
+    uint32_t iv = 0; // for vals
+    uint32_t it = 0; // for tmp
     array_t<T> tmp;
     const uint32_t nvals = vals.size();
 
     LOGGER(ibis::gVerbose > 4)
         << evt << " attempt to read the content of " << fname
-	<< " to locate " << vals.size() << " value"
+	<< " and locate " << vals.size() << " value"
 	<< (vals.size()>1?"s":"");
     ierr = ibis::fileManager::instance().getFile(fname.c_str(), tmp);
     if (ierr == 0) { // got the sorted values
 	while (iv < nvals && it < nrows) {
 	    // move iv so that vals[iv] is not less than tmp[it]
-	    while (iv < nvals && vals[iv] < tmp[it])
-		++ iv;
-	    if (iv >= nvals)
-		return (pos.size() > 0);
+	    // while (iv < nvals && vals[iv] < tmp[it])
+	    //     ++ iv;
+            if (vals[iv] < tmp[it]) {
+                iv = ibis::util::find(vals, tmp[it], iv);
+                if (iv >= nvals)
+                    break;
+            }
 	    // move it so that tmp[it] is not less than vals[iv]
-	    while (it < nrows && vals[iv] > tmp[it])
-		++ it;
+	    // while (it < nrows && vals[iv] > tmp[it])
+	    //     ++ it;
+            if (vals[iv] > tmp[it])
+                it = ibis::util::find(tmp, vals[iv], it);
 
 	    while (it < nrows && vals[iv] == tmp[it]) { // found a match
 		pos.push_back(ind[it]);
@@ -2323,10 +2329,10 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
 	}
 
 	LOGGER(ibis::gVerbose > 4)
-	    << evt << " read the content of " << fname
+	    << evt << " read the content of sorted data file " << fname
 	    << " and found " << pos.size() << " match"
 	    << (pos.size()>1?"es":"");
-	return (pos.size() > 0);
+	return 0;
     }
     else {
 	LOGGER(ibis::gVerbose > 3)
@@ -2340,21 +2346,34 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
     if (ierr == 0) { // got the base data in memory
 	while (iv < nvals && it < nrows) {
 	    // move iv so that vals[iv] is not less than tmp[ind[it]]
-	    while (iv < nvals && vals[iv] < tmp[ind[it]])
-		++ iv;
-	    if (iv >= nvals)
-		return (pos.size() > 0);
+	    // while (iv < nvals && vals[iv] < tmp[ind[it]])
+	    //     ++ iv;
+            if (vals[iv] < tmp[ind[it]]) {
+                iv = ibis::util::find(vals, tmp[ind[it]], iv);
+                if (iv >= nvals)
+                    break;
+            }
 	    // move it so that tmp[ind[it]] is not less than vals[iv]
-	    while (it < nrows && vals[iv] > tmp[ind[it]])
-		++ it;
+	    // while (it < nrows && vals[iv] > tmp[ind[it]])
+	    //     ++ it;
+            if (vals[iv] > tmp[ind[it]])
+                it = ibis::util::find(tmp, ind, vals[iv], it);
 
 	    // found a match
-	    while (it < nrows && vals[iv] == tmp[ind[it]]) {
-		pos.push_back(ind[it]);
-		++ it;
+	    if (it < nrows && vals[iv] == tmp[ind[it]]) {
+                do {
+                    pos.push_back(ind[it]);
+                    ++ it;
+                } while (it < nrows && vals[iv] == tmp[ind[it]]);
+                ++ iv;
 	    }
 	}
-	ierr = (pos.size() > 0);
+
+	LOGGER(ibis::gVerbose > 4)
+	    << evt << " read the content of base data file " << fname
+	    << " and found " << pos.size() << " match"
+	    << (pos.size()>1?"es":"");
+	ierr = 0;
     }
     else {
 	LOGGER(ibis::gVerbose > 1)
@@ -2639,13 +2658,14 @@ ibis::roster::icSearch(const std::vector<T>& vals,
     if (ierr == 0) { // got the sorted values
 	while (iv < nvals && it < nrows) {
 	    // move iv so that vals[iv] is not less than tmp[it]
-	    while (iv < nvals && vals[iv] < tmp[it])
-		++ iv;
-	    if (iv >= nvals)
-		return (pos.size() > 0);
+            if (vals[iv] < tmp[it]) {
+                iv = ibis::util::find(vals, tmp[it], iv);
+                if (iv >= nvals)
+                    return (pos.size() > 0);
+            }
 	    // move it so that tmp[it] is not less than vals[iv]
-	    while (it < nrows && vals[iv] > tmp[it])
-		++ it;
+            if (vals[iv] > tmp[it])
+                it = ibis::util::find(tmp, vals[iv], it);
 
 	    while (it < nrows && vals[iv] == tmp[it]) { // found a match
 		pos.push_back(ind[it]);
@@ -2671,18 +2691,22 @@ ibis::roster::icSearch(const std::vector<T>& vals,
     if (ierr == 0) { // got the base data in memory
 	while (iv < nvals && it < nrows) {
 	    // move iv so that vals[iv] is not less than tmp[ind[it]]
-	    while (iv < nvals && vals[iv] < tmp[ind[it]])
-		++ iv;
-	    if (iv >= nvals)
-		return (pos.size() > 0);
+            if (vals[iv] < tmp[ind[it]]) {
+                iv = ibis::util::find(vals, tmp[ind[it]], iv);
+                if (iv >= nvals)
+                    return (pos.size() > 0);
+            }
 	    // move it so that tmp[ind[it]] is not less than vals[iv]
-	    while (it < nrows && vals[iv] > tmp[ind[it]])
-		++ it;
+            if (vals[iv] > tmp[ind[it]])
+                it = ibis::util::find(tmp, ind, vals[iv], it);
 
 	    // found a match
-	    while (it < nrows && vals[iv] == tmp[ind[it]]) {
-		pos.push_back(ind[it]);
-		++ it;
+	    if (it < nrows && vals[iv] == tmp[ind[it]]) {
+                do {
+                    pos.push_back(ind[it]);
+                    ++ it;
+                } while (it < nrows && vals[iv] == tmp[ind[it]]);
+                ++ iv;
 	    }
 	}
     }
@@ -3332,7 +3356,7 @@ template int
 ibis::roster::locate(const std::vector<unsigned char>& vals,
 		     std::vector<uint32_t>& positions) const;
 template int
-ibis::roster::locate(const std::vector<char>& vals,
+ibis::roster::locate(const std::vector<signed char>& vals,
 		     std::vector<uint32_t>& positions) const;
 template int
 ibis::roster::locate(const std::vector<uint16_t>& vals,
@@ -3362,7 +3386,7 @@ template int
 ibis::roster::locate(const std::vector<unsigned char>& vals,
 		     ibis::bitvector& positions) const;
 template int
-ibis::roster::locate(const std::vector<char>& vals,
+ibis::roster::locate(const std::vector<signed char>& vals,
 		     ibis::bitvector& positions) const;
 template int
 ibis::roster::locate(const std::vector<uint16_t>& vals,
@@ -3389,7 +3413,7 @@ template int
 ibis::roster::locate(const ibis::array_t<unsigned char>& vals,
 		     std::vector<uint32_t>& positions) const;
 template int
-ibis::roster::locate(const ibis::array_t<char>& vals,
+ibis::roster::locate(const ibis::array_t<signed char>& vals,
 		     std::vector<uint32_t>& positions) const;
 template int
 ibis::roster::locate(const ibis::array_t<uint16_t>& vals,
@@ -3419,7 +3443,7 @@ template int
 ibis::roster::locate(const ibis::array_t<unsigned char>& vals,
 		     ibis::bitvector& positions) const;
 template int
-ibis::roster::locate(const ibis::array_t<char>& vals,
+ibis::roster::locate(const ibis::array_t<signed char>& vals,
 		     ibis::bitvector& positions) const;
 template int
 ibis::roster::locate(const ibis::array_t<uint16_t>& vals,
