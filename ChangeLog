@@ -1,3 +1,11 @@
+2013-12-09 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: in function loadIndex change
+	disableIndexOnFailure to retryIndexOnFailure, i.e., the change the
+	default option to not retry index building
+	* src/column.cpp: change searchSortedICC and searchSortedICD to
+	use ibis::util::find instead of the simple binary search function,
+	allow each id to be matches with multiple rows
+
 2013-12-04 John Wu <John dot Wu at ACM dot org>
 	* src/whereClause.cpp: in verifyExpr convert the string value of a
 	qString expression to a number if the column named is of a numeric

@@ -5398,6 +5398,28 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
 void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     if (idx != 0 || thePart == 0 || thePart->nRows() == 0)
 	return;
+    if (iopt == 0 || *iopt == static_cast<char>(0))
+	iopt = indexSpec(); // index spec of the column
+    if (iopt == 0 || *iopt == static_cast<char>(0))
+	iopt = thePart->indexSpec(); // index spec of the table
+    if (iopt == 0 || *iopt == static_cast<char>(0)) {
+	// attempt to retrieve the value of tableName.columnName.index for
+	// the index specification in the global resource
+	std::string idxnm(thePart->name());
+	idxnm += '.';
+	idxnm += m_name;
+	idxnm += ".index";
+	iopt = ibis::gParameters()[idxnm.c_str()];
+    }
+    if (iopt != 0) {
+	// no index is to be used if the index specification start
+	// with "noindex", "null" or "none".
+	if (strncmp(iopt, "noindex", 7) == 0 ||
+	    strncmp(iopt, "null", 4) == 0 ||
+	    strncmp(iopt, "none", 4) == 0) {
+	    return;
+	}
+    }
 
     std::string evt = "column[";
     evt += thePart->name();
@@ -5418,21 +5440,7 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	    tmp = ibis::index::create(this, thePart->currentDataDir(),
 				      iopt, ropt);
 	}
-	if (tmp == 0) { // failed to create index
-	    purgeIndexFile(); // remove any left over index file
-	    const_cast<column*>(this)->m_bins = "noindex";
-	    std::string key = thePart->name();
-	    key += '.';
-	    key += m_name;
-	    key += ".disableIndexOnFailure";
-	    if (ibis::gParameters().isTrue(key.c_str())) {
-		// don't try to build index any more
-		thePart->updateMetaData();
-	    }
-	    return;
-	}
-
-	if (tmp->getNRows()
+	if (tmp != 0 && tmp->getNRows()
 #if defined(FASTBIT_REBUILD_INDEX_ON_SIZE_MISMATCH)
 	    !=
 #else
@@ -5455,7 +5463,6 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 		    << ", failed on retry!";
 		delete tmp;
                 tmp = 0;
-		purgeIndexFile();
 	    }
 	}
 	if (tmp != 0) {
@@ -5479,6 +5486,7 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 		    << tmp->name() << "), discarding the new one";
 		delete tmp;
 	    }
+            return;
 	}
     }
     catch (const char* s) {
@@ -5486,16 +5494,6 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	    << "Warning -- " << evt << " received the following exception\n"
 	    << s;
 	delete tmp;
-	// 	    std::string key = thePart->name();
-	// 	    key += '.';
-	// 	    key += m_name;
-	// 	    key += ".disableIndexOnFailure";
-	// 	    if (ibis::gParameters().isTrue(key.c_str())) {
-	// 		// don't try to build index any more
-	// 		const_cast<column*>(this)->m_bins = "noindex";
-	// 		thePart->updateMetaData();
-	// 	    }
-	// 	    purgeIndexFile();
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
@@ -5507,6 +5505,18 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " received a unexpected exception";
 	delete tmp;
+    }
+
+    // final error handling
+    purgeIndexFile();
+    std::string key = thePart->name();
+    key += '.';
+    key += m_name;
+    key += ".retryIndexOnFailure";
+    if (! ibis::gParameters().isTrue(key.c_str())) {
+        // don't try to build index any more
+        const_cast<column*>(this)->m_bins = "noindex";
+        thePart->updateMetaData();
     }
 } // ibis::column::loadIndex
 
@@ -11052,7 +11062,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 				  ibis::bitvector& hits) const {
     const ibis::array_t<double>& u = rng.getValues();
     std::string evt = "column::searchSortedICD";
-    if (ibis::gVerbose >= 5) {
+    if (ibis::gVerbose > 4) {
 	std::ostringstream oss;
 	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedICD<" << typeid(T).name()
@@ -11062,33 +11072,21 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
     hits.reserve(vals.size(), u.size()); // reserve space
-    if ((uint32_t)(u.size()*(1.0+log((double)vals.size()))) >=
-	(u.size()+vals.size())) {
-	// go through the two lists to find matches
-	LOGGER(ibis::gVerbose >= 5)
-	    << evt << " will march through two sorted lists";
-	uint32_t ju = 0;
-	uint32_t jv = 0;
-	while (ju < u.size() && jv < vals.size()) {
-	    while (ju < u.size() && u[ju] < vals[jv]) ++ ju;
-	    while (jv < vals.size() && u[ju] > vals[jv]) ++ jv;
-	    if (u[ju] == vals[jv]) {
-		hits.setBit(jv, 1);
-		++ jv;
-	    }
-	}
-    }
-    else {
-	// do binary search for each value in u
-	LOGGER(ibis::gVerbose >= 5)
-	    << evt << " will use " << u.size()
-	    << " binary search" << (u.size() > 1 ? "es" : "");
-	for (uint32_t j = 0; j < u.size(); ++ j) {
-	    uint32_t jloc = vals.find(static_cast<T>(u[j]));
-	    if (vals[jloc] == u[j]) {
-		hits.setBit(jloc, 1);
-	    }
-	}
+
+
+    uint32_t ju = 0;
+    uint32_t jv = 0;
+    while (ju < u.size() && jv < vals.size()) {
+        if (u[ju] < vals[jv])
+            ju = ibis::util::find(u, (double)vals[jv], ju);
+        if (ju < u.size()) {
+            if (u[ju] > vals[jv])
+                jv = ibis::util::find(vals, (T)u[ju], jv);
+            while (jv < vals.size() && u[ju] == vals[jv]) {
+                hits.setBit(jv, 1);
+                ++ jv;
+            }
+        }
     }
     hits.adjustSize(0, vals.size());
     return 0;
@@ -11135,7 +11133,7 @@ int ibis::column::searchSortedOOCD(const char* fname,
 				   ibis::bitvector& hits) const {
     const ibis::array_t<double>& u = rng.getValues();
     std::string evt = "column::searchSortedOOCD";
-    if (ibis::gVerbose >= 5) {
+    if (ibis::gVerbose > 4) {
 	std::ostringstream oss;
 	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
@@ -11207,7 +11205,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 				  ibis::bitvector& hits) const {
     const ibis::array_t<int64_t>& u = rng.getValues();
     std::string evt = "column::searchSortedICD";
-    if (ibis::gVerbose >= 5) {
+    if (ibis::gVerbose > 4) {
 	std::ostringstream oss;
 	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedICD<" << typeid(T).name()
@@ -11217,34 +11215,18 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
     hits.reserve(vals.size(), u.size()); // reserve space
-    if ((uint32_t)(u.size()*(1.0+log((double)vals.size()))) >=
-	(u.size()+vals.size())) {
-	// go through the two lists to find matches
-	LOGGER(ibis::gVerbose >= 5)
-	    << evt << " will march through two sorted lists";
-	uint32_t ju = 0;
-	uint32_t jv = 0;
-	while (ju < u.size() && jv < vals.size()) {
-	    while (ju < u.size() && u[ju] < (int64_t)vals[jv]) ++ ju;
-	    while (jv < vals.size() && u[ju] > (int64_t)vals[jv]) ++ jv;
-	    if (u[ju] == (int64_t)vals[jv]) {
+    uint32_t ju = 0;
+    uint32_t jv = 0;
+    while (ju < u.size() && jv < vals.size()) {
+        if (u[ju] < (int64_t)vals[jv])
+            ju = ibis::util::find(u, (int64_t)vals[jv], ju);
+
+        if (ju < u.size()) {
+	    if (u[ju] > (int64_t)vals[jv])
+                jv = ibis::util::find(vals, (T)u[ju], jv);
+	    while (jv < vals.size() && u[ju] == vals[jv]) {
 		hits.setBit(jv, 1);
 		++ jv;
-	    }
-	}
-    }
-    else {
-	// do binary search for each value in u
-	LOGGER(ibis::gVerbose >= 5)
-	    << evt << " will use " << u.size()
-	    << " binary search" << (u.size() > 1 ? "es" : "");
-	for (uint32_t j = 0; j < u.size(); ++ j) {
-	    const T tmp = static_cast<T>(u[j]);
-	    if ((int64_t)tmp == u[j]) {
-		uint32_t jloc = vals.find(static_cast<T>(u[j]));
-		if (vals[jloc] == static_cast<T>(u[j])) {
-		    hits.setBit(jloc, 1);
-		}
 	    }
 	}
     }
@@ -11262,7 +11244,7 @@ int ibis::column::searchSortedOOCD(const char* fname,
 				   ibis::bitvector& hits) const {
     const ibis::array_t<int64_t>& u = rng.getValues();
     std::string evt = "column::searchSortedOOCD";
-    if (ibis::gVerbose >= 5) {
+    if (ibis::gVerbose > 4) {
 	std::ostringstream oss;
 	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
@@ -11338,7 +11320,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
 				  ibis::bitvector& hits) const {
     const ibis::array_t<uint64_t>& u = rng.getValues();
     std::string evt = "column::searchSortedICD";
-    if (ibis::gVerbose >= 5) {
+    if (ibis::gVerbose > 4) {
 	std::ostringstream oss;
 	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedICD<" << typeid(T).name()
@@ -11348,34 +11330,17 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
     hits.reserve(vals.size(), u.size()); // reserve space
-    if ((uint32_t)(u.size()*(1.0+log((double)vals.size()))) >=
-	(u.size()+vals.size())) {
-	// go through the two lists to find matches
-	LOGGER(ibis::gVerbose >= 5)
-	    << evt << " will march through two sorted lists";
-	uint32_t ju = 0;
-	uint32_t jv = 0;
-	while (ju < u.size() && jv < vals.size()) {
-	    while (ju < u.size() && u[ju] < (uint64_t)vals[jv]) ++ ju;
-	    while (jv < vals.size() && u[ju] > (uint64_t)vals[jv]) ++ jv;
-	    if (u[ju] == (uint64_t)vals[jv]) {
+    size_t ju = 0;
+    size_t jv = 0;
+    while (ju < u.size() && jv < vals.size()) {
+        if (u[ju] < (uint64_t)vals[jv])
+            ju = ibis::util::find(u, (uint64_t)vals[jv], ju);
+        if (ju < u.size()) {
+	    if (u[ju] > (uint64_t)vals[jv])
+                jv = ibis::util::find(vals, (T)u[ju], jv);
+	    while (jv < vals.size() && u[ju] == (uint64_t)vals[jv]) {
 		hits.setBit(jv, 1);
 		++ jv;
-	    }
-	}
-    }
-    else {
-	// do binary search for each value in u
-	LOGGER(ibis::gVerbose >= 5)
-	    << evt << " will use " << u.size()
-	    << " binary search" << (u.size() > 1 ? "es" : "");
-	for (uint32_t j = 0; j < u.size(); ++ j) {
-	    const T tmp = static_cast<T>(u[j]);
-	    if ((uint64_t)tmp == u[j]) {
-		uint32_t jloc = vals.find(static_cast<T>(u[j]));
-		if (vals[jloc] == static_cast<T>(u[j])) {
-		    hits.setBit(jloc, 1);
-		}
 	    }
 	}
     }
@@ -11393,7 +11358,7 @@ int ibis::column::searchSortedOOCD(const char* fname,
 				   ibis::bitvector& hits) const {
     const ibis::array_t<uint64_t>& u = rng.getValues();
     std::string evt = "column::searchSortedOOCD";
-    if (ibis::gVerbose >= 5) {
+    if (ibis::gVerbose > 4) {
 	std::ostringstream oss;
 	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
 	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
