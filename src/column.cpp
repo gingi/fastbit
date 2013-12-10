@@ -5712,32 +5712,29 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
 /// @note Accesses to this function are serialized through a write lock on
 /// the column.  It blocks while acquire the write lock.
 void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
-    if ((idx != 0 && !idx->empty()) || (thePart != 0 && thePart->nRows() == 0))
-        return;
+    if (idx != 0 || thePart == 0 || thePart->nRows() == 0)
+	return;
     if (iopt == 0 || *iopt == static_cast<char>(0))
-        iopt = indexSpec(); // index spec of the column
-    if ((iopt == 0 || *iopt == static_cast<char>(0)) && thePart != 0)
-        iopt = thePart->indexSpec(); // index spec of the table
+	iopt = indexSpec(); // index spec of the column
+    if (iopt == 0 || *iopt == static_cast<char>(0))
+	iopt = thePart->indexSpec(); // index spec of the table
     if (iopt == 0 || *iopt == static_cast<char>(0)) {
-        // attempt to retrieve the value of tableName.columnName.index for
-        // the index specification in the global resource
-        std::string idxnm;
-        if (thePart != 0) {
-            idxnm = thePart->name();
-            idxnm += '.';
-        }
-        idxnm += m_name;
-        idxnm += ".index";
-        iopt = ibis::gParameters()[idxnm.c_str()];
+	// attempt to retrieve the value of tableName.columnName.index for
+	// the index specification in the global resource
+	std::string idxnm(thePart->name());
+	idxnm += '.';
+	idxnm += m_name;
+	idxnm += ".index";
+	iopt = ibis::gParameters()[idxnm.c_str()];
     }
     if (iopt != 0) {
-        // no index is to be used if the index specification start
-        // with "noindex", "null" or "none".
-        if (strncmp(iopt, "noindex", 7) == 0 ||
-            strncmp(iopt, "null", 4) == 0 ||
-            strncmp(iopt, "none", 4) == 0) {
-            return;
-        }
+	// no index is to be used if the index specification start
+	// with "noindex", "null" or "none".
+	if (strncmp(iopt, "noindex", 7) == 0 ||
+	    strncmp(iopt, "null", 4) == 0 ||
+	    strncmp(iopt, "none", 4) == 0) {
+	    return;
+	}
     }
 
     std::string evt = "column";
@@ -5760,17 +5757,15 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 
     ibis::index* tmp = 0;
     try { // if an index is not available, create one
-        LOGGER(ibis::gVerbose > 4)
-            << evt << " -- loading the index from "
-            << (thePart != 0 ?
-                (thePart->currentDataDir() ? thePart->currentDataDir()
-                 : "memory") : "memory");
-        if (tmp == 0) {
-            tmp = ibis::index::create(this,
-                                      thePart ? thePart->currentDataDir() : 0,
-                                      iopt, ropt);
-        }
-        if (thePart != 0 && tmp != 0 && tmp->getNRows()
+	LOGGER(ibis::gVerbose > 7)
+	    << evt << " -- loading the index from "
+	    << (thePart->currentDataDir() ? thePart->currentDataDir()
+		: "memory");
+	if (tmp == 0) {
+	    tmp = ibis::index::create(this, thePart->currentDataDir(),
+				      iopt, ropt);
+	}
+	if (tmp != 0 && tmp->getNRows()
 #if defined(FASTBIT_REBUILD_INDEX_ON_SIZE_MISMATCH)
             !=
 #else
@@ -5793,7 +5788,6 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 		    << ", failed on retry!";
 		delete tmp;
                 tmp = 0;
-		purgeIndexFile();
 	    }
 	}
 	if (tmp != 0) {
@@ -5802,29 +5796,29 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 		tmp->print(lg());
 	    }
 
-            ibis::util::mutexLock lck2(&mutex, "loadIndex");
-            if (! (lower <= upper)) { // use negation to catch NaNs
-                const_cast<ibis::column*>(this)->lower = tmp->getMin();
-                const_cast<ibis::column*>(this)->upper = tmp->getMax();
-            }
-            if (idx == 0) {
-                idx = tmp;
-            }
-            else if (idx != tmp) { // another thread has created an index
-                LOGGER(ibis::gVerbose >= 0)
-                    << evt << " found an index (" << idx->name()
-                    << ") for this column after building another one ("
-                    << tmp->name() << "), discarding the new one";
-                delete tmp;
-            }
+	    ibis::util::mutexLock lck2(&mutex, "loadIndex");
+	    if (idx == 0) {
+		idx = tmp;
+		if (! (lower <= upper)) { // use negation to catch NaNs
+		    const_cast<ibis::column*>(this)->lower = tmp->getMin();
+		    const_cast<ibis::column*>(this)->upper = tmp->getMax();
+		}
+	    }
+	    else if (idx != tmp) { // another thread has created an index
+		LOGGER(ibis::gVerbose >= 0)
+		    << evt << " found an index (" << idx->name()
+		    << ") for this column after building another one ("
+		    << tmp->name() << "), discarding the new one";
+		delete tmp;
+	    }
             return;
-        }
+	}
     }
     catch (const char* s) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " received the following exception\n"
-            << s;
-        delete tmp;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " received the following exception\n"
+	    << s;
+	delete tmp;
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -5850,6 +5844,18 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
             const_cast<column*>(this)->m_bins = "noindex";
             thePart->updateMetaData();
         }
+    }
+
+    // final error handling
+    purgeIndexFile();
+    std::string key = thePart->name();
+    key += '.';
+    key += m_name;
+    key += ".retryIndexOnFailure";
+    if (! ibis::gParameters().isTrue(key.c_str())) {
+        // don't try to build index any more
+        const_cast<column*>(this)->m_bins = "noindex";
+        thePart->updateMetaData();
     }
 } // ibis::column::loadIndex
 
@@ -11659,11 +11665,11 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     const ibis::array_t<double>& u = rng.getValues();
     std::string evt = "column::searchSortedICD";
     if (ibis::gVerbose > 4) {
-        std::ostringstream oss;
-        oss << "column[" << fullname() << "]::searchSortedICD<"
-            << typeid(T).name() << ">(" << rng.colName() << " IN "
-            << u.size() << "-element list)";
-        evt = oss.str();
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedICD<" << typeid(T).name()
+	    << ">(" << rng.colName() << " IN " << u.size() << "-element list)";
+	evt = oss.str();
     }
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
@@ -11731,11 +11737,12 @@ int ibis::column::searchSortedOOCD(const char* fname,
     const ibis::array_t<double>& u = rng.getValues();
     std::string evt = "column::searchSortedOOCD";
     if (ibis::gVerbose > 4) {
-        std::ostringstream oss;
-        oss << "column[" << fullname() << "]::searchSortedOOCD<"
-            << typeid(T).name() << ">(" << fname << ", " << rng.colName()
-            << " IN " << u.size() << "-element list)";
-        evt = oss.str();
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
+	    << ">(" << fname << ", " << rng.colName() << " IN "
+	    << u.size() << "-element list)";
+	evt = oss.str();
     }
     ibis::util::timer mytimer(evt.c_str(), 5);
     int fdes = UnixOpen(fname, OPEN_READONLY);
@@ -11802,11 +11809,11 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     const ibis::array_t<int64_t>& u = rng.getValues();
     std::string evt = "column::searchSortedICD";
     if (ibis::gVerbose > 4) {
-        std::ostringstream oss;
-        oss << "column[" << fullname() << "]::searchSortedICD<"
-            << typeid(T).name() << ">(" << rng.colName() << " IN "
-            << u.size() << "-element list)";
-        evt = oss.str();
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedICD<" << typeid(T).name()
+	    << ">(" << rng.colName() << " IN " << u.size() << "-element list)";
+	evt = oss.str();
     }
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
@@ -11818,13 +11825,13 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
             ju = ibis::util::find(u, (int64_t)vals[jv], ju);
 
         if (ju < u.size()) {
-            if (u[ju] > (int64_t)vals[jv])
+	    if (u[ju] > (int64_t)vals[jv])
                 jv = ibis::util::find(vals, (T)u[ju], jv);
-            while (jv < vals.size() && u[ju] == vals[jv]) {
-                hits.setBit(jv, 1);
-                ++ jv;
-            }
-        }
+	    while (jv < vals.size() && u[ju] == vals[jv]) {
+		hits.setBit(jv, 1);
+		++ jv;
+	    }
+	}
     }
     hits.adjustSize(0, vals.size());
     return 0;
@@ -11841,11 +11848,12 @@ int ibis::column::searchSortedOOCD(const char* fname,
     const ibis::array_t<int64_t>& u = rng.getValues();
     std::string evt = "column::searchSortedOOCD";
     if (ibis::gVerbose > 4) {
-        std::ostringstream oss;
-        oss << "column[" << fullname() << "]::searchSortedOOCD<"
-            << typeid(T).name() << ">(" << fname << ", " << rng.colName()
-            << " IN " << u.size() << "-element list)";
-        evt = oss.str();
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
+	    << ">(" << fname << ", " << rng.colName() << " IN "
+	    << u.size() << "-element list)";
+	evt = oss.str();
     }
     ibis::util::timer mytimer(evt.c_str(), 5);
     int fdes = UnixOpen(fname, OPEN_READONLY);
@@ -11916,11 +11924,11 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     const ibis::array_t<uint64_t>& u = rng.getValues();
     std::string evt = "column::searchSortedICD";
     if (ibis::gVerbose > 4) {
-        std::ostringstream oss;
-        oss << "column[" << fullname() << "]::searchSortedICD<"
-            << typeid(T).name() << ">(" << rng.colName() << " IN "
-            << u.size() << "-element list)";
-        evt = oss.str();
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedICD<" << typeid(T).name()
+	    << ">(" << rng.colName() << " IN " << u.size() << "-element list)";
+	evt = oss.str();
     }
     ibis::util::timer mytimer(evt.c_str(), 5);
     hits.clear();
@@ -11931,13 +11939,13 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
         if (u[ju] < (uint64_t)vals[jv])
             ju = ibis::util::find(u, (uint64_t)vals[jv], ju);
         if (ju < u.size()) {
-            if (u[ju] > (uint64_t)vals[jv])
+	    if (u[ju] > (uint64_t)vals[jv])
                 jv = ibis::util::find(vals, (T)u[ju], jv);
-            while (jv < vals.size() && u[ju] == (uint64_t)vals[jv]) {
-                hits.setBit(jv, 1);
-                ++ jv;
-            }
-        }
+	    while (jv < vals.size() && u[ju] == (uint64_t)vals[jv]) {
+		hits.setBit(jv, 1);
+		++ jv;
+	    }
+	}
     }
     hits.adjustSize(0, vals.size());
     return 0;
@@ -11954,11 +11962,12 @@ int ibis::column::searchSortedOOCD(const char* fname,
     const ibis::array_t<uint64_t>& u = rng.getValues();
     std::string evt = "column::searchSortedOOCD";
     if (ibis::gVerbose > 4) {
-        std::ostringstream oss;
-        oss << "column[" << fullname() << "]::searchSortedOOCD<"
-            << typeid(T).name() << ">(" << fname << ", " << rng.colName()
-            << " IN " << u.size() << "-element list)";
-        evt = oss.str();
+	std::ostringstream oss;
+	oss << "column[" << (thePart ? thePart->name() : "?") << '.'
+	    << m_name << "]::searchSortedOOCD<" << typeid(T).name()
+	    << ">(" << fname << ", " << rng.colName() << " IN "
+	    << u.size() << "-element list)";
+	evt = oss.str();
     }
     ibis::util::timer mytimer(evt.c_str(), 5);
     int fdes = UnixOpen(fname, OPEN_READONLY);
