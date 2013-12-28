@@ -50,13 +50,13 @@ int ibis::resource::read(const char* fn) {
         tried = name;
         conf = fopen(name, "r");
 
-        if (conf == 0){
-            // LOGGER(ibis::gVerbose >= 0)
-            //     << "Warning -- resource::read failed to open user "
-            //     "specified file \"" << name << "\" ... "
-            //     << (errno ? strerror(errno) : "no free stdio stream");
-            return -1;
-        }
+	if (conf == 0){
+	    // LOGGER(ibis::gVerbose >= 0)
+	    //     << "Warning -- resource::read failed to open user "
+	    //     "specified file \"" << name << "\" ... "
+	    //     << (errno ? strerror(errno) : "no free stdio stream");
+	    return -1;
+	}
     }
     if (conf == 0) {
         // second choice is the environment variable
@@ -117,10 +117,10 @@ int ibis::resource::read(const char* fn) {
         }
     }
     if (0 == conf) {
-        // LOGGER(ibis::gVerbose > 3)
-        //     << "resource::read -- can not open any of the "
-        //     "following configuration files:\n" << tried.c_str();
-        return 1;
+	// LOGGER(ibis::gVerbose > 3)
+	//     << "resource::read -- can not open any of the "
+	//     "following configuration files:\n" << tried.c_str();
+	return 1;
     }
 
     char *value;
@@ -143,18 +143,18 @@ int ibis::resource::read(const char* fn) {
         }
         if (tmp <= line) continue; // empty line (or a single character)
 
-        name = line;
-        value = strchr(line, '=');
-        if (value) {
-            *value = static_cast<char>(0); // terminate name string
-            ++value;
-            add(name, ibis::util::trim(value));
-        }
-        // else {
-        //     LOGGER(ibis::gVerbose > 6)
-        //      << "resource::read -- skipping line \""
-        //      << line << "\" because it contains no '='";
-        // }
+	name = line;
+	value = strchr(line, '=');
+	if (value) {
+	    *value = static_cast<char>(0); // terminate name string
+	    ++value;
+	    add(name, ibis::util::trim(value));
+	}
+	// else {
+	//     LOGGER(ibis::gVerbose > 6)
+	// 	<< "resource::read -- skipping line \""
+	// 	<< line << "\" because it contains no '='";
+	// }
     }
     fclose(conf);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -528,21 +528,16 @@ void ibis::resource::write(const char* fn) const {
     }
 } // ibis::resource::write
 
-/// This function returns a reference to a set of global parameters.  These
-/// parameters can affect the execution of the FastBit, such as the maximum
-/// number of byte the memory manager may use.
-///
-/// @note This function returns an empty object when called the first time.
-/// The caller is expected to either use ibis::init or ibis::resource::read
-/// to input a user-specified configuration files.
-///
-/// @note Some of the parameters are consulted once.  For example, the
-/// maximum bytes used by the memory manager is only used once at the
-/// construction of the memory manager; modifying this parameter after the
-/// initialization of the memory manager will not affect the memory manager
-/// any more.  Therefore, we recommend the caller to perform all necessary
-/// operations with ibis::gParameters before performing other operations.
+/// This function returns a reference to a set of global parameters that
+/// affects the execution of the FastBit, such as the maximum number of
+/// byte the memory manager may use.  Some of the parameters are consulted
+/// once.  For example, the maximum bytes used by the memory manager is
+/// only used once at the construction of the memory manager; modifying
+/// this parameter after the initialization of the memory manager will not
+/// affect the memory manager any more.  Therefore, we recommend the caller
+/// to perform all necessary operations with ibis::gParameters before
+/// performing other operations.
 ibis::resource& ibis::gParameters() {
-    static ibis::resource theResource;
+    static ibis::resource theResource(static_cast<const char*>(0));
     return theResource;
 } // ibis::gParameters

@@ -48,7 +48,7 @@ public:
 
     ~resource() {clear();};
     /// Default constructor.  Creates an empty object.
-    resource() : prefix(0), context(0) {read(0);};
+    resource() : prefix(0), context(0) {};
     /// Read the content of a parameter file.
     explicit resource(const char *fn) : prefix(0), context(0) {(void)read(fn);}
     /// Create an empty object with the specified prefix and context.
