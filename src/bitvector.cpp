@@ -570,8 +570,8 @@ void ibis::bitvector::copy_comp(array_t<ibis::bitvector::word_t>& tmp) const {
 ibis::bitvector::word_t ibis::bitvector::compressible() const {
     word_t cnt = 0;
     for (word_t i = 0; i+1 < m_vec.size(); ++ i) {
-        cnt += ((m_vec[i] == m_vec[i+1]) &&
-                ((m_vec[i] == 0) || (m_vec[i] == ALLONES)));
+	cnt += ((m_vec[i] == m_vec[i+1]) &&
+		((m_vec[i] == 0) || (m_vec[i] == ALLONES)));
     }
     return cnt;
 } // ibis::bitvector::compressible

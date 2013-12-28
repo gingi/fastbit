@@ -556,6 +556,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 /// Add a set of conditions to the existing where clause.  The new query
 /// expression is joined with the existing conditions with the AND operator.
 ///
+/// @note This object will have a copy of the incoming query expression.
 int ibis::query::addConditions(const ibis::qExpr* qx) {
     if (qx == 0) return -4;
 

@@ -11,7 +11,7 @@
 #endif
 #include "bitvector64.h"
 #include "bitvector.h"
-#include <iomanip>      // setw
+#include <iomanip>	// setw
 
 // constances defined in bitvector64
 const unsigned ibis::bitvector64::MAXBITS = 63;
@@ -342,9 +342,9 @@ ibis::bitvector64::copy_comp(array_t<ibis::bitvector64::word_t>& tmp) const {
 ibis::bitvector64::word_t ibis::bitvector64::compressible() const {
     word_t cnt = 0;
     for (word_t i = 0; i+1 < m_vec.size(); ++ i) {
-        cnt += ((m_vec[i] == m_vec[i+1]) &&
-                ((m_vec[i] == static_cast<word_t>(0)) ||
-                 (m_vec[i] == ALLONES)));
+	cnt += ((m_vec[i] == m_vec[i+1]) &&
+		((m_vec[i] == static_cast<word_t>(0)) ||
+		 (m_vec[i] == ALLONES)));
     }
     return cnt;
 } // ibis::bitvector64::compressible

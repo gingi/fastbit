@@ -1,3 +1,7 @@
+2013-12-27 John Wu <John dot Wu at ACM dot org>
+	* src/resource.h: change the default constructor to invoke
+	function read as promised in the class documentation
+
 2013-12-09 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: in function loadIndex change
 	disableIndexOnFailure to retryIndexOnFailure, i.e., the change the
