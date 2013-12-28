@@ -11,7 +11,7 @@
 #endif
 #include "bitvector64.h"
 #include "bitvector.h"
-#include <iomanip>	// setw()
+#include <iomanip>	// setw
 
 // constances defined in bitvector64
 const unsigned ibis::bitvector64::MAXBITS = 63;
@@ -81,7 +81,7 @@ void ibis::bitvector64::set(int val, word_t n) {
 	active.val = (1LL<<active.nbits) - 1;
 	nset = k * MAXBITS;
     }
-} // ibis::bitvector64::set(int val, ibis::bitvector64::word_t n)
+} // ibis::bitvector64::set
 
 /// Append a WAH compressed word.  The general case, active word may not be
 /// empty.
@@ -136,7 +136,7 @@ void ibis::bitvector64::appendWord(word_t w) {
 	active.val= w;
 	append_active();
     }
-} //bitvector64& ibis::bitvector64::appendWord()
+} //bitvector64& ibis::bitvector64::appendWord
 
 // append another bitvector64 to the current
 ibis::bitvector64& ibis::bitvector64::operator+=(const ibis::bitvector64& bv) {
@@ -331,12 +331,12 @@ ibis::bitvector64::copy_comp(array_t<ibis::bitvector64::word_t>& tmp) const {
 	    it++;
 	}
     }
-} // ibis::bitvector64::copy_comp()
+} // ibis::bitvector64::copy_comp
 
 // determine the number of word that would be eliminated by compression
 ibis::bitvector64::word_t ibis::bitvector64::compressible() const {
-    word_t cnt=0;
-    for (word_t i=0; i<m_vec.size()-1; i++) {
+    word_t cnt = 0;
+    for (word_t i = 0; i+1 < m_vec.size(); ++ i) {
 	cnt += ((m_vec[i] == m_vec[i+1]) &&
 		((m_vec[i] == static_cast<word_t>(0)) ||
 		 (m_vec[i] == ALLONES)));
@@ -921,7 +921,7 @@ void ibis::bitvector64::operator|=(const ibis::bitvector64& rhs) {
 			       static_cast<long unsigned>(nb));
     }
 #endif
-} // ibis::bitvector64::operator|=(const bitvector64& rhs)
+} // ibis::bitvector64::operator|=
 
 /// @sa ibis::bitvector::operator|
 ibis::bitvector64* ibis::bitvector64::operator|(const ibis::bitvector64& rhs)
@@ -982,7 +982,7 @@ ibis::bitvector64* ibis::bitvector64::operator|(const ibis::bitvector64& rhs)
 			       static_cast<long unsigned>(nb));
 #endif
     return res;
-} // ibis::bitvector64::operator|()
+} // ibis::bitvector64::operator|
 
 // bitwise xor (^) operation
 /// @sa ibis::bitvector::operator^=
@@ -1031,7 +1031,7 @@ void ibis::bitvector64::operator^=(const ibis::bitvector64& rhs) {
 			       static_cast<long unsigned>(rhs.nbits),
 			       static_cast<long unsigned>(nb));
 #endif
-} // ibis::bitvector64::operator^=(const bitvector64& rhs)
+} // ibis::bitvector64::operator^=
 
 /// @sa ibis::bitvector::operator^=
 ibis::bitvector64* ibis::bitvector64::operator^(const ibis::bitvector64& rhs)
@@ -1272,7 +1272,7 @@ std::ostream& ibis::bitvector64::print(std::ostream& o) const {
 	m_vec.printStatus(o);
 
     return o;
-} // ostream& ibis::bitvector64::print(ostream& o) const
+} // ibis::bitvector64::print
 
 std::ostream& operator<<(std::ostream& o, const ibis::bitvector64& b) {
     return b.print(o);
@@ -1343,7 +1343,7 @@ void ibis::bitvector64::read(const char * fn) {
 			       fn, ierr, (ierr>1?"s":""));
 	throw "bitvector64::read failed integrity check";
     }
-} // ibis::bitvector64::read(const char * fn)
+} // ibis::bitvector64::read
 
 // // write bitvector64 to file (contents of vector is not changed)
 void ibis::bitvector64::write(const char * fn) const {
@@ -1398,7 +1398,7 @@ void ibis::bitvector64::write(const char * fn) const {
     //     }
 
     fclose(out);
-} // ibis::bitvector64::write(const char * fn) const
+} // ibis::bitvector64::write
 
 void ibis::bitvector64::write(FILE* out) const {
     if (out == 0) return;
@@ -1428,7 +1428,7 @@ void ibis::bitvector64::write(FILE* out) const {
     fwrite((const void*)&(active.nbits), sizeof(word_t), 1, out);
     //     fwrite((const void*)&nset, sizeof(word_t), 1, out);
     //     fwrite((const void*)&nbits, sizeof(word_t), 1, out);
-} // ibis::bitvector64::write(FILE* out) const
+} // ibis::bitvector64::write
 
 void ibis::bitvector64::write(array_t<ibis::bitvector64::word_t>& arr) const {
     arr.reserve(m_vec.size()+1+(active.nbits>0));
@@ -1582,7 +1582,7 @@ void ibis::bitvector64::and_c2(const ibis::bitvector64& rhs,
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose >= 0) << "result of AND " << res;
 #endif
-} // bitvector64& ibis::bitvector64::and_c2
+} // ibis::bitvector64::and_c2
 
 // and operation where rhs is not compressed (not one word is a counter)
 void ibis::bitvector64::and_c1(const ibis::bitvector64& rhs,
@@ -2912,7 +2912,7 @@ void ibis::bitvector64::minus_c2(const ibis::bitvector64& rhs,
     ibis::util::logger lg(4);
     lg() << "result MINUS " << res;
 #endif
-} // bitvector64& ibis::bitvector64::minus_c2
+} // ibis::bitvector64::minus_c2
 
 // minus operation where rhs is not compressed (not one word is a counter)
 void ibis::bitvector64::minus_c1(const ibis::bitvector64& rhs,
@@ -3352,7 +3352,7 @@ ibis::bitvector64::iterator& ibis::bitvector64::iterator::operator=(int val) {
     compressed = 0;
     if (bitv->nset) bitv->nset += val?1:-1;
     return *this;
-} // ibis::bitvector64::iterator::operator=(int val)
+} // ibis::bitvector64::iterator::operator=
 
 // advance position with a longer stride
 ibis::bitvector64::iterator&
@@ -3448,7 +3448,7 @@ void ibis::bitvector64::iterator::decodeWord() {
 	fillbit = 0;
     }
     ind = 0;
-} // ibis::bitvector64::iterator::decodeWord()
+} // ibis::bitvector64::iterator::decodeWord
 
 // advance position with a longer stride
 ibis::bitvector64::const_iterator&
@@ -3536,7 +3536,7 @@ void ibis::bitvector64::const_iterator::decodeWord() {
 	compressed = 0; nbits = 0; literalvalue = 0; fillbit = 0;
     }
     ind = 0;
-} // ibis::bitvector64::const_iterator::decodeWord()
+} // ibis::bitvector64::const_iterator::decodeWord
 
 // advance to the next code word that is not zero
 ibis::bitvector64::indexSet& ibis::bitvector64::indexSet::operator++() {
@@ -3605,7 +3605,7 @@ ibis::bitvector64::indexSet& ibis::bitvector64::indexSet::operator++() {
     }
     it = end + 1;
     return *this;
-} // ibis::bitvector64::indexSet::operator++()
+} // ibis::bitvector64::indexSet::operator++
 
 // Adjust the size of bit sequence. if current size is less than nv,
 // append enough 1 bits so that it has nv bits.  If the resulting total
@@ -3627,7 +3627,7 @@ void ibis::bitvector64::adjustSize(word_t nv, word_t nt) {
     else if (size() > nt) {
 	erase(nt, size());
     }
-} // ibis::bitvector64::adjustSize(word_t nv, word_t nt)
+} // ibis::bitvector64::adjustSize
 
 // estimate the clustering factor based on the size information of a bitmap
 double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
@@ -3752,9 +3752,10 @@ double ibis::bitvector64::clusteringFactor(word_t nb, word_t nc, word_t sz) {
 ///
 /// Return a const reference of @c c.  If the input @c does not have
 /// the correct size, it will be replaced by the outer product.
-const ibis::bitvector64& ibis::util::outerProduct(const ibis::bitvector& a,
-					    const ibis::bitvector& b,
-					    ibis::bitvector64& c) {
+const ibis::bitvector64&
+ibis::util::outerProduct(const ibis::bitvector& a,
+                         const ibis::bitvector& b,
+                         ibis::bitvector64& c) {
     if (b.cnt() == 0) // do nothing, empty a will be detected later
 	return c;
     ibis::horometer timer;
@@ -3848,9 +3849,10 @@ const ibis::bitvector64& ibis::util::outerProduct(const ibis::bitvector& a,
 
 /// The result @c contains only the strict upper triangular portion of the
 /// full outer product.
-const ibis::bitvector64& ibis::util::outerProductUpper(const ibis::bitvector& a,
-						 const ibis::bitvector& b,
-						 ibis::bitvector64& c) {
+const ibis::bitvector64&
+ibis::util::outerProductUpper(const ibis::bitvector& a,
+                              const ibis::bitvector& b,
+                              ibis::bitvector64& c) {
     if (b.cnt() == 0) // do nothing, empty a will be detected later
 	return c;
     ibis::horometer timer;

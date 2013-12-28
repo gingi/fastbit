@@ -18,6 +18,7 @@
 const char* ibis::resource::delimiters = "*:.";
 
 /// Read a configuration file.
+///
 /// It will open the first file in the following list and add the content
 /// to the existing list of parameter,
 /// - (1) argument to this function (fn),
@@ -32,7 +33,7 @@ const char* ibis::resource::delimiters = "*:.";
 /// object.  The parameters with the same names will overwrite the existing
 /// values.
 ///
-/// If it can not find any one of the files, it will return without
+/// If it can not find any one of these files, it will return without
 /// modifying the current content of the resource object.
 void ibis::resource::read(const char* fn) {
     char line[MAX_LINE];

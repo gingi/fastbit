@@ -480,6 +480,8 @@ int ibis::query::setWhereClause(const std::vector<const char*>& names,
 /// Specify the where clause through a qExpr object.
 /// This function accepts a user constructed query expression object.  It
 /// can be used to bypass the parsing of where clause string.
+///
+/// @note The query object will hold a copy of the incoming object.
 int ibis::query::setWhereClause(const ibis::qExpr* qx) {
     if (qx == 0) return -4;
 
@@ -551,6 +553,7 @@ int ibis::query::setWhereClause(const ibis::qExpr* qx) {
 /// Add a set of conditions to the existing where clause.  The new query
 /// expression is joined with the existing conditions with the AND operator.
 ///
+/// @note This object will have a copy of the incoming query expression.
 int ibis::query::addConditions(const ibis::qExpr* qx) {
     if (qx == 0) return -4;
 

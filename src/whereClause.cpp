@@ -100,6 +100,8 @@ void ibis::whereClause::addConditions(const char *cl) {
 /// Append a set of conditions to the existing where clause.  The new
 /// conditions are joined together with the existing ones with the AND
 /// operator.
+///
+/// @note This object will have a copy of the incomping object.
 void ibis::whereClause::addExpr(const ibis::qExpr *ex) {
     if (ex == 0) return;
 

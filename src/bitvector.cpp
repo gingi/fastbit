@@ -455,8 +455,8 @@ void ibis::bitvector::copy_comp(array_t<ibis::bitvector::word_t>& tmp) const {
 
 /// Return the number of word saved if the function compress is called.
 ibis::bitvector::word_t ibis::bitvector::compressible() const {
-    word_t cnt=0;
-    for (word_t i=0; i<m_vec.size()-1; i++) {
+    word_t cnt = 0;
+    for (word_t i = 0; i+1 < m_vec.size(); ++ i) {
 	cnt += ((m_vec[i] == m_vec[i+1]) &&
 		((m_vec[i] == 0) || (m_vec[i] == ALLONES)));
     }

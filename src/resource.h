@@ -36,6 +36,8 @@
 /// and '*'.  When writing out the parameters, the top level name is not
 /// written.
 ///
+/// @note See documentation of function ibis::resource::read for the
+/// default configuration files used.
 class FASTBIT_CXX_DLLSPEC ibis::resource {
 public:
     /// The name-value pairs are categorized into two types, names that map
@@ -46,7 +48,7 @@ public:
 
     ~resource() {clear();};
     /// Default constructor.  Creates an empty object.
-    resource() : prefix(0), context(0) {};
+    resource() : prefix(0), context(0) {read(0);};
     /// Read the content of a parameter file.
     explicit resource(const char *fn) : prefix(0), context(0) {read(fn);}
     /// Create an empty object with the specified prefix and context.
