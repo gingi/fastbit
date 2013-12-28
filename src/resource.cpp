@@ -35,7 +35,13 @@ const char* ibis::resource::delimiters = "*:.";
 ///
 /// If it can not find any one of these files, it will return without
 /// modifying the current content of the resource object.
-void ibis::resource::read(const char* fn) {
+///
+/// Return values:
+/// 0  -- normal return,
+/// -1 -- the incoming argument appears to point to a valid file, but the
+///       file can not be opened,
+/// +1 -- can not open any of the default files specified in the above list.
+int ibis::resource::read(const char* fn) {
     char line[MAX_LINE];
     FILE* conf = 0;
     std::string tried;
@@ -45,11 +51,11 @@ void ibis::resource::read(const char* fn) {
 	conf = fopen(name, "r");
 
 	if (conf == 0){
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- resource::read failed to open user "
-		"specified file \"" << name << "\" ... "
-		<< (errno ? strerror(errno) : "no free stdio stream");
-	    return;
+	    // LOGGER(ibis::gVerbose >= 0)
+	    //     << "Warning -- resource::read failed to open user "
+	    //     "specified file \"" << name << "\" ... "
+	    //     << (errno ? strerror(errno) : "no free stdio stream");
+	    return -1;
 	}
     }
     if (conf == 0) {
@@ -111,16 +117,16 @@ void ibis::resource::read(const char* fn) {
 	}
     }
     if (0 == conf) {
-	LOGGER(ibis::gVerbose > 3)
-	    << "resource::read -- can not open any of the "
-	    "following configuration files:\n" << tried.c_str();
-	return;
+	// LOGGER(ibis::gVerbose > 3)
+	//     << "resource::read -- can not open any of the "
+	//     "following configuration files:\n" << tried.c_str();
+	return 1;
     }
 
     char *value;
-    LOGGER(ibis::gVerbose > 0)
-	<< "resource::read -- parsing configuration file \""
-	<< (name?name:"") << "\""; 
+    // LOGGER(ibis::gVerbose > 0)
+    //     << "resource::read -- parsing configuration file \""
+    //     << (name?name:"") << "\""; 
     while ( !feof(conf) ) {
 	if (fgets(line, MAX_LINE, conf) == 0) continue; // skip empty line
 
@@ -144,17 +150,18 @@ void ibis::resource::read(const char* fn) {
 	    ++value;
 	    add(name, ibis::util::trim(value));
 	}
-	else {
-	    LOGGER(ibis::gVerbose > 6)
-		<< "resource::read -- skipping line \""
-		<< line << "\" because it contains no '='";
-	}
+	// else {
+	//     LOGGER(ibis::gVerbose > 6)
+	// 	<< "resource::read -- skipping line \""
+	// 	<< line << "\" because it contains no '='";
+	// }
     }
     fclose(conf);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     ibis::util::logger lg;
     write(lg());
 #endif
+    return 0; // normal return
 } // ibis::resource::read
 
 /// Add a name-value pair to the resource list.  It replaces the existing
@@ -500,7 +507,9 @@ void ibis::resource::write(std::ostream& out, const char* ctx) const {
     }
 } // ibis::resource::write
 
-/// Write the content to a file.  Default to the log file.
+/// Write the content to a file.  If the file name is a nil pointer, the
+/// pairs are written to the standard output.  If it can not open the named
+/// file, it will also write to the standard output.
 void ibis::resource::write(const char* fn) const {
     if (fn != 0 && *fn != 0) {
 	std::ofstream out(fn);
@@ -519,7 +528,7 @@ void ibis::resource::write(const char* fn) const {
     }
 } // ibis::resource::write
 
-/// The function returns a reference to a set of global parameters that
+/// This function returns a reference to a set of global parameters that
 /// affects the execution of the FastBit, such as the maximum number of
 /// byte the memory manager may use.  Some of the parameters are consulted
 /// once.  For example, the maximum bytes used by the memory manager is
@@ -529,6 +538,6 @@ void ibis::resource::write(const char* fn) const {
 /// to perform all necessary operations with ibis::gParameters before
 /// performing other operations.
 ibis::resource& ibis::gParameters() {
-    static ibis::resource theResource;
+    static ibis::resource theResource(static_cast<const char*>(0));
     return theResource;
 } // ibis::gParameters

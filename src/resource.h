@@ -48,9 +48,9 @@ public:
 
     ~resource() {clear();};
     /// Default constructor.  Creates an empty object.
-    resource() : prefix(0), context(0) {read(0);};
+    resource() : prefix(0), context(0) {};
     /// Read the content of a parameter file.
-    explicit resource(const char *fn) : prefix(0), context(0) {read(fn);}
+    explicit resource(const char *fn) : prefix(0), context(0) {(void)read(fn);}
     /// Create an empty object with the specified prefix and context.
     resource(const resource* ctx, const char* pfx) :
 	prefix(ibis::util::strnewdup(pfx)), context(ctx) {}
@@ -67,16 +67,9 @@ public:
     /// Locate the named parameter and return its value as true or false.
     bool isTrue(const char *name) const;
 
-    /// Insert a new name-value pair.
-    void add(const char *name, const char *value);
-    /// Read the content of the named file.  Add its content to the
-    /// existing lists of name-value pairs.
-    void read(const char* fn=0);
-    /// Write the name-value pairs to the named file.  If the file name is
-    /// a nil pointer, the pairs are written to the standard output.  If it
-    /// can not open the named file, it will also write to the standard
-    /// output.
+    int  read(const char* fn=0);
     void write(const char* fn=0) const;
+    void add(const char *name, const char *value);
 
     /// Returns true if there is no name-value pair on record.
     bool empty() const {return (values.empty() && groups.empty());}

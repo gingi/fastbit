@@ -1,3 +1,10 @@
+2013-12-28 John Wu <John dot Wu at ACM dot org>
+	* src/resource.h, src/resource.cpp: modify function resource::read
+	to return an error code instead of printing out warning messages
+	because the mechanism for printing message could invoke to
+	function ibis::gParameter which causes recursive calls to a static
+	constructor in ibis::gParameter
+
 2013-12-27 John Wu <John dot Wu at ACM dot org>
 	* src/resource.h: change the default constructor to invoke
 	function read as promised in the class documentation
