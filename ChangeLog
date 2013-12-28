@@ -4,6 +4,11 @@
 	because the mechanism for printing message could invoke to
 	function ibis::gParameter which causes recursive calls to a static
 	constructor in ibis::gParameter
+	* src/resource.cpp: in the default constructor and
+	ibis::gParameters, avoid attempt to read the default configuration
+	files.  Instead, change the documentation to require the user to
+	explicitly call ibis::resource::read or ibis::init to incorporate
+	use-provided configuration parameters
 
 2013-12-27 John Wu <John dot Wu at ACM dot org>
 	* src/resource.h: change the default constructor to invoke

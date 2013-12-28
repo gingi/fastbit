@@ -35,9 +35,6 @@
 /// The top level group name can be any one of the following: all, common,
 /// and '*'.  When writing out the parameters, the top level name is not
 /// written.
-///
-/// @note See documentation of function ibis::resource::read for the
-/// default configuration files used.
 class FASTBIT_CXX_DLLSPEC ibis::resource {
 public:
     /// The name-value pairs are categorized into two types, names that map

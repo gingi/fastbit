@@ -286,9 +286,9 @@ namespace ibis {
     ///   logfile = /tmp/ibis.log
     ///@endverbatim
     ///
-    /// One may call ibis::util::closeLogFile to close the log file,
-    /// however it is fine to leave the OS to close it upon the termination
-    /// of the user program.
+    /// One may call ibis::util::closeLogFile to close the log file, but
+    /// this is not mandatory.  The runtime system will close all open
+    /// files upon the termination of the user program.
     inline void init(const char* rcfile=0,
 		     const char* mesgfile=0) {
 #if defined(DEBUG) || defined(_DEBUG)
@@ -304,15 +304,16 @@ namespace ibis {
 #endif
 	}
 #endif
+        int ierr;
 #if defined(PTW32_STATIC_LIB)
 	if (ibis::util::envLock == PTHREAD_MUTEX_INITIALIZER) {
-	    int ierr = pthread_mutex_init(&ibis::util::envLock, 0);
+	    ierr = pthread_mutex_init(&ibis::util::envLock, 0);
 	    if (ierr != 0)
 		throw "ibis::init failed to initialize ibis::util::envLock";
 	}
 #endif
 	if (mesgfile != 0 && *mesgfile != 0) {
-	    int ierr = ibis::util::setLogFileName(mesgfile);
+	    ierr = ibis::util::setLogFileName(mesgfile);
 	    if (ierr < 0 && ibis::gVerbose >= 0) {
 		std::cerr << "ibis::init failed to set log file to "
 			  << mesgfile << std::endl;
@@ -330,35 +331,42 @@ namespace ibis {
 	// 	    "ibis::util::clearDatasets with atexit" << std::endl;
 	// }
 
-	if (rcfile != 0 && *rcfile != 0)
-	    ibis::gParameters().read(rcfile);
+        ierr = ibis::gParameters().read(rcfile);
+        if (ierr < 0)
+            std::cerr << "ibis::init failed to open configuration file \""
+                      << (rcfile!=0&&*rcfile!=0 ? rcfile : "") << '"'
+                      << std::endl;
 	(void) ibis::fileManager::instance(); // initialize the file manager
-	if (! ibis::gParameters().empty())
-	    (void) ibis::util::gatherParts(ibis::datasets, ibis::gParameters());
+	if (! ibis::gParameters().empty()) {
+	    ierr = ibis::util::gatherParts(ibis::datasets, ibis::gParameters());
+            if (ibis::gVerbose > 0 && ierr > 0)
+                std::cerr << "ibis::init found " << ierr << " data partition"
+                          << (ierr > 1 ? "s" : "") << std::endl;
+        }
 #if defined(_WIN32) && defined(_MSC_VER) && (defined(_DEBUG) || defined(DEBUG))
-	std::cout << "DEBUG - WIN32 related macros";
+	std::cerr << "DEBUG - WIN32 related macros";
 #ifdef NTDDI_VERSION
-	std::cout << "\nNTDDI_VERSION=" << std::hex << NTDDI_VERSION
+	std::cerr << "\nNTDDI_VERSION=" << std::hex << NTDDI_VERSION
 		  << std::dec;
 #endif
 #ifdef NTDDI_WINVISTA
-	std::cout << "\nNTDDI_WINVISTA=" << std::hex << NTDDI_WINVISTA
+	std::cerr << "\nNTDDI_WINVISTA=" << std::hex << NTDDI_WINVISTA
 		  << std::dec;
 #endif
 #ifdef WINVER
-	std::cout << "\nWINVER=" << std::hex << WINVER << std::dec;
+	std::cerr << "\nWINVER=" << std::hex << WINVER << std::dec;
 #endif
 #if defined(HAVE_WIN_ATOMIC32)
-	std::cout << "\nHAVE_WIN_ATOMIC32 true";
+	std::cerr << "\nHAVE_WIN_ATOMIC32 true";
 #else
-	std::cout << "\nHAVE_WIN_ATOMIC32 flase";
+	std::cerr << "\nHAVE_WIN_ATOMIC32 flase";
 #endif
 #if defined(HAVE_WIN_ATOMIC64)
-	std::cout << "\nHAVE_WIN_ATOMIC64 true";
+	std::cerr << "\nHAVE_WIN_ATOMIC64 true";
 #else
-	std::cout << "\nHAVE_WIN_ATOMIC64 flase";
+	std::cerr << "\nHAVE_WIN_ATOMIC64 flase";
 #endif
-	std::cout << std::endl;
+	std::cerr << std::endl;
 #endif
     }
 }
