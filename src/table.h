@@ -677,18 +677,18 @@ public:
     /// is intended to prepare for new rows after invoking the function
     /// write.
     virtual void clearData() =0;
-    /// Reserve enough space for the specified number of rows.  Return the
-    /// number of rows that can be stored or a negative number to indicate
-    /// error.  Since the return value is a 32-bit signed integer, it is
-    /// not possible to represent number greater or equal to 2^31 (~2
-    /// billion), the caller shall not attempt to reserve space for 2^31
-    /// rows (or more).
+    /// Reserve enough buffer space for the specified number of rows.
+    /// Return the number of rows that can be stored or a negative number
+    /// to indicate error.  Since the return value is a 32-bit signed
+    /// integer, it is not possible to represent number greater or equal to
+    /// 2^31 (~2 billion), the caller shall not attempt to reserve space
+    /// for 2^31 rows (or more).
     ///
     /// The intention is to mimize the number of dynamic memory allocations
     /// needed expand memory used to hold the data.  The implementation of
     /// this function is not required, and the user is not required to call
     /// this function.
-    virtual int32_t reserveSpace(uint32_t) {return 0;}
+    virtual int32_t reserveBuffer(uint32_t) {return 0;}
     /// Capacity of the memory buffer.  Report the maximum number of rows
     /// can be stored with this object before more memory will be
     /// allocated.  A return value of zero (0) may also indicate that it

@@ -1,3 +1,9 @@
+2014-01-07 John Wu <John dot Wu at ACM dot org>
+	* src/tafel.h, src/tafel.cpp: rename reserveSpace to reserveBuffer
+	* tests/jrf.cpp: use double to capture the return value of
+	fileManager::currentCacheSize, previous version of using 32-bit
+	integers which overflows on a machine with more than 4GB of memory
+
 2013-12-28 John Wu <John dot Wu at ACM dot org>
 	* src/resource.h, src/resource.cpp: modify function resource::read
 	to return an error code instead of printing out warning messages

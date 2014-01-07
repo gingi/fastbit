@@ -213,15 +213,16 @@ int main(int argc, char** argv) {
 	return -1;
     }
 
+    //ibis::gVerbose = 8;
     // initialize the file manage with the 5th argument
     ibis::init(argc>4 ? argv[4] : (const char*)0);
     ibis::util::timer mytimer(*argv, 0);
     if (argc > 2) // user specified maxrow
 	maxrow = (uint32_t)atof(argv[2]);
     if (maxrow <= 0) {
-	maxrow = ibis::fileManager::currentCacheSize();
+	double tmp = ibis::fileManager::currentCacheSize();
 	maxrow = (uint32_t)
-	    ibis::util::compactValue(maxrow / 120.0, maxrow / 80.0);
+	    ibis::util::compactValue(tmp / 120.0, tmp / 80.0);
 	nrpd = maxrow;
     }
     if (maxrow < 10)
@@ -229,18 +230,18 @@ int main(int argc, char** argv) {
     if (argc > 3) // user specified nrpd
 	nrpd = (uint32_t) atof(argv[3]);
     if (nrpd <= 0) {
-	nrpd = ibis::fileManager::currentCacheSize();
+	double tmp = ibis::fileManager::currentCacheSize();
 	nrpd = (uint32_t)
-	    ibis::util::compactValue(nrpd / 120.0, nrpd / 80.0);
+	    ibis::util::compactValue(tmp / 120.0, tmp / 80.0);
     }
     if (nrpd > maxrow) nrpd = maxrow;
 
     ibis::table::row val;
     std::auto_ptr<ibis::tablex> tab(ibis::tablex::create());
     initColumns(*tab, val);
-    tab->reserveSpace(nrpd);
-    if (tab->bufferCapacity() < nrpd)
-	nrpd = tab->bufferCapacity();
+    ierr = tab->reserveBuffer(nrpd);
+    if (ierr > 0 && (unsigned)ierr < nrpd)
+	nrpd = ierr;
     LOGGER(1) << *argv << ' ' << argv[1] << ' ' << maxrow << ' ' << nrpd
 	      << std::endl;
     nparts = maxrow / nrpd;

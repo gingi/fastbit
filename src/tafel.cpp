@@ -2416,7 +2416,7 @@ void ibis::tafel::clearData() {
 /// @note It is possible for the existing content to be lost if doReserve
 /// throws an exception, therefore, one should call this function when
 /// this object does not hold any user data in memory.
-int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
+int32_t ibis::tafel::reserveBuffer(uint32_t maxr) {
     if (cols.empty()) return maxr;
     if (mrows >= maxr) return mrows;
     if (maxr > 0x40000000) maxr = 0x40000000;
@@ -2452,7 +2452,7 @@ int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
 	    tmp = tmp / rowsize;
 	    if (tmp < maxr) {
 		LOGGER(ibis::gVerbose > 0)
-		    << "tafel::reserveSpace will reduce maxr from " << maxr
+		    << "tafel::reserveBuffer will reduce maxr from " << maxr
 		    << " to " << tmp;
 		maxr = tmp;
 	    }
@@ -2462,7 +2462,7 @@ int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
     catch (...) {
 	if (mrows > 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "tafel::reserveSpace(" << maxr << ") failed while mrows="
+		<< "tafel::reserveBuffer(" << maxr << ") failed while mrows="
 		<< mrows << ", existing content has been lost";
 	    mrows = 0;
 	    return -2;
@@ -2489,7 +2489,7 @@ int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
 		    }
 		    catch (...) {
 			LOGGER(ibis::gVerbose >= 0)
-			    << "tafel::reserveSpace(" << maxr
+			    << "tafel::reserveBuffer(" << maxr
 			    << ") failed after 5 tries";
 			ret = -1;
 		    }
@@ -2498,10 +2498,10 @@ int32_t ibis::tafel::reserveSpace(uint32_t maxr) {
 	}
     }
     return ret;
-} // ibis::tafel::reserveSpace
+} // ibis::tafel::reserveBuffer
 
 /// Reserve space for maxr records in memory.  This function does not
-/// perform error checking.  The public version of it reserveSpace does.
+/// perform error checking.  The public version of it reserveBuffer does.
 int32_t ibis::tafel::doReserve(uint32_t maxr) {
     if (mrows >= maxr)
 	return mrows;
@@ -2882,7 +2882,7 @@ int ibis::tafel::parseLine(const char* str, const char* del, const char* id) {
     for (uint32_t i = 0; i < ncol; ++ i) {
 	column& col = *(colorder[i]);
 	if (col.values == 0) {
-	    reserveSpace(100000);
+	    reserveBuffer(100000);
 	    if (col.values == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- tafel::parseLine failed to acquire memory "
@@ -3219,7 +3219,7 @@ int ibis::tafel::readCSV(const char* filename, int maxrows,
 	maxrows = preferredSize();
     if (maxrows > 1) {
 	try { // try to reserve request amount of space
-	    reserveSpace(maxrows);
+	    reserveBuffer(maxrows);
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 0)
@@ -3368,7 +3368,7 @@ int ibis::tafel::readSQLDump(const char* filename, std::string& tname,
 	maxrows = preferredSize();
     if (maxrows > 1) {
 	try { // try to reserve request amount of space
-	    reserveSpace(maxrows);
+	    reserveBuffer(maxrows);
 	}
 	catch (...) {
 	    LOGGER(ibis::gVerbose > 0)
