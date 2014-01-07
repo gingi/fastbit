@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
     std::auto_ptr<ibis::tablex> tab(ibis::tablex::create());
     initColumns(*tab, val);
     tab->reserveSpace(nrpd);
-    const uint32_t cap = tab->capacity();
+    const uint32_t cap = tab->bufferCapacity();
 
     for (int64_t irow = 1; irow <= maxrow;) {
         const int64_t krow = (irow + nrpd < maxrow+1 ? irow+nrpd : maxrow+1);
