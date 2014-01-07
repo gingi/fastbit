@@ -689,7 +689,7 @@ public:
     /// needed expand memory used to hold the data.  The implementation of
     /// this function is not required, and the user is not required to call
     /// this function.
-    virtual int32_t reserveSpace(uint32_t) {return 0;}
+    virtual int32_t reserveBuffer(uint32_t) {return 0;}
     /// Capacity of the memory buffer.  Report the maximum number of rows
     /// can be stored with this object before more memory will be
     /// allocated.  A return value of zero (0) may also indicate that it

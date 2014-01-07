@@ -239,9 +239,9 @@ int main(int argc, char** argv) {
     ibis::table::row val;
     std::auto_ptr<ibis::tablex> tab(ibis::tablex::create());
     initColumns(*tab, val);
-    tab->reserveSpace(nrpd);
-    if (tab->bufferCapacity() < nrpd)
-	nrpd = tab->bufferCapacity();
+    ierr = tab->reserveBuffer(nrpd);
+    if (ierr > 0 && (unsigned)ierr < nrpd)
+	nrpd = ierr;
     LOGGER(1) << *argv << ' ' << argv[1] << ' ' << maxrow << ' ' << nrpd
 	      << std::endl;
     nparts = maxrow / nrpd;
