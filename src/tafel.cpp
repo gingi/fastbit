@@ -2447,7 +2447,7 @@ int32_t ibis::tafel::reserveBuffer(uint32_t maxr) {
 	}
 	if (rowsize > 0) {
 	    rowsize += rowsize;
-	    uint32_t tmp = ibis::fileManager::bytesFree();
+	    size_t tmp = ibis::fileManager::bytesFree();
 	    if (tmp < 10000000) tmp = 10000000;
 	    tmp = tmp / rowsize;
 	    if (tmp < maxr) {

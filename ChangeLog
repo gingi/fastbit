@@ -1,3 +1,7 @@
+2014-01-08 John Wu <John dot Wu at ACM dot org>
+	* src/tafel.cpp:2450 change the type of tmp from uint32_t to
+	size_t to accomodate large memory buffers
+
 2014-01-07 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.h, src/tafel.cpp: rename reserveSpace to reserveBuffer
 	* tests/jrf.cpp: use double to capture the return value of

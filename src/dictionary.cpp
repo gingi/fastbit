@@ -860,7 +860,7 @@ int ibis::dictionary::merge(const ibis::dictionary& rhs) {
     return key_.size();
 } // ibis::dictionary::merge
 
-/// Produce an array that mapps the integers in old dictionary to the new
+/// Produce an array that maps the integers in old dictionary to the new
 /// one.  The incoming dictionary represents the old dictionary, this
 /// dictionary represents the new one.
 ///
