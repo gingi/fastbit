@@ -1,4 +1,4 @@
-//File: $Id$
+//File: $Id: blob.h,v 1.5 2014/01/10 06:55:31 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright (c) 2009-2015 the Regents of the University of California
 ///@file
