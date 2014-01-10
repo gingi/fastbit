@@ -1,4 +1,4 @@
-//File: $Id: blob.h,v 1.4 2013/01/11 00:31:23 kewu Exp $
+//File: $Id: blob.h,v 1.5 2014/01/10 06:55:31 kewu Exp $
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2009-2013 the Regents of the University of California
 ///@file
@@ -30,7 +30,7 @@ public:
 
     virtual void computeMinMax() {}
     virtual void computeMinMax(const char*) {}
-    virtual void computeMinMax(const char*, double&, double&) const {}
+    virtual void computeMinMax(const char*, double&, double&, bool&) const {}
     virtual void loadIndex(const char*, int) const throw () {}
     virtual long indexSize() const {return -1;}
     virtual int  getValuesArray(void*) const {return -1;}
