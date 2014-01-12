@@ -4534,10 +4534,11 @@ void ibis::bin::readBinBoundaries(const char *fnm, uint32_t nb) {
 /// The bin speficication can be read from the column object, the table
 /// object containing the column, or the global ibis::gParameters object
 /// under the name of @c table-name.column-name.index.  If no index
-/// specification is found, it builts approximate equal weight bins.
+/// specification is found, this function attempts to generate approximate
+/// equal weight bins.
 ///
-/// @note If equal weight is specified, it take precedence over all other
-/// specification.
+/// @note If equal weight is specified, it takes precedence over other
+/// specifications.
 void ibis::bin::setBoundaries(const char* f) {
     if (col == 0) return;
 
@@ -4859,15 +4860,8 @@ void ibis::bin::setBoundaries(const char* f) {
     }
 
     if (! bounds.empty()) {
-	double rbd = col->upperBound();
-	if (bounds.back() < rbd)
-	    bounds.push_back(ibis::util::compactValue
-			     (0.5*(bounds.back()+rbd), 2.0*rbd));
-	// 	else if (bounds.back() == rbd &&
-	// 		 col->type() != ibis::FLOAT &&
-	// 		 col->type() != ibis::DOUBLE)
-	// 	    bounds.push_back(ibis::util::compactValue(rbd, DBL_MAX));
-
+	if (bounds.back() <= col->upperBound())
+	    bounds.back() = ibis::util::compactValue(bounds.back(), DBL_MAX);
 	// if (col->type() == ibis::FLOAT) {
 	//     // adjust the precision of boundaries to match the precision of
 	//     // the attribute

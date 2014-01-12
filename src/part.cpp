@@ -7774,7 +7774,7 @@ void ibis::part::composeQueryString
     str = oss.str();
 } // ibis::part::composeQueryString
 
-/// Generate a list of random query conditions.  It select nc columns from
+/// Generate a list of random query conditions.  It selects nc columns from
 /// the list of all columns and fills the array lst.conds and lst.super.
 /// The array lst.hits is resized to the correct size, but left to be
 /// filled with other functions.  It generates at least nc-1 queries.  When
@@ -7912,16 +7912,17 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
 		    lst.conds.push_back(back);
 		    lst.super.push_back(grp[ig].pos[i]);
 		    more = (lst.conds.size() < nq);
-#if defined(_DEBUG) || defined(DEBUG)
-		    LOGGER(ibis::gVerbose > 5)
+		    LOGGER(ibis::gVerbose > 4)
 			<< "buildQueryList split (" << grp[ig].col1->name()
-			<< ")\n" << lst.conds[grp[ig].pos[i]]
-			<< "\n into \n" << front << "\n" << back
-			<< "\nlst.super[" << lst.super.size()-2 << "]="
+			<< "): " << lst.conds[grp[ig].pos[i]]
+			<< " ==> " << front << " -|- " << back
+#if defined(_DEBUG) || defined(DEBUG)
+			<< "\n\tlst.super[" << lst.super.size()-2 << "]="
 			<< lst.super[lst.super.size()-2] << ", lst.super["
 			<< lst.super.size()-1 << "]="
-			<< lst.super[lst.super.size()-1];
+			<< lst.super[lst.super.size()-1]
 #endif
+                        ;
 		}
 		else { // subdivide the range of col2
 		    double mid2 = grp[ig].lower2[i] +
@@ -7950,16 +7951,17 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
 		    lst.conds.push_back(back);
 		    lst.super.push_back(grp[ig].pos[i]);
 		    more = (lst.conds.size() < nq);
-#if defined(_DEBUG) || defined(DEBUG)
-		    LOGGER(ibis::gVerbose > 5)
+		    LOGGER(ibis::gVerbose > 4)
 			<< "buildQueryList split (" << grp[ig].col2->name()
-			<< ")\n" << lst.conds[grp[ig].pos[i]]
-			<< "\n into \n" << front << "\n" << back
-			<< "\nlst.super[" << lst.super.size()-2 << "]="
+			<< "): " << lst.conds[grp[ig].pos[i]]
+			<< " ==> " << front << " -|- " << back
+#if defined(_DEBUG) || defined(DEBUG)
+			<< "\n\tlst.super[" << lst.super.size()-2 << "]="
 			<< lst.super[lst.super.size()-2] << ", lst.super["
 			<< lst.super.size()-1 << "]="
-			<< lst.super[lst.super.size()-1];
+			<< lst.super[lst.super.size()-1]
 #endif
+                        ;
 		}
 	    } // for (unsigned i = 0; ...
 	    if (more) { // update the group with new records
@@ -8002,6 +8004,7 @@ void ibis::part::checkQueryList(const ibis::part::thrArg &lst) const {
 	}
     }
     LOGGER(ibis::gVerbose > 3)
+        << (nerr0 > 0 ? "Warning -- " : "")
 	<< "part[" << name() << "]::checkQueryList found "
 	<< nerr0 << " mismatch" << (nerr0>1 ? "es" : "");
 } // ibis::part::checkQueryList

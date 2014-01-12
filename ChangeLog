@@ -1,3 +1,15 @@
+2014-01-11 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp:4863 modify the last bin boundary if it is less
+	than or equal to the nominal upper bound
+	* src/part.cpp: print the queries out from buildQueryList when the
+	verboseness level is 5 or more
+	* src/column.cpp:5767 add statement to assign value to ierr before
+	returning (fix the problem revealed by make full-check)
+
+2014-01-10 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp:876 only checked the 1st character of the index
+	specificiation, add code to skip all leadign blank spaces
+
 2014-01-08 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.cpp:2450 change the type of tmp from uint32_t to
 	size_t to accomodate large memory buffers

@@ -5750,11 +5750,11 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	    low.adjustSize(0, mask.size());
 	}
 	low &= mask;
-	if (low.size() == high.size()) { // need scan
+	if (low.size() == high.size()) { // computed high
 	    ibis::bitvector b2;
 	    high &= mask;
 	    high -= low;
-	    if (high.sloppyCount() > 0) {
+	    if (high.sloppyCount() > 0) { // need scan
 		ierr = thePart->doScan(cmp, high, b2);
 		if (ierr >= 0) {
 		    low |= b2;
@@ -5764,6 +5764,9 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		    low.clear();
 		}
 	    }
+            else {
+                ierr = low.sloppyCount();
+            }
 	}
         else if (ierr >= 0) {
             ierr = low.sloppyCount();
