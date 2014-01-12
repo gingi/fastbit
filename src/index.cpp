@@ -335,13 +335,13 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
     if (spec) {
         // skip leading spaces
         while (spec && isspace(*spec)) ++ spec;
-        // no index is to be used if the index specification start
-        // with "noindex", "null" or "none".
-        if (strncmp(spec, "noindex", 7) == 0 ||
-            strncmp(spec, "null", 4) == 0 ||
-            strncmp(spec, "none", 4) == 0) {
-            return ind;
-        }
+	// no index is to be used if the index specification start
+	// with "noindex", "null" or "none".
+	if (strncmp(spec, "noindex", 7) == 0 ||
+	    strncmp(spec, "null", 4) == 0 ||
+	    strncmp(spec, "none", 4) == 0) {
+	    return ind;
+	}
     }
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
@@ -1017,12 +1017,15 @@ ibis::index* ibis::index::buildNew
     else if (*spec == 0) {
         dflt = true;
     }
-    else if (strstr(spec, "automatic") != 0 ||
-             strstr(spec, "default") != 0) {
-        dflt = true;
-    }
     else {
-        dflt = (0 != isspace(*spec));
+        while (*spec != 0 && isspace(*spec)) ++ spec;
+        if (strstr(spec, "automatic") != 0 ||
+            strstr(spec, "default") != 0) {
+            dflt = true;
+        }
+        else {
+            dflt = (*spec == 0);
+        }
     }
 
     if (dflt) {

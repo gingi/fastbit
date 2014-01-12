@@ -7952,103 +7952,103 @@ void ibis::part::buildQueryList(ibis::part::thrArg &lst,
     bool more = (lst.conds.size() < nq);
     bool expand1 = true;
     while (more) {
-        for (unsigned ig = 0; ig < nc-1 && more; ++ ig) {
-            std::vector<unsigned> pos;
-            std::vector<double> lower1, lower2, upper1, upper2;
-            pos.resize(2*grp[ig].pos.size());
-            lower1.resize(2*grp[ig].pos.size());
-            lower2.resize(2*grp[ig].pos.size());
-            upper1.resize(2*grp[ig].pos.size());
-            upper2.resize(2*grp[ig].pos.size());
-            for (unsigned i = 0; i < grp[ig].lower1.size() && more; ++ i) {
-                if (expand1) { // subdivide the range of col1
-                    double mid1 = grp[ig].lower1[i] +
-                        (grp[ig].upper1[i]-grp[ig].lower1[i]) * mt();
-                    std::string front, back;
-                    lower1[i+i] = grp[ig].lower1[i];
-                    upper1[i+i] = mid1;
-                    lower1[i+i+1] = mid1;
-                    upper1[i+i+1] = grp[ig].upper1[i];
-                    lower2[i+i] = grp[ig].lower2[i];
-                    upper2[i+i] = grp[ig].upper2[i];
-                    lower2[i+i+1] = grp[ig].lower2[i];
-                    upper2[i+i+1] = grp[ig].upper2[i];
-                    // front half of the range
-                    composeQueryString(front, grp[ig].col1, grp[ig].col2,
-                                       lower1[i+i], upper1[i+i],
-                                       lower2[i+i], upper2[i+i]);
-                    pos[i+i] = lst.conds.size();
-                    lst.conds.push_back(front);
-                    lst.super.push_back(grp[ig].pos[i]);
-                    // back half of the range
-                    composeQueryString(back, grp[ig].col1, grp[ig].col2,
-                                       lower1[i+i+1], upper1[i+i+1],
-                                       lower2[i+i+1], upper2[i+i+1]);
-                    pos[i+i+1] = lst.conds.size();
-                    lst.conds.push_back(back);
-                    lst.super.push_back(grp[ig].pos[i]);
-                    more = (lst.conds.size() < nq);
-                    LOGGER(ibis::gVerbose > 4)
-                        << "buildQueryList split (" << grp[ig].col1->name()
-                        << "): " << lst.conds[grp[ig].pos[i]]
-                        << " ==> " << front << " -|- " << back
+	for (unsigned ig = 0; ig < nc-1 && more; ++ ig) {
+	    std::vector<unsigned> pos;
+	    std::vector<double> lower1, lower2, upper1, upper2;
+	    pos.resize(2*grp[ig].pos.size());
+	    lower1.resize(2*grp[ig].pos.size());
+	    lower2.resize(2*grp[ig].pos.size());
+	    upper1.resize(2*grp[ig].pos.size());
+	    upper2.resize(2*grp[ig].pos.size());
+	    for (unsigned i = 0; i < grp[ig].lower1.size() && more; ++ i) {
+		if (expand1) { // subdivide the range of col1
+		    double mid1 = grp[ig].lower1[i] +
+			(grp[ig].upper1[i]-grp[ig].lower1[i]) * mt();
+		    std::string front, back;
+		    lower1[i+i] = grp[ig].lower1[i];
+		    upper1[i+i] = mid1;
+		    lower1[i+i+1] = mid1;
+		    upper1[i+i+1] = grp[ig].upper1[i];
+		    lower2[i+i] = grp[ig].lower2[i];
+		    upper2[i+i] = grp[ig].upper2[i];
+		    lower2[i+i+1] = grp[ig].lower2[i];
+		    upper2[i+i+1] = grp[ig].upper2[i];
+		    // front half of the range
+		    composeQueryString(front, grp[ig].col1, grp[ig].col2,
+				       lower1[i+i], upper1[i+i],
+				       lower2[i+i], upper2[i+i]);
+		    pos[i+i] = lst.conds.size();
+		    lst.conds.push_back(front);
+		    lst.super.push_back(grp[ig].pos[i]);
+		    // back half of the range
+		    composeQueryString(back, grp[ig].col1, grp[ig].col2,
+				       lower1[i+i+1], upper1[i+i+1],
+				       lower2[i+i+1], upper2[i+i+1]);
+		    pos[i+i+1] = lst.conds.size();
+		    lst.conds.push_back(back);
+		    lst.super.push_back(grp[ig].pos[i]);
+		    more = (lst.conds.size() < nq);
+		    LOGGER(ibis::gVerbose > 4)
+			<< "buildQueryList split (" << grp[ig].col1->name()
+			<< "): " << lst.conds[grp[ig].pos[i]]
+			<< " ==> " << front << " -|- " << back
 #if defined(_DEBUG) || defined(DEBUG)
-                        << "\n\tlst.super[" << lst.super.size()-2 << "]="
-                        << lst.super[lst.super.size()-2] << ", lst.super["
-                        << lst.super.size()-1 << "]="
-                        << lst.super[lst.super.size()-1]
+			<< "\n\tlst.super[" << lst.super.size()-2 << "]="
+			<< lst.super[lst.super.size()-2] << ", lst.super["
+			<< lst.super.size()-1 << "]="
+			<< lst.super[lst.super.size()-1]
 #endif
                         ;
-                }
-                else { // subdivide the range of col2
-                    double mid2 = grp[ig].lower2[i] +
-                        (grp[ig].upper2[i]-grp[ig].lower2[i]) * mt();
-                    std::string front, back;
-                    lower1[i+i] = grp[ig].lower1[i];
-                    upper1[i+i] = grp[ig].upper1[i];
-                    lower1[i+i+1] = grp[ig].lower1[i];
-                    upper1[i+i+1] = grp[ig].upper1[i];
-                    lower2[i+i] = grp[ig].lower2[i];
-                    upper2[i+i] = mid2;
-                    lower2[i+i+1] = mid2;
-                    upper2[i+i+1] = grp[ig].upper2[i];
-                    // front half of the range
-                    composeQueryString(front, grp[ig].col1, grp[ig].col2,
-                                       lower1[i+i], upper1[i+i],
-                                       lower2[i+i], upper2[i+i]);
-                    pos[i+i] = lst.conds.size();
-                    lst.conds.push_back(front);
-                    lst.super.push_back(grp[ig].pos[i]);
-                    // back half of the range
-                    composeQueryString(back, grp[ig].col1, grp[ig].col2,
-                                       lower1[i+i+1], upper1[i+i+1],
-                                       lower2[i+i+1], upper2[i+i+1]);
-                    pos[i+i+1] = lst.conds.size();
-                    lst.conds.push_back(back);
-                    lst.super.push_back(grp[ig].pos[i]);
-                    more = (lst.conds.size() < nq);
-                    LOGGER(ibis::gVerbose > 4)
-                        << "buildQueryList split (" << grp[ig].col2->name()
-                        << "): " << lst.conds[grp[ig].pos[i]]
-                        << " ==> " << front << " -|- " << back
+		}
+		else { // subdivide the range of col2
+		    double mid2 = grp[ig].lower2[i] +
+			(grp[ig].upper2[i]-grp[ig].lower2[i]) * mt();
+		    std::string front, back;
+		    lower1[i+i] = grp[ig].lower1[i];
+		    upper1[i+i] = grp[ig].upper1[i];
+		    lower1[i+i+1] = grp[ig].lower1[i];
+		    upper1[i+i+1] = grp[ig].upper1[i];
+		    lower2[i+i] = grp[ig].lower2[i];
+		    upper2[i+i] = mid2;
+		    lower2[i+i+1] = mid2;
+		    upper2[i+i+1] = grp[ig].upper2[i];
+		    // front half of the range
+		    composeQueryString(front, grp[ig].col1, grp[ig].col2,
+				       lower1[i+i], upper1[i+i],
+				       lower2[i+i], upper2[i+i]);
+		    pos[i+i] = lst.conds.size();
+		    lst.conds.push_back(front);
+		    lst.super.push_back(grp[ig].pos[i]);
+		    // back half of the range
+		    composeQueryString(back, grp[ig].col1, grp[ig].col2,
+				       lower1[i+i+1], upper1[i+i+1],
+				       lower2[i+i+1], upper2[i+i+1]);
+		    pos[i+i+1] = lst.conds.size();
+		    lst.conds.push_back(back);
+		    lst.super.push_back(grp[ig].pos[i]);
+		    more = (lst.conds.size() < nq);
+		    LOGGER(ibis::gVerbose > 4)
+			<< "buildQueryList split (" << grp[ig].col2->name()
+			<< "): " << lst.conds[grp[ig].pos[i]]
+			<< " ==> " << front << " -|- " << back
 #if defined(_DEBUG) || defined(DEBUG)
-                        << "\n\tlst.super[" << lst.super.size()-2 << "]="
-                        << lst.super[lst.super.size()-2] << ", lst.super["
-                        << lst.super.size()-1 << "]="
-                        << lst.super[lst.super.size()-1]
+			<< "\n\tlst.super[" << lst.super.size()-2 << "]="
+			<< lst.super[lst.super.size()-2] << ", lst.super["
+			<< lst.super.size()-1 << "]="
+			<< lst.super[lst.super.size()-1]
 #endif
                         ;
-                }
-            } // for (unsigned i = 0; ...
-            if (more) { // update the group with new records
-                grp[ig].pos.swap(pos);
-                grp[ig].lower1.swap(lower1);
-                grp[ig].lower2.swap(lower2);
-                grp[ig].upper1.swap(upper1);
-                grp[ig].upper2.swap(upper2);
-            }
-        } // for (unsigned ig = 0; ...
-        expand1 = !expand1; // swap the dimension to expand
+		}
+	    } // for (unsigned i = 0; ...
+	    if (more) { // update the group with new records
+		grp[ig].pos.swap(pos);
+		grp[ig].lower1.swap(lower1);
+		grp[ig].lower2.swap(lower2);
+		grp[ig].upper1.swap(upper1);
+		grp[ig].upper2.swap(upper2);
+	    }
+	} // for (unsigned ig = 0; ...
+	expand1 = !expand1; // swap the dimension to expand
     }
     delete [] grp;
     lst.hits.resize(lst.conds.size());
@@ -8081,8 +8081,8 @@ void ibis::part::checkQueryList(const ibis::part::thrArg &lst) const {
     }
     LOGGER(ibis::gVerbose > 3)
         << (nerr0 > 0 ? "Warning -- " : "")
-        << "part[" << name() << "]::checkQueryList found "
-        << nerr0 << " mismatch" << (nerr0>1 ? "es" : "");
+	<< "part[" << name() << "]::checkQueryList found "
+	<< nerr0 << " mismatch" << (nerr0>1 ? "es" : "");
 } // ibis::part::checkQueryList
 
 // three error logging functions

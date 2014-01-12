@@ -4771,9 +4771,43 @@ void ibis::bin::readBinBoundaries(const char *fnm, uint32_t nb) {
     }
 } // ibis::bin::addBounds
 
-/// The optional argument @c nbins can either be set outside or set to
-/// be the return value of function parseNbins.
-void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
+    uint32_t cnt = 0;
+    while (fgets(buf, MAX_LINE, fptr)) {
+	char *tmp = strchr(buf, '#');
+	if (tmp != 0) *tmp = 0;
+	double val = strtod(buf, &tmp);
+	if (tmp > buf) { // got a double value
+	    bounds.push_back(val);
+	    ++ cnt;
+	    if (nb > 0 && cnt >= nb) break;
+	}
+    } // while (fgets...
+    fclose(fptr);
+    if (ibis::gVerbose > 3)
+	col->logMessage("bin::readBinBoundaries", "got %lu value(s) from %s",
+			static_cast<long unsigned>(cnt), fnm);
+} // ibis::bin::readBinBoundaries
+
+/// Parse the index specification to determine the bin boundaries and store
+/// the result in member variable bounds.
+/// The bin specification can be of the following, where all fields are
+/// optional.
+/// <ul>
+/// <li> \code equal([_-]?)[weight|length|ratio]) \endcode
+/// <li> \code no=xx|nbins=xx|bins:(\[begin, end, no=xx\))+ \endcode
+/// <li> \code <binning (start=begin end=end nbins=xx scale=[linear|log])* /> \endcode
+/// <li> \code <binning binFile=file-name[, nbins=xx] /> \endcode
+/// </ul>
+///
+/// The bin speficication can be read from the column object, the table
+/// object containing the column, or the global ibis::gParameters object
+/// under the name of @c table-name.column-name.index.  If no index
+/// specification is found, this function attempts to generate approximate
+/// equal weight bins.
+///
+/// @note If equal weight is specified, it takes precedence over other
+/// specifications.
+void ibis::bin::setBoundaries(const char* f) {
     if (col == 0) return;
 
     histogram hist; // a histogram
@@ -5372,20 +5406,20 @@ void ibis::bin::setBoundaries(const char* f) {
     }
 
     if (! bounds.empty()) {
-        if (bounds.back() <= col->upperBound())
-            bounds.back() = ibis::util::compactValue(bounds.back(), DBL_MAX);
-        // if (col->type() == ibis::FLOAT) {
-        //     // adjust the precision of boundaries to match the precision of
-        //     // the attribute
-        //     nobs = bounds.size();
-        //     for (uint32_t i = 0; i < nobs; ++i)
-        //      if (bounds[i] < FLT_MAX && bounds[i] > -FLT_MAX)
-        //          bounds[i] = static_cast<double>
-        //              (static_cast<float>(bounds[i]));
-        // }
+	if (bounds.back() <= col->upperBound())
+	    bounds.back() = ibis::util::compactValue(bounds.back(), DBL_MAX);
+	// if (col->type() == ibis::FLOAT) {
+	//     // adjust the precision of boundaries to match the precision of
+	//     // the attribute
+	//     nobs = bounds.size();
+	//     for (uint32_t i = 0; i < nobs; ++i)
+	// 	if (bounds[i] < FLT_MAX && bounds[i] > -FLT_MAX)
+	// 	    bounds[i] = static_cast<double>
+	// 		(static_cast<float>(bounds[i]));
+	// }
 
-        // add DBL_MAX as the last value
-        bounds.push_back(DBL_MAX);
+	// add DBL_MAX as the last value
+	bounds.push_back(DBL_MAX);
     }
 
     nobs = bounds.size();
