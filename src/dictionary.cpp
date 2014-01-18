@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2000-2015 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 #include "dictionary.h"
 #include "utilidor.h"
 
@@ -962,6 +962,16 @@ uint32_t ibis::dictionary::insert(const char* str) {
 #ifdef FASTBIT_EMPTY_STRING_AS_NULL
     if (*str == 0) return 0xFFFFFFFFU;
 #endif
+    if (! (code_.size() == key_.size() &&
+	   key_.size()+1 == raw_.size())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- dictionary::insert(" << str
+	    << ") can not proceed because the member variables have "
+	    "inconsistent sizes: raw_.size(" << raw_.size() << ", key_.size("
+	    << key_.size() << "), and code_.size(" << code_.size() << ')';
+	return 0;
+    }
+
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
     for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
         *ptr = toupper(*ptr);
@@ -997,15 +1007,70 @@ uint32_t ibis::dictionary::insert(const char* str) {
 ///
 /// This function assumes the incoming string is ordered after all known
 /// strings to this dictionary object.  In other word, this function
-/// expects the strings to be given in the sorted (ascending) order.  It
-/// does not attempt to check that the incoming string is indeed ordered.
-/// What this function relies on is that the incoming string is not a
-/// repeat of any existing strings.
+/// expects the strings to be passed in in the sorted (ascending) order.
+/// It does not attempt to check that the incoming is indeed ordered after
+/// all known strings.  However, if this assumption is violated, the
+/// resulting dictionary will not be able to work properly.
+///
+/// @note The incoming string is copied to this object.
 uint32_t ibis::dictionary::appendOrdered(const char* str) {
     if (str == 0) return 0;
 #ifdef FASTBIT_EMPTY_STRING_AS_NULL
     if (*str == 0) return 0;
 #endif
+    if (! (code_.size() == key_.size() &&
+	   key_.size()+1 == raw_.size())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- dictionary::appendOrdered(" << str
+	    << ") can not proceed because the member variables have "
+	    "inconsistent sizes: raw_.size(" << raw_.size() << ", key_.size("
+	    << key_.size() << "), and code_.size(" << code_.size() << ')';
+	return 0;
+    }
+
+    const uint32_t ind = key_.size();
+    char *copy = ibis::util::strnewdup(str);
+    buffer_.push_back(copy);
+    raw_.push_back(copy);
+    key_.push_back(copy);
+    code_[ind] = ind+1;
+#if defined(_DEBUG) || defined(DEBUG)
+    bool ordered = true;
+    for (unsigned j = 1; ordered && j < nk; ++ j)
+	ordered = (strcmp(key_[j-1], key_[j]) <= 0);
+    if (ordered == false && ibis::gVerbose >= 0) {
+	ibis::util::logger lg;
+	lg() << "Warning -- dictionary::appendOrdered(" << str
+	     << ") incorrectly produced an unsorted list of keys";
+	for (unsigned j = 0; j < nk; ++ j) {
+	    lg() << "\nkey[" << j << "] = " << key_[j];
+	    if (j > 0 && strcmp(key_[j-1], key_[j]) > 0)
+		lg() << "\t<-- out of order";
+	}
+    }
+#endif
+    return nk;
+} // ibis::dictionary::appendOrdered
+
+/// Non-copying insert.  Do not make a copy of the input string.  Transfers
+/// the ownership of @c str to the dictionary.  Caller needs to check
+/// whether it is a new word in the dictionary.  If it is not a new word in
+/// the dictionary, the dictionary does not take ownership of the string
+/// argument.
+uint32_t ibis::dictionary::insertRaw(char* str) {
+    if (str == 0) return 0;
+#ifdef FASTBIT_EMPTY_STRING_AS_NULL
+    if (*str == 0) return 0;
+#endif
+    if (! (code_.size() == key_.size() &&
+	   key_.size()+1 == raw_.size())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- dictionary::insertRaw(" << str
+	    << ") can not proceed because the member variables have "
+	    "inconsistent sizes: raw_.size(" << raw_.size() << ", key_.size("
+	    << key_.size() << "), and code_.size(" << code_.size() << ')';
+	return 0;
+    }
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
     for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
         *ptr = toupper(*ptr);

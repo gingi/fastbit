@@ -1,8 +1,8 @@
 // $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright (c) 2007-2015 the Regents of the University of California
-#include "part.h"       // ibis::part, used by verify and amplify
+// Copyright 2007-2014 the Regents of the University of California
+#include "part.h"	// ibis::part, used by verify and amplify
 #include "whereLexer.h"
 #include "whereClause.h"
 #include "selectClause.h"

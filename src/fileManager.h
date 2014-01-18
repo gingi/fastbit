@@ -1,7 +1,7 @@
 // File: $Id$
 // Author: K. John Wu <John.Wu at acm.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright (c) 2000-2015 University of California
+// Copyright 2000-2014 University of California
 #ifndef IBIS_FILEMANAGER_H
 #define IBIS_FILEMANAGER_H
 /// @file

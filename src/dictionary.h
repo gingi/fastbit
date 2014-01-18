@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2000-2015 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 #ifndef IBIS_DICTIONARY_H
 #define IBIS_DICTIONARY_H
 ///@file
@@ -55,10 +55,9 @@ public:
     const char* find(const char* str) const;
     void patternSearch(const char* pat, array_t<uint32_t>& matches) const;
 
-    uint32_t insert(const char*, uint32_t);
-    uint32_t insert(const char*);
-    uint32_t insertRaw(char*);
-    uint32_t appendOrdered(const char*);
+    uint32_t insert(const char* str);
+    uint32_t insertRaw(char* str);
+    uint32_t appendOrdered(const char* str);
 
     void clear();
     void swap(dictionary&);

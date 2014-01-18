@@ -1,10 +1,10 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2010-2015 the Regents of the University of California
-#include "jnatural.h"   // ibis::jNatural
-#include "jrange.h"     // ibis::jRange
-#include "filter.h"     // ibis::filter
-#include "fromClause.h" // ibis::fromClause
+// Copyright 2010-2014 the Regents of the University of California
+#include "jnatural.h"	// ibis::jNatural
+#include "jrange.h"	// ibis::jRange
+#include "filter.h"	// ibis::filter
+#include "fromClause.h"	// ibis::fromClause
 #include "whereClause.h"// ibis::whereClause
 
 #include <memory>       // std::unique_ptr

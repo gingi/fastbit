@@ -1,3 +1,7 @@
+2014-01-17 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.h, src/dictionary.cpp: add function appendOrdered
+	to work with strings that are already sorted
+
 2014-01-11 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp:4863 modify the last bin boundary if it is less
 	than or equal to the nominal upper bound

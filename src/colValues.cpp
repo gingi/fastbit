@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2000-2015 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 ///
 /// Implementation of the colValues class hierarchy.
 ///

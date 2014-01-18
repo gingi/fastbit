@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2004-2015 the Regents of the University of California
+// Copyright 2004-2014 the Regents of the University of California
 //
 // This file implements a number of self join functions of the ibis::part
 // class.  These functions are separated from the regular query evaluation

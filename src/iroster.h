@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2000-2015 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 #ifndef IBIS_ROSTER_H
 #define IBIS_ROSTER_H
 #include "array_t.h"

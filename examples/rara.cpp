@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright (c) 2008-2015 the Regents of the University of California
+// Copyright 2008-2014 the Regents of the University of California
 /** @file rara.cpp
 
     This is meant to be the simplest test program for the querying

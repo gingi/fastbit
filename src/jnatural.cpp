@@ -1,12 +1,12 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2008-2015 the Regents of the University of California
-#include "jnatural.h"   // ibis::jNatural
-#include "tab.h"        // ibis::tabula
-#include "bord.h"       // ibis::bord, ibis::table::bufferList
-#include "category.h"   // ibis::category
-#include "countQuery.h" // ibis::countQuery
-#include "utilidor.h"   // ibis::util::sortMerge
+// Copyright 2008-2014 the Regents of the University of California
+#include "jnatural.h"	// ibis::jNatural
+#include "tab.h"	// ibis::tabula
+#include "bord.h"	// ibis::bord, ibis::table::bufferList
+#include "category.h"	// ibis::category
+#include "countQuery.h"	// ibis::countQuery
+#include "utilidor.h"	// ibis::util::sortMerge
 #include "fromClause.h"
 #include "selectClause.h"
 

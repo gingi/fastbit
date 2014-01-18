@@ -1,7 +1,7 @@
 // File $Id$
 // Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright (c) 2000-2015 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 //
 //  The implementation of class query.  It performs most of the query
 //  processing functions, calls the data partition object for the actual
