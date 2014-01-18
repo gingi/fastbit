@@ -1,7 +1,7 @@
 //File: $Id$
 // Author: K. John Wu <John.Wu at acm.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright 2000-2013 University of California
+// Copyright 2000-2014 University of California
 #ifndef IBIS_ARRAY_T_H
 #define IBIS_ARRAY_T_H
 #include "fileManager.h"

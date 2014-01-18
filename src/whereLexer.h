@@ -1,7 +1,7 @@
 // $Id$
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright 2007-2013 the Regents of the University of California
+// Copyright 2007-2014 the Regents of the University of California
 #ifndef IBIS_WHERELEXER_H
 #define IBIS_WHERELEXER_H
 /** \file

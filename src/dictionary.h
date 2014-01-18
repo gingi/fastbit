@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2000-2013 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 #ifndef IBIS_DICTIONARY_H
 #define IBIS_DICTIONARY_H
 ///@file
@@ -33,6 +33,7 @@ public:
 
     uint32_t insert(const char* str);
     uint32_t insertRaw(char* str);
+    uint32_t appendOrdered(const char* str);
 
     void clear();
     void swap(dictionary&);

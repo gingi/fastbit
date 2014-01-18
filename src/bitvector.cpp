@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright 2000-2013 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 //
 // The implementation of class bitvector as defined in bitvector.h.
 // The major goal of this implementation is to avoid accessing anything

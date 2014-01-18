@@ -1,6 +1,6 @@
 // File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright 2009-2013 the Regents of the University of California
+// Copyright 2009-2014 the Regents of the University of California
 //
 // Implements the weighted version of ibis::part::get3DBins that returns
 // vector<bitvector*>.

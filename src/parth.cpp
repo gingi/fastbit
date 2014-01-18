@@ -1,6 +1,6 @@
 // File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright 2000-2013 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 //
 // Implements ibis::part histogram functions.
 #include "index.h"	// ibis::index::divideCounts

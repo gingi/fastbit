@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2000-2013 the Regents of the University of California
+// Copyright 2000-2014 the Regents of the University of California
 //
 // This file contains the implementation of ibis::roster -- an list of indices
 // that orders the column values in ascending order.
