@@ -16,7 +16,6 @@
 #include "blob.h"	// ibis::blob
 #include "category.h"	// ibis::text
 
-#include <memory>	// std::auto_ptr
 #include <algorithm>	// std::sort
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
@@ -195,7 +194,7 @@ int ibis::mensa::dropPartition(const char *nm) {
     }
 
     // did not match any partition names, try directory names
-    size_t nmlen = strlen(nm);
+    size_t nmlen = std::strlen(nm);
     size_t j, k;
     j = 0;
     k = parts.size();
@@ -4321,7 +4320,7 @@ ibis::liga::liga(ibis::part& p) : ibis::mensa() {
     }
     else if (p.description() != 0 && *(p.description()) != 0) {
 	unsigned sum =
-	    ibis::util::checksum(p.description(), strlen(p.description()));
+	    ibis::util::checksum(p.description(), std::strlen(p.description()));
 	std::string tmp;
 	ibis::util::int2string(tmp, sum);
 	name_ += tmp;
@@ -4556,7 +4555,7 @@ ibis::table* ibis::table::groupby(const char* str) const {
     stringList lst;
     char* buf = 0;
     if (str != 0 && *str != 0) {
-	buf = new char[strlen(str)+1];
+	buf = new char[std::strlen(str)+1];
 	strcpy(buf, str);
 	parseNames(buf, lst);
     }
@@ -4570,7 +4569,7 @@ void ibis::table::orderby(const char* str) {
     std::vector<bool> direc;
     char* buf = 0;
     if (str != 0 && *str != 0) {
-	buf = new char[strlen(str)+1];
+	buf = new char[std::strlen(str)+1];
 	strcpy(buf, str);
 	parseOrderby(buf, lst, direc);
     }

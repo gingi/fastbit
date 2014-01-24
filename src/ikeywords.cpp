@@ -10,7 +10,6 @@
 #include <cctype>	// std::isalnum
 
 #include <algorithm>	// std::sort
-#include <string.h>	// strlen, strchr
 
 /// Constructor.  It first tries to read the terms (@c .terms) and the
 /// tdmat (@c .idx) files if they both exist.  If that fails, it will
@@ -105,7 +104,7 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
 	    ibis::index::clear();
 	}
     }
-    if (bits.empty()) { // still don't have an index already, try this
+    if (bits.empty()) { // still don't have an index, try this
 	ibis::keywords::tokenizer tkn(delim.c_str());
 	ierr = parseTextFile(tkn, f);
 	if (ierr < 0) {
@@ -462,6 +461,11 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
 	    if (bits[ibits] == 0)
 		bits[ibits] = new ibis::bitvector;
 	    bits[ibits]->setBit(nrows, 1);
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
+	    LOGGER(ibis::gVerbose > 0)
+		<< "DEBUG -- keywords::parseTextFile " << tokens[j]
+                << ", " << ibits << ", " << nrows;
+#endif
 	}
 	start = end;
 	++ nrows;
@@ -492,7 +496,6 @@ void ibis::keywords::binWeights(std::vector<uint32_t>& bw) const {
 } // ibis::keywords::binWeights
 
 void ibis::keywords::print(std::ostream& out) const {
-    if (ibis::gVerbose < 0) return;
     const uint32_t nobs = bits.size();
     if (terms.size()+1 == bits.size() && terms.size() > 0) {
 	out << "The keywords index for column ";
@@ -515,6 +518,7 @@ void ibis::keywords::print(std::ostream& out) const {
 	else {
 	    skip = 1;
 	}
+        if (skip == 0) skip = 1;
 	if (skip > 1) {
 	    out << " (printing 1 out of every " << skip << ")\n";
 	}
@@ -865,6 +869,8 @@ long ibis::keywords::search(const std::vector<std::string> &kw,
 	    if (bits[pos] == 0)
 		activate(pos);
 	    if (bits[pos] != 0) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "keywords::search found \"" << kw[j] << "\" associated with bits[" << pos << "] (" << bits[pos]->cnt() << ", " << bits[pos]->size() << ')';
 		if (hits.size() == 0)
 		    hits.copy(*bits[pos]);
 		else

@@ -180,7 +180,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
     if (dir == 0) return 0;
 
     char fn[PATH_MAX];
-    uint32_t len = strlen(dir);
+    uint32_t len = std::strlen(dir);
     if (len+8 >= PATH_MAX) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Error -- bundle::readRIDs -- argument dir (" << dir
@@ -1045,7 +1045,7 @@ void ibis::bundle1::write(const ibis::query& theQ) const {
     if (rids != 0)
 	theQ.writeRIDs(rids); // write the RIDs
 
-    uint32_t len = strlen(theQ.dir());
+    uint32_t len = std::strlen(theQ.dir());
     char* fn = new char[len+16];
     strcpy(fn, theQ.dir());
     strcat(fn, "bundles");
@@ -2462,7 +2462,7 @@ void ibis::bundles::write(const ibis::query& theQ) const {
     if (rids != 0)
 	theQ.writeRIDs(rids); // write the RIDs
 
-    uint32_t len = strlen(theQ.dir());
+    uint32_t len = std::strlen(theQ.dir());
     char* fn = new char[len+16];
     strcpy(fn, theQ.dir());
     strcat(fn, "bundles");

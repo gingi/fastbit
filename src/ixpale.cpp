@@ -988,8 +988,9 @@ void ibis::pale::print(std::ostream& out) const {
 } // ibis::pale::print
 
 long ibis::pale::append(const char* dt, const char* df, uint32_t nnew) {
-    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
-			   col->partition()->nRows()-nnew : nrows);
+    const uint32_t nold =
+        (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+         col->partition()->nRows()-nnew : nrows);
     if (nrows != nold) { // don't do anything
 	return 0;
     }

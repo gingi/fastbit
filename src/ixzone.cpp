@@ -970,8 +970,9 @@ void ibis::zone::print(std::ostream& out) const {
 } // ibis::zone::print
 
 long ibis::zone::append(const char* dt, const char* df, uint32_t nnew) {
-    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
-			   col->partition()->nRows()-nnew : nrows);
+    const uint32_t nold =
+        (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+         col->partition()->nRows()-nnew : nrows);
     if (nrows != nold) { // don't do anything
 	return 0;
     }

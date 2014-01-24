@@ -73,8 +73,8 @@
 #  include <crtdbg.h>
 #endif
 
-#include <errno.h>	// errno
-#include <string.h>	// strerr, strcasecmp, strcmp, memcpy
+#include <cerrno>	// errno
+#include <cstring>	// strerr, strcasecmp, strcmp, memcpy, strlen
 #include <pthread.h>	// mutex lock, rwlock, conditional variables
 #if !defined(WITHOUT_FASTBIT_CONFIG_H) && !defined(__MINGW32__) && !defined(_MSC_VER)
 #  include "fastbit-config.h"	// macros defined by the configure script

@@ -10,7 +10,7 @@
 #include "fromClause.h"
 #include "selectClause.h"
 
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <stdexcept>	// std::exception
 #include <typeinfo>	// std::typeid
 
@@ -396,7 +396,7 @@ ibis::table* ibis::jRange::select() const {
 	}
     }
 
-    std::auto_ptr<ibis::table> res1(select(sl));
+    std::unique_ptr<ibis::table> res1(select(sl));
     if (res1.get() == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
 	features == 0)
 	return res1.release();
@@ -488,7 +488,7 @@ ibis::table* ibis::jRange::select(const char *sstr) const {
 	}
     }
 
-    std::auto_ptr<ibis::table> res1(select(sl));
+    std::unique_ptr<ibis::table> res1(select(sl));
     if (res1.get() == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
 	features == 0)
 	return res1.release();

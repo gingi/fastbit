@@ -7,7 +7,7 @@
 #include "fromClause.h"	// ibis::fromClause
 #include "whereClause.h"// ibis::whereClause
 
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 
 /// Create a query object using the global datasets.
 ibis::quaere* ibis::quaere::create(const char* sel, const char* from,
@@ -147,9 +147,9 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 		    ps = fc.alias(rps);
 	    }
 
-	    std::auto_ptr<ibis::qExpr> condr;
-	    std::auto_ptr<ibis::qExpr> conds;
-	    std::auto_ptr<ibis::qExpr> condj;
+	    std::unique_ptr<ibis::qExpr> condr;
+	    std::unique_ptr<ibis::qExpr> conds;
+	    std::unique_ptr<ibis::qExpr> condj;
 	    ibis::qExpr::termTableList ttl;
 	    wc.getExpr()->getConjunctiveTerms(ttl);
 	    for (size_t j = 0; j < ttl.size() ; ++ j) {
@@ -375,7 +375,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 			partr = parts;
 			parts = tmpp;
 			ibis::qExpr *tmpq = condr.release();
-			condr = conds;
+			condr = std::move(conds);
 			conds.reset(tmpq);
 			fc.reorderNames(tnr.c_str(), tns.c_str());
 		    }
@@ -517,7 +517,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 			partr = parts;
 			parts = tmpp;
 			ibis::qExpr *tmpq = condr.release();
-			condr = conds;
+			condr = std::move(conds);
 			conds.reset(tmpq);
 			fc.reorderNames(tnr.c_str(), tns.c_str());
 		    }
@@ -681,7 +681,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 			partr = parts;
 			parts = tmpp;
 			ibis::qExpr *tmpq = condr.release();
-			condr = conds;
+			condr = std::move(conds);
 			conds.reset(tmpq);
 			fc.reorderNames(tnr.c_str(), tns.c_str());
 		    }
@@ -843,7 +843,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 			partr = parts;
 			parts = tmpp;
 			ibis::qExpr *tmpq = condr.release();
-			condr = conds;
+			condr = std::move(conds);
 			conds.reset(tmpq);
 			fc.reorderNames(tnr.c_str(), tns.c_str());
 		    }
@@ -943,7 +943,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
 			partr = parts;
 			parts = tmpp;
 			ibis::qExpr *tmpq = condr.release();
-			condr = conds;
+			condr = std::move(conds);
 			conds.reset(tmpq);
 			fc.reorderNames(tnr.c_str(), tns.c_str());
 		    }

@@ -10,7 +10,7 @@
 #include "fromClause.h"
 #include "selectClause.h"
 
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <stdexcept>	// std::exception
 
 /// Constructor.  This constructor handles a join expression equivalent to
@@ -601,7 +601,7 @@ ibis::jNatural::fillResult(size_t nrows,
 	return 0;
     }
 
-    std::auto_ptr<ibis::bord> res
+    std::unique_ptr<ibis::bord> res
 	(new ibis::bord(tn.c_str(), desc.c_str(), nrows,
 			tbuff, ttypes, tcname));
     return res.release();
@@ -715,7 +715,7 @@ ibis::jNatural::fillResult(size_t nrows,
     }
 
     std::string tn = ibis::util::shortName(desc.c_str());
-    std::auto_ptr<ibis::bord> res
+    std::unique_ptr<ibis::bord> res
 	(new ibis::bord(tn.c_str(), desc.c_str(), nrows,
 			tbuff, ttypes, tcname));
     return res.release();
@@ -1329,7 +1329,7 @@ ibis::table* ibis::jNatural::select(const char* sstr) const {
 	}
     }
 
-    std::auto_ptr<ibis::table> res1(select(sl));
+    std::unique_ptr<ibis::table> res1(select(sl));
     if (res1.get() == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
 	features == 0)
 	return res1.release();
@@ -1342,7 +1342,7 @@ ibis::table* ibis::jNatural::select(const char* sstr) const {
     }
 
     if ((features & 1) != 0) { // arithmetic computations
-	std::auto_ptr<ibis::table> 
+	std::unique_ptr<ibis::table> 
 	    res2(static_cast<const ibis::bord*>(res1.get())->evaluateTerms
 		 (sel, desc_.c_str()));
 	if (res2.get() != 0) {
@@ -1352,7 +1352,7 @@ ibis::table* ibis::jNatural::select(const char* sstr) const {
 		     << ") produced the second intermediate table:\n";
 		res2->describe(lg());
 	    }
-	    res1 = res2;
+	    res1 = std::move(res2);
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
@@ -1423,7 +1423,7 @@ ibis::table* ibis::jNatural::select() const {
 	}
     }
 
-    std::auto_ptr<ibis::table> res1(select(sl));
+    std::unique_ptr<ibis::table> res1(select(sl));
     if (res1.get() == 0 || res1->nRows() == 0 || res1->nColumns() == 0 ||
 	features == 0)
 	return res1.release();

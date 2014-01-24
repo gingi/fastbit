@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.8.8], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.8.9], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -140,6 +140,25 @@ if test "x$xopt" = "xyes" ; then
 	return (1 == static_cast<int>(std::sqrt(2.0)));
    	]])], [], [CXXFLAGS="$OLDCXXFLAGS -O3"])
 fi
+
+AC_ARG_WITH(extraflags,
+	AS_HELP_STRING([--with-extraflags=extra-cflags],
+	[specify additional compilation flags if needed]),
+	[if test "x$with_extraflags" != "xno" ; then
+	  CXXFLAGS="$CXXFLAGS $with_extraflags"
+	  CFLAGS="$CFLAGS $with_extraflags"
+	fi], [])
+
+# test to determine if any known flags are needed
+if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
+   AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
+elif AC_TRY_COMMAND($CXX $CXXFLAGS -std=c++11 -c src/util.cpp) && test -s util.o; then
+  CXXFLAGS="$CXXFLAGS -std=c++11";
+  AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
+else
+  AC_MSG_ERROR([$CXX not able to compile src/util.cpp])
+fi
+/bin/rm -f util.o
 
 AC_ARG_WITH(getpwuid,
 	AS_HELP_STRING([--with-getpwuid],[specify --without-getpwuid to disable the attempt to use getpwuid to determine the user name]),

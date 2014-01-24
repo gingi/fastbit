@@ -78,7 +78,7 @@ int ibis::roster::write(const char* df) const {
 	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
 	if (pos >= fnm.size()) pos = 0;
 	else ++ pos;
-	if (strcmp(fnm.c_str()+pos, col->name()) != 0)
+	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
 	    fnm += FASTBIT_DIRSEP;
     }
     uint32_t ierr = fnm.size();
@@ -128,7 +128,7 @@ int ibis::roster::writeSorted(const char *df) const {
 	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
 	if (pos >= fnm.size()) pos = 0;
 	else ++ pos;
-	if (strcmp(fnm.c_str()+pos, col->name()) != 0)
+	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
 	    fnm += FASTBIT_DIRSEP;
     }
     uint32_t ierr = fnm.size();
@@ -550,7 +550,7 @@ int ibis::roster::read(const char* idxf) {
 	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
 	if (pos >= fnm.size()) pos = 0;
 	else ++ pos;
-	if (strcmp(fnm.c_str()+pos, col->name()) != 0)
+	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
 	    fnm += FASTBIT_DIRSEP;
     }
     long ierr = fnm.size();
@@ -615,7 +615,7 @@ void ibis::roster::icSort(const char* fin) {
 	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
 	if (pos >= fnm.size()) pos = 0;
 	else ++ pos;
-	if (strcmp(fnm.c_str()+pos, col->name()) != 0)
+	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
 	    fnm += FASTBIT_DIRSEP;
     }
     long ierr = fnm.size();
@@ -929,7 +929,7 @@ void ibis::roster::oocSort(const char *fin) {
 	uint32_t pos = nind.rfind(FASTBIT_DIRSEP);
 	if (pos >= nind.size()) pos = 0;
 	else ++ pos;
-	if (strcmp(nind.c_str()+pos, col->name()) != 0)
+	if (std::strcmp(nind.c_str()+pos, col->name()) != 0)
 	    nind += FASTBIT_DIRSEP;
     }
     long ierr = nind.size();
@@ -3060,7 +3060,7 @@ template <typename inT, typename myT> int
 ibis::roster::locate2(const ibis::array_t<inT>& vals,
 		      std::vector<uint32_t>& positions) const {
     int ierr;
-    if (strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
+    if (std::strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
 	std::vector<myT> myvals; // copy values to the correct type
 	myvals.reserve(vals.size());
 	for (uint32_t j = 0; j < vals.size(); ++ j) {
@@ -3253,7 +3253,7 @@ template <typename inT, typename myT> int
 ibis::roster::locate2(const std::vector<inT>& vals,
 		      std::vector<uint32_t>& positions) const {
     int ierr;
-    if (strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
+    if (std::strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
 	std::vector<myT> myvals; // copy values to the correct type
 	myvals.reserve(vals.size());
 	for (uint32_t j = 0; j < vals.size(); ++ j) {

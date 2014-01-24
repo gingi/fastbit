@@ -7,11 +7,21 @@
 /// Define a dictionary data structure used by ibis::category.
 #include "util.h"
 #include "array_t.h"
+#include <unordered_map>
 
 /// Provide a dual-directional mapping between strings and integers.  A
 /// utility class used by ibis::category.  Both the NULL string and the
 /// empty string are mapped to 0.
 ///
+/// This version uses an in-memory hash_map to provide a mapping from a
+/// string to an integer.
+///
+/// @note The integer returned from this class is a unsigned 32-bit integer
+/// (uint32_t).  This limits the size of the dictionary to be no more than
+/// 2^32 entries.  The dictionary file is written with 32-bit intenal
+/// pointers, therefore, all the strings added together can not be more
+/// than 2^32 bytes long.
+/// 
 /// @note If FASTBIT_CASE_SENSITIVE_COMPARE is defined to be 0, the values
 /// stored in a dictionary will be folded to the upper case.  This will
 /// allow the words in the dictionary to be stored in a simple sorted
@@ -54,14 +64,14 @@ protected:
     /// Member variable raw_ contains the string values in the order of the
     /// code assignment.
     array_t<const char*> raw_;
-    /// Member variable key_ contains the string values in alphabetic order.
-    array_t<const char*> key_;
-    /// Member variable code_ contains the integer code for each string in
-    /// key_.
-    array_t<uint32_t> code_;
     /// Member varaible buffer_ contains a list of pointers to the memory
     /// that holds the strings.
     array_t<char*> buffer_;
+    /// Member variable key_ contains the hash_map that connects a string
+    /// value to an integer.
+    typedef std::unordered_map<const char*, uint32_t, std::hash<const char*>,
+                               std::equal_to<const char*> > MYMAP;
+    MYMAP key_;
 
     int readRaw(const char*, FILE *);
     int readKeys(const char*, FILE *);
@@ -74,7 +84,6 @@ private:
 inline void ibis::dictionary::swap(ibis::dictionary& rhs) {
     raw_.swap(rhs.raw_);
     key_.swap(rhs.key_);
-    code_.swap(rhs.code_);
     buffer_.swap(rhs.buffer_);
 } // ibis::dictionary::swap
 

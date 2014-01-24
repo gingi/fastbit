@@ -34,7 +34,7 @@ http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 #include "blob.h"	// operator<< involving ibis::opaque
 #include <set>		// std::set
 #include <iomanip>	// std::setprecision
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <cmath>	// std::floor
 
 // local data types
@@ -657,7 +657,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	if (n1 == 0U) return;
     }
     // function select returns a table containing the selected values
-    std::auto_ptr<ibis::table> sel(0);
+    std::unique_ptr<ibis::table> sel;
     if (fstr == 0 || *fstr == 0) {
 	sel.reset(tbl.select(sstr, wstr));
     }
@@ -731,7 +731,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		"test on class function ibis::table::select\n" << std::endl;
 	}
 	else {
-	    std::auto_ptr<ibis::table>
+	    std::unique_ptr<ibis::table>
 		sel2(ibis::table::select(parts, sstr, wstr));
 	    if (sel2.get() == 0) {
 		std::cout << "Warning -- " << mesg
@@ -759,7 +759,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
     if (sel->nColumns() > 0 && ibis::gVerbose > 0 && sstr != 0 && *sstr != 0
 	&& strchr(sstr, '(') == 0) {
 	std::cout << "\n-- *** extra test on the in-memory data *** --\n";
-	std::auto_ptr<ibis::table> gb(0);
+	std::unique_ptr<ibis::table> gb;
 	ibis::table::stringList nl = sel->columnNames();
 	ibis::table::typeList tl = sel->columnTypes();
 	std::vector<std::string> strs;
@@ -859,8 +859,8 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 	    }
 
 	    if (ibis::util::isStringType(tl[0]) && sel->nRows() > 5) {
-		std::auto_ptr<ibis::table> incore(sel);
-		std::auto_ptr<ibis::table::cursor> csr(incore->createCursor());
+		std::unique_ptr<ibis::table> incore = std::move(sel);
+		std::unique_ptr<ibis::table::cursor> csr(incore->createCursor());
 		int ierr = csr->fetch();
 		if (ierr < 0) {
 		    std::clog << "Warning -- cursor on " << incore->name()
@@ -885,8 +885,8 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 		}
 	    }
 	    if (ibis::util::isNumericType(tl[0]) && sel->nRows() > 5) {
-		std::auto_ptr<ibis::table> incore(sel);
-		std::auto_ptr<ibis::table::cursor> csr(incore->createCursor());
+		std::unique_ptr<ibis::table> incore = std::move(sel);
+		std::unique_ptr<ibis::table::cursor> csr(incore->createCursor());
 		int ierr = csr->fetch();
 		if (ierr < 0) {
 		    std::clog << "Warning -- cursor on " << incore->name()
@@ -976,7 +976,7 @@ void doTest(const ibis::table& tbl) {
 	selmm += ") as a, max(";
 	selmm += cols[iw];
 	selmm += ") as b";
-	std::auto_ptr<ibis::table> minmax(tbl.select(selmm.c_str(), "1=1"));
+	std::unique_ptr<ibis::table> minmax(tbl.select(selmm.c_str(), "1=1"));
 	if (minmax.get() == 0) {
 	    std::cerr << "Warning -- doTest iteration " << j
 		      << " failed to compute the minimum and the maximum of "
@@ -1009,7 +1009,7 @@ void doTest(const ibis::table& tbl) {
 	    << "), stdev(" << cols[(int)(ibis::util::rand() * cols.size())]
 	    << "), count(" << cols[(int)(ibis::util::rand() * cols.size())]
 	    << ") as count0";
-	std::auto_ptr<ibis::table>
+	std::unique_ptr<ibis::table>
 	    res(tbl.select(sel.str().c_str(), where.str().c_str()));
 	if (res.get() == 0) {
 	    std::cerr << "Warning -- doTest iteration " << j

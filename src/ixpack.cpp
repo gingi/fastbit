@@ -1006,8 +1006,9 @@ void ibis::pack::print(std::ostream& out) const {
 } // ibis::pack::print
 
 long ibis::pack::append(const char* dt, const char* df, uint32_t nnew) {
-    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
-			   col->partition()->nRows()-nnew : nrows);
+    const uint32_t nold =
+        (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+         col->partition()->nRows()-nnew : nrows);
     if (nrows != nold) { // don't do anything
 	return 0;
     }

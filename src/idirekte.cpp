@@ -5,7 +5,7 @@
 #include "part.h"
 
 #include <typeinfo>	// std::typeid
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 
 /// Constructing a new ibis::direkte object from base data in a file.
 ibis::direkte::direkte(const ibis::column* c, const char* f)
@@ -954,7 +954,7 @@ int ibis::direkte::remapKeys(const ibis::array_t<uint32_t> &o2n) {
 void ibis::direkte::ints(ibis::array_t<uint32_t> &res) const {
     res.clear();
     res.insert(res.end(), nrows, 0);
-    std::auto_ptr<ibis::bitvector> tmp(0);
+    std::unique_ptr<ibis::bitvector> tmp;
     uint32_t nobs = bits.size();
 
     activate(); // need all bitvectors to be in memory
@@ -985,11 +985,11 @@ void ibis::direkte::ints(ibis::array_t<uint32_t> &res) const {
 /// Convert the bitvector mask into key values.
 ibis::array_t<uint32_t>*
 ibis::direkte::keys(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<uint32_t> > res(new ibis::array_t<uint32_t>);
+    std::unique_ptr< ibis::array_t<uint32_t> > res(new ibis::array_t<uint32_t>);
     if (mask.cnt() == 0) // nothing to do
 	return res.release();
 
-    std::auto_ptr<ibis::bitvector> tmp(0);
+    std::unique_ptr<ibis::bitvector> tmp;
     uint32_t nobs = bits.size();
     ibis::array_t<uint32_t> ires;
     res->reserve(mask.cnt());
@@ -1436,8 +1436,9 @@ double ibis::direkte::estimateCost(const ibis::qDiscreteRange& expr) const {
 long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
     if (dt == 0 || *dt == 0 || df == 0 || *df == 0 || nnew == 0) return -1L;    
 
-    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
-			   col->partition()->nRows()-nnew : nrows);
+    const uint32_t nold =
+        (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+         col->partition()->nRows()-nnew : nrows);
     long ierr;
     if (nrows == nold) { // can make use of the existing index
 	std::string dfidx;

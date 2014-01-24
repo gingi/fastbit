@@ -124,7 +124,7 @@
 
 #include <sstream>	// std::ostringstream
 #include <algorithm>	// std::sort
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <iomanip>	// std::setprecision
 
 /// The data structure for holding information about query jobs for
@@ -1712,13 +1712,13 @@ static void print(const char* cmd) {
     const char* names = cmd;
     if (strnicmp(cmd, "print ", 6) == 0)
 	names += 6;
-    while (*names && isspace(*names))
+    while (*names && std::isspace(*names))
 	++ names;
     const char *cond = strchr(names, ':');
     if (cond > names) {
 	*const_cast<char*>(cond) = 0; // add a null terminator
 	// skip to the next non-space character
-	for (++ cond; *cond != 0 && isspace(*cond); ++ cond);
+	for (++ cond; *cond != 0 && std::isspace(*cond); ++ cond);
     }
     if (strnicmp(names, "joint ", 6) == 0) {
 	names += 6;
@@ -1865,7 +1865,7 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
     while (qfile.getline(buf, MAX_LINE)) {
 	if (*buf != 0 || *buf != '#') { // line started with # is a comment
 	    char *ch = buf;
-	    while (*ch != 0 && isspace(*ch)) ++ ch; // skip leading space
+	    while (*ch != 0 && std::isspace(*ch)) ++ ch; // skip leading space
 	    if (ch != buf || ! qtemp.empty())
 		qtemp += ' '; // add a space
 
@@ -1875,7 +1875,7 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 			bool onlyspace = true;
 			for (unsigned i = 0; onlyspace && i < qtemp.size();
 			     ++ i)
-			    onlyspace = (isspace(qtemp[i]) != 0);
+			    onlyspace = (std::isspace(qtemp[i]) != 0);
 			if (! onlyspace) {
 			    queff.push_back(qtemp);
 			}
@@ -1896,7 +1896,7 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
     if (! qtemp.empty()) {
 	bool onlyspace = true;
 	for (unsigned i = 0; onlyspace && i < qtemp.size(); ++ i)
-	    onlyspace = (isspace(qtemp[i]) != 0);
+	    onlyspace = (std::isspace(qtemp[i]) != 0);
 	if (! onlyspace) {
 	    queff.push_back(qtemp);
 	}
@@ -2186,12 +2186,14 @@ static void parse_args(int argc, char** argv, int& mode,
 		}
 		if (i+1 < argc && *argv[i+1] != '-') {
 		    ++ i;
-		    if (*argv[i] != '*' && *argv[i] != 0 && !isspace(*argv[i]))
+		    if (*argv[i] != '*' && *argv[i] != 0 &&
+                        ! std::isspace(*argv[i]))
 			js.cond1 = argv[i];
 		}
 		if (i+1 < argc && *argv[i+1] != '-') {
 		    ++ i;
-		    if (*argv[i] != '*' && *argv[i] != 0 && !isspace(*argv[i]))
+		    if (*argv[i] != '*' && *argv[i] != 0 &&
+                        ! std::isspace(*argv[i]))
 			js.cond2 = argv[i];
 		}
 		while (i+1 < argc && *argv[i+1] != '-') {
@@ -2329,7 +2331,7 @@ static void parse_args(int argc, char** argv, int& mode,
 			ibis::_scan_option = strtol(argv[i+1], 0, 0);
 			i = i + 1;
 		    }
-		    else if (isalpha(*argv[i+1])) {
+		    else if (std::isalpha(*argv[i+1])) {
 			slist.push_back(argv[i+1]);
 			i = i + 1;
 		    }
@@ -2342,7 +2344,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		}
 #else
 	    if (i+1 < argc) {
-		if (isalpha(*argv[i+1])) {
+		if (std::isalpha(*argv[i+1])) {
 		    slist.push_back(argv[i+1]);
 		    i = i + 1;
 		}
@@ -2867,7 +2869,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 			const char* ordkeys,
 			uint32_t limit, uint32_t start) {
     int64_t ierr;
-    std::auto_ptr<ibis::table> tbl(ibis::table::create(pl));
+    std::unique_ptr<ibis::table> tbl(ibis::table::create(pl));
     std::string sqlstring; //
     {
 	std::ostringstream ostr;
@@ -2886,7 +2888,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		    ostr << wstr[i];
 		    ++ i;
 		}
-		while (i < nwstr && isspace(wstr[i]) == 0) {
+		while (i < nwstr && std::isspace(wstr[i]) == 0) {
 		    ostr << wstr[i];
 		    ++ i;
 		}
@@ -2939,7 +2941,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	}
     }
 
-    std::auto_ptr<ibis::table> sel1(tbl->select(sstr, wstr));
+    std::unique_ptr<ibis::table> sel1(tbl->select(sstr, wstr));
     if (sel1.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "tableSelect:: select(" << sstr << ", " << wstr
@@ -3120,9 +3122,9 @@ static void doQuaere(const ibis::partList& pl,
     LOGGER(ibis::gVerbose > 1)
 	<< "doQuaere -- processing \"" << sqlstring << '\"';
 
-    std::auto_ptr<ibis::table> res;
+    std::unique_ptr<ibis::table> res;
     if (estimation_opt < 0) { // directly evaluate the select clause
-	std::auto_ptr<ibis::quaere>
+	std::unique_ptr<ibis::quaere>
 	    qq(ibis::quaere::create(0, fstr, wstr, pl));
 	if (qq.get() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -3133,7 +3135,7 @@ static void doQuaere(const ibis::partList& pl,
 	res.reset(qq->select(sstr));
     }
     else {
-	std::auto_ptr<ibis::quaere>
+	std::unique_ptr<ibis::quaere>
 	    qq(ibis::quaere::create(sstr, fstr, wstr, pl));
 	if (qq.get() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -3303,7 +3305,7 @@ static void doQuaere(const ibis::partList& pl,
 	    sel3 += ')';
 	}
 
-	std::auto_ptr<ibis::table> res1(res->select(sel1.c_str(), "1=1"));
+	std::unique_ptr<ibis::table> res1(res->select(sel1.c_str(), "1=1"));
 	if (res1.get() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- doQuaere(" << sqlstring
@@ -3332,7 +3334,7 @@ static void doQuaere(const ibis::partList& pl,
 	std::ostringstream oss;
 	oss << "log(" << (0.5*(minval+maxval)) << ") <= log("
 	    << cn.back() << ')';
-	std::auto_ptr<ibis::table>
+	std::unique_ptr<ibis::table>
 	    res3(res->select(sel3.c_str(), oss.str().c_str()));
 	if (res3.get() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -3369,7 +3371,7 @@ static void doQuaere(const ibis::partList& pl,
 	    sel2 += ')';
 	}
 	{
-	    std::auto_ptr<ibis::table::cursor> cur(res->createCursor());
+	    std::unique_ptr<ibis::table::cursor> cur(res->createCursor());
 	    if (cur.get() == 0) {
 		LOGGER(ibis::gVerbose >= 0)
 		    << "Warning -- doQuaere(" << sqlstring
@@ -3409,7 +3411,7 @@ static void doQuaere(const ibis::partList& pl,
 	    cnd2 += '"';
 	}
 
-	std::auto_ptr<ibis::table>
+	std::unique_ptr<ibis::table>
 	    res2(res->select(sel2.c_str(), cnd2.c_str()));
 	if (res2.get() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -3583,7 +3585,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     num1 = aQuery.getNumHits();
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 && ibis::gVerbose >= 0) {
-	std::auto_ptr<ibis::bundle> bdl(ibis::bundle::create(aQuery));
+	std::unique_ptr<ibis::bundle> bdl(ibis::bundle::create(aQuery));
 	if (bdl.get() == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- doQuery(" << sqlstring
@@ -4226,7 +4228,8 @@ static void doAppend(const char* dir) {
 	else { // generate an random name based on user name and dir
 	    char tmp[128];
 	    const char* name = ibis::util::userName();
-	    sprintf(tmp, "%c%lX", (isalpha(*name) ? toupper(*name) : 'T'),
+	    sprintf(tmp, "%c%lX",
+                    (std::isalpha(*name) ? std::toupper(*name) : 'T'),
 		    static_cast<long unsigned>
 		    (ibis::util::checksum(dir, strlen(dir))));
 	    tbl = new ibis::part(tmp);
@@ -4372,7 +4375,7 @@ static void doJoin(const char* uid, ibis::joinspec& js,
 	    << " is not a know data partition";
 	return;
     }
-    std::auto_ptr<ibis::quaere>
+    std::unique_ptr<ibis::quaere>
 	jn(ibis::quaere::create
 	   (*pt1, *pt2, js.jcol, js.cond1, js.cond2, js.selcol.c_str()));
     if (jn.get() == 0) {
@@ -4389,7 +4392,7 @@ static void doJoin(const char* uid, ibis::joinspec& js,
 	return;
     }
 
-    std::auto_ptr<ibis::table> res(jn->select());
+    std::unique_ptr<ibis::table> res(jn->select());
     if (res.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- " << oss.str()
@@ -4565,11 +4568,11 @@ static void parseString(const char* uid, const char* qstr,
     const bool usequaere = (outputbinary || strchr(qstr, '.') != 0);
 
     // skip leading space
-    while (isspace(*str)) ++str;
+    while (std::isspace(*str)) ++str;
     // look for key word SELECT
     if (0 == strnicmp(str, "select ", 7)) {
 	str += 7;
-	while (isspace(*str)) ++str;
+	while (std::isspace(*str)) ++str;
 	// look for the next key word (either FROM or WHERE)
 	end = strstr(str, " from ");
 	if (end == 0) {
@@ -4608,7 +4611,7 @@ static void parseString(const char* uid, const char* qstr,
     // look for key word FROM
     if (str != 0 && 0 == strnicmp(str, "from ", 5)) {
 	str += 5;
-	while (isspace(*str)) ++str;
+	while (std::isspace(*str)) ++str;
 	end = strstr(str, " where "); // look for key word WHERE
 	if (end == 0) {
 	    end = strstr(str, " WHERE ");
@@ -4706,7 +4709,7 @@ static void parseString(const char* uid, const char* qstr,
 	    }
 	}
     }
-    while (str != 0 && *str && isspace(*str)) // skip blank spaces
+    while (str != 0 && *str && std::isspace(*str)) // skip blank spaces
 	++ str;
     if (str != 0 && 0 == strnicmp(str, "limit ", 6)) {
 	str += 6;
@@ -4719,8 +4722,9 @@ static void parseString(const char* uid, const char* qstr,
 		"the keyword LIMIT, but got '" << *str
 		<< "', skip the limit clause";
 	}
-	else if (isspace(*str) || *str == ',') {
-	    for (++ str; *str != 0 && (isspace(*str) || *str == ','); ++ str);
+	else if (std::isspace(*str) || *str == ',') {
+	    for (++ str; *str != 0 && (std::isspace(*str) || *str == ',');
+                 ++ str);
 	    limit = static_cast<uint32_t>(tmp);
 	    ierr = ibis::util::readUInt(tmp, str, 0);
 	    if (ierr >= 0) {
@@ -4950,7 +4954,7 @@ static void readInput(std::string& str) {
 	if (0 == fgets(buf, MAX_LINE, stdin)) *buf = 0;
 	// remove trailing space
 	char* tmp = buf + strlen(buf) - 1;
-	while (tmp>=buf && isspace(*tmp)) {
+	while (tmp>=buf && std::isspace(*tmp)) {
 	    *tmp = 0; -- tmp;
 	}
 
@@ -5266,8 +5270,8 @@ int main(int argc, char** argv) {
 		case 'a':
 		case 'A': {
 		    const char* dir = str.c_str();
-		    while(isalpha(*dir)) ++dir; // skip key word append
-		    while(isspace(*dir)) ++dir; // skip space
+		    while(std::isalpha(*dir)) ++dir; // skip key word append
+		    while(std::isspace(*dir)) ++dir; // skip space
 		    doAppend(dir);
 		    break;}
 		}

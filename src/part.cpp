@@ -22,7 +22,7 @@
 #include <algorithm>	// std::find, std::less, ...
 #include <typeinfo>	// typeid
 #include <stdexcept>	// std::invalid_argument
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 
 #include <signal.h>	// SIGINT
 #include <stdlib.h>	// rand
@@ -216,7 +216,7 @@ extern "C" {
 		    // partition
 		    col->unloadIndex();
 		    col->purgeIndexFile();
-		    std::auto_ptr<ibis::index>
+		    std::unique_ptr<ibis::index>
 			tmp(ibis::index::create(col, 0, iopt));
 		}
 		else {
@@ -521,12 +521,12 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
     // superficial checks
     int j = 0;
     if (maxLength <= 0) maxLength = 16;
-    if (strlen(activeDir)+16+maxLength > PATH_MAX) {
+    if (std::strlen(activeDir)+16+maxLength > PATH_MAX) {
 	ibis::util::logMessage("Warning", "directory name \"%s\" too long",
 			       activeDir);
 	++j;
     }
-    if (backupDir != 0 && strlen(backupDir)+16+maxLength > PATH_MAX) {
+    if (backupDir != 0 && std::strlen(backupDir)+16+maxLength > PATH_MAX) {
 	ibis::util::logMessage("Warning", "directory name \"%s\" too long",
 			       backupDir);
 	++j;
@@ -795,7 +795,7 @@ void ibis::part::init(const char* iname) {
 	}
 
 	if (activeDir == 0)
-	    j = strlen(iname);
+	    j = std::strlen(iname);
     }
 
     std::string pname("ibis.");
@@ -939,10 +939,10 @@ void ibis::part::init(const char* iname) {
     // matches exactly the input name.
     const bool useDir = ((m_name != 0 && nEvents > 0) ||
 			 iname == 0 || *iname == 0 ||
-			 (iname[strlen(iname)-1] != FASTBIT_DIRSEP ?
-			  strcmp(activeDir, iname) == 0 :
-			  strncmp(activeDir, iname, strlen(iname)-1) == 0) ||
-			 (tmp != 0 && 0 == strcmp(tmp+1, iname)));
+			 (iname[std::strlen(iname)-1] != FASTBIT_DIRSEP ?
+			  std::strcmp(activeDir, iname) == 0 :
+			  strncmp(activeDir, iname, std::strlen(iname)-1) == 0) ||
+			 (tmp != 0 && 0 == std::strcmp(tmp+1, iname)));
     if (! useDir) { // need a new subdirectory
 	std::string subdir = activeDir;
 	subdir += FASTBIT_DIRSEP;
@@ -1027,7 +1027,7 @@ void ibis::part::init(const char* iname) {
     }
 
     if (backupDir != 0 &&
-	0 == strncmp(backupDir, activeDir, strlen(backupDir)))
+	0 == strncmp(backupDir, activeDir, std::strlen(backupDir)))
 	deriveBackupDirName();
 
     if (backupDir != 0) {
@@ -1091,12 +1091,12 @@ void ibis::part::init(const char* iname) {
     // superficial checks
     j = 0;
     if (maxLength <= 0) maxLength = 16;
-    if (strlen(activeDir)+16+maxLength > PATH_MAX) {
+    if (std::strlen(activeDir)+16+maxLength > PATH_MAX) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- directory name \"" << activeDir << "\" is too long";
 	++j;
     }
-    if (backupDir != 0 && strlen(backupDir)+16+maxLength > PATH_MAX) {
+    if (backupDir != 0 && std::strlen(backupDir)+16+maxLength > PATH_MAX) {
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- directory name \"" << backupDir << "\" is too long";
 	++j;
@@ -1178,7 +1178,7 @@ char* ibis::part::readMetaTags(const char* const dir) {
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
-	LOGGER(strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 1)
+	LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 1)
 	    << "Warning -- part::readMetaTags may have encountered a line "
 	    "that has more than " << MAX_LINE << " characters";
 	LOGGER(ibis::gVerbose > 14) << buf;
@@ -1248,7 +1248,7 @@ void ibis::part::readMeshShape(const char* const dir) {
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
-	LOGGER(strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
+	LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
 	    << "Warning -- part::readMeshShape may have encountered a line "
 	    "with more than " << MAX_LINE << " characters";
 	LOGGER(ibis::gVerbose > 14) << buf;
@@ -1324,7 +1324,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
     int  maxLength = 0;
     int  tot_columns = INT_MAX;
     int  num_columns = INT_MAX;
-    const bool isActive = (activeDir ? strcmp(activeDir, dir) == 0 : false);
+    const bool isActive = (activeDir ? std::strcmp(activeDir, dir) == 0 : false);
     std::set<int> selected; // list of selected columns
     char buf[MAX_LINE];
 
@@ -1335,7 +1335,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, fptr))) {
-	LOGGER(strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
+	LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
 	    << "Warning -- part::readMetaData(" << tdcname
 	    << ") may have encountered a line that has more than "
 	    << MAX_LINE << " characters";
@@ -1376,7 +1376,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    delete [] idxstr; // discard the old value
 	    idxstr = ibis::util::getString(s1);
 #if defined(INDEX_SPEC_TO_LOWER)
-	    s1 = idxstr + strlen(idxstr) - 1;
+	    s1 = idxstr + std::strlen(idxstr) - 1;
 	    while (s1 >= idxstr) {
 		*s1 = tolower(*s1);
 		-- s1;
@@ -1389,7 +1389,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    s1 = buf + 5;
 	    idxstr = ibis::util::getString(s1);
 #if defined(INDEX_SPEC_TO_LOWER)
-	    s1 = idxstr + strlen(idxstr) - 1;
+	    s1 = idxstr + std::strlen(idxstr) - 1;
 	    while (s1 >= idxstr) {
 		*s1 = tolower(*s1);
 		-- s1;
@@ -1459,8 +1459,8 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    else if (strnicmp(buf, "Alternative_Directory", 21) == 0) {
 		if (activeDir == 0 || *activeDir == 0 ||
 		    backupDir == 0 || *backupDir == 0 ||
-		    (strcmp(s1, activeDir) != 0 &&
-		     strcmp(s1, backupDir) != 0)) {
+		    (std::strcmp(s1, activeDir) != 0 &&
+		     std::strcmp(s1, backupDir) != 0)) {
 		    delete [] backupDir;
 		    backupDir = ibis::util::getString(s1);
 		}
@@ -1523,7 +1523,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
     int len, cnt=0;
     while ((s1 = fgets(buf, MAX_LINE, fptr))) {
 	// get to the next "Begin Column" line
-	LOGGER(strlen(buf) + 1 >= MAX_LINE)
+	LOGGER(std::strlen(buf) + 1 >= MAX_LINE)
 	    << "Warning -- part::readMetaData(" << tdcname
 	    << ") may have encountered a line with more than " << MAX_LINE
 	    << " characters";
@@ -1556,13 +1556,13 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 		// if Properties_Selected is not explicitly
 		// specified, assume every column is to be included
 		plist[prop->name()] = prop;
-		len = strlen(prop->name());
+		len = std::strlen(prop->name());
 		if (len > maxLength) maxLength = len;
 	    }
 	    else if (selected.find(cnt) != selected.end()) {
 		// Properties_Positions_Selected is explicitly specified
 		plist[prop->name()] = prop;
-		len = strlen(prop->name());
+		len = std::strlen(prop->name());
 		if (len > maxLength) maxLength = len;
 	    }
 	    else {
@@ -1671,7 +1671,7 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 			       const char* dir) const {
     if (dir == 0 || *dir == 0)
 	return;
-    const int nfn = strlen(dir)+16;
+    const int nfn = std::strlen(dir)+16;
     char* filename = new char[nfn];
     int ierr = UnixSnprintf(filename, nfn, "%s%c-part.txt", dir,
 			    FASTBIT_DIRSEP);
@@ -1692,8 +1692,8 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 	return;
     }
 
-    bool isActive = (activeDir != 0 ? (strcmp(activeDir, dir) == 0) : false);
-    bool isBackup = (backupDir != 0 ? (strcmp(backupDir, dir) == 0) : false);
+    bool isActive = (activeDir != 0 ? (std::strcmp(activeDir, dir) == 0) : false);
+    bool isBackup = (backupDir != 0 ? (std::strcmp(backupDir, dir) == 0) : false);
     char stamp[28];
     ibis::util::getLocalTime(stamp);
     fprintf(fptr, "# metadata file written by ibis::part::writeMetaData\n"
@@ -1703,7 +1703,7 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     }
     else { // make up a name based on the time stamp
 	std::string nm;
-	uint32_t tmp = ibis::util::checksum(stamp, strlen(stamp));
+	uint32_t tmp = ibis::util::checksum(stamp, std::strlen(stamp));
 	ibis::util::int2string(nm, tmp);
 	if (! isalpha(nm[0]))
 	    nm[0] = 'A' + (nm[0] % 26);
@@ -1743,12 +1743,12 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     }
     if (isActive) {
 	if (backupDir != 0 && *backupDir != 0 && backupDir != activeDir &&
-	    strcmp(activeDir, backupDir) != 0)
+	    std::strcmp(activeDir, backupDir) != 0)
 	    fprintf(fptr, "Alternative_Directory = \"%s\"\n", backupDir);
     }
     else if (isBackup) {
 	if (activeDir != 0 && *activeDir != 0 && backupDir != activeDir &&
-	    strcmp(activeDir, backupDir) != 0)
+	    std::strcmp(activeDir, backupDir) != 0)
 	    fprintf(fptr, "Alternative_Directory = \"%s\"\n", activeDir);
     }
     if (isActive || isBackup) {
@@ -1898,8 +1898,8 @@ bool ibis::part::matchMetaTags(const ibis::resource::vList &mtags) const {
     ibis::resource::vList::const_iterator it2 = metaList.begin();
     for (uint32_t i = 0; ret && (i < len); ++i, ++it1, ++it2) {
 	ret = ((stricmp((*it1).first, (*it2).first) == 0) &&
-	       ((strcmp((*it1).second, "*")==0) ||
-		(strcmp((*it2).second, "*")==0) ||
+	       ((std::strcmp((*it1).second, "*")==0) ||
+		(std::strcmp((*it2).second, "*")==0) ||
 		(stricmp((*it1).second, (*it2).second)==0)));
 	LOGGER(ibis::gVerbose > 5)
 	    << "util::matchMetaTags -- meta tags (" << it1->first << " = "
@@ -3240,7 +3240,7 @@ long ibis::part::stringSearch(const ibis::qString &cmp,
 	if (col != 0) {
 	    ierr = col->stringSearch(cmp.leftString(), low);
 	}
-	else if (strcmp(cmp.leftString(), cmp.rightString()) == 0) {
+	else if (std::strcmp(cmp.leftString(), cmp.rightString()) == 0) {
 	    getNullMask(low);
 	}
 	else {
@@ -3270,7 +3270,7 @@ long ibis::part::stringSearch(const ibis::qString &cmp) const {
 	if (col != 0) {
 	    ret = col->stringSearch(cmp.leftString());
 	}
-	else if (strcmp(cmp.leftString(), cmp.rightString()) == 0) {
+	else if (std::strcmp(cmp.leftString(), cmp.rightString()) == 0) {
 	    ret = amask.cnt();
 	}
     }
@@ -3386,11 +3386,11 @@ long ibis::part::keywordSearch(const ibis::qKeyword &cmp,
 	if (col->type() == ibis::TEXT) {
 	    ierr = col->keywordSearch(cmp.keyword(), low);
 	}
-	else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
+	else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
 	    getNullMask(low);
 	}
     }
-    else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
+    else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
 	getNullMask(low);
     }
     else {
@@ -3413,11 +3413,11 @@ long ibis::part::keywordSearch(const ibis::qKeyword &cmp) const {
 	if (col->type() == ibis::TEXT) {
 	    ret = col->keywordSearch(cmp.keyword());
 	}
-	else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
+	else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
 	    ret = amask.cnt();
 	}
     }
-    else if (strcmp(cmp.colName(), cmp.keyword()) == 0) {
+    else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
 	ret = amask.cnt();
     }
     return ret;
@@ -4071,7 +4071,7 @@ long ibis::part::estimateMatchAny(const ibis::qAnyAny &cmp,
     low.set(0, nEvents);
     high.set(0, nEvents);
     const char *pref = cmp.getPrefix();
-    const int   len = strlen(pref);
+    const int   len = std::strlen(pref);
     const ibis::array_t<double> &vals = cmp.getValues();
     columnList::const_iterator it = columns.lower_bound(pref);
     if (vals.size() > 1) { // multiple values, use discrete range query
@@ -6200,7 +6200,7 @@ long ibis::part::matchAny(const ibis::qAnyAny &cmp,
     long ierr = 0;
     hits.set(0, mask.size());
     const char* pref = cmp.getPrefix();
-    const int len = strlen(pref);
+    const int len = std::strlen(pref);
     ibis::array_t<double> vals(cmp.getValues());
     columnList::const_iterator it = columns.lower_bound(pref);
     if (vals.size() > 1) { // more than one value
@@ -6663,8 +6663,8 @@ ibis::column* ibis::part::getColumn(const char* prop) const {
     }
 
     if (it == columns.end()) {
-	const size_t nch = strlen(m_name);
-	if (strlen(prop) > nch+1 && prop[nch] == '_' &&
+	const size_t nch = std::strlen(m_name);
+	if (std::strlen(prop) > nch+1 && prop[nch] == '_' &&
 	    strnicmp(prop, m_name, nch) == 0) {
 	    str = prop + nch + 1;
 	    it = columns.find(str);
@@ -8012,7 +8012,7 @@ void ibis::part::checkQueryList(const ibis::part::thrArg &lst) const {
 // three error logging functions
 void ibis::part::logError(const char* event, const char* fmt, ...) const {
 #if (defined(HAVE_VPRINTF) || defined(_WIN32)) && ! defined(DISABLE_VPRINTF)
-    char* s = new char[strlen(fmt)+MAX_LINE];
+    char* s = new char[std::strlen(fmt)+MAX_LINE];
     if (s != 0) {
 	va_list args;
 	va_start(args, fmt);
@@ -18648,7 +18648,7 @@ void ibis::part::deriveBackupDirName() {
 #endif
     }
     if (backupDir) {
-	if (strcmp(activeDir, backupDir)) {
+	if (std::strcmp(activeDir, backupDir)) {
 	    // activeDir differs from backupDir, no need to do anything
 	    return;
 	}
@@ -18656,7 +18656,7 @@ void ibis::part::deriveBackupDirName() {
 	backupDir = 0;
     }
 
-    uint32_t j = strlen(activeDir);
+    uint32_t j = std::strlen(activeDir);
     backupDir = new char[j+12];
     (void) strcpy(backupDir, activeDir);
     char* ptr = backupDir + j - 1;
@@ -18691,7 +18691,7 @@ void ibis::part::deriveBackupDirName() {
 long ibis::part::verifyBackupDir() {
     long ierr = 0;
     if (activeDir == 0 || backupDir == 0 || *backupDir == 0 ||
-	backupDir == activeDir || strcmp(activeDir, backupDir) == 0)
+	backupDir == activeDir || std::strcmp(activeDir, backupDir) == 0)
 	return ierr;
 
     try {
@@ -18780,8 +18780,8 @@ long ibis::part::verifyBackupDir() {
 		    rs += strspn(rs," \t\"\'");
 		    char* tmp = strpbrk(rs, " \t\"\'");
 		    if (tmp != 0) *tmp = static_cast<char>(0);
-		    if ((backupDir == 0 || strcmp(rs, backupDir)) &&
-			(activeDir == 0 || strcmp(rs, activeDir))) {
+		    if ((backupDir == 0 || std::strcmp(rs, backupDir)) &&
+			(activeDir == 0 || std::strcmp(rs, activeDir))) {
 			-- ierr;
 			logWarning("verifyBackupDir",
 				   "Alternative_Directory "
@@ -18852,7 +18852,7 @@ void ibis::part::doBackup() {
 	    logMessage("doBackup", "copy files from \"%s\" to \"%s\"",
 		       activeDir, backupDir);
 
-	char* cmd = new char[strlen(activeDir)+strlen(backupDir)+32];
+	char* cmd = new char[std::strlen(activeDir)+std::strlen(backupDir)+32];
 #if defined(__unix__) || defined(__linux__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
 	sprintf(cmd, "/bin/cp -fr \"%s\" \"%s\"", activeDir, backupDir);
 #elif defined(_WIN32)
@@ -20416,7 +20416,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
     // on unix machines, we know how to traverse the subdirectories
     // traverse the subdirectories to generate more tables
     char nm1[PATH_MAX];
-    long len = strlen(dir1);
+    long len = std::strlen(dir1);
 
     DIR* dirp = opendir(dir1);
     if (dirp == 0) return cnt;
@@ -20426,7 +20426,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
 	    ent->d_name[0] == '.') { // skip '.' and '..'
 	    continue;
 	}
-	if (len + strlen(ent->d_name)+2 >= PATH_MAX) {
+	if (len + std::strlen(ent->d_name)+2 >= PATH_MAX) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- util::gatherParts skipping " << dir1
 		<< FASTBIT_DIRSEP << ent->d_name
@@ -20548,8 +20548,8 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist,
     // subdirectories -- this section of code reads the subdirectories to
     // generate more tables
     char nm1[PATH_MAX], nm2[PATH_MAX];
-    uint32_t j = strlen(adir);
-    uint32_t len = strlen(bdir);
+    uint32_t j = std::strlen(adir);
+    uint32_t len = std::strlen(bdir);
     len = (len<j) ? j : len;
 
     DIR* dirp = opendir(adir);
@@ -20560,7 +20560,7 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist,
 	    ent->d_name[0] == '.') { // skip '.' and '..'
 	    continue;
 	}
-	if (len + strlen(ent->d_name)+2 >= PATH_MAX) {
+	if (len + std::strlen(ent->d_name)+2 >= PATH_MAX) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "util::gatherParts name (" << adir << FASTBIT_DIRSEP
 		<< ent->d_name << " | " << bdir << FASTBIT_DIRSEP

@@ -727,7 +727,7 @@ long ibis::part::append(const char* dir) {
 
     try {
 	if (backupDir != 0 && *backupDir != 0 && activeDir != backupDir &&
-	    strcmp(activeDir, backupDir) != 0) {
+	    std::strcmp(activeDir, backupDir) != 0) {
 	    //ibis::fileManager::instance().flushDir(backupDir);
 	    ierr = append2(dir);
 	}
@@ -761,7 +761,7 @@ long ibis::part::append(const char* dir) {
 /// for all queries on the partition to finish before preceding.
 long ibis::part::append1(const char *dir) {
     // can not handle dir == activeDir
-    if (strcmp(dir, activeDir) == 0)
+    if (std::strcmp(dir, activeDir) == 0)
 	return -1;
 
     long ierr = 0;
@@ -850,7 +850,7 @@ long ibis::part::append2(const char *dir) {
     uint32_t ntot = 0;
     // only need to copy files if the files are not already in the
     // activeDir
-    if (strcmp(dir, activeDir)) {
+    if (std::strcmp(dir, activeDir)) {
 	ierr = verifyBackupDir(); // make sure the backup is there
 	if (ierr != 0) {
 	    if (nEvents > 0) {
@@ -903,7 +903,7 @@ long ibis::part::append2(const char *dir) {
 	// open files and switch the roles of the activeDir and the
 	// backupDir
 	writeLock rw(this, "append");
-	if (strcmp(dir, activeDir)) {
+	if (std::strcmp(dir, activeDir)) {
 	    unloadIndexes();	// remove all indices
 	    delete rids;	// remove the RID list
 	    rids = 0;
@@ -1151,7 +1151,7 @@ long ibis::part::appendToBackup(const char* dir) {
 	return ierr;
     if (backupDir == 0 || *backupDir == 0 || readonly)
 	return -1;
-    if (strcmp(dir, backupDir) == 0)
+    if (std::strcmp(dir, backupDir) == 0)
 	return -1;
 
     uint32_t napp;

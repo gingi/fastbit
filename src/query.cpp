@@ -21,7 +21,7 @@
 #include <stdarg.h>	// vsprintf
 #include <ctype.h>	// isspace, tolower
 
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <algorithm>	// std::sort
 #include <sstream>	// std::ostringstream
 
@@ -1523,7 +1523,7 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
 
     bool noBundles = true;
     if (myDir != 0) {
-	char* name = new char[strlen(myDir)+16];
+	char* name = new char[std::strlen(myDir)+16];
 	sprintf(name, "%s%cbundles", myDir, FASTBIT_DIRSEP);
 	noBundles = (ibis::util::getFileSize(name) == 0);
 	delete [] name;
@@ -2046,7 +2046,7 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
     const char *ptr = strrchr(dir, FASTBIT_DIRSEP);
     if (ptr == 0) {
 	myID = ibis::util::strnewdup(dir);
-	myDir = new char[strlen(dir)+2];
+	myDir = new char[std::strlen(dir)+2];
 	strcpy(myDir, dir);
     }
     else if (ptr[1] == static_cast<char>(0)) {
@@ -2063,10 +2063,10 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
     }
     else { 
 	myID = ibis::util::strnewdup(ptr+1);
-	myDir = new char[strlen(dir)+2];
+	myDir = new char[std::strlen(dir)+2];
 	strcpy(myDir, dir);
     }
-    uint32_t j = strlen(myDir);
+    uint32_t j = std::strlen(myDir);
     myDir[j] = FASTBIT_DIRSEP;
     ++j;
     myDir[j] = static_cast<char>(0);
@@ -2122,7 +2122,7 @@ char* ibis::query::newToken(const char *uid) {
     // compute the three components of the token
     if (uid != 0 && *uid != 0)
 	// a checksum of the user name
-	ta = ibis::util::checksum(uid, strlen(uid));
+	ta = ibis::util::checksum(uid, std::strlen(uid));
     else
 	ta = 0;
 #if (_XOPEN_SOURCE - 0) >= 500
@@ -2191,7 +2191,7 @@ char* ibis::query::newToken(const char *uid) {
 // -- must have 16 characters
 // -- must be all in charTable
 bool ibis::query::isValidToken(const char* tok) {
-    bool ret = (strlen(tok) == ibis::query::tokenLength());
+    bool ret = (std::strlen(tok) == ibis::query::tokenLength());
     if (! ret) // if string length not 16, it can not be a valid token
 	return ret;
     // necessary to prevent overstepping the bouds of array
@@ -2448,8 +2448,8 @@ void ibis::query::setMyDir(const char *pref) {
 #endif
 
     if (cacheDir) {
-	if (strlen(cacheDir)+strlen(myID)+10<PATH_MAX) {
-	    myDir = new char[strlen(cacheDir)+strlen(myID)+3];
+	if (std::strlen(cacheDir)+std::strlen(myID)+10<PATH_MAX) {
+	    myDir = new char[std::strlen(cacheDir)+std::strlen(myID)+3];
 	    sprintf(myDir, "%s%c%s", cacheDir, FASTBIT_DIRSEP, myID);
 	}
 	else {
@@ -2460,10 +2460,10 @@ void ibis::query::setMyDir(const char *pref) {
 	}
     }
     else {
-	myDir = new char[10+strlen(myID)];
+	myDir = new char[10+std::strlen(myID)];
 	sprintf(myDir, ".ibis%c%s", FASTBIT_DIRSEP, myID);
     }
-    uint32_t j = strlen(myDir);
+    uint32_t j = std::strlen(myDir);
     myDir[j] = FASTBIT_DIRSEP;
     myDir[j+1] = static_cast<char>(0);
     ibis::util::makeDir(myDir);
@@ -2491,7 +2491,7 @@ void ibis::query::logError(const char* event, const char* fmt, ...) const {
     strcpy(lastError, "ERROR: ");
 
 #if (defined(HAVE_VPRINTF) || defined(_WIN32)) && ! defined(DISABLE_VPRINTF)
-    char* s = new char[strlen(fmt)+MAX_LINE];
+    char* s = new char[std::strlen(fmt)+MAX_LINE];
     if (s != 0) {
 	va_list args;
 	va_start(args, fmt);
@@ -2544,7 +2544,7 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
 	}
     }
     else {
-	char* s = new char[strlen(fmt)+MAX_LINE];
+	char* s = new char[std::strlen(fmt)+MAX_LINE];
 	if (s != 0) {
 	    va_list args;
 	    va_start(args, fmt);
@@ -3425,7 +3425,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
     case ibis::qExpr::LOGICAL_NOT: {
 	ierr = doScan(term->getLeft(), mask, ht);
 	if (ierr >= 0) {
-	    std::auto_ptr<ibis::bitvector> tmp(mask - ht);
+	    std::unique_ptr<ibis::bitvector> tmp(mask - ht);
 	    ht.copy(*tmp);
 	    ierr = ht.cnt();
 	}
@@ -3458,7 +3458,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
-		std::auto_ptr<ibis::bitvector> newmask(mask - ht);
+		std::unique_ptr<ibis::bitvector> newmask(mask - ht);
 		ierr = doScan(term->getRight(), *newmask, b1);
 	    }
 	    else {
@@ -4488,7 +4488,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	return;
     }
     delete [] user;
-    ptr = fn + strlen(fn);
+    ptr = fn + std::strlen(fn);
     -- ptr;
     while (isspace(*ptr)) {
 	*ptr = 0;
@@ -4504,7 +4504,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	return;
     }
 
-    ptr = fn + strlen(fn);
+    ptr = fn + std::strlen(fn);
     -- ptr;
     while (isspace(*ptr)) {
 	*ptr = 0;
@@ -4531,7 +4531,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	return;
     }
 
-    ptr = fn + strlen(fn);
+    ptr = fn + std::strlen(fn);
     -- ptr;
     while (isspace(*ptr)) {
 	*ptr = 0;
@@ -4568,13 +4568,13 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 	    "from " << myDir << "query";
 	return;
     }
-    ptr = fn + strlen(fn);
+    ptr = fn + std::strlen(fn);
     -- ptr;
     while (isspace(*ptr)) {
 	*ptr = 0;
 	-- ptr;
     }
-    if (strcmp(fn, "<NULL>")) { // not NONE
+    if (std::strcmp(fn, "<NULL>")) { // not NONE
 	setWhereClause(fn);
     }
     else { // read the remaining part of the file to fill rids_in
@@ -4696,7 +4696,7 @@ ibis::RIDSet* ibis::query::readRIDs() const {
 /// Write the list of RIDs to a file named "-rids".
 void ibis::query::writeRIDs(const ibis::RIDSet* rids) const {
     if (rids != 0 && myDir != 0) {
-	char *fn = new char[strlen(myDir) + 8];
+	char *fn = new char[std::strlen(myDir) + 8];
 	strcpy(fn, myDir);
 	strcat(fn, "-rids");
 	rids->write(fn);
@@ -4752,7 +4752,7 @@ void ibis::query::removeFiles() {
 
     if (myDir == 0) return;
     // remove all files generated for this query and recreate the directory
-    uint32_t len = strlen(myDir);
+    uint32_t len = std::strlen(myDir);
     char* fname = new char[len + 16];
     strcpy(fname, myDir);
     strcat(fname, "query");

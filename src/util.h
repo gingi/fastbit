@@ -247,6 +247,33 @@ int truncate(const char*, uint32_t);
 #define OPEN_FILEMODE S_IRUSR | S_IWUSR
 #endif
 
+#if defined(_MSC_VER)
+
+#define FORCE_INLINE	__forceinline
+
+#include <stdlib.h>
+
+#define BIG_CONSTANT(x) (x)
+
+// Other compilers
+
+#else	// defined(_MSC_VER)
+
+#define	FORCE_INLINE inline __attribute__((always_inline))
+
+inline uint32_t _rotl32( uint32_t x, int8_t r ) {
+    return (x << r) | (x >> (32 - r));
+}
+
+inline uint64_t _rotl64( uint64_t x, int8_t r ) {
+    return (x << r) | (x >> (64 - r));
+}
+
+#define BIG_CONSTANT(x) (x##LLU)
+#endif // !defined(_MSC_VER)
+#define FASTBIT_ROTL32(x,y)	_rotl32(x,y)
+#define FASTBIT_ROTL64(x,y)	_rotl64(x,y)
+
 #if defined(_WIN32) && defined(_MSC_VER)
 // needed for numeric_limits<>::max, min function calls
 #ifdef max
@@ -280,8 +307,8 @@ int truncate(const char*, uint32_t);
 // #define isfinite finite
 // #endif
 
-#define LOGGER(v) \
-if (false == (v)) ; else ibis::util::logger(0)() 
+#define LOGGER(v)                                       \
+    if (false == (v)) ; else ibis::util::logger(0)() 
 // need these silly intermediate macro functions to force the arguments to
 // be evaluated before ## is applied
 #define IBIS_JOIN_MACRO2(X, Y) X##Y
@@ -291,22 +318,34 @@ if (false == (v)) ; else ibis::util::logger(0)()
 #else
 #define IBIS_GUARD_NAME IBIS_JOIN_MACRO(_guard, __LINE__)
 #endif
-#define IBIS_BLOCK_GUARD \
+#define IBIS_BLOCK_GUARD                                        \
     ibis::util::guard IBIS_GUARD_NAME = ibis::util::makeGuard
 
 namespace std { // extend namespace std slightly
     // specialization of less<> to work with char*
     template <> struct less< char* > {
 	bool operator()(const char*x, const char*y) const {
-	    return strcmp(x, y) < 0;
+	    return std::strcmp(x, y) < 0;
 	}
     };
 
     // specialization of less<> on const char* (case sensitive comparison)
     template <> struct less< const char* > {
 	bool operator()(const char* x, const char* y) const {
-	    return strcmp(x, y) < 0;
+	    return std::strcmp(x, y) < 0;
 	}
+    };
+
+    // specialization of equal_to<> on const char* (case sensitive comparison)
+    template <> struct equal_to< const char* > {
+	bool operator()(const char* x, const char* y) const {
+	    return std::strcmp(x, y) == 0;
+	}
+    };
+
+    // specialization of hash<> on const char*
+    template <> struct hash< const char* > {
+	size_t operator()(const char* x) const;
     };
 
     template <> struct less< ibis::rid_t > {
@@ -748,7 +787,7 @@ namespace ibis {
 	public:
 	    /// Constructor.
 	    softLock(pthread_mutex_t *lk)
-	    : lock_(lk), locked_(pthread_mutex_trylock(lock_)) {}
+                : lock_(lk), locked_(pthread_mutex_trylock(lock_)) {}
 	    /// Has a mutex lock being acquired?  Returns true if yes,
 	    /// otherwise false.
 	    bool isLocked() const {return (locked_==0);}

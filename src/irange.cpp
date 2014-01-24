@@ -714,7 +714,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	fnm += col->name();
     }
     else {
-	j = strlen(f);
+	j = std::strlen(f);
 	if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' && f[j-3] == 'i' &&
 	    f[j-4] == '.') { // index file name
 	    fnm = f;
@@ -722,10 +722,10 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	}
 	else {
 	    bool isFile = false;
-	    i = strlen(col->name());
+	    i = std::strlen(col->name());
 	    if (j >= i) {
 		const char* tail = f + (j - i);
-		isFile = (strcmp(tail, col->name()) == 0);
+		isFile = (std::strcmp(tail, col->name()) == 0);
 	    }
 	    if (isFile) {
 		fnm = f;
@@ -1035,8 +1035,9 @@ void ibis::range::print(std::ostream& out, const uint32_t tot,
 } // ibis::range::print
 
 long ibis::range::append(const char* dt, const char* df, uint32_t nnew) {
-    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
-			   col->partition()->nRows()-nnew : nrows);
+    const uint32_t nold =
+        (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+         col->partition()->nRows()-nnew : nrows);
     if (nrows != nold) { // recreate the new index
 #ifdef APPEND_UPDATE_INDEXES
 	LOGGER(ibis::gVerbose > 3)

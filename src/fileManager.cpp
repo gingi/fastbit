@@ -264,7 +264,7 @@ void ibis::fileManager::flushDir(const char* name) {
 	<< "fileManager::flushDir -- removing records of all files in " << name;
 
     uint32_t deleted = 0;
-    const uint32_t len = strlen(name);
+    const uint32_t len = std::strlen(name);
     const uint32_t offset = len + (FASTBIT_DIRSEP != name[len-1]);
 
     while (1) { // loop forever

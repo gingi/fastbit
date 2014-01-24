@@ -18,7 +18,7 @@
 #include <limits>	// std::numeric_limits
 #include <sstream>	// std::ostringstream
 #include <typeinfo>	// std::typeid
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <algorithm>	// std::reverse, std::copy
 
 /// Constructor.  The responsibility of freeing the memory pointed by the
@@ -161,7 +161,7 @@ ibis::bord::bord(const char *tn, const char *td,
 		*static_cast<const ibis::math::variable*>(ctrm);
 	    const ibis::column* refcol = ref.getColumn(var.variableName());
 	    if (refcol == 0) {
-		size_t nch = strlen(ref.name());
+		size_t nch = std::strlen(ref.name());
 		const char* vname = var.variableName();
 		if (0 == strnicmp(ref.name(), vname, nch) &&
 		    vname[nch] == '_') {
@@ -313,7 +313,7 @@ ibis::bord::bord(const char *tn, const char *td,
 		for (unsigned i = 0; refcol == 0 && i < ref.size(); ++ i) {
 		    refcol = ref[0]->getColumn(var.variableName());
 		    if (refcol == 0) {
-			size_t nch = strlen(ref[i]->name());
+			size_t nch = std::strlen(ref[i]->name());
 			if (0 == strnicmp(ref[i]->name(), vname, nch) &&
 			    vname[nch] == '_') {
 			    refcol = ref[i]->getColumn(vname+nch+1);
@@ -1638,7 +1638,7 @@ int64_t ibis::bord::getColumnAsOpaques(const char *cn,
 	    }
 	    else if (col->getDictionary()->size() >= (*arr)[i]) {
 		const char* str = col->getDictionary()->operator[]((*arr)[i]);
-		vals[i].copy(str, strlen(str));
+		vals[i].copy(str, std::strlen(str));
 	    }
 	    else {
 		vals[i].copy((const char*)&((*arr)[i+begin]), sizeof(uint32_t));
@@ -1982,7 +1982,7 @@ void ibis::bord::dumpNames(std::ostream& out, const char* del) const {
 } // ibis::bord::dumpNames
 
 int ibis::bord::dump(std::ostream& out, const char* del) const {
-	if (strcmp(del, "JSON")==0)
+	if (std::strcmp(del, "JSON")==0)
 	    return dumpJSON(out, nEvents);
 	else
 	    return dump(out, nEvents, del);
@@ -2599,7 +2599,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 
 	switch (col.type()) {
 	case ibis::BYTE: {
-	    std::auto_ptr< array_t<signed char> >
+	    std::unique_ptr< array_t<signed char> >
 		values(col.selectBytes(msk0));
 	    if (values.get() != 0) {
 		ierr = ibis::part::writeColumn
@@ -2611,7 +2611,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    }
 	    break;}
 	case ibis::UBYTE: {
-	    std::auto_ptr< array_t<unsigned char> >
+	    std::unique_ptr< array_t<unsigned char> >
 		values(col.selectUBytes(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
@@ -2621,7 +2621,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::SHORT: {
-	    std::auto_ptr< array_t<int16_t> > values(col.selectShorts(msk0));
+	    std::unique_ptr< array_t<int16_t> > values(col.selectShorts(msk0));
 	    if (values.get() != 0) 
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, nEvents, 0, *values,
@@ -2630,7 +2630,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::USHORT: {
-	    std::auto_ptr< array_t<uint16_t> > values(col.selectUShorts(msk0));
+	    std::unique_ptr< array_t<uint16_t> > values(col.selectUShorts(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, nEvents, 0, *values,
@@ -2639,7 +2639,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::INT: {
-	    std::auto_ptr< array_t<int32_t> > values(col.selectInts(msk0));
+	    std::unique_ptr< array_t<int32_t> > values(col.selectInts(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, nEvents, 0, *values,
@@ -2648,7 +2648,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::UINT: {
-	    std::auto_ptr< array_t<uint32_t> > values(col.selectUInts(msk0));
+	    std::unique_ptr< array_t<uint32_t> > values(col.selectUInts(msk0));
 	    if (values.get() != 0) {
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, nEvents, 0, *values,
@@ -2658,7 +2658,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::LONG: {
-	    std::auto_ptr< array_t<int64_t> > values(col.selectLongs(msk0));
+	    std::unique_ptr< array_t<int64_t> > values(col.selectLongs(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn<int64_t>
 		    (fdes, nold, nEvents, 0, *values,
@@ -2668,7 +2668,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    break;}
 	case ibis::OID:
 	case ibis::ULONG: {
-	    std::auto_ptr< array_t<uint64_t> > values(col.selectULongs(msk0));
+	    std::unique_ptr< array_t<uint64_t> > values(col.selectULongs(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn<uint64_t>
 		    (fdes, nold, nEvents, 0, *values,
@@ -2677,7 +2677,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::FLOAT: {
-	    std::auto_ptr< array_t<float> > values(col.selectFloats(msk0));
+	    std::unique_ptr< array_t<float> > values(col.selectFloats(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, nEvents, 0, *values, FASTBIT_FLOAT_NULL,
@@ -2686,7 +2686,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr = -4;
 	    break;}
 	case ibis::DOUBLE: {
-	    std::auto_ptr< array_t<double> > values(col.selectDoubles(msk0));
+	    std::unique_ptr< array_t<double> > values(col.selectDoubles(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeColumn
 		    (fdes, nold, nEvents, 0, *values, FASTBIT_DOUBLE_NULL,
@@ -2696,7 +2696,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 	    break;}
 	case ibis::TEXT:
 	case ibis::CATEGORY: {
-	    std::auto_ptr< std::vector<std::string> >
+	    std::unique_ptr< std::vector<std::string> >
 		values(col.selectStrings(msk0));
 	    if (values.get() != 0)
 		ierr = ibis::part::writeString
@@ -2705,7 +2705,7 @@ int ibis::bord::backup(const char* dir, const char* tname,
 		ierr =-4;
 	    break;}
 	case ibis::BLOB: {
-	    std::auto_ptr< std::vector<ibis::opaque> >
+	    std::unique_ptr< std::vector<ibis::opaque> >
 		values(col.selectOpaques(msk0));
 	    std::string spname = cnm;
 	    spname += ".sp";
@@ -2840,7 +2840,7 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
 	return new ibis::tabula(tn.c_str(), td.c_str(), nEvents);
 
     // create bundle
-    std::auto_ptr<ibis::bundle> bdl(ibis::bundle::create(*this, sel));
+    std::unique_ptr<ibis::bundle> bdl(ibis::bundle::create(*this, sel));
     if (bdl.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- bord::groupby failed to create "
@@ -3009,7 +3009,7 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
 	buf.push_back(cnts);
     }
 #endif
-    std::auto_ptr<ibis::bord>
+    std::unique_ptr<ibis::bord>
 	brd1(new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec,
 			    &dct));
     if (brd1.get() == 0)
@@ -3090,7 +3090,7 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
 	}
     }
 
-    std::auto_ptr<ibis::table>
+    std::unique_ptr<ibis::table>
 	brd2(new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec,
 			    &dct));
     if (brd2.get() != 0)
@@ -3101,9 +3101,9 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
 
 ibis::table*
 ibis::bord::groupby(const ibis::selectClause& sel) const {
-    std::auto_ptr<ibis::bord> brd1(0);
+    std::unique_ptr<ibis::bord> brd1;
     if (sel.needsEval(*this)) {
-    	std::auto_ptr<ibis::bord> brd0(evaluateTerms(sel, 0));
+    	std::unique_ptr<ibis::bord> brd0(evaluateTerms(sel, 0));
     	if (brd0.get() != 0)
     	    brd1.reset(groupbya(*brd0, sel));
     	else
@@ -3131,7 +3131,7 @@ ibis::bord::groupby(const ibis::selectClause& sel) const {
 	return brd1.release();
     }
 
-    std::auto_ptr<ibis::bord> brd2(ibis::bord::groupbyc(*brd1, sel));
+    std::unique_ptr<ibis::bord> brd2(ibis::bord::groupbyc(*brd1, sel));
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
 	lg() << "bord::groupby -- completed ";
@@ -3166,7 +3166,7 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
 
     readLock lock(&src, td.c_str());
     // create bundle -- perform the actual aggregation operations here
-    std::auto_ptr<ibis::bundle> bdl(ibis::bundle::create(src, sel));
+    std::unique_ptr<ibis::bundle> bdl(ibis::bundle::create(src, sel));
     if (bdl.get() == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bord::groupbya failed to create bundle for \""
@@ -4344,7 +4344,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 
     for (unsigned j = 0; j < cdesc.size(); ++ j)
 	cd.push_back(cdesc[j].c_str());
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), desc, (uint64_t)nEvents, buf, ct, cn, &cd));
     if (brd1.get() != 0)
 	gbuf.dismiss();
@@ -5959,7 +5959,7 @@ long ibis::bord::column::keywordSearch(const char* key,
 
 	bool hit = false;
 	for (unsigned i = 0; i < ks.size() && !hit; ++ i)
-	    hit = (0 == strcmp(key, ks[i]));
+	    hit = (0 == std::strcmp(key, ks[i]));
 	if (hit)
 	    hits.setBit(j, 1);
     }
@@ -6040,7 +6040,7 @@ long ibis::bord::column::keywordSearch(const std::vector<std::string> &keys,
 	bool hit = false;
 	for (unsigned i = 0; i < ks.size() && !hit; ++ i)
 	    for (unsigned j = 0; j < keys.size() && !hit; ++ j)
-		hit = (0 == strcmp(keys[j].c_str(), ks[i]));
+		hit = (0 == std::strcmp(keys[j].c_str(), ks[i]));
 	if (hit)
 	    hits.setBit(j, 1);
     }
@@ -10161,7 +10161,7 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 			}
 			else if (prop[j] <= dic->size()) {
 			    const char* str =(*dic)[prop[j]]; 
-			    (*array)[i].copy(str, strlen(str));
+			    (*array)[i].copy(str, std::strlen(str));
 			}
 			else {
 			    (*array)[i].copy(&(prop[j]), sizeof(uint32_t));
@@ -10175,7 +10175,7 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 			}
 			else if (prop[idx0[j]] <= dic->size()) {
 			    const char* str =(*dic)[prop[idx0[j]]]; 
-			    (*array)[i].copy(str, strlen(str));
+			    (*array)[i].copy(str, std::strlen(str));
 			}
 			else {
 			    (*array)[i].copy(&(prop[idx0[j]]), sizeof(uint32_t));
@@ -10198,7 +10198,7 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 			}
 			else if (prop[j] <= dic->size()) {
 			    const char* str =(*dic)[prop[j]]; 
-			    (*array)[i].copy(str, strlen(str));
+			    (*array)[i].copy(str, std::strlen(str));
 			}
 			else {
 			    (*array)[i].copy(&(prop[j]), sizeof(uint32_t));
@@ -10214,7 +10214,7 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 			    }
 			    else if (prop[idx0[j]] <= dic->size()) {
 				const char* str =(*dic)[prop[idx0[j]]]; 
-				(*array)[i].copy(str, strlen(str));
+				(*array)[i].copy(str, std::strlen(str));
 			    }
 			    else {
 				(*array)[i].copy(&(prop[idx0[j]]),
@@ -10877,7 +10877,7 @@ long ibis::bord::column::append(const ibis::column& scol,
     int ierr = 0;
     switch (m_type) {
     case ibis::BYTE: {
-	std::auto_ptr< array_t<signed char> > vals(scol.selectBytes(msk));
+	std::unique_ptr< array_t<signed char> > vals(scol.selectBytes(msk));
 	if (vals.get() != 0)
 	    ierr = ibis::bord::column::addIncoreData<signed char>
 		(reinterpret_cast<array_t<signed char>*&>(buffer),
@@ -10887,7 +10887,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::UBYTE: {
-	std::auto_ptr< array_t<unsigned char> > vals(scol.selectUBytes(msk));
+	std::unique_ptr< array_t<unsigned char> > vals(scol.selectUBytes(msk));
 	if (vals.get() != 0)
 	    ierr = ibis::bord::column::addIncoreData<unsigned char>
 		(reinterpret_cast<array_t<unsigned char>*&>(buffer),
@@ -10897,7 +10897,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::SHORT: {
-	std::auto_ptr< array_t<int16_t> > vals(scol.selectShorts(msk));
+	std::unique_ptr< array_t<int16_t> > vals(scol.selectShorts(msk));
 	if (vals.get() != 0)
 	    ierr = addIncoreData(reinterpret_cast<array_t<int16_t>*&>(buffer),
 				 thePart->nRows(), *vals,
@@ -10906,7 +10906,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::USHORT: {
-	std::auto_ptr< array_t<uint16_t> > vals(scol.selectUShorts(msk));
+	std::unique_ptr< array_t<uint16_t> > vals(scol.selectUShorts(msk));
 	if (vals.get() != 0)
 	    ierr = addIncoreData(reinterpret_cast<array_t<uint16_t>*&>(buffer),
 				 thePart->nRows(), *vals,
@@ -10915,7 +10915,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::INT: {
-	std::auto_ptr< array_t<int32_t> > vals(scol.selectInts(msk));
+	std::unique_ptr< array_t<int32_t> > vals(scol.selectInts(msk));
 	if (vals.get() != 0)
 	    ierr = addIncoreData(reinterpret_cast<array_t<int32_t>*&>(buffer),
 				 thePart->nRows(), *vals,
@@ -10924,7 +10924,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::UINT: {
-	std::auto_ptr< array_t<uint32_t> > vals(scol.selectUInts(msk));
+	std::unique_ptr< array_t<uint32_t> > vals(scol.selectUInts(msk));
 	if (dic == 0) {
 	    const ibis::bord::column *bc =
 		dynamic_cast<const ibis::bord::column*>(&scol);
@@ -10939,7 +10939,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::LONG: {
-	std::auto_ptr< array_t<int64_t> > vals(scol.selectLongs(msk));
+	std::unique_ptr< array_t<int64_t> > vals(scol.selectLongs(msk));
 	if (vals.get() != 0)
 	    ierr = addIncoreData(reinterpret_cast<array_t<int64_t>*&>(buffer),
 				 thePart->nRows(), *vals,
@@ -10948,7 +10948,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::ULONG: {
-	std::auto_ptr< array_t<uint64_t> > vals(scol.selectULongs(msk));
+	std::unique_ptr< array_t<uint64_t> > vals(scol.selectULongs(msk));
 	if (vals.get() != 0)
 	    ierr = addIncoreData(reinterpret_cast<array_t<uint64_t>*&>(buffer),
 				 thePart->nRows(), *vals,
@@ -10957,7 +10957,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::FLOAT: {
-	std::auto_ptr< array_t<float> > vals(scol.selectFloats(msk));
+	std::unique_ptr< array_t<float> > vals(scol.selectFloats(msk));
 	if (vals.get() != 0)
 	    ierr = addIncoreData(reinterpret_cast<array_t<float>*&>(buffer),
 				 thePart->nRows(), *vals,
@@ -10966,7 +10966,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::DOUBLE: {
-	std::auto_ptr< array_t<double> > vals(scol.selectDoubles(msk));
+	std::unique_ptr< array_t<double> > vals(scol.selectDoubles(msk));
 	if (vals.get() != 0)
 	    ierr = addIncoreData(reinterpret_cast<array_t<double>*&>(buffer),
 				 thePart->nRows(), *vals,
@@ -10993,7 +10993,7 @@ long ibis::bord::column::append(const ibis::column& scol,
     // 	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
-	std::auto_ptr< std::vector<std::string> > vals(scol.selectStrings(msk));
+	std::unique_ptr< std::vector<std::string> > vals(scol.selectStrings(msk));
 	if (vals.get() != 0)
 	    ierr = addStrings
 		(reinterpret_cast<std::vector<std::string>*&>(buffer),
@@ -11002,7 +11002,7 @@ long ibis::bord::column::append(const ibis::column& scol,
 	    ierr = -18;
 	break;}
     case ibis::BLOB: {
-	std::auto_ptr< std::vector<ibis::opaque> >
+	std::unique_ptr< std::vector<ibis::opaque> >
 	    vals(scol.selectOpaques(msk));
 	if (vals.get() != 0)
 	    ierr = addBlobs
@@ -12065,7 +12065,7 @@ int ibis::bord::cursor::getColumnAsOpaque(uint32_t j, ibis::opaque& val) const {
 	    }
 	    else if (buffer[j].dic->size() >= arr[curRow]) {
 		const char* str = buffer[j].dic->operator[](arr[curRow]);
-		val.copy(str, strlen(str));
+		val.copy(str, std::strlen(str));
 	    }
 	    else {
 		val.copy((const char*)(arr.begin()+curRow), sizeof(int32_t));

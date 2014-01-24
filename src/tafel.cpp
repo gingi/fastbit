@@ -13,7 +13,7 @@
 #include <fstream>	// std::ofstream
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <iomanip>	// std::setfill
 
 #include <stdlib.h>	// strtol strtoul [strtoll strtoull]
@@ -1657,7 +1657,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
 	    tname = dir;
 	}
 	if (tname == 0) {
-	    uint32_t sum = ibis::util::checksum(tdesc, strlen(tdesc));
+	    uint32_t sum = ibis::util::checksum(tdesc, std::strlen(tdesc));
 	    ibis::util::int2string(nmlocal, sum);
 	    if (! isalpha(nmlocal[0]))
 		nmlocal[0] = 'A' + (nmlocal[0] % 26);
@@ -1839,7 +1839,7 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
     bool again = false;
     do { // read the existing meta data
         if (ipart > 0) {
-            const bool needdirsep = (FASTBIT_DIRSEP != dir[strlen(dir)-1]);
+            const bool needdirsep = (FASTBIT_DIRSEP != dir[std::strlen(dir)-1]);
             do {
                 std::ostringstream oss;
                 oss << dir;
@@ -2011,7 +2011,7 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
 	    tname = mydir;
 	}
 	if (tname == 0) {
-	    uint32_t sum = ibis::util::checksum(tdesc, strlen(tdesc));
+	    uint32_t sum = ibis::util::checksum(tdesc, std::strlen(tdesc));
 	    ibis::util::int2string(oldnm, sum);
 	    if (! isalpha(oldnm[0]))
 		oldnm[0] = 'A' + (oldnm[0] % 26);
@@ -3699,7 +3699,7 @@ ibis::table* ibis::tafel::toTable(const char *nm, const char *de) {
 	ctype[j] = col->type;
 	databuf[j] = col->values;
     }
-    std::auto_ptr<ibis::bord>
+    std::unique_ptr<ibis::bord>
 	brd(new ibis::bord(nm, de, mrows, databuf, ctype, cname));
     if (brd.get() == 0) return 0;
 

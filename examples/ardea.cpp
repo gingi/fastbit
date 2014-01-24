@@ -85,7 +85,7 @@ Here is a list of arguments.
 #endif
 #include "ibis.h"	// FastBit IBIS public header file
 #include <set>		// std::set
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <iomanip>	// std::setprecision
 
 // local data types
@@ -830,7 +830,7 @@ int main(int argc, char** argv) {
 	((! namestypes.empty() || metadatafile != 0) &&
 	 (! csvfiles.empty() || ! inputrows.empty()));
     // create a new table that does not support querying
-    std::auto_ptr<ibis::tablex> ta(ibis::tablex::create());
+    std::unique_ptr<ibis::tablex> ta(ibis::tablex::create());
     ta->setPartitionMax(pmax);
     if (usersupplied) { // use user-supplied data
 	// process the SQL dump files first just in case the CSV files
@@ -863,7 +863,7 @@ int main(int argc, char** argv) {
 		}
 		ta->clearData();
 		if (build_indexes > 0) { // build indexes
-		    std::auto_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    std::unique_ptr<ibis::table> tbl(ibis::table::create(outdir));
 		    if (tbl.get() != 0)
 			tbl->buildIndexes(0);
 		}
@@ -907,7 +907,7 @@ int main(int argc, char** argv) {
 		}
 		ta->clearData();
 		if (build_indexes > 0) { // build indexes
-		    std::auto_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    std::unique_ptr<ibis::table> tbl(ibis::table::create(outdir));
 		    if (tbl.get() != 0)
 			tbl->buildIndexes(0);
 		}
@@ -973,7 +973,7 @@ int main(int argc, char** argv) {
 	}
     }
 
-    std::auto_ptr<ibis::table> tb(outdir!=0 && *outdir != 0 ?
+    std::unique_ptr<ibis::table> tb(outdir!=0 && *outdir != 0 ?
 				  ibis::table::create(outdir) :
 				  ta->toTable());
     delete ta.release(); // no long need the tablex object

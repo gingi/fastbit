@@ -15,7 +15,7 @@
 #include "ikeywords.h"
 
 #include <algorithm>	// std::copy
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 
 ////////////////////////////////////////////////////////////////////////
 // functions for ibis::category
@@ -100,7 +100,7 @@ ibis::category::selectUInts(const ibis::bitvector& mask) const {
 		      (ibis::util::getFileSize(fname.c_str()) >> 2));
     }
     if (tryintfile) {
-	std::auto_ptr< ibis::array_t<uint32_t> >
+	std::unique_ptr< ibis::array_t<uint32_t> >
 	    tmp(new ibis::array_t<uint32_t>);
 	if (selectValuesT(fname.c_str(), mask, *tmp) >= 0)
 	    return tmp.release();
@@ -205,7 +205,7 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
     }
 
     if (opt > 0) {
-	std::auto_ptr< ibis::array_t<uint32_t> >
+	std::unique_ptr< ibis::array_t<uint32_t> >
 	    keys(new ibis::array_t<uint32_t>);
 	if (opt == 1) {
 	    (void) selectValuesT(fname.c_str(), mask, *keys);
@@ -222,7 +222,7 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 	    }
 	}
 	if (keys->size() == mask.cnt()) {
-	    std::auto_ptr< std::vector<std::string> >
+	    std::unique_ptr< std::vector<std::string> >
 		strings(new std::vector<std::string>());
 	    strings->reserve(keys->size());
 	    for (unsigned i = 0; i < keys->size(); ++i) {
@@ -237,9 +237,11 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
     return ibis::text::selectStrings(mask);
 } // ibis::category::selectStrings
 
-/// A function to read the dictionary and load the index.  This is a const
-/// function because it only manipulates mutable data members.  This is
-/// necessary to make it callable from const member function of this class.
+/// A function to read the dictionary and load the index.
+/// 
+/// This is a const function because it only manipulates mutable data
+/// members, which is necessary to make it callable from const member
+/// functions.
 void ibis::category::prepareMembers() const {
     if (dic.size() == 0)
 	readDictionary();
@@ -253,6 +255,7 @@ void ibis::category::prepareMembers() const {
 	idxf += FASTBIT_DIRSEP;
 	idxf += m_name;
 	idxf += ".idx";
+        // construct a dummy index so that we can invoke the function read
 	idx = new ibis::direkte
 	    (this, static_cast<ibis::fileManager::storage*>(0));
 	if (static_cast<ibis::direkte*>(idx)->read(idxf.c_str()) < 0 ||
@@ -316,12 +319,12 @@ void ibis::category::readDictionary(const char *dir) const {
 ibis::direkte* ibis::category::fillIndex(const char *dir) const {
     std::string dirstr;
     if (dir != 0 && *dir != 0) { // the name may be a filename
-	unsigned ldir = strlen(dir);
+	unsigned ldir = std::strlen(dir);
 	std::string idx = m_name;
 	idx += ".idx";
 	if (ldir > idx.size()) {
 	    unsigned dlen = ldir - idx.size();
-	    if (0 == strcmp(dir+dlen, idx.c_str())) {
+	    if (0 == std::strcmp(dir+dlen, idx.c_str())) {
 		if (dir[dlen-1] == '/'
 #if defined(_WIN32) && defined(_MSC_VER)
 		    || dir[dlen-1] == '\\'
@@ -336,7 +339,7 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 	}
 	else if (ldir > m_name.size()) {
 	    unsigned dlen = ldir - m_name.size();
-	    if (0 == strcmp(dir+dlen, m_name.c_str()) &&
+	    if (0 == std::strcmp(dir+dlen, m_name.c_str()) &&
 		dir[dlen-1] == '/'
 #if defined(_WIN32) && defined(_MSC_VER)
 		|| dir[dlen-1] == '\\'
@@ -377,7 +380,7 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
     }
     else { // actually read the raw data to build an index
 	const bool iscurrent =
-	    (strcmp(dir, thePart->currentDataDir()) == 0 &&
+	    (std::strcmp(dir, thePart->currentDataDir()) == 0 &&
 	     thePart->getStateNoLocking() != ibis::part::PRETRANSITION_STATE);
 	array_t<uint32_t> ints;
 	std::string raw = (dir ? dir : thePart->currentDataDir());
@@ -457,14 +460,16 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 		ints.resize(thePart->nRows());
 
 	    try {
-		// reorder dictionary and ints
-		ibis::array_t<uint32_t> o2n;
-		dic.sort(o2n);
-		if (! o2n.isSorted()) {
-		    const uint32_t nints = ints.size();
-		    for (uint32_t j = 0; j < nints; ++ j)
-			ints[j] = o2n[ints[j]];
-		}
+                if ((ints.size() >> ibis::gVerbose) == 0) {
+                    // reorder dictionary and ints if the dictioinary is small
+                    ibis::array_t<uint32_t> o2n;
+                    dic.sort(o2n);
+                    if (! o2n.isSorted()) {
+                        const uint32_t nints = ints.size();
+                        for (uint32_t j = 0; j < nints; ++ j)
+                            ints[j] = o2n[ints[j]];
+                    }
+                }
 	    }
 	    catch (...) {
 		LOGGER(ibis::gVerbose > 5)
@@ -485,7 +490,7 @@ ibis::direkte* ibis::category::fillIndex(const char *dir) const {
 	rlc->write(dir);
 	if (dir == thePart->currentDataDir() ||
 	    (thePart->currentDataDir() !=0 &&
-	     strcmp(dir, thePart->currentDataDir()) == 0)) {
+	     std::strcmp(dir, thePart->currentDataDir()) == 0)) {
 	    idx = rlc;
 	}
 	else {
@@ -667,7 +672,7 @@ long ibis::category::stringSearch(const char* str,
 				  ibis::bitvector& hits) const {
     std::string evt;
     if (ibis::gVerbose > 1) {
-        evt = "text[";
+        evt = "category[";
         evt += thePart->name();
         evt += '.';
         evt += m_name;
@@ -679,7 +684,7 @@ long ibis::category::stringSearch(const char* str,
         evt += ')';
     }
     else {
-        evt = "text::stringSearch";
+        evt = "category::stringSearch";
     }
     ibis::util::timer mytimer(evt.c_str(), 4);
     prepareMembers();
@@ -1006,7 +1011,7 @@ long ibis::category::append(const char* dt, const char* df,
 	return ret;
     if (*dt == 0 || *df == 0)
 	return ret;
-    if (strcmp(dt, df) == 0)
+    if (std::strcmp(dt, df) == 0)
 	return ret;
     std::string evt = "category";
     if (ibis::gVerbose > 1) {
@@ -1380,7 +1385,7 @@ void ibis::category::write(FILE* file) const {
 	}
 	if (i <= dic.size()) {
 	    fprintf(file, "...");
-	    if (nchar+strlen(dic[dic.size()]) < 200) {
+	    if (nchar+std::strlen(dic[dic.size()]) < 200) {
 		fprintf(file, ", %s", dic[dic.size()]);
 	    }
 	}
@@ -1519,7 +1524,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     const bool isActiveData =
 	(thePart->getStateNoLocking() == ibis::part::STABLE_STATE &&
 	 (dir == thePart->currentDataDir() ||
-	  strcmp(dir, thePart->currentDataDir()) == 0));
+	  std::strcmp(dir, thePart->currentDataDir()) == 0));
     if (fdata == 0) { // failed to open data file, assume it is empty
         if ((isActiveData || thePart->currentDataDir()== 0)
             && thePart->nRows() > 0) {
@@ -1678,7 +1683,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     }
 
     if (nold + nnew < thePart->nRows() && thePart->currentDataDir() != 0 &&
-	strcmp(dir, thePart->currentDataDir()) == 0) {
+	std::strcmp(dir, thePart->currentDataDir()) == 0) {
 	// make up missing values with a null string
 	char zero = 0;
 	// commit all read operations in preparation for write
@@ -1747,7 +1752,7 @@ long ibis::text::append(const char* dt, const char* df,
 	return ret;
     if (*dt == 0 || *df == 0)
 	return ret;
-    if (strcmp(dt, df) == 0)
+    if (std::strcmp(dt, df) == 0)
 	return ret;
 
     // step 1: make sure the starting positions are updated
@@ -2335,7 +2340,7 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 		    match = (stricmp(strs[i].c_str(), str) == 0);
 #else
-		    match = (strcmp(strs[i].c_str(), str) == 0);
+		    match = (std::strcmp(strs[i].c_str(), str) == 0);
 #endif
 		}
 		if (match)
@@ -2396,7 +2401,7 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 		    match = (stricmp(strs[i].c_str(), str) == 0);
 #else
-		    match = (strcmp(strs[i].c_str(), str) == 0);
+		    match = (std::strcmp(strs[i].c_str(), str) == 0);
 #endif
 		}
 		if (match)
@@ -2749,7 +2754,7 @@ ibis::text::selectLongs(const ibis::bitvector& mask) const {
 /// nor std::string.
 std::vector<std::string>*
 ibis::text::selectStrings(const ibis::bitvector& mask) const {
-    std::auto_ptr< std::vector<std::string> >
+    std::unique_ptr< std::vector<std::string> >
         res(new std::vector<std::string>());
     if (mask.cnt() == 0) return res.release();
 
@@ -3322,7 +3327,7 @@ const char* ibis::text::findString(const char *str) const {
 	}
     }
     else { // normal null-terminated strings
-	const long slen = strlen(str);
+	const long slen = std::strlen(str);
 	while ((jbuf = fread(buf, 1, nbuf, fdata)) > 0 && ! found) {
 	    bool moresp = true;
 	    ierr = fread(&next, sizeof(next), 1, fsp);
@@ -3644,7 +3649,7 @@ long ibis::text::saveSelected(const ibis::bitvector& sel, const char *dest,
     ibis::bitvector msk;
     getNullMask(msk);
     if (dest == 0 || dest == thePart->currentDataDir() ||
-	strcmp(dest, thePart->currentDataDir()) == 0) {
+	std::strcmp(dest, thePart->currentDataDir()) == 0) {
 	// use the active directory, need a write lock
 	std::string fname = thePart->currentDataDir();
 	fname += FASTBIT_DIRSEP;

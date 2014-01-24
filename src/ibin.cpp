@@ -6051,8 +6051,9 @@ long ibis::bin::append(const char* dt, const char* df, uint32_t nnew) {
     if (nnew == 0)
 	return 0;
 
-    const uint32_t nold = (strcmp(dt, col->partition()->currentDataDir()) == 0 ?
-			   col->partition()->nRows()-nnew : nrows);
+    const uint32_t nold =
+        (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
+         col->partition()->nRows()-nnew : nrows);
     if (nrows != nold) { // recreate the new index
 #ifdef APPEND_UPDATE_INDEXES
 	LOGGER(ibis::gVerbose > 3)

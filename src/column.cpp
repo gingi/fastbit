@@ -16,7 +16,7 @@
 
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
@@ -93,7 +93,7 @@ ibis::column::column(const part* tbl, FILE* file)
 				   "end-of-file while reading a column");
 	    return;
 	}
-	if (strlen(buf) + 1 >= MAX_LINE) {
+	if (std::strlen(buf) + 1 >= MAX_LINE) {
 	    ibis::util::logMessage("Warning", "column::ctor may "
 				   "have encountered a line that has more "
 				   "than %d characters", MAX_LINE);
@@ -129,13 +129,13 @@ ibis::column::column(const part* tbl, FILE* file)
 	else if (strnicmp(buf, "Bins:", 5) == 0) {
 	    s1 = buf + 5;
 	    s1 += strspn(s1, " \t");
-	    s2 = s1 + strlen(s1) - 1;
+	    s2 = s1 + std::strlen(s1) - 1;
 	    while (s2>=s1 && isspace(*s2)) {
 		*s2 = static_cast<char>(0);
 		--s2;
 	    }
 #if defined(INDEX_SPEC_TO_LOWER)
-	    s2 = s1 + strlen(s1) - 1;
+	    s2 = s1 + std::strlen(s1) - 1;
 	    while (s2 >= s1) {
 		*s2 = tolower(*s2);
 		-- s2;
@@ -146,7 +146,7 @@ ibis::column::column(const part* tbl, FILE* file)
 	else if (strnicmp(buf, "Index", 5) == 0) {
 	    s1 = ibis::util::getString(s1);
 #if defined(INDEX_SPEC_TO_LOWER)
-	    s2 = s1 + strlen(s1) - 1;
+	    s2 = s1 + std::strlen(s1) - 1;
 	    while (s2 >= s1) {
 		*s2 = tolower(*s2);
 		-- s2;
@@ -684,7 +684,7 @@ ibis::column::dataFileName(std::string& fname, const char *dir) const {
 	if (strnicmp(fname.c_str()+jtmp+1, m_name.c_str(), m_name.size())
 	    == 0) {
 	    if (fname.size() == jtmp+5+m_name.size() &&
-		strcmp(fname.c_str()+jtmp+1+m_name.size(), ".idx") == 0) {
+		std::strcmp(fname.c_str()+jtmp+1+m_name.size(), ".idx") == 0) {
 		fname.erase(jtmp+1+m_name.size());
 		needtail = false;
 	    }
@@ -990,7 +990,7 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 /// of the selectTypes functions.
 ibis::array_t<signed char>*
 ibis::column::selectBytes(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<signed char> > array(new array_t<signed char>);
+    std::unique_ptr< ibis::array_t<signed char> > array(new array_t<signed char>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -1102,7 +1102,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<unsigned char>*
 ibis::column::selectUBytes(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<unsigned char> >
+    std::unique_ptr< ibis::array_t<unsigned char> >
 	array(new array_t<unsigned char>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
@@ -1218,7 +1218,7 @@ ibis::column::selectUBytes(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<int16_t>*
 ibis::column::selectShorts(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<int16_t> > array(new array_t<int16_t>);
+    std::unique_ptr< ibis::array_t<int16_t> > array(new array_t<int16_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -1455,7 +1455,7 @@ ibis::column::selectShorts(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<uint16_t>*
 ibis::column::selectUShorts(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<uint16_t> > array(new array_t<uint16_t>);
+    std::unique_ptr< ibis::array_t<uint16_t> > array(new array_t<uint16_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -1692,7 +1692,7 @@ ibis::column::selectUShorts(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<int32_t>*
 ibis::column::selectInts(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<int32_t> > array(new array_t<int32_t>);
+    std::unique_ptr< ibis::array_t<int32_t> > array(new array_t<int32_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -2091,7 +2091,7 @@ ibis::column::selectInts(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<uint32_t>*
 ibis::column::selectUInts(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<uint32_t> > array(new array_t<uint32_t>);
+    std::unique_ptr< ibis::array_t<uint32_t> > array(new array_t<uint32_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -2335,7 +2335,7 @@ ibis::column::selectUInts(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<int64_t>*
 ibis::column::selectLongs(const ibis::bitvector& mask) const {
-    std::auto_ptr< array_t<int64_t> > array(new array_t<int64_t>);
+    std::unique_ptr< array_t<int64_t> > array(new array_t<int64_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -2926,7 +2926,7 @@ ibis::column::selectLongs(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<uint64_t>*
 ibis::column::selectULongs(const ibis::bitvector& mask) const {
-    std::auto_ptr< ibis::array_t<uint64_t> > array(new array_t<uint64_t>);
+    std::unique_ptr< ibis::array_t<uint64_t> > array(new array_t<uint64_t>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -3298,7 +3298,7 @@ ibis::column::selectULongs(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<float>*
 ibis::column::selectFloats(const ibis::bitvector& mask) const {
-    std::auto_ptr< array_t<float> > array(new array_t<float>);
+    std::unique_ptr< array_t<float> > array(new array_t<float>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -3665,7 +3665,7 @@ ibis::column::selectFloats(const ibis::bitvector& mask) const {
 /// of the selectTypes functions.
 ibis::array_t<double>*
 ibis::column::selectDoubles(const ibis::bitvector& mask) const {
-    std::auto_ptr< array_t<double> > array(new array_t<double>);
+    std::unique_ptr< array_t<double> > array(new array_t<double>);
     const uint32_t tot = mask.cnt();
     if (tot == 0)
 	return array.release();
@@ -5298,7 +5298,7 @@ void ibis::column::print(std::ostream& out) const {
 // three error logging functions
 void ibis::column::logError(const char* event, const char* fmt, ...) const {
 #if (defined(HAVE_VPRINTF) || defined(_WIN32)) && ! defined(DISABLE_VPRINTF)
-    char* s = new char[strlen(fmt)+MAX_LINE];
+    char* s = new char[std::strlen(fmt)+MAX_LINE];
     if (s != 0) {
 	va_list args;
 	va_start(args, fmt);
@@ -6702,7 +6702,7 @@ long ibis::column::append(const char* dt, const char* df,
 			  const uint32_t nold, const uint32_t nnew,
 			  uint32_t nbuf, char* buf) {
     if (nnew == 0 || dt == 0 || df == 0 || *dt == 0 || *df == 0 ||
-	df == dt || strcmp(dt, df) == 0)
+	df == dt || std::strcmp(dt, df) == 0)
 	return 0;
     std::string evt = "column[";
     if (thePart != 0 && thePart->name() != 0)
@@ -6908,7 +6908,7 @@ long ibis::column::append(const char* dt, const char* df,
     }
     if (thePart == 0 || thePart->currentDataDir() == 0)
 	return ret;
-    if (strcmp(dt, thePart->currentDataDir()) == 0) {
+    if (std::strcmp(dt, thePart->currentDataDir()) == 0) {
 	// update the mask stored internally
 	ibis::util::mutexLock lck(&mutex, "column::append");
 	mask_.swap(mtot);
@@ -7975,7 +7975,7 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
     }
 
     if (dest == 0 || dest == thePart->currentDataDir() ||
-	strcmp(dest, thePart->currentDataDir()) == 0) { // same directory
+	std::strcmp(dest, thePart->currentDataDir()) == 0) { // same directory
 	std::string fname = thePart->currentDataDir();
 	if (! fname.empty())
 	    fname += FASTBIT_DIRSEP;

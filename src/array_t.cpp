@@ -14,7 +14,7 @@
 #include "util.h"
 #include "table.h"	// ibis::TYPE_T
 
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <algorithm>	// std::sort
 #include <iomanip>	// std::setw
 #include <typeinfo>	// typeid
@@ -423,7 +423,7 @@ void ibis::array_t<T>::nosharing() {
 	if (actual == 0 || m_begin != (T*)actual->begin() ||
 	    actual->filename() != 0 || actual->inUse() > 1) {
 	    // follow copy-and-swap strategy
-	    std::auto_ptr<ibis::fileManager::storage>
+	    std::unique_ptr<ibis::fileManager::storage>
 		tmp(new ibis::fileManager::storage
 		    (reinterpret_cast<const char*>(m_begin),
 		     reinterpret_cast<const char*>(m_end)));
@@ -1521,7 +1521,7 @@ void ibis::array_t<T>::reserve(size_t n) {
 	    // attempt to allocate new storage space
 	    n0 = (m_end-m_begin);
 	    if (n < n0) n = n0 + 1;
-	    std::auto_ptr<ibis::fileManager::storage>
+	    std::unique_ptr<ibis::fileManager::storage>
 		tmp(new ibis::fileManager::storage(n*sizeof(T)));
 	    if (tmp.get() != 0) { // copy and swap
 		(void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));

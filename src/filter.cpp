@@ -13,7 +13,7 @@
 #include "filter.h"	// ibis::filter
 #include "util.h"	// ibis::util::makeGuard
 
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <algorithm>	// std::sort
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
@@ -615,7 +615,7 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -687,7 +687,7 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 	return brd1.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
+    std::unique_ptr<ibis::table> brd2(brd1->groupby(tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produced an in-memory data partition with "
@@ -758,8 +758,8 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd0(0);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd0;
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -780,7 +780,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
     // match the rule, it is merged into the accumulator of higher degree.
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
-    std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
+    std::unique_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
     unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
 	mergesLast = 0;
 
@@ -810,7 +810,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 	    continue;
 	}
 	if (ierr > 0) {
-	    std::auto_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
 	    if (tmp.get() == 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg << " failed to evaluate the "
@@ -827,7 +827,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 
 	    if (merges[lg2].get() == 0) {
 		// no matching merging accumulator found, fill in the degree.
-		merges[lg2] = tmp;
+		merges[lg2] = std::move(tmp);
 	    }
 	    else {
 		// merge in the grouped partition
@@ -849,7 +849,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 		    // cascade merge is about to happen
 		    if (merges[newlg2].get() == 0) {
 			// no accumulator exists yet at the index, just move
-			merges[newlg2] = merges[lg2];
+			merges[newlg2] = std::move(merges[lg2]);
 		    }
 		    else {
 			// merge in the lower degree accumulator
@@ -879,7 +879,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
-	    brd0 = merges[j];
+	    brd0 = std::move(merges[j]);
 	    // process all the other accumulators, until we reach the end
 	    while (++j <= mergesLast) {
 		// the slot may not be used, let's check
@@ -894,7 +894,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 			return 0;
 		    }
 		    // the result is the merged accumulator now
-		    brd0 = merges[j];
+		    brd0 = std::move(merges[j]);
 		}
 	    }
 	    break;
@@ -936,7 +936,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*brd0, tms));
+    std::unique_ptr<ibis::table> brd2(ibis::bord::groupbyc(*brd0, tms));
     // if (brd2.get() != 0)
     // 	static_cast<ibis::bord*>(brd2.get())
     // 	    ->restoreCategoriesAsStrings(*plist.front());
@@ -1011,7 +1011,7 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
 
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -1080,7 +1080,7 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
 	return brd1.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
+    std::unique_ptr<ibis::table> brd2(brd1->groupby(tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produced an in-memory data partition with "
@@ -1148,8 +1148,8 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd0(0);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd0;
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -1170,7 +1170,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
     // match the rule, it is merged into the accumulator of higher degree.
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
-    std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
+    std::unique_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
     unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
 	mergesLast = 0;
 
@@ -1198,7 +1198,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 	    continue;
 	}
 	if (ierr > 0) {
-	    std::auto_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
 	    if (tmp.get() == 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg << " failed to evaluate the "
@@ -1215,7 +1215,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 
 	    if (merges[lg2].get() == 0) {
 		// no matching merging accumulator found, fill in the degree.
-		merges[lg2] = tmp;
+		merges[lg2] = std::move(tmp);
 	    }
 	    else {
 		// merge in the grouped partition
@@ -1237,7 +1237,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 		    // cascade merge is about to happen
 		    if (merges[newlg2].get() == 0) {
 			// no accumulator exists yet at the index, just move
-			merges[newlg2] = merges[lg2];
+			merges[newlg2] = std::move(merges[lg2]);
 		    }
 		    else {
 			// merge in the lower degree accumulator
@@ -1267,7 +1267,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
-	    brd0 = merges[j];
+	    brd0 = std::move(merges[j]);
 	    // process all the other accumulators, until we reach the end
 	    while (++j <= mergesLast) {
 		// the slot may not be used, let's check
@@ -1282,7 +1282,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 			return 0;
 		    }
 		    // the result is the merged accumulator now
-		    brd0 = merges[j];
+		    brd0 = std::move(merges[j]);
 		}
 	    }
 	    break;
@@ -1323,7 +1323,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
+    std::unique_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produced an in-memory data partition with "
@@ -1400,7 +1400,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     }
 
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -1510,7 +1510,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	return brd1.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
+    std::unique_ptr<ibis::table> brd2(brd1->groupby(tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produced an in-memory data partition with "
@@ -1581,7 +1581,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     long int ierr = 0;
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -1650,7 +1650,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	return brd1.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
+    std::unique_ptr<ibis::table> brd2(brd1->groupby(tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produces an in-memory data partition with "
@@ -1727,7 +1727,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
     }
 
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -1837,7 +1837,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
 	return brd1.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(brd1->groupby(tms));
+    std::unique_ptr<ibis::table> brd2(brd1->groupby(tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produces an in-memory data partition with "
@@ -1910,8 +1910,8 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     }
 
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd0(0);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd0;
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -1932,7 +1932,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     // match the rule, it is merged into the accumulator of higher degree.
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
-    std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
+    std::unique_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
     unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
 	mergesLast = 0;
 
@@ -1990,7 +1990,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 	    continue;
 	}
 	if (ierr > 0) {
-	    std::auto_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
 	    if (tmp.get() == 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg << " failed to evaluate the "
@@ -2007,7 +2007,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 
 	    if (merges[lg2].get() == 0) {
 		// no matching merging accumulator found, fill in the degree.
-		merges[lg2] = tmp;
+		merges[lg2] = std::move(tmp);
 	    }
 	    else {
 		// merge in the grouped partition
@@ -2029,7 +2029,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 		    // cascade merge is about to happen
 		    if (merges[newlg2].get() == 0) {
 			// no accumulator exists yet at the index, just move
-			merges[newlg2] = merges[lg2];
+			merges[newlg2] = std::move(merges[lg2]);
 		    }
 		    else {
 			// merge in the lower degree accumulator
@@ -2059,7 +2059,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
-	    brd0 = merges[j];
+	    brd0 = std::move(merges[j]);
 	    // process all the other accumulators, until we reach the end
 	    while (++j <= mergesLast) {
 		// the slot may not be used, let's check
@@ -2074,7 +2074,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 			return 0;
 		    }
 		    // the result is the merged accumulator now
-		    brd0 = merges[j];
+		    brd0 = std::move(merges[j]);
 		}
 	    }
 	    break;
@@ -2115,7 +2115,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
+    std::unique_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produced an in-memory data partition with "
@@ -2175,8 +2175,8 @@ ibis::table* ibis::filter::sift2S
     long int ierr = 0;
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd0(0);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd0;
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -2197,7 +2197,7 @@ ibis::table* ibis::filter::sift2S
     // match the rule, it is merged into the accumulator of higher degree.
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
-    std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
+    std::unique_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
     unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
 	mergesLast = 0;
 
@@ -2225,7 +2225,7 @@ ibis::table* ibis::filter::sift2S
 	    continue;
 	}
 	if (ierr > 0) {
-	    std::auto_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
 	    if (tmp.get() == 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg << " failed to evaluate the "
@@ -2242,7 +2242,7 @@ ibis::table* ibis::filter::sift2S
 
 	    if (merges[lg2].get() == 0) {
 		// no matching merging accumulator found, fill in the degree.
-		merges[lg2] = tmp;
+		merges[lg2] = std::move(tmp);
 	    }
 	    else {
 		// merge in the grouped partition
@@ -2264,7 +2264,7 @@ ibis::table* ibis::filter::sift2S
 		    // cascade merge is about to happen
 		    if (merges[newlg2].get() == 0) {
 			// no accumulator exists yet at the index, just move
-			merges[newlg2] = merges[lg2];
+			merges[newlg2] = std::move(merges[lg2]);
 		    }
 		    else {
 			// merge in the lower degree accumulator
@@ -2294,7 +2294,7 @@ ibis::table* ibis::filter::sift2S
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
-	    brd0 = merges[j];
+	    brd0 = std::move(merges[j]);
 	    // process all the other accumulators, until we reach the end
 	    while (++j <= mergesLast) {
 		// the slot may not be used, let's check
@@ -2309,7 +2309,7 @@ ibis::table* ibis::filter::sift2S
 			return 0;
 		    }
 		    // the result is the merged accumulator now
-		    brd0 = merges[j];
+		    brd0 = std::move(merges[j]);
 		}
 	    }
 	    break;
@@ -2350,7 +2350,7 @@ ibis::table* ibis::filter::sift2S
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
+    std::unique_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produces an in-memory data partition with "
@@ -2425,8 +2425,8 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     }
 
     std::string tn = ibis::util::shortName(mesg);
-    std::auto_ptr<ibis::bord> brd0(0);
-    std::auto_ptr<ibis::bord> brd1
+    std::unique_ptr<ibis::bord> brd0;
+    std::unique_ptr<ibis::bord> brd1
 	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
@@ -2449,7 +2449,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     // match the rule, it is merged into the accumulator of higher degree.
     // At the end, everything is merged together, from smaller to larger.
     // Effect: during merge, every record is compared/copied <= log(n) times.
-    std::auto_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
+    std::unique_ptr<ibis::bord> merges[sizeof(uint64_t)*8];
     unsigned int mergesFirst = sizeof(merges)/sizeof(merges[0]),
 	mergesLast = 0;
 
@@ -2517,7 +2517,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 	    continue;
 	}
 	if (ierr > 0) {
-	    std::auto_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
 	    if (tmp.get() == 0) {
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- " << mesg << " failed to evaluate the "
@@ -2534,7 +2534,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 
 	    if (merges[lg2].get() == 0) {
 		// no matching merging accumulator found, fill in the degree.
-		merges[lg2] = tmp;
+		merges[lg2] = std::move(tmp);
 	    }
 	    else {
 		// merge in the grouped partition
@@ -2556,7 +2556,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 		    // cascade merge is about to happen
 		    if (merges[newlg2].get() == 0) {
 			// no accumulator exists yet at the index, just move
-			merges[newlg2] = merges[lg2];
+			merges[newlg2] = std::move(merges[lg2]);
 		    }
 		    else {
 			// merge in the lower degree accumulator
@@ -2586,7 +2586,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
 	if (merges[j].get() != 0) {
 	    // the smallest accumulator found, let's use it as base one
-	    brd0 = merges[j];
+	    brd0 = std::move(merges[j]);
 	    // process all the other accumulators, until we reach the end
 	    while (++j <= mergesLast) {
 		// the slot may not be used, let's check
@@ -2601,7 +2601,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 			return 0;
 		    }
 		    // the result is the merged accumulator now
-		    brd0 = merges[j];
+		    brd0 = std::move(merges[j]);
 		}
 	    }
 	    break;
@@ -2642,7 +2642,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 	return brd0.release();
     }
 
-    std::auto_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
+    std::unique_ptr<ibis::table> brd2(ibis::bord::groupbyc(*(brd0.get()), tms));
     if (ibis::gVerbose > 2 && brd2.get() != 0) {
 	ibis::util::logger lg;
 	lg() << mesg << " produces an in-memory data partition with "

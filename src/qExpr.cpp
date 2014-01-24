@@ -1491,7 +1491,7 @@ void ibis::qContinuousRange::restrictRange(double left, double right) {
 	lower = left;
 	left_op = OP_LE;
     }
-   if (((right_op == OP_LT || right_op == OP_LE) && upper > right) ||
+    if (((right_op == OP_LT || right_op == OP_LE) && upper > right) ||
 	((left_op == OP_LT || left_op == OP_LE) &&
 	 right_op == OP_UNDEFINED)) {
 	upper = right;
@@ -1829,7 +1829,7 @@ bool ibis::qContinuousRange::overlap(double lo, double hi) const {
 ibis::qString::qString(const char* ls, const char* rs) :
     qExpr(ibis::qExpr::STRING), lstr(ibis::util::strnewdup(ls)) {
     // attempt to remove the back slash as escape characters
-    rstr = new char[1+strlen(rs)];
+    rstr = new char[1+std::strlen(rs)];
     const char* cptr = rs;
     char* dptr = rstr;
     while (*cptr != 0) {
@@ -1869,7 +1869,7 @@ ibis::qLike::qLike(const char* ls, const char* rs) :
 	<< "qLike::ctor(\"" << ls << "\", \"" << rs << "\") ...";
 #endif
     // attempt to remove back slash used as escape characters
-    rpat = new char[1+strlen(rs)];
+    rpat = new char[1+std::strlen(rs)];
     const char* cptr = rs;
     char* dptr = rpat;
     while (*cptr != 0) {
@@ -1979,15 +1979,15 @@ void ibis::math::barrel::recordVariable(const ibis::qExpr* const t) {
 	recordVariable(dj.getName2());
 	recordVariable(dj.getRange());
 	break;}
-    // case ibis::qExpr::ANYANY: {
-    // 	const char *pref = static_cast<const ibis::qAnyAny*>(t)->getPrefix();
-    // 	const int len = strlen(pref);
-    // 	for (unsigned j = 0; j < part0.nColumns(); ++ j) {
-    // 	    if (strnicmp(part0.getColumn(j)->name(), pref, len) == 0) {
-    // 		recordVariable(part0.getColumn(j)->name());
-    // 	    }
-    // 	}
-    // 	break;}
+        // case ibis::qExpr::ANYANY: {
+        // 	const char *pref = static_cast<const ibis::qAnyAny*>(t)->getPrefix();
+        // 	const int len = std::strlen(pref);
+        // 	for (unsigned j = 0; j < part0.nColumns(); ++ j) {
+        // 	    if (strnicmp(part0.getColumn(j)->name(), pref, len) == 0) {
+        // 		recordVariable(part0.getColumn(j)->name());
+        // 	    }
+        // 	}
+        // 	break;}
     }
 } // ibis::math::barrel::recordVariable
 
@@ -2199,11 +2199,11 @@ ibis::math::term* ibis::math::stdFunction1::reduce() {
 	case IS_ZERO: ret = new ibis::math::number((arg==0)); break;
 	case IS_NONZERO: ret = new ibis::math::number((0!=arg)); break;
 	case FREXP: {int expptr;
-	ret = new ibis::math::number(frexp(arg, &expptr)); break;}
+                ret = new ibis::math::number(frexp(arg, &expptr)); break;}
 	case LOG10: ret = new ibis::math::number(log10(arg)); break;
 	case LOG: ret = new ibis::math::number(log(arg)); break;
 	case MODF: {double intptr;
-	ret = new ibis::math::number(modf(arg, &intptr)); break;}
+                ret = new ibis::math::number(modf(arg, &intptr)); break;}
 	case ROUND: ret = new ibis::math::number(floor(arg+0.5)); break;
 	case SIN: ret = new ibis::math::number(sin(arg)); break;
 	case SINH: ret = new ibis::math::number(sinh(arg)); break;
@@ -2556,10 +2556,10 @@ ibis::math::term* ibis::math::bediener::reduce() {
 	}
 	else if (lhs->termType() == ibis::math::VARIABLE &&
 		 rhs->termType() == ibis::math::VARIABLE &&
-		 strcmp(static_cast<ibis::math::variable*>
-			(lhs)->variableName(),
-			static_cast<ibis::math::variable*>
-			(rhs)->variableName()) == 0) {
+		 std::strcmp(static_cast<ibis::math::variable*>
+                             (lhs)->variableName(),
+                             static_cast<ibis::math::variable*>
+                             (rhs)->variableName()) == 0) {
 	    // both sides are the same variable name
 	    number *ntmp = new number(2.0);
 	    bediener *btmp = new bediener(MULTIPLY);
@@ -2578,10 +2578,10 @@ ibis::math::term* ibis::math::bediener::reduce() {
 		 (lhs->getRight())->termType() == ibis::math::VARIABLE &&
 		 static_cast<ibis::math::term*>
 		 (rhs->getRight())->termType() == ibis::math::VARIABLE &&
-		 strcmp(static_cast<ibis::math::variable*>
-			(lhs->getRight())->variableName(),
-			static_cast<ibis::math::variable*>
-			(rhs->getRight())->variableName()) == 0) {
+		 std::strcmp(static_cast<ibis::math::variable*>
+                             (lhs->getRight())->variableName(),
+                             static_cast<ibis::math::variable*>
+                             (rhs->getRight())->variableName()) == 0) {
 	    ret = lhs->dup();
 	    static_cast<ibis::math::number*>(ret->getLeft())->val +=
 		static_cast<ibis::math::term*>(rhs->getLeft())->eval();
@@ -2599,10 +2599,10 @@ ibis::math::term* ibis::math::bediener::reduce() {
 	}
 	else if (lhs->termType() == ibis::math::VARIABLE &&
 		 rhs->termType() == ibis::math::VARIABLE &&
-		 strcmp(static_cast<ibis::math::variable*>
-			(lhs)->variableName(),
-			static_cast<ibis::math::variable*>
-			(rhs)->variableName()) == 0) {
+		 std::strcmp(static_cast<ibis::math::variable*>
+                             (lhs)->variableName(),
+                             static_cast<ibis::math::variable*>
+                             (rhs)->variableName()) == 0) {
 	    // both sides are the same variable name
 	    ret = new number(0.0);
 	}
@@ -2616,10 +2616,10 @@ ibis::math::term* ibis::math::bediener::reduce() {
 		 (lhs->getRight())->termType() == ibis::math::VARIABLE &&
 		 static_cast<ibis::math::term*>
 		 (rhs->getRight())->termType() == ibis::math::VARIABLE &&
-		 strcmp(static_cast<ibis::math::variable*>
-			(lhs->getRight())->variableName(),
-			static_cast<ibis::math::variable*>
-			(rhs->getRight())->variableName()) == 0) {
+		 std::strcmp(static_cast<ibis::math::variable*>
+                             (lhs->getRight())->variableName(),
+                             static_cast<ibis::math::variable*>
+                             (rhs->getRight())->variableName()) == 0) {
 	    ret = lhs->dup();
 	    static_cast<ibis::math::number*>(ret->getLeft())->val -=
 		static_cast<ibis::math::term*>(rhs->getLeft())->eval();
@@ -3359,8 +3359,8 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 
 void ibis::qDiscreteRange::print(std::ostream& out) const {
     out << name << " IN (";
-//     std::copy(values.begin(), values.end(),
-// 	      std::ostream_iterator<double>(out, ", "));
+    //     std::copy(values.begin(), values.end(),
+    // 	      std::ostream_iterator<double>(out, ", "));
     if (values.size() > 0) {
 	uint32_t prt = ((values.size() >> ibis::gVerbose) > 1) ?
 	    (1U << ibis::gVerbose) : values.size();
@@ -3762,8 +3762,8 @@ ibis::qAnyString::qAnyString(const char *col, const char *sval)
 void ibis::qAnyString::print(std::ostream& out) const {
     if (name.empty()) return;
     out << name << " IN (";
-//     std::copy(values.begin(), values.end(),
-// 	      std::ostream_iterator<std::string>(out, ", "));
+    //     std::copy(values.begin(), values.end(),
+    // 	      std::ostream_iterator<std::string>(out, ", "));
     if (values.size() > 0) {
 	out << values[0];
 	for (uint32_t i = 1; i < values.size(); ++ i)
@@ -3867,7 +3867,7 @@ void ibis::qAnyAny::getTableNames(std::set<std::string>& plist) const {
 ibis::qKeyword::qKeyword(const char* ls, const char* rs) :
     qExpr(ibis::qExpr::KEYWORD), name(ibis::util::strnewdup(ls)) {
     // attempt to remove the back slash as escape characters
-    kword = new char[1+strlen(rs)];
+    kword = new char[1+std::strlen(rs)];
     const char* cptr = rs;
     char* dptr = kword;
     while (*cptr != 0) {
@@ -3904,7 +3904,7 @@ ibis::qAllWords::qAllWords(const char *sname, const char *s1, const char *s2)
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
 		stricmp(s1, s2)
 #else
-		strcmp(s1, s2)
+		std::strcmp(s1, s2)
 #endif
 		<= 0) {
 		values.push_back(s1);

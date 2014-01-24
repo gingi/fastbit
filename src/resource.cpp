@@ -135,7 +135,7 @@ int ibis::resource::read(const char* fn) {
 	     line[0]=='!' || line[0]=='#' )
 	    continue; // skip comment line
 
-	char* tmp = line + (strlen(line) - 1);
+	char* tmp = line + (std::strlen(line) - 1);
 	*tmp = static_cast<char>(0); // get rid of the '\n'
 	--tmp;
 	while (isspace(*tmp) && tmp>=line) { // remove trailing blanks
@@ -412,7 +412,7 @@ void ibis::resource::parseNameValuePairs(const char *in,
 		}
 		else {
 		    lst[name] = ibis::util::strnewdup(str);
-		    str += strlen(str);
+		    str += std::strlen(str);
 		}
 	    }
 	    else  {
@@ -475,7 +475,7 @@ void ibis::resource::write(std::ostream& out, const char* ctx) const {
 	// write groups recursively
 	char* tmp;
 	if (ctx) {
-	    tmp = new char[strlen(ctx)+strlen(prefix)+3];
+	    tmp = new char[std::strlen(ctx)+std::strlen(prefix)+3];
 	    strcpy(tmp, ctx);
 	    strcat(tmp, "*");
 	    strcat(tmp, prefix);
