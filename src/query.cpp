@@ -21,10 +21,9 @@
 #include <stdarg.h>     // vsprintf
 #include <ctype.h>      // isspace, tolower
 
-#include <memory>       // std::unique_ptr
-#include <algorithm>    // std::sort
-#include <sstream>      // std::ostringstream
-#include <cmath>	// std::log
+#include <memory>	// std::unique_ptr
+#include <algorithm>	// std::sort
+#include <sstream>	// std::ostringstream
 
 namespace ibis {
 #if defined(TEST_SCAN_OPTIONS)
@@ -1539,10 +1538,10 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
 
     bool noBundles = true;
     if (myDir != 0) {
-        char* name = new char[std::strlen(myDir)+16];
-        sprintf(name, "%s%cbundles", myDir, FASTBIT_DIRSEP);
-        noBundles = (ibis::util::getFileSize(name) == 0);
-        delete [] name;
+	char* name = new char[std::strlen(myDir)+16];
+	sprintf(name, "%s%cbundles", myDir, FASTBIT_DIRSEP);
+	noBundles = (ibis::util::getFileSize(name) == 0);
+	delete [] name;
     }
     if (noBundles) { // attempt to create the bundles if no record of them
         const bool newlock = (dslock == 0);
@@ -2061,9 +2060,9 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
     myDir(0), rids_in(0), mypart(0), dstime(0) {
     const char *ptr = strrchr(dir, FASTBIT_DIRSEP);
     if (ptr == 0) {
-        myID = ibis::util::strnewdup(dir);
-        myDir = new char[std::strlen(dir)+2];
-        strcpy(myDir, dir);
+	myID = ibis::util::strnewdup(dir);
+	myDir = new char[std::strlen(dir)+2];
+	strcpy(myDir, dir);
     }
     else if (ptr[1] == static_cast<char>(0)) {
         // dir name ends with FASTBIT_DIRSEP
@@ -2078,9 +2077,9 @@ ibis::query::query(const char* dir, const ibis::partList& tl) :
         }
     }
     else { 
-        myID = ibis::util::strnewdup(ptr+1);
-        myDir = new char[std::strlen(dir)+2];
-        strcpy(myDir, dir);
+	myID = ibis::util::strnewdup(ptr+1);
+	myDir = new char[std::strlen(dir)+2];
+	strcpy(myDir, dir);
     }
     uint32_t j = std::strlen(myDir);
     myDir[j] = FASTBIT_DIRSEP;
@@ -2137,8 +2136,8 @@ char* ibis::query::newToken(const char *uid) {
 
     // compute the three components of the token
     if (uid != 0 && *uid != 0)
-        // a checksum of the user name
-        ta = ibis::util::checksum(uid, std::strlen(uid));
+	// a checksum of the user name
+	ta = ibis::util::checksum(uid, std::strlen(uid));
     else
         ta = 0;
 #if (_XOPEN_SOURCE - 0) >= 500
@@ -2464,20 +2463,20 @@ void ibis::query::setMyDir(const char *pref) {
 #endif
 
     if (cacheDir) {
-        if (std::strlen(cacheDir)+std::strlen(myID)+10<PATH_MAX) {
-            myDir = new char[std::strlen(cacheDir)+std::strlen(myID)+3];
-            sprintf(myDir, "%s%c%s", cacheDir, FASTBIT_DIRSEP, myID);
-        }
-        else {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- CacheDirectory(\"" << cacheDir
-                << "\") too long";
-            throw "path for CacheDirectory is too long";
-        }
+	if (std::strlen(cacheDir)+std::strlen(myID)+10<PATH_MAX) {
+	    myDir = new char[std::strlen(cacheDir)+std::strlen(myID)+3];
+	    sprintf(myDir, "%s%c%s", cacheDir, FASTBIT_DIRSEP, myID);
+	}
+	else {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- CacheDirectory(\"" << cacheDir
+		<< "\") too long";
+	    throw "path for CacheDirectory is too long";
+	}
     }
     else {
-        myDir = new char[10+std::strlen(myID)];
-        sprintf(myDir, ".ibis%c%s", FASTBIT_DIRSEP, myID);
+	myDir = new char[10+std::strlen(myID)];
+	sprintf(myDir, ".ibis%c%s", FASTBIT_DIRSEP, myID);
     }
     uint32_t j = std::strlen(myDir);
     myDir[j] = FASTBIT_DIRSEP;
@@ -2560,34 +2559,34 @@ void ibis::query::logWarning(const char* event, const char* fmt, ...) const {
         }
     }
     else {
-        char* s = new char[std::strlen(fmt)+MAX_LINE];
-        if (s != 0) {
-            va_list args;
-            va_start(args, fmt);
-            vsprintf(s, fmt, args);
-            va_end(args);
+	char* s = new char[std::strlen(fmt)+MAX_LINE];
+	if (s != 0) {
+	    va_list args;
+	    va_start(args, fmt);
+	    vsprintf(s, fmt, args);
+	    va_end(args);
 
-            ibis::util::logger lg;
-            lg() << "Warning -- query[" << myID << "]::" << event
-                 << " -- " << s;
-            if (errno != 0) {
-                if (errno != ENOENT)
-                    lg() << " ... " << strerror(errno);
-                errno = 0;
-            }
-            delete [] s;
-        }
-        else {
-            FILE* fptr = ibis::util::getLogFile();
-            ibis::util::ioLock lock;
-            fprintf(fptr, "Warning -- query[%s]::%s -- ", myID, event);
-            va_list args;
-            va_start(args, fmt);
-            vfprintf(fptr, fmt, args);
-            va_end(args);
-            fprintf(fptr, "\n");
-            fflush(fptr);
-        }
+	    ibis::util::logger lg;
+	    lg() << "Warning -- query[" << myID << "]::" << event
+		 << " -- " << s;
+	    if (errno != 0) {
+		if (errno != ENOENT)
+		    lg() << " ... " << strerror(errno);
+		errno = 0;
+	    }
+	    delete [] s;
+	}
+	else {
+	    FILE* fptr = ibis::util::getLogFile();
+	    ibis::util::ioLock lock;
+	    fprintf(fptr, "Warning -- query[%s]::%s -- ", myID, event);
+	    va_list args;
+	    va_start(args, fmt);
+	    vfprintf(fptr, fmt, args);
+	    va_end(args);
+	    fprintf(fptr, "\n");
+	    fflush(fptr);
+	}
     }
 #else
     if (strnicmp(lastError, "ERROR", 5) != 0) {
@@ -3439,13 +3438,13 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
-        ierr = doScan(term->getLeft(), mask, ht);
-        if (ierr >= 0) {
-            std::unique_ptr<ibis::bitvector> tmp(mask - ht);
-            ht.copy(*tmp);
-            ierr = ht.cnt();
-        }
-        break;
+	ierr = doScan(term->getLeft(), mask, ht);
+	if (ierr >= 0) {
+	    std::unique_ptr<ibis::bitvector> tmp(mask - ht);
+	    ht.copy(*tmp);
+	    ierr = ht.cnt();
+	}
+	break;
     }
     case ibis::qExpr::LOGICAL_AND: {
         ierr = doScan(term->getLeft(), mask, ht);
@@ -3474,7 +3473,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
-		std::auto_ptr<ibis::bitvector> newmask(mask - ht);
+		std::unique_ptr<ibis::bitvector> newmask(mask - ht);
 		ierr = doScan(term->getRight(), *newmask, b1);
 	    }
 	    else {
@@ -4591,7 +4590,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
         -- ptr;
     }
     if (std::strcmp(fn, "<NULL>")) { // not NONE
-        setWhereClause(fn);
+	setWhereClause(fn);
     }
     else { // read the remaining part of the file to fill rids_in
         if (rids_in != 0)
@@ -4712,11 +4711,11 @@ ibis::RIDSet* ibis::query::readRIDs() const {
 /// Write the list of RIDs to a file named "-rids".
 void ibis::query::writeRIDs(const ibis::RIDSet* rids) const {
     if (rids != 0 && myDir != 0) {
-        char *fn = new char[std::strlen(myDir) + 8];
-        strcpy(fn, myDir);
-        strcat(fn, "-rids");
-        rids->write(fn);
-        delete [] fn;
+	char *fn = new char[std::strlen(myDir) + 8];
+	strcpy(fn, myDir);
+	strcat(fn, "-rids");
+	rids->write(fn);
+	delete [] fn;
     }
 } // ibis::query::writeRIDs
 

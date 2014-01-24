@@ -16,37 +16,28 @@ ibis::dictionary::dictionary() {
 /// Copy constructor.  Places all the string in one contiguous buffer.
 ibis::dictionary::dictionary(const ibis::dictionary& old)
     : raw_(old.raw_.size()), buffer_(1) {
+    raw_[0] = 0;
     if (old.key_.empty()) {
-        buffer_.clear();
-        return;
+	buffer_[0] = 0;
+	return;
     }
 
-    const uint32_t nraw = old.raw_.size();
+    const uint32_t nelm = old.raw_.size();
     // find out the size of the buffer to allocate
-    size_t sz = 0;
-    for (size_t i = 0; i < nraw; ++ i) {
-        if (old.raw_[i] != 0) {
-            sz += 1 + std::strlen(old.raw_[i]);
-        }
-    }
-
-    // allocate memeory, record in buffer_
+    size_t sz = nelm;
+    for (size_t i = 1; i < nelm; ++ i)
+	sz += std::strlen(old.raw_[i+1U]);
     char *str = new char[sz];
     buffer_[0] = str;
 
-    // copy the string values and populate the hash map
-    for (size_t i = 0; i < nraw; ++ i) {
-        if (old.raw_[i] != 0) {
-            raw_[i] = str;
-            for (const char *t = old.raw_[i]; *t != 0; ++ t, ++ str)
-                *str = *t;
-            *str = 0;
-            ++ str;
-            key_[raw_[i]] = i;
-        }
-        else {
-            raw_[i] = 0;
-        }
+    // copy the string values and populate the hash_map
+    for (size_t i = 0; i < nelm; ++ i) {
+	raw_[i+1U] = str;
+	for (const char *t = old.raw_[i+1U]; *t != 0; ++ t, ++ str)
+	    *str = *t;
+	*str = 0;
+	++ str;
+        key_[raw_[i+1U]] = i+1U;
     }
 } // copy constructor
 
@@ -54,14 +45,12 @@ ibis::dictionary::dictionary(const ibis::dictionary& old)
 /// The two dictionaries are considered same only if they have the same
 /// keys in the same order.
 bool ibis::dictionary::equal_to(const ibis::dictionary& other) const {
-    if (key_.size() != other.key_.size())
-        return false;
+    if (key_.size() != other.key_.size() || raw_.size() != other.raw_.size())
+	return false;
 
-    for (MYMAP::const_iterator it = key_.begin(); it != key_.end(); ++ it) {
-        MYMAP::const_iterator ot = other.key_.find(it->first);
-        if (it->second != ot->second)
-            return false;
-    }
+    for (size_t j = 1; j < raw_.size(); ++ j)
+	if (std::strcmp(raw_[j], other.raw_[j]) != 0)
+	    return false;
     return true;
 } // ibis::dictionary::equal_to
 
@@ -96,17 +85,12 @@ int ibis::dictionary::write(const char* name) const {
             "null string as the file name";
         return -1;
     }
-    if (ibis::gVerbose > 1) {
-        evt += '(';
-        evt += name;
-        evt += ')';
-    }
-    if (key_.size() > raw_.size()) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt
-            << " can not write an inconsistent dictionary, key_.size("
-            << key_.size() << "), raw_.size(" << raw_.size() << ")";
-        return -2;
+    if (key_.size()+1U != raw_.size()) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- dictionary::write(" << name
+	    << ") can not write an inconsistent dictionary, key_.size("
+	    << key_.size() << "), raw_.size(" << raw_.size() << ")";
+	return -2;
     }
 
     ibis::util::timer mytimer(evt.c_str(), 4);
@@ -136,26 +120,20 @@ int ibis::dictionary::write(const char* name) const {
         return -5;
     }
     if (nkeys == 0) // nothing else to write
-        return 0;
+	return 0;
 
-    mergeBuffers();
-    array_t<uint64_t> pos(nkeys+1);
-    array_t<uint32_t> qos(nkeys);
-
-    pos.clear();
-    qos.clear();
-    pos.push_back(0);
-    if (buffer_.size() == 1) {
-        for (uint32_t j = 0; j < raw_.size(); ++ j) {
-            if (raw_[j] != 0) {
-                pos.push_back(1U + strlen(raw_[j]));
-                qos.push_back(j);
-            }
+    {
+        array_t<uint32_t> tmp(nkeys);
+        for (uint32_t j = 0; j < nkeys; ++ j)
+            tmp[j] = j+1U;
+        ierr = fwrite(tmp.begin(), sizeof(uint32_t), nkeys, fptr);
+        if (ierr != (int)nkeys) {
+            LOGGER(ibis::gVerbose > 1)
+                << "Warning -- dictionary::write(" << name
+                << ") failed to write " << nkeys << " code value"
+                << (nkeys>1?"s":"") << ", fwrite returned " << ierr;
+            return -6;
         }
-        ierr = writeBuffer(fptr, nkeys, pos, qos);
-    }
-    else {
-        ierr = writeKeys(fptr, nkeys, pos, qos);
     }
     LOGGER(ibis::gVerbose > 1)
         << evt << " complete with ierr = " << ierr;
@@ -170,27 +148,25 @@ int ibis::dictionary::writeKeys(FILE *fptr, uint32_t nkeys,
                                 array_t<uint32_t> &qos) const {
     int ierr = fseek(fptr, 8*(nkeys+1)+4*nkeys, SEEK_CUR);
     long int tmp = ftell(fptr);
-    pos.clear();
-    qos.clear();
-    pos.push_back(tmp);
-    for (uint32_t j = 0; j < raw_.size(); ++ j) {
-        if (raw_[j] != 0) {
-            const int len = 1 + std::strlen(raw_[j]);
-            ierr = fwrite(raw_[j], 1, len, fptr);
-            LOGGER(ierr != len && ibis::gVerbose > 1)
-                << "Warning -- dictionary::writeKeys failed to write key["
-                << j << "]; expected fwrite to return " << len
-                << ", but got " << ierr;
+    pos[0] = tmp;
+    for (unsigned i = 0; i < nkeys; ++ i) {
+	const int len = 1 + std::strlen(raw_[i+1U]);
+	ierr = fwrite(raw_[i+1U], 1, len, fptr);
+	LOGGER(ierr != len && ibis::gVerbose > 1)
+	    << "Warning -- dictionary::write(" << name
+	    << ") failed to write key[" << i << "]; expected fwrite to return "
+	    << len << ", but got " << ierr;
 
-            tmp += len;
-            qos.push_back(j);
-            pos.push_back(tmp);
-        }
+	tmp = ftell(fptr);
+	pos[i+1] = tmp;
+	LOGGER((long int)(pos[i+1]) != tmp && ibis::gVerbose > 1)
+	    << "Warning -- dictionary::write(" << name
+	    << ") failed to store position " << tmp
+	    << " into a 32-bit integer; dictionary file will be unusable!";
     }
 
-    tmp = 0;
-    // go back to write the offsets/positions
-    ierr = fseek(fptr, 24, SEEK_SET);
+    // go back to write the positions
+    ierr = fseek(fptr, 24+4*nkeys, SEEK_SET);
     LOGGER(ierr != 0 && ibis::gVerbose > 1)
         << "Warning -- dictionary::writeKeys failed to seek to offset 24 "
         "to write the offsets";
@@ -296,49 +272,8 @@ int ibis::dictionary::read(const char* name) {
 
     uint32_t version = 0xFFFFFFFFU;
     long int sz = ftell(fptr); // file size
-    if (sz > 24) {
-        char header[20];
-        ierr = fseek(fptr, 0, SEEK_SET);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- " << evt << " failed to seek to the beginning "
-                "of the file";
-            return -4;
-        }
-
-        ierr = fread(header, 1, 20, fptr);
-        if (ierr != 20) {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- " << evt << " failed to read the 20-byte header";
-            return -5;
-        }
-        if (header[0] == _fastbit_dictionary_header[0] &&
-            header[1] == _fastbit_dictionary_header[1] &&
-            header[2] == _fastbit_dictionary_header[2] &&
-            header[3] == _fastbit_dictionary_header[3] &&
-            header[4] == _fastbit_dictionary_header[4] &&
-            header[5] == _fastbit_dictionary_header[5] &&
-            header[6] == _fastbit_dictionary_header[6] &&
-            header[7] == _fastbit_dictionary_header[7] &&
-            header[8] == _fastbit_dictionary_header[8] &&
-            header[9] == _fastbit_dictionary_header[9] &&
-            header[10] == _fastbit_dictionary_header[10] &&
-            header[11] == _fastbit_dictionary_header[11] &&
-            header[12] == _fastbit_dictionary_header[12] &&
-            header[13] == _fastbit_dictionary_header[13] &&
-            header[14] == _fastbit_dictionary_header[14] &&
-            header[15] == _fastbit_dictionary_header[15]) {
-            version = (header[16] << 24 | header[17] << 16 |
-                       header[18] << 8 | header[19]);
-            LOGGER(ibis::gVerbose > 3)
-                << evt << " detected dictionary version 0x" << std::hex
-                << version << std::dec;
-        }
-        else {
-            LOGGER(ibis::gVerbose > 2)
-                << evt << " did not find the expected header, assume "
-                "to have no header (oldest version of dictioinary)";
-        }
+    if (sz < 24) { // attempt to treat it as an old-style dictionary file
+	return readRaw(evt.c_str(), fptr);
     }
 
     // invoke the actual reader based on version number
@@ -364,10 +299,8 @@ int ibis::dictionary::read(const char* name) {
     return ierr;
 } // ibis::dictionary::read
 
-/// Read the raw strings.  This is for the oldest style dictionary that
-/// contains the raw strings.  There is no header in the dictionary file,
-/// therefore this function has rewind back to the beginning of the file.
-/// On successful completion, this function returns 0.
+/// Read the raw strings.  This is the older style dictionary that contains
+/// the raw strings.  On successful completion, this function returns 0.
 int ibis::dictionary::readRaw(const char *evt, FILE *fptr) {
     int ierr = fseek(fptr, 0, SEEK_END);
     if (ierr != 0) {
@@ -408,30 +341,21 @@ int ibis::dictionary::readRaw(const char *evt, FILE *fptr) {
     const char *str = buffer_[0];
     const char *end = buffer_[0] + ierr;
     do {
-        key_[str] = raw_.size();
         raw_.push_back(str);
-        while (*str != 0 && str < end) ++ str;
-        if (*str == 0) {
-            ++ str;
-        }
+        key_[str] = cd;
+	while (*str != 0 && str < end) ++ str;
+	if (*str == 0) {
+	    ++ cd;
+	    ++ str;
+	}
     } while (str < end);
 
-#if DEBUG+0 > 2 || _DEBUG+0 > 2
-    ibis::util::logger lg;
-    lg() << "DEBUG -- " << evt << " got the following keys";
-    for (MYMAP::const_iterator it = key_.begin(); it != key_.end(); ++ it)
-        lg() << "\n\t" << it->second << ": " << it->first;
-#endif
     return 0;
 } // ibis::dictionary::readRaw
 
-/// Read the string values.  This function processes the data produced by
-/// version 0x00000000 of the write function.  On successful completion, it
-/// returns 0.
-///
-/// Note that this function assume the 20-byte header has been read
-/// already.
-int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
+/// Read the string values.  This function process the data produced by
+/// the write function.  On successful completion, it returns 0.
+int ibis::dictionary::readKeys(const char *evt, FILE *fptr) {
     uint32_t nkeys;
     int ierr = fread(&nkeys, 4, 1, fptr);
     if (ierr != 1) {
@@ -442,13 +366,13 @@ int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
     }
 
     clear();
-    array_t<uint32_t> codes(nkeys);
-    ierr = fread(codes.begin(), 4, nkeys, fptr);
-    if (ierr != (long)nkeys) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt << " failed to read " << nkeys
-            << ", fread returned " << ierr;
-        return -7;
+    // skip forward 4*nkeys bytes
+    ierr = fseek(fptr, 4*nkeys, SEEK_CUR);
+    if (ierr != 0) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " failed to seek to the offsets "
+	    "at positioin " << 24+4*nkeys << ", fseek returned " << ierr;
+	return -7;
     }
 
     array_t<uint32_t> offsets(nkeys+1);
@@ -471,77 +395,9 @@ int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
         return -9;
     }
     raw_.resize(nkeys+1);
-    raw_[0] = 0;
-    // some implementation of unordered_map does have function reserve
-    // key_.reserve(nkeys+nkeys);
+    key_.reserve(nkeys+nkeys);
     for (unsigned j = 0; j < nkeys; ++ j) {
-        const uint32_t ik = codes[j];
-        if (ik > 0 && ik <= nkeys) {
-            raw_[ik] = buffer_[0] + (offsets[j] - offsets[0]);
-            key_[raw_[ik]] = ik;
-        }
-        else {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- " << evt << " encounter code " << ik
-                << " which is out of the expected range [0, " << nkeys << ']';
-        }
-#if DEBUG+0 > 2 || _DEBUG+0 > 2
-        LOGGER(ibis::gVerbose > 0)
-            << "DEBUG -- " << evt << " raw_[" << ik << "] = \"" << raw_[ik]
-            << '"';
-#endif
-    }
-
-#if DEBUG+0 > 2 || _DEBUG+0 > 2
-    ibis::util::logger lg;
-    lg() << "DEBUG -- " << evt << " got the following keys\n\t";
-    for (MYMAP::const_iterator it = key_.begin(); it != key_.end(); ++ it)
-        lg() << "\n\t" << it->second << ": " << it->first;
-#endif
-    return 0;
-} // ibis::dictionary::readKeys0
-
-/// Read the string values.  This function processes the data produced by
-/// version 0x01000000 of the write function.  On successful completion, it
-/// returns 0.
-int ibis::dictionary::readKeys1(const char *evt, FILE *fptr) {
-    uint32_t nkeys;
-    int ierr = fread(&nkeys, 4, 1, fptr);
-    if (ierr != 1) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt
-            << " failed to read the number of keys, fread returned " << ierr;
-        return -6;
-    }
-
-    clear();
-
-    array_t<uint64_t> offsets(nkeys+1);
-    ierr = fread(offsets.begin(), 8, nkeys+1, fptr);
-    if (ierr != (int)(1+nkeys)) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt << " failed to read the string positions, "
-            "expected fread to return " << nkeys+1 << ", but got " << ierr;
-        return -8;
-    }
-
-    buffer_.resize(1);
-    buffer_[0] = new char[offsets.back()-offsets.front()];
-    ierr = fread(buffer_[0], 1, offsets.back()-offsets.front(), fptr);
-    if (ierr != (int)(offsets.back()-offsets.front())) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt << " failed to read the strings, "
-            "expected fread to return " << (offsets.back()-offsets.front())
-            << ", but got " << ierr;
-        return -9;
-    }
-    raw_.resize(nkeys+1);
-    raw_[0] = 0;
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 7)
-    key_.reserve(nkeys+nkeys); // older version does not have reserve
-#endif
-    for (unsigned j = 0; j < nkeys; ++ j) {
-        raw_[j+1] = buffer_[0] + (offsets[j] - offsets[0]);
+	raw_[j+1] = buffer_[0] + (offsets[j] - offsets[0]);
         key_[raw_[j+1]] = j+1;
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
         LOGGER(ibis::gVerbose > 0)
@@ -552,9 +408,9 @@ int ibis::dictionary::readKeys1(const char *evt, FILE *fptr) {
 
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
     ibis::util::logger lg;
-    lg() << "DEBUG -- " << evt << " got the following keys";
+    lg() << "DEBUG -- " << evt << " got the following keys\n\t";
     for (MYMAP::const_iterator it = key_.begin(); it != key_.end(); ++ it)
-        lg() << "\n\t" << it->second << ": " << it->first;
+        lg() << '"' << it->first << '"' << "(" << it->second << ") ";
 #endif
     return 0;
 } // ibis::dictionary::readKeys1
@@ -745,13 +601,13 @@ void ibis::dictionary::patternSearch(const char* pat,
     if (pat == 0) return;
     //if (*pat == 0) return;//empty string is allowed
     if (key_.size() == 0) return;
-    if (key_.size() > raw_.size()) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- dictionary::patternSearch(" << pat
-            << ") can not proceed because the member variables have "
-            "inconsistent sizes: raw_.size(" << raw_.size() << ", key_.size("
-            << key_.size() << ')';
-        return;
+    if (! (key_.size()+1 == raw_.size())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- dictionary::patternSearch(" << pat
+	    << ") can not proceed because the member variables have "
+	    "inconsistent sizes: raw_.size(" << raw_.size() << ", key_.size("
+	    << key_.size() << ')';
+	return;
     }
 
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
@@ -791,19 +647,19 @@ void ibis::dictionary::patternSearch(const char* pat,
 
     // if there is no meta char, find the string already
     if (!meta) {
-        uint32_t code = operator[](prefix.c_str());
-        if (code < raw_.size()) {
-            matches.push_back(code);
-        }
-        return;
+	uint32_t code = operator[](prefix.c_str());
+	if (code < raw_.size()) {
+	    matches.push_back(code);
+	}
+	return;
     }
 
     // match values in the range
     for (MYMAP::const_iterator j = key_.begin();
          j != key_.end(); ++ j) {
-        if (ibis::util::strMatch(j->first, pat)) {
-            matches.push_back(j->second);
-        }
+	if (ibis::util::strMatch(j->first, pat)) {
+	    matches.push_back(j->second);
+	}
     }
 
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
@@ -814,11 +670,11 @@ void ibis::dictionary::patternSearch(const char* pat,
     for (unsigned j = 0; j < matches.size(); ++ j)
         lg() << matches[j] << ' ';
 #endif
-} // ibis::dictionary::patternSearch
+}
 
-/// Convert a string to its integer code.  Returns 0xFFFFFFFFU for null
-/// strings, 0:size()-1 for strings in the dictionary, and
-/// dictionary::size() for unknown values.
+/// Convert a string to its integer code.  Returns 0 for empty (null)
+/// strings, 1:size() for strings in the dictionary, and
+/// dictionary::size()+1 for unknown values.
 uint32_t ibis::dictionary::operator[](const char* str) const {
     if (str == 0) return 0xFFFFFFFFU;
 #ifdef FASTBIT_EMPTY_STRING_AS_NULL
@@ -962,16 +818,6 @@ uint32_t ibis::dictionary::insert(const char* str) {
 #ifdef FASTBIT_EMPTY_STRING_AS_NULL
     if (*str == 0) return 0xFFFFFFFFU;
 #endif
-    if (! (code_.size() == key_.size() &&
-	   key_.size()+1 == raw_.size())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- dictionary::insert(" << str
-	    << ") can not proceed because the member variables have "
-	    "inconsistent sizes: raw_.size(" << raw_.size() << ", key_.size("
-	    << key_.size() << "), and code_.size(" << code_.size() << ')';
-	return 0;
-    }
-
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
     for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
         *ptr = toupper(*ptr);
@@ -981,8 +827,8 @@ uint32_t ibis::dictionary::insert(const char* str) {
     if (it != key_.end()) {
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
         LOGGER(ibis::gVerbose > 0)
-            << "DEBUG -- dictionary::insert(" << str
-            << ") return an existing code " << it->second;
+            << "DEBUG -- dictionary::insert(" << str << ") return an existing code "
+            << it->second;
 #endif
         return it->second;
     }
@@ -995,8 +841,7 @@ uint32_t ibis::dictionary::insert(const char* str) {
         key_[copy] = nk;
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
         LOGGER(ibis::gVerbose > 0)
-            << "DEBUG -- dictionary::insert(" << raw_.back()
-            << ") return a new code " << nk;
+            << "DEBUG -- dictionary::insert(" << raw_.back() << ") return a new code " << nk;
 #endif
         return nk;
     }
@@ -1018,38 +863,18 @@ uint32_t ibis::dictionary::appendOrdered(const char* str) {
 #ifdef FASTBIT_EMPTY_STRING_AS_NULL
     if (*str == 0) return 0;
 #endif
-    if (! (code_.size() == key_.size() &&
-	   key_.size()+1 == raw_.size())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- dictionary::appendOrdered(" << str
-	    << ") can not proceed because the member variables have "
-	    "inconsistent sizes: raw_.size(" << raw_.size() << ", key_.size("
-	    << key_.size() << "), and code_.size(" << code_.size() << ')';
-	return 0;
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
+    for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
+	*ptr = toupper(*ptr);
     }
+#endif
 
     const uint32_t ind = key_.size();
     char *copy = ibis::util::strnewdup(str);
     buffer_.push_back(copy);
     raw_.push_back(copy);
-    key_.push_back(copy);
-    code_[ind] = ind+1;
-#if defined(_DEBUG) || defined(DEBUG)
-    bool ordered = true;
-    for (unsigned j = 1; ordered && j < nk; ++ j)
-	ordered = (strcmp(key_[j-1], key_[j]) <= 0);
-    if (ordered == false && ibis::gVerbose >= 0) {
-	ibis::util::logger lg;
-	lg() << "Warning -- dictionary::appendOrdered(" << str
-	     << ") incorrectly produced an unsorted list of keys";
-	for (unsigned j = 0; j < nk; ++ j) {
-	    lg() << "\nkey[" << j << "] = " << key_[j];
-	    if (j > 0 && strcmp(key_[j-1], key_[j]) > 0)
-		lg() << "\t<-- out of order";
-	}
-    }
-#endif
-    return nk;
+    key_[copy] = ind+1U;
+    return ind+1U;
 } // ibis::dictionary::appendOrdered
 
 /// Non-copying insert.  Do not make a copy of the input string.  Transfers
@@ -1061,39 +886,6 @@ uint32_t ibis::dictionary::insertRaw(char* str) {
     if (str == 0) return 0;
 #ifdef FASTBIT_EMPTY_STRING_AS_NULL
     if (*str == 0) return 0;
-#endif
-    if (! (code_.size() == key_.size() &&
-	   key_.size()+1 == raw_.size())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- dictionary::insertRaw(" << str
-	    << ") can not proceed because the member variables have "
-	    "inconsistent sizes: raw_.size(" << raw_.size() << ", key_.size("
-	    << key_.size() << "), and code_.size(" << code_.size() << ')';
-	return 0;
-    }
-#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
-    for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
-        *ptr = toupper(*ptr);
-    }
-#endif
-
-    const uint32_t ind = key_.size();
-    char *copy = ibis::util::strnewdup(str);
-    buffer_.push_back(copy);
-    raw_.push_back(copy);
-    key_[copy] = ind;
-    return ind;
-} // ibis::dictionary::appendOrdered
-
-/// Non-copying insertion.  Do not make a copy of the input string.
-/// Transfers the ownership of @c str to the dictionary.  Caller needs to
-/// check whether it is a new word in the dictionary.  If it is not a new
-/// word in the dictionary, the dictionary does not take ownership of the
-/// string argument.
-uint32_t ibis::dictionary::insertRaw(char* str) {
-    if (str == 0) return 0xFFFFFFFFU;
-#ifdef FASTBIT_EMPTY_STRING_AS_NULL
-    if (*str == 0) return 0xFFFFFFFFU;
 #endif
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
     for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
@@ -1136,7 +928,7 @@ void ibis::dictionary::sort(ibis::array_t<uint32_t> &o2n) {
             lg() << '"' << it->first << '"' << "(" << it->second << ") ";
     }
 #endif
-    ibis::util::sortStrings(raw_, n2o);
+    ibis::util::sortStrings(raw_, n2o, 1, nelm);
     o2n.resize(nelm);
     for (size_t j = 0; j < nelm; ++ j)
         o2n[n2o[j]] = j;
@@ -1147,8 +939,7 @@ void ibis::dictionary::sort(ibis::array_t<uint32_t> &o2n) {
         ibis::util::logger lg;
         lg() << "DEBUG -- dictionary::sort ends with";
         for (MYMAP::const_iterator it = key_.begin(); it != key_.end(); ++ it)
-            lg() << "\n\t\"" << it->first << '"' << "(" << it->second << ": "
-                 << raw_[it->second] << ") ";
+            lg() << "\n\t\"" << it->first << '"' << "(" << it->second << ": " << raw_[it->second] << ") ";
         lg() << "\n\to2n(" << o2n.size() << "):";
         for (size_t j = 1; j < nelm; ++ j)
             lg() << "\n\to2n[" << j << "] = " << o2n[j] << ": " << raw_[o2n[j]];
@@ -1166,7 +957,7 @@ void ibis::dictionary::sort(ibis::array_t<uint32_t> &o2n) {
 int ibis::dictionary::merge(const ibis::dictionary& rhs) {
     const uint32_t nr = rhs.key_.size();
     if (nr == 0) {
-        return key_.size();
+	return key_.size();
     }
 
     for (size_t j = 1; j < rhs.raw_.size(); ++ j)
@@ -1200,70 +991,4 @@ int ibis::dictionary::morph(const ibis::dictionary &old,
         o2n[j0] = operator[](raw_[j0]);
     return nold;
 } // ibis::dictioniary::morph
-
-/// Merge all buffers into a single one.  New memory is allocated to store
-/// the string values together if they are stored in different locations
-/// currently.
-///
-/// @note Logically, this function does not change the content of the
-/// dictionary, but it actually need to change a number of pointers.  The
-/// implementation of the function uses the copy-swap idiom to take
-/// advantage of the copy constructor.
-void ibis::dictionary::mergeBuffers() const {
-    if (buffer_.size() <= 1) return; // nothing to do
-
-    try {
-        ibis::dictionary tmp(*this); // consolidate buffers here
-        const_cast<dictionary*>(this)->swap(tmp);
-    }
-    catch (...) {
-        // it is fine to keep the original content
-    }
-} // ibis::dictionary::mergeBuffers
-
-
-/// Hash function for C-style string values.  This is an adaptation of
-/// MurMurHash3 that generates 32-bit hash values.
-size_t std::hash<const char*>::operator()(const char* x) const {
-    const int len = std::strlen(x);
-    const int nblocks = len / 4;
-    uint32_t h1 = 0;
-    const uint32_t c1 = 0xcc9e2d51;
-    const uint32_t c2 = 0x1b873593;
-    // bulk of the bytes
-    const uint32_t * blocks = (const uint32_t *)(x + nblocks*4);
-    for (int i = -nblocks; i; i++) {
-        uint32_t k1 = blocks[i];
-
-        k1 *= c1;
-        k1 = FASTBIT_ROTL32(k1,15);
-        k1 *= c2;
-
-        h1 ^= k1;
-        h1 = FASTBIT_ROTL32(h1,13);
-        h1 = h1*5+0xe6546b64;
-    }
-
-    // tail
-    const uint8_t * tail = (const uint8_t*)(x + nblocks*4);
-    uint32_t k1 = 0;
-    switch (len & 3) {
-    case 3: k1 ^= tail[2] << 16;
-    case 2: k1 ^= tail[1] << 8;
-    case 1: k1 ^= tail[0];
-        k1 *= c1;
-        k1 = FASTBIT_ROTL32(k1,15);
-        k1 *= c2;
-        h1 ^= k1;
-    };
-
-    //----------
-    // finalize
-    h1 ^= len;
-    h1 ^= h1 >> 16;
-    h1 *= 0x85ebca6b;
-    h1 ^= h1 >> 13;
-    h1 *= 0xc2b2ae35;
-    h1 ^= h1 >> 16;
-    return h1;
-} // std::hash<const char*>::operator()
+    

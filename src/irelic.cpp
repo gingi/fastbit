@@ -1171,8 +1171,7 @@ long ibis::relic::append(const array_t<uint32_t>& ind) {
 /// Create an index based on data in df and append the result to the index
 /// in dt.
 long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
-    if (col == 0 || dt == 0 || *dt == 0 || df == 0 || *df == 0 || nnew == 0)
-        return -1L;    
+    if (dt == 0 || *dt == 0 || df == 0 || *df == 0 || nnew == 0) return -1L;    
     const uint32_t nold =
         (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
          col->partition()->nRows()-nnew : nrows);

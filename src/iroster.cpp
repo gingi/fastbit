@@ -84,14 +84,14 @@ int ibis::roster::write(const char* df) const {
         fnm += FASTBIT_DIRSEP;
     }
     else {
-        fnm = df;
-        uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
-        if (pos >= fnm.size()) pos = 0;
-        else ++ pos;
-        if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
-            fnm += FASTBIT_DIRSEP;
+	fnm = df;
+	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
+	if (pos >= fnm.size()) pos = 0;
+	else ++ pos;
+	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
+	    fnm += FASTBIT_DIRSEP;
     }
-    off_t ierr = fnm.size();
+    uint32_t ierr = fnm.size();
     if (fnm[ierr-1] == FASTBIT_DIRSEP)
         fnm += col->name();
     ierr = fnm.size();
@@ -145,12 +145,12 @@ int ibis::roster::writeSorted(const char *df) const {
         fnm += FASTBIT_DIRSEP;
     }
     else {
-        fnm = df;
-        uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
-        if (pos >= fnm.size()) pos = 0;
-        else ++ pos;
-        if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
-            fnm += FASTBIT_DIRSEP;
+	fnm = df;
+	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
+	if (pos >= fnm.size()) pos = 0;
+	else ++ pos;
+	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
+	    fnm += FASTBIT_DIRSEP;
     }
     uint32_t ierr = fnm.size();
     if (fnm[ierr-1] == FASTBIT_DIRSEP)
@@ -569,12 +569,12 @@ int ibis::roster::read(const char* idxf) {
         fnm += FASTBIT_DIRSEP;
     }
     else {
-        fnm = idxf;
-        uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
-        if (pos >= fnm.size()) pos = 0;
-        else ++ pos;
-        if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
-            fnm += FASTBIT_DIRSEP;
+	fnm = idxf;
+	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
+	if (pos >= fnm.size()) pos = 0;
+	else ++ pos;
+	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
+	    fnm += FASTBIT_DIRSEP;
     }
     long ierr = fnm.size();
     if (fnm[ierr-1] == FASTBIT_DIRSEP)
@@ -630,9 +630,21 @@ int ibis::roster::read(ibis::fileManager::storage* st) {
 void ibis::roster::icSort(const char* fin) {
     long ierr;
     std::string fnm;
-    LOGGER(col->dataFileName(fnm, fin) == 0 && ibis::gVerbose > 2)
-        << "roster::icSort can not generate data file name";
-
+    if (fin == 0) {
+	fnm = col->partition()->currentDataDir();
+	fnm += FASTBIT_DIRSEP;
+    }
+    else {
+	fnm = fin;
+	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
+	if (pos >= fnm.size()) pos = 0;
+	else ++ pos;
+	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
+	    fnm += FASTBIT_DIRSEP;
+    }
+    long ierr = fnm.size();
+    if (fnm[ierr-1] == FASTBIT_DIRSEP)
+	fnm += col->name();
     ibis::horometer timer;
     if (ibis::gVerbose > 1) {
         timer.start();
@@ -964,12 +976,12 @@ void ibis::roster::oocSort(const char *fin) {
         nind += FASTBIT_DIRSEP;
     }
     else {
-        nind = fin;
-        uint32_t pos = nind.rfind(FASTBIT_DIRSEP);
-        if (pos >= nind.size()) pos = 0;
-        else ++ pos;
-        if (std::strcmp(nind.c_str()+pos, col->name()) != 0)
-            nind += FASTBIT_DIRSEP;
+	nind = fin;
+	uint32_t pos = nind.rfind(FASTBIT_DIRSEP);
+	if (pos >= nind.size()) pos = 0;
+	else ++ pos;
+	if (std::strcmp(nind.c_str()+pos, col->name()) != 0)
+	    nind += FASTBIT_DIRSEP;
     }
     long ierr = nind.size();
     if (nind[ierr-1] == FASTBIT_DIRSEP)
@@ -3100,14 +3112,14 @@ ibis::roster::locate2(const ibis::array_t<inT>& vals,
                       std::vector<uint32_t>& positions) const {
     int ierr;
     if (std::strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
-        std::vector<myT> myvals; // copy values to the correct type
-        myvals.reserve(vals.size());
-        for (uint32_t j = 0; j < vals.size(); ++ j) {
-            myT tmp = static_cast<myT>(vals[j]);
-            if (static_cast<inT>(tmp) == vals[j])
-                myvals.push_back(tmp);
-        }
-        ierr = locate<myT>(myvals, positions);
+	std::vector<myT> myvals; // copy values to the correct type
+	myvals.reserve(vals.size());
+	for (uint32_t j = 0; j < vals.size(); ++ j) {
+	    myT tmp = static_cast<myT>(vals[j]);
+	    if (static_cast<inT>(tmp) == vals[j])
+		myvals.push_back(tmp);
+	}
+	ierr = locate<myT>(myvals, positions);
     }
     else {
         ierr = locate<inT>(vals, positions);
@@ -3293,14 +3305,14 @@ ibis::roster::locate2(const std::vector<inT>& vals,
                       std::vector<uint32_t>& positions) const {
     int ierr;
     if (std::strcmp(typeid(inT).name(), typeid(myT).name()) != 0) {
-        std::vector<myT> myvals; // copy values to the correct type
-        myvals.reserve(vals.size());
-        for (uint32_t j = 0; j < vals.size(); ++ j) {
-            myT tmp = static_cast<myT>(vals[j]);
-            if (static_cast<inT>(tmp) == vals[j])
-                myvals.push_back(tmp);
-        }
-        ierr = locate<myT>(myvals, positions);
+	std::vector<myT> myvals; // copy values to the correct type
+	myvals.reserve(vals.size());
+	for (uint32_t j = 0; j < vals.size(); ++ j) {
+	    myT tmp = static_cast<myT>(vals[j]);
+	    if (static_cast<inT>(tmp) == vals[j])
+		myvals.push_back(tmp);
+	}
+	ierr = locate<myT>(myvals, positions);
     }
     else {
         ierr = locate<inT>(vals, positions);

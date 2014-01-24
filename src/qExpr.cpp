@@ -1495,10 +1495,10 @@ void ibis::qContinuousRange::restrictRange(double left, double right) {
         left_op = OP_LE;
     }
     if (((right_op == OP_LT || right_op == OP_LE) && upper > right) ||
-        ((left_op == OP_LT || left_op == OP_LE) &&
-         right_op == OP_UNDEFINED)) {
-        upper = right;
-        right_op = OP_LE;
+	((left_op == OP_LT || left_op == OP_LE) &&
+	 right_op == OP_UNDEFINED)) {
+	upper = right;
+	right_op = OP_LE;
     }
     if ((left_op == OP_EQ && right_op == OP_UNDEFINED &&
          (lower < left || lower > right)) ||
@@ -2023,21 +2023,21 @@ void ibis::math::barrel::recordVariable(const ibis::qExpr* const t) {
         recordVariable(static_cast<const ibis::math::term*>(t));
         break;
     case ibis::qExpr::DEPRECATEDJOIN: {
-        const ibis::deprecatedJoin &dj =
-            *static_cast<const ibis::deprecatedJoin*>(t);
-        recordVariable(dj.getName1());
-        recordVariable(dj.getName2());
-        recordVariable(dj.getRange());
-        break;}
+	const ibis::deprecatedJoin &dj =
+	    *static_cast<const ibis::deprecatedJoin*>(t);
+	recordVariable(dj.getName1());
+	recordVariable(dj.getName2());
+	recordVariable(dj.getRange());
+	break;}
         // case ibis::qExpr::ANYANY: {
-        //      const char *pref = static_cast<const ibis::qAnyAny*>(t)->getPrefix();
-        //      const int len = std::strlen(pref);
-        //      for (unsigned j = 0; j < part0.nColumns(); ++ j) {
-        //          if (strnicmp(part0.getColumn(j)->name(), pref, len) == 0) {
-        //              recordVariable(part0.getColumn(j)->name());
-        //          }
-        //      }
-        //      break;}
+        // 	const char *pref = static_cast<const ibis::qAnyAny*>(t)->getPrefix();
+        // 	const int len = std::strlen(pref);
+        // 	for (unsigned j = 0; j < part0.nColumns(); ++ j) {
+        // 	    if (strnicmp(part0.getColumn(j)->name(), pref, len) == 0) {
+        // 		recordVariable(part0.getColumn(j)->name());
+        // 	    }
+        // 	}
+        // 	break;}
     }
 } // ibis::math::barrel::recordVariable
 
@@ -2239,33 +2239,33 @@ ibis::math::term* ibis::math::stdFunction1::reduce() {
 
     ibis::math::term *ret = this;
     if (lhs->termType() == ibis::math::NUMBER) {
-        double arg = lhs->eval();
-        switch (ftype) {
-        case ACOS: ret = new ibis::math::number(acos(arg)); break;
-        case ASIN: ret = new ibis::math::number(asin(arg)); break;
-        case ATAN: ret = new ibis::math::number(atan(arg)); break;
-        case CEIL: ret = new ibis::math::number(ceil(arg)); break;
-        case COS: ret = new ibis::math::number(cos(arg)); break;
-        case COSH: ret = new ibis::math::number(cosh(arg)); break;
-        case EXP: ret = new ibis::math::number(exp(arg)); break;
-        case FABS: ret = new ibis::math::number(fabs(arg)); break;
-        case FLOOR: ret = new ibis::math::number(floor(arg)); break;
-        case IS_ZERO: ret = new ibis::math::number((arg==0)); break;
-        case IS_NONZERO: ret = new ibis::math::number((0!=arg)); break;
-        case FREXP: {int expptr;
+	double arg = lhs->eval();
+	switch (ftype) {
+	case ACOS: ret = new ibis::math::number(acos(arg)); break;
+	case ASIN: ret = new ibis::math::number(asin(arg)); break;
+	case ATAN: ret = new ibis::math::number(atan(arg)); break;
+	case CEIL: ret = new ibis::math::number(ceil(arg)); break;
+	case COS: ret = new ibis::math::number(cos(arg)); break;
+	case COSH: ret = new ibis::math::number(cosh(arg)); break;
+	case EXP: ret = new ibis::math::number(exp(arg)); break;
+	case FABS: ret = new ibis::math::number(fabs(arg)); break;
+	case FLOOR: ret = new ibis::math::number(floor(arg)); break;
+	case IS_ZERO: ret = new ibis::math::number((arg==0)); break;
+	case IS_NONZERO: ret = new ibis::math::number((0!=arg)); break;
+	case FREXP: {int expptr;
                 ret = new ibis::math::number(frexp(arg, &expptr)); break;}
-        case LOG10: ret = new ibis::math::number(log10(arg)); break;
-        case LOG: ret = new ibis::math::number(log(arg)); break;
-        case MODF: {double intptr;
+	case LOG10: ret = new ibis::math::number(log10(arg)); break;
+	case LOG: ret = new ibis::math::number(log(arg)); break;
+	case MODF: {double intptr;
                 ret = new ibis::math::number(modf(arg, &intptr)); break;}
-        case ROUND: ret = new ibis::math::number(floor(arg+0.5)); break;
-        case SIN: ret = new ibis::math::number(sin(arg)); break;
-        case SINH: ret = new ibis::math::number(sinh(arg)); break;
-        case SQRT: ret = new ibis::math::number(sqrt(arg)); break;
-        case TAN: ret = new ibis::math::number(tan(arg)); break;
-        case TANH: ret = new ibis::math::number(tanh(arg)); break;
-        default: break;
-        }
+	case ROUND: ret = new ibis::math::number(floor(arg+0.5)); break;
+	case SIN: ret = new ibis::math::number(sin(arg)); break;
+	case SINH: ret = new ibis::math::number(sinh(arg)); break;
+	case SQRT: ret = new ibis::math::number(sqrt(arg)); break;
+	case TAN: ret = new ibis::math::number(tan(arg)); break;
+	case TANH: ret = new ibis::math::number(tanh(arg)); break;
+	default: break;
+	}
     }
     else if (ftype == ACOS && lhs->termType() ==
              ibis::math::STDFUNCTION1) {
@@ -2603,92 +2603,92 @@ ibis::math::term* ibis::math::bediener::reduce() {
         }
         break;}
     case ibis::math::PLUS: {
-        if (lhs->termType() == ibis::math::NUMBER &&
-            rhs->termType() == ibis::math::NUMBER) {
-            // both sides are numbers
-            ret = new ibis::math::number(lhs->eval() + rhs->eval());
-        }
-        else if (lhs->termType() == ibis::math::NUMBER &&
-                 lhs->eval() == 0.0) {
-            ret = static_cast<ibis::math::term*>(getRight());
-            getRight() = 0;
-        }
-        else if (rhs->termType() == ibis::math::NUMBER &&
-                 rhs->eval() == 0.0) {
-            ret = static_cast<ibis::math::term*>(getLeft());
-            getLeft() = 0;
-        }
-        else if (lhs->termType() == ibis::math::VARIABLE &&
-                 rhs->termType() == ibis::math::VARIABLE &&
-                 std::strcmp(static_cast<ibis::math::variable*>
+	if (lhs->termType() == ibis::math::NUMBER &&
+	    rhs->termType() == ibis::math::NUMBER) {
+	    // both sides are numbers
+	    ret = new ibis::math::number(lhs->eval() + rhs->eval());
+	}
+	else if (lhs->termType() == ibis::math::NUMBER &&
+		 lhs->eval() == 0.0) {
+	    ret = static_cast<ibis::math::term*>(getRight());
+	    getRight() = 0;
+	}
+	else if (rhs->termType() == ibis::math::NUMBER &&
+		 rhs->eval() == 0.0) {
+	    ret = static_cast<ibis::math::term*>(getLeft());
+	    getLeft() = 0;
+	}
+	else if (lhs->termType() == ibis::math::VARIABLE &&
+		 rhs->termType() == ibis::math::VARIABLE &&
+		 std::strcmp(static_cast<ibis::math::variable*>
                              (lhs)->variableName(),
                              static_cast<ibis::math::variable*>
                              (rhs)->variableName()) == 0) {
-            // both sides are the same variable name
-            number *ntmp = new number(2.0);
-            bediener *btmp = new bediener(MULTIPLY);
-            btmp->getLeft() = ntmp;
-            btmp->getRight() = getRight();
-            getRight() = 0;
-            ret = btmp;
-        }
-        else if (lhs->termType() == ibis::math::OPERATOR &&
-                 rhs->termType() == ibis::math::OPERATOR &&
-                 static_cast<ibis::math::term*>(lhs->getLeft())->termType()
-                 == ibis::math::NUMBER &&
-                 static_cast<ibis::math::term*>(rhs->getLeft())->termType()
-                 == ibis::math::NUMBER &&
-                 static_cast<ibis::math::term*>
-                 (lhs->getRight())->termType() == ibis::math::VARIABLE &&
-                 static_cast<ibis::math::term*>
-                 (rhs->getRight())->termType() == ibis::math::VARIABLE &&
-                 std::strcmp(static_cast<ibis::math::variable*>
+	    // both sides are the same variable name
+	    number *ntmp = new number(2.0);
+	    bediener *btmp = new bediener(MULTIPLY);
+	    btmp->getLeft() = ntmp;
+	    btmp->getRight() = getRight();
+	    getRight() = 0;
+	    ret = btmp;
+	}
+	else if (lhs->termType() == ibis::math::OPERATOR &&
+		 rhs->termType() == ibis::math::OPERATOR &&
+		 static_cast<ibis::math::term*>(lhs->getLeft())->termType()
+		 == ibis::math::NUMBER &&
+		 static_cast<ibis::math::term*>(rhs->getLeft())->termType()
+		 == ibis::math::NUMBER &&
+		 static_cast<ibis::math::term*>
+		 (lhs->getRight())->termType() == ibis::math::VARIABLE &&
+		 static_cast<ibis::math::term*>
+		 (rhs->getRight())->termType() == ibis::math::VARIABLE &&
+		 std::strcmp(static_cast<ibis::math::variable*>
                              (lhs->getRight())->variableName(),
                              static_cast<ibis::math::variable*>
                              (rhs->getRight())->variableName()) == 0) {
-            ret = lhs->dup();
-            static_cast<ibis::math::number*>(ret->getLeft())->val +=
-                static_cast<ibis::math::term*>(rhs->getLeft())->eval();
-        }
-        break;}
+	    ret = lhs->dup();
+	    static_cast<ibis::math::number*>(ret->getLeft())->val +=
+		static_cast<ibis::math::term*>(rhs->getLeft())->eval();
+	}
+	break;}
     case ibis::math::MINUS: {
-        if (lhs->termType() == ibis::math::NUMBER &&
-            rhs->termType() == ibis::math::NUMBER) {
-            ret = new ibis::math::number(lhs->eval() - rhs->eval());
-        }
-        else if (rhs->termType() == ibis::math::NUMBER &&
-                 rhs->eval() == 0.0) {
-            ret = static_cast<ibis::math::term*>(getLeft());
-            getLeft() = 0;
-        }
-        else if (lhs->termType() == ibis::math::VARIABLE &&
-                 rhs->termType() == ibis::math::VARIABLE &&
-                 std::strcmp(static_cast<ibis::math::variable*>
+	if (lhs->termType() == ibis::math::NUMBER &&
+	    rhs->termType() == ibis::math::NUMBER) {
+	    ret = new ibis::math::number(lhs->eval() - rhs->eval());
+	}
+	else if (rhs->termType() == ibis::math::NUMBER &&
+		 rhs->eval() == 0.0) {
+	    ret = static_cast<ibis::math::term*>(getLeft());
+	    getLeft() = 0;
+	}
+	else if (lhs->termType() == ibis::math::VARIABLE &&
+		 rhs->termType() == ibis::math::VARIABLE &&
+		 std::strcmp(static_cast<ibis::math::variable*>
                              (lhs)->variableName(),
                              static_cast<ibis::math::variable*>
                              (rhs)->variableName()) == 0) {
-            // both sides are the same variable name
-            ret = new number(0.0);
-        }
-        else if (lhs->termType() == ibis::math::OPERATOR &&
-                 rhs->termType() == ibis::math::OPERATOR &&
-                 static_cast<ibis::math::term*>(lhs->getLeft())->termType()
-                 == ibis::math::NUMBER &&
-                 static_cast<ibis::math::term*>(rhs->getLeft())->termType()
-                 == ibis::math::NUMBER &&
-                 static_cast<ibis::math::term*>
-                 (lhs->getRight())->termType() == ibis::math::VARIABLE &&
-                 static_cast<ibis::math::term*>
-                 (rhs->getRight())->termType() == ibis::math::VARIABLE &&
-                 std::strcmp(static_cast<ibis::math::variable*>
+	    // both sides are the same variable name
+	    ret = new number(0.0);
+	}
+	else if (lhs->termType() == ibis::math::OPERATOR &&
+		 rhs->termType() == ibis::math::OPERATOR &&
+		 static_cast<ibis::math::term*>(lhs->getLeft())->termType()
+		 == ibis::math::NUMBER &&
+		 static_cast<ibis::math::term*>(rhs->getLeft())->termType()
+		 == ibis::math::NUMBER &&
+		 static_cast<ibis::math::term*>
+		 (lhs->getRight())->termType() == ibis::math::VARIABLE &&
+		 static_cast<ibis::math::term*>
+		 (rhs->getRight())->termType() == ibis::math::VARIABLE &&
+		 std::strcmp(static_cast<ibis::math::variable*>
                              (lhs->getRight())->variableName(),
                              static_cast<ibis::math::variable*>
                              (rhs->getRight())->variableName()) == 0) {
-            ret = lhs->dup();
-            static_cast<ibis::math::number*>(ret->getLeft())->val -=
-                static_cast<ibis::math::term*>(rhs->getLeft())->eval();
-        }
-        break;}
+	    ret = lhs->dup();
+	    static_cast<ibis::math::number*>(ret->getLeft())->val -=
+		static_cast<ibis::math::term*>(rhs->getLeft())->eval();
+	}
+	break;}
     case ibis::math::MULTIPLY: {
         if (lhs->termType() == ibis::math::NUMBER &&
             lhs->eval() == 0.0) {
@@ -3424,7 +3424,7 @@ ibis::qDiscreteRange::qDiscreteRange(const char *col,
 void ibis::qDiscreteRange::print(std::ostream& out) const {
     out << name << " IN (";
     //     std::copy(values.begin(), values.end(),
-    //        std::ostream_iterator<double>(out, ", "));
+    // 	      std::ostream_iterator<double>(out, ", "));
     if (values.size() > 0) {
         uint32_t prt = ((values.size() >> ibis::gVerbose) > 1) ?
             (1U << ibis::gVerbose) : values.size();
@@ -3825,7 +3825,7 @@ void ibis::qAnyString::print(std::ostream& out) const {
     if (name.empty()) return;
     out << name << " IN (";
     //     std::copy(values.begin(), values.end(),
-    //        std::ostream_iterator<std::string>(out, ", "));
+    // 	      std::ostream_iterator<std::string>(out, ", "));
     if (values.size() > 0) {
         out << values[0];
         for (uint32_t i = 1; i < values.size(); ++ i)
@@ -3966,7 +3966,7 @@ ibis::qAllWords::qAllWords(const char *sname, const char *s1, const char *s2)
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
                 stricmp(s1, s2)
 #else
-                std::strcmp(s1, s2)
+		std::strcmp(s1, s2)
 #endif
                 <= 0) {
                 values.push_back(s1);

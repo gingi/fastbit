@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.8.8], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.8.9], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -152,88 +152,24 @@ if test "x$xopt" = "xyes" ; then
    	]])], [], [CXXFLAGS="$OLDCXXFLAGS -O3"])
 fi
 
-AC_ARG_WITH(extracflags,
-	AS_HELP_STRING([--with-extracflags=extra-cflags],
-	[specify additional C compilation flags if needed]),
-	[if test "x$with_extracflags" != "xno" ; then
-	  CFLAGS="$CFLAGS $with_extracflags"
+AC_ARG_WITH(extraflags,
+	AS_HELP_STRING([--with-extraflags=extra-cflags],
+	[specify additional compilation flags if needed]),
+	[if test "x$with_extraflags" != "xno" ; then
+	  CXXFLAGS="$CXXFLAGS $with_extraflags"
+	  CFLAGS="$CFLAGS $with_extraflags"
 	fi], [])
 
-AC_ARG_WITH(extracxxflags,
-	AS_HELP_STRING([--with-extracxxflags=extra-cflags],
-	[specify additional C++ compilation flags if needed]),
-	[if test "x$with_extracxxflags" != "xno" ; then
-	  CXXFLAGS="$CXXFLAGS $with_extracxxflags"
-	  EXTRA_CXXFLAGS="$with_extracxxflags"
-	fi], [])
-
-# test to determine if any known flags are needed for unordered_map
-AC_MSG_CHECKING([for unordered_map])
-AC_COMPILE_IFELSE([
-    AC_LANG_PROGRAM([[
-	#include <unordered_map>
-	]], [[
-	std::unordered_map<const char*, unsigned, std::hash<const char*>,
-	std::equal_to<const char*> > myhashmap;
-	return (myhashmap.size() == 0);
-	]])], [AC_DEFINE(HAVE_UNORDERED_MAP, 1, [Compiler support std::unordered_map])], [
-	    ac_save_CFLAGS="$CFLAGS"
-	    ac_save_CXXFLAGS="$CXXFLAGS"
-	    ac_save_XCXXFLAGS="$EXTRA_CXXFLAGS"
-	    CFLAGS="$CFLAGS -std=c99";
-	    EXTRA_CXXFLAGS="-std=c++11";
-	    CXXFLAGS="$CXXFLAGS -std=c++11";
-	    AC_COMPILE_IFELSE([
-	    AC_LANG_PROGRAM([[
-		#include <unordered_map>
-		]], [[
-		std::unordered_map<const char*, unsigned,
-		std::hash<const char*>,
-		std::equal_to<const char*> > myhashmap;
-		return (myhashmap.size() == 0);
-		]])], [AC_MSG_RESULT([yes])
-		AC_DEFINE(HAVE_UNORDERED_MAP, 2, [Compiler support std::unordered_map])],[AC_MSG_RESULT([no])
-
-		# c++11 not found, trying c++0x
-		AC_MSG_CHECKING([for c++0x])
-		EXTRA_CXXFLAGS=$(echo "$EXTRA_CXXFLAGS" | sed 's/c++11/c++0x/')
-		CXXFLAGS=$(echo "$CXXFLAGS" | sed 's/c++11/c++0x/')
-		AC_COMPILE_IFELSE([
-		   AC_LANG_PROGRAM([[
-			#include <unordered_map>
-			]], [[
-			std::unordered_map<const char*, unsigned,
-			std::hash<const char*>,
-			std::equal_to<const char*> > myhashmap;
-			return (myhashmap.size() == 0);
-			]])], [AC_MSG_RESULT([yes])
-			AC_DEFINE(HAVE_UNORDERED_MAP, 3, [Compiler support std::unordered_map])], [AC_MSG_RESULT([no])
-
-			# c++0x not found, trying gnu++0x
-			AC_MSG_CHECKING([for gnu++0x])
-			EXTRA_CXXFLAGS=$(echo "$EXTRA_CXXFLAGS" | sed 's/c++0x/gnu++0x/')
-			CXXFLAGS=$(echo "$CXXFLAGS" | sed 's/c++0x/gnu++0x/')
-			AC_COMPILE_IFELSE([
-		   	AC_LANG_PROGRAM([[
-			#include <unordered_map>
-			]], [[
-			std::unordered_map<const char*, unsigned,
-			std::hash<const char*>,
-			std::equal_to<const char*> > myhashmap;
-			return (myhashmap.size() == 0);
-			]])], [AC_MSG_RESULT([yes])
-			AC_DEFINE(HAVE_UNORDERED_MAP, 4, [Compiler support std::unordered_map])], [AC_MSG_RESULT([no])
-			      CXXFLAGS="$ac_save_CXXFLAGS -Werror"
-			      AC_TRY_COMPILE([[
-			      #include <ext/hash_map>
-			      ]], [[
-			      using __gnu_cxx::hash_map;
-			      ]],
-			      [CFLAGS="$ac_save_CFLAGS"
-			      CXXFLAGS="$ac_save_CXXFLAGS"
-			      EXTRA_CXXFLAGS="ac_save_X$CXXFLAGS"],
-			      [AC_MSG_ERROR([$CXX not able to compile a sample code with std::unordered_map using c++11 or c++0x.  Consider using GCC 4.8 or newer])])
-	])])])])
+# test to determine if any known flags are needed
+if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
+   AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
+elif AC_TRY_COMMAND($CXX $CXXFLAGS -std=c++11 -c src/util.cpp) && test -s util.o; then
+  CXXFLAGS="$CXXFLAGS -std=c++11";
+  AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
+else
+  AC_MSG_ERROR([$CXX not able to compile src/util.cpp])
+fi
+/bin/rm -f util.o
 
 AC_ARG_WITH(getpwuid,
 	AS_HELP_STRING([--with-getpwuid],[specify --without-getpwuid to disable the attempt to use getpwuid to determine the user name]),

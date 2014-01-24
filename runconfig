@@ -13,7 +13,7 @@ print "Configuring on ${HOSTNAME}\n";
 
 if (${HOSTNAME} =~ m/^bit/) {
   # on a Mac used by a developer, enable maintainer mode, use debug options # CC=gcc-mp-4.7 CXX=g++-mp-4.7 # CC=clang CXX=clang++ -gdwarf-2 
-  $cmd="./configure --prefix=${HOME}/tmp/fastbit --enable-maintainer-mode --with-java CFLAGS='-g -O0 -Wall -ansi' CXXFLAGS='-g -O0 -Wall -ansi'";
+  $cmd="./configure --prefix=${HOME}/tmp/fastbit --enable-maintainer-mode --with-java CFLAGS='-g -O0 -Wall' CXXFLAGS='-g -O0 -Wall'";
 } elsif (${HOSTNAME} =~ m/^data5[.lbl.gov]?$/) {
   # on data5, know where is java and where to install, use extra optimization
   $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.7.0 --prefix=/data/john/Linux";
@@ -28,7 +28,7 @@ if (${HOSTNAME} =~ m/^bit/) {
 } elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/) {
   # on the front end of hopper at NERSC, there is a choice to be made about what compiler to use
   # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-pgi PrgEnv-gnu'\n\n";
-  $cmd="./configure --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
+  $cmd="./configure --without-getpwuid CFLAGS='-fPIC -O -std=c++11' CXXFLAGS='-fPIC -O -std=c++11' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
   #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
 } elsif (${HOSTNAME} =~ m/^sith/) {# sith.ccs.ornl.gov
   # on sith at ORNL, try GNU compilers

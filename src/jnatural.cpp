@@ -10,8 +10,8 @@
 #include "fromClause.h"
 #include "selectClause.h"
 
-#include <memory>       // std::unique_ptr
-#include <stdexcept>    // std::exception
+#include <memory>	// std::unique_ptr
+#include <stdexcept>	// std::exception
 
 /// Constructor.  This constructor handles a join expression equivalent to
 /// one of the following SQL statements
@@ -602,8 +602,8 @@ ibis::jNatural::fillResult(size_t nrows,
     }
 
     std::unique_ptr<ibis::bord> res
-        (new ibis::bord(tn.c_str(), desc.c_str(), nrows,
-                        tbuff, ttypes, tcname));
+	(new ibis::bord(tn.c_str(), desc.c_str(), nrows,
+			tbuff, ttypes, tcname));
     return res.release();
 } // ibis::jNatural::fillResult
 
@@ -716,8 +716,8 @@ ibis::jNatural::fillResult(size_t nrows,
 
     std::string tn = ibis::util::shortName(desc.c_str());
     std::unique_ptr<ibis::bord> res
-        (new ibis::bord(tn.c_str(), desc.c_str(), nrows,
-                        tbuff, ttypes, tcname));
+	(new ibis::bord(tn.c_str(), desc.c_str(), nrows,
+			tbuff, ttypes, tcname));
     return res.release();
 } // ibis::jNatural::fillResult
 
@@ -1342,24 +1342,24 @@ ibis::table* ibis::jNatural::select(const char* sstr) const {
     }
 
     if ((features & 1) != 0) { // arithmetic computations
-        std::unique_ptr<ibis::table> 
-            res2(static_cast<const ibis::bord*>(res1.get())->evaluateTerms
-                 (sel, desc_.c_str()));
-        if (res2.get() != 0) {
-            if (ibis::gVerbose > 2) {
-                ibis::util::logger lg;
-                lg() << "jNatural::select(" << sstr << ", " << desc_
-                     << ") produced the second intermediate table:\n";
-                res2->describe(lg());
-            }
-            res1 = std::move(res2);
-        }
-        else {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- jNatural::select(" << sstr
-                << ") failed to evaluate the arithmetic expressions";
-            return res1.release();
-        }
+	std::unique_ptr<ibis::table> 
+	    res2(static_cast<const ibis::bord*>(res1.get())->evaluateTerms
+		 (sel, desc_.c_str()));
+	if (res2.get() != 0) {
+	    if (ibis::gVerbose > 2) {
+		ibis::util::logger lg;
+		lg() << "jNatural::select(" << sstr << ", " << desc_
+		     << ") produced the second intermediate table:\n";
+		res2->describe(lg());
+	    }
+	    res1 = std::move(res2);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- jNatural::select(" << sstr
+		<< ") failed to evaluate the arithmetic expressions";
+	    return res1.release();
+	}
     }
 
     if ((features & 2) != 0) { // aggregation operations

@@ -13,10 +13,10 @@
 #include "filter.h"     // ibis::filter
 #include "util.h"       // ibis::util::makeGuard
 
-#include <memory>       // std::unique_ptr
-#include <algorithm>    // std::sort
-#include <sstream>      // std::ostringstream
-#include <limits>       // std::numeric_limits
+#include <memory>	// std::unique_ptr
+#include <algorithm>	// std::sort
+#include <sstream>	// std::ostringstream
+#include <limits>	// std::numeric_limits
 
 /// Constructor.  The incoming where clause is applied to all known data
 /// partitions in ibis::datasets.
@@ -616,7 +616,7 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -760,7 +760,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd0;
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -786,119 +786,119 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 
     // main loop through each data partition, fill the initial selection
     for (ibis::constPartList::const_iterator it = plist.begin();
-         it != plist.end(); ++ it) {
-        LOGGER(ibis::gVerbose > 0)
-            << mesg << " -- processing data partition " << (*it)->name();
-        ierr = tms.verify(**it);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- select clause (" << tms
-                << ") contains variables that are not in data partition "
-                << (*it)->name();
-            ierr = -11;
-            continue;
-        }
+	 it != plist.end(); ++ it) {
+	LOGGER(ibis::gVerbose > 0)
+	    << mesg << " -- processing data partition " << (*it)->name();
+	ierr = tms.verify(**it);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- select clause (" << tms
+		<< ") contains variables that are not in data partition "
+		<< (*it)->name();
+	    ierr = -11;
+	    continue;
+	}
 
-        ibis::bitvector msk;
-        (*it)->getNullMask(msk);
-        ierr = brd1->append(tms, **it, msk);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << mesg << " failed to append " << msk.cnt()
-                << " row" << (msk.cnt() > 1 ? "s" : "") << " from "
-                << (*it)->name() << ", ierr = " << ierr;
-            continue;
-        }
-        if (ierr > 0) {
-            std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
-            if (tmp.get() == 0) {
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- " << mesg << " failed to evaluate the "
-                    "aggregation operation on the results from data partition "
-                    << (*it)->name();
-                continue;
-            }
+	ibis::bitvector msk;
+	(*it)->getNullMask(msk);
+	ierr = brd1->append(tms, **it, msk);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << " failed to append " << msk.cnt()
+		<< " row" << (msk.cnt() > 1 ? "s" : "") << " from "
+		<< (*it)->name() << ", ierr = " << ierr;
+	    continue;
+	}
+	if (ierr > 0) {
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    if (tmp.get() == 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << mesg << " failed to evaluate the "
+		    "aggregation operation on the results from data partition "
+		    << (*it)->name();
+		continue;
+	    }
 
-            // find the merging accumulator index,
-            // matching to the size of "merged-in" greouped partition.
-            unsigned int lg2 = ibis::util::log2(tmp->nRows());
-            if (lg2 < mergesFirst) mergesFirst = lg2;
-            if (lg2 > mergesLast) mergesLast = lg2;
+	    // find the merging accumulator index,
+	    // matching to the size of "merged-in" greouped partition.
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
+	    if (lg2 < mergesFirst) mergesFirst = lg2;
+	    if (lg2 > mergesLast) mergesLast = lg2;
 
-            if (merges[lg2].get() == 0) {
-                // no matching merging accumulator found, fill in the degree.
-                merges[lg2] = std::move(tmp);
-            }
-            else {
-                // merge in the grouped partition
-                ierr = merges[lg2]->merge(*tmp, tms);
-                if (ierr < 0) {
-                    LOGGER(ibis::gVerbose > 1)
-                        << "Warning -- " << mesg
-                        << " failed to merge partial results, ierr = " << ierr;
-                    return 0;
-                }
-                // let's check the fill factor, eventually do cascade merges.
-                while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
-                    // find the suitable merging accumulator index for
-                    // the accumulator containing new data
-                    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
-                    // if it still matches the current index, no cascade merge
-                    if (newlg2 <= lg2)
-                        break;
-                    // cascade merge is about to happen
-                    if (merges[newlg2].get() == 0) {
-                        // no accumulator exists yet at the index, just move
-                        merges[newlg2] = std::move(merges[lg2]);
-                    }
-                    else {
-                        // merge in the lower degree accumulator
-                        ierr = merges[newlg2]->merge(*merges[lg2], tms);
-                        if (ierr < 0) {
-                            LOGGER(ibis::gVerbose > 1)
-                                << "Warning -- " << mesg
-                                << " failed to merge partial results, ierr = "
-                                << ierr;
-                            return 0;
-                        }
-                        // lower degree accumulator merged, free it up
-                        merges[lg2].reset(0);
-                    }
-                    // let's continue with the accumulator at the new index
-                    lg2 = newlg2;
-                    if (lg2 > mergesLast) mergesLast = lg2;
-                }
-            }
-        }
-        brd1->limit(0);
+	    if (merges[lg2].get() == 0) {
+		// no matching merging accumulator found, fill in the degree.
+		merges[lg2] = std::move(tmp);
+	    }
+	    else {
+		// merge in the grouped partition
+		ierr = merges[lg2]->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
+		// let's check the fill factor, eventually do cascade merges.
+		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
+		    // find the suitable merging accumulator index for
+		    // the accumulator containing new data
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    // if it still matches the current index, no cascade merge
+		    if (newlg2 <= lg2)
+			break;
+		    // cascade merge is about to happen
+		    if (merges[newlg2].get() == 0) {
+			// no accumulator exists yet at the index, just move
+			merges[newlg2] = std::move(merges[lg2]);
+		    }
+		    else {
+			// merge in the lower degree accumulator
+			ierr = merges[newlg2]->merge(*merges[lg2], tms);
+			if (ierr < 0) {
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- " << mesg
+				<< " failed to merge partial results, ierr = "
+				<< ierr;
+			    return 0;
+			}
+			// lower degree accumulator merged, free it up
+			merges[lg2].reset(0);
+		    }
+		    // let's continue with the accumulator at the new index
+		    lg2 = newlg2;
+		    if (lg2 > mergesLast) mergesLast = lg2;
+		}
+	    }
+	}
+	brd1->limit(0);
     }
 
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
-        if (merges[j].get() != 0) {
-            // the smallest accumulator found, let's use it as base one
-            brd0 = std::move(merges[j]);
-            // process all the other accumulators, until we reach the end
-            while (++j <= mergesLast) {
-                // the slot may not be used, let's check
-                if (merges[j].get() != 0) {
-                    // slot is used, so merge it with the result
-                    ierr = merges[j]->merge(*brd0, tms);
-                    if (ierr < 0) {
-                        LOGGER(ibis::gVerbose > 1)
-                            << "Warning -- " << mesg
-                            << " failed to merge partial results, ierr = "
-                            << ierr;
-                        return 0;
-                    }
-                    // the result is the merged accumulator now
-                    brd0 = std::move(merges[j]);
-                }
-            }
-            break;
-        }
+	if (merges[j].get() != 0) {
+	    // the smallest accumulator found, let's use it as base one
+	    brd0 = std::move(merges[j]);
+	    // process all the other accumulators, until we reach the end
+	    while (++j <= mergesLast) {
+		// the slot may not be used, let's check
+		if (merges[j].get() != 0) {
+		    // slot is used, so merge it with the result
+		    ierr = merges[j]->merge(*brd0, tms);
+		    if (ierr < 0) {
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- " << mesg
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
+			return 0;
+		    }
+		    // the result is the merged accumulator now
+		    brd0 = std::move(merges[j]);
+		}
+	    }
+	    break;
+	}
     }
 
     if (brd0.get() == 0) // no answer
@@ -1012,7 +1012,7 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -1150,7 +1150,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd0;
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -1176,117 +1176,117 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 
     // main loop through each data partition, fill the initial selection
     for (ibis::constPartList::const_iterator it = plist.begin();
-         it != plist.end(); ++ it) {
-        LOGGER(ibis::gVerbose > 0)
-            << mesg << " -- processing data partition " << (*it)->name();
-        ierr = tms.verify(**it);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- select clause (" << tms
-                << ") contains variables that are not in data partition "
-                << (*it)->name();
-            ierr = -11;
-            continue;
-        }
-        ierr = brd1->append(tms, **it,
-                            *static_cast<const ibis::qContinuousRange*>
-                            (cond.getExpr()));
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << mesg << " failed to append rows satisfying "
-                << cond << " from " << (*it)->name() << ", ierr = " << ierr;
-            continue;
-        }
-        if (ierr > 0) {
-            std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
-            if (tmp.get() == 0) {
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- " << mesg << " failed to evaluate the "
-                    "aggregation operation on the results from data partition "
-                    << (*it)->name();
-                continue;
-            }
+	 it != plist.end(); ++ it) {
+	LOGGER(ibis::gVerbose > 0)
+	    << mesg << " -- processing data partition " << (*it)->name();
+	ierr = tms.verify(**it);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- select clause (" << tms
+		<< ") contains variables that are not in data partition "
+		<< (*it)->name();
+	    ierr = -11;
+	    continue;
+	}
+	ierr = brd1->append(tms, **it,
+			    *static_cast<const ibis::qContinuousRange*>
+			    (cond.getExpr()));
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << " failed to append rows satisfying "
+		<< cond << " from " << (*it)->name() << ", ierr = " << ierr;
+	    continue;
+	}
+	if (ierr > 0) {
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    if (tmp.get() == 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << mesg << " failed to evaluate the "
+		    "aggregation operation on the results from data partition "
+		    << (*it)->name();
+		continue;
+	    }
 
-            // find the merging accumulator index,
-            // matching to the size of "merged-in" greouped partition.
-            unsigned int lg2 = ibis::util::log2(tmp->nRows());
-            if (lg2 < mergesFirst) mergesFirst = lg2;
-            if (lg2 > mergesLast) mergesLast = lg2;
+	    // find the merging accumulator index,
+	    // matching to the size of "merged-in" greouped partition.
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
+	    if (lg2 < mergesFirst) mergesFirst = lg2;
+	    if (lg2 > mergesLast) mergesLast = lg2;
 
-            if (merges[lg2].get() == 0) {
-                // no matching merging accumulator found, fill in the degree.
-                merges[lg2] = std::move(tmp);
-            }
-            else {
-                // merge in the grouped partition
-                ierr = merges[lg2]->merge(*tmp, tms);
-                if (ierr < 0) {
-                    LOGGER(ibis::gVerbose > 1)
-                        << "Warning -- " << mesg
-                        << " failed to merge partial results, ierr = " << ierr;
-                    return 0;
-                }
-                // let's check the fill factor, eventually do cascade merges.
-                while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
-                    // find the suitable merging accumulator index for
-                    // the accumulator containing new data
-                    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
-                    // if it still matches the current index, no cascade merge
-                    if (newlg2 <= lg2)
-                        break;
-                    // cascade merge is about to happen
-                    if (merges[newlg2].get() == 0) {
-                        // no accumulator exists yet at the index, just move
-                        merges[newlg2] = std::move(merges[lg2]);
-                    }
-                    else {
-                        // merge in the lower degree accumulator
-                        ierr = merges[newlg2]->merge(*merges[lg2], tms);
-                        if (ierr < 0) {
-                            LOGGER(ibis::gVerbose > 1)
-                                << "Warning -- " << mesg
-                                << " failed to merge partial results, ierr = "
-                                << ierr;
-                            return 0;
-                        }
-                        // lower degree accumulator merged, free it up
-                        merges[lg2].reset(0);
-                    }
-                    // let's continue with the accumulator at the new index
-                    lg2 = newlg2;
-                    if (lg2 > mergesLast) mergesLast = lg2;
-                }
-            }
-        }
-        brd1->limit(0);
+	    if (merges[lg2].get() == 0) {
+		// no matching merging accumulator found, fill in the degree.
+		merges[lg2] = std::move(tmp);
+	    }
+	    else {
+		// merge in the grouped partition
+		ierr = merges[lg2]->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
+		// let's check the fill factor, eventually do cascade merges.
+		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
+		    // find the suitable merging accumulator index for
+		    // the accumulator containing new data
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    // if it still matches the current index, no cascade merge
+		    if (newlg2 <= lg2)
+			break;
+		    // cascade merge is about to happen
+		    if (merges[newlg2].get() == 0) {
+			// no accumulator exists yet at the index, just move
+			merges[newlg2] = std::move(merges[lg2]);
+		    }
+		    else {
+			// merge in the lower degree accumulator
+			ierr = merges[newlg2]->merge(*merges[lg2], tms);
+			if (ierr < 0) {
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- " << mesg
+				<< " failed to merge partial results, ierr = "
+				<< ierr;
+			    return 0;
+			}
+			// lower degree accumulator merged, free it up
+			merges[lg2].reset(0);
+		    }
+		    // let's continue with the accumulator at the new index
+		    lg2 = newlg2;
+		    if (lg2 > mergesLast) mergesLast = lg2;
+		}
+	    }
+	}
+	brd1->limit(0);
     }
 
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
-        if (merges[j].get() != 0) {
-            // the smallest accumulator found, let's use it as base one
-            brd0 = std::move(merges[j]);
-            // process all the other accumulators, until we reach the end
-            while (++j <= mergesLast) {
-                // the slot may not be used, let's check
-                if (merges[j].get() != 0) {
-                    // slot is used, so merge it with the result
-                    ierr = merges[j]->merge(*brd0, tms);
-                    if (ierr < 0) {
-                        LOGGER(ibis::gVerbose > 1)
-                            << "Warning -- " << mesg
-                            << " failed to merge partial results, ierr = "
-                            << ierr;
-                        return 0;
-                    }
-                    // the result is the merged accumulator now
-                    brd0 = std::move(merges[j]);
-                }
-            }
-            break;
-        }
+	if (merges[j].get() != 0) {
+	    // the smallest accumulator found, let's use it as base one
+	    brd0 = std::move(merges[j]);
+	    // process all the other accumulators, until we reach the end
+	    while (++j <= mergesLast) {
+		// the slot may not be used, let's check
+		if (merges[j].get() != 0) {
+		    // slot is used, so merge it with the result
+		    ierr = merges[j]->merge(*brd0, tms);
+		    if (ierr < 0) {
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- " << mesg
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
+			return 0;
+		    }
+		    // the result is the merged accumulator now
+		    brd0 = std::move(merges[j]);
+		}
+	    }
+	    break;
+	}
     }
 
     if (brd0.get() == 0) // no answer
@@ -1401,7 +1401,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -1582,7 +1582,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     ibis::util::timer atimer(mesg.c_str(), 2);
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -1728,7 +1728,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
 
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -1912,7 +1912,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd0;
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -1938,147 +1938,147 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 
     // main loop through each data partition
     for (ibis::constPartList::const_iterator it = plist.begin();
-         it != plist.end(); ++ it) {
-        LOGGER(ibis::gVerbose > 0)
-            << mesg << " -- processing data partition " << (*it)->name();
-        ierr = tms.verify(**it);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- select clause (" << tms
-                << ") contains variables that are not in data partition "
-                << (*it)->name();
-            ierr = -11;
-            continue;
-        }
-        ierr = qq.setSelectClause(&tms);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- failed to modify the select clause of "
-                << "the countQuery object (" << qq.getWhereClause()
-                << ") on data partition " << (*it)->name();
-            ierr = -12;
-            continue;
-        }
+	 it != plist.end(); ++ it) {
+	LOGGER(ibis::gVerbose > 0)
+	    << mesg << " -- processing data partition " << (*it)->name();
+	ierr = tms.verify(**it);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- select clause (" << tms
+		<< ") contains variables that are not in data partition "
+		<< (*it)->name();
+	    ierr = -11;
+	    continue;
+	}
+	ierr = qq.setSelectClause(&tms);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to modify the select clause of "
+		<< "the countQuery object (" << qq.getWhereClause()
+		<< ") on data partition " << (*it)->name();
+	    ierr = -12;
+	    continue;
+	}
 
-        ierr = qq.setPartition(*it);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- query.setPartition(" << (*it)->name()
-                << ") failed with error code " << ierr;
-            ierr = -13;
-            continue;
-        }
+	ierr = qq.setPartition(*it);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- query.setPartition(" << (*it)->name()
+		<< ") failed with error code " << ierr;
+	    ierr = -13;
+	    continue;
+	}
 
-        ierr = qq.evaluate();
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- failed to process query on data partition "
-                << (*it)->name();
-            ierr = -14;
-            continue;
-        }
+	ierr = qq.evaluate();
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to process query on data partition "
+		<< (*it)->name();
+	    ierr = -14;
+	    continue;
+	}
 
-        const ibis::bitvector* hits = qq.getHitVector();
-        if (hits == 0 || hits->cnt() == 0) continue;
+	const ibis::bitvector* hits = qq.getHitVector();
+	if (hits == 0 || hits->cnt() == 0) continue;
 
-        ierr = brd1->append(tms, **it, *hits);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << mesg << " failed to append " << hits->cnt()
-                << " row" << (hits->cnt() > 1 ? "s" : "") << " from "
-                << (*it)->name() << ", ierr = " << ierr;
-            continue;
-        }
-        if (ierr > 0) {
-            std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
-            if (tmp.get() == 0) {
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- " << mesg << " failed to evaluate the "
-                    "aggregation operation on the results from data partition "
-                    << (*it)->name();
-                continue;
-            }
+	ierr = brd1->append(tms, **it, *hits);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << " failed to append " << hits->cnt()
+		<< " row" << (hits->cnt() > 1 ? "s" : "") << " from "
+		<< (*it)->name() << ", ierr = " << ierr;
+	    continue;
+	}
+	if (ierr > 0) {
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    if (tmp.get() == 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << mesg << " failed to evaluate the "
+		    "aggregation operation on the results from data partition "
+		    << (*it)->name();
+		continue;
+	    }
 
-            // find the merging accumulator index,
-            // matching to the size of "merged-in" grouped partition.
-            unsigned int lg2 = ibis::util::log2(tmp->nRows());
-            if (lg2 < mergesFirst) mergesFirst = lg2;
-            if (lg2 > mergesLast) mergesLast = lg2;
+	    // find the merging accumulator index,
+	    // matching to the size of "merged-in" grouped partition.
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
+	    if (lg2 < mergesFirst) mergesFirst = lg2;
+	    if (lg2 > mergesLast) mergesLast = lg2;
 
-            if (merges[lg2].get() == 0) {
-                // no matching merging accumulator found, fill in the degree.
-                merges[lg2] = std::move(tmp);
-            }
-            else {
-                // merge in the grouped partition
-                ierr = merges[lg2]->merge(*tmp, tms);
-                if (ierr < 0) {
-                    LOGGER(ibis::gVerbose > 1)
-                        << "Warning -- " << mesg
-                        << " failed to merge partial results, ierr = " << ierr;
-                    return 0;
-                }
-                // let's check the fill factor, eventually do cascade merges.
-                while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
-                    // find the suitable merging accumulator index for
-                    // the accumulator containing new data
-                    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
-                    // if it still matches the current index, no cascade merge
-                    if (newlg2 <= lg2)
-                        break;
-                    // cascade merge is about to happen
-                    if (merges[newlg2].get() == 0) {
-                        // no accumulator exists yet at the index, just move
-                        merges[newlg2] = std::move(merges[lg2]);
-                    }
-                    else {
-                        // merge in the lower degree accumulator
-                        ierr = merges[newlg2]->merge(*merges[lg2], tms);
-                        if (ierr < 0) {
-                            LOGGER(ibis::gVerbose > 1)
-                                << "Warning -- " << mesg
-                                << " failed to merge partial results, ierr = "
-                                << ierr;
-                            return 0;
-                        }
-                        // lower degree accumulator merged, free it up
-                        merges[lg2].reset(0);
-                    }
-                    // let's continue with the accumulator at the new index
-                    lg2 = newlg2;
-                    if (lg2 > mergesLast) mergesLast = lg2;
-                }
-            }
-        }
-        brd1->limit(0);
+	    if (merges[lg2].get() == 0) {
+		// no matching merging accumulator found, fill in the degree.
+		merges[lg2] = std::move(tmp);
+	    }
+	    else {
+		// merge in the grouped partition
+		ierr = merges[lg2]->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
+		// let's check the fill factor, eventually do cascade merges.
+		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
+		    // find the suitable merging accumulator index for
+		    // the accumulator containing new data
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    // if it still matches the current index, no cascade merge
+		    if (newlg2 <= lg2)
+			break;
+		    // cascade merge is about to happen
+		    if (merges[newlg2].get() == 0) {
+			// no accumulator exists yet at the index, just move
+			merges[newlg2] = std::move(merges[lg2]);
+		    }
+		    else {
+			// merge in the lower degree accumulator
+			ierr = merges[newlg2]->merge(*merges[lg2], tms);
+			if (ierr < 0) {
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- " << mesg
+				<< " failed to merge partial results, ierr = "
+				<< ierr;
+			    return 0;
+			}
+			// lower degree accumulator merged, free it up
+			merges[lg2].reset(0);
+		    }
+		    // let's continue with the accumulator at the new index
+		    lg2 = newlg2;
+		    if (lg2 > mergesLast) mergesLast = lg2;
+		}
+	    }
+	}
+	brd1->limit(0);
     }
 
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
-        if (merges[j].get() != 0) {
-            // the smallest accumulator found, let's use it as base one
-            brd0 = std::move(merges[j]);
-            // process all the other accumulators, until we reach the end
-            while (++j <= mergesLast) {
-                // the slot may not be used, let's check
-                if (merges[j].get() != 0) {
-                    // slot is used, so merge it with the result
-                    ierr = merges[j]->merge(*brd0, tms);
-                    if (ierr < 0) {
-                        LOGGER(ibis::gVerbose > 1)
-                            << "Warning -- " << mesg
-                            << " failed to merge partial results, ierr = "
-                            << ierr;
-                        return 0;
-                    }
-                    // the result is the merged accumulator now
-                    brd0 = std::move(merges[j]);
-                }
-            }
-            break;
-        }
+	if (merges[j].get() != 0) {
+	    // the smallest accumulator found, let's use it as base one
+	    brd0 = std::move(merges[j]);
+	    // process all the other accumulators, until we reach the end
+	    while (++j <= mergesLast) {
+		// the slot may not be used, let's check
+		if (merges[j].get() != 0) {
+		    // slot is used, so merge it with the result
+		    ierr = merges[j]->merge(*brd0, tms);
+		    if (ierr < 0) {
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- " << mesg
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
+			return 0;
+		    }
+		    // the result is the merged accumulator now
+		    brd0 = std::move(merges[j]);
+		}
+	    }
+	    break;
+	}
     }
 
     if (brd0.get() == 0) // no answer
@@ -2177,7 +2177,7 @@ ibis::table* ibis::filter::sift2S
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd0;
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -2203,117 +2203,117 @@ ibis::table* ibis::filter::sift2S
 
     // main loop through each data partition
     for (unsigned j = 0; j < plist.size(); ++ j) {
-        const ibis::bitvector* hv = hits[j];
-        if (hv == 0 || hv->cnt() == 0) continue;
+	const ibis::bitvector* hv = hits[j];
+	if (hv == 0 || hv->cnt() == 0) continue;
 
-        ierr = tms.verify(*plist[j]);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- select clause (" << tms
-                << ") contains variables that are not in data partition "
-                << plist[j]->name();
-            ierr = -11;
-            continue;
-        }
+	ierr = tms.verify(*plist[j]);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- select clause (" << tms
+		<< ") contains variables that are not in data partition "
+		<< plist[j]->name();
+	    ierr = -11;
+	    continue;
+	}
 
-        ierr = brd1->append(tms, *plist[j], *hv);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << mesg << " failed to append " << hv->cnt()
-                << " row" << (hv->cnt() > 1 ? "s" : "") << " from "
-                << plist[j]->name() << ", ierr = " << ierr;
-            continue;
-        }
-        if (ierr > 0) {
-            std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
-            if (tmp.get() == 0) {
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- " << mesg << " failed to evaluate the "
-                    "aggregation operation on the results from data partition "
-                    << plist[j]->name();
-                continue;
-            }
+	ierr = brd1->append(tms, *plist[j], *hv);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << " failed to append " << hv->cnt()
+		<< " row" << (hv->cnt() > 1 ? "s" : "") << " from "
+		<< plist[j]->name() << ", ierr = " << ierr;
+	    continue;
+	}
+	if (ierr > 0) {
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    if (tmp.get() == 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << mesg << " failed to evaluate the "
+		    "aggregation operation on the results from data partition "
+		    << plist[j]->name();
+		continue;
+	    }
 
-            // find the merging accumulator index,
-            // matching to the size of "merged-in" greouped partition.
-            unsigned int lg2 = ibis::util::log2(tmp->nRows());
-            if (lg2 < mergesFirst) mergesFirst = lg2;
-            if (lg2 > mergesLast) mergesLast = lg2;
+	    // find the merging accumulator index,
+	    // matching to the size of "merged-in" greouped partition.
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
+	    if (lg2 < mergesFirst) mergesFirst = lg2;
+	    if (lg2 > mergesLast) mergesLast = lg2;
 
-            if (merges[lg2].get() == 0) {
-                // no matching merging accumulator found, fill in the degree.
-                merges[lg2] = std::move(tmp);
-            }
-            else {
-                // merge in the grouped partition
-                ierr = merges[lg2]->merge(*tmp, tms);
-                if (ierr < 0) {
-                    LOGGER(ibis::gVerbose > 1)
-                        << "Warning -- " << mesg
-                        << " failed to merge partial results, ierr = " << ierr;
-                    return 0;
-                }
-                // let's check the fill factor, eventually do cascade merges.
-                while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
-                    // find the suitable merging accumulator index for
-                    // the accumulator containing new data
-                    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
-                    // if it still matches the current index, no cascade merge
-                    if (newlg2 <= lg2)
-                        break;
-                    // cascade merge is about to happen
-                    if (merges[newlg2].get() == 0) {
-                        // no accumulator exists yet at the index, just move
-                        merges[newlg2] = std::move(merges[lg2]);
-                    }
-                    else {
-                        // merge in the lower degree accumulator
-                        ierr = merges[newlg2]->merge(*merges[lg2], tms);
-                        if (ierr < 0) {
-                            LOGGER(ibis::gVerbose > 1)
-                                << "Warning -- " << mesg
-                                << " failed to merge partial results, ierr = "
-                                << ierr;
-                            return 0;
-                        }
-                        // lower degree accumulator merged, free it up
-                        merges[lg2].reset(0);
-                    }
-                    // let's continue with the accumulator at the new index
-                    lg2 = newlg2;
-                    if (lg2 > mergesLast) mergesLast = lg2;
-                }
-            }
-        }
-        brd1->limit(0);
+	    if (merges[lg2].get() == 0) {
+		// no matching merging accumulator found, fill in the degree.
+		merges[lg2] = std::move(tmp);
+	    }
+	    else {
+		// merge in the grouped partition
+		ierr = merges[lg2]->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
+		// let's check the fill factor, eventually do cascade merges.
+		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
+		    // find the suitable merging accumulator index for
+		    // the accumulator containing new data
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    // if it still matches the current index, no cascade merge
+		    if (newlg2 <= lg2)
+			break;
+		    // cascade merge is about to happen
+		    if (merges[newlg2].get() == 0) {
+			// no accumulator exists yet at the index, just move
+			merges[newlg2] = std::move(merges[lg2]);
+		    }
+		    else {
+			// merge in the lower degree accumulator
+			ierr = merges[newlg2]->merge(*merges[lg2], tms);
+			if (ierr < 0) {
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- " << mesg
+				<< " failed to merge partial results, ierr = "
+				<< ierr;
+			    return 0;
+			}
+			// lower degree accumulator merged, free it up
+			merges[lg2].reset(0);
+		    }
+		    // let's continue with the accumulator at the new index
+		    lg2 = newlg2;
+		    if (lg2 > mergesLast) mergesLast = lg2;
+		}
+	    }
+	}
+	brd1->limit(0);
     }
 
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
-        if (merges[j].get() != 0) {
-            // the smallest accumulator found, let's use it as base one
-            brd0 = std::move(merges[j]);
-            // process all the other accumulators, until we reach the end
-            while (++j <= mergesLast) {
-                // the slot may not be used, let's check
-                if (merges[j].get() != 0) {
-                    // slot is used, so merge it with the result
-                    ierr = merges[j]->merge(*brd0, tms);
-                    if (ierr < 0) {
-                        LOGGER(ibis::gVerbose > 1)
-                            << "Warning -- " << mesg
-                            << " failed to merge partial results, ierr = "
-                            << ierr;
-                        return 0;
-                    }
-                    // the result is the merged accumulator now
-                    brd0 = std::move(merges[j]);
-                }
-            }
-            break;
-        }
+	if (merges[j].get() != 0) {
+	    // the smallest accumulator found, let's use it as base one
+	    brd0 = std::move(merges[j]);
+	    // process all the other accumulators, until we reach the end
+	    while (++j <= mergesLast) {
+		// the slot may not be used, let's check
+		if (merges[j].get() != 0) {
+		    // slot is used, so merge it with the result
+		    ierr = merges[j]->merge(*brd0, tms);
+		    if (ierr < 0) {
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- " << mesg
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
+			return 0;
+		    }
+		    // the result is the merged accumulator now
+		    brd0 = std::move(merges[j]);
+		}
+	    }
+	    break;
+	}
     }
 
     if (brd0.get() == 0) // no answer
@@ -2427,7 +2427,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
     std::string tn = ibis::util::shortName(mesg);
     std::unique_ptr<ibis::bord> brd0;
     std::unique_ptr<ibis::bord> brd1
-        (new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
+	(new ibis::bord(tn.c_str(), mesg.c_str(), tms, plist));
     const uint32_t nplain = tms.numGroupbyKeys();
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -2455,157 +2455,157 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 
     // main loop through each data partition, fill the initial selection
     for (size_t j = 0; j < plist.size(); ++ j) {
-        LOGGER(ibis::gVerbose > 0)
-            << mesg << " -- processing data partition " << plist[j]->name();
-        ierr = tms.verify(*plist[j]);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- select clause (" << tms
-                << ") contains variables that are not in data partition "
-                << plist[j]->name();
-            ierr = -11;
-            continue;
-        }
-        ierr = qq.setSelectClause(&tms);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- failed to modify the select clause of "
-                << "the countQuery object (" << qq.getWhereClause()
-                << ") on data partition " << plist[j]->name();
-            ierr = -12;
-            continue;
-        }
+	LOGGER(ibis::gVerbose > 0)
+	    << mesg << " -- processing data partition " << plist[j]->name();
+	ierr = tms.verify(*plist[j]);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- select clause (" << tms
+		<< ") contains variables that are not in data partition "
+		<< plist[j]->name();
+	    ierr = -11;
+	    continue;
+	}
+	ierr = qq.setSelectClause(&tms);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to modify the select clause of "
+		<< "the countQuery object (" << qq.getWhereClause()
+		<< ") on data partition " << plist[j]->name();
+	    ierr = -12;
+	    continue;
+	}
 
-        ierr = qq.setPartition(plist[j]);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- query.setPartition(" << plist[j]->name()
-                << ") failed with error code " << ierr;
-            ierr = -13;
-            continue;
-        }
+	ierr = qq.setPartition(plist[j]);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- query.setPartition(" << plist[j]->name()
+		<< ") failed with error code " << ierr;
+	    ierr = -13;
+	    continue;
+	}
 
-        ierr = qq.evaluate();
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << mesg << " -- failed to process query on data partition "
-                << plist[j]->name();
-            ierr = -14;
-            continue;
-        }
+	ierr = qq.evaluate();
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< mesg << " -- failed to process query on data partition "
+		<< plist[j]->name();
+	    ierr = -14;
+	    continue;
+	}
 
-        const ibis::bitvector* hv = qq.getHitVector();
-        if (hv == 0 || hv->cnt() == 0) continue;
+	const ibis::bitvector* hv = qq.getHitVector();
+	if (hv == 0 || hv->cnt() == 0) continue;
 
-        while (hits.size() < j)
-            hits.push_back(0);
-        if (hits.size() == j) {
-            hits.push_back(new ibis::bitvector(*hv));
-        }
-        else if (hits[j] != 0) {
-            hits[j]->copy(*hv);
-        }
-        else {
-            hits[j] = new ibis::bitvector(*hv);
-        }
-        ierr = brd1->append(tms, *plist[j], *hv);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << mesg << " failed to append " << hv->cnt()
-                << " row" << (hv->cnt() > 1 ? "s" : "") << " from "
-                << plist[j]->name() << ", ierr = " << ierr;
-            continue;
-        }
-        if (ierr > 0) {
-            std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
-            if (tmp.get() == 0) {
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- " << mesg << " failed to evaluate the "
-                    "aggregation operation on the results from data partition "
-                    << plist[j]->name();
-                continue;
-            }
+	while (hits.size() < j)
+	    hits.push_back(0);
+	if (hits.size() == j) {
+	    hits.push_back(new ibis::bitvector(*hv));
+	}
+	else if (hits[j] != 0) {
+	    hits[j]->copy(*hv);
+	}
+	else {
+	    hits[j] = new ibis::bitvector(*hv);
+	}
+	ierr = brd1->append(tms, *plist[j], *hv);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << mesg << " failed to append " << hv->cnt()
+		<< " row" << (hv->cnt() > 1 ? "s" : "") << " from "
+		<< plist[j]->name() << ", ierr = " << ierr;
+	    continue;
+	}
+	if (ierr > 0) {
+	    std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
+	    if (tmp.get() == 0) {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- " << mesg << " failed to evaluate the "
+		    "aggregation operation on the results from data partition "
+		    << plist[j]->name();
+		continue;
+	    }
 
-            // find the merging accumulator index,
-            // matching to the size of "merged-in" greouped partition.
-            unsigned int lg2 = ibis::util::log2(tmp->nRows());
-            if (lg2 < mergesFirst) mergesFirst = lg2;
-            if (lg2 > mergesLast) mergesLast = lg2;
+	    // find the merging accumulator index,
+	    // matching to the size of "merged-in" greouped partition.
+	    unsigned int lg2 = ibis::util::log2(tmp->nRows());
+	    if (lg2 < mergesFirst) mergesFirst = lg2;
+	    if (lg2 > mergesLast) mergesLast = lg2;
 
-            if (merges[lg2].get() == 0) {
-                // no matching merging accumulator found, fill in the degree.
-                merges[lg2] = std::move(tmp);
-            }
-            else {
-                // merge in the grouped partition
-                ierr = merges[lg2]->merge(*tmp, tms);
-                if (ierr < 0) {
-                    LOGGER(ibis::gVerbose > 1)
-                        << "Warning -- " << mesg
-                        << " failed to merge partial results, ierr = " << ierr;
-                    return 0;
-                }
-                // let's check the fill factor, eventually do cascade merges.
-                while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
-                    // find the suitable merging accumulator index for
-                    // the accumulator containing new data
-                    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
-                    // if it still matches the current index, no cascade merge
-                    if (newlg2 <= lg2)
-                        break;
-                    // cascade merge is about to happen
-                    if (merges[newlg2].get() == 0) {
-                        // no accumulator exists yet at the index, just move
-                        merges[newlg2] = std::move(merges[lg2]);
-                    }
-                    else {
-                        // merge in the lower degree accumulator
-                        ierr = merges[newlg2]->merge(*merges[lg2], tms);
-                        if (ierr < 0) {
-                            LOGGER(ibis::gVerbose > 1)
-                                << "Warning -- " << mesg
-                                << " failed to merge partial results, ierr = "
-                                << ierr;
-                            return 0;
-                        }
-                        // lower degree accumulator merged, free it up
-                        merges[lg2].reset(0);
-                    }
-                    // let's continue with the accumulator at the new index
-                    lg2 = newlg2;
-                    if (lg2 > mergesLast) mergesLast = lg2;
-                }
-            }
-        }
-        brd1->limit(0);
+	    if (merges[lg2].get() == 0) {
+		// no matching merging accumulator found, fill in the degree.
+		merges[lg2] = std::move(tmp);
+	    }
+	    else {
+		// merge in the grouped partition
+		ierr = merges[lg2]->merge(*tmp, tms);
+		if (ierr < 0) {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "Warning -- " << mesg
+			<< " failed to merge partial results, ierr = " << ierr;
+		    return 0;
+		}
+		// let's check the fill factor, eventually do cascade merges.
+		while (lg2 < sizeof(merges)/sizeof(merges[0]) - 1) {
+		    // find the suitable merging accumulator index for
+		    // the accumulator containing new data
+		    unsigned newlg2 = ibis::util::log2(merges[lg2]->nRows());
+		    // if it still matches the current index, no cascade merge
+		    if (newlg2 <= lg2)
+			break;
+		    // cascade merge is about to happen
+		    if (merges[newlg2].get() == 0) {
+			// no accumulator exists yet at the index, just move
+			merges[newlg2] = std::move(merges[lg2]);
+		    }
+		    else {
+			// merge in the lower degree accumulator
+			ierr = merges[newlg2]->merge(*merges[lg2], tms);
+			if (ierr < 0) {
+			    LOGGER(ibis::gVerbose > 1)
+				<< "Warning -- " << mesg
+				<< " failed to merge partial results, ierr = "
+				<< ierr;
+			    return 0;
+			}
+			// lower degree accumulator merged, free it up
+			merges[lg2].reset(0);
+		    }
+		    // let's continue with the accumulator at the new index
+		    lg2 = newlg2;
+		    if (lg2 > mergesLast) mergesLast = lg2;
+		}
+	    }
+	}
+	brd1->limit(0);
     }
 
     // merge all accumulators, used ones are within interval
     // [mergesFirst..mergesLast] only.
     // Walk from smaller to larger accumulators.
     for (unsigned j = mergesFirst; j <= mergesLast; ++j) {
-        if (merges[j].get() != 0) {
-            // the smallest accumulator found, let's use it as base one
-            brd0 = std::move(merges[j]);
-            // process all the other accumulators, until we reach the end
-            while (++j <= mergesLast) {
-                // the slot may not be used, let's check
-                if (merges[j].get() != 0) {
-                    // slot is used, so merge it with the result
-                    ierr = merges[j]->merge(*brd0, tms);
-                    if (ierr < 0) {
-                        LOGGER(ibis::gVerbose > 1)
-                            << "Warning -- " << mesg
-                            << " failed to merge partial results, ierr = "
-                            << ierr;
-                        return 0;
-                    }
-                    // the result is the merged accumulator now
-                    brd0 = std::move(merges[j]);
-                }
-            }
-            break;
-        }
+	if (merges[j].get() != 0) {
+	    // the smallest accumulator found, let's use it as base one
+	    brd0 = std::move(merges[j]);
+	    // process all the other accumulators, until we reach the end
+	    while (++j <= mergesLast) {
+		// the slot may not be used, let's check
+		if (merges[j].get() != 0) {
+		    // slot is used, so merge it with the result
+		    ierr = merges[j]->merge(*brd0, tms);
+		    if (ierr < 0) {
+			LOGGER(ibis::gVerbose > 1)
+			    << "Warning -- " << mesg
+			    << " failed to merge partial results, ierr = "
+			    << ierr;
+			return 0;
+		    }
+		    // the result is the merged accumulator now
+		    brd0 = std::move(merges[j]);
+		}
+	    }
+	    break;
+	}
     }
 
     if (brd0.get() == 0) // no answer

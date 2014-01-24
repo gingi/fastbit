@@ -11,8 +11,8 @@
 #include "countQuery.h"         // class countQuery
 #include "query.h"              // ibis::query
 
-#include <memory>       // std::unique_ptr
-#include <sstream>      // std::ostringstream
+#include <memory>	// std::unique_ptr
+#include <sstream>	// std::ostringstream
 
 ////////////////////////////////////////////////////////////
 // public functions of ibis::countQuery
@@ -734,13 +734,13 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
-        ierr = doScan(term->getLeft(), mask, ht);
-        if (ierr >= 0) {
-            std::unique_ptr<ibis::bitvector> tmp(mask - ht);
-            ht.copy(*tmp);
-            ierr = ht.sloppyCount();
-        }
-        break;}
+	ierr = doScan(term->getLeft(), mask, ht);
+	if (ierr >= 0) {
+	    std::unique_ptr<ibis::bitvector> tmp(mask - ht);
+	    ht.copy(*tmp);
+	    ierr = ht.sloppyCount();
+	}
+	break;}
     case ibis::qExpr::LOGICAL_AND: {
         ierr = doScan(term->getLeft(), mask, ht);
         if (ierr > 0) {

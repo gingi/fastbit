@@ -13,7 +13,7 @@
 #include <fstream>	// std::ofstream
 #include <limits>	// std::numeric_limits
 #include <typeinfo>	// typeid
-#include <memory>	// std::auto_ptr
+#include <memory>	// std::unique_ptr
 #include <iomanip>	// std::setfill
 
 #include <stdlib.h>     // strtol strtoul [strtoll strtoull]
@@ -1632,37 +1632,37 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
         tdesc = desclocal.c_str();
     }
     if (tname == 0 || *tname == 0) { // use the directory name as table name
-        tname = strrchr(dir, FASTBIT_DIRSEP);
-        if (tname == 0)
-            tname = strrchr(dir, '/');
-        if (tname != 0) {
-            if (tname[1] != 0) {
-                ++ tname;
-            }
-            else { // dir ends with FASTBIT_DIRSEP
-                nmlocal = dir;
-                // remove the last FASTBIT_DIRSEP
-                nmlocal.erase(nmlocal.size()-1);
-                uint32_t j = 1 + nmlocal.rfind(FASTBIT_DIRSEP);
-                if (j > nmlocal.size())
-                    j = 1 + nmlocal.rfind('/');
-                if (j < nmlocal.size())
-                    nmlocal.erase(0, j);
-                if (! nmlocal.empty())
-                    tname = nmlocal.c_str();
-                else
-                    tname = 0;
-            }
-        }
-        else if (tname == 0 && *dir != '.') { // no directory separator
-            tname = dir;
-        }
-        if (tname == 0) {
-            uint32_t sum = ibis::util::checksum(tdesc, std::strlen(tdesc));
-            ibis::util::int2string(nmlocal, sum);
-            if (! isalpha(nmlocal[0]))
-                nmlocal[0] = 'A' + (nmlocal[0] % 26);
-        }
+	tname = strrchr(dir, FASTBIT_DIRSEP);
+	if (tname == 0)
+	    tname = strrchr(dir, '/');
+	if (tname != 0) {
+	    if (tname[1] != 0) {
+		++ tname;
+	    }
+	    else { // dir ends with FASTBIT_DIRSEP
+		nmlocal = dir;
+		// remove the last FASTBIT_DIRSEP
+		nmlocal.erase(nmlocal.size()-1);
+		uint32_t j = 1 + nmlocal.rfind(FASTBIT_DIRSEP);
+		if (j > nmlocal.size())
+		    j = 1 + nmlocal.rfind('/');
+		if (j < nmlocal.size())
+		    nmlocal.erase(0, j);
+		if (! nmlocal.empty())
+		    tname = nmlocal.c_str();
+		else
+		    tname = 0;
+	    }
+	}
+	else if (tname == 0 && *dir != '.') { // no directory separator
+	    tname = dir;
+	}
+	if (tname == 0) {
+	    uint32_t sum = ibis::util::checksum(tdesc, std::strlen(tdesc));
+	    ibis::util::int2string(nmlocal, sum);
+	    if (! isalpha(nmlocal[0]))
+		nmlocal[0] = 'A' + (nmlocal[0] % 26);
+	}
     }
     LOGGER(ibis::gVerbose > 1)
         << "tafel::writeMetaData starting to write " << cols.size()
@@ -1914,7 +1914,7 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
     bool again = false;
     do { // read the existing meta data
         if (ipart > 0) {
-            const bool needdirsep = (FASTBIT_DIRSEP != dir[strlen(dir)-1]);
+            const bool needdirsep = (FASTBIT_DIRSEP != dir[std::strlen(dir)-1]);
             do {
                 std::ostringstream oss;
                 oss << dir;
@@ -2086,7 +2086,7 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
 	    tname = mydir;
 	}
 	if (tname == 0) {
-	    uint32_t sum = ibis::util::checksum(tdesc, strlen(tdesc));
+	    uint32_t sum = ibis::util::checksum(tdesc, std::strlen(tdesc));
 	    ibis::util::int2string(oldnm, sum);
 	    if (! isalpha(oldnm[0]))
 		oldnm[0] = 'A' + (oldnm[0] % 26);
@@ -3775,7 +3775,7 @@ ibis::table* ibis::tafel::toTable(const char *nm, const char *de) {
         databuf[j] = col->values;
     }
     std::unique_ptr<ibis::bord>
-        brd(new ibis::bord(nm, de, mrows, databuf, ctype, cname));
+	brd(new ibis::bord(nm, de, mrows, databuf, ctype, cname));
     if (brd.get() == 0) return 0;
 
     mrows = 0;

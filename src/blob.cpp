@@ -1,4 +1,4 @@
-//File: $Id: blob.cpp,v 1.7 2014/01/18 00:29:25 kewu Exp $
+//File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
 // Copyright 2009-2014 the Regents of the University of California
 ///@file
@@ -41,8 +41,8 @@ void ibis::blob::print(std::ostream& out) const {
 long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
                         const uint32_t nnew, uint32_t nbuf, char* buf) {
     if (nnew == 0 || dt == 0 || df == 0 || *dt == 0 || *df == 0 ||
-        dt == df || std::strcmp(dt, df) == 0)
-        return 0;
+	dt == df || std::strcmp(dt, df) == 0)
+	return 0;
     std::string evt = "blob[";
     if (thePart != 0)
         evt += thePart->name();
@@ -379,11 +379,11 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
                        static_cast<long unsigned>(mtot.size()));
     }
     if (thePart == 0 || thePart->currentDataDir() == 0)
-        return nnew0;
+	return nnew0;
     if (std::strcmp(dt, thePart->currentDataDir()) == 0) {
-        // update the mask stored internally
-        mutexLock lck(this, "column::append");
-        mask_.swap(mtot);
+	// update the mask stored internally
+	mutexLock lck(this, "column::append");
+	mask_.swap(mtot);
     }
 
     return nnew0;

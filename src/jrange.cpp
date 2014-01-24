@@ -10,9 +10,9 @@
 #include "fromClause.h"
 #include "selectClause.h"
 
-#include <memory>       // std::unique_ptr
-#include <stdexcept>    // std::exception
-#include <typeinfo>     // std::typeid
+#include <memory>	// std::unique_ptr
+#include <stdexcept>	// std::exception
+#include <typeinfo>	// std::typeid
 
 /// Constructor.
 ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,

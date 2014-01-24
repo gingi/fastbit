@@ -4,21 +4,19 @@
 //
 // This file contains implementation of the functions defined in column.h
 //
-#include "resource.h"   // ibis::resource, ibis::gParameters()
-#include "category.h"   // ibis::text, ibis::category
-#include "column.h"     // ibis::column
-#include "part.h"       // ibis::part
-#include "iroster.h"    // ibis::roster
-#include "irelic.h"     // ibis::relic
-#include "ibin.h"       // ibis::bin
+#include "resource.h"	// ibis::resource, ibis::gParameters()
+#include "category.h"	// ibis::text, ibis::category
+#include "column.h"	// ibis::column
+#include "part.h"	// ibis::part
+#include "iroster.h"	// ibis::roster
 
-#include <stdarg.h>     // vsprintf
-#include <ctype.h>      // tolower
-#include <math.h>       // log
+#include <stdarg.h>	// vsprintf
+#include <ctype.h>	// tolower
+#include <math.h>	// log
 
-#include <limits>       // std::numeric_limits
-#include <typeinfo>     // typeid
-#include <memory>       // std::unique_ptr
+#include <limits>	// std::numeric_limits
+#include <typeinfo>	// typeid
+#include <memory>	// std::unique_ptr
 
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)   // some identifier longer than 256 characters
@@ -87,70 +85,70 @@ ibis::column::column(const part* tbl, FILE* file)
     // read the column entry of the metadata file
     // assume the calling program has read "Begin Property/Column" already
     do {
-        s1 = fgets(buf, MAX_LINE, file);
-        if (s1 == 0) {
-            ibis::util::logMessage("Warning", "column::ctor reached "
-                                   "end-of-file while reading a column");
-            return;
-        }
-        if (std::strlen(buf) + 1 >= MAX_LINE) {
-            ibis::util::logMessage("Warning", "column::ctor may "
-                                   "have encountered a line that has more "
-                                   "than %d characters", MAX_LINE);
-        }
+	s1 = fgets(buf, MAX_LINE, file);
+	if (s1 == 0) {
+	    ibis::util::logMessage("Warning", "column::ctor reached "
+				   "end-of-file while reading a column");
+	    return;
+	}
+	if (std::strlen(buf) + 1 >= MAX_LINE) {
+	    ibis::util::logMessage("Warning", "column::ctor may "
+				   "have encountered a line that has more "
+				   "than %d characters", MAX_LINE);
+	}
 
         s1 = strchr(buf, '=');
         if (s1!=0 && s1[1]!=static_cast<char>(0)) ++s1;
         else s1 = 0;
 
-        if (buf[0] == '#') {
-            // skip the comment line
-        }
-        else if (strnicmp(buf, "name", 4) == 0 ||
-                 strnicmp(buf, "Property_name", 13) == 0) {
-            s2 = ibis::util::getString(s1);
-            m_name = s2;
-            delete [] s2;
-        }
-        else if (strnicmp(buf, "description", 11) == 0 ||
-                 strnicmp(buf, "Property_description", 20) == 0) {
-            s2 = ibis::util::getString(s1);
-            m_desc = s2;
-            delete [] s2;
-        }
-        else if (strnicmp(buf, "minimum", 7) == 0) {
-            s1 += strspn(s1, " \t=\'\"");
-            lower = strtod(s1, 0);
-        }
-        else if (strnicmp(buf, "maximum", 7) == 0) {
-            s1 += strspn(s1, " \t=\'\"");
-            upper = strtod(s1, 0);
-        }
-        else if (strnicmp(buf, "Bins:", 5) == 0) {
-            s1 = buf + 5;
-            s1 += strspn(s1, " \t");
-            s2 = s1 + std::strlen(s1) - 1;
-            while (s2>=s1 && isspace(*s2)) {
-                *s2 = static_cast<char>(0);
-                --s2;
-            }
+	if (buf[0] == '#') {
+	    // skip the comment line
+	}
+	else if (strnicmp(buf, "name", 4) == 0 ||
+		 strnicmp(buf, "Property_name", 13) == 0) {
+	    s2 = ibis::util::getString(s1);
+	    m_name = s2;
+	    delete [] s2;
+	}
+	else if (strnicmp(buf, "description", 11) == 0 ||
+		 strnicmp(buf, "Property_description", 20) == 0) {
+	    s2 = ibis::util::getString(s1);
+	    m_desc = s2;
+	    delete [] s2;
+	}
+	else if (strnicmp(buf, "minimum", 7) == 0) {
+	    s1 += strspn(s1, " \t=\'\"");
+	    lower = strtod(s1, 0);
+	}
+	else if (strnicmp(buf, "maximum", 7) == 0) {
+	    s1 += strspn(s1, " \t=\'\"");
+	    upper = strtod(s1, 0);
+	}
+	else if (strnicmp(buf, "Bins:", 5) == 0) {
+	    s1 = buf + 5;
+	    s1 += strspn(s1, " \t");
+	    s2 = s1 + std::strlen(s1) - 1;
+	    while (s2>=s1 && isspace(*s2)) {
+		*s2 = static_cast<char>(0);
+		--s2;
+	    }
 #if defined(INDEX_SPEC_TO_LOWER)
-            s2 = s1 + std::strlen(s1) - 1;
-            while (s2 >= s1) {
-                *s2 = tolower(*s2);
-                -- s2;
-            }
+	    s2 = s1 + std::strlen(s1) - 1;
+	    while (s2 >= s1) {
+		*s2 = tolower(*s2);
+		-- s2;
+	    }
 #endif
             m_bins = s1;
         }
         else if (strnicmp(buf, "Index", 5) == 0) {
             s1 = ibis::util::getString(s1);
 #if defined(INDEX_SPEC_TO_LOWER)
-            s2 = s1 + std::strlen(s1) - 1;
-            while (s2 >= s1) {
-                *s2 = tolower(*s2);
-                -- s2;
-            }
+	    s2 = s1 + std::strlen(s1) - 1;
+	    while (s2 >= s1) {
+		*s2 = tolower(*s2);
+		-- s2;
+	    }
 #endif
             m_bins = s1;
             delete [] s1;
@@ -682,15 +680,15 @@ ibis::column::dataFileName(std::string& fname, const char *dir) const {
     bool needtail = true;
     size_t jtmp = fname.rfind(FASTBIT_DIRSEP);
     if (jtmp < fname.size() && jtmp+m_name.size() < fname.size()) {
-        if (strnicmp(fname.c_str()+jtmp+1, m_name.c_str(), m_name.size())
-            == 0) {
-            if (fname.size() == jtmp+5+m_name.size() &&
-                std::strcmp(fname.c_str()+jtmp+1+m_name.size(), ".idx") == 0) {
-                fname.erase(jtmp+1+m_name.size());
-                needtail = false;
-            }
-            needtail = (fname.size() != jtmp+1+m_name.size());
-        }
+	if (strnicmp(fname.c_str()+jtmp+1, m_name.c_str(), m_name.size())
+	    == 0) {
+	    if (fname.size() == jtmp+5+m_name.size() &&
+		std::strcmp(fname.c_str()+jtmp+1+m_name.size(), ".idx") == 0) {
+		fname.erase(jtmp+1+m_name.size());
+		needtail = false;
+	    }
+	    needtail = (fname.size() != jtmp+1+m_name.size());
+	}
     }
     if (needtail) {
         if (fname[fname.size()-1] != FASTBIT_DIRSEP)
@@ -1094,8 +1092,7 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 /// of the selectTypes functions.
 ibis::array_t<signed char>*
 ibis::column::selectBytes(const ibis::bitvector& mask) const {
-    std::unique_ptr< ibis::array_t<signed char> >
-        array(new array_t<signed char>);
+    std::unique_ptr< ibis::array_t<signed char> > array(new array_t<signed char>);
     const uint32_t tot = mask.cnt();
     if (dataflag < 0 || tot == 0)
         return array.release();
@@ -1211,7 +1208,7 @@ ibis::column::selectBytes(const ibis::bitvector& mask) const {
 ibis::array_t<unsigned char>*
 ibis::column::selectUBytes(const ibis::bitvector& mask) const {
     std::unique_ptr< ibis::array_t<unsigned char> >
-        array(new array_t<unsigned char>);
+	array(new array_t<unsigned char>);
     const uint32_t tot = mask.cnt();
     if (dataflag < 0 || tot == 0)
         return array.release();
@@ -7038,8 +7035,8 @@ long ibis::column::append(const char* dt, const char* df,
                           const uint32_t nold, const uint32_t nnew,
                           uint32_t nbuf, char* buf) {
     if (nnew == 0 || dt == 0 || df == 0 || *dt == 0 || *df == 0 ||
-        df == dt || std::strcmp(dt, df) == 0)
-        return 0;
+	df == dt || std::strcmp(dt, df) == 0)
+	return 0;
     std::string evt = "column[";
     evt += fullname();
     evt += "]::append";
@@ -7238,11 +7235,11 @@ long ibis::column::append(const char* dt, const char* df,
                        static_cast<long unsigned>(mtot.size()));
     }
     if (thePart == 0 || thePart->currentDataDir() == 0)
-        return ret;
+	return ret;
     if (std::strcmp(dt, thePart->currentDataDir()) == 0) {
-        // update the mask stored internally
-        ibis::util::mutexLock lck(&mutex, "column::append");
-        mask_.swap(mtot);
+	// update the mask stored internally
+	ibis::util::mutexLock lck(&mutex, "column::append");
+	mask_.swap(mtot);
     }
 
     //////////////////////////////////////////////////
@@ -8291,36 +8288,36 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
     }
 
     if (dest == 0 || dest == thePart->currentDataDir() ||
-        std::strcmp(dest, thePart->currentDataDir()) == 0) { // same directory
-        std::string fname = thePart->currentDataDir();
-        if (! fname.empty())
-            fname += FASTBIT_DIRSEP;
-        fname += m_name;
-        ibis::bitvector current;
-        getNullMask(current);
+	std::strcmp(dest, thePart->currentDataDir()) == 0) { // same directory
+	std::string fname = thePart->currentDataDir();
+	if (! fname.empty())
+	    fname += FASTBIT_DIRSEP;
+	fname += m_name;
+	ibis::bitvector current;
+	getNullMask(current);
 
-        writeLock lock(this, "saveSelected");
-        if (idx != 0) {
-            const uint32_t idxc = idxcnt();
-            if (0 == idxc) {
-                delete idx;
-                idx = 0;
-                purgeIndexFile(thePart->currentDataDir());
-            }
-            else {
-                logWarning("saveSelected", "index files are in-use, "
-                           "should not overwrite data files");
-                return -2;
-            }
-        }
-        ibis::fileManager::instance().flushFile(fname.c_str());
-        FILE* fptr = fopen(fname.c_str(), "r+b");
-        if (fptr == 0) {
-            if (ibis::gVerbose > -1)
-                logWarning("saveSelected", "failed to open file \"%s\"",
-                           fname.c_str());
-            return -3;
-        }
+	writeLock lock(this, "saveSelected");
+	if (idx != 0) {
+	    const uint32_t idxc = idxcnt();
+	    if (0 == idxc) {
+		delete idx;
+		idx = 0;
+		purgeIndexFile(thePart->currentDataDir());
+	    }
+	    else {
+		logWarning("saveSelected", "index files are in-use, "
+			   "should not overwrite data files");
+		return -2;
+	    }
+	}
+	ibis::fileManager::instance().flushFile(fname.c_str());
+	FILE* fptr = fopen(fname.c_str(), "r+b");
+	if (fptr == 0) {
+	    if (ibis::gVerbose > -1)
+		logWarning("saveSelected", "failed to open file \"%s\"",
+			   fname.c_str());
+	    return -3;
+	}
 
         off_t pos = 0; // position to write the next byte
         for (ibis::bitvector::indexSet ix = sel.firstIndexSet();

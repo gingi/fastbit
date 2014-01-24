@@ -251,7 +251,7 @@ int truncate(const char*, uint32_t);
 
 #if defined(_MSC_VER)
 
-#define FORCE_INLINE    __forceinline
+#define FORCE_INLINE	__forceinline
 
 #include <stdlib.h>
 
@@ -259,9 +259,9 @@ int truncate(const char*, uint32_t);
 
 // Other compilers
 
-#else   // defined(_MSC_VER)
+#else	// defined(_MSC_VER)
 
-#define FORCE_INLINE inline __attribute__((always_inline))
+#define	FORCE_INLINE inline __attribute__((always_inline))
 
 inline uint32_t _rotl32( uint32_t x, int8_t r ) {
     return (x << r) | (x >> (32 - r));
@@ -273,8 +273,8 @@ inline uint64_t _rotl64( uint64_t x, int8_t r ) {
 
 #define BIG_CONSTANT(x) (x##LLU)
 #endif // !defined(_MSC_VER)
-#define FASTBIT_ROTL32(x,y)     _rotl32(x,y)
-#define FASTBIT_ROTL64(x,y)     _rotl64(x,y)
+#define FASTBIT_ROTL32(x,y)	_rotl32(x,y)
+#define FASTBIT_ROTL64(x,y)	_rotl64(x,y)
 
 #if defined(_WIN32) && defined(_MSC_VER)
 // needed for numeric_limits<>::max, min function calls
@@ -326,23 +326,28 @@ inline uint64_t _rotl64( uint64_t x, int8_t r ) {
 namespace std { // extend namespace std slightly
     // specialization of less<> to work with char*
     template <> struct less< char* > {
-        bool operator()(const char*x, const char*y) const {
-            return std::strcmp(x, y) < 0;
-        }
+	bool operator()(const char*x, const char*y) const {
+	    return std::strcmp(x, y) < 0;
+	}
     };
 
     // specialization of less<> on const char* (case sensitive comparison)
     template <> struct less< const char* > {
-        bool operator()(const char* x, const char* y) const {
-            return std::strcmp(x, y) < 0;
-        }
+	bool operator()(const char* x, const char* y) const {
+	    return std::strcmp(x, y) < 0;
+	}
     };
 
     // specialization of equal_to<> on const char* (case sensitive comparison)
     template <> struct equal_to< const char* > {
-        bool operator()(const char* x, const char* y) const {
-            return std::strcmp(x, y) == 0;
-        }
+	bool operator()(const char* x, const char* y) const {
+	    return std::strcmp(x, y) == 0;
+	}
+    };
+
+    // specialization of hash<> on const char*
+    template <> struct hash< const char* > {
+	size_t operator()(const char* x) const;
     };
 
     template <> struct less< ibis::rid_t > {
@@ -706,162 +711,162 @@ namespace ibis {
         public:
             ioLock() {
 #if defined(PTW32_STATIC_LIB)
-                if (mutex == PTHREAD_MUTEX_INITIALIZER) {
-                    int ierr = pthread_mutex_init(&mutex, 0);
-                    if (ierr != 0)
-                        throw "ioLock failed to initialize the necessary mutex";
-                }
+		if (mutex == PTHREAD_MUTEX_INITIALIZER) {
+		    int ierr = pthread_mutex_init(&mutex, 0);
+		    if (ierr != 0)
+			throw "ioLock failed to initialize the necessary mutex";
+		}
 #endif
-                if (0 != pthread_mutex_lock(&mutex))
-                    throw "ioLock failed to obtain a lock";
-            }
-            ~ioLock() {
-                (void) pthread_mutex_unlock(&mutex);
-            }
-        private:
-            // every instantiation of this class locks on the same mutex
-            static pthread_mutex_t mutex;
+		if (0 != pthread_mutex_lock(&mutex))
+		    throw "ioLock failed to obtain a lock";
+	    }
+	    ~ioLock() {
+		(void) pthread_mutex_unlock(&mutex);
+	    }
+	private:
+	    // every instantiation of this class locks on the same mutex
+	    static pthread_mutex_t mutex;
 
-            ioLock(const ioLock&) {}; // can not copy
-            ioLock& operator=(const ioLock&);
-        };
+	    ioLock(const ioLock&) {}; // can not copy
+	    ioLock& operator=(const ioLock&);
+	};
 
-        /// An wrapper class for perform pthread_mutex_lock/unlock.
-        class mutexLock {
-        public:
-            mutexLock(pthread_mutex_t* lk, const char* m)
-                : mesg(m), lock(lk) {
-                LOGGER(ibis::gVerbose > 10)
-                    << "util::mutexLock -- acquiring lock (" << lock
-                    << ") for " << mesg;
-                if (0 != pthread_mutex_lock(lock)) {
-                    throw "mutexLock failed to obtain a lock";
-                }
-            }
-            ~mutexLock() {
-                LOGGER(ibis::gVerbose > 10)
-                    << "util::mutexLock -- releasing lock (" << lock
-                    << ") for " << mesg;
-                (void) pthread_mutex_unlock(lock);
-            }
+	/// An wrapper class for perform pthread_mutex_lock/unlock.
+	class mutexLock {
+	public:
+	    mutexLock(pthread_mutex_t* lk, const char* m)
+		: mesg(m), lock(lk) {
+		LOGGER(ibis::gVerbose > 10)
+		    << "util::mutexLock -- acquiring lock (" << lock
+		    << ") for " << mesg;
+		if (0 != pthread_mutex_lock(lock)) {
+		    throw "mutexLock failed to obtain a lock";
+		}
+	    }
+	    ~mutexLock() {
+		LOGGER(ibis::gVerbose > 10)
+		    << "util::mutexLock -- releasing lock (" << lock
+		    << ") for " << mesg;
+		(void) pthread_mutex_unlock(lock);
+	    }
 
-        private:
-            const char *mesg;
-            pthread_mutex_t *lock;
+	private:
+	    const char *mesg;
+	    pthread_mutex_t *lock;
 
-            mutexLock() : mesg(0), lock(0) {}; // no default constructor
-            mutexLock(const mutexLock&); // can not copy
-            mutexLock& operator=(const mutexLock&);
-        }; // mutexLock
+	    mutexLock() : mesg(0), lock(0) {}; // no default constructor
+	    mutexLock(const mutexLock&); // can not copy
+	    mutexLock& operator=(const mutexLock&);
+	}; // mutexLock
 
-        /// An wrapper class for perform pthread_mutex_lock/unlock.  Avoid
-        /// invoking ibis::util::logMessage so it can be used inside
-        /// ibis::util::logMessage.
-        class quietLock {
-        public:
-            /// Constructor.
-            quietLock(pthread_mutex_t *lk) : lock(lk) {
-                if (0 != pthread_mutex_lock(lock))
-                    throw "quietLock failed to obtain a mutex lock";
-            }
-            /// Destructor.
-            ~quietLock() {
-                (void) pthread_mutex_unlock(lock);
-            }
+	/// An wrapper class for perform pthread_mutex_lock/unlock.  Avoid
+	/// invoking ibis::util::logMessage so it can be used inside
+	/// ibis::util::logMessage.
+	class quietLock {
+	public:
+	    /// Constructor.
+	    quietLock(pthread_mutex_t *lk) : lock(lk) {
+		if (0 != pthread_mutex_lock(lock))
+		    throw "quietLock failed to obtain a mutex lock";
+	    }
+	    /// Destructor.
+	    ~quietLock() {
+		(void) pthread_mutex_unlock(lock);
+	    }
 
-        private:
-            /// The pointer to the mutex object.
-            pthread_mutex_t *lock;
+	private:
+	    /// The pointer to the mutex object.
+	    pthread_mutex_t *lock;
 
-            quietLock(); // no default constructor
-            quietLock(const quietLock&); // can not copy
-            quietLock& operator=(const quietLock&);
-        }; // quietLock
+	    quietLock(); // no default constructor
+	    quietLock(const quietLock&); // can not copy
+	    quietLock& operator=(const quietLock&);
+	}; // quietLock
 
-        /// An wrapper class for perform pthread_mutex_trylock/unlock.  It
-        /// does not use ibis::util::logMessage.
-        class softLock {
-        public:
-            /// Constructor.
-            softLock(pthread_mutex_t *lk)
+	/// An wrapper class for perform pthread_mutex_trylock/unlock.  It
+	/// does not use ibis::util::logMessage.
+	class softLock {
+	public:
+	    /// Constructor.
+	    softLock(pthread_mutex_t *lk)
                 : lock_(lk), locked_(pthread_mutex_trylock(lock_)) {}
-            /// Has a mutex lock being acquired?  Returns true if yes,
-            /// otherwise false.
-            bool isLocked() const {return (locked_==0);}
-            /// Destructor.
-            ~softLock() {
-                (void) pthread_mutex_unlock(lock_);
-            }
+	    /// Has a mutex lock being acquired?  Returns true if yes,
+	    /// otherwise false.
+	    bool isLocked() const {return (locked_==0);}
+	    /// Destructor.
+	    ~softLock() {
+		(void) pthread_mutex_unlock(lock_);
+	    }
 
-        private:
-            /// Pointer to the mutex lock object.
-            pthread_mutex_t *lock_;
-            /// The return value from pthread_mutex_trylock.
-            const int locked_;
+	private:
+	    /// Pointer to the mutex lock object.
+	    pthread_mutex_t *lock_;
+	    /// The return value from pthread_mutex_trylock.
+	    const int locked_;
 
-            softLock(); // no default constructor
-            softLock(const softLock&); // can not copy
-            softLock& operator=(const softLock&);
-        }; // softLock
+	    softLock(); // no default constructor
+	    softLock(const softLock&); // can not copy
+	    softLock& operator=(const softLock&);
+	}; // softLock
 
-        /// An wrapper class for perform pthread_rwlock_rdlock/unlock.
-        class readLock {
-        public:
-            readLock(pthread_rwlock_t* lk, const char* m)
-                : mesg(m), lock(lk) {
-                if (0 != pthread_rwlock_rdlock(lock)) {
-                    throw "readLock failed to obtain a lock";
-                }
-            }
-            ~readLock() {
-                (void) pthread_rwlock_unlock(lock);
-            }
+	/// An wrapper class for perform pthread_rwlock_rdlock/unlock.
+	class readLock {
+	public:
+	    readLock(pthread_rwlock_t* lk, const char* m)
+		: mesg(m), lock(lk) {
+		if (0 != pthread_rwlock_rdlock(lock)) {
+		    throw "readLock failed to obtain a lock";
+		}
+	    }
+	    ~readLock() {
+		(void) pthread_rwlock_unlock(lock);
+	    }
 
-        private:
-            const char *mesg;
-            pthread_rwlock_t *lock;
+	private:
+	    const char *mesg;
+	    pthread_rwlock_t *lock;
 
-            readLock() : mesg(0), lock(0) {}; // no default constructor
-            readLock(const readLock&); // can not copy
-            readLock& operator=(const readLock&);
-        }; // readLock
+	    readLock() : mesg(0), lock(0) {}; // no default constructor
+	    readLock(const readLock&); // can not copy
+	    readLock& operator=(const readLock&);
+	}; // readLock
 
-        /// An wrapper class for perform pthread_rwlock_wrlock/unlock.
-        class writeLock {
-        public:
-            /// Constructor.
-            writeLock(pthread_rwlock_t* lk, const char* m)
-                : mesg(m), lock(lk) {
-                if (0 != pthread_rwlock_wrlock(lock)) {
-                    throw "writeLock failed to obtain a lock";
-                }
-            }
-            /// Destructor.
-            ~writeLock() {
-                int ierr = pthread_rwlock_unlock(lock);
-                if (ierr != 0) {
-                    throw "writeLock failed to release the lock";
-                }
-            }
+	/// An wrapper class for perform pthread_rwlock_wrlock/unlock.
+	class writeLock {
+	public:
+	    /// Constructor.
+	    writeLock(pthread_rwlock_t* lk, const char* m)
+		: mesg(m), lock(lk) {
+		if (0 != pthread_rwlock_wrlock(lock)) {
+		    throw "writeLock failed to obtain a lock";
+		}
+	    }
+	    /// Destructor.
+	    ~writeLock() {
+		int ierr = pthread_rwlock_unlock(lock);
+		if (ierr != 0) {
+		    throw "writeLock failed to release the lock";
+		}
+	    }
 
-        private:
-            const char *mesg;
-            pthread_rwlock_t *lock;
+	private:
+	    const char *mesg;
+	    pthread_rwlock_t *lock;
 
-            writeLock() : mesg(0), lock(0) {}; // no default constructor
-            writeLock(const writeLock&); // can not copy
-            writeLock& operator=(const writeLock&);
-        }; // writeLock
+	    writeLock() : mesg(0), lock(0) {}; // no default constructor
+	    writeLock(const writeLock&); // can not copy
+	    writeLock& operator=(const writeLock&);
+	}; // writeLock
 
-        /// A simple shared counter.  Each time the operator() is called,
-        /// it is incremented by 1.  Calls from different threads are
-        /// serialized through a mutual exclusion lock or an atomic
-        /// operation.  Currently, it only knows about atomic operations
-        /// provided by GCC and visual studio on WIN32.  The GCC automic
-        /// functions are determined in the configure script.
-        class FASTBIT_CXX_DLLSPEC counter {
-        public:
-            ~counter() {
+	/// A simple shared counter.  Each time the operator() is called,
+	/// it is incremented by 1.  Calls from different threads are
+	/// serialized through a mutual exclusion lock or an atomic
+	/// operation.  Currently, it only knows about atomic operations
+	/// provided by GCC and visual studio on WIN32.  The GCC automic
+	/// functions are determined in the configure script.
+	class FASTBIT_CXX_DLLSPEC counter {
+	public:
+	    ~counter() {
 #if defined(HAVE_GCC_ATOMIC32)
 #elif defined(HAVE_WIN_ATOMIC32)
 #else

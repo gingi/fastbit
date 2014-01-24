@@ -734,7 +734,7 @@ long ibis::part::append(const char* dir) {
 
     try {
 	if (backupDir != 0 && *backupDir != 0 && activeDir != backupDir &&
-	    strcmp(activeDir, backupDir) != 0) {
+	    std::strcmp(activeDir, backupDir) != 0) {
 	    //ibis::fileManager::instance().flushDir(backupDir);
 	    ierr = append2(dir);
 	}
@@ -769,7 +769,7 @@ long ibis::part::append(const char* dir) {
 long ibis::part::append1(const char *dir) {
     // can not handle dir == activeDir
     if (std::strcmp(dir, activeDir) == 0)
-        return -1;
+	return -1;
 
     long ierr = 0;
     uint32_t ntot = 0;
@@ -858,34 +858,34 @@ long ibis::part::append2(const char *dir) {
     // only need to copy files if the files are not already in the
     // activeDir
     if (std::strcmp(dir, activeDir)) {
-        ierr = verifyBackupDir(); // make sure the backup is there
-        if (ierr != 0) {
-            if (nEvents > 0) {
-                state = UNKNOWN_STATE;
-                doBackup(); // actually copy the files
-            }
-            else {
-                ibis::util::removeDir(backupDir, true);
-            }
-        }
-        state = PRETRANSITION_STATE;
-        ierr = appendToBackup(dir);
-        if (ierr < 0) {
-            logWarning("append", "appendToBackup(%s) returned with "
-                       "%ld, restore the content of backupDir",
-                       dir, ierr);
-            state = UNKNOWN_STATE;
-            makeBackupCopy();
-            ierr = -2023;
-            return ierr;
-        }
-        else if (ierr == 0) {
-            if (ibis::gVerbose > 1)
-                logMessage("append", "appendToBackup(%s) appended no "
-                           "new rows", dir);
-            state = STABLE_STATE;
-            return ierr;
-        }
+	ierr = verifyBackupDir(); // make sure the backup is there
+	if (ierr != 0) {
+	    if (nEvents > 0) {
+		state = UNKNOWN_STATE;
+		doBackup(); // actually copy the files
+	    }
+	    else {
+		ibis::util::removeDir(backupDir, true);
+	    }
+	}
+	state = PRETRANSITION_STATE;
+	ierr = appendToBackup(dir);
+	if (ierr < 0) {
+	    logWarning("append", "appendToBackup(%s) returned with "
+		       "%ld, restore the content of backupDir",
+		       dir, ierr);
+	    state = UNKNOWN_STATE;
+	    makeBackupCopy();
+	    ierr = -2023;
+	    return ierr;
+	}
+	else if (ierr == 0) {
+	    if (ibis::gVerbose > 1)
+		logMessage("append", "appendToBackup(%s) appended no "
+			   "new rows", dir);
+	    state = STABLE_STATE;
+	    return ierr;
+	}
 
         // make sure that the number of RIDs is as expected
         std::string fn(backupDir);
@@ -907,24 +907,24 @@ long ibis::part::append2(const char *dir) {
     }
 
     {   // need an exclusive lock to allow file manager to close all
-        // open files and switch the roles of the activeDir and the
-        // backupDir
-        writeLock rw(this, "append");
-        if (std::strcmp(dir, activeDir)) {
-            unloadIndexes();    // remove all indices
-            delete rids;        // remove the RID list
-            rids = 0;
-            ibis::fileManager::instance().flushDir(activeDir);
-            columnList::iterator it;
-            for (it = columns.begin(); it != columns.end(); ++it)
-                delete (*it).second;
-            columns.clear();
+	// open files and switch the roles of the activeDir and the
+	// backupDir
+	writeLock rw(this, "append");
+	if (std::strcmp(dir, activeDir)) {
+	    unloadIndexes();	// remove all indices
+	    delete rids;	// remove the RID list
+	    rids = 0;
+	    ibis::fileManager::instance().flushDir(activeDir);
+	    columnList::iterator it;
+	    for (it = columns.begin(); it != columns.end(); ++it)
+		delete (*it).second;
+	    columns.clear();
 
-            // switch the directory name and read the rids
-            char* tstr = activeDir;
-            activeDir = backupDir;
-            backupDir = tstr;
-        }
+	    // switch the directory name and read the rids
+	    char* tstr = activeDir;
+	    activeDir = backupDir;
+	    backupDir = tstr;
+	}
 
         // retrieve the new column list
         readMetaData(nEvents, columns, activeDir);
@@ -1157,9 +1157,9 @@ long ibis::part::appendToBackup(const char* dir) {
     if (dir == 0 || *dir == 0)
         return ierr;
     if (backupDir == 0 || *backupDir == 0 || readonly)
-        return -1;
+	return -1;
     if (std::strcmp(dir, backupDir) == 0)
-        return -1;
+	return -1;
 
     uint32_t napp;
     columnList clist; // combined list of attributes

@@ -9,7 +9,7 @@
 #include <fstream>      // std::ifstream
 #include <cctype>       // std::isalnum
 
-#include <algorithm>    // std::sort
+#include <algorithm>	// std::sort
 
 /// Constructor.  It first tries to read the terms (@c .terms) and the
 /// tdmat (@c .idx) files if they both exist.  If that fails, it will
@@ -83,37 +83,37 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
         }
     }
     else if (delim.empty() && ibis::util::getFileSize(fmat.c_str()) > 0) {
-        // read a tdlist file with the default file name, first check that
-        // id column is a valid one
-        const ibis::column* idcol =
-            reinterpret_cast<const ibis::text*>(c)->
-            IDColumnForKeywordIndex();
-        if (idcol->type() == ibis::INT || idcol->type() == ibis::UINT) {
-            ierr = readTermDocFile(idcol, fmat.c_str());
-            if (ierr < 0) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << "Warning -- keywords::keywords -- readTermDocFile "
-                    "failed with error code " << ierr;
-                clear();
-            }
-        }
-        else {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- keywords::keywords -- the id column of "
-                "keywords can only be 4-byte integers";
-            ibis::index::clear();
-        }
+	// read a tdlist file with the default file name, first check that
+	// id column is a valid one
+	const ibis::column* idcol =
+	    reinterpret_cast<const ibis::text*>(c)->
+	    IDColumnForKeywordIndex();
+	if (idcol->type() == ibis::INT || idcol->type() == ibis::UINT) {
+	    ierr = readTermDocFile(idcol, fmat.c_str());
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Warning -- keywords::keywords -- readTermDocFile "
+		    "failed with error code " << ierr;
+		clear();
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- keywords::keywords -- the id column of "
+		"keywords can only be 4-byte integers";
+	    ibis::index::clear();
+	}
     }
     if (bits.empty()) { // still don't have an index, try this
-        ibis::keywords::tokenizer tkn(delim.c_str());
-        ierr = parseTextFile(tkn, f);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- keywords::keywords failed to parse text "
-                "file to build a keyword index, parseTextFile returned "
-                << ierr;
-            throw ibis::bad_alloc("keywords::ctr failed to parse text");
-        }
+	ibis::keywords::tokenizer tkn(delim.c_str());
+	ierr = parseTextFile(tkn, f);
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- keywords::keywords failed to parse text "
+		"file to build a keyword index, parseTextFile returned "
+		<< ierr;
+	    throw ibis::bad_alloc("keywords::ctr failed to parse text");
+	}
     }
 
     if (terms.size() > 1)
@@ -399,76 +399,76 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
     ibis::fileManager::buffer<char> buf(2048);
     // main loop to actually read the strings one row at a time
     while ((ierr = UnixRead(spdesc, &end, sizeof(end))) == 8) {
-        if (start+1 >= end) { // null string
-            start = end;
-            ++ nrows;
-            continue;
-        }
+	if (start+1 >= end) { // null string
+	    start = end;
+	    ++ nrows;
+	    continue;
+	}
 
-        const size_t sz = end - start;
-        if (buf.size() < sz) { // buffer too small
-            buf.resize(((sz+2047)/2048)*2048);
-            if (buf.size() < sz) {
-                LOGGER(ibis::gVerbose > 2)
-                    << "Warning -- keywords::parseTextFile failed to allocate "
-                    "enough buffer space to read a " << sz << "-byte string";
-                clear();
-                return -6;
-            }
-        }
+	const size_t sz = end - start;
+	if (buf.size() < sz) { // buffer too small
+	    buf.resize(((sz+2047)/2048)*2048);
+	    if (buf.size() < sz) {
+		LOGGER(ibis::gVerbose > 2)
+		    << "Warning -- keywords::parseTextFile failed to allocate "
+		    "enough buffer space to read a " << sz << "-byte string";
+		clear();
+		return -6;
+	    }
+	}
 
-        ierr = UnixSeek(tfdesc, start, SEEK_SET);
-        if (ierr != start) {
-            LOGGER(ibis::gVerbose > 2)
-                << "Warning -- keywords::parseTextFile failed to seek to "
-                << start << ", function seek returned " << ierr;
-            clear();
-            return -6;
-        }
+	ierr = UnixSeek(tfdesc, start, SEEK_SET);
+	if (ierr != start) {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- keywords::parseTextFile failed to seek to "
+		<< start << ", function seek returned " << ierr;
+	    clear();
+	    return -6;
+	}
 
-        ierr = UnixRead(tfdesc, buf.address(), sz);
-        if (ierr < (int64_t)sz) {
-            LOGGER(ibis::gVerbose > 2)
-                << "Warning -- keywords::parseTextFile expected to read "
-                << sz << " byte" << (sz > 1 ? "s" : "")
-                << ", but the function read returned " << ierr;
-            clear();
-            return -7;
-        }
+	ierr = UnixRead(tfdesc, buf.address(), sz);
+	if (ierr < (int64_t)sz) {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- keywords::parseTextFile expected to read "
+		<< sz << " byte" << (sz > 1 ? "s" : "")
+		<< ", but the function read returned " << ierr;
+	    clear();
+	    return -7;
+	}
 
-        std::vector<const char*> tokens;
-        ierr = tkn(tokens, buf.address());
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- keywords::parseTextFile failed to tokenize "
-                "entry # " << nrows << ", tokenizer returned " << ierr
-                << ", skipping the row";
-            tokens.clear();
-        }
+	std::vector<const char*> tokens;
+	ierr = tkn(tokens, buf.address());
+	if (ierr < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- keywords::parseTextFile failed to tokenize "
+		"entry # " << nrows << ", tokenizer returned " << ierr
+		<< ", skipping the row";
+	    tokens.clear();
+	}
 
-        for (size_t j = 0; j < tokens.size(); ++ j) {
-            uint32_t ibits = terms.insert(tokens[j]);
-            if (ibits >= bits.size()) {
-                size_t jold = bits.size();
-                if (bits.capacity() <= ibits+1)
-                    bits.reserve(ibits+ibits+2);
-                bits.resize(ibits+1);
-                while (jold <= ibits) {
-                    bits[jold] = 0;
-                    ++ jold;
-                }
-            }
-            if (bits[ibits] == 0)
-                bits[ibits] = new ibis::bitvector;
-            bits[ibits]->setBit(nrows, 1);
+	for (size_t j = 0; j < tokens.size(); ++ j) {
+	    uint32_t ibits = terms.insert(tokens[j]);
+	    if (ibits >= bits.size()) {
+		size_t jold = bits.size();
+		if (bits.capacity() <= ibits+1)
+		    bits.reserve(ibits+ibits+2);
+		bits.resize(ibits+1);
+		while (jold <= ibits) {
+		    bits[jold] = 0;
+		    ++ jold;
+		}
+	    }
+	    if (bits[ibits] == 0)
+		bits[ibits] = new ibis::bitvector;
+	    bits[ibits]->setBit(nrows, 1);
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
-            LOGGER(ibis::gVerbose > 0)
-                << "DEBUG -- keywords::parseTextFile " << tokens[j]
+	    LOGGER(ibis::gVerbose > 0)
+		<< "DEBUG -- keywords::parseTextFile " << tokens[j]
                 << ", " << ibits << ", " << nrows;
 #endif
-        }
-        start = end;
-        ++ nrows;
+	}
+	start = end;
+	++ nrows;
     } // read spdesc
 
     for (size_t j = 0; j < bits.size(); ++ j)
@@ -497,35 +497,37 @@ void ibis::keywords::binWeights(std::vector<uint32_t>& bw) const {
 
 void ibis::keywords::print(std::ostream& out) const {
     const uint32_t nobs = bits.size();
-    if (terms.size() == bits.size() && terms.size() > 0) {
-        out << "The keywords index for column ";
-        if (col->partition() != 0)
-            out << col->partition()->name() << '.';
-        out << col->name() << " contains " << nobs << " term"
-            << (nobs>1?"s":"") << " (optionally followed by term frequencies)\n";
-        uint32_t skip = 0;
-        if (ibis::gVerbose <= 0) {
-            skip = nobs;
-        }
-        else if ((nobs >> ibis::gVerbose) > 2) {
-            skip = static_cast<uint32_t>
-                (ibis::util::compactValue
-                 (static_cast<double>(nobs >> (1+ibis::gVerbose)),
-                  static_cast<double>(nobs >> (ibis::gVerbose))));
-            if (skip < 1)
-                skip = 1;
-        }
-        else {
-            skip = 1;
-        }
+    if (terms.size()+1 == bits.size() && terms.size() > 0) {
+	out << "The keywords index for column ";
+	if (col->partition() != 0)
+	    out << col->partition()->name() << '.';
+	out << col->name() << " contains " << nobs << " term"
+	    << (nobs>1?"s":"") << " (optionally followed by term frequencies)\n";
+	uint32_t skip = 0;
+	if (ibis::gVerbose <= 0) {
+	    skip = nobs;
+	}
+	else if ((nobs >> ibis::gVerbose) > 2) {
+	    skip = static_cast<uint32_t>
+		(ibis::util::compactValue
+		 (static_cast<double>(nobs >> (1+ibis::gVerbose)),
+		  static_cast<double>(nobs >> (ibis::gVerbose))));
+	    if (skip < 1)
+		skip = 1;
+	}
+	else {
+	    skip = 1;
+	}
         if (skip == 0) skip = 1;
-        if (skip > 1) {
-            out << " (printing 1 out of every " << skip << ")\n";
-        }
-        for (uint32_t i = 0; i < bits.size(); i += skip) {
-            if (terms[i] && bits[i])
-                out << terms[i] << "\t" << bits[i]->cnt() << "\n";
-        }
+	if (skip > 1) {
+	    out << " (printing 1 out of every " << skip << ")\n";
+	}
+	for (uint32_t i = 1; i < bits.size(); i += skip) {
+	    out << terms[i] << "\t";
+	    if (bits[i])
+		out << bits[i]->cnt();
+	    out << "\n";
+	}
     }
     else if (col != 0) {
         out << "The boolean term-document matrix for " << col->name()
@@ -882,29 +884,27 @@ long ibis::keywords::search(const std::vector<std::string> &kw,
     if (terms.size() == 0) return 0;
 
     for (unsigned j = 0; j < kw.size(); ++ j) {
-        uint32_t pos = terms[kw[j].c_str()];
-        if (pos < bits.size()) {
-            if (bits[pos] == 0)
-                activate(pos);
-            if (bits[pos] != 0) {
+	uint32_t pos = terms[kw[j].c_str()];
+	if (pos < bits.size()) {
+	    if (bits[pos] == 0)
+		activate(pos);
+	    if (bits[pos] != 0) {
                 LOGGER(ibis::gVerbose > 0)
-                    << "keywords::search found \"" << kw[j]
-                    << "\" associated with bits[" << pos << "] ("
-                    << bits[pos]->cnt() << ", " << bits[pos]->size() << ')';
-                if (hits.size() == 0)
-                    hits.copy(*bits[pos]);
-                else
-                    hits &= *bits[pos];
-            }
-            else if (hits.size() == 0) {
-                hits.set(0, nrows);
-                break;
-            }
-        }
-        else if (hits.size() == 0) {
-            hits.set(0, nrows);
-            break;
-        }
+                    << "keywords::search found \"" << kw[j] << "\" associated with bits[" << pos << "] (" << bits[pos]->cnt() << ", " << bits[pos]->size() << ')';
+		if (hits.size() == 0)
+		    hits.copy(*bits[pos]);
+		else
+		    hits &= *bits[pos];
+	    }
+	    else if (hits.size() == 0) {
+		hits.set(0, nrows);
+		break;
+	    }
+	}
+	else if (hits.size() == 0) {
+	    hits.set(0, nrows);
+	    break;
+	}
     }
     return hits.cnt();
 } // ibis::keywords::search

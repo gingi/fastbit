@@ -208,10 +208,10 @@ char* ibis::util::getString(const char* buf) {
         }
     }
     else { // not quoted, copy all characters
-        const char *tmp = s1 + std::strlen(s1) - 1;
-        while (tmp>s1 && isspace(*tmp))
-            -- tmp;
-        s2 = ibis::util::strnewdup(s1, tmp-s1+1);
+	const char *tmp = s1 + std::strlen(s1) - 1;
+	while (tmp>s1 && isspace(*tmp))
+	    -- tmp;
+	s2 = ibis::util::strnewdup(s1, tmp-s1+1);
     }
 #if DEBUG+0 > 0 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 0)
@@ -1144,10 +1144,10 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     }
     uint32_t len = std::strlen(buf);
     if (strncmp(buf, name, len)) { // names differ
-        ibis::util::logMessage("util::removeDir", "specified dir name "
-                               "is %s, but CWD is actually %s", name, buf);
-        strcpy(buf, name);
-        len = std::strlen(buf);
+	ibis::util::logMessage("util::removeDir", "specified dir name "
+			       "is %s, but CWD is actually %s", name, buf);
+	strcpy(buf, name);
+	len = std::strlen(buf);
     }
     if (buf[len-1] != FASTBIT_DIRSEP) {
         buf[len] = FASTBIT_DIRSEP;
@@ -1158,34 +1158,34 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     bool isEmpty = true;
     DIR* dirp = opendir(".");
     while ((ent = readdir(dirp)) != 0) {
-        if (ent->d_name[0] == '.' &&
-            (ent->d_name[1] == static_cast<char>(0) ||
-             ent->d_name[1] == '.')) {
-            continue;       // skip '.' and '..'
-        }
-        Stat_T fst;
+	if (ent->d_name[0] == '.' &&
+	    (ent->d_name[1] == static_cast<char>(0) ||
+	     ent->d_name[1] == '.')) {
+	    continue;	    // skip '.' and '..'
+	}
+	Stat_T fst;
 
-        // construct the full name
-        if (len+std::strlen(ent->d_name) >= PATH_MAX) {
-            ibis::util::logMessage("util::removeDir", "file name "
-                                   "\"%s%s\" too long", buf, ent->d_name);
-            isEmpty = false;
-            continue;
-        }
-        strcpy(buf+len, ent->d_name);
+	// construct the full name
+	if (len+std::strlen(ent->d_name) >= PATH_MAX) {
+	    ibis::util::logMessage("util::removeDir", "file name "
+				   "\"%s%s\" too long", buf, ent->d_name);
+	    isEmpty = false;
+	    continue;
+	}
+	strcpy(buf+len, ent->d_name);
 
-        if (UnixStat(buf, &fst) != 0) {
-            ibis::util::logMessage("util::removeDir",
-                                   "stat(%s) failed ... %s",
-                                   buf, strerror(errno));
-            if (0 != remove(buf)) {
-                ibis::util::logMessage("util::removeDir",
-                                       "can not remove %s ... %s",
-                                       buf, strerror(errno));
-                if (errno != ENOENT) isEmpty = false;
-            }
-            continue;
-        }
+	if (UnixStat(buf, &fst) != 0) {
+	    ibis::util::logMessage("util::removeDir",
+				   "stat(%s) failed ... %s",
+				   buf, strerror(errno));
+	    if (0 != remove(buf)) {
+		ibis::util::logMessage("util::removeDir",
+				       "can not remove %s ... %s",
+				       buf, strerror(errno));
+		if (errno != ENOENT) isEmpty = false;
+	    }
+	    continue;
+	}
 
         if ((fst.st_mode & S_IFDIR) == S_IFDIR) {
             if (leaveDir)
@@ -1448,9 +1448,9 @@ char* ibis::util::strnewdup(const char* s) {
 #ifdef FASTBIT_EMPTY_STRING_AS_NULL
         && *s != static_cast<char>(0)
 #endif
-        ) { //
-        str = new char[std::strlen(s)+1];
-        std::strcpy(str, s);
+	) { //
+	str = new char[std::strlen(s)+1];
+	std::strcpy(str, s);
     }
     return str;
 } // ibis::util::strnewdup
@@ -1458,12 +1458,12 @@ char* ibis::util::strnewdup(const char* s) {
 char* ibis::util::strnewdup(const char* s, const uint32_t n) {
     char* str = 0;
     if (n > 0 && s != 0 && *s != static_cast<char>(0)) {
-        uint32_t len = std::strlen(s);
-        if (n < len)
-            len = n;
-        str = new char[len+1];
-        strncpy(str, s, len);
-        str[len] = 0;
+	uint32_t len = std::strlen(s);
+	if (n < len)
+	    len = n;
+	str = new char[len+1];
+	strncpy(str, s, len);
+	str[len] = 0;
     }
     return str;
 } // ibis::util::strnewdup
@@ -1976,25 +1976,25 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
 /// @sa ibis::util::getLogFile
 int ibis::util::setLogFileName(const char* filename) {
     if (filename == 0 || *filename == 0) {
-        if (ibis_util_logfilename.empty() &&
-            ibis_util_logfilepointer == FASTBIT_DEFAULT_LOG)
-            return 0;
-        else
-            return ibis::util::writeLogFileHeader(FASTBIT_DEFAULT_LOG, 0);
+	if (ibis_util_logfilename.empty() &&
+	    ibis_util_logfilepointer == FASTBIT_DEFAULT_LOG)
+	    return 0;
+	else
+	    return ibis::util::writeLogFileHeader(FASTBIT_DEFAULT_LOG, 0);
     }
     else if (std::strcmp(filename, "stderr") == 0) {
-        if (ibis_util_logfilename.empty() &&
-            ibis_util_logfilepointer == stderr)
-            return 0;
-        else
-            return ibis::util::writeLogFileHeader(stderr, 0);
+	if (ibis_util_logfilename.empty() &&
+	    ibis_util_logfilepointer == stderr)
+	    return 0;
+	else
+	    return ibis::util::writeLogFileHeader(stderr, 0);
     }
     else if (std::strcmp(filename, "stdout") == 0) {
-        if (ibis_util_logfilename.empty() &&
-            ibis_util_logfilepointer == stdout)
-            return 0;
-        else
-            return ibis::util::writeLogFileHeader(stdout, 0);
+	if (ibis_util_logfilename.empty() &&
+	    ibis_util_logfilepointer == stdout)
+	    return 0;
+	else
+	    return ibis::util::writeLogFileHeader(stdout, 0);
     }
     if (ibis_util_logfilename.compare(filename) == 0)
         return 0;
@@ -2289,7 +2289,7 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
         return (0 == stricmp(str, pat));
 #else
-        return (0 == std::strcmp(str, pat));
+	return (0 == std::strcmp(str, pat));
 #endif
     }
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
@@ -2368,18 +2368,18 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
     }
 
     if (s2 < s1) { // no more meta character
-        const uint32_t ntail = std::strlen(s1);
-        if (ntail <= 0U)
-            return true;
+	const uint32_t ntail = std::strlen(s1);
+	if (ntail <= 0U)
+	    return true;
 
-        uint32_t nstr = std::strlen(s0);
-        if (nstr < ntail)
-            return false;
-        else
+	uint32_t nstr = std::strlen(s0);
+	if (nstr < ntail)
+	    return false;
+	else
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
             return (0 == stricmp(s1, s0+(nstr-ntail)));
 #else
-            return (0 == std::strcmp(s1, s0+(nstr-ntail)));
+	    return (0 == std::strcmp(s1, s0+(nstr-ntail)));
 #endif
     }
 
@@ -2506,15 +2506,15 @@ bool ibis::util::nameMatch(const char *str, const char *pat) {
     }
 
     if (s2 < s1) { // no more meta character
-        const uint32_t ntail = std::strlen(s1);
-        if (ntail <= 0U)
-            return true;
+	const uint32_t ntail = std::strlen(s1);
+	if (ntail <= 0U)
+	    return true;
 
-        uint32_t nstr = std::strlen(s0);
-        if (nstr < ntail)
-            return false;
-        else
-            return (0 == stricmp(s1, s0+(nstr-ntail)));
+	uint32_t nstr = std::strlen(s0);
+	if (nstr < ntail)
+	    return false;
+	else
+	    return (0 == stricmp(s1, s0+(nstr-ntail)));
     }
 
     const std::string anchor(s1, s2);
@@ -2761,6 +2761,52 @@ uint32_t ibis::nameList::find(const char* key) const {
     return sz;
 } // ibis::nameList::find
 
+
+/// Hash function for C-style string values.  This is an adaptation of
+/// MurMurHash3 that generates 32-bit hash values.
+size_t std::hash<const char*>::operator()(const char* x) const {
+    const int len = std::strlen(x);
+    const int nblocks = len / 4;
+    uint32_t h1 = 0;
+    const uint32_t c1 = 0xcc9e2d51;
+    const uint32_t c2 = 0x1b873593;
+    // bulk of the bytes
+    const uint32_t * blocks = (const uint32_t *)(x + nblocks*4);
+    for (int i = -nblocks; i; i++) {
+        uint32_t k1 = blocks[i];
+
+        k1 *= c1;
+        k1 = FASTBIT_ROTL32(k1,15);
+        k1 *= c2;
+    
+        h1 ^= k1;
+        h1 = FASTBIT_ROTL32(h1,13); 
+        h1 = h1*5+0xe6546b64;
+    }
+
+    // tail
+    const uint8_t * tail = (const uint8_t*)(x + nblocks*4);
+    uint32_t k1 = 0;
+    switch (len & 3) {
+    case 3: k1 ^= tail[2] << 16;
+    case 2: k1 ^= tail[1] << 8;
+    case 1: k1 ^= tail[0];
+        k1 *= c1;
+        k1 = FASTBIT_ROTL32(k1,15);
+        k1 *= c2;
+        h1 ^= k1;
+    };
+
+    //----------
+    // finalize
+    h1 ^= len;
+    h1 ^= h1 >> 16;
+    h1 *= 0x85ebca6b;
+    h1 ^= h1 >> 13;
+    h1 *= 0xc2b2ae35;
+    h1 ^= h1 >> 16;
+    return h1;
+} // std::hash<const char*>::operator()
 
 #ifdef IBIS_REPLACEMENT_RWLOCK
 //

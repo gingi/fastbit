@@ -1,3 +1,29 @@
+2014-01-24 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: add statements to check if --std=c++11 is needed
+	(to remove the need to pass extra flags from command line)
+	* src/index.cpp: allow .idx filename to be used directly without
+	modification (promised in the inline documentation, but not
+	implemented)
+
+2014-01-22 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.h: a new implementation based on
+	std::unordered_map with murmurhash for strings
+
+2014-01-21 John Wu <John dot Wu at ACM dot org>
+	* src/utilidor.cpp:1598 keys[i] should be ktmp, otherwise the
+	arrays are not sorted (a serious flaw)
+
+2014-01-20 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.h, src/dictionary.cpp: implement the dictionary
+	based on unordered_map (which requires -std=c++11)
+	* src/utilidor.cpp: rename sortStrings_quick to sortStrings, and
+	make the function visible outside of utilidor.cpp (to be used on
+	dictionary.cpp:554 in the function dictionary::sort)
+
+2014-01-19 John Wu <John dot Wu at ACM dot org>
+	* src/*.h, src/*.cpp, examples/*.cpp: replace include file
+	string.h with cstring, replace auto_ptr with unqiue_ptr
+
 2014-01-17 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.h, src/dictionary.cpp: add function appendOrdered
 	to work with strings that are already sorted

@@ -88,10 +88,10 @@ Here is a list of arguments.
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)   // some identifier longer than 256 characters
 #endif
-#include "ibis.h"       // FastBit IBIS public header file
-#include <set>          // std::set
-#include <memory>       // std::unique_ptr
-#include <iomanip>      // std::setprecision
+#include "ibis.h"	// FastBit IBIS public header file
+#include <set>		// std::set
+#include <memory>	// std::unique_ptr
+#include <iomanip>	// std::setprecision
 
 // local data types
 typedef std::set< const char*, ibis::lessi > qList;
@@ -836,7 +836,7 @@ int main(int argc, char** argv) {
         ((! namestypes.empty() || metadatafile != 0) &&
          (! csvfiles.empty() || ! inputrows.empty()));
     // create a new table that does not support querying
-    std::auto_ptr<ibis::tablex> ta(ibis::tablex::create());
+    std::unique_ptr<ibis::tablex> ta(ibis::tablex::create());
     ta->setPartitionMax(pmax);
     if (usersupplied) { // use user-supplied data
 	// process the SQL dump files first just in case the CSV files
@@ -858,24 +858,23 @@ int main(int argc, char** argv) {
 			      << (ierr>1?"s":"") << " from " << csvfiles[i]
 			      << std::endl;
 
-                ierr = ta->write(outdir, (tname.empty()?dsn:tname.c_str()),
-                                 oss.str().c_str(), indexing, metatags.c_str());
-                if (ierr < 0) {
-                    std::clog
-                        << *argv << " failed to write content of SQL "
-                        "dump file " << sqlfiles[i] << " to \"" << outdir
-                        << "\", error code = " << ierr << std::endl;
-                    return(ierr);
-                }
-                ta->clearData();
-                if (build_indexes > 0) { // build indexes
-                    std::unique_ptr<ibis::table>
-                        tbl(ibis::table::create(outdir));
-                    if (tbl.get() != 0)
-                        tbl->buildIndexes(0);
-                }
-            }
-        }
+		ierr = ta->write(outdir, (tname.empty()?dsn:tname.c_str()),
+				 oss.str().c_str(), indexing, metatags.c_str());
+		if (ierr < 0) {
+		    std::clog
+			<< *argv << " failed to write content of SQL "
+			"dump file " << sqlfiles[i] << " to \"" << outdir
+			<< "\", error code = " << ierr << std::endl;
+		    return(ierr);
+		}
+		ta->clearData();
+		if (build_indexes > 0) { // build indexes
+		    std::unique_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    if (tbl.get() != 0)
+			tbl->buildIndexes(0);
+		}
+	    }
+	}
 
         // process the metadata explicitly entered
         if (! namestypes.empty())
@@ -902,53 +901,52 @@ int main(int argc, char** argv) {
 			      << (ierr>1?"s":"") << " from " << csvfiles[i]
 			      << std::endl;
 
-                ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
-                                 metatags.c_str());
-                if (ierr < 0) {
-                    std::clog << *argv << " failed to write data in CSV file "
-                              << csvfiles[i] << " to \"" << outdir
-                              << "\", error code = " << ierr << std::endl;
-                    return ierr;
-                }
-                else if (xrepeats > 0) { // repeat xrepeats times
-                    for (unsigned j = 1; j < xrepeats; ++ j)
-                        (void) ta->write(outdir, dsn, oss.str().c_str(),
-                                         indexing, metatags.c_str());
-                }
-                ta->clearData();
-                if (build_indexes > 0) { // build indexes
-                    std::unique_ptr<ibis::table>
-                        tbl(ibis::table::create(outdir));
-                    if (tbl.get() != 0)
-                        tbl->buildIndexes(0);
-                }
-            }
-        }
-        for (size_t i = 0; i < inputrows.size(); ++ i) {
-            ierr = ta->appendRow(inputrows[i], del);
-            if (ierr < 0)
-                std::clog << *argv
-                          << " failed to parse text (appendRow returned "
-                          << ierr << ")\n" << inputrows[i] << std::endl;
-        }
-        if (outdir != 0 && *outdir != 0 && ta->mColumns() > 0) {
-            if (ta->mRows() > 0)
-                ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
-                                 metatags.c_str());
-            else
-                ierr = ta->writeMetaData(outdir, dsn, oss.str().c_str(),
-                                         indexing, metatags.c_str());
-            if (ierr < 0) {
-                std::clog << *argv << " failed to write user-supplied data to "
-                          << outdir << ", error code = " << ierr << std::endl;
-                return(ierr);
-            }
-            else if (ta->mRows() > 0 && xrepeats > 0) { // repeat xrepeats times
-                for (unsigned j = 1; j < xrepeats; ++ j)
-                    (void) ta->write(outdir, dsn, oss.str().c_str(),
-                                     indexing, metatags.c_str());
-            }
-        }
+		ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
+				 metatags.c_str());
+		if (ierr < 0) {
+		    std::clog << *argv << " failed to write data in CSV file "
+			      << csvfiles[i] << " to \"" << outdir
+			      << "\", error code = " << ierr << std::endl;
+		    return ierr;
+		}
+		else if (xrepeats > 0) { // repeat xrepeats times
+		    for (unsigned j = 1; j < xrepeats; ++ j)
+			(void) ta->write(outdir, dsn, oss.str().c_str(),
+					 indexing, metatags.c_str());
+		}
+		ta->clearData();
+		if (build_indexes > 0) { // build indexes
+		    std::unique_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    if (tbl.get() != 0)
+			tbl->buildIndexes(0);
+		}
+	    }
+	}
+	for (size_t i = 0; i < inputrows.size(); ++ i) {
+	    ierr = ta->appendRow(inputrows[i], del);
+	    if (ierr < 0)
+		std::clog << *argv
+			  << " failed to parse text (appendRow returned "
+			  << ierr << ")\n" << inputrows[i] << std::endl;
+	}
+	if (outdir != 0 && *outdir != 0 && ta->mColumns() > 0) {
+	    if (ta->mRows() > 0)
+		ierr = ta->write(outdir, dsn, oss.str().c_str(), indexing,
+				 metatags.c_str());
+	    else
+		ierr = ta->writeMetaData(outdir, dsn, oss.str().c_str(),
+					 indexing, metatags.c_str());
+	    if (ierr < 0) {
+		std::clog << *argv << " failed to write user-supplied data to "
+			  << outdir << ", error code = " << ierr << std::endl;
+		return(ierr);
+	    }
+	    else if (ta->mRows() > 0 && xrepeats > 0) { // repeat xrepeats times
+		for (unsigned j = 1; j < xrepeats; ++ j)
+		    (void) ta->write(outdir, dsn, oss.str().c_str(),
+				     indexing, metatags.c_str());
+	    }
+	}
     }
     else { // use hard-coded data and queries
 	int64_t buf[] = {10, -21, 32, -43, 54, -65, 76, -87, 98, -127};
@@ -984,9 +982,9 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::unique_ptr<ibis::table> tb(outdir != 0 && *outdir != 0 ?
-                                    ibis::table::create(outdir) :
-                                    ta->toTable());
+    std::unique_ptr<ibis::table> tb(outdir!=0 && *outdir != 0 ?
+				  ibis::table::create(outdir) :
+				  ta->toTable());
     delete ta.release(); // no long need the tablex object
     if (tb.get() == 0) {
         std::cerr << "Warning -- " << *argv

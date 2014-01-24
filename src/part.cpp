@@ -23,19 +23,18 @@
 #include "twister.h"    // ibis::MersenneTwister
 
 #include <fstream>
-#include <sstream>      // std::ostringstream
-#include <algorithm>    // std::find, std::less, ...
-#include <typeinfo>     // typeid
-#include <stdexcept>    // std::invalid_argument
-#include <memory>       // std::unique_ptr
-#include <cctype>       // std::tolower
+#include <sstream>	// std::ostringstream
+#include <algorithm>	// std::find, std::less, ...
+#include <typeinfo>	// typeid
+#include <stdexcept>	// std::invalid_argument
+#include <memory>	// std::unique_ptr
 
-#include <stdio.h>      // popen, pclose
-#include <stdlib.h>     // rand
-#include <stdarg.h>     // vsprintf, ...
-#include <signal.h>     // SIGINT
+#include <signal.h>	// SIGINT
+#include <stdlib.h>	// rand
+#include <stdarg.h>	// vsprintf, ...
+#include <ctype.h>	// tolower
 
-#if defined(HAVE_DIRENT_H) || defined(__unix__) || defined(__HOS_AIX__) \
+#if defined(HAVE_DIRENT_H) || defined(__unix__) || defined(__HOS_AIX__)	\
     || defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW32__) \
     || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
 #include <dirent.h>
@@ -186,69 +185,69 @@ extern "C" {
 
     /// The thread function to building indexes.
     static void* ibis_part_build_indexes(void* arg) {
-        if (arg == 0) return reinterpret_cast<void*>(-1L);
-        ibis::part::indexBuilderPool &pool =
-            *(reinterpret_cast<ibis::part::indexBuilderPool*>(arg));
-        const ibis::table::stringList &opt = pool.opt;
-        const char *iopt;
-        try {
-            for (uint32_t i = pool.cnt(); i < pool.tbl.nColumns();
-                 i = pool.cnt()) {
-                ibis::column *col = pool.tbl.getColumn(i);
-                if (col == 0) break;
-                iopt = 0;
-                if (opt.size() > 1) {
-                    size_t j = 0;
-                    for (j = 0; j+1 < opt.size(); j += 2) {
-                        if (ibis::util::nameMatch(col->name(), opt[j])) {
-                            ++ j;
-                            break;
-                        }
-                    }
-                    if (j < opt.size()) {
-                        iopt = opt[j];
-                    }
-                }
-                else if (opt.size() > 0) {
-                    iopt = opt.back();
-                }
+	if (arg == 0) return reinterpret_cast<void*>(-1L);
+	ibis::part::indexBuilderPool &pool =
+	    *(reinterpret_cast<ibis::part::indexBuilderPool*>(arg));
+	const ibis::table::stringList &opt = pool.opt;
+	const char *iopt;
+	try {
+	    for (uint32_t i = pool.cnt(); i < pool.tbl.nColumns();
+		 i = pool.cnt()) {
+		ibis::column *col = pool.tbl.getColumn(i);
+		if (col == 0) break;
+		iopt = 0;
+		if (opt.size() > 1) {
+		    size_t j = 0;
+		    for (j = 0; j+1 < opt.size(); j += 2) {
+			if (ibis::util::nameMatch(col->name(), opt[j])) {
+			    ++ j;
+			    break;
+			}
+		    }
+		    if (j < opt.size()) {
+			iopt = opt[j];
+		    }
+		}
+		else if (opt.size() > 0) {
+		    iopt = opt.back();
+		}
 
-                if (! (col->upperBound() >= col->lowerBound()))
-                    col->computeMinMax();
-                col->loadIndex(iopt);
-                if (col->indexedRows() != pool.tbl.nRows()) {
-                    // rebuild the index if the existing one does not
-                    // have the same number of rows as the current data
-                    // partition
-                    col->unloadIndex();
-                    col->purgeIndexFile();
-                    std::unique_ptr<ibis::index>
-                        tmp(ibis::index::create(col, 0, iopt));
-                }
-                else {
-                    col->unloadIndex();
-                }
-                // std::string snm;
-                // const char *fnm = col->dataFileName(snm);
-                // ibis::fileManager::instance().flushFile(fnm);
-            }
-            return 0;
-        }
-        catch (const std::exception &e) {
-            pool.tbl.logMessage("buildIndexes", "loadIndex "
-                                "received std::exception \"%s\"", e.what());
-            return(reinterpret_cast<void*>(-31L));
-        }
-        catch (const char* s) {
-            pool.tbl.logMessage("buildIndexes", "loadIndex "
-                                "received exception \"%s\"", s);
-            return(reinterpret_cast<void*>(-32L));
-        }
-        catch (...) {
-            pool.tbl.logMessage("buildIndexes", "loadIndex received an "
-                                "unexpected exception");
-            return(reinterpret_cast<void*>(-30L));
-        }
+		if (! (col->upperBound() >= col->lowerBound()))
+		    col->computeMinMax();
+		col->loadIndex(iopt);
+		if (col->indexedRows() != pool.tbl.nRows()) {
+		    // rebuild the index if the existing one does not
+		    // have the same number of rows as the current data
+		    // partition
+		    col->unloadIndex();
+		    col->purgeIndexFile();
+		    std::unique_ptr<ibis::index>
+			tmp(ibis::index::create(col, 0, iopt));
+		}
+		else {
+		    col->unloadIndex();
+		}
+		// std::string snm;
+		// const char *fnm = col->dataFileName(snm);
+		// ibis::fileManager::instance().flushFile(fnm);
+	    }
+	    return 0;
+	}
+	catch (const std::exception &e) {
+	    pool.tbl.logMessage("buildIndexes", "loadIndex "
+				"received std::exception \"%s\"", e.what());
+	    return(reinterpret_cast<void*>(-31L));
+	}
+	catch (const char* s) {
+	    pool.tbl.logMessage("buildIndexes", "loadIndex "
+				"received exception \"%s\"", s);
+	    return(reinterpret_cast<void*>(-32L));
+	}
+	catch (...) {
+	    pool.tbl.logMessage("buildIndexes", "loadIndex received an "
+				"unexpected exception");
+	    return(reinterpret_cast<void*>(-30L));
+	}
     } // ibis_part_build_indexes
 } // extern "C"
 
@@ -528,14 +527,14 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
     int j = 0;
     if (maxLength <= 0) maxLength = 16;
     if (std::strlen(activeDir)+16+maxLength > PATH_MAX) {
-        ibis::util::logMessage("Warning", "directory name \"%s\" too long",
-                               activeDir);
-        ++j;
+	ibis::util::logMessage("Warning", "directory name \"%s\" too long",
+			       activeDir);
+	++j;
     }
     if (backupDir != 0 && std::strlen(backupDir)+16+maxLength > PATH_MAX) {
-        ibis::util::logMessage("Warning", "directory name \"%s\" too long",
-                               backupDir);
-        ++j;
+	ibis::util::logMessage("Warning", "directory name \"%s\" too long",
+			       backupDir);
+	++j;
     }
     if (j) throw "direcotry names too long";
 
@@ -800,8 +799,8 @@ void ibis::part::init(const char* iname) {
             }
         }
 
-        if (activeDir == 0)
-            j = std::strlen(iname);
+	if (activeDir == 0)
+	    j = std::strlen(iname);
     }
 
     std::string pname("ibis.");
@@ -944,11 +943,11 @@ void ibis::part::init(const char* iname) {
     // name was derived from global resource parameters, or activeDir
     // matches exactly the input name.
     const bool useDir = ((m_name != 0 && nEvents > 0) ||
-                         iname == 0 || *iname == 0 ||
-                         (iname[std::strlen(iname)-1] != FASTBIT_DIRSEP ?
-                          std::strcmp(activeDir, iname) == 0 :
-                          strncmp(activeDir, iname, std::strlen(iname)-1) == 0) ||
-                         (tmp != 0 && 0 == std::strcmp(tmp+1, iname)));
+			 iname == 0 || *iname == 0 ||
+			 (iname[std::strlen(iname)-1] != FASTBIT_DIRSEP ?
+			  std::strcmp(activeDir, iname) == 0 :
+			  strncmp(activeDir, iname, std::strlen(iname)-1) == 0) ||
+			 (tmp != 0 && 0 == std::strcmp(tmp+1, iname)));
     if (! useDir) { // need a new subdirectory
         std::string subdir = activeDir;
         subdir += FASTBIT_DIRSEP;
@@ -1033,8 +1032,8 @@ void ibis::part::init(const char* iname) {
     }
 
     if (backupDir != 0 &&
-        0 == strncmp(backupDir, activeDir, std::strlen(backupDir)))
-        deriveBackupDirName();
+	0 == strncmp(backupDir, activeDir, std::strlen(backupDir)))
+	deriveBackupDirName();
 
     if (backupDir != 0) {
         ibis::util::removeTail(backupDir, FASTBIT_DIRSEP);
@@ -1098,14 +1097,14 @@ void ibis::part::init(const char* iname) {
     j = 0;
     if (maxLength <= 0) maxLength = 16;
     if (std::strlen(activeDir)+16+maxLength > PATH_MAX) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- directory name \"" << activeDir << "\" is too long";
-        ++j;
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- directory name \"" << activeDir << "\" is too long";
+	++j;
     }
     if (backupDir != 0 && std::strlen(backupDir)+16+maxLength > PATH_MAX) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- directory name \"" << backupDir << "\" is too long";
-        ++j;
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- directory name \"" << backupDir << "\" is too long";
+	++j;
     }
     if (j) throw "direcotry names too long";
 
@@ -1188,10 +1187,10 @@ char* ibis::part::readMetaTags(const char* const dir) {
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
-        LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 1)
-            << "Warning -- part::readMetaTags may have encountered a line "
-            "that has more than " << MAX_LINE << " characters";
-        LOGGER(ibis::gVerbose > 14) << buf;
+	LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 1)
+	    << "Warning -- part::readMetaTags may have encountered a line "
+	    "that has more than " << MAX_LINE << " characters";
+	LOGGER(ibis::gVerbose > 14) << buf;
 
         if (strnicmp(buf, "END HEADER", 10) == 0) {
             break;
@@ -1262,10 +1261,10 @@ void ibis::part::readMeshShape(const char* const dir) {
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, file))) {
-        LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
-            << "Warning -- part::readMeshShape may have encountered a line "
-            "with more than " << MAX_LINE << " characters";
-        LOGGER(ibis::gVerbose > 14) << buf;
+	LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
+	    << "Warning -- part::readMeshShape may have encountered a line "
+	    "with more than " << MAX_LINE << " characters";
+	LOGGER(ibis::gVerbose > 14) << buf;
 
         if (strnicmp(buf, "END HEADER", 10) == 0) {
             break;
@@ -1339,8 +1338,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
     int  maxLength = 0;
     int  tot_columns = INT_MAX;
     int  num_columns = INT_MAX;
-    const bool isActive =
-        (activeDir ? std::strcmp(activeDir, dir) == 0 : false);
+    const bool isActive = (activeDir ? std::strcmp(activeDir, dir) == 0 : false);
     std::set<int> selected; // list of selected columns
     char buf[MAX_LINE];
 
@@ -1351,25 +1349,25 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 
     // parse header -- read till end header
     while ((s1 = fgets(buf, MAX_LINE, fptr))) {
-        LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
-            << "Warning -- part::readMetaData(" << tdcname
-            << ") may have encountered a line that has more than "
-            << MAX_LINE << " characters";
-        LOGGER(ibis::gVerbose > 6) << buf;
+	LOGGER(std::strlen(buf) + 1 >= MAX_LINE && ibis::gVerbose > 0)
+	    << "Warning -- part::readMetaData(" << tdcname
+	    << ") may have encountered a line that has more than "
+	    << MAX_LINE << " characters";
+	LOGGER(ibis::gVerbose > 6) << buf;
 
-        // s1 points to the value come after = sign
-        s1 = strchr(buf, '=');
-        if (s1!=0) {
-            if (s1[1]!=0) {
-                ++ s1;
-            }
-            else {
-                s1 = 0;
-            }
-        }
-        else {
-            s1 = 0;
-        }
+	// s1 points to the value come after = sign
+	s1 = strchr(buf, '=');
+	if (s1!=0) {
+	    if (s1[1]!=0) {
+		++ s1;
+	    }
+	    else {
+		s1 = 0;
+	    }
+	}
+	else {
+	    s1 = 0;
+	}
 
         if (strnicmp(buf, "END HEADER", 10) == 0) {
             break;
@@ -1421,11 +1419,11 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
             delete [] idxstr; // discard the old value
             idxstr = ibis::util::getString(s1);
 #if defined(INDEX_SPEC_TO_LOWER)
-            s1 = idxstr + std::strlen(idxstr) - 1;
-            while (s1 >= idxstr) {
-                *s1 = std::tolower(*s1);
-                -- s1;
-            }
+	    s1 = idxstr + std::strlen(idxstr) - 1;
+	    while (s1 >= idxstr) {
+		*s1 = tolower(*s1);
+		-- s1;
+	    }
 #endif
             LOGGER(ibis::gVerbose > 1 && ibis::gVerbose <= 6) << buf;
         }
@@ -1434,116 +1432,116 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
             s1 = buf + 5;
             idxstr = ibis::util::getString(s1);
 #if defined(INDEX_SPEC_TO_LOWER)
-            s1 = idxstr + std::strlen(idxstr) - 1;
-            while (s1 >= idxstr) {
-                *s1 = std::tolower(*s1);
-                -- s1;
-            }
+	    s1 = idxstr + std::strlen(idxstr) - 1;
+	    while (s1 >= idxstr) {
+		*s1 = tolower(*s1);
+		-- s1;
+	    }
 #endif
-            LOGGER(ibis::gVerbose > 1 && ibis::gVerbose <= 6) << buf;
-        }
-        else if (strnicmp(buf, "Columns_Selected", 16) == 0 ||
-                 strnicmp(buf, "Properties_Selected", 19) == 0) {
-            // the list can contain a list of ranges or numbers separated by
-            // ',', ';', or space
-            while (*s1 == 0) {
-                char* s2;
-                int i = strtol(s1, 0, 0);
-                if (i > 0) {
-                    selected.insert(i);
-                }
-                s2 = strchr(s1, '-');
-                if (s2 != 0) {
-                    s1 = s2 + 1;
-                    int j = strtol(s1, 0, 0);
-                    LOGGER(j < i && ibis::gVerbose > 0)
-                        << "Warning -- readMetaData encounters "
-                        "an illformed range: " << i << s2;
-                    while (i<j) {
-                        ++i;
-                        selected.insert(i);
-                    }
-                }
-                s2 = strpbrk(s1, ",; \t");
-                if (s2 != 0) {
-                    s1 = s2 + 1;
-                }
-                else {
-                    s1 = 0;
-                }
-            }
-            if (num_columns == INT_MAX) {
-                num_columns = selected.size();
-            }
-        }
-        else if (isActive) {
-            if ((strnicmp(buf, "Name", 4) == 0 &&
-                 (isspace(buf[4]) || buf[4]=='=')) ||
-                strnicmp(buf, "Table.Name", 10) == 0 ||
-                strnicmp(buf, "DataSet.Name", 12) == 0 ||
-                strnicmp(buf, "Partition.Name", 14) == 0 ||
-                strnicmp(buf, "Part.Name", 9) == 0) {
-                delete [] m_name; // discard the existing name
-                m_name = ibis::util::getString(s1);
-            }
-            else if (strnicmp(buf, "Description", 11) == 0 ||
-                     strnicmp(buf, "Table.Description", 17) == 0 ||
-                     strnicmp(buf, "DataSet.Description", 19) == 0 ||
-                     strnicmp(buf, "Partition.Description", 21) == 0 ||
-                     strnicmp(buf, "Part.Description", 16) == 0) {
-                char *s2 = ibis::util::getString(s1);
-                m_desc = s2;
-                delete [] s2;
-            }
-            else if (strnicmp(buf, "Timestamp", 9) == 0) {
-                if (sizeof(time_t) == sizeof(int))
-                    switchTime = strtol(s1, 0, 0);
-                else
-                    switchTime = strtol(s1, 0, 0);
-            }
-            else if (strnicmp(buf, "Alternative_Directory", 21) == 0) {
-                if (activeDir == 0 || *activeDir == 0 ||
-                    backupDir == 0 || *backupDir == 0 ||
-                    (std::strcmp(s1, activeDir) != 0 &&
-                     std::strcmp(s1, backupDir) != 0)) {
-                    delete [] backupDir;
-                    backupDir = ibis::util::getString(s1);
-                }
-            }
-            else if (strnicmp(buf, "State", 5) == 0 ||
-                     strnicmp(buf, "Part.State", 10) == 0 ||
-                     strnicmp(buf, "Table.State", 11) == 0 ||
-                     strnicmp(buf, "DataSet.State", 13) == 0 ||
-                     strnicmp(buf, "Partition.State", 15) == 0) {
-                state = (ibis::part::TABLE_STATE)strtol(s1, 0, 0);
-            }
-            else if (strnicmp(buf, "metaTags", 8) == 0 ||
-                     strnicmp(buf, "Part.metaTags", 13) == 0 ||
-                     strnicmp(buf, "Table.metaTags", 14) == 0 ||
-                     strnicmp(buf, "DataSet.metaTags", 16) == 0 ||
-                     strnicmp(buf, "Partition.metaTags", 18) == 0) {
-                ibis::resource::parseNameValuePairs(s1, metaList);
-                ibis::resource::vList::const_iterator it =
-                    metaList.find("columnShape");
-                if (it == metaList.end())
-                    it = metaList.find("meshShape");
-                if (it != metaList.end())
-                    digestMeshShape(it->second);
-            }
-            else if (strnicmp(buf, "columnShape", 11) == 0 ||
-                     strnicmp(buf, "Part.columnShape", 16) == 0 ||
-                     strnicmp(buf, "Table.columnShape", 17) == 0 ||
-                     strnicmp(buf, "DataSet.columnShape", 19) == 0 ||
-                     strnicmp(buf, "Partition.columnShape", 21) == 0 ||
-                     strnicmp(buf, "meshShape", 9) == 0 ||
-                     strnicmp(buf, "Part.meshShape", 14) == 0 ||
-                     strnicmp(buf, "Partition.meshShape", 19) == 0) {
-                digestMeshShape(s1);
-                if (! shapeSize.empty())
-                    metaList[ibis::util::strnewdup("meshShape")] =
-                        ibis::util::strnewdup(s1);
-            }
-        }
+	    LOGGER(ibis::gVerbose > 1 && ibis::gVerbose <= 6) << buf;
+	}
+	else if (strnicmp(buf, "Columns_Selected", 16) == 0 ||
+		 strnicmp(buf, "Properties_Selected", 19) == 0) {
+	    // the list can contain a list of ranges or numbers separated by
+	    // ',', ';', or space
+	    while (*s1 == 0) {
+		char* s2;
+		int i = strtol(s1, 0, 0);
+		if (i > 0) {
+		    selected.insert(i);
+		}
+		s2 = strchr(s1, '-');
+		if (s2 != 0) {
+		    s1 = s2 + 1;
+		    int j = strtol(s1, 0, 0);
+		    LOGGER(j < i && ibis::gVerbose > 0)
+			<< "Warning -- readMetaData encounters "
+			"an illformed range: " << i << s2;
+		    while (i<j) {
+			++i;
+			selected.insert(i);
+		    }
+		}
+		s2 = strpbrk(s1, ",; \t");
+		if (s2 != 0) {
+		    s1 = s2 + 1;
+		}
+		else {
+		    s1 = 0;
+		}
+	    }
+	    if (num_columns == INT_MAX) {
+		num_columns = selected.size();
+	    }
+	}
+	else if (isActive) {
+	    if ((strnicmp(buf, "Name", 4) == 0 &&
+		 (isspace(buf[4]) || buf[4]=='=')) ||
+		strnicmp(buf, "Table.Name", 10) == 0 ||
+		strnicmp(buf, "DataSet.Name", 12) == 0 ||
+		strnicmp(buf, "Partition.Name", 14) == 0 ||
+		strnicmp(buf, "Part.Name", 9) == 0) {
+		delete [] m_name; // discard the existing name
+		m_name = ibis::util::getString(s1);
+	    }
+	    else if (strnicmp(buf, "Description", 11) == 0 ||
+		     strnicmp(buf, "Table.Description", 17) == 0 ||
+		     strnicmp(buf, "DataSet.Description", 19) == 0 ||
+		     strnicmp(buf, "Partition.Description", 21) == 0 ||
+		     strnicmp(buf, "Part.Description", 16) == 0) {
+		char *s2 = ibis::util::getString(s1);
+		m_desc = s2;
+		delete [] s2;
+	    }
+	    else if (strnicmp(buf, "Timestamp", 9) == 0) {
+		if (sizeof(time_t) == sizeof(int))
+		    switchTime = strtol(s1, 0, 0);
+		else
+		    switchTime = strtol(s1, 0, 0);
+	    }
+	    else if (strnicmp(buf, "Alternative_Directory", 21) == 0) {
+		if (activeDir == 0 || *activeDir == 0 ||
+		    backupDir == 0 || *backupDir == 0 ||
+		    (std::strcmp(s1, activeDir) != 0 &&
+		     std::strcmp(s1, backupDir) != 0)) {
+		    delete [] backupDir;
+		    backupDir = ibis::util::getString(s1);
+		}
+	    }
+	    else if (strnicmp(buf, "State", 5) == 0 ||
+		     strnicmp(buf, "Part.State", 10) == 0 ||
+		     strnicmp(buf, "Table.State", 11) == 0 ||
+		     strnicmp(buf, "DataSet.State", 13) == 0 ||
+		     strnicmp(buf, "Partition.State", 15) == 0) {
+		state = (ibis::part::TABLE_STATE)strtol(s1, 0, 0);
+	    }
+	    else if (strnicmp(buf, "metaTags", 8) == 0 ||
+		     strnicmp(buf, "Part.metaTags", 13) == 0 ||
+		     strnicmp(buf, "Table.metaTags", 14) == 0 ||
+		     strnicmp(buf, "DataSet.metaTags", 16) == 0 ||
+		     strnicmp(buf, "Partition.metaTags", 18) == 0) {
+		ibis::resource::parseNameValuePairs(s1, metaList);
+		ibis::resource::vList::const_iterator it =
+		    metaList.find("columnShape");
+		if (it == metaList.end())
+		    it = metaList.find("meshShape");
+		if (it != metaList.end())
+		    digestMeshShape(it->second);
+	    }
+	    else if (strnicmp(buf, "columnShape", 11) == 0 ||
+		     strnicmp(buf, "Part.columnShape", 16) == 0 ||
+		     strnicmp(buf, "Table.columnShape", 17) == 0 ||
+		     strnicmp(buf, "DataSet.columnShape", 19) == 0 ||
+		     strnicmp(buf, "Partition.columnShape", 21) == 0 ||
+		     strnicmp(buf, "meshShape", 9) == 0 ||
+		     strnicmp(buf, "Part.meshShape", 14) == 0 ||
+		     strnicmp(buf, "Partition.meshShape", 19) == 0) {
+		digestMeshShape(s1);
+		if (! shapeSize.empty())
+		    metaList[ibis::util::strnewdup("meshShape")] =
+			ibis::util::strnewdup(s1);
+	    }
+	}
     } // the loop to parse header
 
     // some minimal integrity check
@@ -1567,54 +1565,54 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
     // start to parse columns
     int len, cnt=0;
     while ((s1 = fgets(buf, MAX_LINE, fptr))) {
-        // get to the next "Begin Column" line
-        LOGGER(std::strlen(buf) + 1 >= MAX_LINE)
-            << "Warning -- part::readMetaData(" << tdcname
-            << ") may have encountered a line with more than " << MAX_LINE
-            << " characters";
+	// get to the next "Begin Column" line
+	LOGGER(std::strlen(buf) + 1 >= MAX_LINE)
+	    << "Warning -- part::readMetaData(" << tdcname
+	    << ") may have encountered a line with more than " << MAX_LINE
+	    << " characters";
 
-        if (strnicmp(buf, "Begin Column", 12) == 0 ||
-            strnicmp(buf, "Begin Property", 14) == 0) {
-            ++ cnt;
-            column* prop = new column(this, fptr);
-            LOGGER(ibis::gVerbose > 5)
-                << "part::readMetaData -- got column " << prop->name()
-                <<  " from " << tdcname;
+	if (strnicmp(buf, "Begin Column", 12) == 0 ||
+	    strnicmp(buf, "Begin Property", 14) == 0) {
+	    ++ cnt;
+	    column* prop = new column(this, fptr);
+	    LOGGER(ibis::gVerbose > 5)
+		<< "part::readMetaData -- got column " << prop->name()
+		<<  " from " << tdcname;
 
-            if (prop->type() == ibis::CATEGORY) {
-                column* tmp = new ibis::category(*prop);
-                delete prop;
-                prop = tmp;
-            }
-            else if (prop->type() == ibis::TEXT) {
-                column* tmp = new ibis::text(*prop);
-                delete prop;
-                prop = tmp;
-            }
-            else if (prop->type() == ibis::BLOB) {
-                column* tmp = new ibis::blob(*prop);
-                delete prop;
-                prop = tmp;
-            }
+	    if (prop->type() == ibis::CATEGORY) {
+		column* tmp = new ibis::category(*prop);
+		delete prop;
+		prop = tmp;
+	    }
+	    else if (prop->type() == ibis::TEXT) {
+		column* tmp = new ibis::text(*prop);
+		delete prop;
+		prop = tmp;
+	    }
+	    else if (prop->type() == ibis::BLOB) {
+		column* tmp = new ibis::blob(*prop);
+		delete prop;
+		prop = tmp;
+	    }
 
-            if (selected.empty()) {
-                // if Properties_Selected is not explicitly
-                // specified, assume every column is to be included
-                plist[prop->name()] = prop;
-                len = std::strlen(prop->name());
-                if (len > maxLength) maxLength = len;
-            }
-            else if (selected.find(cnt) != selected.end()) {
-                // Properties_Positions_Selected is explicitly specified
-                plist[prop->name()] = prop;
-                len = std::strlen(prop->name());
-                if (len > maxLength) maxLength = len;
-            }
-            else {
-                // column is not selected
-                delete prop;
-            }
-        }
+	    if (selected.empty()) {
+		// if Properties_Selected is not explicitly
+		// specified, assume every column is to be included
+		plist[prop->name()] = prop;
+		len = std::strlen(prop->name());
+		if (len > maxLength) maxLength = len;
+	    }
+	    else if (selected.find(cnt) != selected.end()) {
+		// Properties_Positions_Selected is explicitly specified
+		plist[prop->name()] = prop;
+		len = std::strlen(prop->name());
+		if (len > maxLength) maxLength = len;
+	    }
+	    else {
+		// column is not selected
+		delete prop;
+	    }
+	}
     } // parse columns
     (void) fclose(fptr); // close the tdc file
 
@@ -1715,7 +1713,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
                                const char* dir) const {
     if (dir == 0 || *dir == 0)
-        return;
+	return;
     const int nfn = std::strlen(dir)+16;
     char* filename = new char[nfn];
 #if defined(HAVE_SNPRINTF)
@@ -1733,18 +1731,16 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     }
     FILE *fptr = fopen(filename, "w");
     if (fptr == 0) {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- part::writeMetaData failed to open file \""
-            << filename << "\" for writing ... "
-            << (errno ? strerror(errno) : "no free stdio stream");
-        delete [] filename;
-        return;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part::writeMetaData failed to open file \""
+	    << filename << "\" for writing ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	delete [] filename;
+	return;
     }
 
-    bool isActive = (activeDir != 0 ? (std::strcmp(activeDir, dir) == 0)
-                     : false);
-    bool isBackup = (backupDir != 0 ? (std::strcmp(backupDir, dir) == 0)
-                     : false);
+    bool isActive = (activeDir != 0 ? (std::strcmp(activeDir, dir) == 0) : false);
+    bool isBackup = (backupDir != 0 ? (std::strcmp(backupDir, dir) == 0) : false);
     char stamp[28];
     ibis::util::getLocalTime(stamp);
     fprintf(fptr, "# metadata file written by ibis::part::writeMetaData\n"
@@ -1753,12 +1749,12 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
         fprintf(fptr, "BEGIN HEADER\nName = \"%s\"\n", m_name);
     }
     else { // make up a name based on the time stamp
-        std::string nm;
-        uint32_t tmp = ibis::util::checksum(stamp, std::strlen(stamp));
-        ibis::util::int2string(nm, tmp);
-        if (! isalpha(nm[0]))
-            nm[0] = 'A' + (nm[0] % 26);
-        fprintf(fptr, "BEGIN HEADER\nName = \"%s\"\n", nm.c_str());
+	std::string nm;
+	uint32_t tmp = ibis::util::checksum(stamp, std::strlen(stamp));
+	ibis::util::int2string(nm, tmp);
+	if (! isalpha(nm[0]))
+	    nm[0] = 'A' + (nm[0] % 26);
+	fprintf(fptr, "BEGIN HEADER\nName = \"%s\"\n", nm.c_str());
     }
     if (!m_desc.empty() && (isActive || isBackup)) {
         fprintf(fptr, "Description = \"%s\"\n", m_desc.c_str());
@@ -1793,14 +1789,14 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
         fprintf(fptr, ")\n");
     }
     if (isActive) {
-        if (backupDir != 0 && *backupDir != 0 && backupDir != activeDir &&
-            std::strcmp(activeDir, backupDir) != 0)
-            fprintf(fptr, "Alternative_Directory = \"%s\"\n", backupDir);
+	if (backupDir != 0 && *backupDir != 0 && backupDir != activeDir &&
+	    std::strcmp(activeDir, backupDir) != 0)
+	    fprintf(fptr, "Alternative_Directory = \"%s\"\n", backupDir);
     }
     else if (isBackup) {
-        if (activeDir != 0 && *activeDir != 0 && backupDir != activeDir &&
-            std::strcmp(activeDir, backupDir) != 0)
-            fprintf(fptr, "Alternative_Directory = \"%s\"\n", activeDir);
+	if (activeDir != 0 && *activeDir != 0 && backupDir != activeDir &&
+	    std::strcmp(activeDir, backupDir) != 0)
+	    fprintf(fptr, "Alternative_Directory = \"%s\"\n", activeDir);
     }
     if (isActive || isBackup) {
         fprintf(fptr, "Timestamp = %lu\n",
@@ -1955,14 +1951,14 @@ bool ibis::part::matchMetaTags(const ibis::resource::vList &mtags) const {
     ibis::resource::vList::const_iterator it1 = mtags.begin();
     ibis::resource::vList::const_iterator it2 = metaList.begin();
     for (uint32_t i = 0; ret && (i < len); ++i, ++it1, ++it2) {
-        ret = ((stricmp((*it1).first, (*it2).first) == 0) &&
-               ((std::strcmp((*it1).second, "*")==0) ||
-                (std::strcmp((*it2).second, "*")==0) ||
-                (stricmp((*it1).second, (*it2).second)==0)));
-        LOGGER(ibis::gVerbose > 5)
-            << "util::matchMetaTags -- meta tags (" << it1->first << " = "
-            << it1->second << ") and (" << it2->first << " = " << it2->second
-            << ") " << (ret ? "match" : "donot match");;
+	ret = ((stricmp((*it1).first, (*it2).first) == 0) &&
+	       ((std::strcmp((*it1).second, "*")==0) ||
+		(std::strcmp((*it2).second, "*")==0) ||
+		(stricmp((*it1).second, (*it2).second)==0)));
+	LOGGER(ibis::gVerbose > 5)
+	    << "util::matchMetaTags -- meta tags (" << it1->first << " = "
+	    << it1->second << ") and (" << it2->first << " = " << it2->second
+	    << ") " << (ret ? "match" : "donot match");;
     }
     return ret;
 } // ibis::part::matchMetaTags
@@ -3295,18 +3291,18 @@ long ibis::part::stringSearch(const ibis::qString &cmp,
         ierr = col->stringSearch(cmp.rightString(), low);
     }
     else {
-        // try rightString
-        col = getColumn(cmp.rightString());
-        if (col != 0) {
-            ierr = col->stringSearch(cmp.leftString(), low);
-        }
-        else if (std::strcmp(cmp.leftString(), cmp.rightString()) == 0) {
-            getNullMask(low);
-        }
-        else {
-            // no match -- no hit
-            low.set(0, nEvents);
-        }
+	// try rightString
+	col = getColumn(cmp.rightString());
+	if (col != 0) {
+	    ierr = col->stringSearch(cmp.leftString(), low);
+	}
+	else if (std::strcmp(cmp.leftString(), cmp.rightString()) == 0) {
+	    getNullMask(low);
+	}
+	else {
+	    // no match -- no hit
+	    low.set(0, nEvents);
+	}
     }
     return ierr;
 } // ibis::part::stringSearch
@@ -3326,13 +3322,13 @@ long ibis::part::stringSearch(const ibis::qString &cmp) const {
         ret = col->stringSearch(cmp.rightString());
     }
     else {    // try rightString
-        col = getColumn(cmp.rightString());
-        if (col != 0) {
-            ret = col->stringSearch(cmp.leftString());
-        }
-        else if (std::strcmp(cmp.leftString(), cmp.rightString()) == 0) {
-            ret = amask.cnt();
-        }
+	col = getColumn(cmp.rightString());
+	if (col != 0) {
+	    ret = col->stringSearch(cmp.leftString());
+	}
+	else if (std::strcmp(cmp.leftString(), cmp.rightString()) == 0) {
+	    ret = amask.cnt();
+	}
     }
     return ret;
 } // ibis::part::stringSearch
@@ -3444,15 +3440,15 @@ long ibis::part::keywordSearch(const ibis::qKeyword &cmp,
     long ierr = -1;
     const ibis::column* col = getColumn(cmp.colName());
     if (col != 0) {
-        if (col->type() == ibis::TEXT) {
-            ierr = col->keywordSearch(cmp.keyword(), low);
-        }
-        else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
-            getNullMask(low);
-        }
+	if (col->type() == ibis::TEXT) {
+	    ierr = col->keywordSearch(cmp.keyword(), low);
+	}
+	else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
+	    getNullMask(low);
+	}
     }
     else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
-        getNullMask(low);
+	getNullMask(low);
     }
     else {
         // no match -- no hit
@@ -3471,15 +3467,15 @@ long ibis::part::keywordSearch(const ibis::qKeyword &cmp) const {
     long ret = -1;
     const ibis::column* col = getColumn(cmp.colName());
     if (col != 0) {
-        if (col->type() == ibis::TEXT) {
-            ret = col->keywordSearch(cmp.keyword());
-        }
-        else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
-            ret = amask.cnt();
-        }
+	if (col->type() == ibis::TEXT) {
+	    ret = col->keywordSearch(cmp.keyword());
+	}
+	else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
+	    ret = amask.cnt();
+	}
     }
     else if (std::strcmp(cmp.colName(), cmp.keyword()) == 0) {
-        ret = amask.cnt();
+	ret = amask.cnt();
     }
     return ret;
 } // ibis::part::keywordSearch
@@ -6727,12 +6723,12 @@ ibis::column* ibis::part::getColumn(const char* prop) const {
     }
 
     if (it == columns.end()) {
-        const size_t nch = std::strlen(m_name);
-        if (std::strlen(prop) > nch+1 && prop[nch] == '_' &&
-            strnicmp(prop, m_name, nch) == 0) {
-            str = prop + nch + 1;
-            it = columns.find(str);
-        }
+	const size_t nch = std::strlen(m_name);
+	if (std::strlen(prop) > nch+1 && prop[nch] == '_' &&
+	    strnicmp(prop, m_name, nch) == 0) {
+	    str = prop + nch + 1;
+	    it = columns.find(str);
+	}
     }
 
     if (it == columns.end()) {
@@ -18724,12 +18720,12 @@ void ibis::part::deriveBackupDirName() {
 #endif
     }
     if (backupDir) {
-        if (std::strcmp(activeDir, backupDir)) {
-            // activeDir differs from backupDir, no need to do anything
-            return;
-        }
-        delete [] backupDir;
-        backupDir = 0;
+	if (std::strcmp(activeDir, backupDir)) {
+	    // activeDir differs from backupDir, no need to do anything
+	    return;
+	}
+	delete [] backupDir;
+	backupDir = 0;
     }
 
     uint32_t j = std::strlen(activeDir);
@@ -18767,8 +18763,8 @@ void ibis::part::deriveBackupDirName() {
 long ibis::part::verifyBackupDir() {
     long ierr = 0;
     if (activeDir == 0 || backupDir == 0 || *backupDir == 0 ||
-        backupDir == activeDir || std::strcmp(activeDir, backupDir) == 0)
-        return ierr;
+	backupDir == activeDir || std::strcmp(activeDir, backupDir) == 0)
+	return ierr;
 
     try {
         ierr = ibis::util::makeDir(backupDir);
@@ -18826,48 +18822,48 @@ long ibis::part::verifyBackupDir() {
             return ierr;
         }
 
-        char buf[MAX_LINE];
-        char *rs;
-        while (0 != (rs = fgets(buf, MAX_LINE, file))) {
-            rs = strchr(buf, '=');
-            if (strnicmp(buf, "END HEADER", 10) == 0) {
-                break;
-            }
-            else if (rs != 0) {
-                ++ rs; // pass = character
-                if (strnicmp(buf, "Number_of_rows", 14) == 0 ||
-                    strnicmp(buf, "Number_of_events", 16) == 0 ||
-                    strnicmp(buf, "Number_of_records", 17) == 0) {
-                    uint32_t ne = strtol(rs, 0, 0);
-                    if (ne != nEvents) {
-                        -- ierr;
-                        logWarning("verifyBackupDir", "backup directory"
-                                   " contains %lu rows, but the active"
-                                   " directory has %lu.",
-                                   static_cast<long unsigned>(ne),
-                                   static_cast<long unsigned>(nEvents));
-                    }
-                }
-                else if (strnicmp(buf, "Number_of_columns", 17) == 0 ||
-                         strnicmp(buf, "Number_of_properties", 20) == 0) {
-                    np = strtol(rs, 0, 0);
-                }
-                else if (strnicmp(buf, "Alternative_Directory", 21) == 0) {
-                    rs += strspn(rs," \t\"\'");
-                    char* tmp = strpbrk(rs, " \t\"\'");
-                    if (tmp != 0) *tmp = static_cast<char>(0);
-                    if ((backupDir == 0 || std::strcmp(rs, backupDir)) &&
-                        (activeDir == 0 || std::strcmp(rs, activeDir))) {
-                        -- ierr;
-                        logWarning("verifyBackupDir",
-                                   "Alternative_Directory "
-                                   "entry inconsistent: active=\"%s\" "
-                                   "backup=\"%s\"", backupDir, rs);
-                    }
-                }
-            }
-        } // while ...
-        fclose(file);
+	char buf[MAX_LINE];
+	char *rs;
+	while (0 != (rs = fgets(buf, MAX_LINE, file))) {
+	    rs = strchr(buf, '=');
+	    if (strnicmp(buf, "END HEADER", 10) == 0) {
+		break;
+	    }
+	    else if (rs != 0) {
+		++ rs; // pass = character
+		if (strnicmp(buf, "Number_of_rows", 14) == 0 ||
+		    strnicmp(buf, "Number_of_events", 16) == 0 ||
+		    strnicmp(buf, "Number_of_records", 17) == 0) {
+		    uint32_t ne = strtol(rs, 0, 0);
+		    if (ne != nEvents) {
+			-- ierr;
+			logWarning("verifyBackupDir", "backup directory"
+				   " contains %lu rows, but the active"
+				   " directory has %lu.",
+				   static_cast<long unsigned>(ne),
+				   static_cast<long unsigned>(nEvents));
+		    }
+		}
+		else if (strnicmp(buf, "Number_of_columns", 17) == 0 ||
+			 strnicmp(buf, "Number_of_properties", 20) == 0) {
+		    np = strtol(rs, 0, 0);
+		}
+		else if (strnicmp(buf, "Alternative_Directory", 21) == 0) {
+		    rs += strspn(rs," \t\"\'");
+		    char* tmp = strpbrk(rs, " \t\"\'");
+		    if (tmp != 0) *tmp = static_cast<char>(0);
+		    if ((backupDir == 0 || std::strcmp(rs, backupDir)) &&
+			(activeDir == 0 || std::strcmp(rs, activeDir))) {
+			-- ierr;
+			logWarning("verifyBackupDir",
+				   "Alternative_Directory "
+				   "entry inconsistent: active=\"%s\" "
+				   "backup=\"%s\"", backupDir, rs);
+		    }
+		}
+	    }
+	} // while ...
+	fclose(file);
     } // if (ierr == 0)
     else if (nEvents > 0) {
         logWarning("verifyBackupDir", "no metadata file in \"%s\".  The "
@@ -18928,7 +18924,7 @@ void ibis::part::doBackup() {
             logMessage("doBackup", "copy files from \"%s\" to \"%s\"",
                        activeDir, backupDir);
 
-        char* cmd = new char[std::strlen(activeDir)+std::strlen(backupDir)+32];
+	char* cmd = new char[std::strlen(activeDir)+std::strlen(backupDir)+32];
 #if defined(__unix__) || defined(__linux__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(__FreeBSD__)
         sprintf(cmd, "/bin/cp -fr \"%s\" \"%s\"", activeDir, backupDir);
 #elif defined(_WIN32)
@@ -20521,17 +20517,17 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist, const char *dir1,
     if (dirp == 0) return cnt;
     struct dirent* ent = 0;
     while ((ent = readdir(dirp)) != 0) {
-        if ((ent->d_name[1] == 0 || ent->d_name[1] == '.') &&
-            ent->d_name[0] == '.') { // skip '.' and '..'
-            continue;
-        }
-        if (len + std::strlen(ent->d_name)+2 >= PATH_MAX) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- util::gatherParts skipping " << dir1
-                << FASTBIT_DIRSEP << ent->d_name
-                << " because the name has more than " << PATH_MAX << " bytes";
-            continue;
-        }
+	if ((ent->d_name[1] == 0 || ent->d_name[1] == '.') &&
+	    ent->d_name[0] == '.') { // skip '.' and '..'
+	    continue;
+	}
+	if (len + std::strlen(ent->d_name)+2 >= PATH_MAX) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- util::gatherParts skipping " << dir1
+		<< FASTBIT_DIRSEP << ent->d_name
+		<< " because the name has more than " << PATH_MAX << " bytes";
+	    continue;
+	}
 
 	sprintf(nm1, "%s%c%s", dir1, FASTBIT_DIRSEP, ent->d_name);
 	Stat_T st1;
@@ -20655,17 +20651,17 @@ unsigned ibis::util::gatherParts(ibis::partList &tlist,
     if (dirp == 0) return cnt;
     struct dirent* ent = 0;
     while ((ent = readdir(dirp)) != 0) {
-        if ((ent->d_name[1] == 0 || ent->d_name[1] == '.') &&
-            ent->d_name[0] == '.') { // skip '.' and '..'
-            continue;
-        }
-        if (len + std::strlen(ent->d_name)+2 >= PATH_MAX) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "util::gatherParts name (" << adir << FASTBIT_DIRSEP
-                << ent->d_name << " | " << bdir << FASTBIT_DIRSEP
-                << ent->d_name << ") too long";
-            continue;
-        }
+	if ((ent->d_name[1] == 0 || ent->d_name[1] == '.') &&
+	    ent->d_name[0] == '.') { // skip '.' and '..'
+	    continue;
+	}
+	if (len + std::strlen(ent->d_name)+2 >= PATH_MAX) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "util::gatherParts name (" << adir << FASTBIT_DIRSEP
+		<< ent->d_name << " | " << bdir << FASTBIT_DIRSEP
+		<< ent->d_name << ") too long";
+	    continue;
+	}
 
         sprintf(nm1, "%s%c%s", adir, FASTBIT_DIRSEP, ent->d_name);
         sprintf(nm2, "%s%c%s", bdir, FASTBIT_DIRSEP, ent->d_name);

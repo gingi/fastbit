@@ -735,38 +735,38 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
         fnm += col->name();
     }
     else {
-        j = std::strlen(f);
-        if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' && f[j-3] == 'i' &&
-            f[j-4] == '.') { // index file name
-            fnm = f;
-            fnm.erase(j-4);
-        }
-        else {
-            bool isFile = false;
-            i = std::strlen(col->name());
-            if (j >= i) {
-                const char* tail = f + (j - i);
-                isFile = (std::strcmp(tail, col->name()) == 0);
-            }
-            if (isFile) {
-                fnm = f;
-            }
-            else { // check the existence of the file or direcotry
-                Stat_T st0;
-                if (UnixStat(f, &st0)) { // assume to be a file
-                    fnm = f;
-                }
-                else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
-                    // named directory exist
-                    fnm = f;
-                    fnm += FASTBIT_DIRSEP;
-                    fnm += col->name();
-                }
-                else { // given name is the data file name
-                    fnm = f;
-                }
-            }
-        }
+	j = std::strlen(f);
+	if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' && f[j-3] == 'i' &&
+	    f[j-4] == '.') { // index file name
+	    fnm = f;
+	    fnm.erase(j-4);
+	}
+	else {
+	    bool isFile = false;
+	    i = std::strlen(col->name());
+	    if (j >= i) {
+		const char* tail = f + (j - i);
+		isFile = (std::strcmp(tail, col->name()) == 0);
+	    }
+	    if (isFile) {
+		fnm = f;
+	    }
+	    else { // check the existence of the file or direcotry
+		Stat_T st0;
+		if (UnixStat(f, &st0)) { // assume to be a file
+		    fnm = f;
+		}
+		else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
+		    // named directory exist
+		    fnm = f;
+		    fnm += FASTBIT_DIRSEP;
+		    fnm += col->name();
+		}
+		else { // given name is the data file name
+		    fnm = f;
+		}
+	    }
+	}
     }
 
     ibis::bitvector mask;

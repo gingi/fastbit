@@ -7,11 +7,11 @@
 #include "countQuery.h" // ibis::countQuery
 #include "part.h"
 
-#include <math.h>       // ceil, sqrt
-#include <limits>       // std::numeric_limits
-#include <typeinfo>     // typeid
-#include <memory>       // unique_ptr
-#include <iomanip>      // setw, setprecision
+#include <math.h>	// ceil, sqrt
+#include <limits>	// std::numeric_limits
+#include <typeinfo>	// typeid
+#include <memory>	// unique_ptr
+#include <iomanip>	// setw, setprecision
 
 // This file definte does not use the min and max macro.  Their presence
 // could cause the calls to numeric_limits::min and numeric_limits::max to
@@ -109,64 +109,64 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-        std::unique_ptr< array_t<int32_t> > vals(col->selectInts(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<int32_t> > vals(col->selectInts(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     case ibis::CATEGORY:
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-        std::unique_ptr< array_t<uint32_t> > vals(col->selectUInts(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<uint32_t> > vals(col->selectUInts(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-        std::unique_ptr< array_t<int64_t> > vals(col->selectLongs(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<int64_t> > vals(col->selectLongs(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     case ibis::FLOAT: {
-        std::unique_ptr< array_t<float> > vals(col->selectFloats(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<float> > vals(col->selectFloats(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     case ibis::DOUBLE: {
-        std::unique_ptr< array_t<double> > vals(col->selectDoubles(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<double> > vals(col->selectDoubles(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     default: {
         LOGGER(ibis::gVerbose > 3)
             << "part::get1DDistribution -- can not "
@@ -291,69 +291,69 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-        std::unique_ptr< array_t<int32_t> > vals(bcol->selectInts(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-                    += (*wts)[i];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<int32_t> > vals(bcol->selectInts(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     case ibis::CATEGORY:
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-        std::unique_ptr< array_t<uint32_t> > vals(bcol->selectUInts(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-                    += (*wts)[i];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<uint32_t> > vals(bcol->selectUInts(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-        std::unique_ptr< array_t<int64_t> > vals(bcol->selectLongs(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-                    += (*wts)[i];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<int64_t> > vals(bcol->selectLongs(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     case ibis::FLOAT: {
-        std::unique_ptr< array_t<float> > vals(bcol->selectFloats(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-                    += (*wts)[i];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<float> > vals(bcol->selectFloats(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     case ibis::DOUBLE: {
-        std::unique_ptr< array_t<double> > vals(bcol->selectDoubles(mask));
-        if (vals.get() != 0) {
-            for (uint32_t i = 0; i < vals->size(); ++ i) {
-                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-                    += (*wts)[i];
-            }
-        }
-        else {
-            ierr = -4;
-        }
-        break;}
+	std::unique_ptr< array_t<double> > vals(bcol->selectDoubles(mask));
+	if (vals.get() != 0) {
+	    for (uint32_t i = 0; i < vals->size(); ++ i) {
+		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+		    += (*wts)[i];
+	    }
+	}
+	else {
+	    ierr = -4;
+	}
+	break;}
     default: {
         LOGGER(ibis::gVerbose > 3)
             << "part::get1DDistribution -- can not "

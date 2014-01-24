@@ -4,8 +4,8 @@
 #include "idirekte.h"
 #include "part.h"
 
-#include <typeinfo>     // std::typeid
-#include <memory>       // std::unique_ptr
+#include <typeinfo>	// std::typeid
+#include <memory>	// std::unique_ptr
 
 /// Constructing a new ibis::direkte object from base data in a file.
 /// Both arguments are expected to be valid pointers.

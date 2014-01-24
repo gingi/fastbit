@@ -20,11 +20,11 @@
 #include "resource.h"
 #include "bitvector64.h"
 
-#include <memory>       // std::unique_ptr
-#include <queue>        // priority queue
-#include <algorithm>    // std::sort
-#include <sstream>      // std::ostringstream
-#include <typeinfo>     // typeid
+#include <memory>	// std::unique_ptr
+#include <queue>	// priority queue
+#include <algorithm>	// std::sort
+#include <sstream>	// std::ostringstream
+#include <typeinfo>	// typeid
 
 namespace ibis {
 #if defined(TEST_SUMBINS_OPTIONS)
@@ -361,9 +361,18 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	    std::string file;
 	    const char* header = 0;
 	    char buf[12];
-	    c->dataFileName(file, dfname);
+            const size_t dfnlen = std::strlen(dfname);
+            if (dfnlen > 4 && dfname[dfnlen-4] == '.' &&
+                dfname[dfnlen-3] == 'i' && dfname[dfnlen-2] == 'd' &&
+                dfname[dfnlen-1] == 'x') {
+                file = dfname;
+            }
+            else {
+                c->dataFileName(file, dfname);
+                if (! file.empty())
+                    file += ".idx";
+            }
 	    if (! file.empty()) {
-		file += ".idx";
 		bool useGetFile = (readopt >= 0);
 		ibis::fileManager::ACCESS_PREFERENCE prf =
 		    (readopt > 0 ? ibis::fileManager::PREFER_READ :
@@ -401,54 +410,54 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 		    if (st)
 			header = st->begin();
 		}
-	    }
-	    if (header == 0) {
-		// attempt to read the file using read(2)
-		int fdes = UnixOpen(file.c_str(), OPEN_READONLY);
-		if (fdes >= 0) {
+                if (header == 0) {
+                    // attempt to read the file using read(2)
+                    int fdes = UnixOpen(file.c_str(), OPEN_READONLY);
+                    if (fdes >= 0) {
 #if defined(_WIN32) && defined(_MSC_VER)
-		    (void)_setmode(fdes, _O_BINARY);
+                        (void)_setmode(fdes, _O_BINARY);
 #endif
-		    if (8 == UnixRead(fdes, static_cast<void*>(buf), 8)) {
-			header = buf;
-		    }
-		    UnixClose(fdes);
-		}
-	    }
-	    if (header) { // verify header
-		const bool check = (header[0] == '#' && header[1] == 'I' &&
-				    header[2] == 'B' && header[3] == 'I' &&
-				    header[4] == 'S' &&
-				    (header[6] == 8 || header[6] == 4) &&
-				    header[7] == static_cast<char>(0));
-		if (!check) {
-		    c->logWarning("readIndex", "index file \"%s\" "
-				  "contains an incorrect header "
-				  "(%c%c%c%c%c:%i.%i.%i)",
-				  file.c_str(),
-				  header[0], header[1], header[2],
-				  header[3], header[4],
-				  (int)header[5], (int)header[6],
-				  (int)header[7]);
-		    header = 0;
-		}
-	    }
+                        if (8 == UnixRead(fdes, static_cast<void*>(buf), 8)) {
+                            header = buf;
+                        }
+                        UnixClose(fdes);
+                    }
+                }
+                if (header) { // verify header
+                    const bool check = (header[0] == '#' && header[1] == 'I' &&
+                                        header[2] == 'B' && header[3] == 'I' &&
+                                        header[4] == 'S' &&
+                                        (header[6] == 8 || header[6] == 4) &&
+                                        header[7] == static_cast<char>(0));
+                    if (!check) {
+                        c->logWarning("readIndex", "index file \"%s\" "
+                                      "contains an incorrect header "
+                                      "(%c%c%c%c%c:%i.%i.%i)",
+                                      file.c_str(),
+                                      header[0], header[1], header[2],
+                                      header[3], header[4],
+                                      (int)header[5], (int)header[6],
+                                      (int)header[7]);
+                        header = 0;
+                    }
+                }
 
-	    if (header) { // reconstruct index from st
-		isRead = true;
-                ibis::horometer tm4;
-                if (ibis::gVerbose > 2)
-                    tm4.start();
-		ind = readOld(c, file.c_str(), st,
-			      static_cast<INDEX_TYPE>(header[5]));
-		if (ind == 0) {
-		    ibis::fileManager::instance().flushFile(file.c_str());
-		    (void) remove(file.c_str());
-		}
-                else if (ibis::gVerbose > 2) {
-                    tm4.stop();
-                    LOGGER(1) << evt << " reading the existing index took "
-                              << tm4.realTime() << " sec";
+                if (header) { // reconstruct index from st
+                    isRead = true;
+                    ibis::horometer tm4;
+                    if (ibis::gVerbose > 2)
+                        tm4.start();
+                    ind = readOld(c, file.c_str(), st,
+                                  static_cast<INDEX_TYPE>(header[5]));
+                    if (ind == 0) {
+                        ibis::fileManager::instance().flushFile(file.c_str());
+                        (void) remove(file.c_str());
+                    }
+                    else if (ibis::gVerbose > 2) {
+                        tm4.stop();
+                        LOGGER(1) << evt << " reading the existing index took "
+                                  << tm4.realTime() << " sec";
+                    }
                 }
 	    }
 	} // if (dfname != 0 && *dfname != 0)
@@ -961,7 +970,7 @@ ibis::index* ibis::index::buildNew
         }
     }
     else if (c->indexSpec() == 0 || *(c->indexSpec()) == 0 ||
-             strcmp(c->indexSpec(), spec) != 0) {
+             std::strcmp(c->indexSpec(), spec) != 0) {
         const_cast<column*>(c)->indexSpec(spec);
     }
     LOGGER(ibis::gVerbose > 3)
@@ -1271,7 +1280,7 @@ ibis::index* ibis::index::buildNew
     else if (strstr(spec, "ambit") != 0 ||
              strstr(spec, "range/range") != 0 ||
              strstr(spec, "range-range") != 0) {
-        std::auto_ptr<ibis::bin> tmp(new  ibis::bin(c, dfname));
+        std::unique_ptr<ibis::bin> tmp(new  ibis::bin(c, dfname));
         if (tmp->numBins() > 2) {
             ind = new ibis::ambit(*tmp);
         }
@@ -1282,7 +1291,7 @@ ibis::index* ibis::index::buildNew
     else if (strstr(spec, "pale") != 0 ||
              strstr(spec, "bin/range") != 0 ||
              strstr(spec, "equality-range") != 0) {
-        std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+        std::unique_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
         if (tmp->numBins() > 2) {
             ind = new ibis::pale(*tmp);
         }
@@ -1294,7 +1303,7 @@ ibis::index* ibis::index::buildNew
              strstr(spec, "range/bin") != 0 ||
              strstr(spec, "range/equality") != 0 ||
              strstr(spec, "range-equality") != 0) {
-        std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+        std::unique_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
         if (tmp->numBins() > 2) {
             ind = new ibis::pack(*tmp);
         }
@@ -1306,7 +1315,7 @@ ibis::index* ibis::index::buildNew
              strstr(spec, "bin/bin") != 0 ||
              strstr(spec, "equality/equality") != 0 ||
              strstr(spec, "equality-equality") != 0) {
-        std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+        std::unique_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
         if (tmp->numBins() > 2) {
             ind = new ibis::zone(*tmp);
         }
@@ -1327,7 +1336,7 @@ ibis::index* ibis::index::buildNew
     else if (strstr(spec, "mesa") != 0 ||
              strstr(spec, "interval") != 0 ||
              strstr(spec, "2sided") != 0) {
-        std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+        std::unique_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
         if (tmp->numBins() > 2) {
             ind = new ibis::mesa(*tmp);
         }
@@ -1337,7 +1346,7 @@ ibis::index* ibis::index::buildNew
     }
     else if (strstr(spec, "range") != 0 ||
              strstr(spec, "cumulative") != 0) {
-        std::auto_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
+        std::unique_ptr<ibis::bin> tmp(new ibis::bin(c, dfname));
         if (tmp->numBins() > 2) {
             ind = new ibis::range(*tmp);
         }
@@ -1551,7 +1560,7 @@ void ibis::index::indexFileName(std::string& iname, const char* f) const {
         }
     }
     else {
-        unsigned len = strlen(f);
+        unsigned len = std::strlen(f);
         if (len > 4 && f[len-4] == '.' && f[len-3] == 'i' &&
             f[len-2] == 'd' && f[len-1] == 'x') {
             // the incoming name ends with ".idx", use it
@@ -1559,7 +1568,7 @@ void ibis::index::indexFileName(std::string& iname, const char* f) const {
         }
         else if (col != 0 && col->partition() != 0 &&
                  col->partition()->currentDataDir() != 0 &&
-                 0 == strcmp(f, col->partition()->currentDataDir())) {
+                 0 == std::strcmp(f, col->partition()->currentDataDir())) {
             iname += f;
             iname += FASTBIT_DIRSEP;
             iname += col->name();
@@ -6732,8 +6741,13 @@ void ibis::index::sumBins(const ibis::array_t<uint32_t> &bns,
         activate(); // make all bitmaps ready to use
         for (size_t j = 0; j < bns.size(); ++ j) {
             if (bns[j] < bits.size()) {
-                if (bits[bns[j]] != 0)
+                if (bits[bns[j]] != 0) {
                     pile.push_back(bits[bns[j]]);
+                    LOGGER(ibis::gVerbose > 0)
+                        << "DEBUG -- sumBins adds bits[" << bns[j]
+                        << "] with " << bits[bns[j]]->cnt()
+                        << " set bits to pile";
+                }
             }
         }
     }

@@ -16,11 +16,11 @@
 #include "blob.h"       // ibis::blob
 #include "category.h"   // ibis::text
 
-#include <algorithm>    // std::sort, std::copy
-#include <sstream>      // std::ostringstream
-#include <limits>       // std::numeric_limits
-#include <cmath>        // std::floor
-#include <iomanip>      // std::setprecision
+#include <algorithm>	// std::sort
+#include <sstream>	// std::ostringstream
+#include <limits>	// std::numeric_limits
+#include <cmath>	// std::floor
+#include <iomanip>	// std::setprecision
 
 /// This function expects a valid data directory to find data partitions.
 /// If the incoming directory is not a valid string, it will use
@@ -4291,12 +4291,12 @@ ibis::liga::liga(ibis::part& p) : ibis::mensa() {
         desc_ += p.name();
     }
     else if (p.description() != 0 && *(p.description()) != 0) {
-        unsigned sum =
-            ibis::util::checksum(p.description(), std::strlen(p.description()));
-        std::string tmp;
-        ibis::util::int2string(tmp, sum);
-        name_ += tmp;
-        desc_ += p.description();
+	unsigned sum =
+	    ibis::util::checksum(p.description(), std::strlen(p.description()));
+	std::string tmp;
+	ibis::util::int2string(tmp, sum);
+	name_ += tmp;
+	desc_ += p.description();
     }
     else { // produce a random name from the size of the data partition
         const unsigned v2 = (p.nColumns() ^ ibis::fileManager::iBeat());
@@ -4590,9 +4590,9 @@ ibis::table* ibis::table::groupby(const char* str) const {
     stringList lst;
     char* buf = 0;
     if (str != 0 && *str != 0) {
-        buf = new char[std::strlen(str)+1];
-        strcpy(buf, str);
-        parseNames(buf, lst);
+	buf = new char[std::strlen(str)+1];
+	strcpy(buf, str);
+	parseNames(buf, lst);
     }
     ibis::table* res = groupby(lst);
     delete [] buf;
@@ -4604,9 +4604,9 @@ void ibis::table::orderby(const char* str) {
     std::vector<bool> direc;
     char* buf = 0;
     if (str != 0 && *str != 0) {
-        buf = new char[std::strlen(str)+1];
-        strcpy(buf, str);
-        parseOrderby(buf, lst, direc);
+	buf = new char[std::strlen(str)+1];
+	strcpy(buf, str);
+	parseOrderby(buf, lst, direc);
     }
     orderby(lst, direc);
     delete [] buf;

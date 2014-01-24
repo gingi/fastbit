@@ -6,20 +6,7 @@
 ///@file
 /// Define a dictionary data structure used by ibis::category.
 #include "array_t.h"
-#if defined(HAVE_UNORDERED_MAP)
 #include <unordered_map>
-#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ <= 5)
-#include <backward/hash_map>
-#else
-#include <unordered_map>
-#endif
-
-namespace std {
-    // specialization of hash<> on const char*
-    template <> struct hash< const char* > {
-	size_t operator()(const char* x) const;
-    };
-}
 
 /// Provide a dual-directional mapping between strings and integers.  A
 /// utility class used by ibis::category.  The integer values are always
@@ -36,6 +23,15 @@ namespace std {
 /// completely before any use, the size of a dictionary is generally
 /// limited by the size of the computer memory.
 ///
+/// This version uses an in-memory hash_map to provide a mapping from a
+/// string to an integer.
+///
+/// @note The integer returned from this class is a unsigned 32-bit integer
+/// (uint32_t).  This limits the size of the dictionary to be no more than
+/// 2^32 entries.  The dictionary file is written with 32-bit intenal
+/// pointers, therefore, all the strings added together can not be more
+/// than 2^32 bytes long.
+/// 
 /// @note If FASTBIT_CASE_SENSITIVE_COMPARE is defined to be 0, the values
 /// stored in a dictionary will be folded to the upper case.  This will
 /// allow the words in the dictionary to be stored in a simple sorted
@@ -86,27 +82,12 @@ protected:
     array_t<char*> buffer_;
     /// Member variable key_ contains the hash_map that connects a string
     /// value to an integer.
-    typedef
-#if defined(HAVE_UNORDERED_MAP)
-        std::unordered_map
-#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ <= 5)
-        __gnu_cxx::hash_map
-#else
-        std::unordered_map
-#endif
-        <const char*, uint32_t, std::hash<const char*>,
-         std::equal_to<const char*> > MYMAP;
+    typedef std::unordered_map<const char*, uint32_t, std::hash<const char*>,
+                               std::equal_to<const char*> > MYMAP;
     MYMAP key_;
 
-    int  readRaw(const char*, FILE *);
-    int  readKeys0(const char*, FILE *);
-    int  readKeys1(const char*, FILE *);
-    int  readKeys2(const char*, FILE *);
-    void mergeBuffers() const;
-    int  writeKeys(FILE*, uint32_t, array_t<uint64_t>&,
-                   array_t<uint32_t>&) const;
-    int  writeBuffer(FILE*, uint32_t, array_t<uint64_t>&,
-                     array_t<uint32_t>&) const;
+    int readRaw(const char*, FILE *);
+    int readKeys(const char*, FILE *);
 
 private:
     dictionary& operator=(const dictionary&);
