@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.8.9], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.8.10], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -167,7 +167,7 @@ elif AC_TRY_COMMAND($CXX $CXXFLAGS -std=c++11 -c src/util.cpp) && test -s util.o
   CXXFLAGS="$CXXFLAGS -std=c++11";
   AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
 else
-  AC_MSG_ERROR([$CXX not able to compile src/util.cpp])
+  AC_MSG_ERROR([$CXX not able to compile src/util.cpp, please use GCC 4.8 or newer versions])
 fi
 /bin/rm -f util.o
 

@@ -7,11 +7,7 @@
 /// The header of dictionary files.  It has 20 bytes exactly.
 static char _fastbit_dictionary_header[20] =
     {'#', 'I', 'B', 'I', 'S', ' ', 'D', 'i', 'c', 't',
-     'i', 'o', 'n', 'a', 'r', 'y', 2, 0, 0, 0};
-
-/// Default constructor.
-ibis::dictionary::dictionary() {
-} // default constructor
+     'i', 'o', 'n', 'a', 'r', 'y', 1, 0, 0, 0};
 
 /// Copy constructor.  Places all the string in one contiguous buffer.
 ibis::dictionary::dictionary(const ibis::dictionary& old)
@@ -66,13 +62,11 @@ void ibis::dictionary::copy(const ibis::dictionary& old) {
    file is laid out as follows.
 
    \li Signature "#IBIS Dictionary " and version number (currently
-   0x020000). (20 bytes)
+   0x010000). (20 bytes)
 
    \li N = Number of strings in the file. (4 bytes)
 
    \li uint64_t[N+1]: the starting positions of the strings in this file.
-
-   \li uint32_t[N]: The integer code corresponding to each string value.
 
    \li the string values packed one after the other with their nil
    terminators.
@@ -122,31 +116,8 @@ int ibis::dictionary::write(const char* name) const {
     if (nkeys == 0) // nothing else to write
 	return 0;
 
-    {
-        array_t<uint32_t> tmp(nkeys);
-        for (uint32_t j = 0; j < nkeys; ++ j)
-            tmp[j] = j+1U;
-        ierr = fwrite(tmp.begin(), sizeof(uint32_t), nkeys, fptr);
-        if (ierr != (int)nkeys) {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- dictionary::write(" << name
-                << ") failed to write " << nkeys << " code value"
-                << (nkeys>1?"s":"") << ", fwrite returned " << ierr;
-            return -6;
-        }
-    }
-    LOGGER(ibis::gVerbose > 1)
-        << evt << " complete with ierr = " << ierr;
-    return ierr;
-} // ibis::dictionary::write
-
-/// Write the dictionary one keyword at a time.  This version requires on
-/// write call on each keyword, which can be time consuming when there are
-/// many keywords.
-int ibis::dictionary::writeKeys(FILE *fptr, uint32_t nkeys,
-                                array_t<uint64_t> &pos,
-                                array_t<uint32_t> &qos) const {
-    int ierr = fseek(fptr, 8*(nkeys+1)+4*nkeys, SEEK_CUR);
+    array_t<uint64_t> pos(nkeys+1);
+    ierr = fseek(fptr, sizeof(uint64_t)*(nkeys+1), SEEK_CUR);
     long int tmp = ftell(fptr);
     pos[0] = tmp;
     for (unsigned i = 0; i < nkeys; ++ i) {
@@ -159,17 +130,17 @@ int ibis::dictionary::writeKeys(FILE *fptr, uint32_t nkeys,
 
 	tmp = ftell(fptr);
 	pos[i+1] = tmp;
-	LOGGER((long int)(pos[i+1]) != tmp && ibis::gVerbose > 1)
+	LOGGER(24 > tmp && ibis::gVerbose > 1)
 	    << "Warning -- dictionary::write(" << name
 	    << ") failed to store position " << tmp
-	    << " into a 32-bit integer; dictionary file will be unusable!";
+	    << " into a 64-bit integer; dictionary file will be UNUSABLE!";
     }
 
     // go back to write the positions
-    ierr = fseek(fptr, 24+4*nkeys, SEEK_SET);
+    ierr = fseek(fptr, 24, SEEK_SET);
     LOGGER(ierr != 0 && ibis::gVerbose > 1)
-        << "Warning -- dictionary::writeKeys failed to seek to offset 24 "
-        "to write the offsets";
+	<< "Warning -- dictionary::write(" << name
+	<< ") failed to seek to offset 24 to write the offsets";
 
     ierr = fwrite(pos.begin(), sizeof(uint64_t), nkeys+1, fptr);
     LOGGER(ierr != (int)(nkeys+1) && ibis::gVerbose > 1)
@@ -235,13 +206,12 @@ int ibis::dictionary::writeBuffer(FILE *fptr, uint32_t nkeys,
 /// This function determines the version of the dictionary and invokes the
 /// necessary reading function to perform the actual reading operations.
 /// Currently there are three possible version of dictioanries
-/// 0x02000000 - the version produced by the current write function,
-/// 0x01000000 - the version with 64-bit offsets, consecutive kyes, strings
-///              are stored in key order
-/// 0x00000000 - the version 32-bit offsets and stores strings in
-///              sorted order.
-/// unmarked   - the version without a header, only has the bare strings in
-///              the code order.
+/// 0x01000000 - the version produced by the current write function,
+/// 0x00000000 - the version produced by the previous version of the write
+///              function that uses 32-bit offsets and strings in sorted
+///              order.
+/// unmarked   - the version with a header, only has the bare strings in the
+///              code order.
 int ibis::dictionary::read(const char* name) {
     if (name == 0 || *name == 0) return -1;
     std::string evt = "dictionary::read";
@@ -272,35 +242,63 @@ int ibis::dictionary::read(const char* name) {
 
     uint32_t version = 0xFFFFFFFFU;
     long int sz = ftell(fptr); // file size
-    if (sz < 24) { // attempt to treat it as an old-style dictionary file
-	return readRaw(evt.c_str(), fptr);
+    if (sz > 24) {
+	char header[20];
+	ierr = fseek(fptr, 0, SEEK_SET);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << evt << " failed to seek to the beginning "
+		"of the file";
+	    return -4;
+	}
+
+	ierr = fread(header, 1, 20, fptr);
+	if (ierr != 20) {
+	    LOGGER(ibis::gVerbose > 1)
+		<< "Warning -- " << evt << " failed to read the 20-byte header";
+	    return -5;
+	}
+	if (header[0] == _fastbit_dictionary_header[0] &&
+	    header[1] == _fastbit_dictionary_header[1] &&
+	    header[2] == _fastbit_dictionary_header[2] &&
+	    header[3] == _fastbit_dictionary_header[3] &&
+	    header[4] == _fastbit_dictionary_header[4] &&
+	    header[5] == _fastbit_dictionary_header[5] &&
+	    header[6] == _fastbit_dictionary_header[6] &&
+	    header[7] == _fastbit_dictionary_header[7] &&
+	    header[8] == _fastbit_dictionary_header[8] &&
+	    header[9] == _fastbit_dictionary_header[9] &&
+	    header[10] == _fastbit_dictionary_header[10] &&
+	    header[11] == _fastbit_dictionary_header[11] &&
+	    header[12] == _fastbit_dictionary_header[12] &&
+	    header[13] == _fastbit_dictionary_header[13] &&
+	    header[14] == _fastbit_dictionary_header[14] &&
+	    header[15] == _fastbit_dictionary_header[15]) {
+            version = (header[16] << 24 | header[17] << 16 |
+                       header[18] << 8 | header[19]);
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 2)
+		<< evt << " did not find the expected header, assume "
+		"to have no header (oldest version of dictioinary)";
+	}
     }
 
     // invoke the actual reader based on version number
     switch (version) {
-    case 0x02000000:
-            ierr = readKeys2(evt.c_str(), fptr);
-            break;
     case 0x01000000:
-            ierr = readKeys1(evt.c_str(), fptr);
-            break;
+	    return readKeys1(evt.c_str(), fptr);
     case 0x00000000:
-            ierr = readKeys0(evt.c_str(), fptr);
-            break;
+	    return readKeys0(evt.c_str(), fptr);
     default:
-            ierr = readRaw(evt.c_str(), fptr);
-            break;
+	    return readRaw(evt.c_str(), fptr);
     }
-    if (ibis::gVerbose > 3) {
-        ibis::util::logger lg;
-        lg() << evt << " completed with ";
-        toASCII(lg());
-    }
-    return ierr;
 } // ibis::dictionary::read
 
-/// Read the raw strings.  This is the older style dictionary that contains
-/// the raw strings.  On successful completion, this function returns 0.
+/// Read the raw strings.  This is for the oldest style dictionary that
+/// contains the raw strings.  There is no header in the dictionary file,
+/// therefore this function has rewind back to the beginning of the file.
+/// On successful completion, this function returns 0.
 int ibis::dictionary::readRaw(const char *evt, FILE *fptr) {
     int ierr = fseek(fptr, 0, SEEK_END);
     if (ierr != 0) {
@@ -353,9 +351,10 @@ int ibis::dictionary::readRaw(const char *evt, FILE *fptr) {
     return 0;
 } // ibis::dictionary::readRaw
 
-/// Read the string values.  This function process the data produced by
-/// the write function.  On successful completion, it returns 0.
-int ibis::dictionary::readKeys(const char *evt, FILE *fptr) {
+/// Read the string values.  This function processes the data produced by
+/// version 0x00000000 of the write function.  On successful completion, it
+/// returns 0.
+int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
     uint32_t nkeys;
     int ierr = fread(&nkeys, 4, 1, fptr);
     if (ierr != 1) {
@@ -366,12 +365,12 @@ int ibis::dictionary::readKeys(const char *evt, FILE *fptr) {
     }
 
     clear();
-    // skip forward 4*nkeys bytes
-    ierr = fseek(fptr, 4*nkeys, SEEK_CUR);
-    if (ierr != 0) {
+    array_t<uint32_t> codes(nkeys);
+    ierr = fread(codes.begin(), 4, nkeys, fptr);
+    if (ierr != (long)nkeys) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << evt << " failed to seek to the offsets "
-	    "at positioin " << 24+4*nkeys << ", fseek returned " << ierr;
+	    << "Warning -- " << evt << " failed to read " << nkeys
+            << ", fread returned " << ierr;
 	return -7;
     }
 
@@ -393,6 +392,62 @@ int ibis::dictionary::readKeys(const char *evt, FILE *fptr) {
             "expected fread to return " << (offsets.back()-offsets.front())
             << ", but got " << ierr;
         return -9;
+    }
+    raw_.resize(nkeys+1);
+    key_.reserve(nkeys+nkeys);
+    for (unsigned j = 0; j < nkeys; ++ j) {
+        uint32_t ik = codes[j];
+	raw_[ik+1] = buffer_[0] + (offsets[ik] - offsets[0]);
+        key_[raw_[ik+1]] = ik+1;
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
+        LOGGER(ibis::gVerbose > 0)
+            << "DEBUG -- " << evt << " raw_[" << ik+1 << "] = \"" << raw_[ik+1]
+            << '"';
+#endif
+    }
+
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
+    ibis::util::logger lg;
+    lg() << "DEBUG -- " << evt << " got the following keys\n\t";
+    for (MYMAP::const_iterator it = key_.begin(); it != key_.end(); ++ it)
+        lg() << '"' << it->first << '"' << "(" << it->second << ") ";
+#endif
+    return 0;
+} // ibis::dictionary::readKeys0
+
+/// Read the string values.  This function processes the data produced by
+/// version 0x01000000 of the write function.  On successful completion, it
+/// returns 0.
+int ibis::dictionary::readKeys1(const char *evt, FILE *fptr) {
+    uint32_t nkeys;
+    int ierr = fread(&nkeys, 4, 1, fptr);
+    if (ierr != 1) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt
+	    << " failed to read the number of keys, fread returned " << ierr;
+	return -6;
+    }
+
+    clear();
+
+    array_t<uint64_t> offsets(nkeys+1);
+    ierr = fread(offsets.begin(), 8, nkeys+1, fptr);
+    if (ierr != (int)(1+nkeys)) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " failed to read the string positions, "
+	    "expected fread to return " << nkeys+1 << ", but got " << ierr;
+	return -8;
+    }
+
+    buffer_.resize(1);
+    buffer_[0] = new char[offsets.back()-offsets.front()];
+    ierr = fread(buffer_[0], 1, offsets.back()-offsets.front(), fptr);
+    if (ierr != (int)(offsets.back()-offsets.front())) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- " << evt << " failed to read the strings, "
+	    "expected fread to return " << (offsets.back()-offsets.front())
+	    << ", but got " << ierr;
+	return -9;
     }
     raw_.resize(nkeys+1);
     key_.reserve(nkeys+nkeys);
