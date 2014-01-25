@@ -4,6 +4,11 @@
 	* src/index.cpp: allow .idx filename to be used directly without
 	modification (promised in the inline documentation, but not
 	implemented)
+	* src/tests/scripts/fastbit-config: add option -cxxflags
+	* src/dictionary.h, src/dictionary.cpp: change the offsets to be
+	64-bit long in dictionary files, introduce new version tag for the
+	dictionary files, add support for reading previous versions of
+	dictionary files
 
 2014-01-22 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.h: a new implementation based on

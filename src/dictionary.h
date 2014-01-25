@@ -18,9 +18,10 @@
 ///
 /// @note The integer returned from this class is a unsigned 32-bit integer
 /// (uint32_t).  This limits the size of the dictionary to be no more than
-/// 2^32 entries.  The dictionary file is written with 32-bit intenal
-/// pointers, therefore, all the strings added together can not be more
-/// than 2^32 bytes long.
+/// 2^32 entries.  The dictionary file is written with 64-bit internal
+/// pointers.  However, since the dictionary has to be read into memory
+/// completely to be used, therefore, the size of dictionary is generally
+/// limited by the size of the computer memory.
 /// 
 /// @note If FASTBIT_CASE_SENSITIVE_COMPARE is defined to be 0, the values
 /// stored in a dictionary will be folded to the upper case.  This will
@@ -74,7 +75,8 @@ protected:
     MYMAP key_;
 
     int readRaw(const char*, FILE *);
-    int readKeys(const char*, FILE *);
+    int readKeys0(const char*, FILE *);
+    int readKeys1(const char*, FILE *);
 
 private:
     dictionary& operator=(const dictionary&);
