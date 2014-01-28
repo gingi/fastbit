@@ -152,18 +152,27 @@ if test "x$xopt" = "xyes" ; then
    	]])], [], [CXXFLAGS="$OLDCXXFLAGS -O3"])
 fi
 
-AC_ARG_WITH(extraflags,
-	AS_HELP_STRING([--with-extraflags=extra-cflags],
-	[specify additional compilation flags if needed]),
-	[if test "x$with_extraflags" != "xno" ; then
-	  CXXFLAGS="$CXXFLAGS $with_extraflags"
-	  CFLAGS="$CFLAGS $with_extraflags"
+AC_ARG_WITH(extracflags,
+	AS_HELP_STRING([--with-extracflags=extra-cflags],
+	[specify additional C compilation flags if needed]),
+	[if test "x$with_extracflags" != "xno" ; then
+	  CFLAGS="$CFLAGS $with_extracflags"
+	fi], [])
+
+AC_ARG_WITH(extracxxflags,
+	AS_HELP_STRING([--with-extracxxflags=extra-cflags],
+	[specify additional C++ compilation flags if needed]),
+	[if test "x$with_extracxxflags" != "xno" ; then
+	  CXXFLAGS="$CXXFLAGS $with_extracxxflags"
+	  EXTRA_CXXFLAGS="$with_extracxxflags"
 	fi], [])
 
 # test to determine if any known flags are needed
 if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
-   AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
+  EXTRA_CXXFLAGS=""
+  AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
 elif AC_TRY_COMMAND($CXX $CXXFLAGS -std=c++11 -c src/util.cpp) && test -s util.o; then
+  EXTRA_CXXFLAGS="-std=c++11"
   CXXFLAGS="$CXXFLAGS -std=c++11";
   AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
 else

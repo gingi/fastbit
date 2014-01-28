@@ -19,11 +19,12 @@ Usage: fastbit-config [OPTION]...
 Get @PACKAGE_STRING@ compilation and linking information.
 
 Options:
-  --prefix       display \`--prefix' value used for building the FastBit library
-  --version      display FastBit version number
-  --libs         display flags for linking with the FastBit library
-  --cflags       display CFLAGS for compiling with the FastBit library
-  --cxxflags     display CXXFLAGS for compiling with the FastBit library
+  --prefix      display \`--prefix' value used for building the FastBit library
+  --version     display FastBit version number
+  --libs        display flags for linking with the FastBit library
+  --cflags      display CFLAGS for compiling with the FastBit library
+  --cxxflags    display CXXFLAGS for compiling with the FastBit library
+  --cxxextra    display extra CXXFLAGS (in addition to CFLAGS) for compiling with the FastBit library
 EOF
   exit $1
 }
@@ -45,6 +46,9 @@ while test $# -gt 0 ; do
     ;;
   --cxxflags)
     echo_cxxflags=yes
+    ;;
+  --cxxextra)
+    echo_cxxextra=yes
     ;;
   --libs)
     echo_libs=yes
@@ -78,12 +82,16 @@ if test "$echo_cflags" = "yes" ; then
 fi
 
 if test "$echo_cxxflags" = "yes" ; then
-  cxxflags="@DEFS@ @AM_CXXFLAGS@ @PTHREAD_CFLAGS@"
+  cxxflags="@DEFS@ @AM_CPPFLAGS@ @EXTRA_CXXFLAGS@ @PTHREAD_CFLAGS@"
   if test "$includedir" != "/usr/include" ; then
     echo $cxxflags -I$includedir
   else
     echo $cxxflags
   fi
+fi
+
+if test "$echo_cxxextra" = "yes" ; then
+  echo "@EXTRA_CXXFLAGS@"
 fi
 
 if test "$echo_libs" = "yes" ; then
