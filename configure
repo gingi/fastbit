@@ -640,6 +640,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 OBJDIR
+EXTRA_CXXFLAGS
 AM_CPPFLAGS
 PTHREAD_LIBS
 LIB_VERSION_INFO
@@ -794,7 +795,8 @@ enable_libtool_lock
 enable_static_pic
 enable_debug
 enable_xopt
-with_extraflags
+with_extracflags
+with_extracxxflags
 with_getpwuid
 enable_quiet_nan
 with_pthread
@@ -1465,8 +1467,10 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-extraflags=extra-cflags
-                          specify additional compilation flags if needed
+  --with-extracflags=extra-cflags
+                          specify additional C compilation flags if needed
+  --with-extracxxflags=extra-cflags
+                          specify additional C++ compilation flags if needed
   --with-getpwuid         specify --without-getpwuid to disable the attempt to
                           use getpwuid to determine the user name
   --with-pthread=dir      use dir as pthread root directory
@@ -15813,11 +15817,20 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 
 
-# Check whether --with-extraflags was given.
-if test "${with_extraflags+set}" = set; then :
-  withval=$with_extraflags; if test "x$with_extraflags" != "xno" ; then
-	  CXXFLAGS="$CXXFLAGS $with_extraflags"
-	  CFLAGS="$CFLAGS $with_extraflags"
+# Check whether --with-extracflags was given.
+if test "${with_extracflags+set}" = set; then :
+  withval=$with_extracflags; if test "x$with_extracflags" != "xno" ; then
+	  CFLAGS="$CFLAGS $with_extracflags"
+	fi
+fi
+
+
+
+# Check whether --with-extracxxflags was given.
+if test "${with_extracxxflags+set}" = set; then :
+  withval=$with_extracxxflags; if test "x$with_extracxxflags" != "xno" ; then
+	  CXXFLAGS="$CXXFLAGS $with_extracxxflags"
+	  EXTRA_CXXFLAGS="$with_extracxxflags"
 	fi
 fi
 
@@ -15829,7 +15842,8 @@ if { ac_try='$CXX $CXXFLAGS -c src/util.cpp'
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; } && test -s util.o; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: compiler and options: $CXX $CXXFLAGS" >&5
+  EXTRA_CXXFLAGS=""
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: compiler and options: $CXX $CXXFLAGS" >&5
 $as_echo "compiler and options: $CXX $CXXFLAGS" >&6; }
 elif { ac_try='$CXX $CXXFLAGS -std=c++11 -c src/util.cpp'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
@@ -15837,6 +15851,7 @@ elif { ac_try='$CXX $CXXFLAGS -std=c++11 -c src/util.cpp'
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; } && test -s util.o; then
+  EXTRA_CXXFLAGS="-std=c++11"
   CXXFLAGS="$CXXFLAGS -std=c++11";
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: compiler and options: $CXX $CXXFLAGS" >&5
 $as_echo "compiler and options: $CXX $CXXFLAGS" >&6; }
@@ -16656,7 +16671,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16659 "configure" */
+/* #line 16674 "configure" */
 public class Test {
 }
 EOF
@@ -16787,7 +16802,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 16790: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 16805: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -16864,7 +16879,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16867 "configure" */
+/* #line 16882 "configure" */
 public class Test {
 }
 EOF
@@ -16899,7 +16914,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 16902 "configure" */
+/* [#]line 16917 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);
@@ -17059,6 +17074,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 OBJDIR=$objdir
+
 
 
 
