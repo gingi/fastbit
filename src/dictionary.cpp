@@ -287,12 +287,21 @@ int ibis::dictionary::read(const char* name) {
     // invoke the actual reader based on version number
     switch (version) {
     case 0x01000000:
-	    return readKeys1(evt.c_str(), fptr);
+	    ierr = readKeys1(evt.c_str(), fptr);
+            break;
     case 0x00000000:
-	    return readKeys0(evt.c_str(), fptr);
+	    ierr = readKeys0(evt.c_str(), fptr);
+            break;
     default:
-	    return readRaw(evt.c_str(), fptr);
+	    ierr = readRaw(evt.c_str(), fptr);
+            break;
     }
+    if (ibis::gVerbose > 4) {
+        ibis::util::logger lg;
+        lg() << evt << " completed with ";
+        print(lg());
+    }
+    return ierr;
 } // ibis::dictionary::read
 
 /// Read the raw strings.  This is for the oldest style dictionary that
@@ -397,11 +406,11 @@ int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
     key_.reserve(nkeys+nkeys);
     for (unsigned j = 0; j < nkeys; ++ j) {
         uint32_t ik = codes[j];
-	raw_[ik+1] = buffer_[0] + (offsets[ik] - offsets[0]);
-        key_[raw_[ik+1]] = ik+1;
+	raw_[ik] = buffer_[0] + (offsets[ik] - offsets[0]);
+        key_[raw_[ik]] = ik;
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
         LOGGER(ibis::gVerbose > 0)
-            << "DEBUG -- " << evt << " raw_[" << ik+1 << "] = \"" << raw_[ik+1]
+            << "DEBUG -- " << evt << " raw_[" << ik << "] = \"" << raw_[ik]
             << '"';
 #endif
     }
@@ -470,177 +479,14 @@ int ibis::dictionary::readKeys1(const char *evt, FILE *fptr) {
     return 0;
 } // ibis::dictionary::readKeys1
 
-/// Read the string values.  This function processes the data produced by
-/// version 0x01000000 of the write function.  On successful completion, it
-/// returns 0.
-int ibis::dictionary::readKeys2(const char *evt, FILE *fptr) {
-    uint32_t nkeys;
-    int ierr = fread(&nkeys, 4, 1, fptr);
-    if (ierr != 1) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt
-            << " failed to read the number of keys, fread returned " << ierr;
-        return -6;
-    }
+void ibis::dictionary::print(std::ostream &out) const {
+    out << "dictionary @" << static_cast<const void*>(this) << " with "
+        << raw_.size() - 1 << " entr" << (raw_.size()>2?"ies":"y");
+    for (unsigned j = 1; j < raw_.size(); ++ j)
+        out << "\n" << j << ": \"" << (raw_[j]?raw_[j]:"") << '"';
+} // ibis::dictionary::print
 
-    clear();
-
-    array_t<uint32_t> codes(nkeys);
-    array_t<uint64_t> offsets(nkeys+1);
-    ierr = fread(offsets.begin(), 8, nkeys+1, fptr);
-    if (ierr != (int)(1+nkeys)) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt << " failed to read the string positions, "
-            "expected fread to return " << nkeys+1 << ", but got " << ierr;
-        return -7;
-    }
-
-    ierr = fread(codes.begin(), 4, nkeys, fptr);
-    if (ierr != (int)(nkeys)) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt << " failed to read the string keys, "
-            "expected fread to return " << nkeys << ", but got " << ierr;
-        return -8;
-    }
-    uint32_t maxcode = 0;
-    for (size_t j = 0; j < nkeys; ++ j) {
-        if (maxcode < codes[j])
-            maxcode = codes[j];
-    }
-
-    buffer_.resize(1);
-    buffer_[0] = new char[offsets.back()-offsets.front()];
-    ierr = fread(buffer_[0], 1, offsets.back()-offsets.front(), fptr);
-    if (ierr != (int)(offsets.back()-offsets.front())) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- " << evt << " failed to read the strings, "
-            "expected fread to return " << (offsets.back()-offsets.front())
-            << ", but got " << ierr;
-        return -9;
-    }
-
-    raw_.resize(maxcode+1);
-    for (size_t j = 0; j <= maxcode; ++ j)
-        raw_[j] = 0;
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 7)
-    key_.reserve(nkeys+nkeys); // older version does not have reserve
-#endif
-    for (unsigned j = 0; j < nkeys; ++ j) {
-        const char* tmp = buffer_[0] + (offsets[j] - offsets[0]);
-        raw_[codes[j]] = tmp;
-        key_[tmp] = codes[j];
-#if DEBUG+0 > 2 || _DEBUG+0 > 2
-        LOGGER(ibis::gVerbose > 0)
-            << "DEBUG -- " << evt << " raw_[" << codes[j] << "] = \"" << tmp
-            << '"';
-#endif
-    }
-
-#if DEBUG+0 > 2 || _DEBUG+0 > 2
-    ibis::util::logger lg;
-    lg() << "DEBUG -- " << evt << " got the following keys\n\t";
-    for (MYMAP::const_iterator it = key_.begin(); it != key_.end(); ++ it)
-        lg() << "\n\t" << it->second << ": " << it->first;
-#endif
-    return 0;
-} // ibis::dictionary::readKeys2
-
-/// Output the current content in ASCII format.  Each non-empty entry is
-/// printed in the format of "number: string".
-void ibis::dictionary::toASCII(std::ostream &out) const {
-    out << "-- dictionary @" << static_cast<const void*>(this) << " with "
-        << key_.size() << " entr" << (key_.size()>1?"ies":"y");
-    for (unsigned j = 0; j < raw_.size(); ++ j)
-        if (raw_[j] != 0)
-            out << "\n" << j << ": \"" << raw_[j] << '"';
-} // ibis::dictionary::toASCII
-
-/// Read the ASCII formatted disctionary.  This is meant to be the reverse
-/// of toASCII, where each line of the input stream contains a positve
-/// integer followed by a string value, with an optioinal ':' (plus white
-/// space) as separators.
-///
-/// The new entries read from the incoming I/O stream are merged with the
-/// existing dictioinary.  If the string has already been assigned a code,
-/// the existing code will be used.  If the given code has been used for
-/// another string, the incoming string will be assined a new code.
-/// Warning messages will be printed to the logging channel when such a
-/// conflict is encountered.
-int ibis::dictionary::fromASCII(std::istream &in) {
-    ibis::fileManager::buffer<char> linebuf(MAX_LINE);
-    if (! in) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- dictionary::fromASCII can not proceed because "
-            "the input I/O stream is in an error state";
-        return -1;
-    }
-
-    int ierr;
-    const char *str;
-    bool more = true;
-    const char *delim = ":,; \t\v";
-    while (more) {
-        std::streampos linestart = in.tellg();
-        // read the next line
-        while (! in.getline(linebuf.address(), linebuf.size())) {
-            if (in.eof()) { // end of file, no more to read
-                *(linebuf.address()) = 0;
-                more  = false;
-                break;
-            }
-            // more to read, linebuf needs to be increased
-            const size_t nold =
-                (linebuf.size() > 0 ? linebuf.size() : MAX_LINE);
-            if (nold+nold != linebuf.resize(nold+nold)) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- dictionary::fromASCII failed to allocate "
-                    "linebuf of " << nold+nold << " bytes";
-                more = false;
-                return -2;
-            }
-            in.clear(); // clear the error bit
-            // go back to the beginning of the line
-            if (! in.seekg(linestart, std::ios::beg)) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- dictionary::fromASCII failed to seek back "
-                    "to the beginning of a line of text";
-                *(linebuf.address()) = 0;
-                more = false;
-                return -3;
-            }
-        }
-        // got a line of text
-        str = linebuf.address();
-        if (str == 0) break;
-        while (*str != 0 && isspace(*str)) ++ str; // skip leading space
-        if (*str == 0 || *str == '#' || (*str == '-' && str[1] == '-')) {
-            // skip comment line (shell style comment and SQL style comments)
-            continue;
-        }
-
-        uint64_t posi;
-        ierr = ibis::util::readUInt(posi, str, delim);
-        if (ierr < 0) {
-            LOGGER(ibis::gVerbose > 3)
-                << "Warning -- dictionary::fromASCII could not extract a "
-                "number from \"" << linebuf.address() << '"';
-            posi = 0;
-        }
-        str += strspn(str, delim); // skip delimiters
-        if (posi > 0 && posi < 0X7FFFFFFF) {
-            insert(ibis::util::getString(str), static_cast<uint32_t>(posi));
-        }
-        else {
-            LOGGER(ibis::gVerbose > 3 && posi > 0)
-                << "Warning -- dictionary::fromASCII can not use a code ("
-                << posi << ") that is larger than 2^31";
-            insert(ibis::util::getString(str));
-        }
-    } // while (more)
-    return 0;
-} // ibis::dictionary::fromASCII
-
-/// Clear the allocated memory.
+/// Clear the allocated memory.  Leave only the NULL entry.
 void ibis::dictionary::clear() {
     for (size_t i = 0; i < buffer_.size(); ++ i)
         delete [] buffer_[i];
