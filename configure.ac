@@ -167,18 +167,29 @@ AC_ARG_WITH(extracxxflags,
 	  EXTRA_CXXFLAGS="$with_extracxxflags"
 	fi], [])
 
-# test to determine if any known flags are needed
-if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
-  EXTRA_CXXFLAGS=""
-  AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
-elif AC_TRY_COMMAND($CXX $CXXFLAGS -std=c++11 -c src/util.cpp) && test -s util.o; then
-  EXTRA_CXXFLAGS="-std=c++11"
-  CXXFLAGS="$CXXFLAGS -std=c++11";
-  AC_MSG_RESULT([compiler and options: $CXX $CXXFLAGS])
-else
-  AC_MSG_ERROR([$CXX not able to compile src/util.cpp, please use GCC 4.8 or newer versions])
+# test to determine if any known flags are needed for unordered_map
+AC_COMPILE_IFELSE([
+	AC_LANG_PROGRAM([[
+	#include <unordered_map>
+	]], [[
+	std::unordered_map<const char*, uint32_t, std::hash<const char*>,
+	std::equal_to<const char*> > myhashmap;
+	return (myhashmap.size() == 0);
+	]])], [TRY_STD_CXX11=0], [TRY_STD_CXX11=1])
+if test $TRY_STD_CXX11 -eq 1; then
+	EXTRA_CXXFLAGS="-std=c++11";
+	CXXFLAGS="$CXXFLAGS -std=c++11";
+	AC_COMPILE_IFELSE([
+	AC_LANG_PROGRAM([[
+		#include <unordered_map>
+		]], [[
+		std::unordered_map<const char*, uint32_t,
+		std::hash<const char*>,
+		std::equal_to<const char*> > myhashmap;
+		return (myhashmap.size() == 0);
+		]])], [],
+[AC_MSG_ERROR($CXX not able to compile a sample code with std::unordered_map, please use GCC 4.8 or newer versions)])
 fi
-/bin/rm -f util.o
 
 AC_ARG_WITH(getpwuid,
 	AS_HELP_STRING([--with-getpwuid],[specify --without-getpwuid to disable the attempt to use getpwuid to determine the user name]),
