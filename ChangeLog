@@ -1,7 +1,14 @@
+2014-02-03 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.h: add function dictionary::print
+	* src/dictionary.cpp: function readKeys0 has an off-by-1 problem
+	that causes it to read the previous version of dictionary
+	incorrectly (with integer 1 left undefined, found in debugging a
+	test case reported by Alex Romosan)
+
 2014-02-02 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: modify the block that try to compile src/util.cpp
 	to use a single statement on std::unordered_map (to minimize
-	dependencies in util.h)
+	dependencies in util.h, a problem reported by Alex Romosan)
 
 2014-01-27 John Wu <John dot Wu at ACM dot org>
 	* tests/scripts/fastbit-config.in: add option --cxxextra to

@@ -232,12 +232,21 @@ int ibis::dictionary::read(const char* name) {
     // invoke the actual reader based on version number
     switch (version) {
     case 0x01000000:
-	    return readKeys1(evt.c_str(), fptr);
+	    ierr = readKeys1(evt.c_str(), fptr);
+            break;
     case 0x00000000:
-	    return readKeys0(evt.c_str(), fptr);
+	    ierr = readKeys0(evt.c_str(), fptr);
+            break;
     default:
-	    return readRaw(evt.c_str(), fptr);
+	    ierr = readRaw(evt.c_str(), fptr);
+            break;
     }
+    if (ibis::gVerbose > 4) {
+        ibis::util::logger lg;
+        lg() << evt << " completed with ";
+        print(lg());
+    }
+    return ierr;
 } // ibis::dictionary::read
 
 /// Read the raw strings.  This is for the oldest style dictionary that
@@ -343,11 +352,11 @@ int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
     key_.reserve(nkeys+nkeys);
     for (unsigned j = 0; j < nkeys; ++ j) {
         uint32_t ik = codes[j];
-	raw_[ik+1] = buffer_[0] + (offsets[ik] - offsets[0]);
-        key_[raw_[ik+1]] = ik+1;
+	raw_[ik] = buffer_[0] + (offsets[ik] - offsets[0]);
+        key_[raw_[ik]] = ik;
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
         LOGGER(ibis::gVerbose > 0)
-            << "DEBUG -- " << evt << " raw_[" << ik+1 << "] = \"" << raw_[ik+1]
+            << "DEBUG -- " << evt << " raw_[" << ik << "] = \"" << raw_[ik]
             << '"';
 #endif
     }
@@ -415,6 +424,13 @@ int ibis::dictionary::readKeys1(const char *evt, FILE *fptr) {
 #endif
     return 0;
 } // ibis::dictionary::readKeys1
+
+void ibis::dictionary::print(std::ostream &out) const {
+    out << "dictionary @" << static_cast<const void*>(this) << " with "
+        << raw_.size() - 1 << " entr" << (raw_.size()>2?"ies":"y");
+    for (unsigned j = 1; j < raw_.size(); ++ j)
+        out << "\n" << j << ": \"" << (raw_[j]?raw_[j]:"") << '"';
+} // ibis::dictionary::print
 
 /// Clear the allocated memory.  Leave only the NULL entry.
 void ibis::dictionary::clear() {

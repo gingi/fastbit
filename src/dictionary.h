@@ -51,6 +51,7 @@ public:
 
     int  read(const char* name);
     int  write(const char* name) const;
+    void print(std::ostream &) const;
 
     void sort(array_t<uint32_t>&);
     int  merge(const dictionary&);
