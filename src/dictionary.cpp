@@ -115,39 +115,102 @@ int ibis::dictionary::write(const char* name) const {
     if (nkeys == 0) // nothing else to write
 	return 0;
 
+    mergeBuffers();
     array_t<uint64_t> pos(nkeys+1);
-    ierr = fseek(fptr, sizeof(uint64_t)*(nkeys+1), SEEK_CUR);
+    ierr = (buffer_.size() > 1);
+    for (unsigned j = 1; ierr == 0 && j < raw_.size(); ++ j) {
+        if (raw_[j] > raw_[j-1]) {
+            pos[j] = (raw_[j] - buffer_[0]);
+        }
+        else {
+            ierr = 1;
+        }
+    }
+    if (ierr == 0) {
+        ierr = writeBuffer(fptr, nkeys, pos);
+    }
+    else {
+        ierr = writeKeys(fptr, nkeys, pos);
+    }
+    return ierr;
+} // ibis::dictionary::write
+
+/// Write the dictionary one keyword at a time.  This version requires on
+/// write call on each keyword, which can be time consuming when there are
+/// many keywords.
+int ibis::dictionary::writeKeys(FILE *fptr, uint32_t nkeys,
+                                array_t<uint64_t> &pos) const {
+    int ierr = fseek(fptr, sizeof(uint64_t)*(nkeys+1), SEEK_CUR);
     long int tmp = ftell(fptr);
     pos[0] = tmp;
     for (unsigned i = 0; i < nkeys; ++ i) {
 	const int len = 1 + std::strlen(raw_[i+1U]);
 	ierr = fwrite(raw_[i+1U], 1, len, fptr);
 	LOGGER(ierr != len && ibis::gVerbose > 1)
-	    << "Warning -- dictionary::write(" << name
-	    << ") failed to write key[" << i << "]; expected fwrite to return "
-	    << len << ", but got " << ierr;
+	    << "Warning -- dictionary::writeKeys failed to write key[" << i
+            << "]; expected fwrite to return " << len << ", but got " << ierr;
 
 	tmp = ftell(fptr);
 	pos[i+1] = tmp;
 	LOGGER(24 > tmp && ibis::gVerbose > 1)
-	    << "Warning -- dictionary::write(" << name
-	    << ") failed to store position " << tmp
-	    << " into a 64-bit integer; dictionary file will be UNUSABLE!";
+	    << "Warning -- dictionary::writeKeys failed to store position "
+	    << tmp << " into a 64-bit integer; file will be UNUSABLE!";
     }
 
     // go back to write the positions
     ierr = fseek(fptr, 24, SEEK_SET);
     LOGGER(ierr != 0 && ibis::gVerbose > 1)
-	<< "Warning -- dictionary::write(" << name
-	<< ") failed to seek to offset 24 to write the offsets";
+	<< "Warning -- dictionary::writeKeys failed to seek to offset 24 "
+        "to write the offsets";
 
     ierr = fwrite(pos.begin(), sizeof(uint64_t), nkeys+1, fptr);
     LOGGER(ierr != (int)(nkeys+1) && ibis::gVerbose > 1)
-	<< "Warning -- dictionary::write(" << name
-	<< ") failed to write the offsets, expected fwrite to return "
-	<< nkeys+1 << ", but got " << ierr;
+	<< "Warning -- dictionary::writeKeys failed to write the offsets, "
+        "expected fwrite to return " << nkeys+1 << ", but got " << ierr;
     return -7 * (ierr != (int)(nkeys+1));
-} // ibis::dictionary::write
+} // ibis::dictionary::writeKeys
+
+/// Write the buffer out directly.
+///
+/// @ntoe This function is intended to be used by dictionary::write and
+/// must satisfy the following conditions.  There must be only one buffer,
+/// and the raw_ must be ordered in that buffer.  Under these conditions,
+/// we can write the buffer using a single sequential write operations,
+/// which should reduce the I/O time.
+int ibis::dictionary::writeBuffer(FILE *fptr, uint32_t nkeys,
+                                  array_t<uint64_t> &pos) const {
+    unsigned long offset = 24 + 8 * (nkeys+1);
+    for (unsigned j = 0; j < nkeys; ++ j)
+        pos[j] = offset + pos[j+1];
+    size_t ierr = (raw_[nkeys] != 0);
+    if (ierr > 0U) {
+        for (const char *tmp = raw_[nkeys]; *tmp != 0; ++ tmp)
+            ++ ierr;
+    }
+    pos[nkeys] = pos[nkeys-1] + (unsigned)ierr;
+
+    ierr = fwrite(pos.begin(), sizeof(uint64_t), nkeys+1, fptr);
+    LOGGER(ierr != (int)(nkeys+1) && ibis::gVerbose > 1)
+	<< "Warning -- dictionary::writeBuffer failed to write the offsets, "
+        "expected fwrite to return " << nkeys+1 << ", but got " << ierr;
+
+    const char *buff = buffer_[0];
+    size_t sz = pos[nkeys] - pos[0];
+    while (sz > 0) {  // a large buffer may need multuple fwrite calls
+        ierr = fwrite(buff, 1, sz, fptr);
+        if (ierr > 0U && ierr <= sz) {
+            buff += ierr;
+            sz -= ierr;
+        }
+        else {
+            LOGGER(ibis::gVerbose > 1)
+                << "Warning -- dictionary::writeBuffer failed to write the "
+                "buffer, fwrite retruned 0";
+            return -6;
+        }
+    }
+    return 0;
+} // ibis::dictionary::writeBuffer
 
 /// Read the content of the named file.  The file content is read into the
 /// buffer in one-shot and then digested.
@@ -351,9 +414,16 @@ int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
     raw_.resize(nkeys+1);
     key_.reserve(nkeys+nkeys);
     for (unsigned j = 0; j < nkeys; ++ j) {
-        uint32_t ik = codes[j];
-	raw_[ik] = buffer_[0] + (offsets[ik] - offsets[0]);
-        key_[raw_[ik]] = ik;
+        const uint32_t ik = codes[j];
+        if (ik > 0 && ik <= nkeys) {
+            raw_[ik] = buffer_[0] + (offsets[ik] - offsets[0]);
+            key_[raw_[ik]] = ik;
+        }
+        else {
+            LOGGER(ibis::gVerbose > 1)
+                << "Warning -- " << evt << " encounter code " << ik
+                << " which is out of the expected range [0, " << nkeys << ']';
+        }
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
         LOGGER(ibis::gVerbose > 0)
             << "DEBUG -- " << evt << " raw_[" << ik << "] = \"" << raw_[ik]
@@ -741,4 +811,61 @@ int ibis::dictionary::morph(const ibis::dictionary &old,
         o2n[j0] = operator[](raw_[j0]);
     return nold;
 } // ibis::dictioniary::morph
-    
+
+/// Merge all buffers into a single one.  It may not do anything if it is
+/// not able to allocate sufficient buffer space.
+///
+/// @note Logically, this function does not change the content of the
+/// dictionary, but it actually changes a number of pointers.  The
+/// implementation of the function contains a number of const_cast to allow
+/// the pointers to be modified.  However, the function is declared as
+/// const member function to allow it to be used in other const member
+/// functions.
+void ibis::dictionary::mergeBuffers() const {
+    if (buffer_.size() <= 1) return; // nothing to do
+
+    // determine the new buffer size
+    size_t sz = 0;
+    for (size_t j = 1; j < raw_.size(); ++ j) {
+        const char *tmp = raw_[j];
+        if (tmp != 0) {
+            for (++ sz; *tmp != 0; ++ tmp) ++ sz;
+        }
+    }
+
+    // allocate the new buffer
+    char *newbuff = 0;
+    try {
+        newbuff = new char[sz];
+    }
+    catch (...) {
+        LOGGER(ibis::gVerbose > 2)
+            << "Warning -- dictionary::mergeBuffers failed to allocate "
+            << sz << " bytes of contiguous memory, buffers not modified";
+        return;
+    }
+
+    // copy content to the new buffer
+    size_t jnew = 0;
+    const_cast<dictionary*>(this)->key_.clear();
+    for (size_t j = 1; j < raw_.size(); ++ j) {
+        const char *tmp = raw_[j];
+        if (tmp != 0) {
+            char *copy = newbuff + jnew;
+            while (*tmp != 0) {
+                newbuff[jnew] = *tmp;
+                ++ jnew;
+                ++ tmp;
+            }
+            newbuff[jnew] = 0;
+            const_cast<dictionary*>(this)->raw_[j] = copy;
+            const_cast<dictionary*>(this)->key_[copy] = j;
+            ++ jnew;
+        }
+    }
+    // reclaim the old buffers
+    for (size_t j = 0; j < buffer_.size(); ++ j)
+        delete [] const_cast<dictionary*>(this)->buffer_[j];
+    const_cast<dictionary*>(this)->buffer_.resize(1);
+    const_cast<dictionary*>(this)->buffer_[0] = newbuff;
+} // ibis::dictionary::mergeBuffers

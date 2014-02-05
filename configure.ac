@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.8.10], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.8.11], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -161,7 +161,7 @@ AC_COMPILE_IFELSE([
 	AC_LANG_PROGRAM([[
 	#include <unordered_map>
 	]], [[
-	std::unordered_map<const char*, uint32_t, std::hash<const char*>,
+	std::unordered_map<const char*, unsigned, std::hash<const char*>,
 	std::equal_to<const char*> > myhashmap;
 	return (myhashmap.size() == 0);
 	]])], [TRY_STD_CXX11=0], [TRY_STD_CXX11=1])
@@ -172,7 +172,7 @@ if test $TRY_STD_CXX11 -eq 1; then
 	AC_LANG_PROGRAM([[
 		#include <unordered_map>
 		]], [[
-		std::unordered_map<const char*, uint32_t,
+		std::unordered_map<const char*, unsigned,
 		std::hash<const char*>,
 		std::equal_to<const char*> > myhashmap;
 		return (myhashmap.size() == 0);
