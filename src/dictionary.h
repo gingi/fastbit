@@ -85,9 +85,12 @@ protected:
                                std::equal_to<const char*> > MYMAP;
     MYMAP key_;
 
-    int readRaw(const char*, FILE *);
-    int readKeys0(const char*, FILE *);
-    int readKeys1(const char*, FILE *);
+    int  readRaw(const char*, FILE *);
+    int  readKeys0(const char*, FILE *);
+    int  readKeys1(const char*, FILE *);
+    void mergeBuffers() const;
+    int  writeKeys(FILE*, uint32_t, array_t<uint64_t>&) const;
+    int  writeBuffer(FILE*, uint32_t, array_t<uint64_t>&) const;
 
 private:
     dictionary& operator=(const dictionary&);
