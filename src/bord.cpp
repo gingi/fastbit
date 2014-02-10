@@ -1836,10 +1836,6 @@ void ibis::bord::estimate(const ibis::qExpr *cond,
 } // ibis::bord::estimate
 
 ibis::table* ibis::bord::select(const char *sel, const char *cond) const {
-    if (cond == 0 || *cond == 0) return 0;
-    if (sel != 0) // skip leading space
-	while (isspace(*sel)) ++ sel;
-
     ibis::constPartList prts(1);
     prts[0] = this;
     return ibis::table::select(prts, sel, cond);

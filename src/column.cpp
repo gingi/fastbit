@@ -474,8 +474,10 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
     std::string evt = "column";
     if (ibis::gVerbose > 2) {
         evt += '[';
-        evt += (thePart != 0 ? thePart->name() : "?");
-        evt += '.';
+        if (thePart != 0) {
+            evt += thePart->name();
+            evt += '.';
+        }
         evt += m_name;
         evt += ']';
     }
@@ -775,14 +777,14 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 		mask.write(fnm);
 		LOGGER(ibis::gVerbose > 1)
 		    << "Warning -- column["
-		    << (thePart->name()?thePart->name():"?") << '.' << m_name
+		    << (thePart?thePart->name():"?") << '.' << m_name
 		    << "]::getNullMask constructed a new mask with "
 		    << mask.cnt() << " out of " << mask.size()
 		    << " set bits, wrote to " << fnm;
 	    }
 	    LOGGER(ibis::gVerbose > 5)
 		<< "column["
-		<< (thePart->name()?thePart->name():"?") << '.' << m_name
+		<< (thePart?thePart->name():"?") << '.' << m_name
 		<< "]::getNullMask -- get null mask (" << mask.cnt() << ", "
 		<< mask.size() << ") [st.st_size=" << st.st_size
 		<< ", sz=" << sz << ", ierr=" << ierr << "]";
@@ -795,7 +797,7 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 	const_cast<column*>(this)->mask_.swap(tmp);
     }
     LOGGER(ibis::gVerbose > 6)
-	<< "column[" << (thePart->name()?thePart->name():"?") << '.' << m_name
+	<< "column[" << (thePart?thePart->name():"?") << '.' << m_name
 	<< "]::getNullMask -- mask size = " << mask.size() << ", cnt = "
 	<< mask.cnt();
 } // ibis::column::getNullMask
@@ -809,7 +811,7 @@ int ibis::column::setNullMask(const ibis::bitvector& msk) {
 	ibis::util::mutexLock lock(&mutex, "column::setNullMask");
 	mask_.copy(msk);
 	LOGGER(ibis::gVerbose > 5)
-	    << "column[" << (thePart->name()?thePart->name():"?") << '.'
+	    << "column[" << (thePart?thePart->name():"?") << '.'
 	    << m_name << "]::setNullMask -- mask_.size()=" << mask_.size()
 	    << ", mask_.cnt()=" << mask_.cnt();
 	return mask_.cnt();
@@ -4540,7 +4542,7 @@ long ibis::column::selectValuesT(const char* dfn,
 #endif
 	IBIS_BLOCK_GUARD(UnixClose, fdes);
 	LOGGER(ibis::gVerbose > 5)
-	    << "column[" << (thePart->name()?thePart->name():"?")
+	    << "column[" << (thePart?thePart->name():"?")
 	    << '.' << m_name << "]::selectValuesT opened file " << dfn
 	    << " with file descriptor " << fdes << " for reading "
 	    << typeid(T).name();
@@ -4744,7 +4746,7 @@ long ibis::column::selectValuesT(const char *dfn,
 #endif
 	IBIS_BLOCK_GUARD(UnixClose, fdes);
 	LOGGER(ibis::gVerbose > 5)
-	    << "column[" << (thePart->name()?thePart->name():"")
+	    << "column[" << (thePart?thePart->name():"")
 	    << '.' << m_name << "]::selectValuesT opened file " << dfn
 	    << " with file descriptor " << fdes << " for reading "
 	    << typeid(T).name();
@@ -4973,7 +4975,7 @@ long ibis::column::selectToStrings(const char* dfn, const bitvector& mask,
 	return ierr;
     }
     LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
-	<< "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	<< "Warning -- column[" << (thePart?thePart->name():"?")
 	<< '.' << m_name << "]::selectToStrings<" << typeid(T).name()
 	<< "> retrieved " << tmp.size() << " value" << (tmp.size()>1?"s":"")
 	<< ", but expected " << mask.cnt();
@@ -4989,7 +4991,7 @@ long ibis::column::selectToStrings(const char* dfn, const bitvector& mask,
     catch (...) {
 	ierr = -5;
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "Warning -- column[" << (thePart?thePart->name():"?")
 	    << '.' << m_name << "]::selectToStrings<" << typeid(T).name()
 	    << "> failed to convert " << tmp.size() << " value"
 	    << (tmp.size()>1?"s":"") << " into string" << (tmp.size()>1?"s":"");
@@ -5006,7 +5008,7 @@ template <> long ibis::column::selectToStrings<signed char>
 	return ierr;
     }
     LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
-	<< "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	<< "Warning -- column[" << (thePart?thePart->name():"?")
 	<< '.' << m_name << "]::selectToStrings<char> retrieved "
 	<< tmp.size() << " value" << (tmp.size()>1?"s":"") << ", but expected "
 	<< mask.cnt();
@@ -5022,7 +5024,7 @@ template <> long ibis::column::selectToStrings<signed char>
     catch (...) {
 	ierr = -5;
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "Warning -- column[" << (thePart?thePart->name():"?")
 	    << '.' << m_name << "]::selectToStrings<char> failed to convert "
 	    << tmp.size() << " value" << (tmp.size()>1?"s":"")
 	    << " into string" << (tmp.size()>1?"s":"");
@@ -5039,7 +5041,7 @@ template <> long ibis::column::selectToStrings<unsigned char>
 	return ierr;
     }
     LOGGER(tmp.size() != mask.cnt() && ibis::gVerbose > 1)
-	<< "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	<< "Warning -- column[" << (thePart?thePart->name():"?")
 	<< '.' << m_name << "]::selectToStrings<unsigned char> retrieved "
 	<< tmp.size() << " value" << (tmp.size()>1?"s":"") << ", but expected "
 	<< mask.cnt();
@@ -5055,7 +5057,7 @@ template <> long ibis::column::selectToStrings<unsigned char>
     catch (...) {
 	ierr = -5;
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "Warning -- column[" << (thePart?thePart->name():"?")
 	    << '.' << m_name
 	    << "]::selectToStrings<unsigned char> failed to convert "
 	    << tmp.size() << " value" << (tmp.size()>1?"s":"")
@@ -5287,6 +5289,30 @@ long ibis::column::selectValues(const ibis::qContinuousRange& cond,
     }
     return ierr;
 } // ibis::column::selectValues
+
+/// Generate a SQL style fully qualified name of the form
+/// part-name.column-name.  If the part-name is not available, it will
+/// simply return the current column name.  If the part-name is available,
+/// but this column's name is empty, the column name part will be filled
+/// with a single question mark.
+std::string ibis::column::fullname() const {
+    if (thePart != 0) {
+        std::string fn;
+        fn = thePart->name();
+        fn += '.';
+        if (m_name.empty())
+            fn += '?';
+        else
+            fn += m_name;
+        return fn;
+    }
+    else if (!m_name.empty()) {
+        return m_name;
+    }
+    else {
+        return std::string("?");
+    }
+} // ibis::column::fullname
 
 // only write some information about the column
 void ibis::column::print(std::ostream& out) const {
@@ -6173,7 +6199,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 	}
 
 	LOGGER(ibis::gVerbose > 4)
-	    << "column[" << (thePart->name()?thePart->name():"?")
+	    << "column[" << (thePart?thePart->name():"?")
 	    << "." << name() << "]::estimateRange(" << cmp
 	    << ") completed with ierr = " << ierr;
 	return ierr;
@@ -7167,7 +7193,7 @@ long ibis::column::append(const void* vals, const ibis::bitvector& msk) {
     default:
 	ierr = -3L;
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "Warning -- column[" << (thePart?thePart->name():"?")
 	    << '.' << m_name << "]::append can not handle type " << (int) m_type
 	    << " (" << ibis::TYPESTRING[(int)m_type] << ')';
 	break;
@@ -8752,7 +8778,7 @@ double ibis::column::computeMin() const {
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "Warning -- column[" << (thePart?thePart->name():"?")
 	    << '.' << m_name << "]::computeMin can not work with column type "
 	    << ibis::TYPESTRING[(int)m_type];
     } // switch(m_type)
@@ -8877,7 +8903,7 @@ double ibis::column::computeMax() const {
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "Warning -- column[" << (thePart?thePart->name():"?")
 	    << '.' << m_name << "]::computeMax can not work with column type "
 	    << ibis::TYPESTRING[(int)m_type];
     } // switch(m_type)
@@ -9010,7 +9036,7 @@ double ibis::column::computeSum() const {
 	break;}
     default:
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << (thePart->name()?thePart->name():"?")
+	    << "Warning -- column[" << (thePart?thePart->name():"?")
 	    << '.' << m_name << "]::computeSum can not work with column type "
 	    << ibis::TYPESTRING[(int)m_type];
     } // switch(m_type)
@@ -11444,12 +11470,7 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
     if (theColumn->idx != 0) {
 	int ierr = pthread_rwlock_rdlock(&(col->rwlock));
 	std::string evt = "column[";
-	if (theColumn->partition() != 0 && theColumn->partition()->name() != 0)
-	    evt += theColumn->partition()->name();
-	else
-	    evt += '?';
-	evt += '.';
-	evt += theColumn->name();
+	evt += theColumn->fullname();
 	evt += "]::indexLock";
 	if (0 != ierr) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -11476,12 +11497,7 @@ ibis::column::indexLock::~indexLock() {
 
 	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
 	std::string evt = "column[";
-	if (theColumn->partition() != 0 && theColumn->partition()->name() != 0)
-	    evt += theColumn->partition()->name();
-	else
-	    evt += '?';
-	evt += '.';
-	evt += theColumn->name();
+	evt += theColumn->fullname();
 	evt += "]::~indexLock";
 	if (0 != ierr) {
 	    LOGGER(ibis::gVerbose >= 0)
@@ -11505,15 +11521,15 @@ ibis::column::readLock::readLock(const ibis::column* col, const char* m)
     int ierr = pthread_rwlock_rdlock(&(col->rwlock));
     if (0 != ierr) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name() << "]::readLock -- pthread_rwlock_rdlock("
+	    << "Warning -- column[" << theColumn->fullname()
+	    << "]::readLock -- pthread_rwlock_rdlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
     else {
 	LOGGER(ibis::gVerbose > 9)
-	    << "column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name() << "]::readLock -- pthread_rwlock_rdlock("
+	    << "column[" << theColumn->fullname()
+            << "]::readLock -- pthread_rwlock_rdlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg;
     }
@@ -11524,15 +11540,15 @@ ibis::column::readLock::~readLock() {
     int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
     if (0 != ierr) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name() << "]::readLock -- pthread_rwlock_unlock("
+	    << "Warning -- column[" << theColumn->fullname()
+            << "]::readLock -- pthread_rwlock_unlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
     else {
 	LOGGER(ibis::gVerbose > 9)
-	    << "column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name() << "]::readLock -- pthread_rwlock_unlock("
+	    << "column[" << theColumn->fullname()
+	    << "]::readLock -- pthread_rwlock_unlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg;
     }
@@ -11544,15 +11560,15 @@ ibis::column::writeLock::writeLock(const ibis::column* col, const char* m)
     int ierr = pthread_rwlock_wrlock(&(col->rwlock));
     if (0 != ierr) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name() << "]::writeLock -- pthread_rwlock_wrlock("
+	    << "Warning -- column[" << theColumn->fullname()
+	    << "]::writeLock -- pthread_rwlock_wrlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
     else {
 	LOGGER(ibis::gVerbose > 9)
-	    << "column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name() << "]::writeLock -- pthread_rwlock_wrlock("
+	    << "column[" << theColumn->fullname()
+	    << "]::writeLock -- pthread_rwlock_wrlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg;
     }
@@ -11563,15 +11579,15 @@ ibis::column::writeLock::~writeLock() {
     int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
     if (0 != ierr) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name() << "]::writeLock -- pthread_rwlock_unlock("
+	    << "Warning -- column[" << theColumn->fullname() << '.'
+	    << "]::writeLock -- pthread_rwlock_unlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << ierr << " (" << strerror(ierr) << ')';
     }
     else {
 	LOGGER(ibis::gVerbose > 9)
-	    << "column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name() << "]::writeLock -- pthread_rwlock_unlock("
+	    << "column[" << theColumn->fullname()
+	    << "]::writeLock -- pthread_rwlock_unlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg;
     }
@@ -11584,8 +11600,7 @@ ibis::column::softWriteLock::softWriteLock(const ibis::column* col,
       locked(pthread_rwlock_trywrlock(&(col->rwlock))) {
     if (0 != locked) {
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name()
+	    << "Warning -- column[" << theColumn->fullname()
 	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg << " returned " << locked << " (" << strerror(locked)
@@ -11593,8 +11608,7 @@ ibis::column::softWriteLock::softWriteLock(const ibis::column* col,
     }
     else {
 	LOGGER(ibis::gVerbose > 9)
-	    << "column[" << theColumn->partition()->name() << '.'
-	    << theColumn->name()
+	    << "column[" << theColumn->fullname()
 	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
 	    << static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 	    << mesg;
@@ -11607,8 +11621,7 @@ ibis::column::softWriteLock::~softWriteLock() {
 	int ierr = pthread_rwlock_unlock(&(theColumn->rwlock));
 	if (0 != ierr) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- column[" << theColumn->partition()->name() << '.'
-		<< theColumn->name()
+		<< "Warning -- column[" << theColumn->fullname()
 		<< "]::softWriteLock -- pthread_rwlock_unlock("
 		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 		<< mesg << " returned " << ierr << " (" << strerror(ierr)
@@ -11616,8 +11629,7 @@ ibis::column::softWriteLock::~softWriteLock() {
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 9)
-		<< "column[" << theColumn->partition()->name() << '.'
-		<< theColumn->name()
+		<< "column[" << theColumn->fullname()
 		<< "]::softWriteLock -- pthread_rwlock_unlock("
 		<< static_cast<const void*>(&(theColumn->rwlock)) << ") for "
 		<< mesg;

@@ -8,6 +8,7 @@
 #include <memory>	// std::unique_ptr
 
 /// Constructing a new ibis::direkte object from base data in a file.
+/// Both arguments are expected to be valid pointers.
 ibis::direkte::direkte(const ibis::column* c, const char* f)
     : ibis::index(c) {
     if (c == 0)
@@ -81,7 +82,7 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     }
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << "direkte[" << col->partition()->name() << '.' << col->name()
+	lg() << "direkte[" << col->fullname()
 	     << "]::ctor -- constructed a simple equality index with "
 	     << bits.size() << " bitmap" << (bits.size()>1?"s":"");
 	if (ibis::gVerbose > 6) {
@@ -95,7 +96,7 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 /// popu.  This is used to generate index for meta tags.
 ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     : ibis::index(c) {
-    if (c == 0 || popu == 0) return;
+    if (popu == 0) return;
     try {
 	if (ntpl == 0)
 	    ntpl = c->partition()->nRows();
@@ -104,7 +105,10 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	for (unsigned j = 0; j < popu; ++ j)
 	    bits[j] = 0;
 	bits[popu] = new ibis::bitvector();
-	c->getNullMask(*bits[popu]);
+        if (c != 0)
+            c->getNullMask(*bits[popu]);
+        else
+            bits[popu]->set(1, nrows);
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
 	    print(lg());
@@ -112,14 +116,16 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- direkte[" << col->partition()->name() << '.'
-	    << col->name() << "]::ctor received an exception, cleaning up ...";
+	    << "Warning -- direkte[" << col->fullname()
+            << "]::ctor received an exception, cleaning up ...";
 	clear();
 	throw;
     }
 } // constructor for dummy attributes
 
-/// Construct an index from an integer array.
+/// Construct an index from an integer array.  The values in the array @c
+/// ind are assumed to be between 0 and card-1.  All values outside of this
+/// range are ignored.
 ibis::direkte::direkte(const ibis::column* c, uint32_t card,
 		       array_t<uint32_t>& ind) : ibis::index(c) {
     if (c == 0 || card == 0) return;
@@ -138,8 +144,8 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t card,
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    else {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "DEBUG -- direkte[" << col->partition()->name() << '.'
-		    << col->name() << "]::ctor ind[" << i << "]=" << ind[i]
+		    << "DEBUG -- direkte[" << static_cast<void*>(this)
+		    << "]::ctor ind[" << i << "]=" << ind[i]
 		    << " >=" << card;
 	    }
 #endif
@@ -149,8 +155,14 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t card,
 	}
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg() << "direkte[" << col->partition()->name() << '.' << col->name()
-		 << "]::ctor -- constructed an equality index with "
+	    lg() << "direkte[";
+            if (col != 0) {
+                lg() << col->fullname();
+            }
+            else {
+                lg() << "?.?";
+            }
+            lg() << "]::ctor -- constructed an equality index with "
 		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		 << " for " << nrows << " row" << (nrows>1?"s":"");
 	    if (ibis::gVerbose > 6) {
@@ -161,8 +173,8 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t card,
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- direkte[" << col->partition()->name() << '.'
-	    << col->name() << "]::ctor received an exception, cleaning up ...";
+	    << "Warning -- direkte[" << static_cast<void*>(this)
+	    << "]::ctor received an exception, cleaning up ...";
 	clear();
 	throw;
     }
@@ -182,9 +194,7 @@ int ibis::direkte::construct0(const char* dfname) {
     if (nrows == 0) return ierr;
 
     std::string evt = "direket[";
-    evt += col->partition()->name();
-    evt += '.';
-    evt += col->name();
+    evt += col->fullname();
     evt += "]::construct0<";
     evt += typeid(T).name();
     evt += '>';
@@ -392,7 +402,7 @@ int ibis::direkte::construct(const char* dfname) {
 
     array_t<T> vals;
     LOGGER(ibis::gVerbose > 4)
-	<< "direkte[" << col->partition()->name() << '.' << col->name()
+	<< "direkte[" << col->fullname()
 	<< "]::construct -- starting to process file " << dfname << " as "
 	<< typeid(T).name();
     ibis::bitvector mask;
@@ -414,10 +424,10 @@ int ibis::direkte::construct(const char* dfname) {
 		bits[i]->reserve(nbits, nset);
 #endif
 	    }
-	    if (ibis::gVerbose > 6)
-		col->logMessage("direkte::construct", "finished allocating "
-				"%lu bitvectors",
-				static_cast<long unsigned>(nbits));
+	    LOGGER(ibis::gVerbose > 6)
+		<< "direkte[" << (col ? col->fullname() : "?.?")
+                << "]::construct finished allocating " << nbits
+                << " bitvectors";
 	}
 	// if (vals.size() > nrows)
 	//     vals.resize(nrows);
@@ -463,7 +473,7 @@ int ibis::direkte::construct(const char* dfname) {
 	}
 
 	LOGGER(ibis::gVerbose > 5)
-	    << "direkte[" << col->partition()->name() << '.' << col->name()
+	    << "direkte[" << col->fullname()
 	    << "]::construct -- starting to read the values from "
 	    << dfname << " one at a time";
 	if (col->upperBound() > col->lowerBound()) {
@@ -554,8 +564,8 @@ void ibis::direkte::print(std::ostream& out) const {
     if (ibis::gVerbose < 0) return;
     const uint32_t nobs = bits.size();
     if (nobs > 0) {
-	out << "The direct bitmap index for " << col->name() << " contains "
-	    << nobs << " bit vector" << (nobs > 1 ? "s" : "") << "\n";
+	out << "The direct bitmap index for " << (col ? col->name() : "?")
+            << " contains " << nobs << " bit vector" << (nobs > 1 ? "s" : "");
 	uint32_t skip = 0;
 	if (ibis::gVerbose <= 0) {
 	    skip = nobs;
@@ -573,27 +583,27 @@ void ibis::direkte::print(std::ostream& out) const {
 	if (skip > 1) {
 	    out << " (printing 1 out of every " << skip << ")";
 	}
-	out << "\n";
 
 	for (uint32_t i=0; i<nobs; i += skip) {
 	    if (bits[i]) {
-		out << i << "\t" << bits[i]->cnt() << "\t" << bits[i]->bytes()
+		out << "\n" << i << "\t" << bits[i]->cnt() << "\t"
+                    << bits[i]->bytes()
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 		    << "\t" << bits[i]->size()
 #endif
-		    << "\n";
+		   ;
 	    }
 	}
 	if ((nobs-1) % skip) {
 	    if (bits[nobs-1]) {
-		out << nobs-1 << "\t" << bits[nobs-1]->cnt()
-		    << "\t" << bits[nobs-1]->bytes() << "\n";
+		out << "\n" << nobs-1 << "\t" << bits[nobs-1]->cnt()
+		    << "\t" << bits[nobs-1]->bytes();
 	    }
 	}
     }
     else {
-	out << "The direct bitmap index for " << col->name()
-	    << " is empty\n";
+	out << "The direct bitmap index @" << static_cast<const void*>(this)
+            << " is empty\n";
     }
     out << std::endl;
 } // ibis::direkte::print
@@ -642,8 +652,8 @@ int ibis::direkte::write(const char* dt) const {
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- direkte[" << col->partition()->name() << "."
-		<< col->name() << "]::write failed to open \"" << fnm
+		<< "Warning -- direkte[" << (col ? col->fullname() : "?")
+		<< "]::write failed to open \"" << fnm
 		<< "\" for writing ... " << (errno ? strerror(errno) : 0);
 	    errno = 0;
 	    return -2;
@@ -668,8 +678,7 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
@@ -677,8 +686,7 @@ int ibis::direkte::write(const char* dt) const {
     ierr += UnixWrite(fdes, &nobs,  sizeof(uint32_t));
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write nrows and nobs, ierr = " << ierr;
 	return -4;
     }
@@ -687,8 +695,7 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixSeek(fdes, header[6]*(nobs+1), SEEK_CUR);
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to seek to " << offset64[0] << ", ierr = " << ierr;
 	return -5;
     }
@@ -702,8 +709,7 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixSeek(fdes, 16, SEEK_SET);
     if (ierr != 16) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to seek to offset 16, ierr = " << ierr;
 	return -6;
     }
@@ -720,8 +726,7 @@ int ibis::direkte::write(const char* dt) const {
     }
     if (ierr < (off_t)(header[6]*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write bitmap offsets, ierr = " << ierr;
 	return -7;
     }
@@ -734,9 +739,8 @@ int ibis::direkte::write(const char* dt) const {
 #endif
 
     LOGGER(ibis::gVerbose > 5)
-	<< "direkte[" << col->partition()->name() << "."
-	<< col->name() << "]::write -- wrote " << nobs << " bitmap"
-	<< (nobs>1?"s":"") << " to " << fnm;
+	<< "direkte[" << col->fullname() << "]::write -- wrote " << nobs
+        << " bitmap" << (nobs>1?"s":"") << " to " << fnm;
     return 0;
 } // ibis::direkte::write
 
@@ -790,8 +794,8 @@ int ibis::direkte::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- direkte[" << col->partition()->name() << '.'
-		 << col->name() << "]::read the header from " << fnm << " (";
+	    lg() << "Warning -- direkte[" << col->fullname()
+                 << "]::read the header from " << fnm << " (";
 	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
 	}
@@ -821,8 +825,7 @@ int ibis::direkte::read(const char* f) {
 	if (nprt > dim[1])
 	    nprt = dim[1];
 	ibis::util::logger lg;
-	lg() << "DEBUG -- direkte[" << col->partition()->name() << '.'
-		    << col->name() << "]::read(" << fnm
+	lg() << "DEBUG -- direkte[" << col->fullname() << "]::read(" << fnm
 		    << ") got nobs = " << dim[1]
 		    << ", the offsets of the bit vectors are\n";
 	if (header[6] == 8) {
@@ -1024,22 +1027,22 @@ ibis::direkte::keys(const ibis::bitvector& mask) const {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 2)
-		    << "Warning -- direkte[" << col->partition()->name() << '.'
-		    << col->name() << "]::keys bits[" << i << "]->size() = "
+		    << "Warning -- direkte[" << col->fullname()
+                    << "]::keys bits[" << i << "]->size() = "
 		    << bits[i]->size() << ", but mask.size() = " << mask.size();
 	    }
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 4)
-		<< "Warning -- direkte[" << col->partition()->name() << '.'
-		<< col->name() << "]::keys bits[" << i << "] is nil";
+		<< "Warning -- direkte[" << col->fullname() << "]::keys bits["
+                << i << "] is nil";
 	}
     }
 
     ibis::util::sortKeys(ires, *res);
     LOGGER(res->empty() && ibis::gVerbose > 1)
-	<< "Warning -- direkte[" << col->partition()->name() << '.'
-	<< col->name() << "]::keys failed to compute the keys most likely "
+	<< "Warning -- direkte[" << col->fullname()
+        << "]::keys failed to compute the keys most likely "
 	"because the index does not have the same number of rows as data";
     return res.release();
 } // ibis::direkte::keys
@@ -1457,8 +1460,8 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 5)
-		    << "Warning -- direkte[" << col->partition()->name() << '.'
-		    << col->name() << "]::append -- file " << dfidx
+		    << "Warning -- direkte[" << col->fullname()
+                    << "]::append -- file " << dfidx
 		    << " has a unexpected header";
 		remove(dfidx.c_str());
 	    }
@@ -1507,7 +1510,7 @@ long ibis::direkte::append(const char* dt, const char* df, uint32_t nnew) {
     }
 
     LOGGER(ibis::gVerbose > 4)
-	<< "direkte[" << col->partition()->name() << '.' << col->name()
+	<< "direkte[" << col->fullname()
 	<< "]::append to recreate the index with the data from " << dt;
     clear();
     std::string dfname;
@@ -1650,7 +1653,7 @@ long ibis::direkte::append(const ibis::direkte& tail) {
 
     nrows += tail.nrows;
     LOGGER(nrows != ntot && ibis::gVerbose >= 0) 
-	<< "Warning -- direkte[" << col->partition()->name() << '.' << col->name()
+	<< "Warning -- direkte[" << col->fullname()
 	<< "]::append the combined index has more 2^32 rows (too many rows)";
     if (ibis::gVerbose > 10) {
 	ibis::util::logger lg;
@@ -1685,7 +1688,7 @@ long ibis::direkte::append(const array_t<uint32_t>& ind) {
 	nset += bits[i]->cnt();
     }
     LOGGER(nset != nrows && ibis::gVerbose > 1)
-	<< "Warning -- direkte[" << col->partition()->name() << '.' << col->name()
+	<< "Warning -- direkte[" << (col ? col->fullname() : "?.?")
 	<< "]::append found the new index contains " << nset
 	<< " objects but the bitmap length is " << nrows;
     return ind.size();

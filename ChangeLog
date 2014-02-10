@@ -1,3 +1,19 @@
+2014-02-10 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.cpp:397 change <= to <, the equal sign allows
+	a selection expression without an aggregator to be declared as
+	being separable, which violates the intention of the function
+	(this addresses the problem reported by Sean McNamara on 2/7/2014)
+
+2014-02-06 John Wu <John dot Wu at ACM dot org>
+	* src/column.h, src/column.cpp: add function fullname to deal with
+	the printing of column names
+	* src/irelic.cpp, src/ibin.cpp: allow the read function and some
+	constructors to proceed with null col value
+	* src/column.h: change column::mutexLock to allow the first
+	argument of the constructor to be nil
+	* src/index.cpp: change versions of function activate to allow the
+	member variable col to be nil
+
 2014-02-05 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.cpp: clean up the function mergeBuffers
 

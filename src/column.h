@@ -65,6 +65,8 @@ public:
     void name(const char* nm) {m_name = nm;}
     /// Description of the column.  Can be an arbitrary string.
     const char* description() const {return m_desc.c_str();}
+    /// Fully qualified name.
+    std::string fullname() const;
     /// The lower bound of the values.
     const double& lowerBound() const {return lower;}
     /// The upper bound of the values.
@@ -514,25 +516,35 @@ private:
 /// Provide a mutual exclusion lock on an ibis::column.
 class ibis::column::mutexLock {
 public:
+    /// Constructor.  If the argument #c col is nil, the global mutex lock
+    /// ibis::util::envLock is used.
     mutexLock(const ibis::column* col, const char* m)
 	: theColumn(col), mesg(m) {
-	if (ibis::gVerbose > 9)
-	    col->logMessage("gainExclusiveAccess",
-			    "pthread_mutex_lock for %s", m);
-	int ierr = pthread_mutex_lock(&(col->mutex));
-	if (0 != ierr)
-	    col->logWarning("gainExclusiveAccess", "pthread_mutex_lock for %s "
-			    "returned %d (%s)", m, ierr, strerror(ierr));
+	LOGGER(ibis::gVerbose > 9)
+	    << "column[" << (theColumn ? theColumn->fullname() : "?.?")
+            << "]::gainExclusiveAccess for " << (mesg && *mesg ? mesg : "???");
+        pthread_mutex_t *mtx = (theColumn ? &theColumn->mutex :
+                                &ibis::util::envLock);
+	int ierr = pthread_mutex_lock(mtx);
+	LOGGER(0 != ierr && ibis::gVerbose > 0)
+	    << "Warning -- column["
+            << (theColumn ? theColumn->fullname() : "?.?")
+            << "]::gainExclusiveAccess -- pthread_mutex_lock for "
+            << (mesg && *mesg ? mesg : "???") << "returned " << ierr
+            << " (" << strerror(ierr) << ")";
     }
     ~mutexLock() {
-	if (ibis::gVerbose > 9)
-	    theColumn->logMessage("releaseExclusiveAccess",
-				  "pthread_mutex_unlock for %s", mesg);
+	LOGGER(ibis::gVerbose > 9)
+	    << "column[" << (theColumn ? theColumn->fullname() : "?.?")
+            << "]::releaseExclusiveAccess for "
+            << (mesg && *mesg ? mesg : "???");
 	int ierr = pthread_mutex_unlock(&(theColumn->mutex));
-	if (0 != ierr)
-	    theColumn->logWarning("releaseExclusiveAccess",
-				  "pthread_mutex_unlock for %s returned %d "
-				  "(%s)", mesg, ierr, strerror(ierr));
+	LOGGER(0 != ierr && ibis::gVerbose > 0)
+	    << "Warning -- column["
+            << (theColumn ? theColumn->fullname() : "?.?")
+            << "]::releaseExclusiveAccess -- pthread_mutex_unlock for "
+            << (mesg && *mesg ? mesg : "???") << "returned " << ierr
+            << " (" << strerror(ierr) << ")";
     }
 
 private:

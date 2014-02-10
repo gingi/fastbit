@@ -28,6 +28,11 @@
 ibis::bin::bin(const ibis::column* c, const char* f)
     : ibis::index(c), nobs(0) {
     if (c == 0) return;  // nothing can be done
+    if (c->isNumeric() == false) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- bin can only work on numerical values";
+        return;
+    }
     try {
 	if (f) // try to read the file as an index file
 	    read(f);
@@ -37,7 +42,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	    lg() << "bin[" << col->fullname()
 		 << "]::ctor -- initialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
@@ -60,6 +65,12 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 ibis::bin::bin(const ibis::column* c, const char* f,
 	       const array_t<double>& bd)
     : ibis::index(c), nobs(0) {
+    if (c == 0) return;
+    if (c->isNumeric() == false) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- bin can only work on numerical values";
+        return;
+    }
     try {
 	binning(f, bd);
 	const char* spec = col->indexSpec();
@@ -78,7 +89,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	    lg() << "bin[" << col->fullname()
 		 << "]::ctor -- intialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
@@ -101,6 +112,12 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 ibis::bin::bin(const ibis::column* c, const char* f,
 	       const std::vector<double>& bd)
     : ibis::index(c), nobs(0) {
+    if (c == 0) return;
+    if (c->isNumeric() == false) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- bin can only work on numerical values";
+        return;
+    }
     try {
 	binning(f, bd);
 	const char* spec = col->indexSpec();
@@ -118,7 +135,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	optionalUnpack(bits, col->indexSpec());
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	    lg() << "bin[" << col->fullname()
 		 << "]::ctor -- intialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
@@ -164,7 +181,7 @@ ibis::bin::bin(const ibis::bin& rhs)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	    lg() << "bin[" << col->name()
 		 << "]::ctor -- initialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
@@ -214,19 +231,17 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 	     sizeof(double)*nobs*3) {
     try {
 	nrows = *(reinterpret_cast<uint32_t*>(st->begin()+start));
-	LOGGER(c->partition()->getState() == ibis::part::STABLE_STATE &&
-	       nrows != c->partition()->nRows() && ibis::gVerbose > 2)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::bin found nrows (" << nrows
-	    << ") to be different from that of the data partition "
-	    << c->partition()->name() << " ("
-	    << c->partition()->nRows() << ")";
+// LOGGER(c->partition()->getState() == ibis::part::STABLE_STATE &&
+//        nrows != c->partition()->nRows() && ibis::gVerbose > 2)
+//     << "Warning -- bin[" << col->fullname() << "]::bin found nrows ("
+//     << nrows << ") to be different from that of the data partition "
+//     << c->partition()->name() << " (" << c->partition()->nRows() << ")";
 
 	int ierr = initOffsets(st, start+2*sizeof(uint32_t), nobs);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- bin[" << col->partition()->name() << '.'
-		<< col->name() << "]::bin failed to initialize bitmap offsets"
+		<< "Warning -- bin[" << col->fullname()
+                << "]::bin failed to initialize bitmap offsets"
 		<< " from storage object @ " << st << " with start = " << start
 		<< ", ierr = " << ierr;
 	    throw "bin::ctor failed to initOffsets from storage";
@@ -236,7 +251,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	    lg() << "bin[" << (col ? col->fullname() : "?.?")
 		 << "]::ctor -- initialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"")
@@ -279,17 +294,17 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
     int ierr = initOffsets(st, offpos, nbits);
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::bin failed to initialize bitmap offsets"
-	    << " from storage object @ " << st << " with start = " << start
-	    << ", ierr = " << ierr;
+	    << "Warning -- bin[" << (col ? col->fullname() : 0)
+	    << "]::bin failed to initialize bitmap offsets from storage "
+            << "object @ " << st << " with start = " << start
+            << ", ierr = " << ierr;
 	throw "bin::ctor failed to initOffsets from storage";
     }
     initBitmaps(st);
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	lg() << "bin[" << (col ? col->fullname() : "?.?")
 	     << "]::ctor -- initialization completed with "
 	     << nobs << " bin" << (nobs>1?"s":"") << " for "
 	     << nrows << " row" << (nrows>1?"s":"")
@@ -324,9 +339,8 @@ int ibis::bin::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- bin[" << col->partition()->name() << '.'
-		 << col->name() << "]::read the header from " << fnm
-		 << " (";
+	    lg() << "Warning -- bin[" << (col ? col->fullname() : 0)
+                 << "]::read the header from " << fnm << " (";
 	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
 	}
@@ -382,9 +396,9 @@ int ibis::bin::read(const char* f) {
     initBitmaps(fdes);
 
     LOGGER(ibis::gVerbose > 3)
-	<< "bin[" << col->partition()->name() << '.' << col->name()
-	<< "]::read(" << fnm << ") finished reading index header (type "
-	<< (int) header[5] << ") with nrows=" << nrows << " and nobs=" << nobs;
+	<< "bin[" << (col ? col->fullname() : 0) << "]::read(" << fnm
+        << ") finished reading index header (type " << (int) header[5]
+        << ") with nrows=" << nrows << " and nobs=" << nobs;
     return 0;
 } // ibis::bin::read
 
@@ -451,9 +465,8 @@ int ibis::bin::read(int fdes, size_t start,
     initBitmaps(fdes);
 
     LOGGER(ibis::gVerbose > 3)
-	<< "bin[" << col->partition()->name() << '.' << col->name()
-	<< "]::read(" << fdes << ", " << start
-	<< ") finished reading index header (type "
+	<< "bin[" << (col ? col->fullname() : 0) << "]::read(" << fdes << ", "
+	 << start << ") finished reading index header (type "
 	<< (int) header[5] << ") with nrows=" << nrows << " and nobs=" << nobs;
     return 0;
 } // ibis::bin::read
@@ -489,10 +502,9 @@ int ibis::bin::read(ibis::fileManager::storage* st) {
     initBitmaps(st);
 
     LOGGER(ibis::gVerbose > 3)
-	<< "bin[" << col->partition()->name() << '.' << col->name()
-	<< "]::read(" << st << ") finished reading index header (type "
-	<< (int) (*st)[5] << ") with nrows=" << nrows << " and nobs="
-	<< nobs;
+	<< "bin[" << (col ? col->fullname() : "?.?") << "]::read(" << st
+        << ") finished reading index header (type " << (int) (*st)[5]
+        << ") with nrows=" << nrows << " and nobs=" << nobs;
     return 0;
 } // ibis::bin::read
 
@@ -512,11 +524,10 @@ void ibis::bin::adjustLength(uint32_t nr) {
 /// Find the smallest i such that bounds[i] > val.
 uint32_t ibis::bin::locate(const double& val) const {
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-    ibis::util::logMessage("bin::locate", "searching for %g in an "
-			   "array of %lu doubles in the range of [%g, %g]",
-			   val,
-			   static_cast<long unsigned>(bounds.size()),
-			   bounds[0], bounds.back());
+    LOGGER(ibis::gVerbose > 1)
+        << "bin::locate -- searching for " << val << " in an array of "
+        << bounds.size() << " doubles in the range of [" << bounds.front()
+        << ", " << bounds.back() << "]";
 #endif
     // check the extreme cases -- use negative tests to capture abnormal
     // numbers
@@ -550,8 +561,9 @@ uint32_t ibis::bin::locate(const double& val) const {
 			static_cast<long unsigned>(bounds.size()), val);
 #endif
 	LOGGER(ibis::gVerbose > 10)
-	    << "column[" << col->partition()->name() << "." << col->name()
-	    << "]::bin::locate -- " << std::setprecision(16) << val << " in ["
+	    << "column[" << (col ? col->fullname() : "?.?")
+            << "]::bin::locate -- "
+            << std::setprecision(16) << val << " in ["
 	    << std::setprecision(16) << bounds[i0] << ", "
 	    << std::setprecision(16) << bounds[i1] << ") ==> " << i1;
 	return i1;
@@ -560,15 +572,14 @@ uint32_t ibis::bin::locate(const double& val) const {
 	for (uint32_t i = 1; i < nobs; ++i) {
 	    if (val < bounds[i]) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 1
-		col->logMessage
-		    ("bin::locate", "element %lu (%g) out of %lu is no "
-		     "less than %g",
-		     static_cast<long unsigned>(i), bounds[i],
-		     static_cast<long unsigned>(bounds.size()), val);
+		LOGGER(ibis::gVerbose > 5)
+		    << "bin[" << (col ? col->fullname() : "?.?")
+                    << "]::locate -- element " << i << " (" << bounds[i]
+                    << ") out of " << bounds.size() << " is no less than "
+                    << val;
 #endif
 		LOGGER(ibis::gVerbose > 10)
-		    << "column[" << col->partition()->name() << "."
-		    << col->name() << "]::bin::locate -- "
+		    << "column[" << col->fullname() << "]::bin::locate -- "
 		    << std::setprecision(16) << val << " in ["
 		    << std::setprecision(16) << bounds[i-1] << ", "
 		    << std::setprecision(16) << bounds[i] << ") ==> " << i;
@@ -1527,9 +1538,7 @@ void ibis::bin::binningT(const char* f) {
     if (col->partition()->nRows() == 0) return;
 
     std::string evt="coumn[";
-    evt += col->partition()->name();
-    evt += '.';
-    evt += col->name();
+    evt += col->fullname();
     evt += "]::bin::binningT<";
     evt += typeid(E).name();
     evt += ">(";
@@ -1829,8 +1838,8 @@ long ibis::bin::binOrderT(const char* basename) const {
 	return ierr;
     }
     std::ostringstream mesg;
-    mesg << "column[" << col->partition()->name() << "." << col->name()
-	 << "]::bin::binOrder<" << typeid(E).name() << ">(" << fnm << ")";
+    mesg << "column[" << col->fullname() << "]::bin::binOrder<"
+         << typeid(E).name() << ">(" << fnm << ")";
     ibis::util::timer timer(mesg.str().c_str(), 3);
 
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -2425,9 +2434,7 @@ void ibis::bin::construct(const char* df) {
 
     const char* spec = col->indexSpec();
     if (spec == 0 || *spec == 0) {
-	std::string idxnm(col->partition()->name());
-	idxnm += '.';
-	idxnm += col->name();
+	std::string idxnm(col->fullname());
 	idxnm += ".index";
 	spec = ibis::gParameters()[idxnm.c_str()];
     }
@@ -2730,10 +2737,9 @@ void ibis::bin::construct(const char* df) {
     }
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg() << "bin[" << col->partition()->name() << '.' << col->name()
-	     << "]::construct(" << (df ? df : "") << ") -- finished "
-	    "constructing a simple equality index with " << nobs
-	     << " bin" << (nobs>1?"s":"");
+	lg() << "bin[" << col->fullname() << "]::construct(" << (df ? df : "")
+             << ") -- finished constructing a simple equality index with "
+	     << nobs << " bin" << (nobs>1?"s":"");
 	if (ibis::gVerbose > 8) {
 	    lg() << "\n";
 	    print(lg());
@@ -2775,7 +2781,7 @@ void ibis::bin::construct(const array_t<E>& varr) {
     optionalUnpack(bits, spec);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg() << "bin[" << col->partition()->name() << '.' << col->name()
+	lg() << "bin[" << col->fullname()
 	     << "]::construct<" << typeid(E).name() << '[' << varr.size()
 	     << "]> -- finished constructing a simple equality index with "
 	     << nobs << " bin" << (nobs>1?"s":"");
@@ -5402,22 +5408,19 @@ int ibis::bin::write(const char* dt) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- bin[" << col->fullname() << "]::write(" << fnm
 	    << ") received a std::exception - " << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- bin[" << col->fullname() << "]::write(" << fnm
 	    << ") received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- bin[" << col->fullname() << "]::write(" << fnm
 	    << ") received a unknown exception";
 	return -4;
     }
@@ -5453,8 +5456,7 @@ int ibis::bin::write(const char* dt) const {
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- bin[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -6;
     }
@@ -5474,10 +5476,9 @@ int ibis::bin::write(const char* dt) const {
 #endif
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "bin[" << col->partition()->name() << '.' << col->name()
-	    << "]::write -- wrote " << nobs << " bitmap"
-	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
-	    << " object" << (nrows>1?"s":"") << ", file size "
+	    << "bin[" << col->fullname() << "]::write -- wrote " << nobs
+	    << " bitmap" << (nobs>1?"s":"") << " to file " << fnm << " for "
+	    << nrows << " object" << (nrows>1?"s":"") << ", file size "
 	    << (useoffset64 ? offset64.back() : (int64_t)offset32.back());
     }
     return 0;
@@ -5492,29 +5493,27 @@ int ibis::bin::write32(int fdes) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32 received a std::exception - "
-	    << e.what();
+	    << "Warning -- bin[" << col->fullname()
+            << "]::write32 received a std::exception - " << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32 received a string exception - " << s;
+	    << "Warning -- bin[" << col->fullname()
+            << "]::write32 received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32 received a unexpected exception";
+	    << "Warning -- bin[" << col->fullname()
+            << "]::write32 received a unexpected exception";
 	return -4;
     }
 
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
 	    << ") can not start at position " << start;
 	return -7;
     }
@@ -5523,8 +5522,7 @@ int ibis::bin::write32(int fdes) const {
     ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
     if (ierr < (int)sizeof(nrows)*2) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
 	    << ") failed to write nrows (" << nrows << ") or nobs ("
 	    << nobs << "), ierr = " << ierr;
 	return -8;
@@ -5539,8 +5537,7 @@ int ibis::bin::write32(int fdes) const {
     offset32[0] += sizeof(double)*nobs*3;
     if (ierr < offset32[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
 	    << ") expects to write the 1st bitmap at offset " << offset32[0]
 	    << ", but the current file position is " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5554,8 +5551,7 @@ int ibis::bin::write32(int fdes) const {
     ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
     if (ierr != (off_t) (start+2*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
 	    << ") failed to seek to " << start+2*sizeof(uint32_t)
 	    << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5564,8 +5560,7 @@ int ibis::bin::write32(int fdes) const {
     ierr = ibis::util::write(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int32_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write32(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
 	    << ") failed to write " << nobs+1 << " bitmap positions"
 	    << " to file descriptor " << fdes << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5584,29 +5579,27 @@ int ibis::bin::write64(int fdes) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64 received a std::exception - "
-	    << e.what();
+	    << "Warning -- bin[" << col->fullname()
+            << "]::write64 received a std::exception - " << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64 received a string exception - " << s;
+	    << "Warning -- bin[" << col->fullname()
+            << "]::write64 received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64 received a unexpected exception";
+	    << "Warning -- bin[" << col->fullname()
+            << "]::write64 received a unexpected exception";
 	return -4;
     }
 
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
 	    << ") can not start at position " << start;
 	return -12;
     }
@@ -5615,8 +5608,7 @@ int ibis::bin::write64(int fdes) const {
     ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
     if (ierr < (int)(sizeof(nrows)*2)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
 	    << ") failed to write nrows (" << nrows << ") or nobs ("
 	    << nobs << "), ierr = " << ierr;
 	return -13;
@@ -5631,8 +5623,7 @@ int ibis::bin::write64(int fdes) const {
     offset64[0] += sizeof(double)*nobs*3;
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
 	    << ") expects the 1st bitmap to start at " << offset64[0]
 	    << ", but the current file position is " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5646,8 +5637,7 @@ int ibis::bin::write64(int fdes) const {
     ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
     if (ierr != (off_t) (start+2*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
 	    << ") failed to seek to " << start+2*sizeof(uint32_t)
 	    << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5656,8 +5646,7 @@ int ibis::bin::write64(int fdes) const {
     ierr = ibis::util::write(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->partition()->name() << '.'
-	    << col->name() << "]::write64(" << fdes
+	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
 	    << ") failed to write " << nobs+1 << " bitmap positions"
 	    << " to file descriptor " << fdes << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5851,8 +5840,7 @@ void ibis::bin::print(std::ostream& out) const {
     uint32_t omt = 0;
 
     // activate(); -- activate may invoke ioLock which causes problems
-    out << "index (equality encoded, binned) for "
-	<< col->partition()->name() << '.' << col->name()
+    out << "index (equality encoded, binned) for " << col->fullname()
 	<< " contains " << nobs << " bitvectors for "
 	<< nrows << " objects \n";
     if (ibis::gVerbose > 3) { // print the long form

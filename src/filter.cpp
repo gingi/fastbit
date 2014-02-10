@@ -586,7 +586,7 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 	return 0;
 
     std::string mesg = "filter::sift0";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -729,7 +729,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 	return 0;
 
     std::string mesg = "filter::sift0S";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -981,7 +981,7 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
     }
 
     std::string mesg = "filter::sift1";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -1118,7 +1118,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
     }
 
     std::string mesg = "filter::sift1S";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -1358,7 +1358,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 	return sift0(tms, plist);
 
     std::string mesg = "filter::sift2";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -1557,7 +1557,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
     }
 
     std::string mesg = "filter::sift2";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -1685,7 +1685,7 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
 	return sift0(tms, plist);
 
     std::string mesg = "filter::sift2";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -1868,7 +1868,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 	return sift0(tms, plist);
 
     std::string mesg = "filter::sift2S";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -2151,7 +2151,7 @@ ibis::table* ibis::filter::sift2S
     }
 
     std::string mesg = "filter::sift2S";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
@@ -2383,7 +2383,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 	return sift0(tms, plist);
 
     std::string mesg = "filter::sift2S";
-    if (ibis::gVerbose >= 0) {
+    if (ibis::gVerbose > 0) {
 	mesg += "(SELECT ";
 	std::ostringstream oss;
 	oss << tms;
