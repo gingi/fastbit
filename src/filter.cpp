@@ -587,30 +587,30 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
 
     std::string mesg = "filter::sift0";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "");
-        if (oss.str().size() <= 35) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 35; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "");
+	if (oss.str().size() <= 35) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 35; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	mesg += ')';
     }
 
     ibis::util::timer atimer(mesg.c_str(), 2);
@@ -730,30 +730,30 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
 
     std::string mesg = "filter::sift0S";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "");
-        if (oss.str().size() <= 35) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 35; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "");
+	if (oss.str().size() <= 35) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 35; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	mesg += ')';
     }
 
     ibis::util::timer atimer(mesg.c_str(), 2);
@@ -982,31 +982,31 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
 
     std::string mesg = "filter::sift1";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "")
-            << " WHERE " << cond;
-        if (oss.str().size() <= 35) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 30; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "")
+	    << " WHERE " << cond;
+	if (oss.str().size() <= 35) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 30; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	mesg += ')';
     }
 
     ibis::util::timer atimer(mesg.c_str(), 2);
@@ -1119,31 +1119,31 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
 
     std::string mesg = "filter::sift1S";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "")
-            << " WHERE " << cond;
-        if (oss.str().size() <= 35) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 30; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "")
+	    << " WHERE " << cond;
+	if (oss.str().size() <= 35) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 30; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	mesg += ')';
     }
 
     ibis::util::timer atimer(mesg.c_str(), 2);
@@ -1359,31 +1359,31 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 
     std::string mesg = "filter::sift2";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "")
-            << " WHERE " << cond;
-        if (oss.str().size() <= 35) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 35; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "")
+	    << " WHERE " << cond;
+	if (oss.str().size() <= 35) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 35; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	mesg += ')';
     }
 
     long int ierr = 0;
@@ -1558,24 +1558,24 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause  &tms,
 
     std::string mesg = "filter::sift2";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "")
-            << " WHERE ...";
-        mesg += oss.str();
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "")
+	    << " WHERE ...";
+	mesg += oss.str();
+	mesg += ')';
     }
 
     long int ierr = 0;
@@ -1686,31 +1686,31 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
 
     std::string mesg = "filter::sift2";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "")
-            << " WHERE " << cond;
-        if (oss.str().size() <= 35) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 35; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "")
+	    << " WHERE " << cond;
+	if (oss.str().size() <= 35) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 35; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	mesg += ')';
     }
 
     long int ierr = 0;
@@ -1869,31 +1869,31 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
 
     std::string mesg = "filter::sift2S";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "")
-            << " WHERE " << cond;
-        if (oss.str().size() <= 35) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 35; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "")
+	    << " WHERE " << cond;
+	if (oss.str().size() <= 35) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 35; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	mesg += ')';
     }
 
     long int ierr = 0;
@@ -2152,24 +2152,24 @@ ibis::table* ibis::filter::sift2S
 
     std::string mesg = "filter::sift2S";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "")
-            << " WHERE ...";
-        mesg += oss.str();
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "")
+	    << " WHERE ...";
+	mesg += oss.str();
+	mesg += ')';
     }
 
     long int ierr = 0;
@@ -2384,31 +2384,31 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
 
     std::string mesg = "filter::sift2S";
     if (ibis::gVerbose > 0) {
-        mesg += "(SELECT ";
-        std::ostringstream oss;
-        oss << tms;
-        if (oss.str().size() <= 20) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 20; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        oss.clear();
-        oss.str("");
-        oss << " FROM " << plist.size() << " data partition"
-            << (plist.size() > 1 ? "s" : "")
-            << " WHERE " << cond;
-        if (oss.str().size() <= 35) {
-            mesg += oss.str();
-        }
-        else {
-            for (unsigned j = 0; j < 35; ++ j)
-                mesg += oss.str()[j];
-            mesg += " ...";
-        }
-        mesg += ')';
+	mesg += "(SELECT ";
+	std::ostringstream oss;
+	oss << tms;
+	if (oss.str().size() <= 20) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 20; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	oss.clear();
+	oss.str("");
+	oss << " FROM " << plist.size() << " data partition"
+	    << (plist.size() > 1 ? "s" : "")
+	    << " WHERE " << cond;
+	if (oss.str().size() <= 35) {
+	    mesg += oss.str();
+	}
+	else {
+	    for (unsigned j = 0; j < 35; ++ j)
+		mesg += oss.str()[j];
+	    mesg += " ...";
+	}
+	mesg += ')';
     }
 
     long int ierr = 0;

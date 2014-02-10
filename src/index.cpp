@@ -1376,7 +1376,7 @@ ibis::index* ibis::index::buildNew
 /// make uses of the storage object.
 ibis::index::index(const ibis::column* c, ibis::fileManager::storage* s) :
     col(c), str(s), fname(0), nrows(0) {
-    if (c != 0 && s != 0) {
+    if (s != 0) {
         nrows = *reinterpret_cast<const uint32_t*>(s->begin()+8);
     }
     // else {
@@ -1551,45 +1551,30 @@ void ibis::index::dataFileName(std::string& iname, const char* f) const {
 /// to do most of the work.
 void ibis::index::indexFileName(std::string& iname, const char* f) const {
     iname.clear();
-    if (f == 0 || *f == 0) {
-        if (col != 0) {
-            (void) col->dataFileName(iname, f);
-            if (! iname.empty()) {
-                iname += ".idx";
-            }
+    if (col != 0) {
+        (void) col->dataFileName(iname, f);
+        if (! iname.empty()) {
+            iname += ".idx";
         }
     }
-    else {
+    else if (f != 0 && *f != 0) {
         unsigned len = std::strlen(f);
         if (len > 4 && f[len-4] == '.' && f[len-3] == 'i' &&
             f[len-2] == 'd' && f[len-1] == 'x') {
             // the incoming name ends with ".idx", use it
             iname = f;
         }
-        else if (col != 0 && col->partition() != 0 &&
-                 col->partition()->currentDataDir() != 0 &&
-                 0 == std::strcmp(f, col->partition()->currentDataDir())) {
-            iname += f;
-            iname += FASTBIT_DIRSEP;
-            iname += col->name();
-            iname += ".idx";
-        }
         else {
             Stat_T st0;
             if (UnixStat(f, &st0)) { // stat fails, use the name
-                if (col != 0) {
-                    (void) col->dataFileName(iname, f);
-                    if (! iname.empty()) {
-                        iname += ".idx";
-                    }
-                }
+                iname = f;
+                iname += ".idx";
             }
             else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
-                // named directory exist
+                // named directory exists, use file name _.idx
                 iname = f;
                 iname += FASTBIT_DIRSEP;
-                iname += col->name();
-                iname += ".idx";
+                iname += "_.idx";
             }    
             else {
                 // the incoming argument names an existing file, add ".idx"
@@ -1602,8 +1587,7 @@ void ibis::index::indexFileName(std::string& iname, const char* f) const {
 
     LOGGER(ibis::gVerbose > 6)
         << "index::indexFileName will use \"" << iname
-        << "\" as the index file name for " << col->partition()->name() << '.'
-        << col->name();
+        << "\" as the index file name for " << (col ? col->fullname() : "?.?");
 } // indexFileName
 
 /// Generate the index file name for the composite index fromed on two
@@ -1660,6 +1644,8 @@ void ibis::index::indexFileName(std::string& iname,
 // actually go through values and determine the min/max values
 void ibis::index::computeMinMax(const char* f, double& min,
                                 double& max) const {
+    if (col == 0) return; // nothing can be done
+
     std::string fnm;
     dataFileName(fnm, f); // generate the correct data file name
     if (fnm.empty()) return;
@@ -1858,11 +1844,7 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
     std::string evt = "index";
     if (ibis::gVerbose > 0) {
         evt += '[';
-        if (col->partition() != 0) {
-            evt += col->partition()->name();
-            evt += '.';
-        }
-        evt += col->name();
+        evt += col->fullname();
         evt += ']';
     }
     evt += "::mapValues";
@@ -2655,9 +2637,8 @@ template <typename E>
 void ibis::index::mapValues(const array_t<E>& val, VMap& bmap) {
     bmap.clear();
     if (val.size() == 0) {
-        if (ibis::gVerbose > 2)
-            ibis::util::logMessage("index::mapValues",
-                                   "the input array is empty");
+        LOGGER(ibis::gVerbose > 2)
+            << "index::mapValues can not proceed with an empty input array";
         return;
     }
 
@@ -4428,12 +4409,12 @@ void ibis::index::initBitmaps(int fdes) {
                     ibis::bitvector* tmp = new ibis::bitvector(a0);
                     tmp->sloppySize(nrows);
                     bits[i] = tmp;
-                    if (tmp->size() != nrows)
-                        col->logWarning("readIndex", "the length (%lu) of "
-                                        "bits[%lu] differs from nRows (%lu)",
-                                        static_cast<long unsigned>(tmp->size()),
-                                        static_cast<long unsigned>(i),
-                                        static_cast<long unsigned>(nrows));
+#if defined(WAH_CHECK_SIZE)
+                    LOGGER(tmp->size() != nrows && ibis::gVerbose > 0)
+                        << "Warning -- readIndex enters bits[" << i
+                        << "] with unexpected size (" << tmp->size()
+                        << "), expected it to be " << nrows;
+#endif
                 }
                 else if (i == 0) {
                     bits[0] = new ibis::bitvector;
@@ -4450,11 +4431,10 @@ void ibis::index::initBitmaps(int fdes) {
             ibis::bitvector* tmp = new ibis::bitvector(a0);
             bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)
-            if (tmp->size() != nrows)
-                col->logWarning("readIndex", "the length (%lu) of "
-                                "bitvector 0 differs from nRows (%lu)",
-                                static_cast<long unsigned>(tmp->size()),
-                                static_cast<long unsigned>(nrows));
+            LOGGER(tmp->size() != nrows && ibis::gVerbose > 0)
+                << "Warning -- readIndex enters bits[" << i
+                << "] with unexpected size (" << tmp->size()
+                << "), expected it to be " << nrows;
 #else
             tmp->sloppySize(nrows);
 #endif
@@ -4474,12 +4454,12 @@ void ibis::index::initBitmaps(int fdes) {
                     ibis::bitvector* tmp = new ibis::bitvector(a0);
                     tmp->sloppySize(nrows);
                     bits[i] = tmp;
-                    if (tmp->size() != nrows)
-                        col->logWarning("readIndex", "the length (%lu) of "
-                                        "bits[%lu] differs from nRows (%lu)",
-                                        static_cast<long unsigned>(tmp->size()),
-                                        static_cast<long unsigned>(i),
-                                        static_cast<long unsigned>(nrows));
+#if defined(WAH_CHECK_SIZE)
+                    LOGGER(tmp->size() != nrows && ibis::gVerbose > 0)
+                        << "Warning -- readIndex enters bits[" << i
+                        << "] with unexpected size (" << tmp->size()
+                        << "), expected it to be " << nrows;
+#endif
                 }
                 else if (i == 0) {
                     bits[0] = new ibis::bitvector;
@@ -4496,11 +4476,10 @@ void ibis::index::initBitmaps(int fdes) {
             ibis::bitvector* tmp = new ibis::bitvector(a0);
             bits[0] = tmp;
 #if defined(WAH_CHECK_SIZE)
-            if (tmp->size() != nrows)
-                col->logWarning("readIndex", "the length (%lu) of "
-                                "bitvector 0 differs from nRows (%lu)",
-                                static_cast<long unsigned>(tmp->size()),
-                                static_cast<long unsigned>(nrows));
+            LOGGER(tmp->size() != nrows && ibis::gVerbose > 0)
+                << "Warning -- readIndex enters bits[" << i
+                << "] with unexpected size (" << tmp->size()
+                << "), expected it to be " << nrows;
 #else
             tmp->sloppySize(nrows);
 #endif
@@ -4513,10 +4492,10 @@ void ibis::index::initBitmaps(int fdes) {
     }
     else {
         LOGGER(ibis::gVerbose > 1 && col != 0)
-            << "Warning -- index[" << col->name() << "]::initBitmaps can not "
-            "proceed because both offset32[" << offset32.size()
-            << "] and offset64[" << offset64.size() << "] have less than "
-            << nobs+1 << " elements";
+            << "Warning -- index[" << (col ? col->fullname() : "?.?")
+            << "]::initBitmaps can not proceed because both offset32["
+            << offset32.size() << "] and offset64[" << offset64.size()
+            << "] have less than " << nobs+1 << " elements";
     }
 } // ibis::index::initBitmaps
 
@@ -4533,7 +4512,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
                            offset32.size() > 1 ? offset32.size()-1 : 0);
     if (nobs == 0U) {
         LOGGER(ibis::gVerbose > 3 && col != 0)
-            << "Warning -- index[" << col->name() << "]::initBitmaps("
+            << "Warning -- index[" << col->fullname() << "]::initBitmaps("
             << static_cast<const void*>(st) << ") can not continue without "
             "a valid offset64 or offset32";
         return;
@@ -4569,7 +4548,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 #if defined(WAH_CHECK_SIZE)
                     LOGGER(btmp->size() != nrows)
                         << "Warning -- index::initBitmaps for column "
-                        << (col!=0?col->name():"?") << " found the length ("
+                        << (col!=0?col->fullname():"?") << " found the length ("
                         << btmp->size() << ") of bitvector " << i
                         << " differs from the expect value " << nrows;
 #else
@@ -4601,14 +4580,11 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
                 ibis::bitvector* btmp = new ibis::bitvector(a);
                 bits[i] = btmp;
 #if defined(WAH_CHECK_SIZE)
-                if (btmp->size() != nrows) {
-                    col->logWarning("readIndex", "the length (%lu) of "
-                                    "the %lu-th bitvector differs from "
-                                    "that of the 1st one(%lu)",
-                                    static_cast<long unsigned>(btmp->size()),
-                                    static_cast<long unsigned>(i),
-                                    static_cast<long unsigned>(nrows));
-                }
+                LOGGER(btmp->size() != nrows && ibis::gVerbose > 0)
+                    << "Warning -- index[" << (col ? col->fullname() : "?.?")
+                    << "]::readIndex -- the length (" << btmp->size()
+                    << ") of the " << i << "-th bitvector differs from "
+                    "that of the 1st one(" << nrows << ")";
 #else
                 btmp->sloppySize(nrows);
 #endif
@@ -4620,7 +4596,7 @@ void ibis::index::initBitmaps(ibis::fileManager::storage* st) {
 /// Activate all bitvectors.
 void ibis::index::activate() const {
     std::string evt = "index";
-    if (ibis::gVerbose > 0) {
+    if (ibis::gVerbose > 0 && col != 0) {
         evt += '[';
         if (col->partition() != 0) {
             evt += col->partition()->name();
@@ -4798,9 +4774,9 @@ void ibis::index::activate() const {
 
 // activate the ith bitvector
 void ibis::index::activate(uint32_t i) const {
-    if (col == 0 || i >= bits.size()) return;   // index out of range
+    if (i >= bits.size()) return;   // index out of range
     std::string evt = "index";
-    if (ibis::gVerbose > 0) {
+    if (col == 0 && ibis::gVerbose > 0) {
         evt += '[';
         if (col->partition() != 0) {
             evt += col->partition()->name();
@@ -4933,10 +4909,10 @@ void ibis::index::activate(uint32_t i) const {
 void ibis::index::activate(uint32_t i, uint32_t j) const {
     if (j > bits.size())
         j = bits.size();
-    if (col == 0 || i >= j || i >= bits.size()) // empty range
+    if (i >= j || i >= bits.size()) // empty range
         return;
     std::string evt = "index";
-    if (ibis::gVerbose > 0) {
+    if (col == 0 && ibis::gVerbose > 0) {
         evt += '[';
         if (col->partition() != 0) {
             evt += col->partition()->name();
@@ -5133,8 +5109,9 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 void ibis::index::addBins(uint32_t ib, uint32_t ie,
                           ibis::bitvector& res) const {
     LOGGER(ibis::gVerbose > 7)
-        << "index[" << col->name() << "]::addBins(" << ib << ", "
-        << ie << ", res(" << res.cnt() << ", " << res.size() << ")) ...";
+        << "index[" << (col ? col->fullname() : "?.?") << "]::addBins(" << ib
+        << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
+        << ")) ...";
     const uint32_t nobs = bits.size();
     if (res.cnt() >= nrows) return; // useless to add more bits
     if (res.size() != nrows)
@@ -5331,7 +5308,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
                           const ibis::bitvector& tot) const {
     LOGGER(ibis::gVerbose > 7)
-        << "index[" << col->name() << "]::addBins(" << ib
+        << "index[" << (col ? col->fullname() : "?.?") << "]::addBins(" << ib
         << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
         << "), tot(" << tot.cnt() << ", " << tot.size() << ")) ...";
     if (res.size() != tot.size())
@@ -6045,7 +6022,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 void ibis::index::sumBins(uint32_t ib, uint32_t ie,
                           ibis::bitvector& res) const {
     LOGGER(ibis::gVerbose > 7)
-        << "index[" << (col != 0 ? col->name() : "") << "]::sumBins(" << ib
+        << "index[" << (col != 0 ? col->name() : "?.?") << "]::sumBins(" << ib
         << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
         << ")) ...";
     const size_t nobs = bits.size();
@@ -6622,7 +6599,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
                           uint32_t ib0, uint32_t ie0) const {
     LOGGER(ibis::gVerbose > 7)
-        << "index[" << (col != 0 ? col->name() : "") << "]::sumBins(" << ib
+        << "index[" << (col != 0 ? col->name() : "?.?") << "]::sumBins(" << ib
         << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
         << "), " << ib0 << ", " << ie0 << ") ...";
     if (offset32.size() <= bits.size() && offset64.size() <= bits.size()) {
@@ -8396,13 +8373,15 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& pile,
     }
     else { // check ibis::gParameters
         std::string uA;
-        if (col->partition() != 0) {
-            uA = col->partition()->name();
-            uA += ".";
-        }
-        if (col != 0)
+        if (col != 0) {
+            if (col->partition() != 0) {
+                uA = col->partition()->name();
+                uA += '.';
+            }
             uA += col->name();
-        uA += ".uncompress";
+            uA += '.';
+        }
+        uA += "uncompress";
         std::string uL = uA;
         uL += "LargeBitvector";
         uA += "All";
