@@ -129,7 +129,7 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 /// ind are assumed to be between 0 and card-1.  All values outside of this
 /// range are ignored.
 ibis::direkte::direkte(const ibis::column* c, uint32_t card,
-                       array_t<uint32_t>& ind) : ibis::index(c) {
+		       array_t<uint32_t>& ind) : ibis::index(c) {
     if (card == 0) return;
     if (ind.empty()) return;
 
@@ -713,16 +713,18 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
+	    << "]::write(" << fnm << ") failed to write the 8-byte header, "
+            "ierr = " << ierr;
 	return -3;
     }
     ierr  = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr += UnixWrite(fdes, &nobs,  sizeof(uint32_t));
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write nrows and nobs, ierr = " << ierr;
+	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
+	    << "]::write(" << fnm << ") failed to write nrows and nobs, "
+            "ierr = " << ierr;
 	return -4;
     }
     offset64.resize(nobs+1);
@@ -730,8 +732,9 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixSeek(fdes, header[6]*(nobs+1), SEEK_CUR);
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to seek to " << offset64[0] << ", ierr = " << ierr;
+	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
+	    << "]::write(" << fnm << ") failed to seek to " << offset64[0]
+            << ", ierr = " << ierr;
 	return -5;
     }
     for (uint32_t i = 0; i < nobs; ++ i) {
@@ -744,8 +747,9 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixSeek(fdes, 16, SEEK_SET);
     if (ierr != 16) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to seek to offset 16, ierr = " << ierr;
+	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
+            << "]::write(" << fnm << ") failed to seek to offset 16, ierr = "
+            << ierr;
 	return -6;
     }
     if (useoffset64) {
@@ -761,8 +765,9 @@ int ibis::direkte::write(const char* dt) const {
     }
     if (ierr < (off_t)(header[6]*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write bitmap offsets, ierr = " << ierr;
+	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
+	    << "]::write(" << fnm << ") failed to write bitmap offsets, "
+            "ierr = " << ierr;
 	return -7;
     }
 #if defined(FASTBIT_SYNC_WRITE)
@@ -774,7 +779,8 @@ int ibis::direkte::write(const char* dt) const {
 #endif
 
     LOGGER(ibis::gVerbose > 5)
-	<< "direkte[" << col->fullname() << "]::write -- wrote " << nobs
+	<< "direkte[" << (col ? col->fullname() : "?.?")
+        << "]::write -- wrote " << nobs
         << " bitmap" << (nobs>1?"s":"") << " to " << fnm;
     return 0;
 } // ibis::direkte::write
@@ -829,7 +835,7 @@ int ibis::direkte::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- direkte[" << col->fullname()
+	    lg() << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
                  << "]::read the header from " << fnm << " (";
 	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
@@ -860,9 +866,9 @@ int ibis::direkte::read(const char* f) {
 	if (nprt > dim[1])
 	    nprt = dim[1];
 	ibis::util::logger lg;
-	lg() << "DEBUG -- direkte[" << col->fullname() << "]::read(" << fnm
-		    << ") got nobs = " << dim[1]
-		    << ", the offsets of the bit vectors are\n";
+	lg() << "DEBUG -- direkte[" << (col ? col->fullname() : "?.?")
+             << "]::read(" << fnm << ") got nobs = " << dim[1]
+             << ", the offsets of the bit vectors are\n";
 	if (header[6] == 8) {
 	    for (unsigned i = 0; i < nprt; ++ i)
 		lg() << offset64[i] << " ";
@@ -883,7 +889,7 @@ int ibis::direkte::read(const char* f) {
     initBitmaps(fdes);
     str = 0;
     LOGGER(ibis::gVerbose > 3)
-        << "direkte[" << (col ? col->name() : "?.?") << "]::read(" << fnm
+	<< "direkte[" << (col ? col->name() : "?.?") << "]::read(" << fnm
         << ") finished reading index header with nrows=" << nrows
         << " and bits.size()=" << bits.size();
     return 0;
@@ -917,7 +923,7 @@ int ibis::direkte::read(ibis::fileManager::storage* st) {
 
     initBitmaps(st);
     LOGGER(ibis::gVerbose > 3)
-        << "direkte[" << (col ? col->name() : "?.?") << "]::read(" << st
+	<< "direkte[" << (col ? col->name() : "?.?") << "]::read(" << st
         << ") finished reading index header with nrows=" << nrows
         << " and bits.size()=" << bits.size();
     return 0;
@@ -1062,21 +1068,21 @@ ibis::direkte::keys(const ibis::bitvector& mask) const {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 2)
-		    << "Warning -- direkte[" << col->fullname()
+		    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
                     << "]::keys bits[" << i << "]->size() = "
 		    << bits[i]->size() << ", but mask.size() = " << mask.size();
 	    }
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 4)
-		<< "Warning -- direkte[" << col->fullname() << "]::keys bits["
-                << i << "] is nil";
+		<< "Warning -- direkte[" << (col ? col->fullname() : "?.?")
+                << "]::keys bits[" << i << "] is nil";
 	}
     }
 
     ibis::util::sortKeys(ires, *res);
     LOGGER(res->empty() && ibis::gVerbose > 1)
-	<< "Warning -- direkte[" << col->fullname()
+	<< "Warning -- direkte[" << (col ? col->fullname() : "?.?")
         << "]::keys failed to compute the keys most likely "
 	"because the index does not have the same number of rows as data";
     return res.release();
@@ -1289,43 +1295,43 @@ void ibis::direkte::locate(const ibis::qContinuousRange& expr,
         }
         break;}
     default: {
-        switch (expr.rightOperator()) {
-        case ibis::qExpr::OP_LT: {
-            ib = 0;
-            if (expr.rightBound()>ie)
-                ++ ie;
-            break;}
-        case ibis::qExpr::OP_LE: {
-            ib = 0;
-            ++ ie;
-            break;}
-        case ibis::qExpr::OP_GT: {
-            ib = ie + 1;
-            ie = bits.size();
-            break;}
-        case ibis::qExpr::OP_GE: {
-            ib = (expr.rightBound() == ie ? ie : ie+1);
-            ie = bits.size();
-            break;}
-        case ibis::qExpr::OP_EQ: {
-            if (expr.rightBound() == ie) {
-                ib = ie;
-                ++ ie;
-            }
-            else {
-                ie = ib;
-            }
-            break;}
-        default: {
-            // nothing specified, match all
-            LOGGER(ibis::gVerbose > -1)
-                << "Warning -- direkte::locate encounters a unknown operator "
+	switch (expr.rightOperator()) {
+	case ibis::qExpr::OP_LT: {
+	    ib = 0;
+	    if (expr.rightBound()>ie)
+		++ ie;
+	    break;}
+	case ibis::qExpr::OP_LE: {
+	    ib = 0;
+	    ++ ie;
+	    break;}
+	case ibis::qExpr::OP_GT: {
+	    ib = ie + 1;
+	    ie = bits.size();
+	    break;}
+	case ibis::qExpr::OP_GE: {
+	    ib = (expr.rightBound() == ie ? ie : ie+1);
+	    ie = bits.size();
+	    break;}
+	case ibis::qExpr::OP_EQ: {
+	    if (expr.rightBound() == ie) {
+		ib = ie;
+		++ ie;
+	    }
+	    else {
+		ie = ib;
+	    }
+	    break;}
+	default: {
+	    // nothing specified, match all
+	    LOGGER(ibis::gVerbose > -1)
+		<< "Warning -- direkte::locate encounters a unknown operator "
                 "in a qContinuousQuery object";
-            ib = 0;
-            ie = bits.size();
-            break;}
-        }
-        break;}
+	    ib = 0;
+	    ie = bits.size();
+	    break;}
+	}
+	break;}
     }
 } // ibis::direkte::locate
 
@@ -1410,47 +1416,47 @@ double ibis::direkte::estimateCost(const ibis::qContinuousRange& expr) const {
     uint32_t ib, ie;
     locate(expr, ib, ie);
     if (ib < ie) {
-        if (offset64.size() > bits.size()) {
-            const int32_t tot = offset64.back() - offset64[0];
-            if (ie < offset64.size()) {
-                const int32_t mid = offset64[ie] - offset64[ib];
-                if ((tot >> 1) >= mid)
-                    cost = mid;
-                else
-                    cost = tot - mid;
-            }
-            else if (ib < offset64.size()) {
-                const int32_t mid = offset64.back() - offset64[ib];
-                if ((tot >> 1) >= mid)
-                    cost = mid;
-                else
-                    cost = tot - mid;
-            }
-        }
-        else if (offset32.size() > bits.size()) {
-            const int32_t tot = offset32.back() - offset32[0];
-            if (ie < offset32.size()) {
-                const int32_t mid = offset32[ie] - offset32[ib];
-                if ((tot >> 1) >= mid)
-                    cost = mid;
-                else
-                    cost = tot - mid;
-            }
-            else if (ib < offset32.size()) {
-                const int32_t mid = offset32.back() - offset32[ib];
-                if ((tot >> 1) >= mid)
-                    cost = mid;
-                else
-                    cost = tot - mid;
-            }
-        }
-        else {
-            const unsigned elm = (col ? col->elementSize() : 4U);
-            if (elm > 0)
-                cost = (double)elm * nrows;
-            else
-                cost = 4.0 * nrows;
-        }
+	if (offset64.size() > bits.size()) {
+	    const int32_t tot = offset64.back() - offset64[0];
+	    if (ie < offset64.size()) {
+		const int32_t mid = offset64[ie] - offset64[ib];
+		if ((tot >> 1) >= mid)
+		    cost = mid;
+		else
+		    cost = tot - mid;
+	    }
+	    else if (ib < offset64.size()) {
+		const int32_t mid = offset64.back() - offset64[ib];
+		if ((tot >> 1) >= mid)
+		    cost = mid;
+		else
+		    cost = tot - mid;
+	    }
+	}
+	else if (offset32.size() > bits.size()) {
+	    const int32_t tot = offset32.back() - offset32[0];
+	    if (ie < offset32.size()) {
+		const int32_t mid = offset32[ie] - offset32[ib];
+		if ((tot >> 1) >= mid)
+		    cost = mid;
+		else
+		    cost = tot - mid;
+	    }
+	    else if (ib < offset32.size()) {
+		const int32_t mid = offset32.back() - offset32[ib];
+		if ((tot >> 1) >= mid)
+		    cost = mid;
+		else
+		    cost = tot - mid;
+	    }
+	}
+	else {
+	    const unsigned elm = (col ? col->elementSize() : 4U);
+	    if (elm > 0)
+		cost = (double)elm * nrows;
+	    else
+		cost = 4.0 * nrows;
+	}
     }
     return cost;
 } // ibis::direkte::estimateCost
@@ -1689,7 +1695,7 @@ long ibis::direkte::append(const ibis::direkte& tail) {
 
     nrows += tail.nrows;
     LOGGER(nrows != ntot && ibis::gVerbose >= 0) 
-	<< "Warning -- direkte[" << col->fullname()
+	<< "Warning -- direkte[" << (col ? col->fullname() : "?.?")
 	<< "]::append the combined index has more 2^32 rows (too many rows)";
     if (ibis::gVerbose > 10) {
         ibis::util::logger lg;
