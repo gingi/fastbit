@@ -1,4 +1,10 @@
 2014-02-12 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: check argument 1 (col) in the constructor of
+	ibis::column::indexLock, do nothing when col == 0 (this allows a
+	nil column object to be used to create an index lock, however,
+	that index lock will do nothing)
+
+2014-02-11 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp, src/idirekte.cpp: check for col being nil
 
 2014-02-10 John Wu <John dot Wu at ACM dot org>

@@ -11457,14 +11457,20 @@ int ibis::column::searchSortedOOCD(const char* fname,
     return (ierr > 0 ? 0 : -3);
 } // ibis::column::searchSortedOOCD
 
-/// Constructor of index lock.
+/// Constructor of index lock.  Must have a valid column object as argument
+/// 1.  This class could do nothing without a valid column object.
 ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
     : theColumn(col), mesg(m) {
     bool toload = false;
-    { // only attempt to build the index if idxcnt is zero and idx is zero
+    if (col != 0) {
 	ibis::column::readLock lk(col, m);
+        // only attempt to build the index if idxcnt is zero and idx is zero
 	toload = (theColumn->idxcnt() == 0 && theColumn->idx == 0);
     }
+    else {
+        return;
+    }
+
     if (toload)
 	theColumn->loadIndex();
     if (theColumn->idx != 0) {
