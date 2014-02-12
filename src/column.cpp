@@ -11983,10 +11983,9 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
     : theColumn(col), mesg(m) {
     bool toload = false;
     if (col != 0) {
-        ibis::column::readLock lk(col, m);
+	ibis::column::readLock lk(col, m);
         // only attempt to build the index if idxcnt is zero and idx is zero
-        toload = (theColumn->idxcnt() == 0 &&
-                  (theColumn->idx == 0 || theColumn->idx->empty()));
+	toload = (theColumn->idxcnt() == 0 && theColumn->idx == 0);
     }
     else {
         return;
