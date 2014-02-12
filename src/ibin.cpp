@@ -181,7 +181,7 @@ ibis::bin::bin(const ibis::bin& rhs)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg() << "bin[" << col->name()
+	    lg() << "bin[" << (col ? col->name() : "?.?")
 		 << "]::ctor -- initialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
@@ -193,7 +193,7 @@ ibis::bin::bin(const ibis::bin& rhs)
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << col->name()
+	    << "Warning -- column[" << (col ? col->name() : "?.?")
 	    << "]::bin::ctor encountered an exception, cleaning up ...";
 	clear();
 	throw;
@@ -240,7 +240,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 	int ierr = initOffsets(st, start+2*sizeof(uint32_t), nobs);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- bin[" << col->fullname()
+		<< "Warning -- bin[" << (col ? col->fullname() : "?.?")
                 << "]::bin failed to initialize bitmap offsets"
 		<< " from storage object @ " << st << " with start = " << start
 		<< ", ierr = " << ierr;
