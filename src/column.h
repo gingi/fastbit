@@ -617,7 +617,9 @@ public:
 	    << "column[" << (theColumn ? theColumn->fullname() : "?.?")
             << "]::releaseExclusiveAccess for "
             << (mesg && *mesg ? mesg : "???");
-	int ierr = pthread_mutex_unlock(&(theColumn->mutex));
+        pthread_mutex_t *mtx = (theColumn ? &theColumn->mutex :
+                                &ibis::util::envLock);
+	int ierr = pthread_mutex_unlock(mtx);
 	LOGGER(0 != ierr && ibis::gVerbose > 0)
 	    << "Warning -- column["
             << (theColumn ? theColumn->fullname() : "?.?")
