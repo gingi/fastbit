@@ -4184,9 +4184,9 @@ int ibis::index::initOffsets(ibis::fileManager::storage* st, size_t start,
     else {
         LOGGER(ibis::gVerbose > 0 && col != 0)
             << "Warning -- index["
-            << (col->partition() ? col->partition()->name() : "??") << '.'
-            << col->name() << "]::initOffsets(" << static_cast<const void*>(st)
-            << ", " << start << ", " << nobs << ") the current offset size "
+            << (col ? col->fullname() : "?.?") << "]::initOffsets("
+            << static_cast<const void*>(st) << ", " << start << ", "
+            << nobs << ") the current offset size "
             << static_cast<int>(st->begin()[6]) << " is neither 4 or 8";
         return -13;
     }
@@ -4205,9 +4205,8 @@ void ibis::index::initBitmaps(int fdes) {
         delete bits[i]; // free existing bitmaps
     if (nobs == 0) {
         LOGGER(ibis::gVerbose > 3 && col != 0)
-            << "Warning -- index["
-            << (col->partition() ? col->partition()->name() : "??") << '.'
-            << col->name() << "]::initBitmaps(" << fdes
+            << "Warning -- index[" << (col ? col->fullname() : "??")
+            << "]::initBitmaps(" << fdes
             << ") can not continue without a valid offset64 or offset32";
         return;
     }
