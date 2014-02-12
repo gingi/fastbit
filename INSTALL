@@ -406,6 +406,16 @@ whereLexer.cc:1244: error: 'yywrap' was not declared in this scope
      newer) and bison version 2.4.2 (or newer) in order to correctly
      process the .ll and .yy files in src.
 
+(16) The following error from configure script is most likely caused by
+     incorrect version of C++ compiler and the message is likely
+     produced during an attempt to figure out if std::unordered_map is
+     supported or not.  The way to fix the problem is to use a newer
+     version of C++ compiler.  GCC 4.8 is known to support
+     std::unordered_map.
+
+./configure: line 424: test: please: integer expression expected
+
+
 
 ----------
 Trouble Shooting

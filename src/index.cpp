@@ -4591,7 +4591,7 @@ void ibis::index::activate() const {
 void ibis::index::activate(uint32_t i) const {
     if (i >= bits.size()) return;   // index out of range
     std::string evt = "index";
-    if (col == 0 && ibis::gVerbose > 0) {
+    if (col != 0 && ibis::gVerbose > 0) {
         evt += '[';
         if (col->partition() != 0) {
             evt += col->partition()->name();
@@ -4726,7 +4726,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
     if (i >= j || i >= bits.size()) // empty range
         return;
     std::string evt = "index";
-    if (col == 0 && ibis::gVerbose > 0) {
+    if (col != 0 && ibis::gVerbose > 0) {
         evt += '[';
         if (col->partition() != 0) {
             evt += col->partition()->name();

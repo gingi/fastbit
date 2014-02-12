@@ -7,7 +7,7 @@
 #define IBIS_CAPI_H
 /**
 @file This header file defines a C API for accessing the querying
-functionality of FastBit IBIS implementations.  It deals with data
+functionality of FastBit IBIS implementation.  It deals with data
 tables as directories and queries as pointers to the struct
 FastBitQuery.
 
@@ -97,7 +97,7 @@ extern "C" {
     fastbit_purge_index(const char *indexLocation, const char* cname);
     FASTBIT_DLLSPEC int fastbit_reorder_partition(const char *dir);
 
-    /** @brief The opaque object used hold a FastBit query. */
+    /** @brief The opaque object to hold a FastBit query. */
     struct FastBitQuery;
     /** @brief A handle to be used by C clients. */
     typedef struct FastBitQuery* FastBitQueryHandle;

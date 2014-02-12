@@ -652,6 +652,8 @@ void ibis::relic::clear() {
 /// uncompressed based on the directives in the indexing specification
 /// returned by ibis::column::indexSpec.
 void ibis::relic::construct(const char* f) {
+    if (col == 0) return;
+
     VMap bmap;
     try {
 	mapValues(f, bmap);
@@ -785,7 +787,7 @@ void ibis::relic::speedTest(std::ostream& out) const {
 	return;
     }
     bool crossproduct = false;
-    {
+    if (col != 0) {
 	std::string which = col->fullname();
 	which += ".measureCrossProduct";
 	crossproduct = ibis::gParameters().isTrue(which.c_str());
@@ -1012,7 +1014,8 @@ long ibis::relic::append(const array_t<uint32_t>& ind) {
 /// Create an index based on data in df and append the result to the index
 /// in dt.
 long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
-    if (dt == 0 || *dt == 0 || df == 0 || *df == 0 || nnew == 0) return -1L;    
+    if (col == 0 || dt == 0 || *dt == 0 || df == 0 || *df == 0 || nnew == 0)
+        return -1L;    
     const uint32_t nold =
         (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
          col->partition()->nRows()-nnew : nrows);
@@ -1042,10 +1045,9 @@ long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
 	    bin0 = new ibis::relic(col, st0);
 	}
 	else {
-	    if (ibis::gVerbose > 5)
-		col->logMessage("relic::append", "file \"%s\" has a "
-				"unexecpted header -- it will be removed",
-				fnm.c_str());
+	    LOGGER(ibis::gVerbose > 5)
+		<< "Warning -- relic::append found file \"" << fnm
+                << "\" to have a unexecpted header -- it will be removed";
 	    ibis::fileManager::instance().flushFile(fnm.c_str());
 	    remove(fnm.c_str());
 	}
@@ -1057,9 +1059,9 @@ long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
 	    if (ibis::util::getFileSize(fnm.c_str()) > 0)
 		bin0 = new ibis::relic(col, fnm.c_str());
 	    else {
-		col->logWarning("relic::append", "file \"%s\" must exist "
-				"before calling this function",
-				fnm.c_str());
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- relic::append can not find file \"" << fnm
+                    << '"';
 		ierr = -2;
 		return ierr;
 	    }
@@ -1081,8 +1083,9 @@ long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
 	}
     }
     else {
-	col->logWarning("relic::append", "failed to generate index with "
-			"data from %s", df);
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- relic::append failed to generate index with "
+            "data from " << df;
 	return -6;
     }
 } // ibis::relic::append
@@ -1110,8 +1113,9 @@ long ibis::relic::append(const ibis::relic& tail) {
 	    bmap[vals[i]] = tmp;
 	}
 	else {
-	    col->logWarning("relic::append", "bits[%u] (<==> %g) is nil, "
-			    "assume it is no longer needed", i, vals[i]);
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- relic::append -- bits[" << i << "] (<==> "
+                << vals[i] << ") is nil, assume it is no longer needed";
 	    delete tmp;
 	}
     }
@@ -1146,17 +1150,13 @@ long ibis::relic::append(const ibis::relic& tail) {
 	(*it).second->adjustSize(0, totbits);
 	nobs += ((*it).second->cnt() > 0);
 	nset += (*it).second->cnt();
-	if (ibis::gVerbose > 18)
-	    col->logMessage("relic::append", "value %g appeared %lu times "
-			    "out of %lu", (*it).first,
-			    static_cast<long unsigned>((*it).second->cnt()),
-			    static_cast<long unsigned>(totbits));
+	LOGGER(ibis::gVerbose > 18)
+	    << "relic::append -- value "<< (*it).first << " appeared "
+            << (*it).second->cnt() << " times out of " << totbits;
     }
-    if (nset != totbits && ibis::gVerbose > 0)
-	col->logMessage("relic::append", "new index contains %lu objects "
-			"(!= bitmap length %lu)",
-			static_cast<long unsigned>(nset),
-			static_cast<long unsigned>(totbits));
+    LOGGER(nset != totbits && ibis::gVerbose > 0)
+	<< "Warning -- relic::append created a new index for " << nset
+        << " objects (!= bitmap length " << totbits << ")";
     nrows = totbits;
     // convert from bmap to the linear structure
     bits.resize(nobs);
@@ -1582,8 +1582,8 @@ void ibis::relic::locate(const ibis::qContinuousRange& expr, uint32_t& hit0,
 	switch (expr.rightOperator()) {
 	default:
 	case ibis::qExpr::OP_UNDEFINED:
-	    col->logWarning("relic::locate", "operators for the range not "
-			    "specified");
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- relic::locate encounters a unknown operator";
 	    hit0 = 0;
 	    hit1 = 0;
 	    return;
@@ -1626,13 +1626,9 @@ void ibis::relic::locate(const ibis::qContinuousRange& expr, uint32_t& hit0,
 	} // switch (expr.rightOperator())
 	break; // case ibis::qExpr::OP_UNDEFINED
     } // switch (expr.leftOperator())
-    if (ibis::gVerbose > 5) {
-	std::ostringstream ostr;
-	ostr << expr;
-	col->logMessage("relic::locate", "expr(%s) -> [%lu, %lu)",
-			ostr.str().c_str(), static_cast<long unsigned>(hit0),
-			static_cast<long unsigned>(hit1));
-    }
+    LOGGER(ibis::gVerbose > 5)
+	<< "relic::locate -- expr(" << expr << ") -> [" << hit0 << ", "
+        << hit1 << ")";
 } // ibis::relic::locate
 
 long ibis::relic::select(const ibis::qContinuousRange& expr,
@@ -1812,7 +1808,7 @@ void ibis::relic::binWeights(std::vector<uint32_t>& c) const {
 double ibis::relic::getSum() const {
     double ret;
     bool here = false;
-    { // a small test block to evaluate variable here
+    if (col != 0) {
 	const uint32_t nbv = col->elementSize() * col->partition()->nRows();
 	if (str != 0)
 	    here = (str->bytes() < nbv);
@@ -1866,10 +1862,10 @@ long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
 	}
 	else {
 	    // don't match, delete the content
-	    col->logMessage("getCumulativeDistribution",
-			    "bds[%lu] and cts[%lu] sizes do not match",
-			    static_cast<long unsigned>(bds.size()),
-			    static_cast<long unsigned>(cts.size()));
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- relic::getCumulativeDistribution -- bds["
+                << bds.size() << "] and cts[" << cts.size()
+                << "] sizes do not match";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
@@ -1888,8 +1884,9 @@ long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
 	}
     }
     else {
-	col->logMessage("relic::getCumulativeDistribution",
-			"can not find bin boundaries, probably not data");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- relic::getCumulativeDistribution can not find "
+            "bin boundaries, probably not data";
 	bds.clear();
 	cts.clear();
 	ierr = -1;
@@ -1914,10 +1911,10 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
 	}
 	else {
 	    // don't match, delete the content
-	    col->logMessage("getDistribution",
-			    "bds[%lu] and cts[%lu] sizes do not match",
-			    static_cast<long unsigned>(bds.size()),
-			    static_cast<long unsigned>(cts.size()));
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- relic::getDistribution -- bds["
+                << bds.size() << "] and cts[" << cts.size()
+                << "] sizes do not match";
 #if DEBUG+0 > 0 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
@@ -1935,8 +1932,9 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
 	}
     }
     else {
-	col->logMessage("relic::getDistribution",
-			"can not find bin boundaries, probably not data");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- relic::getDistribution can not find bin "
+            "boundaries, probably not data";
 	bds.clear();
 	cts.clear();
 	ierr = -1;
@@ -2005,14 +2003,17 @@ void ibis::relic::estimate(const ibis::relic& idx2,
 		 "%g sec(elapsed)",
 		 ostr.str().c_str(), timer.CPUTime(), timer.realTime());
 	}
-	else {
-	    ibis::util::logMessage("Warning", "relic::estimate could not "
-				   "effectively evaluate %s, reverting to "
-				   "simple scans",
-				   ostr.str().c_str());
+	else if (col != 0 && col->partition() != 0) {
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- relic::estimate could not effectively evaluate "
+                << ostr.str() << ", reverting to simple scans";
 	    cnt = col->partition()->evaluateJoin(expr, mask, lower);
 	    upper.clear();
 	}
+        else {
+            lower.set(0, nrows * idx2.nrows);
+            upper.set(1, nrows * idx2.nrows);
+        }
     }
 } // ibis::relic::estimate
 
@@ -2314,6 +2315,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2,
 			      ibis::bitvector64& hits) const {
+    if (col == 0 || idx2.col == 0) return -1L;
     hits.clear();
     if (mask.cnt() == 0) return 0;
 
@@ -2322,8 +2324,9 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 	timer.start();
 	LOGGER(ibis::gVerbose > 3)
 	    << "relic::equiJoin starting to evaluate join("
-	    << col->name() << ", " << idx2.col->name() << ") using " << name()
-	    << " indices";
+	    << (col ? col->name() : "?.?") << ", "
+            << (idx2.col ? idx2.col->name() : "?.?") << ") using " << name()
+	    << " indexes";
     }
 
     // use the range restrictions to figure out what bitvectors to activate
@@ -2411,6 +2414,7 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 			      const ibis::bitvector& mask,
 			      const ibis::qRange* const range1,
 			      const ibis::qRange* const range2) const {
+    if (col == 0 || idx2.col == 0) return -1L;
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;
 
@@ -2506,6 +2510,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 			       const ibis::bitvector& mask,
 			       const double& delta,
 			       ibis::bitvector64& hits) const {
+    if (col == 0 || idx2.col == 0) return -1L;
     hits.clear();
     if (mask.cnt() == 0) return 0;
 
@@ -2570,6 +2575,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 			       const ibis::bitvector& mask,
 			       const double& delta) const {
+    if (col == 0 || idx2.col == 0) return -1L;
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;
 
@@ -2637,6 +2643,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 			       const ibis::qRange* const range2,
 			       const double& delta,
 			       ibis::bitvector64& hits) const {
+    if (col == 0 || idx2.col == 0) return -1L;
     hits.clear();
     if (mask.cnt() == 0) return 0;
 
@@ -2742,6 +2749,7 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 			       const ibis::qRange* const range1,
 			       const ibis::qRange* const range2,
 			       const double& delta) const {
+    if (col == 0 || idx2.col == 0) return -1L;
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;
 
@@ -2845,6 +2853,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 			      const ibis::bitvector& mask,
 			      const ibis::math::term& delta,
 			      ibis::bitvector64& hits) const {
+    if (col == 0 || idx2.col == 0) return -1L;
     hits.clear();
     if (mask.cnt() == 0) return 0;
 
@@ -2909,6 +2918,7 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 			      const ibis::bitvector& mask,
 			      const ibis::math::term& delta) const {
+    if (col == 0 || idx2.col == 0) return -1L;
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;
 
