@@ -255,6 +255,99 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols,
         << " row" << (nEvents>1U ? "s" : "");
 } // ibis::bord::bord
 
+/// Constructor.  Produce a partition from the list of columns.  The number
+/// of rows is takens to be the number of elements in the first column.
+/// The shape of the arrays is also assumed to be that of the first column.
+///
+//// @note This function copies the pointers to the columns, it does not
+//// copy the columns themselves, therefore the column objects pointed by
+//// cols can not be deleted while this object is in use.
+ibis::bord::bord(const std::vector<ibis::bord::column*> &cols)
+    : ibis::part("in-core") {
+    if (cols.empty() || cols[0] == 0) return;
+    std::ostringstream oss;
+    oss << "in-memory data partition from " << cols.size() << " column"
+        << (cols.size()>1?"s":"") << ": ";
+    oss << cols[0]->name();
+    for (unsigned j = 1; j < cols.size(); ++ j)
+        oss << ", " << cols[j]->name();
+    m_desc = oss.str();
+    desc_ = m_desc;
+    name_ = ibis::util::shortName(m_desc);
+    m_name = ibis::util::strnewdup(name_.c_str());
+
+    switch(cols[0]->type()) {
+    default:
+        return;
+    case ibis::BYTE: {
+        array_t<signed char> *buf =
+            static_cast<array_t<signed char>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::UBYTE: {
+        array_t<unsigned char> *buf =
+            static_cast<array_t<unsigned char>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::SHORT: {
+        array_t<int16_t> *buf =
+            static_cast<array_t<int16_t>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::USHORT: {
+        array_t<uint16_t> *buf =
+            static_cast<array_t<uint16_t>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::INT: {
+        array_t<int32_t> *buf =
+            static_cast<array_t<int32_t>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::UINT: {
+        array_t<uint32_t> *buf =
+            static_cast<array_t<uint32_t>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::LONG: {
+        array_t<int64_t> *buf =
+            static_cast<array_t<int64_t>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::ULONG: {
+        array_t<uint64_t> *buf =
+            static_cast<array_t<uint64_t>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::FLOAT: {
+        array_t<float> *buf =
+            static_cast<array_t<float>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    case ibis::DOUBLE: {
+        array_t<double> *buf =
+            static_cast<array_t<double>*>(cols[0]->getArray());
+        nEvents = buf->size();
+        break;}
+    }
+    colorder.reserve(cols.size());
+    colorder.push_back(cols[0]);
+    columns[cols[0]->name()] = cols[0];
+    for (unsigned j = 1; j < cols.size(); ++ j) {
+        columnList::const_iterator it = columns.find(cols[j]->name());
+        if (it == columns.end()) { // a new column
+            colorder.push_back(cols[j]);
+            columns[cols[j]->name()] = cols[j];
+        }
+    }
+    state = ibis::part::STABLE_STATE;
+    LOGGER(ibis::gVerbose > 1)
+	<< "Constructed in-memory data partition "
+	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
+	<< " -- with " << columns.size() << " column"
+	<< (columns.size() > 1U ? "s" : "");
+} // ibis::bord::bord
+
 /// Constructor.  It produces an empty data partition for storing values to
 /// be selected by the select clause.  The reference data partition ref is
 /// used to determine the data types.  Use the append function to add data

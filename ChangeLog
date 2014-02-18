@@ -1,3 +1,12 @@
+2014-02-17 John Wu <John dot Wu at ACM dot org>
+	* src/iapi.h, src/iapi.cpp: add a new in-memory API that
+	constructs query expressions through function calls (without a
+	parser of strings)
+
+2014-02-16 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src/bord.cpp: add constructor to take a list of
+	columns as input
+
 2014-02-12 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: check argument 1 (col) in the constructor of
 	ibis::column::indexLock, do nothing when col == 0 (this allows a
