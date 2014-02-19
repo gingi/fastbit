@@ -1,4 +1,4 @@
-/* File: $Id: iapi.h,v 0.0 2014/02/18 15:38:16 kewu Exp $
+/* File: $Id$
    Author: John Wu <John.Wu at acm.org>
       Lawrence Berkeley National Laboratory
    Copyright 20014-2014 the Regents of the University of California
@@ -81,7 +81,11 @@ extern "C" {
 
     /** Create a simple one-sided range condition. */
     FastBitSelectionHandle fasbit_create_selection
-    (FastBitDataType, void*, size_t, FastBitCompareType, void*);
+    (FastBitDataType, void*, uint64_t, FastBitCompareType, void*);
+
+    /** Create a simple one-sided range condition on a n-dimensional array. */
+    FastBitSelectionHandle fasbit_create_selection_nd
+    (FastBitDataType, void*, uint64_t*, uint64_t, FastBitCompareType, void*);
 
     /** Free the selection object. */
     void fastbit_free_selection(FastBitSelectionHandle);
@@ -91,19 +95,20 @@ extern "C" {
     (FastBitSelectionHandle, FastBitCombineType, FastBitSelectionHandle);
 
     /** Provide an upper bound on the number of hits. */
-    size_t fastbit_estimate_num_hits(FastBitSelectionHandle);
+    uint64_t fastbit_estimate_num_hits(FastBitSelectionHandle);
 
     /** Compute the number of hits. */
-    off_t fastbit_get_num_hits(FastBitSelectionHandle);
+    int64_t fastbit_get_num_hits(FastBitSelectionHandle);
 
     /** Extract the coordinates of the elements of arrays satisfying the
         selection. */
-    size_t fastbit_get_coordinates(FastBitSelectionHandle, size_t*, size_t,
-                                   off_t);
+    int64_t fastbit_get_coordinates
+    (FastBitSelectionHandle, uint64_t*, uint64_t, uint64_t);
 
     /** Read the elements of the array satisfying the selection conditions */
-    off_t fastbit_read_selection(FastBitDataType, void*, size_t,
-                                 FastBitSelectionHandle, void*, size_t, size_t);
+    int64_t fastbit_read_selection
+    (FastBitDataType, void*, uint64_t, FastBitSelectionHandle,
+     void*, uint64_t, uint64_t);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

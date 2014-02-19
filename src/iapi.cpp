@@ -1,4 +1,4 @@
-/* File: $Id: iapi.cpp,v 0.0 2014/02/18 15:38:19 kewu Exp $
+/* File: $Id$
    Author: John Wu <John.Wu at acm.org>
       Lawrence Berkeley National Laboratory
    Copyright 20014-2014 the Regents of the University of California
@@ -15,11 +15,11 @@ static std::vector<ibis::bord::column*> __fastbit_iapi_all_arrays;
 
 /// Allow for a quick look up of column objects from the address of the base
 /// data.
-typedef std::unordered_map<void*, size_t> FastBitIAPIAddressMap;
+typedef std::unordered_map<void*, uint64_t> FastBitIAPIAddressMap;
 static FastBitIAPIAddressMap __fastbit_iapi_address_map;
 /// Allow for a quick look up of column objects from the name of the
 /// columns.
-typedef std::unordered_map<const char*, size_t, std::hash<const char*>,
+typedef std::unordered_map<const char*, uint64_t, std::hash<const char*>,
                            std::equal_to<const char*> > FastBitIAPINameMap;
 static FastBitIAPINameMap __fastbit_iapi_name_map;
 /// Store the query results to avoid recomputing them.
@@ -132,7 +132,7 @@ __fastbit_iapi_convert_compare_type(FastBitCompareType t) {
 } // __fastbit_iapi_convert_compare_type
 
 ibis::bord::column* fastbit_register_array
-(FastBitDataType t, void* addr, size_t n) {
+(FastBitDataType t, void* addr, uint64_t n) {
     if (addr == 0 || t == FastBitDataTypeUnknown || n == 0)
         return 0;
 
@@ -141,7 +141,7 @@ ibis::bord::column* fastbit_register_array
     if (it != __fastbit_iapi_address_map.end())
         return __fastbit_iapi_all_arrays[it->second];
 
-    size_t pos = __fastbit_iapi_all_arrays.size();
+    uint64_t pos = __fastbit_iapi_all_arrays.size();
     std::ostringstream oss;
     oss << 'A' << pos;
     switch (t) {
@@ -241,6 +241,122 @@ ibis::bord::column* fastbit_register_array
     }
 } // fastbit_register_array
 
+ibis::bord::column* fastbit_register_array_nd
+(FastBitDataType t, void* addr, uint64_t *dims, uint64_t nd) {
+    if (addr == 0 || t == FastBitDataTypeUnknown || dims == 0 || nd == 0)
+        return 0;
+
+    uint64_t n = *dims;
+    for (unsigned j = 1; j < nd; ++ j)
+        n *= dims[j];
+
+    ibis::util::mutexLock(&__fastbit_iapi_lock, "fastbit_register_array_nd");
+    FastBitIAPIAddressMap::iterator it = __fastbit_iapi_address_map.find(addr);
+    if (it != __fastbit_iapi_address_map.end())
+        return __fastbit_iapi_all_arrays[it->second];
+
+    uint64_t pos = __fastbit_iapi_all_arrays.size();
+    std::ostringstream oss;
+    oss << 'A' << pos;
+    const char *cnm = oss.str().c_str();
+
+    switch (t) {
+    default:
+    case FastBitDataTypeUnknown:
+        return 0;
+    case FastBitDataTypeByte: {
+        ibis::array_t<signed char> *buf =
+            new ibis::array_t<signed char>((signed char*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::BYTE, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeUByte: {
+        ibis::array_t<unsigned char> *buf
+            = new ibis::array_t<unsigned char>((unsigned char*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::UBYTE, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeShort: {
+        ibis::array_t<int16_t> *buf =
+            new ibis::array_t<int16_t>((int16_t*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::SHORT, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeUShort: {
+        ibis::array_t<uint16_t> *buf =
+            new ibis::array_t<uint16_t>((uint16_t*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::USHORT, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeInt: {
+        ibis::array_t<int32_t> *buf =
+            new ibis::array_t<int32_t>((int32_t*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::INT, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeUInt: {
+        ibis::array_t<uint32_t> *buf =
+            new ibis::array_t<uint32_t>((uint32_t*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::UINT, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeLong: {
+        ibis::array_t<int64_t> *buf =
+            new ibis::array_t<int64_t>((int64_t*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::LONG, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeULong: {
+        ibis::array_t<uint64_t> *buf =
+            new ibis::array_t<uint64_t>((uint64_t*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::ULONG, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeFloat: {
+        ibis::array_t<float> *buf =
+            new ibis::array_t<float>((float*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::FLOAT, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeDouble: {
+        ibis::array_t<double> *buf =
+            new ibis::array_t<double>((double*)addr, n);
+        ibis::bord::column *tmp =
+            new ibis::bord::column(ibis::DOUBLE, cnm, buf, dims, nd);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    }
+} // fastbit_register_array_nd
+
 ibis::bord::column* fastbit_iapi_array_by_name(const char *name) {
     if (name == 0 || *name == 0) return 0;
     FastBitIAPINameMap::iterator it = __fastbit_iapi_name_map.find(name);
@@ -276,7 +392,7 @@ void fastbit_free_all_arrays() {
     __fastbit_iapi_address_map.clear();
 } // fastbit_free_all_arrays
 
-void fastbit_iapi_reregister_array(size_t i) {
+void fastbit_iapi_reregister_array(uint64_t i) {
     ibis::bord::column *col = __fastbit_iapi_all_arrays[i];
     __fastbit_iapi_name_map[col->name()] = i;
     switch (col->type()) {
@@ -335,7 +451,7 @@ void fastbit_iapi_reregister_array(size_t i) {
     }
 } // fastbut_iapi_reregister_array
 
-void fastbit_iapi_rename_array(size_t i) {
+void fastbit_iapi_rename_array(uint64_t i) {
     std::ostringstream oss;
     oss << 'A' << i;
     __fastbit_iapi_all_arrays[i]->name(oss.str().c_str());
@@ -344,11 +460,11 @@ void fastbit_iapi_rename_array(size_t i) {
 
 void fastbit_iapi_rename_arrays() {
     ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_all_arrays");
-    const size_t ncols = __fastbit_iapi_all_arrays.size();
+    const uint64_t ncols = __fastbit_iapi_all_arrays.size();
     __fastbit_iapi_address_map.clear();
     __fastbit_iapi_name_map.clear();
-    size_t i = 0;
-    size_t j = 0;
+    uint64_t i = 0;
+    uint64_t j = 0;
     do {
         while (i < ncols && __fastbit_iapi_all_arrays[i] != 0) {
             const char *current = __fastbit_iapi_all_arrays[i]->name();
@@ -388,6 +504,20 @@ void fastbit_iapi_rename_arrays() {
     // settle the new size
     __fastbit_iapi_all_arrays.resize(i);
 } // fastbit_free_all_arrays
+
+const ibis::array_t<uint64_t>& fastbit_iapi_get_mesh_shape
+(FastBitSelectionHandle h) {
+    const static ibis::array_t<uint64_t> empty;
+    while (h->getType() != ibis::qExpr::RANGE &&
+           h->getType() != ibis::qExpr::DRANGE)
+        h = h->getLeft();
+    ibis::qRange *qr = static_cast<ibis::qRange*>(h);
+    ibis::bord::column *col = fastbit_iapi_array_by_name(qr->colName());
+    if (col != 0)
+        return col->getMeshShape();
+    else
+        return empty;
+} // fastbit_iapi_get_mesh_shape
 
 void fastbit_iapi_gather_columns
 (FastBitSelectionHandle h, std::vector<ibis::bord::column*> &all) {
@@ -463,35 +593,37 @@ const ibis::bitvector* fastbit_iapi_lookup_solution(FastBitSelectionHandle h) {
     return it->second;
 } // fastbit_iapi_lookup_solution
 
-
-template <typename T> off_t
-fastbit_iapi_copy_values(const T *base, size_t nbase,
+/// Copy the values from base to buf.  Only the values marked 1 in the mask
+/// are copied.  Additionally, it skips over the first skip elements.
+///
+/// Return the number of elemented copied.
+template <typename T> int64_t
+fastbit_iapi_copy_values(const T *base, uint64_t nbase,
                          const ibis::bitvector &mask,
-                         T *buf, size_t nbuf, size_t start) {
-    size_t j1 = 0;
-    off_t ret = start;
+                         T *buf, uint64_t nbuf, uint64_t skip) {
+    uint64_t j1 = 0;
     const ibis::bitvector::word_t *ii = 0;
     for (ibis::bitvector::indexSet is = mask.firstIndexSet();
          is.nIndices() > 0 && j1 < nbuf; ++ is) {
         ii = is.indices();
-        if (start > 0) {
-            if (start >= is.nIndices()) {
-                start -= is.nIndices();
+        if (skip > 0) {
+            if (skip >= is.nIndices()) {
+                skip -= is.nIndices();
                 continue;
             }
             if (is.isRange()) {
-                for (unsigned j0 = ii[0]+start; j0 < ii[1] && j1 < nbuf;
+                for (unsigned j0 = ii[0]+skip; j0 < ii[1] && j1 < nbuf;
                      ++ j0, ++j1) {
                     buf[j1] = base[j0];
                 }
             }
             else {
-                for (unsigned j0 = start; j0 < is.nIndices() && j1 < nbuf;
+                for (unsigned j0 = skip; j0 < is.nIndices() && j1 < nbuf;
                      ++ j0, ++j1) {
                     buf[j1] = base[ii[j0]];
                 }
             }
-            start = 0;
+            skip = 0;
         }
         else {
             if (is.isRange()) {
@@ -508,9 +640,232 @@ fastbit_iapi_copy_values(const T *base, size_t nbase,
             }
         }
     }
-    ret += j1;
-    return ret;
+    return j1;
 } // fastbit_iapi_copy_values
+
+/// Extract the position of the rows marked 1 in the mask.  Skipping the
+/// first few selected rows.
+/// Return the number of positions copied.
+int64_t fastbit_iapi_get_coordinates_1d
+(const ibis::bitvector &mask, uint64_t *buf, uint64_t nbuf, uint64_t skip) {
+    uint64_t j1 = 0;
+    const ibis::bitvector::word_t *ii = 0;
+    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+         is.nIndices() > 0 && j1 < nbuf; ++ is) {
+        ii = is.indices();
+        if (skip > 0) {
+            if (skip >= is.nIndices()) {
+                skip -= is.nIndices();
+                continue;
+            }
+            if (is.isRange()) {
+                for (unsigned j0 = ii[0]+skip; j0 < ii[1] && j1 < nbuf;
+                     ++ j0, ++j1) {
+                    buf[j1] = j0;
+                }
+            }
+            else {
+                for (unsigned j0 = skip; j0 < is.nIndices() && j1 < nbuf;
+                     ++ j0, ++j1) {
+                    buf[j1] = ii[j0];
+                }
+            }
+            skip = 0;
+        }
+        else {
+            if (is.isRange()) {
+                for (unsigned j0 = ii[0]; j0 < ii[1] && j1 < nbuf;
+                     ++ j0, ++j1) {
+                    buf[j1] = j0;
+                }
+            }
+            else {
+                for (unsigned j0 = 0; j0 < is.nIndices() && j1 < nbuf;
+                     ++ j0, ++j1) {
+                    buf[j1] = ii[j0];
+                }
+            }
+        }
+    }
+    return j1;
+} // fastbit_iapi_get_coordinates_1d
+
+/// Convert the selected positions to 2-dimension coordinates.  The
+/// argument @c dim1 is the faster varying dimension.
+int64_t fastbit_iapi_get_coordinates_2d
+(const ibis::bitvector &mask, uint64_t *buf, uint64_t nbuf, uint64_t skip,
+ uint64_t dim1) {
+    if (dim1 == 0 || nbuf < 2) return -1;
+
+    uint64_t j1 = 0;
+    const ibis::bitvector::word_t *ii = 0;
+    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+         is.nIndices() > 0 && j1 < nbuf; ++ is) {
+        ii = is.indices();
+        if (skip > 0) {
+            if (skip >= is.nIndices()) {
+                skip -= is.nIndices();
+                continue;
+            }
+            if (is.isRange()) {
+                for (unsigned j0 = ii[0]+skip; j0 < ii[1] && j1+1 < nbuf;
+                     ++ j0, j1+=2) {
+                    buf[j1]   = j0 / dim1;
+                    buf[j1+1] = j0 % dim1;
+                }
+            }
+            else {
+                for (unsigned j0 = skip; j0 < is.nIndices() && j1+1 < nbuf;
+                     ++ j0, j1+=2) {
+                    buf[j1]   = ii[j0] / dim1;
+                    buf[j1+1] = ii[j0] % dim1;
+                }
+            }
+            skip = 0;
+        }
+        else {
+            if (is.isRange()) {
+                for (unsigned j0 = ii[0]; j0 < ii[1] && j1+1 < nbuf;
+                     ++ j0, j1 += 2) {
+                    buf[j1]   = j0 / dim1;
+                    buf[j1+1] = j0 % dim1;
+                }
+            }
+            else {
+                for (unsigned j0 = 0; j0 < is.nIndices() && j1+1 < nbuf;
+                     ++ j0, j1+=2) {
+                    buf[j1]   = ii[j0] / dim1;
+                    buf[j1+1] = ii[j0] % dim1;
+                }
+            }
+        }
+    }
+    return (j1>>1);
+} // fastbit_iapi_get_coordinates_2d
+
+/// Convert the selected positions to 3-dimension coordinates.  The
+/// argument @c dim2 is the fastest varying dimension.
+int64_t fastbit_iapi_get_coordinates_3d
+(const ibis::bitvector &mask, uint64_t *buf, uint64_t nbuf, uint64_t skip,
+ uint64_t dim1, uint64_t dim2) {
+    if (dim1 == 0 || dim2 == 0 || nbuf < 3) return -1;
+
+    uint64_t j1 = 0;
+    const uint64_t dim12 = dim1 * dim2;
+    const ibis::bitvector::word_t *ii = 0;
+    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+         is.nIndices() > 0 && j1 < nbuf; ++ is) {
+        ii = is.indices();
+        if (skip > 0) {
+            if (skip >= is.nIndices()) {
+                skip -= is.nIndices();
+                continue;
+            }
+            if (is.isRange()) {
+                for (unsigned j0 = ii[0]+skip; j0 < ii[1] && j1+2 < nbuf;
+                     ++ j0, j1+=3) {
+                    buf[j1]   = j0 / dim12;
+                    buf[j1+1] = (j0 % dim12) / dim2;
+                    buf[j1+2] %= dim2;
+                }
+            }
+            else {
+                for (unsigned j0 = skip; j0 < is.nIndices() && j1+2 < nbuf;
+                     ++ j0, j1+=3) {
+                    buf[j1]   = ii[j0] / dim12;
+                    buf[j1+1] = (ii[j0] % dim12) / dim2;
+                    buf[j1+2] = ii[j0] % dim2;
+                }
+            }
+            skip = 0;
+        }
+        else {
+            if (is.isRange()) {
+                for (unsigned j0 = ii[0]; j0 < ii[1] && j1+2 < nbuf;
+                     ++ j0, j1 += 2) {
+                    buf[j1]   = j0 / dim12;
+                    buf[j1+1] = (j0 % dim12) / dim2;
+                    buf[j1+2] = j0 % dim2;
+                }
+            }
+            else {
+                for (unsigned j0 = 0; j0 < is.nIndices() && j1+2 < nbuf;
+                     ++ j0, j1+=3) {
+                    buf[j1]   = ii[j0] / dim12;
+                    buf[j1+1] = (ii[j0] % dim12) / dim2;
+                    buf[j1+2] = ii[j0] % dim2;
+                }
+            }
+        }
+    }
+    return (j1/3);
+} // fastbit_iapi_get_coordinates_3d
+
+/// Convert a global position to N-D coordinates.  It assume nd > 1 without
+/// checking.
+inline void fastbit_iapi_global_to_nd
+(uint64_t nd, uint64_t *coords, uint64_t global, const uint64_t *cumu) {
+    for (unsigned jd = 0; jd+1 < nd; ++jd) {
+        coords[jd] = global / cumu[jd+1];
+        global -= (global / cumu[jd+1]) * cumu[jd+1];
+    }
+    coords[nd-1] = global;
+} // fasbtit_iapi_global_to_nd
+
+/// Convert the selected positions to N-dimension coordinates.  This
+/// function can not be used for cases with 1 dimension.
+int64_t fastbit_iapi_get_coordinates_nd
+(const ibis::bitvector &mask, uint64_t *buf, uint64_t nbuf, uint64_t skip,
+ const uint64_t *dims, uint64_t nd) {
+    if (dims == 0 || nd == 0 || nbuf < nd || nd < 2) return -1;
+
+    uint64_t j1 = 0;
+    uint64_t *cumu = new uint64_t[nd];
+    cumu[nd-1] = dims[nd-1];
+    for (unsigned j = nd-1; j > 0; -- j) {
+        cumu[j-1] = cumu[j] * dims[j-1];
+    }
+
+    const ibis::bitvector::word_t *ii = 0;
+    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+         is.nIndices() > 0 && j1 < nbuf; ++ is) {
+        ii = is.indices();
+        if (skip > 0) {
+            if (skip >= is.nIndices()) {
+                skip -= is.nIndices();
+                continue;
+            }
+            if (is.isRange()) {
+                for (unsigned j0 = ii[0]+skip; j0 < ii[1] && j1+nd <= nbuf;
+                     ++ j0, j1+=nd) {
+                    fastbit_iapi_global_to_nd(nd, buf+j1, j0, cumu);
+                }
+            }
+            else {
+                for (unsigned j0 = skip; j0 < is.nIndices() && j1+nd <= nbuf;
+                     ++ j0, j1+=nd) {
+                    fastbit_iapi_global_to_nd(nd, buf+j1, ii[j0], cumu);
+                }
+            }
+            skip = 0;
+        }
+        else {
+            if (is.isRange()) {
+                for (unsigned j0 = ii[0]; j0 < ii[1] && j1+nd <= nbuf;
+                     ++ j0, j1 += nd) {
+                    fastbit_iapi_global_to_nd(nd, buf+j1, j0, cumu);
+                }
+            }
+            else {
+                for (unsigned j0 = 0; j0 < is.nIndices() && j1+2 < nbuf;
+                     ++ j0, j1+=3) {
+                    fastbit_iapi_global_to_nd(nd, buf+j1, ii[j0], cumu);
+                }
+            }
+        }
+    }
+    return (j1/nd);
+} // fastbit_iapi_get_coordinates_nd
 
 
 
@@ -522,8 +877,8 @@ fastbit_iapi_copy_values(const T *base, size_t nbase,
 /// ibis::bord::column object.
 ///
 /// It returns a nil value in case of error.
-FastBitSelectionHandle fastbit_create_selection
-(FastBitDataType dtype, void *buf, size_t nelm,
+extern "C" FastBitSelectionHandle fastbit_create_selection
+(FastBitDataType dtype, void *buf, uint64_t nelm,
  FastBitCompareType ctype, void *bound) {
     if (dtype == FastBitDataTypeUnknown || buf == 0 || nelm == 0 || bound == 0)
         return 0;
@@ -550,10 +905,44 @@ FastBitSelectionHandle fastbit_create_selection
     return ret;
 } // fastbit_create_selection
 
+/// The incoming type must of an elementary data type, both buf and bound
+/// must be valid pointers.  This function registers the incoming array as
+/// ibis::bord::column object.
+///
+/// It returns a nil value in case of error.
+extern "C" FastBitSelectionHandle fastbit_create_selection_nd
+(FastBitDataType dtype, void *buf, uint64_t *dims, uint64_t nd,
+ FastBitCompareType ctype, void *bound) {
+    if (dtype == FastBitDataTypeUnknown || buf == 0 || dims == 0 || nd == 0
+        || bound == 0)
+        return 0;
+
+    ibis::bord::column *col = fastbit_register_array_nd(dtype, buf, dims, nd);
+    ibis::qExpr::COMPARE cmp = __fastbit_iapi_convert_compare_type(ctype);
+    ibis::qExpr *ret = 0;
+    bool negate = false;
+    if (cmp == ibis::qExpr::OP_UNDEFINED) {
+        cmp = ibis::qExpr::OP_EQ;
+        negate = true;
+    }
+
+    double dval = __fastbit_iapi_convert_data_to_double(dtype, bound);
+    if (dval == FASTBIT_DOUBLE_NULL)
+        return 0;
+
+    ret = new ibis::qContinuousRange(col->name(), cmp, dval);
+    if (negate) {
+        ibis::qExpr *tmp = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+        tmp->setLeft(ret);
+        ret = tmp;
+    }
+    return ret;
+} // fastbit_create_selection_nd
+
 /// Free the objects representing the selection.  Only the top most level
 /// of the object hierarchy, i.e., the last selection handle return by the
 /// combine operations, needs to be freed.
-void fastbit_free_selection(FastBitSelectionHandle h) {
+extern "C" void fastbit_free_selection(FastBitSelectionHandle h) {
     delete h;
 } // fastbit_free_selection
 
@@ -562,9 +951,16 @@ void fastbit_free_selection(FastBitSelectionHandle h) {
 /// ownership of the two incoming expressions.  This arrangement allows the
 /// user to delete the last object produced to free all objects going into
 /// building the last combined object.
-FastBitSelectionHandle fastbit_combine_selections
+extern "C" FastBitSelectionHandle fastbit_combine_selections
 (FastBitSelectionHandle h1, FastBitCombineType cmb, FastBitSelectionHandle h2) {
     ibis::qExpr *ret = 0;
+    if (h1 == 0 || h2 == 0) {
+        LOGGER(ibis::gVerbose > 2)
+            << "Warning -- fastbit_combine_selections can not proceed with "
+            "a nil FastBit select handle";
+        return ret;
+    }
+
     switch (cmb) {
     default:
         break;
@@ -605,7 +1001,7 @@ FastBitSelectionHandle fastbit_combine_selections
 /// bound of the number of hits.  There is no guarantee on how accurate is
 /// the estimation.  This estimation may be sufficient for the purpose of
 /// allocating workspace required for reading the selection.
-size_t fastbit_estimate_num_hits(FastBitSelectionHandle h) {
+extern "C" uint64_t fastbit_estimate_num_hits(FastBitSelectionHandle h) {
     const ibis::bitvector *res = fastbit_iapi_lookup_solution(h);
     if (res != 0)
         return res->cnt();
@@ -629,22 +1025,29 @@ size_t fastbit_estimate_num_hits(FastBitSelectionHandle h) {
 /// @note The precise evaluation needs to be performed before reading the
 /// data values.  If it is not performed, the read selection function will
 /// perform the precise evaluation.
-off_t fastbit_get_num_hits(FastBitSelectionHandle h) {
+extern "C" int64_t fastbit_get_num_hits(FastBitSelectionHandle h) {
+    if (h == 0) {
+        LOGGER(ibis::gVerbose > 2)
+            << "Warning -- fastbit_read_selection can not proceed with "
+            "a nil FastBit select handle";
+        return -1;
+    }
+
     const ibis::bitvector *res = fastbit_iapi_lookup_solution(h);
     if (res != 0)
         return res->cnt();
 
     std::unique_ptr<ibis::bord> brd(fastbit_iapi_gather_columns(h));
     if (brd.get() == 0)
-        return -1;
+        return -2;
     ibis::countQuery que(brd.get());
     int ierr = que.setWhereClause(h);
     if (ierr < 0)
-        return -2;
+        return -3;
 
     ierr = que.evaluate();
     if (ierr < 0)
-        return -3;
+        return -4;
 
     ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_get_num_hits");
     __fastbit_iapi_selection_list[h] = new ibis::bitvector(*que.getHitVector());
@@ -657,18 +1060,25 @@ off_t fastbit_get_num_hits(FastBitSelectionHandle h) {
 /// Both nbase and nbuf are measured in number of elements of the specified
 /// type, NOT in bytes.
 ///
-/// The start position and the return position are measuremeted as positions
-/// in the list of selected values, not positions in the base data.
-off_t fastbit_read_selection(FastBitDataType dtype, void *base, size_t nbase,
-                             FastBitSelectionHandle h, void *buf, size_t nbuf,
-                             size_t start) {
+/// The start position is measuremeted as positions in the list of selected
+/// values, not positions in the base data.
+///
+/// The return value is the number of elements successfully read.  In case
+/// of error, a negative value is returned.
+extern "C" int64_t fastbit_read_selection
+(FastBitDataType dtype, void *base, uint64_t nbase,
+ FastBitSelectionHandle h, void *buf, uint64_t nbuf, uint64_t start) {
     if (dtype == FastBitDataTypeUnknown || base == 0 || nbase == 0 ||
-        h == 0 || buf == 0 || nbuf == 0)
+        h == 0 || buf == 0 || nbuf == 0) {
+        LOGGER(ibis::gVerbose > 2)
+            << "Warning -- fastbit_read_selection can not proceed with "
+            "a nil FastBit select handle or nil buffer";
         return -1;
+    }
     if (start >= nbase)
-        return start;
+        return 0;
 
-    off_t ierr = fastbit_get_num_hits(h);
+    int64_t ierr = fastbit_get_num_hits(h);
     if (ierr <= 0) return ierr;
 
     const ibis::bitvector &mask = *__fastbit_iapi_selection_list[h];
@@ -729,4 +1139,54 @@ off_t fastbit_read_selection(FastBitDataType dtype, void *base, size_t nbase,
     return ierr;
 } // fastbit_read_selection
 
+/// 
+/// The shape of the array is determined by shape of the array in the first
+/// (left-most) selection condition tree.  The implicit assumption is that
+/// all arrays/variables involved in the selection conditions have the same
+/// shape.
+extern "C" int64_t fastbit_get_coordinates
+(FastBitSelectionHandle h, uint64_t *buf, uint64_t nbuf, uint64_t skip) {
+    if (h == 0 || buf == 0 || nbuf == 0) {
+        LOGGER(ibis::gVerbose > 2)
+            << "Warning -- fastbit_get_coordinates can not proceed with "
+            "a nil FastBit select handle or nil buffer";
+        return -1;
+    }
+
+    int64_t ierr = fastbit_get_num_hits(h);
+    if (ierr <= 0) return ierr;
+    if (skip >= (uint64_t)ierr)
+        return 0;
+
+    const ibis::bitvector &mask = *__fastbit_iapi_selection_list[h];
+    const ibis::array_t<uint64_t> &dims = fastbit_iapi_get_mesh_shape(h);
+    if (dims.size() > nbuf) {
+        LOGGER(ibis::gVerbose > 2)
+            << "Warning -- fastbit_get_coordinates can not write one set "
+            "of coordinates into the given buffer, dims.size() = "
+            << dims.size() << ", nbuf = " << nbuf;
+        return -1;
+    }
+
+    switch (dims.size()) {
+    case 0:
+    case 1:
+        ierr = fastbit_iapi_get_coordinates_1d
+            (mask, buf, nbuf, skip);
+        break;
+    case 2:
+        ierr = fastbit_iapi_get_coordinates_2d
+            (mask, buf, nbuf, skip, dims[1]);
+        break;
+    case 3:
+        ierr = fastbit_iapi_get_coordinates_3d
+            (mask, buf, nbuf, skip, dims[1], dims[2]);
+        break;
+    default:
+        ierr = fastbit_iapi_get_coordinates_nd
+            (mask, buf, nbuf, skip, dims.begin(), dims.size());
+        break;
+    }
+    return ierr;
+} // fastbit_get_coordinates
 

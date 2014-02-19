@@ -526,6 +526,9 @@ public:
            double lo=DBL_MAX, double hi=-DBL_MAX);
     column(const ibis::bord*, const ibis::column&, void *buf);
     column(const column &rhs);
+    column(ibis::TYPE_T t, const char *nm, void *st,
+           uint64_t *dim, uint64_t nd)
+        : ibis::column(0, t, nm), buffer(st), dic(0), shape(dim, nd) {}
     virtual ~column();
 
     virtual ibis::fileManager::storage* getRawData() const;
@@ -614,26 +617,21 @@ public:
     void setDictionary(const ibis::dictionary* d) {dic = d;}
 
     const ibis::array_t<uint64_t>& getMeshShape() const {return shape;}
-    int setMeshShape(uint64_t*, uint64_t);
 
 protected:
     /// The in-memory storage.  A pointer to an array<T> or
     /// std::vector<std::string> depending on the data type.
     /// @sa ibis::table::freeBuffer
     void *buffer;
-    /// Reader for externally managed data.
-    FastBitReadExtArray xreader;
-    /// Context to be passed back to reader.
-    void *xmeta;
     /// A dictionary.  It may be used with a column of type ibis::UINT or
     /// ibis::CATEGORY.  Normally, it is a nil pointer.
     const ibis::dictionary *dic;
     /// Shape of the mesh for the data.  If it is empty, the data is
     /// assumed to be 1-Dimensional.  If the shape array is provided, it is
-    /// assumed that the data values are in the typical C order, where the
-    /// 1st dimension is the slowest varying dimension and the last
-    /// dimension is the fastest varying dimension.  It is equivalent to
-    /// member variable shapeSize in ibis::part.
+    /// assumed that the data values are in typical C order, where the 1st
+    /// dimension is the slowest varying dimension and the last dimension
+    /// is the fastest varying dimension.  It is equivalent to member
+    /// variable shapeSize in ibis::part.
     ibis::array_t<uint64_t> shape;
 
     column &operator=(const column&); // no assignment
