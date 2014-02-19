@@ -1,3 +1,10 @@
+2014-02-19 John Wu <John dot Wu at ACM dot org>
+	* src/iapi.h, src/iapi.cpp: add functions to work with coordinates
+
+2014-02-18 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h: add member variable shape to ibis::bord::column, add
+	a new constructor
+
 2014-02-17 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.h, src/iapi.cpp: add a new in-memory API that
 	constructs query expressions through function calls (without a

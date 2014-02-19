@@ -570,11 +570,12 @@ public:
     /// dimensions is explicitly used in ibis::meshQuery functions
     /// toRanges, range2d, range3d and rangend.  The function getMeshShape
     /// returns the sizes of the dimensions in a std::vector.
-    const std::vector<uint32_t> &getMeshShape() const {return shapeSize;}
+    const std::vector<uint32_t>& getMeshShape() const {return shapeSize;}
     /// Return the name of the dimensions corresponding to the vector
     /// returned from getMeshShape.
-    const std::vector<std::string> &getMeshDimensions() const {
+    const std::vector<std::string>& getMeshDimensions() const {
 	return shapeName;}
+    void setMeshShape(const ibis::array_t<uint64_t>&);
     void setMeshShape(const char *shape);
     void updateMetaData() const;
     /// Update the list of columns with information in this data partition

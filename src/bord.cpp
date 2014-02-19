@@ -196,6 +196,9 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols)
         nEvents = buf->size();
         break;}
     }
+
+    if (! cols[0]->getMeshShape().empty())
+        setMeshShape(cols[0]->getMeshShape());
     colorder.reserve(cols.size());
     colorder.push_back(cols[0]);
     columns[cols[0]->name()] = cols[0];
@@ -5134,7 +5137,7 @@ ibis::bord::column::column(const ibis::bord *tbl,
 
 /// Copy constructor.  Performs a shallow copy of the storage buffer.
 ibis::bord::column::column(const ibis::bord::column &c)
-    : ibis::column(c), buffer(0), dic(c.dic) {
+    : ibis::column(c), buffer(0), dic(c.dic), shape(c.shape) {
     switch (c.m_type) {
     case ibis::BYTE: {
 	buffer = new array_t<signed char>

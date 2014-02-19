@@ -1812,6 +1812,13 @@ void ibis::part::setMeshShape(const char *shape) {
     }
 }
 
+/// copy the incoming as the mesh shape of the data partition.
+void ibis::part::setMeshShape(const ibis::array_t<uint64_t>& ms) {
+    shapeSize.resize(ms.size());
+    for (unsigned j = 0; j < ms.size(); ++ j)
+        shapeSize[j] = ms[j];
+} // ibis::part::setMeshShape
+
 /// Make a deep copy of the incoming name-value pairs.
 void ibis::part::setMetaTags(const ibis::resource::vList &mts) {
     for (ibis::resource::vList::const_iterator it = mts.begin();
