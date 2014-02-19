@@ -79,7 +79,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = ibis$(EXEEXT) tcapi$(EXEEXT) thula$(EXEEXT) \
-	ardea$(EXEEXT) rara$(EXEEXT)
+	ardea$(EXEEXT) rara$(EXEEXT) tiapi$(EXEEXT)
 subdir = examples
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp README
@@ -112,6 +112,8 @@ am_tcapi_OBJECTS = tcapi.$(OBJEXT)
 tcapi_OBJECTS = $(am_tcapi_OBJECTS)
 am_thula_OBJECTS = thula.$(OBJEXT)
 thula_OBJECTS = $(am_thula_OBJECTS)
+am_tiapi_OBJECTS = tiapi.$(OBJEXT)
+tiapi_OBJECTS = $(am_tiapi_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -165,9 +167,9 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(ardea_SOURCES) $(ibis_SOURCES) $(rara_SOURCES) \
-	$(tcapi_SOURCES) $(thula_SOURCES)
+	$(tcapi_SOURCES) $(thula_SOURCES) $(tiapi_SOURCES)
 DIST_SOURCES = $(ardea_SOURCES) $(ibis_SOURCES) $(rara_SOURCES) \
-	$(tcapi_SOURCES) $(thula_SOURCES)
+	$(tcapi_SOURCES) $(thula_SOURCES) $(tiapi_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -342,6 +344,9 @@ ardea_LDADD = ../src/libfastbit.la
 tcapi_SOURCES = tcapi.c
 tcapi_DEPENDENCIES = ../src/libfastbit.la
 tcapi_LDADD = ../src/libfastbit.la
+tiapi_SOURCES = tiapi.c
+tiapi_DEPENDENCIES = ../src/libfastbit.la
+tiapi_LDADD = ../src/libfastbit.la
 all: all-am
 
 .SUFFIXES:
@@ -453,6 +458,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rara.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tcapi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thula.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tiapi.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -715,6 +721,8 @@ uninstall-am: uninstall-binPROGRAMS
 # has to be linked with $(CXXLINK)
 tcapi$(EXEEXT): tcapi.$(OBJEXT) $(tcapi_LDADD)
 	$(CXXLINK) tcapi.$(OBJEXT) $(tcapi_LDADD) $(LIBS)
+tiapi$(EXEEXT): tiapi.$(OBJEXT) $(tiapi_LDADD)
+	$(CXXLINK) tiapi.$(OBJEXT) $(tiapi_LDADD) $(LIBS)
 
 clean-local:
 	-rm -rf *.dSYM .ibis
