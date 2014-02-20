@@ -252,8 +252,10 @@ ibis::bord::column* fastbit_register_array_nd
 
     ibis::util::mutexLock(&__fastbit_iapi_lock, "fastbit_register_array_nd");
     FastBitIAPIAddressMap::iterator it = __fastbit_iapi_address_map.find(addr);
-    if (it != __fastbit_iapi_address_map.end())
+    if (it != __fastbit_iapi_address_map.end()) {
+        __fastbit_iapi_all_arrays[it->second]->setMeshShape(dims, nd);
         return __fastbit_iapi_all_arrays[it->second];
+    }
 
     uint64_t pos = __fastbit_iapi_all_arrays.size();
     std::ostringstream oss;
@@ -392,6 +394,15 @@ void fastbit_free_all_arrays() {
     __fastbit_iapi_address_map.clear();
 } // fastbit_free_all_arrays
 
+void fastbit_free_all_selections() {
+    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_all_arrays");
+    for (FastBitIAPISelectionList::iterator it =
+             __fastbit_iapi_selection_list.begin();
+         it != __fastbit_iapi_selection_list.end(); ++ it) 
+        delete it->second;
+    __fastbit_iapi_selection_list.clear();
+} // fastbit_free_all_arrays
+
 void fastbit_iapi_reregister_array(uint64_t i) {
     ibis::bord::column *col = __fastbit_iapi_all_arrays[i];
     __fastbit_iapi_name_map[col->name()] = i;
@@ -459,7 +470,8 @@ void fastbit_iapi_rename_array(uint64_t i) {
 } // fastbit_iapi_rename_array
 
 void fastbit_iapi_rename_arrays() {
-    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_all_arrays");
+    ibis::util::mutexLock
+        lock(&__fastbit_iapi_lock, "fastbit_iapi_rename_arrays");
     const uint64_t ncols = __fastbit_iapi_all_arrays.size();
     __fastbit_iapi_address_map.clear();
     __fastbit_iapi_name_map.clear();
@@ -503,7 +515,7 @@ void fastbit_iapi_rename_arrays() {
     } while (j < ncols);
     // settle the new size
     __fastbit_iapi_all_arrays.resize(i);
-} // fastbit_free_all_arrays
+} // fastbit_iapi_rename_arrays
 
 const ibis::array_t<uint64_t>& fastbit_iapi_get_mesh_shape
 (FastBitSelectionHandle h) {
@@ -943,6 +955,16 @@ extern "C" FastBitSelectionHandle fastbit_create_selection_nd
 /// of the object hierarchy, i.e., the last selection handle return by the
 /// combine operations, needs to be freed.
 extern "C" void fastbit_free_selection(FastBitSelectionHandle h) {
+    {
+        ibis::util::mutexLock lock(&__fastbit_iapi_lock,
+                                   "fastbit_free_selection");
+        FastBitIAPISelectionList::iterator it =
+            __fastbit_iapi_selection_list.find(h);
+        if (it != __fastbit_iapi_selection_list.end()) {
+            delete it->second;
+            __fastbit_iapi_selection_list.erase(it);
+        }
+    }
     delete h;
 } // fastbit_free_selection
 
@@ -1040,7 +1062,7 @@ extern "C" int64_t fastbit_estimate_num_hits(FastBitSelectionHandle h) {
 extern "C" int64_t fastbit_get_num_hits(FastBitSelectionHandle h) {
     if (h == 0) {
         LOGGER(ibis::gVerbose > 2)
-            << "Warning -- fastbit_read_selection can not proceed with "
+            << "Warning -- fastbit_get_num_hits can not proceed with "
             "a nil FastBit selection handle";
         return -1;
     }
@@ -1078,7 +1100,7 @@ extern "C" int64_t fastbit_get_num_hits(FastBitSelectionHandle h) {
 /// The return value is the number of elements successfully read.  In case
 /// of error, a negative value is returned.
 extern "C" int64_t fastbit_read_selection
-(FastBitDataType dtype, void *base, uint64_t nbase,
+(FastBitDataType dtype, const void *base, uint64_t nbase,
  FastBitSelectionHandle h, void *buf, uint64_t nbuf, uint64_t start) {
     if (dtype == FastBitDataTypeUnknown || base == 0 || nbase == 0 ||
         h == 0 || buf == 0 || nbuf == 0) {
@@ -1099,52 +1121,52 @@ extern "C" int64_t fastbit_read_selection
         return -5;
     case FastBitDataTypeByte:
         ierr = fastbit_iapi_copy_values<signed char>
-            (static_cast<signed char*>(base), nbase, mask,
+            (static_cast<const signed char*>(base), nbase, mask,
              static_cast<signed char*>(buf), nbuf, start);
         break;
     case FastBitDataTypeUByte:
         ierr = fastbit_iapi_copy_values<unsigned char>
-            (static_cast<unsigned char*>(base), nbase, mask,
+            (static_cast<const unsigned char*>(base), nbase, mask,
              static_cast<unsigned char*>(buf), nbuf, start);
         break;
     case FastBitDataTypeShort:
         ierr = fastbit_iapi_copy_values<int16_t>
-            (static_cast<int16_t*>(base), nbase, mask,
+            (static_cast<const int16_t*>(base), nbase, mask,
              static_cast<int16_t*>(buf), nbuf, start);
         break;
     case FastBitDataTypeUShort:
         ierr = fastbit_iapi_copy_values<uint16_t>
-            (static_cast<uint16_t*>(base), nbase, mask,
+            (static_cast<const uint16_t*>(base), nbase, mask,
              static_cast<uint16_t*>(buf), nbuf, start);
         break;
     case FastBitDataTypeInt:
         ierr = fastbit_iapi_copy_values<int32_t>
-            (static_cast<int32_t*>(base), nbase, mask,
+            (static_cast<const int32_t*>(base), nbase, mask,
              static_cast<int32_t*>(buf), nbuf, start);
         break;
     case FastBitDataTypeUInt:
         ierr = fastbit_iapi_copy_values<uint32_t>
-            (static_cast<uint32_t*>(base), nbase, mask,
+            (static_cast<const uint32_t*>(base), nbase, mask,
              static_cast<uint32_t*>(buf), nbuf, start);
         break;
     case FastBitDataTypeLong:
         ierr = fastbit_iapi_copy_values<int64_t>
-            (static_cast<int64_t*>(base), nbase, mask,
+            (static_cast<const int64_t*>(base), nbase, mask,
              static_cast<int64_t*>(buf), nbuf, start);
         break;
     case FastBitDataTypeULong:
         ierr = fastbit_iapi_copy_values<uint64_t>
-            (static_cast<uint64_t*>(base), nbase, mask,
+            (static_cast<const uint64_t*>(base), nbase, mask,
              static_cast<uint64_t*>(buf), nbuf, start);
         break;
     case FastBitDataTypeFloat:
         ierr = fastbit_iapi_copy_values<float>
-            (static_cast<float*>(base), nbase, mask,
+            (static_cast<const float*>(base), nbase, mask,
              static_cast<float*>(buf), nbuf, start);
         break;
     case FastBitDataTypeDouble:
         ierr = fastbit_iapi_copy_values<double>
-            (static_cast<double*>(base), nbase, mask,
+            (static_cast<const double*>(base), nbase, mask,
              static_cast<double*>(buf), nbuf, start);
         break;
     }
@@ -1202,3 +1224,7 @@ extern "C" int64_t fastbit_get_coordinates
     return ierr;
 } // fastbit_get_coordinates
 
+extern "C" void fastbit_free_all_iapi_objects() {
+    fastbit_free_all_selections();
+    fastbit_free_all_arrays();
+} // fastbit_free_all_iapi_objects

@@ -590,6 +590,7 @@ public:
     void setDictionary(const ibis::dictionary* d) {dic = d;}
 
     const ibis::array_t<uint64_t>& getMeshShape() const {return shape;}
+    int setMeshShape(uint64_t*, uint64_t);
 
 protected:
     /// The in-memory storage.  A pointer to an array<T> or

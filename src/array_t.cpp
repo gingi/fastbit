@@ -332,7 +332,7 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
 /// It merely provide a reference to the content at the given address.  The
 /// caller needs to free the memory after use.
 template <class T>
-ibis::array_t<T>::array_t(T* addr, size_t nelm)
+ibis::array_t<T>::array_t(T *addr, size_t nelm)
     : actual(0), m_begin(addr), m_end(addr+nelm) {
     LOGGER(ibis::gVerbose > 9)
 	<< "array_t<" << typeid(T).name() << "> constructed at "

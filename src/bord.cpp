@@ -4827,6 +4827,38 @@ ibis::table::cursor* ibis::bord::createCursor() const {
     return new ibis::bord::cursor(*this);
 } // ibis::bord::createCursor
 
+// // explicit template function instantiations
+// template int
+// ibis::bord::addIncoreData<signed char>(void*&, const array_t<signed char>&,
+// 				       uint32_t, const signed char);
+// template int
+// ibis::bord::addIncoreData<unsigned char>(void*&, const array_t<unsigned char>&,
+// 					 uint32_t, const unsigned char);
+// template int
+// ibis::bord::addIncoreData<int16_t>(void*&, const array_t<int16_t>&, uint32_t,
+// 				   const int16_t);
+// template int
+// ibis::bord::addIncoreData<uint16_t>(void*&, const array_t<uint16_t>&, uint32_t,
+// 				    const uint16_t);
+// template int
+// ibis::bord::addIncoreData<int32_t>(void*&, const array_t<int32_t>&, uint32_t,
+// 				   const int32_t);
+// template int
+// ibis::bord::addIncoreData<uint32_t>(void*&, const array_t<uint32_t>&, uint32_t,
+// 				    const uint32_t);
+// template int
+// ibis::bord::addIncoreData<int64_t>(void*&, const array_t<int64_t>&, uint32_t,
+// 				   const int64_t);
+// template int
+// ibis::bord::addIncoreData<uint64_t>(void*&, const array_t<uint64_t>&, uint32_t,
+// 				    const uint64_t);
+// template int
+// ibis::bord::addIncoreData<float>(void*&, const array_t<float>&, uint32_t,
+// 				 const float);
+// template int
+// ibis::bord::addIncoreData<double>(void*&, const array_t<double>&, uint32_t,
+// 				  const double);
+
 /// Allocate a buffer of the specified type and size.
 void* ibis::table::allocateBuffer(ibis::TYPE_T type, size_t sz) {
     void* ret = 0;
@@ -11390,37 +11422,12 @@ bool ibis::bord::column::equal_to(const ibis::bord::column &other) const {
     }
 } // ibis::bord::column::equal_to
 
-// // explicit template function instantiations
-// template int
-// ibis::bord::addIncoreData<signed char>(void*&, const array_t<signed char>&,
-// 				       uint32_t, const signed char);
-// template int
-// ibis::bord::addIncoreData<unsigned char>(void*&, const array_t<unsigned char>&,
-// 					 uint32_t, const unsigned char);
-// template int
-// ibis::bord::addIncoreData<int16_t>(void*&, const array_t<int16_t>&, uint32_t,
-// 				   const int16_t);
-// template int
-// ibis::bord::addIncoreData<uint16_t>(void*&, const array_t<uint16_t>&, uint32_t,
-// 				    const uint16_t);
-// template int
-// ibis::bord::addIncoreData<int32_t>(void*&, const array_t<int32_t>&, uint32_t,
-// 				   const int32_t);
-// template int
-// ibis::bord::addIncoreData<uint32_t>(void*&, const array_t<uint32_t>&, uint32_t,
-// 				    const uint32_t);
-// template int
-// ibis::bord::addIncoreData<int64_t>(void*&, const array_t<int64_t>&, uint32_t,
-// 				   const int64_t);
-// template int
-// ibis::bord::addIncoreData<uint64_t>(void*&, const array_t<uint64_t>&, uint32_t,
-// 				    const uint64_t);
-// template int
-// ibis::bord::addIncoreData<float>(void*&, const array_t<float>&, uint32_t,
-// 				 const float);
-// template int
-// ibis::bord::addIncoreData<double>(void*&, const array_t<double>&, uint32_t,
-// 				  const double);
+
+int ibis::bord::column::setMeshShape(uint64_t *dims, uint64_t nd) {
+    ibis::array_t<uint64_t> tmp(dims, (size_t)nd);
+    shape.swap(tmp);
+    return 0;
+} // ibis::bord::column::setMeshShape
 
 /// Constructor.  It retrieves the columns from the table object using that
 /// function ibis::part::getColumn(uint32_t), which preserves the order
