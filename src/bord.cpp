@@ -334,13 +334,14 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols)
     if (! cols[0]->getMeshShape().empty())
         setMeshShape(cols[0]->getMeshShape());
     colorder.reserve(cols.size());
-    colorder.push_back(cols[0]);
-    columns[cols[0]->name()] = cols[0];
-    for (unsigned j = 1; j < cols.size(); ++ j) {
+
+    for (unsigned j = 0; j < cols.size(); ++ j) {
         columnList::const_iterator it = columns.find(cols[j]->name());
         if (it == columns.end()) { // a new column
-            colorder.push_back(cols[j]);
-            columns[cols[j]->name()] = cols[j];
+            ibis::bord::column *tmp = new ibis::bord::column(*cols[j]);
+            tmp->partition() = this;
+            colorder.push_back(tmp);
+            columns[tmp->name()] = tmp;
         }
     }
     state = ibis::part::STABLE_STATE;
@@ -5297,176 +5298,74 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
     : ibis::column(tbl, t, cn, de, lo, hi), buffer(st), xreader(0),
       xmeta(0), dic(0) {
     if (buffer != 0) { // check the size of buffer
-        uint32_t nr = 0;
-        switch (m_type) {
-        case ibis::BIT: {
-            buffer = new ibis::bitvector(*static_cast<bitvector*>(st));
-            nr = static_cast<bitvector*>(st)->size();
-            break;}
-        case ibis::BYTE: {
-            nr = static_cast<array_t<signed char>*>(st)->size();
-            if (nr != static_cast<array_t<signed char>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<signed char>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::UBYTE: {
-            nr = static_cast<array_t<unsigned char>*>(st)->size();
-            if (nr != static_cast<array_t<unsigned char>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<unsigned char>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::SHORT: {
-            nr = static_cast<array_t<int16_t>*>(st)->size();
-            if (nr != static_cast<array_t<int16_t>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<int16_t>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::USHORT: {
-            nr = static_cast<array_t<uint16_t>*>(st)->size();
-            if (nr != static_cast<array_t<uint16_t>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<uint16_t>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::INT: {
-            nr = static_cast<array_t<int32_t>*>(st)->size();
-            if (nr != static_cast<array_t<int32_t>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<int32_t>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::UINT: {
-            nr = static_cast<array_t<uint32_t>*>(st)->size();
-            if (nr != static_cast<array_t<uint32_t>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<uint32_t>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::LONG: {
-            nr = static_cast<array_t<int64_t>*>(st)->size();
-            if (nr != static_cast<array_t<int64_t>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<int64_t>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::ULONG: {
-            nr = static_cast<array_t<uint64_t>*>(st)->size();
-            if (nr != static_cast<array_t<uint64_t>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<uint64_t>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::FLOAT: {
-            nr = static_cast<array_t<float>*>(st)->size();
-            if (nr != static_cast<array_t<float>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<float>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::DOUBLE: {
-            nr = static_cast<array_t<double>*>(st)->size();
-            if (nr != static_cast<array_t<double>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<double>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::TEXT: {
-            nr = static_cast<std::vector<std::string>*>(st)->size();
-            if (nr != static_cast<std::vector<std::string>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<std::vector<std::string>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::CATEGORY: {
-            nr = static_cast<std::vector<std::string>*>(st)->size();
-            // std::vector<std::string> *stv =
-            //  static_cast<std::vector<std::string>*>(st);
-            // std::vector<std::string> * tmpSortedDic =
-            //  new std::vector<std::string>(nr);
-            // for (size_t i = 0 ; i < nr ; i++)
-            //  (*tmpSortedDic)[i] = (((*stv)[i]));
-            // sort(tmpSortedDic->begin(), tmpSortedDic->end());
-            // dic = new ibis::dictionary();
-            // dic->insert("");
-            // for (size_t i = 0 ; i < tmpSortedDic->size() ; i++)
-            //  dic->insert((*tmpSortedDic)[i].c_str());
-            // delete tmpSortedDic;
-            // array_t<uint32_t> *tmp = new array_t<uint32_t>();
-            // tmp->resize(nr);
-            // for (size_t i = 0 ; i < nr ; i++)
-            //  (*tmp)[i] = dic->insert(((*stv)[i]).c_str());
-            // buffer = tmp;
-            // delete stv;
-            if (nr != static_cast<std::vector<std::string>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<std::vector<std::string>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::OID: {
-            nr = static_cast<array_t<rid_t>*>(st)->size();
-            if (nr != static_cast<array_t<rid_t>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<rid_t>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        case ibis::BLOB: {
-            nr = static_cast<std::vector<opaque>*>(st)->size();
-            if (nr != static_cast<array_t<opaque>*>(st)->size()) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- too many values for bord::column ("
-                    << static_cast<array_t<opaque>*>(st)->size()
-                    << "), it wraps to " << nr;
-                throw "too many values for bord::column";
-            }
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Error -- bord::column::ctor can not handle column ("
-                << cn << ") with type " << ibis::TYPESTRING[(int)t];
-            throw "bord::column unexpected type";}
-        }
+	uint32_t nr = 0;
+	switch (m_type) {
+	case ibis::BYTE: {
+	    nr = static_cast<array_t<signed char>*>(st)->size();
+	    break;}
+	case ibis::UBYTE: {
+	    nr = static_cast<array_t<unsigned char>*>(st)->size();
+	    break;}
+	case ibis::SHORT: {
+	    nr = static_cast<array_t<int16_t>*>(st)->size();
+	    break;}
+	case ibis::USHORT: {
+	    nr = static_cast<array_t<uint16_t>*>(st)->size();
+	    break;}
+	case ibis::INT: {
+	    nr = static_cast<array_t<int32_t>*>(st)->size();
+	    break;}
+	case ibis::UINT: {
+	    nr = static_cast<array_t<uint32_t>*>(st)->size();
+	    break;}
+	case ibis::LONG: {
+	    nr = static_cast<array_t<int64_t>*>(st)->size();
+	    break;}
+	case ibis::ULONG: {
+	    nr = static_cast<array_t<uint64_t>*>(st)->size();
+	    break;}
+	case ibis::FLOAT: {
+	    nr = static_cast<array_t<float>*>(st)->size();
+	    break;}
+	case ibis::DOUBLE: {
+	    nr = static_cast<array_t<double>*>(st)->size();
+	    break;}
+	case ibis::TEXT: {
+	    nr = static_cast<std::vector<std::string>*>(st)->size();
+	    break;}
+	case ibis::CATEGORY: {
+	    nr = static_cast<std::vector<std::string>*>(st)->size();
+	    // std::vector<std::string> *stv =
+	    // 	static_cast<std::vector<std::string>*>(st);
+	    // std::vector<std::string> * tmpSortedDic =
+	    // 	new std::vector<std::string>(nr);
+	    // for (size_t i = 0 ; i < nr ; i++)
+	    // 	(*tmpSortedDic)[i] = (((*stv)[i]));
+	    // sort(tmpSortedDic->begin(), tmpSortedDic->end());
+	    // dic = new ibis::dictionary();
+	    // dic->insert("");
+	    // for (size_t i = 0 ; i < tmpSortedDic->size() ; i++)
+	    // 	dic->insert((*tmpSortedDic)[i].c_str());
+	    // delete tmpSortedDic;
+	    // array_t<uint32_t> *tmp = new array_t<uint32_t>();
+	    // tmp->resize(nr);
+	    // for (size_t i = 0 ; i < nr ; i++)
+	    // 	(*tmp)[i] = dic->insert(((*stv)[i]).c_str());
+	    // buffer = tmp;
+	    // delete stv;
+	    break;}
+	case ibis::OID: {
+	    nr = static_cast<array_t<rid_t>*>(st)->size();
+	    break;}
+	case ibis::BLOB: {
+	    nr = static_cast<std::vector<opaque>*>(st)->size();
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Error -- bord::column::ctor can not handle column ("
+		<< cn << ") with type " << ibis::TYPESTRING[(int)t];
+	    throw "bord::column unexpected type";}
+	}
         if (tbl != 0) {
             mask_.adjustSize(nr, tbl->nRows());
             LOGGER(nr != tbl->nRows() && ibis::gVerbose > 4)
@@ -5474,68 +5373,59 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
                 << " has " << nr << " row" << (nr>1?"s":"") << ", but expected "
                 << tbl->nRows();
         }
-        else if (buffer != &mask_) {
-            mask_.set(1, nr);
-        }
-        dataflag = 1;
     }
-    // else { // allocate buffer
-    //     switch (m_type) {
-    //     case ibis::BYTE: {
-    //         buffer = new array_t<signed char>;
-    //         break;}
-    //     case ibis::UBYTE: {
-    //         buffer = new array_t<unsigned char>;
-    //         break;}
-    //     case ibis::SHORT: {
-    //         buffer = new array_t<int16_t>;
-    //         break;}
-    //     case ibis::USHORT: {
-    //         buffer = new array_t<uint16_t>;
-    //         break;}
-    //     case ibis::INT: {
-    //         buffer = new array_t<int32_t>;
-    //         break;}
-    //     case ibis::UINT: {
-    //         buffer = new array_t<uint32_t>;
-    //         break;}
-    //     case ibis::LONG: {
-    //         buffer = new array_t<int64_t>;
-    //         break;}
-    //     case ibis::ULONG: {
-    //         buffer = new array_t<uint64_t>;
-    //         break;}
-    //     case ibis::FLOAT: {
-    //         buffer = new array_t<float>;
-    //         break;}
-    //     case ibis::DOUBLE: {
-    //         buffer = new array_t<double>;
-    //         break;}
-    //     case ibis::TEXT:{
-    //         buffer = new std::vector<std::string>;
-    //         break;}
-    //     case ibis::CATEGORY: {
-    //         buffer = new std::vector<std::string>;
-    //         //dic = new ibis::dictionary();
-    //         break;}
-    //     case ibis::OID: {
-    //         buffer = new array_t<rid_t>;
-    //         break;}
-    //     case ibis::BLOB: {
-    //         buffer = new std::vector<opaque>;
-    //         break;}
-    //     default: {
-    //         LOGGER(ibis::gVerbose >= 0)
-    //          << "Error -- bord::column::ctor can not handle column ("
-    //          << cn << ") with type " << ibis::TYPESTRING[(int)t];
-    //         throw "bord::column unexpected type";}
-    //     }
-    // }
-    LOGGER(ibis::gVerbose > 5 && !m_name.empty())
-        << "initialized bord::column " << fullname() << " @ "
-        << this << " (" << ibis::TYPESTRING[(int)m_type] << ") from "
-        << mask_.size() << " value" << (mask_.size()>1?"s":"") << " @ "
-        << st;
+    else { // allocate buffer
+	switch (m_type) {
+	case ibis::BYTE: {
+	    buffer = new array_t<signed char>;
+	    break;}
+	case ibis::UBYTE: {
+	    buffer = new array_t<unsigned char>;
+	    break;}
+	case ibis::SHORT: {
+	    buffer = new array_t<int16_t>;
+	    break;}
+	case ibis::USHORT: {
+	    buffer = new array_t<uint16_t>;
+	    break;}
+	case ibis::INT: {
+	    buffer = new array_t<int32_t>;
+	    break;}
+	case ibis::UINT: {
+	    buffer = new array_t<uint32_t>;
+	    break;}
+	case ibis::LONG: {
+	    buffer = new array_t<int64_t>;
+	    break;}
+	case ibis::ULONG: {
+	    buffer = new array_t<uint64_t>;
+	    break;}
+	case ibis::FLOAT: {
+	    buffer = new array_t<float>;
+	    break;}
+	case ibis::DOUBLE: {
+	    buffer = new array_t<double>;
+	    break;}
+	case ibis::TEXT:{
+	    buffer = new std::vector<std::string>;
+	    break;}
+	case ibis::CATEGORY: {
+	    buffer = new std::vector<std::string>;
+	    //dic = new ibis::dictionary();
+	    break;}
+	case ibis::OID: {
+	    buffer = new array_t<rid_t>;
+	    break;}
+	case ibis::BLOB: {
+	    buffer = new std::vector<opaque>;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Error -- bord::column::ctor can not handle column ("
+		<< cn << ") with type " << ibis::TYPESTRING[(int)t];
+	    throw "bord::column unexpected type";}
+	}
+    }
 } // ibis::bord::column::column
 
 /// Constructor.

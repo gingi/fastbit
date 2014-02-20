@@ -1853,12 +1853,6 @@ void ibis::index::mapValues(const char* f, VMap& bmap) const {
         evt += fnm;
         evt += ')';
     }
-    if (fnm.empty()) {
-        LOGGER(ibis::gVerbose > 2)
-            << "Warning -- " << evt << " failed to determine the data file "
-            "name from \"" << (f ? f : "") << "\" for column " << col->name()
-            << ", will attempt to use in-memory data";
-    }
     LOGGER(fnm.empty() && f != 0 && ibis::gVerbose > 2)
         << "Warning -- " << evt << " failed to determine the data file "
         "name from \"" << (f ? f : "") << "\" for column " << col->name()

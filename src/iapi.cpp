@@ -957,7 +957,7 @@ extern "C" FastBitSelectionHandle fastbit_combine_selections
     if (h1 == 0 || h2 == 0) {
         LOGGER(ibis::gVerbose > 2)
             << "Warning -- fastbit_combine_selections can not proceed with "
-            "a nil FastBit select handle";
+            "a nil FastBit selection handle";
         return ret;
     }
 
@@ -1001,21 +1001,33 @@ extern "C" FastBitSelectionHandle fastbit_combine_selections
 /// bound of the number of hits.  There is no guarantee on how accurate is
 /// the estimation.  This estimation may be sufficient for the purpose of
 /// allocating workspace required for reading the selection.
-extern "C" uint64_t fastbit_estimate_num_hits(FastBitSelectionHandle h) {
+extern "C" int64_t fastbit_estimate_num_hits(FastBitSelectionHandle h) {
+    if (h == 0) {
+        return -1;
+    }
     const ibis::bitvector *res = fastbit_iapi_lookup_solution(h);
     if (res != 0)
         return res->cnt();
 
     std::unique_ptr<ibis::bord> brd(fastbit_iapi_gather_columns(h));
+    if (brd.get() == 0)
+        return -2;
+
     ibis::countQuery que(brd.get());
     int ierr = que.setWhereClause(h);
     if (ierr < 0)
-        return brd->nRows();
+        return -3;
 
     ierr = que.estimate();
     if (ierr < 0)
-        return brd->nRows();
+        return -4;
 
+    if (que.getMinNumHits() == que.getMaxNumHits()) {
+        ibis::util::mutexLock lock(&__fastbit_iapi_lock,
+                                   "fastbit_estimate_num_hits");
+        __fastbit_iapi_selection_list[h] =
+            new ibis::bitvector(*que.getHitVector());
+    }
     return que.getMaxNumHits();
 } // fastbit_estimate_num_hits
 
@@ -1029,7 +1041,7 @@ extern "C" int64_t fastbit_get_num_hits(FastBitSelectionHandle h) {
     if (h == 0) {
         LOGGER(ibis::gVerbose > 2)
             << "Warning -- fastbit_read_selection can not proceed with "
-            "a nil FastBit select handle";
+            "a nil FastBit selection handle";
         return -1;
     }
 
@@ -1072,7 +1084,7 @@ extern "C" int64_t fastbit_read_selection
         h == 0 || buf == 0 || nbuf == 0) {
         LOGGER(ibis::gVerbose > 2)
             << "Warning -- fastbit_read_selection can not proceed with "
-            "a nil FastBit select handle or nil buffer";
+            "a nil FastBit selection handle or nil buffer";
         return -1;
     }
     if (start >= nbase)
@@ -1149,7 +1161,7 @@ extern "C" int64_t fastbit_get_coordinates
     if (h == 0 || buf == 0 || nbuf == 0) {
         LOGGER(ibis::gVerbose > 2)
             << "Warning -- fastbit_get_coordinates can not proceed with "
-            "a nil FastBit select handle or nil buffer";
+            "a nil FastBit selection handle or nil buffer";
         return -1;
     }
 
