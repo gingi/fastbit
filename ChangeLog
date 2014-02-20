@@ -3,6 +3,7 @@
 	* src/bord.cpp: make a copy of columns from the user provided list
 	of columns, becaue the destructor of ibis::part delete the columns
 	it knows about
+	* examples/tiapi.c: add tester for IAPI
 
 2014-02-18 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h: add member variable shape to ibis::bord::column, add

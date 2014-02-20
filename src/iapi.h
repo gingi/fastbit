@@ -94,6 +94,9 @@ extern "C" {
     /** Free the selection object. */
     void fastbit_free_selection(FastBitSelectionHandle);
 
+    /** Free all cached object for IAPI. */
+    void fastbit_free_all_iapi_objects();
+
     /** Combining two selection conditions into one. */
     FastBitSelectionHandle fastbit_combine_selections
     (FastBitSelectionHandle, FastBitCombineType, FastBitSelectionHandle);
@@ -111,7 +114,7 @@ extern "C" {
 
     /** Read the elements of the array satisfying the selection conditions */
     int64_t fastbit_read_selection
-    (FastBitDataType, void*, uint64_t, FastBitSelectionHandle,
+    (FastBitDataType, const void*, uint64_t, FastBitSelectionHandle,
      void*, uint64_t, uint64_t);
 #ifdef __cplusplus
 } /* extern "C" */
