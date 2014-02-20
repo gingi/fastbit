@@ -1,5 +1,5 @@
 /*
- File: $Id: tiapi.c,v 0.0 2014/02/19 21:43:17 kewu Exp $
+ File: $Id$
  Author: John Wu <John.Wu at acm.org>
       Lawrence Berkeley National Laboratory
  Copyright 20014-2014 the Regents of the University of California
@@ -66,6 +66,9 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
         if (ierr != expected)
             printf("Warning -- fastbit_get_num_hits(a1 < %d) expected %ld, "
                    "but got %ld\n", (int)b1, expected, ierr);
+        else
+            printf("fastbit_get_num_hits(a1 < %d) returned %ld as expected\n",
+                   (int)b1, ierr);
 
         ierr = fastbit_read_selection
             (FastBitDataTypeShort, a1, n, h1, buf1, n1, 0U);
@@ -77,6 +80,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             printf("read a1 where (a1 < %d) got:", (int)b1);
             for (i = 0; i < ierr; ++ i)
                 printf(" %d", (int)buf1[i]);
+            printf("\n");
         }
         free(buf1);
 
@@ -90,6 +94,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             printf("read a3 where (a1 < %d) got:", (int)b1);
             for (i = 0; i < ierr; ++ i)
                 printf(" %d", (int)buf3[i]);
+            printf("\n\n");
         }
         free(buf3);
     }
@@ -128,6 +133,9 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
         if (ierr != expected)
             printf("Warning -- fastbit_get_num_hits(...) expected %ld, "
                    "but got %ld\n", expected, ierr);
+        else
+            printf("fastbit_get_num_hits(...) returned %ld as expected\n",
+                   ierr);
 
         ierr = fastbit_read_selection
             (FastBitDataTypeShort, a1, n, h5, buf1, n1, 0U);
@@ -139,6 +147,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             printf("read a1 where (...) got:");
             for (i = 0; i < ierr; ++ i)
                 printf(" %d", (int)buf1[i]);
+            printf("\n");
         }
         free(buf1);
 
@@ -152,6 +161,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             printf("read a3 where (a1 < %d) got:", (int)b1);
             for (i = 0; i < ierr; ++ i)
                 printf(" %d", (int)buf3[i]);
+            printf("\n\n");
         }
         free(buf3);
     }
@@ -199,7 +209,7 @@ int main(int argc, char **argv) {
     a3 = (double*)malloc(8*nmax);
     fastbit_init(conffile);
     fastbit_set_verbose_level(msglvl);
-    for (k = 1; k <= nmax; k *= 4) {
+    for (k = 1; k <= nmax; k=((k>(nmax/4)&&k<nmax) ? nmax : 4*k)) {
         printf("\n%s -- testing with k = %ld\n", *argv, k);
         fillarrays(k, a1, a2, a3);
         queryarrays(k, a1, a2, a3);

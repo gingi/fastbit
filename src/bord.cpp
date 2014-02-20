@@ -200,13 +200,14 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols)
     if (! cols[0]->getMeshShape().empty())
         setMeshShape(cols[0]->getMeshShape());
     colorder.reserve(cols.size());
-    colorder.push_back(cols[0]);
-    columns[cols[0]->name()] = cols[0];
-    for (unsigned j = 1; j < cols.size(); ++ j) {
+
+    for (unsigned j = 0; j < cols.size(); ++ j) {
         columnList::const_iterator it = columns.find(cols[j]->name());
         if (it == columns.end()) { // a new column
-            colorder.push_back(cols[j]);
-            columns[cols[j]->name()] = cols[j];
+            ibis::bord::column *tmp = new ibis::bord::column(*cols[j]);
+            tmp->partition() = this;
+            colorder.push_back(tmp);
+            columns[tmp->name()] = tmp;
         }
     }
     state = ibis::part::STABLE_STATE;
@@ -5066,11 +5067,13 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
 		<< cn << ") with type " << ibis::TYPESTRING[(int)t];
 	    throw "bord::column unexpected type";}
 	}
-	mask_.adjustSize(nr, tbl->nRows());
-	LOGGER(nr != tbl->nRows() && ibis::gVerbose > 4)
-	    << "bord::column " << tbl->m_name << '.' << cn << " has "
-	    << nr << " row" << (nr>1?"s":"") << ", but expected "
-	    << tbl->nRows();
+        if (tbl != 0) {
+            mask_.adjustSize(nr, tbl->nRows());
+            LOGGER(nr != tbl->nRows() && ibis::gVerbose > 4)
+                << "Warning -- bord::column " << tbl->m_name << '.' << cn
+                << " has " << nr << " row" << (nr>1?"s":"") << ", but expected "
+                << tbl->nRows();
+        }
     }
     else { // allocate buffer
 	switch (m_type) {

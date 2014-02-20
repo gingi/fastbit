@@ -84,10 +84,11 @@ public:
     void description(const char* d) {m_desc = d;}
     void lowerBound(double d) {lower = d;}
     void upperBound(double d) {upper = d;}
-    const part* partition() const {return thePart;}
     void isSorted(bool);
+    int  elementSize() const;
 
-    int elementSize() const;
+    const part*  partition() const {return thePart;}
+    const part*& partition() {return thePart;}
 
     // function related to index/bin
     const char* indexSpec() const; ///!< Retrieve the index specification.

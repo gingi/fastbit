@@ -73,8 +73,8 @@
 #  include <crtdbg.h>
 #endif
 
-#include <cerrno>	// errno
-#include <cstring>	// strerr, strcasecmp, strcmp, memcpy, strlen
+#include <errno.h>	// errno
+#include <string.h>	// strerr, strcasecmp, strcmp, memcpy, strlen
 #include <pthread.h>	// mutex lock, rwlock, conditional variables
 #if !defined(WITHOUT_FASTBIT_CONFIG_H) && !defined(__MINGW32__) && !defined(_MSC_VER)
 #  include "fastbit-config.h"	// macros defined by the configure script
@@ -96,8 +96,6 @@
 #ifndef FASTBIT_STRING
 #define FASTBIT_STRING "FastBit ibis"
 #endif
-#include <vector>	// std::vector
-#include <functional>	// std::less, std::binary_function<>
 
 // section to handle errno in a multithread program
 #if defined(__SUNPRO_CC)
@@ -133,22 +131,6 @@
 #ifndef PREFERRED_BLOCK_SIZE
 #define PREFERRED_BLOCK_SIZE 1048576
 //#define PREFERRED_BLOCK_SIZE 262144
-#endif
-
-#if defined(__SUNPRO_CC)
-#  if (__SUNPRO_CC < 0x500)
-#    include <iostream.h>
-     typedef int bool;
-#    define false 0
-#    define true 1
-#    define std
-#    define mutable
-#    define explicit
-#  else
-#    include <iosfwd>	// std::cout, std::clog
-#  endif
-#else
-#  include <iosfwd>	// std::cout, std::clog
 #endif
 
 //
@@ -340,10 +322,30 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 #  define stricmp strcasecmp
 #endif
 
+// C++ portion
+#ifdef __cplusplus
+
+#if defined(__SUNPRO_CC)
+#  if (__SUNPRO_CC < 0x500)
+#    include <iostream.h>
+     typedef int bool;
+#    define false 0
+#    define true 1
+#    define std
+#    define mutable
+#    define explicit
+#  else
+#    include <iosfwd>	// std::cout, std::clog
+#  endif
+#else
+#  include <iosfwd>	// std::cout, std::clog
+#endif
 // #ifndef REASON
 // #  define REASON " " << strerror(errno) << std::endl;
 // #endif // ifndef REASON
 
+#include <vector>	// std::vector
+#include <functional>	// std::less, std::binary_function<>
 // namespace of ibis contains most of the useful classes of the implementation
 namespace ibis { // forward definition of all the classes in IBIS
     /// @defgroup FastBitMain FastBit IBIS main interface objects.
@@ -463,4 +465,5 @@ namespace ibis { // forward definition of all the classes in IBIS
     /// The default value is 0.  A negative value will disable all printing.
     extern FASTBIT_CXX_DLLSPEC int gVerbose;
 } // namespace ibis
+#endif // C++ portion
 #endif // ifndef IBIS_CONST_H

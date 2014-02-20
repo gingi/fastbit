@@ -69,7 +69,11 @@ typedef enum FastBitCombineType {
 } FastBitCombineType;
 
 /** An opaque pointer to the selection object. */
+#ifdef __cplusplus
 typedef ibis::qExpr* FastBitSelectionHandle;
+#else
+typedef void* FastBitSelectionHandle;
+#endif
 
 /**
 @defgroup FastBitIAPI FastBit In-memory API.
@@ -80,11 +84,11 @@ extern "C" {
 #endif
 
     /** Create a simple one-sided range condition. */
-    FastBitSelectionHandle fasbit_create_selection
+    FastBitSelectionHandle fastbit_create_selection
     (FastBitDataType, void*, uint64_t, FastBitCompareType, void*);
 
     /** Create a simple one-sided range condition on a n-dimensional array. */
-    FastBitSelectionHandle fasbit_create_selection_nd
+    FastBitSelectionHandle fastbit_create_selection_nd
     (FastBitDataType, void*, uint64_t*, uint64_t, FastBitCompareType, void*);
 
     /** Free the selection object. */
@@ -95,7 +99,7 @@ extern "C" {
     (FastBitSelectionHandle, FastBitCombineType, FastBitSelectionHandle);
 
     /** Provide an upper bound on the number of hits. */
-    uint64_t fastbit_estimate_num_hits(FastBitSelectionHandle);
+    int64_t fastbit_estimate_num_hits(FastBitSelectionHandle);
 
     /** Compute the number of hits. */
     int64_t fastbit_get_num_hits(FastBitSelectionHandle);
