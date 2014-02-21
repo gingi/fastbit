@@ -1668,10 +1668,8 @@ bool ibis::qContinuousRange::inRange(double val) const {
 // range specified.  This is consistent with how the the two arguments to
 // the SQL clause "v between a and b."
 bool ibis::qContinuousRange::overlap(double lo, double hi) const {
-    if (lo > hi) { // swap the incoming arguments
-	double tmp = lo;
-	lo = hi;
-	hi = tmp;
+    if (! (lo <= hi)) { // invalue (lo, hi) pair, assume overlap
+        return true;
     }
 
     bool ret = false;
@@ -3423,10 +3421,8 @@ void ibis::qDiscreteRange::restrictRange(double left, double right) {
 // range specified.  This is consistent with how the the two arguments to
 // the SQL clause "v between a and b."
 bool ibis::qDiscreteRange::overlap(double lo, double hi) const {
-    if (lo > hi) { // swap the incoming arguments
-	double tmp = lo;
-	lo = hi;
-	hi = tmp;
+    if (! (lo <= hi)) { // invalid (lo, hi) pair, assume overlap true
+        return true;
     }
     else if (lo == hi) {
 	return inRange(lo);

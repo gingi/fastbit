@@ -211,6 +211,7 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols)
         }
     }
     state = ibis::part::STABLE_STATE;
+    amask.set(1, nEvents);
     LOGGER(ibis::gVerbose > 1)
 	<< "Constructed in-memory data partition "
 	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
@@ -345,7 +346,7 @@ ibis::bord::bord(const char *tn, const char *td,
 /// be selected by the select clause.  The reference data partition list is
 /// used to determine the data types.  For columns, the type is determined
 /// by the first data partition in the list.  However, for categorical
-/// values it checks to see if all the data paritions have the same
+/// values it checks to see if all the data partitions have the same
 /// dictionary before deciding what type to use.  If the data partitions
 /// have the same dictionary, then it uses an integer representation for
 /// the column, otherwise it keeps the strings explcitly.  Normally, we
@@ -5238,7 +5239,6 @@ ibis::bord::column::column(const ibis::bord::column &c)
 	    << c.name() << ") with type " << ibis::TYPESTRING[(int)c.type()];
 	break;}
     }
-    m_sorted = c.m_sorted;
 } // ibis::bord::column::column
 
 ibis::bord::column::~column() {
@@ -5477,7 +5477,7 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	ierr = -4;
 	return ierr;
     }
-    if (cmp.overlap(lower, upper) == false) {
+    if (! cmp.overlap(lower, upper)) {
 	res.set(0, mymask.size());
 	return 0;
     }
@@ -5672,7 +5672,7 @@ long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
 				  cmp.getValues().back());
 	return evaluateRange(cr, mask, res);
     }
-    if (cmp.overlap(lower, upper) == false) {
+    if (! cmp.overlap(lower, upper)) {
 	res.set(0, mask.size());
 	return 0;
     }

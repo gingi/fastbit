@@ -116,8 +116,7 @@ uint32_t ibis::bak::locate(const double& val) const {
 // This function reads the data file and records the locations of the values
 // in bakMap
 void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
-    if (col == 0 || col->partition() == 0) return;
-    if (col->partition()->nRows() == 0) return;
+    if (col == 0) return;
 
     horometer timer;
     if (ibis::gVerbose > 4)
@@ -125,7 +124,6 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
 
     const unsigned prec = parsePrec(*col); // the precision of mapped value
 
-    uint32_t nev = col->partition()->nRows();
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
     if (fnm.empty()) {
@@ -135,24 +133,24 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
 	return;
     }
 
+    uint32_t nev;
     ibis::bitvector mask;
-    {   // limit the scope of some variables
-	array_t<ibis::bitvector::word_t> arr;
-	std::string mname(fnm);   // name of mask file
-	mname += ".msk";
-	int i = ibis::fileManager::instance().getFile(mname.c_str(), arr);
-	if (i == 0)
-	    mask.copy(ibis::bitvector(arr)); // convert arr to a bitvector
-	else
-	    mask.set(1, nev); // default mask
-    }
+    col->getNullMask(mask);
+    if (col->partition() != 0)
+        nev = col->partition()->nRows();
+    else
+        nev = mask.size();
+    if (nev == 0) return;
 
     // need to use different types of array_t for different columns
     switch (col->type()) {
     case ibis::TEXT:
     case ibis::UINT: {// unsigned int
 	array_t<uint32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        if (! fnm.empty())
+            ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            col->getValuesArray(&val);
 	if (val.size() <= 0) {
 	    col->logWarning("bak::mapValues", "unable to read %s",
 			    fnm.c_str());
@@ -212,7 +210,10 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
 	break;}
     case ibis::INT: {// signed int
 	array_t<int32_t> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        if (! fnm.empty())
+            ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            col->getValuesArray(&val);
 	if (val.size() <= 0) {
 	    col->logWarning("bak::mapValues", "unable to read %s",
 			    fnm.c_str());
@@ -272,7 +273,10 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
 	break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
 	array_t<float> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        if (! fnm.empty())
+            ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            col->getValuesArray(&val);
 	if (val.size() <= 0) {
 	    col->logWarning("bak::mapValues", "unable to read %s",
 			    fnm.c_str());
@@ -332,7 +336,10 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
 	break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
 	array_t<double> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        if (! fnm.empty())
+            ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            col->getValuesArray(&val);
 	if (val.size() <= 0) {
 	    col->logWarning("bak::mapValues", "unable to read %s",
 			    fnm.c_str());
@@ -528,8 +535,7 @@ void ibis::bak::print(std::ostream& out) const {
 
     // activate(); -- active may invoke ioLock which causes problems
     out << "index (equality encoding on reduced precision values) for "
-	<< col->partition()->name() << '.'
-	<< col->name() << " contains " << nobs << " bitvectors for "
+	<< col->fullname() << " contains " << nobs << " bitvectors for "
 	<< nrows << " objects \n";
     if (ibis::gVerbose > 0) {
 	uint32_t prt = (ibis::gVerbose > 30 ? nobs : (1 << ibis::gVerbose));

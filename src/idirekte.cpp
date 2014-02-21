@@ -96,10 +96,14 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 /// popu.  This is used to generate index for meta tags.
 ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     : ibis::index(c) {
-    if (popu == 0) return;
+    if (c == 0 || popu == 0) return;
     try {
-	if (ntpl == 0)
-	    ntpl = c->partition()->nRows();
+	if (ntpl == 0) {
+            if (c->partition() != 0)
+                ntpl = c->partition()->nRows();
+            else
+                return;
+        }
 	nrows = ntpl;
 	bits.resize(1+popu);
 	for (unsigned j = 0; j < popu; ++ j)
@@ -187,13 +191,10 @@ ibis::direkte::direkte(const ibis::column* c, ibis::fileManager::storage* st)
 
 template <typename T>
 int ibis::direkte::construct0(const char* dfname) {
-    if (col == 0 || col->partition() == 0) return -1;
+    if (col == 0) return -1;
 
     int ierr = 0;
-    nrows = col->partition()->nRows();
-    if (nrows == 0) return ierr;
-
-    std::string evt = "direket[";
+    std::string evt = "direkte[";
     evt += col->fullname();
     evt += "]::construct0<";
     evt += typeid(T).name();
@@ -210,6 +211,11 @@ int ibis::direkte::construct0(const char* dfname) {
 	col->partition()->getNullMask(tmp);
 	mask &= tmp;
     }
+    if (col->partition() != 0)
+        nrows = col->partition()->nRows();
+    else
+        nrows = mask.size();
+    if (nrows == 0) return ierr;
 
     if (dfname && *dfname)
 	ierr = ibis::fileManager::instance().getFile(dfname, vals);
@@ -394,12 +400,9 @@ int ibis::direkte::construct0(const char* dfname) {
 
 template <typename T>
 int ibis::direkte::construct(const char* dfname) {
-    if (col == 0 || col->partition() == 0) return -1;
+    if (col == 0) return -1;
 
     int ierr = 0;
-    nrows = col->partition()->nRows();
-    if (nrows == 0) return ierr;
-
     array_t<T> vals;
     LOGGER(ibis::gVerbose > 4)
 	<< "direkte[" << col->fullname()
@@ -407,6 +410,11 @@ int ibis::direkte::construct(const char* dfname) {
 	<< typeid(T).name();
     ibis::bitvector mask;
     col->getNullMask(mask);
+    if (col->partition() != 0)
+        nrows = col->partition()->nRows();
+    else
+        nrows = mask.size();
+    if (nrows == 0) return ierr;
     if (dfname && *dfname)
 	ierr = ibis::fileManager::instance().getFile(dfname, vals);
     else

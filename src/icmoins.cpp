@@ -32,8 +32,7 @@ ibis::moins::moins(const ibis::column* c, const char* f,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << "moins[" << col->partition()->name() << '.' << col->name()
-	     << "]::ctor -- initialized a "
+	lg() << "moins[" << col->fullname() << "]::ctor -- initialized a "
 	     << nbases << "-component range index with "
 	     << nbits << " bitmap" << (nbits>1?"s":"");
 	if (ibis::gVerbose > 6) {
@@ -57,8 +56,7 @@ ibis::moins::moins(const ibis::column* c, const char* f,
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << "moins[" << col->partition()->name() << '.' << col->name()
-	     << "]::ctor -- initialized a "
+	lg() << "moins[" << col->fullname() << "]::ctor -- initialized a "
 	     << nbases << "-component range index with "
 	     << nbits << " bitmap" << (nbits>1?"s":"");
 	if (ibis::gVerbose > 6) {
@@ -81,7 +79,7 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << "moins[" << col->partition()->name() << '.' << col->name()
+	lg() << "moins[" << col->fullname()
 	     << "]::ctor -- converted a 1-component index into a "
 	     << nbases << "-component range index with "
 	     << nbits << " bitmap" << (nbits>1?"s":"");
@@ -111,7 +109,7 @@ ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
 		   size_t start) : ibis::egale(c, st, start) {
     if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << "moins[" << col->partition()->name() << '.' << col->name()
+	lg() << "moins[" << col->fullname()
 	     << "]::ctor -- initialized a " << nbases
 	     << "-component interval index with " << nbits << " bitmap"
 	     << (nbits>1?"s":"") << " from a storage object @ " << st
@@ -172,8 +170,7 @@ int ibis::moins::write(const char* dt) const {
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- moins[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- moins[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
@@ -190,7 +187,7 @@ int ibis::moins::write(const char* dt) const {
 #endif
 #endif
 	LOGGER(ibis::gVerbose > 3)
-	    << "moins[" << col->partition()->name() << '.' << col->name()
+	    << "moins[" << col->fullname()
 	    << "]::write -- wrote " << nbits << " bitmap"
 	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
 	    << " object" << (nrows>1?"s":"");
@@ -213,7 +210,7 @@ void ibis::moins::convert() {
 	nbits += bases[i];
     nbits -= nbases;
     LOGGER(ibis::gVerbose > 4)
-	<< "moins[" << col->partition()->name() << '.' << col->name()
+	<< "moins[" << col->fullname()
 	<< "]::convert -- converting " << nobs << "-bin "
 	<< nbases << "-component index from equality encoding to "
 	"interval encoding (using " << nbits << " bitvectors)";
@@ -304,8 +301,7 @@ void ibis::moins::speedTest(std::ostream& out) const {
 
 // the printing function
 void ibis::moins::print(std::ostream& out) const {
-    out << col->partition()->name() << '.' << col->name()
-	<< ".index(MCBin range code ncomp=" << bases.size()
+    out << col->fullname() << ".index(MCBin range code ncomp=" << bases.size()
 	<< " nbins=" << nobs << ") contains " << bits.size()
 	<< " bitmaps for " << nrows
 	<< " objects\nThe base sizes: ";
@@ -625,10 +621,11 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
 
 long ibis::moins::evaluate(const ibis::qContinuousRange& expr,
 			   ibis::bitvector& lower) const {
-    if (col == 0 || col->partition() == 0) return -1;
     ibis::bitvector tmp;
     estimate(expr, lower, tmp);
     if (tmp.size() == lower.size() && tmp.cnt() > lower.cnt()) {
+        if (col == 0 || col->partition() == 0) return -1;
+
 	tmp -= lower;
 	ibis::bitvector delta;
 	col->partition()->doScan(expr, tmp, delta);

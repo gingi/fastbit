@@ -898,7 +898,7 @@ ibis::index* ibis::index::buildNew
         case ibis::INT: {
             double amin = c->lowerBound();
             double amax = c->upperBound();
-            if (amin >= amax && amin >= 0) {
+            if (!(amin <= amax) && amin >= 0) {
                 const_cast<ibis::column*>(c)->computeMinMax();
                 amin = c->lowerBound();
                 amax = c->upperBound();

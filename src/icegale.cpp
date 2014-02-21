@@ -29,7 +29,7 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 	    setBoundaries(f);	// fill the array bounds and nobs
 	    setBases(bases, nobs, nbases);	// fill the array bases
 	    nbases = bases.size();
-	    const uint32_t nev = col->partition()->nRows();
+	    const uint32_t nev = nrows;
 	    if (1e8 < static_cast<double>(nev)*static_cast<double>(nobs)) {
 		binning(f); // generate the simple bins first
 		convert();  // convert from simple bins
@@ -45,12 +45,11 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "egale[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- intialization completed for a " << nbases
-		<< "-component equality encoded index with " << nbits
-		<< " bitmap" << (nbits>1?"s":"") << " on " << nobs
-		<< " bin" << (nobs>1?"s":"");
+	    lg() << "egale[" << col->fullname()
+                 << "]::ctor -- intialization completed for a " << nbases
+                 << "-component equality encoded index with " << nbits
+                 << " bitmap" << (nbits>1?"s":"") << " on " << nobs
+                 << " bin" << (nobs>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -84,12 +83,11 @@ ibis::egale::egale(const ibis::column* c, const char* f,
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg()
-		<< "egale[" << col->partition()->name() << '.' << col->name()
-		<< "]::ctor -- converted a 1-comp index to a " << nbases
-		<< "-component equality encoded index with " << nbits
-		<< " bitmap" << (nbits>1?"s":"") << " on " << nobs
-		<< " bin" << (nobs>1?"s":"");
+	    lg() << "egale[" << col->fullname()
+                 << "]::ctor -- converted a 1-comp index to a " << nbases
+                 << "-component equality encoded index with " << nbits
+                 << " bitmap" << (nbits>1?"s":"") << " on " << nobs
+                 << " bin" << (nobs>1?"s":"");
 	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
@@ -115,7 +113,7 @@ ibis::egale::egale(const ibis::bin& rhs, uint32_t nb)
 
 	if (ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
-	    lg() << "egale[" << col->partition()->name() << '.' << col->name()
+	    lg() << "egale[" << col->fullname()
 		 << "]::ctor -- converted a simple equality index into a "
 		 << nbases << "-component equality index with "
 		 << nbits << " bitmap" << (nbits>1?"s":"");
@@ -169,7 +167,7 @@ ibis::egale::egale(const ibis::column* c, ibis::fileManager::storage* st,
 	(ibis::gVerbose > 2 &&
 	 static_cast<ibis::index::INDEX_TYPE>(*(st->begin()+5)) == EGALE)) {
 	ibis::util::logger lg;
-	lg() << "egale[" << col->partition()->name() << '.' << col->name()
+	lg() << "egale[" << col->fullname()
 	     << "]::ctor -- reconstructed a " << nbases
 	     << "-component " << (st->begin()[5]==(char)EGALE?" equality ":"")
 	     << "index with " << nbits << " bitmap" << (nbits>1?"s":"")
@@ -235,8 +233,7 @@ int ibis::egale::write(const char* dt) const {
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- egale[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
@@ -253,7 +250,7 @@ int ibis::egale::write(const char* dt) const {
 #endif
 #endif
 	LOGGER(ibis::gVerbose > 3)
-	    << "egale[" << col->partition()->name() << '.' << col->name()
+	    << "egale[" << col->fullname()
 	    << "]::write -- wrote " << nbits << " bitmap"
 	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
 	    << " object" << (nrows>1?"s":"");
@@ -267,9 +264,9 @@ int ibis::egale::write32(int fdes) const {
     const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write32(" << fdes << ") expect current "
-	    "position to be >= 8, it actually is " << start;
+	    << "Warning -- egale[" << col->fullname() << "]::write32("
+            << fdes << ") expect current position to be >= 8, it actually is "
+            << start;
 	return -3;
     }
     ierr  = UnixWrite(fdes, &nrows, sizeof(uint32_t));
@@ -277,8 +274,8 @@ int ibis::egale::write32(int fdes) const {
     ierr += UnixWrite(fdes, &nbits, sizeof(uint32_t));
     if (ierr < 12) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 expected to write 3 4-byte integers"
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write32 expected to write 3 4-byte integers"
 	    << " but the function write returned ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -4;
@@ -290,9 +287,9 @@ int ibis::egale::write32(int fdes) const {
     ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
     if (ierr != offset32[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write32(" << fdes << ") failed to seek to "
-	    << offset32[0] << ", ierr = " << ierr;
+	    << "Warning -- egale[" << col->fullname() << "]::write32("
+            << fdes << ") failed to seek to " << offset32[0]
+            << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -5;
     }
@@ -301,8 +298,8 @@ int ibis::egale::write32(int fdes) const {
     ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
     if (ierr < (off_t)(3*sizeof(double)*nobs)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 expected to write " << 3*nobs
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write32 expected to write " << 3*nobs
 	    << " doubles, but function write returned ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -6;
@@ -311,8 +308,8 @@ int ibis::egale::write32(int fdes) const {
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nbits+1), SEEK_CUR);
     if (ierr < offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 failed to seek to " << offset32[0]
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write32 failed to seek to " << offset32[0]
 	    << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
@@ -322,8 +319,8 @@ int ibis::egale::write32(int fdes) const {
     ierr += UnixWrite(fdes, bases.begin(), sizeof(uint32_t)*nbases);
     if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nobs+1+nbases))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 expected to write "
+	    << "Warning -- egale[" << col->fullname()
+            << "]::write32 expected to write "
 	    << sizeof(uint32_t)*(nobs+1+nbases)
 	    << " bytes, but actually wrote " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -340,8 +337,8 @@ int ibis::egale::write32(int fdes) const {
     ierr = UnixSeek(fdes, offpos, SEEK_SET);
     if (ierr < offpos) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 failed to seek to "
+	    << "Warning -- egale[" << col->fullname()
+            << "]::write32 failed to seek to "
 	    << offpos << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -9;
@@ -349,8 +346,8 @@ int ibis::egale::write32(int fdes) const {
     ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nbits+1));
     if (ierr < static_cast<off_t>(sizeof(int32_t)*(nbits+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write32 expected to write "
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write32 expected to write "
 	    << sizeof(int32_t)*(nbits+1)
 	    << " bytes, but the function write returned " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -367,8 +364,8 @@ int ibis::egale::write64(int fdes) const {
     const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write64(" << fdes << ") expect current "
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write64(" << fdes << ") expect current "
 	    "position to be >= 8, it actually is " << start;
 	return -3;
     }
@@ -377,8 +374,8 @@ int ibis::egale::write64(int fdes) const {
     ierr += UnixWrite(fdes, &nbits, sizeof(uint32_t));
     if (ierr < 12) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 expected to write 3 4-byte integers"
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write64 expected to write 3 4-byte integers"
 	    << " but the function write returned ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -4;
@@ -390,9 +387,9 @@ int ibis::egale::write64(int fdes) const {
     ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write64(" << fdes << ") failed to seek to "
-	    << offset64[0] << ", ierr = " << ierr;
+	    << "Warning -- egale[" << col->fullname() << "]::write64("
+            << fdes << ") failed to seek to " << offset64[0]
+            << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -5;
     }
@@ -401,8 +398,8 @@ int ibis::egale::write64(int fdes) const {
     ierr += ibis::util::write(fdes, minval.begin(), sizeof(double)*nobs);
     if (ierr < (off_t)(3*sizeof(double)*nobs)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 expected to write " << 3*nobs
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write64 expected to write " << 3*nobs
 	    << " doubles, but function write returned ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -6;
@@ -411,8 +408,8 @@ int ibis::egale::write64(int fdes) const {
     ierr = UnixSeek(fdes, sizeof(int64_t)*(nbits+1), SEEK_CUR);
     if (ierr < offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 failed to seek to " << offset64[0]
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write64 failed to seek to " << offset64[0]
 	    << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -7;
@@ -422,8 +419,8 @@ int ibis::egale::write64(int fdes) const {
     ierr += ibis::util::write(fdes, bases.begin(), sizeof(uint32_t)*nbases);
     if (ierr < static_cast<off_t>(sizeof(uint32_t)*(nobs+1+nbases))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 expected to write "
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write64 expected to write "
 	    << sizeof(uint32_t)*(nobs+1+nbases)
 	    << " bytes, but actually wrote " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -440,8 +437,8 @@ int ibis::egale::write64(int fdes) const {
     ierr = UnixSeek(fdes, offpos, SEEK_SET);
     if (ierr < offpos) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 failed to seek to "
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write64 failed to seek to "
 	    << offpos << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -9;
@@ -449,8 +446,8 @@ int ibis::egale::write64(int fdes) const {
     ierr = ibis::util::write(fdes, offset64.begin(), sizeof(int64_t)*(nbits+1));
     if (ierr < static_cast<off_t>(sizeof(int64_t)*(nbits+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::write64 expected to write "
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::write64 expected to write "
 	    << sizeof(int64_t)*(nbits+1)
 	    << " bytes, but the function write returned " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -485,8 +482,8 @@ int ibis::egale::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- egale[" << col->partition()->name() << '.'
-		 << col->name() << "]::read the header from " << fnm << " (";
+	    lg() << "Warning -- egale[" << col->fullname()
+		 << "]::read the header from " << fnm << " (";
 	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
 	}
@@ -556,8 +553,8 @@ int ibis::egale::read(const char* f) {
     if (ierr != (off_t) end) {
 	clear();
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- egale[" << col->partition()->name() << "."
-	    << col->name() << "]::read(" << fnm << ") failed to seek to "
+	    << "Warning -- egale[" << col->fullname()
+	    << "]::read(" << fnm << ") failed to seek to "
 	    << end << ", ierr = " << ierr;
 	return -7;
     }
@@ -578,7 +575,7 @@ int ibis::egale::read(const char* f) {
     initBitmaps(fdes);
 
     LOGGER(ibis::gVerbose > 3)
-	<< "egale[" << col->partition()->name() << "." << col->name()
+	<< "egale[" << col->fullname()
 	<< "]::read completed reading the header from " << fnm;
     return 0;
 } // ibis::egale::read
@@ -639,7 +636,7 @@ int ibis::egale::read(ibis::fileManager::storage* st) {
     // initialized bits with nil pointers
     initBitmaps(st);
     LOGGER(ibis::gVerbose > 3)
-	<< "egale[" << col->partition()->name() << "." << col->name()
+	<< "egale[" << col->fullname()
 	<< "]::read completed reading the header from storage @ " << st;
    return 0;
 } // ibis::egale::read
@@ -658,8 +655,8 @@ void ibis::egale::convert() {
     for (i = 1; i < nbases; ++i)
 	nbits += bases[i];
     LOGGER(ibis::gVerbose > 4)
-	<< "egale[" << col->partition()->name() << "." << col->name()
-	<< "]::convert -- converting " << nobs << " bitmaps into " << nbases
+	<< "egale[" << col->fullname() << "]::convert -- converting "
+        << nobs << " bitmaps into " << nbases
 	<< "-component equality code (with " << nbits << " bitvectors)";
 
     cnts.resize(nobs);
@@ -749,8 +746,8 @@ void ibis::egale::setBit(const uint32_t i, const double val) {
 /// scheme might use less space, at least we donot have to generate the
 /// simple encoding, however in many tests it takes longer time.
 void ibis::egale::construct(const char* f) {
-    if (col == 0 || col->partition() == 0) return;
-    if (col->partition()->nRows() == 0) return;
+    if (col == 0) return;
+
     // determine the number of bitvectors to use
     nbits = bases[0];
     for (uint32_t i = 1; i < nbases; ++i)
@@ -777,18 +774,13 @@ void ibis::egale::construct(const char* f) {
     int ierr;
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
-
-    nrows = col->partition()->nRows();
     ibis::bitvector mask;
-    {   // name of mask file associated with the data file
-	array_t<ibis::bitvector::word_t> arr;
-	std::string mname(fnm);
-	mname += ".msk";
-	if (ibis::fileManager::instance().getFile(mname.c_str(), arr) == 0)
-	    mask.copy(ibis::bitvector(arr)); // convert arr to a bitvector
-	else
-	    mask.set(1, nrows); // default mask
-    }
+    col->getNullMask(mask);
+    if (col->partition() != 0)
+        nrows = col->partition()->nRows();
+    else
+        nrows = mask.size();
+    if (nrows == 0) return;
 
     // need to do different things for different columns
     switch (col->type()) {
@@ -1019,9 +1011,9 @@ void ibis::egale::construct(const char* f) {
     // write out the current content
     if (ibis::gVerbose > 4) {
  	ibis::util::logger lg;
-	lg() << "egale[" << col->partition()->name() << '.' << col->name()
-		    << "]::construct(" << fnm << ") -- finished constructing a "
-		    << nbases << "-component equality index";
+	lg() << "egale[" << col->fullname() << "]::construct(" << fnm
+             << ") -- finished constructing a " << nbases
+             << "-component equality index";
 	if (ibis::gVerbose > 8) {
 	    lg() << "\n";
 	    print(lg());
@@ -1062,7 +1054,7 @@ void ibis::egale::speedTest(std::ostream& out) const {
 
 /// The printing function.
 void ibis::egale::print(std::ostream& out) const {
-    out << col->partition()->name() << '.' << col->name()
+    out << col->fullname()
 	<< ".index(MCBin equality code ncomp=" << bases.size()
 	<< " nbins=" << nobs << ") contains " << bits.size()
 	<< " bitmaps for " << nrows << " objects\nThe base sizes: ";
@@ -1537,10 +1529,12 @@ void ibis::egale::evalLL(ibis::bitvector& res,
 
 long ibis::egale::evaluate(const ibis::qContinuousRange& expr,
 			   ibis::bitvector& lower) const {
-    if (col == 0 || col->partition() == 0) return -1;
     ibis::bitvector tmp;
     estimate(expr, lower, tmp);
     if (tmp.size() == lower.size() && tmp.cnt() > lower.cnt()) {
+        if (col == 0 || col->partition() == 0)
+            return -1;
+
 	tmp -= lower;
 	ibis::bitvector delta;
 	col->partition()->doScan(expr, tmp, delta);
@@ -1684,7 +1678,7 @@ double ibis::egale::getSum() const {
     double ret;
     bool here = true;
     { // a small test block to evaluate variable here
-	const uint32_t nbv = col->elementSize()*col->partition()->nRows();
+	const uint32_t nbv = col->elementSize()*nrows;
 	if (str != 0)
 	    here = (str->bytes() * (nbases+1) < nbv);
 	else if (offset64.size() > nbits)

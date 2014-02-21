@@ -363,7 +363,7 @@ void ibis::keywords::setBits(std::vector<uint32_t>& pos,
 int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
 				  const char *dir) {
     std::string tfname, spname;
-    if (col == 0) return -1;
+    if (col == 0 || col->partition() == 0) return -1;
     if (0 == col->dataFileName(tfname, dir))
 	return -2;
 
@@ -475,7 +475,7 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
 	if (bits[j] != 0)
 	    bits[j]->adjustSize(0, nrows);
 
-    if (col->partition() != 0 && ibis::gVerbose > 1) {
+    if (ibis::gVerbose > 1) {
 	ibis::util::logger lg;
 	if (col->partition()->nRows() != nrows)
 	    lg() << "Warning -- ";
@@ -576,8 +576,7 @@ int ibis::keywords::write(const char* dt) const {
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
@@ -585,8 +584,7 @@ int ibis::keywords::write(const char* dt) const {
     ierr += UnixWrite(fdes, &nobs,  sizeof(uint32_t));
     if (ierr < (off_t)(sizeof(uint32_t)*2)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write nrows and nobs, ierr = " << ierr;
 	return -4;
     }
@@ -595,8 +593,7 @@ int ibis::keywords::write(const char* dt) const {
     ierr = UnixSeek(fdes, header[6]*(nobs+1), SEEK_CUR);
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to seek to " << offset64[0] << ", ierr = " << ierr;
 	return -5;
     }
@@ -609,8 +606,7 @@ int ibis::keywords::write(const char* dt) const {
     ierr = UnixSeek(fdes, 16, SEEK_SET);
     if (ierr != 16) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to seek to offset 16, ierr = " << ierr;
 	return -6;
     }
@@ -627,8 +623,7 @@ int ibis::keywords::write(const char* dt) const {
     }
     if (ierr < (off_t)(header[6]*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
+	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
 	    << ") failed to write bitmap offsets, ierr = " << ierr;
 	return -7;
     }
@@ -641,9 +636,8 @@ int ibis::keywords::write(const char* dt) const {
 #endif
 
     LOGGER(ibis::gVerbose > 5)
-	<< "keywords[" << col->partition()->name() << "."
-	<< col->name() << "]::write -- wrote " << nobs << " bitmap"
-	<< (nobs>1?"s":"") << " to " << fnm;
+	<< "keywords[" << col->fullname() << "]::write -- wrote " << nobs
+        << " bitmap" << (nobs>1?"s":"") << " to " << fnm;
     return 0;
 } // ibis::keywords::write
 
@@ -685,8 +679,8 @@ int ibis::keywords::read(const char* f) {
 		  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- keywords[" << col->partition()->name() << '.'
-		 << col->name() << "]::read the header from " << fnm << " (";
+	    lg() << "Warning -- keywords[" << col->fullname()
+		 << "]::read the header from " << fnm << " (";
 	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
 	}
@@ -716,8 +710,7 @@ int ibis::keywords::read(const char* f) {
 	if (nprt > dim[1])
 	    nprt = dim[1];
 	ibis::util::logger lg;
-	lg() << "DEBUG -- keywords[" << col->partition()->name() << '.'
-		    << col->name() << "]::read(" << fnm
+	lg() << "DEBUG -- keywords[" << col->fullname() << "]::read(" << fnm
 		    << ") got nobs = " << dim[1]
 		    << ", the offsets of the bit vectors are\n";
 	if (offset64.size() > dim[1]) {
@@ -740,8 +733,8 @@ int ibis::keywords::read(const char* f) {
     initBitmaps(fdes);
     str = 0;
     LOGGER(ibis::gVerbose > 7)
-	<< "keywords[" << col->partition()->name() << '.' << col->name()
-	<< "]::read(" << fnm << ") finished reading index header with nrows="
+	<< "keywords[" << col->fullname() << "]::read(" << fnm
+        << ") finished reading index header with nrows="
 	<< nrows << " and bits.size()="
 	<< bits.size();
     return 0;

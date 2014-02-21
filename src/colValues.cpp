@@ -3304,7 +3304,7 @@ void ibis::colStrings::sortsub(uint32_t i, uint32_t j,
     } // end quick sort
 } // ibis::colStrings::sortsub
 
-/// The median-of-three parition function.  Upon returning from this
+/// The median-of-three partition function.  Upon returning from this
 /// function, the return value partitions the strings into groups where
 /// strings in the first group are lexicographically less than those in the
 /// second group.  If the return value places all strings into one group,

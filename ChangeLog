@@ -1,3 +1,17 @@
+2014-02-21 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp:214 neglected to set amask
+
+2014-02-20 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: modify versions of column::searchSorted to make
+	use of the function getValuesArray to work with in-memory data
+	* src/iroster.cpp: in roster::icSort make use of
+	column::getValuesArray when column::dataFileName can not generate
+	a valid file name
+	* src/qExpr.cpp: change versions of function overlap to return
+	true when the two arguments do not form a valid range (the ranges
+	may be invalid when the lower and upper bounds of a column has not
+	been set)
+
 2014-02-19 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.h, src/iapi.cpp: add functions to work with coordinates
 	* src/bord.cpp: make a copy of columns from the user provided list
