@@ -25,16 +25,16 @@ ibis::entre::entre(const ibis::column* c, const char* f,
     try {
         convert();      // convert from equality code to interval code
 
-        if (ibis::gVerbose > 2) {
-            ibis::util::logger lg;
-            lg() << "entre[" << col->fullname() << "]::ctor -- initialized a "
-                 << nbases << "-component interval index with "
-                 << nbits << " bitmap" << (nbits>1?"s":"");
-            if (ibis::gVerbose > 6) {
-                lg() << "\n";
-                print(lg());
-            }
-        }
+	if (ibis::gVerbose > 2) {
+	    ibis::util::logger lg;
+	    lg() << "entre[" << col->fullname() << "]::ctor -- initialized a "
+		 << nbases << "-component interval index with "
+		 << nbits << " bitmap" << (nbits>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg() << "\n";
+		print(lg());
+	    }
+	}
     }
     catch (...) {
         clear();
@@ -49,16 +49,16 @@ ibis::entre::entre(const ibis::column* c, const char* f,
     try { // convert from multicomponent equality code to interval code
         convert();
 
-        if (ibis::gVerbose > 4) {
-            ibis::util::logger lg;
-            lg() << "entre[" << col->fullname() << "]::ctor -- constructed a "
-                 << nbases << "-component interval index with "
-                 << nbits << " bitmap" << (nbits>1?"s":"");
-            if (ibis::gVerbose > 6) {
-                lg() << "\n";
-                print(lg());
-            }
-        }
+	if (ibis::gVerbose > 4) {
+	    ibis::util::logger lg;
+	    lg() << "entre[" << col->fullname() << "]::ctor -- constructed a "
+		 << nbases << "-component interval index with "
+		 << nbits << " bitmap" << (nbits>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg() << "\n";
+		print(lg());
+	    }
+	}
     }
     catch (...) {
         clear();
@@ -70,16 +70,16 @@ ibis::entre::entre(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
     try {
         convert();
 
-        if (ibis::gVerbose > 4) {
-            ibis::util::logger lg;
-            lg() << "entre[" << col->fullname() << "]::ctor -- constructed a "
-                 << nbases << "-component interval index with "
-                 << nbits << " bitmap" << (nbits>1?"s":"");
-            if (ibis::gVerbose > 6) {
-                lg() << "\n";
-                print(lg());
-            }
-        }
+	if (ibis::gVerbose > 4) {
+	    ibis::util::logger lg;
+	    lg() << "entre[" << col->fullname() << "]::ctor -- constructed a "
+		 << nbases << "-component interval index with "
+		 << nbits << " bitmap" << (nbits>1?"s":"");
+	    if (ibis::gVerbose > 6) {
+		lg() << "\n";
+		print(lg());
+	    }
+	}
     }
     catch (...) {
         clear();
@@ -106,16 +106,16 @@ ibis::entre::entre(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 ibis::entre::entre(const ibis::column* c, ibis::fileManager::storage* st,
                    size_t start) : ibis::egale(c, st, start) {
     if (ibis::gVerbose > 2) {
-        ibis::util::logger lg;
-        lg() << "entre[" << col->fullname()
-             << "]::ctor -- initialized a " << nbases
-             << "-component interval index with " << nbits << " bitmap"
-             << (nbits>1?"s":"") << " from a storage object @ " << st
-             << " starting from position " << start;
-        if (ibis::gVerbose > 6) {
-            lg() << "\n";
-            print(lg());
-        }
+	ibis::util::logger lg;
+	lg() << "entre[" << col->fullname()
+	     << "]::ctor -- initialized a " << nbases
+	     << "-component interval index with " << nbits << " bitmap"
+	     << (nbits>1?"s":"") << " from a storage object @ " << st
+	     << " starting from position " << start;
+	if (ibis::gVerbose > 6) {
+	    lg() << "\n";
+	    print(lg());
+	}
     }
 } // reconstruct data from content of a file
 
@@ -184,10 +184,10 @@ int ibis::entre::write(const char* dt) const {
     header[6] = (char) (useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt
-            << " failed to write the 8-byte header, ierr = " << ierr;
-        return -3;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- entre[" << col->fullname() << "]::write(" << fnm
+	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
     }
     if (useoffset64)
         ierr = ibis::egale::write64(fdes); // use the function ibis::egale
@@ -201,10 +201,11 @@ int ibis::entre::write(const char* dt) const {
         (void) _commit(fdes);
 #endif
 #endif
-        LOGGER(ibis::gVerbose > 3)
-            << evt << " wrote " << nbits << " bitmap"
-            << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
-            << " object" << (nrows>1?"s":"");
+	LOGGER(ibis::gVerbose > 3)
+	    << "entre[" << col->fullname()
+	    << "]::write -- wrote " << nbits << " bitmap"
+	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
+	    << " object" << (nrows>1?"s":"");
     }
     return ierr;
 } // ibis::entre::write
@@ -221,10 +222,10 @@ void ibis::entre::convert() {
             nrows = bits[i]->size();
     nbases = bases.size();
     LOGGER(ibis::gVerbose > 4)
-        << "entre[" << col->fullname()
-        << "]::convert -- converting " << nobs << "-bin "
-        << nbases << "-component index from equality encoding to "
-        "interval encoding (using " << nbits << " bitvectors)";
+	<< "entre[" << col->fullname()
+	<< "]::convert -- converting " << nobs << "-bin "
+	<< nbases << "-component index from equality encoding to "
+	"interval encoding (using " << nbits << " bitvectors)";
 
     // store the current bitvectors in simple
     array_t<bitvector*> simple(nbits, 0);
@@ -311,10 +312,10 @@ void ibis::entre::speedTest(std::ostream& out) const {
 /// The printing function.
 void ibis::entre::print(std::ostream& out) const {
     out << col->fullname()
-        << ".index(MCBin interval code ncomp=" << bases.size()
-        << " nbins=" << nobs << ") contains " << bits.size()
-        << " bitmaps for " << nrows
-        << " objects\nThe base sizes: ";
+	<< ".index(MCBin interval code ncomp=" << bases.size()
+	<< " nbins=" << nobs << ") contains " << bits.size()
+	<< " bitmaps for " << nrows
+	<< " objects\nThe base sizes: ";
     for (uint32_t i = 0; i < nbases; ++ i)
         out << bases[i] << ' ';
     out << "\nbitvector information (number of set bits, number of "
@@ -1044,17 +1045,17 @@ void ibis::entre::evalLL(ibis::bitvector& res,
 } // evalLL
 
 long ibis::entre::evaluate(const ibis::qContinuousRange& expr,
-                           ibis::bitvector& lower) const {
+			   ibis::bitvector& lower) const {
     ibis::bitvector tmp;
     estimate(expr, lower, tmp);
     if (tmp.size() == lower.size() && tmp.cnt() > lower.cnt()) {
-        if (col == 0 || col->hasRawData() == false) return -1;
+        if (col == 0 || col->partition() == 0) return -1;
 
-        tmp -= lower;
-        ibis::bitvector delta;
-        col->partition()->doScan(expr, tmp, delta);
-        if (delta.size() == lower.size() && delta.cnt() > 0)
-            lower |= delta;
+	tmp -= lower;
+	ibis::bitvector delta;
+	col->partition()->doScan(expr, tmp, delta);
+	if (delta.size() == lower.size() && delta.cnt() > 0)
+	    lower |= delta;
     }
     return lower.cnt();
 } // ibis::entre::evaluate

@@ -146,637 +146,637 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
     switch (col->type()) {
     case ibis::TEXT:
     case ibis::UINT: {// unsigned int
-        array_t<uint32_t> val;
+	array_t<uint32_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bak2::mapValues", "failed to read %s",
-                            fnm.c_str());
-        }
-        else {
-            bmap.clear();
-            nev = val.size();
-            if (nev > mask.size())
-                mask.adjustSize(nev, nev);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nev ? iix[1] : nev);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        double key = ibis::util::coarsen(val[i], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[i] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(i, 1);
-                            if (grn.minm > val[i]) grn.minm = val[i];
-                            if (grn.maxm < val[i]) grn.maxm = val[i];
-                        }
-                        else if (val[i] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(i, 1);
-                            if (grn.minp > val[i]) grn.minp = val[i];
-                            if (grn.maxp < val[i]) grn.maxp = val[i];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(i, 1);
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        double key = ibis::util::coarsen(val[k], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[k] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(k, 1);
-                            if (grn.minm > val[k]) grn.minm = val[k];
-                            if (grn.maxm < val[k]) grn.maxm = val[k];
-                        }
-                        else if (val[k] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(k, 1);
-                            if (grn.minp > val[k]) grn.minp = val[k];
-                            if (grn.maxp < val[k]) grn.maxp = val[k];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(k, 1);
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nev) {
-                            double key = ibis::util::coarsen(val[k], prec);
-                            ibis::bak2::grain& grn = bmap[key];
-                            if (val[k] < key) {
-                                if (grn.locm == 0)
-                                    grn.locm = new ibis::bitvector;
-                                grn.locm->setBit(k, 1);
-                                if (grn.minm > val[k]) grn.minm = val[k];
-                                if (grn.maxm < val[k]) grn.maxm = val[k];
-                            }
-                            else if (val[k] > key) {
-                                if (grn.locp == 0)
-                                    grn.locp = new ibis::bitvector;
-                                grn.locp->setBit(k, 1);
-                                if (grn.minp > val[k]) grn.minp = val[k];
-                                if (grn.maxp < val[k]) grn.maxp = val[k];
-                            }
-                            else {
-                                if (grn.loce == 0)
-                                    grn.loce = new ibis::bitvector;
-                                grn.loce->setBit(k, 1);
-                            }
-                        }
-                    }
-                }
-                ++ iset;
-                nind = iset.nIndices();
-                if (*iix >= nev) nind = 0;
-            } // while (nind)
-        }
-        break;}
+	if (val.size() <= 0) {
+	    col->logWarning("bak2::mapValues", "unable to read %s",
+			    fnm.c_str());
+	}
+	else {
+	    bmap.clear();
+	    nev = val.size();
+	    if (nev > mask.size())
+		mask.adjustSize(nev, nev);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nev ? iix[1] : nev);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			double key = ibis::util::coarsen(val[i], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[i] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			double key = ibis::util::coarsen(val[k], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[k] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nev) {
+			    double key = ibis::util::coarsen(val[k], prec);
+			    ibis::bak2::grain& grn = bmap[key];
+			    if (val[k] < key) {
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
+			    }
+			    else {
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
+			    }
+			}
+		    }
+		}
+		++ iset;
+		nind = iset.nIndices();
+		if (*iix >= nev) nind = 0;
+	    } // while (nind)
+	}
+	break;}
     case ibis::INT: {// signed int
-        array_t<int32_t> val;
+	array_t<int32_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bak2::mapValues", "failed to read %s",
-                            fnm.c_str());
-        }
-        else {
-            nev = val.size();
-            if (nev > mask.size())
-                mask.adjustSize(nev, nev);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nev ? iix[1] : nev);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        double key = ibis::util::coarsen(val[i], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[i] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(i, 1);
-                            if (grn.minm > val[i]) grn.minm = val[i];
-                            if (grn.maxm < val[i]) grn.maxm = val[i];
-                        }
-                        else if (val[i] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(i, 1);
-                            if (grn.minp > val[i]) grn.minp = val[i];
-                            if (grn.maxp < val[i]) grn.maxp = val[i];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(i, 1);
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        double key = ibis::util::coarsen(val[k], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[k] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(k, 1);
-                            if (grn.minm > val[k]) grn.minm = val[k];
-                            if (grn.maxm < val[k]) grn.maxm = val[k];
-                        }
-                        else if (val[k] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(k, 1);
-                            if (grn.minp > val[k]) grn.minp = val[k];
-                            if (grn.maxp < val[k]) grn.maxp = val[k];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(k, 1);
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nev) {
-                            double key = ibis::util::coarsen(val[k], prec);
-                            ibis::bak2::grain& grn = bmap[key];
-                            if (val[k] < key) {
-                                if (grn.locm == 0)
-                                    grn.locm = new ibis::bitvector;
-                                grn.locm->setBit(k, 1);
-                                if (grn.minm > val[k]) grn.minm = val[k];
-                                if (grn.maxm < val[k]) grn.maxm = val[k];
-                            }
-                            else if (val[k] > key) {
-                                if (grn.locp == 0)
-                                    grn.locp = new ibis::bitvector;
-                                grn.locp->setBit(k, 1);
-                                if (grn.minp > val[k]) grn.minp = val[k];
-                                if (grn.maxp < val[k]) grn.maxp = val[k];
-                            }
-                            else {
-                                if (grn.loce == 0)
-                                    grn.loce = new ibis::bitvector;
-                                grn.loce->setBit(k, 1);
-                            }
-                        }
-                    }
-                }
-                ++ iset;
-                nind = iset.nIndices();
-                if (*iix >= nev) nind = 0;
-            } // while (nind)
-        }
-        break;}
+	if (val.size() <= 0) {
+	    col->logWarning("bak2::mapValues", "unable to read %s",
+			    fnm.c_str());
+	}
+	else {
+	    nev = val.size();
+	    if (nev > mask.size())
+		mask.adjustSize(nev, nev);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nev ? iix[1] : nev);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			double key = ibis::util::coarsen(val[i], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[i] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			double key = ibis::util::coarsen(val[k], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[k] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nev) {
+			    double key = ibis::util::coarsen(val[k], prec);
+			    ibis::bak2::grain& grn = bmap[key];
+			    if (val[k] < key) {
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
+			    }
+			    else {
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
+			    }
+			}
+		    }
+		}
+		++ iset;
+		nind = iset.nIndices();
+		if (*iix >= nev) nind = 0;
+	    } // while (nind)
+	}
+	break;}
     case ibis::ULONG: {// unsigned long int
-        array_t<uint64_t> val;
+	array_t<uint64_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bak2::mapValues", "failed to read %s",
-                            fnm.c_str());
-        }
-        else {
-            bmap.clear();
-            nev = val.size();
-            if (nev > mask.size())
-                mask.adjustSize(nev, nev);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nev ? iix[1] : nev);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        double key = ibis::util::coarsen(val[i], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[i] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(i, 1);
-                            if (grn.minm > val[i]) grn.minm = val[i];
-                            if (grn.maxm < val[i]) grn.maxm = val[i];
-                        }
-                        else if (val[i] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(i, 1);
-                            if (grn.minp > val[i]) grn.minp = val[i];
-                            if (grn.maxp < val[i]) grn.maxp = val[i];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(i, 1);
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        double key = ibis::util::coarsen(val[k], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[k] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(k, 1);
-                            if (grn.minm > val[k]) grn.minm = val[k];
-                            if (grn.maxm < val[k]) grn.maxm = val[k];
-                        }
-                        else if (val[k] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(k, 1);
-                            if (grn.minp > val[k]) grn.minp = val[k];
-                            if (grn.maxp < val[k]) grn.maxp = val[k];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(k, 1);
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nev) {
-                            double key = ibis::util::coarsen(val[k], prec);
-                            ibis::bak2::grain& grn = bmap[key];
-                            if (val[k] < key) {
-                                if (grn.locm == 0)
-                                    grn.locm = new ibis::bitvector;
-                                grn.locm->setBit(k, 1);
-                                if (grn.minm > val[k]) grn.minm = val[k];
-                                if (grn.maxm < val[k]) grn.maxm = val[k];
-                            }
-                            else if (val[k] > key) {
-                                if (grn.locp == 0)
-                                    grn.locp = new ibis::bitvector;
-                                grn.locp->setBit(k, 1);
-                                if (grn.minp > val[k]) grn.minp = val[k];
-                                if (grn.maxp < val[k]) grn.maxp = val[k];
-                            }
-                            else {
-                                if (grn.loce == 0)
-                                    grn.loce = new ibis::bitvector;
-                                grn.loce->setBit(k, 1);
-                            }
-                        }
-                    }
-                }
-                ++ iset;
-                nind = iset.nIndices();
-                if (*iix >= nev) nind = 0;
-            } // while (nind)
-        }
-        break;}
+	if (val.size() <= 0) {
+	    col->logWarning("bak2::mapValues", "unable to read %s",
+			    fnm.c_str());
+	}
+	else {
+	    bmap.clear();
+	    nev = val.size();
+	    if (nev > mask.size())
+		mask.adjustSize(nev, nev);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nev ? iix[1] : nev);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			double key = ibis::util::coarsen(val[i], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[i] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			double key = ibis::util::coarsen(val[k], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[k] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nev) {
+			    double key = ibis::util::coarsen(val[k], prec);
+			    ibis::bak2::grain& grn = bmap[key];
+			    if (val[k] < key) {
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
+			    }
+			    else {
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
+			    }
+			}
+		    }
+		}
+		++ iset;
+		nind = iset.nIndices();
+		if (*iix >= nev) nind = 0;
+	    } // while (nind)
+	}
+	break;}
     case ibis::LONG: {// signed long int
-        array_t<int64_t> val;
+	array_t<int64_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bak2::mapValues", "failed to read %s",
-                            fnm.c_str());
-        }
-        else {
-            nev = val.size();
-            if (nev > mask.size())
-                mask.adjustSize(nev, nev);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nev ? iix[1] : nev);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        double key = ibis::util::coarsen(val[i], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[i] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(i, 1);
-                            if (grn.minm > val[i]) grn.minm = val[i];
-                            if (grn.maxm < val[i]) grn.maxm = val[i];
-                        }
-                        else if (val[i] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(i, 1);
-                            if (grn.minp > val[i]) grn.minp = val[i];
-                            if (grn.maxp < val[i]) grn.maxp = val[i];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(i, 1);
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        double key = ibis::util::coarsen(val[k], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[k] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(k, 1);
-                            if (grn.minm > val[k]) grn.minm = val[k];
-                            if (grn.maxm < val[k]) grn.maxm = val[k];
-                        }
-                        else if (val[k] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(k, 1);
-                            if (grn.minp > val[k]) grn.minp = val[k];
-                            if (grn.maxp < val[k]) grn.maxp = val[k];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(k, 1);
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nev) {
-                            double key = ibis::util::coarsen(val[k], prec);
-                            ibis::bak2::grain& grn = bmap[key];
-                            if (val[k] < key) {
-                                if (grn.locm == 0)
-                                    grn.locm = new ibis::bitvector;
-                                grn.locm->setBit(k, 1);
-                                if (grn.minm > val[k]) grn.minm = val[k];
-                                if (grn.maxm < val[k]) grn.maxm = val[k];
-                            }
-                            else if (val[k] > key) {
-                                if (grn.locp == 0)
-                                    grn.locp = new ibis::bitvector;
-                                grn.locp->setBit(k, 1);
-                                if (grn.minp > val[k]) grn.minp = val[k];
-                                if (grn.maxp < val[k]) grn.maxp = val[k];
-                            }
-                            else {
-                                if (grn.loce == 0)
-                                    grn.loce = new ibis::bitvector;
-                                grn.loce->setBit(k, 1);
-                            }
-                        }
-                    }
-                }
-                ++ iset;
-                nind = iset.nIndices();
-                if (*iix >= nev) nind = 0;
-            } // while (nind)
-        }
-        break;}
+	if (val.size() <= 0) {
+	    col->logWarning("bak2::mapValues", "unable to read %s",
+			    fnm.c_str());
+	}
+	else {
+	    nev = val.size();
+	    if (nev > mask.size())
+		mask.adjustSize(nev, nev);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nev ? iix[1] : nev);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			double key = ibis::util::coarsen(val[i], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[i] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			double key = ibis::util::coarsen(val[k], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[k] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nev) {
+			    double key = ibis::util::coarsen(val[k], prec);
+			    ibis::bak2::grain& grn = bmap[key];
+			    if (val[k] < key) {
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
+			    }
+			    else {
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
+			    }
+			}
+		    }
+		}
+		++ iset;
+		nind = iset.nIndices();
+		if (*iix >= nev) nind = 0;
+	    } // while (nind)
+	}
+	break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
-        array_t<float> val;
+	array_t<float> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bak2::mapValues", "failed to read %s",
-                            fnm.c_str());
-        }
-        else {
-            nev = val.size();
-            if (nev > mask.size())
-                mask.adjustSize(nev, nev);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nev ? iix[1] : nev);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        double key = ibis::util::coarsen(val[i], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[i] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(i, 1);
-                            if (grn.minm > val[i]) grn.minm = val[i];
-                            if (grn.maxm < val[i]) grn.maxm = val[i];
-                        }
-                        else if (val[i] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(i, 1);
-                            if (grn.minp > val[i]) grn.minp = val[i];
-                            if (grn.maxp < val[i]) grn.maxp = val[i];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(i, 1);
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        double key = ibis::util::coarsen(val[k], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[k] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(k, 1);
-                            if (grn.minm > val[k]) grn.minm = val[k];
-                            if (grn.maxm < val[k]) grn.maxm = val[k];
-                        }
-                        else if (val[k] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(k, 1);
-                            if (grn.minp > val[k]) grn.minp = val[k];
-                            if (grn.maxp < val[k]) grn.maxp = val[k];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(k, 1);
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nev) {
-                            double key = ibis::util::coarsen(val[k], prec);
-                            ibis::bak2::grain& grn = bmap[key];
-                            if (val[k] < key) {
-                                if (grn.locm == 0)
-                                    grn.locm = new ibis::bitvector;
-                                grn.locm->setBit(k, 1);
-                                if (grn.minm > val[k]) grn.minm = val[k];
-                                if (grn.maxm < val[k]) grn.maxm = val[k];
-                            }
-                            else if (val[k] > key) {
-                                if (grn.locp == 0)
-                                    grn.locp = new ibis::bitvector;
-                                grn.locp->setBit(k, 1);
-                                if (grn.minp > val[k]) grn.minp = val[k];
-                                if (grn.maxp < val[k]) grn.maxp = val[k];
-                            }
-                            else {
-                                if (grn.loce == 0)
-                                    grn.loce = new ibis::bitvector;
-                                grn.loce->setBit(k, 1);
-                            }
-                        }
-                    }
-                }
-                ++ iset;
-                nind = iset.nIndices();
-                if (*iix >= nev) nind = 0;
-            } // while (nind)
-        }
-        break;}
+	if (val.size() <= 0) {
+	    col->logWarning("bak2::mapValues", "unable to read %s",
+			    fnm.c_str());
+	}
+	else {
+	    nev = val.size();
+	    if (nev > mask.size())
+		mask.adjustSize(nev, nev);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nev ? iix[1] : nev);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			double key = ibis::util::coarsen(val[i], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[i] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			double key = ibis::util::coarsen(val[k], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[k] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nev) {
+			    double key = ibis::util::coarsen(val[k], prec);
+			    ibis::bak2::grain& grn = bmap[key];
+			    if (val[k] < key) {
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp = new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
+			    }
+			    else {
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
+			    }
+			}
+		    }
+		}
+		++ iset;
+		nind = iset.nIndices();
+		if (*iix >= nev) nind = 0;
+	    } // while (nind)
+	}
+	break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
-        array_t<double> val;
+	array_t<double> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bak2::mapValues", "failed to read %s",
-                            fnm.c_str());
-        }
-        else {
-            nev = val.size();
-            if (nev > mask.size())
-                mask.adjustSize(nev, nev);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nev ? iix[1] : nev);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        double key = ibis::util::coarsen(val[i], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[i] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(i, 1);
-                            if (grn.minm > val[i]) grn.minm = val[i];
-                            if (grn.maxm < val[i]) grn.maxm = val[i];
-                        }
-                        else if (val[i] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(i, 1);
-                            if (grn.minp > val[i]) grn.minp = val[i];
-                            if (grn.maxp < val[i]) grn.maxp = val[i];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(i, 1);
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        double key = ibis::util::coarsen(val[k], prec);
-                        ibis::bak2::grain& grn = bmap[key];
-                        if (val[k] < key) {
-                            if (grn.locm == 0)
-                                grn.locm = new ibis::bitvector;
-                            grn.locm->setBit(k, 1);
-                            if (grn.minm > val[k]) grn.minm = val[k];
-                            if (grn.maxm < val[k]) grn.maxm = val[k];
-                        }
-                        else if (val[k] > key) {
-                            if (grn.locp == 0)
-                                grn.locp = new ibis::bitvector;
-                            grn.locp->setBit(k, 1);
-                            if (grn.minp > val[k]) grn.minp = val[k];
-                            if (grn.maxp < val[k]) grn.maxp = val[k];
-                        }
-                        else {
-                            if (grn.loce == 0)
-                                grn.loce = new ibis::bitvector;
-                            grn.loce->setBit(k, 1);
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nev) {
-                            double key = ibis::util::coarsen(val[k], prec);
-                            ibis::bak2::grain& grn = bmap[key];
-                            if (val[k] < key) {
-                                if (grn.locm == 0)
-                                    grn.locm = new ibis::bitvector;
-                                grn.locm->setBit(k, 1);
-                                if (grn.minm > val[k]) grn.minm = val[k];
-                                if (grn.maxm < val[k]) grn.maxm = val[k];
-                            }
-                            else if (val[k] > key) {
-                                if (grn.locp == 0)
-                                    grn.locp= new ibis::bitvector;
-                                grn.locp->setBit(k, 1);
-                                if (grn.minp > val[k]) grn.minp = val[k];
-                                if (grn.maxp < val[k]) grn.maxp = val[k];
-                            }
-                            else {
-                                if (grn.loce == 0)
-                                    grn.loce = new ibis::bitvector;
-                                grn.loce->setBit(k, 1);
-                            }
-                        }
-                    }
-                }
-                ++ iset;
-                nind = iset.nIndices();
-                if (*iix >= nev) nind = 0;
-            } // while (nind)
-        }
-        break;}
+	if (val.size() <= 0) {
+	    col->logWarning("bak2::mapValues", "unable to read %s",
+			    fnm.c_str());
+	}
+	else {
+	    nev = val.size();
+	    if (nev > mask.size())
+		mask.adjustSize(nev, nev);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nev ? iix[1] : nev);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			double key = ibis::util::coarsen(val[i], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[i] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(i, 1);
+			    if (grn.minm > val[i]) grn.minm = val[i];
+			    if (grn.maxm < val[i]) grn.maxm = val[i];
+			}
+			else if (val[i] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(i, 1);
+			    if (grn.minp > val[i]) grn.minp = val[i];
+			    if (grn.maxp < val[i]) grn.maxp = val[i];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(i, 1);
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nev) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			double key = ibis::util::coarsen(val[k], prec);
+			ibis::bak2::grain& grn = bmap[key];
+			if (val[k] < key) {
+			    if (grn.locm == 0)
+				grn.locm = new ibis::bitvector;
+			    grn.locm->setBit(k, 1);
+			    if (grn.minm > val[k]) grn.minm = val[k];
+			    if (grn.maxm < val[k]) grn.maxm = val[k];
+			}
+			else if (val[k] > key) {
+			    if (grn.locp == 0)
+				grn.locp = new ibis::bitvector;
+			    grn.locp->setBit(k, 1);
+			    if (grn.minp > val[k]) grn.minp = val[k];
+			    if (grn.maxp < val[k]) grn.maxp = val[k];
+			}
+			else {
+			    if (grn.loce == 0)
+				grn.loce = new ibis::bitvector;
+			    grn.loce->setBit(k, 1);
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nev) {
+			    double key = ibis::util::coarsen(val[k], prec);
+			    ibis::bak2::grain& grn = bmap[key];
+			    if (val[k] < key) {
+				if (grn.locm == 0)
+				    grn.locm = new ibis::bitvector;
+				grn.locm->setBit(k, 1);
+				if (grn.minm > val[k]) grn.minm = val[k];
+				if (grn.maxm < val[k]) grn.maxm = val[k];
+			    }
+			    else if (val[k] > key) {
+				if (grn.locp == 0)
+				    grn.locp= new ibis::bitvector;
+				grn.locp->setBit(k, 1);
+				if (grn.minp > val[k]) grn.minp = val[k];
+				if (grn.maxp < val[k]) grn.maxp = val[k];
+			    }
+			    else {
+				if (grn.loce == 0)
+				    grn.loce = new ibis::bitvector;
+				grn.loce->setBit(k, 1);
+			    }
+			}
+		    }
+		}
+		++ iset;
+		nind = iset.nIndices();
+		if (*iix >= nev) nind = 0;
+	    } // while (nind)
+	}
+	break;}
     case ibis::CATEGORY: // no need for a separate index
         col->logWarning("bak2::mapValues", "no need for binning -- should "
                         "have a basic bitmap index already");
@@ -991,8 +991,8 @@ void ibis::bak2::print(std::ostream& out) const {
 
     // activate(); -- active may invoke ioLock which causes problems
     out << "index (equality encoding on reduced precision values) for "
-        << col->fullname() << " contains " << nobs << " bitvectors for "
-        << nrows << " objects \n";
+	<< col->fullname() << " contains " << nobs << " bitvectors for "
+	<< nrows << " objects \n";
     if (ibis::gVerbose > 0) {
         uint32_t prt = (ibis::gVerbose > 30 ? nobs : (1 << ibis::gVerbose));
         if (prt < 5) prt = 5;

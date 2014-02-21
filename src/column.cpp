@@ -723,8 +723,8 @@ const char* ibis::column::nullMaskName(std::string& fname) const {
 void ibis::column::getNullMask(ibis::bitvector& mask) const {
     if (thePart != 0 ? (mask_.size() == thePart->nRows()) :
         (mask_.size() > 0)) {
-        ibis::bitvector tmp(mask_);
-        mask.swap(tmp);
+	ibis::bitvector tmp(mask_);
+	mask.swap(tmp);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
         logMessage("getNullMask", "copying an existing mask(%lu, %lu)",
                    static_cast<long unsigned>(mask.cnt()),
@@ -798,9 +798,73 @@ void ibis::column::getNullMask(ibis::bitvector& mask) const {
 		<< mask.size() << ") [st.st_size=" << st.st_size
 		<< ", sz=" << sz << ", ierr=" << ierr << "]";
 	}
-	else { // no data file, assume every value is valid
+	else if (thePart != 0) { // no data file, assume every value is valid
 	    mask.set(1, thePart->nRows());
 	}
+        else {
+            uint32_t sz = 0;
+            switch (m_type) {
+            default:
+                break;
+            case ibis::BYTE: {
+                array_t<signed char> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::UBYTE: {
+                array_t<unsigned char> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::SHORT: {
+                array_t<int16_t> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::USHORT: {
+                array_t<uint16_t> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::INT: {
+                array_t<int32_t> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::UINT: {
+                array_t<uint32_t> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::LONG: {
+                array_t<int64_t> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::ULONG: {
+                array_t<uint64_t> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::FLOAT: {
+                array_t<float> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            case ibis::TEXT:
+            case ibis::CATEGORY: {
+                std::vector<std::string> vals;
+                getValuesArray(&vals);
+                sz = vals.size();
+                break;}
+            }
+            mask.set(1, sz);
+        }
 
         ibis::bitvector tmp(mask);
         const_cast<column*>(this)->mask_.swap(tmp);
@@ -5654,7 +5718,7 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
 /// @note Accesses to this function are serialized through a write lock on
 /// the column.  It blocks while acquire the write lock.
 void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
-    if (idx != 0 || thePart == 0 || thePart->nRows() == 0)
+    if ((idx != 0 && !idx->empty()) || thePart == 0 || thePart->nRows() == 0)
 	return;
     if (iopt == 0 || *iopt == static_cast<char>(0))
 	iopt = indexSpec(); // index spec of the column
@@ -5687,6 +5751,8 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     }
     evt += "::loadIndex";
     writeLock lock(this, evt.c_str());
+    if (thePart->nRows() == 0)
+	return;
     if (idx != 0) {
         if (idx->empty()) {
             delete idx;
@@ -5739,12 +5805,12 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	    }
 
 	    ibis::util::mutexLock lck2(&mutex, "loadIndex");
+            if (! (lower <= upper)) { // use negation to catch NaNs
+                const_cast<ibis::column*>(this)->lower = tmp->getMin();
+                const_cast<ibis::column*>(this)->upper = tmp->getMax();
+            }
 	    if (idx == 0) {
 		idx = tmp;
-		if (! (lower <= upper)) { // use negation to catch NaNs
-		    const_cast<ibis::column*>(this)->lower = tmp->getMin();
-		    const_cast<ibis::column*>(this)->upper = tmp->getMax();
-		}
 	    }
 	    else if (idx != tmp) { // another thread has created an index
 		LOGGER(ibis::gVerbose >= 0)
@@ -5983,8 +6049,8 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
         return ierr;
     }
     if (! cmp.overlap(lower, upper)) {
-        low.set(0, mask.size());
-        return 0;
+	low.set(0, mask.size());
+	return 0;
     }
 
     ibis::util::timer mytimer(evt.c_str(), 4);
@@ -6160,8 +6226,8 @@ long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
         return ierr;
     }
     if (! cmp.overlap(lower, upper)) {
-        low.set(0, mask.size());
-        return 0;
+	low.set(0, mask.size());
+	return 0;
     }
 
     try {
@@ -6256,7 +6322,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
             return evaluateRange(cr, mask, low);
         }
     }
-    if (cmp.overlap(lower, upper) == false) {
+    if (! cmp.overlap(lower, upper)) {
 	low.set(0, mask.size());
 	return 0;
     }
@@ -6421,9 +6487,9 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
         return 0;
     }
     if (! cmp.overlap(lower, upper)) {
-        high.set(0, thePart->nRows());
-        low.set(0, thePart->nRows());
-        return 0;
+	high.set(0, thePart->nRows());
+	low.set(0, thePart->nRows());
+	return 0;
     }
 
     try {
@@ -6485,7 +6551,7 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp,
 /// as the upper bound.
 long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
     if (! cmp.overlap(lower, upper))
-        return 0;
+	return 0;
 
     long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
     if (cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
@@ -6529,10 +6595,10 @@ long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp,
 
 double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
     if (cmp.leftOperator() == ibis::qExpr::OP_UNDEFINED &&
-        cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)
-        return 0.0;
+	cmp.rightOperator() == ibis::qExpr::OP_UNDEFINED)
+	return 0.0;
     if (! cmp.overlap(lower, upper))
-        return 0.0;
+	return 0.0;
 
     double ret;
     indexLock lock(this, "estimateCost");
@@ -6548,7 +6614,7 @@ double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
 
 double ibis::column::estimateCost(const ibis::qDiscreteRange& cmp) const {
     if (! cmp.overlap(lower, upper))
-        return 0.0;
+	return 0.0;
 
     double ret;
     indexLock lock(this, "estimateCost");
@@ -6612,7 +6678,7 @@ float ibis::column::getUndecidable(const ibis::qContinuousRange& cmp,
 // use the index to compute a upper bound on the number of hits
 long ibis::column::estimateRange(const ibis::qDiscreteRange& cmp) const {
     if (! cmp.overlap(lower, upper))
-        return 0;
+	return 0;
 
     long ret = (thePart != 0 ? thePart->nRows() : LONG_MAX);
     try {
@@ -9374,13 +9440,14 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
 
     std::string dfname;
     LOGGER(dataFileName(dfname) == 0 && ibis::gVerbose > 2)
-        << "column[" << fullname() << "]::searchSorted(" << rng
+        << "column[" << (thePart ? thePart->name() : "?") << '.'
+        << m_name << "]::searchSorted(" << rng
         << ") failed to determine the data file name";
 
     int ierr;
     switch (m_type) {
     case ibis::BYTE: {
-        array_t<signed char> vals;
+	array_t<signed char> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9395,9 +9462,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::UBYTE: {
-        array_t<unsigned char> vals;
+	array_t<unsigned char> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9413,9 +9480,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::SHORT: {
-        array_t<int16_t> vals;
+	array_t<int16_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9430,9 +9497,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::USHORT: {
-        array_t<uint16_t> vals;
+	array_t<uint16_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9447,9 +9514,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::INT: {
-        array_t<int32_t> vals;
+	array_t<int32_t> vals;
         if (! dfname.c_str()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9464,9 +9531,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::UINT: {
-        array_t<uint32_t> vals;
+	array_t<uint32_t> vals;
         if (! dfname.c_str()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9481,9 +9548,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> vals;
+	array_t<int64_t> vals;
         if (! dfname.c_str()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9498,9 +9565,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::ULONG: {
-        array_t<uint64_t> vals;
+	array_t<uint64_t> vals;
         if (! dfname.c_str()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9515,9 +9582,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::FLOAT: {
-        array_t<float> vals;
+	array_t<float> vals;
         if (! dfname.c_str()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9532,9 +9599,9 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> vals;
+	array_t<double> vals;
         if (! dfname.c_str()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9549,7 +9616,7 @@ int ibis::column::searchSorted(const ibis::qContinuousRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICC(vals, rng, hits);
         }
-        break;}
+	break;}
     default: {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- column[" << fullname() << "]::searchSorted(" << rng
@@ -9565,13 +9632,14 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
                                ibis::bitvector& hits) const {
     std::string dfname;
     LOGGER(dataFileName(dfname) == 0 && ibis::gVerbose > 2)
-        << "column[" << fullname() << "]::searchSorted(" << rng.colName()
+        << "column[" << (thePart ? thePart->name() : "?") << '.'
+        << m_name << "]::searchSorted(" << rng.colName()
         << "IN ...) failed to determine the data file name";
 
     int ierr;
     switch (m_type) {
     case ibis::BYTE: {
-        array_t<signed char> vals;
+	array_t<signed char> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9586,9 +9654,9 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::UBYTE: {
-        array_t<unsigned char> vals;
+	array_t<unsigned char> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9604,9 +9672,9 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::SHORT: {
-        array_t<int16_t> vals;
+	array_t<int16_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9623,7 +9691,7 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
         }
         break;}
     case ibis::USHORT: {
-        array_t<uint16_t> vals;
+	array_t<uint16_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9638,9 +9706,9 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::INT: {
-        array_t<int32_t> vals;
+	array_t<int32_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9655,9 +9723,9 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::UINT: {
-        array_t<uint32_t> vals;
+	array_t<uint32_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9672,9 +9740,9 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> vals;
+	array_t<int64_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9689,9 +9757,9 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::ULONG: {
-        array_t<uint64_t> vals;
+	array_t<uint64_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9706,9 +9774,9 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::FLOAT: {
-        array_t<float> vals;
+	array_t<float> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9723,9 +9791,9 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> vals;
+	array_t<double> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9740,7 +9808,7 @@ int ibis::column::searchSorted(const ibis::qDiscreteRange& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     default: {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- column[" << fullname() << "]::searchSorted("
@@ -9757,13 +9825,14 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
                                ibis::bitvector& hits) const {
     std::string dfname;
     LOGGER(dataFileName(dfname) == 0 && ibis::gVerbose > 2)
-        << "column[" << fullname() << "]::searchSorted(" << rng.colName()
+        << "column[" << (thePart ? thePart->name() : "?") << '.'
+        << m_name << "]::searchSorted(" << rng.colName()
         << "IN ...) failed to determine the data file name";
 
     int ierr;
     switch (m_type) {
     case ibis::BYTE: {
-        array_t<signed char> vals;
+	array_t<signed char> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9778,9 +9847,9 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::UBYTE: {
-        array_t<unsigned char> vals;
+	array_t<unsigned char> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9790,15 +9859,15 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
                 ierr = searchSortedOOCD<unsigned char>
                     (dfname.c_str(), rng, hits);
             }
-        }
+	}
         else {
             ierr = getValuesArray(&vals);
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::SHORT: {
-        array_t<int16_t> vals;
+	array_t<int16_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9813,9 +9882,9 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::USHORT: {
-        array_t<uint16_t> vals;
+	array_t<uint16_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9830,9 +9899,9 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::INT: {
-        array_t<int32_t> vals;
+	array_t<int32_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9847,9 +9916,9 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::UINT: {
-        array_t<uint32_t> vals;
+	array_t<uint32_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9864,9 +9933,9 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> vals;
+	array_t<int64_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9881,9 +9950,9 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::ULONG: {
-        array_t<uint64_t> vals;
+	array_t<uint64_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9898,9 +9967,9 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::FLOAT: {
-        array_t<float> vals;
+	array_t<float> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9915,9 +9984,9 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> vals;
+	array_t<double> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9932,7 +10001,7 @@ int ibis::column::searchSorted(const ibis::qIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     default: {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- column[" << fullname() << "]::searchSorted("
@@ -9948,13 +10017,14 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
                                ibis::bitvector& hits) const {
     std::string dfname;
     LOGGER(dataFileName(dfname) == 0 && ibis::gVerbose > 2)
-        << "column[" << fullname() << "]::searchSorted(" << rng.colName()
+        << "column[" << (thePart ? thePart->name() : "?") << '.'
+        << m_name << "]::searchSorted(" << rng.colName()
         << "IN ...) failed to determine the data file name";
 
     int ierr;
     switch (m_type) {
     case ibis::BYTE: {
-        array_t<signed char> vals;
+	array_t<signed char> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9969,9 +10039,9 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::UBYTE: {
-        array_t<unsigned char> vals;
+	array_t<unsigned char> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -9981,15 +10051,15 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
                 ierr = searchSortedOOCD<unsigned char>
                     (dfname.c_str(), rng, hits);
             }
-        }
+	}
         else {
             ierr = getValuesArray(&vals);
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::SHORT: {
-        array_t<int16_t> vals;
+	array_t<int16_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -10004,9 +10074,9 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::USHORT: {
-        array_t<uint16_t> vals;
+	array_t<uint16_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -10021,9 +10091,9 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::INT: {
-        array_t<int32_t> vals;
+	array_t<int32_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -10038,9 +10108,9 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::UINT: {
-        array_t<uint32_t> vals;
+	array_t<uint32_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -10055,9 +10125,9 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> vals;
+	array_t<int64_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -10072,9 +10142,9 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::ULONG: {
-        array_t<uint64_t> vals;
+	array_t<uint64_t> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -10089,9 +10159,9 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::FLOAT: {
-        array_t<float> vals;
+	array_t<float> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -10106,9 +10176,9 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> vals;
+	array_t<double> vals;
         if (! dfname.empty()) {
             ierr = ibis::fileManager::instance().getFile(dfname.c_str(), vals);
             if (ierr == 0) {
@@ -10123,7 +10193,7 @@ int ibis::column::searchSorted(const ibis::qUIntHod& rng,
             if (ierr == 0)
                 ierr = searchSortedICD(vals, rng, hits);
         }
-        break;}
+	break;}
     default: {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- column[" << fullname() << "]::searchSorted("
@@ -11985,7 +12055,8 @@ ibis::column::indexLock::indexLock(const ibis::column* col, const char* m)
     if (col != 0) {
 	ibis::column::readLock lk(col, m);
         // only attempt to build the index if idxcnt is zero and idx is zero
-	toload = (theColumn->idxcnt() == 0 && theColumn->idx == 0);
+	toload = (theColumn->idxcnt() == 0 &&
+                  (theColumn->idx == 0 || theColumn->idx->empty()));
     }
     else {
         return;

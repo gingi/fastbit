@@ -29,18 +29,18 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
     if (c == 0) return;  // nothing can be done
     (void) read(dir); // attempt to read the existing list
 
-    if (ind.size() != col->partition()->nRows() && inddes < 0) {
+    if (ind.size() == 0 && inddes < 0) {
 	// need to build a new roster list
-	if (col->partition()->nRows() <
+	if (col->partition() == 0 || col->partition()->nRows() <
 	    ibis::fileManager::bytesFree() / (8+col->elementSize()))
 	    icSort(dir);	// in core sorting
-	if (ind.size() != col->partition()->nRows())
+	if (ind.size() == 0 && col->partition() != 0)
 	    oocSort(dir);	// out of core sorting
     }
 
-    if (ibis::gVerbose > 6 && (ind.size() > 0 || inddes >= 0)) {
-        ibis::util::logger lg;
-        print(lg());
+    if (ibis::gVerbose > 4 && (ind.size() > 0 || inddes >= 0)) {
+	ibis::util::logger lg;
+	print(lg());
     }
 } // constructor
 
@@ -565,8 +565,8 @@ int ibis::roster::read(const char* idxf) {
     if (idxf == 0) {
         if (col == 0 || col->partition() == 0) return -1;
 
-        fnm = col->partition()->currentDataDir();
-        fnm += FASTBIT_DIRSEP;
+	fnm = col->partition()->currentDataDir();
+	fnm += FASTBIT_DIRSEP;
     }
     else {
 	fnm = idxf;
@@ -592,7 +592,7 @@ int ibis::roster::read(const char* idxf) {
 
     uint32_t nbytes = sizeof(uint32_t)*col->partition()->nRows();
     if (ibis::util::getFileSize(fnm.c_str()) != (off_t)nbytes)
-        return -2;
+	return -2;
 
     if (nbytes < ibis::fileManager::bytesFree()) {
         ind.read(fnm.c_str());
@@ -630,21 +630,9 @@ int ibis::roster::read(ibis::fileManager::storage* st) {
 void ibis::roster::icSort(const char* fin) {
     long ierr;
     std::string fnm;
-    if (fin == 0) {
-	fnm = col->partition()->currentDataDir();
-	fnm += FASTBIT_DIRSEP;
-    }
-    else {
-	fnm = fin;
-	uint32_t pos = fnm.rfind(FASTBIT_DIRSEP);
-	if (pos >= fnm.size()) pos = 0;
-	else ++ pos;
-	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
-	    fnm += FASTBIT_DIRSEP;
-    }
-    long ierr = fnm.size();
-    if (fnm[ierr-1] == FASTBIT_DIRSEP)
-	fnm += col->name();
+    LOGGER(col->dataFileName(fnm, fin) == 0 && ibis::gVerbose > 2)
+        << "roster::icSort can not generate data file name";
+
     ibis::horometer timer;
     if (ibis::gVerbose > 1) {
         timer.start();
@@ -656,13 +644,13 @@ void ibis::roster::icSort(const char* fin) {
     array_t<uint32_t> indim;
     switch (col->type()) {
     case ibis::UBYTE: { // unsigned char
-        array_t<unsigned char> val;
+	array_t<unsigned char> val;
         if (! fnm.empty()) 
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<unsigned char>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<unsigned char>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             unsigned char tmp;
             uint32_t i = 0, j = 0;
@@ -684,8 +672,11 @@ void ibis::roster::icSort(const char* fin) {
     }
     case ibis::BYTE: { // signed char
 	array_t<signed char> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	if (val.size() > 0) {
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+	if (ierr >= 0 && val.size() > 0) {
 	    const_cast<const array_t<signed char>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             char tmp;
@@ -707,13 +698,13 @@ void ibis::roster::icSort(const char* fin) {
         break;
     }
     case ibis::USHORT: { // unsigned short int
-        array_t<uint16_t> val;
+	array_t<uint16_t> val;
         if (! fnm.empty())
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<uint16_t>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<uint16_t>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             uint16_t tmp;
             uint32_t i = 0, j = 0;
@@ -734,13 +725,13 @@ void ibis::roster::icSort(const char* fin) {
         break;
     }
     case ibis::SHORT: { // signed short int
-        array_t<int16_t> val;
+	array_t<int16_t> val;
         if (! fnm.empty())
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<int16_t>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<int16_t>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             int16_t tmp;
             uint32_t i = 0, j = 0;
@@ -761,13 +752,13 @@ void ibis::roster::icSort(const char* fin) {
         break;
     }
     case ibis::UINT: { // unsigned int
-        array_t<uint32_t> val;
+	array_t<uint32_t> val;
         if (! fnm.empty())
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<uint32_t>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<uint32_t>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             uint32_t tmp;
             uint32_t i = 0, j = 0;
@@ -788,13 +779,13 @@ void ibis::roster::icSort(const char* fin) {
         break;
     }
     case ibis::INT: { // signed int
-        array_t<int32_t> val;
+	array_t<int32_t> val;
         if (! fnm.empty())
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<int32_t>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<int32_t>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             int32_t tmp;
             uint32_t i = 0, j = 0;
@@ -815,13 +806,13 @@ void ibis::roster::icSort(const char* fin) {
         break;
     }
     case ibis::ULONG: { // unsigned long int
-        array_t<uint64_t> val;
+	array_t<uint64_t> val;
         if (! fnm.empty())
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<uint64_t>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<uint64_t>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             uint64_t tmp;
             uint32_t i = 0, j = 0;
@@ -842,13 +833,13 @@ void ibis::roster::icSort(const char* fin) {
         break;
     }
     case ibis::LONG: { // signed long int
-        array_t<int64_t> val;
+	array_t<int64_t> val;
         if (! fnm.empty())
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<int64_t>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<int64_t>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             int64_t tmp;
             uint32_t i = 0, j = 0;
@@ -869,13 +860,13 @@ void ibis::roster::icSort(const char* fin) {
         break;
     }
     case ibis::FLOAT: { // float
-        array_t<float> val;
+	array_t<float> val;
         if (! fnm.empty())
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<float>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<float>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             float tmp;
             uint32_t i = 0, j = 0;
@@ -896,13 +887,13 @@ void ibis::roster::icSort(const char* fin) {
         break;
     }
     case ibis::DOUBLE: { // double
-        array_t<double> val;
+	array_t<double> val;
         if (! fnm.empty())
             ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             ierr = col->getValuesArray(&val);
-        if (ierr >= 0 && val.size() > 0) {
-            const_cast<const array_t<double>&>(val).stableSort(indim);
+	if (ierr >= 0 && val.size() > 0) {
+	    const_cast<const array_t<double>&>(val).stableSort(indim);
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             double tmp;
             uint32_t i = 0, j = 0;

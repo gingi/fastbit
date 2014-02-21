@@ -75,14 +75,17 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	binning(f, bd);
 	const char* spec = col->indexSpec();
 	if (spec == 0 || *spec == 0) {
-	    std::string idxnm(c->partition()->name());
-	    idxnm += '.';
+	    std::string idxnm;
+            if (c->partition() != 0) {
+                idxnm = c->partition()->name();
+                idxnm += '.';
+            }
 	    idxnm += c->name();
 	    idxnm += ".index";
 	    spec = ibis::gParameters()[idxnm.c_str()];
 	}
-	const bool reorder = (spec != 0 ? strstr(spec, "reorder") != 0 :
-			      false);
+	const bool reorder =
+            (spec != 0 ? strstr(spec, "reorder") != 0 : false);
 	if (reorder)
 	    binOrder(f);
 
@@ -122,8 +125,11 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 	binning(f, bd);
 	const char* spec = col->indexSpec();
 	if (spec == 0 || *spec == 0) {
-	    std::string idxnm(c->partition()->name());
-	    idxnm += '.';
+	    std::string idxnm;
+            if (c->partition()) {
+                idxnm = c->partition()->name();
+                idxnm += '.';
+            }
 	    idxnm += c->name();
 	    idxnm += ".index";
 	    spec = ibis::gParameters()[idxnm.c_str()];
@@ -605,12 +611,12 @@ void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
         setBoundaries(f);
     }
     else {
-        bounds.resize(bd.size());
-        for (uint32_t i = 0; i < bd.size(); ++ i)
-            bounds[i] = bd[i];
-        if (bounds.back() < DBL_MAX)
-            bounds.push_back(DBL_MAX);
-        nobs = bounds.size();
+	bounds.resize(bd.size());
+	for (uint32_t i = 0; i < bd.size(); ++ i)
+	    bounds[i] = bd[i];
+	if (bounds.back() < DBL_MAX)
+	    bounds.push_back(DBL_MAX);
+	nobs = bounds.size();
     }
 
     //binning(f); // binning without writing reordered values
@@ -750,142 +756,145 @@ void ibis::bin::binning(const char* f) {
     // need to do different things for different columns
     switch (col->type()) {
     case ibis::UINT: {// unsigned int
-        array_t<uint32_t> val;
+	array_t<uint32_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > val[i])
-                                minval[j] = val[i];
-                            if (maxval[j] < val[i])
-                                maxval[j] = val[i];
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > val[k])
-                                minval[j] = val[k];
-                            if (maxval[j] < val[k])
-                                maxval[j] = val[k];
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > val[k])
-                                    minval[j] = val[k];
-                                if (maxval[j] < val[k])
-                                    maxval[j] = val[k];
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
-        }
-        break;}
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > val[i])
+				minval[j] = val[i];
+			    if (maxval[j] < val[i])
+				maxval[j] = val[i];
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > val[k])
+				minval[j] = val[k];
+			    if (maxval[j] < val[k])
+				maxval[j] = val[k];
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > val[k])
+				    minval[j] = val[k];
+				if (maxval[j] < val[k])
+				    maxval[j] = val[k];
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
+	}
+	break;}
     case ibis::INT: {// signed int
-        array_t<int32_t> val;
+	array_t<int32_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > val[i])
-                                minval[j] = val[i];
-                            if (maxval[j] < val[i])
-                                maxval[j] = val[i];
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > val[k])
-                                minval[j] = val[k];
-                            if (maxval[j] < val[k])
-                                maxval[j] = val[k];
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > val[k])
-                                    minval[j] = val[k];
-                                if (maxval[j] < val[k])
-                                    maxval[j] = val[k];
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
-        }
-        break;}
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > val[i])
+				minval[j] = val[i];
+			    if (maxval[j] < val[i])
+				maxval[j] = val[i];
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > val[k])
+				minval[j] = val[k];
+			    if (maxval[j] < val[k])
+				maxval[j] = val[k];
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > val[k])
+				    minval[j] = val[k];
+				if (maxval[j] < val[k])
+				    maxval[j] = val[k];
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
+	}
+	break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
 	array_t<float> val;
-	ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        if (! fnm.empty())
+            ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            col->getValuesArray(&val);
 	if (val.size() <= 0) {
 	    col->logWarning("bin::binning", "unable to read %s",
 			    fnm.c_str());
@@ -955,529 +964,529 @@ void ibis::bin::binning(const char* f) {
 	    // reset the nominal boundaries of the bins
 	    for (uint32_t i = 0; i < nobs-1; ++ i) {
 		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-		    bounds[i] = ibis::util::compactValue(maxval[i],
-							 minval[i+1]);
+		    bounds[i] = ibis::util::compactValue
+                        (maxval[i], minval[i+1]);
 	    }
 	}
 	break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
-        array_t<double> val;
+	array_t<double> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > val[i])
-                                minval[j] = val[i];
-                            if (maxval[j] < val[i])
-                                maxval[j] = val[i];
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > val[k])
-                                minval[j] = val[k];
-                            if (maxval[j] < val[k])
-                                maxval[j] = val[k];
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > val[k])
-                                    minval[j] = val[k];
-                                if (maxval[j] < val[k])
-                                    maxval[j] = val[k];
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > val[i])
+				minval[j] = val[i];
+			    if (maxval[j] < val[i])
+				maxval[j] = val[i];
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > val[k])
+				minval[j] = val[k];
+			    if (maxval[j] < val[k])
+				maxval[j] = val[k];
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > val[k])
+				    minval[j] = val[k];
+				if (maxval[j] < val[k])
+				    maxval[j] = val[k];
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
 
-            // reset the nominal boundaries of the bins
-            for (uint32_t i = 0; i < nobs-1; ++ i) {
-                if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-                    bounds[i] = ibis::util::compactValue
+	    // reset the nominal boundaries of the bins
+	    for (uint32_t i = 0; i < nobs-1; ++ i) {
+		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
+		    bounds[i] = ibis::util::compactValue
                         (maxval[i], minval[i+1]);
-            }
-        }
-        break;}
+	    }
+	}
+	break;}
     case ibis::BYTE: {// (1-byte) integer values
-        array_t<char> val;
+	array_t<char> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > val[i])
-                                minval[j] = val[i];
-                            if (maxval[j] < val[i])
-                                maxval[j] = val[i];
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > val[k])
-                                minval[j] = val[k];
-                            if (maxval[j] < val[k])
-                                maxval[j] = val[k];
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > val[k])
-                                    minval[j] = val[k];
-                                if (maxval[j] < val[k])
-                                    maxval[j] = val[k];
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > val[i])
+				minval[j] = val[i];
+			    if (maxval[j] < val[i])
+				maxval[j] = val[i];
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > val[k])
+				minval[j] = val[k];
+			    if (maxval[j] < val[k])
+				maxval[j] = val[k];
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > val[k])
+				    minval[j] = val[k];
+				if (maxval[j] < val[k])
+				    maxval[j] = val[k];
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
 
-            // reset the nominal boundaries of the bins
-            for (uint32_t i = 0; i < nobs-1; ++ i) {
-                if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-                    bounds[i] = ibis::util::compactValue
+	    // reset the nominal boundaries of the bins
+	    for (uint32_t i = 0; i < nobs-1; ++ i) {
+		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
+		    bounds[i] = ibis::util::compactValue
                         (maxval[i], minval[i+1]);
-            }
-        }
-        break;}
+	    }
+	}
+	break;}
     case ibis::UBYTE: {// (1-byte) integer values
-        array_t<unsigned char> val;
+	array_t<unsigned char> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > val[i])
-                                minval[j] = val[i];
-                            if (maxval[j] < val[i])
-                                maxval[j] = val[i];
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > val[k])
-                                minval[j] = val[k];
-                            if (maxval[j] < val[k])
-                                maxval[j] = val[k];
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > val[k])
-                                    minval[j] = val[k];
-                                if (maxval[j] < val[k])
-                                    maxval[j] = val[k];
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > val[i])
+				minval[j] = val[i];
+			    if (maxval[j] < val[i])
+				maxval[j] = val[i];
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > val[k])
+				minval[j] = val[k];
+			    if (maxval[j] < val[k])
+				maxval[j] = val[k];
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > val[k])
+				    minval[j] = val[k];
+				if (maxval[j] < val[k])
+				    maxval[j] = val[k];
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
 
-            // reset the nominal boundaries of the bins
-            for (uint32_t i = 0; i < nobs-1; ++ i) {
-                if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-                    bounds[i] = ibis::util::compactValue
+	    // reset the nominal boundaries of the bins
+	    for (uint32_t i = 0; i < nobs-1; ++ i) {
+		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
+		    bounds[i] = ibis::util::compactValue
                         (maxval[i], minval[i+1]);
-            }
-        }
-        break;}
+	    }
+	}
+	break;}
     case ibis::SHORT: {// (2-byte) integer values
-        array_t<int16_t> val;
+	array_t<int16_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > val[i])
-                                minval[j] = val[i];
-                            if (maxval[j] < val[i])
-                                maxval[j] = val[i];
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > val[k])
-                                minval[j] = val[k];
-                            if (maxval[j] < val[k])
-                                maxval[j] = val[k];
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > val[k])
-                                    minval[j] = val[k];
-                                if (maxval[j] < val[k])
-                                    maxval[j] = val[k];
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > val[i])
+				minval[j] = val[i];
+			    if (maxval[j] < val[i])
+				maxval[j] = val[i];
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > val[k])
+				minval[j] = val[k];
+			    if (maxval[j] < val[k])
+				maxval[j] = val[k];
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > val[k])
+				    minval[j] = val[k];
+				if (maxval[j] < val[k])
+				    maxval[j] = val[k];
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
 
-            // reset the nominal boundaries of the bins
-            for (uint32_t i = 0; i < nobs-1; ++ i) {
-                if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-                    bounds[i] = ibis::util::compactValue
+	    // reset the nominal boundaries of the bins
+	    for (uint32_t i = 0; i < nobs-1; ++ i) {
+		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
+		    bounds[i] = ibis::util::compactValue
                         (maxval[i], minval[i+1]);
-            }
-        }
-        break;}
+	    }
+	}
+	break;}
     case ibis::USHORT: {// (2-byte) integer values
-        array_t<uint16_t> val;
+	array_t<uint16_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > val[i])
-                                minval[j] = val[i];
-                            if (maxval[j] < val[i])
-                                maxval[j] = val[i];
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > val[k])
-                                minval[j] = val[k];
-                            if (maxval[j] < val[k])
-                                maxval[j] = val[k];
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > val[k])
-                                    minval[j] = val[k];
-                                if (maxval[j] < val[k])
-                                    maxval[j] = val[k];
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > val[i])
+				minval[j] = val[i];
+			    if (maxval[j] < val[i])
+				maxval[j] = val[i];
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > val[k])
+				minval[j] = val[k];
+			    if (maxval[j] < val[k])
+				maxval[j] = val[k];
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > val[k])
+				    minval[j] = val[k];
+				if (maxval[j] < val[k])
+				    maxval[j] = val[k];
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
 
-            // reset the nominal boundaries of the bins
-            for (uint32_t i = 0; i < nobs-1; ++ i) {
-                if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-                    bounds[i] = ibis::util::compactValue
+	    // reset the nominal boundaries of the bins
+	    for (uint32_t i = 0; i < nobs-1; ++ i) {
+		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
+		    bounds[i] = ibis::util::compactValue
                         (maxval[i], minval[i+1]);
-            }
-        }
-        break;}
+	    }
+	}
+	break;}
     case ibis::LONG: {// (8-byte) integer values
-        array_t<int64_t> val;
+	array_t<int64_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > static_cast<double>(val[i]))
-                                minval[j] = static_cast<double>(val[i]);
-                            if (maxval[j] < static_cast<double>(val[i]))
-                                maxval[j] = static_cast<double>(val[i]);
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > static_cast<double>(val[k]))
-                                minval[j] = static_cast<double>(val[k]);
-                            if (maxval[j] < static_cast<double>(val[k]))
-                                maxval[j] = static_cast<double>(val[k]);
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > static_cast<double>(val[k]))
-                                    minval[j] = static_cast<double>(val[k]);
-                                if (maxval[j] < static_cast<double>(val[k]))
-                                    maxval[j] = static_cast<double>(val[k]);
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > static_cast<double>(val[i]))
+				minval[j] = static_cast<double>(val[i]);
+			    if (maxval[j] < static_cast<double>(val[i]))
+				maxval[j] = static_cast<double>(val[i]);
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > static_cast<double>(val[k]))
+				minval[j] = static_cast<double>(val[k]);
+			    if (maxval[j] < static_cast<double>(val[k]))
+				maxval[j] = static_cast<double>(val[k]);
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > static_cast<double>(val[k]))
+				    minval[j] = static_cast<double>(val[k]);
+				if (maxval[j] < static_cast<double>(val[k]))
+				    maxval[j] = static_cast<double>(val[k]);
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
 
-            // reset the nominal boundaries of the bins
-            for (uint32_t i = 0; i < nobs-1; ++ i) {
-                if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-                    bounds[i] = ibis::util::compactValue
+	    // reset the nominal boundaries of the bins
+	    for (uint32_t i = 0; i < nobs-1; ++ i) {
+		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
+		    bounds[i] = ibis::util::compactValue
                         (maxval[i], minval[i+1]);
-            }
-        }
-        break;}
+	    }
+	}
+	break;}
     case ibis::ULONG: {// (8-byte) integer values
-        array_t<uint64_t> val;
+	array_t<uint64_t> val;
         if (! fnm.empty())
             ibis::fileManager::instance().getFile(fnm.c_str(), val);
         else
             col->getValuesArray(&val);
-        if (val.size() <= 0) {
-            col->logWarning("bin::binning", "failed to read %s",
-                            fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
-        }
-        else {
-            nrows = val.size();
-            if (nrows > mask.size())
-                mask.adjustSize(nrows, nrows);
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i) {
-                        uint32_t j = locate(val[i]);
-                        if (j < nobs) {
-                            bits[j]->setBit(i, 1);
-                            if (minval[j] > static_cast<double>(val[i]))
-                                minval[j] = static_cast<double>(val[i]);
-                            if (maxval[j] < static_cast<double>(val[i]))
-                                maxval[j] = static_cast<double>(val[i]);
-                        }
-                    }
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        uint32_t j = locate(val[k]);
-                        if (j < nobs) {
-                            bits[j]->setBit(k, 1);
-                            if (minval[j] > static_cast<double>(val[k]))
-                                minval[j] = static_cast<double>(val[k]);
-                            if (maxval[j] < static_cast<double>(val[k]))
-                                maxval[j] = static_cast<double>(val[k]);
-                        }
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows) {
-                            uint32_t j = locate(val[k]);
-                            if (j < nobs) {
-                                bits[j]->setBit(k, 1);
-                                if (minval[j] > static_cast<double>(val[k]))
-                                    minval[j] = static_cast<double>(val[k]);
-                                if (maxval[j] < static_cast<double>(val[k]))
-                                    maxval[j] = static_cast<double>(val[k]);
-                            }
-                        }
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows) nind = 0;
-            } // while (nind)
+	if (val.size() <= 0) {
+	    col->logWarning("bin::binning", "unable to read %s",
+			    fnm.c_str());
+	    throw ibis::bad_alloc("fail to read data file");
+	}
+	else {
+	    nrows = val.size();
+	    if (nrows > mask.size())
+		mask.adjustSize(nrows, nrows);
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i) {
+			uint32_t j = locate(val[i]);
+			if (j < nobs) {
+			    bits[j]->setBit(i, 1);
+			    if (minval[j] > static_cast<double>(val[i]))
+				minval[j] = static_cast<double>(val[i]);
+			    if (maxval[j] < static_cast<double>(val[i]))
+				maxval[j] = static_cast<double>(val[i]);
+			}
+		    }
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			uint32_t j = locate(val[k]);
+			if (j < nobs) {
+			    bits[j]->setBit(k, 1);
+			    if (minval[j] > static_cast<double>(val[k]))
+				minval[j] = static_cast<double>(val[k]);
+			    if (maxval[j] < static_cast<double>(val[k]))
+				maxval[j] = static_cast<double>(val[k]);
+			}
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows) {
+			    uint32_t j = locate(val[k]);
+			    if (j < nobs) {
+				bits[j]->setBit(k, 1);
+				if (minval[j] > static_cast<double>(val[k]))
+				    minval[j] = static_cast<double>(val[k]);
+				if (maxval[j] < static_cast<double>(val[k]))
+				    maxval[j] = static_cast<double>(val[k]);
+			    }
+			}
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows) nind = 0;
+	    } // while (nind)
 
-            // reset the nominal boundaries of the bins
-            for (uint32_t i = 0; i < nobs-1; ++ i) {
-                if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
-                    bounds[i] = ibis::util::compactValue
+	    // reset the nominal boundaries of the bins
+	    for (uint32_t i = 0; i < nobs-1; ++ i) {
+		if (minval[i+1] < DBL_MAX && maxval[i] > -DBL_MAX)
+		    bounds[i] = ibis::util::compactValue
                         (maxval[i], minval[i+1]);
-            }
-        }
-        break;}
+	    }
+	}
+	break;}
     case ibis::CATEGORY: // no need for a separate index
         col->logWarning("bin::binning", "no need for binning -- should "
                         "have a basic bitmap index already");
@@ -1589,12 +1598,9 @@ void ibis::bin::binningT(const char* f) {
 
     std::string fnm; // name of the data file
     dataFileName(fnm, f);
-    if (fnm.empty()) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " failed to determine the data file "
-	    "name from \"" << (f ? f : "") << '"';
-	return;
-    }
+    LOGGER(fnm.empty() && ibis::gVerbose > 2)
+        << evt << " failed to determine the data file name from \""
+        << (f ? f : "") << '"';
 
     ibis::bitvector mask;
     col->getNullMask(mask);
@@ -3565,7 +3571,7 @@ uint32_t ibis::bin::parseNbins(const ibis::column &c) {
 	    }
 	}
     }
-    if (nbins == 0) {
+    if (nbins == 0 && c.partition() != 0) {
 	bspec = c.partition()->indexSpec();
 	if (bspec != 0) {
 	    str = strstr(bspec, "nbins=");
@@ -3597,8 +3603,11 @@ uint32_t ibis::bin::parseNbins(const ibis::column &c) {
 	}
     }
     if (nbins == 0) {
-	std::string tmp = c.partition()->name();
-	tmp += '.';
+	std::string tmp;
+        if (c.partition() != 0) {
+            tmp = c.partition()->name();
+            tmp += '.';
+        }
 	tmp += c.name();
 	tmp += ".index";
 	bspec = ibis::gParameters()[tmp.c_str()];
@@ -3647,26 +3656,22 @@ uint32_t ibis::bin::parseNbins(const ibis::column &c) {
 /// - 10 -- equal weight
 /// - UINT_MAX -- default value if no index specification is found.
 unsigned ibis::bin::parseScale(const ibis::column &c) {
-    unsigned eq = UINT_MAX;
     const char* bspec = c.indexSpec();
-    if (bspec != 0) {
-	eq = parseScale(bspec);
-    }
-    else {
-	bspec = c.partition()->indexSpec();
-	if (bspec != 0) {
-	    eq = parseScale(bspec);
-	}
-	else {
-	    std::string tmp = c.partition()->name();
-	    tmp += '.';
+    if (bspec == 0) {
+        if (c.partition() != 0)
+            bspec = c.partition()->indexSpec();
+	if (bspec == 0) {
+	    std::string tmp;
+            if (c.partition() != 0) {
+                tmp = c.partition()->name();
+                tmp += '.';
+            }
 	    tmp += c.name();
 	    tmp += ".index";
 	    bspec = ibis::gParameters()[tmp.c_str()];
-	    eq = parseScale(bspec);
 	}
     }
-    return eq;
+    return parseScale(bspec);
 } // ibis::bin::parseScale
 
 unsigned ibis::bin::parseScale(const char* spec) {
@@ -3758,7 +3763,7 @@ unsigned ibis::bin::parsePrec(const ibis::column &c) {
 	if (str && *str)
 	    prec = static_cast<unsigned>(strtod(str, 0));
     }
-    if (prec == 0) {
+    if (prec == 0 && c.partition() != 0) {
 	bspec = c.partition()->indexSpec();
 	if (bspec != 0) {
 	    str = strstr(bspec, "precision=");
@@ -3785,8 +3790,11 @@ unsigned ibis::bin::parsePrec(const ibis::column &c) {
 	}
     }
     if (prec == 0) {
-	std::string tmp = c.partition()->name();
-	tmp += '.';
+	std::string tmp;
+        if (c.partition() != 0) {
+            tmp = c.partition()->name();
+            tmp += '.';
+        }
 	tmp += c.name();
 	tmp += ".index";
 	bspec = ibis::gParameters()[tmp.c_str()];
@@ -6182,23 +6190,14 @@ void ibis::bin::speedTest(std::ostream& out) const {
     }
     bool crossproduct = false;
     {
-        std::string which;
-        if (col != 0) {
-            if (col->partition() != 0) {
-                which = col->partition()->name();
-                which += ".";
-            }
-            which += col->name();
-            which += '.';
+	std::string which;
+        if (col->partition() != 0) {
+            which = col->partition()->name();
+            which += ".";
         }
-        which += "measureCrossProduct";
-        crossproduct = ibis::gParameters().isTrue(which.c_str());
-
-        ibis::util::logger lg;
-        lg() << "bin::speedTest testing the speed of "
-             << (crossproduct ? "corss product operation" : "operator|")
-             << "\n# bits, # 1s, # 1s, # bytes, # bytes, clustering factor, "
-            "result 1s, result bytes, wall time";
+	which += col->name();
+	which += ".measureCrossProduct";
+	crossproduct = ibis::gParameters().isTrue(which.c_str());
     }
     if (crossproduct) {
         nloops = 2;
@@ -6868,58 +6867,59 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
         }
     }
     if (ierr0 < 0 || ierr1 < 0) {
-        ibis::bitvector mask;
-        if (ierr0 < 0) {
-            if (bits[cand0] == 0)
-                activate(cand0);
-            if (bits[cand0] != 0)
-                mask.copy(*(bits[cand0]));
-        }
-        if (ierr1 < 0) {
-            if (bits[hit1] == 0)
-                activate(hit1);
-            if (bits[hit1] != 0) {
-                if (mask.size() != bits[hit1]->size())
-                    mask.copy(*(bits[hit1]));
-                else
-                    mask |= *(bits[hit1]);
-            }
-        }
-        if (mask.size() <= nrows && mask.cnt() > 0) {
-            ibis::bitvector delta;
-            if (col != 0 && col->hasRawData())
+	ibis::bitvector mask;
+	if (ierr0 < 0) {
+	    if (bits[cand0] == 0)
+		activate(cand0);
+	    if (bits[cand0] != 0)
+		mask.copy(*(bits[cand0]));
+	}
+	if (ierr1 < 0) {
+	    if (bits[hit1] == 0)
+		activate(hit1);
+	    if (bits[hit1] != 0) {
+		if (mask.size() != bits[hit1]->size())
+		    mask.copy(*(bits[hit1]));
+		else
+		    mask |= *(bits[hit1]);
+	    }
+	}
+	if (mask.size() <= nrows && mask.cnt() > 0) {
+	    ibis::bitvector delta;
+            if (col->partition() != 0)
                 ierr1 = col->partition()->doScan(expr, mask, delta);
             else
                 ierr1 = -4;
-            if (ierr1 > 0) {
-                if (delta.size() == lower.size()) {
-                    lower |= delta;
-                    ierr0 = lower.cnt();
-                }
-                else if (lower.size() == 0) {
-                    lower.swap(delta);
-                    ierr0 = lower.cnt();
-                }
-                else {
-                    LOGGER(ibis::gVerbose > 0)
-                        << "Warning -- bin::evaluate encountered an internal "
-                        "problem: the result of doScan (" << delta.size()
-                        << ", " << delta.cnt()
-                        << ") does not match the result of sumBins ("
-                        << lower.size() << ", " << lower.cnt() << ")";
-                    ierr0 = -5;
-                }
-            }
-            else if (ierr1 == 0) {
-                ierr0 = lower.cnt();
-            }
-            else {
-                ierr0 = ierr1;
-            }
-        }
-        else if (ierr1 < 0) {
-            ierr0 = ierr1;
-        }
+	    if (ierr1 > 0) {
+		if (delta.size() == lower.size()) {
+		    lower |= delta;
+		    ierr0 = lower.cnt();
+		}
+		else if (lower.size() == 0) {
+		    lower.swap(delta);
+		    ierr0 = lower.cnt();
+		}
+		else {
+		    col->logWarning("bin::evaluate", "the result of doScan "
+				    "(%lu, %lu) does not match the result "
+				    "of sumBins (%lu, %lu)",
+				    static_cast<long unsigned>(delta.size()),
+				    static_cast<long unsigned>(delta.cnt()),
+				    static_cast<long unsigned>(lower.size()),
+				    static_cast<long unsigned>(lower.cnt()));
+		    ierr0 = -5;
+		}
+	    }
+	    else if (ierr1 == 0) {
+		ierr0 = lower.cnt();
+	    }
+	    else {
+		ierr0 = ierr1;
+	    }
+	}
+	else if (ierr1 < 0) {
+	    ierr0 = ierr1;
+	}
     }
     else {
         ierr0 = lower.cnt();
@@ -7089,18 +7089,18 @@ uint32_t ibis::bin::estimate(const ibis::qContinuousRange& expr) const {
             "operations";
     }
     else { // use complements
-        nhits = 0;
-        activate(0, cand0);
-        for (uint32_t i = 0; i < cand0; ++i) {
-            if (bits[i])
-                nhits += bits[i]->cnt();
-        }
-        activate(cand1, nobs);
-        for (uint32_t i = cand1; i < nobs; ++i) {
-            if (bits[i])
-                nhits += bits[i]->cnt();
-        }
-        nhits = nrows - nhits;
+	nhits = 0;
+	activate(0, cand0);
+	for (uint32_t i = 0; i < cand0; ++i) {
+	    if (bits[i])
+		nhits += bits[i]->cnt();
+	}
+	activate(cand1, nobs);
+	for (uint32_t i = cand1; i < nobs; ++i) {
+	    if (bits[i])
+		nhits += bits[i]->cnt();
+	}
+	nhits = nrows - nhits;
     }
     return nhits;
 } // ibis::bin::estimate
@@ -8702,17 +8702,14 @@ double ibis::bin::getMax() const {
 double ibis::bin::getSum() const {
     double ret;
     bool here = true;
-    if (col != 0) {
-        const size_t nbv = col->elementSize()*nrows;
-        if (str != 0)
-            here = (str->bytes() < nbv);
-        else if (offset64.size() > nobs)
-            here = (static_cast<size_t>(offset64[nobs]) < nbv);
-        else if (offset32.size() > nobs)
-            here = (static_cast<uint32_t>(offset32[nobs]) < nbv);
-    }
-    else {
-        here = false;
+    { // a small test block to evaluate variable here
+	const size_t nbv = col->elementSize()*nrows;
+	if (str != 0)
+	    here = (str->bytes() < nbv);
+	else if (offset64.size() > nobs)
+	    here = (static_cast<size_t>(offset64[nobs]) < nbv);
+	else if (offset32.size() > nobs)
+	    here = (static_cast<uint32_t>(offset32[nobs]) < nbv);
     }
     if (here) {
         ret = computeSum();

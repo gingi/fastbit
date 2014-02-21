@@ -98,10 +98,14 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 /// with the last one set to all 1s and the rest to be empty.
 ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     : ibis::index(c) {
-    if (popu == 0) return;
+    if (c == 0 || popu == 0) return;
     try {
-	if (ntpl == 0)
-	    ntpl = c->partition()->nRows();
+	if (ntpl == 0) {
+            if (c->partition() != 0)
+                ntpl = c->partition()->nRows();
+            else
+                return;
+        }
 	nrows = ntpl;
 	bits.resize(1+popu);
 	for (unsigned j = 0; j < popu; ++ j)
@@ -196,10 +200,7 @@ int ibis::direkte::construct0(const char* dfname) {
     if (col == 0) return -1;
 
     int ierr = 0;
-    nrows = col->partition()->nRows();
-    if (nrows == 0) return ierr;
-
-    std::string evt = "direket[";
+    std::string evt = "direkte[";
     evt += col->fullname();
     evt += "]::construct0<";
     evt += typeid(T).name();
