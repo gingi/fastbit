@@ -4517,7 +4517,10 @@ void ibis::bitvector::const_iterator::decodeWord() {
     ind = 0;
 } // ibis::bitvector::const_iterator::decodeWord()
 
-// advance to the next code word that is not zero
+/// Advance to the next code word that is not zero.
+///
+/// If the current position is already at the end of the bitvector, nothing
+/// will be done by this function.
 ibis::bitvector::indexSet& ibis::bitvector::indexSet::operator++() {
     if (it > end) { // already at the end
         nind = 0;

@@ -179,6 +179,9 @@ public:
     class indexSet;
     inline indexSet firstIndexSet() const;
 
+    /// An iterator over the positions that are one.
+    class pit;
+
     // give accesses to some friends
     friend class indexSet;
     friend class iterator;
@@ -517,6 +520,26 @@ private:
     word_t nind; // number of indices
     word_t ind[32];
 }; // class ibis::bitvector::indexSet
+
+/// Iterate over the positive positions one at a time.  A positive position
+/// is the position where a bit is 1.
+///
+/// This class iterates over all the positive positions.  Immediately after
+/// initialization, the "current" bit is the first bit that is 1.
+class ibis::bitvector::pit {
+public:
+    pit(): curr(0xFFFFFFFFU) {}
+    pit(const ibis::bitvector &bv) : curr(0xFFFFFFFFU) {init(bv);}
+
+    inline ibis::bitvector::word_t operator*() const;
+    inline void next();
+    inline void skip(unsigned);
+    inline void init(const ibis::bitvector&);
+
+private:
+    ibis::bitvector::word_t curr;
+    ibis::bitvector::indexSet iset;
+}; // class ibis::bitvector::pit
 
 /// Explicitly set the size of the bitvector.  This is intended to be used
 /// by indexing functions to avoid counting the number of bits.  Caller is
@@ -1175,6 +1198,61 @@ ibis::bitvector::const_iterator::operator--() {
     }
     return *this;
 }
+
+/// Operator to retrieve the position of the current bit.
+///
+/// It returns the current position or 0xFFFFFFFFU when there is no bit to
+/// report or the object is not initialized.
+inline ibis::bitvector::word_t ibis::bitvector::pit::operator*() const {
+    if (curr < iset.nIndices()) {
+        if (iset.isRange()) {
+            return (*iset.indices())+curr;
+        }
+        else {
+            return iset.indices()[curr];
+        }
+    }
+    else {
+        return 0xFFFFFFFFU;
+    }
+} // ibis::bitvector::pit::operator*
+
+/// Initialize the data structure.  The
+void ibis::bitvector::pit::init(const ibis::bitvector &bv) {
+    iset = bv.firstIndexSet();
+    curr = 0;
+} // ibis::bitvector::pit::init
+
+/// Skip over next k positive positions.  It is equivalent to call the
+/// function next k times.
+void ibis::bitvector::pit::skip(unsigned k) {
+    while (k > 0) {
+        if (k+curr < iset.nIndices()) {
+            // stop in the middle of a run
+            curr += k;
+            k = 0;
+        }
+        else if (iset.nIndices() > 0) {
+            // skip over this run
+            k = iset.nIndices() - curr;
+            curr = 0;
+            ++ iset;
+        }
+        else {
+            // reached the end of the bitvector
+            k = 0;
+        }
+    }
+} // ibis::bitvector::pit::next
+
+/// Move on to the next bit that is 1.
+void ibis::bitvector::pit::next() {
+    ++ curr;
+    if (curr >= iset.nIndices()) {
+        ++ iset;
+        curr = 0;
+    }
+} // ibis::bitvector::pit::next
 
 inline ibis::bitvector::indexSet ibis::bitvector::firstIndexSet() const {
     indexSet is;

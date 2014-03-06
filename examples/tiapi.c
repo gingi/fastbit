@@ -25,7 +25,8 @@ void usage(const char *name) {
 /** Generate three arrays of specified sizes.
  */
 static void fillarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
-    for (size_t j = 0; j < n; ++ j) {
+    size_t j;
+    for (j = 0; j < n; ++ j) {
         a1[j] = (j & 0x7FFFU);
         a2[j] = (j >> 1);
         a3[j] = j * 0.25;
