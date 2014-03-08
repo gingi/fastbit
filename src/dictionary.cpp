@@ -221,10 +221,10 @@ int ibis::dictionary::writeBuffer(FILE *fptr, uint32_t nkeys,
 /// Currently there are three possible version of dictioanries
 /// 0x01000000 - the version produced by the current write function,
 /// 0x00000000 - the version produced by the previous version of the write
-///              function that uses 32-bit offsets and strings in sorted
-///              order.
-/// unmarked   - the version with a header, only has the bare strings in the
-///              code order.
+///              function that uses 32-bit offsets and stores strings in
+///              sorted order.
+/// unmarked   - the version without a header, only has the bare strings in
+///              the code order.
 int ibis::dictionary::read(const char* name) {
     if (name == 0 || *name == 0) return -1;
     std::string evt = "dictionary::read";
@@ -361,11 +361,10 @@ int ibis::dictionary::readRaw(const char *evt, FILE *fptr) {
     const char *str = buffer_[0];
     const char *end = buffer_[0] + ierr;
     do {
+        key_[str] = raw_.size();
         raw_.push_back(str);
-        key_[str] = cd;
 	while (*str != 0 && str < end) ++ str;
 	if (*str == 0) {
-	    ++ cd;
 	    ++ str;
 	}
     } while (str < end);
@@ -376,6 +375,9 @@ int ibis::dictionary::readRaw(const char *evt, FILE *fptr) {
 /// Read the string values.  This function processes the data produced by
 /// version 0x00000000 of the write function.  On successful completion, it
 /// returns 0.
+///
+/// Note that this function assume the 20-byte header has been read
+/// already.
 int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
     uint32_t nkeys;
     int ierr = fread(&nkeys, 4, 1, fptr);
@@ -420,7 +422,7 @@ int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
     for (unsigned j = 0; j < nkeys; ++ j) {
         const uint32_t ik = codes[j];
         if (ik > 0 && ik <= nkeys) {
-            raw_[ik] = buffer_[0] + (offsets[ik] - offsets[0]);
+            raw_[ik] = buffer_[0] + (offsets[j] - offsets[0]);
             key_[raw_[ik]] = ik;
         }
         else {

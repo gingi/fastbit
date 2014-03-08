@@ -629,10 +629,10 @@ protected:
     const ibis::dictionary *dic;
     /// Shape of the mesh for the data.  If it is empty, the data is
     /// assumed to be 1-Dimensional.  If the shape array is provided, it is
-    /// assumed that the data values are in typical C order, where the 1st
-    /// dimension is the slowest varying dimension and the last dimension
-    /// is the fastest varying dimension.  It is equivalent to member
-    /// variable shapeSize in ibis::part.
+    /// assumed that the data values are in the typical C order, where the
+    /// 1st dimension is the slowest varying dimension and the last
+    /// dimension is the fastest varying dimension.  It is equivalent to
+    /// member variable shapeSize in ibis::part.
     ibis::array_t<uint64_t> shape;
 
     column &operator=(const column&); // no assignment

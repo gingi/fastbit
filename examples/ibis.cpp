@@ -2083,7 +2083,7 @@ static void parse_args(int argc, char** argv, int& mode,
 			++ i;
 		    }
 		}
-	    break;
+                break;
 	    case 'b':
 	    case 'B': { // build indexes,
 		// if this argument is followed by an integer, the integer
@@ -2145,7 +2145,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    confs.push_back(argv[i+1]);
 		    ++ i;
 		}
-	    break;
+                break;
 	    case 'd':
 	    case 'D': // data directory, multiple directory allowed
 		if (i+1 < argc && argv[i+1][0] != '-') {
@@ -2156,29 +2156,29 @@ static void parse_args(int argc, char** argv, int& mode,
 		    std::clog << "Warning -- argument -d must be followed by "
 			      << "a directory name" << std::endl;
 		}
-	    break;
+                break;
 	    case 'e':
 	    case 'E': // estiamtion option
 		estimation_opt += 1;
-	    break;
+                break;
 	    case 'f':
 	    case 'F': // query file, multiple files allowed
 		if (i+1 < argc) {
 		    readQueryFile(argv[i+1], queff);
 		    ++ i;
 		}
-	    break;
+                break;
 	    default:
 	    case 'h':
 	    case 'H': // print usage
 		usage(*argv);
-	    if (argc <= 2)
-		exit(0);
-	    break;
+                if (argc <= 2)
+                    exit(0);
+                break;
 	    case 'i':
 	    case 'I': // interactive mode
 		mode = 1;
-	    break;
+                break;
 	    case 'j':
 	    case 'J': {// join part1 part2 join-column constraints1 constratint2
 		ibis::joinspec js;
@@ -2230,7 +2230,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		else { // keep temporary files
 		    ibis::query::keepQueryRecords();
 		}
-	    break;
+                break;
 	    case 'l':
 	    case 'L': // logfile or load index in one-shot
 		if (i+1 < argc && argv[i+1][0] != '-') {
@@ -2244,7 +2244,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		else {
 		    accessIndexInWhole = 1;
 		}
-	    break;
+                break;
 #if defined(TEST_SUMBINS_OPTIONS)
                 // _sumBins_option
                 char* ptr = strchr(argv[i], '=');
@@ -2283,7 +2283,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    outputname = argv[i+1];
 		    i = i + 1;
 		}
-	    break;
+                break;
 	    case 'p':
 	    case 'P': // collect the print options
 		if (i+1 < argc) {
@@ -2298,14 +2298,14 @@ static void parse_args(int argc, char** argv, int& mode,
 		else  if (printcmds.empty()) { // at least print partition names
 		    printcmds.push_back("parts");
 		}
-	    break;
+                break;
 	    case 'q':
 	    case 'Q': // specify a query "[select ...] [from ...] where ..."
 		if (i+1 < argc) {
 		    qlist.push_back(argv[i+1]);
 		    ++ i;
 		}
-	    break;
+                break;
 	    case 'r':
 	    case 'R': // RID/result check or reorder
 		if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
@@ -2324,7 +2324,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		else { // rid
 		    verify_rid = true;
 		}
-	    break;
+                break;
 	    case 's':
 	    case 'S': // sequential scan, or sort option
 #if defined(TEST_SCAN_OPTIONS)
@@ -2345,96 +2345,92 @@ static void parse_args(int argc, char** argv, int& mode,
 		    sequential_scan = true;
 		}
 #else
+                if (i+1 < argc) {
+                    if (std::isalpha(*argv[i+1])) {
+                        slist.push_back(argv[i+1]);
+                        i = i + 1;
+                    }
+                    else {
+                        sequential_scan = true;
+                    }
+                }
+                else {
+                    sequential_scan = true;
+                }
+#endif
+                break;
+	    case 't':
+	    case 'T': { // self-testing mode or number of threads
+		bool thr = (argv[i][2] == 'h' || argv[i][2] == 'H'); // thread
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    if (thr)
+				threading += strtol(argv[i+1], 0, 0);
+			    else
+				testing += strtol(argv[i+1], 0, 0);
+			    i = i + 1;
+			}
+			else if (thr) {
+			    ++ threading;
+			}
+			else {
+			    ++ testing;
+			}
+		    }
+		    else if (thr) {
+			++ threading;
+		    }
+		    else {
+			++ testing;
+		    }
+		}
+		else if (thr) { // override previous values
+		    threading = strtol(++ptr, 0, 0);
+		}
+		else { // override previous values
+		    testing = strtol(++ptr, 0, 0);
+		}
+		break;}
+	    case 'v':
+	    case 'V': { // verboseness
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    ibis::gVerbose += strtol(argv[i+1], 0, 0);
+			    i = i + 1;
+			}
+			else {
+			    ++ ibis::gVerbose;
+			}
+		    }
+		    else {
+			sequential_scan = true;
+		    }
+		}
+		else {
+		    sequential_scan = true;
+		}
+#else
 	    if (i+1 < argc) {
 		if (std::isalpha(*argv[i+1])) {
 		    slist.push_back(argv[i+1]);
 		    i = i + 1;
 		}
-		else {
-		    sequential_scan = true;
-		}
-	    }
-	    else {
-		sequential_scan = true;
-	    }
-#endif
                 break;
-            case 't':
-            case 'T': { // self-testing mode or number of threads
-                bool thr = (argv[i][2] == 'h' || argv[i][2] == 'H'); // thread
-                char *ptr = strchr(argv[i], '=');
-                if (ptr == 0) {
-                    if (i+1 < argc) {
-                        if (isdigit(*argv[i+1])) {
-                            if (thr)
-                                threading += strtol(argv[i+1], 0, 0);
-                            else
-                                testing += strtol(argv[i+1], 0, 0);
-                            i = i + 1;
-                        }
-                        else if (thr) {
-                            ++ threading;
-                        }
-                        else {
-                            ++ testing;
-                        }
-                    }
-                    else if (thr) {
-                        ++ threading;
-                    }
-                    else {
-                        ++ testing;
-                    }
-                }
-                else if (thr) { // override previous values
-                    threading = strtol(++ptr, 0, 0);
-                }
-                else { // override previous values
-                    testing = strtol(++ptr, 0, 0);
-                }
-                break;}
-            case 'v':
-            case 'V': { // verboseness
-                char *ptr = strchr(argv[i], '=');
-                if (ptr == 0) {
-                    if (i+1 < argc) {
-                        if (isdigit(*argv[i+1])) {
-                            ibis::gVerbose += strtol(argv[i+1], 0, 0);
-                            i = i + 1;
-                        }
-                        else {
-                            ++ ibis::gVerbose;
-                        }
-                    }
-                    else {
-                        ++ ibis::gVerbose;
-                    }
-                }
-                else { // override previous values
-                    ibis::gVerbose = strtol(++ptr, 0, 0);
-                }
-                break;}
-            case 'y':
-            case 'Y': // yank some rows of every data partition available
-                // must have an argument after the flag to indicate a file
-                // containing row numbers or a string indicate conditions
-                // on rows to mark as inactive/junk
-                if (i+1 < argc) {
-                    yankstring = argv[i+1];
-                    i = i + 1;
-                }
-                break;
-            case 'z':
-            case 'Z': {
-                zapping = true;
-                break;}
-            } // switch (argv[i][1])
-        } // normal arguments
-        else { // argument not started with '-' and not following
-               // apropriate '-' operations are assumed to be names of the
-               // data directories and are read one at a time
-            dirs.push_back(argv[i]);
-        }
+	    case 'z':
+	    case 'Z': {
+		zapping = true;
+		break;}
+	    } // switch (argv[i][1])
+	} // normal arguments
+	else { // argument not started with '-' and not following
+	       // apropriate '-' operations are assumed to be names of the
+	       // data directories and are read one at a time
+	    dirs.push_back(argv[i]);
+	}
     } // for (inti=1; ...)
 
     if (defaultIndexing != 0 && *defaultIndexing != 0)
@@ -4878,24 +4874,24 @@ static void parseString(const char* uid, const char* qstr,
         }
     }
     else if (! qtables.empty()) {
-        // simple select clauses can be handled through doQuery
-        for (unsigned k = 0; k < prts.size(); ++ k) {
-            // go through each partition the user has specified
-            for (unsigned j = 0; j < qtables.size(); ++ j) {
-                if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
-                    ibis::util::strMatch(prts[k]->name(),
-                                         qtables[j])) {
-                    if (recheckvalues || sequential_scan ||
-                        prts[k]->getMeshShape().empty()) {
-                        try {
-                            doQuery(prts[k], uid, wstr.c_str(),
+	// simple select clauses can be handled through doQuery
+	for (unsigned k = 0; k < prts.size(); ++ k) {
+	    // go through each partition the user has specified
+	    for (unsigned j = 0; j < qtables.size(); ++ j) {
+		if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
+		    ibis::util::strMatch(prts[k]->name(),
+					 qtables[j])) {
+		    if (verify_rid || sequential_scan ||
+			prts[k]->getMeshShape().empty()) {
+			try {
+			    doQuery(prts[k], uid, wstr.c_str(),
                                     sstr.c_str(), ordkeys.c_str(),
-                                    limit, start);
-                        }
-                        catch (...) {
-                            if (ibis::util::serialNumber() % 3 == 0) {
-                                ibis::util::quietLock
-                                    lock(&ibis::util::envLock);
+				    limit, start);
+			}
+			catch (...) {
+			    if (ibis::util::serialNumber() % 3 == 0) {
+				ibis::util::quietLock
+				    lock(&ibis::util::envLock);
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
                                 sleep(1);
 #endif
@@ -5085,11 +5081,11 @@ static void clean_up(bool sane=true) {
             << ", outblock = " << ruse0.ru_oublock + ruse1.ru_oublock;
     }
 #endif
-// #if defined(_MSC_VER) && defined(_WIN32) && defined(_DEBUG)
-//     std::cout << "\n*** DEBUG: report from _CrtMemDumpAllObjectsSince\n";
-//     _CrtMemDumpAllObjectsSince(NULL);
-//     _CrtDumpMemoryLeaks();
-// #endif
+    // #if defined(_MSC_VER) && defined(_WIN32) && defined(_DEBUG)
+    //     std::cout << "\n*** DEBUG: report from _CrtMemDumpAllObjectsSince\n";
+    //     _CrtMemDumpAllObjectsSince(NULL);
+    //     _CrtDumpMemoryLeaks();
+    // #endif
 } // clean_up
 
 int main(int argc, char** argv) {
@@ -5407,13 +5403,13 @@ int main(int argc, char** argv) {
 		case '?':
 		default:
 		    help(*argv);
-		break;
+                    break;
 		case 'e': // exit
 		case 'E':
 		case 'q':
 		case 'Q':
 		    clean_up(true);
-		return(0);
+                    return(0);
 		case 'p': // print command
 		case 'P':
 		    print(str.c_str()); break;
