@@ -12254,3 +12254,110 @@ int ibis::bord::cursor::getColumnAsOpaque(uint32_t j, ibis::opaque& val) const {
     }
     return ierr;
 } // ibis::bord::cursor::getColumnAsOpaque
+
+/// Constructor.  
+ibis::hyperslab::hyperslab(unsigned nd, const uint64_t *start,
+                           const uint64_t *stride,
+                           const uint64_t *count,
+                           const uint64_t *block) : ndim(nd), vals(4*nd) {
+    for (unsigned j = 0; j < nd; ++ j) {
+        unsigned j4 = j*4;
+        vals[j4] = start[j];
+        vals[j4+1] = stride[j];
+        vals[j4+2] = count[j];
+        vals[j4+3] = block[j];
+    }
+} // ibis::hyperslab::hyperslab
+
+/// Convert to a bitvector.
+///
+/// The argument mdim is the number of dimension of the full mesh, which
+/// can be larger than ndim of the hyperslab object.  The argument dim is
+/// the full extend of the mesh dimensions.  The value of mdim can be
+/// larger than the member variable ndim, in which case, the number of
+/// dimensions specified are assumed to the first ndim-dimensions of the
+/// mesh.  The remaining dimensions are assumed to the faster varying
+/// dimension in the linearization order of the array.
+///
+/// @note Since the bitvector class uses 32-bit words to represent the
+/// number of bits, this function will not work properly for mesh with more
+/// than 2^32 points!
+void ibis::hyperslab::tobitvector(unsigned mdim, const uint64_t *dim,
+                                  ibis::bitvector &bv) const {
+    bv.clear();
+    if (mdim == 0) return;
+
+    ibis::array_t<ibis::bitvector::word_t> cub(ndim);
+    uint64_t tot = 1;
+    for (unsigned j = ndim; j > 0;) {
+        -- j;
+        tot *= dim[j];
+        cub[j] = tot;
+        if (cub[j] != tot) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- hyperslab::tobitvector " << (ndim-j)
+                << "-d hypercube contains " << tot
+                << " points, which CANNOT be represented in a 32-bit integer";
+            return;
+        }
+    }
+
+    switch (ndim) {
+    case 1: { // 1-D
+        if (vals[2] == 0 || vals[3] == 0) break;
+        if (mdim > 1) {
+            for (size_t i1 = 0; i1 < vals[2]; ++ i1) {
+                ibis::bitvector::word_t boffset = (vals[0] + vals[1]*i1)*cub[1];
+                bv.adjustSize(0, boffset);
+                bv.appendFill(1, vals[3]*cub[1]);
+            }
+        }
+        else {
+            for (size_t i1 = 0; i1 < vals[2]; ++ i1) {
+                bv.adjustSize(0, vals[0] + vals[1]*i1);
+                bv.appendFill(1, vals[3]);
+            }
+        }
+        break;}
+    case 2: { // 2-D
+        if (vals[2] == 0 || vals[3] == 0 ||
+            vals[6] == 0 || vals[7] == 0) break;
+        if (mdim > 2) {
+            for (unsigned i1 = 0; i1 < vals[2]; ++ i1) {
+                ibis::bitvector::word_t j1 = (vals[0] + vals[1]*i1);
+                for (unsigned i1b = 0; i1b < vals[3]; ++ i1b) {
+                    for (unsigned i2 = 0; i2 < vals[6]; ++ i2) {
+                        ibis::bitvector::word_t j2 = (j1 + i1b) * cub[1]
+                            + vals[4] + i2*vals[5];
+                        bv.adjustSize(0, j2*cub[2]);
+                        bv.appendFill(1, vals[7]*cub[2]);
+                    }
+                }
+            }
+        }
+        else {
+            for (unsigned i1 = 0; i1 < vals[2]; ++ i1) {
+                ibis::bitvector::word_t j1 = (vals[0] + vals[1]*i1);
+                for (unsigned i1b = 0; i1b < vals[3]; ++ i1b) {
+                    for (unsigned i2 = 0; i2 < vals[6]; ++ i2) {
+                        ibis::bitvector::word_t j2 = (j1 + i1b) * cub[1]
+                            + vals[4] + i2*vals[5];
+                        bv.adjustSize(0, j2);
+                        bv.appendFill(1, vals[7]);
+                    }
+                }
+            }
+        }
+        break;}
+    case 3: { // 3-D
+        if (vals[2] == 0 || vals[3] == 0 ||
+            vals[6] == 0 || vals[7] == 0 ||
+            vals[10] == 0 || vals[11] == 0) break;
+        break;}
+    default: { // general n-dimensional case
+        break;}
+    }
+
+    // ensure the output has exactly nmax bits
+    bv.adjustSize(0, cub[0]);
+} // ibis::hyperslab::tobitvector

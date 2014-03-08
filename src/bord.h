@@ -15,7 +15,28 @@
 /// data partition completely residing in memory.
 namespace ibis {
     class bord;
+    class hyperslab;
 } // namespace ibis
+
+/// Class ibis::hyperslab for recording a HDF5 style hyperslab.  It is a
+/// generic specification of subsets of coordinates on a regular mesh.
+class FASTBIT_CXX_DLLSPEC ibis::hyperslab {
+ public:
+    /// Default constructor.  By design, the unspecified dimensions are
+    /// assumed to cover the whole extends of dimensions.
+    hyperslab() : ndim(0) {}
+    hyperslab(unsigned, const uint64_t*, const uint64_t*,
+              const uint64_t*, const uint64_t*);
+    void tobitvector(uint32_t, const uint64_t*, ibis::bitvector&) const;
+
+    /// The number of dimensions of the mesh.  By default, ndim = 0, which
+    /// indicates that everyone mesh point is selected.
+    unsigned ndim;
+    /// An array of size 4*ndim with ndim quadruples of (start, stride,
+    /// count, block).  These four elements are in the same order as
+    /// specified in the command line for various HDF5 functions.
+    ibis::array_t<uint64_t> vals;
+}; // class ibis::hyperslab
 
 /// Class ibis::bord stores all its data in memory.  The function @c
 /// ibis::table::select produces an ibis::bord object to store nontrivial
@@ -601,10 +622,10 @@ protected:
     const ibis::dictionary *dic;
     /// Shape of the mesh for the data.  If it is empty, the data is
     /// assumed to be 1-Dimensional.  If the shape array is provided, it is
-    /// assumed that the data values are in typical C order, where the 1st
-    /// dimension is the slowest varying dimension and the last dimension
-    /// is the fastest varying dimension.  It is equivalent to member
-    /// variable shapeSize in ibis::part.
+    /// assumed that the data values are in the typical C order, where the
+    /// 1st dimension is the slowest varying dimension and the last
+    /// dimension is the fastest varying dimension.  It is equivalent to
+    /// member variable shapeSize in ibis::part.
     ibis::array_t<uint64_t> shape;
 
     column &operator=(const column&); // no assignment

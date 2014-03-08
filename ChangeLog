@@ -1,3 +1,10 @@
+2014-03-07 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.cpp:421 ith string in the alphabetic order should
+	be recorded as string ik in raw_
+
+2014-03-04 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.h: add ibis::bitvector::pit
+
 2014-02-21 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp:214 neglected to set amask
 

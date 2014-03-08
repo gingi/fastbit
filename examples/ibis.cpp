@@ -2079,7 +2079,7 @@ static void parse_args(int argc, char** argv, int& mode,
 			++ i;
 		    }
 		}
-	    break;
+                break;
 	    case 'b':
 	    case 'B': { // build indexes,
 		// if this argument is followed by an integer, the integer
@@ -2141,7 +2141,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    confs.push_back(argv[i+1]);
 		    ++ i;
 		}
-	    break;
+                break;
 	    case 'd':
 	    case 'D': // data directory, multiple directory allowed
 		if (i+1 < argc && argv[i+1][0] != '-') {
@@ -2152,29 +2152,29 @@ static void parse_args(int argc, char** argv, int& mode,
 		    std::clog << "Warning -- argument -d must be followed by "
 			      << "a directory name" << std::endl;
 		}
-	    break;
+                break;
 	    case 'e':
 	    case 'E': // estiamtion option
 		estimation_opt += 1;
-	    break;
+                break;
 	    case 'f':
 	    case 'F': // query file, multiple files allowed
 		if (i+1 < argc) {
 		    readQueryFile(argv[i+1], queff);
 		    ++ i;
 		}
-	    break;
+                break;
 	    default:
 	    case 'h':
 	    case 'H': // print usage
 		usage(*argv);
-	    if (argc <= 2)
-		exit(0);
-	    break;
+                if (argc <= 2)
+                    exit(0);
+                break;
 	    case 'i':
 	    case 'I': // interactive mode
 		mode = 1;
-	    break;
+                break;
 	    case 'j':
 	    case 'J': {// join part1 part2 join-column constraints1 constratint2
 		ibis::joinspec js;
@@ -2226,7 +2226,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		else { // keep temporary files
 		    ibis::query::keepQueryRecords();
 		}
-	    break;
+                break;
 	    case 'l':
 	    case 'L': // logfile or load index in one-shot
 		if (i+1 < argc && argv[i+1][0] != '-') {
@@ -2240,7 +2240,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		else {
 		    accessIndexInWhole = 1;
 		}
-	    break;
+                break;
 #if defined(TEST_SUMBINS_OPTIONS)
 	    case 'm':
 	    case 'M': {// _sumBins_option
@@ -2281,7 +2281,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    outputname = argv[i+1];
 		    i = i + 1;
 		}
-	    break;
+                break;
 	    case 'p':
 	    case 'P': // collect the print options
 		if (i+1 < argc) {
@@ -2296,14 +2296,14 @@ static void parse_args(int argc, char** argv, int& mode,
 		else  if (printcmds.empty()) { // at least print partition names
 		    printcmds.push_back("parts");
 		}
-	    break;
+                break;
 	    case 'q':
 	    case 'Q': // specify a query "[select ...] [from ...] where ..."
 		if (i+1 < argc) {
 		    qlist.push_back(argv[i+1]);
 		    ++ i;
 		}
-	    break;
+                break;
 	    case 'r':
 	    case 'R': // RID/result check or reorder
 		if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
@@ -2322,7 +2322,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		else { // rid
 		    verify_rid = true;
 		}
-	    break;
+                break;
 	    case 's':
 	    case 'S': // sequential scan, or sort option
 #if defined(TEST_SCAN_OPTIONS)
@@ -2343,20 +2343,20 @@ static void parse_args(int argc, char** argv, int& mode,
 		    sequential_scan = true;
 		}
 #else
-	    if (i+1 < argc) {
-		if (std::isalpha(*argv[i+1])) {
-		    slist.push_back(argv[i+1]);
-		    i = i + 1;
-		}
-		else {
-		    sequential_scan = true;
-		}
-	    }
-	    else {
-		sequential_scan = true;
-	    }
+                if (i+1 < argc) {
+                    if (std::isalpha(*argv[i+1])) {
+                        slist.push_back(argv[i+1]);
+                        i = i + 1;
+                    }
+                    else {
+                        sequential_scan = true;
+                    }
+                }
+                else {
+                    sequential_scan = true;
+                }
 #endif
-	    break;
+                break;
 	    case 't':
 	    case 'T': { // self-testing mode or number of threads
 		bool thr = (argv[i][2] == 'h' || argv[i][2] == 'H'); // thread
@@ -2421,7 +2421,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    yankstring = argv[i+1];
 		    i = i + 1;
 		}
-	    break;
+                break;
 	    case 'z':
 	    case 'Z': {
 		zapping = true;
@@ -4820,7 +4820,7 @@ static void parseString(const char* uid, const char* qstr,
 			prts[k]->getMeshShape().empty()) {
 			try {
 			    doQuery(prts[k], uid, wstr.c_str(),
-				     sstr.c_str(), ordkeys.c_str(),
+                                    sstr.c_str(), ordkeys.c_str(),
 				    limit, start);
 			}
 			catch (...) {
@@ -5016,11 +5016,11 @@ static void clean_up(bool sane=true) {
 	    << ", outblock = " << ruse0.ru_oublock + ruse1.ru_oublock;
     }
 #endif
-// #if defined(_MSC_VER) && defined(_WIN32) && defined(_DEBUG)
-//     std::cout << "\n*** DEBUG: report from _CrtMemDumpAllObjectsSince\n";
-//     _CrtMemDumpAllObjectsSince(NULL);
-//     _CrtDumpMemoryLeaks();
-// #endif
+    // #if defined(_MSC_VER) && defined(_WIN32) && defined(_DEBUG)
+    //     std::cout << "\n*** DEBUG: report from _CrtMemDumpAllObjectsSince\n";
+    //     _CrtMemDumpAllObjectsSince(NULL);
+    //     _CrtDumpMemoryLeaks();
+    // #endif
 } // clean_up
 
 int main(int argc, char** argv) {
@@ -5249,13 +5249,13 @@ int main(int argc, char** argv) {
 		case '?':
 		default:
 		    help(*argv);
-		break;
+                    break;
 		case 'e': // exit
 		case 'E':
 		case 'q':
 		case 'Q':
 		    clean_up(true);
-		return(0);
+                    return(0);
 		case 'p': // print command
 		case 'P':
 		    print(str.c_str()); break;
