@@ -170,8 +170,8 @@ public:
     /// be decided using the index.
     /// Return value is the expected fraction of undecided rows that might
     /// satisfy the range conditions.
-    virtual float undecidable(const ibis::qContinuousRange&,
-			      ibis::bitvector&) const {return 0.5;}
+    virtual float undecidable(const ibis::qContinuousRange &expr,
+			      ibis::bitvector &iffy) const {return 0.5;}
 
     /// Estimate the hits for discrete ranges, i.e., those translated from
     /// 'a IN (x, y, ..)'.

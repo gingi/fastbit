@@ -6688,12 +6688,12 @@ uint32_t ibis::bin::estimate(const ibis::qContinuousRange& expr) const {
     return nhits;
 } // ibis::bin::estimate
 
-// the bitvector iffy marks the position of rows that can not be decided
-// using the current bitmap index
-// this function returns the fraction rows that are expected to satisfy the
+// The bitvector iffy marks the position of rows that can not be decided
+// using the current bitmap index.
+// This function returns the fraction rows that are expected to satisfy the
 // range condition
-float ibis::bin::undecidable(const ibis::qContinuousRange& expr,
-			     ibis::bitvector& iffy) const {
+float ibis::bin::undecidable(const ibis::qContinuousRange &expr,
+			     ibis::bitvector &iffy) const {
     float ret = 0.0;
     if (nobs <= 0)
 	return ret;

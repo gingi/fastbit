@@ -56,8 +56,8 @@ public:
     virtual uint32_t estimate(const ibis::qContinuousRange& expr) const;
     /// This class and its derived classes should produce exact answers,
     /// therefore no undecidable rows.
-    virtual float undecidable(const ibis::qContinuousRange&,
-			      ibis::bitvector& iffy) const {
+    virtual float undecidable(const ibis::qContinuousRange &,
+			      ibis::bitvector &iffy) const {
 	iffy.clear();
 	return 0.0;
     }

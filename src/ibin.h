@@ -874,8 +874,8 @@ public:
 			  ibis::bitvector& lower,
 			  ibis::bitvector& upper) const;
     using ibis::bin::undecidable;
-    virtual float undecidable(const ibis::qContinuousRange& expr,
-			      ibis::bitvector& iffy) const;
+    virtual float undecidable(const ibis::qContinuousRange &,
+			      ibis::bitvector &) const;
 
     virtual INDEX_TYPE type() const {return ZONE;}
     virtual const char* name() const {return "equality-equality";}

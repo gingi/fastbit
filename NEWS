@@ -1,3 +1,22 @@
+Thu Mar 13 21:31:45 PDT 2014
+Version ibis1.3.9
+-- bug fix in ibis::bitvector
+-- update ibis::tafel::write and friends
+-- update quickstart.html to fix inconsistency reported by Neils Johnson
+-- add function addConditions to allow query conditions to be modified
+-- streamline the evaluation of discrete range conditions, adjust the
+   scoring option to prefer sorted values
+-- use linear interpolation to accelerate binary searches
+-- replace auto_ptr with unique_ptr
+-- change ibis::dictionary to use hash map, and write the dictionary with
+   a new version number
+-- merge the strings in a dictionary before writing the values to a file
+   to accelerate the writing
+-- correctly detect select clause without aggregation operatioins as not
+   separable as the inline documentation promised (a problem reported by
+   Sean McNamara)
+
+
 Fri Oct 18 22:54:36 PDT 2013
 Version ibis1.3.8
 -- add macro FASTBIT_ESTIMATION_IGNORE_COST

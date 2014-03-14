@@ -1692,8 +1692,10 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 	return;
     }
 
-    bool isActive = (activeDir != 0 ? (std::strcmp(activeDir, dir) == 0) : false);
-    bool isBackup = (backupDir != 0 ? (std::strcmp(backupDir, dir) == 0) : false);
+    bool isActive = (activeDir != 0 ? (std::strcmp(activeDir, dir) == 0)
+                     : false);
+    bool isBackup = (backupDir != 0 ? (std::strcmp(backupDir, dir) == 0)
+                     : false);
     char stamp[28];
     ibis::util::getLocalTime(stamp);
     fprintf(fptr, "# metadata file written by ibis::part::writeMetaData\n"
@@ -6516,7 +6518,7 @@ int ibis::part::buildIndexes(const ibis::table::stringList &iopt, int nthr) {
 /// individual columns or the data partition are used.  The
 /// argument ropt is passed to ibis::index::create to regenerate an index
 /// object from the index file.  The default value of ropt is 0.
-/// @cf function ibis::index::create
+/// @sa function ibis::index::create
 void ibis::part::loadIndexes(const char* iopt, int ropt) const {
     if (activeDir == 0) return;
 

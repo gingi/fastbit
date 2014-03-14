@@ -1997,9 +1997,9 @@ std::string ibis::query::removeComplexConditions() {
 ///      used primarily to identify the query object and to retrieve
 ///      configuration parameters that are intended for a special class of
 ///      queries.  For example, if recovery is desired, the user can define
-///      <pref>.enableRecovery = true.
+///      pref.enableRecovery = true.
 ///      When this feature is enable, it is possible to also define
-///      <pref>.purgeTempFiles = true
+///      pref.purgeTempFiles = true
 ///      to tell the destructor of this class to remove the log file about
 ///      a query.  The default value if pref is a nil pointer, which
 ///      disables the logging feature.
@@ -2039,7 +2039,7 @@ ibis::query::query(const char* uid, const part* et, const char* pref) :
 ///
 /// @note that to enable recovery, the query objects must be constructed
 /// with the recovery feature, which is enabled through a configuration
-/// parameter <prefix>.enableRecovery = true.
+/// parameter prefix.enableRecovery = true.
 ibis::query::query(const char* dir, const ibis::partList& tl) :
     user(0), state(UNINITIALIZED), hits(0), sup(0), dslock(0), myID(0),
     myDir(0), rids_in(0), mypart(0), dstime(0) {

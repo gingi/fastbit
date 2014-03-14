@@ -147,16 +147,16 @@ public:
 
     /// Fetch the ith term inside the select clause.
     ///
-    /// @Warning No array bound checking!
+    /// @warning No array bound checking!
     const ibis::math::term* aggExpr(unsigned i) const {return atms_[i];}
     /// Name inside the aggregation function.  To be used together with
     /// aggSize() and aggExpr().
     ///
-    /// @Warning No array bound checking!
+    /// @warning No array bound checking!
     const char* aggName(unsigned i) const {return names_[i].c_str();}
     /// Produce a string description for the ith aggregation expression.
     ///
-    /// @Warning No array bound checking!
+    /// @warning No array bound checking!
     std::string aggDescription(unsigned i) const {
 	return aggDescription(aggr_[i], atms_[i]);}
     std::string aggDescription(AGREGADO, const ibis::math::term*) const;
