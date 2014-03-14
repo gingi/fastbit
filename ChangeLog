@@ -1,3 +1,6 @@
+2014-03-13 John Wu <John dot Wu at ACM dot org>
+	* selectClause.h: minor changes to address warnings from doxygen
+
 2014-03-07 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.cpp:421 ith string in the alphabetic order should
 	be recorded as string ik in raw_
@@ -134,7 +137,7 @@
 
 2014-01-10 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp:876 only checked the 1st character of the index
-	specificiation, add code to skip all leadign blank spaces
+	specificiation, add code to skip all leading blank spaces
 
 2014-01-08 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.cpp:2450 change the type of tmp from uint32_t to
@@ -176,7 +179,7 @@
 	type
 	* src/utilidor.h, src/utilidor.cpp: add a variation of function
 	find that take a starting position, use array values to project
-	the expect position instead of using the straightforward binary
+	the expected position instead of using the straightforward binary
 	search (have to be separate from the template ibis::array_t
 	because there are types of array_t that can not support addition,
 	subtraction or casting to double)
@@ -218,7 +221,7 @@
 2013-11-18 John Wu <John dot Wu at ACM dot org>
 	* doc/quickstart.html: update the number of hits for query "a = b
 	and c < 10" to be 9 instead of 10 (an error spotted by Neils
-	Johson <nielsjohnson at gmail.com>)
+	Johnson <nielsjohnson at gmail.com>)
 
 2013-11-15 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: add extra check for ordering of
@@ -240,7 +243,7 @@
 2013-10-30 John Wu <John dot Wu at ACM dot org>
 	* src/part.h, src/part.cpp: add argument voffset to the arguments
 	of writeColumn and friends, change their return value to be the
-	numbe rof elements written
+	numbe of elements written
 
 2013-10-29 John Wu <John dot Wu at ACM dot org>
 	* src/table.h: rename tablex::capacity to tablex::bufferCapacity,

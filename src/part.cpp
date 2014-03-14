@@ -1739,8 +1739,10 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 	return;
     }
 
-    bool isActive = (activeDir != 0 ? (std::strcmp(activeDir, dir) == 0) : false);
-    bool isBackup = (backupDir != 0 ? (std::strcmp(backupDir, dir) == 0) : false);
+    bool isActive = (activeDir != 0 ? (std::strcmp(activeDir, dir) == 0)
+                     : false);
+    bool isBackup = (backupDir != 0 ? (std::strcmp(backupDir, dir) == 0)
+                     : false);
     char stamp[28];
     ibis::util::getLocalTime(stamp);
     fprintf(fptr, "# metadata file written by ibis::part::writeMetaData\n"

@@ -7110,7 +7110,7 @@ uint32_t ibis::bin::estimate(const ibis::qContinuousRange& expr) const {
 // This function returns the fraction rows that are expected to satisfy the
 // range condition
 float ibis::bin::undecidable(const ibis::qContinuousRange &expr,
-                             ibis::bitvector &iffy) const {
+			     ibis::bitvector &iffy) const {
     float ret = 0.0;
     if (nobs <= 0)
         return ret;
