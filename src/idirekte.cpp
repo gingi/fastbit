@@ -111,10 +111,11 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	for (unsigned j = 0; j < popu; ++ j)
 	    bits[j] = 0;
 	bits[popu] = new ibis::bitvector();
-        if (c != 0)
-            c->getNullMask(*bits[popu]);
-        else
-            bits[popu]->set(1, nrows);
+        // if (c != 0)
+        //     c->getNullMask(*bits[popu]);
+        // else
+        //     bits[popu]->set(1, nrows);
+        bits[popu]->set(1, nrows);
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
 	    print(lg());
