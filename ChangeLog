@@ -1,4 +1,9 @@
 2014-03-13 John Wu <John dot Wu at ACM dot org>
+	* src/idirekte.cpp:117 set all bits of bits[popu] to 1s, to avoid
+	invoking ibis::column::getNullMask which needs a mutex lock.
+	Addressing the mutex lock problem reported by Sean McNamara
+
+2014-03-13 John Wu <John dot Wu at ACM dot org>
 	* selectClause.h: minor changes to address warnings from doxygen
 
 2014-03-07 John Wu <John dot Wu at ACM dot org>

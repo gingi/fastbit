@@ -92,8 +92,9 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     }
 } // ibis::direkte::direkte
 
-/// Construct a dummy index.  All valid entries have the same value @c
-/// popu.  This is used to generate index for meta tags.
+/// Construct a dummy index.  All rows are marked as having the same value
+/// with position popu.  This creates an index with (popu+1) bit vectors,
+/// with the last one set to all 1s and the rest to be empty.
 ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     : ibis::index(c) {
     if (c == 0 || popu == 0) return;
@@ -109,10 +110,11 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 	for (unsigned j = 0; j < popu; ++ j)
 	    bits[j] = 0;
 	bits[popu] = new ibis::bitvector();
-        if (c != 0)
-            c->getNullMask(*bits[popu]);
-        else
-            bits[popu]->set(1, nrows);
+        // if (c != 0)
+        //     c->getNullMask(*bits[popu]);
+        // else
+        //     bits[popu]->set(1, nrows);
+        bits[popu]->set(1, nrows);
 	if (ibis::gVerbose > 5) {
 	    ibis::util::logger lg;
 	    print(lg());
