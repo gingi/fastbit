@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.9.1], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.9.2], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -177,6 +177,7 @@ AC_COMPILE_IFELSE([
 	return (myhashmap.size() == 0);
 	]])], [TRY_STD_CXX11=0], [TRY_STD_CXX11=1])
 if test $TRY_STD_CXX11 -eq 1; then
+	AC_MSG_CHECKING([for c++11])
 	EXTRA_CXXFLAGS="-std=c++11";
 	CXXFLAGS="$CXXFLAGS -std=c++11";
 	AC_COMPILE_IFELSE([
@@ -187,8 +188,26 @@ if test $TRY_STD_CXX11 -eq 1; then
 		std::hash<const char*>,
 		std::equal_to<const char*> > myhashmap;
 		return (myhashmap.size() == 0);
-		]])], [],
-[AC_MSG_ERROR($CXX not able to compile a sample code with std::unordered_map, please use GCC 4.8 or newer versions)])
+		]])], [AC_MSG_RESULT([yes])],[
+	AC_MSG_RESULT([no])	
+	
+	# c++11 not found, trying c++0x
+	AC_MSG_CHECKING([for c++0x])
+	EXTRA_CXXFLAGS=$(echo "$EXTRA_CXXFLAGS" | sed 's/c++11/c++0x/')
+	CXXFLAGS=$(echo "$CXXFLAGS" | sed 's/c++11/c++0x/')
+	AC_COMPILE_IFELSE([
+		AC_LANG_PROGRAM([[
+			#include <unordered_map>
+			]], [[
+			std::unordered_map<const char*, unsigned,
+			std::hash<const char*>,
+			std::equal_to<const char*> > myhashmap;
+			return (myhashmap.size() == 0);
+			]])], [AC_MSG_RESULT([yes])],[
+
+		AC_MSG_ERROR([$CXX not able to compile a sample code with std::unordered_map using c++11 or c++0x.  Consider using GCC 4.8 or newer])
+	])
+])
 fi
 
 AC_ARG_WITH(getpwuid,
