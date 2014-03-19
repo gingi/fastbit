@@ -1,3 +1,7 @@
+2014-03-17 Sean McNamara <Sean.McNamara@Webtrends.com>
+	* configure.ac: fix problem with AC_MSG_ERROR, add test to try
+	c++0x when c++11 is not available
+
 2014-03-13 John Wu <John dot Wu at ACM dot org>
 	* src/idirekte.cpp:117 set all bits of bits[popu] to 1s, to avoid
 	invoking ibis::column::getNullMask which needs a mutex lock.

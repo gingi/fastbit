@@ -12255,26 +12255,45 @@ int ibis::bord::cursor::getColumnAsOpaque(uint32_t j, ibis::opaque& val) const {
     return ierr;
 } // ibis::bord::cursor::getColumnAsOpaque
 
-/// Constructor.  
+/// Constructor.
+/// 
+/// @param[in] nd: number of dimensions specified for the hyperslab.
+///
+/// @param[in] start: starting positions of each dimension specified.  If
+/// this pointer is nil, the default value is 0.  @param[in] stride? stride
+/// of each dimension specified.  If this pointer is nil, the default value
+/// is 1.
+///
+/// @param[in] count: the number of elements to be used in each dimension.
+/// If this pointer is nil, the default value is the maximum value of
+/// 64-bit unsigned integer, which implies that all points from start to
+/// the end of the dimensions are included in the hyperslab.  If the count
+/// value is 0 for any dimension, then the hyperslab is empty (i.e., not
+/// selecting any values).
+///
+/// @param[in] block: the number of consecutive elements to be picked for
+/// the hyperlab in each stride.  It specifies a value for each dimension
+/// when this pointer is not nil.  If this pointer is nil, the default
+/// value is 1.  If the block size in any dimension is 0, the byperslab
+/// select no elements and is called an empty hyperslab.
 ibis::hyperslab::hyperslab(unsigned nd, const uint64_t *start,
-                           const uint64_t *stride,
-                           const uint64_t *count,
+                           const uint64_t *stride, const uint64_t *count,
                            const uint64_t *block) : ndim(nd), vals(4*nd) {
     for (unsigned j = 0; j < nd; ++ j) {
         unsigned j4 = j*4;
-        vals[j4] = start[j];
-        vals[j4+1] = stride[j];
-        vals[j4+2] = count[j];
-        vals[j4+3] = block[j];
+        vals[j4]   = (start!=0 ?start[j] :0);
+        vals[j4+1] = (stride!=0?stride[j]:1);
+        vals[j4+2] = (count!=0 ?count[j] :std::numeric_limits<uint64_t>::max());
+        vals[j4+3] = (block!=0 ?block[j] :1);
     }
 } // ibis::hyperslab::hyperslab
 
 /// Convert to a bitvector.
 ///
 /// The argument mdim is the number of dimension of the full mesh, which
-/// can be larger than ndim of the hyperslab object.  The argument dim is
-/// the full extend of the mesh dimensions.  The value of mdim can be
-/// larger than the member variable ndim, in which case, the number of
+/// must be at least as large as ndim of the hyperslab object.  The
+/// argument dim is the full extend of the mesh dimensions.  When the value
+/// of mdim is larger than the member variable ndim, the number of
 /// dimensions specified are assumed to the first ndim-dimensions of the
 /// mesh.  The remaining dimensions are assumed to the faster varying
 /// dimension in the linearization order of the array.
@@ -12285,7 +12304,12 @@ ibis::hyperslab::hyperslab(unsigned nd, const uint64_t *start,
 void ibis::hyperslab::tobitvector(unsigned mdim, const uint64_t *dim,
                                   ibis::bitvector &bv) const {
     bv.clear();
-    if (mdim == 0) return;
+    if (mdim < ndim || mdim == 0) {
+        LOGGER(ibis::gVerbose > 2)
+            << "Warning -- hyperslab::tobitvector encountered parameter "
+            "error: mdim (" << mdim << ") < ndim (" << ndim << ')';
+        return;
+    }
 
     ibis::array_t<ibis::bitvector::word_t> cub(ndim);
     uint64_t tot = 1;
@@ -12300,6 +12324,16 @@ void ibis::hyperslab::tobitvector(unsigned mdim, const uint64_t *dim,
                 << " points, which CANNOT be represented in a 32-bit integer";
             return;
         }
+    }
+    if (tot == 0) {
+        if (ibis::gVerbose > 0) {
+            ibis::util::logger lg;
+            lg() << "Warning -- hyperslab::tobitvector encounters an empty "
+                 "domain [" << dim[0];
+            for (unsigned j = 1; j < ndim; ++ j)
+                lg() << ", " << dim[j];
+        }
+        return;
     }
 
     switch (ndim) {
