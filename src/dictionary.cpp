@@ -86,11 +86,17 @@ int ibis::dictionary::write(const char* name) const {
 	return -2;
     }
 
+    std::string evt = "dictionary::write";
+    if (ibis::gVerbose > 1) {
+        evt += '(';
+        evt += name;
+        evt += ')';
+    }
+    ibis::util::timer mytimer(evt.c_str(), 4);
     FILE* fptr = fopen(name, "wb");
     if (fptr == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- dictionary::write(" << name
-	    << ") failed to open the file ... "
+	    << "Warning -- " << evt << " failed to open the file ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -3;
     }
@@ -99,8 +105,8 @@ int ibis::dictionary::write(const char* name) const {
     int ierr = fwrite(_fastbit_dictionary_header, 1, 20, fptr);
     if (ierr != 20) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- dictionary::write(" << name
-	    << ") failed to write the header, fwrite returned " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to write the header, fwrite returned " << ierr;
 	return -4;
     }
 
@@ -108,8 +114,7 @@ int ibis::dictionary::write(const char* name) const {
     ierr = fwrite(&nkeys, sizeof(nkeys), 1, fptr);
     if (ierr != 1) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- dictionary::write(" << name
-	    << ") failed to write the size(" << nkeys
+	    << "Warning -- " << evt << " failed to write the size(" << nkeys
 	    << "), fwrite returned " << ierr;
 	return -5;
     }
@@ -227,9 +232,12 @@ int ibis::dictionary::writeBuffer(FILE *fptr, uint32_t nkeys,
 ///              the code order.
 int ibis::dictionary::read(const char* name) {
     if (name == 0 || *name == 0) return -1;
-    std::string evt = "dictionary::read(";
-    evt += name;
-    evt += ')';
+    std::string evt = "dictionary::read";
+    if (ibis::gVerbose > 1) {
+        evt += '(';
+        evt += name;
+        evt += ')';
+    }
     // open the file to read
     int ierr = 0;
     FILE* fptr = fopen(name, "rb");

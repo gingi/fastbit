@@ -1,3 +1,12 @@
+2014-03-24 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp:1259 add statement to delete fname (all existing
+	indexing classes allocate space for it through
+	ibis::util::strnewdup)
+
+2014-03-19 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.cpp: add timer to ibis::dictionary::write to
+	mirror the timer in ibis::dictionary::read
+
 2014-03-17 Sean McNamara <Sean.McNamara@Webtrends.com>
 	* configure.ac: fix problem with AC_MSG_ERROR, add test to try
 	c++0x when c++11 is not available
