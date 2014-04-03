@@ -1406,10 +1406,8 @@ void ibis::index::clear() {
     nrows = 0;
 
     // reassign the internal storage tracking variables to null
-    if (fname != 0) {
-        delete [] fname;
-        fname = 0;
-    }
+    delete [] fname;
+    fname = 0;
     // the pointer str can only be from a file and must be managed by the
     // fileManager and can not be deleted here
     str = 0;
