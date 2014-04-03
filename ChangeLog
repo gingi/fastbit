@@ -1,3 +1,8 @@
+2014-03-30 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: reverse the change on 3/24, did not spot that
+	fname was deleted once already, the new statement creates a double
+	deletion problem
+
 2014-03-24 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp:1259 add statement to delete fname (all existing
 	indexing classes allocate space for it through

@@ -584,14 +584,14 @@ namespace ibis {
 
 	/// Log_2 of a 32-bit integer.
 	inline int log2(uint32_t x) {
-	    register uint32_t xx, xxx;
+	    uint32_t xx, xxx;
 	    return (xx = x >> 16)
 		? (xxx = xx >> 8) ? 24 + log2table[xxx] : 16 + log2table[xx]
 		: (xxx = x >> 8) ? 8 + log2table[xxx] : log2table[x];
 	}
 	/// Log_2 of a 64-bit integer.
 	inline int log2(uint64_t x) {
-	    register uint32_t xx;
+	    uint32_t xx;
 	    return (xx = x >> 32)
 		? 32 + log2(xx)
 		: log2(static_cast<uint32_t>(x));
