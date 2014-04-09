@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.9.2], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.9.3], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -203,8 +203,7 @@ if test $TRY_STD_CXX11 -eq 1; then
 			std::hash<const char*>,
 			std::equal_to<const char*> > myhashmap;
 			return (myhashmap.size() == 0);
-			]])], [AC_MSG_RESULT([yes])],[
-
+			]])], [AC_MSG_RESULT([yes])], [
 		AC_MSG_ERROR([$CXX not able to compile a sample code with std::unordered_map using c++11 or c++0x.  Consider using GCC 4.8 or newer])
 	])
 ])

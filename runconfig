@@ -19,40 +19,34 @@ if (${HOSTNAME} =~ m/^bit/) {
   $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.7.0 --prefix=/data/john/Linux";
 } elsif (${HOSTNAME} =~ m/^d\w+[.lbl.gov]?$/) {
   # on sdm group's linux machines, know where is java and where to install
-  $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.7.0 --prefix=/fastbit/`uname -s`";
+  $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.7.0 --prefix=/fastbit/`uname -s`/fastbit";
 } elsif (${HOSTNAME} =~ m/^edison\w+[.nersc.gov]?$/) {
   # on the front end of edison at NERSC, the default compiler is from Intel
   print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-intel PrgEnv-gnu'\n\n";
-  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/edison/gnu";
-  #$cmd="./configure CC=icc CXX=icpc --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -g -O3' CXXFLAGS='-fPIC -g -O3' --without-java --prefix=/project/projectdirs/m1248/edison/intel";
+  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O -std=c++11' CXXFLAGS='-fPIC -O -std=c++11' --without-java --prefix=/project/projectdirs/m1248/edison/gnu/fastbit";
+  #$cmd="./configure CC=icc CXX=icpc --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -g -O' CXXFLAGS='-fPIC -g -O' --without-java --prefix=/project/projectdirs/m1248/edison/intel/fastbit";
 } elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/) {
   # on the front end of hopper at NERSC, there is a choice to be made about what compiler to use
   # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-pgi PrgEnv-gnu'\n\n";
-  $cmd="./configure --without-getpwuid CFLAGS='-fPIC -O -std=c++11' CXXFLAGS='-fPIC -O -std=c++11' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
-  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
+  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O -std=c++11' CXXFLAGS='-fPIC -O -std=c++11' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
+  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
 } elsif (${HOSTNAME} =~ m/^sith/) {# sith.ccs.ornl.gov
   # on sith at ORNL, try GNU compilers
   $cmd="./configure --prefix=${HOME}/`uname -s`/fastbit/sith-gnu --without-java --enable-xopt --disable-debug"
 } elsif (${HOSTNAME} =~ m/^titan/) {#[-\w+]?[.ornl.gov]?$
   # on titan at ORNL, try GNU compilers
-  $cmd="./configure --prefix=${HOME}/`uname -s`/fastbit/titan-gnu --without-java --enable-xopt --disable-debug --disable-shared --without-getpwuid"
+  $cmd="./configure --prefix=${HOME}/`uname -s`/fastbit/titan-gnu --without-java --enable-xopt --disable-debug --disable-shared --without-getpwuid --with-quiet-nan"
   # on titan at ORNL, need to choose between PGI and GNU compilers
   #$cmd="env CC=pgcc CXX=pgCC ./configure --prefix=${HOME}/`uname -s`/fastbit/tital-pgi --without-java --enable-xopt --disable-debug --disable-shared"
 } elsif (${HOSTNAME} =~ m/^cvr\w+[\.nersc\.gov]?$/) {
   # on carver at NERSC, use the GNU compilers, no debugging
-  $cmd="./configure --without-getpwuid --with-quiet-nan --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver";
+  $cmd="./configure --without-getpwuid --with-quiet-nan --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver/fastbit";
 } elsif (defined $ENV{"NERSC_HOST"}) {
   # on other NERSC machines, use the GNU compilers, no debugging
   use Env qw(NERSC_HOST);
-  $cmd="./configure --prefix=/project/projectdirs/m1248/${NERSC_HOST}/gnu --without-getpwuid --with-quiet-nan --disable-debug --enable-xopt";
-} else {	# based on machine type
-  $HOSTTYPE=`uname`;
-#  if (${HOSTTYPE} =~ m/CYGWIN/i || ${HOSTTYPE} =~ m/MINGW/i) {
-#    $cmd="./configure --prefix=${PWD}/installed CXXFLAGS='-O2 -g -std=gnu++0x -U__STRICT_ANSI__'";
-#  }
-#  else { # default options on generic linux/unix machines
-    $cmd="./configure --prefix=${PWD}/$HOSTTYPE";
-#  }
+  $cmd="./configure --prefix=/project/projectdirs/m1248/${NERSC_HOST}/gnu/fastbit --without-getpwuid --with-quiet-nan --disable-debug --enable-xopt";
+} else {	# use all default options on generic linux/unix machines
+  $cmd="./configure --prefix=${PWD}";
 }
 print "$cmd\n\n";
 system($cmd);
