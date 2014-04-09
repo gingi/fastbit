@@ -415,6 +415,17 @@ whereLexer.cc:1244: error: 'yywrap' was not declared in this scope
 
 ./configure: line 424: test: please: integer expression expected
 
+(17) The configure script will attempt to run executables to determine
+     whether getpwuid or std::numeric_limits<float>::quiet_NaN is
+     present on the system if their presence is not explicitly specified
+     with options --with[out]-getpwuid or --with[out]-quite-nan.  On
+     systems with cross compilers that produce code that are not
+     executable, it is recommend that the configure script carries
+     explicit specificiation of the presence or absence of getpwuid and
+     quite-nan.  On a few known systems, the script runconfig already
+     has recommended command line options for configure script.  They
+     can be used as examples for new systems.
+
 
 
 ----------

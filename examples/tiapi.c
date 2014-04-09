@@ -23,6 +23,13 @@ void usage(const char *name) {
 } /* usage */
 
 /** Generate three arrays of specified sizes.
+ *  The three arrays have the following values:
+ * - a1 has non-negative 16-bit integers going from 0 to 32637 and then
+ *   repeat.
+ * - a2 contains 32-bit even number.  With a large n, these numbers can
+ *   become negative.
+ * - a3 contains 64-bit floating-point numbers that goes from 0 in
+ *   increment of 1/4.
  */
 static void fillarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     for (size_t j = 0; j < n; ++ j) {
@@ -38,16 +45,16 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     double b31 = 2.0, b32 = 3.5;
     long int i, ierr;
     FastBitSelectionHandle h1, h2, h3, h4, h5;
-    h1 = fastbit_create_selection
+    h1 = fastbit_selection_create
         (FastBitDataTypeShort, a1, n, FastBitCompareLess, &b1);
-    ierr = fastbit_estimate_num_hits(h1);
+    ierr = fastbit_selection_estimate(h1);
     if (ierr < 0) {
-        printf("Warning -- fastbit_estimate_num_hits(a1 < %d) returned %ld\n",
+        printf("Warning -- fastbit_selection_estimate(a1 < %d) returned %ld\n",
                 (int)b1, ierr);
     }
-    ierr = fastbit_get_num_hits(h1);
+    ierr = fastbit_selection_evaluate(h1);
     if (ierr < 0) {
-        printf("Warning -- fastbit_get_num_hits(a1 < %d) returned %ld\n",
+        printf("Warning -- fastbit_selection_evaluate(a1 < %d) returned %ld\n",
                 (int)b1, ierr);
     }
     else {
@@ -59,17 +66,17 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             expected = b1;
         expected += b1 * (n >> 15);
         if (ierr != expected)
-            printf("Warning -- fastbit_get_num_hits(a1 < %d) expected %ld, "
+            printf("Warning -- fastbit_selection_evaluate(a1 < %d) expected %ld, "
                    "but got %ld\n", (int)b1, expected, ierr);
         else
-            printf("fastbit_get_num_hits(a1 < %d) returned %ld as expected\n",
+            printf("fastbit_selection_evaluate(a1 < %d) returned %ld as expected\n",
                    (int)b1, ierr);
 
         if (n1 > 0) {
-            ierr = fastbit_read_selection
+            ierr = fastbit_selection_read
                 (FastBitDataTypeShort, a1, n, h1, buf1, n1, 0U);
             if (ierr != n1) {
-                printf("Warning -- fastbit_read_selection expected to read %ld "
+                printf("Warning -- fastbit_selection_read expected to read %ld "
                        "element(s) of a1, but %ld\n", n1, ierr);
             }
             if (ierr > 0) {
@@ -79,10 +86,10 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
                 printf("\n");
             }
 
-            ierr = fastbit_read_selection
+            ierr = fastbit_selection_read
                 (FastBitDataTypeDouble, a3, n, h1, buf3, n1, 0U);
             if (ierr != n1) {
-                printf("Warning -- fastbit_read_selection expected to read %ld "
+                printf("Warning -- fastbit_selection_read expected to read %ld "
                        "element(s) of a3, but %ld\n", n1, ierr);
             }
             if (ierr > 0) {
@@ -95,29 +102,29 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
         free(buf1);
         free(buf3);
     }
-    fastbit_free_selection(h1);
+    fastbit_selection_free(h1);
 
     /* a1 < b1 */
-    h1 = fastbit_create_selection
+    h1 = fastbit_selection_create
         (FastBitDataTypeShort, a1, n, FastBitCompareLess, &b1);
     /* a2 < b2 */
-    h2 = fastbit_create_selection
+    h2 = fastbit_selection_create
         (FastBitDataTypeInt, a2, n, FastBitCompareLessEqual, &b2);
     /* b31 <= a3 < b32 */
-    h3 = fastbit_combine_selections
-        (fastbit_create_selection(FastBitDataTypeDouble, a3, n,
+    h3 = fastbit_selection_combine
+        (fastbit_selection_create(FastBitDataTypeDouble, a3, n,
                                   FastBitCompareGreaterEqual, &b31),
          FastBitCombineAnd,
-         fastbit_create_selection(FastBitDataTypeDouble, a3, n,
+         fastbit_selection_create(FastBitDataTypeDouble, a3, n,
                                   FastBitCompareLess, &b32));
     /* a1 < b1 OR b31 <= a3 < b32 */
-    h4 = fastbit_combine_selections(h1, FastBitCombineOr, h3);
+    h4 = fastbit_selection_combine(h1, FastBitCombineOr, h3);
     /* a2 < b2 AND (a1 < b1 OR b31 <= a3 < b32) */
-    h5 = fastbit_combine_selections(h2, FastBitCombineAnd, h4);
+    h5 = fastbit_selection_combine(h2, FastBitCombineAnd, h4);
 
-    ierr = fastbit_get_num_hits(h5);
+    ierr = fastbit_selection_evaluate(h5);
     if (ierr < 0) {
-        printf("Warning -- fastbit_get_num_hits(...) returned %ld\n", ierr);
+        printf("Warning -- fastbit_selection_evaluate(...) returned %ld\n", ierr);
     }
     else {
         long int n1 = ierr;
@@ -133,17 +140,17 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             }
         }
         if (ierr != expected)
-            printf("Warning -- fastbit_get_num_hits(...) expected %ld, "
+            printf("Warning -- fastbit_selection_evaluate(...) expected %ld, "
                    "but got %ld\n", expected, ierr);
         else
-            printf("fastbit_get_num_hits(...) returned %ld as expected\n",
+            printf("fastbit_selection_evaluate(...) returned %ld as expected\n",
                    ierr);
 
         if (n1 > 0) {
-            ierr = fastbit_read_selection
+            ierr = fastbit_selection_read
                 (FastBitDataTypeShort, a1, n, h5, buf1, n1, 0U);
             if (ierr != n1) {
-                printf("Warning -- fastbit_read_selection expected to read %ld "
+                printf("Warning -- fastbit_selection_read expected to read %ld "
                        "element(s) of a1, but %ld\n", n1, ierr);
             }
             if (ierr > 0) {
@@ -153,10 +160,10 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
                 printf("\n");
             }
 
-            ierr = fastbit_read_selection
+            ierr = fastbit_selection_read
                 (FastBitDataTypeDouble, a3, n, h5, buf3, n1, 0U);
             if (ierr != n1) {
-                printf("Warning -- fastbit_read_selection expected to read %ld "
+                printf("Warning -- fastbit_selection_read expected to read %ld "
                        "element(s) of a3, but %ld\n", n1, ierr);
             }
             if (ierr > 0) {
@@ -170,7 +177,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
         free(buf1);
         free(buf3);
     }
-    fastbit_free_selection(h5);
+    fastbit_selection_free(h5);
 } /* queryarrays */
 
 int main(int argc, char **argv) {
@@ -220,7 +227,7 @@ int main(int argc, char **argv) {
         queryarrays(k, a1, a2, a3);
         // need to clear all cached objects so that we can reuse the same
         // pointers a1, a2, a3
-        fastbit_free_all_iapi_objects();
+        fastbit_iapi_free_all();
     }
     fastbit_cleanup();
     free(a3);

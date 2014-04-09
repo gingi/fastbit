@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [ibis1.3.9.2], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [ibis1.3.9.3], [fastbit-users@hpcrdm.lbl.gov])
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
@@ -192,8 +192,7 @@ if test $TRY_STD_CXX11 -eq 1; then
 			std::hash<const char*>,
 			std::equal_to<const char*> > myhashmap;
 			return (myhashmap.size() == 0);
-			]])], [AC_MSG_RESULT([yes])],[
-
+			]])], [AC_MSG_RESULT([yes])], [
 		AC_MSG_ERROR([$CXX not able to compile a sample code with std::unordered_map using c++11 or c++0x.  Consider using GCC 4.8 or newer])
 	])
 ])
@@ -205,31 +204,35 @@ AC_ARG_WITH(getpwuid,
 	AC_DEFINE(HAVE_GETPWUID, 1, [Set to 1 based on --with-getpwuid])
 	fi],
 	[AC_MSG_CHECKING([for the presence of getpwuid])
-AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
+	 AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
 #include<sys/types.h>
-#include <pwd.h>]],
-[[uid_t id = getuid();
-struct passwd* pw = getpwuid(id);
-if (pw == 0) return -1;]])],
-[AC_DEFINE(HAVE_GETPWUID, 1, [Set to 1 if getpwuid compiles and runs correctly])
-AC_MSG_RESULT(yes)],
-[AC_MSG_RESULT(no)])
-AC_MSG_CHECKING([for the presence of getpwuid_r])
-AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
+#include <pwd.h>
+	 ]],
+	 [[uid_t id = getuid();
+	   struct passwd* pw = getpwuid(id);
+	   if (pw == 0) return -1;
+	 ]])],
+	 [AC_DEFINE(HAVE_GETPWUID, 1, [Set to 1 if getpwuid compiles and runs correctly])
+	    AC_MSG_RESULT(yes)],
+	 [AC_MSG_RESULT(no)])
+	 AC_MSG_CHECKING([for the presence of getpwuid_r])
+	 AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
 #include<sys/types.h>
-#include <pwd.h>]],
-[[uid_t id = getuid();
-struct passwd pw;
-struct passwd *ptr;
-size_t nbuf = sysconf(_SC_GETPW_R_SIZE_MAX);
-char *buf = new char[nbuf];
-if (getpwuid_r(id, &pw, buf, nbuf, &ptr) == 0) return 0;
-else return -1;]])],
-[AC_DEFINE(HAVE_GETPWUID_R, 1, [Set to 1 if getpwuid_r compiles and runs correctly])
-AC_MSG_RESULT(yes)],
-[AC_MSG_RESULT(no)])])
+#include <pwd.h>
+	 ]],
+	 [[uid_t id = getuid();
+	   struct passwd pw;
+	   struct passwd *ptr;
+	   size_t nbuf = sysconf(_SC_GETPW_R_SIZE_MAX);
+	   char *buf = new char[nbuf];
+	   if (getpwuid_r(id, &pw, buf, nbuf, &ptr) == 0) return 0;
+	   else return -1;
+	 ]])],
+	 [AC_DEFINE(HAVE_GETPWUID_R, 1, [Set to 1 if getpwuid_r compiles and runs correctly])
+	  AC_MSG_RESULT(yes)],
+	 [AC_MSG_RESULT(no)])])
 
-AC_ARG_ENABLE(quiet-nan,
+AC_ARG_WITH(quiet-nan,
 	AS_HELP_STRING([--enable-quiet-nan], [attempt use std::numeric_limits<T>::quiet_NaN() as the null value, if not possible, use std::nueric_limits<T>::max() instead]),
 	[if test "$enableval" = "no"; then try_quiet_nan=0;
 	else try_quiet_nan=1; fi],

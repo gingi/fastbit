@@ -84,38 +84,37 @@ extern "C" {
 #endif
 
     /** Create a simple one-sided range condition. */
-    FastBitSelectionHandle fastbit_create_selection
+    FastBitSelectionHandle fastbit_selection_create
     (FastBitDataType, void*, uint64_t, FastBitCompareType, void*);
 
     /** Create a simple one-sided range condition on a n-dimensional array. */
-    FastBitSelectionHandle fastbit_create_selection_nd
+    FastBitSelectionHandle fastbit_selection_create_nd
     (FastBitDataType, void*, uint64_t*, uint64_t, FastBitCompareType, void*);
 
     /** Free the selection object. */
-    void fastbit_free_selection(FastBitSelectionHandle);
-
-    /** Free all cached object for IAPI. */
-    void fastbit_free_all_iapi_objects();
+    void fastbit_selection_free(FastBitSelectionHandle);
 
     /** Combining two selection conditions into one. */
-    FastBitSelectionHandle fastbit_combine_selections
+    FastBitSelectionHandle fastbit_selection_combine
     (FastBitSelectionHandle, FastBitCombineType, FastBitSelectionHandle);
 
     /** Provide an upper bound on the number of hits. */
-    int64_t fastbit_estimate_num_hits(FastBitSelectionHandle);
+    int64_t fastbit_selection_estimate(FastBitSelectionHandle);
 
     /** Compute the number of hits. */
-    int64_t fastbit_get_num_hits(FastBitSelectionHandle);
+    int64_t fastbit_selection_evaluate(FastBitSelectionHandle);
 
     /** Extract the coordinates of the elements of arrays satisfying the
         selection. */
-    int64_t fastbit_get_coordinates
+    int64_t fastbit_selection_get_coordinates
     (FastBitSelectionHandle, uint64_t*, uint64_t, uint64_t);
 
-    /** Read the elements of the array satisfying the selection conditions */
-    int64_t fastbit_read_selection
-    (FastBitDataType, const void*, uint64_t, FastBitSelectionHandle,
-     void*, uint64_t, uint64_t);
+    int64_t fastbit_selection_read
+    (FastBitDataType, const void *, uint64_t, FastBitSelectionHandle,
+     void *, uint64_t, uint64_t);
+
+    /** Free all cached object for IAPI. */
+    void fastbit_iapi_free_all();
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

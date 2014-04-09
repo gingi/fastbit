@@ -1,3 +1,11 @@
+2014-04-08 John Wu <John dot Wu at ACM dot org>
+	* src/iapi.h, src/iapi.cpp: rename the public functions of IAPI to
+	be more consistent, fix a couple of obvious bugs in iapi.cpp
+
+2014-04-07 John Wu <John dot Wu at ACM dot org>
+	* runconfig: add entry for edison, determined that intel CC can
+	not support std::unique_ptr, have to use GNU CC
+
 2014-03-30 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: reverse the change on 3/24, did not spot that
 	fname was deleted once already, the new statement creates a double
