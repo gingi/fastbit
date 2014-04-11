@@ -793,6 +793,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_static_pic
+with_debug
 enable_debug
 enable_xopt
 with_extracflags
@@ -1464,6 +1465,8 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
+  --with-debug=d          add -DDEBUG=d to CFLAGS and CXXFLAGS (default: not
+                          define DEBUG)
   --with-extracflags=extra-cflags
                           specify additional C compilation flags if needed
   --with-extracxxflags=extra-cflags
@@ -15723,8 +15726,22 @@ if test "${enable_static_pic+set}" = set; then :
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable debugging" >&5
-$as_echo_n "checking whether to enable debugging... " >&6; }
+
+# Check whether --with-debug was given.
+if test "${with_debug+set}" = set; then :
+  withval=$with_debug; if "x$with_debug" != "xno" ; then
+	       if "x$with_debug" == "x" ; then
+	         CFLAGS="$CFLAGS -DDEBUG"
+	         CXXFLAGS="$CXXFLAGS -DDEBUG"
+	       else
+	         CFLAGS="$CFLAGS -DDEBUG=$with_debug"
+	         CXXFLAGS="$CXXFLAGS -DDEBUG=$with_debug"
+	       fi
+	     fi
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable debugging (-g)" >&5
+$as_echo_n "checking whether to enable debugging (-g)... " >&6; }
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then :
   enableval=$enable_debug; if test "$enableval" = "yes" ; then debug="yes" ; else debug="no" ; fi
@@ -16746,7 +16763,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16749 "configure" */
+/* #line 16766 "configure" */
 public class Test {
 }
 EOF
@@ -16877,7 +16894,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 16880: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 16897: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -16954,7 +16971,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16957 "configure" */
+/* #line 16974 "configure" */
 public class Test {
 }
 EOF
@@ -16989,7 +17006,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 16992 "configure" */
+/* [#]line 17009 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

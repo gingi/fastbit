@@ -76,7 +76,18 @@ AC_ARG_ENABLE(static-pic,
 	CXXFLAGS="${CXXFLAGS} -static -fPIC"
 	fi])
 
-AC_MSG_CHECKING(whether to enable debugging)
+AC_ARG_WITH(debug,
+	    [AS_HELP_STRING([--with-debug=d], [add -DDEBUG=d to CFLAGS and CXXFLAGS (default: not define DEBUG)])],
+	    [if "x$with_debug" != "xno" ; then
+	       if "x$with_debug" == "x" ; then
+	         CFLAGS="$CFLAGS -DDEBUG"
+	         CXXFLAGS="$CXXFLAGS -DDEBUG"
+	       else
+	         CFLAGS="$CFLAGS -DDEBUG=$with_debug"
+	         CXXFLAGS="$CXXFLAGS -DDEBUG=$with_debug"
+	       fi
+	     fi], [])
+AC_MSG_CHECKING(whether to enable debugging (-g))
 AC_ARG_ENABLE(debug,
               [AS_HELP_STRING([--enable-debug],[turn on debugging (default: set by autoconf)])],
 	      [if test "$enableval" = "yes" ; then debug="yes" ; else debug="no" ; fi],[debug=""])

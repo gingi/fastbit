@@ -1,6 +1,8 @@
 2014-04-11 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.cpp: in function reserve, add call to memset to put
 	0 in the newly allocated memory
+	* configure.ac: add --with-debug=d to control -DDEBUG option in
+	Makefiles (per discussion with Alex Romosan)
 
 2014-04-10 John Wu <John dot Wu at ACM dot org>
 	* examples/tiapi.c: add initialization for nmax and msglvl
