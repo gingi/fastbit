@@ -6242,33 +6242,48 @@ long ibis::bord::column::patternSearch(const char* pat,
 	return -2;
     }
 
-    const array_t<uint32_t>&vals(*static_cast<const array_t<uint32_t>*>(buffer));
-
-    if (pat == 0) { // null string can not match any thing
-	hits.set(0, thePart ? thePart->nRows() : vals.size());
-	return 0;
-    }
-
     ibis::util::timer mytimer(evt.c_str(), 3);
-    hits.clear();
+    if (0 == dic) {
+	const std::vector<std::string>&
+	    vals(*static_cast<const std::vector<std::string>*>(buffer));
 
-    array_t<uint32_t> stri;
-    for (size_t j = 0; j < (*dic).size(); ++ j) {
-	if (ibis::util::strMatch((*dic)[j], pat)) stri.push_back(j);
-    }
-	
-    hits.clear();
-    for (size_t j = 0; j < vals.size(); ++ j) {
-	bool hit = false;
-	for (size_t i = 0; i < stri.size() && hit == false; ++ i) {
-	    hit = (stri[i] == vals[j]);
+	hits.clear();
+	for (size_t j = 0; j < vals.size(); ++ j) {
+	    if (ibis::util::strMatch(vals[j].c_str(), pat))
+		hits.setBit(j, 1);
 	}
-	if (hit) {
-	    hits.setBit(j, 1);
-	}
-    }
 
-    hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+	hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    }
+    else {
+        const array_t<uint32_t>&vals(*static_cast<const array_t<uint32_t>*>(buffer));
+
+        if (pat == 0) { // null string can not match any thing
+            hits.set(0, thePart ? thePart->nRows() : vals.size());
+            return 0;
+        }
+
+        hits.clear();
+
+        array_t<uint32_t> stri;
+        for (size_t j = 0; j < (*dic).size(); ++ j) {
+            if (ibis::util::strMatch((*dic)[j], pat))
+                stri.push_back(j);
+        }
+
+        hits.clear();
+        for (size_t j = 0; j < vals.size(); ++ j) {
+            bool hit = false;
+            for (size_t i = 0; i < stri.size() && hit == false; ++ i) {
+                hit = (stri[i] == vals[j]);
+            }
+            if (hit) {
+                hits.setBit(j, 1);
+            }
+        }
+
+        hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
+    }
     return hits.cnt();
 } // ibis::bord::column::patternSearch
 

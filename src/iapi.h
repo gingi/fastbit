@@ -105,7 +105,7 @@ extern "C" {
     int64_t fastbit_selection_evaluate(FastBitSelectionHandle);
 
     /** Extract the coordinates of the elements of arrays satisfying the
-        selection. */
+        selection conditions. */
     int64_t fastbit_selection_get_coordinates
     (FastBitSelectionHandle, uint64_t*, uint64_t, uint64_t);
 

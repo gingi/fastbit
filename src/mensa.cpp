@@ -2283,8 +2283,6 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
 		const ibis::column* col = dp.getColumn(cn);
 		if (col == 0)
 		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
 
 		size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
