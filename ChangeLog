@@ -1,3 +1,9 @@
+2014-04-10 Zhongbo Tian <windreamer at gmail dot com>
+	* src/bord.cpp: add code to handle string valued column
+	(in-memory) without a dictionary
+	* src/mensa.cpp: remove call to getValuesArray on string-valued
+	columns
+
 2014-04-08 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.h, src/iapi.cpp: rename the public functions of IAPI to
 	be more consistent, fix a couple of obvious bugs in iapi.cpp

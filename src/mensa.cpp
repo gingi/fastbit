@@ -2248,29 +2248,29 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
         break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
-        std::string tmp;
-        uint64_t irow = 0;
-        for (ibis::partList::const_iterator it = parts.begin();
-             it != parts.end() && irow < end; ++ it) {
-            const ibis::part& dp = **it;
-            if (irow + dp.nRows() > begin) {
-                const ibis::column* col = dp.getColumn(cn);
-                if (col == 0)
-                    return -3;
+	std::string tmp;
+	uint64_t irow = 0;
+	for (ibis::partList::const_iterator it = parts.begin();
+	     it != parts.end() && irow < end; ++ it) {
+	    const ibis::part& dp = **it;
+	    if (irow + dp.nRows() > begin) {
+		const ibis::column* col = dp.getColumn(cn);
+		if (col == 0)
+		    return -3;
 
-                size_t i0 = (begin > irow ? begin - irow : 0);
-                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-                                   end-irow);
-                while (i0 < i1) {
-                    static_cast<const ibis::text*>(col)->getString(i0, tmp);
-                    vals[ival] = tmp;
-                    ++ ival;
-                    ++ i0;
-                }
-            }
-            irow += dp.nRows();
-        }
-        break;}
+		size_t i0 = (begin > irow ? begin - irow : 0);
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+				   end-irow);
+		while (i0 < i1) {
+		    static_cast<const ibis::text*>(col)->getString(i0, tmp);
+		    vals[ival] = tmp;
+		    ++ ival;
+		    ++ i0;
+		}
+	    }
+	    irow += dp.nRows();
+	}
+	break;}
     default:
         return -2;
     }

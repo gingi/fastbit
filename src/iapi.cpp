@@ -1196,6 +1196,13 @@ extern "C" int64_t fastbit_selection_read
     return ierr;
 } // fastbit_selection_read
 
+/// @arg h    the query handle.
+/// @arg buf  buffer to carry the output coordinates.
+/// @arg nbuf number of elements in the given buffer.
+/// @arg skip number of selected points to be skip before the coordinates
+///           are placed in @c buf.  This is necessary if the incoming
+///           buffer is too small to hold all the points and the caller has
+///           to invoke this function repeatedly.
 /// 
 /// The shape of the array is determined by shape of the array in the first
 /// (left-most) selection condition tree.  The implicit assumption is that
