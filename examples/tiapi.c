@@ -182,9 +182,9 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
 } /* queryarrays */
 
 int main(int argc, char **argv) {
-    long int k, nmax;
-    int ierr, msglvl;
-    const char *conffile = 0;
+    long int k, nmax=1000;
+    int ierr, msglvl=0;
+    const char *conffile=0;
     int16_t *a1;
     int32_t *a2;
     double  *a3;
@@ -193,9 +193,6 @@ int main(int argc, char **argv) {
         ierr = sscanf(argv[1], "%lf", &tmp);
         if (ierr == 1) {
             nmax = tmp;
-        }
-        else {
-            nmax = 1000;
         }
     }
     if (argc > 2) {
