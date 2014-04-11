@@ -1501,7 +1501,8 @@ void ibis::array_t<T>::resize(size_t n) {
 ///
 /// @note If the underlying storage could not be modified (i.e., is
 /// read-only), new storage will be allocated regardless of the current
-/// available storage.
+/// available storage.  In this case, the newly reserved piece of memory
+/// will be at least as large as the existing one.
 template<class T>
 void ibis::array_t<T>::reserve(size_t n) {
     if (n > 0x7FFFFFFFU) {
@@ -1516,15 +1517,17 @@ void ibis::array_t<T>::reserve(size_t n) {
     size_t n0 = 0;
     if (actual != 0)
         n0 = (reinterpret_cast<T const *>(actual->end()) - m_begin);
-    if (m_begin != 0 && m_end > m_begin) { // a valid existing array
+    if (m_begin != 0 && m_end >= m_begin) { // a valid existing array
 	if (n > n0 || (actual != 0 && actual->filename() != 0)) {
 	    // attempt to allocate new storage space
 	    n0 = (m_end-m_begin);
-	    if (n < n0) n = n0 + 1;
+	    if (n < n0) n = n0;
 	    std::unique_ptr<ibis::fileManager::storage>
 		tmp(new ibis::fileManager::storage(n*sizeof(T)));
 	    if (tmp.get() != 0) { // copy and swap
 		(void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));
+                if (n > n0)
+                    memset(tmp->begin()+n0*sizeof(T), 0, (n-n0)*sizeof(T));
 		freeMemory(); // free the old content
 		actual = tmp.release();
 		actual->beginUse();
@@ -1541,6 +1544,7 @@ void ibis::array_t<T>::reserve(size_t n) {
     else {
 	freeMemory(); // just in case actual is not nil
 	actual = new ibis::fileManager::storage(n*sizeof(T));
+        (void) memset(actual->begin(), 0, n*sizeof(T));
 	actual->beginUse();
 	m_begin = (T*)(actual->begin());
 	m_end = m_begin;

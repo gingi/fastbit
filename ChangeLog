@@ -1,3 +1,12 @@
+2014-04-11 John Wu <John dot Wu at ACM dot org>
+	* src/array_t.cpp: in function reserve, add call to memset to put
+	0 in the newly allocated memory
+
+2014-04-10 John Wu <John dot Wu at ACM dot org>
+	* examples/tiapi.c: add initialization for nmax and msglvl
+	* src/index.cpp: regenerate an in-memory bitvector (of all 0s)
+	when the index file does not record anything for the bitvector
+
 2014-04-10 Zhongbo Tian <windreamer at gmail dot com>
 	* src/bord.cpp: add code to handle string valued column
 	(in-memory) without a dictionary
@@ -26,7 +35,7 @@
 	* src/dictionary.cpp: add timer to ibis::dictionary::write to
 	mirror the timer in ibis::dictionary::read
 
-2014-03-17 Sean McNamara <Sean.McNamara@Webtrends.com>
+2014-03-17 Sean McNamara <Sean.McNamara at Webtrends dot com>
 	* configure.ac: fix problem with AC_MSG_ERROR, add test to try
 	c++0x when c++11 is not available
 

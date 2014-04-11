@@ -1242,8 +1242,10 @@ ibis::index::index(const ibis::column* c, ibis::fileManager::storage* s) :
 /// Free the bitmap objectes common to all index objects.
 void ibis::index::clear() {
     if (bits.size() > 0) {
-        LOGGER(ibis::gVerbose > 7 && col != 0)
-            << "clearing index on column " << col->name();
+        LOGGER(ibis::gVerbose > 6 && col != 0)
+            << "clearing " << bits.size() << "bit vector"
+            << (bits.size()>1?"s":"") << " associated with column "
+            << col->name();
         for (uint32_t i = 0; i < bits.size(); ++ i) {
             delete bits[i];
             bits[i] = 0;
@@ -4457,6 +4459,10 @@ void ibis::index::activate() const {
                     bits[i] = new ibis::bitvector(a);
                     bits[i]->sloppySize(nrows);
                 }
+                else if (bits[i] == 0) {
+                    bits[i] = new ibis::bitvector();
+                    bits[i]->set(0, nrows);
+                }
             }
         }
         else { // using the named file directly
@@ -4529,6 +4535,10 @@ void ibis::index::activate() const {
                     a(str, offset32[i], offset32[i+1]);
                 bits[i] = new ibis::bitvector(a);
                 bits[i]->sloppySize(nrows);
+            }
+            else if (bits[i] == 0) {
+                bits[i] = new ibis::bitvector();
+                bits[i]->set(0, nrows);
             }
         }
     }
@@ -4616,7 +4626,8 @@ void ibis::index::activate(uint32_t i) const {
 
     if (offset64.size() > bits.size()) {
         if (offset64[i+1] <= offset64[i]) {
-            return;
+            bits[i] = new ibis::bitvector();
+            bits[i]->set(0, nrows);
         }
         else if (str) { // using a ibis::fileManager::storage as back store
             LOGGER(ibis::gVerbose > 5)
@@ -4664,7 +4675,8 @@ void ibis::index::activate(uint32_t i) const {
         }
     }
     else if (offset32[i+1] <= offset32[i]) {
-        return;
+        bits[i] = new ibis::bitvector();
+        bits[i]->set(0, nrows);
     }
     else if (str) { // using a ibis::fileManager::storage as back store
         LOGGER(ibis::gVerbose > 5)
@@ -4772,6 +4784,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                     bits[i] = new ibis::bitvector(a);
                     bits[i]->sloppySize(nrows);
                 }
+                else if (bits[i] == 0) {
+                    bits[i] = new ibis::bitvector();
+                    bits[i]->set(0, nrows);
+                }
                 ++ i;
             }
         }
@@ -4849,6 +4865,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                     a(str, offset32[i], offset32[i+1]);
                 bits[i] = new ibis::bitvector(a);
                 bits[i]->sloppySize(nrows);
+            }
+            else if (bits[i] == 0) {
+                bits[i] = new ibis::bitvector();
+                bits[i]->set(0, nrows);
             }
             ++ i;
         }
