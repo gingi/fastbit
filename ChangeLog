@@ -1,3 +1,7 @@
+2014-04-14 John Wu <John dot Wu at ACM dot org>
+y	* src/index.cpp: regenerate empty bitmaps when reading from a file
+	(the changes on 4/10 neglected some branches of the activate functions)
+
 2014-04-11 John Wu <John dot Wu at ACM dot org>
 	* src/array_t.cpp: in function reserve, add call to memset to put
 	0 in the newly allocated memory

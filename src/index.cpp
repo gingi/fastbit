@@ -4688,6 +4688,10 @@ void ibis::index::activate() const {
                             bits[i] = new ibis::bitvector(a1);
                             bits[i]->sloppySize(nrows);
                         }
+                        else if (bits[i] == 0) {
+                            bits[i] = new ibis::bitvector();
+                            bits[i]->set(0, nrows);
+                        }
                         ++ i;
                     }
                 }
@@ -4763,6 +4767,10 @@ void ibis::index::activate() const {
                             a1(a0, offset32[i]-start, offset32[i+1]-start);
                         bits[i] = new ibis::bitvector(a1);
                         bits[i]->sloppySize(nrows);
+                    }
+                    else if (bits[i] == 0) {
+                        bits[i] = new ibis::bitvector();
+                        bits[i]->set(0, nrows);
                     }
                     ++ i;
                 }
@@ -5019,6 +5027,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                                 bits[i] = new ibis::bitvector(a1);
                                 bits[i]->sloppySize(nrows);
                             }
+                            else if (bits[i] == 0) {
+                                bits[i] = new ibis::bitvector();
+                                bits[i]->set(0, nrows);
+                            }
                             ++ i;
                         }
                     }
@@ -5096,6 +5108,10 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                                 a1(a0, offset32[i]-start, offset32[i+1]-start);
                             bits[i] = new ibis::bitvector(a1);
                             bits[i]->sloppySize(nrows);
+                        }
+                        else if (bits[i] == 0) {
+                            bits[i] = new ibis::bitvector();
+                            bits[i]->set(0, nrows);
                         }
                         ++ i;
                     }
