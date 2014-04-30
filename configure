@@ -2510,10 +2510,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #AC_PACKAGE_URL(http://sdm.lbl.gov/fastbit/)
 
 
+
 ac_config_headers="$ac_config_headers src/fastbit-config.h"
-
-
-$as_echo "#define PACKAGE_URL \"http://sdm.lbl.gov/fastbit/\"" >>confdefs.h
 
 am__api_version='1.14'
 
@@ -16869,7 +16867,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16766 "configure" */
+/* #line 16764 "configure" */
 public class Test {
 }
 EOF
@@ -17000,7 +16998,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 16897: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 16895: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -17077,7 +17075,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16974 "configure" */
+/* #line 16972 "configure" */
 public class Test {
 }
 EOF
@@ -17112,7 +17110,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 17009 "configure" */
+/* [#]line 17007 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

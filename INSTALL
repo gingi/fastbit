@@ -376,6 +376,13 @@ whereLexer.cc:1244: error: 'yywrap' was not declared in this scope
      has recommended command line options for configure script.  They
      can be used as examples for new systems.
 
+(18) On mira at ALCF, use the bgclang toolchain for compilation by place
+     the following line in .soft (comment other toolchains)
++mpiwrapper-bgclang
+     and specify 'env CC=bgclang CXX=bgclang++11' before running
+     configure script.  Alternatively run the perl script runconfig.
+
+
 
 
 ----------

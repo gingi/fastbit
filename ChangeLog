@@ -1,5 +1,11 @@
+2014-04-29 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp: in bin::parsePrec, change the default precision to
+	2 digits; in constructors of ibis::bin, change index spec of nil
+	pointer, empty string, "automatic" or "default" to invoke
+	mapGranule, which effectively means <binning precision=2/>
+
 2014-04-14 John Wu <John dot Wu at ACM dot org>
-y	* src/index.cpp: regenerate empty bitmaps when reading from a file
+	* src/index.cpp: regenerate empty bitmaps when reading from a file
 	(the changes on 4/10 neglected some branches of the activate functions)
 
 2014-04-11 John Wu <John dot Wu at ACM dot org>

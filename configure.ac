@@ -5,6 +5,7 @@ AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
 AC_INIT([FastBit], [ibis1.3.9.4], [fastbit-users@hpcrdm.lbl.gov])
+AC_PACKAGE_URL("http://sdm.lbl.gov/fastbit/")
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
 AC_CONFIG_HEADER([src/fastbit-config.h])
