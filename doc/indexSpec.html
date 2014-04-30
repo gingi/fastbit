@@ -79,15 +79,19 @@ one of the following where the separator can be either space or comma
 and no space is allowed around equal signs
 
 <DL>
+<DT>&#8226;&nbsp;<code>default</code>
+
+<dd> The default binning option is to generate bins with 2-digit
+  precision bin boundaries, which is equivalent to <code>&lt;binning
+  precision=2 /&gt;</code>.
+  
+<dd> <em>NOTE</em>: leaving binning option blank (<code>&lt;binning
+      /&gt;</code>) is equivalent to this default binning option.
+
 <DT>&#8226;&nbsp;<code>none</code>
 
 <dd> Don't use bins, produce one bitmap for each distinct attribute
       value.
-
-<dd> <em>NOTE</em>: leaving binning option blank (<code>&lt;binning
-      /&gt;</code>) or not specifying the option is equivalent to have
-      <code>&lt;binning nbins=10000 /&gt;</code>, which causes 10000
-      nearly-equal-weight bins to be used.
 
 <DT>&#8226;&nbsp;<code>[nbins=xxx, ]binFile="xxx"</code>
 
@@ -382,10 +386,12 @@ ibis::direkte and is invoked through ibis::index::create.
 
 <A name="suggestions"><H3>Some Suggestions</H3></A>
 <ol>
-<li>Before you try to specify any explicit indexing options, just leave
-it blank or not specified any indexing options at all.  This invokes the
-default options in FastBit, which has been tuned to some extend and can
-work reasonably well.</li>
+  
+<li>The first option to try might be to just leave it blank or not
+specified any indexing options at all.  This invokes the default option
+in FastBit, which has been tuned to some extend and can work reasonably
+well.  Of course, as you get to know you data and queries better, you
+might want to specify something a little more intelligent.</li>
 <br>
 
 <p>The key parameter to consider when deciding what indexing option to

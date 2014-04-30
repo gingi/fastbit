@@ -2471,8 +2471,18 @@ void ibis::bin::construct(const char* df) {
 	    << ", assume the data is already in memory";
     }
 
-    if (spec != 0 &&
-	(strstr(spec, "precision=") || strstr(spec, "prec="))) {
+    bool grn = (spec == 0 || *spec == 0 || strstr(spec, "precision=") != 0 ||
+                strstr(spec, "prec=") != 0 || strstr(spec, "automatic") != 0 ||
+                strstr(spec, "default") != 0);
+    if (grn == false && spec != 0 && *spec != 0) {
+        const char *str = strstr(spec, "<binning ");
+        if (str != 0) {    
+            str += 9;
+            while (str != 0 && isspace(*str) != 0) ++ str;
+            grn = (*str == 0 || *str == '>' || (*str == '/' && str[1] == '>'));
+        }
+    }
+    if (grn) {
 	// <binning precision=d /> or <binning prec=d />
 #if 0
 	ibis::bak2 tmp(col, df);
@@ -2789,8 +2799,18 @@ void ibis::bin::construct(const array_t<E>& varr) {
     if (varr.empty()) return; // can not do anything with an empty array
 
     const char* spec = col->indexSpec();
-    if (spec != 0 &&
-	(strstr(spec, "precision=") || strstr(spec, "prec="))) {
+    bool grn = (spec == 0 || *spec == 0 || strstr(spec, "precision=") != 0 ||
+                strstr(spec, "prec=") != 0 || strstr(spec, "automatic") != 0 ||
+                strstr(spec, "default") != 0);
+    if (grn == false && spec != 0 && *spec != 0) {
+        const char *str = strstr(spec, "<binning ");
+        if (str != 0) {
+            str += 9;
+            while (str != 0 && isspace(*str) != 0) ++ str;
+            grn = (*str == 0 || *str == '>' || (*str == '/' && str[1] == '>'));
+        }
+    }
+    if (grn) {
 	// <binning precision=d /> or <binning prec=d />
 	granuleMap gmap;
 	mapGranules(varr, gmap);
@@ -3858,8 +3878,8 @@ unsigned ibis::bin::parsePrec(const ibis::column &c) {
 		prec = static_cast<unsigned>(strtod(str, 0));
 	}
     }
-    if (prec == 0) // default to 1 digit precision
-	prec = 1;
+    if (prec == 0) // default to 2 digit precision
+	prec = 2;
     return prec;
 } // ibis::bin::parsePrec
 

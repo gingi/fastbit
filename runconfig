@@ -36,6 +36,10 @@ if (${HOSTNAME} =~ m/^bit/) {
   $cmd="./configure --prefix=${HOME}/`uname -s`/fastbit/titan-gnu --without-java --enable-xopt --disable-debug --disable-shared --without-getpwuid --with-quiet-nan"
   # on titan at ORNL, need to choose between PGI and GNU compilers
   #$cmd="env CC=pgcc CXX=pgCC ./configure --prefix=${HOME}/`uname -s`/fastbit/tital-pgi --without-java --enable-xopt --disable-debug --disable-shared"
+} elsif (${HOSTNAME} =~ m/^mira/) {# mira at ALCF
+  # need bgclang
+  print "\nPlease use +mpiwrapper-bgclang in .soft\n\n";
+  $cmd="env CC=bgclang CXX=bgclang++11 ./configure --prefix=${HOME}/`uname -s`/fastbit/sith-gnu --without-java --disable-debug"
 } elsif (${HOSTNAME} =~ m/^cvr\w+[\.nersc\.gov]?$/) {
   # on carver at NERSC, use the GNU compilers, no debugging
   $cmd="./configure --without-getpwuid --with-quiet-nan --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver/fastbit";
