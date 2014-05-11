@@ -344,9 +344,10 @@ public:
     static void sumBits(const array_t<bitvector*>& bits,
 			const ibis::bitvector& tot, uint32_t ib, uint32_t ie,
 			ibis::bitvector& res);
-    // a static function to assign bases for multicomponent schemes
+
     static void setBases(array_t<uint32_t>& bases, uint32_t card,
 			 uint32_t nbase = 2);
+    static void printHeader(std::ostream&, const char*);
 
 protected:
     // shared members for all indexes
@@ -412,8 +413,6 @@ protected:
 		    uint32_t nobs);
     void initBitmaps(int fdes);
     void initBitmaps(ibis::fileManager::storage* st);
-
-    void printHeader(std::ostream&, const char*) const;
 
     class barrel;
 

@@ -345,7 +345,7 @@ int ibis::bin::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- bin[" << (col ? col->fullname() : 0)
+	    lg() << "Warning -- bin[" << (col ? col->fullname() : "?.?")
                  << "]::read the header from " << fnm << " (";
 	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
@@ -402,7 +402,7 @@ int ibis::bin::read(const char* f) {
     initBitmaps(fdes);
 
     LOGGER(ibis::gVerbose > 3)
-	<< "bin[" << (col ? col->fullname() : 0) << "]::read(" << fnm
+	<< "bin[" << (col ? col->fullname() : "?.?") << "]::read(" << fnm
         << ") finished reading index header (type " << (int) header[5]
         << ") with nrows=" << nrows << " and nobs=" << nobs;
     return 0;
@@ -471,8 +471,8 @@ int ibis::bin::read(int fdes, size_t start,
     initBitmaps(fdes);
 
     LOGGER(ibis::gVerbose > 3)
-	<< "bin[" << (col ? col->fullname() : 0) << "]::read(" << fdes << ", "
-	 << start << ") finished reading index header (type "
+	<< "bin[" << (col ? col->fullname() : "?.?") << "]::read(" << fdes
+        << ", " << start << ") finished reading index header (type "
 	<< (int) header[5] << ") with nrows=" << nrows << " and nobs=" << nobs;
     return 0;
 } // ibis::bin::read
@@ -561,10 +561,9 @@ uint32_t ibis::bin::locate(const double& val) const {
 	    it = (i0 + i1) / 2;
 	}
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	col->logMessage("bin::locate", "element %lu (%g) out of %lu is no "
-			"less than %g",
-			static_cast<long unsigned>(i1), bounds[i1],
-			static_cast<long unsigned>(bounds.size()), val);
+	LOGGER(ibis::gVerbose > 5)
+            << "bin::locate -- element " << i1 << " (" << bounds[i1]
+            << ") out of " << bounds.size() << " is no less than " << val;
 #endif
 	LOGGER(ibis::gVerbose > 10)
 	    << "column[" << (col ? col->fullname() : "?.?")
@@ -585,9 +584,9 @@ uint32_t ibis::bin::locate(const double& val) const {
                     << val;
 #endif
 		LOGGER(ibis::gVerbose > 10)
-		    << "column[" << col->fullname() << "]::bin::locate -- "
-		    << std::setprecision(16) << val << " in ["
-		    << std::setprecision(16) << bounds[i-1] << ", "
+		    << "column[" << (col ? col->fullname() : "?.?")
+		    << "]::bin::locate -- " << std::setprecision(16) << val
+		    << " in [" << std::setprecision(16) << bounds[i-1] << ", "
 		    << std::setprecision(16) << bounds[i] << ") ==> " << i;
 		return i;
 	    }
@@ -602,6 +601,7 @@ uint32_t ibis::bin::locate(const double& val) const {
 /// @note This function does not attempt to clear the content of the
 /// current data structure, the caller is responsible for this task!
 void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
+    if (col == 0) return;
     if (bd.size() <= 2) {
 	// bd has no valid values, parse bin spec in a minimal way
 	setBoundaries(f);
@@ -657,6 +657,7 @@ void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
 } // ibis::bin::binning (specified bin boundaries)
 
 void ibis::bin::binning(const char* f, const array_t<double>& bd) {
+    if (col == 0) return;
     if (bd.size() <= 2) {
 	// bd has no valid values, parse bin spec in a minimal way
 	setBoundaries(f);
@@ -1855,14 +1856,14 @@ long ibis::bin::binOrderT(const char* basename) const {
     fnm += ".bin";
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-	if (ibis::gVerbose > -1)
-	    col->logMessage("bin::binOrder", "unable to open file \"%s\" "
-			    "for writing", fnm.c_str());
+        LOGGER(ibis::gVerbose > -1)
+	    << "bin::binOrder is unable to open file \"" << fnm
+            << "\" for writing";
 	ierr = -2;
 	return ierr;
     }
     std::ostringstream mesg;
-    mesg << "column[" << col->fullname() << "]::bin::binOrder<"
+    mesg << "column[" << (col ? col->fullname() : "?.?") << "]::bin::binOrder<"
          << typeid(E).name() << ">(" << fnm << ")";
     ibis::util::timer timer(mesg.str().c_str(), 3);
 
@@ -1936,27 +1937,23 @@ long ibis::bin::checkBin0(const ibis::qRange& cmp, uint32_t jbin,
     pos[0] = sizeof(uint32_t)+jbin*sizeof(int32_t);
     ierr = UnixSeek(fdes, pos[0], SEEK_SET);
     if (ierr != pos[0]) {
-	if (ibis::gVerbose > 0)
-	    col->logWarning("bin::checkBin0", "failed to seek to %ld in %s",
-			    static_cast<long int>(pos[0]), fnm.c_str());
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::checkBin0 failed to seek to " << pos[0]
+            << " in " << fnm;
 	UnixClose(fdes);
 	return -3;
     }
     ierr = UnixRead(fdes, pos, 2*sizeof(int32_t));
     if (ierr < static_cast<long>(2*sizeof(int32_t)) || pos[1] <= pos[0]) {
 	if (ibis::gVerbose > 0) {
+            ibis::util::logger lg;
+            lg() << "Warning -- bin::checkBin0 ";
 	    if (ierr < static_cast<long>(2*sizeof(int32_t)))
-		col->logWarning("bin::checkBin0", "failed to read the "
-				"starting position for bin %lu in %s",
-				static_cast<long unsigned>(jbin),
-				fnm.c_str());
+		lg() << "failed to read the starting position for bin "
+                     << jbin << " from " << fnm;
 	    else if (pos[1] < pos[0])
-		col->logWarning("bin::checkBin0", "starting position of "
-				"bin %lu [%lu] is larger than the end "
-				"position [%lu]",
-				static_cast<long unsigned>(jbin),
-				static_cast<long unsigned>(pos[0]),
-				static_cast<long unsigned>(pos[1]));
+		lg() << "encountered bad starting positions (" << pos[0] << ", "
+                     << pos[1] << ") for bin " << jbin;
 	}
 	ierr = UnixClose(fdes);
 	return ierr;
@@ -1965,11 +1962,9 @@ long ibis::bin::checkBin0(const ibis::qRange& cmp, uint32_t jbin,
     array_t<E> vals(fdes, pos[0], pos[1]); // read in the values
     UnixClose(fdes);
     if (vals.size() != bits[jbin]->cnt()) { // bad bin file?
-	if (ibis::gVerbose > 0)
-	    col->logWarning("bin::checkBin0", "expected %lu values, but "
-			    "got %lu",
-			    static_cast<long unsigned>(bits[jbin]->cnt()),
-			    static_cast<long unsigned>(vals.size()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::checkBin0 expected " << bits[jbin]->cnt()
+            << " values, but got " << vals.size();
 	ierr = -3;
 	return ierr;
     }
@@ -2025,27 +2020,23 @@ long ibis::bin::checkBin1(const ibis::qRange& cmp, uint32_t jbin,
     pos[0] = sizeof(uint32_t)+jbin*sizeof(int32_t);
     ierr = UnixSeek(fdes, pos[0], SEEK_SET);
     if (ierr != pos[0]) {
-	if (ibis::gVerbose > 0)
-	    col->logWarning("bin::checkBin1", "failed to seek to %ld in %s",
-			    static_cast<long int>(pos[0]), fnm.c_str());
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::checkBin1 failed to seek to " << pos[0]
+            << " in " << fnm;
 	UnixClose(fdes);
 	return -3;
     }
     ierr = UnixRead(fdes, pos, 2*sizeof(int32_t));
     if (ierr < static_cast<long>(2*sizeof(int32_t)) || pos[1] <= pos[0]) {
 	if (ibis::gVerbose > 0) {
+            ibis::util::logger lg;
+            lg() << "Warning -- bin::checkBin1 ";
 	    if (ierr < static_cast<long>(2*sizeof(int32_t)))
-		col->logWarning("bin::checkBin1", "failed to read the "
-				"starting position for bin %lu in %s",
-				static_cast<long unsigned>(jbin),
-				fnm.c_str());
+		lg() << "failed to read the starting position for bin " << jbin
+                     << " from " << fnm;
 	    else if (pos[1] < pos[0])
-		col->logWarning("bin::checkBin1", "starting position of "
-				"bin %lu [%lu] is larger than the end "
-				"position [%lu]",
-				static_cast<long unsigned>(jbin),
-				static_cast<long unsigned>(pos[0]),
-				static_cast<long unsigned>(pos[1]));
+		lg() << "encountered bad starting position (" << pos[0] << ", "
+                     << pos[1] << ") for bin " << jbin;
 	}
 	ierr = UnixClose(fdes);
 	return ierr;
@@ -2054,10 +2045,9 @@ long ibis::bin::checkBin1(const ibis::qRange& cmp, uint32_t jbin,
     array_t<E> vals(fdes, pos[0], pos[1]); // read in the values
     UnixClose(fdes);
     if (vals.size() != mask.cnt()) { // bad bin file?
-	if (ibis::gVerbose > 0)
-	    col->logWarning("bin::checkBin1", "expected %lu values, but "
-			    "got %lu", static_cast<long unsigned>(mask.cnt()),
-			    static_cast<long unsigned>(vals.size()));
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bin::checkBin1 expected " << mask.cnt()
+            << " values, but got " << vals.size();
 	ierr = -3;
 	return ierr;
     }
@@ -2086,6 +2076,7 @@ long ibis::bin::checkBin1(const ibis::qRange& cmp, uint32_t jbin,
 long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 			 ibis::bitvector& res) const {
     res.clear();
+    if (col == 0) return -1;
     long ierr = 0;
     if (jbin > nobs) { // out of range, no hits
 	return ierr;
@@ -2172,6 +2163,7 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector& res) const {
     res.clear();
+    if (col == 0) return -1;
     long ierr = 0;
     if (jbin > nobs) { // out of range, no hits
 	return ierr;
@@ -2798,7 +2790,7 @@ template <typename E>
 void ibis::bin::construct(const array_t<E>& varr) {
     if (varr.empty()) return; // can not do anything with an empty array
 
-    const char* spec = col->indexSpec();
+    const char* spec = (col ? col->indexSpec() : static_cast<const char*>(0));
     bool grn = (spec == 0 || *spec == 0 || strstr(spec, "precision=") != 0 ||
                 strstr(spec, "prec=") != 0 || strstr(spec, "automatic") != 0 ||
                 strstr(spec, "default") != 0);
@@ -2824,7 +2816,7 @@ void ibis::bin::construct(const array_t<E>& varr) {
     optionalUnpack(bits, spec);
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
-	lg() << "bin[" << col->fullname()
+	lg() << "bin[" << (col ? col->fullname() : "?.?")
 	     << "]::construct<" << typeid(E).name() << '[' << varr.size()
 	     << "]> -- finished constructing a simple equality index with "
 	     << nobs << " bin" << (nobs>1?"s":"");
@@ -2837,7 +2829,7 @@ void ibis::bin::construct(const array_t<E>& varr) {
 
 template <typename E>
 void ibis::bin::setBoundaries(const array_t<E>& varr) {
-    if (varr.empty() || col == 0) return; // can not do anything
+    if (varr.empty()) return; // can not do anything
 
     unsigned eqw = parseScale(*col);
 
@@ -2846,9 +2838,11 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 	scanAndPartition(varr, eqw);
     }
     else { // other type of specifications
-	const char* spec = col->indexSpec();
+	const char* spec = (col ? col->indexSpec() : 0);
 	const char* str = (spec ? strstr(spec, "<binning ") : 0);
 	E vmin = 0, vmax = 0; // to store the computed min/max from varr
+        ibis::bitvector mask;
+        mask.set(1, varr.size());
 	if (str != 0) {
 	    // new style of bin specification <binning ... />
 	    // start=xx, end=xx, nbins=xx, scale=linear|log
@@ -2881,7 +2875,8 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 			    if (r1 > r0)
 				r0 = r1;
 			    else
-				r0 = col->lowerBound();
+				r0 = (col ? col->lowerBound() :
+                                      ibis::column::computeMin(varr, mask));
 			    LOGGER(ibis::gVerbose > 1)
 				<<"Warning -- bin::setBoundaries encountered a "
 				"bad indexing option \"" << str
@@ -2901,7 +2896,8 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 			if (r1 > r0)
 			    r0 = r1;
 			else
-			    r0 = col->lowerBound();
+			    r0 = (col ? col->lowerBound() :
+                                  ibis::column::computeMin(varr, mask));
 			progress |= 1;
 			if (ibis::gVerbose > 1)
 			    ibis::util::logMessage
@@ -2915,7 +2911,8 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		    ptr = str + 4;
 		    r1 = strtod(ptr, &ptr2);
 		    if (r1 == 0.0 && ptr == ptr2) {
-			r1 = col->upperBound();
+			r1 = (col ? col->upperBound() :
+                              ibis::column::computeMax(varr, mask));
 			LOGGER(ibis::gVerbose > 1)
 			    <<"Warning -- bin::setBoundaries encountered a "
 			    "bad indexing option \"" << str
@@ -2951,10 +2948,10 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 			progress |= 7;
 		    }
 		    else {
-			col->logWarning("index::setBoundaries",
-					"labeled elements must appear "
-					"after the unlabeled ones -- "
-					"skipping value %g", tmp);
+			LOGGER(ibis::gVerbose > 0)
+                            << "Warning -- index::setBoundaries encountered "
+                            "a syntax error: labeled elements must appear "
+                            "after the unlabeled ones -- skipping value " << tmp;
 		    }
 		}
 		else if (*str == 'l' || *str == 'L') {
@@ -2985,9 +2982,11 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		if (add) {
 		    if (binfile.empty()) {
 			if ((progress & 1) == 0)
-			    r0 = col->lowerBound();
+			    r0 = (col ? col->lowerBound() :
+                                  ibis::column::computeMin(varr, mask));
 			if ((progress & 2) == 0)
-			    r1 = col->upperBound();
+			    r1 = (col ? col->upperBound() :
+                                  ibis::column::computeMax(varr, mask));
 			if ((progress & 4) == 0)
 			    nb = (longSpec ? 1 : IBIS_DEFAULT_NBINS);
 			if (r0 > r1 && (progress & 3) < 3) {
@@ -3037,7 +3036,8 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		    ++ ptr;
 		str = strpbrk(ptr, ",; \t)");
 		if (ptr == str) {
-		    r0 = col->lowerBound();
+		    r0 = (col ? col->lowerBound() :
+                          ibis::column::computeMin(varr, mask));
 		}
 		else {
 		    r0 = strtod(ptr, 0);
@@ -3048,14 +3048,16 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 			++ ptr;
 		    str = strpbrk(ptr, ",; \t)");
 		    if (ptr == str) {
-			r1 = col->upperBound();
+			r1 = (col ? col->upperBound() :
+                              ibis::column::computeMax(varr, mask));
 		    }
 		    else {
 			r1 = strtod(ptr, 0);
 		    }
 		}
 		else {
-		    r1 = col->upperBound();
+		    r1 = (col ? col->upperBound() :
+                          ibis::column::computeMax(varr, mask));
 		}
 		if (r0 > r1) { // no expected range
 		    if (vmin == vmax && vmin == 0 &&
@@ -3094,15 +3096,18 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		// ready for the next group
 		ptr = strchr(ptr, '[');
 	    }
-	    bounds.push_back(ibis::util::compactValue(bounds.back(),
-						      DBL_MAX));
+	    bounds.push_back(ibis::util::compactValue
+                             (bounds.back(), DBL_MAX));
 	}
 	else if (spec != 0) {
-	    col->logWarning("bin::binning", "bad index spec \"%s\", "
-                            "do you mean \"<binning %s/>\"", spec, spec);
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::binning encountered a bad index spec \""
+                << spec << "\", do you mean \"<binning " << spec << "/>\"";
 	}
 	else {
-	    col->logWarning("bin::binning", "do not know how to bin");
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::binning does not know how to bin the "
+                "given values";
 	}
     }
 
@@ -3135,42 +3140,23 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
 		lg() << bounds[i] << " ";
 	}
 #endif
-	if (col->type() == ibis::DOUBLE || col->type() == ibis::FLOAT) {
-	    unsigned i, j;
-	    for (i = 0, j = 1; j < nb1; ++ j) {
-		if (bounds[j] > bounds[i]) {
-		    if (j > i+1)
-			bounds[i+1] = bounds[j];
-		    ++ i;
-		}
-		else if (ibis::gVerbose > 6) {
-		    col->logMessage("setBoundaries", "skipping bounds[%u]"
-				    "(%g) because it is too close to bounds"
-				    "[%u](%g) (diff=%g)", j, bounds[j],
-				    i, bounds[i], bounds[j]-bounds[i]);
-		}
-	    }
-	    bounds.resize(i+1);
-	}
-	else {
-	    unsigned i, j;
-	    bounds[0] = static_cast<long int>(bounds[0]);
-	    for (i = 0, j = 1; j < nb1; ++ j) {
-		bounds[j] = static_cast<long int>(bounds[j]);
-		if (bounds[j] > bounds[i]) {
-		    if (j > i+1)
-			bounds[i+1] = bounds[j];
-		    ++ i;
-		}
-		else if (ibis::gVerbose > 6) {
-		    col->logMessage("setBoundaries", "skipping bounds[%u]"
-				    "(%g) because it is too close to bounds"
-				    "[%u](%g) (diff=%g)", j, bounds[j],
-				    i, bounds[i], bounds[j]-bounds[i]);
-		}
-	    }
-	    bounds.resize(i+1);
-	}
+        {
+            unsigned i, j;
+            for (i = 0, j = 1; j < nb1; ++ j) {
+                if (bounds[j] > bounds[i]) {
+                    if (j > i+1)
+                        bounds[i+1] = bounds[j];
+                    ++ i;
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 6)
+                        << "bin::setBoundaries is to skip bounds[" << j
+                        << "] (" << bounds[j] << ") because it is too close "
+                        "to bounds[" << i << "] (" << bounds[i] << ")";
+                }
+            }
+            bounds.resize(i+1);
+        }
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
 	{
 	    ibis::util::logger lg(4);
@@ -3182,42 +3168,22 @@ void ibis::bin::setBoundaries(const array_t<E>& varr) {
     }
 
     if (! bounds.empty()) {
-	double rbd = col->upperBound();
-	if (bounds.back() < rbd)
-	    bounds.push_back(ibis::util::compactValue
-			     (0.5*(bounds.back()+rbd), 2.0*rbd));
-	else if (bounds.back() == rbd &&
-		 col->type() != ibis::FLOAT &&
-		 col->type() != ibis::DOUBLE)
-	    bounds.push_back(ibis::util::compactValue(rbd, DBL_MAX));
-
-	// if (col->type() == ibis::FLOAT) {
-	//     // adjust the precision of boundaries to match the precision of
-	//     // the attribute
-	//     nobs = bounds.size();
-	//     for (uint32_t i = 0; i < nobs; ++i)
-	// 	if (bounds[i] < FLT_MAX && bounds[i] > -FLT_MAX)
-	// 	    bounds[i] = static_cast<double>
-	// 		(static_cast<float>(bounds[i]));
-	// }
-
 	// add DBL_MAX as the last value
 	bounds.push_back(DBL_MAX);
     }
 
     nobs = bounds.size();
     if (ibis::gVerbose > 5) {
-	std::ostringstream ostr;
-	ostr << bounds[0];
+        ibis::util::logger ostr;
+	ostr() << "bin::setBoundaries -- bounds[" << nobs << "] = {" << bounds[0];
 	uint32_t nprt = (ibis::gVerbose > 30 ? nobs : (1 << ibis::gVerbose));
 	if (nprt > nobs)
 	    nprt = nobs;
 	for (uint32_t i = 1; i < nprt; ++ i)
-	    ostr << ", " << bounds[i];
+	    ostr() << ", " << bounds[i];
 	if (nprt < nobs)
-	    ostr << ", ... (" << nobs-nprt << " omitted)";
-	col->logMessage("bin::setBoundaries", "bounds[%lu]={%s}",
-			static_cast<long unsigned>(nobs), ostr.str().c_str());
+	    ostr() << ", ... (" << nobs-nprt << " omitted)";
+        ostr() << "}";
     }
 } // ibis::bin::setBoundaries
 
@@ -3239,7 +3205,8 @@ void ibis::bin::binning(const array_t<E>& varr, const array_t<double>& bd) {
 template <typename E>
 void ibis::bin::binning(const array_t<E>& varr) {
     if (varr.size() <= 0) {
-	col->logWarning("bin::binning", "incoming data array is empty");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::binning can not proceed with an empty array";
 	return;
     }
     horometer timer;
@@ -3315,24 +3282,16 @@ void ibis::bin::binning(const array_t<E>& varr) {
 
     // write info about the bins
     if (ibis::gVerbose > 2) {
+        ibis::util::logger lg;
+        lg() << "bin::binning partitioned " << nrows << ' '
+             << typeid(E).name() << " values into " << nobs-2
+             << " bin(s) + 2 outside bins";
 	if (ibis::gVerbose > 4) {
 	    timer.stop();
-	    col->logMessage("bin::binning", "partitioned %lu %s values into "
-			    "%lu bin(s) + 2 outside bins in %g "
-			    "sec(elapsed)", static_cast<long unsigned>(nrows),
-			    typeid(E).name(),
-			    static_cast<long unsigned>(nobs-2),
-			    timer.realTime());
-	}
-	else {
-	    col->logMessage("bin::binning", "partitioned %lu %s values into "
-			    "%lu bin(s) + 2 outside bins",
-			    static_cast<long unsigned>(nrows),
-			    typeid(E).name(),
-			    static_cast<long unsigned>(nobs-2));
+	    ibis::util::logger lg;
+            lg() << " in " << timer.realTime() << "sec(elapsed)";
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg;
 	    lg() << "[minval, maxval]\tbound\tcount\n";
 	    for (uint32_t i = 0; i < nobs; ++i)
 		lg() << "[" << minval[i] << ", " << maxval[i] << "]\t"
@@ -3344,7 +3303,7 @@ void ibis::bin::binning(const array_t<E>& varr) {
 template <typename E>
 void ibis::bin::mapGranules(const array_t<E>& val,
 			    ibis::bin::granuleMap& gmap) const {
-    if (val.empty() || col == 0) return;
+    if (val.empty()) return;
     gmap.clear();
     horometer timer;
     if (ibis::gVerbose > 4)
@@ -3416,24 +3375,14 @@ void ibis::bin::mapGranules(const array_t<E>& val,
 
     // write info about the bins
     if (ibis::gVerbose > 2) {
+        ibis::util::logger lg;
+	lg() << "bin::mapGranules mapped " << nev << " values to " << gmap.size()
+             << ' ' << prec << "-digit number" << (gmap.size() > 1 ? "s" : "");
 	if (ibis::gVerbose > 4) {
 	    timer.stop();
-	    col->logMessage("bin::mapGranules", "mapped %lu values to %lu "
-			    "%lu-digit number%s in %g sec(elapsed)",
-			    static_cast<long unsigned>(nev),
-			    static_cast<long unsigned>(gmap.size()),
-			    prec, (gmap.size() > 1 ? "s" : ""),
-			    timer.realTime());
-	}
-	else {
-	    col->logMessage("bin::mapGranules", "mapped %lu values to %lu "
-			    "%lu-digit number%s",
-			    static_cast<long unsigned>(nev),
-			    static_cast<long unsigned>(gmap.size()), prec,
-			    (gmap.size() > 1 ? "s" : ""));
+            lg() << " in " << timer.realTime() << " sec(elapsed)";
 	}
 	if (ibis::gVerbose > 6) {
-	    ibis::util::logger lg;
 	    printGranules(lg(), gmap);
 	}
     }
@@ -3886,6 +3835,7 @@ unsigned ibis::bin::parsePrec(const ibis::column &c) {
 // add bin boundaries to array bounds
 void ibis::bin::addBounds(double lbd, double rbd, uint32_t nbins,
 			  uint32_t eqw) {
+    if (col == 0) return;
     double diff = rbd - lbd;
     if (!(diff > DBL_MIN)) { // rbd <= lbd, or invalid number
 	if (fabs(lbd) < DBL_MAX)
@@ -4566,9 +4516,8 @@ void ibis::bin::readBinBoundaries(const char *fnm, uint32_t nb) {
 	}
     } // while (fgets...
     fclose(fptr);
-    if (ibis::gVerbose > 3)
-	col->logMessage("bin::readBinBoundaries", "got %lu value(s) from %s",
-			static_cast<long unsigned>(cnt), fnm);
+    LOGGER(ibis::gVerbose > 3)
+	<< "bin::readBinBoundaries got " << cnt << " value(s) from " << fnm;
 } // ibis::bin::readBinBoundaries
 
 /// Parse the index specification to determine the bin boundaries and store
@@ -4949,6 +4898,7 @@ void ibis::bin::setBoundaries(array_t<double>& bnds,
 			      const ibis::bin& idx1,
 			      const array_t<uint32_t> cnt1,
 			      const array_t<uint32_t> cnt0) const {
+    if (col == 0) return;
     uint32_t numbs = cnt1.size();
     bnds.clear();
     bnds.reserve(numbs);
@@ -5429,7 +5379,11 @@ void ibis::bin::divideBitmaps(const array_t<bitvector*>& bms,
 /// Write the index to the named directory or file.
 int ibis::bin::write(const char* dt) const {
     if (nobs <= 0 || nrows <= 0) return -1;
-    std::string fnm;
+    std::string fnm, evt;
+    evt = "bin";
+    if (col != 0 && ibis::gVerbose > 1)
+        evt += col->fullname();
+    evt += "::write";
     indexFileName(fnm, dt);
     if (fnm.empty()) {
 	return 0;
@@ -5437,7 +5391,7 @@ int ibis::bin::write(const char* dt) const {
     else if (0 != str && 0 != str->filename() &&
 	     0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin::write can not overwrite the index file \""
+	    << "Warning -- " << evt << " can not overwrite the index file \""
 	    << fnm << "\" while it is used as a read-only file map";
 	return 0;
     }
@@ -5453,20 +5407,20 @@ int ibis::bin::write(const char* dt) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write(" << fnm
-	    << ") received a std::exception - " << e.what();
+	    << "Warning -- " << evt << '(' << fnm
+            << ") received a std::exception - " << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write(" << fnm
-	    << ") received a string exception - " << s;
+	    << "Warning -- " << evt << "(" << fnm
+            << ") received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write(" << fnm
-	    << ") received a unknown exception";
+	    << "Warning -- " << evt << "(" << fnm
+            << ") received a unknown exception";
 	return -4;
     }
 
@@ -5485,8 +5439,9 @@ int ibis::bin::write(const char* dt) const {
 		mesg = strerror(errno);
 	    else
 		mesg = "no free stdio stream";
-	    col->logWarning("bin::write", "unable to open \"%s\" for "
-			    "write ... %s", fnm.c_str(), mesg);
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " failed to open \"" << fnm
+                << "\" for write ... " << mesg;
 	    return -5;
 	}
     }
@@ -5501,8 +5456,8 @@ int ibis::bin::write(const char* dt) const {
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	    << "Warning -- " << evt << "(" << fnm
+            << ") failed to write the 8-byte header, ierr = " << ierr;
 	return -6;
     }
 
@@ -5521,9 +5476,9 @@ int ibis::bin::write(const char* dt) const {
 #endif
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "bin[" << col->fullname() << "]::write -- wrote " << nobs
-	    << " bitmap" << (nobs>1?"s":"") << " to file " << fnm << " for "
-	    << nrows << " object" << (nrows>1?"s":"") << ", file size "
+	    << evt << " wrote " << nobs << " bitmap" << (nobs>1?"s":"")
+            << " to file " << fnm << " for " << nrows << " object"
+            << (nrows>1?"s":"") << ", file size "
 	    << (useoffset64 ? offset64.back() : (int64_t)offset32.back());
     }
     return 0;
@@ -5532,33 +5487,35 @@ int ibis::bin::write(const char* dt) const {
 /// Write the content to a file already open.
 int ibis::bin::write32(int fdes) const {
     if (nobs <= 0) return -1;
+    std::string evt = "bin";
+    if (col != 0 && ibis::gVerbose > 1)
+        evt += col->fullname();
+    evt += "::write32";
     try {
 	if (str != 0 || fname != 0)
 	    activate();
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname()
-            << "]::write32 received a std::exception - " << e.what();
+	    << "Warning -- " << evt << " received a std::exception - "
+            << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname()
-            << "]::write32 received a string exception - " << s;
+	    << "Warning -- " << evt << " received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname()
-            << "]::write32 received a unexpected exception";
+	    << "Warning -- " << evt << " received a unexpected exception";
 	return -4;
     }
 
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
+	    << "Warning -- " << evt << "(" << fdes
 	    << ") can not start at position " << start;
 	return -7;
     }
@@ -5567,7 +5524,7 @@ int ibis::bin::write32(int fdes) const {
     ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
     if (ierr < (int)sizeof(nrows)*2) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
+	    << "Warning -- " << evt << "(" << fdes
 	    << ") failed to write nrows (" << nrows << ") or nobs ("
 	    << nobs << "), ierr = " << ierr;
 	return -8;
@@ -5582,8 +5539,8 @@ int ibis::bin::write32(int fdes) const {
     offset32[0] += sizeof(double)*nobs*3;
     if (ierr < offset32[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
-	    << ") expects to write the 1st bitmap at offset " << offset32[0]
+	    << "Warning -- " << evt << "(" << fdes
+	    << ") expected to write the 1st bitmap at offset " << offset32[0]
 	    << ", but the current file position is " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -9;
@@ -5596,16 +5553,15 @@ int ibis::bin::write32(int fdes) const {
     ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
     if (ierr != (off_t) (start+2*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
-	    << ") failed to seek to " << start+2*sizeof(uint32_t)
-	    << ", ierr = " << ierr;
+	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
+            << start+2*sizeof(uint32_t) << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -10;
     }
     ierr = ibis::util::write(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int32_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write32(" << fdes
+	    << "Warning -- " << evt << "(" << fdes
 	    << ") failed to write " << nobs+1 << " bitmap positions"
 	    << " to file descriptor " << fdes << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5618,33 +5574,35 @@ int ibis::bin::write32(int fdes) const {
 /// write the content to a file already open.
 int ibis::bin::write64(int fdes) const {
     if (nobs <= 0) return -1;
+    std::string evt = "bin";
+    if (col != 0 && ibis::gVerbose > 1)
+        evt += col->fullname();
+    evt += "::write64";
     try {
 	if (str != 0 || fname != 0)
 	    activate();
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname()
-            << "]::write64 received a std::exception - " << e.what();
+	    << "Warning -- " << evt << " received a std::exception - "
+            << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname()
-            << "]::write64 received a string exception - " << s;
+	    << "Warning -- " << evt << " received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname()
-            << "]::write64 received a unexpected exception";
+	    << "Warning -- " << evt << " received a unexpected exception";
 	return -4;
     }
 
     const int32_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
+	    << "Warning -- " << evt << "(" << fdes
 	    << ") can not start at position " << start;
 	return -12;
     }
@@ -5653,7 +5611,7 @@ int ibis::bin::write64(int fdes) const {
     ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
     if (ierr < (int)(sizeof(nrows)*2)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
+	    << "Warning -- " << evt << "(" << fdes
 	    << ") failed to write nrows (" << nrows << ") or nobs ("
 	    << nobs << "), ierr = " << ierr;
 	return -13;
@@ -5668,8 +5626,8 @@ int ibis::bin::write64(int fdes) const {
     offset64[0] += sizeof(double)*nobs*3;
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
-	    << ") expects the 1st bitmap to start at " << offset64[0]
+	    << "Warning -- " << evt << "(" << fdes
+	    << ") expected the 1st bitmap to start at " << offset64[0]
 	    << ", but the current file position is " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
 	return -14;
@@ -5682,7 +5640,7 @@ int ibis::bin::write64(int fdes) const {
     ierr = UnixSeek(fdes, start+2*sizeof(uint32_t), SEEK_SET);
     if (ierr != (off_t) (start+2*sizeof(uint32_t))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
+	    << "Warning -- " << evt << "(" << fdes
 	    << ") failed to seek to " << start+2*sizeof(uint32_t)
 	    << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5691,7 +5649,7 @@ int ibis::bin::write64(int fdes) const {
     ierr = ibis::util::write(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- bin[" << col->fullname() << "]::write64(" << fdes
+	    << "Warning -- " << evt << "(" << fdes
 	    << ") failed to write " << nobs+1 << " bitmap positions"
 	    << " to file descriptor " << fdes << ", ierr = " << ierr;
 	(void) UnixSeek(fdes, start, SEEK_SET);
@@ -5746,18 +5704,19 @@ void ibis::bin::binWeights(std::vector<uint32_t>& ret) const {
 	activate(); // make sure all bitvectors are available
     }
     catch (const std::exception& e) {
-	col->logWarning("bin::binWeights",
-			"received a std::exception - %s",
-			e.what());
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::binWeights received a std::exception - "
+            << e.what();
 	return;
     }
     catch (const char* s) {
-	col->logWarning("bin::binWeights",
-			"received a string exception - %s", s);
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::binWeights received a string exception - " << s;
 	return;
     }
     catch (...) {
-	col->logWarning("bin::binWeights", "received a unknown exception");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::binWeights received a unknown exception";
 	return;
     }
 
@@ -5777,42 +5736,43 @@ void ibis::bin::speedTest(std::ostream& out) const {
 	activate(); // make sure all bitvectors are available
     }
     catch (const std::exception& e) {
-	col->logWarning("bin::speedTest", "received a standard "
-			"exception - %s", e.what());
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::speedTest received a standard exception - "
+            << e.what();
 	return;
     }
     catch (const char* s) {
-	col->logWarning("bin::speedTest", "received a string exception - %s",
-			s);
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::speedTest received a string exception - " << s;
 	return;
     }
     catch (...) {
-	col->logWarning("bin::speedTest", "received a unknown exception");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::speedTest received a unknown exception";
 	return;
     }
     bool crossproduct = false;
     {
 	std::string which;
-        if (col->partition() != 0) {
-            which = col->partition()->name();
-            which += ".";
+        if (col != 0) {
+            if (col->partition() != 0) {
+                which = col->partition()->name();
+                which += ".";
+            }
+            which += col->name();
+            which += '.';
         }
-	which += col->name();
-	which += ".measureCrossProduct";
+	which += "measureCrossProduct";
 	crossproduct = ibis::gParameters().isTrue(which.c_str());
+
+        ibis::util::logger lg;
+        lg() << "bin::speedTest testing the speed of "
+             << (crossproduct ? "corss product operation" : "operator|")
+             << "\n# bits, # 1s, # 1s, # bytes, # bytes, clustering factor, "
+            "result 1s, result bytes, wall time";
     }
     if (crossproduct) {
-	col->logMessage("bin::speedTest", "testing the speed of cross "
-			"product operation\n# bits, # 1s, # 1s, # bytes, "
-			"# bytes, clustering factor, result 1s, result "
-			"bytes, wall time");
 	nloops = 2;
-    }
-    else {
-	col->logMessage("bin::speedTest", "testing the speed of operator "
-			"|\n# bits, # 1s, # 1s, # bytes, # bytes, "
-			"clustering factor, result 1s, result bytes, "
-			"wall time");
     }
 
     for (uint32_t i = 1; i < bits.size(); ++ i) {
@@ -5827,22 +5787,22 @@ void ibis::bin::speedTest(std::ostream& out) const {
 	    delete tmp;
 	}
 	catch (const std::exception& e) {
-	    col->logWarning("bin::speedTest", "received a standard "
-			    "exception while calling operator | "
-			    "(i=%lu) - %s", static_cast<long unsigned>(i),
-			    e.what());
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::speedTest received a standard "
+                "exception while calling operator | (i=" << i << ") - "
+                << e.what();
 	    continue;
 	}
 	catch (const char* s) {
-	    col->logWarning("bin::speedTest", "received a string exception "
-			    "while calling operator | (i=%lu) - %s",
-			    static_cast<long unsigned>(i), s);
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::speedTest received a string exception "
+                "while calling operator | (i=" << i << ") - " << s;
 	    continue;
 	}
 	catch (...) {
-	    col->logWarning("bin::speedTest", "received an unexpected "
-			    "exception while calling operator | (i=%lu)",
-			    static_cast<long unsigned>(i));
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::speedTest received an unexpected "
+                "exception while calling operator | (i=" << i << ')';
 	    continue;
 	}
 
@@ -5888,7 +5848,8 @@ void ibis::bin::print(std::ostream& out) const {
     uint32_t omt = 0;
 
     // activate(); -- activate may invoke ioLock which causes problems
-    out << "index (equality encoded, binned) for " << col->fullname()
+    out << "index (equality encoded, binned) for "
+        << (col ? col->fullname() : "?")
 	<< " contains " << nobs << " bitvectors for "
 	<< nrows << " objects \n";
     if (ibis::gVerbose > 3) { // print the long form
@@ -5928,14 +5889,14 @@ void ibis::bin::print(std::ostream& out) const {
 	}
 	if (nrows < cnt) {
 	    out << "Warning: There are a total " << cnt << " set bits out of "
-		<< nrows << " bits in an index for " << col->name()
-		<< std::endl;
+		<< nrows << " bits in an index for " << (col ? col->name() : "?")
+		<< "\n";
 	}
 	else if (nrows > cnt) {
 	    out << "There are a total " << cnt << " set bits out of "
 		<< nrows
 		<< " bits -- there are probably NULL values in column "
-		<< col->name() << std::endl;
+		<< (col ? col->name() : "?") << "\n";
 	}
     }
     else if (nobs > 0) { // the short form
@@ -6041,17 +6002,19 @@ long ibis::bin::append(const array_t<uint32_t>& ind) {
 	activate(); // make sure all bitvectors are activated
     }
     catch (const std::exception& e) {
-	col->logWarning("bin::append", "received a std::exception - %s",
-			e.what());
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::append received a std::exception - "
+            << e.what();
 	return -1;
     }
     catch (const char* s) {
-	col->logWarning("bin::append", "received a string exception - %s",
-			s);
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::append received a string exception - " << s;
 	return -1;
     }
     catch (...) {
-	col->logWarning("bin::append", "received a unknown exception");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::append received a unknown exception";
 	return -1;
     }
 
@@ -6084,8 +6047,8 @@ long ibis::bin::append(const array_t<uint32_t>& ind) {
 
 /// Create index for the data in df and append the result to the index in dt.
 long ibis::bin::append(const char* dt, const char* df, uint32_t nnew) {
-    if (nnew == 0)
-	return 0;
+    if (col == 0) return -1;
+    if (nnew == 0) return 0;
 
     const uint32_t nold =
         (std::strcmp(dt, col->partition()->currentDataDir()) == 0 ?
@@ -6382,7 +6345,7 @@ double ibis::bin::estimateCost(const ibis::qContinuousRange& expr) const {
 		ret = tot - mid;
 	}
     }
-    if (hit0 > cand0 || hit1 < cand1) {
+    if (col != 0 && (hit0 > cand0 || hit1 < cand1)) {
 	if (nobs > 0) {
 	    const double ccheck = col->elementSize() * nrows / nobs;
 	    if (hit0 > cand0 && hit1 < cand1 && hit0 <= hit1)
@@ -6432,7 +6395,7 @@ double ibis::bin::estimateCost(const ibis::qDiscreteRange& expr) const {
 		}
 	}
     }
-    if (nobs > vals.size())
+    if (col != 0 && nobs > vals.size())
 	ret += static_cast<double>(vals.size() * col->elementSize()) *
 	    nrows / nobs;
     else
@@ -6497,7 +6460,7 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
 	}
 	if (mask.size() <= nrows && mask.cnt() > 0) {
 	    ibis::bitvector delta;
-            if (col->partition() != 0)
+            if (col != 0 && col->partition() != 0)
                 ierr1 = col->partition()->doScan(expr, mask, delta);
             else
                 ierr1 = -4;
@@ -6511,13 +6474,12 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
 		    ierr0 = lower.cnt();
 		}
 		else {
-		    col->logWarning("bin::evaluate", "the result of doScan "
-				    "(%lu, %lu) does not match the result "
-				    "of sumBins (%lu, %lu)",
-				    static_cast<long unsigned>(delta.size()),
-				    static_cast<long unsigned>(delta.cnt()),
-				    static_cast<long unsigned>(lower.size()),
-				    static_cast<long unsigned>(lower.cnt()));
+		    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- bin::evaluate encountered an internal "
+                        "problem: the result of doScan (" << delta.size()
+                        << ", " << delta.cnt()
+                        << ") does not match the result of sumBins ("
+                        << lower.size() << ", " << lower.cnt() << ")";
 		    ierr0 = -5;
 		}
 	    }
@@ -6598,11 +6560,13 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
 		cost = tot - mid;
 	}
     }
-    if (hit0 > cand0 && cand1 > hit1) {
-	cost += (col->elementSize() * (double)nrows / nobs) * 2.0;
-    }
-    else if (hit0 > cand0 || cand1 > hit1) {
-	cost += (col->elementSize() * (double)nrows / nobs);
+    if (col != 0) {
+        if (hit0 > cand0 && cand1 > hit1) {
+            cost += (col->elementSize() * (double)nrows / nobs) * 2.0;
+        }
+        else if (hit0 > cand0 || cand1 > hit1) {
+            cost += (col->elementSize() * (double)nrows / nobs);
+        }
     }
 #endif
     if (cand0 >= cand1) {
@@ -6879,8 +6843,9 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr, uint32_t& cand0,
 	switch (expr.rightOperator()) {
 	default:
 	case ibis::qExpr::OP_UNDEFINED:
-	    col->logWarning("bin::locate", "operators for the range not "
-			    "specified");
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::locate encountered an ill-formed range "
+                "condition";
 	    cand0 = 0;
 	    cand1 = 0;
 	    return;
@@ -7405,9 +7370,9 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr, uint32_t& cand0,
 			maxval[cand0] : bounds[cand0]) :
 		       bounds.back())) :
 		     bounds.back());
-	col->logMessage("bin::locate", "expr(%s) -> [%lu, %lu) (%g, %g)",
-			ostr.str().c_str(), static_cast<long unsigned>(cand0),
-			static_cast<long unsigned>(cand1), lc, uc);
+	LOGGER(ibis::gVerbose > 0)
+            << "bin::locate -- expr(" << ostr.str() << ") -> [" << cand0 << ", "
+            << cand1 << ") (" << lc << ", " << uc << ")";
     }
 } // locate cand0 and cand1
 
@@ -7425,8 +7390,9 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 	switch (expr.rightOperator()) {
 	default:
 	case ibis::qExpr::OP_UNDEFINED:
-	    col->logWarning("bin::locate", "operators for the range not "
-			    "specified");
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::locate encountered an ill-formed range "
+                "condition";
 	    return;
 	case ibis::qExpr::OP_LT:
 	    hit0 = 0;
@@ -8268,14 +8234,10 @@ void ibis::bin::locate(const ibis::qContinuousRange& expr,
 			maxval[cand0] : bounds[cand0]) :
 		       bounds.back())) :
 		     bounds.back());
-	col->logMessage("bin::locate", "expr(%s) -> [%lu:%lu, %lu:%lu) "
-			"(%g:%g, %g:%g)",
-			ostr.str().c_str(),
-			static_cast<long unsigned>(cand0),
-			static_cast<long unsigned>(hit0),
-			static_cast<long unsigned>(hit1),
-			static_cast<long unsigned>(cand1),
-			lc, lh, uh, uc);
+	LOGGER(ibis::gVerbose > 0)
+            << "bin::locate -- expr(" << ostr.str() << ") -> [" << cand0
+            << ':' << hit0 << ", " << hit1 << ':' << cand1 << ") (" << lc
+            << ':' << lh << ", " << uh << ':' << uc << ')';
     }
 } // locate cand0, cand1, hit0, and hit1
 
@@ -8307,7 +8269,7 @@ double ibis::bin::getMax() const {
 double ibis::bin::getSum() const {
     double ret;
     bool here = true;
-    { // a small test block to evaluate variable here
+    if (col != 0) {
 	const size_t nbv = col->elementSize()*nrows;
 	if (str != 0)
 	    here = (str->bytes() < nbv);
@@ -8315,6 +8277,9 @@ double ibis::bin::getSum() const {
 	    here = (static_cast<size_t>(offset64[nobs]) < nbv);
 	else if (offset32.size() > nobs)
 	    here = (static_cast<uint32_t>(offset32[nobs]) < nbv);
+    }
+    else {
+        here = false;
     }
     if (here) {
 	ret = computeSum();
@@ -8354,20 +8319,20 @@ long ibis::bin::getCumulativeDistribution(std::vector<double>& bds,
 		cts.resize(ierr - 1);
 		ierr = ierr - 1;
 	    }
-	    if (bds.back() == DBL_MAX) {
-		double tmp = col->upperBound();
-		if (tmp < bds[ierr-2])
-		    tmp = bds[ierr-2];
-		bds.back() = ibis::util::compactValue(tmp, tmp+tmp);
-	    }
+	    // if (bds.back() == DBL_MAX) {
+	    //     double tmp = col->upperBound();
+	    //     if (tmp < bds[ierr-2])
+	    //         tmp = bds[ierr-2];
+	    //     bds.back() = ibis::util::compactValue(tmp, tmp+tmp);
+	    // }
 	}
 	else {
 	    // don't match, delete the content
-	    col->logMessage("bin::getCumulativeDistribution",
-			    "bds[%lu] and cts[%lu] sizes do not match "
-			    "-- clearing arrays",
-			    static_cast<long unsigned>(bds.size()),
-			    static_cast<long unsigned>(cts.size()));
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::getCumulativeDistribution received "
+                "inconsistent results: bds[" << bds.size() << "] and cts["
+                << cts.size() << "] have different sizes "
+                "-- clearing these arrays";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
@@ -8385,8 +8350,9 @@ long ibis::bin::getCumulativeDistribution(std::vector<double>& bds,
 	}
     }
     else {
-	col->logMessage("bin::getCumulativeDistribution",
-			"can not find bin boundaries");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::getCumulativeDistribution can not detrmine any "
+            "bin boundaries";
 	bds.clear();
 	cts.clear();
 	ierr = -1;
@@ -8409,11 +8375,10 @@ long ibis::bin::getDistribution(std::vector<double>& bds,
 	}
 	else {
 	    // don't match, delete the content
-	    col->logMessage("bin::getDistribution",
-			    "bds[%lu] and cts[%lu] sizes do not match "
-			    "-- clearing arrays",
-			    static_cast<long unsigned>(bds.size()),
-			    static_cast<long unsigned>(cts.size()));
+	    LOGGER(ibis::gVerbose > 0)
+                << "Warning -- bin::getDistribution encountered an "
+                "inconsistency: bds[" << bds.size() << "] and cts["
+                << cts.size() << "] have different sizes -- clearing arrays";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
 	    {
 		ibis::util::logger lg(4);
@@ -8431,8 +8396,9 @@ long ibis::bin::getDistribution(std::vector<double>& bds,
 	}
     }
     else {
-	col->logMessage("bin::getDistribution",
-			"can not find bin boundaries");
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::getDistribution can not determine any bin "
+            "boundaries";
 	bds.clear();
 	cts.clear();
 	ierr = -1;
@@ -8448,7 +8414,6 @@ void ibis::bin::estimate(const ibis::deprecatedJoin& expr,
 			 ibis::bitvector64& upper) const {
     lower.clear();
     upper.clear();
-    if (col == 0) return; // nothing can be done
 
     ibis::horometer timer;
     timer.start();
@@ -8499,7 +8464,6 @@ void ibis::bin::estimate(const ibis::deprecatedJoin& expr,
 			 ibis::bitvector64& upper) const {
     lower.clear();
     upper.clear();
-    if (col == 0) return; // nothing can be done
 
     ibis::horometer timer;
     timer.start();
@@ -8767,7 +8731,10 @@ int64_t ibis::bin::estimate(const ibis::bin& idx2,
 int64_t ibis::bin::estimate(const ibis::bin& idx2,
 			    const ibis::deprecatedJoin& expr) const {
     ibis::bitvector mask;
-    col->getNullMask(mask);
+    if (col != 0)
+        col->getNullMask(mask);
+    else
+        mask.set(1, nrows);
     if (idx2.col) {
 	ibis::bitvector tmp;
 	idx2.col->getNullMask(tmp);
@@ -8886,10 +8853,10 @@ int64_t ibis::bin::estimate(const ibis::deprecatedJoin& expr,
 /// An equi-join on the same variable and using the same index.
 void ibis::bin::equiJoin(ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
-    if (ibis::gVerbose > 3)
-	ibis::util::logMessage
-	    ("bin::equiJoin", "start processing an equi-join "
-	     "between %s and %s", col->name(), col->name());
+    LOGGER(ibis::gVerbose > 3)
+        << "bin::equiJoin starts to process an equi-join between "
+        << (col ? col->fullname() : "?.?") << " and "
+        << (col ? col->fullname() : "?.?");
 
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilc=0, iuc=0; // bits[ilc:iuc] is summed in cumu
@@ -8953,11 +8920,11 @@ void ibis::bin::equiJoin(ibis::bitvector64& sure,
 void ibis::bin::deprecatedJoin(const double& delta,
 			       ibis::bitvector64& sure,
 			       ibis::bitvector64& iffy) const {
-    if (ibis::gVerbose > 3)
-	ibis::util::logMessage
-	    ("bin::deprecatedJoin", "start processing a range-join ("
-	     "%s between %s - %g and %s + %g)", col->name(),
-	     col->name(), delta, col->name(), delta);
+    LOGGER(ibis::gVerbose > 3)
+        << "bin::deprecatedJoin starts processing a range-join ("
+        << (col ? col->fullname() : "?.?") << " between "
+        << (col ? col->fullname() : "?.?") << " - " << delta << " and "
+        << (col ? col->fullname() : "?.?") << " + " << delta << ')';
 
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilu=0, iuu=0; // bits[ilu:iuu] is summed in cumu
@@ -9072,22 +9039,19 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
     else if (bar.size() != 1 && stricmp(bar.name(0), col->name()) != 0) {
 	std::ostringstream ostr;
 	ostr << *expr;
-	col->logWarning("bin::compJoin", "unable to deal with complex range "
-			"expression %s", ostr.str().c_str());
+	LOGGER(ibis::gVerbose > 0)
+            << "Warning -- bin::compJoin cannot deal with complex range "
+            "expression " << ostr.str();
 	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
 	sure.set(0, npairs);
 	iffy.set(1, npairs);
 	return;
     }
-    if (ibis::gVerbose > 3) {
-	std::ostringstream ostr;
-	ostr << *expr;
-	ibis::util::logMessage
-	    ("bin::compJoin", "start processing a range join ("
-	     "%s between %s - %s and %s + %s)", col->name(),
-	     col->name(), ostr.str().c_str(),
-	     col->name(), ostr.str().c_str());
-    }
+    LOGGER(ibis::gVerbose > 3)
+        << "bin::compJoin started processing range join "
+        << (col ? col->fullname() : "?") << " between "
+        << (col ? col->fullname() : "?") << " - " << *expr << " and "
+        << (col ? col->fullname() : "?") << " + " << *expr;
 
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilu=0, iuu=0; // bits[ilu:iuu] is summed in cumu
@@ -9175,10 +9139,10 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 void ibis::bin::equiJoin(const ibis::bin& idx2,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
-    if (ibis::gVerbose > 3)
-	ibis::util::logMessage
-	    ("bin::equiJoin", "start processing an equi-join "
-	     "between %s and %s", col->name(), idx2.col->name());
+    LOGGER(ibis::gVerbose > 3)
+        << "bin::equiJoin started processing an equi-join "
+        << (col ? col->fullname() : "?.?") << " = "
+        << (idx2.col ? idx2.col->fullname() : "?.?");
 
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilc=0, iuc=0; // idx2.bits[ilc:iuc] is summed in cumu
@@ -9243,11 +9207,11 @@ void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
 			       const double& delta,
 			       ibis::bitvector64& sure,
 			       ibis::bitvector64& iffy) const {
-    if (ibis::gVerbose > 3)
-	ibis::util::logMessage
-	    ("bin::deprecatedJoin", "start processing a range-join ("
-	     "%s between %s - %g and %s + %g)", col->name(),
-	     idx2.col->name(), delta, idx2.col->name(), delta);
+    LOGGER(ibis::gVerbose > 3)
+        << "bin::deprecatedJoin starts to process range join "
+        << (col ? col->fullname() : "?.?") << " between "
+        << (col ? col->fullname() : "?.?") << " - " << delta << " and "
+        << (col ? col->fullname() : "?.?") << " + " << delta;
 
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilu=0, iuu=0; // idx2.bits[ilu:iuu] is summed in cumu
@@ -9353,6 +9317,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 			 const ibis::math::term *expr,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
+    if (col == 0) return;
     ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
@@ -9474,11 +9439,11 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilc=0, iuc=0; // bits[ilc:iuc] is summed in cumu
     ibis::bitvector cumu, curr;
-    if (ibis::gVerbose > 3)
-	ibis::util::logMessage
-	    ("bin::equiJoin", "start processing an equi-join "
-	     "between %s and %s with mask size %lu", col->name(),
-	     col->name(), static_cast<long unsigned>(mask.cnt()));
+    LOGGER(ibis::gVerbose > 3)
+        << "bin::equiJoin starts to process equi-join "
+	<< (col ? col->fullname() : "?.?") << " = "
+	<< (col ? col->fullname() : "?.?")
+        << " with a mask of " << mask.cnt();
 
     uint32_t tlast = time(0);
     while (il1 < nobs && il2 < nobs) {
@@ -9555,12 +9520,12 @@ void ibis::bin::deprecatedJoin(const double& delta,
 	return;
     }
 
-    if (ibis::gVerbose > 3)
-	ibis::util::logMessage
-	    ("bin::deprecatedJoin", "start processing a range-join ("
-	     "%s between %s - %g and %s + %g) with mask size %lu",
-	     col->name(), col->name(), delta, col->name(), delta,
-	     static_cast<long unsigned>(mask.cnt()));
+    LOGGER(ibis::gVerbose > 3)
+        << "bin::deprecatedJoin starts to process range join "
+        << (col ? col->fullname() : "?.?") << " between "
+        << (col ? col->fullname() : "?.?") << " - " << delta << " and "
+        << (col ? col->fullname() : "?.?") << " + " << delta
+        << " with a mask of " << mask.cnt();
 
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilu=0, iuu=0; // bits[ilu:iuu] is summed in cumu
@@ -9676,6 +9641,7 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
+    if (col == 0) return;
     ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
@@ -9809,16 +9775,15 @@ void ibis::bin::equiJoin(const ibis::bitvector& mask,
 	return;
     }
 
+    if (col == 0) return;
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilc=0, iuc=0; // bits[ilc:iuc] is summed in cumu
     ibis::bitvector cumu, curr;
-    if (ibis::gVerbose > 3)
-	ibis::util::logMessage
-	    ("bin::equiJoin", "start processing an equi-join "
-	     "between %s and %s with mask size %lu and %s explicit range "
-	     "constraint", col->name(), col->name(),
-	     static_cast<long unsigned>(mask.cnt()),
-	     (range1 ? "an" : "no"));
+    LOGGER(ibis::gVerbose > 3)
+        << "bin::equiJoin starts to process equi-join "
+        << (col ? col->fullname() : "?.?") << " = "
+        << (col ? col->fullname() : "?.?") << " and a mask of "
+        << mask.cnt();
 
     uint32_t nbmax = nobs;
     if (range1 || range2) {
@@ -9913,6 +9878,7 @@ void ibis::bin::deprecatedJoin(const double& delta,
 			       const ibis::qRange* const range2,
 			       ibis::bitvector64& sure,
 			       ibis::bitvector64& iffy) const {
+    if (col == 0) return;
     if (mask.cnt() == 0) {
 	uint64_t np = mask.size();
 	np *= np;
@@ -10070,6 +10036,7 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
 	iffy.clear();
 	return;
     }
+    if (col == 0) return;
 
     ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
@@ -10212,6 +10179,7 @@ int64_t ibis::bin::equiJoin(const ibis::bitvector& mask,
     int64_t cnt = 0;
     if (mask.cnt() == 0)
 	return cnt;
+    if (col == 0) return -1;
 
     uint32_t il1=0, il2=0, iu2=0;
     uint32_t ilc=0, iuc=0; // bits[ilc:iuc] is summed in cumu
@@ -10305,6 +10273,8 @@ int64_t ibis::bin::deprecatedJoin(const double& delta,
     if (delta <= 0.0) {
 	return equiJoin(mask, range1, range2);
     }
+    if (col == 0) return -1;
+
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
 	    ("bin::deprecatedJoin", "start processing a range-join ("
@@ -10396,6 +10366,8 @@ int64_t ibis::bin::compJoin(const ibis::math::term *expr,
     int64_t cnt = 0;
     if (mask.cnt() == 0)
 	return cnt;
+    if (col == 0) return -1;
+
     ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
@@ -10516,6 +10488,7 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
+    if (col == 0) return;
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
 	    ("bin::equiJoin", "start processing an equi-join "
@@ -10594,6 +10567,7 @@ void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
 			       const ibis::bitvector& mask,
 			       ibis::bitvector64& sure,
 			       ibis::bitvector64& iffy) const {
+    if (col == 0) return;
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
 	    ("bin::deprecatedJoin", "start processing a range-join ("
@@ -10716,6 +10690,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 			 const ibis::bitvector& mask,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
+    if (col == 0) return;
     ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
@@ -10843,6 +10818,7 @@ void ibis::bin::equiJoin(const ibis::bin& idx2,
 			 const ibis::qRange* const range2,
 			 ibis::bitvector64& sure,
 			 ibis::bitvector64& iffy) const {
+    if (col == 0) return;
     if (mask.cnt() == 0) {
 	uint64_t np = mask.size();
 	np *= np;
@@ -10965,6 +10941,7 @@ void ibis::bin::deprecatedJoin(const ibis::bin& idx2,
 	iffy.clear();
 	return;
     }
+    if (col == 0) return;
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
 	    ("bin::deprecatedJoin", "start processing a range-join ("
@@ -11123,6 +11100,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
 	iffy.clear();
 	return;
     }
+    if (col == 0) return;
     ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
@@ -11272,6 +11250,8 @@ int64_t ibis::bin::equiJoin(const ibis::bin& idx2,
     if (mask.cnt() == 0) {
 	return cnt;
     }
+    if (col == 0 || idx2.col == 0) return -1;
+
     if (ibis::gVerbose > 3)
 	ibis::util::logMessage
 	    ("bin::equiJoin", "start processing an equi-join "
@@ -11369,6 +11349,7 @@ int64_t ibis::bin::deprecatedJoin(const ibis::bin& idx2,
     if (mask.cnt() == 0) {
 	return cnt;
     }
+    if (col == 0) return -1;
     if (delta <= 0.0)
 	return equiJoin(idx2, mask, range1, range2);
     if (ibis::gVerbose > 3)
@@ -11476,6 +11457,8 @@ int64_t ibis::bin::compJoin(const ibis::bin& idx2,
     if (mask.cnt() == 0) {
 	return cnt;
     }
+    if (col == 0 || idx2.col == 0) return -1;
+
     ibis::index::barrel bar(const_cast<const ibis::math::term*>(expr));
     if (bar.size() == 0) {
 	const double delta = fabs(expr->eval());
@@ -11627,7 +11610,7 @@ long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
     if (fdes < 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin::mergeValues failed to open \""
-	    << fnm << " of column " << col->name();
+	    << fnm << " of column " << (col ? col->name() : "?");
 	return -3;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -11656,8 +11639,8 @@ long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
     if (offsets.size()+c0 <= c1) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin::mergeValues failed to read offsets from \""
-	    << fnm << "\" of column " << col->name() << " to evaluate \""
-	    << cmp << '"';
+	    << fnm << "\" of column " << (col ? col->name() : "?")
+            << " to evaluate \"" << cmp << '"';
 	return -6;
     }
 
@@ -11718,7 +11701,7 @@ long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
     if (fdes < 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin::mergeValues failed to open \""
-	    << fnm << " of column " << col->name();
+	    << fnm << " of column " << (col ? col->name() : "?");
 	return -3;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -11747,8 +11730,8 @@ long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
     if (offsets.size()+c0 <= c1) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- bin::mergeValues failed to read offsets from \""
-	    << fnm << "\" of column " << col->name() << " to evaluate \""
-	    << cmp << '"';
+	    << fnm << "\" of column " << (col ? col->name() : "?")
+            << " to evaluate \"" << cmp << '"';
 	return -6;
     }
     const unsigned elm = sizeof(T);
@@ -11909,6 +11892,7 @@ long ibis::bin::mergeValues(const ibis::qContinuousRange& cmp,
 /// @note This function only works with integers and floating-point values.
 long ibis::bin::select(const ibis::qContinuousRange& cmp, void* vals) const {
     long ierr = -1;
+    if (col == 0) return ierr;
     switch (col->type()) {
     case ibis::BYTE:
 	ierr = mergeValues(cmp, *static_cast<array_t<signed char>*>(vals));
@@ -11954,13 +11938,15 @@ long ibis::bin::select(const ibis::qContinuousRange& cmp, void* vals) const {
 /// @note This function only works with integers and floating-point values.
 long ibis::bin::select(const ibis::qContinuousRange& cmp, void* vals,
 		       ibis::bitvector& hits) const {
+    long ierr = -1;
+    if (col == 0) return ierr;
+
     std::string iname, bname;
     dataFileName(iname);
     bname = iname;
     bname += ".bin"; // bin file name
     iname += ".idx"; // index file name
 
-    long ierr = -1;
     switch (col->type()) {
     case ibis::BYTE:
 	ierr = mergeValues(cmp, *static_cast<array_t<signed char>*>(vals),

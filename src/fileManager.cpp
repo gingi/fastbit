@@ -381,8 +381,8 @@ int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
     }
 } // ibis::fileManager::adjustCacheSize
 
-/// This function cleans the memory cache used by FastBit.  It destroys the
-/// two lists of files it holds and therefore makes the files not
+/// This function cleans the memory cache used by FastBit.  It cleans the
+/// two lists of files held by this class and therefore makes the files not
 /// accessible any new objects.  However, the actual underlying memory may
 /// still be present if they are being actively used.  This function is
 /// effective only if all other operations have ceased!  To force an

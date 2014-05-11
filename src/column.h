@@ -329,6 +329,20 @@ public:
     class indexLock;
     class mutexLock;
 
+    /// Compute the minimum and maximum of the values in the array.
+    template <typename T> static
+    void actualMinMax(const array_t<T>& vals, const ibis::bitvector& mask,
+		      double& min, double& max, bool &asc);
+    /// Compute the minimum value in the array.
+    template <typename T> static
+    T computeMin(const array_t<T>& vals, const ibis::bitvector& mask);
+    /// Compute the maximum value in the array.
+    template <typename T> static
+    T computeMax(const array_t<T>& vals, const ibis::bitvector& mask);
+    /// Compute the sum of values in the array.
+    template <typename T> static
+    double computeSum(const array_t<T>& vals, const ibis::bitvector& mask);
+
 protected:
     // protected member variables
     const part* thePart; ///!< Data partition containing this column.
@@ -361,22 +375,6 @@ protected:
     /// maximum value.
     void actualMinMax(const char *fname, const ibis::bitvector& mask,
 		      double &min, double &max, bool &asc) const;
-    /// Compute the minimum and maximum of the values in the array.
-    template <typename T>
-    void actualMinMax(const array_t<T>& vals, const ibis::bitvector& mask,
-		      double& min, double& max, bool &asc) const;
-    /// Compute the minimum value in the array.
-    template <typename T>
-    T computeMin(const array_t<T>& vals,
-		 const ibis::bitvector& mask) const;
-    /// Compute the maximum value in the array.
-    template <typename T>
-    T computeMax(const array_t<T>& vals,
-		 const ibis::bitvector& mask) const;
-    /// Compute the sum of values in the array.
-    template <typename T>
-    double computeSum(const array_t<T>& vals,
-		      const ibis::bitvector& mask) const;
 
     /// Resolve a continuous range condition on a sorted column.
     virtual int searchSorted(const ibis::qContinuousRange&,

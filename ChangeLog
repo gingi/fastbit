@@ -1,3 +1,14 @@
+2014-05-10 John Wu <John dot Wu at ACM dot org>
+	* src/index.h: move printHeader to be a public static member
+	function
+	* src/ibin.cpp: check whether col is nil before use
+	* src/column.h: move template functions for computing min and max
+	to be static member functions
+
+2014-05-09 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: change index::create to separate out the portion
+	about reading an existing index, allow c=0 in this case
+
 2014-04-29 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.cpp: in bin::parsePrec, change the default precision to
 	2 digits; in constructors of ibis::bin, change index spec of nil
