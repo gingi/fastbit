@@ -238,7 +238,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
                 ierr = ibis::fileManager::instance().tryGetFile
                     (file.c_str(), &st, prf);
                 if (ierr != 0) {
-                    LOGGER(ibis::gVerbose > 6)
+                    LOGGER(ibis::gVerbose > 7)
                         << evt << " tryGetFile(" << file
                         << ") failed with return code " << ierr;
                     st = 0;
@@ -304,17 +304,16 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
             }
         }
     } // if (dfname != 0 && *dfname != 0)
-    if (ind != 0) // successfully read an index
+    if (ind != 0)
         return ind;
 
     // could not read an index, try to create a new one
     if (c == 0) // can not proceed
-        return ind;
-    if (c->partition() != 0 && c->partition()->nRows() == 0)
-        return ind;
-    if (c->type() == ibis::UNKNOWN_TYPE || c->type() == ibis::BLOB ||
-        c->type() == ibis::BIT)
-        return ind;
+	return ind;
+    if (c->partition() == 0)
+	return ind;
+    if (c->partition()->nRows() == 0)
+	return ind;
 
     if (spec == 0 || *spec == static_cast<char>(0))
         spec = c->indexSpec(); // index spec of the column
@@ -346,121 +345,8 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
 	timer.start();
-    std::string evt = "index::create";
-    if (ibis::gVerbose > 0) {
-        evt += '(';
-        evt += c->partition()->name();
-        evt += '.';
-        evt += c->name();
-        evt += ')';
-    }
 
     try {
-	if (dfname != 0 && *dfname != 0) { // first attempt to read the index
-	    ibis::fileManager::storage* st=0;
-	    std::string file;
-	    const char* header = 0;
-	    char buf[12];
-            const size_t dfnlen = std::strlen(dfname);
-            if (dfnlen > 4 && dfname[dfnlen-4] == '.' &&
-                dfname[dfnlen-3] == 'i' && dfname[dfnlen-2] == 'd' &&
-                dfname[dfnlen-1] == 'x') {
-                file = dfname;
-            }
-            else {
-                c->dataFileName(file, dfname);
-                if (! file.empty())
-                    file += ".idx";
-            }
-	    if (! file.empty()) {
-		bool useGetFile = (readopt >= 0);
-		ibis::fileManager::ACCESS_PREFERENCE prf =
-		    (readopt > 0 ? ibis::fileManager::PREFER_READ :
-		     ibis::fileManager::MMAP_LARGE_FILES);
-		if (readopt == 0) { // default option, check parameters
-		    std::string key(c->partition()->name());
-		    key += ".";
-		    key += c->name();
-		    key += ".preferMMapIndex";
-		    if (ibis::gParameters().isTrue(key.c_str())) {
-			useGetFile = true;
-			prf = ibis::fileManager::PREFER_MMAP;
-		    }
-		    else {
-			key = c->partition()->name();
-			key += ".";
-			key += c->name();
-			key += ".preferReadIndex";
-			if (ibis::gParameters().isTrue(key.c_str())) {
-			    useGetFile = true;
-			    prf = ibis::fileManager::PREFER_READ;
-			}
-		    }
-		}
-		if (useGetFile) {
-		    // manage the index file as a whole
-		    ierr = ibis::fileManager::instance().tryGetFile
-			(file.c_str(), &st, prf);
-		    if (ierr != 0) {
-			LOGGER(ibis::gVerbose > 7)
-			    << evt << " tryGetFile(" << file
-			    << ") failed with return code " << ierr;
-			st = 0;
-		    }
-		    if (st)
-			header = st->begin();
-		}
-                if (header == 0) {
-                    // attempt to read the file using read(2)
-                    int fdes = UnixOpen(file.c_str(), OPEN_READONLY);
-                    if (fdes >= 0) {
-#if defined(_WIN32) && defined(_MSC_VER)
-                        (void)_setmode(fdes, _O_BINARY);
-#endif
-                        if (8 == UnixRead(fdes, static_cast<void*>(buf), 8)) {
-                            header = buf;
-                        }
-                        UnixClose(fdes);
-                    }
-                }
-                if (header) { // verify header
-                    const bool check = (header[0] == '#' && header[1] == 'I' &&
-                                        header[2] == 'B' && header[3] == 'I' &&
-                                        header[4] == 'S' &&
-                                        (header[6] == 8 || header[6] == 4) &&
-                                        header[7] == static_cast<char>(0));
-                    if (!check) {
-                        c->logWarning("readIndex", "index file \"%s\" "
-                                      "contains an incorrect header "
-                                      "(%c%c%c%c%c:%i.%i.%i)",
-                                      file.c_str(),
-                                      header[0], header[1], header[2],
-                                      header[3], header[4],
-                                      (int)header[5], (int)header[6],
-                                      (int)header[7]);
-                        header = 0;
-                    }
-                }
-
-                if (header) { // reconstruct index from st
-                    isRead = true;
-                    ibis::horometer tm4;
-                    if (ibis::gVerbose > 2)
-                        tm4.start();
-                    ind = readOld(c, file.c_str(), st,
-                                  static_cast<INDEX_TYPE>(header[5]));
-                    if (ind == 0) {
-                        ibis::fileManager::instance().flushFile(file.c_str());
-                        (void) remove(file.c_str());
-                    }
-                    else if (ibis::gVerbose > 2) {
-                        tm4.stop();
-                        LOGGER(1) << evt << " reading the existing index took "
-                                  << tm4.realTime() << " sec";
-                    }
-                }
-	    }
-	} // if (dfname != 0 && *dfname != 0)
 	if (dfname == 0) {
 	    // user has passed in an explicit nil pointer, purge index files
 	    c->purgeIndexFile();
@@ -596,17 +482,12 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 /// Read an index of the specified type from the incoming data file.  The
 /// index type t has been determined by the caller.  Furthermore, the
 /// caller might have read the index file into storage object st.
-ibis::index* ibis::index::readOld(const ibis::column* c,
-                                  const char* f,
-                                  ibis::fileManager::storage* st,
+ibis::index* ibis::index::readOld(const ibis::column *c,
+                                  const char *f,
+                                  ibis::fileManager::storage *st,
                                   ibis::index::INDEX_TYPE t) {
-    LOGGER(ibis::gVerbose > 3)
-        << "index::create -- attempt to read index type #"
-        << (int)t << " from "
-        << (f ? f : c->partition()->currentDataDir())
-        << " for column " << c->partition()->name() << '.' << c->name();
     ibis::index *ind = 0;
-    if (f == 0 && *f == 0 && st == 0 && c->partition() == 0) return ind;
+    if (f == 0 || *f == 0) return ind;
     LOGGER(ibis::gVerbose > 3)
         << "index::create -- attempt to read index type #"
         << (int)t << " from "

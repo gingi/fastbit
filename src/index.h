@@ -430,9 +430,9 @@ protected:
     int initOffsets(ibis::fileManager::storage *st, size_t start,
 		    uint32_t nobs);
     void initBitmaps(int fdes);
-    void initBitmaps(ibis::fileManager::storage *st);
-    void initBitmaps(uint32_t *st);
-    void initBitmaps(void *ctx, FastBitReadBitmaps rd);
+    void initBitmaps(ibis::fileManager::storage* st);
+
+    class barrel;
 
 private:
 

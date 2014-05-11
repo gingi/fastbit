@@ -6067,14 +6067,11 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
                 const double scost = ibis::fileManager::pageSize() *
                     ibis::part::countPages(mask, elementSize()) +
                     8.0 * mask.size() / ibis::fileManager::pageSize();
+                LOGGER(ibis::gVerbose > 2)
+                    << evt << " -- estimated cost with index = "
+                    << icost << ", with sequential scan = " << scost;
 		if (icost < scost) {
 		    idx->estimate(cmp, low, high);
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 2)
-			<< evt << ") will not use the index because the cost ("
-			<< icost << ") is more than that of sequential scan ("
-                        << scost << ')';
 		}
 	    }
 	    else if (m_sorted) {
@@ -6237,6 +6234,9 @@ long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
 		const double icost = idx->estimateCost(cmp);
                 const double scost = ibis::fileManager::pageSize() *
                     ibis::part::countPages(mask, elementSize());
+                LOGGER(ibis::gVerbose > 2)
+                    << evt << " -- estimated cost with index = "
+                    << icost << ", with sequential scan = " << scost;
 		if (icost < scost)
 		    ierr = idx->select(cmp, vals, low);
                 else
@@ -6372,7 +6372,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
                 }
             }
 	}
-        // fail back options
+        // fall back options
         if (ierr < 0) {
 	    if (m_sorted) {
 		ierr = searchSorted(cmp, low);
@@ -8808,7 +8808,7 @@ long ibis::column::castAndWrite(const array_t<double>& vals,
 template <typename T>
 void ibis::column::actualMinMax(const array_t<T>& vals,
 				const ibis::bitvector& mask,
-				double& min, double& max, bool &asc) const {
+				double& min, double& max, bool &asc) {
     asc = true;
     min = DBL_MAX;
     max = - DBL_MAX;
@@ -8847,68 +8847,67 @@ void ibis::column::actualMinMax(const array_t<T>& vals,
     min = static_cast<double>(amin);
     max = static_cast<double>(amax);
     LOGGER(ibis::gVerbose > 5)
-	<< "column[" << (thePart!=0 ? thePart->name() : "") << "."
-	<< m_name << "]::actualMinMax -- vals.size() = "
+	<< "actualMinMax<" << typeid(T).name() << "> -- vals.size() = "
 	<< vals.size() << ", mask.cnt() = " << mask.cnt()
 	<< ", min = " << min << ", max = " << max << ", asc = " << asc;
 } // ibis::column::actualMinMax
 
 template <typename T>
 T ibis::column::computeMin(const array_t<T>& vals,
-                           const ibis::bitvector& mask) {
+			   const ibis::bitvector& mask) {
     T res = std::numeric_limits<T>::max();
     if (vals.empty() || mask.cnt() == 0) return res;
 
     for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
-         ix.nIndices() > 0; ++ ix) {
-        const ibis::bitvector::word_t *idx = ix.indices();
-        if (ix.isRange()) {
-            ibis::bitvector::word_t last = (idx[1] <= vals.size() ?
-                                            idx[1] : vals.size());
-            for (uint32_t i = *idx; i < last; ++ i) {
-                res = (res > vals[i] ? vals[i] : res);
-            }
-        }
-        else {
-            for (uint32_t i = 0; i < ix.nIndices() && idx[i] < vals.size();
-                 ++ i) {
-                res = (res > vals[idx[i]] ? vals[idx[i]] : res);
-            }
-        }
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *idx = ix.indices();
+	if (ix.isRange()) {
+	    ibis::bitvector::word_t last = (idx[1] <= vals.size() ?
+					    idx[1] : vals.size());
+	    for (uint32_t i = *idx; i < last; ++ i) {
+		res = (res > vals[i] ? vals[i] : res);
+	    }
+	}
+	else {
+	    for (uint32_t i = 0; i < ix.nIndices() && idx[i] < vals.size();
+		 ++ i) {
+		res = (res > vals[idx[i]] ? vals[idx[i]] : res);
+	    }
+	}
     }
     return res;
 } // ibis::column::computeMin
 
 template <typename T>
 T ibis::column::computeMax(const array_t<T>& vals,
-                           const ibis::bitvector& mask) {
+			   const ibis::bitvector& mask) {
     T res = std::numeric_limits<T>::min();
     if (res > 0) res = -std::numeric_limits<T>::max();
     if (vals.empty() || mask.cnt() == 0) return res;
 
     for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
-         ix.nIndices() > 0; ++ ix) {
-        const ibis::bitvector::word_t *idx = ix.indices();
-        if (ix.isRange()) {
-            ibis::bitvector::word_t last = (idx[1] <= vals.size() ?
-                                            idx[1] : vals.size());
-            for (uint32_t i = *idx; i < last; ++ i) {
-                res = (res < vals[i] ? vals[i] : res);
-            }
-        }
-        else {
-            for (uint32_t i = 0; i < ix.nIndices() && idx[i] < vals.size();
-                 ++ i) {
-                res = (res < vals[idx[i]] ? vals[idx[i]] : res);
-            }
-        }
+	 ix.nIndices() > 0; ++ ix) {
+	const ibis::bitvector::word_t *idx = ix.indices();
+	if (ix.isRange()) {
+	    ibis::bitvector::word_t last = (idx[1] <= vals.size() ?
+					    idx[1] : vals.size());
+	    for (uint32_t i = *idx; i < last; ++ i) {
+		res = (res < vals[i] ? vals[i] : res);
+	    }
+	}
+	else {
+	    for (uint32_t i = 0; i < ix.nIndices() && idx[i] < vals.size();
+		 ++ i) {
+		res = (res < vals[idx[i]] ? vals[idx[i]] : res);
+	    }
+	}
     }
     return res;
 } // ibis::column::computeMax
 
 template <typename T>
 double ibis::column::computeSum(const array_t<T>& vals,
-                                const ibis::bitvector& mask) {
+				const ibis::bitvector& mask) {
     double res = 0.0;
     if (vals.empty() || mask.cnt() == 0) return res;
 

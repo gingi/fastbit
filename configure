@@ -2510,7 +2510,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #AC_PACKAGE_URL(http://sdm.lbl.gov/fastbit/)
 
 
-
 ac_config_headers="$ac_config_headers src/fastbit-config.h"
 
 am__api_version='1.14'

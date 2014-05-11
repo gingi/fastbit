@@ -91,7 +91,7 @@ extern "C" {
     FastBitSelectionHandle fastbit_selection_create_nd
     (FastBitDataType, void*, uint64_t*, uint64_t, FastBitCompareType, void*);
 
-    /** Free the selection object. */
+    /** Free/destroy the selection object. */
     void fastbit_selection_free(FastBitSelectionHandle);
 
     /** Combining two selection conditions into one. */
