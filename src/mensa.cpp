@@ -16,7 +16,7 @@
 #include "blob.h"	// ibis::blob
 #include "category.h"	// ibis::text
 
-#include <algorithm>	// std::sort
+#include <algorithm>	// std::sort, std::copy
 #include <sstream>	// std::ostringstream
 #include <limits>	// std::numeric_limits
 #include <cmath>	// std::floor
@@ -773,12 +773,14 @@ int64_t ibis::mensa::getColumnAsUBytes(const char* cn, unsigned char* vals,
 				       uint64_t begin, uint64_t end) const {
     if (end == 0 || end > nrows) end = nrows;
     if (begin >= end) return 0;
-    ibis::table::namesTypes::const_iterator nit = naty.find(cn);
-    if (nit == naty.end())
-	return -1;
-    else if ((*nit).second != ibis::BYTE &&
-	     (*nit).second != ibis::UBYTE)
-	return -2;
+    {
+        ibis::table::namesTypes::const_iterator nit = naty.find(cn);
+        if (nit == naty.end())
+            return -1;
+        else if ((*nit).second != ibis::BYTE &&
+                 (*nit).second != ibis::UBYTE)
+            return -2;
+    }
 
     array_t<unsigned char> tmp;
     uint64_t ival = 0;
@@ -829,10 +831,9 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += (i1-i0);
 	    }
 	    irow += dp.nRows();
 	}
@@ -853,8 +854,8 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals,
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
+                                   end-irow) - i0;
+                memcpy(vals+ival, tmp.begin()+i0, i1 * 2U);
 		ival += i1;
 	    }
 	    irow += dp.nRows();
@@ -891,10 +892,9 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += (i1-i0);
 	    }
 	    irow += dp.nRows();
 	}
@@ -915,8 +915,8 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals,
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
+                                   end-irow) - i0;
+		memcpy(vals+ival, tmp.begin()+i0, i1 * 2U);
 		ival += i1;
 	    }
 	    irow += dp.nRows();
@@ -952,10 +952,9 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -974,10 +973,9 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -996,10 +994,9 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1018,10 +1015,9 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1043,7 +1039,7 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals,
 		const size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
 				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
+		memcpy(vals+ival, tmp.begin()+i0, i1*4U);
 		ival += i1;
 	    }
 	    irow += dp.nRows();
@@ -1080,10 +1076,9 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1103,10 +1098,9 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1128,7 +1122,7 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals,
 		const size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
 				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
+		memcpy(vals+ival, tmp.begin()+i0, i1 * 4U);
 		ival += i1;
 	    }
 	    irow += dp.nRows();
@@ -1167,10 +1161,9 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1189,10 +1182,9 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1211,10 +1203,9 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1233,10 +1224,9 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1255,10 +1245,9 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1277,10 +1266,9 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1303,7 +1291,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
 		const size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
 				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
+		memcpy(vals+ival, tmp.begin()+i0, i1*8U);
 		ival += i1;
 	    }
 	    irow += dp.nRows();
@@ -1342,10 +1330,9 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1365,10 +1352,9 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1388,10 +1374,9 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1414,7 +1399,7 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
 		const size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
 				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
+		memcpy(vals+ival, tmp.begin()+i0, i1*8U);
 		ival += i1;
 	    }
 	    irow += dp.nRows();
@@ -1452,10 +1437,9 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1474,10 +1458,9 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1496,10 +1479,9 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1518,10 +1500,9 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1542,7 +1523,7 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals,
 		const size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
 				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
+		memcpy(vals+ival, tmp.begin()+i0, i1*4U);
 		ival += i1;
 	    }
 	    irow += dp.nRows();
@@ -1580,10 +1561,9 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1602,10 +1582,9 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1624,10 +1603,9 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1646,10 +1624,9 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1668,10 +1645,9 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1690,10 +1666,9 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1712,10 +1687,9 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 		    return -4;
 
 		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
-		ival += i1;
+		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
+		ival += i1 - i0;
 	    }
 	    irow += dp.nRows();
 	}
@@ -1736,7 +1710,7 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
 		const size_t i0 = (begin > irow ? begin - irow : 0);
 		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
 				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1);
+		memcpy(vals+ival, tmp.begin()+i0, i1*8);
 		ival += i1;
 	    }
 	    irow += dp.nRows();

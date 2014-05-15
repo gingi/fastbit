@@ -146,7 +146,7 @@ static unsigned build_index = 0;
 // <0 skip estimation, =0 do estimation, >0 estimation only
 static int estimation_opt = -1;
 static bool sequential_scan = false;
-static bool verify_rid = false;
+static bool recheckvalues = false;
 static bool zapping = false;
 static bool appendToOutput = false;
 static bool showheader = false;
@@ -376,7 +376,7 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 	lg() << "  total count = " << tot << ", tbl.nRows() = "
 	     << tbl.nRows();
     }
-    if (nb > 0 && (verify_rid || ibis::gVerbose > 10)) {
+    if (nb > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 	std::vector<ibis::bitvector> bins;
 	std::vector<double> boundt;
 	ibis::util::logger lg;
@@ -601,7 +601,7 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
 	     << ", weights.size() = " << weights.size();
 	return;
     }
-    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+    if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 	std::vector<double> sum2;
 	std::vector<ibis::bitvector*> bins;
 	ierr = tbl.get1DBins(cond,
@@ -781,7 +781,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *cond,
 	     << ", weights.size() = " << weights.size();
 	return;
     }
-    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+    if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 	std::vector<double> sum2;
 	std::vector<ibis::bitvector*> bins;
 	ierr = tbl.get2DBins(cond,
@@ -983,7 +983,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
 	return;
     }
 
-    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+    if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 	std::vector<double> sum2;
 	std::vector<ibis::bitvector*> bins;
 	ierr = tbl.get3DBins(cond,
@@ -1150,7 +1150,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	     << ", cnts.size() = " << cnts.size();
 	return;
     }
-    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+    if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 #if defined(TEST_CONTAINER_OF_OBJECTS)
 	std::vector<ibis::bitvector> bins;
 	ierr = tbl.get2DBins(cond,
@@ -1278,7 +1278,7 @@ static void print2DDist(const ibis::part& tbl, const char *col1,
 	     << bds2.size() << ", cnts.size() = " << cnts.size();
 	return;
     }
-    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+    if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 	std::vector<ibis::bitvector> bins;
 	std::vector<double> bdt1, bdt2;
 	ierr = tbl.get2DBins(cond, col1, col2, NB1, NB1, bdt1, bdt2, bins);
@@ -1504,7 +1504,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	     << ", cnts.size() = " << cnts.size();
 	return;
     }
-    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+    if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 #if defined(TEST_CONTAINER_OF_OBJECTS)
 	std::vector<ibis::bitvector> bins;
 	ierr = tbl.get3DBins(cond,
@@ -1636,7 +1636,7 @@ static void print3DDist(const ibis::part& tbl, const char *col1,
 	     << ", cnts.size() = " << cnts.size();
 	return;
     }
-    if (ierr > 0 && (verify_rid || ibis::gVerbose > 10)) {
+    if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 	std::vector<ibis::bitvector> bins;
 	std::vector<double> bdt1, bdt2, bdt3;
 	ierr = tbl.get3DBins(cond, col1, col2, col3, NB1, NB1, NB1,
@@ -2307,7 +2307,7 @@ static void parse_args(int argc, char** argv, int& mode,
 	    case 'r':
 	    case 'R': // RID/result check or reorder
 		if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
-		    verify_rid = true;
+		    recheckvalues = true;
 		    if (i+1 < argc) { // there is one more argument
 			if (argv[i+1][0] != '-') { // assume to be a file name
 			    ridfile = argv[i+1];
@@ -2320,7 +2320,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    ++ i;
 		}
 		else { // rid
-		    verify_rid = true;
+		    recheckvalues = true;
 		}
                 break;
 	    case 's':
@@ -3016,7 +3016,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	sel1->dump(lg(), start, limit, ", ");
     }
 
-    if (verify_rid && sel1->nRows() > 1 && sel1->nColumns() > 0) {
+    if (recheckvalues && sel1->nRows() > 1 && sel1->nColumns() > 0) {
 	// query the list of values selected by the 1st column
 	std::vector<double> svals;
 	const ibis::table::stringList cnames = sel1->columnNames();
@@ -3463,7 +3463,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     ibis::query aQuery(uid, tbl,
 		       ((sstr != 0 && *sstr != 0 &&
 			 ((ordkeys != 0 && *ordkeys != 0) || limit > 0 ||
-			  verify_rid || testing > 0)) ?
+			  recheckvalues || testing > 0)) ?
 			"ibis" : static_cast<const char*>(0)));
     if (ridfile != 0) {
 	ibis::ridHandler handle(0); // a sample ridHandler
@@ -3617,7 +3617,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    << "doQuery -- query (" << aQuery.getWhereClause()
 		    << ") results written to file \""
 		    <<  outputname << "\"";
-		if (ibis::gVerbose > 8 || verify_rid)
+		if (ibis::gVerbose > 8 || recheckvalues)
 		    bdl->printAll(output);
 		else
 		    bdl->print(output);
@@ -3627,7 +3627,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg() << "Warning ** doQuery failed to open file \""
 		     << outputname << "\" for writing query ("
 		     << aQuery.getWhereClause() << ")\n";
-		if (ibis::gVerbose > 8 || verify_rid)
+		if (ibis::gVerbose > 8 || recheckvalues)
 		    bdl->printAll(lg());
 		else
 		    bdl->print(lg());
@@ -3636,7 +3636,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	}
 	else {
 	    ibis::util::logger lg;
-	    if (ibis::gVerbose > 8 || verify_rid) {
+	    if (ibis::gVerbose > 8 || recheckvalues) {
 		bdl->printAll(lg());
             }
 	    else {
@@ -3678,7 +3678,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    }
 	}
     }
-    if (ibis::gVerbose > 5 || (verify_rid && ibis::gVerbose >= 0)) {
+    if (ibis::gVerbose > 5 || (recheckvalues && ibis::gVerbose >= 0)) {
 	ibis::bitvector btmp;
 	num2 = aQuery.sequentialScan(btmp);
 	if (num2 < 0) {
@@ -3700,7 +3700,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	}
     }
 
-    if (ibis::gVerbose >= 0 && (verify_rid || testing > 1)) {
+    if (ibis::gVerbose >= 0 && (recheckvalues || testing > 1)) {
 	// retrieve RIDs as bundles
 	uint32_t nbdl = 0;
 	ibis::RIDSet* rid0 = new ibis::RIDSet;
@@ -4120,7 +4120,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    << "doMeshQuery -- query (" << aQuery.getWhereClause()
 		    << ") results written to file \""
 		    << outputname << "\"";
-		if (ibis::gVerbose > 8 || verify_rid)
+		if (ibis::gVerbose > 8 || recheckvalues)
 		    aQuery.printSelectedWithRID(output);
 		else
 		    aQuery.printSelected(output);
@@ -4131,7 +4131,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		     << "open file \"" << outputname
 		     << "\" for writing query ("
 		     << aQuery.getWhereClause() << ") output\n";
-		if (ibis::gVerbose > 8 || verify_rid)
+		if (ibis::gVerbose > 8 || recheckvalues)
 		    aQuery.printSelectedWithRID(lg());
 		else
 		    aQuery.printSelected(lg());
@@ -4139,7 +4139,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	}
 	else {
 	    ibis::util::logger lg;
-	    if (ibis::gVerbose > 8 || verify_rid)
+	    if (ibis::gVerbose > 8 || recheckvalues)
 		aQuery.printSelectedWithRID(lg());
 	    else
 		aQuery.printSelected(lg());
@@ -4754,7 +4754,7 @@ static void parseString(const char* uid, const char* qstr,
     }
     else if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
 				sstr.find(" as ") < sstr.size())) {
-	//  || verify_rid || !ordkeys.empty() || limit > 0
+	//  || recheckvalues || !ordkeys.empty() || limit > 0
 	// more complex select clauses need tableSelect
 	if (! qtables.empty()) {
 	    ibis::partList tl2;
@@ -4816,7 +4816,7 @@ static void parseString(const char* uid, const char* qstr,
 		if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
 		    ibis::util::strMatch(prts[k]->name(),
 					 qtables[j])) {
-		    if (verify_rid || sequential_scan ||
+		    if (recheckvalues || sequential_scan ||
 			prts[k]->getMeshShape().empty()) {
 			try {
 			    doQuery(prts[k], uid, wstr.c_str(),
@@ -4880,7 +4880,7 @@ static void parseString(const char* uid, const char* qstr,
 	for (ibis::partList::iterator tit = prts.begin();
 	     tit != prts.end(); ++ tit) {
 	    // go through every partition and process the user query
-	    if (verify_rid || sequential_scan ||
+	    if (recheckvalues || sequential_scan ||
 		(*tit)->getMeshShape().empty()) {
 		try {
 		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),

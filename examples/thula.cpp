@@ -625,7 +625,7 @@ static int printValues2(const ibis::table& tbl) {
 
 static void printValues(const ibis::table& tbl) {
     if (tbl.nColumns() == 0 || tbl.nRows() == 0) return;
-    int ierr = printValues1(tbl); // try to faster version first
+    int ierr = printValues1(tbl); // try the faster version first
     if (ierr < 0) { // try to the slower version
 	ierr = printValues2(tbl);
 	if (ierr < 0)

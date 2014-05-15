@@ -529,7 +529,7 @@ int64_t ibis::bord::getColumnAsBytes(const char *cn, char *vals,
 	return 0;
 
     sz = end - begin;
-    std::copy(arr->begin()+begin, arr->begin()+end, vals);
+    memcpy(vals, arr->begin()+begin, sz);
     return sz;
 } // ibis::bord::getColumnAsBytes
 
@@ -555,7 +555,7 @@ ibis::bord::getColumnAsUBytes(const char *cn, unsigned char *vals,
 	return 0;
 
     sz = end - begin;
-    std::copy(arr->begin()+begin, arr->begin()+end, vals);
+    memcpy(vals, arr->begin()+begin, sz);
     return sz;
 } // ibis::bord::getColumnAsUBytes
 
@@ -578,7 +578,7 @@ int64_t ibis::bord::getColumnAsShorts(const char *cn, int16_t *vals,
 	    return 0;
 
 	sz = end - begin;
-	std::copy(arr->begin()+begin, arr->begin()+end, vals);
+	memcpy(vals, arr->begin()+begin, sz*2U);
 	return sz;
     }
     else if (col->type() == ibis::BYTE) {
@@ -635,7 +635,7 @@ int64_t ibis::bord::getColumnAsUShorts(const char *cn, uint16_t *vals,
 	    return 0;
 
 	sz = end - begin;
-	std::copy(arr->begin()+begin, arr->begin()+end, vals);
+	memcpy(vals, arr->begin()+begin, sz*2U);
 	return sz;
     }
     else if (col->type() == ibis::BYTE || col->type() == ibis::UBYTE) {
@@ -677,7 +677,7 @@ int64_t ibis::bord::getColumnAsInts(const char *cn, int32_t *vals,
 	    return 0;
 
 	sz = end - begin;
-	std::copy(arr->begin()+begin, arr->begin()+end, vals);
+	memcpy(vals, arr->begin()+begin, sz*4U);
 	return sz;
     }
     else if (col->type() == ibis::SHORT) {
@@ -764,7 +764,7 @@ int64_t ibis::bord::getColumnAsUInts(const char *cn, uint32_t *vals,
 	    return 0;
 
 	sz = end - begin;
-	std::copy(arr->begin()+begin, arr->begin()+end, vals);
+	memcpy(vals, arr->begin()+begin, sz*4U);
 	return sz;
     }
     else if (col->type() == ibis::SHORT || col->type() == ibis::USHORT) {
@@ -821,7 +821,7 @@ int64_t ibis::bord::getColumnAsLongs(const char *cn, int64_t *vals,
 	    return 0;
 
 	sz = end - begin;
-	std::copy(arr->begin()+begin, arr->begin()+end, vals);
+	memcpy(vals, arr->begin()+begin, sz*8U);
 	return sz;
     }
     else if (col->type() == ibis::INT) {
@@ -938,7 +938,7 @@ int64_t ibis::bord::getColumnAsULongs(const char *cn, uint64_t *vals,
 	    return 0;
 
 	sz = end - begin;
-	std::copy(arr->begin()+begin, arr->begin()+end, vals);
+	memcpy(vals, arr->begin()+begin, sz*8U);
 	return sz;
     }
     else if (col->type() == ibis::INT || col->type() == ibis::UINT) {
@@ -1011,7 +1011,7 @@ int64_t ibis::bord::getColumnAsFloats(const char *cn, float *vals,
 	    return 0;
 
 	sz = end - begin;
-	std::copy(arr->begin()+begin, arr->begin()+end, vals);
+	memcpy(vals, arr->begin()+begin, sz*4U);
 	return sz;
     }
     case ibis::SHORT: {
@@ -1100,7 +1100,7 @@ int64_t ibis::bord::getColumnAsDoubles(const char *cn, double *vals,
 	    return 0;
 
 	sz = end - begin;
-	std::copy(arr->begin()+begin, arr->begin()+end, vals);
+	memcpy(vals, arr->begin()+begin, sz*8U);
 	return sz;
     }
     case ibis::FLOAT: {
@@ -6256,7 +6256,8 @@ long ibis::bord::column::patternSearch(const char* pat,
 	hits.adjustSize(0, thePart ? thePart->nRows() : vals.size());
     }
     else {
-        const array_t<uint32_t>&vals(*static_cast<const array_t<uint32_t>*>(buffer));
+        const array_t<uint32_t>&
+            vals(*static_cast<const array_t<uint32_t>*>(buffer));
 
         if (pat == 0) { // null string can not match any thing
             hits.set(0, thePart ? thePart->nRows() : vals.size());
