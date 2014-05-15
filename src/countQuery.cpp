@@ -445,28 +445,28 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
         break;
     }
     case ibis::qExpr::LOGICAL_AND: {
-        doEstimate(term->getLeft(), low, high);
-        // there is no need to evaluate the right-hand side if the left-hand
-        // is evaluated to have no hit
-        if (low.sloppyCount() > 0) {
-            // continue to evaluate the right-hand side
-            ibis::bitvector b1, b2;
-            doEstimate(term->getRight(), b1, b2);
-            if (high.size() == low.size()) {
-                if (b2.size() == b1.size()) {
-                    high &= b2;
-                }
-                else {
-                    high &= b1;
-                }
-            }
-            else if (b2.size() == b1.size()) {
-                high.copy(low);
-                high &= b2;
-            }
-            low &= b1;
-        }
-        break;
+	doEstimate(term->getLeft(), low, high);
+	// there is no need to evaluate the right-hand side if the left-hand
+	// is evaluated to have no hit
+	if (low.sloppyCount() > 0) {
+	    // continue to evaluate the right-hand side
+	    ibis::bitvector b1, b2;
+	    doEstimate(term->getRight(), b1, b2);
+	    if (high.size() == low.size()) {
+		if (b2.size() == b1.size()) {
+		    high &= b2;
+		}
+		else {
+		    high &= b1;
+		}
+	    }
+	    else if (b2.size() == b1.size()) {
+		high.copy(low);
+		high &= b2;
+	    }
+	    low &= b1;
+	}
+	break;
     }
     case ibis::qExpr::LOGICAL_OR: {
         ibis::bitvector b1, b2;
@@ -680,19 +680,19 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
         }
         break;
     default:
-        if (term->isConstant() && term->getType() == ibis::qExpr::MATHTERM) {
-            const int tf = (reinterpret_cast<const ibis::math::term*>
-                            (term)->isTrue() ? 1 : 0);
-            high.set(tf, mypart->nRows());
-            low.set(tf, mypart->nRows());
-        }
-        else {
-            LOGGER(ibis::gVerbose > 2)
-                << "Warning -- countQuery::doEstimate encountered a "
-                "unexpected term, presume every row is a possible hit";
-            high.set(1, mypart->nRows());
-            low.set(0, mypart->nRows());
-        }
+	if (term->isConstant() && term->getType() == ibis::qExpr::MATHTERM) {
+	    const int tf = (reinterpret_cast<const ibis::math::term*>
+			    (term)->isTrue() ? 1 : 0);
+	    high.set(tf, mypart->nRows());
+	    low.set(tf, mypart->nRows());
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 2)
+		<< "Warning -- countQuery::doEstimate encountered a "
+		"unexpected term, presume every row is a possible hit";
+	    high.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
+	}
     }
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg;
@@ -708,8 +708,8 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-        << "countQuery::doEstimate(" << *term
-        << ") --> [" << low.cnt() << ",  "
+	<< "countQuery::doEstimate(" << *term
+        << ") --> " << low.cnt() << ",  "
         << (high.size()==low.size()?high.cnt():low.cnt()) << ']';
 #endif
 } // ibis::countQuery::doEstimate
@@ -1192,8 +1192,8 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-        << "countQuery::doEvaluate(" << *term << ", mask.cnt()="
-        << mask.cnt() << ") --> " << ht.cnt() << ", ierr = " << ierr;
+	<< "countQuery::doEvaluate(" << *term << ", mask.cnt()="
+	<< mask.cnt() << ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;
 } // ibis::countQuery::doEvaluate

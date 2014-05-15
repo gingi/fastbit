@@ -28,9 +28,11 @@
 ibis::relic::relic(const ibis::column *c, const char *f)
     : ibis::index(c) {
     try {
-	if (f) {
-	    read(f);
+	if (f && 0 == read(f)) {
+	    return;
 	}
+
+        if (c == 0) return;  // nothing can be done
 	if (vals.empty() && c->partition()->nRows() > 0 &&
 	    c->type() != ibis::CATEGORY &&
 	    c->type() != ibis::TEXT) {

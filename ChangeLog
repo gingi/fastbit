@@ -1,3 +1,11 @@
+2014-05-14 John Wu <John dot Wu at ACM dot org>
+	* src/countQuery.cpp:425, src/query.cpp:2732 (high.sloppyCount() >
+	0) should be (low.sloppyCount() > 0) (an error discovered by a
+	test case from Junmin Gu)
+
+2014-05-11 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.cpp: modify bin::print to always print the last bin
+
 2014-05-10 John Wu <John dot Wu at ACM dot org>
 	* src/index.h: move printHeader to be a public static member
 	function

@@ -2741,28 +2741,28 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
         break;
     }
     case ibis::qExpr::LOGICAL_AND: {
-        doEstimate(term->getLeft(), low, high);
-        // there is no need to evaluate the right-hand side if the left-hand
-        // is evaluated to have no hit
-        if (low.sloppyCount() > 0) {
-            // continue to evaluate the right-hand side
-            ibis::bitvector b1, b2;
-            doEstimate(term->getRight(), b1, b2);
-            if (high.size() == low.size()) {
-                if (b2.size() == b1.size()) {
-                    high &= b2;
-                }
-                else {
-                    high &= b1;
-                }
-            }
-            else if (b2.size() == b1.size()) {
-                high.copy(low);
-                high &= b2;
-            }
-            low &= b1;
-        }
-        break;
+	doEstimate(term->getLeft(), low, high);
+	// there is no need to evaluate the right-hand side if the left-hand
+	// is evaluated to have no hit
+	if (low.sloppyCount() > 0) {
+	    // continue to evaluate the right-hand side
+	    ibis::bitvector b1, b2;
+	    doEstimate(term->getRight(), b1, b2);
+	    if (high.size() == low.size()) {
+		if (b2.size() == b1.size()) {
+		    high &= b2;
+		}
+		else {
+		    high &= b1;
+		}
+	    }
+	    else if (b2.size() == b1.size()) {
+		high.copy(low);
+		high &= b2;
+	    }
+	    low &= b1;
+	}
+	break;
     }
     case ibis::qExpr::LOGICAL_OR: {
         ibis::bitvector b1, b2;
