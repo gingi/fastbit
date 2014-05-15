@@ -18,14 +18,14 @@ namespace ibis {
 /// A class to represent the select clause.  It parses a string into a list
 /// of arithmetic expressions and aggregation functions.
 ///
-/// The terms in a select clause are to be separated by comas ',' and each
+/// The terms in a select clause must be separated by comas ',' and each
 /// term may be an arithmetic expression or an aggregation function over an
 /// arithmetic expression, e.g., "age, avg(income)" and "temperature,
 /// sqrt(vx*vx+vy*vy+vz*vz) as speed, max(duration * speed)".  An
 /// arithmetic expression may contain any valid combination of numbers and
 /// column names connected with operators +, -, *, /, %, ^, ** and standard
-/// functions with one and two arguements (defined in math.h).  The
-/// supported aggregation functions are:
+/// functions defined in math.h and having only one and two arguements.
+/// The supported aggregation functions are:
 ///
 /// - count(*): count the number of rows in each group.
 /// - countdistinct(expression): count the number of distinct values

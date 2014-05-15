@@ -194,8 +194,8 @@ void ibis::selectClause::fillNames() {
 
     // fill the external names
     for (uint32_t j = 0; j < xtms_.size(); ++ j) {
-	if (xnames_[j].empty() && aggr_[j] == ibis::selectClause::NIL_AGGR &&
-	    xtms_[j]->termType() == ibis::math::VARIABLE) {
+	if (xnames_[j].empty() &&
+            xtms_[j]->termType() == ibis::math::VARIABLE) {
 	    const char *vn = static_cast<const ibis::math::variable*>
 		(xtms_[j])->variableName();
 	    uint64_t jv = atms_.size();
