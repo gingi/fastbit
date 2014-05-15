@@ -709,7 +709,7 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 #else
     LOGGER(ibis::gVerbose > 3)
 	<< "countQuery::doEstimate(" << *term
-        << ") --> " << low.cnt() << ",  "
+        << ") --> [" << low.cnt() << ",  "
         << (high.size()==low.size()?high.cnt():low.cnt()) << ']';
 #endif
 } // ibis::countQuery::doEstimate

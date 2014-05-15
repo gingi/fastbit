@@ -1,3 +1,9 @@
+2014-05-15 John Wu <John dot Wu at ACM dot org>
+	* src/mensa.cpp: correct the problems with getColumnAsTTTs (a
+	problem identified by Zhongbo Tian
+	* src/bord.cpp: switch std::copy to memcpy when the types match in
+	getColumnAsTTTs
+
 2014-05-14 John Wu <John dot Wu at ACM dot org>
 	* src/countQuery.cpp:425, src/query.cpp:2732 (high.sloppyCount() >
 	0) should be (low.sloppyCount() > 0) (an error discovered by a

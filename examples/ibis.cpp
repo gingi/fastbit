@@ -356,74 +356,74 @@ static void printColumn(const ibis::part& tbl, const char* cname,
         return;
     }
     else {
-        uint32_t tot = 0;
-        ibis::util::logger lg;
-        lg() << "Column " << cname << " in Partition "
-             << tbl.name() << ":\n";
-        col->print(lg());
-        lg() << ", actual range <" << amin << ", " << amax
-             << ">\nHistogram [" << nb << "]";
-        if (cond != 0 && *cond != 0)
-            lg() << " under the condition of \"" << cond
-                 << "\"";
-        lg() << "\n(bounds,\t# records in bin)\n";
-        for (int j = 0; j < nb; ++ j) {
-            if (! (fabs(bounds[j] - bounds[j+1]) >
-                   1e-15*(fabs(bounds[j])+fabs(bounds[j+1]))))
-                lg() << "*** Error *** bounds[" << j << "] ("
-                     << bounds[j] << ") is too close to bounds[" << j+1
-                     << "] (" << bounds[j+1] << ")\n";
-            lg() << "[" << bounds[j] << ", " << bounds[j+1] << ")\t"
-                 << counts[j] << "\n";
-            tot += counts[j];
-        }
-        lg() << "  total count = " << tot << ", tbl.nRows() = "
-             << tbl.nRows();
+	uint32_t tot = 0;
+	ibis::util::logger lg;
+	lg() << "Column " << cname << " in Partition "
+	     << tbl.name() << ":\n";
+	col->print(lg());
+	lg() << ", actual range <" << amin << ", " << amax
+	     << ">\nHistogram [" << nb << "]";
+	if (cond != 0 && *cond != 0)
+	    lg() << " under the condition of \"" << cond
+		 << "\"";
+	lg() << "\n(bounds,\t# records in bin)\n";
+	for (int j = 0; j < nb; ++ j) {
+	    if (! (fabs(bounds[j] - bounds[j+1]) >
+		   1e-15*(fabs(bounds[j])+fabs(bounds[j+1]))))
+		lg() << "*** Error *** bounds[" << j << "] ("
+		     << bounds[j] << ") is too close to bounds[" << j+1
+		     << "] (" << bounds[j+1] << ")\n";
+	    lg() << "[" << bounds[j] << ", " << bounds[j+1] << ")\t"
+		 << counts[j] << "\n";
+	    tot += counts[j];
+	}
+	lg() << "  total count = " << tot << ", tbl.nRows() = "
+	     << tbl.nRows();
     }
     if (nb > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-        std::vector<ibis::bitvector> bins;
-        std::vector<double> boundt;
-        ibis::util::logger lg;
-        long ierr = tbl.get1DBins(cond, cname, nb, boundt, bins);
-        lg() << "\nprintColumn(" << cname << ") -- \n";
-        if (ierr < 0) {
-            lg() << "Warning -- get1DBins failed with error " << ierr;
-        }
-        else if (ierr != (long)bins.size()) {
-            lg() << "get1DBins returned " << ierr
-                 << ", but bins.size() is " << bins.size()
-                 << "; these two values are expected to be the same";
-        }
-        else if (bounds.size() != boundt.size() ||
-                 counts.size() != bins.size()) {
-            lg() << "get1DDistribution returned " << counts.size()
-                 << " bin" << (counts.size() > 1 ? "s" : "")
-                 << ", but get1DBins returned " << bins.size()
-                 << " bin" << (bins.size() > 1 ? "s" : "")
-                 << "; bounds.size(" << bounds.size()
-                 << "), boundt.size(" << boundt.size()
-                 << "), counts.size(" << counts.size()
-                 << "), bins.size(" << bins.size() << ")";
-        }
-        else {
-            ierr = 0;
-            for (size_t i = 0; i < bounds.size(); ++ i)
-                if (bounds[i] != boundt[i]) {
-                    lg() << "bounds[" << i << "] (" << bounds[i]
-                         << ") != boundt[" << i << "] (" << boundt[i]
-                         << ")\n";
-                    ++ ierr;
-                }
-            for (size_t i = 0; i < counts.size(); ++ i)
-                if (bins[i].cnt() != counts[i]) {
-                    lg() << "counts[" << i << "] (" << counts[i]
-                         << ") != bins[" << i << "].cnt() ("
-                         << bins[i].cnt() << ")\n";
-                    ++ ierr;
-                }
-            lg() << "matching arrays counts and bins produces "
-                 << ierr << " error" << (ierr > 1 ? "s" : "");
-        }
+	std::vector<ibis::bitvector> bins;
+	std::vector<double> boundt;
+	ibis::util::logger lg;
+	long ierr = tbl.get1DBins(cond, cname, nb, boundt, bins);
+	lg() << "\nprintColumn(" << cname << ") -- \n";
+	if (ierr < 0) {
+	    lg() << "get1DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg() << "get1DBins returned " << ierr
+		 << ", but bins.size() is " << bins.size()
+		 << "; these two values are expected to be the same";
+	}
+	else if (bounds.size() != boundt.size() ||
+		 counts.size() != bins.size()) {
+	    lg() << "get1DDistribution returned " << counts.size()
+		 << " bin" << (counts.size() > 1 ? "s" : "")
+		 << ", but get1DBins returned " << bins.size()
+		 << " bin" << (bins.size() > 1 ? "s" : "")
+		 << "; bounds.size(" << bounds.size()
+		 << "), boundt.size(" << boundt.size()
+		 << "), counts.size(" << counts.size()
+		 << "), bins.size(" << bins.size() << ")";
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < bounds.size(); ++ i)
+		if (bounds[i] != boundt[i]) {
+		    lg() << "bounds[" << i << "] (" << bounds[i]
+			 << ") != boundt[" << i << "] (" << boundt[i]
+			 << ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < counts.size(); ++ i)
+		if (bins[i].cnt() != counts[i]) {
+		    lg() << "counts[" << i << "] (" << counts[i]
+			 << ") != bins[" << i << "].cnt() ("
+			 << bins[i].cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg() << "matching arrays counts and bins produces "
+		 << ierr << " error" << (ierr > 1 ? "s" : "");
+	}
     }
 } // printColumn
 
@@ -599,82 +599,82 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-        ibis::util::logger lg;
-        lg() << "Warning -- " << evt
-             << " get1DDistribution returned with ierr = " << ierr
-             << ", weights.size() = " << weights.size();
-        return;
+	ibis::util::logger lg;
+	lg() << "Warning -- " << evt
+	     << " get1DDistribution returned with ierr = " << ierr
+	     << ", weights.size() = " << weights.size();
+	return;
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-        std::vector<double> sum2;
-        std::vector<ibis::bitvector*> bins;
-        ierr = tbl.get1DBins(cond,
-                             col1, amin1, amax1, stride1,
-                             wt, sum2, bins);
-        ibis::util::logger lg;
-        lg() << "\n" << evt << "-- \n";
-        if (ierr < 0) {
-            lg() << "Warning -- get1DBins failed with error " << ierr;
-        }
-        else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
-            lg() << "get1DBins returned " << ierr
-                 << ", but bins.size() is " << bins.size()
-                 << " and sum2.size() is " << sum2.size()
-                 << "; these two values are expected to be the same";
-        }
-        else if (weights.size() != bins.size()) {
-            lg() << "get1DDistribution returned " << weights.size()
-                 << " bin" << (weights.size() > 1 ? "s" : "")
-                 << ", but get1DBins returned " << bins.size()
-                 << " bin" << (bins.size() > 1 ? "s" : "");
-        }
-        else {
-            ierr = 0;
-            for (size_t i = 0; i < weights.size(); ++ i) {
-                if (sum2[i] != weights[i]) {
-                    lg() << "weights[" << i << "] (" << weights[i]
-                         << ") != sum2[" << i << "] (" << sum2[i]
-                         << ")\n";
-                }
-                if (bins[i] != 0) {
-                    ibis::array_t<double> *tmp =
-                        cptrw->selectDoubles(*(bins[i]));
-                    if (tmp == 0) {
-                        lg() << "Warning -- failed to retrieve "
-                             << bins[i]->cnt() << " value"
-                             << (bins[i]->cnt() > 1 ? "s" : "")
-                             << " from " << wt << "for bin " << i
-                             << "\n";
-                        ++ ierr;
-                    }
-                    else {
-                        double w = 0.0;
-                        for (size_t j = 0; j < tmp->size(); ++ j)
-                            w += (*tmp)[j];
-                        if (w != weights[i]) {
-                            lg() << "weights[" << i << "] ("
-                                 << weights[i]
-                                 << ") != sum of bins[" << i << "] ("
-                                 << w << ") from " << bins[i]->cnt()
-                                 << " value"
-                                 << (bins[i]->cnt() > 1 ? "s" : "")
-                                 << "\n";
-                            ++ ierr;
-                        }
-                    }
-                }
-                else if (bins[i] == 0 && weights[i] != 0) {
-                    lg() << "weights[" << i << "] (" << weights[i]
-                         << "), but bins[" << i << "] is nil (0)\n";
-                    ++ ierr;
-                }
-            }
-            if (ierr > 0)
-                lg() << "Warning -- ";
-            lg() << "matching arrays weights and bins produces "
-                 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
-        }
-        ibis::util::clearVec(bins);
+	std::vector<double> sum2;
+	std::vector<ibis::bitvector*> bins;
+	ierr = tbl.get1DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     wt, sum2, bins);
+	ibis::util::logger lg;
+	lg() << "\n" << evt << "-- \n";
+	if (ierr < 0) {
+	    lg() << "get1DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+	    lg() << "get1DBins returned " << ierr
+		 << ", but bins.size() is " << bins.size()
+		 << " and sum2.size() is " << sum2.size()
+		 << "; these two values are expected to be the same";
+	}
+	else if (weights.size() != bins.size()) {
+	    lg() << "get1DDistribution returned " << weights.size()
+		 << " bin" << (weights.size() > 1 ? "s" : "")
+		 << ", but get1DBins returned " << bins.size()
+		 << " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < weights.size(); ++ i) {
+		if (sum2[i] != weights[i]) {
+		    lg() << "weights[" << i << "] (" << weights[i]
+			 << ") != sum2[" << i << "] (" << sum2[i]
+			 << ")\n";
+		}
+		if (bins[i] != 0) {
+		    ibis::array_t<double> *tmp =
+			cptrw->selectDoubles(*(bins[i]));
+		    if (tmp == 0) {
+			lg() << "** failed to retrieve "
+			     << bins[i]->cnt() << " value"
+			     << (bins[i]->cnt() > 1 ? "s" : "")
+			     << " from " << wt << "for bin " << i
+			     << "\n";
+			++ ierr;
+		    }
+		    else {
+			double w = 0.0;
+			for (size_t j = 0; j < tmp->size(); ++ j)
+			    w += (*tmp)[j];
+			if (w != weights[i]) {
+			    lg() << "weights[" << i << "] ("
+				 << weights[i]
+				 << ") != sum of bins[" << i << "] ("
+				 << w << ") from " << bins[i]->cnt()
+				 << " value"
+				 << (bins[i]->cnt() > 1 ? "s" : "")
+				 << "\n";
+			    ++ ierr;
+			}
+		    }
+		}
+		else if (bins[i] == 0 && weights[i] != 0) {
+		    lg() << "weights[" << i << "] (" << weights[i]
+			 << "), but bins[" << i << "] is nil (0)\n";
+		    ++ ierr;
+		}
+	    }
+	    if (ierr > 0)
+		lg() << "Warning -- ";
+	    lg() << "matching arrays weights and bins produces "
+		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+	}
+	ibis::util::clearVec(bins);
     }
 } // print1DDistribution
 
@@ -779,83 +779,83 @@ static void print2DDistribution(const ibis::part& tbl, const char *cond,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-        ibis::util::logger lg;
-        lg() << "Warning -- part[" << tbl.name()
-             << "].get2DDistribution returned with ierr = " << ierr
-             << ", weights.size() = " << weights.size();
-        return;
+	ibis::util::logger lg;
+	lg() << "Warning -- part[" << tbl.name()
+	     << "].get2DDistribution returned with ierr = " << ierr
+	     << ", weights.size() = " << weights.size();
+	return;
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-        std::vector<double> sum2;
-        std::vector<ibis::bitvector*> bins;
-        ierr = tbl.get2DBins(cond,
-                             col1, amin1, amax1, stride1,
-                             col2, amin2, amax2, stride2,
-                             wt, sum2, bins);
-        ibis::util::logger lg;
-        lg() << "\n" << evt << " -- \n";
-        if (ierr < 0) {
-            lg() << "Warning -- get2DBins failed with error " << ierr;
-        }
-        else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
-            lg() << "get2DBins returned " << ierr
-                 << ", but bins.size() is " << bins.size()
-                 << " and sum2.size() is " << sum2.size()
-                 << "; these two values are expected to be the same";
-        }
-        else if (weights.size() != bins.size()) {
-            lg() << "get2DDistribution returned " << weights.size()
-                 << " bin" << (weights.size() > 1 ? "s" : "")
-                 << ", but get2DBins returned " << bins.size()
-                 << " bin" << (bins.size() > 1 ? "s" : "");
-        }
-        else {
-            ierr = 0;
-            for (size_t i = 0; i < weights.size(); ++ i) {
-                if (sum2[i] != weights[i]) {
-                    lg() << "weights[" << i << "] (" << weights[i]
-                         << ") != sum2[" << i << "] (" << sum2[i]
-                         << ")\n";
-                }
-                if (bins[i] != 0) {
-                    ibis::array_t<double> *tmp =
-                        cptrw->selectDoubles(*(bins[i]));
-                    if (tmp == 0) {
-                        lg() << "Warning -- failed to retrieve "
-                             << bins[i]->cnt() << " value"
-                             << (bins[i]->cnt() > 1 ? "s" : "")
-                             << " from " << wt << "for bin " << i
-                             << "\n";
-                        ++ ierr;
-                    }
-                    else {
-                        double w = 0.0;
-                        for (size_t j = 0; j < tmp->size(); ++ j)
-                            w += (*tmp)[j];
-                        if (w != weights[i]) {
-                            lg() << "weights[" << i << "] ("
-                                 << weights[i]
-                                 << ") != sum of bins[" << i << "] ("
-                                 << w << ") from " << bins[i]->cnt()
-                                 << " value"
-                                 << (bins[i]->cnt() > 1 ? "s" : "")
-                                 << "\n";
-                            ++ ierr;
-                        }
-                    }
-                }
-                else if (bins[i] == 0 && weights[i] != 0) {
-                    lg() << "weights[" << i << "] (" << weights[i]
-                         << "), but bins[" << i << "] is nil (0)\n";
-                    ++ ierr;
-                }
-            }
-            if (ierr > 0)
-                lg() << "Warning -- ";
-            lg() << "matching arrays weights and bins produces "
-                 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
-        }
-        ibis::util::clearVec(bins);
+	std::vector<double> sum2;
+	std::vector<ibis::bitvector*> bins;
+	ierr = tbl.get2DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     col2, amin2, amax2, stride2,
+			     wt, sum2, bins);
+	ibis::util::logger lg;
+	lg() << "\n" << evt << " -- \n";
+	if (ierr < 0) {
+	    lg() << "get2DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+	    lg() << "get2DBins returned " << ierr
+		 << ", but bins.size() is " << bins.size()
+		 << " and sum2.size() is " << sum2.size()
+		 << "; these two values are expected to be the same";
+	}
+	else if (weights.size() != bins.size()) {
+	    lg() << "get2DDistribution returned " << weights.size()
+		 << " bin" << (weights.size() > 1 ? "s" : "")
+		 << ", but get2DBins returned " << bins.size()
+		 << " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < weights.size(); ++ i) {
+		if (sum2[i] != weights[i]) {
+		    lg() << "weights[" << i << "] (" << weights[i]
+			 << ") != sum2[" << i << "] (" << sum2[i]
+			 << ")\n";
+		}
+		if (bins[i] != 0) {
+		    ibis::array_t<double> *tmp =
+			cptrw->selectDoubles(*(bins[i]));
+		    if (tmp == 0) {
+			lg() << "** failed to retrieve "
+			     << bins[i]->cnt() << " value"
+			     << (bins[i]->cnt() > 1 ? "s" : "")
+			     << " from " << wt << "for bin " << i
+			     << "\n";
+			++ ierr;
+		    }
+		    else {
+			double w = 0.0;
+			for (size_t j = 0; j < tmp->size(); ++ j)
+			    w += (*tmp)[j];
+			if (w != weights[i]) {
+			    lg() << "weights[" << i << "] ("
+				 << weights[i]
+				 << ") != sum of bins[" << i << "] ("
+				 << w << ") from " << bins[i]->cnt()
+				 << " value"
+				 << (bins[i]->cnt() > 1 ? "s" : "")
+				 << "\n";
+			    ++ ierr;
+			}
+		    }
+		}
+		else if (bins[i] == 0 && weights[i] != 0) {
+		    lg() << "weights[" << i << "] (" << weights[i]
+			 << "), but bins[" << i << "] is nil (0)\n";
+		    ++ ierr;
+		}
+	    }
+	    if (ierr > 0)
+		lg() << "Warning -- ";
+	    lg() << "matching arrays weights and bins produces "
+		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+	}
+	ibis::util::clearVec(bins);
     }
 } // print2DDistribution
 
@@ -980,85 +980,85 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-        ibis::util::logger lg;
-        lg() << "Warning -- part[" << tbl.name()
-             << "].get3DDistribution returned with ierr = " << ierr
-             << ", weights.size() = " << weights.size();
-        return;
+	ibis::util::logger lg;
+	lg() << "Warning -- part[" << tbl.name()
+	     << "].get3DDistribution returned with ierr = " << ierr
+	     << ", weights.size() = " << weights.size();
+	return;
     }
 
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-        std::vector<double> sum2;
-        std::vector<ibis::bitvector*> bins;
-        ierr = tbl.get3DBins(cond,
-                             col1, amin1, amax1, stride1,
-                             col2, amin2, amax2, stride2,
-                             col3, amin3, amax3, stride3,
-                             wt, sum2, bins);
-        ibis::util::logger lg;
-        lg() << "\n" << evt << " -- \n";
-        if (ierr < 0) {
-            lg() << "Warning -- get3DBins failed with error " << ierr;
-        }
-        else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
-            lg() << "get3DBins returned " << ierr
-                 << ", but bins.size() is " << bins.size()
-                 << " and sum2.size() is " << sum2.size()
-                 << "; these two values are expected to be the same";
-        }
-        else if (weights.size() != bins.size()) {
-            lg() << "get3DDistribution returned " << weights.size()
-                 << " bin" << (weights.size() > 1 ? "s" : "")
-                 << ", but get3DBins returned " << bins.size()
-                 << " bin" << (bins.size() > 1 ? "s" : "");
-        }
-        else {
-            ierr = 0;
-            for (size_t i = 0; i < weights.size(); ++ i) {
-                if (sum2[i] != weights[i]) {
-                    lg() << "weights[" << i << "] (" << weights[i]
-                         << ") != sum2[" << i << "] (" << sum2[i]
-                         << ")\n";
-                }
-                if (bins[i] != 0) {
-                    ibis::array_t<double> *tmp =
-                        cptrw->selectDoubles(*(bins[i]));
-                    if (tmp == 0) {
-                        lg() << "Warning -- failed to retrieve "
-                             << bins[i]->cnt() << " value"
-                             << (bins[i]->cnt() > 1 ? "s" : "")
-                             << " from " << wt << "for bin " << i
-                             << "\n";
-                        ++ ierr;
-                    }
-                    else {
-                        double w = 0.0;
-                        for (size_t j = 0; j < tmp->size(); ++ j)
-                            w += (*tmp)[j];
-                        if (w != weights[i]) {
-                            lg() << "weights[" << i << "] ("
-                                 << weights[i]
-                                 << ") != sum of bins[" << i << "] ("
-                                 << w << ") from " << bins[i]->cnt()
-                                 << " value"
-                                 << (bins[i]->cnt() > 1 ? "s" : "")
-                                 << "\n";
-                            ++ ierr;
-                        }
-                    }
-                }
-                else if (bins[i] == 0 && weights[i] != 0) {
-                    lg() << "weights[" << i << "] (" << weights[i]
-                         << "), but bins[" << i << "] is nil (0)\n";
-                    ++ ierr;
-                }
-            }
-            if (ierr > 0)
-                lg() << "Warning -- ";
-            lg() << "matching arrays weights and bins produces "
-                 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
-        }
-        ibis::util::clearVec(bins);
+	std::vector<double> sum2;
+	std::vector<ibis::bitvector*> bins;
+	ierr = tbl.get3DBins(cond,
+			     col1, amin1, amax1, stride1,
+			     col2, amin2, amax2, stride2,
+			     col3, amin3, amax3, stride3,
+			     wt, sum2, bins);
+	ibis::util::logger lg;
+	lg() << "\n" << evt << " -- \n";
+	if (ierr < 0) {
+	    lg() << "get3DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+	    lg() << "get3DBins returned " << ierr
+		 << ", but bins.size() is " << bins.size()
+		 << " and sum2.size() is " << sum2.size()
+		 << "; these two values are expected to be the same";
+	}
+	else if (weights.size() != bins.size()) {
+	    lg() << "get3DDistribution returned " << weights.size()
+		 << " bin" << (weights.size() > 1 ? "s" : "")
+		 << ", but get3DBins returned " << bins.size()
+		 << " bin" << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < weights.size(); ++ i) {
+		if (sum2[i] != weights[i]) {
+		    lg() << "weights[" << i << "] (" << weights[i]
+			 << ") != sum2[" << i << "] (" << sum2[i]
+			 << ")\n";
+		}
+		if (bins[i] != 0) {
+		    ibis::array_t<double> *tmp =
+			cptrw->selectDoubles(*(bins[i]));
+		    if (tmp == 0) {
+			lg() << "** failed to retrieve "
+			     << bins[i]->cnt() << " value"
+			     << (bins[i]->cnt() > 1 ? "s" : "")
+			     << " from " << wt << "for bin " << i
+			     << "\n";
+			++ ierr;
+		    }
+		    else {
+			double w = 0.0;
+			for (size_t j = 0; j < tmp->size(); ++ j)
+			    w += (*tmp)[j];
+			if (w != weights[i]) {
+			    lg() << "weights[" << i << "] ("
+				 << weights[i]
+				 << ") != sum of bins[" << i << "] ("
+				 << w << ") from " << bins[i]->cnt()
+				 << " value"
+				 << (bins[i]->cnt() > 1 ? "s" : "")
+				 << "\n";
+			    ++ ierr;
+			}
+		    }
+		}
+		else if (bins[i] == 0 && weights[i] != 0) {
+		    lg() << "weights[" << i << "] (" << weights[i]
+			 << "), but bins[" << i << "] is nil (0)\n";
+		    ++ ierr;
+		}
+	    }
+	    if (ierr > 0)
+		lg() << "Warning -- ";
+	    lg() << "matching arrays weights and bins produces "
+		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+	}
+	ibis::util::clearVec(bins);
     }
 } // print3DDistribution
 
@@ -1275,70 +1275,70 @@ static void print2DDist(const ibis::part& tbl, const char *col1,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-        ibis::util::logger lg;
-        lg() << "part[" << tbl.name()
-             << "].get2DDistribution returned with ierr = " << ierr
-             << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
-             << bds2.size() << ", cnts.size() = " << cnts.size();
-        return;
+	ibis::util::logger lg;
+	lg() << "part[" << tbl.name()
+	     << "].get2DDistribution returned with ierr = " << ierr
+	     << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
+	     << bds2.size() << ", cnts.size() = " << cnts.size();
+	return;
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-        std::vector<ibis::bitvector> bins;
-        std::vector<double> bdt1, bdt2;
-        ierr = tbl.get2DBins(cond, col1, col2, NB1, NB1, bdt1, bdt2, bins);
-        ibis::util::logger lg;
-        lg() << "\nprint2DDistribution(" << col1 << ", " << col2
-             << ") -- \n";
-        if (ierr < 0) {
-            lg() << "Warning -- get2DBins failed with error " << ierr;
-        }
-        else if (ierr != (long)bins.size()) {
-            lg() << "get2DBins returned " << ierr
-                 << ", but bins.size() is " << bins.size()
-                 << "; these two values are expected to be the same";
-        }
-        else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
-                 cnts.size() != bins.size()) {
-            lg() << "get2DDistribution returned a " << bds1.size()-1
-                 << " x " << bds2.size()-1 << " 2D mesh with "
-                 << cnts.size() << " element"
-                 << (cnts.size() > 1 ? "s" : "")
-                 << ", but get2DBins returned a " << bdt1.size()-1
-                 << " x " << bdt2.size()-1 << " 2D mesh with "
-                 << bins.size() << " element"
-                 << (bins.size() > 1 ? "s" : "");
-        }
-        else {
-            ierr = 0;
-            for (size_t i = 0; i < bds1.size(); ++ i)
-                if (bds1[i] != bdt1[i]) {
-                    lg() << "bds1[" << i << "] (" << bds1[i]
-                         << ") != bdt1[" << i << "] (" << bdt1[i]
-                         << ")\n";
-                    ++ ierr;
-                }
-            for (size_t i = 0; i < bds2.size(); ++ i)
-                if (bds2[i] != bdt2[i]) {
-                    lg() << "bds2[" << i << "] (" << bds2[i]
-                         << ") != bdt2[" << i << "] (" << bdt2[i]
-                         << ")\n";
-                    ++ ierr;
-                }
-            for (size_t i = 0; i < cnts.size(); ++ i)
-                if (bins[i].cnt() != cnts[i]) {
-                    lg() << "cnts[" << i << "] (" << cnts[i]
-                         << ") != bins[" << i << "].cnt() ("
-                         << bins[i].cnt() << ")\n";
-                    ++ ierr;
-                }
-            lg() << "matching arrays cnts and bins produces "
-                 << ierr << " error" << (ierr > 1 ? "s" : "");
-            if (ierr > 0)
-                lg() << "\nNOTE: due to the different numbers of "
-                    "internal bins used for the adaptive histograms, "
-                    "get2DDistribution and get2DBins may not produce "
-                    "exactly the same answers";
-        }
+	std::vector<ibis::bitvector> bins;
+	std::vector<double> bdt1, bdt2;
+	ierr = tbl.get2DBins(cond, col1, col2, NB1, NB1, bdt1, bdt2, bins);
+	ibis::util::logger lg;
+	lg() << "\nprint2DDistribution(" << col1 << ", " << col2
+	     << ") -- \n";
+	if (ierr < 0) {
+	    lg() << "get2DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg() << "get2DBins returned " << ierr
+		 << ", but bins.size() is " << bins.size()
+		 << "; these two values are expected to be the same";
+	}
+	else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
+		 cnts.size() != bins.size()) {
+	    lg() << "get2DDistribution returned a " << bds1.size()-1
+		 << " x " << bds2.size()-1 << " 2D mesh with "
+		 << cnts.size() << " element"
+		 << (cnts.size() > 1 ? "s" : "")
+		 << ", but get2DBins returned a " << bdt1.size()-1
+		 << " x " << bdt2.size()-1 << " 2D mesh with "
+		 << bins.size() << " element"
+		 << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < bds1.size(); ++ i)
+		if (bds1[i] != bdt1[i]) {
+		    lg() << "bds1[" << i << "] (" << bds1[i]
+			 << ") != bdt1[" << i << "] (" << bdt1[i]
+			 << ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < bds2.size(); ++ i)
+		if (bds2[i] != bdt2[i]) {
+		    lg() << "bds2[" << i << "] (" << bds2[i]
+			 << ") != bdt2[" << i << "] (" << bdt2[i]
+			 << ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < cnts.size(); ++ i)
+		if (bins[i].cnt() != cnts[i]) {
+		    lg() << "cnts[" << i << "] (" << cnts[i]
+			 << ") != bins[" << i << "].cnt() ("
+			 << bins[i].cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg() << "matching arrays cnts and bins produces "
+		 << ierr << " error" << (ierr > 1 ? "s" : "");
+	    if (ierr > 0)
+		lg() << "\nNOTE: due to the different numbers of "
+		    "internal bins used for the adaptive histograms, "
+		    "get2DDistribution and get2DBins may not produce "
+		    "exactly the same answers";
+	}
     }
 } // print2DDist
 
@@ -1632,79 +1632,79 @@ static void print3DDist(const ibis::part& tbl, const char *col1,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-        ibis::util::logger lg;
-        lg() << "part[" << tbl.name()
-             << "].get3DDistribution returned with ierr = " << ierr
-             << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
-             << bds2.size() << ", bds3.size() = " << bds3.size()
-             << ", cnts.size() = " << cnts.size();
-        return;
+	ibis::util::logger lg;
+	lg() << "part[" << tbl.name()
+	     << "].get3DDistribution returned with ierr = " << ierr
+	     << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
+	     << bds2.size() << ", bds3.size() = " << bds3.size()
+	     << ", cnts.size() = " << cnts.size();
+	return;
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-        std::vector<ibis::bitvector> bins;
-        std::vector<double> bdt1, bdt2, bdt3;
-        ierr = tbl.get3DBins(cond, col1, col2, col3, NB1, NB1, NB1,
-                             bdt1, bdt2, bdt3, bins);
-        ibis::util::logger lg;
-        lg() << "\nprint3DDistribution(" << col1 << ", " << col2
-             << ", " << col3 << ") -- \n";
-        if (ierr < 0) {
-            lg() << "Warning -- get3DBins failed with error " << ierr;
-        }
-        else if (ierr != (long)bins.size()) {
-            lg() << "get3DBins returned " << ierr
-                 << ", but bins.size() is " << bins.size()
-                 << "; these two values are expected to be the same";
-        }
-        else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
-                 bds3.size() != bdt3.size() || cnts.size() != bins.size()) {
-            lg() << "get3DDistribution returned a " << bds1.size()-1
-                 << " x " << bds2.size()-1 << " x " << bds3.size()-1
-                 << " 3D mesh with " << cnts.size() << " element"
-                 << (cnts.size() > 1 ? "s" : "")
-                 << ", but get3DBins returned a " << bdt1.size()-1
-                 << " x " << bdt2.size()-1 << " x " << bdt3.size()-1
-                 << " 3D mesh with " << bins.size() << " element"
-                 << (bins.size() > 1 ? "s" : "");
-        }
-        else {
-            ierr = 0;
-            for (size_t i = 0; i < bds1.size(); ++ i)
-                if (bds1[i] != bdt1[i]) {
-                    lg() << "bds1[" << i << "] (" << bds1[i]
-                         << ") != bdt1[" << i << "] (" << bdt1[i]
-                         << ")\n";
-                    ++ ierr;
-                }
-            for (size_t i = 0; i < bds2.size(); ++ i)
-                if (bds2[i] != bdt2[i]) {
-                    lg() << "bds2[" << i << "] (" << bds2[i]
-                         << ") != bdt2[" << i << "] (" << bdt2[i]
-                         << ")\n";
-                    ++ ierr;
-                }
-            for (size_t i = 0; i < bds3.size(); ++ i)
-                if (bds3[i] != bdt3[i]) {
-                    lg() << "bds3[" << i << "] (" << bds3[i]
-                         << ") != bdt3[" << i << "] (" << bdt3[i]
-                         << ")\n";
-                    ++ ierr;
-                }
-            for (size_t i = 0; i < cnts.size(); ++ i)
-                if (bins[i].cnt() != cnts[i]) {
-                    lg() << "cnts[" << i << "] (" << cnts[i]
-                         << ") != bins[" << i << "].cnt() ("
-                         << bins[i].cnt() << ")\n";
-                    ++ ierr;
-                }
-            lg() << "matching arrays cnts and bins produces "
-                 << ierr << " error" << (ierr > 1 ? "s" : "");
-            if (ierr > 0)
-                lg() << "\nNOTE: due to the different numbers of "
-                    "internal bins used for the adaptive histograms, "
-                    "get3DDistribution and get3DBins may not produce "
-                    "exactly the same answers";
-        }
+	std::vector<ibis::bitvector> bins;
+	std::vector<double> bdt1, bdt2, bdt3;
+	ierr = tbl.get3DBins(cond, col1, col2, col3, NB1, NB1, NB1,
+			     bdt1, bdt2, bdt3, bins);
+	ibis::util::logger lg;
+	lg() << "\nprint3DDistribution(" << col1 << ", " << col2
+	     << ", " << col3 << ") -- \n";
+	if (ierr < 0) {
+	    lg() << "get3DBins failed with error " << ierr;
+	}
+	else if (ierr != (long)bins.size()) {
+	    lg() << "get3DBins returned " << ierr
+		 << ", but bins.size() is " << bins.size()
+		 << "; these two values are expected to be the same";
+	}
+	else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
+		 bds3.size() != bdt3.size() || cnts.size() != bins.size()) {
+	    lg() << "get3DDistribution returned a " << bds1.size()-1
+		 << " x " << bds2.size()-1 << " x " << bds3.size()-1
+		 << " 3D mesh with " << cnts.size() << " element"
+		 << (cnts.size() > 1 ? "s" : "")
+		 << ", but get3DBins returned a " << bdt1.size()-1
+		 << " x " << bdt2.size()-1 << " x " << bdt3.size()-1
+		 << " 3D mesh with " << bins.size() << " element"
+		 << (bins.size() > 1 ? "s" : "");
+	}
+	else {
+	    ierr = 0;
+	    for (size_t i = 0; i < bds1.size(); ++ i)
+		if (bds1[i] != bdt1[i]) {
+		    lg() << "bds1[" << i << "] (" << bds1[i]
+			 << ") != bdt1[" << i << "] (" << bdt1[i]
+			 << ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < bds2.size(); ++ i)
+		if (bds2[i] != bdt2[i]) {
+		    lg() << "bds2[" << i << "] (" << bds2[i]
+			 << ") != bdt2[" << i << "] (" << bdt2[i]
+			 << ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < bds3.size(); ++ i)
+		if (bds3[i] != bdt3[i]) {
+		    lg() << "bds3[" << i << "] (" << bds3[i]
+			 << ") != bdt3[" << i << "] (" << bdt3[i]
+			 << ")\n";
+		    ++ ierr;
+		}
+	    for (size_t i = 0; i < cnts.size(); ++ i)
+		if (bins[i].cnt() != cnts[i]) {
+		    lg() << "cnts[" << i << "] (" << cnts[i]
+			 << ") != bins[" << i << "].cnt() ("
+			 << bins[i].cnt() << ")\n";
+		    ++ ierr;
+		}
+	    lg() << "matching arrays cnts and bins produces "
+		 << ierr << " error" << (ierr > 1 ? "s" : "");
+	    if (ierr > 0)
+		lg() << "\nNOTE: due to the different numbers of "
+		    "internal bins used for the adaptive histograms, "
+		    "get3DDistribution and get3DBins may not produce "
+		    "exactly the same answers";
+	}
     }
 } // print3DDist
 
@@ -2309,7 +2309,7 @@ static void parse_args(int argc, char** argv, int& mode,
 	    case 'r':
 	    case 'R': // RID/result check or reorder
 		if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
-		    verify_rid = true;
+		    recheckvalues = true;
 		    if (i+1 < argc) { // there is one more argument
 			if (argv[i+1][0] != '-') { // assume to be a file name
 			    ridfile = argv[i+1];
@@ -2322,7 +2322,7 @@ static void parse_args(int argc, char** argv, int& mode,
 		    ++ i;
 		}
 		else { // rid
-		    verify_rid = true;
+		    recheckvalues = true;
 		}
                 break;
 	    case 's':
@@ -3012,119 +3012,75 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
         if (zapping)
             ibis::util::removeDir(outputname);
 
-        ierr = sel1->backup(outputname);
-        LOGGER(ierr < 0 && 0 != outputname && sel1->name() != 0)
-            << "Warning -- tableSelect failed to write the content of "
-            << sel1->name() << " in binary to " << outputname
-            << ", ierr = " << ierr;
-    }
-    else if (outputstream.is_open() && outputstream.good()) {
-        if (showheader)
-            sel1->dumpNames(outputstream, ", ");
-        if (limit == 0)
-            limit = static_cast<uint32_t>(sel1->nRows());
-        ierr = sel1->dump(outputstream, start, limit, ", ");
-        LOGGER(ierr < 0 && 0 != outputname && sel1->name() != 0)
-            << "Warning -- tableSelect failed to write the content of "
-            << sel1->name() << " in CSV to " << outputname
-            << ", ierr = " << ierr;
-    }
-    else if (ibis::gVerbose >= 0) {
-        ibis::util::logger lg;
-        if (limit == 0 && sel1->nColumns() > 0) {
-            limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
-                1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
-            if (limit > (sel1->nRows() >> 1))
-                limit = sel1->nRows();
-        }
-        if (limit > 0 && limit < sel1->nRows()) {
-            lg() << "-- the first ";
-            if (limit > 1)
-                lg() << limit << " rows ";
-            else
-                lg() << "row ";
-            lg() << "(of " << sel1->nRows()
-                 << ") from the result table for \""
-                 << sqlstring << "\"\n";
-        }
-        else {
-            lg() << "-- the result table (" << sel1->nRows()
-                 << " x " << sel1->nColumns() << ") for \""
-                 << sqlstring << "\"\n";
-        }
-        if (showheader)
-            sel1->dumpNames(lg(), ", ");
-        sel1->dump(lg(), start, limit, ", ");
-    }
-
     if (recheckvalues && sel1->nRows() > 1 && sel1->nColumns() > 0) {
-        // query the list of values selected by the 1st column
-        std::vector<double> svals;
-        const ibis::table::stringList cnames = sel1->columnNames();
-        ierr = sel1->getColumnAsDoubles(cnames[0], svals);
-        if (ierr < 0 || static_cast<uint64_t>(ierr) != sel1->nRows()) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- tableSelect can not verify answers returned for "
-                << sqlstring << ", because of failure to retrieve values "
-                "from an intermediate table object named " << sel1->name()
-                << ", ierr = " << ierr;
-        }
-        else {
-            ibis::qDiscreteRange dr(cnames[0], svals);
-            ibis::query qq0(uid), qq1(uid);
-            ierr = qq0.setWhereClause(wstr);
-            ierr = qq1.setWhereClause(&dr);
-            if (ierr < 0) {
-                LOGGER(ibis::gVerbose >= 0)
-                    << "Warning -- tableSelect failed to set where clause "
-                    "expressed as a qDiscreteRange(" << cnames[0] << ", double["
-                    << sel1->nRows() << "])";
-            }
-            else {
-                uint64_t cnt = 0;
-                for (ibis::partList::const_iterator it = pl.begin();
-                     it != pl.end(); ++ it) {
-                    if (0 <= qq0.setPartition(*it) &&
-                        0 <= qq1.setPartition(*it)) {
-                        if (0 <= qq0.evaluate() && 0 <= qq1.evaluate()) {
-                            if (qq0.getNumHits() > qq1.getNumHits()) {
-                                // not expecting this -- find out which
-                                // value is not present
-                                const ibis::bitvector *ht0 = qq0.getHitVector();
-                                const ibis::bitvector *ht1 = qq1.getHitVector();
-                                LOGGER(ibis::gVerbose >= 0)
-                                    << "Warning -- query 1 (" << qq1.id()
-                                    << ": " << cnames[0] << " IN ...) is "
-                                    "expected to produce no less hits than "
-                                    "query 0 (" << qq0.id() << ": "
-                                    << qq0.getWhereClause()
-                                    << ") on data partition " << (*it)->name()
-                                    << ", but query 1 has " << qq1.getNumHits()
-                                    << ", while query 0 has "
-                                    << qq0.getNumHits();
-                                if (ht0 != 0 && ht1 != 0) {
-                                    findMissingValues(*(*it), cnames[0],
-                                                      *ht0, *ht1);
-                                }
-                            }
-                            cnt += qq1.getNumHits();
-                        }
-                    }
-                }
-                if (cnt != sel1->nRows()) {
-                    LOGGER(ibis::gVerbose >= 0)
-                        << "Warning -- tableSelect -- qDiscreteRange("
-                        << cnames[0] << ", double[" << sel1->nRows()
-                        << "]) has " << cnt << " hit" << (cnt > 1 ? "s" : "")
-                        << ", but should have " << sel1->nRows();
-                }
-                else {
-                    LOGGER(ibis::gVerbose > 1)
-                        << "Successfully verified " << cnt
-                        << " hit" << (cnt > 1 ? "s" : "");
-                }
-            }
-        }
+	// query the list of values selected by the 1st column
+	std::vector<double> svals;
+	const ibis::table::stringList cnames = sel1->columnNames();
+	ierr = sel1->getColumnAsDoubles(cnames[0], svals);
+	if (ierr < 0 || static_cast<uint64_t>(ierr) != sel1->nRows()) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "tableSelect -- can not verify the answers returned for "
+		<< sqlstring << ", because of failure to retrieve values "
+		"from an intermediate table object named " << sel1->name()
+		<< ", ierr = " << ierr;
+	}
+	else {
+	    ibis::qDiscreteRange dr(cnames[0], svals);
+	    ibis::query qq0(uid), qq1(uid);
+	    ierr = qq0.setWhereClause(wstr);
+	    ierr = qq1.setWhereClause(&dr);
+	    if (ierr < 0) {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "tableSelect -- failed to set where clause expressed as "
+		    << "a qDiscreteRange(" << cnames[0] << ", double["
+		    << sel1->nRows() << "])";
+	    }
+	    else {
+		uint64_t cnt = 0;
+		for (ibis::partList::const_iterator it = pl.begin();
+		     it != pl.end(); ++ it) {
+		    if (0 == qq0.setPartition(*it) &&
+			0 == qq1.setPartition(*it)) {
+			if (0 == qq0.evaluate() && 0 == qq1.evaluate()) {
+			    if (qq0.getNumHits() > qq1.getNumHits()) {
+				// not expecting this -- find out which
+				// value is not present
+				const ibis::bitvector *ht0 = qq0.getHitVector();
+				const ibis::bitvector *ht1 = qq1.getHitVector();
+				LOGGER(ibis::gVerbose >= 0)
+				    << "Warning -- query 1 (" << qq1.id()
+				    << ": " << cnames[0] << " IN ...) is "
+				    "expected to produce no less hits than "
+				    "query 0 (" << qq0.id() << ": "
+				    << qq0.getWhereClause()
+				    << ") on data partition " << (*it)->name()
+				    << ", but query 1 has " << qq1.getNumHits()
+				    << ", while query 0 has "
+				    << qq0.getNumHits();
+				if (ht0 != 0 && ht1 != 0) {
+				    findMissingValues(*(*it), cnames[0],
+						      *ht0, *ht1);
+				}
+			    }
+			    cnt += qq1.getNumHits();
+			}
+		    }
+		}
+		if (cnt != sel1->nRows()) {
+		    LOGGER(ibis::gVerbose >= 0)
+			<< "Warning -- tableSelect -- qDiscreteRange("
+			<< cnames[0] << ", double[" << sel1->nRows()
+			<< "]) has " << cnt << " hit" << (cnt > 1 ? "s" : "")
+			<< ", but should have " << sel1->nRows();
+		}
+		else {
+		    LOGGER(ibis::gVerbose > 1)
+			<< "tableSelect -- qDiscreteRange(" << cnames[0]
+			<< ", double[" << sel1->nRows() << "]) has " << cnt
+			<< " hits as expected";
+		}
+	    }
+	}
     }
 
     timer.stop();
@@ -3508,10 +3464,10 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     // created for the query object to store the results produced by the
     // select clause.
     ibis::query aQuery(uid, tbl,
-                       ((sstr != 0 && *sstr != 0 &&
-                         ((ordkeys != 0 && *ordkeys != 0) || limit > 0 ||
-                          recheckvalues || testing > 0)) ?
-                        "ibis" : static_cast<const char*>(0)));
+		       ((sstr != 0 && *sstr != 0 &&
+			 ((ordkeys != 0 && *ordkeys != 0) || limit > 0 ||
+			  recheckvalues || testing > 0)) ?
+			"ibis" : static_cast<const char*>(0)));
     if (ridfile != 0) {
         ibis::ridHandler handle(0); // a sample ridHandler
         ibis::RIDSet rset;
@@ -3649,7 +3605,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    << "doQuery -- query (" << aQuery.getWhereClause()
 		    << ") results written to file \""
 		    <<  outputname << "\"";
-		if (ibis::gVerbose > 8 || verify_rid)
+		if (ibis::gVerbose > 8 || recheckvalues)
 		    bdl->printAll(output);
 		else
 		    bdl->print(output);
@@ -3659,7 +3615,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		lg() << "Warning ** doQuery failed to open file \""
 		     << outputname << "\" for writing query ("
 		     << aQuery.getWhereClause() << ")\n";
-		if (ibis::gVerbose > 8 || verify_rid)
+		if (ibis::gVerbose > 8 || recheckvalues)
 		    bdl->printAll(lg());
 		else
 		    bdl->print(lg());
@@ -3668,7 +3624,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	}
 	else {
 	    ibis::util::logger lg;
-	    if (ibis::gVerbose > 8 || verify_rid) {
+	    if (ibis::gVerbose > 8 || recheckvalues) {
 		bdl->printAll(lg());
             }
         }
@@ -3716,184 +3672,183 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
 
     if (ibis::gVerbose > 0 && (sstr == 0 || *sstr == 0) &&
-        aQuery.getWhereClause()) {
-        ibis::countQuery cq(tbl);
-        num2 = cq.setWhereClause(aQuery.getWhereClause());
-        if (num2 < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- doQuery failed to set \""
-                << aQuery.getWhereClause()
-                << "\" on a countQuery";
-        }
-        else {
-            num2 = cq.evaluate();
-            if (num2 < 0) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- doQuery failed to count the where clause "
-                    << aQuery.getWhereClause();
-            }
-            else if (cq.getNumHits() != num1) {
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- countQuery.getNumHits returned "
-                    << cq.getNumHits() << ", while query.getNumHits returned "
-                    << num1;
-            }
-        }
+	aQuery.getWhereClause()) {
+	ibis::countQuery cq(tbl);
+	num2 = cq.setWhereClause(aQuery.getWhereClause());
+	if (num2 < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "doQuery -- failed to set \"" << aQuery.getWhereClause()
+		<< "\" on a countQuery";
+	}
+	else {
+	    num2 = cq.evaluate();
+	    if (num2 < 0) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "doQuery -- failed to evaluate the count query on "
+		    << aQuery.getWhereClause();
+	    }
+	    else if (cq.getNumHits() != num1) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- countQuery.getNumHits returned "
+		    << cq.getNumHits() << ", while query.getNumHits returned "
+		    << num1;
+	    }
+	}
     }
     if (ibis::gVerbose > 5 || (recheckvalues && ibis::gVerbose >= 0)) {
-        ibis::bitvector btmp;
-        num2 = aQuery.sequentialScan(btmp);
-        if (num2 < 0) {
-            ibis::util::logger lg;
-            lg() << "Warning -- doQuery:: sequentialScan("
-                 << aQuery.getWhereClause() << ") failed";
-        }
-        else {
-            num2 = btmp.cnt();
-            if (num1 != num2 && ibis::gVerbose >= 0) {
-                ibis::util::logger lg;
-                lg() << "Warning ** query \"" << aQuery.getWhereClause()
-                     << "\" generated " << num1
-                     << " hit" << (num1 >1  ? "s" : "")
-                     << " with evaluate(), but generated "
-                     << num2 << " hit" << (num2 >1  ? "s" : "")
-                     << " with sequentialScan";
-            }
-        }
+	ibis::bitvector btmp;
+	num2 = aQuery.sequentialScan(btmp);
+	if (num2 < 0) {
+	    ibis::util::logger lg;
+	    lg() << "doQuery:: sequentialScan("
+		 << aQuery.getWhereClause() << ") failed";
+	}
+	else {
+	    num2 = btmp.cnt();
+	    if (num1 != num2 && ibis::gVerbose >= 0) {
+		ibis::util::logger lg;
+		lg() << "Warning ** query \"" << aQuery.getWhereClause()
+		     << "\" generated " << num1
+		     << " hit" << (num1 >1  ? "s" : "")
+		     << " with evaluate(), but generated "
+		     << num2 << " hit" << (num2 >1  ? "s" : "")
+		     << " with sequentialScan";
+	    }
+	}
     }
 
     if (ibis::gVerbose >= 0 && (recheckvalues || testing > 1)) {
-        // retrieve RIDs as bundles
-        uint32_t nbdl = 0;
-        ibis::RIDSet* rid0 = new ibis::RIDSet;
-        const ibis::RIDSet *tmp = aQuery.getRIDsInBundle(0);
-        while (tmp != 0) {
-            rid0->insert(rid0->end(), tmp->begin(), tmp->end());
-            delete tmp;
-            ++ nbdl;
-            tmp = aQuery.getRIDsInBundle(nbdl);
-        }
-        if (rid0->size() == 0) {
-            delete rid0;
-            return;
-        }
-        ibis::util::sortRIDs(*rid0);
+	// retrieve RIDs as bundles
+	uint32_t nbdl = 0;
+	ibis::RIDSet* rid0 = new ibis::RIDSet;
+	const ibis::RIDSet *tmp = aQuery.getRIDsInBundle(0);
+	while (tmp != 0) {
+	    rid0->insert(rid0->end(), tmp->begin(), tmp->end());
+	    delete tmp;
+	    ++ nbdl;
+	    tmp = aQuery.getRIDsInBundle(nbdl);
+	}
+	if (rid0->size() == 0) {
+	    delete rid0;
+	    return;
+	}
+	ibis::util::sortRIDs(*rid0);
 
-        // retrieve the RIDs in one shot
-        ibis::RIDSet* rid1 = aQuery.getRIDs();
-        if (rid1 == 0) {
-            delete rid0;
-            return;
-        }
+	// retrieve the RIDs in one shot
+	ibis::RIDSet* rid1 = aQuery.getRIDs();
+	if (rid1 == 0) {
+	    delete rid0;
+	    return;
+	}
 
-        ibis::util::sortRIDs(*rid1);
-        if (rid1->size() == rid0->size()) {
-            uint32_t i, cnt=0;
-            ibis::util::logger lg;
-            for (i=0; i<rid1->size(); ++i) {
-                if ((*rid1)[i].value != (*rid0)[i].value) {
-                    ++cnt;
-                    lg() << i << "th RID (" << (*rid1)[i]
-                         << ") != (" << (*rid0)[i] << ")\n";
-                }
-            }
-            if (cnt > 0)
-                lg() << "Warning -- " << cnt
-                     << " mismatches out of a total of "
-                     << rid1->size();
-            else
-                lg() << "Successfully verified " << rid0->size()
-                     << " hit" << (rid0->size()>1?"s":"");
-        }
-        else if (sstr != 0) {
-            ibis::util::logger lg;
-            lg() << "sent " << rid1->size() << " RIDs, got back "
-                 << rid0->size();
-            uint32_t i=0, cnt;
-            cnt = (rid1->size() < rid0->size()) ? rid1->size() :
-                rid0->size();
-            while (i < cnt) {
-                lg() << "\n(" << (*rid1)[i] << ") >>> (" << (*rid0)[i];
-                ++i;
-            }
-            if (rid1->size() < rid0->size()) {
-                while (i < rid0->size()) {
-                    lg() << "\n??? >>> (" << (*rid0)[i] << ")";
-                    ++i;
-                }
-            }
-            else {
-                while (i < rid1->size()) {
-                    lg() << "\n(" << (*rid1)[i] << ") >>> ???";
-                    ++i;
-                }
-            }
-        }
-        delete rid0;
+	ibis::util::sortRIDs(*rid1);
+	if (rid1->size() == rid0->size()) {
+	    uint32_t i, cnt=0;
+	    ibis::util::logger lg;
+	    for (i=0; i<rid1->size(); ++i) {
+		if ((*rid1)[i].value != (*rid0)[i].value) {
+		    ++cnt;
+		    lg() << i << "th RID (" << (*rid1)[i]
+			 << ") != (" << (*rid0)[i] << ")\n";
+		}
+	    }
+	    if (cnt > 0)
+		lg() << "Warning -- " << cnt
+		     << " mismatches out of a total of "
+		     << rid1->size();
+	    else
+		lg() << "Successfully verified " << rid0->size()
+		     << " RID" << (rid0->size()>1?"s":"");
+	}
+	else if (sstr != 0) {
+	    ibis::util::logger lg;
+	    lg() << "sent " << rid1->size() << " RIDs, got back "
+		 << rid0->size();
+	    uint32_t i=0, cnt;
+	    cnt = (rid1->size() < rid0->size()) ? rid1->size() :
+		rid0->size();
+	    while (i < cnt) {
+		lg() << "\n(" << (*rid1)[i] << ") >>> (" << (*rid0)[i];
+		++i;
+	    }
+	    if (rid1->size() < rid0->size()) {
+		while (i < rid0->size()) {
+		    lg() << "\n??? >>> (" << (*rid0)[i] << ")";
+		    ++i;
+		}
+	    }
+	    else {
+		while (i < rid1->size()) {
+		    lg() << "\n(" << (*rid1)[i] << ") >>> ???";
+		    ++i;
+		}
+	    }
+	}
+	delete rid0;
 
-        if (rid1->size() > 1024) {
-            // select no more than 1024 RIDs -- RID2Hits is slow
-            uint32_t len = 512 + (511 & rid1->size());
-            if (len == 0) len = 1024;
-            rid1->resize(len);
-        }
+	if (rid1->size() > 1024) {
+	    // select no more than 1024 RIDs -- RID2Hits is slow
+	    uint32_t len = 512 + (511 & rid1->size());
+	    if (len == 0) len = 1024;
+	    rid1->resize(len);
+	}
 
-        ibis::RIDSet* rid2 = new ibis::RIDSet;
-        rid2->deepCopy(*rid1);
-        delete rid1; // setRIDs removes the underlying file for rid1
-        aQuery.setRIDs(*rid2);
-        rid1 = rid2; // setRIDs has copied rid2
-        aQuery.evaluate();
-        rid2 = aQuery.getRIDs();
-        if (rid2 == 0) { // make sure the pointer is valid
-            rid2 = new ibis::RIDSet;
-        }
-        ibis::util::sortRIDs(*rid2);
-        if (rid1->size() == rid2->size()) {
-            uint32_t i, cnt=0;
-            ibis::util::logger lg;
-            for (i=0; i<rid1->size(); ++i) {
-                if ((*rid1)[i].value != (*rid2)[i].value) {
-                    ++cnt;
-                    lg() << i << "th RID (" << (*rid1)[i]
-                         << ") != (" << (*rid2)[i] << ")\n";
-                }
-            }
-            if (cnt > 0)
-                lg() << "Warning -- " << cnt
-                     << " mismatches out of a total of "
-                     << rid1->size();
-            else
-                lg() << "Successfully verified " << rid1->size()
-                     << " hit" << (rid1->size()>1?"s":"");
-        }
-        else {
-            ibis::util::logger lg;
-            lg() << "sent " << rid1->size() << " RIDs, got back "
-                 << rid2->size();
-            uint32_t i=0, cnt;
-            cnt = (rid1->size() < rid2->size()) ? rid1->size() :
-                rid2->size();
-            while (i < cnt) {
-                lg() << "\n(" << (*rid1)[i] << ") >>> (" << (*rid2)[i]
-                     << ")";
-                ++i;
-            }
-            if (rid1->size() < rid2->size()) {
-                while (i < rid2->size()) {
-                    lg() << "\n??? >>> (" << (*rid2)[i] << ")";
-                    ++i;
-                }
-            }
-            else {
-                while (i < rid1->size()) {
-                    lg() << "\n(" << (*rid1)[i] << ") >>> ???";
-                    ++i;
-                }
-            }
-        }
-        delete rid1;
-        delete rid2;
+	ibis::RIDSet* rid2 = new ibis::RIDSet;
+	rid2->deepCopy(*rid1);
+	delete rid1; // setRIDs removes the underlying file for rid1
+	aQuery.setRIDs(*rid2);
+	rid1 = rid2; // setRIDs has copied rid2
+	aQuery.evaluate();
+	rid2 = aQuery.getRIDs();
+	if (rid2 == 0) { // make sure the pointer is valid
+	    rid2 = new ibis::RIDSet;
+	}
+	ibis::util::sortRIDs(*rid2);
+	if (rid1->size() == rid2->size()) {
+	    uint32_t i, cnt=0;
+	    ibis::util::logger lg;
+	    for (i=0; i<rid1->size(); ++i) {
+		if ((*rid1)[i].value != (*rid2)[i].value) {
+		    ++cnt;
+		    lg() << i << "th RID (" << (*rid1)[i]
+			 << ") != (" << (*rid2)[i] << ")\n";
+		}
+	    }
+	    if (cnt > 0)
+		lg() << "Warning -- " << cnt
+		     << " mismatches out of a total of "
+		     << rid1->size();
+	    else
+		lg() << "Successfully verified " << rid1->size()
+		     << " RID" << (rid1->size()>1?"s":"");
+	}
+	else {
+	    ibis::util::logger lg;
+	    lg() << "sent " << rid1->size() << " RIDs, got back "
+		 << rid2->size();
+	    uint32_t i=0, cnt;
+	    cnt = (rid1->size() < rid2->size()) ? rid1->size() :
+		rid2->size();
+	    while (i < cnt) {
+		lg() << "\n(" << (*rid1)[i] << ") >>> (" << (*rid2)[i]
+		     << ")";
+		++i;
+	    }
+	    if (rid1->size() < rid2->size()) {
+		while (i < rid2->size()) {
+		    lg() << "\n??? >>> (" << (*rid2)[i] << ")";
+		    ++i;
+		}
+	    }
+	    else {
+		while (i < rid1->size()) {
+		    lg() << "\n(" << (*rid1)[i] << ") >>> ???";
+		    ++i;
+		}
+	    }
+	}
+	delete rid1;
+	delete rid2;
     }
 } // doQuery
 
@@ -4035,179 +3990,39 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
         << "doMeshQuery: identified " << num2 << " connected component"
         << (num2>1?"s":"") << " among the query lines";
 
-    if (ibis::gVerbose >= 0 || testing > 0) {
-        std::vector< std::vector<uint32_t> > blocks;
-        std::vector<uint32_t> label2;
-        num2 = aQuery.getHitsAsBlocks(blocks);
-        if (num2 < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- aQuery.getHitsAsBlocks returned " << num2;
-            return;
-        }
-        else if (blocks.empty()) {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- aQuery.getHitsAsBlocks returned no blocks";
-            return;
-        }
-
-        num2 = aQuery.labelBlocks(blocks, label2);
-        if (num2 < 0) {
-            LOGGER(num2 < 0)
-                << "Warning -- aQuery.labelBlocks failed with error code "
-                << num2;
-            return;
-        }
-        LOGGER(ibis::gVerbose > 0)
-            << "doMeshQuery:: converted " << num1 << " hit" << (num1>1?"s":"")
-            << " into " << blocks.size() << " block" << (blocks.size()>1?"s":"")
-            << " and identified " << num2 << " connected component"
-            << (num2>1?"s":"") << " among the blocks";
-
-        /// compare the output from labeling lines against those from labeling
-        /// the blocks
-        const unsigned ndim = dim.size();
-        const unsigned ndm1 = dim.size() - 1;
-        const unsigned ndp1 = dim.size() + 1;
-        size_t jb = 0;  // pointing to a block
-        size_t jl = 0;  // pointing to a line
-        num1 = 0;       // number of mismatches
-        ibis::util::logger lg;
-        lg() << "\ndoMeshQuery -- Compare the two sets of labels";
-        while (jb < blocks.size() || jl < lines.size()) {
-            if (jb < blocks.size()) { // has a valid block
-                if (jl < lines.size()) { // has a valid line
-                    int cmp = (lines[jl] < blocks[jb][0] ? -1 :
-                               lines[jl] >= blocks[jb][1] ? 1 : 0);
-                    for (unsigned j3 = 1; cmp == 0 && j3 < ndm1; ++ j3)
-                        cmp = (lines[jl+j3] < blocks[jb][j3+j3] ? -1 :
-                               lines[jl+j3] >= blocks[jb][j3+j3+1] ? 1 : 0);
-                    if (cmp == 0)
-                        cmp = (lines[jl+ndim] <= blocks[jb][ndm1+ndm1] ? -1 :
-                               lines[jl+ndm1] >= blocks[jb][ndm1+ndm1+1] ? 1 :
-                               0);
-                    if (cmp > 0) { // extra block?
-                        lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
-                             << ", " << blocks[jb][1];
-                        for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
-                            lg() << ", " << blocks[jb][j3];
-                        lg() << "\tline[??]( )";
-                        ++ jb;
-                        ++ num1;
-                    }
-                    else if (cmp < 0) { // extra line?
-                        lg() << "\nblock[??]( )\tline[" << jl/ndp1 << "] ("
-                             << lines[jl];
-                        for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
-                            lg() << ", " << lines[j4];
-                        lg() << ")";
-                        jl += ndp1;
-                        ++ num1;
-                    }
-                    else { // matching block and line
-                        size_t j3;
-                        unsigned linecount = 0;
-                        unsigned labelcount = 0;
-                        unsigned expectedcount = blocks[jb][1] - blocks[jb][0];
-                        for (unsigned jj = 2; jj+3 < blocks[jb].size(); jj += 2)
-                            expectedcount *=
-                                (blocks[jb][jj+1] - blocks[jb][jj]);
-                        linecount = (blocks[jb][ndm1+ndm1] == lines[jl+ndm1] &&
-                                     blocks[jb][ndm1+ndim] == lines[jl+ndim]);
-                        labelcount = (label2[jb] == label1[jl/ndp1]);
-                        for (j3 = jl+ndp1; j3 < lines.size(); j3 += ndp1) {
-                            bool match =
-                                (blocks[jb][ndm1+ndm1] == lines[j3+ndm1] &&
-                                 blocks[jb][ndm1+ndim] == lines[j3+ndim]);
-                            for (unsigned jj = 0;
-                                 match && jj < ndm1;
-                                 ++ jj) {
-                                match = (blocks[jb][jj+jj] <= lines[j3+jj] &&
-                                         blocks[jb][jj+jj+1] > lines[j3+jj]);
-                            }
-                            if (match) {
-                                labelcount += (label2[jb] == label1[j3/ndp1]);
-                                ++ linecount;
-                            }
-                            else {
-                                break;
-                            }
-                        }
-                        if (linecount != expectedcount ||
-                            labelcount != expectedcount || ibis::gVerbose > 6) {
-                            lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
-                                 << ", " << blocks[jb][1];
-                            for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
-                                lg() << ", " << blocks[jb][j3];
-                            lg() << ")\tline[" << jl << "] (" << lines[jl];
-                            for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
-                                lg() << ", " << lines[j4];
-                            lg() << "),\tlabelb = " << label2[jb]
-                                 << "\tlabell = " << label1[jl/ndp1];
-                            if (expectedcount > 1)
-                                lg() << "\t... expected " << expectedcount
-                                     << " lines, found " << linecount
-                                     << " matching line" << (linecount>1?"s":"")
-                                     << " with " << labelcount
-                                     << " correct label"
-                                     << (labelcount>1?"s":"");
-                            if (linecount != expectedcount ||
-                                labelcount != expectedcount) lg() << " ??";
-                        }
-                        num1 += (linecount != expectedcount ||
-                                 labelcount != expectedcount);
-                        jl = j3;
-                        ++ jb;
-                    }
-                }
-                else { // no more lines
-                    lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
-                         << ", " << blocks[jb][1];
-                    for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
-                        lg() << ", " << blocks[jb][j3];
-                    lg() << ")\tline[??]( )";
-                    ++ jb;
-                    ++ num1;
-                }
-            }
-            else { // no more blocks
-                lg() << "\nblock[??]( )\tline[" << jl << "] ("
-                     << lines[jl];
-                for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
-                    lg() << ", " << lines[j4];
-                lg() << ")";
-                jl += ndp1;
-                ++ num1;
-            }
-        }
-        lg() << "\n" << (num1>0?"Warning (!__!) --":"(^o^)") << " found "
-             << num1 << " mismatch" << (num1>1 ? "es" : "") << "\n";
-    }
-
-    if (asstr != 0 && *asstr != 0 && ibis::gVerbose > 0 &&
-        (outputname == 0 || 0 != strcmp(outputname, "/dev/null"))) {
-        if (outputstream.is_open() && outputstream.good()) {
-            LOGGER(ibis::gVerbose > 0)
-                << "doMeshQuery -- query (" << aQuery.getWhereClause()
-                << ") results written to file \""
-                << outputname << "\"";
-            if (ibis::gVerbose > 8 || recheckvalues)
-                aQuery.printSelectedWithRID(outputstream);
-            else
-                aQuery.printSelected(outputstream);
-        }
-        else {
-            ibis::util::logger lg;
-            if (outputname != 0) {
-                lg() << "Warning -- doMeshQuery failed to "
-                     << "open file \"" << outputname
-                     << "\" for writing query ("
-                     << aQuery.getWhereClause() << ") output\n";
-            }
-            if (ibis::gVerbose > 8 || recheckvalues)
-                aQuery.printSelectedWithRID(lg());
-            else
-                aQuery.printSelected(lg());
-        }
+    if (asstr != 0 && *asstr != 0 && ibis::gVerbose > 0) {
+	if (outputname != 0 && *outputname != 0) {
+	    std::ofstream output(outputname,
+				 std::ios::out | std::ios::app);
+	    if (output) {
+		LOGGER(ibis::gVerbose > 0)
+		    << "doMeshQuery -- query (" << aQuery.getWhereClause()
+		    << ") results written to file \""
+		    << outputname << "\"";
+		if (ibis::gVerbose > 8 || recheckvalues)
+		    aQuery.printSelectedWithRID(output);
+		else
+		    aQuery.printSelected(output);
+	    }
+	    else {
+		ibis::util::logger lg;
+		lg() << "Warning ** doMeshQuery failed to "
+		     << "open file \"" << outputname
+		     << "\" for writing query ("
+		     << aQuery.getWhereClause() << ") output\n";
+		if (ibis::gVerbose > 8 || recheckvalues)
+		    aQuery.printSelectedWithRID(lg());
+		else
+		    aQuery.printSelected(lg());
+	    }
+	}
+	else {
+	    ibis::util::logger lg;
+	    if (ibis::gVerbose > 8 || recheckvalues)
+		aQuery.printSelectedWithRID(lg());
+	    else
+		aQuery.printSelected(lg());
+	}
     } // if (asstr != 0 && num1>0 && ibis::gVerbose > 0)
 } // doMeshQuery
 
@@ -4813,33 +4628,32 @@ static void parseString(const char* uid, const char* qstr,
 
     ibis::nameList qtables(fstr.c_str());
     if (usequaere) {
-        doQuaere(prts, sstr.c_str(), fstr.c_str(), wstr.c_str(),
-                 ordkeys.c_str(), limit, start);
+	doQuaere(prts, sstr.c_str(), fstr.c_str(), wstr.c_str(),
+		 ordkeys.c_str(), limit, start);
     }
-    else if (independent_parts == 0 ||
-             (! sstr.empty() && (sstr.find('(') < sstr.size() ||
-                                 sstr.find(" as ") < sstr.size()))) {
-        //  || recheckvalues || !ordkeys.empty() || limit > 0
-        // more complex select clauses need tableSelect
-        if (! qtables.empty()) {
-            ibis::partList tl2;
-            for (unsigned k = 0; k < prts.size(); ++ k) {
-                for (unsigned j = 0; j < qtables.size(); ++ j) {
-                    if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
-                        ibis::util::strMatch(prts[k]->name(),
-                                             qtables[j])) {
-                        tl2.push_back(prts[k]);
-                        break;
-                    }
-                }
-            }
-            try {
-                tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
-                            ordkeys.c_str(), limit, start);
-            }
-            catch (...) {
-                if (ibis::util::serialNumber() % 3 == 0) {
-                    ibis::util::quietLock lock(&ibis::util::envLock);
+    else if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
+				sstr.find(" as ") < sstr.size())) {
+	//  || recheckvalues || !ordkeys.empty() || limit > 0
+	// more complex select clauses need tableSelect
+	if (! qtables.empty()) {
+	    ibis::partList tl2;
+	    for (unsigned k = 0; k < prts.size(); ++ k) {
+		for (unsigned j = 0; j < qtables.size(); ++ j) {
+		    if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
+			ibis::util::strMatch(prts[k]->name(),
+					     qtables[j])) {
+			tl2.push_back(prts[k]);
+			break;
+		    }
+		}
+	    }
+	    try {
+		tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
+			    ordkeys.c_str(), limit, start);
+	    }
+	    catch (...) {
+		if (ibis::util::serialNumber() % 3 == 0) {
+		    ibis::util::quietLock lock(&ibis::util::envLock);
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
                     sleep(1);
 #endif
@@ -4881,7 +4695,7 @@ static void parseString(const char* uid, const char* qstr,
 		if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
 		    ibis::util::strMatch(prts[k]->name(),
 					 qtables[j])) {
-		    if (verify_rid || sequential_scan ||
+		    if (recheckvalues || sequential_scan ||
 			prts[k]->getMeshShape().empty()) {
 			try {
 			    doQuery(prts[k], uid, wstr.c_str(),
@@ -4942,18 +4756,18 @@ static void parseString(const char* uid, const char* qstr,
         }
     }
     else {
-        for (ibis::partList::iterator tit = prts.begin();
-             tit != prts.end(); ++ tit) {
-            // go through every partition and process the user query
-            if (recheckvalues || sequential_scan ||
-                (*tit)->getMeshShape().empty()) {
-                try {
-                    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
-                            ordkeys.c_str(), limit, start);
-                }
-                catch (...) {
-                    if (ibis::util::serialNumber() % 3 == 0) {
-                        ibis::util::quietLock lock(&ibis::util::envLock);
+	for (ibis::partList::iterator tit = prts.begin();
+	     tit != prts.end(); ++ tit) {
+	    // go through every partition and process the user query
+	    if (recheckvalues || sequential_scan ||
+		(*tit)->getMeshShape().empty()) {
+		try {
+		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
+			    ordkeys.c_str(), limit, start);
+		}
+		catch (...) {
+		    if (ibis::util::serialNumber() % 3 == 0) {
+			ibis::util::quietLock lock(&ibis::util::envLock);
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
                         sleep(1);
 #endif
