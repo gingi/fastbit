@@ -194,23 +194,23 @@ void ibis::selectClause::fillNames() {
 
     // fill the external names
     for (uint32_t j = 0; j < xtms_.size(); ++ j) {
-        if (xnames_[j].empty() &&
+	if (xnames_[j].empty() &&
             xtms_[j]->termType() == ibis::math::VARIABLE) {
-            const char *vn = static_cast<const ibis::math::variable*>
-                (xtms_[j])->variableName();
-            uint64_t jv = atms_.size();
-            if (vn[0] == '_' && vn[1] == '_')
-                if (0 > ibis::util::decode16(jv, vn+2))
-                    jv = atms_.size();
-            if (jv < names_.size() && !names_[jv].empty())
-                xnames_[j] = names_[jv];
-            else
-                xnames_[j] = vn;
+	    const char *vn = static_cast<const ibis::math::variable*>
+		(xtms_[j])->variableName();
+	    uint64_t jv = atms_.size();
+	    if (vn[0] == '_' && vn[1] == '_')
+		if (0 > ibis::util::decode16(jv, vn+2))
+		    jv = atms_.size();
+	    if (jv < names_.size() && !names_[jv].empty())
+		xnames_[j] = names_[jv];
+	    else
+		xnames_[j] = vn;
 
-            // size_t pos = xnames_[j].rfind('.');
-            // if (pos < xnames_[j].size())
-            //  xnames_[j].erase(0, pos+1);
-        }
+	    // size_t pos = xnames_[j].rfind('.');
+	    // if (pos < xnames_[j].size())
+	    // 	xnames_[j].erase(0, pos+1);
+	}
 
         if (xnames_[j].empty()) {
             std::ostringstream oss;

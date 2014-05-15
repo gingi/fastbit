@@ -24,15 +24,7 @@ namespace ibis {
 /// sqrt(vx*vx+vy*vy+vz*vz) as speed, max(duration * speed)".  An
 /// arithmetic expression may contain any valid combination of numbers and
 /// column names connected with operators +, -, *, /, %, ^, ** and standard
-/// functions defined in math.h and having only one or two arguements.
-/// A handful of functions requested by various uers have also been added
-/// as collection of 1- and 2-argument functions.  These extra 1-argument
-/// functions include: IS_ZERO, IS_NONZER, TRUNC (for truncating
-/// floating-point values to whole numbers), and INT_FROM_DICT (meant for
-/// reporting the integer values representing the categorical values, but
-/// implemented as ROUND).  The extra 2-argument functions include: IS_EQL,
-/// IS_GTE (>=), IS_LTE (<=).
-/// 
+/// functions defined in math.h and having only one and two arguements.
 /// The supported aggregation functions are:
 ///
 /// - count(*): count the number of rows in each group.

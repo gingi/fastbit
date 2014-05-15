@@ -3,6 +3,8 @@
 	problem identified by Zhongbo Tian
 	* src/bord.cpp: switch std::copy to memcpy when the types match in
 	getColumnAsTTTs
+	* src/selectClause.cpp:197 remove the comparison involving aggr_
+	to address a problem reported by Bernd Jaenichen
 
 2014-05-14 John Wu <John dot Wu at ACM dot org>
 	* src/countQuery.cpp:425, src/query.cpp:2732 (high.sloppyCount() >
