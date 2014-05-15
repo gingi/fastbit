@@ -422,7 +422,7 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 	doEstimate(term->getLeft(), low, high);
 	// there is no need to evaluate the right-hand side if the left-hand
 	// is evaluated to have no hit
-	if (high.sloppyCount() > 0) {
+	if (low.sloppyCount() > 0) {
 	    // continue to evaluate the right-hand side
 	    ibis::bitvector b1, b2;
 	    doEstimate(term->getRight(), b1, b2);
@@ -665,9 +665,27 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 		<< "Warning -- countQuery::doEstimate encountered a "
 		"unexpected term, presume every row is a possible hit";
 	    high.set(1, mypart->nRows());
-	    low.set(1, mypart->nRows());
+	    low.set(0, mypart->nRows());
 	}
     }
+#if defined(DEBUG) || defined(_DEBUG)
+    ibis::util::logger lg;
+    lg() << "countQuery::doEestimate("
+         << static_cast<const void*>(term) << ": " << *term
+         << ") --> [" << low.cnt() << ",  "
+         << (high.size()==low.size()?high.cnt():low.cnt()) << "]\n";
+#if DEBUG + 0 > 1 || _DEBUG + 0 > 1
+    lg() << "low \n" << low << "\nhigh \n" << high;
+#else
+    if (ibis::gVerbose > 30 || (ht.bytes() < (2U << ibis::gVerbose)))
+        lg() << "low \n" << low << "\nhigh \n" << high;
+#endif
+#else
+    LOGGER(ibis::gVerbose > 3)
+	<< "countQuery::doEstimate(" << *term
+        << ") --> " << low.cnt() << ",  "
+        << (high.size()==low.size()?high.cnt():low.cnt()) << ']';
+#endif
 } // ibis::countQuery::doEstimate
 
 // masked sequential scan
@@ -1137,9 +1155,9 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg;
     lg() << "countQuery::doEvaluate("
-		<< static_cast<const void*>(term) << ": " << *term
-		<< ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
-		<< ", ierr = " << ierr << "\n";
+         << static_cast<const void*>(term) << ": " << *term
+         << ", mask.cnt()=" << mask.cnt() << ") --> " << ht.cnt()
+         << ", ierr = " << ierr << "\n";
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg() << "ht \n" << ht;
 #else
@@ -1148,8 +1166,7 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-	<< "countQuery::doEvaluate("
-	<< static_cast<const void*>(term) << ": " << *term << ", mask.cnt()="
+	<< "countQuery::doEvaluate(" << *term << ", mask.cnt()="
 	<< mask.cnt() << ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;

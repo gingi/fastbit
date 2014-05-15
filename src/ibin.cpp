@@ -27,15 +27,16 @@
 /// Constructor.  Construct a bitmap index from current data.
 ibis::bin::bin(const ibis::column* c, const char* f)
     : ibis::index(c), nobs(0) {
-    if (c == 0) return;  // nothing can be done
-    if (c->isNumeric() == false) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- bin can only work on numerical values";
-        return;
-    }
     try {
-	if (f) // try to read the file as an index file
-	    read(f);
+	if (f != 0 && 0 == read(f)) // try to read the file as an index file
+	   return;
+
+        if (c == 0) return;  // nothing can be done
+        if (c->isNumeric() == false) {
+            LOGGER(ibis::gVerbose > 1)
+                << "Warning -- bin can only work on numerical values";
+            return;
+        }
 
 	if (nobs == 0)
 	    construct(f);
@@ -5381,8 +5382,11 @@ int ibis::bin::write(const char* dt) const {
     if (nobs <= 0 || nrows <= 0) return -1;
     std::string fnm, evt;
     evt = "bin";
-    if (col != 0 && ibis::gVerbose > 1)
+    if (col != 0 && ibis::gVerbose > 1) {
+        evt += '[';
         evt += col->fullname();
+        evt += ']';
+    }
     evt += "::write";
     indexFileName(fnm, dt);
     if (fnm.empty()) {
@@ -5488,8 +5492,11 @@ int ibis::bin::write(const char* dt) const {
 int ibis::bin::write32(int fdes) const {
     if (nobs <= 0) return -1;
     std::string evt = "bin";
-    if (col != 0 && ibis::gVerbose > 1)
+    if (col != 0 && ibis::gVerbose > 1) {
+        evt += '[';
         evt += col->fullname();
+        evt += ']';
+    }
     evt += "::write32";
     try {
 	if (str != 0 || fname != 0)
@@ -5575,8 +5582,11 @@ int ibis::bin::write32(int fdes) const {
 int ibis::bin::write64(int fdes) const {
     if (nobs <= 0) return -1;
     std::string evt = "bin";
-    if (col != 0 && ibis::gVerbose > 1)
+    if (col != 0 && ibis::gVerbose > 1) {
+        evt += '[';
         evt += col->fullname();
+        evt += ']';
+    }
     evt += "::write64";
     try {
 	if (str != 0 || fname != 0)
@@ -5844,7 +5854,7 @@ void ibis::bin::print(std::ostream& out) const {
 
     // print only the first npr bins
     uint32_t npr = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : nobs);
-    npr = (npr > nobs ? nobs : npr);
+    npr = (npr > nobs ? nobs : npr) - 1;
     uint32_t omt = 0;
 
     // activate(); -- activate may invoke ioLock which causes problems
@@ -5860,41 +5870,50 @@ void ibis::bin::print(std::ostream& out) const {
             out << std::setprecision(14);
         else
             out << std::setprecision(10);
+        out << "0: ";
 	if (bits[0]) {
-	    out << "0: " << bits[0]->cnt() << "\t(..., "
-                << bounds[0] << ")\t[" << minval[0]
-                << ", " << maxval[0] << "]\n";
+	    out << bits[0]->cnt();
 	    cnt += bits[0]->cnt();
 	}
-	for (i = 1; i < nobs; ++i) {
+        else {
+            out << "??";
+        }
+        out << "\t(..., " << bounds[0] << ")\t[" << minval[0]
+            << ", " << maxval[0] << "]\n";
+	for (i = 1; i < npr; ++i) {
 	    if (bits[i] != 0) {
-		if (i < npr)
-		    out << i << ": " << bits[i]->cnt() << "\t["
-                        << bounds[i-1] << ", " << bounds[i]
-                        << ")\t[" << minval[i] << ", "
-                        << maxval[i] << "]\n";
-		else
-		    ++ omt;
-		// out << *(bits[i]);
+                out << i << ": " << bits[i]->cnt() << "\t["
+                    << bounds[i-1] << ", " << bounds[i] << ")\t["
+                    << minval[i] << ", " << maxval[i] << "]\n";
 		cnt += bits[i]->cnt();
-	    }
-	    else {
-		++ omt;
-	    }
+            }
+            else
+                ++ omt;
 	}
+        omt = nobs-1-npr;
+        i = nobs-1;
+        out << i << ": ";
+        if (bits[i] != 0) {
+            out << bits[i]->cnt();
+            cnt += bits[i]->cnt();
+        }
+        else {
+            out << "??";
+        }
+        out << "\t[" << bounds[i-1] << ", " << bounds[i]
+            << ")\t[" << minval[i] << ", " << maxval[i] << "]\n";
 	for (i = 0; i < nobs; ++i) {
 	    if (bits[i] != 0 && nrows != bits[i]->size())
 		out << "Warning -- bits[" << i << "] contains "
 		    << bits[i]->size() << " bits, but expected ";
 	}
 	if (nrows < cnt) {
-	    out << "Warning: There are a total " << cnt << " set bits out of "
+	    out << "Warning -- There are a total " << cnt << " set bits out of "
 		<< nrows << " bits in an index for " << (col ? col->name() : "?")
 		<< "\n";
 	}
 	else if (nrows > cnt) {
-	    out << "There are a total " << cnt << " set bits out of "
-		<< nrows
+	    out << "There are a total " << cnt << " set bits out of " << nrows
 		<< " bits -- there are probably NULL values in column "
 		<< (col ? col->name() : "?") << "\n";
 	}

@@ -11,6 +11,10 @@
 /// Both arguments are expected to be valid pointers.
 ibis::direkte::direkte(const ibis::column* c, const char* f)
     : ibis::index(c) {
+    // attempt to read an index first
+    int ierr = read(f);
+    if (ierr == 0) return; // got an index from the file
+
     if (c == 0)
 	return;
     if (c->type() == ibis::FLOAT ||
@@ -33,9 +37,6 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
 	    throw ibis::bad_alloc("minimal value must >= 0 for ibis::direkte");
 	}
     }
-
-    int ierr = read(f);
-    if (ierr == 0) return; // got an index from the file
 
     std::string dfname;
     dataFileName(dfname, f);

@@ -123,7 +123,14 @@ ibis::fade::fade(const ibis::column* c, ibis::fileManager::storage* st,
 int ibis::fade::write(const char* dt) const {
     if (vals.empty()) return -1;
 
-    std::string fnm;
+    std::string fnm, evt;
+    evt = "fade";
+    if (col != 0 && ibis::gVerbose > 1) {
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
+    }
+    evt += "::write";
     indexFileName(fnm, dt);
     if (fnm.empty()) {
 	return 0;
@@ -150,8 +157,7 @@ int ibis::fade::write(const char* dt) const {
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- fade[" << col->partition()->name() << '.'
-		<< col->name() << "]::write failed to open \"" << fnm
+		<< "Warning -- " << evt << " failed to open \"" << fnm
 		<< "\" for writing";
 	    return -2;
 	}
@@ -172,8 +178,7 @@ int ibis::fade::write(const char* dt) const {
     int32_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fade[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm << ") failed to write "
+	    << "Warning -- " << evt << "(" << fnm << ") failed to write "
 	    << "the 8-byte header to " << fnm << ", ierr = " << ierr;
 	return -3;
     }
@@ -191,8 +196,7 @@ int ibis::fade::write(const char* dt) const {
 #endif
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "fade[" << col->partition()->name() << "." << col->name()
-	    << "]::write wrote " << bits.size() << " bitmap"
+	    << evt << " wrote " << bits.size() << " bitmap"
 	    << (bits.size()>1?"s":"") << " to file " << fnm;
     }
     return ierr;
@@ -204,11 +208,9 @@ int ibis::fade::write32(int fdes) const {
     if (fname != 0 || str != 0)
 	activate(); // retrieve all bitvectors
     std::string evt = "fade";
-    if (ibis::gVerbose > 0) {
+    if (col != 0 && ibis::gVerbose > 1) {
 	evt += '[';
-	evt += col->partition()->name();
-	evt += '.';
-	evt += col->name();
+	evt += col->fullname();
 	evt += ']';
     }
     evt += "::write32";
@@ -311,11 +313,9 @@ int ibis::fade::write64(int fdes) const {
     if (fname != 0 || str != 0)
 	activate(); // retrieve all bitvectors
     std::string evt = "fade";
-    if (ibis::gVerbose > 0) {
+    if (col && ibis::gVerbose > 1) {
 	evt += '[';
-	evt += col->partition()->name();
-	evt += '.';
-	evt += col->name();
+	evt += col->fullname();
 	evt += ']';
     }
     evt += "::write64";
@@ -415,7 +415,14 @@ int ibis::fade::write64(int fdes) const {
 
 /// Read the index contained in the file named @c f.
 int ibis::fade::read(const char* f) {
-    std::string fnm;
+    std::string fnm, evt;
+    evt = "fade";
+    if (col != 0 && ibis::gVerbose > 1) {
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
+    }
+    evt += "::read";
     indexFileName(fnm, f);
     if (fname != 0 && fnm.compare(fname) == 0)
 	return 0;
@@ -440,8 +447,7 @@ int ibis::fade::read(const char* f) {
 	  header[7] == static_cast<char>(0))) {
 	if (ibis::gVerbose > 0) {
 	    ibis::util::logger lg;
-	    lg() << "Warning -- fade[" << col->partition()->name() << '.'
-		 << col->name() << "]::read the header from " << fnm << " (";
+	    lg() << "Warning -- " << evt << " the header from " << fnm << " (";
 	    printHeader(lg(), header);
 	    lg() << ") does not contain the expected values";
 	}
@@ -476,8 +482,7 @@ int ibis::fade::read(const char* f) {
     ierr = UnixSeek(fdes, end, SEEK_SET);
     if (ierr != (off_t)end) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fade[" << col->partition()->name() << '.'
-	    << col->name() << "]::read(" << fnm << ") failed to seek to "
+	    << "Warning -- " << evt << "(" << fnm << ") failed to seek to "
 	    << end;
 	clear();
 	return -5;
@@ -504,8 +509,7 @@ int ibis::fade::read(const char* f) {
 
     initBitmaps(fdes);
     LOGGER(ibis::gVerbose > 7)
-	<< "fade[" << col->partition()->name() << '.' << col->name()
-	<< "]::read(" << fnm << ") completed reading the header";
+	<< evt << "(" << fnm << ") completed reading the header";
     return 0;
 } // ibis::fade::read
 
@@ -1329,7 +1333,8 @@ void ibis::fade::speedTest(std::ostream& out) const {
     uint32_t i, nloops = 1000000000 / nrows;
     if (nloops < 2) nloops = 2;
     ibis::horometer timer;
-    col->logMessage("fade::speedTest", "testing the speed of operator -");
+    LOGGER(ibis::gVerbose > 2)
+        << "fade::speedTest -- testing the speed of operator -";
 
     activate(); // need all bitvectors
     for (i = 0; i < bits.size()-1; ++i) {
@@ -1357,7 +1362,7 @@ void ibis::fade::speedTest(std::ostream& out) const {
 /// The printing function.
 void ibis::fade::print(std::ostream& out) const {
     out << "index(multicomponent range ncomp=" << bases.size() << ") for "
-	<< col->partition()->name() << '.' << col->name() << " contains "
+	<< (col ? col->fullname() : "?") << " contains "
 	<< bits.size() << " bitvectors for " << nrows
 	<< " objects with " << vals.size()
 	<< " distinct values\nThe base sizes: ";
@@ -1683,11 +1688,10 @@ double ibis::fade::getSum() const {
 	    ret += vals[i] * cnts[i];
     }
     else {
-	col->logWarning("fade::getSum", "internal error - arrays "
-			"vals[%lu] and cnts[%lu] are expected to have "
-			"the same size but are not",
-			static_cast<long unsigned>(vals.size()),
-			static_cast<long unsigned>(cnts.size()));
+	LOGGER(ibis::gVerbose > 1)
+            << "Warning -- fade::getSum encountered internal error: arrays vals["
+            << vals.size() << "] and cnts[" << cnts.size()
+            << "] are expected to have the same size but are not";
 	ibis::util::setNaN(ret);
     }
     return ret;

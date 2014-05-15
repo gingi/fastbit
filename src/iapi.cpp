@@ -1067,6 +1067,9 @@ extern "C" int64_t fastbit_selection_estimate(FastBitSelectionHandle h) {
         return -4;
 
     if (que.getMinNumHits() == que.getMaxNumHits()) {
+        LOGGER(ibis::gVerbose > 4)
+            << "fastbit_selection_estimate: " << que.getWhereClause()
+            << " ==> " << que.getNumHits();
         ibis::util::mutexLock lock(&__fastbit_iapi_lock,
                                    "fastbit_selection_estimate");
         __fastbit_iapi_selection_list[h] =
@@ -1105,6 +1108,9 @@ extern "C" int64_t fastbit_selection_evaluate(FastBitSelectionHandle h) {
     if (ierr < 0)
         return -4;
 
+    LOGGER(ibis::gVerbose > 4)
+        << "fastbit_selection_evaluate: " << que.getWhereClause()
+        << " ==> " << que.getNumHits();
     ibis::util::mutexLock lock(&__fastbit_iapi_lock,
                                "fastbit_selection_evaluate");
     __fastbit_iapi_selection_list[h] = new ibis::bitvector(*que.getHitVector());

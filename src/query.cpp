@@ -2729,7 +2729,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	doEstimate(term->getLeft(), low, high);
 	// there is no need to evaluate the right-hand side if the left-hand
 	// is evaluated to have no hit
-	if (high.sloppyCount() > 0) {
+	if (low.sloppyCount() > 0) {
 	    // continue to evaluate the right-hand side
 	    ibis::bitvector b1, b2;
 	    doEstimate(term->getRight(), b1, b2);
