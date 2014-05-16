@@ -3123,8 +3123,8 @@ int ibis::mensa::cursor::fetch(uint64_t irow) {
     if (bEnd <= irow)
 	clearBuffers();
 
-    while (pBegin + tab.parts[curPart]->nRows() <= irow &&
-	   curPart < tab.parts.size()) {
+    while (curPart < tab.parts.size() &&
+           pBegin + tab.parts[curPart]->nRows() <= irow) {
 	pBegin += tab.parts[curPart]->nRows();
 	++ curPart;
     }

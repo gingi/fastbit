@@ -1,3 +1,7 @@
+2014-05-16 Zhongbo Tian <windreamer at gmail dot com>
+	* src/mensa.cpp: fix the order of bound check in
+	ibis::mensa::cursor::fetch
+
 2014-05-15 John Wu <John dot Wu at ACM dot org>
 	* src/mensa.cpp: correct the problems with getColumnAsTTTs (a
 	problem identified by Zhongbo Tian
