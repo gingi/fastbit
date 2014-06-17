@@ -42,24 +42,23 @@ namespace ibis {
     class horometer;
 }
 
-/**
- Horometer -- a primitive timing instrument.
+/// \brief Horometer -- a primitive timing instrument.
+///
+/// This is intented to be a simple timer that measures a single duration.
+/// It must be explicitly started by calling the function start.  The same
+/// function start may be called to restart the timer which will discard
+/// the previous starting point.  The function stop must be called before
+/// functions realTime and CPUTime can report correct time values.  After a
+/// horometer is stopped, it may continue by calling start to count a new
+/// duration, or it may add to the existing duration by calling resume.
+///
+/// The timing accuracy depends on the underlying implementation.  On most
+/// unix systems, the CPU time resolution is about 0.01 seconds, while the
+/// elapsed time may be accurate to 0.0001 seconds.  The timing function
+/// itself may take ~10,000 clock cycles to execute, which is about 25
+/// microseconds on a 400 MHz machine.  This can become a significant source
+/// of error if a timer is stopped and resumed at a high frequency.
 
- This is intented to be a simple timer that measures a single duration.  It
- must be explicitly started by calling the function start.  The same
- function start may be called to restart the timer which will discard the
- previous starting point.  The function stop must be called before
- functions realTime and CPUTime can report correct time values.  After a
- horometer is stopped, it may continue by calling start to count a new
- duration, or it may add to the existing duration by calling resume.
-
- The timing accuracy depends on the underlying implementation.  On most
- unix systems, the CPU time resolution is about 0.01 seconds, while the
- elapsed time may be accurate to 0.0001 seconds.  The timing function
- itself may take ~10,000 clock cycles to execute, which is about 25
- microseconds on a 400 MHz machine.  This can become a significant source
- of error if a timer is stopped and resumed at a high frequency.
-*/
 class ibis::horometer {
 public:
     horometer() : startRealTime(0), totalRealTime(0),

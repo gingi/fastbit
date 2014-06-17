@@ -1463,7 +1463,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    }
 
 	    ibis::column* c = tbl.getColumn(cn);
-	    if (c == 0 && expr.termType() == ibis::math::VARIABLE) {
+	    if (expr.termType() == ibis::math::VARIABLE &&
+                (c == 0 || 0 != stricmp(cn, c->name()))) {
 		c = tbl.getColumn(static_cast<const ibis::math::variable&>
 				  (expr).variableName());
 	    }
@@ -1478,7 +1479,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 
 	    LOGGER(ibis::gVerbose > 6)
 		<< "bundles::ctor is to start a colValues for \""
-		<< *(comps.aggExpr(ic)) << "\" as cols[" << cols.size() << ']';
+		<< *(comps.aggExpr(ic)) << "\" as cols[" << cols.size()
+                << "] with data from " << c->fullname();
 	    ibis::colValues* cv = 0;
 	    switch (comps.getAggregator(ic)) {
 	    case ibis::selectClause::AVG:
@@ -1497,12 +1499,12 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 		break;
 	    }
 	    if (cv != 0) {
-		cols.push_back(cv);
-		aggr.push_back(comps.getAggregator(ic));
 		LOGGER(ibis::gVerbose > 2)
 		    << "bundles::ctor created a colValues for \""
 		    << *(comps.aggExpr(ic)) << "\" as cols[" << cols.size()
 		    << "] with size " << cv->size();
+		cols.push_back(cv);
+		aggr.push_back(comps.getAggregator(ic));
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)

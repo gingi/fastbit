@@ -1,3 +1,15 @@
+Version 1.4.0
+-- remove the prefix 'ibis' from the version number based on a recommendation from lscott@kiemaadvisors.com
+-- accepted a patch from Sean McNamara to fix a problem with testing C++ versions
+-- add entry in runconfig to support edison.nersc.gov
+-- accepted a patch from Zhongbo Tian on handling string-valued data
+-- zero out the memory allocated through ibis::array_t<T>::reserve
+-- change the default binned index option to be 2-digit precision bins
+-- modify index generation code so that they will run without col object if possible
+-- correct a set of problems identified by Zhongbo Tian in getColumnAsTypes
+-- accepted a patch from Zhongbo Tian that fixes the order of bound check in ibis::mensa::cursor
+
+
 Thu Mar 13 21:31:45 PDT 2014
 Version ibis1.3.9
 -- bug fix in ibis::bitvector

@@ -1,3 +1,15 @@
+2014-06-17 John Wu <John dot Wu at ACM dot org>
+	* src/bundle.cpp:1466 rewrite the conditional test to capture the
+	case where the name cn do not match c->name() -- to address a
+	problem reported by Hendrik Heinemann <hendrik.heinemann at questback.com>
+
+2014-06-15 John Wu <John dot Wu at ACM dot org>
+	* src/bundles.cpp:1500 move the LOGGER statement before push_back
+
+2014-05-22 John Wu <John dot Wu at ACM dot org>
+	* autoconfig.ac: remove the prefix 'ibis' from the version number
+	based on a recommendation from lscott@kiemaadvisors.com
+
 2014-05-16 Zhongbo Tian <windreamer at gmail dot com>
 	* src/mensa.cpp: fix the order of bound check in
 	ibis::mensa::cursor::fetch
