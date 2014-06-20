@@ -28,6 +28,9 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 	    << ") and the select clauses (" << sel.aggSize() << ")";
 	return -1;
     }
+    LOGGER(ibis::gVerbose > 2)
+        << "bord::merge -- merging " << ibis::table::name() << " (" << nRows()
+        << ") with " << rhs.ibis::table::name() << " (" << rhs.nRows() << ')';
 
     // divide the columns into keys and vals
     std::vector<ibis::bord::column*> keys, keyr, vals, valr;
@@ -81,9 +84,8 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 	return -2;
     if (ibis::gVerbose > 3) {
 	ibis::util::logger lg;
-	lg() << "bord::merge -- merging " << this->part::name() << " ("
-	     << nRows() << ") and " << rhs.part::name() << " ("
-	     << rhs.nRows() << ") into " << this->part::name() << " using ";
+	lg() << "bord::merge -- merging " << this->part::name() << " and "
+             << rhs.part::name() << " into " << this->part::name() << " using ";
 	if (keys.size() == 0) {
 	    lg() << "no keys";
 	}
@@ -93,11 +95,13 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 		lg() << ", " << keys[j]->name();
 	    lg() << ") as key" << (keys.size()>1 ? "s" : "");
 	}
-	if (ibis::gVerbose > 6) {
+	if (ibis::gVerbose > 8) {
+            const uint64_t nprt = (ibis::gVerbose>40 ? 1000000 :
+                                   (1U << (ibis::gVerbose/2)));
 	    lg() << "\nthis partition:\n";
-	    dump(lg(), ", ");
+	    dump(lg(), nprt, ", ");
 	    lg() << "other partition:\n";
-	    rhs.dump(lg(), ", ");
+	    rhs.dump(lg(), nprt, ", ");
 	}
     }
 
@@ -141,10 +145,21 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
 	    nEvents = 0;
     }
 
-    if (ibis::gVerbose > 6) {
+    if (ibis::gVerbose > 2) {
 	ibis::util::logger lg;
-	lg() << "bord::merge -- result\n";
-	dump(lg(), ", ");
+	lg() << "bord[" << ibis::table::name() << "]::merge completed " << nRows()
+             << " rows (memory cache used: "
+             << ibis::util::groupby1000(ibis::fileManager::bytesInUse()) << ")";
+        if (ibis::gVerbose > 4) {
+            lg() << "\n";
+            describe(lg());
+        }
+        if (ibis::gVerbose > 6) {
+            uint64_t nprt = ((nEvents>>ibis::gVerbose)>1 ? nEvents :
+                             (1ULL<<ibis::gVerbose));
+            lg() << "\n";
+            dump(lg(), nprt, ", ");
+        }
     }
     return ierr;
 } // ibis::bord::merge

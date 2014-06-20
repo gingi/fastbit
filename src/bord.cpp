@@ -4159,14 +4159,21 @@ void ibis::bord::reverseRows() {
     }
 } // ibis::bord::reverseRows
 
+/// Reset the number of rows in the data partition to be @c nr.  If the
+/// existing data partitioning has no more than @nr rows, nothing is done,
+/// otherwise, the first @c nr rows are kept.
+///
+/// It retunrs 0 to indicate normal completion, a negative number to
+/// indicate error.
 int ibis::bord::limit(uint32_t nr) {
     int ierr = 0;
     if (nEvents <= nr) return ierr;
 
     for (ibis::part::columnList::iterator it = columns.begin();
 	 it != columns.end(); ++ it) {
-	ierr = reinterpret_cast<ibis::bord::column*>((*it).second)->limit(nr);
-	if (ierr < 0) return ierr;
+	int ier2 = reinterpret_cast<ibis::bord::column*>((*it).second)->limit(nr);
+	if (ier2 < 0 && ier2 < ierr)
+            ierr = ier2;
     }
     nEvents = nr;
     return ierr;
@@ -10778,78 +10785,92 @@ void ibis::bord::column::reverseRows() {
     }
 } // ibis::bord::column::reverseRows
 
+/// Reduce the number of rows stored in this column object to @c nr.  It
+/// does nothing if the current size is no more than @c nr.
+///
+/// It returns 0 upcon successful completion, -1 otherwise.
 int ibis::bord::column::limit(uint32_t nr) {
     int ierr = 0;
     switch(m_type) {
     case ibis::ULONG: {
 	array_t<uint64_t> &prop =
 	    * static_cast<array_t<uint64_t>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::LONG: {
 	array_t<int64_t> &prop =
 	    * static_cast<array_t<int64_t>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::UINT: {
 	array_t<uint32_t> &prop =
 	    * static_cast<array_t<uint32_t>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::INT: {
 	array_t<int32_t> &prop =
 	    * static_cast<array_t<int32_t>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::USHORT: {
 	array_t<uint16_t> &prop =
 	    * static_cast<array_t<uint16_t>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::SHORT: {
 	array_t<int16_t> &prop =
 	    * static_cast<array_t<int16_t>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::UBYTE: {
 	array_t<unsigned char> &prop =
 	    * static_cast<array_t<unsigned char>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::BYTE: {
 	array_t<signed char> &prop =
 	    * static_cast<array_t<signed char>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::FLOAT: {
 	array_t<float> &prop =
 	    * static_cast<array_t<float>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::DOUBLE: {
 	array_t<double> &prop =
 	    * static_cast<array_t<double>*>(buffer);
-	if (nr < prop.size())
+	if (nr < prop.size()) {
 	    prop.resize(nr);
-	prop.nosharing();
+            prop.nosharing();
+        }
 	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {

@@ -2304,12 +2304,6 @@ void ibis::fileManager::roFile::endUse() {
 /// active reference to it.
 void ibis::fileManager::roFile::clear() {
     std::string evt = "fileManager::roFile";
-    if (nref() > 0) {
-	LOGGER(ibis::gVerbose > 3)
-	    << evt << " -- storage " << m_begin << " is busy (nref="
-	    << nref() << ") and can't be cleared";
-	return;
-    }
     if (ibis::gVerbose > 6) {
 	std::ostringstream oss;
 	oss << "(" << static_cast<void*>(this) << ", "
@@ -2318,6 +2312,12 @@ void ibis::fileManager::roFile::clear() {
 	    oss << ", " << name;
 	oss << ")";
 	evt += oss.str();
+    }
+    if (nref() > 0) {
+	LOGGER(ibis::gVerbose > 3)
+	    << "Warning -- " << evt << " can not clear storage at "
+            << static_cast<const void*>(m_begin) << " (nref=" << nref() << ')';
+	return;
     }
 
     size_t sz = size();
@@ -2554,8 +2554,8 @@ void ibis::fileManager::roFile::mapFile(const char* file) {
     }
     else {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- fileManager::roFile is busy and cann't "
-	    "read new content";
+	    << "Warning -- fileManager::roFile " << static_cast<const void*>(this)
+            << "is busy and cann't read new content";
 	return;
     }
     Stat_T tmp;

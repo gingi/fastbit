@@ -536,17 +536,14 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
 	    lg() << "query[" << q.id()
 		 << "]::bundle1 -- generated the bundle\n";
 	    if (rids == 0) {
-		if ((1U << ibis::gVerbose) > col->size() ||
-		    ibis::gVerbose > 30)
-		    print(lg());
+                print(lg());
 	    }
-	    else if ((1U << ibis::gVerbose) > rids->size() ||
-		     ibis::gVerbose > 30) {
-		if (ibis::gVerbose > 8)
-		    printAll(lg());
-		else
-		    print(lg());
-	    }
+	    else if (ibis::gVerbose > 8) {
+                printAll(lg());
+            }
+            else {
+                print(lg());
+            }
 	}
     }
     catch (...) {
@@ -633,16 +630,13 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
 	    lg() << "query[" << q.id()
 		 << "]::bundle1 -- generated the bundle\n";
 	    if (rids == 0) {
-		if ((1U << ibis::gVerbose) > col->size() ||
-		    ibis::gVerbose > 30)
-		    print(lg());
+                print(lg());
 	    }
-	    else if ((1U << ibis::gVerbose) > rids->size() ||
-		     ibis::gVerbose > 30) {
-		if (ibis::gVerbose > 8)
-		    printAll(lg());
-		else
-		    print(lg());
+	    else if (ibis::gVerbose > 8) {
+                printAll(lg());
+            }
+            else {
+                print(lg());
 	    }
 	}
     }
@@ -742,8 +736,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    ibis::util::logger lg;
 	    lg() << "bundle1 -- generated the bundle for \"" << *comps
 		 << "\"\n";
-	    if ((1U << ibis::gVerbose) > col->size() || ibis::gVerbose > 30)
-		print(lg());
+            print(lg());
 	}
     }
     catch (...) {
@@ -1339,16 +1332,13 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
 	    lg() << "query[" << q.id()
 		 << "]::bundles -- generated the bundle\n";
 	    if (rids == 0) {
-		if ((1U << ibis::gVerbose) > cols[0]->size() ||
-		    ibis::gVerbose > 30)
-		    print(lg());
+                print(lg());
 	    }
-	    else if ((1U << ibis::gVerbose) > rids->size() ||
-		     ibis::gVerbose > 30) {
-		if (ibis::gVerbose > 8)
-		    printAll(lg());
-		else
-		    print(lg());
+	    else if (ibis::gVerbose > 8) {
+                printAll(lg());
+            }
+            else {
+                print(lg());
 	    }
 	}
     }
@@ -1426,16 +1416,13 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits,
 	    lg() << "query[" << q.id()
 		 << "]::bundle1 -- generated the bundle\n";
 	    if (rids == 0) {
-		if ((1U << ibis::gVerbose) > cols[0]->size() ||
-		    ibis::gVerbose > 30)
 		    print(lg());
 	    }
-	    else if ((1U << ibis::gVerbose) > rids->size() ||
-		     ibis::gVerbose > 30) {
-		if (ibis::gVerbose > 8)
-		    printAll(lg());
-		else
-		    print(lg());
+	    else if (ibis::gVerbose > 8) {
+                printAll(lg());
+            }
+            else {
+                print(lg());
 	    }
 	}
     }
@@ -1521,8 +1508,7 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
 	    ibis::util::logger lg;
 	    lg() << "bundles -- generated the bundle for \"" << *comps
 		 << "\"\n";
-	    if ((1U << ibis::gVerbose) > cols.size() || ibis::gVerbose > 30)
-		print(lg());
+            print(lg());
 	}
     }
     catch (...) {
@@ -1540,7 +1526,9 @@ void ibis::bundles::print(std::ostream& out) const {
     const uint32_t ncol = cols.size();
     if (ncol == 0) return; // nothing to print
 
-    const uint32_t size = (cols[0] != 0 ? cols[0]->size() : 0);
+    const uint32_t total = (cols[0] != 0 ? cols[0]->size() : 0);
+    const uint32_t nprt = ((total>>ibis::gVerbose) > 1 ?
+                           (1U << ibis::gVerbose) : total);
     bool distinct = true;
     for (uint32_t i = 0; i < ncol && distinct; ++ i) {
 	if (cols[i] == 0) {
@@ -1552,9 +1540,9 @@ void ibis::bundles::print(std::ostream& out) const {
 	distinct = cols[i]->canSort();
     }
     if (ibis::gVerbose > 4)
-	out << "Bundle " << id << " contains " << size
+	out << "Bundle " << id << " contains " << total
 	    << (distinct ? " distinct " : " ") << ncol << "-tuple"
-	    << (size > 1 ? "s" : "") << std::endl;
+	    << (total > 1 ? "s" : "") << std::endl;
     if (starts != 0 && ibis::gVerbose > 4) {
 	if (ibis::gVerbose > 4) {
 	    for (uint32_t i = 0; i < ncol; ++ i) {
@@ -1563,7 +1551,7 @@ void ibis::bundles::print(std::ostream& out) const {
 	    }
 	    out << " (with counts)\n";
 	}
-	for (uint32_t i=0; i<size; ++i) {
+	for (uint32_t i=0; i<nprt; ++i) {
 	    for (uint32_t ii=0; ii<ncol; ++ii) {
 		cols[ii]->write(out, i);
 		out << ", ";
@@ -1574,13 +1562,15 @@ void ibis::bundles::print(std::ostream& out) const {
     else {
 	if (ibis::gVerbose > 4)
 	    out << *comps << "\n";
-	for (uint32_t i=0; i<size; ++i) {
+	for (uint32_t i=0; i<nprt; ++i) {
 	    for (uint32_t ii=0; ii<ncol; ++ii) {
 		cols[ii]->write(out, i);
 		out << (ii+1<ncol ? ", " : "\n");
 	    }
 	}
     }
+    if (nprt < total)
+        out << "\t...\t" << total-nprt << " skipped\n";
 } // ibis::bundles::print
 
 /// Print out the bundles with RIDs.
