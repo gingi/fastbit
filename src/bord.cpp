@@ -4348,9 +4348,9 @@ int ibis::bord::limit(uint32_t nr) {
     if (nEvents <= nr) return ierr;
 
     for (ibis::part::columnList::iterator it = columns.begin();
-         it != columns.end(); ++ it) {
-        int ier2 = reinterpret_cast<ibis::bord::column*>((*it).second)->limit(nr);
-        if (ier2 < 0 && ier2 < ierr)
+	 it != columns.end(); ++ it) {
+	int ier2 = reinterpret_cast<ibis::bord::column*>((*it).second)->limit(nr);
+	if (ier2 < 0 && ier2 < ierr)
             ierr = ier2;
     }
     nEvents = nr;
@@ -11459,85 +11459,85 @@ int ibis::bord::column::limit(uint32_t nr) {
     int ierr = 0;
     switch(m_type) {
     case ibis::ULONG: {
-        array_t<uint64_t> &prop =
-            * static_cast<array_t<uint64_t>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<uint64_t> &prop =
+	    * static_cast<array_t<uint64_t>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> &prop =
-            * static_cast<array_t<int64_t>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<int64_t> &prop =
+	    * static_cast<array_t<int64_t>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::UINT: {
-        array_t<uint32_t> &prop =
-            * static_cast<array_t<uint32_t>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<uint32_t> &prop =
+	    * static_cast<array_t<uint32_t>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::INT: {
-        array_t<int32_t> &prop =
-            * static_cast<array_t<int32_t>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<int32_t> &prop =
+	    * static_cast<array_t<int32_t>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::USHORT: {
-        array_t<uint16_t> &prop =
-            * static_cast<array_t<uint16_t>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<uint16_t> &prop =
+	    * static_cast<array_t<uint16_t>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::SHORT: {
-        array_t<int16_t> &prop =
-            * static_cast<array_t<int16_t>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<int16_t> &prop =
+	    * static_cast<array_t<int16_t>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::UBYTE: {
-        array_t<unsigned char> &prop =
-            * static_cast<array_t<unsigned char>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<unsigned char> &prop =
+	    * static_cast<array_t<unsigned char>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::BYTE: {
-        array_t<signed char> &prop =
-            * static_cast<array_t<signed char>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<signed char> &prop =
+	    * static_cast<array_t<signed char>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::FLOAT: {
-        array_t<float> &prop =
-            * static_cast<array_t<float>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<float> &prop =
+	    * static_cast<array_t<float>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> &prop =
-            * static_cast<array_t<double>*>(buffer);
-        if (nr < prop.size()) {
-            prop.resize(nr);
+	array_t<double> &prop =
+	    * static_cast<array_t<double>*>(buffer);
+	if (nr < prop.size()) {
+	    prop.resize(nr);
             prop.nosharing();
         }
-        break;}
+	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
         std::vector<std::string> &prop =

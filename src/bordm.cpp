@@ -83,26 +83,26 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
     if (keys.size() != keyr.size() || vals.size() != valr.size())
         return -2;
     if (ibis::gVerbose > 3) {
-        ibis::util::logger lg;
-        lg() << "bord::merge -- merging " << this->part::name() << " and "
+	ibis::util::logger lg;
+	lg() << "bord::merge -- merging " << this->part::name() << " and "
              << rhs.part::name() << " into " << this->part::name() << " using ";
-        if (keys.size() == 0) {
-            lg() << "no keys";
-        }
-        else {
-            lg() << '(' << keys[0]->name();
-            for (unsigned j = 1; j < keys.size(); ++ j)
-                lg() << ", " << keys[j]->name();
-            lg() << ") as key" << (keys.size()>1 ? "s" : "");
-        }
-        if (ibis::gVerbose > 8) {
+	if (keys.size() == 0) {
+	    lg() << "no keys";
+	}
+	else {
+	    lg() << '(' << keys[0]->name();
+	    for (unsigned j = 1; j < keys.size(); ++ j)
+		lg() << ", " << keys[j]->name();
+	    lg() << ") as key" << (keys.size()>1 ? "s" : "");
+	}
+	if (ibis::gVerbose > 8) {
             const uint64_t nprt = (ibis::gVerbose>40 ? 1000000 :
                                    (1U << (ibis::gVerbose/2)));
-            lg() << "\nthis partition:\n";
-            dump(lg(), nprt, ", ");
-            lg() << "other partition:\n";
-            rhs.dump(lg(), nprt, ", ");
-        }
+	    lg() << "\nthis partition:\n";
+	    dump(lg(), nprt, ", ");
+	    lg() << "other partition:\n";
+	    rhs.dump(lg(), nprt, ", ");
+	}
     }
 
     bool match = (this->part::nRows() == rhs.part::nRows());
@@ -146,8 +146,8 @@ int ibis::bord::merge(const ibis::bord &rhs, const ibis::selectClause& sel) {
     }
 
     if (ibis::gVerbose > 2) {
-        ibis::util::logger lg;
-        lg() << "bord[" << ibis::table::name() << "]::merge completed " << nRows()
+	ibis::util::logger lg;
+	lg() << "bord[" << ibis::table::name() << "]::merge completed " << nRows()
              << " rows (memory cache used: "
              << ibis::util::groupby1000(ibis::fileManager::bytesInUse()) << ")";
         if (ibis::gVerbose > 4) {

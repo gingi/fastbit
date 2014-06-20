@@ -2375,6 +2375,12 @@ void ibis::fileManager::roFile::clear() {
             << static_cast<const void*>(m_begin) << " (nref=" << nref() << ')';
         return;
     }
+    if (nref() > 0) {
+	LOGGER(ibis::gVerbose > 3)
+	    << "Warning -- " << evt << " can not clear storage at "
+            << static_cast<const void*>(m_begin) << " (nref=" << nref() << ')';
+	return;
+    }
 
     size_t sz = size();
     ibis::fileManager::decreaseUse(sz, evt.c_str());
@@ -2609,10 +2615,10 @@ void ibis::fileManager::roFile::mapFile(const char* file) {
         clear();
     }
     else {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- fileManager::roFile " << static_cast<const void*>(this)
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- fileManager::roFile " << static_cast<const void*>(this)
             << "is busy and cann't read new content";
-        return;
+	return;
     }
     Stat_T tmp;
     if (0 != UnixStat(file, &tmp)) { // get stat correctly

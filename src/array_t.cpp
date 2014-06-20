@@ -121,12 +121,12 @@ ibis::array_t<T>::array_t(const std::vector<T>& rhs)
         std::copy(rhs.begin(), rhs.end(), m_begin);
     }
     LOGGER(ibis::gVerbose > 9)
-        << "array_t<" << typeid(T).name() << "> constructed at "
-        << static_cast<void*>(this) << " with actual="
-        << static_cast<void*>(actual) << ", m_begin="
-        << static_cast<void*>(m_begin) << " and m_end="
-        << static_cast<void*>(m_end) << ", copied from std::vector @ "
-        << static_cast<const void*>(&rhs);
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << ", m_begin="
+	<< static_cast<void*>(m_begin) << " and m_end="
+	<< static_cast<void*>(m_end) << ", copied from std::vector @ "
+	<< static_cast<const void*>(&rhs);
 }
 
 /// Copy constructor.  Makes a shallow copy.  Should not throw any
@@ -138,12 +138,12 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
         actual->beginUse();
 
     LOGGER(ibis::gVerbose > 9)
-        << "array_t<" << typeid(T).name() << "> constructed at "
-        << static_cast<void*>(this) << " with actual="
-        << static_cast<void*>(actual) << ", m_begin="
-        << static_cast<void*>(m_begin) << " and m_end="
-        << static_cast<void*>(m_end) << ", copied from array_t @ "
-        << static_cast<const void*>(&rhs);
+	<< "array_t<" << typeid(T).name() << "> constructed at "
+	<< static_cast<void*>(this) << " with actual="
+	<< static_cast<void*>(actual) << ", m_begin="
+	<< static_cast<void*>(m_begin) << " and m_end="
+	<< static_cast<void*>(m_end) << ", copied from array_t @ "
+	<< static_cast<const void*>(&rhs);
 }
 
 /// A shallow copy constructor.  It makes a new array out of a section of
@@ -424,7 +424,7 @@ void ibis::array_t<T>::nosharing() {
     if (m_begin != 0 && m_end >= m_begin) { // a well-formed object
 	if (actual == 0 || m_begin != (T*)actual->begin() ||
 	    actual->filename() != 0 || actual->inUse() > 1) {
-	    // follow copy-and-swap strategy
+	    // copy-and-swap
 	    std::unique_ptr<ibis::fileManager::storage>
 		tmp(new ibis::fileManager::storage
 		    (reinterpret_cast<const char*>(m_begin),

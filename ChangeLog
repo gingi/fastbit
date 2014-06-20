@@ -1,3 +1,12 @@
+2014-06-19 John Wu <John dot Wu at ACM dot org>
+	* src/bundles.cpp: limit the number of rows printed from
+	bundles::print - in an attempt to understand the out-of-memory
+	fault reported by Alan Kemp <alan at irisns.com>
+	* src/bord.cpp: limit the number of rows printed from bord::merge
+	* src/bordm.cpp: add in-line documentation to bord::limit and
+	bord::column::limit, change column::limit to invoke nosharing only
+	if the content has been modified
+
 2014-06-17 John Wu <John dot Wu at ACM dot org>
 	* src/bundle.cpp:1466 rewrite the conditional test to capture the
 	case where the name cn do not match c->name() -- to address a
