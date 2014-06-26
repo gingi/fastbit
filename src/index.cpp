@@ -4174,14 +4174,7 @@ int ibis::index::initOffsets(int64_t *buf, size_t noffsets) {
     if (noffsets <= 1) return -1;
 
     ibis::array_t<int64_t> tmp(buf, noffsets);
-#if defined(DEBUG) || defined(_DEBUG)
-    if (ibis::gVerbose > 5) {
-        ibis::util::logger lg;
-        lg() << "DEBUG -- index::initOffsets recent the following values\n";
-        tmp.print(lg());
-    }
-#endif
-    offset64.deepCopy(tmp);
+    tmp.swap(offset64);
     for (size_t j = 0; j < offset64.size(); ++ j)
         offset64[j] *= 4;
     offset32.clear();
@@ -5739,7 +5732,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
         evt += ']';
     }
     evt += "::sumBins";
-    LOGGER(ibis::gVerbose > 6)
+    LOGGER(ibis::gVerbose > 7)
         << evt << ": ib=" << ib << ", ie=" << ie << ", res(" << res.cnt()
         << ", " << res.size() << ")";
     const size_t nobs = offset64.size() - 1;

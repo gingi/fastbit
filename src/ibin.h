@@ -34,14 +34,11 @@ public:
 	size_t offset = 8);
     bin(const ibis::column* c, const char* f, const array_t<double>& bd);
     bin(const ibis::column* c, const char* f, const std::vector<double>& bd);
-    bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs);
-    bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
-        uint32_t *bms);
-    bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
-        void *bms, FastBitReadBitmaps rd);
+    bin(uint32_t nb, double *keys, int64_t *offs);
 
     virtual index* dup() const;
     virtual void print(std::ostream& out) const;
+    virtual void serialSizes(uint64_t&, uint64_t&, uint64_t&) const;
     virtual int write(ibis::array_t<double> &,
                       ibis::array_t<int64_t> &,
                       ibis::array_t<uint32_t> &) const;

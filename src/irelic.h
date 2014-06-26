@@ -27,14 +27,11 @@ public:
     relic(const ibis::column* c, uint32_t card, array_t<uint32_t>& ints);
     relic(const ibis::column* c, ibis::fileManager::storage* st,
 	  size_t start = 8);
-    relic(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs);
-    relic(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
-          uint32_t *bms);
-    relic(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
-          void *bms, FastBitReadBitmaps rd);
+    relic(uint32_t nb, double *keys, int64_t *offs);
 
     virtual index* dup() const;
     virtual void print(std::ostream& out) const;
+    virtual void serialSizes(uint64_t&, uint64_t&, uint64_t&) const;
     virtual int write(ibis::array_t<double> &,
                       ibis::array_t<int64_t> &,
                       ibis::array_t<uint32_t> &) const;

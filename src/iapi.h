@@ -21,13 +21,13 @@ returned to carry results, such as in fastbit_get_result_size.
 @note For functions that returns pointers, a nil pointer is returned in
 case of error.
 
-@note About the name: IAPI was original intended to be "In memory API", but
-the word iapi appears to be a Dekota word for "word" or "language".
+@note About the name: IAPI was original intended to be "In-memory API".
+The word iapi appears to be a Dekota word for "word" or "language".
  */
 #include "const.h"	// common definitions and declarations
 #include "capi.h"	// reuse the definitions from capi.h
 
-/** An enum type for data types supported by this interface.
+/** An enum for data types supported by this interface.
 
     @note Would have preferred to reuse the enum type ibis::TYPE_T,
     however, there isn't a good way known to the author.
@@ -46,7 +46,7 @@ typedef enum FastBitDataType {
     FastBitDataTypeDouble=11
 } FastBitDataType;
 
-/** An enum type for comparison operators supported.
+/** An enum for comparison operators supported.
  */
 typedef enum FastBitCompareType {
     FastBitCompareLess,
@@ -57,7 +57,7 @@ typedef enum FastBitCompareType {
     FastBitCompareNotEqual,
 } FastBitCompareType;
 
-/** An enum type for specifying how selection conditions are to be
+/** An enum for specifying how selection conditions are to be
     combined.
  */
 typedef enum FastBitCombineType {
@@ -74,6 +74,7 @@ typedef ibis::qExpr* FastBitSelectionHandle;
 #else
 typedef void* FastBitSelectionHandle;
 #endif
+typedef void* FastBitIndexHandle;
 
 /**
 @defgroup FastBitIAPI FastBit In-memory API.
@@ -115,13 +116,39 @@ extern "C" {
 
     /** Free all cached object for IAPI. */
     void fastbit_iapi_free_all();
+
+    /** Register a name for the data array. */
+    int fastbit_iapi_register_array
+    (const char*, FastBitDataType, void*, uint64_t);
+    int fastbit_iapi_register_array_nd
+    (const char*, FastBitDataType, void*, uint64_t*, uint64_t);
+
+    /** Build index. */
+    int fastbit_iapi_build_index
+    (const char*, const char*, uint64_t*, uint64_t*, uint64_t*);
+
+    /** Write index into three arrays.  Caller must allocate the space
+        needed for the three arrays based on arguments returned by
+        fastbit_iapi_build_index. */
+    int fastbit_iapi_deconstruct_index
+    (const char*, void*, uint64_t, void*, uint64_t, void*, uint64_t);
+
+    /** Reconstitute the index data structure from the first two arrays
+        produced by fastbit_iapi_write_index.  The 3rd array is larger and
+        is to be read in pieces as needed. */
+    FastBitIndexHandle fastbit_iapi_reconstruct_index
+    (void*, uint64_t, void*, uint64_t);
+
+    /** Evalute a range condition on an index data structure. */
+    int fastbit_iapi_resolve_range
+    (FastBitIndexHandle, FastBitCompareType, double, uint32_t *,
+     uint32_t *, uint32_t *, uint32_t *);
+
+    /** Retrieve the numbers of values in the given range. */
+    int64_t fastbit_iapi_get_number_of_hits
+    (FastBitIndexHandle, uint32_t, uint32_t, uint32_t*);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 #endif
-
-
-
-
-
 
