@@ -103,6 +103,62 @@ ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
 	<< " with m_begin at " << static_cast<const void*>(arr.begin());
 } // ctor from array_t
 
+/// Construct a bitvector from an array.  Because the array copy
+/// constructor performs shallow copy, this bitvector is not using any new
+/// space for the underlying vector.
+ibis::bitvector::bitvector(ibis::bitvector::word_t *buf, size_t nbuf)
+    : nbits(0), nset(0), m_vec(buf, nbuf) {
+    if (m_vec.size() > 1) { // non-trivial size
+	if (m_vec.back() > 0) { // has active bits
+	    if (m_vec.back() < MAXBITS) {
+		active.nbits = m_vec.back();
+		m_vec.pop_back();
+		active.val = m_vec.back();
+	    }
+	    else {
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- the serialized version of bitvector "
+		    "contains an unexpected last word (" << m_vec.back() << ')';
+#if DEBUG+0 > 1 || _DEBUG+0 > 1
+		{ // print the array out
+		    word_t nb = 0;
+		    ibis::util::logger lg(4);
+		    lg() << "bitvector constructor received an array["
+			 << arr.size() << "] with the following values:";
+		    for (word_t i = 0; i < arr.size(); ++ i) {
+			if (arr[i] < HEADER0)
+			    nb += MAXBITS;
+			else
+			    nb += (arr[i] & MAXCNT) * MAXBITS;
+			lg() << "\n" << i << ",\t0x" << std::hex
+			     << std::setw(8) << std::setfill('0')
+			     << arr[i] << std::dec << "\tnb=" << nb;
+		    }
+		}
+// 		throw ibis::bad_alloc("bitvector -- the input is not a "
+// 				      "serialized bitvector");
+#endif
+	    }
+	}
+	else {
+	    active.reset();
+	}
+	m_vec.pop_back();
+
+#if defined(WAH_CHECK_SIZE)
+	nbits = do_cnt(); // count the number of bits
+#endif
+    }
+    else { // a one-word bitvector can only be an empty one
+	clear();
+    }
+    LOGGER(ibis::gVerbose > 9)
+	<< "bitvector (" << static_cast<void*>(this)
+	<< ") constructed with m_vec at " << static_cast<void*>(&m_vec)
+	<< " based on a buf at " << static_cast<const void*>(buf)
+	<< " with " << nbuf << " element" << (nbuf>1?"s":"");
+} // ctor from array_t
+
 /// Constructor.  Reconstruct a bitvector from a file.
 ibis::bitvector::bitvector(const char* file) : nbits(0), nset(0) {
     if (file == 0 || *file == 0) return;

@@ -4158,6 +4158,22 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
     }
 } // ibis::index::divideCounts
 
+/// Initialize the offsets from the given data array.
+/// 
+/// @note The incoming argument buf is from the write function that stores
+/// offsets in the number 4-byte words and need to translated into offsets
+/// in bytes.
+int ibis::index::initOffsets(int64_t *buf, size_t noffsets) {
+    if (noffsets <= 1) return -1;
+
+    ibis::array_t<int64_t> tmp(buf, noffsets);
+    tmp.swap(offset64);
+    for (size_t j = 0; j < offset64.size(); ++ j)
+        offset64[j] *= 4;
+    offset32.clear();
+    return 0;
+} // ibis::index::initOffsets
+
 /// Read in the offset array.  The offset size has been read by the caller
 /// and so has the number of bitmaps to expect.
 int ibis::index::initOffsets(int fdes, const char offsize, size_t start,
@@ -5681,6 +5697,203 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
     }
 #endif
 } // ibis::index::addBins
+
+/// Sum up <code>bits[ib:ie-1]</code> and place the result in res.  The
+/// bitmaps (bits) are stored in the argument buf and have to be
+/// regenerated based on the information in offset64.
+/// The basic rule is as follows.
+/// - If there are two or less bit vectors, use |= operator directly.
+/// - Compute the total size of the bitmaps involved.
+/// - If the total size times log(number of bitvectors involved) is less
+///   than the size of an uncompressed bitvector, use a priority queue to
+///   store all input bitvectors and intermediate solutions,
+/// - or else, decompress the first bitvector and use inplace bitwise OR
+///   operator to complete the operations.
+void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
+                          uint32_t *buf) const {
+    std::string evt = "index";
+    if (ibis::gVerbose > 2 && col != 0) {
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
+    }
+    evt += "::sumBins";
+    LOGGER(ibis::gVerbose > 7)
+        << evt << ": ib=" << ib << ", ie=" << ie << ", res(" << res.cnt()
+        << ", " << res.size() << ")";
+    const size_t nobs = offset64.size() - 1;
+    res.clear();
+    if (ie > nobs || ib >= nobs || ib >= ie) {
+        LOGGER(ibis::gVerbose > 3)
+            << "Waring -- " << evt << " encounters an empty range (ib=" << ib
+            << ", ie=" << ie << ", offset64.size()=" << offset64.size();
+        return;
+    }
+    while (ib < ie && offset64[ib+1] == offset64[ib]) ++ ib;
+    while (ib < ie && offset64[ie] == offset64[ie-1]) -- ie;
+    if (ie > nobs || ib >= nobs || ib >= ie) {
+        LOGGER(ibis::gVerbose > 3)
+            << "Waring -- " << evt << " encounters an empty range (ib=" << ib
+            << ", ie=" << ie << ", offset64.size()=" << offset64.size();
+        return;
+    }
+
+    const uint32_t na = ie-ib;
+    if (na == 1) { // some special cases
+        ibis::bitvector tmp(buf, offset64[ie]-offset64[ib]);
+        res.swap(tmp);
+        return;
+    }
+    else if (na == 2) {
+        ibis::bitvector tmp1(buf, offset64[ib+1]-offset64[ib]);
+        ibis::bitvector tmp2(buf+offset64[ib+1]-offset64[ib],
+                             offset64[ib+2]-offset64[ib+1]);
+        tmp1.swap(res);
+        res |= tmp2;
+        return;
+    }
+    else if (na == 0) {
+        return;
+    }
+
+    horometer timer;
+    uint32_t bytes = 4*(offset64[ie]-offset64[ib]);
+    // based on extensive testing, we have settled on the following
+    // combination
+    // (1) if the two size of the first two are greater than the
+    // uncompressed size of one bitmap, use option 1.  Because the
+    // operation of the first two will produce an uncompressed result,
+    // it will sum together all other bits with to the uncompressed
+    // result generated already.
+    // (2) if total size (bytes) times log 2 of number of bitmaps
+    // is less than or equal to the size of an uncompressed
+    // bitmap, use option 3, else use option 4.
+    if (ibis::gVerbose > 4) {
+        LOGGER(ibis::gVerbose > 4)
+            << evt << " is to use the combined option on " << na << " bitmaps";
+        timer.start();
+    }
+    if (nrows == 0) {
+        ibis::bitvector tmp(buf, offset64[ib+1]-offset64[ib]);
+        const_cast<index*>(this)->nrows = tmp.size();
+    }
+    const uint32_t uncomp = (ibis::bitvector::bitsPerLiteral() == 8 ?
+                             nrows * 2 / 15 : nrows * 4 / 31);
+    uint32_t sum2 = (offset64[ib+2]-offset64[ib]);
+    if (sum2 >= uncomp) {
+        LOGGER(ibis::gVerbose > 5)
+            << evt << "(" << ib << ", " << ie
+            << ") performs bitwise OR with a simple loop";
+        {
+            ibis::bitvector tmp1(buf, offset64[ib+1]-offset64[ib]);
+            ibis::bitvector tmp2(buf+offset64[ib+1]-offset64[ib],
+                                 offset64[ib+2]-offset64[ib+1]);
+            res.swap(tmp1);
+            res |= tmp2;
+        }
+        for (uint32_t i = ib+2; i < ie; ++i) {
+            ibis::bitvector tmp(buf+offset64[i]-offset64[ib],
+                                offset64[i+1]-offset64[i]);
+            res |= tmp;
+        }
+    }
+    else {
+        if (bytes*static_cast<double>(na)*na <= log(2.0)*uncomp) {
+            LOGGER(ibis::gVerbose > 5)
+                << evt << "(" << ib << ", " << ie
+                << ") performs bitwise OR with a priority queue";
+            // put all bitmaps in a priority queue
+            std::priority_queue<ibis::bitvector*> que;
+            ibis::bitvector *op1, *op2, *tmp;
+            tmp = 0;
+
+            // populate the priority queue with the original input
+            for (uint32_t i = ib; i < ie; ++i) {
+                tmp = new ibis::bitvector(buf+offset64[i]-offset64[ib],
+                                          offset64[i+1]-offset64[i]);
+                que.push(tmp);
+            }
+
+            try {
+                while (! que.empty()) {
+                    op1 = que.top();
+                    que.pop();
+                    if (que.empty()) {
+                        res.swap(*op1);
+                        delete op1;
+                        break;
+                    }
+
+                    op2 = que.top();
+                    que.pop();
+                    tmp = (*op1) | (*op2);
+                    delete op1;
+                    delete op2;
+                    if (! que.empty()) {
+                        que.push(tmp);
+                        tmp = 0;
+                    }
+                }
+                if (tmp != 0) {
+                    res.swap(*tmp);
+                    delete tmp;
+                    tmp = 0;
+                }
+            }
+            catch (...) { // need to free the pointers
+                delete tmp;
+                while (! que.empty()) {
+                    tmp = que.top();
+                    delete tmp;
+                    que.pop();
+                }
+                throw;
+            }
+        }
+        else if (sum2 <= (uncomp >> 2)) {
+            // use uncompressed res
+            LOGGER(ibis::gVerbose > 5)
+                << evt << "(" << ib << ", " << ie
+                << ") performs bitwise OR with a decompressed result";
+            {
+                ibis::bitvector tmp(buf, offset64[ib+1]-offset64[ib]);
+                res.copy(tmp);
+            }
+            res.decompress();
+            for (uint32_t i = ib+1; i < ie; ++i) {
+                ibis::bitvector tmp(buf+offset64[i]-offset64[ib],
+                                    offset64[i+1]-offset64[i]);
+                res |= tmp;
+            }
+        }
+        else {
+            LOGGER(ibis::gVerbose > 5)
+                << "index::sumBins(" << ib << ", " << ie
+                << ") performs bitwise OR with a simple loop";
+            {
+                ibis::bitvector tmp(buf, offset64[ib+1]-offset64[ib]);
+                res.copy(tmp);
+            }
+            for (uint32_t i = ib+1; i < ie; ++i) {
+                ibis::bitvector tmp(buf+offset64[i]-offset64[ib],
+                                    offset64[i+1]-offset64[i]);
+                res |= tmp;
+            }
+        }
+    }
+    if (ibis::gVerbose > 4) {
+        timer.stop();
+        LOGGER(ibis::gVerbose > 4)
+            << evt << " operated on " << na << " bitmaps, took " << timer.CPUTime()
+            << " sec(CPU) and " << timer.realTime() << " sec(elased)";
+    }
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+    if (ibis::gVerbose > 30 || (1U << ibis::gVerbose) >= res.bytes()) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "DEBUG -- sumBins(" << ib << ", " << ie << "):" << res;
+    }
+#endif
+} // ibis::index::sumBins
 
 /// Sum up <code>bits[ib:ie-1]</code> and place the result in res.  The
 /// bitmaps (bits) are held by this index object and may be regenerated as

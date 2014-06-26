@@ -34,8 +34,10 @@ public:
 	size_t offset = 8);
     bin(const ibis::column* c, const char* f, const array_t<double>& bd);
     bin(const ibis::column* c, const char* f, const std::vector<double>& bd);
+    bin(uint32_t nb, double *keys, int64_t *offs);
 
     virtual void print(std::ostream& out) const;
+    virtual void serialSizes(uint64_t&, uint64_t&, uint64_t&) const;
     virtual int write(ibis::array_t<double> &,
                       ibis::array_t<int64_t> &,
                       ibis::array_t<uint32_t> &) const;
@@ -260,6 +262,14 @@ public:
     template <typename E>
     void construct(const array_t<E>& varr);
 
+    /// Find the outer boundaries of the range expression.
+    virtual void locate(const ibis::qContinuousRange& expr,
+			uint32_t& cand0, uint32_t& cand1) const;
+    /// Find the bins related to the range expression.
+    virtual void locate(const ibis::qContinuousRange& expr,
+			uint32_t& cand0, uint32_t& cand1,
+			uint32_t& hit0, uint32_t& hit1) const;
+
 protected:
     // member variables shared by all derived classes -- the derived classes
     // are allowed to interpret the actual content differently.
@@ -332,13 +342,7 @@ protected:
     virtual void adjustLength(uint32_t nrows);
     /// Find the bin containing val.
     virtual uint32_t locate(const double& val) const;
-    /// Find the outer boundaries of the range expression.
-    virtual void locate(const ibis::qContinuousRange& expr,
-			uint32_t& cand0, uint32_t& cand1) const;
-    /// Find the bins related to the range expression.
-    virtual void locate(const ibis::qContinuousRange& expr,
-			uint32_t& cand0, uint32_t& cand1,
-			uint32_t& hit0, uint32_t& hit1) const;
+
     /// Swap the content of the index.
     void swap(bin& rhs) {
 	const ibis::column* c = col;

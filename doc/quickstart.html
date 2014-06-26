@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="US-ascii"?>
+<!--?xml version="1.0" encoding="US-ascii"?-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
 "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
 <HTML xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
@@ -7,27 +7,27 @@
 <head>
 <meta name="dc:creator" content="John Wu"/>
 <meta name="KEYWORDS" content="FastBit, IBIS, data distribution, API"/>
-<link rel="StyleSheet" href="http://crd.lbl.gov/%7Ekewu/fastbit/style.css"
+<link rel="StyleSheet" href="http://sdm.lbl.gov/fastbit/style.css"
  type="text/css"/>
 <link rev="made" href="mailto:John.Wu@acm.org"/>
-<link rel="SHORTCUT ICON" HREF="http://crd.lbl.gov/%7Ekewu/fastbit/favicon.ico"/>
+<link rel="SHORTCUT ICON" HREF="http://sdm.lbl.gov/fastbit/favicon.ico"/>
 <title>FastBit Quick Start</title>
 </head>
 
 <body>
 <table cellspacing=0 border="0px" cellpadding=2 width="100%" align=center>
 <tr>
-<td colspan=7 align=right border=0><A href="http://crd.lbl.gov/%7Ekewu/fastbit"><img class=noborder
-src="http://crd.lbl.gov/%7Ekewu/fastbit/fastbit.gif" alt="FastBit"></A>
+<td colspan=7 align=right border=0><A href="http://sdm.lbl.gov/fastbit"><img class=noborder
+src="http://sdm.lbl.gov/fastbit/fastbit.gif" alt="FastBit"></A>
 </td></tr>
 <tr><td colspan=7 bgcolor=#009900 height=5></td></tr>
 <tr>
 <td class=other>&nbsp;</td>
-<td class=other><A href="http://crd.lbl.gov/%7Ekewu/fastbit/">FastBit Front Page</A></td>
-<td class=other><A href="http://crd.lbl.gov/%7Ekewu/fastbit/publications.html">Research Publications</A></td>
+<td class=other><A href="http://sdm.lbl.gov/fastbit/">FastBit Front Page</A></td>
+<td class=other><A href="http://sdm.lbl.gov/fastbit/publications.html">Research Publications</A></td>
 <td class=current><A href="index.html">Software Documentation</A></td>
-<td class=other><A href="http://crd.lbl.gov/%7Ekewu/fastbit/src/">Software Download</A></td>
-<td class=other><A rel="license" href="http://crd.lbl.gov/%7Ekewu/fastbit/src/license.txt">Software License</A></td>
+<td class=other><A href="http://sdm.lbl.gov/fastbit/src/">Software Download</A></td>
+<td class=other><A rel="license" href="http://sdm.lbl.gov/fastbit/src/license.txt">Software License</A></td>
 <td class=other>&nbsp;</td>
 </tr>
 </table>
@@ -35,8 +35,8 @@ src="http://crd.lbl.gov/%7Ekewu/fastbit/fastbit.gif" alt="FastBit"></A>
 <B>Organization</B>: <A HREF="http://www.lbl.gov/">LBNL</A> &raquo;
 <A HREF="http://crd.lbl.gov/">CRD</A> &raquo;
 <A HREF="http://sdm.lbl.gov/">SDM</A> &raquo;
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit">FastBit</A> &raquo;
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc">Documentation</A> &raquo;
+<A HREF="http://sdm.lbl.gov/fastbit">FastBit</A> &raquo;
+<A HREF="http://sdm.lbl.gov/fastbit/doc">Documentation</A> &raquo;
 Quick Start </p>
 
 <H1>FastBit Quick Start</H1>
@@ -151,7 +151,7 @@ number rows for a partition.  Typically, for a machine with a few
 gigabytes of memory, we recommend a data partition to contain between 1
 million and 100 million rows.</p>
 <p style="font-size:small; text-align: right;">
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/data/samples.html">Larger samples
+<A HREF="http://sdm.lbl.gov/fastbit/data/samples.html">Larger samples
   and more usage examples</A>
 </p>
 
@@ -272,7 +272,7 @@ There are two functions, <code>ibis::table::estimate</code>, which gives a
 lower and a upper bound on the number of hits, and
 <code>ibis::table::select</code>, which produces another table containing
 the selected values.  Both of these functions are documented in <A
-HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1table.html">table.h</A>.
+HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1table.html">table.h</A>.
 The following is a snipet of source code that builds an
 <code>ibis::table</code> object from directory <code>tmp</code>, and estimate
 the number of hits of query condition "a = 0".
@@ -286,7 +286,7 @@ For a more realistic example, see file <code>examples/thula.cpp</code>.
 <p>
 Additional information about the functions defined in
 <code>ibis::table</code> and related classes can be found in <A
-HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/table_8h.html">table.h</A>.
+HREF="http://sdm.lbl.gov/fastbit/doc/html/table_8h.html">table.h</A>.
 </p>
 
 <h3>Class <code>ibis::part</code></h3>
@@ -312,9 +312,9 @@ que.evaluate();
 long nhits = que.getNumHits();
 </pre>
 The class <code>ibis::part</code> is documented in <A
-HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1part.html">part.h</A>,
+HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1part.html">part.h</A>,
 and the class <code>ibis::query</code> is documented in 
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1query.html">query.h</A>.
+<A HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1query.html">query.h</A>.
 A more realistic example can be found in <code>examples/ibis.cpp</code>.
 
 <h3>Class <code>ibis::index</code></h3>
@@ -323,7 +323,7 @@ The most interesting component of FastBit is the class hierarchy of
 <code>ibis::index</code>.  A potentially useful task is to extend these
 compressed bitmap indexes in this class hierarchy.  The class
 <code>ibis::index</code> is documented in <A
-HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1index.html">index.h</A>.
+HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1index.html">index.h</A>.
 Inside FastBit, an index is created through the class
 <code>ibis::column::indexLock</code>, which in turn calls
 <code>ibis::column::loadIndex</code>, which then invokes the index factory
@@ -337,16 +337,16 @@ There are two types of indexes in FastBit, binned and unbinned.  The
 binned class all derive from <code>ibis::bin</code>, and most of the
 unbinned classes derive from <code>ibis::relic</code> that implements the
 basic bitmap index.  The class <code>ibis::bin</code> is defined in <A
-HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1bin.html">ibin.h</A>
+HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1bin.html">ibin.h</A>
 and the class <code>ibis::relic</code> is defined in <A
-HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1relic.html">irelic.h</A>.
+HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1relic.html">irelic.h</A>.
 Note that all concrete index classes are defined in files starting with
 letter <code>i</code>.</p>
 
 <div class=footer>
 <A HREF="contact.html">Contact us</a><BR>
 <A HREF="http://www.lbl.gov/Disclaimers.html">Disclaimers</a><br>
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/">FastBit web site</A><br>
+<A HREF="http://sdm.lbl.gov/fastbit/">FastBit web site</A><br>
 <A HREF="https://hpcrdm.lbl.gov/pipermail/fastbit-users">FastBit mailing list</A><br>
 <SCRIPT language=JavaScript>
         document.write(document.lastModified)

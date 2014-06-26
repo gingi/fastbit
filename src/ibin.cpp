@@ -323,6 +323,23 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
     }
 } // ibis::bin::bin
 
+/// Reconstruct an object from keys and offsets.
+ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs)
+    : ibis::index(0), nobs(nb) {
+    {
+        array_t<double> tmp1(keys, nb);
+        array_t<double> tmp2(keys+nb, nb);
+        tmp1.swap(minval);
+        tmp2.swap(maxval);
+    }
+    bounds.resize(nobs);
+    for (unsigned j = 0; j+1 < nb; ++ j) {
+        bounds[j] = ibis::util::compactValue(maxval[j], minval[j+1]);
+    }
+    bounds.back() = DBL_MAX;
+    initOffsets(offs, nb+1);
+} // ibis::bin::bin
+
 /// Read from a file named f.
 int ibis::bin::read(const char* f) {
     std::string fnm;
@@ -5694,6 +5711,25 @@ int ibis::bin::write(ibis::array_t<double> &keys,
     }
     return 0;
 } // ibis::bin::write
+
+void ibis::bin::serialSizes(uint64_t &wkeys, uint64_t &woffsets,
+                            uint64_t &wbitmaps) const {
+    if (nobs == 0) {
+        wkeys = 0;
+        woffsets = 0;
+        wbitmaps = 0;
+    }
+    else {
+        wkeys = nobs + nobs;
+        woffsets = nobs + 1;
+        wbitmaps = 0;
+        for (unsigned j = 0; j < nobs; ++ j) {
+            if (bits[j] != 0)
+                wbitmaps += bits[j]->getSerialSize();
+        }
+        wbitmaps /= 4;
+    }
+} // ibis::bin::serialSizes
 
 void ibis::bin::clear() {
     bounds.clear();

@@ -207,6 +207,12 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
     }
 } // constructor
 
+/// Reconstruct index from keys and offsets.
+ibis::relic::relic(uint32_t nb, double *keys, int64_t *offs) :
+    ibis::index(0), vals(keys, nb) {
+    initOffsets(offs, nb+1);
+} // constructor
+
 /// Write the content of the index to the specified location.  The actual
 /// index file name is determined by the function indexFileName.
 int ibis::relic::write(const char* dt) const {
@@ -508,6 +514,26 @@ int ibis::relic::write(ibis::array_t<double> &keys,
     }
     return 0;
 } // ibis::relic::write
+
+void ibis::relic::serialSizes(uint64_t &wkeys, uint64_t &woffsets,
+                              uint64_t &wbitmaps) const {
+    const uint32_t nobs = (vals.size()<=bits.size()?vals.size():bits.size());
+    if (nobs == 0) {
+        wkeys = 0;
+        woffsets = 0;
+        wbitmaps = 0;
+    }
+    else {
+        wkeys = nobs;
+        woffsets = nobs + 1;
+        wbitmaps = 0;
+        for (unsigned j = 0; j < nobs; ++ j) {
+            if (bits[j] != 0)
+                wbitmaps += bits[j]->getSerialSize();
+        }
+        wbitmaps /= 4;
+    }
+} // ibis::relic::serialSizes
 
 /// Read the index contained from the speficied location.
 int ibis::relic::read(const char* f) {

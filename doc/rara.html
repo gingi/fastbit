@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="US-ascii"?>
+<!--?xml version="1.0" encoding="US-ascii"?-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
 "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
@@ -7,27 +7,27 @@
 <head>
 <meta name="dc:creator" content="John Wu"/>
 <meta name="KEYWORDS" content="FastBit, IBIS, data distribution, API"/>
-<link REL="StyleSheet" href="http://crd.lbl.gov/%7Ekewu/fastbit/style.css"
+<link REL="StyleSheet" href="http://sdm.lbl.gov/fastbit/style.css"
  type="text/css"/>
 <link REV="made" href="mailto:John.Wu@acm.org"/>
-<link REL="SHORTCUT ICON" HREF="http://crd.lbl.gov/%7Ekewu/fastbit/favicon.ico"/>
+<link REL="SHORTCUT ICON" HREF="http://sdm.lbl.gov/fastbit/favicon.ico"/>
 <title>FastBit Example Code: rara.cpp</title>
 </head>
 
 <body>
 <table cellspacing=0 border="0px" cellpadding=2 width="100%" align=center>
 <tr>
-<td colspan=7 align=right border=0><A href="http://crd.lbl.gov/%7Ekewu/fastbit"><img class=noborder
-src="http://crd.lbl.gov/%7Ekewu/fastbit/fastbit.gif" alt="FastBit"></A>
+<td colspan=7 align=right border=0><A href="http://sdm.lbl.gov/fastbit"><img class=noborder
+src="http://sdm.lbl.gov/fastbit/fastbit.gif" alt="FastBit"></A>
 </td></tr>
 <tr><td colspan=7 bgcolor=#009900 height=5></td></tr>
 <tr>
 <td class=other>&nbsp;</td>
-<td class=other><A href="http://crd.lbl.gov/%7Ekewu/fastbit/">FastBit Front Page</A></td>
-<td class=other><A href="http://crd.lbl.gov/%7Ekewu/fastbit/publications.html">Research Publications</A></td>
+<td class=other><A href="http://sdm.lbl.gov/fastbit/">FastBit Front Page</A></td>
+<td class=other><A href="http://sdm.lbl.gov/fastbit/publications.html">Research Publications</A></td>
 <td class=current><A href="index.html">Software Documentation</A></td>
-<td class=other><A href="http://crd.lbl.gov/%7Ekewu/fastbit/src/">Software Download</A></td>
-<td class=other><A href="http://crd.lbl.gov/%7Ekewu/fastbit/src/license.txt">Software License</A></td>
+<td class=other><A href="http://sdm.lbl.gov/fastbit/src/">Software Download</A></td>
+<td class=other><A href="http://sdm.lbl.gov/fastbit/src/license.txt">Software License</A></td>
 <td class=other>&nbsp;</td>
 </tr>
 </table>
@@ -35,8 +35,8 @@ src="http://crd.lbl.gov/%7Ekewu/fastbit/fastbit.gif" alt="FastBit"></A>
 <B>Organization</B>: <A HREF="http://www.lbl.gov/">LBNL</A> &raquo;
 <A HREF="http://crd.lbl.gov/">CRD</A> &raquo;
 <A HREF="http://sdm.lbl.gov/">SDM</A> &raquo;
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit">FastBit</A> &raquo;
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc">Documentation</A> &raquo;
+<A HREF="http://sdm.lbl.gov/fastbit">FastBit</A> &raquo;
+<A HREF="http://sdm.lbl.gov/fastbit/doc">Documentation</A> &raquo;
 Example </p>
 
 <H1>FastBit Example Code: rara.cpp</H1>
@@ -103,7 +103,7 @@ SELECT c FROM tests/tmp/t1 WHERE c between 10 and 20
     ibis::part apart(argv[1], static_cast&lt;const char*&gt;(0));
 </pre>
 This statement creates an
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1part.html">ibis::part</A>
+<A HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1part.html">ibis::part</A>
 object that encapsulates a data partition.  The second nil pointer is
 required because there is another constructor that takes a single string
 but performs a very different function.
@@ -113,7 +113,7 @@ but performs a very different function.
     ibis::query aquery(ibis::util::userName(), &apart);
 </pre>
 This statement creates an
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1query.html">ibis::query</A>
+<A HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1query.html">ibis::query</A>
 object which represent our query.  A FastBit query is always associated
 with a data partition.
 
@@ -139,7 +139,7 @@ as a part of the query.
 	ierr = aquery.evaluate(); // evaluate the query
 </pre>
 The primary function to evaluate a query is 
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/classibis_1_1query.html#4786930adc9cd6773a0c0486468b7503">ibis::query::evaluate</A>.
+<A HREF="http://sdm.lbl.gov/fastbit/doc/html/classibis_1_1query.html#4786930adc9cd6773a0c0486468b7503">ibis::query::evaluate</A>.
 This function evaluate the query conditions and identify the records
 that satisfy the conditions.  In some cases, it may be faster to use
 ibis::query::estimate to get an approximate answer first.
@@ -163,14 +163,14 @@ records to standard output.
 <p>
 The file examples/rara.cpp contains additional code for error checking
 and optional command-line arguments.
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/doc/html/rara_8cpp.html">The
+<A HREF="http://sdm.lbl.gov/fastbit/doc/html/rara_8cpp.html">The
 Doxygen documentation of the file is available on-line</A>.
 </p>
 
 <div class=footer>
 <A HREF="contact.html">Contact us</a><BR>
 <A HREF="http://www.lbl.gov/Disclaimers.html">Disclaimers</a><br>
-<A HREF="http://crd.lbl.gov/%7Ekewu/fastbit/">FastBit web site</A><br>
+<A HREF="http://sdm.lbl.gov/fastbit/">FastBit web site</A><br>
 <A HREF="https://hpcrdm.lbl.gov/pipermail/fastbit-users">FastBit mailing
 list</A><br>
 <SCRIPT language=JavaScript>

@@ -114,6 +114,7 @@ public:
     long search(const std::vector<std::string>&) const;
 
     virtual void print(std::ostream& out) const;
+    virtual void serialSizes(uint64_t&, uint64_t&, uint64_t&) const;
     virtual int write(ibis::array_t<double> &,
                       ibis::array_t<int64_t> &,
                       ibis::array_t<uint32_t> &) const;
