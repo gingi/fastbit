@@ -38,10 +38,70 @@ ibis::bin::bin(const ibis::column* c, const char* f)
             return;
         }
 
-	if (nobs == 0)
+	if (nobs == 0 && (f != 0 || c->partition() != 0))
 	    construct(f);
+        if (nobs == 0) { // attempt to read all values through getValuesArray
+            switch (c->type()) {
+            case ibis::BYTE: {
+                array_t<signed char> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::UBYTE: {
+                array_t<unsigned char> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::SHORT: {
+                array_t<int16_t> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::USHORT: {
+                array_t<uint16_t> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::INT: {
+                array_t<int32_t> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::UINT: {
+                array_t<uint32_t> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::LONG: {
+                array_t<int64_t> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::ULONG: {
+                array_t<uint64_t> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::FLOAT: {
+                array_t<float> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double> ta;
+                if (0 <= c->getValuesArray(&ta))
+                    construct(ta);
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- relic::ctor"
+                    << " does not support data type "
+                    << ibis::TYPESTRING[static_cast<int>(c->type())];
+                break;}
+            }
+        }
 
-	if (ibis::gVerbose > 2) {
+	if (nobs > 0 && ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "bin[" << col->fullname()
 		 << "]::ctor -- initialization completed with "
@@ -321,6 +381,43 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 	    print(lg());
 	}
     }
+} // ibis::bin::bin
+
+/// Reconstruct an object from keys and offsets.
+ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs, uint32_t *bms)
+    : ibis::index(0), nobs(nb) {
+    {
+        array_t<double> tmp1(keys, nb);
+        array_t<double> tmp2(keys+nb, nb);
+        tmp1.swap(minval);
+        tmp2.swap(maxval);
+    }
+    bounds.resize(nobs);
+    for (unsigned j = 0; j+1 < nb; ++ j) {
+        bounds[j] = ibis::util::compactValue(maxval[j], minval[j+1]);
+    }
+    bounds.back() = DBL_MAX;
+    initOffsets(offs, nb+1);
+    initBitmaps(bms);
+} // ibis::bin::bin
+
+/// Reconstruct an object from keys and offsets.
+ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs,
+               void *bms, FastBitReadIntArray rd)
+    : ibis::index(0), nobs(nb) {
+    {
+        array_t<double> tmp1(keys, nb);
+        array_t<double> tmp2(keys+nb, nb);
+        tmp1.swap(minval);
+        tmp2.swap(maxval);
+    }
+    bounds.resize(nobs);
+    for (unsigned j = 0; j+1 < nb; ++ j) {
+        bounds[j] = ibis::util::compactValue(maxval[j], minval[j+1]);
+    }
+    bounds.back() = DBL_MAX;
+    initOffsets(offs, nb+1);
+    initBitmaps(bms, rd);
 } // ibis::bin::bin
 
 /// Reconstruct an object from keys and offsets.

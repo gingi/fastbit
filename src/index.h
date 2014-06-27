@@ -355,6 +355,10 @@ public:
     static void printHeader(std::ostream&, const char*);
 
 protected:
+    // forward declarations.
+    class barrel;
+    class bitmapReader;
+
     // shared members for all indexes
     /// Pointer to the column this index is for.
     const ibis::column* col;
@@ -363,6 +367,8 @@ protected:
     mutable ibis::fileManager::storage* str;
     /// The name of the file containing the index.
     mutable const char* fname;
+    /// The functor to read serialized bitmaps from a more complex source.
+    mutable bitmapReader *bhandle;
     /// Starting positions of the bitvectors.
     mutable array_t<int32_t> offset32;
     /// Starting positions of the bitvectors.  This is the 64-bit version
@@ -379,7 +385,8 @@ protected:
     /// Default constructor.  Protect the constructor so that ibis::index
     /// can not be instantiated directly.  Protecting it also reduces the
     /// size of public interface.
-    index(const ibis::column* c=0) : col(c), str(0), fname(0), nrows(0) {}
+    index(const ibis::column* c=0)
+        : col(c), str(0), fname(0), bhandle(0), nrows(0) {}
     index(const ibis::column* c, ibis::fileManager::storage* s);
 
     void dataFileName(std::string& name, const char* f=0) const;
@@ -415,12 +422,12 @@ protected:
     int initOffsets(int64_t *, size_t);
     int initOffsets(int fdes, const char offsize, size_t start,
 		    uint32_t nobs);
-    int initOffsets(ibis::fileManager::storage* st, size_t start,
+    int initOffsets(ibis::fileManager::storage *st, size_t start,
 		    uint32_t nobs);
     void initBitmaps(int fdes);
-    void initBitmaps(ibis::fileManager::storage* st);
-
-    class barrel;
+    void initBitmaps(ibis::fileManager::storage *st);
+    void initBitmaps(uint32_t *st);
+    void initBitmaps(void *ctx, FastBitReadIntArray rd);
 
 private:
     index(const index&); // no copy constructor
@@ -441,4 +448,43 @@ public:
     void setValue(uint32_t i, double v) {varvalues[i] = v;}
 }; // ibis::index::barrel
 
+/// A simple container to hold the function pointer given by user for
+/// reading the serialized bitmaps.
+class ibis::index::bitmapReader {
+public:
+    /// Constructor.
+    bitmapReader(void *ctx, FastBitReadIntArray rd)
+        : _context(ctx), _reader(rd) {}
+
+    /// The main function to the serialized bitmaps.  It assumes the
+    /// bitmaps have been serialized and packed into a 1-D array of type
+    /// uint32_t.  This function intends to read elements @c b through @e.
+    /// Following the usual C++ interator convention, element @c b is
+    /// included in the values to be read, while element @c e is excluded.
+    /// It uses the buffer object to hold the in-memory data so that the
+    /// memory can be tracked by FastBit file manager.
+    int read(uint64_t b, uint64_t e, ibis::fileManager::buffer<uint32_t> &buf) {
+        if (b >= e) return 0; // nothing to read
+        if (buf.size()+b < e) {
+            buf.resize(e-b);
+            if (buf.size()+b < e) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- bitmapReader(" << _context << ", "
+                    << reinterpret_cast<void*>(_reader) << ") failed to allocate "
+                    "enough space to read [" << b << ", " << e
+                    << ") from given context";
+                return -1;
+            }
+        }
+
+        return _reader(_context, b, e, buf.address());
+    }
+
+private:
+    void *_context;
+    FastBitReadIntArray _reader;
+
+    // Default constructor.  Declared, but not defined.
+    bitmapReader();
+}; // ibis::index::bitmapReader
 #endif // IBIS_INDEX_H

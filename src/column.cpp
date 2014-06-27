@@ -399,7 +399,7 @@ int ibis::column::writeIndex(ibis::array_t<double> &keys,
 void ibis::column::serialSizes(uint64_t &wkeys, uint64_t &woffsets,
                                uint64_t &wbitmaps) const {
     if (idx != 0) {
-        return idx->serialSizes(wkeys, woffsets, wbitmaps);
+        idx->serialSizes(wkeys, woffsets, wbitmaps);
     }
     else {
         wkeys = 0;
@@ -985,17 +985,20 @@ ibis::array_t<double>* ibis::column::getDoubleArray() const {
 } // ibis::column::getDoubleArray
 
 /// Copy all rows of the column into an array_t object.
-/// The incoming argument must be array_t<Type>*.  This function will
-/// explicitly cast vals into one of the ten supported numerical data
-/// types.
+/// The incoming argument must be array_t<Type>*.  This function 
+/// explicitly casts @c vals into one of the ten supported numerical data
+/// types.  If the incoming argument is not of the correct type, this cast
+/// operatioin can will have unpredictable consequence.
 /// 
 /// It returns 0 to indicate success, and a negative number to indicate
-/// error.
+/// error.  If @c vals is nil, no values is copied, this function
+/// essentially tests whether the values are accessible: >= 0 yes, < 0 no.
 int ibis::column::getValuesArray(void* vals) const {
-    if (vals == 0) return -1;
     int ierr = 0;
     ibis::fileManager::storage *tmp = getRawData();
     if (tmp != 0) {
+        if (vals == 0) return ierr; // return 0 to indicate data in memory
+
 	switch (m_type) {
 	case ibis::BYTE: {
 	    array_t<char> ta(tmp);
@@ -5511,17 +5514,20 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
 /// @note Accesses to this function are serialized through a write lock on
 /// the column.  It blocks while acquire the write lock.
 void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
-    if ((idx != 0 && !idx->empty()) || thePart == 0 || thePart->nRows() == 0)
+    if ((idx != 0 && !idx->empty()) || (thePart != 0 && thePart->nRows() == 0))
 	return;
     if (iopt == 0 || *iopt == static_cast<char>(0))
 	iopt = indexSpec(); // index spec of the column
-    if (iopt == 0 || *iopt == static_cast<char>(0))
+    if ((iopt == 0 || *iopt == static_cast<char>(0)) && thePart != 0)
 	iopt = thePart->indexSpec(); // index spec of the table
     if (iopt == 0 || *iopt == static_cast<char>(0)) {
 	// attempt to retrieve the value of tableName.columnName.index for
 	// the index specification in the global resource
-	std::string idxnm(thePart->name());
-	idxnm += '.';
+	std::string idxnm;
+        if (thePart != 0) {
+            idxnm = thePart->name();
+            idxnm += '.';
+        }
 	idxnm += m_name;
 	idxnm += ".index";
 	iopt = ibis::gParameters()[idxnm.c_str()];
@@ -5536,14 +5542,18 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	}
     }
 
-    std::string evt = "column[";
-    evt += thePart->name();
-    evt += '.';
-    evt += name();
-    evt += "]::loadIndex";
+    std::string evt = "column";
+    if (ibis::gVerbose > 1) {
+        evt += '[';
+        if (thePart != 0) {
+            evt += thePart->name();
+            evt += '.';
+        }
+        evt += name();
+        evt += ']';
+    }
+    evt += "::loadIndex";
     writeLock lock(this, evt.c_str());
-    if (thePart->nRows() == 0)
-	return;
     if (idx != 0) {
         if (idx->empty()) {
             delete idx;
@@ -5558,13 +5568,15 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     try { // if an index is not available, create one
 	LOGGER(ibis::gVerbose > 7)
 	    << evt << " -- loading the index from "
-	    << (thePart->currentDataDir() ? thePart->currentDataDir()
-		: "memory");
+	    << (thePart != 0 ?
+                (thePart->currentDataDir() ? thePart->currentDataDir()
+                 : "memory") : "memory");
 	if (tmp == 0) {
-	    tmp = ibis::index::create(this, thePart->currentDataDir(),
+	    tmp = ibis::index::create(this,
+                                      thePart ? thePart->currentDataDir() : 0,
 				      iopt, ropt);
 	}
-	if (tmp != 0 && tmp->getNRows()
+	if (thePart != 0 && tmp != 0 && tmp->getNRows()
 #if defined(FASTBIT_REBUILD_INDEX_ON_SIZE_MISMATCH)
 	    !=
 #else
@@ -5631,16 +5643,18 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 	delete tmp;
     }
 
-    // final error handling
-    purgeIndexFile();
-    std::string key = thePart->name();
-    key += '.';
-    key += m_name;
-    key += ".retryIndexOnFailure";
-    if (! ibis::gParameters().isTrue(key.c_str())) {
-        // don't try to build index any more
-        const_cast<column*>(this)->m_bins = "noindex";
-        thePart->updateMetaData();
+    // final error handling -- remove left over files
+    if (thePart != 0) {
+        purgeIndexFile();
+        std::string key = thePart->name();
+        key += '.';
+        key += m_name;
+        key += ".retryIndexOnFailure";
+        if (! ibis::gParameters().isTrue(key.c_str())) {
+            // don't try to build index any more
+            const_cast<column*>(this)->m_bins = "noindex";
+            thePart->updateMetaData();
+        }
     }
 } // ibis::column::loadIndex
 
@@ -5657,13 +5671,13 @@ void ibis::column::unloadIndex() const {
 	    delete idx;
 	    idx = 0;
 	    LOGGER(ibis::gVerbose > 7)
-		<< "column[" << thePart->name() << "." << name()
+		<< "column[" << fullname()
 		<< "]::unloadIndex successfully removed the index";
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- column[" << thePart->name() << "."
-		<< name() << "]::unloadIndex failed because idxcnt ("
+		<< "Warning -- column[" << fullname() 
+                << "]::unloadIndex failed because idxcnt ("
 		<< idxc << ") is not zero";
 	}
     }

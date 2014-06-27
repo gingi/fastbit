@@ -27,6 +27,9 @@ public:
     relic(const ibis::column* c, ibis::fileManager::storage* st,
 	  size_t start = 8);
     relic(uint32_t nb, double *keys, int64_t *offs);
+    relic(uint32_t nb, double *keys, int64_t *offs, uint32_t *bms);
+    relic(uint32_t nb, double *keys, int64_t *offs,
+          void *bms, FastBitReadIntArray rd);
 
     virtual void print(std::ostream& out) const;
     virtual void serialSizes(uint64_t&, uint64_t&, uint64_t&) const;
