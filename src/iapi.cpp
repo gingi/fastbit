@@ -1402,9 +1402,6 @@ extern "C" int fastbit_iapi_deconstruct_index
 (const char *aname, double *keys, uint64_t nkeys,
  int64_t *offsets, uint64_t noffsets,
  uint32_t *bitmaps, uint64_t nbitmaps) {
-    ibis::array_t<double> arrk(static_cast<double*>(keys), nkeys);
-    ibis::array_t<int64_t> arro(static_cast<int64_t*>(offsets), noffsets);
-    ibis::array_t<uint32_t> arrb(static_cast<uint32_t*>(bitmaps), nbitmaps);
     if (aname == 0 || *aname == 0)
         return -1;
 
@@ -1416,10 +1413,45 @@ extern "C" int fastbit_iapi_deconstruct_index
         return -2;
     }
 
-    return col->writeIndex(arrk, arro, arrb);
+    int ierr;
+    ibis::array_t<double> arrk;
+    ibis::array_t<int64_t> arro;
+    ibis::array_t<uint32_t> arrb;
+    ierr = col->writeIndex(arrk, arro, arrb);
+    if (ierr >= 0 && arrk.size() == nkeys && arro.size() == noffsets &&
+        arrb.size() == nbitmaps) {
+        std::copy(arrk.begin(), arrk.end(), keys);
+        std::copy(arro.begin(), arro.end(), offsets);
+        std::copy(arrb.begin(), arrb.end(), bitmaps);
+    }
+    else {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_iapi_deconstruct_index encountered troubles"
+            << "\n\tarrk: expected size " << nkeys
+            << ", actual size " << arrk.size()
+            << "\n\tarro: expected size " << noffsets
+            << ", actual size " << arro.size()
+            << "\n\tarrb: expected size " << nbitmaps
+            << ", actual size " << arrb.size()
+            << "\n\tcol->writeIndex returned " << ierr;
+    }
+    // if (ibis::gVerbose > 0) {
+    //     ibis::util::logger lg;
+    //     lg() << "DEBUG ** fastbit_iapi_deconstruct_index:\n\t"
+    //         "content of serialized index for array " << col->name();
+    //     lg() << "\nkeys @ " << static_cast<void*>(keys)
+    //          << ", offsets @ " << static_cast<void*>(offsets) << "\n";
+    //     lg() << "\n\tarrk: ";
+    //     arrk.printStatus(lg());
+    //     arrk.print(lg());
+    //     lg() << "\tarro: ";
+    //     arro.printStatus(lg());
+    //     arro.print(lg());
+    // }
+    return ierr;
 } // fastbit_iapi_deconstruct_index
 
-
+extern "C"
 FastBitIndexHandle fastbit_iapi_reconstruct_index
 (double *keys, uint64_t nkeys, int64_t *offsets, uint64_t noffsets) {
     if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
@@ -1446,7 +1478,7 @@ FastBitIndexHandle fastbit_iapi_reconstruct_index
 /// @arg hit0: left-most bin that are definitely all hits.
 /// @arg hit1: right-most bin that are definitely all hits.
 /// @arg cand1: right-most bin that are possible hits.
-int fastbit_iapi_resolve_range
+extern "C" int fastbit_iapi_resolve_range
 (FastBitIndexHandle ih, FastBitCompareType ct, double cv, uint32_t * cand0,
  uint32_t *hit0, uint32_t *hit1, uint32_t *cand1) {
     if (ih == 0 || cv == 0) return -1;
@@ -1476,7 +1508,7 @@ int fastbit_iapi_resolve_range
     return 0;
 } // fastbit_iapi_resolve_range
 
-int64_t fastbit_iapi_get_number_of_hits
+extern "C" int64_t fastbit_iapi_get_number_of_hits
 (FastBitIndexHandle ih, uint32_t ib, uint32_t ie, uint32_t *buf) {
     if (ih == 0 || buf == 0) return -1;
     ibis::bitvector res;
@@ -1484,7 +1516,7 @@ int64_t fastbit_iapi_get_number_of_hits
     return res.cnt();
 } // fastbit_iapi_get_number_of_hits
 
-int fastbit_iapi_attach_full_index
+extern "C" int fastbit_iapi_attach_full_index
 (const char *aname, double *keys, uint64_t nkeys,
  int64_t *offsets, uint64_t noffsets,
  uint32_t *bms, uint64_t nbms) {
@@ -1504,7 +1536,7 @@ int fastbit_iapi_attach_full_index
     return col->attachIndex(keys, nkeys, offsets, noffsets, bms, nbms);
 } // fastbit_iapi_attach_full_index
 
-int fastbit_iapi_attach_index
+extern "C" int fastbit_iapi_attach_index
 (const char *aname, double *keys, uint64_t nkeys,
  int64_t *offsets, uint64_t noffsets,
  void *bms, FastBitReadIntArray rd) {

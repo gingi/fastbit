@@ -5995,7 +5995,7 @@ void ibis::bin::print(std::ostream& out) const {
         << (col ? col->fullname() : "?")
 	<< " contains " << nobs << " bitvectors for "
 	<< nrows << " objects \n";
-    if (ibis::gVerbose > 3) { // print the long form
+    if (ibis::gVerbose > 3 || nobs == 1) { // print the long form
 	uint32_t i, cnt = 0;
         if (ibis::gVerbose > 7)
             out << std::setprecision(18);
@@ -6013,6 +6013,8 @@ void ibis::bin::print(std::ostream& out) const {
         }
         out << "\t(..., " << bounds[0] << ")\t[" << minval[0]
             << ", " << maxval[0] << "]\n";
+        if (nobs == 1) return;
+
 	for (i = 1; i < npr; ++i) {
 	    if (bits[i] != 0) {
                 out << i << ": " << bits[i]->cnt() << "\t["

@@ -1828,7 +1828,8 @@ int ibis::array_t<T>::write(const char* file) const {
     return 0;
 } // ibis::array_t<T>::write
 
-/// Write the content of the array to a file already opened.
+/// Write the content of the array to a file already opened.  The content
+/// of the array is written out in binary.
 template<class T>
 int ibis::array_t<T>::write(FILE* fptr) const {
     if (fptr == 0) return -1;
@@ -1849,7 +1850,7 @@ int ibis::array_t<T>::write(FILE* fptr) const {
 
 /// Print internal pointer addresses.
 template<class T>
-void ibis::array_t<T>::printStatus(std::ostream& out) const {
+void ibis::array_t<T>::printStatus(std::ostream &out) const {
     out << "array_t: m_begin = " << static_cast<void*>(m_begin)
 	<< ", m_end = " <<  static_cast<void*>(m_end) << ", size = "
 	<< m_end - m_begin << "\n";
@@ -1861,6 +1862,19 @@ void ibis::array_t<T>::printStatus(std::ostream& out) const {
 	actual->printStatus(out);
 #endif
 } // ibis::array_t<T>::printStatus
+
+/// Print out the content of the array to the given output stream.  The
+/// elements are given on a single line separated by comas.
+template<class T>
+void ibis::array_t<T>::print(std::ostream &out) const {
+    const_iterator it = m_begin;
+    if (m_begin < m_end) {
+        out << *it;
+        for (++ it; it < m_end; ++ it)
+            out << ", " << *it;
+    }
+    out << "\n";
+} // ibis::array_t<T>::print
 
 // explicit instantiation required and have to appear after the definitions
 template class FASTBIT_CXX_DLLSPEC ibis::array_t<char>;

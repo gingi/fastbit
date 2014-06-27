@@ -125,6 +125,7 @@ public:
 
     // print internal pointer addresses
     void printStatus(std::ostream& out) const;
+    void print(std::ostream& out) const;
 
     /// Export the actual storage object.
     ///
