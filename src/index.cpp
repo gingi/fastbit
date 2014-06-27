@@ -856,8 +856,9 @@ ibis::index* ibis::index::buildNew
     LOGGER(ibis::gVerbose > 3)
         << "index::create -- attempt to build a new index with spec `"
         << spec << "' on data from directory "
-        << (dfname ? dfname : (c->partition() ?
-                               c->partition()->currentDataDir() : "?"))
+        << (dfname ? dfname :
+            (c->partition() ? (c->partition()->currentDataDir() ?
+                               c->partition()->currentDataDir() : "?") : "?"))
         << " for column " << c->fullname();
 
     ibis::index *ind = 0;
@@ -4177,7 +4178,12 @@ int ibis::index::initOffsets(int64_t *buf, size_t noffsets) {
     if (noffsets <= 1) return -1;
 
     ibis::array_t<int64_t> tmp(buf, noffsets);
-    tmp.swap(offset64);
+    if (ibis::gVerbose > 0) {
+        ibis::util::logger lg;
+        lg() << "DEBUG ** index::initOffsets recent the following values\n";
+        tmp.print(lg());
+    }
+    offset64.deepCopy(tmp);
     for (size_t j = 0; j < offset64.size(); ++ j)
         offset64[j] *= 4;
     offset32.clear();

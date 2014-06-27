@@ -127,8 +127,6 @@ public:
     void printStatus(std::ostream& out) const;
     void print(std::ostream& out) const;
 
-    T* release();
-
     /// Export the actual storage object.
     ///
     /// @note This function returns the internal storage representation of

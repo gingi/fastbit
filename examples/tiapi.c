@@ -151,14 +151,17 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
                 ierr = fastbit_iapi_attach_full_index
                     ("a1", keys, nk, offsets, no, bms, nb);
                 if (ierr < 0)
-                    printf("Warning -- fastbit_iapi_attach_full_index failed to attach the index to a1, ierr = %ld\n", ierr);
+                    printf("Warning -- fastbit_iapi_attach_full_index failed "
+                           "to attach the index to a1, ierr = %ld\n", ierr);
             }
             else {
-                    printf("Warning -- fastbit_iapi_deconstruct_index failed to serialize the index of a1, ierr = %ld\n", ierr);
+                    printf("Warning -- fastbit_iapi_deconstruct_index failed "
+                           "to serialize the index of a1, ierr = %ld\n", ierr);
             }
         }
         else {
-            printf("Warning -- queryarrays failed to allocate memory to serialize the index for a1");
+            printf("Warning -- queryarrays failed to allocate memory to "
+                   "serialize the index for a1");
         }
         free(bms);
         free(offsets);
@@ -167,7 +170,8 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
 
     ierr = fastbit_iapi_build_index("a2", (const char*)0, &nk, &no, &nb);
     if (ierr < 0) {
-        printf("Warning -- fastbit_iapi_build_index failed to create index for a2, ierr=%ld\n", ierr);
+        printf("Warning -- fastbit_iapi_build_index failed to create index "
+               "for a2, ierr=%ld\n", ierr);
     }
     /* a1 < b1 */
     h1 = fastbit_selection_osr("a1", FastBitCompareLess, b1);
@@ -274,7 +278,7 @@ int main(int argc, char **argv) {
     msglvl += 3;
 #endif
 #endif
-
+    msglvl += 4;
     a1 = (int16_t*)malloc(2*nmax);
     a2 = (int32_t*)malloc(4*nmax);
     a3 = (double*)malloc(8*nmax);
