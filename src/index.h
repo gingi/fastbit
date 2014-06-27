@@ -374,7 +374,7 @@ protected:
     /// The name of the file containing the index.
     mutable const char* fname;
     /// The functor to read serialized bitmaps from a more complex source.
-    mutable bitmapReader *bhandle;
+    mutable bitmapReader *breader;
     /// Starting positions of the bitvectors.
     mutable array_t<int32_t> offset32;
     /// Starting positions of the bitvectors.  This is the 64-bit version
@@ -392,7 +392,7 @@ protected:
     /// can not be instantiated directly.  Protecting it also reduces the
     /// size of public interface.
     index(const ibis::column* c=0)
-        : col(c), str(0), fname(0), bhandle(0), nrows(0) {}
+        : col(c), str(0), fname(0), breader(0), nrows(0) {}
     index(const ibis::column* c, ibis::fileManager::storage* s);
     index(const index&);
     index& operator=(const index&);
@@ -464,26 +464,25 @@ public:
 
     /// The main function to the serialized bitmaps.  It assumes the
     /// bitmaps have been serialized and packed into a 1-D array of type
-    /// uint32_t.  This function intends to read elements @c b through @e.
-    /// Following the usual C++ interator convention, element @c b is
-    /// included in the values to be read, while element @c e is excluded.
-    /// It uses the buffer object to hold the in-memory data so that the
-    /// memory can be tracked by FastBit file manager.
-    int read(uint64_t b, uint64_t e, ibis::fileManager::buffer<uint32_t> &buf) {
-        if (b >= e) return 0; // nothing to read
-        if (buf.size()+b < e) {
-            buf.resize(e-b);
-            if (buf.size()+b < e) {
+    /// uint32_t.  This function intends to read @c c elements start with
+    /// @c b.  It uses the buffer object to hold the in-memory data so that
+    /// the memory can be resized as needed and tracked by the file
+    /// manager.
+    int read(uint64_t b, uint64_t c, ibis::fileManager::buffer<uint32_t> &buf) {
+        if (c == 0) return 0; // nothing to read
+        if (buf.size() < c) {
+            buf.resize(c);
+            if (buf.size() < c) {
                 LOGGER(ibis::gVerbose > 1)
                     << "Warning -- bitmapReader(" << _context << ", "
-                    << reinterpret_cast<void*>(_reader) << ") failed to allocate "
-                    "enough space to read [" << b << ", " << e
-                    << ") from given context";
+                    << reinterpret_cast<void*>(_reader) << ") failed to "
+                    "allocate enough space to read " << c << " elements "
+                    "from the given context";
                 return -1;
             }
         }
 
-        return _reader(_context, b, e, buf.address());
+        return _reader(_context, b, c, buf.address());
     }
 
 private:

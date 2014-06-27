@@ -1257,7 +1257,7 @@ ibis::index* ibis::index::buildNew
 /// storage object are expected to be valid.  However, this function only
 /// make uses of the storage object.
 ibis::index::index(const ibis::column* c, ibis::fileManager::storage* s) :
-    col(c), str(s), fname(0), bhandle(0), nrows(0) {
+    col(c), str(s), fname(0), breader(0), nrows(0) {
     if (s != 0) {
         nrows = *reinterpret_cast<const uint32_t*>(s->begin()+8);
     }
@@ -1290,8 +1290,8 @@ void ibis::index::clear() {
     nrows = 0;
 
     // reassign the internal storage tracking variables to null
-    delete bhandle;
-    bhandle = 0;
+    delete breader;
+    breader = 0;
     delete [] fname;
     fname = 0;
     // the pointer str can only be from a file and must be managed by the
@@ -4491,7 +4491,8 @@ void ibis::index::initBitmaps(uint32_t* st) {
         for (uint32_t i = 0; i < nobs; ++i) {
             if (offset64[i+1] > offset64[i]) {
                 ibis::bitvector* btmp =
-                    new ibis::bitvector(st+offset64[i], offset64[i+1]-offset64[i]);
+                    new ibis::bitvector(st+offset64[i]/4,
+                                        (offset64[i+1]-offset64[i])/4);
                 bits[i] = btmp;
                 if (nrows == 0) {
                     nrows = btmp->size();
@@ -4514,7 +4515,8 @@ void ibis::index::initBitmaps(uint32_t* st) {
         for (uint32_t i = 0; i < nobs; ++i) {
             if (offset32[i+1] > offset32[i]) {
                 ibis::bitvector* btmp =
-                    new ibis::bitvector(st+offset32[i], offset32[i+1]-offset32[i]);
+                    new ibis::bitvector(st+offset32[i]/4,
+                                        (offset32[i+1]-offset32[i])/4);
                 bits[i] = btmp;
                 if (nrows == 0) {
                     nrows = btmp->size();
@@ -4558,8 +4560,8 @@ void ibis::index::initBitmaps(void *ctx, FastBitReadIntArray rd) {
     for (uint32_t i = 0; i < nobs; ++i)
         bits[i] = 0;
 
-    if (bhandle != 0) delete bhandle;
-    bhandle = new bitmapReader(ctx, rd);
+    if (breader != 0) delete breader;
+    breader = new bitmapReader(ctx, rd);
 } // ibis::index::initBitmaps
 
 /// Activate all bitvectors.
@@ -4567,11 +4569,7 @@ void ibis::index::activate() const {
     std::string evt = "index";
     if (ibis::gVerbose > 0 && col != 0) {
         evt += '[';
-        if (col->partition() != 0) {
-            evt += col->partition()->name();
-            evt += '.';
-        }
-        evt += col->name();
+        evt += col->fullname();
         evt += ']';
     }
     evt += "::activate";
@@ -4584,7 +4582,7 @@ void ibis::index::activate() const {
         missing = (bits[i] == 0);
     if (missing == false) return;
 
-    if (str == 0 && fname == 0 && bhandle == 0) {
+    if (str == 0 && fname == 0 && breader == 0) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- " << evt << " cannot proceed without str or fname";
         return;
@@ -4612,7 +4610,19 @@ void ibis::index::activate() const {
                     array_t<ibis::bitvector::word_t>
                         a(str, offset64[i], offset64[i+1]);
                     bits[i] = new ibis::bitvector(a);
+                    if (nrows == 0) {
+                        const_cast<index*>(this)->nrows = bits[i]->size();
+                    }
+#if defined(WAH_CHECK_SIZE)
+                    if (nrows != bits[i]->size()) {
+                        LOGGER(ibis::gVerbose > 0)
+                            << "Warning -- " << evt << " encountered bitvector "
+                            << i << " with a different size (" << bits[i]->size()
+                            << ") from the overall nrows (" << nrows << ')';
+                    }
+#else
                     bits[i]->sloppySize(nrows);
+#endif
                 }
                 else if (bits[i] == 0) {
                     bits[i] = new ibis::bitvector();
@@ -4620,38 +4630,54 @@ void ibis::index::activate() const {
                 }
             }
         }
-        else if (bhandle) {
+        else if (breader) {
             ibis::fileManager::buffer<uint32_t> buf;
             for (size_t j0 = 0; j0 < nobs;) {
                 size_t j1 = j0+1;
-                if (offset64[j1]-offset64[j0] > buf.size()) {
-                    buf.resize(offset64[j1<nobs?j1+1:nobs]-offset64[j0]);
-                    if (offset64[j1]-offset64[j0] > buf.size()) {
+                if (offset64[j1]-offset64[j0] > buf.size()*4) {
+                    buf.resize((offset64[j1<nobs?j1+1:nobs]-offset64[j0])/4);
+                    if (offset64[j1]-offset64[j0] > buf.size()*4) {
                         LOGGER(ibis::gVerbose > 0)
                             << "Warning -- " << evt << " failed to allocate "
                             "sufficient memory to read bitvector " << j0
-                            << ", which occupies " << offset64[j1]-offset64[j0]
-                            << " words";
+                            << ", which occupies "
+                            << (offset64[j1]-offset64[j0])/4 << " words";
                         throw "insufficient memory to read a bitvector";
                     }
                 }
-                while (j1 < nobs && offset64[j1+1]-offset64[j0] < buf.size())
+                while (j1 < nobs && offset64[j1+1]-offset64[j0] < buf.size()*4)
                     ++ j1;
 
-                int ierr = bhandle->read(offset64[j0], offset64[j1], buf);
+                int ierr = breader->read
+                    (offset64[j0]/4, (offset64[j1]-offset64[j0])/4, buf);
                 if (ierr < 0) {
                     LOGGER(ibis::gVerbose > 0)
                         << "Warning -- " << evt << " failed to read "
                         "bitvector " << j0 << " - " << j1
-                        << ", which occupies " << offset64[j1]-offset64[j0]
+                        << ", which occupies " << (offset64[j1]-offset64[j0])/4
                         << " words";
                     throw "FastBitReadIntArray failed to read bitvectors";
                 }
                 for (size_t j = j0; j < j1; ++ j) {
                     if (offset64[j+1] > offset64[j]) {
                         bits[j] = new ibis::bitvector
-                            (buf.address()+offset64[j]-offset64[j0],
-                             offset64[j+1]-offset64[j]);
+                            (buf.address()+(offset64[j]-offset64[j0])/4,
+                             (offset64[j+1]-offset64[j])/4);
+                        if (nrows == 0) {
+                            const_cast<index*>(this)->nrows = bits[j]->size();
+                        }
+#if defined(WAH_CHECK_SIZE)
+                        if (nrows != bits[j]->size()) {
+                            LOGGER(ibis::gVerbose > 0)
+                                << "Warning -- " << evt
+                                << " encountered bitvector "
+                                << j << " with a different size ("
+                                << bits[j]->size()
+                                << ") from the overall nrows (" << nrows << ')';
+                        }
+#else
+                        bits[j]->sloppySize(nrows);
+#endif
                     }
                     else {
                         bits[j] = 0;
@@ -4702,7 +4728,22 @@ void ibis::index::activate() const {
                             array_t<ibis::bitvector::word_t>
                                 a1(a0, offset64[i]-start, offset64[i+1]-start);
                             bits[i] = new ibis::bitvector(a1);
+                            if (nrows == 0) {
+                                const_cast<index*>(this)->nrows = bits[i]->size();
+                            }
+#if defined(WAH_CHECK_SIZE)
+                            if (nrows != bits[i]->size()) {
+                                LOGGER(ibis::gVerbose > 0)
+                                    << "Warning -- " << evt
+                                    << " encountered bitvector "
+                                    << i << " with a different size ("
+                                    << bits[i]->size()
+                                    << ") from the overall nrows ("
+                                    << nrows << ')';
+                            }
+#else
                             bits[i]->sloppySize(nrows);
+#endif
                         }
                         else if (bits[i] == 0) {
                             bits[i] = new ibis::bitvector();
@@ -4733,12 +4774,78 @@ void ibis::index::activate() const {
                 array_t<ibis::bitvector::word_t>
                     a(str, offset32[i], offset32[i+1]);
                 bits[i] = new ibis::bitvector(a);
+                if (nrows == 0) {
+                    const_cast<index*>(this)->nrows = bits[i]->size();
+                }
+#if defined(WAH_CHECK_SIZE)
+                if (nrows != bits[i]->size()) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt << " encountered bitvector "
+                        << i << " with a different size (" << bits[i]->size()
+                        << ") from the overall nrows (" << nrows << ')';
+                }
+#else
                 bits[i]->sloppySize(nrows);
+#endif
             }
             else if (bits[i] == 0) {
                 bits[i] = new ibis::bitvector();
                 bits[i]->set(0, nrows);
             }
+        }
+    }
+    else if (breader) {
+        ibis::fileManager::buffer<uint32_t> buf;
+        for (size_t j0 = 0; j0 < nobs;) {
+            size_t j1 = j0+1;
+            if (offset32[j1]-offset32[j0] > buf.size()*4) {
+                buf.resize((offset32[j1<nobs?j1+1:nobs]-offset32[j0])/4);
+                if (offset32[j1]-offset32[j0] > buf.size()*4) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt << " failed to allocate "
+                        "sufficient memory to read bitvector " << j0
+                        << ", which occupies " << (offset32[j1]-offset32[j0])/4
+                        << " words";
+                    throw "insufficient memory to read a bitvector";
+                }
+            }
+            while (j1 < nobs && offset32[j1+1]-offset32[j0] < buf.size()*4)
+                ++ j1;
+
+            int ierr = breader->read
+                (offset32[j0]/4, (offset32[j1]-offset32[j0])/4, buf);
+            if (ierr < 0) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- " << evt << " failed to read "
+                    "bitvector " << j0 << " - " << j1
+                    << ", which occupies " << (offset32[j1]-offset32[j0])/4
+                    << " words";
+                throw "FastBitReadIntArray failed to read bitvectors";
+            }
+            for (size_t j = j0; j < j1; ++ j) {
+                if (offset32[j+1] > offset32[j]) {
+                    bits[j] = new ibis::bitvector
+                        (buf.address()+(offset32[j]-offset32[j0])/4,
+                         (offset32[j+1]-offset32[j])/4);
+                    if (nrows == 0) {
+                        const_cast<index*>(this)->nrows = bits[j]->size();
+                    }
+#if defined(WAH_CHECK_SIZE)
+                    if (nrows != bits[j]->size()) {
+                        LOGGER(ibis::gVerbose > 0)
+                            << "Warning -- " << evt << " encountered bitvector "
+                            << j << " with a different size (" << bits[j]->size()
+                            << ") from the overall nrows (" << nrows << ')';
+                    }
+#else
+                    bits[j]->sloppySize(nrows);
+#endif
+                }
+                else {
+                    bits[j] = 0;
+                }
+            }
+            j0 = j1;
         }
     }
     else { // using the named file directly
@@ -4782,7 +4889,21 @@ void ibis::index::activate() const {
                         array_t<ibis::bitvector::word_t>
                             a1(a0, offset32[i]-start, offset32[i+1]-start);
                         bits[i] = new ibis::bitvector(a1);
+                        if (nrows == 0) {
+                            const_cast<index*>(this)->nrows = bits[i]->size();
+                        }
+#if defined(WAH_CHECK_SIZE)
+                        if (nrows != bits[i]->size()) {
+                            LOGGER(ibis::gVerbose > 0)
+                                << "Warning -- " << evt
+                                << " encountered bitvector "
+                                << i << " with a different size ("
+                                << bits[i]->size()
+                                << ") from the overall nrows (" << nrows << ')';
+                        }
+#else
                         bits[i]->sloppySize(nrows);
+#endif
                     }
                     else if (bits[i] == 0) {
                         bits[i] = new ibis::bitvector();
@@ -4803,11 +4924,7 @@ void ibis::index::activate(uint32_t i) const {
     std::string evt = "index";
     if (col != 0 && ibis::gVerbose > 0) {
         evt += '[';
-        if (col->partition() != 0) {
-            evt += col->partition()->name();
-            evt += '.';
-        }
-        evt += col->name();
+        evt += col->fullname();
         evt += ']';
     }
     evt += "::activate";
@@ -4821,7 +4938,7 @@ void ibis::index::activate(uint32_t i) const {
             << i;
         return;
     }
-    else if (str == 0 && fname == 0) {
+    else if (str == 0 && breader == 0 && fname == 0) {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- " << evt << " can not regenerate bitvector " << i
             << " without either str or fname";
@@ -4833,7 +4950,7 @@ void ibis::index::activate(uint32_t i) const {
             bits[i] = new ibis::bitvector();
             bits[i]->set(0, nrows);
         }
-        else if (str) { // using a ibis::fileManager::storage as back store
+        else if (str != 0) { // using a ibis::fileManager::storage as back store
             LOGGER(ibis::gVerbose > 5)
                 << evt << "(" << i << ") using storage @ " << str;
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
@@ -4847,9 +4964,48 @@ void ibis::index::activate(uint32_t i) const {
             array_t<ibis::bitvector::word_t>
                 a(str, offset64[i], offset64[i+1]);
             bits[i] = new ibis::bitvector(a);
+            if (nrows == 0) {
+                const_cast<index*>(this)->nrows = bits[i]->size();
+            }
+#if defined(WAH_CHECK_SIZE)
+            if (nrows != bits[i]->size()) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- " << evt << " encountered bitvector "
+                    << i << " with a different size (" << bits[i]->size()
+                    << ") from the overall nrows (" << nrows << ')';
+            }
+#else
             bits[i]->sloppySize(nrows);
+#endif
         }
-        else if (fname) { // using the named file directly
+        else if (breader != 0) {
+            ibis::fileManager::buffer<uint32_t>
+                buf((offset64[i+1]-offset64[i])/4);
+            if (breader->read(offset64[i]/4, (offset64[i+1]-offset64[i])/4, buf)
+                >= 0) {
+                bits[i] = new ibis::bitvector
+                    (buf.address(), (offset64[i+1]-offset64[i])/4);
+                if (nrows == 0) {
+                    const_cast<index*>(this)->nrows = bits[i]->size();
+                }
+#if defined(WAH_CHECK_SIZE)
+                if (nrows != bits[i]->size()) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt << " encountered bitvector "
+                        << i << " with a different size (" << bits[i]->size()
+                        << ") from the overall nrows (" << nrows << ')';
+                }
+#else
+                bits[i]->sloppySize(nrows);
+#endif
+            }
+            else {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- " << evt << " failed to read bitvector "
+                    << i << " through the callback function";
+            }
+        }
+        else if (fname != 0) { // using the named file directly
             int fdes = UnixOpen(fname, OPEN_READONLY);
             if (fdes >= 0) {
                 LOGGER(ibis::gVerbose > 5)
@@ -4869,7 +5025,19 @@ void ibis::index::activate(uint32_t i) const {
                     a0(fdes, offset64[i], offset64[i+1]);
                 bits[i] = new ibis::bitvector(a0);
                 UnixClose(fdes);
+                if (nrows == 0) {
+                    const_cast<index*>(this)->nrows = bits[i]->size();
+                }
+#if defined(WAH_CHECK_SIZE)
+                if (nrows != bits[i]->size()) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt << " encountered bitvector "
+                        << i << " with a different size (" << bits[i]->size()
+                        << ") from the overall nrows (" << nrows << ')';
+                }
+#else
                 bits[i]->sloppySize(nrows);
+#endif
             }
             else {
                 LOGGER(ibis::gVerbose > 0)
@@ -4896,7 +5064,45 @@ void ibis::index::activate(uint32_t i) const {
         array_t<ibis::bitvector::word_t>
             a(str, offset32[i], offset32[i+1]);
         bits[i] = new ibis::bitvector(a);
+        if (nrows == 0) {
+            const_cast<index*>(this)->nrows = bits[i]->size();
+        }
+#if defined(WAH_CHECK_SIZE)
+        if (nrows != bits[i]->size()) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " encountered bitvector "
+                << i << " with a different size (" << bits[i]->size()
+                << ") from the overall nrows (" << nrows << ')';
+        }
+#else
         bits[i]->sloppySize(nrows);
+#endif
+    }
+    else if (breader != 0) {
+        ibis::fileManager::buffer<uint32_t> buf((offset64[i+1]-offset64[i])/4);
+        if (breader->read(offset64[i]/4, (offset64[i+1]-offset64[i])/4, buf)
+            >= 0) {
+            bits[i] = new ibis::bitvector
+                (buf.address(), (offset64[i+1]-offset64[i])/4);
+            if (nrows == 0) {
+                const_cast<index*>(this)->nrows = bits[i]->size();
+            }
+#if defined(WAH_CHECK_SIZE)
+            if (nrows != bits[i]->size()) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- " << evt << " encountered bitvector "
+                    << i << " with a different size (" << bits[i]->size()
+                    << ") from the overall nrows (" << nrows << ')';
+            }
+#else
+            bits[i]->sloppySize(nrows);
+#endif
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " failed to read bitvector "
+                << i << " through the callback function";
+        }
     }
     else if (fname) { // using the named file directly
         int fdes = UnixOpen(fname, OPEN_READONLY);
@@ -4916,7 +5122,19 @@ void ibis::index::activate(uint32_t i) const {
                 a0(fdes, offset32[i], offset32[i+1]);
             bits[i] = new ibis::bitvector(a0);
             UnixClose(fdes);
+            if (nrows == 0) {
+                const_cast<index*>(this)->nrows = bits[i]->size();
+            }
+#if defined(WAH_CHECK_SIZE)
+            if (nrows != bits[i]->size()) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- " << evt << " encountered bitvector "
+                    << i << " with a different size (" << bits[i]->size()
+                    << ") from the overall nrows (" << nrows << ')';
+            }
+#else
             bits[i]->sloppySize(nrows);
+#endif
         }
         else {
             LOGGER(ibis::gVerbose > 0)
@@ -4927,8 +5145,8 @@ void ibis::index::activate(uint32_t i) const {
     }
     else {
         LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " needs str or fname to regenerate "
-            "bitvector " << i;
+            << "Warning -- " << evt << " needs str, breader or fname to "
+            "regenerate bitvector " << i;
     }
 } // ibis::index::activate
 
@@ -4941,11 +5159,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
     std::string evt = "index";
     if (col != 0 && ibis::gVerbose > 0) {
         evt += '[';
-        if (col->partition() != 0) {
-            evt += col->partition()->name();
-            evt += '.';
-        }
-        evt += col->name();
+        evt += col->fullname();
         evt += ']';
     }
     evt += "::activate";
@@ -4956,7 +5170,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
     for (uint32_t k = i+1; k < j && incore; ++ k)
         incore = (bits[k] != 0);
     if (incore) return; // all bitvectors active
-    if (str == 0 && fname == 0) {
+    if (str == 0 && breader == 0 && fname == 0) {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- " << evt << "(" << i << ", " << j
             << ") can not proceed without either str or fname";
@@ -4987,13 +5201,81 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                     array_t<ibis::bitvector::word_t>
                         a(str, offset64[i], offset64[i+1]);
                     bits[i] = new ibis::bitvector(a);
+                    if (nrows == 0) {
+                        const_cast<index*>(this)->nrows = bits[i]->size();
+                    }
+#if defined(WAH_CHECK_SIZE)
+                    if (nrows != bits[i]->size()) {
+                        LOGGER(ibis::gVerbose > 0)
+                            << "Warning -- " << evt << " encountered bitvector "
+                            << i << " with a different size (" << bits[i]->size()
+                            << ") from the overall nrows (" << nrows << ')';
+                    }
+#else
                     bits[i]->sloppySize(nrows);
+#endif
                 }
                 else if (bits[i] == 0) {
                     bits[i] = new ibis::bitvector();
                     bits[i]->set(0, nrows);
                 }
                 ++ i;
+            }
+        }
+        else if (breader) {
+            ibis::fileManager::buffer<uint32_t> buf;
+            for (size_t j0 = i; j0 < j;) {
+                size_t j1 = j0+1;
+                if (offset64[j1]-offset64[j0] > buf.size()*4) {
+                    buf.resize((offset64[j1<j?j1+1:j]-offset64[j0])/4);
+                    if (offset64[j1]-offset64[j0] > buf.size()*4) {
+                        LOGGER(ibis::gVerbose > 0)
+                            << "Warning -- " << evt << " failed to allocate "
+                            "sufficient memory to read bitvector " << j0
+                            << ", which occupies " << offset64[j1]-offset64[j0]
+                            << " words";
+                        throw "insufficient memory to read a bitvector";
+                    }
+                }
+                while (j1 < j && offset64[j1+1]-offset64[j0] < buf.size()*4)
+                    ++ j1;
+
+                int ierr = breader->read
+                    (offset64[j0]/4, (offset64[j1]-offset64[j0])/4, buf);
+                if (ierr < 0) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt << " failed to read "
+                        "bitvector " << j0 << " - " << j1
+                        << ", which occupies " << (offset64[j1]-offset64[j0])/4
+                        << " words";
+                    throw "FastBitReadIntArray failed to read bitvectors";
+                }
+                for (size_t j = j0; j < j1; ++ j) {
+                    if (offset64[j+1] > offset64[j]) {
+                        bits[j] = new ibis::bitvector
+                            (buf.address()+(offset64[j]-offset64[j0])/4,
+                             (offset64[j+1]-offset64[j])/4);
+                        if (nrows == 0) {
+                            const_cast<index*>(this)->nrows = bits[j]->size();
+                        }
+#if defined(WAH_CHECK_SIZE)
+                        if (nrows != bits[j]->size()) {
+                            LOGGER(ibis::gVerbose > 0)
+                                << "Warning -- " << evt
+                                << " encountered bitvector "
+                                << j << " with a different size ("
+                                << bits[j]->size()
+                                << ") from the overall nrows (" << nrows << ')';
+                        }
+#else
+                        bits[j]->sloppySize(nrows);
+#endif
+                    }
+                    else {
+                        bits[j] = 0;
+                    }
+                }
+                j0 = j1;
             }
         }
         else if (fname) { // using the named file directly
@@ -5041,7 +5323,23 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                                     a1(a0, offset64[i]-start,
                                        offset64[i+1]-start);
                                 bits[i] = new ibis::bitvector(a1);
+                                if (nrows == 0) {
+                                    const_cast<index*>(this)->nrows =
+                                        bits[i]->size();
+                                }
+#if defined(WAH_CHECK_SIZE)
+                                if (nrows != bits[i]->size()) {
+                                    LOGGER(ibis::gVerbose > 0)
+                                        << "Warning -- " << evt
+                                        << " encountered bitvector "
+                                        << i << " with a different size ("
+                                        << bits[i]->size()
+                                        << ") from the overall nrows ("
+                                        << nrows << ')';
+                                }
+#else
                                 bits[i]->sloppySize(nrows);
+#endif
                             }
                             else if (bits[i] == 0) {
                                 bits[i] = new ibis::bitvector();
@@ -5073,13 +5371,84 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                 array_t<ibis::bitvector::word_t>
                     a(str, offset32[i], offset32[i+1]);
                 bits[i] = new ibis::bitvector(a);
+                if (nrows == 0) {
+                    const_cast<index*>(this)->nrows = bits[i]->size();
+                }
+#if defined(WAH_CHECK_SIZE)
+                if (nrows != bits[i]->size()) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt
+                        << " encountered bitvector "
+                        << i << " with a different size ("
+                        << bits[i]->size()
+                        << ") from the overall nrows ("
+                        << nrows << ')';
+                }
+#else
                 bits[i]->sloppySize(nrows);
+#endif
             }
             else if (bits[i] == 0) {
                 bits[i] = new ibis::bitvector();
                 bits[i]->set(0, nrows);
             }
             ++ i;
+        }
+    }
+    else if (breader) {
+        ibis::fileManager::buffer<uint32_t> buf;
+        for (size_t j0 = i; j0 < j;) {
+            size_t j1 = j0+1;
+            if (offset32[j1]-offset32[j0] > buf.size()*4) {
+                buf.resize((offset32[j1<j?j1+1:j]-offset32[j0])/4);
+                if (offset32[j1]-offset32[j0] > buf.size()*4) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt << " failed to allocate "
+                        "sufficient memory to read bitvector " << j0
+                        << ", which occupies " << (offset32[j1]-offset32[j0])/4
+                        << " words";
+                    throw "insufficient memory to read a bitvector";
+                }
+            }
+            while (j1 < j && offset32[j1+1]-offset32[j0] < buf.size()*4)
+                ++ j1;
+
+            int ierr = breader->read
+                (offset32[j0]/4, (offset32[j1]-offset32[j0])/4, buf);
+            if (ierr < 0) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- " << evt << " failed to read "
+                    "bitvector " << j0 << " - " << j1
+                    << ", which occupies " << (offset32[j1]-offset32[j0])/4
+                    << " words";
+                throw "FastBitReadIntArray failed to read bitvectors";
+            }
+            for (size_t j = j0; j < j1; ++ j) {
+                if (offset32[j+1] > offset32[j]) {
+                    bits[j] = new ibis::bitvector
+                        (buf.address()+(offset32[j]-offset32[j0])/4,
+                         (offset32[j+1]-offset32[j])/4);
+                    if (nrows == 0) {
+                        const_cast<index*>(this)->nrows = bits[j]->size();
+                    }
+#if defined(WAH_CHECK_SIZE)
+                    if (nrows != bits[j]->size()) {
+                        LOGGER(ibis::gVerbose > 0)
+                            << "Warning -- " << evt
+                            << " encountered bitvector "
+                            << j << " with a different size ("
+                            << bits[j]->size()
+                            << ") from the overall nrows (" << nrows << ')';
+                    }
+#else
+                    bits[j]->sloppySize(nrows);
+#endif
+                }
+                else {
+                    bits[j] = 0;
+                }
+            }
+            j0 = j1;
         }
     }
     else if (fname) { // using the named file directly
@@ -5123,7 +5492,22 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                             array_t<ibis::bitvector::word_t>
                                 a1(a0, offset32[i]-start, offset32[i+1]-start);
                             bits[i] = new ibis::bitvector(a1);
+                            if (nrows == 0) {
+                                const_cast<index*>(this)->nrows = bits[i]->size();
+                            }
+#if defined(WAH_CHECK_SIZE)
+                            if (nrows != bits[i]->size()) {
+                                LOGGER(ibis::gVerbose > 0)
+                                    << "Warning -- " << evt
+                                    << " encountered bitvector "
+                                    << i << " with a different size ("
+                                    << bits[i]->size()
+                                    << ") from the overall nrows ("
+                                    << nrows << ')';
+                            }
+#else
                             bits[i]->sloppySize(nrows);
+#endif
                         }
                         else if (bits[i] == 0) {
                             bits[i] = new ibis::bitvector();

@@ -121,7 +121,7 @@ public:
 			       double& min, double &max, bool &asc) const;
 
     virtual int  attachIndex(double *, uint64_t, int64_t *, uint64_t,
-                             void *, FastBitReadBitmaps) const;
+                             void *, FastBitReadIntArray) const;
     virtual int  attachIndex(double *, uint64_t, int64_t *, uint64_t,
                              uint32_t *, uint64_t) const;
     virtual void loadIndex(const char* iopt=0, int ropt=0) const throw ();

@@ -9,6 +9,8 @@
 #include "column.h"	// ibis::column
 #include "part.h"	// ibis::part
 #include "iroster.h"	// ibis::roster
+#include "irelic.h"	// ibis::relic
+#include "ibin.h"	// ibis::bin
 
 #include <stdarg.h>	// vsprintf
 #include <ctype.h>	// tolower
@@ -5621,7 +5623,7 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
 
 int ibis::column::attachIndex(double *keys, uint64_t nkeys,
                               int64_t *offsets, uint64_t noffsets,
-                              void *bms, FastBitReadBitmaps rd) const {
+                              void *bms, FastBitReadIntArray rd) const {
     if (keys == 0 || nkeys == 0 || offsets == 0 || noffsets == 0 ||
         bms == 0 || rd == 0)
         return -1;
@@ -5632,38 +5634,14 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
     evt += "::attachIndex";
     softWriteLock lock(this, evt.c_str());
     if (lock.isLocked() && 0 == idx) {
-        if (nkeys == 2*(noffsets-1)) {
-            idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
+        if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
+            idx = new ibis::bin(static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms, rd);
-            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0) {
-                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
-
-                if (ibis::gVerbose > 4) {
-                    ibis::util::logger lg;
-                    lg() << evt << " reconstructed index from " << nkeys
-                         << " key" << (nkeys>1?"s":"") << noffsets-1
-                         << " bitmap" << (noffsets>2?"s":"") << " stored at "
-                         << bms << "\n";
-                    idx->print(lg());
-                }
-            }
             return 0;
         }
         else if (nkeys+1 == noffsets) {
-            idx = new ibis::relic(this, static_cast<uint32_t>(nkeys),
+            idx = new ibis::relic(static_cast<uint32_t>(nkeys),
                                   keys, offsets, bms, rd);
-            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0) {
-                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
-
-                if (ibis::gVerbose > 4) {
-                    ibis::util::logger lg;
-                    lg() << evt << " reconstructed index from " << nkeys
-                         << " key" << (nkeys>1?"s":"") << noffsets-1
-                         << " bitmap" << (noffsets>2?"s":"") << " stored at "
-                         << bms << "\n";
-                    idx->print(lg());
-                }
-            }
             return 0;
         }
         else {
@@ -5694,18 +5672,14 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
     evt += "::attachIndex";
     softWriteLock lock(this, evt.c_str());
     if (lock.isLocked() && 0 == idx) {
-        if (nkeys == 2*(noffsets-1)) {
-            idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
+        if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
+            idx = new ibis::bin(static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms);
-            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
-                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else if (nkeys+1 == noffsets) {
-            idx = new ibis::relic(this, static_cast<uint32_t>(nkeys),
+            idx = new ibis::relic(static_cast<uint32_t>(nkeys),
                                   keys, offsets, bms);
-            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
-                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else {
