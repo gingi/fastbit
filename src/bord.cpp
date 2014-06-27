@@ -5361,7 +5361,7 @@ ibis::bord::column::getRawData() const {
 } // ibis::bord::column::getRawData
 
 void ibis::bord::column::computeMinMax() {
-    computeMinMax(thePart->currentDataDir(), lower, upper, m_sorted);
+    computeMinMax(static_cast<const char*>(0), lower, upper, m_sorted);
 } // ibis::bord::column::computeMinMax
 
 void ibis::bord::column::computeMinMax(const char *dir) {
@@ -5497,7 +5497,7 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
 		double cost = idx->estimateCost(cmp);
 		// use index only if the cost of using its estimate cost is
 		// less than N/2 bytes
-		if (cost < thePart->nRows() * 0.5 + 999.0) {
+		if (cost < mask.size() * 0.5 + 999.0) {
 		    idx->estimate(cmp, res, bv2);
 		}
 		else {
@@ -10898,8 +10898,9 @@ int ibis::bord::column::restoreCategoriesAsStrings(const ibis::category& cat) {
 
     ibis::array_t<uint32_t> *arrint =
 	static_cast<ibis::array_t<uint32_t>*>(buffer);
-    const int nr = (thePart->nRows() <= arrint->size() ?
-		    thePart->nRows() : arrint->size());
+    const int nr = (thePart != 0 ? (thePart->nRows() <= arrint->size() ?
+                                    thePart->nRows() : arrint->size())
+                    : arrint->size());
     std::vector<std::string> *arrstr = new std::vector<std::string>(nr);
     if (dic != 0) {
 	for (int j = 0; j < nr; ++ j)
@@ -10926,7 +10927,8 @@ long ibis::bord::column::append(const char* dt, const char* df,
 /// by the column.  The mask is used to indicate which values in the
 /// incoming array are valid.
 long ibis::bord::column::append(const void* vals, const ibis::bitvector& msk) {
-    if (vals == 0 || msk.size() == 0 || msk.cnt() == 0) return 0;
+    if (vals == 0 || msk.size() == 0 || msk.cnt() == 0)
+        return 0;
     int ierr = 0;
     switch (m_type) {
     case ibis::BYTE: {

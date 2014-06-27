@@ -1349,7 +1349,7 @@ extern "C" int fastbit_iapi_register_array_nd
         return -2;
 } // fastbit_iapi_register_array_nd
 
-/// @arg cname: column name
+/// @arg aname: column name
 /// @arg iopt: indexing option
 /// @arg nkeys: number of elements (doubles) needed to store the bitmap keys.
 /// @arg noffsets: number of elements (int64_t) needed to store the bitmap
@@ -1362,23 +1362,23 @@ extern "C" int fastbit_iapi_register_array_nd
 /// will be assigned a value.  This is taken as the user does not want to
 /// write the index out.
 extern "C" int fastbit_iapi_build_index
-(const char *cname, const char *iopt, uint64_t *nkeys, uint64_t *noffsets,
+(const char *aname, const char *iopt, uint64_t *nkeys, uint64_t *noffsets,
  uint64_t *nbitmaps) {
-    if (cname == 0 || *cname == 0)
+    if (aname == 0 || *aname == 0)
         return -1;
 
-    ibis::bord::column *col = __fastbit_iapi_array_by_name(cname);
+    ibis::bord::column *col = __fastbit_iapi_array_by_name(aname);
     if (col == 0) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- fastbit_iapi_build_index failed to find an array "
-            "named " << cname;
+            "named " << aname;
         return -2;
     }
     col->loadIndex(iopt);
     if (! col->hasIndex()) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- fastbit_iapi_build_index failed to create an index "
-            "for array " << cname;
+            "for array " << aname;
         return -3;
     }
 
@@ -1389,7 +1389,7 @@ extern "C" int fastbit_iapi_build_index
     if (*nkeys == 0 || *noffsets == 0 || *nbitmaps == 0) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- fastbit_iapi_build_index failed to create a valid "
-            "index for array " << cname;
+            "index for array " << aname;
         col->unloadIndex();
         return -4;
     }
@@ -1399,19 +1399,20 @@ extern "C" int fastbit_iapi_build_index
 } // fastbit_iapi_build_index
 
 extern "C" int fastbit_iapi_deconstruct_index
-(const char *cname, void *keys, uint64_t nkeys, void *offsets, uint64_t noffsets,
- void *bitmaps, uint64_t nbitmaps) {
+(const char *aname, double *keys, uint64_t nkeys,
+ int64_t *offsets, uint64_t noffsets,
+ uint32_t *bitmaps, uint64_t nbitmaps) {
     ibis::array_t<double> arrk(static_cast<double*>(keys), nkeys);
     ibis::array_t<int64_t> arro(static_cast<int64_t*>(offsets), noffsets);
     ibis::array_t<uint32_t> arrb(static_cast<uint32_t*>(bitmaps), nbitmaps);
-    if (cname == 0 || *cname == 0)
+    if (aname == 0 || *aname == 0)
         return -1;
 
-    ibis::bord::column *col = __fastbit_iapi_array_by_name(cname);
+    ibis::bord::column *col = __fastbit_iapi_array_by_name(aname);
     if (col == 0) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- fastbit_iapi_build_index failed to find an array "
-           "named " << cname;
+           "named " << aname;
         return -2;
     }
 
@@ -1420,16 +1421,14 @@ extern "C" int fastbit_iapi_deconstruct_index
 
 
 FastBitIndexHandle fastbit_iapi_reconstruct_index
-(void *keys, uint64_t nkeys, void *offsets, uint64_t noffsets) {
+(double *keys, uint64_t nkeys, int64_t *offsets, uint64_t noffsets) {
     if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
         return new ibis::bin(static_cast<uint32_t>(noffsets-1),
-                             static_cast<double*>(keys),
-                             static_cast<int64_t*>(offsets));
+                             keys, offsets);
     }
     else if (nkeys+1 == noffsets) {
         return new ibis::relic(static_cast<uint32_t>(nkeys),
-                               static_cast<double*>(keys),
-                               static_cast<int64_t*>(offsets));
+                               keys, offsets);
     }
     else {
         LOGGER(ibis::gVerbose > 0)
@@ -1485,3 +1484,75 @@ int64_t fastbit_iapi_get_number_of_hits
     return res.cnt();
 } // fastbit_iapi_get_number_of_hits
 
+int fastbit_iapi_attach_full_index
+(const char *aname, double *keys, uint64_t nkeys,
+ int64_t *offsets, uint64_t noffsets,
+ uint32_t *bms, uint64_t nbms) {
+    if (aname == 0 || *aname == 0 || keys == 0 || nkeys == 0 ||
+        offsets == 0 || noffsets == 0 || bms == 0 || nbms == 0 ||
+        offsets[noffsets-1] > nbms)
+        return -1;
+
+    ibis::bord::column *col = __fastbit_iapi_array_by_name(aname);
+    if (col == 0) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_iapi_attach_full_index failed to find an "
+            "array named " << aname;
+        return -2;
+    }
+
+    return col->attachIndex(keys, nkeys, offsets, noffsets, bms, nbms);
+} // fastbit_iapi_attach_full_index
+
+int fastbit_iapi_attach_index
+(const char *aname, double *keys, uint64_t nkeys,
+ int64_t *offsets, uint64_t noffsets,
+ void *bms, FastBitReadIntArray rd) {
+    if (aname == 0 || *aname == 0 || keys == 0 || nkeys == 0 ||
+        offsets == 0 || noffsets == 0 || bms == 0 || rd == 0)
+        return -1;
+
+    ibis::bord::column *col = __fastbit_iapi_array_by_name(aname);
+    if (col == 0) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_iapi_attach_index failed to find an "
+            "array named " << aname;
+        return -2;
+    }
+
+    return col->attachIndex(keys, nkeys, offsets, noffsets, bms, rd);
+} // fastbit_iapi_attach_index
+
+/// Generate a simple one-sided range (OSR) condition for the form "aname
+/// compare bound".
+///
+/// It returns a nil value in case of error.
+extern "C" FastBitSelectionHandle fastbit_selection_osr
+(const char *aname, FastBitCompareType ctype, double bound) {
+    if (aname == 0 || *aname == 0 || bound == 0 || bound == FASTBIT_DOUBLE_NULL)
+        return 0;
+
+    ibis::bord::column *col = __fastbit_iapi_array_by_name(aname);
+    if (col == 0) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- fastbit_selection_osr failed to find an array named "
+            << aname;
+            return 0;
+    }
+
+    ibis::qExpr::COMPARE cmp = __fastbit_iapi_convert_compare_type(ctype);
+    ibis::qExpr *ret = 0;
+    bool negate = false;
+    if (cmp == ibis::qExpr::OP_UNDEFINED) {
+        cmp = ibis::qExpr::OP_EQ;
+        negate = true;
+    }
+
+    ret = new ibis::qContinuousRange(aname, cmp, bound);
+    if (negate) {
+        ibis::qExpr *tmp = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
+        tmp->setLeft(ret);
+        ret = tmp;
+    }
+    return ret;
+} // fastbit_selection_osr

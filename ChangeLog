@@ -1,3 +1,12 @@
+2014-06-27 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: rename bheadle to breader, update versions of
+	activate to make use breader for recreating the bitvectors
+	* src/column.h, src/column.cpp: add function attachIndex for
+	associating and index with a column
+	* src/iapi.h, src/iapi.cpp: add fastbit_selection_osr to replace
+	fastbit_selection_create, add fastbit_iapi_attach_index to
+	associate an index with an array
+
 2014-06-26 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.h, src/iapi.cpp: add functions to deal with indexes
 	* example/ibis.cpp: increase gVerbose when using

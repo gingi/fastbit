@@ -9,6 +9,8 @@
 #include "column.h"	// ibis::column
 #include "part.h"	// ibis::part
 #include "iroster.h"	// ibis::roster
+#include "irelic.h"	// ibis::relic
+#include "ibin.h"	// ibis::bin
 
 #include <stdarg.h>	// vsprintf
 #include <ctype.h>	// tolower
@@ -5504,6 +5506,82 @@ void ibis::column::logMessage(const char* event, const char* fmt, ...) const {
     fprintf(fptr, "\n");
     fflush(fptr);
 } // ibis::column::logMessage
+
+int ibis::column::attachIndex(double *keys, uint64_t nkeys,
+                              int64_t *offsets, uint64_t noffsets,
+                              void *bms, FastBitReadIntArray rd) const {
+    if (keys == 0 || nkeys == 0 || offsets == 0 || noffsets == 0 ||
+        bms == 0 || rd == 0)
+        return -1;
+
+    unloadIndex();
+
+    std::string evt(fullname());
+    evt += "::attachIndex";
+    softWriteLock lock(this, evt.c_str());
+    if (lock.isLocked() && 0 == idx) {
+        if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
+            idx = new ibis::bin(static_cast<uint32_t>(noffsets-1),
+                                keys, offsets, bms, rd);
+            return 0;
+        }
+        else if (nkeys+1 == noffsets) {
+            idx = new ibis::relic(static_cast<uint32_t>(nkeys),
+                                  keys, offsets, bms, rd);
+            return 0;
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " encounters mismatching nkeys ("
+                << nkeys << ") and noffsets (" << noffsets << ')';
+            return -2;
+        }
+    }
+    else if (idx != 0) {
+        return 1; // someone else has set the index
+    }
+    else {
+        return -3; // failed to acquire the necessary lock on the object
+    }
+} // ibis::column::attachIndex
+
+int ibis::column::attachIndex(double *keys, uint64_t nkeys,
+                              int64_t *offsets, uint64_t noffsets,
+                              uint32_t *bms, uint64_t nbms) const {
+    if (keys == 0 || nkeys == 0 || offsets == 0 || noffsets == 0 ||
+        bms == 0 || nbms == 0 || offsets[noffsets-1] > nbms)
+        return -1;
+
+    unloadIndex();
+
+    std::string evt(fullname());
+    evt += "::attachIndex";
+    softWriteLock lock(this, evt.c_str());
+    if (lock.isLocked() && 0 == idx) {
+        if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
+            idx = new ibis::bin(static_cast<uint32_t>(noffsets-1),
+                                keys, offsets, bms);
+            return 0;
+        }
+        else if (nkeys+1 == noffsets) {
+            idx = new ibis::relic(static_cast<uint32_t>(nkeys),
+                                  keys, offsets, bms);
+            return 0;
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " encounters mismatching nkeys ("
+                << nkeys << ") and noffsets (" << noffsets << ')';
+            return -2;
+        }
+    }
+    else if (idx != 0) {
+        return 1; // someone else has set the index
+    }
+    else {
+        return -3; // failed to acquire the necessary lock on the object
+    }
+} // ibis::column::attachIndex
 
 /// Load the index associated with the column.
 /// @param iopt This option is passed to ibis::index::create to be used if a

@@ -39,6 +39,7 @@ static void fillarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     }
 } /* fillarrays */
 
+/*
 static void indexarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     uint64_t nk, no, nb;
     int ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
@@ -46,16 +47,40 @@ static void indexarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
 
     ierr = fastbit_iapi_build_index("a1", (const char*)0, &nk, &no, &nb);
     printf("fastbit_iapi_build_index returned %d\n", ierr);
-} /* indexarrays */
+}
+*/
 
 static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     int16_t b1 = 5;
     int32_t b2 = 11;
     double b31 = 2.0, b32 = 3.5;
     long int i, ierr;
+    uint64_t nk, no, nb;
     FastBitSelectionHandle h1, h2, h3, h4, h5;
-    h1 = fastbit_selection_create
-        (FastBitDataTypeShort, a1, n, FastBitCompareLess, &b1);
+
+    ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
+    if (ierr < 0) {
+        printf("Warning -- fastbit_iapi_register_array failed to register a1, ierr = %ld\n", ierr);
+        return;
+    }
+    ierr = fastbit_iapi_register_array("a2", FastBitDataTypeInt, a2, n);
+    if (ierr < 0) {
+        printf("Warning -- fastbit_iapi_register_array failed to register a2, ierr = %ld\n", ierr);
+        return;
+    }
+    ierr = fastbit_iapi_register_array("a3", FastBitDataTypeDouble, a3, n);
+    if (ierr < 0) {
+        printf("Warning -- fastbit_iapi_register_array failed to register a3, ierr = %ld\n", ierr);
+        return;
+    }
+
+    /* build index on a1, automatically attached */
+    ierr = fastbit_iapi_build_index("a1", (const char*)0, &nk, &no, &nb);
+    if (ierr < 0) {
+        printf("Warning -- fastbit_iapi_build_index failed to create index for a1, ierr=%ld\n", ierr);
+    }
+
+    h1 = fastbit_selection_osr("a1", FastBitCompareLess, b1);
     ierr = fastbit_selection_estimate(h1);
     if (ierr < 0) {
         printf("Warning -- fastbit_selection_estimate(a1 < %d) returned %ld\n",
@@ -113,19 +138,45 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     }
     fastbit_selection_free(h1);
 
+
+    { /* Serialize the index for a1 and re-attach it */
+        double *keys = (double*)malloc(8*nk);
+        int64_t *offsets = (int64_t*)malloc(8*no);
+        uint32_t *bms = (uint32_t*)malloc(4*nb);
+        if (keys != 0 && offsets != 0 && bms != 0) {
+            ierr = fastbit_iapi_deconstruct_index
+                ("a1", keys, nk, offsets, no, bms, nb);
+            if (ierr >= 0) {
+                ierr = fastbit_iapi_attach_full_index
+                    ("a1", keys, nk, offsets, no, bms, nb);
+                if (ierr < 0)
+                    printf("Warning -- fastbit_iapi_attach_full_index failed to attach the index to a1, ierr = %ld\n", ierr);
+            }
+            else {
+                    printf("Warning -- fastbit_iapi_deconstruct_index failed to serialize the index of a1, ierr = %ld\n", ierr);
+            }
+        }
+        else {
+            printf("Warning -- queryarrays failed to allocate memory to serialize the index for a1");
+        }
+        free(bms);
+        free(offsets);
+        free(keys);
+    }
+
+    ierr = fastbit_iapi_build_index("a2", (const char*)0, &nk, &no, &nb);
+    if (ierr < 0) {
+        printf("Warning -- fastbit_iapi_build_index failed to create index for a2, ierr=%ld\n", ierr);
+    }
     /* a1 < b1 */
-    h1 = fastbit_selection_create
-        (FastBitDataTypeShort, a1, n, FastBitCompareLess, &b1);
+    h1 = fastbit_selection_osr("a1", FastBitCompareLess, b1);
     /* a2 < b2 */
-    h2 = fastbit_selection_create
-        (FastBitDataTypeInt, a2, n, FastBitCompareLessEqual, &b2);
+    h2 = fastbit_selection_osr("a2", FastBitCompareLessEqual, b2);
     /* b31 <= a3 < b32 */
     h3 = fastbit_selection_combine
-        (fastbit_selection_create(FastBitDataTypeDouble, a3, n,
-                                  FastBitCompareGreaterEqual, &b31),
+        (fastbit_selection_osr("a3", FastBitCompareGreaterEqual, b31),
          FastBitCombineAnd,
-         fastbit_selection_create(FastBitDataTypeDouble, a3, n,
-                                  FastBitCompareLess, &b32));
+         fastbit_selection_osr("a3", FastBitCompareLess, b32));
     /* a1 < b1 OR b31 <= a3 < b32 */
     h4 = fastbit_selection_combine(h1, FastBitCombineOr, h3);
     /* a2 < b2 AND (a1 < b1 OR b31 <= a3 < b32) */
@@ -231,8 +282,8 @@ int main(int argc, char **argv) {
     for (k = 1; k <= nmax; k=((k>(nmax/4)&&k<nmax) ? nmax : 4*k)) {
         printf("\n%s -- testing with k = %ld\n", *argv, k);
         fillarrays(k, a1, a2, a3);
-        indexarrays(k, a1, a2, a3);
-        //queryarrays(k, a1, a2, a3);
+        //indexarrays(k, a1, a2, a3);
+        queryarrays(k, a1, a2, a3);
         // need to clear all cached objects so that we can reuse the same
         // pointers a1, a2, a3
         fastbit_iapi_free_all();

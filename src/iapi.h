@@ -84,13 +84,10 @@ typedef void* FastBitIndexHandle;
 extern "C" {
 #endif
 
-    /** Create a simple one-sided range condition. */
-    FastBitSelectionHandle fastbit_selection_create
-    (FastBitDataType, void*, uint64_t, FastBitCompareType, void*);
-
-    /** Create a simple one-sided range condition on a n-dimensional array. */
-    FastBitSelectionHandle fastbit_selection_create_nd
-    (FastBitDataType, void*, uint64_t*, uint64_t, FastBitCompareType, void*);
+    /** Create a simple one-sided range condition.
+    */
+    FastBitSelectionHandle fastbit_selection_osr
+    (const char*, FastBitCompareType, double);
 
     /** Free/destroy the selection object. */
     void fastbit_selection_free(FastBitSelectionHandle);
@@ -131,22 +128,54 @@ extern "C" {
         needed for the three arrays based on arguments returned by
         fastbit_iapi_build_index. */
     int fastbit_iapi_deconstruct_index
-    (const char*, void*, uint64_t, void*, uint64_t, void*, uint64_t);
+    (const char*, double*, uint64_t, int64_t*, uint64_t, uint32_t*, uint64_t);
+
+    /** Attach an index to a column already registered. */
+    int fastbit_iapi_attach_full_index
+    (const char*, double*, uint64_t, int64_t*, uint64_t, uint32_t*, uint64_t);
+
+    /** Attach an index to a column already registered. */
+    int fastbit_iapi_attach_index
+    (const char*, double*, uint64_t, int64_t*, uint64_t,
+     void*, FastBitReadIntArray);
 
     /** Reconstitute the index data structure from the first two arrays
         produced by fastbit_iapi_write_index.  The 3rd array is larger and
-        is to be read in pieces as needed. */
-    FastBitIndexHandle fastbit_iapi_reconstruct_index
-    (void*, uint64_t, void*, uint64_t);
+        is to be read in pieces as needed.
 
-    /** Evalute a range condition on an index data structure. */
+        @Warning To be removed.  Do not use.
+    */
+    FastBitIndexHandle fastbit_iapi_reconstruct_index
+    (double*, uint64_t, int64_t*, uint64_t);
+
+    /** Evalute a range condition on an index data structure. 
+
+        @Warning To be removed.  Do not use.
+    */
     int fastbit_iapi_resolve_range
     (FastBitIndexHandle, FastBitCompareType, double, uint32_t *,
      uint32_t *, uint32_t *, uint32_t *);
 
-    /** Retrieve the numbers of values in the given range. */
+    /** Retrieve the numbers of values in the given range. 
+
+        @Warning To be removed.  Do not use.
+    */
     int64_t fastbit_iapi_get_number_of_hits
     (FastBitIndexHandle, uint32_t, uint32_t, uint32_t*);
+
+    /** Create a simple one-sided range condition. 
+
+        @Warning To be removed.  Do not use.
+    */
+    FastBitSelectionHandle fastbit_selection_create
+    (FastBitDataType, void*, uint64_t, FastBitCompareType, void*);
+
+    /** Create a simple one-sided range condition on a n-dimensional array. 
+
+        @Warning To be removed.  Do not use.
+    */
+    FastBitSelectionHandle fastbit_selection_create_nd
+    (FastBitDataType, void*, uint64_t*, uint64_t, FastBitCompareType, void*);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

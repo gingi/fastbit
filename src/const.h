@@ -309,15 +309,16 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 
 /**
    A function pointer type.  This function is used to read a portion of a
-   1-D array of 32-bit unsigned integers.  It is meant to read some bitmaps
+   1-D array of 32-bit unsigned integers.  It is meant to read bitmaps
    while answering queries, where the bitmaps have been serialized and
    packed together.
 
    @arg context: an opaque pointer used to stored the context information
    for the source array.
-   @arg begin: assume the source is a simple 1-D uint32_t array, this is the
-   position (starting from 0) of the first element to be read.
-   @arg end: the marker for the end of the elements to be read.  Following
+   @arg start: assume the source is a simple 1-D uint32_t array, this is the
+   position (starting from 0) of the first element to be read.  This is
+   also known as the offset.
+   @arg count: the number of elements to be read.  Following
    C/C++ convention, this points to the elment just beyond the values to be
    read.
    @arg buffer: the pointer to the buffer for holding the values read into
@@ -325,8 +326,8 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 
    @return >= 0 to indicate success, < 0 to indicate error.
 */
-typedef int (*FastBitReadIntArray)(void *context, uint64_t begin, uint64_t end,
-                                   uint32_t *buffer);
+typedef int (*FastBitReadIntArray)
+(void *context, uint64_t start, uint64_t count, uint32_t *buffer);
 
 //
 // functions for case-insensitive string comparisons
