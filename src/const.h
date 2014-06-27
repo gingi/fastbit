@@ -311,56 +311,25 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 #endif
 
 /**
-   A function prototype for delayed index reconstruction.  This function is
-   used to read a portion of a 1-D array of 32-bit unsigned integers.  It
-   is meant to read bitmaps while answering queries, where the bitmaps have
-   been serialized and packed together using a concrete versin of
-   ibis::index::write.
+   A function pointer type.  This function is used to read a portion of a
+   1-D array of 32-bit unsigned integers.  It is meant to read some bitmaps
+   while answering queries, where the bitmaps have been serialized and
+   packed together.
 
    @arg context: an opaque pointer used to stored the context information
    for the source array.
-   @arg start: assume the source is a simple 1-D uint32_t array, this is the
-   position (starting from 0) of the first element to be read.  This is
-   also known as the offset.
-   @arg count: the number of elements to be read.  Following
+   @arg begin: assume the source is a simple 1-D uint32_t array, this is the
+   position (starting from 0) of the first element to be read.
+   @arg end: the marker for the end of the elements to be read.  Following
    C/C++ convention, this points to the elment just beyond the values to be
    read.
-   @arg data: the pointer to the output buffer for holding the values read
-   into memory.
+   @arg buffer: the pointer to the buffer for holding the values read into
+   memory.
 
    @return >= 0 to indicate success, < 0 to indicate error.
-
-   @note This was previously named FastBitReadIntArray, which was meant to
-   say "integer array."  Since the introduction of FastBitReadExtArray, the
-   prefix "Int" could be misinterpreted as "internal" in contrast with
-   "Ext" for "External."
 */
-typedef int (*FastBitReadBitmaps)
-(void *context, uint64_t start, uint64_t count, uint32_t *data);
-
-/**
-   A function prototype for reading a portion of an external array.  The
-   user data is viwed as a numti-dimensional array.  This function is to
-   read a part of the array.  All values read by this function are packed
-   together in row-major ordering, which is the typical C/C++ array
-   ordering.
-
-   @arg context: an opaque pointer used to stored the context information
-   for the source data.  This argument came from the user and is given back
-   to the user without ever been updated or modified.
-   @arg nd: the number of dimensions of the data array.
-   @arg starts: buffer for nd integers designateing the starting  point the
-   nd-dimensional subcube.
-   @arg counts: buffer for nd integers designating the extents of the
-   nd-dimensional subcube.
-   @arg data: pointer to the output buffer for the data values to be read
-   into memory.  The nd-dimensional subcube is packed into a linear buffer
-   in row-major ordering.
-
-   @return >= 0 to indicate success, < 0 to indicate error.
- */
-typedef int (*FastBitReadExtArray)
-(void *context, uint64_t nd, uint64_t *starts, uint64_t *counts, void *data);
+typedef int (*FastBitReadIntArray)(void *context, uint64_t begin, uint64_t end,
+                                   uint32_t *buffer);
 
 //
 // functions for case-insensitive string comparisons

@@ -1585,13 +1585,13 @@ template <typename T>
 ibis::fileManager::buffer<T>::buffer(size_t sz) : buf(0), nbuf(sz) {
     size_t nfree = ibis::fileManager::bytesFree();
     if (nfree > 0x80000000UL) // will not use more than 2GB for a buffer
-        nfree = 0x80000000UL;
+	nfree = 0x80000000UL;
     if (nfree < sizeof(T)) {
-        nbuf = 0;
-        return;
+	nbuf = 0;
+	return;
     }
     if (nbuf == 0) {
-        nbuf = 16777216/sizeof(T); // preferred buffer size is 16 MB
+	nbuf = 16777216/sizeof(T); // preferred buffer size is 16 MB
         if (nbuf*sizeof(T) > (nfree >> 2)) {
             nbuf = (nfree >> 2) / sizeof(T);
         }
@@ -1848,7 +1848,7 @@ ibis::fileManager::storage::storage(const int fdes,
     off_t nbytes = end - begin;
     off_t ierr = read(fdes, begin, end);
     if (ierr == nbytes) {
-        LOGGER(ibis::gVerbose > 8)
+	LOGGER(ibis::gVerbose > 8)
                << "fileManager::storage(" << static_cast<void*>(this) << ", "
                << static_cast<void*>(m_begin)
                << ") initialization completed by reading from file descriptor "

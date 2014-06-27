@@ -3605,20 +3605,27 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		    << "doQuery -- query (" << aQuery.getWhereClause()
 		    << ") results written to file \""
 		    <<  outputname << "\"";
-		if (ibis::gVerbose > 8 || recheckvalues)
+		if (ibis::gVerbose > 8 || recheckvalues) {
 		    bdl->printAll(output);
-		else
+                }
+		else {
+                    const int gvold = ibis::gVerbose;
+                    if (gvold < 4) ibis::gVerbose = 4;
 		    bdl->print(output);
+                    ibis::gVerbose = gvold;
+                }
 	    }
 	    else {
 		ibis::util::logger lg;
 		lg() << "Warning ** doQuery failed to open file \""
 		     << outputname << "\" for writing query ("
 		     << aQuery.getWhereClause() << ")\n";
-		if (ibis::gVerbose > 8 || recheckvalues)
+		if (ibis::gVerbose > 8 || recheckvalues) {
 		    bdl->printAll(lg());
-		else
+                }
+		else {
 		    bdl->print(lg());
+                }
 	    }
 	    appendToOutput = true; // all query output go to the same file
 	}

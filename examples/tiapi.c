@@ -40,6 +40,15 @@ static void fillarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     }
 } /* fillarrays */
 
+static void indexarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
+    uint64_t nk, no, nb;
+    int ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
+    printf("fastbit_iapi_register_array returned %d\n", ierr);
+
+    ierr = fastbit_iapi_build_index("a1", (const char*)0, &nk, &no, &nb);
+    printf("fastbit_iapi_build_index returned %d\n", ierr);
+} /* indexarrays */
+
 static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     int16_t b1 = 5;
     int32_t b2 = 11;
@@ -67,11 +76,11 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             expected = b1;
         expected += b1 * (n >> 15);
         if (ierr != expected)
-            printf("Warning -- fastbit_selection_evaluate(a1 < %d) expected %ld, "
-                   "but got %ld\n", (int)b1, expected, ierr);
+            printf("Warning -- fastbit_selection_evaluate(a1 < %d) expected "
+                   "%ld, but got %ld\n", (int)b1, expected, ierr);
         else
-            printf("fastbit_selection_evaluate(a1 < %d) returned %ld as expected\n",
-                   (int)b1, ierr);
+            printf("fastbit_selection_evaluate(a1 < %d) returned %ld as "
+                   "expected\n", (int)b1, ierr);
 
         if (n1 > 0) {
             ierr = fastbit_selection_read
@@ -125,7 +134,8 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
 
     ierr = fastbit_selection_evaluate(h5);
     if (ierr < 0) {
-        printf("Warning -- fastbit_selection_evaluate(...) returned %ld\n", ierr);
+        printf("Warning -- fastbit_selection_evaluate(...) returned %ld\n",
+               ierr);
     }
     else {
         long int n1 = ierr;
@@ -222,7 +232,8 @@ int main(int argc, char **argv) {
     for (k = 1; k <= nmax; k=((k>(nmax/4)&&k<nmax) ? nmax : 4*k)) {
         printf("\n%s -- testing with k = %ld\n", *argv, k);
         fillarrays(k, a1, a2, a3);
-        queryarrays(k, a1, a2, a3);
+        indexarrays(k, a1, a2, a3);
+        //queryarrays(k, a1, a2, a3);
         // need to clear all cached objects so that we can reuse the same
         // pointers a1, a2, a3
         fastbit_iapi_free_all();

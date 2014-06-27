@@ -11159,18 +11159,16 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 /// Makes a copy of the in-memory data.  Uses a shallow copy for
 /// ibis::array_t objects, but a deap copy for the string values.
 int ibis::bord::column::getValuesArray(void* vals) const {
-    int ierr = 0;
     if (vals == 0)
-        return -1;
+        return (buffer != 0 ? 0 : -1);
 
     switch (m_type) {
     default: {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- bord[" << (thePart?thePart->name():"")
-            << "]::column[" << m_name << "]::getValuesArray does not yet "
-            "support column type " << ibis::TYPESTRING[(int)m_type];
-        ierr = -2;
-        break;}
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- bord[" << (thePart?thePart->name():"")
+	    << "]::column[" << m_name << "]::getValuesArray does not yet "
+	    "support column type " << ibis::TYPESTRING[(int)m_type];
+	return -2;}
     case ibis::BYTE: {
         array_t<signed char> &local = *static_cast<array_t<signed char>*>(vals);
         if (buffer != 0) {

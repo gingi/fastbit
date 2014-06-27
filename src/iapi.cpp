@@ -252,7 +252,8 @@ ibis::bord::column* __fastbit_iapi_register_array_nd
     for (unsigned j = 1; j < nd; ++ j)
         n *= dims[j];
 
-    ibis::util::mutexLock(&__fastbit_iapi_lock, "__fastbit_iapi_register_array_nd");
+    ibis::util::mutexLock(&__fastbit_iapi_lock,
+                          "__fastbit_iapi_register_array_nd");
     FastBitIAPIAddressMap::iterator it = __fastbit_iapi_address_map.find(addr);
     if (it != __fastbit_iapi_address_map.end()) {
         __fastbit_iapi_all_arrays[it->second]->setMeshShape(dims, nd);
@@ -360,7 +361,8 @@ ibis::bord::column* __fastbit_iapi_register_array_nd
 
 ibis::bord::column* __fastbit_iapi_array_by_addr(const void *addr) {
     if (addr == 0) return 0;
-    FastBitIAPIAddressMap::const_iterator it = __fastbit_iapi_address_map.find(addr);
+    FastBitIAPIAddressMap::const_iterator it =
+        __fastbit_iapi_address_map.find(addr);
     if (it != __fastbit_iapi_address_map.end()) {
         if (it->second < __fastbit_iapi_all_arrays.size()) {
             return __fastbit_iapi_all_arrays[it->second];
@@ -980,8 +982,8 @@ extern "C" FastBitSelectionHandle fastbit_selection_create_nd
                                                dims, nd);
         if (col == 0) {
             LOGGER(ibis::gVerbose > 1)
-                << "Warning -- fastbit_selection_create_nd failed to register buf "
-                << buf;
+                << "Warning -- fastbit_selection_create_nd failed to register "
+                "buf " << buf;
             return 0;
         }
     }
@@ -1350,7 +1352,8 @@ extern "C" int fastbit_iapi_register_array_nd
 /// @arg cname: column name
 /// @arg iopt: indexing option
 /// @arg nkeys: number of elements (doubles) needed to store the bitmap keys.
-/// @arg noffsets: number of elements (int64_t) needed to store the bitmap offsets.
+/// @arg noffsets: number of elements (int64_t) needed to store the bitmap
+/// offsets.
 /// @arg nbitmaps: number of elements (uint32_t) needed to store the bitmaps.
 ///
 /// Returns 0 for success, a negative number for any error or failure.
@@ -1367,8 +1370,8 @@ extern "C" int fastbit_iapi_build_index
     ibis::bord::column *col = __fastbit_iapi_array_by_name(cname);
     if (col == 0) {
         LOGGER(ibis::gVerbose > 0)
-            << "Warning -- fastbit_iapi_build_index failed to find an array named "
-            << cname;
+            << "Warning -- fastbit_iapi_build_index failed to find an array "
+            "named " << cname;
         return -2;
     }
     col->loadIndex(iopt);
@@ -1385,8 +1388,8 @@ extern "C" int fastbit_iapi_build_index
     col->serialSizes(*nkeys, *noffsets, *nbitmaps);
     if (*nkeys == 0 || *noffsets == 0 || *nbitmaps == 0) {
         LOGGER(ibis::gVerbose > 0)
-            << "Warning -- fastbit_iapi_build_index failed to create a valid index "
-            "for array " << cname;
+            << "Warning -- fastbit_iapi_build_index failed to create a valid "
+            "index for array " << cname;
         col->unloadIndex();
         return -4;
     }
@@ -1407,8 +1410,8 @@ extern "C" int fastbit_iapi_deconstruct_index
     ibis::bord::column *col = __fastbit_iapi_array_by_name(cname);
     if (col == 0) {
         LOGGER(ibis::gVerbose > 0)
-            << "Warning -- fastbit_iapi_build_index failed to find an array named "
-            << cname;
+            << "Warning -- fastbit_iapi_build_index failed to find an array "
+           "named " << cname;
         return -2;
     }
 

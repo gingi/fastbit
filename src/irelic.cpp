@@ -28,17 +28,80 @@
 ibis::relic::relic(const ibis::column *c, const char *f)
     : ibis::index(c) {
     try {
-	if (f && 0 == read(f)) {
+	if (0 != f && 0 == read(f)) {
 	    return;
 	}
 
         if (c == 0) return;  // nothing can be done
-	if (vals.empty() && c->partition()->nRows() > 0 &&
+	if (vals.empty() && 
 	    c->type() != ibis::CATEGORY &&
-	    c->type() != ibis::TEXT) {
-	    construct(f);
+	    c->type() != ibis::TEXT &&
+	    c->type() != ibis::BLOB) {
+            if (c->partition() != 0 || f != 0) {
+                construct(f);
+            }
+            else {
+                switch (c->type()) {
+                case ibis::BYTE: {
+                    array_t<signed char> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::UBYTE: {
+                    array_t<unsigned char> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::SHORT: {
+                    array_t<int16_t> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::USHORT: {
+                    array_t<uint16_t> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::INT: {
+                    array_t<int32_t> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::UINT: {
+                    array_t<uint32_t> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::LONG: {
+                    array_t<int64_t> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::ULONG: {
+                    array_t<uint64_t> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::FLOAT: {
+                    array_t<float> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                case ibis::DOUBLE: {
+                    array_t<double> ta;
+                    if (0 <= c->getValuesArray(&ta))
+                        construct(ta);
+                    break;}
+                default: {
+                    LOGGER(ibis::gVerbose > 1)
+                        << "Warning -- relic::ctor"
+                        << " does not support data type "
+                        << ibis::TYPESTRING[static_cast<int>(c->type())];
+                    break;}
+                }
+            }
 	}
-	if (ibis::gVerbose > 2) {
+	if (! vals.empty() && ibis::gVerbose > 2) {
 	    ibis::util::logger lg;
 	    lg() << "relic[" << col->fullname()
 		 << "]::ctor -- intialized an equality index with "
@@ -211,6 +274,21 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 ibis::relic::relic(uint32_t nb, double *keys, int64_t *offs) :
     ibis::index(0), vals(keys, nb) {
     initOffsets(offs, nb+1);
+} // constructor
+
+/// Reconstruct index from keys and offsets.
+ibis::relic::relic(uint32_t nb, double *keys, int64_t *offs, uint32_t *bms) :
+    ibis::index(0), vals(keys, nb) {
+    initOffsets(offs, nb+1);
+    initBitmaps(bms);
+} // constructor
+
+/// Reconstruct index from keys and offsets.
+ibis::relic::relic(uint32_t nb, double *keys, int64_t *offs,
+                   void *bms, FastBitReadIntArray rd) :
+    ibis::index(0), vals(keys, nb) {
+    initOffsets(offs, nb+1);
+    initBitmaps(bms, rd);
 } // constructor
 
 /// Write the content of the index to the specified location.  The actual

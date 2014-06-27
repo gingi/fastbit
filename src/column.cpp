@@ -398,7 +398,7 @@ int ibis::column::writeIndex(ibis::array_t<double> &keys,
 void ibis::column::serialSizes(uint64_t &wkeys, uint64_t &woffsets,
                                uint64_t &wbitmaps) const {
     if (idx != 0) {
-        return idx->serialSizes(wkeys, woffsets, wbitmaps);
+        idx->serialSizes(wkeys, woffsets, wbitmaps);
     }
     else {
         wkeys = 0;
@@ -999,57 +999,56 @@ ibis::array_t<double>* ibis::column::getDoubleArray() const {
 /// error.  If @c vals is nil, no values is copied, this function
 /// essentially tests whether the values are accessible: >= 0 yes, < 0 no.
 int ibis::column::getValuesArray(void* vals) const {
-    if (dataflag < 0) return -1;
     int ierr = 0;
     ibis::fileManager::storage *tmp = getRawData();
     if (tmp != 0) {
         if (vals == 0) return ierr; // return 0 to indicate data in memory
 
-        switch (m_type) {
-        case ibis::BYTE: {
-            array_t<char> ta(tmp);
-            static_cast<array_t<char>*>(vals)->swap(ta);
-            break;}
-        case ibis::UBYTE: {
-            array_t<unsigned char> ta(tmp);
-            static_cast<array_t<unsigned char>*>(vals)->swap(ta);
-            break;}
-        case ibis::SHORT: {
-            array_t<int16_t> ta(tmp);
-            static_cast<array_t<int16_t>*>(vals)->swap(ta);
-            break;}
-        case ibis::USHORT: {
-            array_t<uint16_t> ta(tmp);
-            static_cast<array_t<uint16_t>*>(vals)->swap(ta);
-            break;}
-        case ibis::INT: {
-            array_t<int32_t> ta(tmp);
-            static_cast<array_t<int32_t>*>(vals)->swap(ta);
-            break;}
-        case ibis::UINT: {
-            array_t<uint32_t> ta(tmp);
-            static_cast<array_t<uint32_t>*>(vals)->swap(ta);
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> ta(tmp);
-            static_cast<array_t<int64_t>*>(vals)->swap(ta);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> ta(tmp);
-            static_cast<array_t<uint64_t>*>(vals)->swap(ta);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> ta(tmp);
-            static_cast<array_t<float>*>(vals)->swap(ta);
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> ta(tmp);
-            static_cast<array_t<double>*>(vals)->swap(ta);
-            break;}
-        case ibis::OID: {
-            array_t<ibis::rid_t> ta(tmp);
-            static_cast<array_t<ibis::rid_t>*>(vals)->swap(ta);
-            break;}
+	switch (m_type) {
+	case ibis::BYTE: {
+	    array_t<char> ta(tmp);
+	    static_cast<array_t<char>*>(vals)->swap(ta);
+	    break;}
+	case ibis::UBYTE: {
+	    array_t<unsigned char> ta(tmp);
+	    static_cast<array_t<unsigned char>*>(vals)->swap(ta);
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t> ta(tmp);
+	    static_cast<array_t<int16_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t> ta(tmp);
+	    static_cast<array_t<uint16_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t> ta(tmp);
+	    static_cast<array_t<int32_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t> ta(tmp);
+	    static_cast<array_t<uint32_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> ta(tmp);
+	    static_cast<array_t<int64_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> ta(tmp);
+	    static_cast<array_t<uint64_t>*>(vals)->swap(ta);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> ta(tmp);
+	    static_cast<array_t<float>*>(vals)->swap(ta);
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> ta(tmp);
+	    static_cast<array_t<double>*>(vals)->swap(ta);
+	    break;}
+	case ibis::OID: {
+	    array_t<ibis::rid_t> ta(tmp);
+	    static_cast<array_t<ibis::rid_t>*>(vals)->swap(ta);
+	    break;}
         default: {
             LOGGER(ibis::gVerbose > 1)
                 << "Warning -- column::getValuesArray(" << vals
@@ -5733,17 +5732,20 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
 /// @note Accesses to this function are serialized through a write lock on
 /// the column.  It blocks while acquire the write lock.
 void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
-    if ((idx != 0 && !idx->empty()) || thePart == 0 || thePart->nRows() == 0)
+    if ((idx != 0 && !idx->empty()) || (thePart != 0 && thePart->nRows() == 0))
 	return;
     if (iopt == 0 || *iopt == static_cast<char>(0))
 	iopt = indexSpec(); // index spec of the column
-    if (iopt == 0 || *iopt == static_cast<char>(0))
+    if ((iopt == 0 || *iopt == static_cast<char>(0)) && thePart != 0)
 	iopt = thePart->indexSpec(); // index spec of the table
     if (iopt == 0 || *iopt == static_cast<char>(0)) {
 	// attempt to retrieve the value of tableName.columnName.index for
 	// the index specification in the global resource
-	std::string idxnm(thePart->name());
-	idxnm += '.';
+	std::string idxnm;
+        if (thePart != 0) {
+            idxnm = thePart->name();
+            idxnm += '.';
+        }
 	idxnm += m_name;
 	idxnm += ".index";
 	iopt = ibis::gParameters()[idxnm.c_str()];
@@ -5761,13 +5763,15 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     std::string evt = "column";
     if (ibis::gVerbose > 1) {
         evt += '[';
-        evt += fullname();
+        if (thePart != 0) {
+            evt += thePart->name();
+            evt += '.';
+        }
+        evt += name();
         evt += ']';
     }
     evt += "::loadIndex";
     writeLock lock(this, evt.c_str());
-    if (thePart->nRows() == 0)
-	return;
     if (idx != 0) {
         if (idx->empty()) {
             delete idx;
@@ -5782,13 +5786,15 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     try { // if an index is not available, create one
 	LOGGER(ibis::gVerbose > 7)
 	    << evt << " -- loading the index from "
-	    << (thePart->currentDataDir() ? thePart->currentDataDir()
-		: "memory");
+	    << (thePart != 0 ?
+                (thePart->currentDataDir() ? thePart->currentDataDir()
+                 : "memory") : "memory");
 	if (tmp == 0) {
-	    tmp = ibis::index::create(this, thePart->currentDataDir(),
+	    tmp = ibis::index::create(this,
+                                      thePart ? thePart->currentDataDir() : 0,
 				      iopt, ropt);
 	}
-	if (tmp != 0 && tmp->getNRows()
+	if (thePart != 0 && tmp != 0 && tmp->getNRows()
 #if defined(FASTBIT_REBUILD_INDEX_ON_SIZE_MISMATCH)
             !=
 #else
@@ -5869,16 +5875,18 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
         }
     }
 
-    // final error handling
-    purgeIndexFile();
-    std::string key = thePart->name();
-    key += '.';
-    key += m_name;
-    key += ".retryIndexOnFailure";
-    if (! ibis::gParameters().isTrue(key.c_str())) {
-        // don't try to build index any more
-        const_cast<column*>(this)->m_bins = "noindex";
-        thePart->updateMetaData();
+    // final error handling -- remove left over files
+    if (thePart != 0) {
+        purgeIndexFile();
+        std::string key = thePart->name();
+        key += '.';
+        key += m_name;
+        key += ".retryIndexOnFailure";
+        if (! ibis::gParameters().isTrue(key.c_str())) {
+            // don't try to build index any more
+            const_cast<column*>(this)->m_bins = "noindex";
+            thePart->updateMetaData();
+        }
     }
 } // ibis::column::loadIndex
 
@@ -5890,20 +5898,20 @@ void ibis::column::unloadIndex() const {
 
     softWriteLock lock(this, "unloadIndex");
     if (lock.isLocked() && 0 != idx) {
-        const uint32_t idxc = idxcnt();
-        if (0 == idxc) {
-            delete idx;
-            idx = 0;
-            LOGGER(ibis::gVerbose > 4)
-                << "column[" << fullname()
-                << "]::unloadIndex successfully removed the index";
-        }
-        else {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- column[" << fullname() 
+	const uint32_t idxc = idxcnt();
+	if (0 == idxc) {
+	    delete idx;
+	    idx = 0;
+	    LOGGER(ibis::gVerbose > 7)
+		<< "column[" << fullname()
+		<< "]::unloadIndex successfully removed the index";
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- column[" << fullname() 
                 << "]::unloadIndex failed because idxcnt ("
-                << idxc << ") is not zero";
-        }
+		<< idxc << ") is not zero";
+	}
     }
 } // ibis::column::unloadIndex
 
