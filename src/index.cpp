@@ -4178,11 +4178,13 @@ int ibis::index::initOffsets(int64_t *buf, size_t noffsets) {
     if (noffsets <= 1) return -1;
 
     ibis::array_t<int64_t> tmp(buf, noffsets);
-    if (ibis::gVerbose > 0) {
+#if defined(DEBUG) || defined(_DEBUG)
+    if (ibis::gVerbose > 5) {
         ibis::util::logger lg;
-        lg() << "DEBUG ** index::initOffsets recent the following values\n";
+        lg() << "DEBUG -- index::initOffsets recent the following values\n";
         tmp.print(lg());
     }
+#endif
     offset64.deepCopy(tmp);
     for (size_t j = 0; j < offset64.size(); ++ j)
         offset64[j] *= 4;

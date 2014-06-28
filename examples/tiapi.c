@@ -23,13 +23,13 @@ void usage(const char *name) {
 } /* usage */
 
 /** Generate three arrays of specified sizes.
- *  The three arrays have the following values:
- * - a1 has non-negative 16-bit integers going from 0 to 32637 and then
- *   repeat.
- * - a2 contains 32-bit even number.  With a large n, these numbers can
- *   become negative.
- * - a3 contains 64-bit floating-point numbers that goes from 0 in
- *   increment of 1/4.
+    The three arrays have the following values:
+    - a1 has non-negative 16-bit integers going from 0 to 32637 and then
+      repeat.
+    - a2 contains 32-bit even number.  With a large n, these numbers can
+      become negative.
+    - a3 contains 64-bit floating-point numbers that goes from 0 in
+      increment of 1/4.
  */
 static void fillarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     size_t j;
@@ -40,22 +40,24 @@ static void fillarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     }
 } /* fillarrays */
 
-/*
-static void indexarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
-    uint64_t nk, no, nb;
-    int ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
-    printf("fastbit_iapi_register_array returned %d\n", ierr);
-
-    ierr = fastbit_iapi_build_index("a1", (const char*)0, &nk, &no, &nb);
-    printf("fastbit_iapi_build_index returned %d\n", ierr);
-}
-*/
+/** A simple reader to be used by FastBit for index reconstruction.  In
+    this simple case, the first argument is the whole array storing all the
+    serialized bitmaps.  This first argument can be used to point to a data
+    structure pointing to any complex object type necassary.
+ */
+static int mybmreader(void *ctx, uint64_t start,uint64_t count, uint32_t *buf) {
+    const uint32_t *bms = (uint32_t*)ctx + start;
+    for (unsigned j = 0; j < count; ++ j)
+        buf[j] = bms[j];
+    return 0;
+} // mybmreader
 
 static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     int16_t b1 = 5;
     int32_t b2 = 11;
     double b31 = 2.0, b32 = 3.5;
     long int i, ierr;
+    uint32_t *bms;
     FastBitSelectionHandle h1, h2, h3, h4, h5;
 
     ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
@@ -146,13 +148,12 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     { /* Serialize the index for a1 and re-attach it */
         double *keys;
         int64_t *offsets;
-        uint32_t *bms;
         uint64_t nk, no, nb;
         ierr = fastbit_iapi_deconstruct_index
             ("a1", &keys, &nk, &offsets, &no, &bms, &nb);
         if (ierr >= 0) {
-            ierr = fastbit_iapi_attach_full_index
-                ("a1", keys, nk, offsets, no, bms, nb);
+            ierr = fastbit_iapi_attach_index
+                ("a1", keys, nk, offsets, no, bms, mybmreader);
             if (ierr < 0)
                 printf("Warning -- fastbit_iapi_attach_full_index failed "
                        "to attach the index to a1, ierr = %ld\n", ierr);
@@ -161,7 +162,6 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             printf("Warning -- fastbit_iapi_deconstruct_index failed "
                    "to serialize the index of a1, ierr = %ld\n", ierr);
         }
-        free(bms);
         free(offsets);
         free(keys);
     }
@@ -186,6 +186,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     h5 = fastbit_selection_combine(h2, FastBitCombineAnd, h4);
 
     ierr = fastbit_selection_evaluate(h5);
+    free(bms);
     if (ierr < 0) {
         printf("Warning -- fastbit_selection_evaluate(...) returned %ld\n",
                ierr);
@@ -276,7 +277,7 @@ int main(int argc, char **argv) {
     msglvl += 3;
 #endif
 #endif
-    msglvl += 4;
+    msglvl += 1;
     a1 = (int16_t*)malloc(2*nmax);
     a2 = (int32_t*)malloc(4*nmax);
     a3 = (double*)malloc(8*nmax);
