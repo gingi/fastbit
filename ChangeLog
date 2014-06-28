@@ -17,6 +17,9 @@
 	* src/iapi.h: remove the size information from
 	fastbit_iapi_build_index, change fastbit_iapi_deconstruct_index to
 	allocate the required memory
+	* example/tiapi.c: modify the example to use the callback function
+	FastBitReadIntArray to avoid passing all bitmaps to construct the
+	index
 
 2014-06-26 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.h, src/iapi.cpp: add functions to deal with indexes
