@@ -2074,19 +2074,19 @@ void ibis::fileManager::storage::clear() {
 void* ibis::fileManager::storage::release() {
     std::string evt = "fileManager::storage";
     if (nref() > 1) {
-        LOGGER(ibis::gVerbose > 3)
-            << "Warning -- " << evt << " -- storage object at 0x"
-            << static_cast<void*>(m_begin) << " busy (nref=" << nref() << ")";
-        return 0;
+	LOGGER(ibis::gVerbose > 3)
+	    << "Warning -- " << evt << " -- storage object at 0x"
+	    << static_cast<void*>(m_begin) << " busy (nref=" << nref() << ")";
+	return 0;
     }
     if (ibis::gVerbose > 6) {
-        std::ostringstream oss;
-        oss << "(" << static_cast<void*>(this) << ", "
-            << static_cast<void*>(m_begin);
-        if (name)
-            oss << ", " << name;
-        oss << ")";
-        evt += oss.str();
+	std::ostringstream oss;
+	oss << "(" << static_cast<void*>(this) << ", "
+	    << static_cast<void*>(m_begin);
+	if (name)
+	    oss << ", " << name;
+	oss << ")";
+	evt += oss.str();
     }
     if (nref() > 0)
         ibis::fileManager::decreaseUse(size(), evt.c_str());
@@ -2096,8 +2096,8 @@ void* ibis::fileManager::storage::release() {
     m_end = 0;
     nacc = 0;
     if (name) {
-        delete [] name;
-        name = 0;
+	delete [] name;
+	name = 0;
     }
     LOGGER(ibis::gVerbose > 8) << evt << " releaseed";
     return ret;

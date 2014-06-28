@@ -121,14 +121,16 @@ extern "C" {
     (const char*, FastBitDataType, void*, uint64_t*, uint64_t);
 
     /** Build index. */
-    int fastbit_iapi_build_index
-    (const char*, const char*, uint64_t*, uint64_t*, uint64_t*);
+    int fastbit_iapi_build_index(const char*, const char*);
 
-    /** Write index into three arrays.  Caller must allocate the space
-        needed for the three arrays based on arguments returned by
-        fastbit_iapi_build_index. */
+    /** Write index into three arrays.  This function allocate the memory
+        space for three arrays named keys, offsets and bms.  The caller is
+        responsible for freeing these three arrays.
+    */
     int fastbit_iapi_deconstruct_index
-    (const char*, double*, uint64_t, int64_t*, uint64_t, uint32_t*, uint64_t);
+    (const char*, double**keys, uint64_t*nkeys,
+     int64_t**offsets, uint64_t*noffsets,
+     uint32_t**bms, uint64_t*nbms);
 
     /** Attach an index to a column already registered. */
     int fastbit_iapi_attach_full_index

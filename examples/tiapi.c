@@ -56,29 +56,32 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     int32_t b2 = 11;
     double b31 = 2.0, b32 = 3.5;
     long int i, ierr;
-    uint64_t nk, no, nb;
     FastBitSelectionHandle h1, h2, h3, h4, h5;
 
     ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
     if (ierr < 0) {
-        printf("Warning -- fastbit_iapi_register_array failed to register a1, ierr = %ld\n", ierr);
+        printf("Warning -- fastbit_iapi_register_array failed to register a1, "
+               "ierr = %ld\n", ierr);
         return;
     }
     ierr = fastbit_iapi_register_array("a2", FastBitDataTypeInt, a2, n);
     if (ierr < 0) {
-        printf("Warning -- fastbit_iapi_register_array failed to register a2, ierr = %ld\n", ierr);
+        printf("Warning -- fastbit_iapi_register_array failed to register a2, "
+               "ierr = %ld\n", ierr);
         return;
     }
     ierr = fastbit_iapi_register_array("a3", FastBitDataTypeDouble, a3, n);
     if (ierr < 0) {
-        printf("Warning -- fastbit_iapi_register_array failed to register a3, ierr = %ld\n", ierr);
+        printf("Warning -- fastbit_iapi_register_array failed to register a3, "
+               "ierr = %ld\n", ierr);
         return;
     }
 
     /* build index on a1, automatically attached */
-    ierr = fastbit_iapi_build_index("a1", (const char*)0, &nk, &no, &nb);
+    ierr = fastbit_iapi_build_index("a1", (const char*)0);
     if (ierr < 0) {
-        printf("Warning -- fastbit_iapi_build_index failed to create index for a1, ierr=%ld\n", ierr);
+        printf("Warning -- fastbit_iapi_build_index failed to create index "
+               "for a1, ierr=%ld\n", ierr);
     }
 
     h1 = fastbit_selection_osr("a1", FastBitCompareLess, b1);
@@ -141,34 +144,29 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
 
 
     { /* Serialize the index for a1 and re-attach it */
-        double *keys = (double*)malloc(8*nk);
-        int64_t *offsets = (int64_t*)malloc(8*no);
-        uint32_t *bms = (uint32_t*)malloc(4*nb);
-        if (keys != 0 && offsets != 0 && bms != 0) {
-            ierr = fastbit_iapi_deconstruct_index
+        double *keys;
+        int64_t *offsets;
+        uint32_t *bms;
+        uint64_t nk, no, nb;
+        ierr = fastbit_iapi_deconstruct_index
+            ("a1", &keys, &nk, &offsets, &no, &bms, &nb);
+        if (ierr >= 0) {
+            ierr = fastbit_iapi_attach_full_index
                 ("a1", keys, nk, offsets, no, bms, nb);
-            if (ierr >= 0) {
-                ierr = fastbit_iapi_attach_full_index
-                    ("a1", keys, nk, offsets, no, bms, nb);
-                if (ierr < 0)
-                    printf("Warning -- fastbit_iapi_attach_full_index failed "
-                           "to attach the index to a1, ierr = %ld\n", ierr);
-            }
-            else {
-                    printf("Warning -- fastbit_iapi_deconstruct_index failed "
-                           "to serialize the index of a1, ierr = %ld\n", ierr);
-            }
+            if (ierr < 0)
+                printf("Warning -- fastbit_iapi_attach_full_index failed "
+                       "to attach the index to a1, ierr = %ld\n", ierr);
         }
         else {
-            printf("Warning -- queryarrays failed to allocate memory to "
-                   "serialize the index for a1");
+            printf("Warning -- fastbit_iapi_deconstruct_index failed "
+                   "to serialize the index of a1, ierr = %ld\n", ierr);
         }
         free(bms);
         free(offsets);
         free(keys);
     }
 
-    ierr = fastbit_iapi_build_index("a2", (const char*)0, &nk, &no, &nb);
+    ierr = fastbit_iapi_build_index("a2", (const char*)0);
     if (ierr < 0) {
         printf("Warning -- fastbit_iapi_build_index failed to create index "
                "for a2, ierr=%ld\n", ierr);
