@@ -6022,11 +6022,16 @@ void ibis::bin::print(std::ostream& out) const {
                     << minval[i] << ", " << maxval[i] << "]\n";
 		cnt += bits[i]->cnt();
             }
-            else
+            else {
                 ++ omt;
+            }
 	}
-        omt = nobs-1-npr;
+        omt += nobs-1-npr;
         i = nobs-1;
+        if (omt > 0) {
+            out << " ...\t(" << omt << " omitted)\n";
+        }
+
         out << i << ": ";
         if (bits[i] != 0) {
             out << bits[i]->cnt();
@@ -6067,11 +6072,10 @@ void ibis::bin::print(std::ostream& out) const {
 	    }
 	}
 	omt = nobs - npr;
+        if (omt > 0) {
+            out << " ...\t(" << omt << " omitted)\n";
+        }
     }
-    if (omt > 0) {
-	out << " ...\t(" << omt << " omitted)";
-    }
-    out << std::endl;
 } // ibis::bin::print
 
 // the given range is limited to the range of [lbound, rbound) with a

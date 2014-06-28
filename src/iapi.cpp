@@ -1488,7 +1488,7 @@ extern "C" int fastbit_iapi_resolve_range
     ibis::qContinuousRange cr("_", __fastbit_iapi_convert_compare_type(ct), cv);
     switch (ih2->type()) {
     case ibis::index::BINNING:
-        static_cast<const ibis::bin*>(ih2)->locate(cr, _1, _2, _3, _4);
+        static_cast<const ibis::bin*>(ih2)->locate(cr, _1, _4, _2, _3);
         break;
     case ibis::index::RELIC:
         static_cast<const ibis::relic*>(ih2)->locate(cr, _2, _3);
