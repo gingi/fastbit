@@ -12,6 +12,11 @@
 	fastbit_iapi_deconstruct_index to explicit copy the values from
 	array_t objects to the output buffers
 	* src/iapi.cpp:1491 _4 was in the wrong place
+	* src/fileManager.h, src/array_t.h: add function release to give
+	the space to user as a raw pointer.
+	* src/iapi.h: remove the size information from
+	fastbit_iapi_build_index, change fastbit_iapi_deconstruct_index to
+	allocate the required memory
 
 2014-06-26 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.h, src/iapi.cpp: add functions to deal with indexes

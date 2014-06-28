@@ -251,6 +251,8 @@ public:
 	return (m_begin!=0 && m_begin<m_end ? m_end-m_begin : 0);}
     void enlarge(size_t nelm=0);
 
+    /// Release the control of the memory to the caller as a raw pointer.
+    virtual void* release();
     /// Starting address of the storage object.
     char* begin() {return m_begin;}
     /// Ending address of the storage object.
@@ -364,6 +366,7 @@ protected:
 
     friend class ibis::fileManager;
     virtual void clear(); // free memory/close file
+    virtual void* release() {return 0;}
 
     void printBody(std::ostream& out) const;
 

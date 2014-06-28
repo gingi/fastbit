@@ -1351,10 +1351,6 @@ extern "C" int fastbit_iapi_register_array_nd
 
 /// @arg aname: column name
 /// @arg iopt: indexing option
-/// @arg nkeys: number of elements (doubles) needed to store the bitmap keys.
-/// @arg noffsets: number of elements (int64_t) needed to store the bitmap
-/// offsets.
-/// @arg nbitmaps: number of elements (uint32_t) needed to store the bitmaps.
 ///
 /// Returns 0 for success, a negative number for any error or failure.
 ///
@@ -1362,8 +1358,7 @@ extern "C" int fastbit_iapi_register_array_nd
 /// will be assigned a value.  This is taken as the user does not want to
 /// write the index out.
 extern "C" int fastbit_iapi_build_index
-(const char *aname, const char *iopt, uint64_t *nkeys, uint64_t *noffsets,
- uint64_t *nbitmaps) {
+(const char *aname, const char *iopt) {
     if (aname == 0 || *aname == 0)
         return -1;
 
@@ -1381,27 +1376,13 @@ extern "C" int fastbit_iapi_build_index
             "for array " << aname;
         return -3;
     }
-
-    if (nkeys == 0 || noffsets == 0 || nbitmaps == 0)
-        return 0;
-
-    col->serialSizes(*nkeys, *noffsets, *nbitmaps);
-    if (*nkeys == 0 || *noffsets == 0 || *nbitmaps == 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- fastbit_iapi_build_index failed to create a valid "
-            "index for array " << aname;
-        col->unloadIndex();
-        return -4;
-    }
-    else {
-        return 0;
-    }
+    return 0;
 } // fastbit_iapi_build_index
 
 extern "C" int fastbit_iapi_deconstruct_index
-(const char *aname, double *keys, uint64_t nkeys,
- int64_t *offsets, uint64_t noffsets,
- uint32_t *bitmaps, uint64_t nbitmaps) {
+(const char *aname, double **keys, uint64_t *nkeys,
+ int64_t **offsets, uint64_t *noffsets,
+ uint32_t **bms, uint64_t *nbms) {
     if (aname == 0 || *aname == 0)
         return -1;
 
@@ -1418,36 +1399,19 @@ extern "C" int fastbit_iapi_deconstruct_index
     ibis::array_t<int64_t> arro;
     ibis::array_t<uint32_t> arrb;
     ierr = col->writeIndex(arrk, arro, arrb);
-    if (ierr >= 0 && arrk.size() == nkeys && arro.size() == noffsets &&
-        arrb.size() == nbitmaps) {
-        std::copy(arrk.begin(), arrk.end(), keys);
-        std::copy(arro.begin(), arro.end(), offsets);
-        std::copy(arrb.begin(), arrb.end(), bitmaps);
+    if (ierr >= 0) {
+        *nkeys    = arrk.size();
+        *keys     = arrk.release();
+        *noffsets = arro.size();
+        *offsets  = arro.release();
+        *nbms     = arrb.size();
+        *bms      = arrb.release();
     }
     else {
         LOGGER(ibis::gVerbose > 0)
-            << "Warning -- fastbit_iapi_deconstruct_index encountered troubles"
-            << "\n\tarrk: expected size " << nkeys
-            << ", actual size " << arrk.size()
-            << "\n\tarro: expected size " << noffsets
-            << ", actual size " << arro.size()
-            << "\n\tarrb: expected size " << nbitmaps
-            << ", actual size " << arrb.size()
-            << "\n\tcol->writeIndex returned " << ierr;
+            << "Warning -- fastbit_iapi_deconstruct_index failed, "
+            "writeIndex returned " << ierr;
     }
-    // if (ibis::gVerbose > 0) {
-    //     ibis::util::logger lg;
-    //     lg() << "DEBUG ** fastbit_iapi_deconstruct_index:\n\t"
-    //         "content of serialized index for array " << col->name();
-    //     lg() << "\nkeys @ " << static_cast<void*>(keys)
-    //          << ", offsets @ " << static_cast<void*>(offsets) << "\n";
-    //     lg() << "\n\tarrk: ";
-    //     arrk.printStatus(lg());
-    //     arrk.print(lg());
-    //     lg() << "\tarro: ";
-    //     arro.printStatus(lg());
-    //     arro.print(lg());
-    // }
     return ierr;
 } // fastbit_iapi_deconstruct_index
 
@@ -1502,8 +1466,8 @@ extern "C" int fastbit_iapi_resolve_range
         _4 = 0;
     }
     if (cand0 != 0) *cand0 = _1;
-    if (hit0 != 0) *cand0 = _2;
-    if (hit1 != 0) *cand0 = _3;
+    if (hit0 != 0)  *hit0  = _2;
+    if (hit1 != 0)  *hit1  = _3;
     if (cand1 != 0) *cand1 = _4;
     return 0;
 } // fastbit_iapi_resolve_range

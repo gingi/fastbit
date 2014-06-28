@@ -2048,6 +2048,41 @@ void ibis::fileManager::storage::clear() {
     LOGGER(ibis::gVerbose > 8) << evt << " cleared";
 } // ibis::fileManager::storage::clear
 
+/// The caller is to take control of memory and responsible for freeing it
+/// after use.  It can only proceed if there is no other accesses to this
+/// object.
+void* ibis::fileManager::storage::release() {
+    std::string evt = "fileManager::storage";
+    if (nref() > 1) {
+	LOGGER(ibis::gVerbose > 3)
+	    << "Warning -- " << evt << " -- storage object at 0x"
+	    << static_cast<void*>(m_begin) << " busy (nref=" << nref() << ")";
+	return 0;
+    }
+    if (ibis::gVerbose > 6) {
+	std::ostringstream oss;
+	oss << "(" << static_cast<void*>(this) << ", "
+	    << static_cast<void*>(m_begin);
+	if (name)
+	    oss << ", " << name;
+	oss << ")";
+	evt += oss.str();
+    }
+    if (nref() > 0)
+        ibis::fileManager::decreaseUse(size(), evt.c_str());
+
+    void *ret = m_begin;
+    m_begin = 0;
+    m_end = 0;
+    nacc = 0;
+    if (name) {
+	delete [] name;
+	name = 0;
+    }
+    LOGGER(ibis::gVerbose > 8) << evt << " releaseed";
+    return ret;
+} // ibis::fileManager::storage::release
+
 /// Print information about the storage object to the specified output
 /// stream.
 void ibis::fileManager::storage::printStatus(std::ostream& out) const {

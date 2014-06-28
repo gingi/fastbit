@@ -1551,6 +1551,21 @@ void ibis::array_t<T>::reserve(size_t n) {
     }
 } // ibis::array_t<T>::reserve
 
+/// Release the memory under management to the caller as a raw pointer.
+/// The caller takes the responsibility to free to memory.  This object is
+/// emptied.
+template<class T>
+T* ibis::array_t<T>::release() {
+    nosharing();
+    T* ret = (actual != 0 ? static_cast<T*>(actual->release())
+              : static_cast<T*>(0));
+    if (ret != 0) {
+        m_begin = 0;
+        m_end = 0;
+    }
+    return ret;
+} // ibis::array_t<T>::release
+
 /// Insert a single value to the specified location.  It inserts the value
 /// right infront of position p and returns the iterator pointing to the
 /// new element.
