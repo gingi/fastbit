@@ -6466,11 +6466,16 @@ void ibis::bin::print(std::ostream& out) const {
                     << minval[i] << ", " << maxval[i] << "]\n";
 		cnt += bits[i]->cnt();
             }
-            else
+            else {
                 ++ omt;
+            }
 	}
-        omt = nobs-1-npr;
+        omt += nobs-1-npr;
         i = nobs-1;
+        if (omt > 0) {
+            out << " ...\t(" << omt << " omitted)\n";
+        }
+
         out << i << ": ";
         if (bits[i] != 0) {
             out << bits[i]->cnt();
@@ -6498,19 +6503,19 @@ void ibis::bin::print(std::ostream& out) const {
 	}
     }
     else if (nobs > 0) { // the short form
-        out << "The three columns are (1) center of bin, (2) bin weight, "
-            "(3) bit vector size (bytes)\n";
-        for (uint32_t i=0; i<npr; ++i) {
-            if (bits[i]) {
-                out.precision(12);
-                out << 0.5*(minval[i]+maxval[i]) << '\t'
-                    << bits[i]->cnt() << '\t' << bits[i]->bytes() << "\n";
-            }
-            else {
-                ++ omt;
-            }
-        }
-        omt = nobs - npr;
+	out << "The three columns are (1) center of bin, (2) bin weight, "
+	    "(3) bit vector size (bytes)\n";
+	for (uint32_t i=0; i<npr; ++i) {
+	    if (bits[i]) {
+		out.precision(12);
+		out << 0.5*(minval[i]+maxval[i]) << '\t'
+		    << bits[i]->cnt() << '\t' << bits[i]->bytes() << "\n";
+	    }
+	    else {
+		++ omt;
+	    }
+	}
+	omt = nobs - npr;
         if (omt > 0) {
             out << " ...\t(" << omt << " omitted)\n";
         }
