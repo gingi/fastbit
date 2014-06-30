@@ -5114,6 +5114,9 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
                 << " has " << nr << " row" << (nr>1?"s":"") << ", but expected "
                 << tbl->nRows();
         }
+        else {
+            mask_.set(1, nr);
+        }
     }
     else { // allocate buffer
 	switch (m_type) {
@@ -5176,7 +5179,27 @@ ibis::bord::column::column(const ibis::bord *tbl,
     : ibis::column(tbl, old.type(), old.name(), old.description(),
 		   old.lowerBound(), old.upperBound()),
       buffer(st), dic(0) {
+    old.getNullMask(mask_);
 } // ibis::bord::column::column
+
+/// Constructor.
+ibis::bord::column::column(ibis::TYPE_T t, const char *nm, void *st,
+                           uint64_t *dim, uint64_t nd)
+        : ibis::column(0, t, nm), buffer(st), dic(0), shape(dim, nd) {
+    uint64_t nt = 1;
+    for (unsigned j = 0; j < nd; ++ j)
+        nt *= dim[j];
+    if (nt <= 0x7FFFFFFFUL) {
+        mask_.set(1, nt);
+    }
+    else {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- due to limitation of internal data structure, "
+            "a column object can not have more than 0x7FFFFFFF rows, but "
+            "the current spec is for " << nt;
+        throw "exceeded limit on max no. rows (0x7FFFFFFF)";
+    }
+}
 
 /// Copy constructor.  Performs a shallow copy of the storage buffer.
 ibis::bord::column::column(const ibis::bord::column &c)
@@ -5185,42 +5208,52 @@ ibis::bord::column::column(const ibis::bord::column &c)
     case ibis::BYTE: {
 	buffer = new array_t<signed char>
 	    (* static_cast<array_t<signed char>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::UBYTE: {
 	buffer = new array_t<unsigned char>
 	    (* static_cast<array_t<unsigned char>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::SHORT: {
 	buffer = new array_t<int16_t>
 	    (* static_cast<array_t<int16_t>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::USHORT: {
 	buffer = new array_t<uint16_t>
 	    (* static_cast<array_t<uint16_t>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::INT: {
 	buffer = new array_t<int32_t>
 	    (* static_cast<array_t<int32_t>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::UINT: {
 	buffer = new array_t<uint32_t>
 	    (* static_cast<array_t<uint32_t>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::LONG: {
 	buffer = new array_t<int64_t>
 	    (* static_cast<array_t<int64_t>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::ULONG: {
 	buffer = new array_t<uint64_t>
 	    (* static_cast<array_t<uint64_t>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::FLOAT: {
 	buffer = new array_t<float>
 	    (* static_cast<array_t<float>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::DOUBLE: {
 	buffer = new array_t<double>
 	    (* static_cast<array_t<double>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
@@ -5231,14 +5264,17 @@ ibis::bord::column::column(const ibis::bord::column &c)
 	// std::vector<std::string> *lhs = new std::vector<std::string>;
 	// lhs->insert(lhs->end(), rhs.begin(), rhs.end());
 	// buffer = lhs;
+        mask_.copy(c.mask_);
 	break;}
     case ibis::OID: {
 	buffer = new array_t<rid_t>
 	    (* static_cast<array_t<rid_t>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     case ibis::BLOB: {
 	buffer = new std::vector<ibis::opaque>
 	    (* static_cast<std::vector<ibis::opaque>*>(c.buffer));
+        mask_.copy(c.mask_);
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 1)

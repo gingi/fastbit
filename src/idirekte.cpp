@@ -192,6 +192,10 @@ ibis::direkte::direkte(const ibis::column* c, ibis::fileManager::storage* st)
     read(st);
 } // ibis::direkte::direkte
 
+ibis::index* ibis::direkte::dup() const {
+    return new ibis::direkte(*this);
+}
+
 template <typename T>
 int ibis::direkte::construct0(const char* dfname) {
     if (col == 0) return -1;

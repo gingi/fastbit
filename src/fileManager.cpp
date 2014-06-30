@@ -1727,11 +1727,26 @@ template class ibis::fileManager::buffer<uint64_t>;
 //
 /// Constructor.  Allocate no real storage.
 ibis::fileManager::storage::storage()
-    : name(0), m_begin(0), m_end(0), nacc(0), nref() {
+    : name(), m_begin(0), m_end(0), nacc(0), nref() {
     LOGGER(ibis::gVerbose > 8)
 	<< "fileManager::storage(" << static_cast<void*>(this) << ", "
 	<< static_cast<void*>(m_begin) << ") initialization completed";
 }
+
+/// Wrap user provided memory into a storage object.  It does not copy the
+/// content, thus the user-provided memory must not be freed while this
+/// object is in use.
+ibis::fileManager::storage::storage(char* addr, size_t num)
+    : name(addr!=0 ? new char[1] : 0), m_begin(addr),
+      m_end(addr!=0 ? addr+num : 0), nacc(0), nref() {
+    if (name != 0)
+        *name = 0;
+    LOGGER(ibis::gVerbose > 8)
+	<< "fileManager::storage(" << static_cast<void*>(this) << ", "
+        << static_cast<const void*>(m_begin)
+        << ") initialization completed wrapping " << num
+        << " byte" << (num>1?"s":"");
+} // ibis::fileManager::storage::storage
 
 /// Constructor.  Allocate storage for an array of the specified size (in
 /// bytes).
@@ -2018,6 +2033,9 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
 } // ibis::fileManager::storage::enlarge
 
 /// Actually freeing the storage allocated.
+///
+/// @note When name is not nil, but *name == 0, then the pointer is given
+/// by the user and the user is responsible for freeing the memory.
 void ibis::fileManager::storage::clear() {
     std::string evt = "fileManager::storage";
     if (nref() > 0) {
@@ -2036,8 +2054,10 @@ void ibis::fileManager::storage::clear() {
 	evt += oss.str();
     }
 
-    ibis::fileManager::decreaseUse(size(), evt.c_str());
-    free(m_begin);
+    if (name == 0 || *name != 0) {
+        ibis::fileManager::decreaseUse(size(), evt.c_str());
+        free(m_begin);
+    }
     m_begin = 0;
     m_end = 0;
     nacc = 0;
@@ -2087,7 +2107,7 @@ void* ibis::fileManager::storage::release() {
 /// stream.
 void ibis::fileManager::storage::printStatus(std::ostream& out) const {
     if (name)
-	out << "file name       " << name << "\n";
+	out << "file name       \"" << name << "\"\n";
     out << "storage @ " << static_cast<const void*>(this) << ", "
 	<< static_cast<const void*>(m_begin);
     if (m_begin != 0 && m_end > m_begin) {

@@ -160,6 +160,10 @@ ibis::keywords::keywords(const ibis::column* c, ibis::fileManager::storage* st)
     read(st);
 } // ibis::keywords::keywords
 
+ibis::index* ibis::keywords::dup() const {
+    return new ibis::keywords(*this);
+}
+
 /// Reads a term-document list from an external file.  Returns the number
 /// of terms found if successful, otherwise returns a negative number to
 /// indicate error.
@@ -667,7 +671,8 @@ int ibis::keywords::write(ibis::array_t<double> &keys,
     return 0;
 }
 
-void ibis::keywords::serialSizes(uint64_t &wkeys, uint64_t &woffsets, uint64_t &wbitmaps) const {
+void ibis::keywords::serialSizes
+(uint64_t &wkeys, uint64_t &woffsets, uint64_t &wbitmaps) const {
     const uint32_t nobs = bits.size();
     if (nobs == 0) {
         wkeys = 0;

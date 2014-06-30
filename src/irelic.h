@@ -21,16 +21,19 @@
 class ibis::relic : public ibis::index {
 public:
     virtual ~relic() {clear();};
+    relic(const relic&);
     relic(const ibis::column* c, const char* f = 0);
     relic(const ibis::column* c, uint32_t popu, uint32_t ntpl=0);
     relic(const ibis::column* c, uint32_t card, array_t<uint32_t>& ints);
     relic(const ibis::column* c, ibis::fileManager::storage* st,
 	  size_t start = 8);
-    relic(uint32_t nb, double *keys, int64_t *offs);
-    relic(uint32_t nb, double *keys, int64_t *offs, uint32_t *bms);
-    relic(uint32_t nb, double *keys, int64_t *offs,
+    relic(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs);
+    relic(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
+          uint32_t *bms);
+    relic(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
           void *bms, FastBitReadIntArray rd);
 
+    virtual index* dup() const;
     virtual void print(std::ostream& out) const;
     virtual void serialSizes(uint64_t&, uint64_t&, uint64_t&) const;
     virtual int write(ibis::array_t<double> &,
@@ -268,7 +271,6 @@ private:
 	return compJoin(idx2, mask, delta);
     }
 
-    relic(const relic&);
     relic& operator=(const relic&);
 }; // ibis::relic
 

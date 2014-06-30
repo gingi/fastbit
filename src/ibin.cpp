@@ -223,47 +223,18 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 
 /// Copy constructor.  It performs a deep copy.
 ibis::bin::bin(const ibis::bin& rhs)
-    : ibis::index(rhs.col), nobs(rhs.nobs) {
-    clear();
-    rhs.activate(); // make sure all the bitvectors are in memory
-    try {
-	nrows = rhs.nrows;
-	offset64.resize(nobs+1);
-	bounds.copy(rhs.bounds);
-	maxval.copy(rhs.maxval);
-	minval.copy(rhs.minval);
-
-	offset64[0] = 0;
-	for (uint32_t i=0; i<nobs; ++i) {
-	    if (rhs.bits[i]) {
-		bits[i] = new ibis::bitvector;
-		bits[i]->copy(*(rhs.bits[i]));
-		offset64[i+1] = offset64[i] + bits[i]->bytes();
-	    }
-	    else {
-		bits[i] = 0;
-		offset64[i+1] = offset64[i];
-	    }
-	}
-
-	if (ibis::gVerbose > 2) {
-	    ibis::util::logger lg;
-	    lg() << "bin[" << (col ? col->name() : "?.?")
-		 << "]::ctor -- initialization completed with "
-		 << nobs << " bin" << (nobs>1?"s":"") << " for "
-		 << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 8) {
-		lg() << "\n";
-		print(lg());
-	    }
-	}
-    }
-    catch (...) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << (col ? col->name() : "?.?")
-	    << "]::bin::ctor encountered an exception, cleaning up ...";
-	clear();
-	throw;
+    : ibis::index(rhs), nobs(rhs.nobs), bounds(rhs.bounds), maxval(rhs.maxval),
+      minval(rhs.minval) {
+    if (ibis::gVerbose > 2) {
+        ibis::util::logger lg;
+        lg() << "bin[" << (col ? col->name() : "?.?")
+             << "]::ctor -- initialization completed copying "
+             << nobs << " bin" << (nobs>1?"s":"") << " for "
+             << nrows << " row" << (nrows>1?"s":"");
+        if (ibis::gVerbose > 8) {
+            lg() << "\n";
+            print(lg());
+        }
     }
 } // copy constructor
 
@@ -384,8 +355,10 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 } // ibis::bin::bin
 
 /// Reconstruct an object from keys and offsets.
-ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs, uint32_t *bms)
+ibis::bin::bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
+               uint32_t *bms)
     : ibis::index(0), nobs(nb) {
+    col = c;
     {
         array_t<double> tmp1(keys, nb);
         array_t<double> tmp2(keys+nb, nb);
@@ -398,13 +371,33 @@ ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs, uint32_t *bms)
     }
     bounds.back() = DBL_MAX;
     initOffsets(offs, nb+1);
-    initBitmaps(bms);
+
+    ibis::fileManager::storage *wrapper =
+        new ibis::fileManager::storage(reinterpret_cast<char*>(bms),
+                                       static_cast<size_t>(offs[nb]*4));
+    initBitmaps(wrapper);
+    if (c != 0)
+        nrows = c->nRows();
+
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg() << "bin[" << (col ? col->fullname() : "?.?")
+	     << "]::ctor -- initialization completed with "
+	     << nobs << " bin" << (nobs>1?"s":"") << " for "
+	     << nrows << " row" << (nrows>1?"s":"")
+             << " with serialized bitmaps @ " << static_cast<void*>(bms);
+	if (ibis::gVerbose > 8) {
+	    lg() << "\n";
+	    print(lg());
+	}
+    }
 } // ibis::bin::bin
 
 /// Reconstruct an object from keys and offsets.
-ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs,
+ibis::bin::bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
                void *bms, FastBitReadIntArray rd)
     : ibis::index(0), nobs(nb) {
+    col = c;
     {
         array_t<double> tmp1(keys, nb);
         array_t<double> tmp2(keys+nb, nb);
@@ -418,11 +411,27 @@ ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs,
     bounds.back() = DBL_MAX;
     initOffsets(offs, nb+1);
     initBitmaps(bms, rd);
+    if (c != 0)
+        nrows = c->nRows();
+
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg() << "bin[" << (col ? col->fullname() : "?.?")
+	     << "]::ctor -- initialization completed with "
+	     << nobs << " bin" << (nobs>1?"s":"") << " for "
+	     << nrows << " row" << (nrows>1?"s":"")
+	     << " from metadata @ " << bms;
+	if (ibis::gVerbose > 8) {
+	    lg() << "\n";
+	    print(lg());
+	}
+    }
 } // ibis::bin::bin
 
 /// Reconstruct an object from keys and offsets.
-ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs)
+ibis::bin::bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs)
     : ibis::index(0), nobs(nb) {
+    col = c;
     {
         array_t<double> tmp1(keys, nb);
         array_t<double> tmp2(keys+nb, nb);
@@ -435,7 +444,25 @@ ibis::bin::bin(uint32_t nb, double *keys, int64_t *offs)
     }
     bounds.back() = DBL_MAX;
     initOffsets(offs, nb+1);
+    if (c != 0)
+        nrows = c->nRows();
+
+    if (ibis::gVerbose > 2) {
+	ibis::util::logger lg;
+	lg() << "bin[" << (col ? col->fullname() : "?.?")
+	     << "]::ctor -- initialization completed with "
+	     << nobs << " bin" << (nobs>1?"s":"") << " for "
+	     << nrows << " row" << (nrows>1?"s":"");
+	if (ibis::gVerbose > 8) {
+	    lg() << "\n";
+	    print(lg());
+	}
+    }
 } // ibis::bin::bin
+
+ibis::index* ibis::bin::dup() const {
+    return new ibis::bin(*this);
+} // ibis::bin::dup
 
 /// Read from a file named f.
 int ibis::bin::read(const char* f) {

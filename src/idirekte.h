@@ -87,7 +87,9 @@ public:
     virtual long getDistribution
     (std::vector<double>& bbs, std::vector<uint32_t>& cts) const;
 
+    virtual index* dup() const;
     virtual ~direkte() {clear();}
+    direkte(const direkte &rhs) : index(rhs) {};
     direkte(const ibis::column* c, const char* f = 0);
     direkte(const ibis::column* c, ibis::fileManager::storage* st);
     direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl=0);
@@ -104,7 +106,6 @@ protected:
     virtual size_t getSerialSize() const throw();
 
     direkte();
-    direkte(const direkte&);
     direkte& operator=(const direkte&);
 }; // ibis::direkte
 

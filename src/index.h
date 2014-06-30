@@ -258,6 +258,8 @@ public:
 
     /// Extend the index.
     virtual long append(const char*, const char*, uint32_t) {return -1;}
+    /// Duplicate the content of an index object.
+    virtual index* dup() const = 0;
 
     float sizeInBytes() const;
     /// Time some logical operations and print out their speed.
@@ -300,6 +302,7 @@ public:
 	return std::numeric_limits<double>::quiet_NaN();}
     /// Return the number of rows represented by this object.
     uint32_t getNRows() const {return nrows;}
+
     /// The index object is considered empty if there is no bitmap or
     /// getNRows returns 0.
     bool empty() const {return (bits.empty() || nrows == 0);}
@@ -388,6 +391,8 @@ protected:
     index(const ibis::column* c=0)
         : col(c), str(0), fname(0), breader(0), nrows(0) {}
     index(const ibis::column* c, ibis::fileManager::storage* s);
+    index(const index&);
+    index& operator=(const index&);
 
     void dataFileName(std::string& name, const char* f=0) const;
     void indexFileName(std::string& name, const char* f=0) const;
@@ -430,8 +435,6 @@ protected:
     void initBitmaps(void *ctx, FastBitReadIntArray rd);
 
 private:
-    index(const index&); // no copy constructor
-    index& operator=(const index&); // no assignment operator
 
     static index* readOld(const column*, const char*,
 			  fileManager::storage*, INDEX_TYPE);

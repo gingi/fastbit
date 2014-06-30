@@ -86,6 +86,7 @@ public:
     void upperBound(double d) {upper = d;}
     void isSorted(bool);
     int  elementSize() const;
+    int  nRows() const {return mask_.size();}
 
     const part*  partition() const {return thePart;}
     const part*& partition() {return thePart;}

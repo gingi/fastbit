@@ -271,25 +271,83 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 } // constructor
 
 /// Reconstruct index from keys and offsets.
-ibis::relic::relic(uint32_t nb, double *keys, int64_t *offs) :
+ibis::relic::relic(const ibis::column* c, uint32_t nb, double *keys,
+                   int64_t *offs) :
     ibis::index(0), vals(keys, nb) {
+    col = c;
     initOffsets(offs, nb+1);
+    if (c != 0)
+        nrows = c->nRows();
 } // constructor
 
 /// Reconstruct index from keys and offsets.
-ibis::relic::relic(uint32_t nb, double *keys, int64_t *offs, uint32_t *bms) :
+ibis::relic::relic(const ibis::column* c, uint32_t nb, double *keys,
+                   int64_t *offs, uint32_t *bms) :
     ibis::index(0), vals(keys, nb) {
+    col = 0;
     initOffsets(offs, nb+1);
-    initBitmaps(bms);
+    if (c != 0)
+        nrows = c->nRows();
+
+    ibis::fileManager::storage *mystr =
+        new ibis::fileManager::storage(reinterpret_cast<char*>(bms),
+                                       static_cast<size_t>(offs[nb]*4));
+    initBitmaps(mystr);
+    if (ibis::gVerbose > 2) {
+        ibis::util::logger lg;
+        lg() << "relic[" << (col ? col->fullname() : "?.?")
+             << "]::ctor -- intialized an equality index with "
+             << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+             << " for " << nrows << " row" << (nrows>1?"s":"")
+             << " from a storage object @ " << static_cast<void*>(bms);
+        if (ibis::gVerbose > 8) {
+            lg() << "\n";
+            print(lg());
+        }
+    }
 } // constructor
 
 /// Reconstruct index from keys and offsets.
-ibis::relic::relic(uint32_t nb, double *keys, int64_t *offs,
-                   void *bms, FastBitReadIntArray rd) :
+ibis::relic::relic(const ibis::column* c, uint32_t nb, double *keys,
+                   int64_t *offs, void *bms, FastBitReadIntArray rd) :
     ibis::index(0), vals(keys, nb) {
+    col = c;
     initOffsets(offs, nb+1);
     initBitmaps(bms, rd);
+    if (c != 0)
+        nrows = c->nRows();
+    if (ibis::gVerbose > 2) {
+        ibis::util::logger lg;
+        lg() << "relic[" << (col ? col->fullname() : "?.?")
+             << "]::ctor -- intialized an equality index with "
+             << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+             << " for " << nrows << " row" << (nrows>1?"s":"")
+             << " from a storage object @ " << static_cast<void*>(bms);
+        if (ibis::gVerbose > 8) {
+            lg() << "\n";
+            print(lg());
+        }
+    }
 } // constructor
+
+/// Copy constructor.
+ibis::relic::relic(const ibis::relic &rhs) : ibis::index(rhs), vals(rhs.vals) {
+    if (ibis::gVerbose > 2) {
+        ibis::util::logger lg;
+        lg() << "relic[" << (col ? col->fullname() : "?.?")
+             << "]::ctor -- intialized an equality index with "
+             << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+             << " for " << nrows << " row" << (nrows>1?"s":"");
+        if (ibis::gVerbose > 8) {
+            lg() << "\n";
+            print(lg());
+        }
+    }
+} // copy constructor
+
+ibis::index* ibis::relic::dup() const {
+    return new ibis::relic(*this);
+} // ibis::relic::dup
 
 /// Write the content of the index to the specified location.  The actual
 /// index file name is determined by the function indexFileName.

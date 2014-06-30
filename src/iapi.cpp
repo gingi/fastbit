@@ -251,6 +251,12 @@ ibis::bord::column* __fastbit_iapi_register_array_nd
     uint64_t n = *dims;
     for (unsigned j = 1; j < nd; ++ j)
         n *= dims[j];
+    if (n > 0x7FFFFFFFUL) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- __fastbit_iapi_register_array_nd can not proceed "
+            "because the number of elements (" << n << ") exceeds 0x7FFFFFFF";
+        return 0;
+    }
 
     ibis::util::mutexLock(&__fastbit_iapi_lock,
                           "__fastbit_iapi_register_array_nd");
@@ -1419,11 +1425,11 @@ extern "C"
 FastBitIndexHandle fastbit_iapi_reconstruct_index
 (double *keys, uint64_t nkeys, int64_t *offsets, uint64_t noffsets) {
     if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
-        return new ibis::bin(static_cast<uint32_t>(noffsets-1),
+        return new ibis::bin(0, static_cast<uint32_t>(noffsets-1),
                              keys, offsets);
     }
     else if (nkeys+1 == noffsets) {
-        return new ibis::relic(static_cast<uint32_t>(nkeys),
+        return new ibis::relic(0, static_cast<uint32_t>(nkeys),
                                keys, offsets);
     }
     else {

@@ -113,6 +113,7 @@ public:
     long search(const std::vector<std::string>&, ibis::bitvector&) const;
     long search(const std::vector<std::string>&) const;
 
+    virtual index* dup() const;
     virtual void print(std::ostream& out) const;
     virtual void serialSizes(uint64_t&, uint64_t&, uint64_t&) const;
     virtual int write(ibis::array_t<double> &,

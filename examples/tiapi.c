@@ -185,7 +185,6 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     h5 = fastbit_selection_combine(h2, FastBitCombineAnd, h4);
 
     ierr = fastbit_selection_evaluate(h5);
-    free(bms);
     if (ierr < 0) {
         printf("Warning -- fastbit_selection_evaluate(...) returned %ld\n",
                ierr);
@@ -242,6 +241,8 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
         free(buf3);
     }
     fastbit_selection_free(h5);
+    fastbit_iapi_free_all();
+    free(bms);
 } /* queryarrays */
 
 int main(int argc, char **argv) {

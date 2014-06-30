@@ -308,7 +308,7 @@ ibis::column::column(const ibis::column& rhs) :
     thePart(rhs.thePart), mask_(rhs.mask_), m_type(rhs.m_type),
     m_name(rhs.m_name), m_desc(rhs.m_desc), m_bins(rhs.m_bins),
     m_sorted(rhs.m_sorted), lower(rhs.lower), upper(rhs.upper),
-    idx(0), idxcnt() {
+    idx(rhs.idx!=0 ? rhs.idx->dup() : 0), idxcnt() {
     if (pthread_rwlock_init(&rwlock, 0)) {
 	throw "column::ctor unable to initialize the rwlock";
     }
@@ -5521,12 +5521,12 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
     softWriteLock lock(this, evt.c_str());
     if (lock.isLocked() && 0 == idx) {
         if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
-            idx = new ibis::bin(static_cast<uint32_t>(noffsets-1),
+            idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms, rd);
             return 0;
         }
         else if (nkeys+1 == noffsets) {
-            idx = new ibis::relic(static_cast<uint32_t>(nkeys),
+            idx = new ibis::relic(this, static_cast<uint32_t>(nkeys),
                                   keys, offsets, bms, rd);
             return 0;
         }
@@ -5559,12 +5559,12 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
     softWriteLock lock(this, evt.c_str());
     if (lock.isLocked() && 0 == idx) {
         if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
-            idx = new ibis::bin(static_cast<uint32_t>(noffsets-1),
+            idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms);
             return 0;
         }
         else if (nkeys+1 == noffsets) {
-            idx = new ibis::relic(static_cast<uint32_t>(nkeys),
+            idx = new ibis::relic(this, static_cast<uint32_t>(nkeys),
                                   keys, offsets, bms);
             return 0;
         }

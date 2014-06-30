@@ -233,6 +233,7 @@ public:
     storage(const char* fname, const off_t begin, const off_t end);
     storage(const int fdes, const off_t begin, const off_t end);
     storage(const char* begin, const char* end);
+    storage(char* addr, size_t num);
     storage(const storage& rhs);
     storage& operator=(const storage& rhs);
     void copy(const storage& rhs);
