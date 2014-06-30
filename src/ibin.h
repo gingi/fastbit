@@ -34,9 +34,10 @@ public:
 	size_t offset = 8);
     bin(const ibis::column* c, const char* f, const array_t<double>& bd);
     bin(const ibis::column* c, const char* f, const std::vector<double>& bd);
-    bin(uint32_t nb, double *keys, int64_t *offs);
-    bin(uint32_t nb, double *keys, int64_t *offs, uint32_t *bms);
-    bin(uint32_t nb, double *keys, int64_t *offs,
+    bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs);
+    bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
+        uint32_t *bms);
+    bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
         void *bms, FastBitReadIntArray rd);
 
     virtual index* dup() const;

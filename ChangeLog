@@ -1,3 +1,16 @@
+2014-06-29 John Wu <John dot Wu at ACM dot org>
+	* src/ibin.h, src/irelic.h: add column object to the new
+	constructors for ibis::bin and ibis::relic in order to set nrows
+	* src/column.cpp: update attachIndex to use the new construtors
+
+2014-06-28 John Wu <John dot Wu at ACM dot org>
+	* src/index.h: add virtual function dup to ibis::index class
+	hierarchy, add copy constructors
+	* src/column.cpp: in the copy constructor of ibis::column, invoke
+	ibis::index::dup to copy the index when present
+	* src/column.h: add function ibis::column::nRows()
+	* src/index.cpp: add statements to set nrows in initBitmaps
+
 2014-06-27 John Wu <John dot Wu at ACM dot org>
 	* src/index.cpp: rename bheadle to breader, update versions of
 	activate to make use breader for recreating the bitvectors

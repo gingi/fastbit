@@ -527,8 +527,7 @@ public:
     column(const ibis::bord*, const ibis::column&, void *buf);
     column(const column &rhs);
     column(ibis::TYPE_T t, const char *nm, void *st,
-           uint64_t *dim, uint64_t nd)
-        : ibis::column(0, t, nm), buffer(st), dic(0), shape(dim, nd) {}
+           uint64_t *dim, uint64_t nd);
     virtual ~column();
 
     virtual ibis::fileManager::storage* getRawData() const;

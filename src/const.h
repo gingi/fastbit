@@ -331,6 +331,10 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 */
 typedef int (*FastBitReadIntArray)
 (void *context, uint64_t start, uint64_t count, uint32_t *buffer);
+typedef int (*FastBitRead1DArray)
+(void *context, uint64_t start, uint64_t count, void *buffer);
+typedef int (*FastBitReadNDArray)
+(void *context, uint64_t nd, uint64_t *start, uint64_t *count, void *buffer);
 
 //
 // functions for case-insensitive string comparisons

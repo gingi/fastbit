@@ -302,6 +302,7 @@ public:
 	return std::numeric_limits<double>::quiet_NaN();}
     /// Return the number of rows represented by this object.
     uint32_t getNRows() const {return nrows;}
+
     /// The index object is considered empty if there is no bitmap or
     /// getNRows returns 0.
     bool empty() const {return (bits.empty() || nrows == 0);}

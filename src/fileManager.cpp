@@ -1742,7 +1742,7 @@ ibis::fileManager::storage::storage(char* addr, size_t num)
     if (name != 0)
         *name = 0;
     LOGGER(ibis::gVerbose > 8)
-        << "fileManager::storage(" << static_cast<void*>(this) << ", "
+	<< "fileManager::storage(" << static_cast<void*>(this) << ", "
         << static_cast<const void*>(m_begin)
         << ") initialization completed wrapping " << num
         << " byte" << (num>1?"s":"");
@@ -2107,7 +2107,7 @@ void* ibis::fileManager::storage::release() {
 /// stream.
 void ibis::fileManager::storage::printStatus(std::ostream& out) const {
     if (name)
-        out << "file name       \"" << name << "\"\n";
+	out << "file name       \"" << name << "\"\n";
     out << "storage @ " << static_cast<const void*>(this) << ", "
         << static_cast<const void*>(m_begin);
     if (m_begin != 0 && m_end > m_begin) {

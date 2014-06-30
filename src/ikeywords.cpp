@@ -690,7 +690,8 @@ int ibis::keywords::write(ibis::array_t<double> &keys,
     return 0;
 }
 
-void ibis::keywords::serialSizes(uint64_t &wkeys, uint64_t &woffsets, uint64_t &wbitmaps) const {
+void ibis::keywords::serialSizes
+(uint64_t &wkeys, uint64_t &woffsets, uint64_t &wbitmaps) const {
     const uint32_t nobs = bits.size();
     if (nobs == 0) {
         wkeys = 0;
