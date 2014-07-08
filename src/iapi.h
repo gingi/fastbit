@@ -132,11 +132,21 @@ extern "C" {
      int64_t**offsets, uint64_t*noffsets,
      uint32_t**bms, uint64_t*nbms);
 
-    /** Attach an index to a column already registered. */
+    /** Attach an index to a column already registered.
+
+        @note The current implementation avoids copying the arrays passed
+        to this function, therefore, these arrays can not be freed until
+        the indexing data structure is cleared with fastbit_iapi_free_all.
+    */
     int fastbit_iapi_attach_full_index
     (const char*, double*, uint64_t, int64_t*, uint64_t, uint32_t*, uint64_t);
 
-    /** Attach an index to a column already registered. */
+    /** Attach an index to a column already registered.
+
+        @note The current implementation avoids copying the arrays passed
+        to this function, therefore, these arrays can not be freed until
+        the indexing data structure is cleared with fastbit_iapi_free_all.
+    */
     int fastbit_iapi_attach_index
     (const char*, double*, uint64_t, int64_t*, uint64_t,
      void*, FastBitReadIntArray);

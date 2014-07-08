@@ -1417,7 +1417,7 @@ int ibis::fileManager::unload(size_t sz) {
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
 		 << ", maxBytes=" << ibis::util::groupby1000(maxBytes)
 		 << "), will wait...";
-	    if (ibis::gVerbose > 6) {
+	    if (ibis::gVerbose > 5) {
 		lg() << "\n";
 		printStatus(lg());
 	    }
