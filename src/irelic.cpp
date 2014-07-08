@@ -271,9 +271,9 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 } // constructor
 
 /// Reconstruct index from keys and offsets.
-ibis::relic::relic(const ibis::column* c, uint32_t nb, double *keys,
+ibis::relic::relic(const ibis::column* c, uint32_t nb, double *kvs,
                    int64_t *offs) :
-    ibis::index(0), vals(keys, nb) {
+    ibis::index(0), vals(kvs, nb) {
     col = c;
     initOffsets(offs, nb+1);
     if (c != 0)
@@ -281,9 +281,9 @@ ibis::relic::relic(const ibis::column* c, uint32_t nb, double *keys,
 } // constructor
 
 /// Reconstruct index from keys and offsets.
-ibis::relic::relic(const ibis::column* c, uint32_t nb, double *keys,
+ibis::relic::relic(const ibis::column* c, uint32_t nb, double *kvs,
                    int64_t *offs, uint32_t *bms) :
-    ibis::index(0), vals(keys, nb) {
+    ibis::index(0), vals(kvs, nb) {
     col = 0;
     initOffsets(offs, nb+1);
     if (c != 0)
@@ -308,9 +308,9 @@ ibis::relic::relic(const ibis::column* c, uint32_t nb, double *keys,
 } // constructor
 
 /// Reconstruct index from keys and offsets.
-ibis::relic::relic(const ibis::column* c, uint32_t nb, double *keys,
+ibis::relic::relic(const ibis::column* c, uint32_t nb, double *kvs,
                    int64_t *offs, void *bms, FastBitReadIntArray rd) :
-    ibis::index(0), vals(keys, nb) {
+    ibis::index(0), vals(kvs, nb) {
     col = c;
     initOffsets(offs, nb+1);
     initBitmaps(bms, rd);
@@ -641,18 +641,18 @@ int ibis::relic::write64(int fdes) const {
     return (ierr == offset64[nobs] ? 0 : -12);
 } // ibis::relic::write64
 
-int ibis::relic::write(ibis::array_t<double> &keys,
+int ibis::relic::write(ibis::array_t<double> &kvs,
                        ibis::array_t<int64_t> &starts,
                        ibis::array_t<uint32_t> &bitmaps) const {
     const uint32_t nobs = (vals.size()<=bits.size()?vals.size():bits.size());
-    keys.resize(0);
     if (nobs == 0) {
+        kvs.resize(0);
         starts.resize(0);
         bitmaps.resize(0);
         return 0;
     }
 
-    keys.copy(vals);
+    kvs.copy(vals);
     starts.resize(nobs+1);
     starts[0] = 0;
     for (unsigned j = 0; j < nobs; ++ j) { // iterate over bitmaps

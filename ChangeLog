@@ -1,7 +1,16 @@
+2014-07-07 John Wu <John dot Wu at ACM dot org>
+	* src/iapi.h: clearify the fact that the bitmap keys and offsets
+	are used by FastBit data structures and therefore can not be freed
+	by the caller until fastbit_iapi_free_all is called -- fixing a
+	logical error in tiapi.c related to freeing keys and offsets
+	prematurely
+
 2014-06-29 John Wu <John dot Wu at ACM dot org>
 	* src/ibin.h, src/irelic.h: add column object to the new
 	constructors for ibis::bin and ibis::relic in order to set nrows
 	* src/column.cpp: update attachIndex to use the new construtors
+	* src/index.cpp: in the copy constructor, need to copy each
+	bitvector in bits
 
 2014-06-28 John Wu <John dot Wu at ACM dot org>
 	* src/index.h: add virtual function dup to ibis::index class

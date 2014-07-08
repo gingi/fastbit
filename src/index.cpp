@@ -1277,9 +1277,21 @@ ibis::index::index(const ibis::column* c, ibis::fileManager::storage* s) :
 ibis::index::index(const ibis::index &rhs)
     : col(rhs.col), str(rhs.str), fname(ibis::util::strnewdup(rhs.fname)),
       breader(rhs.breader!=0 ? new bitmapReader(*rhs.breader) : 0),
-      offset32(rhs.offset32), offset64(rhs.offset64), bits(rhs.bits),
-      nrows(rhs.nrows) {    
-} // ibis::index::copybase
+      offset32(rhs.offset32), offset64(rhs.offset64), bits(rhs.bits.size()),
+      nrows(rhs.nrows) {
+    for (size_t j = 0; j < rhs.bits.size(); ++ j) {
+        if (rhs.bits[j] != 0) {
+            bits[j] = new ibis::bitvector(*rhs.bits[j]);
+        }
+        else {
+            bits[j] = 0;
+        }
+    }
+    LOGGER(ibis::gVerbose > 3)
+        << "index::ctor copied an index for "
+        << (col!=0 ? col->fullname() : "?.?") << " from the existing index @ "
+        << static_cast<const void*>(&rhs);
+} // ibis::index::index
 
 /// Assignment operator.
 ibis::index& ibis::index::operator=(const ibis::index &rhs) {
@@ -1299,7 +1311,7 @@ ibis::index& ibis::index::operator=(const ibis::index &rhs) {
 void ibis::index::clear() {
     if (bits.size() > 0) {
         LOGGER(ibis::gVerbose > 6 && col != 0)
-            << "clearing " << bits.size() << "bit vector"
+            << "clearing " << bits.size() << " bit vector"
             << (bits.size()>1?"s":"") << " associated with column "
             << col->name();
         for (uint32_t i = 0; i < bits.size(); ++ i) {
