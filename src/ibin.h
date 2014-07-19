@@ -38,7 +38,7 @@ public:
     bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
         uint32_t *bms);
     bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
-        void *bms, FastBitReadIntArray rd);
+        void *bms, FastBitReadBitmaps rd);
 
     virtual index* dup() const;
     virtual void print(std::ostream& out) const;

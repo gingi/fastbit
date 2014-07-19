@@ -51,6 +51,29 @@ static int mybmreader(void *ctx, uint64_t start, uint64_t count, uint32_t *buf) 
     return 0;
 } // mybmreader
 
+typedef struct {
+    uint64_t n;
+    double *ptr;
+} dblbuffer;
+static int mydblreader(void *ctx, uint64_t nd, uint64_t *starts,
+                       uint64_t *counts, void *data) {
+    if (ctx == 0 || nd != 1 || starts == 0 || counts == 0 || data == 0)
+        return -1;
+
+    dblbuffer *db = (dblbuffer*)ctx;
+    if (*starts >= db->n) {
+        *counts = 0;
+        return 0; // nothing to copy
+    }
+
+    double *out = (double*)data;
+    if (db->n - *starts < *counts)
+        *counts = db->n - *starts;
+    for (size_t j = 0; j < *counts; ++ j)
+        out[j] = db->ptr[j + *starts];
+    return 0;
+} // mydblread
+
 static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     int16_t b1 = 5;
     int32_t b2 = 11;
@@ -60,6 +83,9 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     int64_t *offsets;  /* after invoking fastbit_iapi_attach_index */
     uint32_t *bms; /* they can only be freed after the index is no longer needed */
     FastBitSelectionHandle h1, h2, h3, h4, h5;
+    dblbuffer dbl;
+    dbl.n = n;
+    dbl.ptr = a3;
 
     ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
     if (ierr < 0) {
@@ -75,7 +101,8 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
                "ierr = %ld\n", ierr);
         return;
     }
-    ierr = fastbit_iapi_register_array("a3", FastBitDataTypeDouble, a3, n);
+    ierr = fastbit_iapi_register_array_ext
+        ("a3", FastBitDataTypeDouble, &(dbl.n), 1, &dbl, mydblreader);
     if (ierr < 0) {
         fflush(0);
         printf("Warning -- fastbit_iapi_register_array failed to register a3, "

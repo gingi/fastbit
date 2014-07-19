@@ -526,8 +526,6 @@ public:
            double lo=DBL_MAX, double hi=-DBL_MAX);
     column(const ibis::bord*, const ibis::column&, void *buf);
     column(const column &rhs);
-    column(ibis::TYPE_T t, const char *nm, void *st,
-           uint64_t *dim, uint64_t nd);
     virtual ~column();
 
     virtual ibis::fileManager::storage* getRawData() const;
@@ -623,6 +621,10 @@ protected:
     /// std::vector<std::string> depending on the data type.
     /// @sa ibis::table::freeBuffer
     void *buffer;
+    /// Reader for externally managed data.
+    FastBitReadExtArray xreader;
+    /// Context to be passed back to reader.
+    void *xmeta;
     /// A dictionary.  It may be used with a column of type ibis::UINT or
     /// ibis::CATEGORY.  Normally, it is a nil pointer.
     const ibis::dictionary *dic;

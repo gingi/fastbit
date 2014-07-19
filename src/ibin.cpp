@@ -395,7 +395,7 @@ ibis::bin::bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
 
 /// Reconstruct an object from keys and offsets.
 ibis::bin::bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
-               void *bms, FastBitReadIntArray rd)
+               void *bms, FastBitReadBitmaps rd)
     : ibis::index(0), nobs(nb) {
     col = c;
     {

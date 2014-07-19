@@ -1,3 +1,16 @@
+2014-07-17 John Wu <John dot Wu at ACM dot org>
+	* src/bord.h, src/bord.cpp: add new constructor to
+	ibis::bord::column to accept data through FastBitReadExtArray
+	* src/column.h: rename writeIndex to indexWrite, rename
+	serialSizes to indexSerialSizes
+
+2014-07-16 John Wu <John dot Wu at ACM dot org>
+	* src/const.h: rename FastBitReadIntArray to FastBitReadBitmaps
+
+2014-07-15 John Wu <John dot Wu at ACM dot org>
+	* src/const.h: add FastBitReadExtArray as the generic function
+	propotype for reading external data
+
 2014-07-07 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.h: clearify the fact that the bitmap keys and offsets
 	are used by FastBit data structures and therefore can not be freed

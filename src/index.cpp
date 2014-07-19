@@ -4607,7 +4607,7 @@ void ibis::index::initBitmaps(uint32_t* st) {
 /// This is intended for reading serialized bitmaps placed in a more
 /// complex setting, however, we still view the content as if it is written
 /// as 1-D array.
-void ibis::index::initBitmaps(void *ctx, FastBitReadIntArray rd) {
+void ibis::index::initBitmaps(void *ctx, FastBitReadBitmaps rd) {
     // initialize bits to zero pointers
     for (uint32_t i = 0; i < bits.size(); ++ i)
         delete bits[i];
@@ -4724,7 +4724,7 @@ void ibis::index::activate() const {
                         "bitvector " << j0 << " - " << j1
                         << ", which occupies " << (offset64[j1]-offset64[j0])/4
                         << " words";
-                    throw "FastBitReadIntArray failed to read bitvectors";
+                    throw "FastBitReadBitmaps failed to read bitvectors";
                 }
                 for (size_t j = j0; j < j1; ++ j) {
                     if (offset64[j+1] > offset64[j]) {
@@ -4888,7 +4888,7 @@ void ibis::index::activate() const {
                     "bitvector " << j0 << " - " << j1
                     << ", which occupies " << (offset32[j1]-offset32[j0])/4
                     << " words";
-                throw "FastBitReadIntArray failed to read bitvectors";
+                throw "FastBitReadBitmaps failed to read bitvectors";
             }
             for (size_t j = j0; j < j1; ++ j) {
                 if (offset32[j+1] > offset32[j]) {
@@ -5316,7 +5316,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                         "bitvector " << j0 << " - " << j1
                         << ", which occupies " << (offset64[j1]-offset64[j0])/4
                         << " words";
-                    throw "FastBitReadIntArray failed to read bitvectors";
+                    throw "FastBitReadBitmaps failed to read bitvectors";
                 }
                 for (size_t j = j0; j < j1; ++ j) {
                     if (offset64[j+1] > offset64[j]) {
@@ -5489,7 +5489,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                     "bitvector " << j0 << " - " << j1
                     << ", which occupies " << (offset32[j1]-offset32[j0])/4
                     << " words";
-                throw "FastBitReadIntArray failed to read bitvectors";
+                throw "FastBitReadBitmaps failed to read bitvectors";
             }
             for (size_t j = j0; j < j1; ++ j) {
                 if (offset32[j+1] > offset32[j]) {
