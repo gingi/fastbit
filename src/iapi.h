@@ -113,12 +113,28 @@ extern "C" {
 
     /** Free all cached object for IAPI. */
     void fastbit_iapi_free_all();
-
-    /** Register a name for the data array. */
+    /** Remove an array from the list of known variables. */
+    void fastbit_iapi_free_array(const char *);
+    /** Remove an array from the list of known variables.  The given
+        address is that of the data buffer passed to functions
+        fastbit_iapi_register_array and fastbit_iapi_register_array_nd. */
+    void fastbit_iapi_free_array_by_addr(void *);
+    /** Register a simple array under the specified name. */
     int fastbit_iapi_register_array
     (const char*, FastBitDataType, void*, uint64_t);
+    /** Register a n-dimensional array under the specified name. */
     int fastbit_iapi_register_array_nd
     (const char*, FastBitDataType, void*, uint64_t*, uint64_t);
+    /** Register an external array under the specified name.  The content
+        of the array is available through FastBitReadExtArray. */
+    int fastbit_iapi_register_array_ext
+    (const char*, FastBitDataType, uint64_t*, uint64_t, void*,
+     FastBitReadExtArray);
+    /** Register an array under the specified name.  Only the index for the
+        array is actually available. */
+    int fastbit_iapi_register_array_index_only
+    (const char*, FastBitDataType, uint64_t*, uint64_t,
+     double*, uint64_t, int64_t*, uint64_t, void*, FastBitReadBitmaps);
 
     /** Build index. */
     int fastbit_iapi_build_index(const char*, const char*);
@@ -149,7 +165,7 @@ extern "C" {
     */
     int fastbit_iapi_attach_index
     (const char*, double*, uint64_t, int64_t*, uint64_t,
-     void*, FastBitReadIntArray);
+     void*, FastBitReadBitmaps);
 
     /** Reconstitute the index data structure from the first two arrays
         produced by fastbit_iapi_write_index.  The 3rd array is larger and

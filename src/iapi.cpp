@@ -133,6 +133,11 @@ __fastbit_iapi_convert_compare_type(FastBitCompareType t) {
     }
 } // __fastbit_iapi_convert_compare_type
 
+/// @note This function assumes the given name is not already in the list
+/// of known arrays.
+/// 
+/// @note This function returns a nil pointer to indicate error.
+/// 
 ibis::bord::column* __fastbit_iapi_register_array
 (const char *name, FastBitDataType t, void* addr, uint64_t n) {
     if (name == 0 || *name == 0 || addr == 0 || t == FastBitDataTypeUnknown
@@ -242,6 +247,11 @@ ibis::bord::column* __fastbit_iapi_register_array
     }
 } // __fastbit_iapi_register_array
 
+/// @note This function assumes the given name is not already in the list
+/// of known arrays.
+/// 
+/// @note This function returns a nil pointer to indicate error.
+/// 
 ibis::bord::column* __fastbit_iapi_register_array_nd
 (const char *name, FastBitDataType t, void* addr, uint64_t *dims, uint64_t nd) {
     if (name == 0 || *name == 0 || addr == 0 || t == FastBitDataTypeUnknown ||
@@ -365,6 +375,101 @@ ibis::bord::column* __fastbit_iapi_register_array_nd
     }
 } // __fastbit_iapi_register_array_nd
 
+/// @note This function assumes the given name is not already in the list
+/// of known arrays.
+/// 
+/// @note This function returns a nil pointer to indicate error.
+/// 
+ibis::bord::column* __fastbit_iapi_register_array_ext
+(const char *name, FastBitDataType t, uint64_t *dims, uint64_t nd, void* ctx,
+ FastBitReadExtArray rd) {
+    if (name == 0 || *name == 0 || t == FastBitDataTypeUnknown ||
+        dims == 0 || nd == 0 || rd == 0)
+        return 0;
+
+    uint64_t n = *dims;
+    for (unsigned j = 1; j < nd; ++ j)
+        n *= dims[j];
+    if (n > 0x7FFFFFFFUL) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- __fastbit_iapi_register_array_ext can not proceed "
+            "because the number of elements (" << n << ") exceeds 0x7FFFFFFF";
+        return 0;
+    }
+
+    ibis::bord::column *tmp =
+        new ibis::bord::column(rd, ctx, dims, nd,
+                               __fastbit_iapi_convert_data_type(t), name);
+    if (tmp == 0) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- __fastbit_iapi_register_array_ext failed to create "
+            "an ibis::bord::column object under the name " << name;
+        return tmp;
+    }
+
+    ibis::util::mutexLock(&__fastbit_iapi_lock,
+                          "__fastbit_iapi_register_array_ext");
+    uint64_t pos = __fastbit_iapi_all_arrays.size();
+    __fastbit_iapi_name_map[tmp->name()] = pos;
+    __fastbit_iapi_all_arrays.push_back(tmp);
+    return tmp;
+} // __fastbit_iapi_register_array_ext
+
+/// @note This function assumes the given name is not already in the list
+/// of known arrays.
+/// 
+/// @note This function returns a nil pointer to indicate error.
+/// 
+/// If the index can not be properly reconstructed, this function returns a
+/// nil pointer.
+ibis::bord::column* __fastbit_iapi_register_array_index_only
+(const char *name, FastBitDataType t, uint64_t *dims, uint64_t nd,
+ double *keys, uint64_t nkeys, int64_t *offsets, uint64_t noffsets,
+ void* bms, FastBitReadBitmaps rd) {
+    if (name == 0 || *name == 0 || t == FastBitDataTypeUnknown ||
+        dims == 0 || nd == 0 || keys == 0 || nkeys == 0 ||
+        offsets == 0 || noffsets == 0 || rd == 0)
+        return 0;
+
+    uint64_t n = *dims;
+    for (unsigned j = 1; j < nd; ++ j)
+        n *= dims[j];
+    if (n > 0x7FFFFFFFUL) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- __fastbit_iapi_register_array_index_only can not "
+            "proceed because the number of elements (" << n
+            << ") exceeds 0x7FFFFFFF";
+        return 0;
+    }
+
+    ibis::bord::column *tmp =
+        new ibis::bord::column(static_cast<const ibis::bord*>(0),
+                               __fastbit_iapi_convert_data_type(t), name);
+    if (tmp == 0) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- __fastbit_iapi_register_array_index_only failed to "
+            "create an ibis::bord::column object under the name " << name;
+        return tmp;
+    }
+
+    tmp->setMeshShape(dims, nd);
+    int ierr = tmp->attachIndex(keys, nkeys, offsets, noffsets, bms, rd);
+    if (ierr < 0) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- __fastbit_iapi_register_array_index_only failed to "
+            "reconstitute index from the given information";
+        delete tmp;
+        return 0;
+    }
+
+    ibis::util::mutexLock(&__fastbit_iapi_lock,
+                          "__fastbit_iapi_register_array_index_only");
+    uint64_t pos = __fastbit_iapi_all_arrays.size();
+    __fastbit_iapi_name_map[tmp->name()] = pos;
+    __fastbit_iapi_all_arrays.push_back(tmp);
+    return tmp;
+} // __fastbit_iapi_register_array_index_only
+
 ibis::bord::column* __fastbit_iapi_array_by_addr(const void *addr) {
     if (addr == 0) return 0;
     FastBitIAPIAddressMap::const_iterator it =
@@ -377,18 +482,7 @@ ibis::bord::column* __fastbit_iapi_array_by_addr(const void *addr) {
     return 0;
 } // __fastbit_iapi_array_by_addr
 
-ibis::bord::column* __fastbit_iapi_array_by_name(const char *name) {
-    if (name == 0 || *name == 0) return 0;
-    FastBitIAPINameMap::const_iterator it = __fastbit_iapi_name_map.find(name);
-    if (it != __fastbit_iapi_name_map.end()) {
-        if (it->second < __fastbit_iapi_all_arrays.size()) {
-            return __fastbit_iapi_all_arrays[it->second];
-        }
-    }
-    return 0;
-} // __fastbit_iapi_array_by_name
-
-void fastbit_free_array(void *addr) {
+void __fastbit_free_array(void *addr) {
     FastBitIAPIAddressMap::const_iterator it =
         __fastbit_iapi_address_map.find(addr);
     if (it == __fastbit_iapi_address_map.end()) return;
@@ -401,25 +495,53 @@ void fastbit_free_array(void *addr) {
         __fastbit_iapi_all_arrays[it->second] = 0;
     }
     __fastbit_iapi_address_map.erase(it);
-} // fastbit_free_array
+} // __fastbit_free_array
 
-void fastbit_free_all_arrays() {
-    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_all_arrays");
+ibis::bord::column* __fastbit_iapi_array_by_name(const char *name) {
+    if (name == 0 || *name == 0) return 0;
+    FastBitIAPINameMap::const_iterator it = __fastbit_iapi_name_map.find(name);
+    if (it != __fastbit_iapi_name_map.end()) {
+        if (it->second < __fastbit_iapi_all_arrays.size()) {
+            return __fastbit_iapi_all_arrays[it->second];
+        }
+    }
+    return 0;
+} // __fastbit_iapi_array_by_name
+
+void __fastbit_free_array(const char *nm) {
+    FastBitIAPINameMap::const_iterator it =
+        __fastbit_iapi_name_map.find(nm);
+    if (it == __fastbit_iapi_name_map.end()) return;
+
+    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_array");
+    if (it->second < __fastbit_iapi_all_arrays.size()) {
+        ibis::bord::column *col = __fastbit_iapi_all_arrays[it->second];
+        __fastbit_iapi_name_map.erase(col->name());
+        delete col;
+        __fastbit_iapi_all_arrays[it->second] = 0;
+    }
+    __fastbit_iapi_name_map.erase(it);
+} // __fastbit_free_array
+
+void __fastbit_free_all_arrays() {
+    ibis::util::mutexLock
+        lock(&__fastbit_iapi_lock, "__fastbit_free_all_arrays");
     for (unsigned j = 0; j < __fastbit_iapi_all_arrays.size(); ++j)
         delete __fastbit_iapi_all_arrays[j];
     __fastbit_iapi_name_map.clear();
     __fastbit_iapi_all_arrays.clear();
     __fastbit_iapi_address_map.clear();
-} // fastbit_free_all_arrays
+} // __fastbit_free_all_arrays
 
-void fastbit_free_all_selections() {
-    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_all_arrays");
+void __fastbit_free_all_selections() {
+    ibis::util::mutexLock
+        lock(&__fastbit_iapi_lock, "__fastbit_free_all_arrays");
     for (FastBitIAPISelectionList::iterator it =
              __fastbit_iapi_selection_list.begin();
          it != __fastbit_iapi_selection_list.end(); ++ it) 
         delete it->second;
     __fastbit_iapi_selection_list.clear();
-} // fastbit_free_all_arrays
+} // __fastbit_free_all_arrays
 
 void fastbit_iapi_reregister_array(uint64_t i) {
     ibis::bord::column *col = __fastbit_iapi_all_arrays[i];
@@ -478,7 +600,7 @@ void fastbit_iapi_reregister_array(uint64_t i) {
         __fastbit_iapi_address_map[buf->begin()] = i;
         break;}
     }
-} // fastbut_iapi_reregister_array
+} // fastbit_iapi_reregister_array
 
 void fastbit_iapi_rename_array(uint64_t i) {
     std::ostringstream oss;
@@ -1304,9 +1426,17 @@ extern "C" int64_t fastbit_selection_get_coordinates
 } // fastbit_selection_get_coordinates
 
 extern "C" void fastbit_iapi_free_all() {
-    fastbit_free_all_selections();
-    fastbit_free_all_arrays();
+    __fastbit_free_all_selections();
+    __fastbit_free_all_arrays();
 } // fastbit_iapi_free_all
+
+extern "C" void fastbit_iapi_free_array(const char *nm) {
+    __fastbit_free_array(nm);
+} // fastbit_iapi_free_array
+
+extern "C" void fastbit_iapi_free_array_by_addr(void *addr) {
+    __fastbit_free_array(addr);
+} // fastbit_iapi_free_array_by_addr
 
 extern "C" int fastbit_iapi_register_array
 (const char *nm, FastBitDataType dtype, void *buf, uint64_t nelm) {
@@ -1354,6 +1484,47 @@ extern "C" int fastbit_iapi_register_array_nd
     else
         return -2;
 } // fastbit_iapi_register_array_nd
+
+extern "C" int fastbit_iapi_register_array_ext
+(const char *nm, FastBitDataType dtype, uint64_t *dims, uint64_t nd,
+ void *ctx, FastBitReadExtArray rd) {
+    if (nm == 0 || *nm == 0 || dtype == FastBitDataTypeUnknown ||
+        dims == 0 || nd == 0 || rd == 0)
+        return -1;
+
+    if (__fastbit_iapi_array_by_name(nm) != 0) {
+        LOGGER(ibis::gVerbose > 2)
+            << "fastbit_iapi_register_array determined that name " << nm
+            << " has already been registered";
+        return 2;
+    }
+    if (__fastbit_iapi_register_array_ext(nm, dtype, dims, nd, ctx, rd) != 0)
+        return 0;
+    else
+        return -2;
+} // fastbit_iapi_register_array_ext
+
+extern "C" int fastbit_iapi_register_array_index_only
+(const char *nm, FastBitDataType dtype, uint64_t *dims, uint64_t nd,
+ double *keys, uint64_t nkeys, int64_t *offsets, uint64_t noffsets,
+ void* bms, FastBitReadBitmaps rd) {
+    if (nm == 0 || *nm == 0 || dtype == FastBitDataTypeUnknown ||
+        dims == 0 || nd == 0 || keys == 0 || nkeys == 0 ||
+        offsets == 0 || noffsets == 0 || rd == 0)
+        return -1;
+
+    if (__fastbit_iapi_array_by_name(nm) != 0) {
+        LOGGER(ibis::gVerbose > 2)
+            << "fastbit_iapi_register_array determined that name " << nm
+            << " has already been registered";
+        return 2;
+    }
+    if (__fastbit_iapi_register_array_index_only
+        (nm, dtype, dims, nd, keys, nkeys, offsets, noffsets, bms, rd) != 0)
+        return 0;
+    else
+        return -2;
+} // fastbit_iapi_register_array_index_only
 
 /// @arg aname: column name
 /// @arg iopt: indexing option
@@ -1404,7 +1575,7 @@ extern "C" int fastbit_iapi_deconstruct_index
     ibis::array_t<double> arrk;
     ibis::array_t<int64_t> arro;
     ibis::array_t<uint32_t> arrb;
-    ierr = col->writeIndex(arrk, arro, arrb);
+    ierr = col->indexWrite(arrk, arro, arrb);
     if (ierr >= 0) {
         *nkeys    = arrk.size();
         *keys     = arrk.release();
@@ -1416,7 +1587,7 @@ extern "C" int fastbit_iapi_deconstruct_index
     else {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- fastbit_iapi_deconstruct_index failed, "
-            "writeIndex returned " << ierr;
+            "indexWrite returned " << ierr;
     }
     return ierr;
 } // fastbit_iapi_deconstruct_index
@@ -1509,7 +1680,7 @@ extern "C" int fastbit_iapi_attach_full_index
 extern "C" int fastbit_iapi_attach_index
 (const char *aname, double *keys, uint64_t nkeys,
  int64_t *offsets, uint64_t noffsets,
- void *bms, FastBitReadIntArray rd) {
+ void *bms, FastBitReadBitmaps rd) {
     if (aname == 0 || *aname == 0 || keys == 0 || nkeys == 0 ||
         offsets == 0 || noffsets == 0 || bms == 0 || rd == 0)
         return -1;

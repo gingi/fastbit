@@ -519,10 +519,13 @@ public:
     column(const ibis::bord* tbl, ibis::TYPE_T t, const char* name,
 	   void *buf=0, const char* desc="", double low=DBL_MAX,
 	   double high=-DBL_MAX);
-    column(const ibis::bord*, const ibis::column&, void *buf);
-    column(const column &rhs);
     column(ibis::TYPE_T t, const char *nm, void *st,
            uint64_t *dim, uint64_t nd);
+    column(FastBitReadExtArray rd, void *ctx, uint64_t *dims, uint64_t nd,
+           ibis::TYPE_T t, const char *name, const char *desc="",
+           double lo=DBL_MAX, double hi=-DBL_MAX);
+    column(const ibis::bord*, const ibis::column&, void *buf);
+    column(const column &rhs);
     virtual ~column();
 
     virtual ibis::fileManager::storage* getRawData() const;
@@ -616,6 +619,10 @@ protected:
     /// The in-memory storage.  A pointer to an array<T> or
     /// std::vector<std::string> depending on data type.
     void *buffer;
+    /// Reader for externally managed data.
+    FastBitReadExtArray xreader;
+    /// Context to be passed back to reader.
+    void *xmeta;
     /// A dictionary.  It may be used with a column of type ibis::UINT or
     /// ibis::CATEGORY.  Normally, it is a nil pointer.
     const ibis::dictionary *dic;

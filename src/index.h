@@ -432,7 +432,7 @@ protected:
     void initBitmaps(int fdes);
     void initBitmaps(ibis::fileManager::storage *st);
     void initBitmaps(uint32_t *st);
-    void initBitmaps(void *ctx, FastBitReadIntArray rd);
+    void initBitmaps(void *ctx, FastBitReadBitmaps rd);
 
 private:
 
@@ -456,7 +456,7 @@ public:
 class ibis::index::bitmapReader {
 public:
     /// Constructor.
-    bitmapReader(void *ctx, FastBitReadIntArray rd)
+    bitmapReader(void *ctx, FastBitReadBitmaps rd)
         : _context(ctx), _reader(rd) {}
 
     /// The main function to the serialized bitmaps.  It assumes the
@@ -484,7 +484,7 @@ public:
 
 private:
     void *_context;
-    FastBitReadIntArray _reader;
+    FastBitReadBitmaps _reader;
 
     // Default constructor.  Declared, but not defined.
     bitmapReader();

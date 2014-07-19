@@ -20,6 +20,7 @@ namespace ibis { // additional names to the namespace ibis
     class category;   // for categorical values (low-cardinality text fields)
     class text;       // arbitrary cardinality text fields
     class blob;       // text may contain null characters
+    class collis;     // data accessed through FastBitReadExtArray
 
     // the following are used for storing selected values of different types
     // of columns (implemented in colValues.cpp)
@@ -107,7 +108,7 @@ public:
 			       double& min, double &max, bool &asc) const;
 
     virtual int  attachIndex(double *, uint64_t, int64_t *, uint64_t,
-                             void *, FastBitReadIntArray) const;
+                             void *, FastBitReadBitmaps) const;
     virtual int  attachIndex(double *, uint64_t, int64_t *, uint64_t,
                              uint32_t *, uint64_t) const;
     virtual void loadIndex(const char* iopt=0, int ropt=0) const throw ();
@@ -293,10 +294,10 @@ public:
     virtual long truncateData(const char* dir, uint32_t nent,
 			      ibis::bitvector& mask) const;
 
-    virtual int writeIndex(ibis::array_t<double> &,
+    virtual int indexWrite(ibis::array_t<double> &,
                            ibis::array_t<int64_t> &,
                            ibis::array_t<uint32_t> &) const;
-    virtual void serialSizes(uint64_t&, uint64_t&, uint64_t&) const;
+    virtual void indexSerialSizes(uint64_t&, uint64_t&, uint64_t&) const;
 
     /// A group of functions to compute some basic statistics for the
     /// column values.

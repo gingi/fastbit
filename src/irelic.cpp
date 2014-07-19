@@ -309,7 +309,7 @@ ibis::relic::relic(const ibis::column* c, uint32_t nb, double *kvs,
 
 /// Reconstruct index from keys and offsets.
 ibis::relic::relic(const ibis::column* c, uint32_t nb, double *kvs,
-                   int64_t *offs, void *bms, FastBitReadIntArray rd) :
+                   int64_t *offs, void *bms, FastBitReadBitmaps rd) :
     ibis::index(0), vals(kvs, nb) {
     col = c;
     initOffsets(offs, nb+1);

@@ -5037,7 +5037,8 @@ void ibis::table::freeBuffers(ibis::table::bufferList& buf,
 ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
 			   const char *cn, void *st, const char *de,
 			   double lo, double hi)
-    : ibis::column(tbl, t, cn, de, lo, hi), buffer(st), dic(0) {
+    : ibis::column(tbl, t, cn, de, lo, hi), buffer(st), xreader(0),
+      xmeta(0), dic(0) {
     if (buffer != 0) { // check the size of buffer
 	uint32_t nr = 0;
 	switch (m_type) {
@@ -5178,14 +5179,44 @@ ibis::bord::column::column(const ibis::bord *tbl,
 			   const ibis::column& old, void *st)
     : ibis::column(tbl, old.type(), old.name(), old.description(),
 		   old.lowerBound(), old.upperBound()),
-      buffer(st), dic(0) {
+      buffer(st), xreader(0), xmeta(0), dic(0) {
     old.getNullMask(mask_);
+} // ibis::bord::column::column
+
+/// Constructor.
+/// Use the external reader.  This is meant for fix-sized elements only,
+/// i.e., integers and floating-point numbers.  More specifically, this is
+/// not for strings.
+ibis::bord::column::column
+(FastBitReadExtArray rd, void *ctx, uint64_t *dims, uint64_t nd,
+ ibis::TYPE_T t, const char *name, const char *desc, double lo, double hi)
+    : ibis::column(0, t, name, desc, lo, hi), buffer(0), xreader(rd),
+      xmeta(ctx), dic(0) {
+    if (rd == 0 || nd == 0 || dims == 0) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "collis::ctor must have a valid reader and a valid dims array";
+        throw "collis::ctor must have a valid reader and a valid dims array";
+    }
+
+    uint64_t nr = *dims;
+    for (uint64_t j = 1; j < nd; ++ j)
+        nr *= dims[j];
+
+    if (nr > 0x7FFFFFFFUL) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "collis::ctor can not proceed because array contains "
+            << nr << " elements, which is above the 2 billion limit";
+        throw "collis::ctor can not handle more than 2 billion elements";
+    }
+    mask_.set(1, nr);
+    (void) setMeshShape(dims, nd);
 } // ibis::bord::column::column
 
 /// Constructor.
 ibis::bord::column::column(ibis::TYPE_T t, const char *nm, void *st,
                            uint64_t *dim, uint64_t nd)
-        : ibis::column(0, t, nm), buffer(st), dic(0), shape(dim, nd) {
+    : ibis::column(0, t, nm), buffer(st), xreader(0), xmeta(0), dic(0),
+      shape(dim, nd) {
     uint64_t nt = 1;
     for (unsigned j = 0; j < nd; ++ j)
         nt *= dim[j];
@@ -5199,11 +5230,14 @@ ibis::bord::column::column(ibis::TYPE_T t, const char *nm, void *st,
             "the current spec is for " << nt;
         throw "exceeded limit on max no. rows (0x7FFFFFFF)";
     }
-}
+} // ibis::bord::column::column
 
 /// Copy constructor.  Performs a shallow copy of the storage buffer.
 ibis::bord::column::column(const ibis::bord::column &c)
-    : ibis::column(c), buffer(0), dic(c.dic), shape(c.shape) {
+    : ibis::column(c), buffer(0), xreader(c.xreader), xmeta(c.xmeta),
+      dic(c.dic), shape(c.shape) {
+    if (c.buffer == 0) return;
+
     switch (c.m_type) {
     case ibis::BYTE: {
 	buffer = new array_t<signed char>
@@ -10699,8 +10733,9 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 /// Makes a copy of the in-memory data.  Uses a shallow copy for
 /// ibis::array_t objects, but a deap copy for the string values.
 int ibis::bord::column::getValuesArray(void* vals) const {
+    int ierr = -1;
     if (vals == 0)
-        return (buffer != 0 ? 0 : -1);
+        return ierr;
 
     switch (m_type) {
     default: {
@@ -10708,52 +10743,189 @@ int ibis::bord::column::getValuesArray(void* vals) const {
 	    << "Warning -- bord[" << (thePart?thePart->name():"")
 	    << "]::column[" << m_name << "]::getValuesArray does not yet "
 	    "support column type " << ibis::TYPESTRING[(int)m_type];
-	return -2;}
+	ierr = -2;
+        break;}
     case ibis::BYTE: {
-	static_cast<array_t<signed char>*>(vals)->
-	    copy(* static_cast<const array_t<signed char>*>(buffer));
+	array_t<signed char> &local = *static_cast<array_t<signed char>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<signed char>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<signed char>(local);
+            }
+        }
 	break;}
     case ibis::UBYTE: {
-	static_cast<array_t<unsigned char>*>(vals)->
-	    copy(* static_cast<const array_t<unsigned char>*>(buffer));
+	array_t<unsigned char> &local =
+            *static_cast<array_t<unsigned char>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<unsigned char>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<unsigned char>(local);
+            }
+        }
 	break;}
     case ibis::SHORT: {
-	static_cast<array_t<int16_t>*>(vals)->
-	    copy(* static_cast<const array_t<int16_t>*>(buffer));
+	array_t<int16_t> &local = *static_cast<array_t<int16_t>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<int16_t>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<int16_t>(local);
+            }
+        }
 	break;}
     case ibis::USHORT: {
-	static_cast<array_t<uint16_t>*>(vals)->
-	    copy(* static_cast<const array_t<uint16_t>*>(buffer));
+	array_t<uint16_t> &local = *static_cast<array_t<uint16_t>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<uint16_t>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<uint16_t>(local);
+            }
+        }
 	break;}
     case ibis::INT: {
-	static_cast<array_t<int32_t>*>(vals)->
-	    copy(* static_cast<const array_t<int32_t>*>(buffer));
+	array_t<int32_t> &local = *static_cast<array_t<int32_t>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<int32_t>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<int32_t>(local);
+            }
+        }
 	break;}
     case ibis::UINT: {
-	static_cast<array_t<uint32_t>*>(vals)->
-	    copy(* static_cast<const array_t<uint32_t>*>(buffer));
+	array_t<uint32_t> &local = *static_cast<array_t<uint32_t>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<uint32_t>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<uint32_t>(local);
+            }
+        }
 	break;}
     case ibis::LONG: {
-	static_cast<array_t<int64_t>*>(vals)->
-	    copy(* static_cast<const array_t<int64_t>*>(buffer));
+	array_t<int64_t> &local = *static_cast<array_t<int64_t>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<int64_t>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<int64_t>(local);
+            }
+        }
 	break;}
     case ibis::ULONG: {
-	static_cast<array_t<uint64_t>*>(vals)->
-	    copy(* static_cast<const array_t<uint64_t>*>(buffer));
+	array_t<uint64_t> &local = *static_cast<array_t<uint64_t>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<uint64_t>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<uint64_t>(local);
+            }
+        }
 	break;}
     case ibis::FLOAT: {
-	static_cast<array_t<float>*>(vals)->
-	    copy(* static_cast<const array_t<float>*>(buffer));
+	array_t<float> &local = *static_cast<array_t<float>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<float>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<float>(local);
+            }
+        }
 	break;}
     case ibis::DOUBLE: {
-	static_cast<array_t<double>*>(vals)->
-	    copy(* static_cast<const array_t<double>*>(buffer));
+	array_t<double> &local = *static_cast<array_t<double>*>(vals);
+        if (buffer != 0) {
+	    local.copy(* static_cast<const array_t<double>*>(buffer));
+        }
+        else {
+            array_t<uint64_t> starts(shape.size(), 0ULL);
+            local.resize(mask_.size());
+            ierr = xreader(xmeta, shape.size(), starts.begin(),
+                           const_cast<uint64_t*>(shape.begin()),
+                           local.begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->buffer =
+                    new ibis::array_t<double>(local);
+            }
+        }
 	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
-	std::vector<std::string>
-	    tmp(* static_cast<const std::vector<std::string>*>(buffer));
-	static_cast<std::vector<std::string>*>(vals)->swap(tmp);
+        if (buffer != 0) {
+            std::vector<std::string>
+                tmp(* static_cast<const std::vector<std::string>*>(buffer));
+            static_cast<std::vector<std::string>*>(vals)->swap(tmp);
+        }
+        else {
+            ierr = -3;
+        }
 	break;}
     }
     return 0;
@@ -11197,7 +11369,8 @@ long ibis::bord::column::append(const ibis::column& scol,
     // 	break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
-	std::unique_ptr< std::vector<std::string> > vals(scol.selectStrings(msk));
+	std::unique_ptr< std::vector<std::string> >
+            vals(scol.selectStrings(msk));
 	if (vals.get() != 0)
 	    ierr = addStrings
 		(reinterpret_cast<std::vector<std::string>*&>(buffer),
@@ -11499,7 +11672,8 @@ bool ibis::bord::column::equal_to(const ibis::bord::column &other) const {
     }
 } // ibis::bord::column::equal_to
 
-
+/// Specify the shape of the array.  The name is meant to suggest that the
+/// data was originally defined on a mesh.
 int ibis::bord::column::setMeshShape(uint64_t *dims, uint64_t nd) {
     ibis::array_t<uint64_t> tmp(dims, (size_t)nd);
     shape.swap(tmp);
