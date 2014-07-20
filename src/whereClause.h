@@ -148,7 +148,7 @@ public:
     /// Return a pointer to the string form of the where clause.
     const char* getString(void) const {
 	if (clause_.empty())
-	    return 0;
+	    return "";
 	else
 	    return clause_.c_str();
     }
@@ -202,7 +202,8 @@ private:
 
 namespace std {
     inline ostream& operator<<(ostream& out, const ibis::whereClause& wc) {
-	wc->print(out);
+        if (!wc.empty())
+            wc->print(out);
 	return out;
     } // std::operator<<
 }

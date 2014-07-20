@@ -582,7 +582,7 @@ public:
     virtual int  getString(uint32_t, std::string &) const;
     virtual int  getValuesArray(void*) const;
 
-    void* &getArray() {return buffer;}
+    void*& getArray()       {return buffer;}
     void*  getArray() const {return buffer;}
     int dump(std::ostream &out, uint32_t i) const;
 

@@ -6437,6 +6437,8 @@ long ibis::column::estimateRange(const ibis::qContinuousRange& cmp) const {
 	indexLock lock(this, "estimateRange");
 	if (idx != 0)
 	    ret = idx->estimate(cmp);
+        else
+            ret = -1;
 	return ret;
     }
     catch (std::exception &se) {

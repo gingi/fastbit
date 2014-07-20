@@ -11,12 +11,11 @@ libfastbit_la_SOURCES = part.cpp bordm.cpp bord.cpp ibin.cpp column.cpp \
  ixzona.cpp parti.cpp idirekte.cpp blob.cpp jnatural.cpp iskive.cpp isapid.cpp \
  idbak2.cpp jrange.cpp icentre.cpp iapi.cpp quaere.cpp countQuery.cpp \
  imesa.cpp ikeywords.cpp selectClause.cpp dictionary.cpp whereClause.cpp \
- idbak.cpp icmoins.cpp resource.cpp fromClause.cpp collis.cpp rids.cpp \
- fromLexer.cc whereParser.cc selectLexer.cc whereLexer.cc fromParser.cc \
- selectParser.cc
+ idbak.cpp icmoins.cpp resource.cpp fromClause.cpp rids.cpp selectParser.cc \
+ fromLexer.cc whereParser.cc selectLexer.cc whereLexer.cc fromParser.cc
 libfastbit_la_LDFLAGS = -version-info $(LIB_VERSION_INFO)
 
-include_HEADERS = array_t.h bitvector.h bitvector64.h blob.h bord.h bundle.h capi.h category.h collis.h colValues.h column.h const.h countQuery.h dictionary.h fileManager.h horometer.h iapi.h ibin.h ibis.h idirekte.h ikeywords.h index.h irelic.h iroster.h quaere.h mensa.h meshQuery.h part.h filter.h jnatural.h jrange.h whereClause.h whereLexer.h whereParser.hh qExpr.h query.h resource.h rids.h tab.h table.h tafel.h twister.h util.h utilidor.h location.hh position.hh stack.hh selectClause.h selectLexer.h selectParser.hh fromClause.h fromLexer.h fromParser.hh fastbit-config.h
+include_HEADERS = array_t.h bitvector.h bitvector64.h blob.h bord.h bundle.h capi.h category.h colValues.h column.h const.h countQuery.h dictionary.h fileManager.h horometer.h iapi.h ibin.h ibis.h idirekte.h ikeywords.h index.h irelic.h iroster.h quaere.h mensa.h meshQuery.h part.h filter.h jnatural.h jrange.h whereClause.h whereLexer.h whereParser.hh qExpr.h query.h resource.h rids.h tab.h table.h tafel.h twister.h util.h utilidor.h location.hh position.hh stack.hh selectClause.h selectLexer.h selectParser.hh fromClause.h fromLexer.h fromParser.hh fastbit-config.h
 
 EXTRA_DIST=whereLexer.ll whereParser.yy selectLexer.ll selectParser.yy fromLexer.ll fromParser.yy Doxyfile
 

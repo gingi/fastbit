@@ -1,3 +1,6 @@
+2014-07-18 John Wu <John dot Wu at ACM dot org>
+	* examples/tiapi.c: update to work with index only data column
+
 2014-07-17 John Wu <John dot Wu at ACM dot org>
 	* src/bord.h, src/bord.cpp: add new constructor to
 	ibis::bord::column to accept data through FastBitReadExtArray

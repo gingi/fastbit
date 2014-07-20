@@ -110,7 +110,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     }
 
     /* build index on a1, automatically attached */
-    ierr = fastbit_iapi_build_index("a1", (const char*)0);
+    ierr = fastbit_iapi_build_index("a1", "<binning none/>");
     if (ierr < 0) {
         fflush(0);
         printf("Warning -- fastbit_iapi_build_index failed to create index "
@@ -185,12 +185,14 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
 
 
     { /* Serialize the index for a1 and re-attach it */
-        uint64_t nk, nf, nb;
+        uint64_t nk, nf, nb, nv=n;
         ierr = fastbit_iapi_deconstruct_index
             ("a1", &keys, &nk, &offsets, &nf, &bms, &nb);
         if (ierr >= 0) {
-            ierr = fastbit_iapi_attach_index
-                ("a1", keys, nk, offsets, nf, bms, mybmreader);
+            fastbit_iapi_free_array("a1");
+            ierr = fastbit_iapi_register_array_index_only
+                ("a1", FastBitDataTypeShort, &nv, 1,
+                 keys, nk, offsets, nf, bms, mybmreader);
             if (ierr < 0) {
                 fflush(0);
                 printf("Warning -- fastbit_iapi_attach_index failed "
@@ -331,13 +333,13 @@ int main(int argc, char **argv) {
     msglvl += 3;
 #endif
 #endif
-    msglvl += 9;
+    msglvl += 1;
     a1 = (int16_t*)malloc(2*nmax);
     a2 = (int32_t*)malloc(4*nmax);
     a3 = (double*)malloc(8*nmax);
     fastbit_init(conffile);
     fastbit_set_verbose_level(msglvl);
-    for (k = 16; k <= nmax; k=((k>(nmax/4)&&k<nmax) ? nmax : 4*k)) {
+    for (k = 1; k <= nmax; k=((k>(nmax/4)&&k<nmax) ? nmax : 4*k)) {
         printf("\n%s -- testing with k = %ld\n", *argv, k);
         fillarrays(k, a1, a2, a3);
         //indexarrays(k, a1, a2, a3);
