@@ -238,7 +238,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
                 ierr = ibis::fileManager::instance().tryGetFile
                     (file.c_str(), &st, prf);
                 if (ierr != 0) {
-                    LOGGER(ibis::gVerbose > 7)
+                    LOGGER(ibis::gVerbose > 6)
                         << evt << " tryGetFile(" << file
                         << ") failed with return code " << ierr;
                     st = 0;
@@ -4086,7 +4086,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
         if (nb2[0] > 1) {
             bdry.resize(nb2[0]);
             const array_t<uint32_t> tmp(cnt, 0, weight[0]);
-            LOGGER(ibis::gVerbose > 7)
+            LOGGER(ibis::gVerbose > 6)
                 << "index::divideCounts -- attempting to divide [0, "
                 << weight[0] << ") into " << nb2[0] << " bins";
             divideCounts(bdry, tmp);
@@ -4105,7 +4105,7 @@ void ibis::index::divideCounts(array_t<uint32_t>& bdry,
                 const array_t<uint32_t> tmp(cnt, off,
                                             (i+1<j?weight[i+1]:ncnt));
                 array_t<uint32_t> bnd(nb2[i+1]);
-                LOGGER(ibis::gVerbose > 7)
+                LOGGER(ibis::gVerbose > 6)
                     << "index::divideCounts -- attempting to divide [" << off
                     <<", " << (i+1<j?weight[i+1]:ncnt) << ") into "
                     << nb2[i+1] << " bins";
@@ -5603,7 +5603,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
 /// is similar to the function @c addBits.
 void ibis::index::addBins(uint32_t ib, uint32_t ie,
                           ibis::bitvector& res) const {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
         << "index[" << (col ? col->fullname() : "?.?") << "]::addBins(" << ib
         << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
         << ")) ...";
@@ -5802,7 +5802,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie,
 /// subtraction from @c tot.
 void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
                           const ibis::bitvector& tot) const {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
         << "index[" << (col ? col->fullname() : "?.?") << "]::addBins(" << ib
         << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
         << "), tot(" << tot.cnt() << ", " << tot.size() << ")) ...";
@@ -5844,7 +5844,7 @@ void ibis::index::addBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
         straight = (ie-ib <= (nobs >> 1));
     }
 
-    if (str || fname) { // try to activate the needed bitmaps
+    if (breader || str || fname) { // try to activate the needed bitmaps
         if (straight) {
             activate(ib, ie);
         }
@@ -6326,7 +6326,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
         evt += ']';
     }
     evt += "::sumBins";
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
         << evt << ": ib=" << ib << ", ie=" << ie << ", res(" << res.cnt()
         << ", " << res.size() << ")";
     const size_t nobs = offset64.size() - 1;
@@ -6516,7 +6516,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
 ///   operator to complete the operations.
 void ibis::index::sumBins(uint32_t ib, uint32_t ie,
                           ibis::bitvector& res) const {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
         << "index[" << (col != 0 ? col->name() : "?.?") << "]::sumBins(" << ib
         << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
         << ")) ...";
@@ -6573,7 +6573,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
         straight = (ie-ib <= (nobs >> 1));
     }
 
-    if (str || fname) { // try to activate the needed bitmaps
+    if (breader || str || fname) { // try to activate the needed bitmaps
         if (straight) {
             activate(ib, ie);
         }
@@ -7093,7 +7093,7 @@ void ibis::index::sumBins(uint32_t ib, uint32_t ie,
 /// - On exit, res = sum_{i=ib}^{ie-1} bits[i].
 void ibis::index::sumBins(uint32_t ib, uint32_t ie, ibis::bitvector& res,
                           uint32_t ib0, uint32_t ie0) const {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
         << "index[" << (col != 0 ? col->name() : "?.?") << "]::sumBins(" << ib
         << ", " << ie << ", res(" << res.cnt() << ", " << res.size()
         << "), " << ib0 << ", " << ie0 << ") ...";
@@ -7250,7 +7250,7 @@ void ibis::index::sumBins(const ibis::array_t<uint32_t> &bns,
 /// to it being a bitvector of all 0s.
 void ibis::index::addBits(const array_t<bitvector*>& pile,
                           uint32_t ib, uint32_t ie, ibis::bitvector& res) {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
         << "index::addBits(" << pile.size()
         << "-bitvector set, " << ib << ", " << ie << ", res("
         << res.cnt() << ", " << res.size() << ")) ...";
@@ -7413,7 +7413,7 @@ void ibis::index::addBits(const array_t<bitvector*>& pile,
 /// Tests show that using the function @c setBit is always slower.
 void ibis::index::sumBits(const array_t<bitvector*>& pile,
                           uint32_t ib, uint32_t ie, ibis::bitvector& res) {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
         << "index::sumBits(" << pile.size()
         << "-bitvector set, " << ib << ", " << ie << ", res("
         << res.cnt() << ", " << res.size() << ")) ...";
@@ -8605,7 +8605,7 @@ void ibis::index::sumBits(const array_t<bitvector*>& pile,
 void ibis::index::sumBits(const array_t<bitvector*>& pile,
                           const ibis::bitvector& tot, uint32_t ib,
                           uint32_t ie, ibis::bitvector& res) {
-    LOGGER(ibis::gVerbose > 7)
+    LOGGER(ibis::gVerbose > 6)
         << "index::sumBits(" << pile.size()
         << "-bitvector set, tot(" << tot.cnt() << ", " << tot.size()
         << "), " << ib << ", " << ie << "res(" << res.cnt() << ", "

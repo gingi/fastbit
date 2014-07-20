@@ -3544,12 +3544,12 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
             evt += oss.str();
         }
 
-        ierr = col->evaluateRange(cmp, mask, hits);
-        // if (ierr < 0) {
-        //     ibis::util::mutexLock lock(&mutex, evt.c_str());
-        //     unloadIndexes();
-        //     ierr = col->evaluateRange(cmp, mask, hits);
-        // }
+	ierr = col->evaluateRange(cmp, mask, hits);
+	// if (ierr < 0) {
+	//     ibis::util::mutexLock lock(&mutex, evt.c_str());
+	//     unloadIndexes();
+	//     ierr = col->evaluateRange(cmp, mask, hits);
+	// }
     }
     else {
         LOGGER(ibis::gVerbose > 2)

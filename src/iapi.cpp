@@ -375,6 +375,47 @@ ibis::bord::column* __fastbit_iapi_register_array_nd
     }
 } // __fastbit_iapi_register_array_nd
 
+/// Extract the address of the data buffer.
+inline void* __fastbit_iapi_get_array_addr(const ibis::bord::column &col) {
+    void* tmp = col.getArray();
+    if (tmp == 0) return tmp;
+
+    switch (col.type()) {
+    default:
+        return 0;
+    case ibis::BYTE:
+        return static_cast<ibis::array_t<signed char>*>(col.getArray())->
+            begin();
+    case ibis::UBYTE:
+        return static_cast<ibis::array_t<unsigned char>*>(col.getArray())->
+            begin();
+    case ibis::SHORT:
+        return static_cast<ibis::array_t<int16_t>*>(col.getArray())->
+            begin();
+    case ibis::USHORT:
+        return static_cast<ibis::array_t<uint16_t>*>(col.getArray())->
+            begin();
+    case ibis::INT:
+        return static_cast<ibis::array_t<int32_t>*>(col.getArray())->
+            begin();
+    case ibis::UINT:
+        return static_cast<ibis::array_t<uint32_t>*>(col.getArray())->
+            begin();
+    case ibis::LONG:
+        return static_cast<ibis::array_t<int64_t>*>(col.getArray())->
+            begin();
+    case ibis::ULONG:
+        return static_cast<ibis::array_t<uint64_t>*>(col.getArray())->
+            begin();
+    case ibis::FLOAT:
+        return static_cast<ibis::array_t<float>*>(col.getArray())->
+            begin();
+    case ibis::DOUBLE:
+        return static_cast<ibis::array_t<double>*>(col.getArray())->
+            begin();
+    }
+} // __fastbit_iapi_get_array_addr
+
 /// @note This function assumes the given name is not already in the list
 /// of known arrays.
 /// 
@@ -431,17 +472,6 @@ ibis::bord::column* __fastbit_iapi_register_array_index_only
         offsets == 0 || noffsets == 0 || rd == 0)
         return 0;
 
-    uint64_t n = *dims;
-    for (unsigned j = 1; j < nd; ++ j)
-        n *= dims[j];
-    if (n > 0x7FFFFFFFUL) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- __fastbit_iapi_register_array_index_only can not "
-            "proceed because the number of elements (" << n
-            << ") exceeds 0x7FFFFFFF";
-        return 0;
-    }
-
     ibis::bord::column *tmp =
         new ibis::bord::column(static_cast<const ibis::bord*>(0),
                                __fastbit_iapi_convert_data_type(t), name);
@@ -490,9 +520,9 @@ void __fastbit_free_array(void *addr) {
     ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_array");
     if (it->second < __fastbit_iapi_all_arrays.size()) {
         ibis::bord::column *col = __fastbit_iapi_all_arrays[it->second];
+        __fastbit_iapi_all_arrays[it->second] = 0;
         __fastbit_iapi_name_map.erase(col->name());
         delete col;
-        __fastbit_iapi_all_arrays[it->second] = 0;
     }
     __fastbit_iapi_address_map.erase(it);
 } // __fastbit_free_array
@@ -513,12 +543,15 @@ void __fastbit_free_array(const char *nm) {
         __fastbit_iapi_name_map.find(nm);
     if (it == __fastbit_iapi_name_map.end()) return;
 
-    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_array");
+    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "__fastbit_free_array");
     if (it->second < __fastbit_iapi_all_arrays.size()) {
         ibis::bord::column *col = __fastbit_iapi_all_arrays[it->second];
-        __fastbit_iapi_name_map.erase(col->name());
-        delete col;
-        __fastbit_iapi_all_arrays[it->second] = 0;
+        if (col != 0) {
+            void *addr = __fastbit_iapi_get_array_addr(*col);
+            __fastbit_iapi_all_arrays[it->second] = 0;
+            __fastbit_iapi_address_map.erase(addr);
+            delete col;
+        }
     }
     __fastbit_iapi_name_map.erase(it);
 } // __fastbit_free_array
@@ -1583,6 +1616,9 @@ extern "C" int fastbit_iapi_deconstruct_index
         *offsets  = arro.release();
         *nbms     = arrb.size();
         *bms      = arrb.release();
+        LOGGER(ibis::gVerbose > 5)
+            << "fastbit_iapi_deconstruct_index returns nkeys = " << *nkeys
+            << ", noffets = " << *noffsets << ", and nbms = " << *nbms;
     }
     else {
         LOGGER(ibis::gVerbose > 0)
