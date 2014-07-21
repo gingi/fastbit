@@ -11,7 +11,7 @@
 @K3=("A", "A-", "A+", "AA", "AA-", "AA+", "AAA", "B", "B-", "B+", "BB", "BB-",
      "BB+", "BBB", "BBB-", "BBB+", "C", "CC", "CCC", "D");
 if ($#ARGV < 1) {
-    print "\nusage:\n", $0, " ibis-path jrf-data-dir\n";
+    print "Tests based on suggestion from Justo Ruiz Ferrer\n\nusage:\n", $0, " ibis-path jrf-data-dir\n";
     exit;
 }
 $IBIS = $ARGV[0];

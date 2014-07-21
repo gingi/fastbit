@@ -383,7 +383,7 @@ static void printColumn(const ibis::part& tbl, const char* cname,
 	long ierr = tbl.get1DBins(cond, cname, nb, boundt, bins);
 	lg() << "\nprintColumn(" << cname << ") -- \n";
 	if (ierr < 0) {
-	    lg() << "get1DBins failed with error " << ierr;
+	    lg() << "Warning -- get1DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size()) {
 	    lg() << "get1DBins returned " << ierr
@@ -457,7 +457,7 @@ static void printColumn0(const ibis::part& tbl, const char* cname,
 	}
 	else {
 	    col->print(lg());
-	    lg() << " -- getCumulativeDistribution(" << cname
+	    lg() << "\nWarning -- getCumulativeDistribution(" << cname
 		 << ") failed with error code " << nb;
 	}
     }
@@ -610,7 +610,7 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
 	ibis::util::logger lg;
 	lg() << "\n" << evt << "-- \n";
 	if (ierr < 0) {
-	    lg() << "get1DBins failed with error " << ierr;
+	    lg() << "Warning -- get1DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
 	    lg() << "get1DBins returned " << ierr
@@ -636,7 +636,7 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
 		    ibis::array_t<double> *tmp =
 			cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
-			lg() << "** failed to retrieve "
+			lg() << "Warning -- failed to retrieve "
 			     << bins[i]->cnt() << " value"
 			     << (bins[i]->cnt() > 1 ? "s" : "")
 			     << " from " << wt << "for bin " << i
@@ -791,7 +791,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *cond,
 	ibis::util::logger lg;
 	lg() << "\n" << evt << " -- \n";
 	if (ierr < 0) {
-	    lg() << "get2DBins failed with error " << ierr;
+	    lg() << "Warning -- get2DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
 	    lg() << "get2DBins returned " << ierr
@@ -817,7 +817,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *cond,
 		    ibis::array_t<double> *tmp =
 			cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
-			lg() << "** failed to retrieve "
+			lg() << "Warning -- failed to retrieve "
 			     << bins[i]->cnt() << " value"
 			     << (bins[i]->cnt() > 1 ? "s" : "")
 			     << " from " << wt << "for bin " << i
@@ -994,7 +994,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
 	ibis::util::logger lg;
 	lg() << "\n" << evt << " -- \n";
 	if (ierr < 0) {
-	    lg() << "get3DBins failed with error " << ierr;
+	    lg() << "Warning -- get3DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
 	    lg() << "get3DBins returned " << ierr
@@ -1020,7 +1020,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
 		    ibis::array_t<double> *tmp =
 			cptrw->selectDoubles(*(bins[i]));
 		    if (tmp == 0) {
-			lg() << "** failed to retrieve "
+			lg() << "Warning -- failed to retrieve "
 			     << bins[i]->cnt() << " value"
 			     << (bins[i]->cnt() > 1 ? "s" : "")
 			     << " from " << wt << "for bin " << i
@@ -1161,7 +1161,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	lg() << "\nprint2DDistribution(" << col1 << ", " << col2
 	     << ") -- \n";
 	if (ierr < 0) {
-	    lg() << "get2DBins failed with error " << ierr;
+	    lg() << "Warning -- get2DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size()) {
 	    lg() << "get2DBins returned " << ierr
@@ -1196,7 +1196,7 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
 	lg() << "\nprint2DDistribution(" << col1 << ", " << col2
 	     << ") -- \n";
 	if (ierr < 0) {
-	    lg() << "get2DBins failed with error " << ierr;
+	    lg() << "Warning -- get2DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size()) {
 	    lg() << "get2DBins returned " << ierr
@@ -1286,7 +1286,7 @@ static void print2DDist(const ibis::part& tbl, const char *col1,
 	lg() << "\nprint2DDistribution(" << col1 << ", " << col2
 	     << ") -- \n";
 	if (ierr < 0) {
-	    lg() << "get2DBins failed with error " << ierr;
+	    lg() << "Warning -- get2DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size()) {
 	    lg() << "get2DBins returned " << ierr
@@ -1516,7 +1516,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	lg() << "\nprint3DDistribution(" << col1 << ", " << col2
 	     << ", " << col3 << ") -- \n";
 	if (ierr < 0) {
-	    lg() << "get3DBins failed with error " << ierr;
+	    lg() << "Warning -- get3DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size()) {
 	    lg() << "get3DBins returned " << ierr
@@ -1552,7 +1552,7 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
 	lg() << "\nprint3DDistribution(" << col1 << ", " << col2
 	     << ", " << col3 << ") -- \n";
 	if (ierr < 0) {
-	    lg() << "get3DBins failed with error " << ierr;
+	    lg() << "Warning -- get3DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size()) {
 	    lg() << "get3DBins returned " << ierr
@@ -1645,7 +1645,7 @@ static void print3DDist(const ibis::part& tbl, const char *col1,
 	lg() << "\nprint3DDistribution(" << col1 << ", " << col2
 	     << ", " << col3 << ") -- \n";
 	if (ierr < 0) {
-	    lg() << "get3DBins failed with error " << ierr;
+	    lg() << "Warning -- get3DBins failed with error " << ierr;
 	}
 	else if (ierr != (long)bins.size()) {
 	    lg() << "get3DBins returned " << ierr
@@ -2468,8 +2468,8 @@ static void parse_args(int argc, char** argv, int& mode,
     if (mesgfile != 0 && *mesgfile != 0) {
 	int ierr = ibis::util::setLogFileName(mesgfile);
 	if (ierr < 0)
-	    std::clog << *argv << " failed to open file " << mesgfile
-		      << " for logging error messages" << std::endl;
+	    std::clog << "Warning -- " << *argv << " failed to open file "
+		      << mesgfile << " for logging error messages" << std::endl;
 	else if (ibis::gVerbose > 2)
 	    std::clog << *argv << " will write messages to " << mesgfile
 		      << std::endl;
@@ -2683,7 +2683,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "xdoQuery -- failed to estimate \"" << wstr
+		<< "Warning -- xdoQuery failed to estimate \"" << wstr
 		<< "\", error code = " << num2;
 	    return;
 	}
@@ -2703,7 +2703,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
     num2 = aQuery.evaluate();
     if (num2 < 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "xdoQuery -- failed to evaluate \"" << wstr
+	    << "Warning -- xdoQuery failed to evaluate \"" << wstr
 	    << "\", error code = " << num2;
 	return;
     }
@@ -2944,7 +2944,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
     std::unique_ptr<ibis::table> sel1(tbl->select(sstr, wstr));
     if (sel1.get() == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "tableSelect:: select(" << sstr << ", " << wstr
+	    << "Warning -- tableSelect:: select(" << sstr << ", " << wstr
 	    << ") failed on table " << tbl->name();
 	return;
     }
@@ -3035,8 +3035,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	    ierr = qq1.setWhereClause(&dr);
 	    if (ierr < 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "tableSelect -- failed to set where clause expressed as "
-		    << "a qDiscreteRange(" << cnames[0] << ", double["
+		    << "Warning -- tableSelect failed to set where clause "
+		    "expressed as a qDiscreteRange(" << cnames[0] << ", double["
 		    << sel1->nRows() << "])";
 	    }
 	    else {
@@ -3520,7 +3520,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    num2 = aQuery.sequentialScan(btmp);
 	    if (num2 < 0) {
 		ibis::util::logger lg;
-		lg() << "doQuery:: sequentialScan("
+		lg() << "Warning -- doQuery:: sequentialScan("
 		     << aQuery.getWhereClause() << ") failed";
 		return;
 	    }
@@ -3544,7 +3544,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "doQuery -- failed to estimate \"" << wstr
+		<< "Warning -- doQuery failed to estimate \"" << wstr
 		<< "\", error code = " << num2;
 	    return;
 	}
@@ -3578,7 +3578,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     num2 = aQuery.evaluate();
     if (num2 < 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << "doQuery -- failed to evaluate \"" << wstr
+	    << "Warning -- doQuery failed to evaluate \"" << wstr
 	    << "\", error code = " << num2;
 	return;
     }
@@ -3600,7 +3600,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    num2 = bdl->truncate(limit, start);
 	    if (num2 < 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "doQuery -- failed to truncate the bundle object";
+		    << "Warning -- doQuery failed to truncate the bundle object";
 		return;
 	    }
 	}
@@ -3667,14 +3667,15 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	num2 = cq.setWhereClause(aQuery.getWhereClause());
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "doQuery -- failed to set \"" << aQuery.getWhereClause()
+		<< "Warning -- doQuery failed to set \""
+                << aQuery.getWhereClause()
 		<< "\" on a countQuery";
 	}
 	else {
 	    num2 = cq.evaluate();
 	    if (num2 < 0) {
 		LOGGER(ibis::gVerbose > 0)
-		    << "doQuery -- failed to evaluate the count query on "
+		    << "Warning -- doQuery failed to evaluate the count query on "
 		    << aQuery.getWhereClause();
 	    }
 	    else if (cq.getNumHits() != num1) {
@@ -3690,7 +3691,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	num2 = aQuery.sequentialScan(btmp);
 	if (num2 < 0) {
 	    ibis::util::logger lg;
-	    lg() << "doQuery:: sequentialScan("
+	    lg() << "Warning -- doQuery:: sequentialScan("
 		 << aQuery.getWhereClause() << ") failed";
 	}
 	else {
@@ -3889,7 +3890,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	num2 = aQuery.estimate();
 	if (num2 < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "doMeshQuery -- failed to estimate \"" << wstr
+		<< "Warning -- doMeshQuery failed to estimate \"" << wstr
 		<< "\", error code = " << num2;
 	    return;
 	}

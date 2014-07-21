@@ -138,7 +138,7 @@ check-marksdb: $(TESTDIR)/marksdb/-part.txt $(IBISEXE)
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-marksdb.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-marksdb.log; fi
 	@echo
 check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
-	@echo "Output from tests and data contributed by Alexandre Maurel (`/bin/date`)" > $(TESTDIR)/check-maurel.log
+	@echo "Output from tests and data contributed by Alexandre Maurel started on `/bin/date`" > $(TESTDIR)/check-maurel.log
 	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select I where I = 'Imatinib'" -output-with-header $(TESTDIR)/maurel-1a -v -v >> $(TESTDIR)/check-maurel.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/maurel -q "select I where I in ('Imatinib')" -output-with-header $(TESTDIR)/maurel-1b -v -v >> $(TESTDIR)/check-maurel.log 2>&1
 	@if [ -f $(TESTDIR)/maurel-1a -a -f $(TESTDIR)/maurel-1b -a `diff -w $(TESTDIR)/maurel-1a $(TESTDIR)/maurel-1b | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
