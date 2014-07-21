@@ -369,16 +369,21 @@ public:
 
 protected:
     // protected member variables
-    const part* thePart; ///!< Data partition containing this column.
-    ibis::bitvector mask_;/// The entries marked 1 are valid.
-    ibis::TYPE_T m_type;///!< Data type.
-    std::string m_name;	///!< Name of the column.
-    std::string m_desc;	///!< Free-form description of the column.
-    std::string m_bins;	///!< Index/binning specification.
-    bool m_sorted;	///!< Are the column values in ascending order?
-    double lower;	///!< The minimum value.
-    double upper;	///!< The maximum value.
-    /// The index for this column.  It is not consider as a must-have member.
+    const part* thePart;  ///!< Data partition containing this column.
+    ibis::bitvector mask_;///!< The entries marked 1 are valid.
+    ibis::TYPE_T m_type;  ///!< Data type.
+    std::string m_name;	  ///!< Name of the column.
+    std::string m_desc;	  ///!< Free-form description of the column.
+    std::string m_bins;	  ///!< Index/binning specification.
+    bool m_sorted;	  ///!< Are the column values in ascending order?
+    double lower;	  ///!< The minimum value.
+    double upper;	  ///!< The maximum value.
+    /// Presence of the data file.
+    ///  0 -- don't know.
+    /// -1 -- no data file.
+    ///  1 -- data file is known to be present.
+    mutable int dataflag;
+    /// The index for this column.  It is not considered as a must-have member.
     mutable ibis::index* idx;
     /// The number of functions using the index.
     mutable ibis::util::sharedInt32 idxcnt;

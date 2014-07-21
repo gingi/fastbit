@@ -1,3 +1,6 @@
+2014-07-20 John Wu <John dot Wu at ACM dot org>
+	* src/column.h, src/column.cpp: add member variable dataflag
+
 2014-07-18 John Wu <John dot Wu at ACM dot org>
 	* examples/tiapi.c: update to work with index only data column
 
