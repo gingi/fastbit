@@ -133,7 +133,7 @@ namespace ibis {
 		std::pop_heap(data_.begin(), data_.end(), comp_);
 		data_.resize(oldsize-1);
 	    }
-	}; // minheap
+	}; // heap
     } // namespace util
 } // namespace ibis
 #endif

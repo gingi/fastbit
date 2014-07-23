@@ -4305,7 +4305,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
 			<< ") expected to retrieve " << nEvents
-			<< " values " << j << " (" << cn1
+			<< " values for column " << j << " (" << cn1
 			<< ", " << ibis::TYPESTRING[(int)ct.back()]
 			<< "), but got " << ierr;
 		    return 0;
@@ -4331,7 +4331,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
 			<< ") expected to retrieve " << nEvents
-			<< " values " << j << " (" << cn1
+			<< " values for column " << j << " (" << cn1
 			<< ", " << ibis::TYPESTRING[(int)ct.back()]
 			<< "), but got " << ierr;
 		    return 0;
@@ -4357,7 +4357,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
 			<< ") expected to retrieve " << nEvents
-			<< " values " << j << " (" << cn1
+			<< " values for column " << j << " (" << cn1
 			<< ", " << ibis::TYPESTRING[(int)ct.back()]
 			<< "), but got " << ierr;
 		    return 0;
@@ -4387,7 +4387,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
 			<< ") expected to retrieve " << nEvents
-			<< " values " << j << " (" << cn1
+			<< " values for column " << j << " (" << cn1
 			<< ", " << ibis::TYPESTRING[(int)ct.back()]
 			<< "), but got " << ierr;
 		    return 0;
@@ -4413,7 +4413,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
 			<< ") expected to retrieve " << nEvents
-			<< " values " << j << " (" << cn1
+			<< " values for column " << j << " (" << cn1
 			<< ", " << ibis::TYPESTRING[(int)ct.back()]
 			<< "), but got " << ierr;
 		    return 0;
@@ -4427,7 +4427,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
 		    LOGGER(ibis::gVerbose > 0)
 			<< "Warning -- bord::evaluateTerms(" << desc
 			<< ") expected to retrieve " << nEvents
-			<< " values " << j << " (" << cn1
+			<< " values for column " << j << " (" << cn1
 			<< ", " << ibis::TYPESTRING[(int)ct.back()]
 			<< "), but got "
 			<< (buf.back() != 0 ?

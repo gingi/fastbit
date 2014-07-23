@@ -7212,10 +7212,12 @@ void ibis::index::sumBins(const ibis::array_t<uint32_t> &bns,
             if (bns[j] < bits.size()) {
                 if (bits[bns[j]] != 0) {
                     pile.push_back(bits[bns[j]]);
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
                     LOGGER(ibis::gVerbose > 0)
                         << "DEBUG -- sumBins adds bits[" << bns[j]
                         << "] with " << bits[bns[j]]->cnt()
-                        << " set bits to pile";
+                        << " set bit(s) to pile";
+#endif
                 }
             }
         }

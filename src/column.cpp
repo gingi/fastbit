@@ -4820,6 +4820,7 @@ long ibis::column::selectValuesT(const char *dfn,
     if (dfn != 0 && *dfn != 0) {
 	const off_t sz = ibis::util::getFileSize(dfn);
 	if (sz != (off_t)(sizeof(T)*mask.size())) {
+            dataflag = -1;
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt << " expected file " << dfn
 		<< " to have " << (sizeof(T)*mask.size()) << " bytes, but got "
@@ -4835,9 +4836,11 @@ long ibis::column::selectValuesT(const char *dfn,
     else {
 	ierr = getValuesArray(&incore);
 	if (ierr < 0) {
+            dataflag = -1;
 	    return -3;
 	}
 	else if (incore.size() != mask.size()) {
+            dataflag = -1;
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt << " expected " << mask.size()
 		<< " elements in memory, but got " << incore.size();
@@ -4988,10 +4991,6 @@ long ibis::column::selectValues(const bitvector& mask, void* vals) const {
     if (dataflag < 0 || thePart == 0) return -2L;
     std::string sname;
     const char *dfn = dataFileName(sname);
-    if (dfn == 0) {
-        dataflag = -1;
-        return -3L;
-    }
 
     switch (m_type) {
     case ibis::BYTE:
@@ -5059,10 +5058,6 @@ long ibis::column::selectValues(const bitvector& mask, void* vals,
     if (dataflag < 0 || thePart == 0) return -2L;
     std::string sname;
     const char *dfn = dataFileName(sname);
-    if (dfn == 0 || *dfn == 0) {
-        dataflag = -1;
-        return -3L;
-    }
 
     switch (m_type) {
     case ibis::BYTE:
