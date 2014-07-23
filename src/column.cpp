@@ -4875,34 +4875,34 @@ long ibis::column::selectValuesT(const char *dfn,
 
     array_t<T> incore;
     if (dfn != 0 && *dfn != 0) {
-        const off_t sz = ibis::util::getFileSize(dfn);
-        if (sz != (off_t)(sizeof(T)*mask.size())) {
+	const off_t sz = ibis::util::getFileSize(dfn);
+	if (sz != (off_t)(sizeof(T)*mask.size())) {
             dataflag = -1;
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << evt << " expected file " << dfn
-                << " to have " << (sizeof(T)*mask.size()) << " bytes, but got "
-                << sz;
-            return -4;
-        }
-        // attempt to read the whole file into memory
-        ibis::fileManager::ACCESS_PREFERENCE apref =
-            thePart != 0 ? thePart->accessHint(mask, sizeof(T))
-            : ibis::fileManager::MMAP_LARGE_FILES;
-        ierr = ibis::fileManager::instance().tryGetFile(dfn, incore, apref);
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected file " << dfn
+		<< " to have " << (sizeof(T)*mask.size()) << " bytes, but got "
+		<< sz;
+	    return -4;
+	}
+	// attempt to read the whole file into memory
+	ibis::fileManager::ACCESS_PREFERENCE apref =
+	    thePart != 0 ? thePart->accessHint(mask, sizeof(T))
+	    : ibis::fileManager::MMAP_LARGE_FILES;
+	ierr = ibis::fileManager::instance().tryGetFile(dfn, incore, apref);
     }
     else {
-        ierr = getValuesArray(&incore);
-        if (ierr < 0) {
+	ierr = getValuesArray(&incore);
+	if (ierr < 0) {
             dataflag = -1;
-            return -3;
-        }
-        else if (incore.size() != mask.size()) {
+	    return -3;
+	}
+	else if (incore.size() != mask.size()) {
             dataflag = -1;
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << evt << " expected " << mask.size()
-                << " elements in memory, but got " << incore.size();
-            return -4;
-        }
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expected " << mask.size()
+		<< " elements in memory, but got " << incore.size();
+	    return -4;
+	}
     }
 
     if (ierr >= 0) { // the file is in memory
@@ -5048,10 +5048,6 @@ long ibis::column::selectValues(const bitvector& mask, void* vals) const {
     if (dataflag < 0 || thePart == 0) return -2L;
     std::string sname;
     const char *dfn = dataFileName(sname);
-    if (dfn == 0) {
-        dataflag = -1;
-        return -3L;
-    }
 
     switch (m_type) {
     case ibis::BYTE:
@@ -5119,10 +5115,6 @@ long ibis::column::selectValues(const bitvector& mask, void* vals,
     if (dataflag < 0 || thePart == 0) return -2L;
     std::string sname;
     const char *dfn = dataFileName(sname);
-    if (dfn == 0 || *dfn == 0) {
-        dataflag = -1;
-        return -3L;
-    }
 
     switch (m_type) {
     case ibis::BYTE:

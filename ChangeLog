@@ -1,3 +1,9 @@
+2014-07-22 John Wu <John dot Wu at ACM dot org>
+	* src/column.h, src/column.cpp: remove the check for nil data file
+	name from column::selectValues because the underlying
+	implementation actually deal with the case correctly previous, the
+	recent changes were incorrect
+
 2014-07-20 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: add member variable dataflag
 
