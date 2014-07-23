@@ -45,8 +45,9 @@ static void fillarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     structure pointing to any complex object type necassary.
  */
 static int mybmreader(void *ctx, uint64_t start, uint64_t count, uint32_t *buf) {
+    unsigned j;
     const uint32_t *bms = (uint32_t*)ctx + start;
-    for (unsigned j = 0; j < count; ++ j)
+    for (j = 0; j < count; ++ j)
         buf[j] = bms[j];
     return 0;
 } // mybmreader
@@ -57,19 +58,21 @@ typedef struct {
 } dblbuffer;
 static int mydblreader(void *ctx, uint64_t nd, uint64_t *starts,
                        uint64_t *counts, void *data) {
+    size_t j;
+    double *out = (double*)data;
+    dblbuffer *db = (dblbuffer*)ctx;
+
     if (ctx == 0 || nd != 1 || starts == 0 || counts == 0 || data == 0)
         return -1;
 
-    dblbuffer *db = (dblbuffer*)ctx;
     if (*starts >= db->n) {
         *counts = 0;
         return 0; // nothing to copy
     }
 
-    double *out = (double*)data;
     if (db->n - *starts < *counts)
         *counts = db->n - *starts;
-    for (size_t j = 0; j < *counts; ++ j)
+    for (j = 0; j < *counts; ++ j)
         out[j] = db->ptr[j + *starts];
     return 0;
 } // mydblread
