@@ -1,3 +1,7 @@
+2014-07-23 John Wu <John dot Wu at ACM dot org>
+	* examples/tiapi.c:48 move declaration of variable j outside of
+	the for loop to conform to C compiler requirement
+
 2014-07-22 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: remove the check for nil data file
 	name from column::selectValues because the underlying
