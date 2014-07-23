@@ -10750,6 +10750,38 @@ int ibis::column::searchSortedICC(const array_t<T>& vals,
     return 0;
 } // ibis::column::searchSortedICC
 
+// explicit instantiation
+template int ibis::column::searchSortedICC
+(const array_t<signed char>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<unsigned char>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<int16_t>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<uint16_t>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<int32_t>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<uint32_t>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<int64_t>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<uint64_t>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<float>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+template int ibis::column::searchSortedICC
+(const array_t<double>&, const ibis::qContinuousRange&,
+ ibis::bitvector&) const;
+
 /// The backup option for searchSortedIC.  This function opens the named
 /// file and reads its content one word at a time, which is likely to be
 /// very slow.  It does assume the content of the file is sorted in
@@ -11466,6 +11498,28 @@ int ibis::column::searchSortedOOCC(const char* fname,
     return 0;
 } // ibis::column::searchSortedOOCC
 
+// explicit instantiation
+template int ibis::column::searchSortedOOCC<signed char>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<unsigned char>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<int16_t>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<uint16_t>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<int32_t>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<uint32_t>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<int64_t>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<uint64_t>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<float>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+template int ibis::column::searchSortedOOCC<double>
+(const char*, const ibis::qContinuousRange&, ibis::bitvector& hits) const;
+
 /// An equivalent of array_t<T>::find.  It reads the open file one word at
 /// a time and therefore is likely to be very slow.
 template<typename T> uint32_t
@@ -11634,6 +11688,7 @@ int ibis::column::searchSortedICD(const array_t<T>& vals,
     return 0;
 } // ibis::column::searchSortedICD
 
+// explicit instantiation
 template int ibis::column::searchSortedICD
 (const array_t<signed char>&, const ibis::qDiscreteRange&,
  ibis::bitvector&) const;
