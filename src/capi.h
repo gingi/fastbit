@@ -88,7 +88,7 @@ extern "C" {
 			  const char *indexOptions);
     /** @brief Purge all index files. */
     FASTBIT_DLLSPEC int fastbit_purge_indexes(const char *indexLocation);
-    /* @brief Build an index for the named attribute. */
+    /** @brief Build an index for the named attribute. */
     FASTBIT_DLLSPEC int
     fastbit_build_index(const char *indexLocation, const char* cname,
 			const char *indexOptions);
@@ -118,8 +118,8 @@ extern "C" {
         fastbit_get_qualified_floats shall have this many elements. */
     FASTBIT_DLLSPEC int fastbit_get_result_rows(FastBitQueryHandle query);
     /** Retrieve the row number of those satisfying the query conditions. */
-    FASTBIT_DLLSPEC int fastbit_get_result_row_ids(FastBitQueryHandle,
-                                                   uint32_t *);
+    FASTBIT_DLLSPEC int fastbit_get_result_row_ids
+    (FastBitQueryHandle, uint32_t *);
 
     /** @brief Return the string form of the select clause. */
     FASTBIT_DLLSPEC const char*

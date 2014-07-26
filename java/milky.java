@@ -21,7 +21,7 @@
 import java.io.*;
 
 public class milky {
-    public static void main(String args[]){
+    public static void main(String args[]) {
 	int exitCode, iarg, msglvl;
 	String conffile;
 

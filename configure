@@ -17097,6 +17097,12 @@ done
       CPPFLAGS="$CPPFLAGS -I$JNI_INCLUDE_DIR"
       CXXCPP="$CXXCPP -I$JNI_INCLUDE_DIR"
       CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR"
+      if test -d $JNI_INCLUDE_DIR/darwin; then
+        CFLAGS="$CFLAGS -I$JNI_INCLUDE_DIR/darwin"
+        CPPFLAGS="$CPPFLAGS -I$JNI_INCLUDE_DIR/darwin"
+        CXXCPP="$CXXCPP -I$JNI_INCLUDE_DIR/darwin"
+        CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR/darwin"
+      fi
     done
 
     ac_fn_cxx_check_header_mongrel "$LINENO" "jni.h" "ac_cv_header_jni_h" "$ac_includes_default"

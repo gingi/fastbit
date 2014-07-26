@@ -1,3 +1,7 @@
+2014-07-24 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: add subdirectory darwin to the list of include
+	directories to combat problem of jni_md.h
+
 2014-07-23 John Wu <John dot Wu at ACM dot org>
 	* examples/tiapi.c:48 move declaration of variable j outside of
 	the for loop to conform to C compiler requirement

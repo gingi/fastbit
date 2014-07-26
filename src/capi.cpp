@@ -44,7 +44,7 @@ extern "C" {
     };
 }
 
-/// A list of data partitions known to the C API.  This class that is only
+/// A list of data partitions known to the C API.  This class is only
 /// used in this file for implementing the C API.
 class fastbit_part_list {
 public:

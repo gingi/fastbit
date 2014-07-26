@@ -789,6 +789,12 @@ then
       CPPFLAGS="$CPPFLAGS -I$JNI_INCLUDE_DIR"
       CXXCPP="$CXXCPP -I$JNI_INCLUDE_DIR"
       CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR"
+      if test -d $JNI_INCLUDE_DIR/darwin; then
+        CFLAGS="$CFLAGS -I$JNI_INCLUDE_DIR/darwin"
+        CPPFLAGS="$CPPFLAGS -I$JNI_INCLUDE_DIR/darwin"
+        CXXCPP="$CXXCPP -I$JNI_INCLUDE_DIR/darwin"
+        CXXFLAGS="$CXXFLAGS -I$JNI_INCLUDE_DIR/darwin"
+      fi
     done
 
     AC_CHECK_HEADER(jni.h, [HAS_JNI=yes], [HAS_JNI=no])
