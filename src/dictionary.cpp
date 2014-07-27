@@ -238,6 +238,7 @@ int ibis::dictionary::read(const char* name) {
         evt += name;
         evt += ')';
     }
+
     // open the file to read
     int ierr = 0;
     FILE* fptr = fopen(name, "rb");

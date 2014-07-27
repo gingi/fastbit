@@ -85,10 +85,10 @@ public:
     /// Return the number of rows.
     uint32_t nRows() const {return nEvents;}
 
-    int updateData();
-
-    /// Output a description of every column of the data partition.
+    /// Output a description of every column in the data partition.
     void print(std::ostream &out) const;
+    void logWarning(const char* event, const char* fmt, ...) const;
+    void logMessage(const char* event, const char* fmt, ...) const;
 
     /// Match a name-value pair in the meta tags.
     bool matchNameValuePair(const char* name, const char* value) const;
@@ -581,7 +581,10 @@ public:
     /// Update the list of columns with information in this data partition
     void combineNames(ibis::table::namesTypes &metalist) const;
 
-    /******************************************************************/
+    /// A group of functions to manipulate the data partition.
+    ///@{
+    int clear();
+    int updateData();
     /// Append data from @c dir.
     long append(const char* dir);
     /// Commit the append operation involving data from @c dir.
@@ -662,14 +665,8 @@ public:
     void testRangeOperators(const ibis::column* col,
 			    long* nerrors) const;
 
-    // These functions are used in classes barrel and vault
-    void logWarning(const char* event, const char* fmt, ...) const;
-    void logMessage(const char* event, const char* fmt, ...) const;
-
     void doBackup(); ///!< A function to start backing up the active dir.
 
-    class barrel;
-    class vault;
     /// An associative array for columns of data.
     typedef std::map< const char*, column*, lessi > columnList;
 
@@ -700,6 +697,13 @@ public:
 			    const std::vector<ibis::opaque>& opq,
 			    ibis::bitvector& totmask,
 			    const ibis::bitvector& newmask);
+    int gainReadAccess() const;
+    int releaseAccess() const;
+    int gainWriteAccess() const;
+    int tryWriteAccess() const;
+    ///@}
+    class barrel;
+    class vault;
 
 protected:
     class cleaner;
@@ -1348,10 +1352,6 @@ private:
 
     void init(const char* prefix); ///!< Get directory names from gParameters.
 
-    void gainReadAccess(const char* mesg) const;
-    void releaseAccess(const char* mesg) const;
-    void gainWriteAccess(const char* mesg) const;
-
     void   fillRIDs(const char* fn) const; ///!< Generate new RIDs.
     void   sortRIDs() const; ///!< Sort current list of RIDs.
     uint32_t searchSortedRIDs(const ibis::rid_t &rid) const;
@@ -1458,7 +1458,7 @@ private:
     info& operator=(const info&);
 }; // ibis::part::info
 
-/// A cleaner to be used by the fileManager::unload function.
+/// A cleaner to be used by the function fileManager::unload.
 class ibis::part::cleaner : public ibis::fileManager::cleaner {
 public:
     virtual void operator()() const;
@@ -1471,14 +1471,38 @@ private:
 
 /// Provide a read lock on an ibis::part.  Routines need read access to
 /// ibis::part class should use this class instead directly calling
-/// ibis::partgainReadAccess so that in case of exceptions, the release
+/// ibis::part::gainReadAccess so that in case of exceptions, the release
 /// command would be always called.
 class ibis::part::readLock {
 public:
     readLock(const part* tbl, const char* m) : thePart(tbl), mesg(m) {
-	tbl->gainReadAccess(m);
+	int ierr = tbl->gainReadAccess();
+        if (0 != ierr) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- part[" << thePart->name()
+                << "]::gainReadAccess -- pthread_rwlock_rdlock for " << mesg
+                << " returned " << ierr << " (" << strerror(ierr) << ')';
+        }
+        else {
+            LOGGER(ibis::gVerbose > 9)
+                << "part[" << thePart->name()
+                << "]::gainReadAccess for " << mesg;
+        }
     }
-    ~readLock() {thePart->releaseAccess(mesg);}
+    ~readLock() {
+        int ierr = thePart->releaseAccess();
+        if (0 != ierr) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- part[" << thePart->name()
+                << "]::releaseAccess -- pthread_rwlock_unlock for " << mesg
+                << " returned " << ierr << " (" << strerror(ierr) << ')';
+        }
+        else {
+            LOGGER(ibis::gVerbose > 9)
+                << "part[" << thePart->name()
+                << "]::releaseAccess for " << mesg;
+        }
+    }
 
 private:
     const part* thePart;
@@ -1493,9 +1517,33 @@ private:
 class ibis::part::writeLock {
 public:
     writeLock(const part* tbl, const char* m) : thePart(tbl), mesg(m) {
-	tbl->gainWriteAccess(m);
+	int ierr = tbl->gainWriteAccess();
+        if (0 != ierr) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- part[" << thePart->name()
+                << "]::gainWriteAccess -- pthread_rwlock_wrlock for " << mesg
+                << " returned " << ierr << " (" << strerror(ierr) << ')';
+        }
+        else {
+            LOGGER(ibis::gVerbose > 9)
+                << "part[" << thePart->name()
+                << "]::gainWriteAccess for " << mesg;
+        }
     }
-    ~writeLock() {thePart->releaseAccess(mesg);}
+    ~writeLock() {
+        int ierr = thePart->releaseAccess();
+        if (0 != ierr) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- part[" << thePart->name()
+                << "]::releaseAccess -- pthread_rwlock_unlock for " << mesg
+                << " returned " << ierr << " (" << strerror(ierr) << ')';
+        }
+        else {
+            LOGGER(ibis::gVerbose > 9)
+                << "part[" << thePart->name()
+                << "]::releaseAccess for " << mesg;
+        }
+    }
 
 private:
     const part* thePart;
@@ -1514,7 +1562,7 @@ public:
     /// Constructor.
     softWriteLock(const part* tbl, const char* m);
     /// Destructor.
-    ~softWriteLock() {if (lckd==0) thePart->releaseAccess(mesg);}
+    ~softWriteLock();
     /// Have we acquired the desired lock?  Returns true if yes, otherwise
     /// false.
     bool isLocked() const {return (lckd==0);}
@@ -1771,4 +1819,32 @@ inline int64_t ibis::part::evaluateJoin
  const ibis::bitvector &mask, ibis::bitvector64 &pairs) const {
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
+
+/// Attempt to release a read or write access to this part object.  A
+/// simple wrap over pthread_rwlock_unlock.  Returns the return value of
+/// pthread_rwlock_unlock.
+inline int ibis::part::releaseAccess() const {
+    return pthread_rwlock_unlock(&rwlock);
+} // ibis::part::releaseAccess
+
+/// Attempt to gain a read access to this part object.  A simple wrap over
+/// pthread_rwlock_rdlock.  Returns the return value of
+/// pthread_rwlock_rdlock.
+inline int ibis::part::gainReadAccess() const {
+    return pthread_rwlock_rdlock(&rwlock);
+} // ibis::part::gainReadAccess
+
+/// Attempt to gain a write access to this part object.  A simple wrap over
+/// pthread_rwlock_wrlock.  Returns the return value of
+/// pthread_rwlock_wrlock.
+inline int ibis::part::gainWriteAccess() const {
+    return pthread_rwlock_wrlock(&rwlock);
+} // ibis::part::gainWriteAccess
+
+/// A soft attempt to gain a write access to this part object.  A simple
+/// wrap over pthread_rwlock_trywrlock.  Returns the return value of
+/// pthread_rwlock_trywrlock.
+inline int ibis::part::tryWriteAccess() const {
+    return pthread_rwlock_trywrlock(&rwlock);
+} // ibis::part::tryWriteAccess
 #endif // IBIS_PART_H

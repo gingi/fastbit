@@ -1,3 +1,12 @@
+2014-07-27 John Wu <John dot Wu at ACM dot org>
+	* src/part.h: add function clear to clear the existing content of
+	a data partition if it is not in use (based on softWriteLock)
+	* src/capi.cpp: change fastbit_part_list::clear to be a public
+	function that invokes ibis::part::clear to remove the content
+	before deleting the object
+	* src/category.cpp: move mutex lock to cover the entire body of
+	function category::prepareMembers
+
 2014-07-26 John Wu <John dot Wu at ACM dot org>
 	* src/parti.cpp: in function updateData, call emptyCache after the
 	time stamp has been checked to avoid unnecessary changes and to

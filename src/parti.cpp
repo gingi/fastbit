@@ -1788,3 +1788,94 @@ int ibis::part::updateData() {
     amask.adjustSize(nEvents, nEvents);
     return 0;
 } // ibis::part::updateData
+
+/// Clear the content of data in this object if it is not in use.  This is
+/// a soft request to clear everything, a hard request to clear the content
+/// is performed in the destructor of this function.  This function is used
+/// in cases where one may remove the partition object if it not in use,
+/// otherwise leave it alone.  Currently, this is used in C API function
+/// fastbit_cleanup.
+int ibis::part::clear() {
+    softWriteLock lock(this, "clear");
+    if (lock.isLocked() == false) {
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- part[" << name() << "]::clear can not proceed, "
+	    "must free all queries and stop other accesses before continuing";
+	return -2;
+    }
+    LOGGER(ibis::gVerbose > 2)
+	<< "part[" << name() << "] (" << m_desc
+        << ") is unused, proceed to clear";
+
+    emptyCache();
+    { // remove the columns
+	std::vector<ibis::column*> tmp;
+	tmp.reserve(columns.size());
+	for (columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it)
+	    tmp.push_back((*it).second);
+	columns.clear();
+
+	for (uint32_t i = 0; i < tmp.size(); ++ i)
+	    delete tmp[i];
+	tmp.clear();
+    }
+
+    ibis::fileManager::instance().removeCleaner(myCleaner);
+    ibis::resource::clear(metaList);
+    // clear the rid list and the rest
+    delete rids;
+    delete myCleaner;
+    delete [] activeDir;
+    delete [] backupDir;
+    delete [] idxstr;
+    delete [] m_name;
+    m_name = 0;
+    m_desc.erase();
+    rids = 0;
+    nEvents = 0;
+    activeDir = 0;
+    backupDir = 0;
+    switchTime = 0;
+    state = UNKNOWN_STATE;
+    idxstr = 0;
+    amask.clear();
+    colorder.clear();
+    shapeName.clear();
+    shapeSize.clear();
+    myCleaner = 0;
+    return 0;
+} // ibis::part::clear
+
+ibis::part::softWriteLock::softWriteLock(const part* tbl, const char* m)
+    : thePart(tbl), mesg(m), lckd(tbl->tryWriteAccess()) {
+    if (lckd != 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << thePart->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock for " << mesg
+	    << " returned " << lckd << " (" << strerror(lckd) << ')';
+    }
+    else if (ibis::gVerbose > 9) {
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << thePart->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg;
+    }
+}
+
+ibis::part::softWriteLock::~softWriteLock() {
+    if (lckd==0) {
+        int ierr = thePart->releaseAccess();
+        if (0 != ierr) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- part[" << thePart->name()
+                << "]::releaseAccess -- pthread_rwlock_unlock for " << mesg
+                << " returned " << ierr << " (" << strerror(ierr) << ')';
+        }
+        else if (ibis::gVerbose > 9) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "part[" << thePart->name()
+                << "]::releaseAccess for " << mesg;
+        }
+    }
+}
