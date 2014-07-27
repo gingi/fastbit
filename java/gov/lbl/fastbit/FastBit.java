@@ -61,14 +61,14 @@ public class FastBit {
 	clauses of a simple SQL select statement.
 	@arg select The select clause.  May contain a list of column
 	names separated by comas.
-	@arg from The from clause.  Must be the directory containing the
-	data partition.  Can only be one directory name.
+	@arg datadir The name of data directory.  Must be the directory
+	containing the data partition.  Can only be one directory name.
 	@arg where The where clause.  Specify the conditions on the
 	records/rows to be selected.  This is basically a set of range
 	conditions joined together by logical operators, @sa
 	ibis::query::setWhereClause.
     */
-    public native QueryHandle build_query(String select, String from,
+    public native QueryHandle build_query(String select, String datadir,
 					  String where);
     /** Destroy a query object.  Reclaims all resources associated with
 	the query object.

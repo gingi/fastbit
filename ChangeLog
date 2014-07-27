@@ -1,3 +1,16 @@
+2014-07-26 John Wu <John dot Wu at ACM dot org>
+	* src/parti.cpp: in function updateData, call emptyCache after the
+	time stamp has been checked to avoid unnecessary changes and to
+	protect the call with the write lock
+	* src/capi.cpp: rearrange the mutex lock to better protect the
+	shared/global variable _capi_tlist and _capi_tablex in capi.cpp --
+	this addresses an issue of repeated creation and deletion of
+	gov.lbl.fastbit.FastBit eventually leading to a seg fault because
+	of the race condition between the garbage collector removing
+	_capi_tlist and the other functions trying to use the same pointer
+	* java/Makefile.am: add rules to create and install fastbitjni.jar
+	into the library directory
+
 2014-07-24 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: add subdirectory darwin to the list of include
 	directories to combat problem of jni_md.h

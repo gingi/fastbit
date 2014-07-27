@@ -27,7 +27,7 @@ extern "C" {
 
 	/// For storing null-terminated strings.
 	struct NullTerminatedStrings {
-	    const char * * pointers; ///!< The pointer passed to the caller.
+	    const char **pointers; ///!< The pointer passed to the caller.
 	    std::vector<std::string> *values; ///!< Actual string values.
 	}; // NullTerminatedStrings
     };
@@ -48,14 +48,13 @@ extern "C" {
 /// used in this file for implementing the C API.
 class fastbit_part_list {
 public:
-    fastbit_part_list();
-    ~fastbit_part_list();
+    fastbit_part_list() {}
+    ~fastbit_part_list() {clear();}
     void remove(const char* dir);
     ibis::part* find(const char* dir);
 
 private:
     ibis::partAssoc parts;
-    pthread_mutex_t mutex;
 
     void clear();
 }; // class fastbit_part_list
@@ -68,18 +67,13 @@ private:
 static fastbit_part_list *_capi_tlist=0;
 // The pointer to the in-memory buffer used to store new data records.
 static ibis::tablex *_capi_tablex=0;
-
-/// Constructor.
-fastbit_part_list::fastbit_part_list() {
-    if (0 != pthread_mutex_init
-	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-	throw "fastbit_part_list unable to initialize the mutex lock";
-    }
-} // ctor
+// The mutex lock for controlling the accesses the two above global variables.
+static pthread_mutex_t _capi_mutex = PTHREAD_MUTEX_INITIALIZER;;
 
 /// Clear all data partitions from the list.
+///
+/// @note the caller must hold the lock to the shared object.
 void fastbit_part_list::clear() {
-    ibis::util::mutexLock lock(&mutex, "~fastbit_part_list");
     for (ibis::partAssoc::iterator it = parts.begin();
 	 it != parts.end(); ++ it) {
 	char* name = const_cast<char*>((*it).first);
@@ -90,19 +84,15 @@ void fastbit_part_list::clear() {
     parts.clear();
 } // fastbit_part_list::clear
 
-/// Destructor.
-fastbit_part_list::~fastbit_part_list() {
-    clear();
-    pthread_mutex_destroy(&mutex);
-} // dtor
-
 /// Locate the named directory in the list of data partitions.  If the
 /// named directory is not already in the list, it is added to the list.
+///
+/// @note the caller must hold the lock to the shared object.
 ibis::part* fastbit_part_list::find(const char* dir) {
     LOGGER(ibis::gVerbose > 12)
         << "fastbit_part_list::find(" << dir << ") start with " << parts.size()
         << " known partitions";
-    ibis::util::mutexLock lock(&mutex, "fastbit_part_list");
+    ibis::util::mutexLock lock(&_capi_mutex, "fastbit_part_list::find");
     ibis::partAssoc::const_iterator it = parts.find(dir);
     if (it != parts.end()) {
         (void) it->second->updateData();
@@ -140,8 +130,9 @@ ibis::part* fastbit_part_list::find(const char* dir) {
 } // fastbit_part_list::find
 
 /// Delete the named directory from the list.
+///
+/// @note the caller must hold the lock to the shared object.
 void fastbit_part_list::remove(const char* dir) {
-    ibis::util::mutexLock lock(&mutex, "fastbit_part_list");
     ibis::partAssoc::iterator it = parts.find(dir);
     if (it != parts.end()) {
 	delete [] (*it).first;
@@ -149,6 +140,18 @@ void fastbit_part_list::remove(const char* dir) {
 	parts.erase(it);
     }
 } // fastbit_part_list::remove
+
+static ibis::part* _capi_get_part(const char *dir) {
+    ibis::util::mutexLock lock(&_capi_mutex, "_capi_get_part");
+    if (_capi_tlist == 0) {
+        fastbit_init(0);
+        if (_capi_tlist == 0) {
+            return 0;
+        }
+    }
+
+    return _capi_tlist->find(dir);
+} // _capi_get_part
 
 extern "C" int fastbit_get_version_number() {
     return ibis::util::getVersionNumber();
@@ -164,16 +167,7 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
 	return ierr;
 
     try {
-	ibis::part *t;
-	if (_capi_tlist == 0) {
-	    fastbit_init(0);
-	    if (_capi_tlist == 0) {
-		ierr = -1;
-		return ierr;
-	    }
-	}
-
-	t = _capi_tlist->find(dir);
+	ibis::part *t = _capi_get_part(dir);
 	if (t != 0 && t->nRows() > 0 && t->nColumns() > 0) {
 	    ierr = t->buildIndexes(opt, 1);
 	}
@@ -212,16 +206,7 @@ extern "C" int fastbit_purge_indexes(const char *dir) {
 	return ierr;
 
     try {
-	ibis::part *t;
-	if (_capi_tlist == 0) {
-	    fastbit_init(0);
-	    if (_capi_tlist == 0) {
-		ierr = -1;
-		return ierr;
-	    }
-	}
-
-	t = _capi_tlist->find(dir);
+	ibis::part *t = _capi_get_part(dir);
 	if (t == 0) return ierr;
 
 	t->purgeIndexFiles();
@@ -256,16 +241,7 @@ extern "C" int fastbit_build_index(const char *dir, const char *att,
 	return ierr;
 
     try {
-	ibis::part *t;
-	if (_capi_tlist == 0) {
-	    fastbit_init(0);
-	    if (_capi_tlist == 0) {
-		ierr = -1;
-		return ierr;
-	    }
-	}
-
-	t = _capi_tlist->find(dir);
+	ibis::part *t = _capi_get_part(dir);
 	if (t == 0 || t->nRows() == 0 || t->nColumns() == 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "fastbit_build_index -- data directory \"" << dir
@@ -320,16 +296,7 @@ fastbit_purge_index(const char *dir, const char *att) {
 	return ierr;
 
     try {
-	ibis::part *t;
-	if (_capi_tlist == 0) {
-	    fastbit_init(0);
-	    if (_capi_tlist == 0) {
-		ierr = -1;
-		return ierr;
-	    }
-	}
-
-	t = _capi_tlist->find(dir);
+	ibis::part *t = _capi_get_part(dir);
 	if (t == 0 || t->nRows() == 0 || t->nColumns() == 0) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "fastbit_purge_index -- data directory \"" << dir
@@ -378,19 +345,12 @@ fastbit_purge_index(const char *dir, const char *att) {
 /// in an undetermined state.  Make sure you have a copy of the original
 /// data before attempting to reorder the rows.
 extern "C" int fastbit_reorder_partition(const char *dir) {
-    ibis::part *t;
     if (dir == 0 || *dir == 0)
 	return -1;
 
     try {
-	if (_capi_tlist == 0) {
-	    fastbit_init(0);
-	    if (_capi_tlist == 0) {
-		return -1;
-	    }
-	}
+        ibis::part *t = _capi_get_part(dir);
 
-	t = _capi_tlist->find(dir);
 	if (t != 0) {
 	    long ierr = t->reorder();
 	    if (ierr < 0)
@@ -423,7 +383,7 @@ extern "C" int fastbit_reorder_partition(const char *dir) {
 } // fastbit_reorder_partition
 
 /// This is logically equivalent to the SQL statement "SELECT selectClause
-/// FROM dataLocation WHERE queryConditions."  A blank selectClause is
+/// FROM dataDir WHERE queryConditions."  A blank selectClause is
 /// equivalent to "count(*)".  The dataLocation is the directory containing
 /// the data and indexes.  This is a required field.  If the where clause
 /// is missing, the query is assumed to match all rows following the
@@ -432,24 +392,18 @@ extern "C" int fastbit_reorder_partition(const char *dir) {
 /// @note Must call fastbit_destroy_query on the handle returned to free
 /// the resources.
 extern "C" FastBitQueryHandle
-fastbit_build_query(const char *select, const char *from, const char *where) {
-    if (from == 0 || *from == 0)
+fastbit_build_query(const char *select, const char *datadir,
+                    const char *where) {
+    if (datadir == 0 || *datadir == 0)
 	return 0;
 
     try {
-	if (_capi_tlist == 0) {
-	    fastbit_init(0);
-	    if (_capi_tlist == 0) {
-		return 0;
-	    }
-	}
-
 	FastBitQueryHandle h = new FastBitQuery;
-	h->t = _capi_tlist->find(from);
+	h->t = _capi_get_part(datadir);
 	if (h->t == 0) {
 	    LOGGER(ibis::gVerbose >= 0)
 		<< "Warning -- fastbit_build_query failed to generate table "
-		"object from data directory \"" << from << "\"";
+		"object from data directory \"" << datadir << "\"";
 	    delete h;
 	    h = 0;
 	    return h;
@@ -496,21 +450,21 @@ fastbit_build_query(const char *select, const char *from, const char *where) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fastbit_build_query failed for \"SELECT "
 	    << (select && *select ? select : "count(*)")
-	    << " FROM " << from << " WHERE " << where
+	    << " FROM " << datadir << " WHERE " << where
 	    << "\" due to exception: " << e.what();
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fastbit_build_query failed for \"SELECT "
 	    << (select && *select ? select : "count(*)")
-	    << " FROM " << from << " WHERE " << where
+	    << " FROM " << datadir << " WHERE " << where
 	    << "\" due to a string exception: " << s;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- fastbit_build_query failed for \"SELECT "
 	    << (select && *select ? select : "count(*)")
-	    << " FROM " << from << " WHERE " << where
+	    << " FROM " << datadir << " WHERE " << where
 	    << "\" due to a unknown exception";
     }
     return 0;
@@ -1821,7 +1775,6 @@ fastbit_get_qualified_strings(FastBitQueryHandle qhandle, const char *att) {
 /// ibis::resources::read.  One may call this function multiple times to
 /// read multiple configuration files to modify the parameters.
 extern "C" void fastbit_init(const char *rcfile) {
-    ibis::util::mutexLock lock(&ibis::util::envLock, "fastbit_init");
 #if defined(DEBUG) || defined(_DEBUG)
     if (ibis::gVerbose == 0) {
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
@@ -1837,6 +1790,7 @@ extern "C" void fastbit_init(const char *rcfile) {
 #endif
     if (rcfile && *rcfile)
 	ibis::gParameters().read(rcfile);
+    ibis::util::mutexLock lock(&_capi_mutex, "fastbit_init");
     if (_capi_tlist == 0)
 	_capi_tlist = new fastbit_part_list;
 } // fastbit_init
@@ -1846,7 +1800,7 @@ extern "C" void fastbit_init(const char *rcfile) {
 /// centralized list of query objects, the user is responsible for freeing
 /// the resources held by each query object.
 extern "C" void fastbit_cleanup(void) {
-    ibis::util::mutexLock lock(&ibis::util::envLock, "fastbit_cleanup");
+    ibis::util::mutexLock lock(&_capi_mutex, "fastbit_cleanup");
     if (_capi_tlist != 0) {
 	delete _capi_tlist;
 	// assign it to 0 so that we can call fastbit_init again
@@ -2409,8 +2363,7 @@ fastbit_flush_buffer(const char *dir) {
 	return -1;
 
     try {
-	ibis::util::mutexLock
-	    lock(&ibis::util::envLock, "fastbit_flush_buffer");
+	ibis::util::mutexLock lock(&_capi_mutex, "fastbit_flush_buffer");
 	
 	if (_capi_tablex != 0) {
 	    ierr = _capi_tablex->write(dir, 0, 0);
@@ -2531,11 +2484,13 @@ fastbit_add_values(const char *colname, const char *coltype,
     if (ierr < 0) return ierr;
 
     try {
-	ibis::util::mutexLock
-	    lock(&ibis::util::envLock, "fastbit_add_values");
-	if (_capi_tablex == 0)
-	    _capi_tablex = new ibis::tafel();
-	if (_capi_tablex == 0) return -3;
+        { // a block to limit the scope of mutex lock
+            ibis::util::mutexLock
+                lock(&_capi_mutex, "fastbit_add_values");
+            if (_capi_tablex == 0)
+                _capi_tablex = new ibis::tafel();
+        }
+        if (_capi_tablex == 0) return -3;
 
 	ierr = _capi_tablex->addColumn(colname, type);
 	if (type == ibis::TEXT || type == ibis::CATEGORY) {
@@ -2580,16 +2535,8 @@ fastbit_add_values(const char *colname, const char *coltype,
 
 extern "C" int fastbit_rows_in_partition(const char *dir) {
     int ierr = 0;
-    ibis::part *t;
-    if (_capi_tlist == 0) {
-	fastbit_init(0);
-	if (_capi_tlist == 0) {
-	    ierr = -1;
-	    return ierr;
-	}
-    }
+    ibis::part *t = _capi_get_part(dir);
 
-    t = _capi_tlist->find(dir);
     if (t != 0)
 	ierr = t->nRows();
     else
@@ -2599,16 +2546,8 @@ extern "C" int fastbit_rows_in_partition(const char *dir) {
 
 extern "C" int fastbit_columns_in_partition(const char *dir) {
     int ierr = 0;
-    ibis::part *t;
-    if (_capi_tlist == 0) {
-	fastbit_init(0);
-	if (_capi_tlist == 0) {
-	    ierr = -1;
-	    return ierr;
-	}
-    }
+    ibis::part *t = _capi_get_part(dir);
 
-    t = _capi_tlist->find(dir);
     if (t != 0)
 	ierr = t->nColumns();
     else

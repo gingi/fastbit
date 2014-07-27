@@ -18,10 +18,23 @@ libfastbitjni_la_SOURCES = FastBit.c
 include_HEADERS = FastBit.h ../src/capi.h
 libfastbitjni_la_DEPENDENCIES = ../src/libfastbit.la build.properties
 libfastbitjni_la_LIBADD = ../src/libfastbit.la
+#
+install-exec-local: fastbitjni.jar
+	$(INSTALL) fastbitjni.jar "$(DESTDIR)$(libdir)"
 endif
 #
 ../src/libfastbit.la::
 	cd ../src && $(MAKE) libfastbit.la
+#
+fastbitjni.jar: gov/lbl/fastbit/FastBit.class \
+	gov/lbl/fastbit/FastBitStringReader.class \
+	gov/lbl/fastbit/FastBitStringReaderException.class \
+	gov/lbl/fastbit/FastBitStringWriter.class \
+	gov/lbl/fastbit/FastBitStringWriterException.class
+	jar cf fastbitjni.jar gov/lbl/fastbit/*.class
+SUFFIXES=.java .class
+.java.class:
+	$(JAVAC) $(JFLAGS) $<
 #
 # build.properties is used to specify the locations of the JNI libraries
 build.properties::
@@ -30,5 +43,6 @@ install-data-local:
 	echo "fastbit.library.path=$(libdir)" >| build.properties
 #
 clean: clean-am
-	rm -f *~ *.class core core.[0-9]*
+	find . -name '*.class' -exec $(RM) \{\} \; 
+	rm -f *~ core core.[0-9]*
 	rm -rf tmp

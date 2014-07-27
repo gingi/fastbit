@@ -1598,9 +1598,10 @@ long ibis::part::purgeInactive() {
     return ierr;
 } // ibis::part::purgeInactive
 
-/// Empty all unused resources in cache.
-/// This function attempts to unload all the indexes and then remove all
-/// unused files from the file manager.
+/// Empty all unused resources in cache.  This function attempts to unload
+/// all the indexes and then remove all unused files from the file manager.
+/// The caller should hold a write lock on this data partition to prevent
+/// concurrent accesses to this part object.
 void ibis::part::emptyCache() const {
     unloadIndexes();
     if (myCleaner != 0)
@@ -1728,10 +1729,9 @@ long ibis::part::addColumn(const ibis::math::term* xpr,
     return ierr;
 } // ibis::part::addColumn
 
-/// Check the time stamp on the metadata files to update the in-memory
-/// metadata information.
+/// Check the time stamp on the metadata files to decide if the in-memory
+/// metadata information requires updating.
 int ibis::part::updateData() {
-    emptyCache();
     if (activeDir == 0 || *activeDir == 0) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- part[" << name() << "]::updateData can not proceed "
@@ -1781,6 +1781,7 @@ int ibis::part::updateData() {
     }
     if (switchTime > t0) return 0; // up-to-date
 
+    emptyCache();
     if (ierr == 0 && (switchTime <= st.st_ctime || switchTime <= st.st_mtime))
 	amask.read(fn.c_str()); // re-read the mask file
     readMetaData(nEvents, columns, activeDir); // re-read column information
