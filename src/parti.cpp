@@ -1807,27 +1807,27 @@ int ibis::part::updateData() {
 int ibis::part::clear() {
     softWriteLock lock(this, "clear");
     if (lock.isLocked() == false) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- part[" << name() << "]::clear can not proceed, "
-            "must free all queries and stop other accesses before continuing";
-        return -2;
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- part[" << name() << "]::clear can not proceed, "
+	    "must free all queries and stop other accesses before continuing";
+	return -2;
     }
     LOGGER(ibis::gVerbose > 2)
-        << "part[" << name() << "] (" << m_desc
+	<< "part[" << name() << "] (" << m_desc
         << ") is unused, proceed to clear";
 
     emptyCache();
     { // remove the columns
-        std::vector<ibis::column*> tmp;
-        tmp.reserve(columns.size());
-        for (columnList::const_iterator it = columns.begin();
-             it != columns.end(); ++ it)
-            tmp.push_back((*it).second);
-        columns.clear();
+	std::vector<ibis::column*> tmp;
+	tmp.reserve(columns.size());
+	for (columnList::const_iterator it = columns.begin();
+	     it != columns.end(); ++ it)
+	    tmp.push_back((*it).second);
+	columns.clear();
 
-        for (uint32_t i = 0; i < tmp.size(); ++ i)
-            delete tmp[i];
-        tmp.clear();
+	for (uint32_t i = 0; i < tmp.size(); ++ i)
+	    delete tmp[i];
+	tmp.clear();
     }
 
     ibis::fileManager::instance().removeCleaner(myCleaner);
@@ -1859,16 +1859,16 @@ int ibis::part::clear() {
 ibis::part::softWriteLock::softWriteLock(const part* tbl, const char* m)
     : thePart(tbl), mesg(m), lckd(tbl->tryWriteAccess()) {
     if (lckd != 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- part[" << thePart->name()
-            << "]::softWriteLock -- pthread_rwlock_trywrlock for " << mesg
-            << " returned " << lckd << " (" << strerror(lckd) << ')';
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << thePart->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock for " << mesg
+	    << " returned " << lckd << " (" << strerror(lckd) << ')';
     }
     else if (ibis::gVerbose > 9) {
-        LOGGER(ibis::gVerbose >= 0)
-            << "part[" << thePart->name()
-            << "]::softWriteLock -- pthread_rwlock_trywrlock("
-            << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "part[" << thePart->name()
+	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
+	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg;
     }
 }
 

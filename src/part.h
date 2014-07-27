@@ -667,10 +667,6 @@ public:
     void testRangeOperators(const ibis::column* col,
 			    long* nerrors) const;
 
-    // These functions are used in classes barrel and vault
-    void logWarning(const char* event, const char* fmt, ...) const;
-    void logMessage(const char* event, const char* fmt, ...) const;
-
     void doBackup(); ///!< A function to start backing up the active dir.
 
     /// An associative array for columns of data.
@@ -1358,10 +1354,6 @@ private:
 
     void init(const char* prefix); ///!< Get directory names from gParameters.
 
-    void gainReadAccess(const char* mesg) const;
-    void releaseAccess(const char* mesg) const;
-    void gainWriteAccess(const char* mesg) const;
-
     void   fillRIDs(const char* fn) const; ///!< Generate new RIDs.
     void   sortRIDs() const; ///!< Sort current list of RIDs.
     uint32_t searchSortedRIDs(const ibis::rid_t &rid) const;
@@ -1829,4 +1821,32 @@ inline int64_t ibis::part::evaluateJoin
  const ibis::bitvector &mask, ibis::bitvector64 &pairs) const {
     return loopJoin(cmp, mask, pairs);
 } // ibis::part::evaluateJoin
+
+/// Attempt to release a read or write access to this part object.  A
+/// simple wrap over pthread_rwlock_unlock.  Returns the return value of
+/// pthread_rwlock_unlock.
+inline int ibis::part::releaseAccess() const {
+    return pthread_rwlock_unlock(&rwlock);
+} // ibis::part::releaseAccess
+
+/// Attempt to gain a read access to this part object.  A simple wrap over
+/// pthread_rwlock_rdlock.  Returns the return value of
+/// pthread_rwlock_rdlock.
+inline int ibis::part::gainReadAccess() const {
+    return pthread_rwlock_rdlock(&rwlock);
+} // ibis::part::gainReadAccess
+
+/// Attempt to gain a write access to this part object.  A simple wrap over
+/// pthread_rwlock_wrlock.  Returns the return value of
+/// pthread_rwlock_wrlock.
+inline int ibis::part::gainWriteAccess() const {
+    return pthread_rwlock_wrlock(&rwlock);
+} // ibis::part::gainWriteAccess
+
+/// A soft attempt to gain a write access to this part object.  A simple
+/// wrap over pthread_rwlock_trywrlock.  Returns the return value of
+/// pthread_rwlock_trywrlock.
+inline int ibis::part::tryWriteAccess() const {
+    return pthread_rwlock_trywrlock(&rwlock);
+} // ibis::part::tryWriteAccess
 #endif // IBIS_PART_H

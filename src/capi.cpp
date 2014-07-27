@@ -81,16 +81,22 @@ extern "C" {
 class fastbit_part_list {
 public:
     fastbit_part_list() {}
-    ~fastbit_part_list() {clear();}
-    void remove(const char* dir);
+    ~fastbit_part_list() {
+        (void) clear();
+        if (!parts.empty()) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- attempting to delete list of data "
+                "partitions while some are still in use";
+            throw "can not delete list of data tables while they are in use";
+        }
+    }
+
     ibis::part* find(const char* dir);
     void        remove(const char* dir);
     int         clear();
 
 private:
     ibis::partAssoc parts;
-
-    void clear();
 }; // class fastbit_part_list
 
 // Can not rely on the automatic deallocation of static variable because it
@@ -104,16 +110,20 @@ static ibis::tablex *_capi_tablex=0;
 // The mutex lock for controlling the accesses the two above global variables.
 static pthread_mutex_t _capi_mutex = PTHREAD_MUTEX_INITIALIZER;;
 
-/// Clear all data partitions from the list.
+/// Clear all data partitions that are not currently use.
+///
+/// Return the number of data partitions left in the list, i.e., the number
+/// of data partitions that are currently in use.
 ///
 /// @note the caller must hold the lock to the shared object.
-void fastbit_part_list::clear() {
+int fastbit_part_list::clear() {
+    int cnt = 0;
     for (ibis::partAssoc::iterator it = parts.begin();
-         it != parts.end();) {
+	 it != parts.end();) {
         ibis::partAssoc::iterator todel = it;
         ++ it;
-        char* name = const_cast<char*>((*todel).first);
-        ibis::part* tbl = (*todel).second;
+	char* name = const_cast<char*>((*todel).first);
+	ibis::part* tbl = (*todel).second;
         if (tbl->clear() == 0) {
             delete [] name;
             delete tbl;
@@ -134,40 +144,31 @@ ibis::part* fastbit_part_list::find(const char* dir) {
     LOGGER(ibis::gVerbose > 12)
         << "fastbit_part_list::find(" << dir << ") start with " << parts.size()
         << " known partitions";
-    ibis::util::mutexLock lock(&_capi_mutex, "fastbit_part_list::find");
     ibis::partAssoc::const_iterator it = parts.find(dir);
     if (it != parts.end()) {
-        (void) it->second->updateData();
-        LOGGER(ibis::gVerbose > 11)
-            << "fastbit_part_list::find(" << dir << ") found the partition "
-            "from the named directory, partition name = " << it->second->name()
-            << " with nRows = " << it->second->nRows() << " and nColumns = "
-            << it->second->nColumns();
-	return (*it).second;
+        if (it->second != 0) {
+            (void) it->second->updateData();
+            LOGGER(ibis::gVerbose > 11)
+                << "fastbit_part_list::find(" << dir << ") found the partition "
+                "from the named directory, partition name = "
+                << it->second->name() << " with nRows = " << it->second->nRows()
+                << " and nColumns = " << it->second->nColumns();
+            if (it->second->gainReadAccess() == 0) {
+                return it->second;
+            }
+            else {
+                delete it->second;
+            }
+        }
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- partition for dir " << dir << " on record "
+            "is not readable, remove it and attempt to regenerate";
+        parts.erase(it);
     }
-    else { // need to generate a new table object
-	ibis::part *tmp;
-	try {
-	    tmp = new ibis::part(dir, static_cast<const char*>(0));
-	}
-	catch (...) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- failed to construct a table from directory \""
-		<< dir << "\"";
-	    tmp = 0;
-	}
-	if (tmp != 0 && (tmp->name() == 0 || tmp->nRows() == 0 ||
-			 tmp->nColumns() == 0)) {
-	    LOGGER(ibis::gVerbose > 1)
-		<< "Warning -- directory " << dir
-		<< " contains an empty data partition";
-	    delete tmp;
-	    tmp = 0;
-	}
-	if (tmp != 0) {
-	    parts[ibis::util::strnewdup(dir)] = tmp;
-	}
-	return tmp;
+
+    ibis::part *tmp;
+    try {
+        tmp = new ibis::part(dir, static_cast<const char*>(0));
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)
@@ -188,8 +189,8 @@ ibis::part* fastbit_part_list::find(const char* dir) {
             parts[ibis::util::strnewdup(dir)] = tmp;
         }
         else {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- failed to aquire read a lock on data from "
+            LOGGER(ibis::gVerbose > 1)
+                << "Warning -- failed to aquire read lock on data from "
                 << dir << ", can not use the data";
             delete tmp;
             tmp = 0;
@@ -213,7 +214,7 @@ void fastbit_part_list::remove(const char* dir) {
 static ibis::part* _capi_get_part(const char *dir) {
     ibis::util::mutexLock lock(&_capi_mutex, "_capi_get_part");
     if (_capi_tlist == 0) {
-        fastbit_init(0);
+        _capi_tlist = new fastbit_part_list;
         if (_capi_tlist == 0) {
             return 0;
         }
@@ -278,9 +279,9 @@ extern "C" int fastbit_purge_indexes(const char *dir) {
 	ibis::part *t = _capi_get_part(dir);
 	if (t == 0) return ierr;
 
-        t->purgeIndexFiles();
+	t->purgeIndexFiles();
         t->releaseAccess();
-        ierr = 0;
+	ierr = 0;
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -371,8 +372,8 @@ fastbit_purge_index(const char *dir, const char *att) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "fastbit_purge_index -- data directory \"" << dir
 		<< "\" contains no data";
-	    ierr = 1;
-	    return ierr;
+            t->releaseAccess();
+	    return 1;
 	}
 
         ibis::column *c = t->getColumn(att);
@@ -381,9 +382,9 @@ fastbit_purge_index(const char *dir, const char *att) {
             return ierr;
         }
 
-        c->purgeIndexFile();
+	c->purgeIndexFile();
         t->releaseAccess();
-        ierr = 0;
+	ierr = 0;
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -423,6 +424,7 @@ extern "C" int fastbit_reorder_partition(const char *dir) {
         ibis::part *t = _capi_get_part(dir);
 
 	if (t != 0) {
+            t->releaseAccess(); // release read lock, before reorder
 	    long ierr = t->reorder();
 	    if (ierr < 0)
 		return ierr;
@@ -632,9 +634,9 @@ fastbit_destroy_query(FastBitQueryHandle qhandle) {
 
         // release the read lock on the data partition object
         qhandle->t->releaseAccess();
-        // finally remove the FastBitQuery object itself
-        delete qhandle;
-        return 0;
+	// finally remove the FastBitQuery object itself
+	delete qhandle;
+	return 0;
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -2500,6 +2502,7 @@ fastbit_flush_buffer(const char *dir) {
 	    if (ierr == 0 && _capi_tlist != 0) {
 		ibis::part *t = _capi_tlist->find(dir);
 		if (t != 0) {
+                    t->releaseAccess(); // release read lock before update
 		    ierr = t->updateData();
 		    if (ierr < 0) {
 			// failed to update the data partition
@@ -2663,10 +2666,13 @@ extern "C" int fastbit_rows_in_partition(const char *dir) {
     int ierr = 0;
     ibis::part *t = _capi_get_part(dir);
 
-    if (t != 0)
+    if (t != 0) {
 	ierr = t->nRows();
-    else
+        t->releaseAccess();
+    }
+    else {
 	ierr = -2;
+    }
     return ierr;
 } // fastbit_rows_in_partition
 
@@ -2674,9 +2680,12 @@ extern "C" int fastbit_columns_in_partition(const char *dir) {
     int ierr = 0;
     ibis::part *t = _capi_get_part(dir);
 
-    if (t != 0)
+    if (t != 0) {
 	ierr = t->nColumns();
-    else
+        t->releaseAccess();
+    }
+    else {
 	ierr = -2;
+    }
     return ierr;
 } // fastbit_columns_in_partition
