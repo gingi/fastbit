@@ -5757,7 +5757,7 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
 
     ibis::index* tmp = 0;
     try { // if an index is not available, create one
-	LOGGER(ibis::gVerbose > 7)
+	LOGGER(ibis::gVerbose > 4)
 	    << evt << " -- loading the index from "
 	    << (thePart != 0 ?
                 (thePart->currentDataDir() ? thePart->currentDataDir()
@@ -5875,7 +5875,7 @@ void ibis::column::unloadIndex() const {
 	if (0 == idxc) {
 	    delete idx;
 	    idx = 0;
-	    LOGGER(ibis::gVerbose > 7)
+	    LOGGER(ibis::gVerbose > 4)
 		<< "column[" << fullname()
 		<< "]::unloadIndex successfully removed the index";
 	}

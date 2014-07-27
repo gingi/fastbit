@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [1.4.0pre6], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [1.4.0pre7], [fastbit-users@hpcrdm.lbl.gov])
 #AC_PACKAGE_URL(http://sdm.lbl.gov/fastbit/)
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
