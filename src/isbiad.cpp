@@ -118,7 +118,7 @@ int ibis::sbiad::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("sbiad::write", "unable to open \"%s\" for write",
+	    col->logWarning("sbiad::write", "failed to open \"%s\" for write",
 			    fnm.c_str());
 	    return -2;
 	}
@@ -926,7 +926,7 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
 	col->logWarning("sbiad::ctor", "no need for another index");
 	return;
     default:
-	col->logWarning("sbiad::ctor", "unable to create bit sbiad index "
+	col->logWarning("sbiad::ctor", "failed to create bit sbiad index "
 			"for column type %s",
 			ibis::TYPESTRING[(int)col->type()]);
 	return;

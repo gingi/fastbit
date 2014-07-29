@@ -869,7 +869,7 @@ int ibis::query::estimate() {
     }
 
     if (hits==0 && sup==0) {
-	logWarning("estimate", "unable to generate estimated hits");
+	logWarning("estimate", "failed to generate estimated hits");
     }
     else if (ibis::gVerbose > 0) {
 	if (conds.getExpr()) {
@@ -1082,13 +1082,26 @@ int ibis::query::evaluate(const bool evalSelect) {
 	}
 	catch (...) {
 	    try {
+		if (dslock != 0) { // temporarily give the read lock on data
+		    delete dslock;
+		    dslock = 0;
+		}
 		if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
 		    ibis::util::quietLock lock(&ibis::util::envLock);
 #if defined(unix) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
+                    LOGGER(ibis::gVerbose > 0)
+                        << " .. out of memory, sleep for a second to see "
+                        "if the situation changes";
 		    sleep(1);
 #endif
 		}
+                ibis::util::cleanDatasets();
 		mypart->emptyCache();
+
+		if (dslock == 0) { // acquire read lock on mypart
+		    dslock = new ibis::part::readLock(mypart, myID);
+		    dstime = mypart->timestamp();
+		}
 		ierr = computeHits(); // do actual computation here
 		if (ierr < 0) return ierr;
 	    }
@@ -1184,7 +1197,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 		       timer.CPUTime(), timer.realTime());
 	}
 	else
-	    logWarning("evaluate", "unable to construct ibis::bundle");
+	    logWarning("evaluate", "failed to construct ibis::bundle");
     }
 
     if (dslock != 0) {
@@ -1193,7 +1206,7 @@ int ibis::query::evaluate(const bool evalSelect) {
 	dslock = 0;
     }
     if (state != FULL_EVALUATE) {
-	logWarning("evaluate", "unable to compute the hit vector");
+	logWarning("evaluate", "failed to compute the hit vector");
 	ierr = -9;
     }
     else if (hits == 0) {
@@ -1548,7 +1561,7 @@ const ibis::RIDSet* ibis::query::getRIDsInBundle(const uint32_t bid) const {
 	    delete bdtmp;
 	}
 	else {
-	    logWarning("getRIDsInBundle", "unable to genererate bundle");
+	    logWarning("getRIDsInBundle", "failed to genererate bundle");
 	}
     }
     else if (myDir != 0) {
@@ -2971,7 +2984,7 @@ void ibis::query::doEstimate(const ibis::qExpr* term, ibis::bitvector& low,
 	}
 	else {
 	    if (ibis::gVerbose > 2)
-		logMessage("doEstimate", "unable to estimate query term of "
+		logMessage("doEstimate", "failed to estimate query term of "
 			   "unknown type, presume every row is a possible hit");
 	    high.set(1, mypart->nRows());
 	    low.set(0, mypart->nRows());
@@ -3397,7 +3410,7 @@ int ibis::query::doScan(const ibis::qExpr* term,
 	break;
     }
     default:
-	logWarning("doScan", "unable to evaluate query term of "
+	logWarning("doScan", "failed to evaluate query term of "
 		   "unknown type");
 	ierr = -1;
     }
@@ -3829,7 +3842,7 @@ int ibis::query::doScan(const ibis::qExpr* term, const ibis::bitvector& mask,
 	break;
     }
     default: {
-	logWarning("doScan", "unable to evaluate query term of "
+	logWarning("doScan", "failed to evaluate query term of "
 		   "unknown type");
 	ht.set(0, mypart->nRows());
 	ierr = -1;
@@ -4091,7 +4104,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     default:
-	logWarning("doEvaluate", "unable to evaluate query term of "
+	logWarning("doEvaluate", "failed to evaluate query term of "
 		   "unknown type, presume every row is a hit");
 	ht.set(0, mypart->nRows());
 	ierr = -1;
@@ -4425,7 +4438,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
 	break;
     }
     default:
-	logWarning("doEvaluate", "unable to evaluate a query term of "
+	logWarning("doEvaluate", "failed to evaluate a query term of "
 		   "unknown type, copy the mask as the solution");
 	ht.set(0, mask.size());
 	ierr = -1;
@@ -4473,7 +4486,7 @@ void ibis::query::readQuery(const ibis::partList& tl) {
 
     FILE* fptr = fopen(fn, "r");
     if (fptr == 0) {
-	logWarning("readQuery", "unable to open query file \"%s\" ... %s", fn,
+	logWarning("readQuery", "failed to open query file \"%s\" ... %s", fn,
 		   (errno ? strerror(errno) : "no free stdio stream"));
 	clear(); // clear the files and directory
 	return;
@@ -4672,7 +4685,7 @@ ibis::RIDSet* ibis::query::readRIDs() const {
     ibis::RIDSet* rids = new ibis::RIDSet();
     int ierr = ibis::fileManager::instance().getFile(fn, *rids);
     if (ierr != 0) {
-	logWarning("readRIDs", "unable to open file \"%s\"", fn);
+	logWarning("readRIDs", "failed to open file \"%s\"", fn);
 	remove(fn); // attempt to remove it
 	delete rids;
 	rids = 0;
@@ -4761,7 +4774,7 @@ void ibis::query::removeFiles() {
 	    logMessage("clear", "removed %s", fname);
     }
     else if (errno != ENOENT || ibis::gVerbose > 7)
-	logMessage("clear", "unable to remove %s ... %s", fname,
+	logMessage("clear", "failed to remove %s ... %s", fname,
 		   strerror(errno));
 
     strcpy(fname+len, "hits");
@@ -4771,7 +4784,7 @@ void ibis::query::removeFiles() {
 	    logMessage("clear", "removed %s", fname);
     }
     else if (errno != ENOENT || ibis::gVerbose > 7)
-	logMessage("clear", "unable to remove %s ... %s", fname,
+	logMessage("clear", "failed to remove %s ... %s", fname,
 		   strerror(errno));
 
     strcpy(fname+len, "-rids");
@@ -4781,7 +4794,7 @@ void ibis::query::removeFiles() {
 	    logMessage("clear", "removed %s", fname);
     }
     else if (errno != ENOENT || ibis::gVerbose > 7)
-	logMessage("clear", "unable to remove %s ... %s", fname,
+	logMessage("clear", "failed to remove %s ... %s", fname,
 		   strerror(errno));
 
     strcpy(fname+len, "fids");
@@ -4791,7 +4804,7 @@ void ibis::query::removeFiles() {
 	    logMessage("clear", "removed %s", fname);
     }
     else if (errno != ENOENT || ibis::gVerbose > 7)
-	logMessage("clear", "unable to remove %s ... %s", fname,
+	logMessage("clear", "failed to remove %s ... %s", fname,
 		   strerror(errno));
 
     strcpy(fname+len, "bundles");
@@ -4801,7 +4814,7 @@ void ibis::query::removeFiles() {
 	    logMessage("clear", "removed %s", fname);
     }
     else if (errno != ENOENT || ibis::gVerbose > 7)
-	logMessage("clear", "unable to remove %s ... %s", fname,
+	logMessage("clear", "failed to remove %s ... %s", fname,
 		   strerror(errno));
     delete [] fname;
 } // ibis::query::removeFiles
@@ -4820,7 +4833,7 @@ void ibis::query::printSelected(std::ostream& out) const {
 	    delete bdl;
 	}
 	else {
-	    logWarning("printSelected", "unable to construct ibis::bundle");
+	    logWarning("printSelected", "failed to construct ibis::bundle");
 	}
     }
     else {
@@ -4843,7 +4856,7 @@ void ibis::query::printSelectedWithRID(std::ostream& out) const {
 	}
 	else {
 	    logWarning("printSelectedWithRID",
-		       "unable to construct ibis::bundle");
+		       "failed to construct ibis::bundle");
 	}
     }
     else {
@@ -5735,7 +5748,7 @@ ibis::query::sortJoin(const std::vector<const ibis::deprecatedJoin*>& terms,
 		      const ibis::bitvector& mask) const {
     if (terms.size() > 1) {
 	if (myDir == 0) {
-	    logWarning("sortJoin", "unable to create a directory to store "
+	    logWarning("sortJoin", "failed to create a directory to store "
 		       "temporary files needed for the sort-merge join "
 		       "algorithm.  Use loop join instead.");
 	    return mypart->evaluateJoin(terms, mask);
@@ -7766,7 +7779,7 @@ void ibis::query::orderPairs(const char *pfile) const {
     int fdes = UnixOpen(pfile, OPEN_READWRITE, OPEN_FILEMODE);
     long ierr;
     if (fdes < 0) {
-	logWarning("orderPairs", "unable to open %s for sorting", pfile);
+	logWarning("orderPairs", "failed to open %s for sorting", pfile);
 	return;
     }
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -7902,20 +7915,20 @@ int64_t ibis::query::mergePairs(const char *pfile) const {
 
     long ierr = rename(outfile.c_str(), oldfile.c_str());
     if (ierr != 0) {
-	logWarning("mergePairs", "unable to rename \"%s\" to \"%s\"",
+	logWarning("mergePairs", "failed to rename \"%s\" to \"%s\"",
 		   outfile.c_str(), oldfile.c_str());
 	return -1;
     }
     cnt = 0;
     int indes = UnixOpen(pfile, OPEN_READONLY);
     if (indes < 0) {
-	logWarning("mergePairs", "unable to open %s for reading", pfile);
+	logWarning("mergePairs", "failed to open %s for reading", pfile);
 	return -2;
     }
 
     int outdes = UnixOpen(outfile.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (outdes < 0) {
-	logWarning("mergePairs", "unable to open %s for writing",
+	logWarning("mergePairs", "failed to open %s for writing",
 		   outfile.c_str());
 	UnixClose(indes);
 	return -3;
@@ -7923,7 +7936,7 @@ int64_t ibis::query::mergePairs(const char *pfile) const {
 
     int olddes = UnixOpen(oldfile.c_str(), OPEN_READONLY);
     if (olddes < 0) {
-	logWarning("mergePairs", "unable to open %s for reading",
+	logWarning("mergePairs", "failed to open %s for reading",
 		   oldfile.c_str());
 	UnixClose(outdes);
 	UnixClose(indes);

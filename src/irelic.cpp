@@ -393,7 +393,7 @@ int ibis::relic::write(const char* dt) const {
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << "unable to open \"" << fnm
+		<< "Warning -- " << evt << "failed to open \"" << fnm
 		<< "\" for write";
 	    return -2;
 	}

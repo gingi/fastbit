@@ -169,7 +169,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DDistribution -- unable to "
+	    << "part::get1DDistribution -- can not "
 	    "handle column (" << cname << ") type "
 	    << ibis::TYPESTRING[(int)col->type()];
 
@@ -356,7 +356,7 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DDistribution -- unable to "
+	    << "part::get1DDistribution -- can not "
 	    "handle column (" << bname << ") type "
 	    << ibis::TYPESTRING[(int)bcol->type()];
 
@@ -732,7 +732,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DBins -- unable to "
+	    << "part::get1DBins -- can not "
 	    "handle column (" << cname << ") type "
 	    << ibis::TYPESTRING[(int)col->type()];
 
@@ -1091,7 +1091,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DBins -- unable to "
+	    << "part::get1DBins -- can not "
 	    "handle column (" << cname << ") type "
 	    << ibis::TYPESTRING[(int)col->type()];
 
@@ -1497,7 +1497,7 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DBins -- unable to "
+	    << "part::get1DBins -- can not "
 	    "handle column (" << cname << ") type "
 	    << ibis::TYPESTRING[(int)col->type()];
 
@@ -2622,7 +2622,7 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
     switch (col.type()) {
     default: {
 	LOGGER(ibis::gVerbose > 0)
-	    << mesg << " -- unable to work with column " << col.name()
+	    << mesg << " -- can not work with column " << col.name()
 	    << " of type " << ibis::TYPESTRING[(int)col.type()] << "("
 	    << col.type() << ")";
 	ierr = -7;
@@ -3722,7 +3722,7 @@ ibis::part::getDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("getDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>((*it).second->type()));
 	    break;}
 	}
@@ -3776,7 +3776,7 @@ ibis::part::getDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("getDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>((*it).second->type()));
 	    break;}
 	}
@@ -4052,7 +4052,7 @@ ibis::part::getCumulativeDistribution(const char *constraints,
 	    default: {
 		ierr = -3;
 		logWarning("getCumulativeDistribution",
-			   "unable to handle column type %d",
+			   "can not handle column type %d",
 			   static_cast<int>((*it).second->type()));
 		break;}
 	    }

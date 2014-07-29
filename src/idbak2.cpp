@@ -152,7 +152,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak2::mapValues", "unable to read %s",
+	    col->logWarning("bak2::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -258,7 +258,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak2::mapValues", "unable to read %s",
+	    col->logWarning("bak2::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -363,7 +363,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak2::mapValues", "unable to read %s",
+	    col->logWarning("bak2::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -469,7 +469,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak2::mapValues", "unable to read %s",
+	    col->logWarning("bak2::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -574,7 +574,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak2::mapValues", "unable to read %s",
+	    col->logWarning("bak2::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -679,7 +679,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak2::mapValues", "unable to read %s",
+	    col->logWarning("bak2::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -782,7 +782,7 @@ void ibis::bak2::mapValues(const char* f, ibis::bak2::bakMap& bmap) const {
 			"have a basic bitmap index already");
 	return;
     default:
-	col->logWarning("bak2::mapValues", "unable to create bins for "
+	col->logWarning("bak2::mapValues", "failed to create bins for "
 			"this type (%s) of column",
 			ibis::TYPESTRING[(int)col->type()]);
 	return;

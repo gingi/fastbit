@@ -1562,7 +1562,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
     if (ierr == 0) { // try to read the last word in .sp file
         if (fread(&pos, sizeof(int64_t), 1, fsp) != 1) {
             LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- " << evt << " unable to read the last "
+                << "Warning -- " << evt << " failed to read the last "
                 "integer in file \"" << spfile << "\"";
             fclose(fsp);
             fclose(fdata);
@@ -3252,7 +3252,7 @@ const char* ibis::text::findString(const char *str) const {
         LOGGER(ibis::gVerbose >= 0)
             << "Warning -- text["
             << (thePart != 0 ? thePart->name() : "") << "." << name()
-            << "]::findString(" << str << ") unable to allocate "
+            << "]::findString(" << str << ") failed to allocate "
             "enough work space";
         return 0;
     }
@@ -3872,7 +3872,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
                         LOGGER(ibis::gVerbose >= 0)
                             << "Warning -- " << evt
                             << " failed to write the value " << pos
-                            << " to " << spto << ", unable to continue";
+                            << " to " << spto << ", failed to continue";
                         return -18;
                     }
                 }
@@ -3883,7 +3883,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
                         LOGGER(ibis::gVerbose >= 0)
                             << "Warning -- " << evt << " failed to write "
                             << bytes << " byte" << (bytes>1?"s":"") << " to "
-                            << to << ", unable to continue";
+                            << to << ", can not continue";
                         return -19;
                     }
                     irow += bytes;
@@ -3898,7 +3898,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
                     LOGGER(ibis::gVerbose >= 0)
                         << "Warning -- " << evt
                         << " failed to write the value " << pos
-                        << " to " << spto << ", unable to continue";
+                        << " to " << spto << ", can not continue";
                     return -20;
                 }
 
@@ -3930,7 +3930,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
                                         << " failed to write " << pos
                                         << " byte" << (pos>1?"s":"")
                                         << " to " << to
-                                        << ", unable to continue";
+                                        << ", can not continue";
                                     return -21;
                                 }
                             }
@@ -3948,7 +3948,7 @@ int ibis::text::writeStrings(const char *to, const char *from,
                         LOGGER(ibis::gVerbose >= 0)
                             << "Warning -- " << evt
                             << " failed to write 1 byte to " << to
-                            << ", unable to continue";
+                            << ", can not continue";
                         return -22;
                     }
                 }

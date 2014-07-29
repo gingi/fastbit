@@ -900,7 +900,7 @@ void ibis::sapid::construct2(const char* f, const uint32_t nbase) {
 	col->logWarning("sapid::ctor", "no need for another index");
 	return;
     default:
-	col->logWarning("sapid::ctor", "unable to create bit sapid index "
+	col->logWarning("sapid::ctor", "failed to create bit sapid index "
 			"for this type of column");
 	return;
     }

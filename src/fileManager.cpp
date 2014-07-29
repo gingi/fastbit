@@ -883,7 +883,7 @@ int ibis::fileManager::getFile(const char* name, storage **st,
     }
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << evt << " -- unable to free up " << ibis::util::groupby1000(bytes)
+	    << evt << " -- failed to free up " << ibis::util::groupby1000(bytes)
 	    << " bytes to read the file " << name << ", ierr = -102";
 	reading.erase(name);
 	ierr = -102;
@@ -893,7 +893,7 @@ int ibis::fileManager::getFile(const char* name, storage **st,
     ibis::fileManager::roFile* tmp = new ibis::fileManager::roFile();
     if (tmp == 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << evt << " -- unable to allocate a new roFile object for \""
+	    << evt << " -- failed to allocate a new roFile object for \""
 	    << name << "\"";
 	reading.erase(name);
 	ierr = -103;
@@ -1168,7 +1168,7 @@ ibis::fileManager::getFileSegment(const char* name, const int fdes,
     }
     if (ierr < 0) {
 	LOGGER(ibis::gVerbose >= 0)
-	    << evt << " -- unable to free up " << ibis::util::groupby1000(bytes)
+	    << evt << " -- failed to free up " << ibis::util::groupby1000(bytes)
 	    << "bytes to read the file " << name;
 	ierr = -108;
 	return st;
@@ -1411,7 +1411,7 @@ int ibis::fileManager::unload(size_t sz) {
 	++ nwaiting;
 	if (ibis::gVerbose > 3) {
 	    ibis::util::logger lg;
-	    lg() << "fileManager::unload unable to find "
+	    lg() << "fileManager::unload failed to find "
 		 << ibis::util::groupby1000(sz)
 		 << " bytes of free space (totalBytes="
 		 << ibis::util::groupby1000(ibis::fileManager::totalBytes())
@@ -1452,8 +1452,8 @@ int ibis::fileManager::unload(size_t sz) {
 	-- nwaiting;
 	if (ierr != 0 && ierr != ETIMEDOUT) {
 	    LOGGER(ibis::gVerbose > 2)
-		<< "Warning -- fileManager::unload unable to wait for release "
-		"of memory ... " << strerror(ierr);
+		<< "Warning -- fileManager::unload failed to invoke "
+		"pthread_cond_wait ... " << strerror(ierr);
 	    break; // get out of the while loop
 	}
 	current = time(0);
@@ -1761,7 +1761,7 @@ ibis::fileManager::storage::storage(size_t n)
 	int ierr = ibis::fileManager::instance().unload(n);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- fileManager::storage::ctor unable to find "
+		<< "Warning -- fileManager::storage::ctor failed to find "
 		<< ibis::util::groupby1000(n) << " bytes of space in memory";
 	    throw ibis::bad_alloc("storage::ctor(memory) failed");
 	}
@@ -1794,7 +1794,7 @@ ibis::fileManager::storage::storage(size_t n)
 		    ibis::fileManager::instance().printStatus(lg());
 		}
 	    }
-	    throw ibis::bad_alloc("unable to allocate new storage object");
+	    throw ibis::bad_alloc("failed to allocate new storage object");
 	}
     }
     if (m_begin != 0) { // malloc was a success
@@ -1877,7 +1877,7 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 	int ierr = ibis::fileManager::instance().unload(nbytes);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Error -- fileManager::storage is unable to find "
+		<< "Error -- fileManager::storage failed to find "
 		<< ibis::util::groupby1000(nbytes)
 		<< " bytes of space to copy from "
 		<< static_cast<const void*>(begin);
@@ -1905,7 +1905,7 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
 	    if (ibis::gVerbose >= 0) {
 		ibis::util::logger lg;
 		lg() << "Error -- fileManager copy constructor "
-		    "is unable to allocate " << ibis::util::groupby1000(nbytes)
+		    "failed to allocate " << ibis::util::groupby1000(nbytes)
 		     << " bytes\n";
 		if (ibis::gVerbose > 2) // dump the current list of files
 		    ibis::fileManager::instance().printStatus(lg());
@@ -1946,7 +1946,7 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
 	int ierr = ibis::fileManager::instance().unload(nbytes);
 	if (ierr < 0) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "Error -- fileManager::storage is unable to find "
+		<< "Error -- fileManager::storage failed to find "
 		<< ibis::util::groupby1000(nbytes)
 		<< " bytes of space to make an in-memory copy";
 	    throw ibis::bad_alloc("storage::ctor(copy) failed");
@@ -1972,7 +1972,7 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
 	    if (ibis::gVerbose >= 0) {
 		ibis::util::logger lg;
 		lg() << "Error -- fileManager copy constructor "
-		    "is unable to allocate " << ibis::util::groupby1000(nbytes)
+		    "failed to allocate " << ibis::util::groupby1000(nbytes)
 		     << " bytes\n";
 		if (ibis::gVerbose > 2) // dump the current list of files
 		    ibis::fileManager::instance().printStatus(lg());
@@ -2256,7 +2256,7 @@ void ibis::fileManager::storage::write(const char* file) const {
     FILE *in = fopen(file, "wb");
     if (in == 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- storage::write is unable open file \""
+	    << "Warning -- storage::write failed to open file \""
 	    << file << "\" ... "
 	    << (errno!=0 ? strerror(errno) : "no free stdio stream");
 	return;
@@ -2495,7 +2495,7 @@ void ibis::fileManager::roFile::doRead(const char* file) {
     }
     else {
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- " << evt << " is unable find out the size of \""
+	    << "Warning -- " << evt << " failed to find out the size of \""
 	    << file << "\"";
 	return;
     }
@@ -2503,7 +2503,7 @@ void ibis::fileManager::roFile::doRead(const char* file) {
     int in = UnixOpen(file, OPEN_READONLY);
     if (in < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- " << evt << " is unable open file \"" << file
+	    << "Warning -- " << evt << " failed to open file \"" << file
 	    << "\" ... " << (errno ? strerror(errno) : "no free stdio stream");
 	return;
     }
@@ -2559,7 +2559,7 @@ void ibis::fileManager::roFile::doRead(const char* file, off_t b, off_t e) {
     int in = UnixOpen(file, OPEN_READONLY);
     if (in < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- roFile::read is unable open file \""
+	    << "Warning -- roFile::read failed to open file \""
 	    << file << "\" ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return;
@@ -2617,7 +2617,7 @@ void ibis::fileManager::roFile::mapFile(const char* file) {
     Stat_T tmp;
     if (0 != UnixStat(file, &tmp)) { // get stat correctly
 	LOGGER(ibis::gVerbose > 2)
-	    << "Warning -- roFile::mapFile is unable find out the size of \""
+	    << "Warning -- roFile::mapFile failed to find out the size of \""
 	    << file << "\"";
 	return;
     }
@@ -2849,7 +2849,7 @@ void ibis::fileManager::roFile::doMap(const char* file, off_t b, off_t e,
     }
     if (fdescriptor < 0) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- roFile::doMap is unable open file \""
+	    << "Warning -- roFile::doMap failed to open file \""
 	    << file << "\" ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	m_begin = 0; m_end = 0; mapped = 0;

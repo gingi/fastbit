@@ -1560,7 +1560,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
 	else
 	    ierr = col->getValuesArray(&val);
 	if (ierr < 0 || val.size() <= 0) {
-	    col->logWarning("ambit::construct", "unable to read %s",
+	    col->logWarning("ambit::construct", "failed to read %s",
 			    fnm.c_str());
 	    break;
 	}
@@ -1608,7 +1608,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
 	else
 	    ierr = col->getValuesArray(&val);
 	if (ierr < 0 || val.size() <= 0) {
-	    col->logWarning("ambit::construct", "unable to read %s",
+	    col->logWarning("ambit::construct", "failed to read %s",
 			    fnm.c_str());
 	    break;
 	}
@@ -1656,7 +1656,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
 	else
 	    ierr = col->getValuesArray(&val);
 	if (ierr < 0 || val.size() <= 0) {
-	    col->logWarning("ambit::construct", "unable to read %s",
+	    col->logWarning("ambit::construct", "failed to read %s",
 			    fnm.c_str());
 	    break;
 	}
@@ -1704,7 +1704,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
 	else
 	    ierr = col->getValuesArray(&val);
 	if (ierr < 0 || val.size() <= 0) {
-	    col->logWarning("ambit::construct", "unable to read %s",
+	    col->logWarning("ambit::construct", "failed to read %s",
 			    fnm.c_str());
 	    break;
 	}
@@ -1749,7 +1749,7 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
 	col->logWarning("ambit::construct", "no need for an index");
 	return;
     default:
-	col->logWarning("ambit::construct", "unable to create index for "
+	col->logWarning("ambit::construct", "failed to create index for "
 			"this type of column");
 	return;
     }

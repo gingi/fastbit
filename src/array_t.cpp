@@ -1536,7 +1536,7 @@ void ibis::array_t<T>::reserve(size_t n) {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- array_t::reserve: unable to allocate " << n
+		    << "Warning -- array_t::reserve failed to allocate " << n
 		    << ' ' << sizeof(T) << "-byte elements";
 	    }
 	}

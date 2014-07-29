@@ -179,7 +179,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -257,7 +257,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -333,7 +333,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -408,7 +408,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -483,7 +483,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -494,7 +494,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get2DDistribution -- unable to "
+	    << "part::get2DDistribution -- can not "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -688,7 +688,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -766,7 +766,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -842,7 +842,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -917,7 +917,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -992,7 +992,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistribution -- unable to "
+		<< "part::get2DDistribution -- can not "
 		"handle column (" << cname2 << ") type "
 		<< ibis::TYPESTRING[(int)col2->type()];
 
@@ -1003,7 +1003,7 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get2DDistribution -- unable to "
+	    << "part::get2DDistribution -- can not "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -1328,7 +1328,7 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::fill2DBins2 -- unable to "
+	    << "part::fill2DBins2 -- can not "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -1606,7 +1606,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get2DBins -- unable to "
+	    << "part::get2DBins -- can not "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -1930,7 +1930,7 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::fill2DBins2 -- unable to "
+	    << "part::fill2DBins2 -- can not "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -2200,7 +2200,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get2DBins -- unable to "
+	    << "part::get2DBins -- can not "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -2548,7 +2548,7 @@ ibis::part::fill2DBinsWeighted2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::fill2DBinsWeighted2 -- unable to "
+	    << "part::fill2DBinsWeighted2 -- can not "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -2846,7 +2846,7 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get2DBins -- unable to "
+	    << "part::get2DBins -- can not "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 
@@ -3273,7 +3273,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3359,7 +3359,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3443,7 +3443,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3526,7 +3526,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3607,7 +3607,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionA -- unable to "
+		<< "part::get2DDistributionA -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3618,7 +3618,7 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get2DDistributionA -- unable to "
+	    << "part::get2DDistributionA -- can not "
 	    "handle column (" << col1.name() << ") type "
 	    << ibis::TYPESTRING[(int)col1.type()];
 
@@ -3842,7 +3842,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3920,7 +3920,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -3996,7 +3996,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -4071,7 +4071,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -4146,7 +4146,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	    break;}
 	default: {
 	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get2DDistributionU -- unable to "
+		<< "part::get2DDistributionU -- can not "
 		"handle column (" << col2.name() << ") type "
 		<< ibis::TYPESTRING[(int)col2.type()];
 
@@ -4157,7 +4157,7 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get2DDistributionU -- unable to "
+	    << "part::get2DDistributionU -- can not "
 	    "handle column (" << col1.name() << ") type "
 	    << ibis::TYPESTRING[(int)col1.type()];
 
@@ -4639,7 +4639,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	default: {
 	    ierr = -3;
-	    logWarning("get2DDistribution", "unable to handle column type %d",
+	    logWarning("get2DDistribution", "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -4740,7 +4740,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	default: {
 	    ierr = -3;
-	    logWarning("get2DDistribution", "unable to handle column type %d",
+	    logWarning("get2DDistribution", "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -4838,7 +4838,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	default: {
 	    ierr = -3;
-	    logWarning("get2DDistribution", "unable to handle column type %d",
+	    logWarning("get2DDistribution", "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -4936,7 +4936,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	default: {
 	    ierr = -3;
-	    logWarning("get2DDistribution", "unable to handle column type %d",
+	    logWarning("get2DDistribution", "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -5034,7 +5034,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	default: {
 	    ierr = -3;
-	    logWarning("get2DDistribution", "unable to handle column type %d",
+	    logWarning("get2DDistribution", "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -5130,7 +5130,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	    break;}
 	default: {
 	    ierr = -3;
-	    logWarning("get2DDistribution", "unable to handle column type %d",
+	    logWarning("get2DDistribution", "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -5138,7 +5138,7 @@ long ibis::part::get2DDistribution(const char *constraints,
 	break;}
     default: {
 	ierr = -3;
-	logWarning("get2DDistribution", "unable to handle column type %d",
+	logWarning("get2DDistribution", "can not handle column type %d",
 		   static_cast<int>(col1->type()));
 	break;}
     }
@@ -5315,7 +5315,7 @@ long ibis::part::old2DDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("old2DDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -5409,7 +5409,7 @@ long ibis::part::old2DDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("old2DDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -5500,7 +5500,7 @@ long ibis::part::old2DDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("old2DDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -5591,7 +5591,7 @@ long ibis::part::old2DDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("old2DDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -5600,7 +5600,7 @@ long ibis::part::old2DDistribution(const char *constraints,
     default: {
 	ierr = -3;
 	logWarning("old2DDistribution",
-		   "unable to handle column type %d",
+		   "can not handle column type %d",
 		   static_cast<int>(col1->type()));
 	break;}
     }
@@ -6093,7 +6093,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("getJointDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -6212,7 +6212,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("getJointDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -6328,7 +6328,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("getJointDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -6444,7 +6444,7 @@ ibis::part::getJointDistribution(const char *constraints,
 	default: {
 	    ierr = -3;
 	    logWarning("getJointDistribution",
-		       "unable to handle column type %d",
+		       "can not handle column type %d",
 		       static_cast<int>(col2->type()));
 	    break;}
 	}
@@ -6453,7 +6453,7 @@ ibis::part::getJointDistribution(const char *constraints,
     default: {
 	ierr = -3;
 	logWarning("getJointDistribution",
-		   "unable to handle column type %d",
+		   "can not handle column type %d",
 		   static_cast<int>(col1->type()));
 	break;}
     }

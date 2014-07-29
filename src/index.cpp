@@ -1574,7 +1574,7 @@ void ibis::index::computeMinMax(const char* f, double& min,
         array_t<uint32_t> val;
         int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         if (ierr != 0) {
-            col->logWarning("computeMinMax", "unable to retrieve file %s",
+            col->logWarning("computeMinMax", "failed to retrieve file %s",
                             fnm.c_str());
             return;
         }
@@ -1595,7 +1595,7 @@ void ibis::index::computeMinMax(const char* f, double& min,
         array_t<int32_t> val;
         int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         if (ierr != 0) {
-            col->logWarning("computeMinMax", "unable to retrieve file %s",
+            col->logWarning("computeMinMax", "failed to retrieve file %s",
                             fnm.c_str());
             return;
         }
@@ -1616,7 +1616,7 @@ void ibis::index::computeMinMax(const char* f, double& min,
         array_t<uint16_t> val;
         int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         if (ierr != 0) {
-            col->logWarning("computeMinMax", "unable to retrieve file %s",
+            col->logWarning("computeMinMax", "failed to retrieve file %s",
                             fnm.c_str());
             return;
         }
@@ -1637,7 +1637,7 @@ void ibis::index::computeMinMax(const char* f, double& min,
         array_t<int16_t> val;
         int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         if (ierr != 0) {
-            col->logWarning("computeMinMax", "unable to retrieve file %s",
+            col->logWarning("computeMinMax", "failed to retrieve file %s",
                             fnm.c_str());
             return;
         }
@@ -1658,7 +1658,7 @@ void ibis::index::computeMinMax(const char* f, double& min,
         array_t<unsigned char> val;
         int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         if (ierr != 0) {
-            col->logWarning("computeMinMax", "unable to retrieve file %s",
+            col->logWarning("computeMinMax", "failed to retrieve file %s",
                             fnm.c_str());
             return;
         }
@@ -1679,7 +1679,7 @@ void ibis::index::computeMinMax(const char* f, double& min,
         array_t<signed char> val;
         int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         if (ierr != 0) {
-            col->logWarning("computeMinMax", "unable to retrieve file %s",
+            col->logWarning("computeMinMax", "failed to retrieve file %s",
                             fnm.c_str());
             return;
         }
@@ -1700,7 +1700,7 @@ void ibis::index::computeMinMax(const char* f, double& min,
         array_t<float> val;
         int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         if (ierr != 0) {
-            col->logWarning("computeMinMax", "unable to retrieve file %s",
+            col->logWarning("computeMinMax", "failed to retrieve file %s",
                             fnm.c_str());
             return;
         }
@@ -1719,7 +1719,7 @@ void ibis::index::computeMinMax(const char* f, double& min,
         array_t<double> val;
         int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
         if (ierr != 0) {
-            col->logWarning("computeMinMax", "unable to retrieve file %s",
+            col->logWarning("computeMinMax", "failed to retrieve file %s",
                             fnm.c_str());
             return;
         }
@@ -3379,7 +3379,7 @@ void ibis::index::mapValues(const char* f, histogram& hist,
         hist.clear();
         break;
     default:
-        col->logWarning("index::mapValues", "unable to create a histogram "
+        col->logWarning("index::mapValues", "failed to create a histogram "
                         "for this type of column");
         break;
     }

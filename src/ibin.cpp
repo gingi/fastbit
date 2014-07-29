@@ -791,7 +791,7 @@ void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
 	break;
     default:
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- unable to bin column " << col->name()
+	    << "Warning -- failed to bin column " << col->name()
 	    << " (type " << (int)(col->type()) << ", "
 	    << ibis::TYPESTRING[(int)(col->type())] << ')';
 	throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
@@ -845,7 +845,7 @@ void ibis::bin::binning(const char* f, const array_t<double>& bd) {
 	break;
     default:
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- unable to bin column " << col->name()
+	    << "Warning -- failed to bin column " << col->name()
 	    << " (type " << (int)(col->type()) << ", "
 	    << ibis::TYPESTRING[(int)(col->type())] << ')';
 	throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
@@ -900,7 +900,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -967,7 +967,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1034,7 +1034,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1114,7 +1114,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1188,7 +1188,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1262,7 +1262,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1336,7 +1336,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1410,7 +1410,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1484,7 +1484,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1558,7 +1558,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1631,7 +1631,7 @@ void ibis::bin::binning(const char* f) {
 	clear();
 	return;
     default:
-	col->logWarning("bin::binning", "unable to create bins for "
+	col->logWarning("bin::binning", "failed to create bins for "
 			"this type of column");
 	return;
     }
@@ -1972,7 +1972,7 @@ long ibis::bin::binOrder(const char* basename) const {
 	break;
     default:
 	ibis::util::logMessage("Warning",
-			       "unable to reorder column %s type %d",
+			       "failed to reorder column %s type %d",
 			       col->name(), (int)(col->type()));
 	ierr = -3;
     }
@@ -1999,7 +1999,7 @@ long ibis::bin::binOrderT(const char* basename) const {
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
         LOGGER(ibis::gVerbose > -1)
-	    << "bin::binOrder is unable to open file \"" << fnm
+	    << "bin::binOrder is failed to open file \"" << fnm
             << "\" for writing";
 	ierr = -2;
 	return ierr;
@@ -2269,7 +2269,7 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 	break;
     default:
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- unable to bin column " << col->name()
+	    << "Warning -- failed to bin column " << col->name()
 	    << " (type " << (int)(col->type()) << ", "
 	    << ibis::TYPESTRING[(int)(col->type())] << ')';
 	ierr = -4;
@@ -2351,7 +2351,7 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
 	break;
     default:
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- unable to bin column " << col->name()
+	    << "Warning -- failed to bin column " << col->name()
 	    << " (type " << (int)(col->type()) << ", "
 	    << ibis::TYPESTRING[(int)(col->type())] << ')';
 	ierr = -4;
@@ -2756,7 +2756,7 @@ void ibis::bin::construct(const char* df) {
 	    break;}
 	default:
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- unable to bin column " << col->name()
+		<< "Warning -- failed to bin column " << col->name()
 		<< " (type " << (int)(col->type()) << ", "
 		<< ibis::TYPESTRING[(int)(col->type())] << ')';
 	    throw "Unexpected data type for ibis::bin";
@@ -2802,7 +2802,7 @@ void ibis::bin::construct(const char* df) {
 		break;
 	    default:
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- unable to bin column " << col->name()
+		    << "Warning -- failed to bin column " << col->name()
 		    << " (type " << (int)(col->type()) << ", "
 		    << ibis::TYPESTRING[(int)(col->type())] << ')';
 		throw "Unexpected data type for ibis::bin";
@@ -2886,7 +2886,7 @@ void ibis::bin::construct(const char* df) {
 	    break;}
 	default:
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- unable to bin column " << col->name()
+		<< "Warning -- failed to bin column " << col->name()
 		<< " (type " << (int)(col->type()) << ", "
 		<< ibis::TYPESTRING[(int)(col->type())] << ')';
 	    throw "Unexpected data type for ibis::bin";
@@ -4639,7 +4639,7 @@ void ibis::bin::readBinBoundaries(const char *fnm, uint32_t nb) {
             fptr = fopen(fullname.c_str(), "r");
             if (fptr == 0) {
                 col->logWarning("bin::readBinBoundaries",
-                                "unable to open file \"%s\"",
+                                "failed to open file \"%s\"",
                                 fnm);
                 return;
             }
@@ -9515,7 +9515,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
     else if (bar.size() > 1 || stricmp(bar.name(0), col->name()) != 0) {
 	std::ostringstream ostr;
 	ostr << *expr;
-	col->logWarning("bin::compJoin", "unable to deal with complex range "
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
 			"expression %s", ostr.str().c_str());
 	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
 	sure.set(0, npairs);
@@ -9839,7 +9839,7 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
     else if (bar.size() != 1 && stricmp(bar.name(0), col->name()) != 0) {
 	std::ostringstream ostr;
 	ostr << *expr;
-	col->logWarning("bin::compJoin", "unable to deal with complex range "
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
 			"expression %s", ostr.str().c_str());
 	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
 	sure.set(0, npairs);
@@ -10235,7 +10235,7 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
     else if (bar.size() != 1 && stricmp(bar.name(0), col->name()) != 0) {
 	std::ostringstream ostr;
 	ostr << *expr;
-	col->logWarning("bin::compJoin", "unable to deal with complex range "
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
 			"expression %s", ostr.str().c_str());
 	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
 	sure.set(0, npairs);
@@ -10564,7 +10564,7 @@ int64_t ibis::bin::compJoin(const ibis::math::term *expr,
     else if (bar.size() != 1 && stricmp(bar.name(0), col->name()) != 0) {
 	std::ostringstream ostr;
 	ostr << *expr;
-	col->logWarning("bin::compJoin", "unable to deal with complex range "
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
 			"expression %s", ostr.str().c_str());
 	return -1;
     }
@@ -10888,7 +10888,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
     else if (bar.size() > 1 || stricmp(bar.name(0), col->name()) != 0) {
 	std::ostringstream ostr;
 	ostr << *expr;
-	col->logWarning("bin::compJoin", "unable to deal with complex range "
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
 			"expression %s", ostr.str().c_str());
 	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
 	sure.set(0, npairs);
@@ -11298,7 +11298,7 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
     else if (bar.size() > 1 || stricmp(bar.name(0), col->name()) != 0) {
 	std::ostringstream ostr;
 	ostr << *expr;
-	col->logWarning("bin::compJoin", "unable to deal with complex range "
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
 			"expression %s", ostr.str().c_str());
 	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
 	sure.set(0, npairs);
@@ -11655,7 +11655,7 @@ int64_t ibis::bin::compJoin(const ibis::bin& idx2,
     else if (bar.size() > 1 || stricmp(bar.name(0), col->name()) != 0) {
 	std::ostringstream ostr;
 	ostr << *expr;
-	col->logWarning("bin::compJoin", "unable to deal with complex range "
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
 			"expression %s", ostr.str().c_str());
 	return -1;
     }

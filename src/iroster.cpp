@@ -895,7 +895,7 @@ void ibis::roster::icSort(const char* fin) {
 	break;}
     default: {
 	ibis::util::logger lg;
-	lg() << "roster -- unable to create a roster list for ";
+	lg() << "roster -- failed to create a roster list for ";
 	col->print(lg());
 	break;}
     }

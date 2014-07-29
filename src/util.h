@@ -631,6 +631,7 @@ namespace ibis {
 	void clear(ibis::array_t<ibis::bitvector*> &bv) throw();
 	void clear(ibis::partList &pl) throw();
 	void updateDatasets(void);
+	void cleanDatasets(void);
 
 	/// Return a pointer to the string designating the version of this
 	/// software.

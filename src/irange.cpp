@@ -383,7 +383,7 @@ int ibis::range::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("range::write", "unable to open \"%s\" for write",
+	    col->logWarning("range::write", "failed to open \"%s\" for write",
 			    fnm.c_str());
 	    return -2;
 	}
@@ -768,7 +768,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	else
 	    ierr = col->getValuesArray(&val);
 	if (ierr < 0 || val.size() <= 0)
-	    col->logWarning("range::construct", "unable to read %s",
+	    col->logWarning("range::construct", "failed to read %s",
 			    fnm.c_str());
 
 	nrows = val.size();
@@ -797,7 +797,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	else
 	    ierr = col->getValuesArray(&val);
 	if (ierr < 0 || val.size() <= 0)
-	    col->logWarning("range::construct", "unable to read %s",
+	    col->logWarning("range::construct", "failed to read %s",
 			    fnm.c_str());
 
 	nrows = val.size();
@@ -826,7 +826,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	else
 	    ierr = col->getValuesArray(&val);
 	if (ierr < 0 || val.size() <= 0)
-	    col->logWarning("range::construct", "unable to read %s",
+	    col->logWarning("range::construct", "failed to read %s",
 			    fnm.c_str());
 
 	nrows = val.size();
@@ -855,7 +855,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	else
 	    ierr = col->getValuesArray(&val);
 	if (ierr < 0 || val.size() <= 0)
-	    col->logWarning("range::construct", "unable to read %s",
+	    col->logWarning("range::construct", "failed to read %s",
 			    fnm.c_str());
 
 	nrows = val.size();
@@ -881,7 +881,7 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
 	col->logWarning("range::construct", "no need for an index");
 	return;
     default:
-	col->logWarning("range::construct", "unable to create index for "
+	col->logWarning("range::construct", "failed to create index for "
 			"this type of column");
 	return;
     }

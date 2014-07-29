@@ -1192,7 +1192,7 @@ void ibis::skive::construct2(const char* f) {
 	col->logWarning("skive::ctor", "no need for another index");
 	return;
     default:
-	col->logWarning("skive::ctor", "unable to create bit skive index "
+	col->logWarning("skive::ctor", "failed to create bit skive index "
 			"for this type of column");
 	return;
     }

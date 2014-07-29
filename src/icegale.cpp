@@ -211,7 +211,7 @@ int ibis::egale::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("egale::write", "unable to open \"%s\" for write",
+	    col->logWarning("egale::write", "failed to open \"%s\" for write",
 			    fnm.c_str());
 	    return -2;
 	}
@@ -833,7 +833,7 @@ void ibis::egale::construct(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("egale::construct", "unable to read %s",
+	    col->logWarning("egale::construct", "failed to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -885,7 +885,7 @@ void ibis::egale::construct(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("egale::construct", "unable to read %s",
+	    col->logWarning("egale::construct", "failed to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -937,7 +937,7 @@ void ibis::egale::construct(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("egale::construct", "unable to read %s",
+	    col->logWarning("egale::construct", "failed to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -989,7 +989,7 @@ void ibis::egale::construct(const char* f) {
 	    } // while (nind)
 	}
 	else {
-	    col->logWarning("egale::construct", "unable to read %s",
+	    col->logWarning("egale::construct", "failed to read %s",
 			    fnm.c_str());
 	}
 	break;}
@@ -997,7 +997,7 @@ void ibis::egale::construct(const char* f) {
 	col->logWarning("egale::ctor", "no need for another index");
 	return;
     default:
-	col->logWarning("egale::ctor", "unable to create bit egale index for "
+	col->logWarning("egale::ctor", "failed to create bit egale index for "
 			"this type of column");
 	return;
     }

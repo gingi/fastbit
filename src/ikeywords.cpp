@@ -557,7 +557,7 @@ int ibis::keywords::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("keywords::write", "unable to open \"%s\"",
+	    col->logWarning("keywords::write", "failed to open \"%s\"",
 			    fnm.c_str());
 	    return -1;
 	}

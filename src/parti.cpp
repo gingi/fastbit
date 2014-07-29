@@ -803,7 +803,7 @@ long ibis::part::append1(const char *dir) {
     rids = new array_t<ibis::rid_t>;
     if (0 != ibis::fileManager::instance().getFile(fn.c_str(),*rids)) {
 	if (nEvents > 0 && ibis::gVerbose > 4)
-	    logMessage("append", "unable to read rid file \"%s\" ... %s",
+	    logMessage("append", "failed to read rid file \"%s\" ... %s",
 		       fn.c_str(), strerror(errno));
 
 	std::string fillrids(m_name);
@@ -935,7 +935,7 @@ long ibis::part::append2(const char *dir) {
 	if (0 != ibis::fileManager::instance().
 	    getFile(fn.c_str(),*rids)) {
 	    if (nEvents > 0 && ibis::gVerbose > 4)
-		logMessage("append", "unable to read rid file \"%s\" ... %s",
+		logMessage("append", "failed to read rid file \"%s\" ... %s",
 			   fn.c_str(), strerror(errno));
 
 	    std::string fillrids(m_name);
@@ -1603,6 +1603,8 @@ long ibis::part::purgeInactive() {
 /// The caller should hold a write lock on this data partition to prevent
 /// concurrent accesses to this part object.
 void ibis::part::emptyCache() const {
+    LOGGER(ibis::gVerbose > 6)
+        << "part[" << name() << "]::emptyCache ...";
     unloadIndexes();
     if (myCleaner != 0)
 	(*myCleaner)(); // invoke the cleaner

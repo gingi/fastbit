@@ -407,7 +407,7 @@ ibis::part::fill3DBinsWeighted3(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "Warning -- part::fill3DBinsWeighted3 -- unable to "
+	    << "Warning -- part::fill3DBinsWeighted3 -- can not "
 	    "handle column (" << col3.name() << ") type "
 	    << ibis::TYPESTRING[(int)col3.type()];
 
@@ -656,7 +656,7 @@ ibis::part::fill3DBinsWeighted2(const ibis::bitvector &mask,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "Warning -- part::fill3DBinsWeighted2 -- unable to "
+	    << "Warning -- part::fill3DBinsWeighted2 -- can not "
 	    "handle column (" << col2.name() << ") type "
 	    << ibis::TYPESTRING[(int)col2.type()];
 
@@ -982,7 +982,7 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 3)
-	    << "part::get3DBins -- unable to "
+	    << "part::get3DBins -- can not "
 	    "handle column (" << cname1 << ") type "
 	    << ibis::TYPESTRING[(int)col1->type()];
 

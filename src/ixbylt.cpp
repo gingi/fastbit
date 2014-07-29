@@ -1819,7 +1819,7 @@ int ibis::bylt::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("bylt::write", "unable to open \"%s\" for write",
+	    col->logWarning("bylt::write", "failed to open \"%s\" for write",
 			    fnm.c_str());
 	    return -2;
 	}

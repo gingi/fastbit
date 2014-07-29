@@ -272,11 +272,11 @@ ibis::part::part(const char* name, bool ro) :
     // initialize the locks
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-	throw "part unable to initialize the mutex lock";
+	throw "part failed to initialize the mutex lock";
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-	throw "part unable to initialize the rwlock";
+	throw "part failed to initialize the rwlock";
     }
 
     // for the special "in-core" data partition, there is no need to call
@@ -295,11 +295,11 @@ ibis::part::part(const std::vector<const char*> &mtags, bool ro) :
     // initialize the locks
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-	throw "part unable to initialize the mutex lock";
+	throw "part failed to initialize the mutex lock";
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-	throw "part unable to initialize the rwlock";
+	throw "part failed to initialize the rwlock";
     }
 
     std::string pref;
@@ -317,11 +317,11 @@ ibis::part::part(const ibis::resource::vList &mtags, bool ro) :
     // initialize the locks
     if (0 != pthread_mutex_init
 	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-	throw "part unable to initialize the mutex lock";
+	throw "part failed to initialize the mutex lock";
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-	throw "part unable to initialize the rwlock";
+	throw "part failed to initialize the rwlock";
     }
 
     std::string pref; // new name
@@ -351,11 +351,11 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
     (void) ibis::fileManager::instance(); // initialize the file manager
     // initialize the locks
     if (pthread_mutex_init(&mutex, 0)) {
-	throw "part::ctor unable to initialize the mutex lock";
+	throw "part::ctor failed to initialize the mutex lock";
     }
 
     if (pthread_rwlock_init(&rwlock, 0)) {
-	throw "part::ctor unable to initialize the rwlock";
+	throw "part::ctor failed to initialize the rwlock";
     }
 
     if (adir == 0) return;
@@ -2291,7 +2291,7 @@ uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
 	ierr = ibis::fileManager::instance().getFile(name, ridx);
 	if (ierr != 0) {
 	    logWarning("searchSortedRIDs",
-		       "unable to generate -rids.srt (%s)",
+		       "failed to generate -rids.srt (%s)",
 		       name);
 	    return ind;
 	}
@@ -2375,7 +2375,7 @@ void ibis::part::searchSortedRIDs(const ibis::RIDSet &in,
 	ierr = ibis::fileManager::instance().getFile(name, ridx);
 	if (ierr != 0) {
 	    logWarning("searchSortedRIDs",
-		       "unable to generate -rids.srt (%s)",
+		       "failed to generate -rids.srt (%s)",
 		       name);
 	    searchRIDs(in, res);
 	    return;
@@ -6857,7 +6857,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 					  ibis_part_threadedTestFun1,
 					  (void*)&arg);
 		    if (0 != ierr) {
-			logWarning("selfTest", "unable to start the thread # "
+			logWarning("selfTest", "failed to start the thread # "
 				   "%d to run ibis_part_threadedTestFun1 (%s)",
 				   i, strerror(ierr));
 		    }
@@ -6871,7 +6871,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 					  ibis_part_threadedTestFun1,
 					  (void*)&arg);
 		    if (0 != ierr) {
-			logWarning("selfTest", "unable to start the thread # "
+			logWarning("selfTest", "failed to start the thread # "
 				   "%d to run ibis_part_threadedTestFun1 (%s)",
 				   i, strerror(ierr));
 		    }
@@ -6910,7 +6910,7 @@ long ibis::part::selfTest(int nth, const char* pref) const {
 					  ibis_part_threadedTestFun2,
 					  (void*)&arg);
 		    if (0 != ierr) {
-			logWarning("selfTest", "unable to start the thread # "
+			logWarning("selfTest", "failed to start the thread # "
 				   "%d to run ibis_part_threadedTestFun2 (%s)",
 				   i, strerror(ierr));
 		    }
@@ -7515,7 +7515,7 @@ void ibis::part::testRangeOperators(const ibis::column* col,
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- part[" << (m_name ? m_name : "?")
 	    << "]::testRangeOperators(" << col->name()
-	    << ") unable to determine the min/max values";
+	    << ") failed to determine the min/max values";
 	++ (*nerrors);
 	return;
     }
@@ -18644,7 +18644,7 @@ long ibis::part::verifyBackupDir() {
     }
     catch (const std::exception &e) {
 	logWarning("part::verifyBackupDir",
-		   "unable to create backupDir \"%s\" -- %s",
+		   "failed to create backupDir \"%s\" -- %s",
 		   backupDir, e.what());
 	delete [] backupDir;
 	backupDir = 0;
@@ -18652,7 +18652,7 @@ long ibis::part::verifyBackupDir() {
     }
     catch (const char* s) {
 	logWarning("part::verifyBackupDir",
-		   "unable to create backupDir \"%s\" -- %s",
+		   "failed to create backupDir \"%s\" -- %s",
 		   backupDir, s);
 	delete [] backupDir;
 	backupDir = 0;
@@ -18660,7 +18660,7 @@ long ibis::part::verifyBackupDir() {
     }
     catch (...) {
 	logWarning("part::verifyBackupDir",
-		   "unable to create backupDir \"%s\" -- unknow error",
+		   "failed to create backupDir \"%s\" -- unknow error",
 		   backupDir);
 	delete [] backupDir;
 	backupDir = 0;
@@ -18683,7 +18683,7 @@ long ibis::part::verifyBackupDir() {
 	// Number_of_events
 	FILE* file = fopen(fn.c_str(), "r");
 	if (file == 0) {
-	    logWarning("verifyBackupDir", "unable to open file \"%s\" ... %s",
+	    logWarning("verifyBackupDir", "failed to open file \"%s\" ... %s",
 		       fn.c_str(), (errno ? strerror(errno)
 				    : "no free stdio stream"));
 	    if (nEvents == 0) ierr = 0;
@@ -18853,7 +18853,7 @@ void ibis::part::makeBackupCopy() {
 	&& ierr != ENOTSUP
 #endif
 	) {
-	logMessage("makeBackupCopy", "pthread_attr_setscope is unable to "
+	logMessage("makeBackupCopy", "pthread_attr_setscope failed to "
 		   "set system scope (ierr = %d ... %s)", ierr,
 		   strerror(ierr));
     }
@@ -18876,7 +18876,7 @@ void ibis::part::makeBackupCopy() {
 	&& ierr != ENOTSUP
 #endif
 	) {
-	logError("makeBackupCopy", "pthread_attr_setdetachstate is unable to"
+	logError("makeBackupCopy", "pthread_attr_setdetachstate failed to"
 		 " set DETACHED state (ierr = %d)", ierr);
     }
 #endif
@@ -20021,7 +20021,7 @@ long ibis::part::vault::read() {
     case ibis::OID:
     default: {
 	++ ierr;
-	_tbl->logWarning("vault::read", "unable to evaluate "
+	_tbl->logWarning("vault::read", "failed to evaluate "
 			 "attribute of type %s (name: %s)",
 			 ibis::TYPESTRING[(int)cols[0]->type()],
 			 cols[0]->name());
@@ -20094,7 +20094,7 @@ long ibis::part::vault::read() {
 	case ibis::OID:
 	default: {
 	    ++ ierr;
-	    _tbl->logWarning("vault::read", "unable to evaluate "
+	    _tbl->logWarning("vault::read", "failed to evaluate "
 			     "attribute of type %s (name: %s)",
 			     ibis::TYPESTRING[(int)cols[i]->type()],
 			     cols[i]->name());
@@ -20153,7 +20153,7 @@ long ibis::part::vault::seek(double val) {
 	case ibis::OID:
 	default: {
 	    ierr = -2;
-	    _tbl->logWarning("vault::seek", "unable to evaluate "
+	    _tbl->logWarning("vault::seek", "failed to evaluate "
 			     "attribute of type %s (name: %s)",
 			     ibis::TYPESTRING[(int)cols[0]->type()],
 			     cols[0]->name());
@@ -20184,7 +20184,7 @@ long ibis::part::vault::seek(double val) {
 	case ibis::OID:
 	default: {
 	    ierr = -2;
-	    _tbl->logWarning("vault::seek", "unable to evaluate "
+	    _tbl->logWarning("vault::seek", "failed to evaluate "
 			     "attribute of type %s (name: %s)",
 			     ibis::TYPESTRING[(int)cols[0]->type()],
 			     cols[0]->name());
@@ -20584,6 +20584,17 @@ void ibis::util::updateDatasets() {
     for (uint32_t j = 0; j < npt; ++ j)
 	ibis::datasets[j]->updateData();
 } // ibis::util::updateDatasets
+
+/// Attempt to remove all currently unused data from memory cache.
+void ibis::util::cleanDatasets() {
+    const uint32_t npt = ibis::datasets.size();
+    for (uint32_t j = 0; j < npt; ++ j) {
+        if (ibis::datasets[j]->tryWriteAccess() == 0) {
+            ibis::datasets[j]->emptyCache();
+            ibis::datasets[j]->releaseAccess();
+        }
+    }
+} // ibis::util::cleanDatasets
 
 // explicit instantiations of the templated functions
 template long

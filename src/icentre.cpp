@@ -146,7 +146,7 @@ int ibis::entre::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("entre::write", "unable to open \"%s\" for write",
+	col->logWarning("entre::write", "failed to open \"%s\" for write",
 			fnm.c_str());
 	return -2;
     }
