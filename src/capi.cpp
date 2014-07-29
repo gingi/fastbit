@@ -157,13 +157,13 @@ ibis::part* fastbit_part_list::find(const char* dir) {
                 return it->second;
             }
             else {
-                delete it->second;
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- fastbit_part_list::find(" << dir
+                    << ") located a data partition from the given directory, "
+                    "but it is not readable at this time";
+                return 0;
             }
         }
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- partition for dir " << dir << " on record "
-            "is not readable, remove it and attempt to regenerate";
-        parts.erase(it);
     }
 
     ibis::part *tmp;
@@ -189,8 +189,8 @@ ibis::part* fastbit_part_list::find(const char* dir) {
             parts[ibis::util::strnewdup(dir)] = tmp;
         }
         else {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- failed to aquire read lock on data from "
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- failed to aquire read a lock on data from "
                 << dir << ", can not use the data";
             delete tmp;
             tmp = 0;

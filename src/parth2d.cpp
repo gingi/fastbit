@@ -114,389 +114,389 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-        array_t<int32_t>* vals1 = col1->selectInts(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<int32_t>* vals1 = col1->selectInts(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::CATEGORY:
     case ibis::UINT: {
-        array_t<uint32_t>* vals1 = col1->selectUInts(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-        array_t<int64_t>* vals1 = col1->selectLongs(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<int64_t>* vals1 = col1->selectLongs(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::FLOAT: {
-        array_t<float>* vals1 = col1->selectFloats(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<float>* vals1 = col1->selectFloats(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::DOUBLE: {
-        array_t<double>* vals1 = col1->selectDoubles(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<double>* vals1 = col1->selectDoubles(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::get2DDistribution -- can not "
-            "handle column (" << cname1 << ") type "
-            << ibis::TYPESTRING[(int)col1->type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::get2DDistribution -- can not "
+	    "handle column (" << cname1 << ") type "
+	    << ibis::TYPESTRING[(int)col1->type()];
 
         ierr = -3;
         break;}
@@ -623,389 +623,389 @@ long ibis::part::get2DDistribution(const char *constraints, const char *cname1,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-        array_t<int32_t>* vals1 = col1->selectInts(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<int32_t>* vals1 = col1->selectInts(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::CATEGORY:
     case ibis::UINT: {
-        array_t<uint32_t>* vals1 = col1->selectUInts(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-        array_t<int64_t>* vals1 = col1->selectLongs(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<int64_t>* vals1 = col1->selectLongs(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::FLOAT: {
-        array_t<float>* vals1 = col1->selectFloats(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<float>* vals1 = col1->selectFloats(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::DOUBLE: {
-        array_t<double>* vals1 = col1->selectDoubles(hits);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<double>* vals1 = col1->selectDoubles(hits);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2->type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2->selectInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2->selectLongs(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2->selectFloats(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2->selectDoubles(hits);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DWeights(*vals1, begin1, end1, stride1,
-                                  *vals2, begin2, end2, stride2, *wts, weights);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistribution -- can not "
-                "handle column (" << cname2 << ") type "
-                << ibis::TYPESTRING[(int)col2->type()];
+	switch (col2->type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2->selectInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2->selectFloats(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2->selectDoubles(hits);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DWeights(*vals1, begin1, end1, stride1,
+				  *vals2, begin2, end2, stride2, *wts, weights);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistribution -- can not "
+		"handle column (" << cname2 << ") type "
+		<< ibis::TYPESTRING[(int)col2->type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::get2DDistribution -- can not "
-            "handle column (" << cname1 << ") type "
-            << ibis::TYPESTRING[(int)col1->type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::get2DDistribution -- can not "
+	    "handle column (" << cname1 << ") type "
+	    << ibis::TYPESTRING[(int)col1->type()];
 
         ierr = -3;
         break;}
@@ -1327,10 +1327,10 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
         delete val2;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::fill2DBins2 -- can not "
-            "handle column (" << col2.name() << ") type "
-            << ibis::TYPESTRING[(int)col2.type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::fill2DBins2 -- can not "
+	    "handle column (" << col2.name() << ") type "
+	    << ibis::TYPESTRING[(int)col2.type()];
 
         ierr = -5;
         break;}
@@ -1605,10 +1605,10 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
         delete val1;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::get2DBins -- can not "
-            "handle column (" << cname1 << ") type "
-            << ibis::TYPESTRING[(int)col1->type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::get2DBins -- can not "
+	    "handle column (" << cname1 << ") type "
+	    << ibis::TYPESTRING[(int)col1->type()];
 
         ierr = -3;
         break;}
@@ -1929,10 +1929,10 @@ long ibis::part::fill2DBins2(const ibis::bitvector &mask,
         delete val2;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::fill2DBins2 -- can not "
-            "handle column (" << col2.name() << ") type "
-            << ibis::TYPESTRING[(int)col2.type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::fill2DBins2 -- can not "
+	    "handle column (" << col2.name() << ") type "
+	    << ibis::TYPESTRING[(int)col2.type()];
 
         ierr = -5;
         break;}
@@ -2199,10 +2199,10 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
         delete val1;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::get2DBins -- can not "
-            "handle column (" << cname1 << ") type "
-            << ibis::TYPESTRING[(int)col1->type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::get2DBins -- can not "
+	    "handle column (" << cname1 << ") type "
+	    << ibis::TYPESTRING[(int)col1->type()];
 
         ierr = -3;
         break;}
@@ -2547,10 +2547,10 @@ ibis::part::fill2DBinsWeighted2(const ibis::bitvector &mask,
         delete val2;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::fill2DBinsWeighted2 -- can not "
-            "handle column (" << col2.name() << ") type "
-            << ibis::TYPESTRING[(int)col2.type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::fill2DBinsWeighted2 -- can not "
+	    "handle column (" << col2.name() << ") type "
+	    << ibis::TYPESTRING[(int)col2.type()];
 
         ierr = -5;
         break;}
@@ -2845,10 +2845,10 @@ long ibis::part::get2DBins(const char *constraints, const char *cname1,
         delete val1;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::get2DBins -- can not "
-            "handle column (" << cname1 << ") type "
-            << ibis::TYPESTRING[(int)col1->type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::get2DBins -- can not "
+	    "handle column (" << cname1 << ") type "
+	    << ibis::TYPESTRING[(int)col1->type()];
 
         ierr = -3;
         break;}
@@ -3202,425 +3202,425 @@ long ibis::part::get2DDistributionA(const ibis::column &col1,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-        array_t<int32_t>* vals1 = col1.selectInts(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<int32_t>* vals1 = col1.selectInts(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionA -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionA -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        for (uint32_t i = 0; i < bounds1.size(); ++ i)
-            bounds1[i] = ceil(bounds1[i]);
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
+	    bounds1[i] = ceil(bounds1[i]);
+	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::CATEGORY:
     case ibis::UINT: {
-        array_t<uint32_t>* vals1 = col1.selectUInts(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<uint32_t>* vals1 = col1.selectUInts(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionA -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionA -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        for (uint32_t i = 0; i < bounds1.size(); ++ i)
-            bounds1[i] = ceil(bounds1[i]);
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
+	    bounds1[i] = ceil(bounds1[i]);
+	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-        array_t<int64_t>* vals1 = col1.selectLongs(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<int64_t>* vals1 = col1.selectLongs(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionA -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionA -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        for (uint32_t i = 0; i < bounds1.size(); ++ i)
-            bounds1[i] = ceil(bounds1[i]);
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
+	    bounds1[i] = ceil(bounds1[i]);
+	break;}
     case ibis::FLOAT: {
-        array_t<float>* vals1 = col1.selectFloats(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<float>* vals1 = col1.selectFloats(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionA -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionA -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::DOUBLE: {
-        array_t<double>* vals1 = col1.selectDoubles(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<double>* vals1 = col1.selectDoubles(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionA -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = adaptive2DBins(*vals1, *vals2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionA -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::get2DDistributionA -- can not "
-            "handle column (" << col1.name() << ") type "
-            << ibis::TYPESTRING[(int)col1.type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::get2DDistributionA -- can not "
+	    "handle column (" << col1.name() << ") type "
+	    << ibis::TYPESTRING[(int)col1.type()];
 
         ierr = -3;
         break;}
@@ -3777,389 +3777,389 @@ long ibis::part::get2DDistributionU(const ibis::column &col1,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-        array_t<int32_t>* vals1 = col1.selectInts(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<int32_t>* vals1 = col1.selectInts(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionU -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionU -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::CATEGORY:
     case ibis::UINT: {
-        array_t<uint32_t>* vals1 = col1.selectUInts(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<uint32_t>* vals1 = col1.selectUInts(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionU -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionU -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::ULONG:
     case ibis::LONG: {
-        array_t<int64_t>* vals1 = col1.selectLongs(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<int64_t>* vals1 = col1.selectLongs(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionU -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionU -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::FLOAT: {
-        array_t<float>* vals1 = col1.selectFloats(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<float>* vals1 = col1.selectFloats(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionU -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionU -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     case ibis::DOUBLE: {
-        array_t<double>* vals1 = col1.selectDoubles(mask);
-        if (vals1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<double>* vals1 = col1.selectDoubles(mask);
+	if (vals1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        switch (col2.type()) {
-        case ibis::BYTE:
-        case ibis::SHORT:
-        case ibis::INT: {
-            array_t<int32_t>* vals2 = col2.selectInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::UBYTE:
-        case ibis::USHORT:
-        case ibis::CATEGORY:
-        case ibis::UINT: {
-            array_t<uint32_t>* vals2 = col2.selectUInts(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::ULONG:
-        case ibis::LONG: {
-            array_t<int64_t>* vals2 = col2.selectLongs(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::FLOAT: {
-            array_t<float>* vals2 = col2.selectFloats(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double>* vals2 = col2.selectDoubles(mask);
-            if (vals2 == 0) {
-                ierr = -5;
-                break;
-            }
-            ierr = count2DBins(*vals1, begin1, end1, stride1,
-                               *vals2, begin2, end2, stride2, counts);
-            delete vals2;
-            break;}
-        default: {
-            LOGGER(ibis::gVerbose > 3)
-                << "part::get2DDistributionU -- can not "
-                "handle column (" << col2.name() << ") type "
-                << ibis::TYPESTRING[(int)col2.type()];
+	switch (col2.type()) {
+	case ibis::BYTE:
+	case ibis::SHORT:
+	case ibis::INT: {
+	    array_t<int32_t>* vals2 = col2.selectInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::UBYTE:
+	case ibis::USHORT:
+	case ibis::CATEGORY:
+	case ibis::UINT: {
+	    array_t<uint32_t>* vals2 = col2.selectUInts(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::ULONG:
+	case ibis::LONG: {
+	    array_t<int64_t>* vals2 = col2.selectLongs(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float>* vals2 = col2.selectFloats(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double>* vals2 = col2.selectDoubles(mask);
+	    if (vals2 == 0) {
+		ierr = -5;
+		break;
+	    }
+	    ierr = count2DBins(*vals1, begin1, end1, stride1,
+			       *vals2, begin2, end2, stride2, counts);
+	    delete vals2;
+	    break;}
+	default: {
+	    LOGGER(ibis::gVerbose > 3)
+		<< "part::get2DDistributionU -- can not "
+		"handle column (" << col2.name() << ") type "
+		<< ibis::TYPESTRING[(int)col2.type()];
 
-            ierr = -3;
-            break;}
-        }
-        delete vals1;
-        break;}
+	    ierr = -3;
+	    break;}
+	}
+	delete vals1;
+	break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::get2DDistributionU -- can not "
-            "handle column (" << col1.name() << ") type "
-            << ibis::TYPESTRING[(int)col1.type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::get2DDistributionU -- can not "
+	    "handle column (" << col1.name() << ") type "
+	    << ibis::TYPESTRING[(int)col1.type()];
 
         ierr = -3;
         break;}
@@ -4550,597 +4550,597 @@ long ibis::part::get2DDistribution(const char *constraints,
     case ibis::SHORT:
     case ibis::BYTE:
     case ibis::INT: {
-        array_t<int32_t> *val1 = col1->selectInts(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
-        array_t<int32_t> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<int32_t> *val1 = col1->selectInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+	array_t<int32_t> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> *val2 = col2->selectLongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> *val2 = col2->selectLongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> *val2 = col2->selectULongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> bnd2;
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> bnd2;
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("get2DDistribution", "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        for (uint32_t i = 0; i < bounds1.size(); ++ i)
-            bounds1[i] = ceil(bounds1[i]);
-        break;}
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution", "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
+	    bounds1[i] = ceil(bounds1[i]);
+	break;}
     case ibis::USHORT:
     case ibis::UBYTE:
     case ibis::UINT:
     case ibis::CATEGORY: {
-        array_t<uint32_t> *val1 = col1->selectUInts(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<uint32_t> *val1 = col1->selectUInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<uint32_t> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<uint32_t> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> *val2 = col2->selectLongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> *val2 = col2->selectLongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> *val2 = col2->selectULongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("get2DDistribution", "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        for (uint32_t i = 0; i < bounds1.size(); ++ i)
-            bounds1[i] = ceil(bounds1[i]);
-        break;}
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution", "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
+	    bounds1[i] = ceil(bounds1[i]);
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> *val1 = col1->selectLongs(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
-        array_t<int32_t> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<int64_t> *val1 = col1->selectLongs(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+	array_t<int32_t> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> *val2 = col2->selectLongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> *val2 = col2->selectLongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> *val2 = col2->selectULongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> bnd2;
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> bnd2;
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("get2DDistribution", "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        for (uint32_t i = 0; i < bounds1.size(); ++ i)
-            bounds1[i] = ceil(bounds1[i]);
-        break;}
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution", "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
+	    bounds1[i] = ceil(bounds1[i]);
+	break;}
     case ibis::ULONG: {
-        array_t<uint64_t> *val1 = col1->selectULongs(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<uint64_t> *val1 = col1->selectULongs(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<uint32_t> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<uint32_t> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> *val2 = col2->selectLongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> *val2 = col2->selectLongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> *val2 = col2->selectULongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("get2DDistribution", "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        for (uint32_t i = 0; i < bounds1.size(); ++ i)
-            bounds1[i] = ceil(bounds1[i]);
-        break;}
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution", "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	for (uint32_t i = 0; i < bounds1.size(); ++ i)
+	    bounds1[i] = ceil(bounds1[i]);
+	break;}
     case ibis::FLOAT: {
-        array_t<float> *val1 = col1->selectFloats(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<float> *val1 = col1->selectFloats(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<float> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<float> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            delete val2;
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> *val2 = col2->selectLongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    delete val2;
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> *val2 = col2->selectLongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> *val2 = col2->selectULongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("get2DDistribution", "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution", "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> *val1 = col1->selectDoubles(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<double> *val1 = col1->selectDoubles(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<double> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<double> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> *val2 = col2->selectLongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> *val2 = col2->selectLongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> *val2 = col2->selectULongs(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> *val2 = col2->selectULongs(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                bounds2[i] = ceil(bounds2[i]);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		bounds2[i] = ceil(bounds2[i]);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
-                                  bounds1, bounds2, counts);
-            delete val2;
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("get2DDistribution", "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    ierr = adaptive2DBins(*val1, *val2, nb1, nb2,
+				  bounds1, bounds2, counts);
+	    delete val2;
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("get2DDistribution", "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     default: {
-        ierr = -3;
-        logWarning("get2DDistribution", "can not handle column type %d",
-                   static_cast<int>(col1->type()));
-        break;}
+	ierr = -3;
+	logWarning("get2DDistribution", "can not handle column type %d",
+		   static_cast<int>(col1->type()));
+	break;}
     }
 
     if ((bounds1.size()-1) * (bounds2.size()-1) == counts.size())
@@ -5232,377 +5232,377 @@ long ibis::part::old2DDistribution(const char *constraints,
     case ibis::SHORT:
     case ibis::BYTE:
     case ibis::INT: {
-        array_t<int32_t> *val1 = col1->selectInts(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
-        array_t<int32_t> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<int32_t> *val1 = col1->selectInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+	array_t<int32_t> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<int32_t> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<int32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<uint32_t> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<uint32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<float> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> bnd2;
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<float> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> bnd2;
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("old2DDistribution",
-                       "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("old2DDistribution",
+		       "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     case ibis::USHORT:
     case ibis::UBYTE:
     case ibis::UINT:
     case ibis::CATEGORY: {
-        array_t<uint32_t> *val1 = col1->selectUInts(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<uint32_t> *val1 = col1->selectUInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<uint32_t> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<uint32_t> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<int32_t> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<int32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<uint32_t> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<uint32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<float> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<float> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<double> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("old2DDistribution",
-                       "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    array_t<double> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("old2DDistribution",
+		       "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     case ibis::FLOAT: {
-        array_t<float> *val1 = col1->selectFloats(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<float> *val1 = col1->selectFloats(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<float> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<float> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<int32_t> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<int32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<uint32_t> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<uint32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<float> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<float> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<double> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("old2DDistribution",
-                       "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    array_t<double> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("old2DDistribution",
+		       "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> *val1 = col1->selectDoubles(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<double> *val1 = col1->selectDoubles(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<double> bnd1;
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<double> bnd1;
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<int32_t> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<int32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<uint32_t> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<uint32_t> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<float> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<float> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<double> bnd2;
-            ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("old2DDistribution",
-                       "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    array_t<double> bnd2;
+	    ibis::part::mapValues(*val1, *val2, nb1, nb2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("old2DDistribution",
+		       "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     default: {
-        ierr = -3;
-        logWarning("old2DDistribution",
-                   "can not handle column type %d",
-                   static_cast<int>(col1->type()));
-        break;}
+	ierr = -3;
+	logWarning("old2DDistribution",
+		   "can not handle column type %d",
+		   static_cast<int>(col1->type()));
+	break;}
     }
 
     if ((bounds1.size()-1) * (bounds2.size()-1) == counts.size())
@@ -5985,477 +5985,477 @@ ibis::part::getJointDistribution(const char *constraints,
     case ibis::SHORT:
     case ibis::BYTE:
     case ibis::INT: {
-        array_t<int32_t> *val1 = col1->selectInts(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
-        array_t<int32_t> bnd1;
-        if (bounds1.size() > 0) {
-            bnd1.resize(bounds1.size());
-            for (uint32_t i = 0; i < bounds1.size(); ++ i)
-                bnd1[i] = static_cast<int32_t>(bounds1[i]);
-        }
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<int32_t> *val1 = col1->selectInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
+	array_t<int32_t> bnd1;
+	if (bounds1.size() > 0) {
+	    bnd1.resize(bounds1.size());
+	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
+		bnd1[i] = static_cast<int32_t>(bounds1[i]);
+	}
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<int32_t> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<int32_t>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<int32_t> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<int32_t>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<uint32_t> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<uint32_t>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<uint32_t> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<uint32_t>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<float> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<float>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> bnd2;
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<float> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<float>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> bnd2;
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<double>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("getJointDistribution",
-                       "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<double>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("getJointDistribution",
+		       "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     case ibis::USHORT:
     case ibis::UBYTE:
     case ibis::UINT:
     case ibis::CATEGORY: {
-        array_t<uint32_t> *val1 = col1->selectUInts(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<uint32_t> *val1 = col1->selectUInts(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<uint32_t> bnd1;
-        if (bounds1.size() > 0) {
-            bnd1.resize(bounds1.size());
-            for (unsigned i = 0; i < bounds1.size(); ++ i)
-                bnd1[i] = static_cast<uint32_t>(bounds1[i]);
-        }
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<uint32_t> bnd1;
+	if (bounds1.size() > 0) {
+	    bnd1.resize(bounds1.size());
+	    for (unsigned i = 0; i < bounds1.size(); ++ i)
+		bnd1[i] = static_cast<uint32_t>(bounds1[i]);
+	}
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<int32_t> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<int32_t>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<int32_t> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<int32_t>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<uint32_t> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<uint32_t>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<uint32_t> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<uint32_t>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<float> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<float>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> bnd2;
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<float> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<float>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> bnd2;
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<double>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("getJointDistribution",
-                       "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<double>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("getJointDistribution",
+		       "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     case ibis::FLOAT: {
-        array_t<float> *val1 = col1->selectFloats(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<float> *val1 = col1->selectFloats(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<float> bnd1;
-        if (bounds1.size() > 0) {
-            bnd1.resize(bounds1.size());
-            for (uint32_t i = 0; i < bounds1.size(); ++ i)
-                bnd1[i] = static_cast<float>(bounds1[i]);
-        }
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<float> bnd1;
+	if (bounds1.size() > 0) {
+	    bnd1.resize(bounds1.size());
+	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
+		bnd1[i] = static_cast<float>(bounds1[i]);
+	}
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<int32_t> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<int32_t>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<int32_t> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<int32_t>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<uint32_t> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<uint32_t>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<uint32_t> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<uint32_t>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<float> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<float>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> bnd2;
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<float> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<float>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> bnd2;
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<double>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("getJointDistribution",
-                       "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<double>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("getJointDistribution",
+		       "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> *val1 = col1->selectDoubles(mask);
-        if (val1 == 0) {
-            ierr = -4;
-            break;
-        }
+	array_t<double> *val1 = col1->selectDoubles(mask);
+	if (val1 == 0) {
+	    ierr = -4;
+	    break;
+	}
 
-        array_t<double> bnd1;
-        if (bounds1.size() > 0) {
-            bnd1.resize(bounds1.size());
-            for (uint32_t i = 0; i < bounds1.size(); ++ i)
-                bnd1[i] = bounds1[i];
-        }
-        switch (col2->type()) {
-        case ibis::SHORT:
-        case ibis::BYTE:
-        case ibis::INT: {
-            array_t<int32_t> *val2 = col2->selectInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	array_t<double> bnd1;
+	if (bounds1.size() > 0) {
+	    bnd1.resize(bounds1.size());
+	    for (uint32_t i = 0; i < bounds1.size(); ++ i)
+		bnd1[i] = bounds1[i];
+	}
+	switch (col2->type()) {
+	case ibis::SHORT:
+	case ibis::BYTE:
+	case ibis::INT: {
+	    array_t<int32_t> *val2 = col2->selectInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<int32_t> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<int32_t>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::USHORT:
-        case ibis::UBYTE:
-        case ibis::UINT:
-        case ibis::CATEGORY: {
-            array_t<uint32_t> *val2 = col2->selectUInts(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<int32_t> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<int32_t>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::USHORT:
+	case ibis::UBYTE:
+	case ibis::UINT:
+	case ibis::CATEGORY: {
+	    array_t<uint32_t> *val2 = col2->selectUInts(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<uint32_t> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<uint32_t>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> *val2 = col2->selectFloats(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<uint32_t> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<uint32_t>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> *val2 = col2->selectFloats(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            array_t<float> bnd2;
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<float>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        case ibis::DOUBLE: {
-            array_t<double> bnd2;
-            array_t<double> *val2 = col2->selectDoubles(mask);
-            if (val2 == 0) {
-                ierr = -5;
-                break;
-            }
+	    array_t<float> bnd2;
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<float>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	case ibis::DOUBLE: {
+	    array_t<double> bnd2;
+	    array_t<double> *val2 = col2->selectDoubles(mask);
+	    if (val2 == 0) {
+		ierr = -5;
+		break;
+	    }
 
-            if (bounds2.size() > 0) {
-                bnd2.resize(bounds2.size());
-                for (uint32_t i = 0; i < bounds2.size(); ++ i)
-                    bnd2[i] = static_cast<double>(bounds2[i]);
-            }
-            ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
-            delete val2;
-            bounds1.resize(bnd1.size());
-            for (uint32_t i = 0; i < bnd1.size(); ++ i)
-                bounds1[i] = bnd1[i];
-            bounds2.resize(bnd2.size());
-            for (uint32_t i = 0; i < bnd2.size(); ++ i)
-                bounds2[i] = bnd2[i];
-            break;}
-        default: {
-            ierr = -3;
-            logWarning("getJointDistribution",
-                       "can not handle column type %d",
-                       static_cast<int>(col2->type()));
-            break;}
-        }
-        delete val1;
-        break;}
+	    if (bounds2.size() > 0) {
+		bnd2.resize(bounds2.size());
+		for (uint32_t i = 0; i < bounds2.size(); ++ i)
+		    bnd2[i] = static_cast<double>(bounds2[i]);
+	    }
+	    ibis::index::mapValues(*val1, *val2, bnd1, bnd2, counts);
+	    delete val2;
+	    bounds1.resize(bnd1.size());
+	    for (uint32_t i = 0; i < bnd1.size(); ++ i)
+		bounds1[i] = bnd1[i];
+	    bounds2.resize(bnd2.size());
+	    for (uint32_t i = 0; i < bnd2.size(); ++ i)
+		bounds2[i] = bnd2[i];
+	    break;}
+	default: {
+	    ierr = -3;
+	    logWarning("getJointDistribution",
+		       "can not handle column type %d",
+		       static_cast<int>(col2->type()));
+	    break;}
+	}
+	delete val1;
+	break;}
     default: {
-        ierr = -3;
-        logWarning("getJointDistribution",
-                   "can not handle column type %d",
-                   static_cast<int>(col1->type()));
-        break;}
+	ierr = -3;
+	logWarning("getJointDistribution",
+		   "can not handle column type %d",
+		   static_cast<int>(col1->type()));
+	break;}
     }
 
     if ((bounds1.size()+1) * (bounds2.size()+1) == counts.size())

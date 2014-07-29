@@ -45,11 +45,11 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     thePart(tbl), m_type(t), m_name(name), m_desc(desc), m_bins(""),
     m_sorted(false), lower(low), upper(high), dataflag(0), idx(0), idxcnt() {
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "column::ctor failed to initialize the rwlock";
+	throw "column::ctor failed to initialize the rwlock";
     }
     if (0 != pthread_mutex_init
-        (&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-        throw "column::ctor failed to initialize the mutex";
+	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
+	throw "column::ctor failed to initialize the mutex";
     }
     if (m_desc.empty()) m_desc = name;
     if (ibis::gVerbose > 5 && !m_name.empty()) {
@@ -75,11 +75,11 @@ ibis::column::column(const part* tbl, FILE* file)
     char *s2;
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "column::ctor failed to initialize the rwlock";
+	throw "column::ctor failed to initialize the rwlock";
     }
     if (0 != pthread_mutex_init
-        (&mutex, static_cast<const pthread_mutexattr_t *>(0))) {
-        throw "column::ctor failed to initialize the mutex";
+	(&mutex, static_cast<const pthread_mutexattr_t *>(0))) {
+	throw "column::ctor failed to initialize the mutex";
     }
 
     bool badType = false;
@@ -309,10 +309,10 @@ ibis::column::column(const ibis::column& rhs) :
     m_sorted(rhs.m_sorted), lower(rhs.lower), upper(rhs.upper),
     dataflag(0), idx(rhs.idx!=0 ? rhs.idx->dup() : 0), idxcnt() {
     if (pthread_rwlock_init(&rwlock, 0)) {
-        throw "column::ctor failed to initialize the rwlock";
+	throw "column::ctor failed to initialize the rwlock";
     }
     if (pthread_mutex_init(&mutex, 0)) {
-        throw "column::ctor failed to initialize the mutex";
+	throw "column::ctor failed to initialize the mutex";
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
         ibis::util::logger lg;
@@ -7074,10 +7074,10 @@ long ibis::column::append(const char* dt, const char* df,
     evt += "]::append";
     int elem = elementSize();
     if (elem <= 0) {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- " << evt << " can not continue because "
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- " << evt << " can not continue because "
             "elementSize() is not a positive number";
-        return -1;
+	return -1;
     }
     else if (static_cast<uint64_t>((nold+nnew))*elem >= 0x80000000LU) {
         LOGGER(ibis::gVerbose >= 0)
@@ -7105,7 +7105,7 @@ long ibis::column::append(const char* dt, const char* df,
     int dest = UnixOpen(to.c_str(), OPEN_WRITEADD, OPEN_FILEMODE);
     if (dest < 0) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt <<  " unable to open file \"" << to
+	    << "Warning -- " << evt <<  " failed to open file \"" << to
 	    << "\" for append ... "
 	    << (errno ? strerror(errno) : "no free stdio stream");
 	return -3;
@@ -7171,10 +7171,10 @@ long ibis::column::append(const char* dt, const char* df,
             << "\" to \"" << to << "\"";
     }
     else if (ibis::gVerbose > 0) { // can not open source file, write 0
-        logWarning("append", "failed to open file \"%s\" for reading ... "
-                   "%s\nwill write zeros in its place",
-                   from.c_str(),
-                   (errno ? strerror(errno) : "no free stdio stream"));
+	logWarning("append", "failed to open file \"%s\" for reading ... "
+		   "%s\nwill write zeros in its place",
+		   from.c_str(),
+		   (errno ? strerror(errno) : "no free stdio stream"));
     }
     j = UnixSeek(dest, 0, SEEK_CUR);
     sz = elem * (nold + nnew);
@@ -8967,105 +8967,105 @@ double ibis::column::computeMin() const {
 
     switch (m_type) {
     case ibis::UBYTE: {
-        array_t<unsigned char> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<unsigned char> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::BYTE: {
-        array_t<signed char> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<signed char> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::USHORT: {
-        array_t<uint16_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<uint16_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::SHORT: {
-        array_t<int16_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<int16_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::UINT: {
-        array_t<uint32_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<uint32_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::INT: {
-        array_t<int32_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<int32_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::ULONG: {
-        array_t<uint64_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<uint64_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<int64_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::FLOAT: {
-        array_t<float> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<float> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMin", "failed to retrieve file %s", name);
-        }
-        else {
-            ret = computeMin(val, mask);
-        }
-        break;}
+	array_t<double> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMin", "failed to retrieve file %s", name);
+	}
+	else {
+	    ret = computeMin(val, mask);
+	}
+	break;}
     default:
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << (thePart?thePart->name():"?")
@@ -9092,105 +9092,105 @@ double ibis::column::computeMax() const {
 
     switch (m_type) {
     case ibis::UBYTE: {
-        array_t<unsigned char> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<unsigned char> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::BYTE: {
-        array_t<signed char> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<signed char> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::USHORT: {
-        array_t<uint16_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<uint16_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::SHORT: {
-        array_t<int16_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<int16_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::UINT: {
-        array_t<uint32_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<uint32_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::INT: {
-        array_t<int32_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<int32_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::ULONG: {
-        array_t<uint64_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<uint64_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<int64_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::FLOAT: {
-        array_t<float> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<float> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeMax", "failed to retrieve file %s", name);
-        }
-        else {
-            res = computeMax(val, mask);
-        }
-        break;}
+	array_t<double> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeMax", "failed to retrieve file %s", name);
+	}
+	else {
+	    res = computeMax(val, mask);
+	}
+	break;}
     default:
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << (thePart?thePart->name():"?")
@@ -9215,115 +9215,115 @@ double ibis::column::computeSum() const {
 
     switch (m_type) {
     case ibis::UBYTE: {
-        array_t<unsigned char> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<unsigned char> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::BYTE: {
-        array_t<signed char> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<signed char> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::USHORT: {
-        array_t<uint16_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<uint16_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::SHORT: {
-        array_t<int16_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<int16_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::UINT: {
-        array_t<uint32_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<uint32_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::INT: {
-        array_t<int32_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<int32_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::ULONG: {
-        array_t<uint64_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<uint64_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::LONG: {
-        array_t<int64_t> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<int64_t> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::FLOAT: {
-        array_t<float> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<float> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     case ibis::DOUBLE: {
-        array_t<double> val;
-        int ierr = ibis::fileManager::instance().getFile(name, val);
-        if (ierr != 0) {
-            logWarning("computeSum", "failed to retrieve file %s", name);
-            ibis::util::setNaN(ret);
-        }
-        else {
-            ret = computeSum(val, mask);
-        }
-        break;}
+	array_t<double> val;
+	int ierr = ibis::fileManager::instance().getFile(name, val);
+	if (ierr != 0) {
+	    logWarning("computeSum", "failed to retrieve file %s", name);
+	    ibis::util::setNaN(ret);
+	}
+	else {
+	    ret = computeSum(val, mask);
+	}
+	break;}
     default:
 	LOGGER(ibis::gVerbose > 1)
 	    << "Warning -- column[" << (thePart?thePart->name():"?")

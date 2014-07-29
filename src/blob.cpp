@@ -73,11 +73,11 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     // rely on .sp file for existing data size
     int sdest = UnixOpen(spdest.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
     if (sdest < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " failed to open file \"" << spdest
-            << "\" for append ... "
-            << (errno ? strerror(errno) : "no free stdio stream");
-        return -2;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open file \"" << spdest
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -2;
     }
     ibis::util::guard gsdest = ibis::util::makeGuard(UnixClose, sdest);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -189,16 +189,16 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
         buf = dbuff.address();
     }
     if (nbuf <= (unsigned)spelem) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " can not continue because of "
-            "insufficient amount of available buffer space";
-        return -1;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not continue because of "
+	    "insufficient amount of available buffer space";
+	return -1;
     }
     if ((unsigned long)nold+nnew >= (unsigned long)(INT_MAX / spelem)) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " can not continue because the "
-            "resulting .sp will be too large";
-        return -1;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not continue because the "
+	    "resulting .sp will be too large";
+	return -1;
     }
 
     const uint32_t nspbuf = nbuf / spelem;
@@ -259,11 +259,11 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     // open destination data file
     int ddest = UnixOpen(datadest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (ddest < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " failed to open file \"" << datadest
-            << "\" for append ... "
-            << (errno ? strerror(errno) : "no free stdio stream");
-        return -13;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open file \"" << datadest
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -13;
     }
     // this statement guarantees UnixClose will be called on ddest upon
     // termination of this function
@@ -428,11 +428,11 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     // rely on .sp file for existing data size
     int sdest = UnixOpen(spdest.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
     if (sdest < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " failed to open file \"" << spdest
-            << "\" for append ... "
-            << (errno ? strerror(errno) : "no free stdio stream");
-        return -2;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open file \"" << spdest
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -2;
     }
     ibis::util::guard gsdest = ibis::util::makeGuard(UnixClose, sdest);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -558,11 +558,11 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     // open destination data file
     int ddest = UnixOpen(datadest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (ddest < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " failed to open file \"" << datadest
-            << "\" for append ... "
-            << (errno ? strerror(errno) : "no free stdio stream");
-        return -13;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " failed to open file \"" << datadest
+	    << "\" for append ... "
+	    << (errno ? strerror(errno) : "no free stdio stream");
+	return -13;
     }
     // this statement guarantees UnixClose will be called on ddest upon
     // termination of this function

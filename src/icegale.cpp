@@ -220,14 +220,13 @@ int ibis::egale::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-        ibis::fileManager::instance().flushFile(fnm.c_str());
-        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-        if (fdes < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << evt << " failed to open \"" << fnm
-                << "\" for write";
-            return -2;
-        }
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    col->logWarning("egale::write", "failed to open \"%s\" for write",
+			    fnm.c_str());
+	    return -2;
+	}
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -809,220 +808,220 @@ void ibis::egale::construct(const char* f) {
     switch (col->type()) {
     case ibis::TEXT:
     case ibis::UINT: {// unsigned int
-        array_t<uint32_t> val;
-        if (! fnm.empty())
-            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-        else
-            ierr = col->getValuesArray(&val);
-        if  (ierr < 0)
-            throw "cegale::construct failed to retrieve data values";
+	array_t<uint32_t> val;
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if  (ierr < 0)
+	    throw "cegale::construct failed to retrieve data values";
 
-        if (val.size() > 0) {
-            if (val.size() > mask.size()) {
-                col->logWarning("egale::construct", "the data file \"%s\" "
-                                "contains more elements (%lu) then expected "
-                                "(%lu)", fnm.c_str(),
-                                static_cast<long unsigned>(val.size()),
-                                static_cast<long unsigned>(mask.size()));
-                mask.adjustSize(nrows, nrows);
-            }
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i)
-                        setBit(i, val[i]);
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        setBit(k, val[k]);
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows)
-                            setBit(k, val[k]);
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows)
-                    nind = 0;
-            } // while (nind)
-        }
-        else {
-            col->logWarning("egale::construct", "failed to read %s",
-                            fnm.c_str());
-        }
-        break;}
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("egale::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("egale::construct", "failed to read %s",
+			    fnm.c_str());
+	}
+	break;}
     case ibis::INT: {// signed int
-        array_t<int32_t> val;
-        if (! fnm.empty())
-            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-        else
-            ierr = col->getValuesArray(&val);
-        if  (ierr < 0)
-            throw "cegale::construct failed to retrieve data values";
+	array_t<int32_t> val;
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if  (ierr < 0)
+	    throw "cegale::construct failed to retrieve data values";
 
-        if (val.size() > 0) {
-            if (val.size() > mask.size()) {
-                col->logWarning("egale::construct", "the data file \"%s\" "
-                                "contains more elements (%lu) then expected "
-                                "(%lu)", fnm.c_str(),
-                                static_cast<long unsigned>(val.size()),
-                                static_cast<long unsigned>(mask.size()));
-                mask.adjustSize(nrows, nrows);
-            }
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i)
-                        setBit(i, val[i]);
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        setBit(k, val[k]);
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows)
-                            setBit(k, val[k]);
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows)
-                    nind = 0;
-            } // while (nind)
-        }
-        else {
-            col->logWarning("egale::construct", "failed to read %s",
-                            fnm.c_str());
-        }
-        break;}
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("egale::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("egale::construct", "failed to read %s",
+			    fnm.c_str());
+	}
+	break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
-        array_t<float> val;
-        if (! fnm.empty())
-            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-        else
-            ierr = col->getValuesArray(&val);
-        if  (ierr < 0)
-            throw "cegale::construct failed to retrieve data values";
+	array_t<float> val;
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if  (ierr < 0)
+	    throw "cegale::construct failed to retrieve data values";
 
-        if (val.size() > 0) {
-            if (val.size() > mask.size()) {
-                col->logWarning("egale::construct", "the data file \"%s\" "
-                                "contains more elements (%lu) then expected "
-                                "(%lu)", fnm.c_str(),
-                                static_cast<long unsigned>(val.size()),
-                                static_cast<long unsigned>(mask.size()));
-                mask.adjustSize(nrows, nrows);
-            }
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i)
-                        setBit(i, val[i]);
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        setBit(k, val[k]);
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows)
-                            setBit(k, val[k]);
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows)
-                    nind = 0;
-            } // while (nind)
-        }
-        else {
-            col->logWarning("egale::construct", "failed to read %s",
-                            fnm.c_str());
-        }
-        break;}
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("egale::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("egale::construct", "failed to read %s",
+			    fnm.c_str());
+	}
+	break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
-        array_t<double> val;
-        if (! fnm.empty())
-            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-        else
-            ierr = col->getValuesArray(&val);
-        if  (ierr < 0)
-            throw "cegale::construct failed to retrieve data values";
+	array_t<double> val;
+	if (! fnm.empty())
+	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+	else
+	    ierr = col->getValuesArray(&val);
+	if  (ierr < 0)
+	    throw "cegale::construct failed to retrieve data values";
 
-        if (val.size() > 0) {
-            if (val.size() > mask.size()) {
-                col->logWarning("egale::construct", "the data file \"%s\" "
-                                "contains more elements (%lu) then expected "
-                                "(%lu)", fnm.c_str(),
-                                static_cast<long unsigned>(val.size()),
-                                static_cast<long unsigned>(mask.size()));
-                mask.adjustSize(nrows, nrows);
-            }
-            ibis::bitvector::indexSet iset = mask.firstIndexSet();
-            uint32_t nind = iset.nIndices();
-            const ibis::bitvector::word_t *iix = iset.indices();
-            while (nind) {
-                if (iset.isRange()) { // a range
-                    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
-                    for (uint32_t i = *iix; i < k; ++i)
-                        setBit(i, val[i]);
-                }
-                else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
-                    // a list of indices
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        setBit(k, val[k]);
-                    }
-                }
-                else {
-                    for (uint32_t i = 0; i < nind; ++i) {
-                        uint32_t k = iix[i];
-                        if (k < nrows)
-                            setBit(k, val[k]);
-                    }
-                }
-                ++iset;
-                nind = iset.nIndices();
-                if (*iix >= nrows)
-                    nind = 0;
-            } // while (nind)
-        }
-        else {
-            col->logWarning("egale::construct", "failed to read %s",
-                            fnm.c_str());
-        }
-        break;}
+	if (val.size() > 0) {
+	    if (val.size() > mask.size()) {
+		col->logWarning("egale::construct", "the data file \"%s\" "
+				"contains more elements (%lu) then expected "
+				"(%lu)", fnm.c_str(),
+				static_cast<long unsigned>(val.size()),
+				static_cast<long unsigned>(mask.size()));
+		mask.adjustSize(nrows, nrows);
+	    }
+	    ibis::bitvector::indexSet iset = mask.firstIndexSet();
+	    uint32_t nind = iset.nIndices();
+	    const ibis::bitvector::word_t *iix = iset.indices();
+	    while (nind) {
+		if (iset.isRange()) { // a range
+		    uint32_t k = (iix[1] < nrows ? iix[1] : nrows);
+		    for (uint32_t i = *iix; i < k; ++i)
+			setBit(i, val[i]);
+		}
+		else if (*iix+ibis::bitvector::bitsPerLiteral() < nrows) {
+		    // a list of indices
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			setBit(k, val[k]);
+		    }
+		}
+		else {
+		    for (uint32_t i = 0; i < nind; ++i) {
+			uint32_t k = iix[i];
+			if (k < nrows)
+			    setBit(k, val[k]);
+		    }
+		}
+		++iset;
+		nind = iset.nIndices();
+		if (*iix >= nrows)
+		    nind = 0;
+	    } // while (nind)
+	}
+	else {
+	    col->logWarning("egale::construct", "failed to read %s",
+			    fnm.c_str());
+	}
+	break;}
     case ibis::CATEGORY: // no need for a separate index
         col->logWarning("egale::ctor", "no need for another index");
         return;
     default:
-        col->logWarning("egale::ctor", "failed to create bit egale index for "
-                        "this type of column");
-        return;
+	col->logWarning("egale::ctor", "failed to create bit egale index for "
+			"this type of column");
+	return;
     }
 
     // make sure all bit vectors are the same size

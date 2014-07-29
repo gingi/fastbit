@@ -430,9 +430,9 @@ int ibis::slice::construct(const char* f) {
         ierr = constructT<double>(f);
         break;}
     default:
-        col->logWarning("slice::ctor", "failed to create bit slice index "
-                        "for this type of column");
-        break;
+	col->logWarning("slice::ctor", "failed to create bit slice index "
+			"for this type of column");
+	break;
     }
 
     if (ierr < 0) return ierr;

@@ -790,11 +790,11 @@ void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
         binningT<signed char>(f);
         break;
     default:
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- failed to bin column " << col->name()
-            << " (type " << (int)(col->type()) << ", "
-            << ibis::TYPESTRING[(int)(col->type())] << ')';
-        throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- failed to bin column " << col->name()
+	    << " (type " << (int)(col->type()) << ", "
+	    << ibis::TYPESTRING[(int)(col->type())] << ')';
+	throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
     }
 } // ibis::bin::binning (specified bin boundaries)
 
@@ -844,11 +844,11 @@ void ibis::bin::binning(const char* f, const array_t<double>& bd) {
         binningT<signed char>(f);
         break;
     default:
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- failed to bin column " << col->name()
-            << " (type " << (int)(col->type()) << ", "
-            << ibis::TYPESTRING[(int)(col->type())] << ')';
-        throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- failed to bin column " << col->name()
+	    << " (type " << (int)(col->type()) << ", "
+	    << ibis::TYPESTRING[(int)(col->type())] << ')';
+	throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
     }
 } // ibis::bin::binning (specified bin boundaries)
 
@@ -900,7 +900,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -967,7 +967,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1034,7 +1034,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1114,7 +1114,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1188,7 +1188,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1262,7 +1262,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1336,7 +1336,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1410,7 +1410,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1484,7 +1484,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1558,7 +1558,7 @@ void ibis::bin::binning(const char* f) {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bin::binning", "unable to read %s",
+	    col->logWarning("bin::binning", "failed to read %s",
 			    fnm.c_str());
 	    throw ibis::bad_alloc("fail to read data file");
 	}
@@ -1631,9 +1631,9 @@ void ibis::bin::binning(const char* f) {
         clear();
         return;
     default:
-        col->logWarning("bin::binning", "failed to create bins for "
-                        "this type of column");
-        return;
+	col->logWarning("bin::binning", "failed to create bins for "
+			"this type of column");
+	return;
     }
 
     // make sure all bit vectors are the same size
@@ -1971,10 +1971,10 @@ long ibis::bin::binOrder(const char* basename) const {
         ierr = binOrderT<signed char>(basename);
         break;
     default:
-        ibis::util::logMessage("Warning",
-                               "failed to reorder column %s type %d",
-                               col->name(), (int)(col->type()));
-        ierr = -3;
+	ibis::util::logMessage("Warning",
+			       "failed to reorder column %s type %d",
+			       col->name(), (int)(col->type()));
+	ierr = -3;
     }
     return ierr;
 } // ibis::bin::binOrder
@@ -1999,7 +1999,7 @@ long ibis::bin::binOrderT(const char* basename) const {
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
         LOGGER(ibis::gVerbose > -1)
-	    << "bin::binOrder is unable to open file \"" << fnm
+	    << "bin::binOrder is failed to open file \"" << fnm
             << "\" for writing";
 	ierr = -2;
 	return ierr;
@@ -2268,11 +2268,11 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
         ierr = checkBin0<signed char>(cmp, jbin, res);
         break;
     default:
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- failed to bin column " << col->name()
-            << " (type " << (int)(col->type()) << ", "
-            << ibis::TYPESTRING[(int)(col->type())] << ')';
-        ierr = -4;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- failed to bin column " << col->name()
+	    << " (type " << (int)(col->type()) << ", "
+	    << ibis::TYPESTRING[(int)(col->type())] << ')';
+	ierr = -4;
     }
     if (ibis::gVerbose > 4) {
         timer.stop();
@@ -2350,11 +2350,11 @@ long ibis::bin::checkBin(const ibis::qRange& cmp, uint32_t jbin,
         ierr = checkBin1<signed char>(cmp, jbin, mask, res);
         break;
     default:
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- failed to bin column " << col->name()
-            << " (type " << (int)(col->type()) << ", "
-            << ibis::TYPESTRING[(int)(col->type())] << ')';
-        ierr = -4;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- failed to bin column " << col->name()
+	    << " (type " << (int)(col->type()) << ", "
+	    << ibis::TYPESTRING[(int)(col->type())] << ')';
+	ierr = -4;
     }
     if (ibis::gVerbose > 4) {
         timer.stop();
@@ -2645,264 +2645,264 @@ void ibis::bin::construct(const char* df) {
         // there is now one more bins than before
         ++ nobs;
 #else
-        switch (col->type()) {
-        case ibis::DOUBLE: {
-            array_t<double> vals;
-            int ierr;
-            if (! fname.empty())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> vals;
-            int ierr;
-            if (! fname.empty())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> vals;
-            int ierr;
-            if (! fname.empty())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> vals;
-            int ierr;
-            if (! fname.empty())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::UINT: {
-            array_t<uint32_t> vals;
-            int ierr;
-            if (! fname.empty())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::INT: {
-            array_t<int32_t> vals;
-            int ierr;
-            if (! fname.c_str())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::USHORT: {
-            array_t<uint16_t> vals;
-            int ierr;
-            if (! fname.c_str())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::SHORT: {
-            array_t<int16_t> vals;
-            int ierr;
-            if (! fname.empty())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::UBYTE: {
-            array_t<unsigned char> vals;
-            int ierr;
-            if (! fname.c_str())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::BYTE: {
-            array_t<signed char> vals;
-            int ierr;
-            if (! fname.empty())
-                ierr = ibis::fileManager::instance().getFile
-                    (fname.c_str(), vals);
-            else
-                ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        default:
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- failed to bin column " << col->name()
-                << " (type " << (int)(col->type()) << ", "
-                << ibis::TYPESTRING[(int)(col->type())] << ')';
-            throw "Unexpected data type for ibis::bin";
-        }
+	switch (col->type()) {
+	case ibis::DOUBLE: {
+	    array_t<double> vals;
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> vals;
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> vals;
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> vals;
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t> vals;
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t> vals;
+	    int ierr;
+	    if (! fname.c_str())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t> vals;
+	    int ierr;
+	    if (! fname.c_str())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t> vals;
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::UBYTE: {
+	    array_t<unsigned char> vals;
+	    int ierr;
+	    if (! fname.c_str())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::BYTE: {
+	    array_t<signed char> vals;
+	    int ierr;
+	    if (! fname.empty())
+		ierr = ibis::fileManager::instance().getFile
+		    (fname.c_str(), vals);
+	    else
+		ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- failed to bin column " << col->name()
+		<< " (type " << (int)(col->type()) << ", "
+		<< ibis::TYPESTRING[(int)(col->type())] << ')';
+	    throw "Unexpected data type for ibis::bin";
+	}
 #endif
         if (reorder && ! fname.empty())
             binOrder(df);
     }
     else if (! fname.empty()) {
-        // read the data file to determine the bin boundaries
-        setBoundaries(df);
-        if (reorder) {
-            switch (col->type()) { // binning with reordering
-            case ibis::DOUBLE:
-                binningT<double>(df);
-                break;
-            case ibis::FLOAT:
-                binningT<float>(df);
-                break;
-            case ibis::ULONG:
-                binningT<uint64_t>(df);
-                break;
-            case ibis::LONG:
-                binningT<int64_t>(df);
-                break;
-            case ibis::UINT:
-                binningT<uint32_t>(df);
-                break;
-            case ibis::INT:
-                binningT<int32_t>(df);
-                break;
-            case ibis::USHORT:
-                binningT<uint16_t>(df);
-                break;
-            case ibis::SHORT:
-                binningT<int16_t>(df);
-                break;
-            case ibis::UBYTE:
-                binningT<unsigned char>(df);
-                break;
-            case ibis::BYTE:
-                binningT<signed char>(df);
-                break;
-            default:
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- failed to bin column " << col->name()
-                    << " (type " << (int)(col->type()) << ", "
-                    << ibis::TYPESTRING[(int)(col->type())] << ')';
-                throw "Unexpected data type for ibis::bin";
-            }
-        }
-        else {
-            binning(df);
-        }
+	// read the data file to determine the bin boundaries
+	setBoundaries(df);
+	if (reorder) {
+	    switch (col->type()) { // binning with reordering
+	    case ibis::DOUBLE:
+		binningT<double>(df);
+		break;
+	    case ibis::FLOAT:
+		binningT<float>(df);
+		break;
+	    case ibis::ULONG:
+		binningT<uint64_t>(df);
+		break;
+	    case ibis::LONG:
+		binningT<int64_t>(df);
+		break;
+	    case ibis::UINT:
+		binningT<uint32_t>(df);
+		break;
+	    case ibis::INT:
+		binningT<int32_t>(df);
+		break;
+	    case ibis::USHORT:
+		binningT<uint16_t>(df);
+		break;
+	    case ibis::SHORT:
+		binningT<int16_t>(df);
+		break;
+	    case ibis::UBYTE:
+		binningT<unsigned char>(df);
+		break;
+	    case ibis::BYTE:
+		binningT<signed char>(df);
+		break;
+	    default:
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- failed to bin column " << col->name()
+		    << " (type " << (int)(col->type()) << ", "
+		    << ibis::TYPESTRING[(int)(col->type())] << ')';
+		throw "Unexpected data type for ibis::bin";
+	    }
+	}
+	else {
+	    binning(df);
+	}
     }
     else {
-        switch (col->type()) {
-        case ibis::DOUBLE: {
-            array_t<double> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::FLOAT: {
-            array_t<float> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::ULONG: {
-            array_t<uint64_t> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::LONG: {
-            array_t<int64_t> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::UINT: {
-            array_t<uint32_t> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::INT: {
-            array_t<int32_t> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::USHORT: {
-            array_t<uint16_t> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::SHORT: {
-            array_t<int16_t> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::UBYTE: {
-            array_t<unsigned char> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        case ibis::BYTE: {
-            array_t<signed char> vals;
-            int ierr = col->getValuesArray(&vals);
-            if (ierr < 0)
-                throw "bin::construct failed to read raw data";
-            construct(vals);
-            break;}
-        default:
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- failed to bin column " << col->name()
-                << " (type " << (int)(col->type()) << ", "
-                << ibis::TYPESTRING[(int)(col->type())] << ')';
-            throw "Unexpected data type for ibis::bin";
-        }
+	switch (col->type()) {
+	case ibis::DOUBLE: {
+	    array_t<double> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::FLOAT: {
+	    array_t<float> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::ULONG: {
+	    array_t<uint64_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::LONG: {
+	    array_t<int64_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::UINT: {
+	    array_t<uint32_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::INT: {
+	    array_t<int32_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::USHORT: {
+	    array_t<uint16_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::SHORT: {
+	    array_t<int16_t> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::UBYTE: {
+	    array_t<unsigned char> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	case ibis::BYTE: {
+	    array_t<signed char> vals;
+	    int ierr = col->getValuesArray(&vals);
+	    if (ierr < 0)
+		throw "bin::construct failed to read raw data";
+	    construct(vals);
+	    break;}
+	default:
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- failed to bin column " << col->name()
+		<< " (type " << (int)(col->type()) << ", "
+		<< ibis::TYPESTRING[(int)(col->type())] << ')';
+	    throw "Unexpected data type for ibis::bin";
+	}
     }
 
     optionalUnpack(bits, col->indexSpec());
@@ -9965,14 +9965,14 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
         return;
     }
     else if (bar.size() > 1 || stricmp(bar.name(0), col->name()) != 0) {
-        std::ostringstream ostr;
-        ostr << *expr;
-        col->logWarning("bin::compJoin", "failed to deal with complex range "
-                        "expression %s", ostr.str().c_str());
-        uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
-        sure.set(0, npairs);
-        iffy.set(1, npairs);
-        return;
+	std::ostringstream ostr;
+	ostr << *expr;
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
+			"expression %s", ostr.str().c_str());
+	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
+	sure.set(0, npairs);
+	iffy.set(1, npairs);
+	return;
     }
     if (ibis::gVerbose > 3) {
         std::ostringstream ostr;
@@ -10289,14 +10289,14 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
         return;
     }
     else if (bar.size() != 1 && stricmp(bar.name(0), col->name()) != 0) {
-        std::ostringstream ostr;
-        ostr << *expr;
-        col->logWarning("bin::compJoin", "failed to deal with complex range "
-                        "expression %s", ostr.str().c_str());
-        uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
-        sure.set(0, npairs);
-        iffy.set(1, npairs);
-        return;
+	std::ostringstream ostr;
+	ostr << *expr;
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
+			"expression %s", ostr.str().c_str());
+	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
+	sure.set(0, npairs);
+	iffy.set(1, npairs);
+	return;
     }
     if (ibis::gVerbose > 3) {
         std::ostringstream ostr;
@@ -10685,14 +10685,14 @@ void ibis::bin::compJoin(const ibis::math::term *expr,
         return;
     }
     else if (bar.size() != 1 && stricmp(bar.name(0), col->name()) != 0) {
-        std::ostringstream ostr;
-        ostr << *expr;
-        col->logWarning("bin::compJoin", "failed to deal with complex range "
-                        "expression %s", ostr.str().c_str());
-        uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
-        sure.set(0, npairs);
-        iffy.set(1, npairs);
-        return;
+	std::ostringstream ostr;
+	ostr << *expr;
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
+			"expression %s", ostr.str().c_str());
+	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
+	sure.set(0, npairs);
+	iffy.set(1, npairs);
+	return;
     }
     if (ibis::gVerbose > 3) {
         std::ostringstream ostr;
@@ -11014,11 +11014,11 @@ int64_t ibis::bin::compJoin(const ibis::math::term *expr,
             return equiJoin(mask, range1, range2);
     }
     else if (bar.size() != 1 && stricmp(bar.name(0), col->name()) != 0) {
-        std::ostringstream ostr;
-        ostr << *expr;
-        col->logWarning("bin::compJoin", "failed to deal with complex range "
-                        "expression %s", ostr.str().c_str());
-        return -1;
+	std::ostringstream ostr;
+	ostr << *expr;
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
+			"expression %s", ostr.str().c_str());
+	return -1;
     }
     if (ibis::gVerbose > 3) {
         std::ostringstream ostr;
@@ -11338,14 +11338,14 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
         return;
     }
     else if (bar.size() > 1 || stricmp(bar.name(0), col->name()) != 0) {
-        std::ostringstream ostr;
-        ostr << *expr;
-        col->logWarning("bin::compJoin", "failed to deal with complex range "
-                        "expression %s", ostr.str().c_str());
-        uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
-        sure.set(0, npairs);
-        iffy.set(1, npairs);
-        return;
+	std::ostringstream ostr;
+	ostr << *expr;
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
+			"expression %s", ostr.str().c_str());
+	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
+	sure.set(0, npairs);
+	iffy.set(1, npairs);
+	return;
     }
     if (ibis::gVerbose > 3) {
         std::ostringstream ostr;
@@ -11748,14 +11748,14 @@ void ibis::bin::compJoin(const ibis::bin& idx2,
         return;
     }
     else if (bar.size() > 1 || stricmp(bar.name(0), col->name()) != 0) {
-        std::ostringstream ostr;
-        ostr << *expr;
-        col->logWarning("bin::compJoin", "failed to deal with complex range "
-                        "expression %s", ostr.str().c_str());
-        uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
-        sure.set(0, npairs);
-        iffy.set(1, npairs);
-        return;
+	std::ostringstream ostr;
+	ostr << *expr;
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
+			"expression %s", ostr.str().c_str());
+	uint64_t npairs = static_cast<uint64_t>(nrows) * nrows;
+	sure.set(0, npairs);
+	iffy.set(1, npairs);
+	return;
     }
     if (ibis::gVerbose > 3) {
         std::ostringstream ostr;
@@ -12105,11 +12105,11 @@ int64_t ibis::bin::compJoin(const ibis::bin& idx2,
             return equiJoin(idx2, mask, range1, range2);
     }
     else if (bar.size() > 1 || stricmp(bar.name(0), col->name()) != 0) {
-        std::ostringstream ostr;
-        ostr << *expr;
-        col->logWarning("bin::compJoin", "failed to deal with complex range "
-                        "expression %s", ostr.str().c_str());
-        return -1;
+	std::ostringstream ostr;
+	ostr << *expr;
+	col->logWarning("bin::compJoin", "failed to deal with complex range "
+			"expression %s", ostr.str().c_str());
+	return -1;
     }
     if (ibis::gVerbose > 3) {
         std::ostringstream ostr;

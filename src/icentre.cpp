@@ -158,10 +158,9 @@ int ibis::entre::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " failed to open \"" << fnm
-            << "\" for write";
-        return -2;
+	col->logWarning("entre::write", "failed to open \"%s\" for write",
+			fnm.c_str());
+	return -2;
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)

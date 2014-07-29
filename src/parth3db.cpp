@@ -378,10 +378,10 @@ long ibis::part::fill3DBins3(const ibis::bitvector &mask,
         delete val3;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::fill3DBins3 -- can not "
-            "handle column (" << col3.name() << ") type "
-            << ibis::TYPESTRING[(int)col3.type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::fill3DBins3 -- can not "
+	    "handle column (" << col3.name() << ") type "
+	    << ibis::TYPESTRING[(int)col3.type()];
 
         ierr = -7;
         break;}
@@ -615,10 +615,10 @@ long ibis::part::fill3DBins2(const ibis::bitvector &mask,
         delete val2;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::fill3DBins2 -- can not "
-            "handle column (" << col2.name() << ") type "
-            << ibis::TYPESTRING[(int)col2.type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::fill3DBins2 -- can not "
+	    "handle column (" << col2.name() << ") type "
+	    << ibis::TYPESTRING[(int)col2.type()];
 
         ierr = -5;
         break;}
@@ -910,10 +910,10 @@ long ibis::part::get3DBins(const char *constraints, const char *cname1,
         delete val1;
         break;}
     default: {
-        LOGGER(ibis::gVerbose > 3)
-            << "part::get3DBins -- can not "
-            "handle column (" << cname1 << ") type "
-            << ibis::TYPESTRING[(int)col1->type()];
+	LOGGER(ibis::gVerbose > 3)
+	    << "part::get3DBins -- can not "
+	    "handle column (" << cname1 << ") type "
+	    << ibis::TYPESTRING[(int)col1->type()];
 
         ierr = -3;
         break;}

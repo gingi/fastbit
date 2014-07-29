@@ -917,10 +917,10 @@ void ibis::roster::icSort(const char* fin) {
             << "Warning -- roster can not generate additional index";
         break;}
     default: {
-        ibis::util::logger lg;
-        lg() << "roster -- failed to create a roster list for ";
-        col->print(lg());
-        break;}
+	ibis::util::logger lg;
+	lg() << "roster -- failed to create a roster list for ";
+	col->print(lg());
+	break;}
     }
 
     if (indim.size() == col->partition()->nRows()) {

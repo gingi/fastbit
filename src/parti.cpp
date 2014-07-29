@@ -809,9 +809,9 @@ long ibis::part::append1(const char *dir) {
     fn += "-rids";
     rids = new array_t<ibis::rid_t>;
     if (0 != ibis::fileManager::instance().getFile(fn.c_str(),*rids)) {
-        if (nEvents > 0 && ibis::gVerbose > 4)
-            logMessage("append", "failed to read rid file \"%s\" ... %s",
-                       fn.c_str(), strerror(errno));
+	if (nEvents > 0 && ibis::gVerbose > 4)
+	    logMessage("append", "failed to read rid file \"%s\" ... %s",
+		       fn.c_str(), strerror(errno));
 
         std::string fillrids(m_name);
         fillrids += ".fillRIDs";
@@ -926,31 +926,31 @@ long ibis::part::append2(const char *dir) {
 	    backupDir = tstr;
 	}
 
-        // retrieve the new column list
-        readMetaData(nEvents, columns, activeDir);
-        if (ntot > 0 && ntot != nEvents) {
-            logWarning("append", "expected %lu rows, but the table.tdc "
-                       "file says %lu", static_cast<long unsigned>(ierr),
-                       static_cast<long unsigned>(nEvents));
-            return -2025;
-        }
-        // retrieve the new RID list
-        std::string fn(activeDir);
-        fn += FASTBIT_DIRSEP;
-        fn += "-rids";
-        rids = new array_t<ibis::rid_t>;
-        if (0 != ibis::fileManager::instance().
-            getFile(fn.c_str(),*rids)) {
-            if (nEvents > 0 && ibis::gVerbose > 4)
-                logMessage("append", "failed to read rid file \"%s\" ... %s",
-                           fn.c_str(), strerror(errno));
+	// retrieve the new column list
+	readMetaData(nEvents, columns, activeDir);
+	if (ntot > 0 && ntot != nEvents) {
+	    logWarning("append", "expected %lu rows, but the table.tdc "
+		       "file says %lu", static_cast<long unsigned>(ierr),
+		       static_cast<long unsigned>(nEvents));
+	    return -2025;
+	}
+	// retrieve the new RID list
+	std::string fn(activeDir);
+	fn += FASTBIT_DIRSEP;
+	fn += "-rids";
+	rids = new array_t<ibis::rid_t>;
+	if (0 != ibis::fileManager::instance().
+	    getFile(fn.c_str(),*rids)) {
+	    if (nEvents > 0 && ibis::gVerbose > 4)
+		logMessage("append", "failed to read rid file \"%s\" ... %s",
+			   fn.c_str(), strerror(errno));
 
-            std::string fillrids(m_name);
-            fillrids += ".fillRIDs";
-            if (nEvents > 0 &&
-                ibis::gParameters().isTrue(fillrids.c_str()))
-                fillRIDs(fn.c_str());
-        }
+	    std::string fillrids(m_name);
+	    fillrids += ".fillRIDs";
+	    if (nEvents > 0 &&
+		ibis::gParameters().isTrue(fillrids.c_str()))
+		fillRIDs(fn.c_str());
+	}
 
         switchTime = time(0);
         state = TRANSITION_STATE; // switched successfully

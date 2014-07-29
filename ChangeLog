@@ -1,3 +1,12 @@
+2014-07-28 John Wu <John dot Wu at ACM dot org>
+	* src/util.h, src/part.cpp: add function ibis::util::cleanDatasets
+	* src/query.cpp: in case of query evaluation failure, attempt to
+	clean all datasets (by calling ibis::util::cleanDatasets) before
+	try again
+	* src/capi.cpp: in fastbit_part_list::find, return a nil pointer
+	if the existing data partition is not readable.  This
+	re-examination was prompted by an error report from Mike Carter.
+
 2014-07-27 John Wu <John dot Wu at ACM dot org>
 	* src/part.h: add function clear to clear the existing content of
 	a data partition if it is not in use (based on softWriteLock)

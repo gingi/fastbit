@@ -276,12 +276,12 @@ ibis::part::part(const char* name, bool ro) :
     myCleaner(0), readonly(ro) {
     // initialize the locks
     if (0 != pthread_mutex_init
-        (&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-        throw "part failed to initialize the mutex lock";
+	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
+	throw "part failed to initialize the mutex lock";
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "part failed to initialize the rwlock";
+	throw "part failed to initialize the rwlock";
     }
 
     // for the special "in-core" data partition, there is no need to call
@@ -299,12 +299,12 @@ ibis::part::part(const std::vector<const char*> &mtags, bool ro) :
     myCleaner(0), readonly(ro) {
     // initialize the locks
     if (0 != pthread_mutex_init
-        (&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-        throw "part failed to initialize the mutex lock";
+	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
+	throw "part failed to initialize the mutex lock";
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "part failed to initialize the rwlock";
+	throw "part failed to initialize the rwlock";
     }
 
     std::string pref;
@@ -321,12 +321,12 @@ ibis::part::part(const ibis::resource::vList &mtags, bool ro) :
     myCleaner(0), readonly(ro) {
     // initialize the locks
     if (0 != pthread_mutex_init
-        (&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-        throw "part failed to initialize the mutex lock";
+	(&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
+	throw "part failed to initialize the mutex lock";
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "part failed to initialize the rwlock";
+	throw "part failed to initialize the rwlock";
     }
 
     std::string pref; // new name
@@ -356,11 +356,11 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
     (void) ibis::fileManager::instance(); // initialize the file manager
     // initialize the locks
     if (pthread_mutex_init(&mutex, 0)) {
-        throw "part::ctor failed to initialize the mutex lock";
+	throw "part::ctor failed to initialize the mutex lock";
     }
 
     if (pthread_rwlock_init(&rwlock, 0)) {
-        throw "part::ctor failed to initialize the rwlock";
+	throw "part::ctor failed to initialize the rwlock";
     }
 
     if (adir == 0) return;
@@ -2334,14 +2334,14 @@ uint32_t ibis::part::searchSortedRIDs(const ibis::rid_t &rid) const {
     array_t<uint32_t> ridx;
     int ierr = ibis::fileManager::instance().getFile(name, ridx);
     if (ierr != 0) {
-        sortRIDs(); // generate -rids.srt file from rids
-        ierr = ibis::fileManager::instance().getFile(name, ridx);
-        if (ierr != 0) {
-            logWarning("searchSortedRIDs",
-                       "failed to generate -rids.srt (%s)",
-                       name);
-            return ind;
-        }
+	sortRIDs(); // generate -rids.srt file from rids
+	ierr = ibis::fileManager::instance().getFile(name, ridx);
+	if (ierr != 0) {
+	    logWarning("searchSortedRIDs",
+		       "failed to generate -rids.srt (%s)",
+		       name);
+	    return ind;
+	}
     }
     if (ridx.size() < 3)
         return ind;
@@ -2418,15 +2418,15 @@ void ibis::part::searchSortedRIDs(const ibis::RIDSet &in,
     array_t<uint32_t> ridx;
     int ierr = ibis::fileManager::instance().getFile(name, ridx);
     if (ierr != 0) {
-        sortRIDs(); // generate -rids.srt file from rids
-        ierr = ibis::fileManager::instance().getFile(name, ridx);
-        if (ierr != 0) {
-            logWarning("searchSortedRIDs",
-                       "failed to generate -rids.srt (%s)",
-                       name);
-            searchRIDs(in, res);
-            return;
-        }
+	sortRIDs(); // generate -rids.srt file from rids
+	ierr = ibis::fileManager::instance().getFile(name, ridx);
+	if (ierr != 0) {
+	    logWarning("searchSortedRIDs",
+		       "failed to generate -rids.srt (%s)",
+		       name);
+	    searchRIDs(in, res);
+	    return;
+	}
     }
     if (ridx.size() != 3*nEvents) {
         // Even though we have read the -rids.srt file correctly, but the
@@ -6913,98 +6913,98 @@ long ibis::part::selfTest(int nth, const char* pref) const {
                                "to set system scope (ierr = %d)", ierr);
                 }
 #endif
-                for (int i = 0; i < nth; ++i) {
-                    ierr = pthread_create(&(tid[i]), &tattr,
-                                          ibis_part_threadedTestFun1,
-                                          (void*)&arg);
-                    if (0 != ierr) {
-                        logWarning("selfTest", "failed to start the thread # "
-                                   "%d to run ibis_part_threadedTestFun1 (%s)",
-                                   i, strerror(ierr));
-                    }
-                }
-            }
-            else {
-                logWarning("selfTest", "pthread_attr_init failed with %d, "
-                           "using default attributes", ierr);
-                for (int i = 0; i < nth; ++i) {
-                    ierr = pthread_create(&(tid[i]), 0,
-                                          ibis_part_threadedTestFun1,
-                                          (void*)&arg);
-                    if (0 != ierr) {
-                        logWarning("selfTest", "failed to start the thread # "
-                                   "%d to run ibis_part_threadedTestFun1 (%s)",
-                                   i, strerror(ierr));
-                    }
-                }
-            }
+		for (int i = 0; i < nth; ++i) {
+		    ierr = pthread_create(&(tid[i]), &tattr,
+					  ibis_part_threadedTestFun1,
+					  (void*)&arg);
+		    if (0 != ierr) {
+			logWarning("selfTest", "failed to start the thread # "
+				   "%d to run ibis_part_threadedTestFun1 (%s)",
+				   i, strerror(ierr));
+		    }
+		}
+	    }
+	    else {
+		logWarning("selfTest", "pthread_attr_init failed with %d, "
+			   "using default attributes", ierr);
+		for (int i = 0; i < nth; ++i) {
+		    ierr = pthread_create(&(tid[i]), 0,
+					  ibis_part_threadedTestFun1,
+					  (void*)&arg);
+		    if (0 != ierr) {
+			logWarning("selfTest", "failed to start the thread # "
+				   "%d to run ibis_part_threadedTestFun1 (%s)",
+				   i, strerror(ierr));
+		    }
+		}
+	    }
 
-            // handle part of work using this thread
-            if (nEvents < 1048576 || longtest)
-                queryTest(pref, &nerr);
-            else
-                quickTest(pref, &nerr);
+	    // handle part of work using this thread
+	    if (nEvents < 1048576 || longtest)
+		queryTest(pref, &nerr);
+	    else
+		quickTest(pref, &nerr);
 
-            for (int i = 0; i < nth; ++i) { // wait for the other threads
-                void* j;
-                pthread_join(tid[i], &j);
-                LOGGER(j != 0 && ibis::gVerbose > 0)
-                    << "Warning -- part[" << name() << "]::selfTest thread # "
-                    << i << " returned a nonzero code " << j;
-            }
+	    for (int i = 0; i < nth; ++i) { // wait for the other threads
+		void* j;
+		pthread_join(tid[i], &j);
+		LOGGER(j != 0 && ibis::gVerbose > 0)
+		    << "Warning -- part[" << name() << "]::selfTest thread # "
+		    << i << " returned a nonzero code " << j;
+	    }
 
-            if (nerr == 0 && columns.size() > 1) {
-                // spawn threads to invoke ibis_part_threadedTestFun2
-                const unsigned nc =
-                    (columns.size() > 2 ?
-                     columns.size() - (columns.size() >> 1) : columns.size());
-                unsigned nq = (63 & ibis::util::serialNumber()) +
-                    7 * ibis::gVerbose;
-                nq *= (nth + 1);
-                if (nEvents >= 104857600)
-                    nq >>= 1; // reduce number of queries for large partition
-                else if (nEvents <= 1048576)
-                    nq <<= 1; // increase number of queries for small partition
-                buildQueryList(arg, nc, nq);
-                for (int i = 0; i < nth; ++ i) {
-                    ierr = pthread_create(&(tid[i]), &tattr,
-                                          ibis_part_threadedTestFun2,
-                                          (void*)&arg);
-                    if (0 != ierr) {
-                        logWarning("selfTest", "failed to start the thread # "
-                                   "%d to run ibis_part_threadedTestFun2 (%s)",
-                                   i, strerror(ierr));
-                    }
-                }
+	    if (nerr == 0 && columns.size() > 1) {
+		// spawn threads to invoke ibis_part_threadedTestFun2
+		const unsigned nc =
+		    (columns.size() > 2 ?
+		     columns.size() - (columns.size() >> 1) : columns.size());
+		unsigned nq = (63 & ibis::util::serialNumber()) +
+		    7 * ibis::gVerbose;
+		nq *= (nth + 1);
+		if (nEvents >= 104857600)
+		    nq >>= 1; // reduce number of queries for large partition
+		else if (nEvents <= 1048576)
+		    nq <<= 1; // increase number of queries for small partition
+		buildQueryList(arg, nc, nq);
+		for (int i = 0; i < nth; ++ i) {
+		    ierr = pthread_create(&(tid[i]), &tattr,
+					  ibis_part_threadedTestFun2,
+					  (void*)&arg);
+		    if (0 != ierr) {
+			logWarning("selfTest", "failed to start the thread # "
+				   "%d to run ibis_part_threadedTestFun2 (%s)",
+				   i, strerror(ierr));
+		    }
+		}
 
-                void *j;
-                j = ibis_part_threadedTestFun2((void*)&arg);
-                if (j != 0) {
-                    ++ nerr;
-                    LOGGER(ibis::gVerbose > 0)
-                        << "Warning -- part[" << name()
-                        << "]::selfTest ibis_part_threadedTestFun2 returned "
-                        << j << " instead of 0";
-                }
-                for (int i = 0; i < nth; ++ i) {
-                    pthread_join(tid[i], &j);
-                    LOGGER(j != 0 && ibis::gVerbose > 0)
-                        << "Warning -- part[" << name()
-                        << "]::selfTest thread # " << i
-                        << " returned a nonzero code " << j;
-                }
-                checkQueryList(arg);
-            }
+		void *j;
+		j = ibis_part_threadedTestFun2((void*)&arg);
+		if (j != 0) {
+		    ++ nerr;
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- part[" << name()
+			<< "]::selfTest ibis_part_threadedTestFun2 returned "
+			<< j << " instead of 0";
+		}
+		for (int i = 0; i < nth; ++ i) {
+		    pthread_join(tid[i], &j);
+		    LOGGER(j != 0 && ibis::gVerbose > 0)
+			<< "Warning -- part[" << name()
+			<< "]::selfTest thread # " << i
+			<< " returned a nonzero code " << j;
+		}
+		checkQueryList(arg);
+	    }
 
-            if (myattr)
-                ierr = pthread_attr_destroy(&tattr);
-        }
-        else { // try some queries using this thread
-            if (nEvents < 1048576 || longtest)
-                queryTest(pref, &nerr);
-            else
-                quickTest(pref, &nerr);
-        }
+	    if (myattr)
+		ierr = pthread_attr_destroy(&tattr);
+	}
+	else { // try some queries using this thread
+	    if (nEvents < 1048576 || longtest)
+		queryTest(pref, &nerr);
+	    else
+		quickTest(pref, &nerr);
+	}
     }
     catch (const std::exception &e) {
         ibis::util::logMessage("Warning", "part::selfTest() received "
@@ -7573,16 +7573,12 @@ void ibis::part::testRangeOperators(const ibis::column* col,
 	col->computeMinMax(currentDataDir(), b1, b2, asc);
     }
     if (b2 <= b1) {
-        bool asc;
-        col->computeMinMax(currentDataDir(), b1, b2, asc);
-    }
-    if (b2 <= b1) {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- part[" << (m_name ? m_name : "?")
-            << "]::testRangeOperators(" << col->name()
-            << ") failed to determine the min/max values";
-        ++ (*nerrors);
-        return;
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- part[" << (m_name ? m_name : "?")
+	    << "]::testRangeOperators(" << col->name()
+	    << ") failed to determine the min/max values";
+	++ (*nerrors);
+	return;
     }
     b2 -= b1;
     for (uint32_t i1 = 0; i1 < 6; ++ i1) {
@@ -18708,28 +18704,28 @@ long ibis::part::verifyBackupDir() {
         }
     }
     catch (const std::exception &e) {
-        logWarning("part::verifyBackupDir",
-                   "failed to create backupDir \"%s\" -- %s",
-                   backupDir, e.what());
-        delete [] backupDir;
-        backupDir = 0;
-        return -12;
+	logWarning("part::verifyBackupDir",
+		   "failed to create backupDir \"%s\" -- %s",
+		   backupDir, e.what());
+	delete [] backupDir;
+	backupDir = 0;
+	return -12;
     }
     catch (const char* s) {
-        logWarning("part::verifyBackupDir",
-                   "failed to create backupDir \"%s\" -- %s",
-                   backupDir, s);
-        delete [] backupDir;
-        backupDir = 0;
-        return -13;
+	logWarning("part::verifyBackupDir",
+		   "failed to create backupDir \"%s\" -- %s",
+		   backupDir, s);
+	delete [] backupDir;
+	backupDir = 0;
+	return -13;
     }
     catch (...) {
-        logWarning("part::verifyBackupDir",
-                   "failed to create backupDir \"%s\" -- unknow error",
-                   backupDir);
-        delete [] backupDir;
-        backupDir = 0;
-        return -14;
+	logWarning("part::verifyBackupDir",
+		   "failed to create backupDir \"%s\" -- unknow error",
+		   backupDir);
+	delete [] backupDir;
+	backupDir = 0;
+	return -14;
     }
 
     Stat_T st;
@@ -18744,16 +18740,16 @@ long ibis::part::verifyBackupDir() {
         ierr = UnixStat(fn.c_str(), &st);
     }
     if (ierr == 0) {
-        // read the file to retrieve Alternative_Directory and
-        // Number_of_events
-        FILE* file = fopen(fn.c_str(), "r");
-        if (file == 0) {
-            logWarning("verifyBackupDir", "failed to open file \"%s\" ... %s",
-                       fn.c_str(), (errno ? strerror(errno)
-                                    : "no free stdio stream"));
-            if (nEvents == 0) ierr = 0;
-            return ierr;
-        }
+	// read the file to retrieve Alternative_Directory and
+	// Number_of_events
+	FILE* file = fopen(fn.c_str(), "r");
+	if (file == 0) {
+	    logWarning("verifyBackupDir", "failed to open file \"%s\" ... %s",
+		       fn.c_str(), (errno ? strerror(errno)
+				    : "no free stdio stream"));
+	    if (nEvents == 0) ierr = 0;
+	    return ierr;
+	}
 
 	char buf[MAX_LINE];
 	char *rs;
@@ -18917,10 +18913,10 @@ void ibis::part::makeBackupCopy() {
 #if defined(ENOTSUP)
         && ierr != ENOTSUP
 #endif
-        ) {
-        logMessage("makeBackupCopy", "pthread_attr_setscope failed to "
-                   "set system scope (ierr = %d ... %s)", ierr,
-                   strerror(ierr));
+	) {
+	logMessage("makeBackupCopy", "pthread_attr_setscope failed to "
+		   "set system scope (ierr = %d ... %s)", ierr,
+		   strerror(ierr));
     }
 #endif
 #if defined(PTHREAD_CREATE_DETACHED)
@@ -18940,9 +18936,9 @@ void ibis::part::makeBackupCopy() {
 #if defined(ENOTSUP)
         && ierr != ENOTSUP
 #endif
-        ) {
-        logError("makeBackupCopy", "pthread_attr_setdetachstate failed to"
-                 " set DETACHED state (ierr = %d)", ierr);
+	) {
+	logError("makeBackupCopy", "pthread_attr_setdetachstate failed to"
+		 " set DETACHED state (ierr = %d)", ierr);
     }
 #endif
 
@@ -20108,86 +20104,86 @@ long ibis::part::vault::read() {
         break;}
     case ibis::OID:
     default: {
-        ++ ierr;
-        _tbl->logWarning("vault::read", "failed to evaluate "
-                         "attribute of type %s (name: %s)",
-                         ibis::TYPESTRING[(int)cols[0]->type()],
-                         cols[0]->name());
-        break;}
+	++ ierr;
+	_tbl->logWarning("vault::read", "failed to evaluate "
+			 "attribute of type %s (name: %s)",
+			 ibis::TYPESTRING[(int)cols[0]->type()],
+			 cols[0]->name());
+	break;}
     }
 
     uint32_t pos = _roster[position]; // the actual position in files
     for (uint32_t i = 1; i < size(); ++ i) {
-        switch (cols[i]->type()) {
-        case ibis::CATEGORY:
-        case ibis::UINT:
-        case ibis::TEXT: { // unsigned integer
-            unsigned utmp;
-            if (stores[i]) {
-                utmp = *(reinterpret_cast<unsigned*>
-                         (stores[i]->begin() +
-                          sizeof(utmp) * pos));
-            }
-            else {
-                ierr = UnixSeek(fdes[i], sizeof(utmp)*pos, SEEK_SET);
-                ierr = (sizeof(utmp) !=
-                        UnixRead(fdes[i], &utmp, sizeof(utmp)));
-            }
-            value(i) = utmp;
-            break;}
-        case ibis::INT: { // signed integer
-            int itmp;
-            if (stores[i]) {
-                itmp = *(reinterpret_cast<int*>
-                         (stores[i]->begin() +
-                          sizeof(itmp) * pos));
-            }
-            else {
-                ierr = UnixSeek(fdes[i], sizeof(itmp)*pos, SEEK_SET);
-                ierr = (sizeof(itmp) !=
-                        UnixRead(fdes[i], &itmp, sizeof(itmp)));
-            }
-            value(i) = itmp;
-            break;}
-        case ibis::FLOAT: {
-            // 4-byte IEEE floating-point values
-            float ftmp;
-            if (stores[i]) {
-                ftmp = *(reinterpret_cast<float*>
-                         (stores[i]->begin() +
-                          sizeof(ftmp) * pos));
-            }
-            else {
-                ierr = UnixSeek(fdes[i], sizeof(ftmp)*pos, SEEK_SET);
-                ierr = (sizeof(ftmp) !=
-                        UnixRead(fdes[i], &ftmp, sizeof(ftmp)));
-            }
-            value(i) = ftmp;
-            break;}
-        case ibis::DOUBLE: {
-            // 8-byte IEEE floating-point values
-            double dtmp;
-            if (stores[i]) {
-                dtmp = *(reinterpret_cast<double*>
-                         (stores[i]->begin() +
-                          sizeof(dtmp) * pos));
-            }
-            else {
-                ierr = UnixSeek(fdes[i], sizeof(dtmp)*pos, SEEK_SET);
-                ierr = (sizeof(dtmp) !=
-                        UnixRead(fdes[i], &dtmp, sizeof(dtmp)));
-            }
-            value(i) = dtmp;
-            break;}
-        case ibis::OID:
-        default: {
-            ++ ierr;
-            _tbl->logWarning("vault::read", "failed to evaluate "
-                             "attribute of type %s (name: %s)",
-                             ibis::TYPESTRING[(int)cols[i]->type()],
-                             cols[i]->name());
-            break;}
-        }
+	switch (cols[i]->type()) {
+	case ibis::CATEGORY:
+	case ibis::UINT:
+	case ibis::TEXT: { // unsigned integer
+	    unsigned utmp;
+	    if (stores[i]) {
+		utmp = *(reinterpret_cast<unsigned*>
+			 (stores[i]->begin() +
+			  sizeof(utmp) * pos));
+	    }
+	    else {
+		ierr = UnixSeek(fdes[i], sizeof(utmp)*pos, SEEK_SET);
+		ierr = (sizeof(utmp) !=
+			UnixRead(fdes[i], &utmp, sizeof(utmp)));
+	    }
+	    value(i) = utmp;
+	    break;}
+	case ibis::INT: { // signed integer
+	    int itmp;
+	    if (stores[i]) {
+		itmp = *(reinterpret_cast<int*>
+			 (stores[i]->begin() +
+			  sizeof(itmp) * pos));
+	    }
+	    else {
+		ierr = UnixSeek(fdes[i], sizeof(itmp)*pos, SEEK_SET);
+		ierr = (sizeof(itmp) !=
+			UnixRead(fdes[i], &itmp, sizeof(itmp)));
+	    }
+	    value(i) = itmp;
+	    break;}
+	case ibis::FLOAT: {
+	    // 4-byte IEEE floating-point values
+	    float ftmp;
+	    if (stores[i]) {
+		ftmp = *(reinterpret_cast<float*>
+			 (stores[i]->begin() +
+			  sizeof(ftmp) * pos));
+	    }
+	    else {
+		ierr = UnixSeek(fdes[i], sizeof(ftmp)*pos, SEEK_SET);
+		ierr = (sizeof(ftmp) !=
+			UnixRead(fdes[i], &ftmp, sizeof(ftmp)));
+	    }
+	    value(i) = ftmp;
+	    break;}
+	case ibis::DOUBLE: {
+	    // 8-byte IEEE floating-point values
+	    double dtmp;
+	    if (stores[i]) {
+		dtmp = *(reinterpret_cast<double*>
+			 (stores[i]->begin() +
+			  sizeof(dtmp) * pos));
+	    }
+	    else {
+		ierr = UnixSeek(fdes[i], sizeof(dtmp)*pos, SEEK_SET);
+		ierr = (sizeof(dtmp) !=
+			UnixRead(fdes[i], &dtmp, sizeof(dtmp)));
+	    }
+	    value(i) = dtmp;
+	    break;}
+	case ibis::OID:
+	default: {
+	    ++ ierr;
+	    _tbl->logWarning("vault::read", "failed to evaluate "
+			     "attribute of type %s (name: %s)",
+			     ibis::TYPESTRING[(int)cols[i]->type()],
+			     cols[i]->name());
+	    break;}
+	}
     }
     ++ position;
     return ierr;
@@ -20215,69 +20211,69 @@ long ibis::part::vault::seek(double val) {
     long ierr = 0;
 
     if (stores[0] != 0) { // data in-memory
-        switch (cols[0]->type()) {
-        case ibis::CATEGORY:
-        case ibis::UINT:
-        case ibis::TEXT: { // unsigned integer
-            array_t<uint32_t> array(stores[0]);
-            unsigned tgt = (val <= 0.0 ? 0 :
-                            static_cast<uint32_t>(ceil(val)));
-            position = array.find(tgt);
-            break;}
-        case ibis::INT: { // signed integer
-            array_t<int32_t> array(stores[0]);
-            position = array.find(static_cast<int32_t>(ceil(val)));
-            break;}
-        case ibis::FLOAT: {
-            // 4-byte IEEE floating-point values
-            array_t<float> array(stores[0]);
-            position = array.find(static_cast<float>(val));
-            break;}
-        case ibis::DOUBLE: {
-            // 8-byte IEEE floating-point values
-            array_t<double> array(stores[0]);
-            position = array.find(val);
-            break;}
-        case ibis::OID:
-        default: {
-            ierr = -2;
-            _tbl->logWarning("vault::seek", "failed to evaluate "
-                             "attribute of type %s (name: %s)",
-                             ibis::TYPESTRING[(int)cols[0]->type()],
-                             cols[0]->name());
-            break;}
-        }       
+	switch (cols[0]->type()) {
+	case ibis::CATEGORY:
+	case ibis::UINT:
+	case ibis::TEXT: { // unsigned integer
+	    array_t<uint32_t> array(stores[0]);
+	    unsigned tgt = (val <= 0.0 ? 0 :
+			    static_cast<uint32_t>(ceil(val)));
+	    position = array.find(tgt);
+	    break;}
+	case ibis::INT: { // signed integer
+	    array_t<int32_t> array(stores[0]);
+	    position = array.find(static_cast<int32_t>(ceil(val)));
+	    break;}
+	case ibis::FLOAT: {
+	    // 4-byte IEEE floating-point values
+	    array_t<float> array(stores[0]);
+	    position = array.find(static_cast<float>(val));
+	    break;}
+	case ibis::DOUBLE: {
+	    // 8-byte IEEE floating-point values
+	    array_t<double> array(stores[0]);
+	    position = array.find(val);
+	    break;}
+	case ibis::OID:
+	default: {
+	    ierr = -2;
+	    _tbl->logWarning("vault::seek", "failed to evaluate "
+			     "attribute of type %s (name: %s)",
+			     ibis::TYPESTRING[(int)cols[0]->type()],
+			     cols[0]->name());
+	    break;}
+	}	
     }
     else { // has to go through a file one value at a time
-        switch (cols[0]->type()) {
-        case ibis::CATEGORY:
-        case ibis::UINT:
-        case ibis::TEXT: { // unsigned integer
-            uint32_t tgt = (val <= 0.0 ? 0 :
-                            static_cast<uint32_t>(ceil(val)));
-            position = seekValue<uint32_t>(fdes[0], tgt);
-            break;}
-        case ibis::INT: { // signed integer
-            position = seekValue<int32_t>(fdes[0],
-                                          static_cast<int32_t>(ceil(val)));
-            break;}
-        case ibis::FLOAT: {
-            // 4-byte IEEE floating-point values
-            position = seekValue<float>(fdes[0], static_cast<float>(val));
-            break;}
-        case ibis::DOUBLE: {
-            // 8-byte IEEE floating-point values
-            position = seekValue<double>(fdes[0], val);
-            break;}
-        case ibis::OID:
-        default: {
-            ierr = -2;
-            _tbl->logWarning("vault::seek", "failed to evaluate "
-                             "attribute of type %s (name: %s)",
-                             ibis::TYPESTRING[(int)cols[0]->type()],
-                             cols[0]->name());
-            break;}
-        }
+	switch (cols[0]->type()) {
+	case ibis::CATEGORY:
+	case ibis::UINT:
+	case ibis::TEXT: { // unsigned integer
+	    uint32_t tgt = (val <= 0.0 ? 0 :
+			    static_cast<uint32_t>(ceil(val)));
+	    position = seekValue<uint32_t>(fdes[0], tgt);
+	    break;}
+	case ibis::INT: { // signed integer
+	    position = seekValue<int32_t>(fdes[0],
+					  static_cast<int32_t>(ceil(val)));
+	    break;}
+	case ibis::FLOAT: {
+	    // 4-byte IEEE floating-point values
+	    position = seekValue<float>(fdes[0], static_cast<float>(val));
+	    break;}
+	case ibis::DOUBLE: {
+	    // 8-byte IEEE floating-point values
+	    position = seekValue<double>(fdes[0], val);
+	    break;}
+	case ibis::OID:
+	default: {
+	    ierr = -2;
+	    _tbl->logWarning("vault::seek", "failed to evaluate "
+			     "attribute of type %s (name: %s)",
+			     ibis::TYPESTRING[(int)cols[0]->type()],
+			     cols[0]->name());
+	    break;}
+	}
     }
     return ierr;
 } // ibis::part::vault::seek

@@ -152,7 +152,7 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak::mapValues", "unable to read %s",
+	    col->logWarning("bak::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -215,7 +215,7 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak::mapValues", "unable to read %s",
+	    col->logWarning("bak::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -278,7 +278,7 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak::mapValues", "unable to read %s",
+	    col->logWarning("bak::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -341,7 +341,7 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
         else
             col->getValuesArray(&val);
 	if (val.size() <= 0) {
-	    col->logWarning("bak::mapValues", "unable to read %s",
+	    col->logWarning("bak::mapValues", "failed to read %s",
 			    fnm.c_str());
 	}
 	else {
@@ -402,9 +402,9 @@ void ibis::bak::mapValues(const char* f, ibis::bak::bakMap& bmap) const {
                         "a basic bitmap index already");
         return;
     default:
-        col->logWarning("bak::mapValues", "failed to create bins for "
-                        "this type of column");
-        return;
+	col->logWarning("bak::mapValues", "failed to create bins for "
+			"this type of column");
+	return;
     }
 
     // make sure all bit vectors are the same size
