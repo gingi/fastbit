@@ -1154,7 +1154,7 @@ char* ibis::part::readMetaTags(const char* const dir) {
     char buf[MAX_LINE];
 #if defined(HAVE_SNPRINTF)
     long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir,
-                             FASTBIT_DIRSEP);
+			     FASTBIT_DIRSEP);
 #else
     long ierr = sprintf(buf, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
 #endif
@@ -1228,7 +1228,7 @@ void ibis::part::readMeshShape(const char* const dir) {
     char buf[MAX_LINE];
 #if defined(HAVE_SNPRINTF)
     long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir,
-                             FASTBIT_DIRSEP);
+			     FASTBIT_DIRSEP);
 #else
     long ierr = sprintf(buf, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
 #endif
@@ -1718,7 +1718,7 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
     char* filename = new char[nfn];
 #if defined(HAVE_SNPRINTF)
     int ierr = UnixSnprintf(filename, nfn, "%s%c-part.txt", dir,
-                            FASTBIT_DIRSEP);
+			    FASTBIT_DIRSEP);
 #else
     int ierr = sprintf(filename, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
 #endif    

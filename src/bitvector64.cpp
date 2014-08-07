@@ -31,27 +31,27 @@ const ibis::bitvector64::word_t ibis::bitvector64::HEADER1 =
 ibis::bitvector64::bitvector64(const array_t<ibis::bitvector64::word_t>& arr)
     : m_vec(arr) {
     if (m_vec.size() > 1) { // non-trivial size
-        if (m_vec.back()) { // has active bits
-            if (m_vec.back() < MAXBITS) {
-                active.nbits = m_vec.back();
-                m_vec.pop_back();
-                active.val = m_vec.back();
-            }
-            else {
-                ibis::util::logMessage
-                    ("Error", "the serialized version of bitvector contains "
-                     "an expected last word (%lu)",
-                     static_cast<long unsigned>(m_vec.back()));
-                throw "bitvector constructor failure "
-                    "-- the input is not a serialized bitvector";
-            }
-        }
-        else {
-            active.reset();
-        }
-        m_vec.pop_back();
+	if (m_vec.back()) { // has active bits
+	    if (m_vec.back() < MAXBITS) {
+		active.nbits = m_vec.back();
+		m_vec.pop_back();
+		active.val = m_vec.back();
+	    }
+	    else {
+		ibis::util::logMessage
+		    ("Error", "the serialized version of bitvector contains "
+		     "an expected last word (%lu)",
+		     static_cast<long unsigned>(m_vec.back()));
+		throw "bitvector constructor failure "
+		    "-- the input is not a serialized bitvector";
+	    }
+	}
+	else {
+	    active.reset();
+	}
+	m_vec.pop_back();
 #ifndef FASTBIT_LAZY_INIT
-        nbits = do_cnt(); // count the number of bits
+	nbits = do_cnt(); // count the number of bits
 #else
         nbits = 0;
         nset = 0;

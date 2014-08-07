@@ -8592,7 +8592,7 @@ long ibis::column::truncateData(const char* dir, uint32_t nent,
     char fn[MAX_LINE];
 #if defined(AHVE_SNPRINTF)
     ierr = UnixSnprintf(fn, MAX_LINE, "%s%c%s", dir, FASTBIT_DIRSEP,
-                        m_name.c_str());
+			m_name.c_str());
 #else
     ierr = sprintf(fn, "%s%c%s", dir, FASTBIT_DIRSEP, m_name.c_str());
 #endif

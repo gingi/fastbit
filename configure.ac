@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [1.4.0pre8], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [1.4.0pre9], [fastbit-users@hpcrdm.lbl.gov])
 #AC_PACKAGE_URL(http://sdm.lbl.gov/fastbit/)
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
@@ -59,7 +59,7 @@ AC_CHECK_HEADERS([inttypes.h stdint.h sys/types.h])
 #AC_FUNC_SELECT_ARGTYPES
 #AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-#AX_FUNC_SNPRINTF
+AX_FUNC_SNPRINTF
 #AC_CHECK_FUNCS([getpagesize getpass gettimeofday memset mkdir] , ,)
 AC_CHECK_FUNCS([gettimeofday mkdir flock strptime] , ,)
 
@@ -179,6 +179,7 @@ AC_COMPILE_IFELSE([
 	]])], [TRY_STD_CXX11=0], [TRY_STD_CXX11=1])
 if test $TRY_STD_CXX11 -eq 1; then
 	AC_MSG_CHECKING([for c++11])
+	CFLAGS="$CFLAGS -std=c99";
 	EXTRA_CXXFLAGS="-std=c++11";
 	CXXFLAGS="$CXXFLAGS -std=c++11";
 	AC_COMPILE_IFELSE([

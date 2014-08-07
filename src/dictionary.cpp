@@ -424,7 +424,8 @@ int ibis::dictionary::readKeys0(const char *evt, FILE *fptr) {
         return -9;
     }
     raw_.resize(nkeys+1);
-    key_.reserve(nkeys+nkeys);
+    // some implementation of unordered_map does have function reserve
+    // key_.reserve(nkeys+nkeys);
     for (unsigned j = 0; j < nkeys; ++ j) {
         const uint32_t ik = codes[j];
         if (ik > 0 && ik <= nkeys) {

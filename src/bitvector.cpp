@@ -91,7 +91,7 @@ ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
         m_vec.pop_back();
 
 #ifndef FASTBIT_LAZY_INIT
-        nbits = do_cnt(); // count the number of bits
+	nbits = do_cnt(); // count the number of bits
 #endif
     }
     else { // a one-word bitvector can only be an empty one
@@ -259,7 +259,7 @@ ibis::bitvector::bitvector(ibis::bitvector::word_t *buf, size_t nbuf)
 	}
 	m_vec.pop_back();
 
-#if defined(WAH_CHECK_SIZE)
+#ifndef FASTBIT_LAZY_INIT
 	nbits = do_cnt(); // count the number of bits
 #endif
     }

@@ -94,14 +94,14 @@ int ibis::resource::read(const char* fn) {
         }
     }
     if (conf == 0) {
-        // the fifth choice is .ibisrc in the home directory
-        name = getenv("HOME");
-        if (name != 0 && *name != 0) {
+	// the fifth choice is .ibisrc in the home directory
+	name = getenv("HOME");
+	if (name != 0 && *name != 0) {
 #if defined(HAVE_SNPRINTF)
-            long ierr = UnixSnprintf(line, MAX_LINE, "%s%c.ibisrc",
-                                     name, FASTBIT_DIRSEP);
+	    long ierr = UnixSnprintf(line, MAX_LINE, "%s%c.ibisrc",
+				     name, FASTBIT_DIRSEP);
 #else
-            long ierr = sprintf(line, "%s%c.ibisrc", name, FASTBIT_DIRSEP);
+	    long ierr = sprintf(line, "%s%c.ibisrc", name, FASTBIT_DIRSEP);
 #endif
             if (ierr > 0 && ierr < MAX_LINE &&
                 ibis::util::getFileSize(line) > 0) {
