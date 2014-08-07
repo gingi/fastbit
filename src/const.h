@@ -21,10 +21,13 @@
 #ifndef _PTHREADS
 #  define _PTHREADS
 #endif
-// machine related feature selection
 #ifndef _REENTRANT
 #  define _REENTRANT
 #endif
+#ifndef _ISOC90_SOURCE
+#  define _ISOC90_SOURCE
+#endif
+// machine related feature selection
 #if defined(__SUNPRO_CC)
 #  ifndef __EXTENSIONS__
 #    define __EXTENSIONS__

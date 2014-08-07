@@ -1147,8 +1147,12 @@ char* ibis::part::readMetaTags(const char* const dir) {
 	return m_tags;
 
     char buf[MAX_LINE];
+#if defined(HAVE_SNPRINTF)
     long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir,
 			     FASTBIT_DIRSEP);
+#else
+    long ierr = sprintf(buf, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
+#endif
     if (ierr < 2 || ierr > MAX_LINE) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- part::readMetaTags failed "
@@ -1217,8 +1221,12 @@ void ibis::part::readMeshShape(const char* const dir) {
 	return;
 
     char buf[MAX_LINE];
+#if defined(HAVE_SNPRINTF)
     long ierr = UnixSnprintf(buf, MAX_LINE, "%s%c-part.txt", dir,
 			     FASTBIT_DIRSEP);
+#else
+    long ierr = sprintf(buf, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
+#endif
     if (ierr < 10 || ierr > MAX_LINE) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- part::readMeshShape failed to generate the name "
@@ -1673,8 +1681,12 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
 	return;
     const int nfn = std::strlen(dir)+16;
     char* filename = new char[nfn];
+#if defined(HAVE_SNPRINTF)
     int ierr = UnixSnprintf(filename, nfn, "%s%c-part.txt", dir,
 			    FASTBIT_DIRSEP);
+#else
+    int ierr = sprintf(filename, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
+#endif    
     if (ierr < 10 || ierr > nfn) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "Warning -- part::writeMetaData failed to generate the name "

@@ -125,7 +125,7 @@ int truncate(const char*, uint32_t);
 #define UnixStat  ::_stat
 #define UnixFStat ::_fstat
 #define Stat_T    struct _stat
-#else
+#else //_BSD_SOURCE || _ISOC99_SOURCE || _XOPEN_SOURCE >= 500 || _POSIX_C_SOURCE >= 200112L
 #define UnixOpen  ::open
 #define UnixClose ::close
 #define UnixRead  ::read

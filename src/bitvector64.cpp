@@ -50,7 +50,12 @@ ibis::bitvector64::bitvector64(const array_t<ibis::bitvector64::word_t>& arr)
 	    active.reset();
 	}
 	m_vec.pop_back();
+#ifndef FASTBIT_LAZY_INIT
 	nbits = do_cnt(); // count the number of bits
+#else
+        nbits = 0;
+        nset = 0;
+#endif
     }
     else { // can only be an empty bitvector
 	clear();

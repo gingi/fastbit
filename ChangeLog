@@ -1,11 +1,26 @@
+2014-08-06 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.cpp, src/bitvector64.cpp: change constructor to
+	compute the sizes of bitvector and bitvector64 during construction
+	to avoid thread-safety issue with do_cnt, a problem reported by
+	Dominique Prunier
+
+2014-08-02 John Wu <John dot Wu at ACM dot org>
+	* src/fastbit-config.h.in: add HAVE_SNPRINTF, change all uses of
+	snprintf to check HAVE_SNPRINTF
+
+2014-07-29 John Wu <John dot Wu at ACM dot org>
+	* src/capi.cpp: in fastbit_part_list::find, return a nil pointer
+	if the existing data partition is not readable.  This
+	re-examination was prompted by an error report from Mike Carter.
+	* src/dictionary.cpp: Mike Carter indentified a case of support
+	for unordered_map without member function reserve, remove the call
+	to reserve in readKeys0
+
 2014-07-28 John Wu <John dot Wu at ACM dot org>
 	* src/util.h, src/part.cpp: add function ibis::util::cleanDatasets
 	* src/query.cpp: in case of query evaluation failure, attempt to
 	clean all datasets (by calling ibis::util::cleanDatasets) before
 	try again
-	* src/capi.cpp: in fastbit_part_list::find, return a nil pointer
-	if the existing data partition is not readable.  This
-	re-examination was prompted by an error report from Mike Carter.
 
 2014-07-27 John Wu <John dot Wu at ACM dot org>
 	* src/part.h: add function clear to clear the existing content of
