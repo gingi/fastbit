@@ -1,3 +1,9 @@
+2014-08-12 John Wu <John dot Wu at ACM dot org>
+	* src/tafel.cpp:3991 specify the size of the substring to compare
+	prefix "unsigned" (a problem reported by Li Jun
+	<lijunli2598@gmail.com>), add code to deal with arbitrary number
+	of spaces after "unsigned"
+
 2014-08-06 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.cpp, src/bitvector64.cpp: change constructor to
 	compute the sizes of bitvector and bitvector64 during construction

@@ -3988,8 +3988,11 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	    << "tablex::parseNamesAndTypes processing name:type pair \"" << nm
 	    << ':' << type << "\"";
 
-	if (type.compare("unsigned") == 0) {
-	    switch (*(type.c_str()+9)) {
+	if (type.compare(0, 8, "unsigned ") == 0) {
+            // unsigned<space>type
+            const char *next = type.c_str()+8;
+            while (*next != 0 && isspace(*next)) ++ next;
+	    switch (*(next)) {
 	    case 'b':
 	    case 'B':
 		addColumn(nm.c_str(), ibis::UBYTE); break;
@@ -4003,13 +4006,14 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	    case 'L':
 		addColumn(nm.c_str(), ibis::ULONG); break;
 	    default:
-		LOGGER(ibis::gVerbose > 2)
-		    << "tablex::parseNamesAndTypes assumes type \"" << type
-		    << "\" to be uint32_t";
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- tablex::parseNamesAndTypes assumes type \""
+		    << type << "\" to mean uint32_t";
 		addColumn(nm.c_str(), ibis::UINT); break;
 	    }
 	}
 	else if (type[0] == 'u' || type[0] == 'U') {
+            // uType
 	    switch (*(type.c_str()+1)) {
 	    case 'b':
 	    case 'B':
@@ -4024,13 +4028,14 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	    case 'L':
 		addColumn(nm.c_str(), ibis::ULONG); break;
 	    default:
-		LOGGER(ibis::gVerbose > 2)
-		    << "tablex::parseNamesAndTypes assumes type \"" << type
-		    << "\" to be uint32_t";
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- tablex::parseNamesAndTypes assumes type \""
+		    << type << "\" to mean uint32_t";
 		addColumn(nm.c_str(), ibis::UINT); break;
 	    }
 	}
 	else {
+            // single-letter types: old unadvertised convention
 	    switch (type[0]) {
 	    case 'a':
 	    case 'A':
@@ -4084,9 +4089,9 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 		    addColumn(nm.c_str(), ibis::SHORT);
 		break;
 	    default:
-		LOGGER(ibis::gVerbose > 2)
-		    << "tablex::parseNamesAndTypes assumes type \"" << type
-		    << "\" to be int32_t";
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- tablex::parseNamesAndTypes assumes type \""
+		    << type << "\" to mean int32_t";
 		addColumn(nm.c_str(), ibis::INT); break;
 	    }
 	}
