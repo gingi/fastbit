@@ -4069,145 +4069,118 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 
         if (nm.empty()) return ret;
 
-        // skip comment line and empty line
-        while (*str != 0) {
-            if (*str == '#' || (*str == '-' && str[1] == '-')) {
-                for (++ str; *str != 0; ++ str);
-            }
-            else if (isalpha(*str) == 0) ++ str;
-            else break;
-        }
-        // fold type to lower case to simplify comparisons
-        type.clear();
-        while (*str != 0 && isalpha(*str) != 0) {
-            type += tolower(*str);
-            ++ str;
-        }
-        if (type.compare("unsigned") == 0 || type.compare("signed") == 0) {
-            // read the second word, drop signed, drop spaces
-            if (type.compare("signed") == 0)
-                type.clear();
-            while (*str != 0 && isspace(*str) != 0) ++ str;
-            while (*str != 0 && isalnum(*str) != 0) {
-                type += tolower(*str);
-                ++ str;
-            }
-        }
-        if (type.empty())
-            type = 'i';
+	LOGGER(ibis::gVerbose > 2)
+	    << "tablex::parseNamesAndTypes processing name:type pair \"" << nm
+	    << ':' << type << "\"";
 
-        LOGGER(ibis::gVerbose > 2)
-            << "tablex::parseNamesAndTypes processing name:type pair \"" << nm
-            << ':' << type << "\"";
-
-        if (type.compare(0, 8, "unsigned") == 0) {
-            // unsigned<no-space>type
+	if (type.compare(0, 8, "unsigned ") == 0) {
+            // unsigned<space>type
             const char *next = type.c_str()+8;
             while (*next != 0 && isspace(*next)) ++ next;
-            switch (*(next)) {
-            case 'b':
-            case 'B':
-                addColumn(nm.c_str(), ibis::UBYTE); break;
-            case 's':
-            case 'S':
-                addColumn(nm.c_str(), ibis::USHORT); break;
-            case 'i':
-            case 'I':
-                addColumn(nm.c_str(), ibis::UINT); break;
-            case 'l':
-            case 'L':
-                addColumn(nm.c_str(), ibis::ULONG); break;
-            default:
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- tablex::parseNamesAndTypes assumes type \""
-                    << type << "\" to mean uint32_t";
-                addColumn(nm.c_str(), ibis::UINT); break;
-            }
-        }
-        else if (type[0] == 'u' || type[0] == 'U') {
+	    switch (*(next)) {
+	    case 'b':
+	    case 'B':
+		addColumn(nm.c_str(), ibis::UBYTE); break;
+	    case 's':
+	    case 'S':
+		addColumn(nm.c_str(), ibis::USHORT); break;
+	    case 'i':
+	    case 'I':
+		addColumn(nm.c_str(), ibis::UINT); break;
+	    case 'l':
+	    case 'L':
+		addColumn(nm.c_str(), ibis::ULONG); break;
+	    default:
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- tablex::parseNamesAndTypes assumes type \""
+		    << type << "\" to mean uint32_t";
+		addColumn(nm.c_str(), ibis::UINT); break;
+	    }
+	}
+	else if (type[0] == 'u' || type[0] == 'U') {
             // uType
-            switch (*(type.c_str()+1)) {
-            case 'b':
-            case 'B':
-                addColumn(nm.c_str(), ibis::UBYTE); break;
-            case 's':
-            case 'S':
-                addColumn(nm.c_str(), ibis::USHORT); break;
-            case 'i':
-            case 'I':
-                addColumn(nm.c_str(), ibis::UINT); break;
-            case 'l':
-            case 'L':
-                addColumn(nm.c_str(), ibis::ULONG); break;
-            default:
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- tablex::parseNamesAndTypes assumes type \""
-                    << type << "\" to mean uint32_t";
-                addColumn(nm.c_str(), ibis::UINT); break;
-            }
-        }
-        else {
+	    switch (*(type.c_str()+1)) {
+	    case 'b':
+	    case 'B':
+		addColumn(nm.c_str(), ibis::UBYTE); break;
+	    case 's':
+	    case 'S':
+		addColumn(nm.c_str(), ibis::USHORT); break;
+	    case 'i':
+	    case 'I':
+		addColumn(nm.c_str(), ibis::UINT); break;
+	    case 'l':
+	    case 'L':
+		addColumn(nm.c_str(), ibis::ULONG); break;
+	    default:
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- tablex::parseNamesAndTypes assumes type \""
+		    << type << "\" to mean uint32_t";
+		addColumn(nm.c_str(), ibis::UINT); break;
+	    }
+	}
+	else {
             // single-letter types: old unadvertised convention
-            switch (type[0]) {
-            case 'a':
-            case 'A':
-                addColumn(nm.c_str(), ibis::UBYTE); break;
-            case 'b':
-            case 'B':
-                if (type[1] == 'l' || type[1] == 'L')
-                    addColumn(nm.c_str(), ibis::BLOB);
-                else
-                    addColumn(nm.c_str(), ibis::BYTE);
-                break;
-            case 'h':
-            case 'H':
-                addColumn(nm.c_str(), ibis::SHORT); break;
-            case 'g':
-            case 'G':
-                addColumn(nm.c_str(), ibis::USHORT); break;
-            case 'i':
-            case 'I':
-                addColumn(nm.c_str(), ibis::INT); break;
-            case 'l':
-            case 'L':
-                addColumn(nm.c_str(), ibis::LONG); break;
-            case 'v':
-            case 'V':
-                addColumn(nm.c_str(), ibis::ULONG); break;
-            case 'r':
-            case 'R':
-            case 'f':
-            case 'F':
-                addColumn(nm.c_str(), ibis::FLOAT); break;
-            case 'd':
-            case 'D':
-                addColumn(nm.c_str(), ibis::DOUBLE); break;
-            case 'c':
-            case 'C':
-            case 'k':
-            case 'K':
-                addColumn(nm.c_str(), ibis::CATEGORY); break;
-            case 't':
-            case 'T':
-                addColumn(nm.c_str(), ibis::TEXT); break;
-            case 'q':
-            case 'Q':
-                addColumn(nm.c_str(), ibis::BLOB); break;
-            case 's':
-            case 'S':
-                if (type[1] == 't' && type[1] == 'T')
-                    addColumn(nm.c_str(), ibis::TEXT);
-                else
-                    addColumn(nm.c_str(), ibis::SHORT);
-                break;
-            default:
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- tablex::parseNamesAndTypes assumes type \""
-                    << type << "\" to mean int32_t";
-                addColumn(nm.c_str(), ibis::INT); break;
-            }
-        }
-        ++ ret;
+	    switch (type[0]) {
+	    case 'a':
+	    case 'A':
+		addColumn(nm.c_str(), ibis::UBYTE); break;
+	    case 'b':
+	    case 'B':
+		if (type[1] == 'l' || type[1] == 'L')
+		    addColumn(nm.c_str(), ibis::BLOB);
+		else
+		    addColumn(nm.c_str(), ibis::BYTE);
+		break;
+	    case 'h':
+	    case 'H':
+		addColumn(nm.c_str(), ibis::SHORT); break;
+	    case 'g':
+	    case 'G':
+		addColumn(nm.c_str(), ibis::USHORT); break;
+	    case 'i':
+	    case 'I':
+		addColumn(nm.c_str(), ibis::INT); break;
+	    case 'l':
+	    case 'L':
+		addColumn(nm.c_str(), ibis::LONG); break;
+	    case 'v':
+	    case 'V':
+		addColumn(nm.c_str(), ibis::ULONG); break;
+	    case 'r':
+	    case 'R':
+	    case 'f':
+	    case 'F':
+		addColumn(nm.c_str(), ibis::FLOAT); break;
+	    case 'd':
+	    case 'D':
+		addColumn(nm.c_str(), ibis::DOUBLE); break;
+	    case 'c':
+	    case 'C':
+	    case 'k':
+	    case 'K':
+		addColumn(nm.c_str(), ibis::CATEGORY); break;
+	    case 't':
+	    case 'T':
+		addColumn(nm.c_str(), ibis::TEXT); break;
+	    case 'q':
+	    case 'Q':
+		addColumn(nm.c_str(), ibis::BLOB); break;
+	    case 's':
+	    case 'S':
+		if (type[1] == 't' && type[1] == 'T')
+		    addColumn(nm.c_str(), ibis::TEXT);
+		else
+		    addColumn(nm.c_str(), ibis::SHORT);
+		break;
+	    default:
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- tablex::parseNamesAndTypes assumes type \""
+		    << type << "\" to mean int32_t";
+		addColumn(nm.c_str(), ibis::INT); break;
+	    }
+	}
+	++ ret;
     } // while (*str != 0)
 
     LOGGER(ibis::gVerbose > 4)
