@@ -4067,13 +4067,37 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
             ++ str;
         }
 
-        if (nm.empty()) return ret;
+	// skip ti
+	while (*str != 0) {
+	    if (*str == '#' || (*str == '-' && str[1] == '-')) {
+		for (++ str; *str != 0; ++ str);
+	    }
+	    else if (isalpha(*str) == 0) ++ str;
+	    else break;
+	}
+	type.clear();
+	while (*str != 0 && isalpha(*str) != 0) {
+	    type += tolower(*str);
+	    ++ str;
+	}
+	if (type.compare("unsigned") == 0 || type.compare("signed") == 0) {
+	    // read the second word, drop signed, drop spaces
+	    if (type.compare("signed") == 0)
+		type.clear();
+	    while (*str != 0 && isspace(*str) != 0) ++ str;
+	    while (*str != 0 && isalnum(*str) != 0) {
+		type += tolower(*str);
+		++ str;
+	    }
+	}
+	if (type.empty())
+	    type = 'i';
 
 	LOGGER(ibis::gVerbose > 2)
 	    << "tablex::parseNamesAndTypes processing name:type pair \"" << nm
 	    << ':' << type << "\"";
 
-	if (type.compare(0, 8, "unsigned ") == 0) {
+	if (type.compare(0, 8, "unsigned") == 0) {
             // unsigned<space>type
             const char *next = type.c_str()+8;
             while (*next != 0 && isspace(*next)) ++ next;
