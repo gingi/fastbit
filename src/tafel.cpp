@@ -3972,7 +3972,7 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	    ++ str;
 	}
 	if (type.compare("unsigned") == 0 || type.compare("signed") == 0) {
-	    // read the second word, drop signed
+	    // read the second word, drop signed, drop spaces
 	    if (type.compare("signed") == 0)
 		type.clear();
 	    while (*str != 0 && isspace(*str) != 0) ++ str;
@@ -3988,7 +3988,7 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	    << "tablex::parseNamesAndTypes processing name:type pair \"" << nm
 	    << ':' << type << "\"";
 
-	if (type.compare(0, 8, "unsigned ") == 0) {
+	if (type.compare(0, 8, "unsigned") == 0) {
             // unsigned<space>type
             const char *next = type.c_str()+8;
             while (*next != 0 && isspace(*next)) ++ next;
