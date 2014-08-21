@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [1.4.0pre9], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [1.4.0pre10], [fastbit-users@hpcrdm.lbl.gov])
 #AC_PACKAGE_URL(http://sdm.lbl.gov/fastbit/)
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
@@ -583,11 +583,12 @@ fi
 # system specific java includes
 case "$host_os" in
   bsdi*)     _JNI_INC_SUBDIRS="bsdos";;
+  cygwin*)   _JNI_INC_SUBDIRS="win32";;
+  darwin*)   _JNI_INC_SUBDIRS="darwin";;
   linux*)    _JNI_INC_SUBDIRS="linux genunix";;
+  mingw*)    _JNI_INC_SUBDIRS="win32";;
   osf*)      _JNI_INC_SUBDIRS="alpha";;
   solaris*)  _JNI_INC_SUBDIRS="solaris";;
-  mingw*)    _JNI_INC_SUBDIRS="win32";;
-  cygwin*)   _JNI_INC_SUBDIRS="win32";;
   *)         _JNI_INC_SUBDIRS="genunix";;
 esac
 
