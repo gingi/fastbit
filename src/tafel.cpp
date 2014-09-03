@@ -3958,7 +3958,7 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 
 	if (nm.empty()) return ret;
 
-	// skip ti
+	// skip comment line and empty line
 	while (*str != 0) {
 	    if (*str == '#' || (*str == '-' && str[1] == '-')) {
 		for (++ str; *str != 0; ++ str);
@@ -3966,6 +3966,7 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	    else if (isalpha(*str) == 0) ++ str;
 	    else break;
 	}
+        // fold type to lower case to simplify comparisons
 	type.clear();
 	while (*str != 0 && isalpha(*str) != 0) {
 	    type += tolower(*str);
@@ -3989,7 +3990,7 @@ int ibis::tablex::parseNamesAndTypes(const char* txt) {
 	    << ':' << type << "\"";
 
 	if (type.compare(0, 8, "unsigned") == 0) {
-            // unsigned<space>type
+            // unsigned<no-space>type
             const char *next = type.c_str()+8;
             while (*next != 0 && isspace(*next)) ++ next;
 	    switch (*(next)) {

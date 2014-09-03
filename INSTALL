@@ -3,21 +3,17 @@ only need to run
 
 ./configure && make
 
-to build the library and the examples.  
+to build the library and the examples.  The following instructions are
+for customization and trouble-shooting your configuration and building
+process.
 
-*** NOTE: Must run configure to generate the Makefile and other crucial
-***       files.
-
-The following instructions are for customization and trouble-shooting
-your configuration and building process.
-
-On systems where make (or gmake) support parallel builds, it is safe to
-invoke the parallel build options to build the library and the
+On systems where make (or gmake) can support parallel builds, it is safe
+to invoke the parallel build options to build the library and the
 executables, for example,
 
 gmake -j 3 all
 
-Since it take a while (~ 30 min) to build the libraries, it is a good
+Since it take a while (~ 20 min) to build the libraries, it is a good
 idea to spawn multiple jobs to compile them.  However, it is NOT safe to
 run the tests in parallel because different jobs will attempt to write
 the same files.  The commands 'make check', 'make more-check', and 'make
@@ -25,17 +21,13 @@ full-check' must be run as serial jobs (with only one thread of
 execution).
 
 If you are compiling with GCC, please choose version 4 for better
-support of the extensive template uses.
-
-
-*** NOTE: It is highly recommended that FastBit to be installed in its
-***       own directory, not mixed with other packages.
+support of the extensive template use.
 
 To place the executable files and libraries in their expected locations,
 execute 'make install'.  As usual, the location of the installed files
 is specified by the variable 'prefix', e.g., (it is usually better to
 specify installation direcotry on the command line of configure, see
-note 13)
+note 13 )
 
 make prefix=${HOME} install
 
@@ -44,16 +36,6 @@ ${HOME}/lib.  Prior to installation, the executables and libraries are
 located in various hidden directories selected by libtools.  For
 example, libfastbit.a is usually located in src/.libs and the
 executables in examples are in examples/.libs.
-
-----------
-For hopper.nersc.gov and other Cray XT machines, need options
-
---disable-shared --without-getpwuid
-
-The preferred programming environment is PrgEnv-gnu on these machines.
-
-
-The file runconfig has a number of examples for different platforms.
 
 
 ----------
@@ -131,12 +113,6 @@ FastBit parameters.  When you find unexpected troubles with FastBit,
 they might come in handy.  Here is a list in the order of potential
 usefulness.
 
-DEBUG
-
-  Turning on DEBUG will enable FastBit to print a lot of diagnostic
-  messages about its internal operations.  It is useful for debugging
-  FastBit internal operations.
-
 WITHOUT_FASTBIT_CONFIG_H
 
   This macro must be defined if the system can not run the configure
@@ -165,6 +141,12 @@ FASTBIT_MIN_MAP_SIZE
   mmap and its associated functions are available.  This defines the
   minimal file size (in bytes) before it will attempt to use mmap.
 
+DEBUG
+
+  Turning on DEBUG will enable FastBit to print a lot of diagnostic
+  messages about its internal operations.  It is useful for debugging
+  FastBit internal operations.
+
 WAH_CHECK_SIZE
 
   Instruct WAH compression functions to check the size of the bitmaps
@@ -186,7 +168,7 @@ FASTBIT_READ_BITVECTOR0
 FASTBIT_EXPAND_ALL_TYPES
 
   The macro FASTBIT_EXPAND_ALL_TYPES controls whether all ten different
-  column types will have its own template instance function.  By default,
+  columns will have its own template instance function.  By default,
   with FASTBIT_EXPAND_ALL_TYPES not defined, only five instances are
   generated.  The columns of type BYTE and SHORT are converted to INT
   and passed to the function that handles INT.  The columns of type
@@ -214,40 +196,13 @@ FASTBIT_USE_LONG_OFFSETS
   affects the writing function, the reading function will always check
   the header to determine the expected bitmap offset size.
 
-FASTBIT_ORDER_OUTPUT_RIDS
-
-  If this macro is defined, the RIDs within each bundle is sorted in an
-  extra loop after the bundles are generated.  This feature was useful
-  in one early application of FastBit, but the SQL standard does not
-  demand this feature.  According to some user reports, sorting the RIDs
-  in this extra loop costs as much as remaining sorting operations.  It
-  is not defined by default.
-
-FASTBIT_CASE_SENSITIVE_COMPARE
-
-  When this macro is set to a value greater than 0, the queries
-  involving strings will treat strings as case sensitive.  This approach
-  allows some operations to perform simple binary search instead of
-  linear search, which improves the speed of pattern matching.  This
-  macro was suggested by Dominique Prunier.  It is set to 1 in util.h by
-  default.  To disable case sensitive matching, add the following to the
-  compiler options:
-    -DFASTBIT_CASE_SENSITIVE_COMPARE=0.
-
-FASTBIT_EMPTY_STRING_AS_NULL
-
-  When this macro is defined, FastBit will not distinguish emptry string
-  from NULL strings.  This is useful because there is no good way for
-  users to input null strings (either as input data or as string
-  constants in query expressions).
-
 
 ----------
 Known Issues
 
-    If you encounter an issue with FastBit code, please look through
-    this list of known issues first.  In addition, you might check out
-    the mailing list archive at
+    If you have encountered an issue with FastBit code, this list of
+    known issues might be of help.  In addition, you might check out the
+    mailing list archive at
     <https://hpcrdm.lbl.gov/pipermail/fastbit-users/> to see if the
     issue has already been addressed.  The mail messages are searchable
     through the search boxes on any of the FastBit web pages.  Of course
@@ -259,12 +214,7 @@ Known Issues
     source code.  A nightly snapshot of the SVN repository for the code
     is available for download at
     <https://codeforge.lbl.gov/snapshots.php?group_id=44>.  The snapshot
-    is built daily between 2 and 3 AM Pacific Time (USA).  You may also
-    check out a read-only copy from the source code repository with the
-    following command
-
-    svn checkout https://codeforge.lbl.gov/anonscm/fastbit
-
+    is built daily between 2 and 3 AM Pacific Time zone (USA).
 
 (1) Many compilers will issue lots of warnings about potential loss of
     data in various assignments, for example, trying to assign a 32-bit
@@ -280,20 +230,20 @@ Known Issues
     should be aware of such problems.
 
 (2) Under cygwin, some times, the read-write lock may print out warning
-    messages, but the operations seem to carry on without any problems.
+    messages, but the operations seem to carry on without any problem.
     We have not tried to figure out what are the causes of these
-    warnings, if you have information about them or know how to fix the
+    problems, if you have information about them or know how to fix the
     problems, we would like to hear about them.  Email your suggestions
     to <fastbit-users@hpcrdm.lbl.gov>.
 
 (3) The tests in 'make check' do a very minimal amount of testing.  To
     perform more through testing, use 'make more-check' or 'make
-    full-check'.  The tests in 'make more-check' may take about a hour,
+    full-check'.  The tests in 'make more-check' may take ~ 15 min,
     while 'make full-check' may make take several hours.  These longer
     tests write a large number of files into the test directory, which
-    defaults to tests/tmp.  It is a good idea to use a local file system
-    instead of a remotely mounted file system for test directory.  To
-    change the test directory use variable TESTDIR, e.g.,
+    defaults to tests/tmp.  It is a good idea to use a local file
+    system instead of a remotely mounted file system for test directory.
+    To change the test directory use variable TESTDIR, e.g.,
 
     make TESTDIR=/tmp/kwu/tests full-check
 
@@ -335,11 +285,11 @@ Known Issues
 (7) Certain linux clusters do not support shared libraries on compute
     nodes, even though shared libraries are supported on the front end.
     In such a case, the configure script will detect shared libraries as
-    supported, but the executable will not be able to run on the compute
-    nodes.  Use option --disable-shared to prevent it from trying to
+    supported.  Use option --disable-shared to prevent it from trying to
     build the shared library.  For example, Cray XT systems (e.g., XT4
     franklin.nersc.gov and XT5 hopper.nersc.gov) do not support shared
-    libraries on the compute nodes.
+    libraries on the compute nodes.  In fact on a Cray XT5 system,
+    it is not able to produce a .so file.
 
 (8) FastBit makes extensive use of STL objects, this causes a problem
     when one wants to build a DLL on a windows machine.  There is at
@@ -347,13 +297,14 @@ Known Issues
     visual studio and build DLL successfully, see
     <https://hpcrdm.lbl.gov/pipermail/fastbit-users/2008-June/000127.html>.
 
-(9) When the self-test in ibis.cpp is run with more than one thread, the
-    PGI compiled version fails.  This is likely caused PGI std::string
-    library or IO stream library neglecting to lock memory allocator.
-    The test case 12 of check-ibis has been changed to use only a single
-    thread to allow the problem to be passed unnoticed.  However, 'make
-    more-check' and 'make full-check' will not pass because they involve
-    tests with multiple threads.
+(9) The test 12 of check-ibis fails when the PGI compiler is used to
+    compile the code.  It encounters a segmentation violation some times
+    inside a string construtor and some times in the constructor of
+    string stream object.  We would guess that the PGI compiler might
+    not be producinga thread-safe operator new.  If you have any clue as
+    what is really going on or how to get around the problem, please
+    send your suggestions or corrections to
+    <fastbit-users@hpcrdm.lbl.gov>.
 
 (10) If the configure script finds a working version of javac, but fails
      to find a working version of java, it is likely that CLASSPATH is
@@ -386,53 +337,18 @@ whereLexer.cc:1244: error: 'yywrap' was not declared in this scope
 (13) If you build FastBit Java native interface, make sure --prefix is
      specified at configure command line, otherwise "make install" may
      complain about libfastbitjni.lo can not be installed in any
-     directory other than the default directory /usr/local/lib.  If you
-     have specified --prefix but wanted to install in a different
-     directory, you will see a similar message.  The build script
-     apparently remembers the path generated by configure script and
-     does not know how to make use of the prefix specified on the
-     command line of make.
+     directory other than /usr/local/lib (if you have specified --prefix
+     but wanted to install in a different directory, you might see a
+     similar message).  The automatic build script apparently remembers
+     the path generated by configure script and does not know how to
+     make use of the prefix specified on the command line of make.
 
-(14) The configure script does not need root privillege to run.  In
-     fact, running it with sudo can cause permission problems with some
+(14) The configure script should not need root privillege to run.  In
+     fact, running it with sudo can causes permission problems with some
      temporary files and therefore cause the configure script to fail.
      The only command that may need root privillege would be the 'make
      install' command if the files are to be installed in a privilleged
      directory such as /usr or /usr/local.
-
-(15) The files with extension .cc and .hh are generated by flex and
-     bison.  If for whatever reason they need to be reproduced from the
-     source files (.ll and .yy), one needs flex version 2.5.35 (or
-     newer) and bison version 2.4.2 (or newer) in order to correctly
-     process the .ll and .yy files in src.
-
-(16) The following error from configure script is most likely caused by
-     incorrect version of C++ compiler and the message is likely
-     produced during an attempt to figure out if std::unordered_map is
-     supported or not.  The way to fix the problem is to use a newer
-     version of C++ compiler.  GCC 4.8 is known to support
-     std::unordered_map.
-
-./configure: line 424: test: please: integer expression expected
-
-(17) The configure script will attempt to run executables to determine
-     whether getpwuid or std::numeric_limits<float>::quiet_NaN is
-     present on the system if their presence is not explicitly specified
-     with options --with[out]-getpwuid or --with[out]-quite-nan.  On
-     systems with cross compilers that produce code that are not
-     executable, it is recommend that the configure script carries
-     explicit specificiation of the presence or absence of getpwuid and
-     quite-nan.  On a few known systems, the script runconfig already
-     has recommended command line options for configure script.  They
-     can be used as examples for new systems.
-
-(18) On mira at ALCF, use the bgclang toolchain for compilation by place
-     the following line in .soft (comment other toolchains)
-+mpiwrapper-bgclang
-     and specify 'env CC=bgclang CXX=bgclang++11' before running
-     configure script.  Alternatively run the perl script runconfig.
-
-
 
 
 ----------
