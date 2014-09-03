@@ -1956,7 +1956,7 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
                         ierr = fread(spbuf.address(), sizeof(int64_t),
                                      spbuf.size(), fsp);
                         if (ierr <= 0) {
-                            LOGGER(ibis::gVerbose >= 0)
+                            LOGGER(ierr < 0 && ibis::gVerbose >= 0)
                                 << "Warning -- " << evt << " failed to read "
                                 << sp;
                             moresp = false;
@@ -2071,9 +2071,9 @@ long ibis::text::stringSearch(const char* str, ibis::bitvector& hits) const {
                             ierr = fread(spbuf.address(), sizeof(int64_t),
                                          spbuf.size(), fsp);
                             if (ierr <= 0) {
-                                LOGGER(ibis::gVerbose >= 0)
+                                LOGGER(ierr < 0 && ibis::gVerbose >= 0)
                                     << "Warning -- " << evt
-                                    << " -- failed to read file " << sp;
+                                    << " failed to read file " << sp;
                                 moresp = false;
                                 break;
                             }
@@ -2361,7 +2361,7 @@ long ibis::text::stringSearch(const std::vector<std::string>& strs,
                             ierr = fread(spbuf.address(), sizeof(int64_t),
                                          spbuf.size(), fsp);
                             if (ierr <= 0) {
-                                LOGGER(ibis::gVerbose >= 0)
+                                LOGGER(ierr < 0 && ibis::gVerbose >= 0)
                                     << "Warning -- " << evt
                                     << " failed to read file " << sp;
                                 moresp = false;
@@ -2582,9 +2582,9 @@ long ibis::text::patternSearch(const char* pat, ibis::bitvector& hits) const {
                             ierr = fread(spbuf.address(), sizeof(int64_t),
                                          spbuf.size(), fsp);
                             if (ierr <= 0) {
-                                LOGGER(ibis::gVerbose >= 0)
+                                LOGGER(ierr < 0 && ibis::gVerbose >= 0)
                                     << "Warning -- " << evt
-                                    << " -- failed to read file " << sp;
+                                    << " failed to read " << sp;
                                 moresp = false;
                                 break;
                             }

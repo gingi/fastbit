@@ -14,11 +14,6 @@ following two commands in this directory
 ./configure
 make
 
-Due to the uses of a number of C++11 features, such as, unique_ptr and
-unordered_map, the current version of the source code requires GCC 4.8
-or clang 3.5 to compile.  If your C++ compiler supports C++11, please
-give it a try and let us know.
-
 Further information about installation is available in file INSTALL in
 this directory.  For installation on a MS Windows system using Visual
 Studio, follow instructions in win/README.

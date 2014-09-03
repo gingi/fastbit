@@ -1,3 +1,12 @@
+2014-09-03 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: in ibis::text::stringSearch, adjust the LOGGER
+	statements to prevent the end of file being recognied as an error
+	(a problem reported by Marek mdmarek at gmail.com)
+
+2014-09-02 John Wu <John dot Wu at ACM dot org>
+	* src/tafel.cpp: clarify the inline documentation on type handling
+	in parseNamesAndTypes
+
 2014-08-21 John Wu <John dot Wu at ACM dot org>
 	* configure.ac:587 add case for darwin per suggestion from mdmarek
 	at gmail.com
