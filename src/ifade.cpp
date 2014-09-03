@@ -132,13 +132,18 @@ int ibis::fade::write(const char* dt) const {
     }
     evt += "::write";
     indexFileName(fnm, dt);
+    if (ibis::gVerbose > 1) {
+        evt += '(';
+        evt += fnm;
+        evt += ')';
+    }
     if (fnm.empty()) {
 	return 0;
     }
     else if (0 != str && 0 != str->filename() &&
 	     0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fade::write can not overwrite the index file \""
+	    << "Warning -- " << evt << " can not overwrite the index file \""
 	    << fnm << "\" while it is used as a read-only file map";
 	return 0;
     }
@@ -166,6 +171,16 @@ int ibis::fade::write(const char* dt) const {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
+#if defined(HAVE_FLOCK)
+    ibis::util::flock flck(fdes);
+    if (flck.isLocked() == false) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to acquire an exclusive lock "
+            "on file " << fnm << " for writing, another thread must be "
+            "writing the index now";
+        return -6;
+    }
+#endif
 
 #ifdef FASTBIT_USE_LONG_OFFSETS
     const bool useoffset64 = true;
@@ -178,7 +193,7 @@ int ibis::fade::write(const char* dt) const {
     int32_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fnm << ") failed to write "
+	    << "Warning -- " << evt << " failed to write "
 	    << "the 8-byte header to " << fnm << ", ierr = " << ierr;
 	return -3;
     }

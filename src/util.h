@@ -1367,6 +1367,31 @@ namespace ibis {
 	inline guardObj0<C, F> objectGuard(C o, F f) {
 	    return guardObj0<C, F>::makeGuard(o, f);
 	}
+
+#if defined(HAVE_FLOCK)
+        /// A simple wrapper on flock.
+        class flock {
+        public:
+            /// Constructor.  Take a file descriptor of type int, created
+            /// by function open.
+            flock(int fd)
+                : fd_(fd),
+                  locked(0 == ::flock(fd, LOCK_EX|LOCK_NB)) {
+            }
+            /// Destructor.
+            ~flock() {
+                if (locked)
+                    (void) ::flock(fd_, LOCK_UN);
+            }
+            /// Was a lock acquired successfully?  Returns true for yes,
+            /// otherwise no.
+            bool isLocked() const {return locked;}
+
+        private:
+            const int  fd_;
+            const bool locked;
+        }; // FLock
+#endif
     } // namespace util
 } // namespace ibis
 

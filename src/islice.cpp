@@ -98,7 +98,19 @@ ibis::slice::slice(const ibis::column* c, ibis::fileManager::storage* st,
 int ibis::slice::write(const char* dt) const {
     if (vals.empty()) return -1;
 
-    std::string fnm;
+    std::string fnm, evt;
+    evt = "slice";
+    if (col != 0 && ibis::gVerbose > 1) {
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
+    }
+    evt += "::write";
+    if (ibis::gVerbose > 1 && dt != 0) {
+        evt += '(';
+        evt += dt;
+        evt += ')';
+    }
     indexFileName(fnm, dt);
     if (fnm.empty()) {
 	return 0;
@@ -106,7 +118,7 @@ int ibis::slice::write(const char* dt) const {
     else if (0 != str && 0 != str->filename() &&
 	     0 == fnm.compare(str->filename())) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- slice::write can not overwrite the index file \""
+	    << "Warning -- " << evt << " can not overwrite the index file \""
 	    << fnm << "\" while it is used as a read-only file map";
 	return 0;
     }
@@ -122,8 +134,7 @@ int ibis::slice::write(const char* dt) const {
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- slice[" << col->partition()->name() << '.'
-		<< col->name() << "]::write failed to open \"" << fnm
+		<< "Warning -- " << evt << " failed to open \"" << fnm
 		<< "\" for writing";
 	    return -2;
 	}
@@ -131,6 +142,16 @@ int ibis::slice::write(const char* dt) const {
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
+#endif
+#if defined(HAVE_FLOCK)
+    ibis::util::flock flck(fdes);
+    if (flck.isLocked() == false) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to acquire an exclusive lock "
+            "on file " << fnm << " for writing, another thread must be "
+            "writing the index now";
+        return -6;
+    }
 #endif
 
 #ifdef FASTBIT_USE_LONG_OFFSETS
@@ -144,9 +165,8 @@ int ibis::slice::write(const char* dt) const {
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- slice[" << col->partition()->name() << "."
-	    << col->name() << "]::write(" << fnm
-	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
     if (useoffset64)
@@ -163,8 +183,7 @@ int ibis::slice::write(const char* dt) const {
 #endif
 
 	LOGGER(ibis::gVerbose > 3)
-	    << "slice[" << col->partition()->name() << "." << col->name()
-	    << "]::write wrote " << bits.size() << " bitmap"
+	    << evt << " wrote " << bits.size() << " bitmap"
 	    << (bits.size()>1?"s":"") << " to file " << fnm;
     }
     return ierr;

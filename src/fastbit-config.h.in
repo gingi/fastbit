@@ -19,6 +19,9 @@
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
+/* Define to 1 if you have the `flock' function. */
+#undef HAVE_FLOCK
+
 /* Define to 1 if support __sync_add_and_fetch() on 32-bit integers */
 #undef HAVE_GCC_ATOMIC32
 

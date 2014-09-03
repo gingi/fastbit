@@ -5530,6 +5530,11 @@ int ibis::bin::write(const char* dt) const {
     }
     evt += "::write";
     indexFileName(fnm, dt);
+    if (ibis::gVerbose > 1) {
+        evt += '(';
+        evt += fnm;
+        evt += ')';
+    }
     if (fnm.empty()) {
 	return 0;
     }
@@ -5552,20 +5557,20 @@ int ibis::bin::write(const char* dt) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << '(' << fnm
-            << ") received a std::exception - " << e.what();
+	    << "Warning -- " << evt
+            << " received a std::exception - " << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fnm
-            << ") received a string exception - " << s;
+	    << "Warning -- " << evt
+            << " received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fnm
-            << ") received a unknown exception";
+	    << "Warning -- " << evt
+            << " received a unknown exception";
 	return -4;
     }
 
@@ -5594,6 +5599,16 @@ int ibis::bin::write(const char* dt) const {
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
 #endif
+#if defined(HAVE_FLOCK)
+    ibis::util::flock flck(fdes);
+    if (flck.isLocked() == false) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to acquire an exclusive lock "
+            "on file " << fnm << " for writing, another thread must be "
+            "writing the index now";
+        return -6;
+    }
+#endif
 
     char header[] = "#IBIS\0\0\0";
     header[5] = (char)ibis::index::BINNING;
@@ -5601,8 +5616,8 @@ int ibis::bin::write(const char* dt) const {
     int ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fnm
-            << ") failed to write the 8-byte header, ierr = " << ierr;
+	    << "Warning -- " << evt
+            << " failed to write the 8-byte header, ierr = " << ierr;
 	return -6;
     }
 

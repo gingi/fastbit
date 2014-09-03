@@ -625,8 +625,20 @@ void ibis::direkte::print(std::ostream& out) const {
 
 /// Write the direct bitmap index to a file.
 int ibis::direkte::write(const char* dt) const {
-    std::string fnm;
+    std::string fnm, evt;
+    evt = "direkte";
+    if (col != 0 && ibis::gVerbose > 1) {
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
+    }
+    evt += "::write";
     indexFileName(fnm, dt);
+    if (ibis::gVerbose > 1) {
+        evt += '(';
+        evt += fnm;
+        evt += ')';
+    }
     if (fnm.empty()) {
 	return 0;
     }
@@ -642,7 +654,7 @@ int ibis::direkte::write(const char* dt) const {
 	    }
 	    else {
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- direkte::write can not overwrite the index "
+		    << "Warning -- " << evt << " can not overwrite the index "
 		    "file \"" << fnm
 		    << "\" while it is used as a read-only file map";
 		return 0;
@@ -667,8 +679,7 @@ int ibis::direkte::write(const char* dt) const {
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- direkte[" << (col ? col->fullname() : "?")
-		<< "]::write failed to open \"" << fnm
+		<< "Warning -- " << evt << " failed to open \"" << fnm
 		<< "\" for writing ... " << (errno ? strerror(errno) : 0);
 	    errno = 0;
 	    return -2;
@@ -677,6 +688,16 @@ int ibis::direkte::write(const char* dt) const {
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
     (void)_setmode(fdes, _O_BINARY);
+#endif
+#if defined(HAVE_FLOCK)
+    ibis::util::flock flck(fdes);
+    if (flck.isLocked() == false) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to acquire an exclusive lock "
+            "on file " << fnm << " for writing, another thread must be "
+            "writing the index now";
+        return -6;
+    }
 #endif
 
     int ierr = 0;
@@ -693,8 +714,7 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
-	    << "]::write(" << fnm << ") failed to write the 8-byte header, "
+	    << "Warning -- " << evt << " failed to write the 8-byte header, "
             "ierr = " << ierr;
 	return -3;
     }
@@ -702,8 +722,7 @@ int ibis::direkte::write(const char* dt) const {
     ierr += UnixWrite(fdes, &nobs,  sizeof(uint32_t));
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
-	    << "]::write(" << fnm << ") failed to write nrows and nobs, "
+	    << "Warning -- " << evt << " failed to write nrows and nobs, "
             "ierr = " << ierr;
 	return -4;
     }
@@ -712,8 +731,7 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixSeek(fdes, header[6]*(nobs+1), SEEK_CUR);
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
-	    << "]::write(" << fnm << ") failed to seek to " << offset64[0]
+	    << "Warning -- " << evt << " failed to seek to " << offset64[0]
             << ", ierr = " << ierr;
 	return -5;
     }
@@ -727,8 +745,7 @@ int ibis::direkte::write(const char* dt) const {
     ierr = UnixSeek(fdes, 16, SEEK_SET);
     if (ierr != 16) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
-            << "]::write(" << fnm << ") failed to seek to offset 16, ierr = "
+	    << "Warning -- " << evt << " failed to seek to offset 16, ierr = "
             << ierr;
 	return -6;
     }
@@ -745,8 +762,7 @@ int ibis::direkte::write(const char* dt) const {
     }
     if (ierr < (off_t)(header[6]*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- direkte[" << (col ? col->fullname() : "?.?")
-	    << "]::write(" << fnm << ") failed to write bitmap offsets, "
+	    << "Warning -- " << evt << " failed to write bitmap offsets, "
             "ierr = " << ierr;
 	return -7;
     }
@@ -759,8 +775,7 @@ int ibis::direkte::write(const char* dt) const {
 #endif
 
     LOGGER(ibis::gVerbose > 5)
-	<< "direkte[" << (col ? col->fullname() : "?.?")
-        << "]::write -- wrote " << nobs
+	<< evt << " wrote " << nobs
         << " bitmap" << (nobs>1?"s":"") << " to " << fnm;
     return 0;
 } // ibis::direkte::write

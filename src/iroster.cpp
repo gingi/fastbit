@@ -66,7 +66,19 @@ ibis::roster::roster(const ibis::column* c,
 int ibis::roster::write(const char* df) const {
     if (ind.empty()) return -1;
 
-    std::string fnm;
+    std::string fnm, evt;
+    evt = "roster";
+    if (col != 0 && ibis::gVerbose > 1) {
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
+    }
+    evt += "::write";
+    if (ibis::gVerbose > 1 && df != 0) {
+        evt += '(';
+        evt += df;
+        evt += ')';
+    }
     if (df == 0) {
 	fnm = col->partition()->currentDataDir();
 	fnm += FASTBIT_DIRSEP;
@@ -87,25 +99,36 @@ int ibis::roster::write(const char* df) const {
 	fnm[ierr-2] != 'n' || fnm[ierr-1] != 'd')
 	fnm += ".ind";
 
-    FILE* fptr = fopen(fnm.c_str(), "wb");
-    if (fptr == 0) {
+    int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+    if (fdes < 0) {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fptr = fopen(fnm.c_str(), "wb");
-	if (fptr == 0) {
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+	if (fdes < 0) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- roster::write failed to open \"" << fnm
+		<< "Warning -- " << evt << " failed to open \"" << fnm
 		<< "\" for write ... "
 		<< (errno ? strerror(errno) : "no free stdio stream");
 	    return -2;
 	}
     }
+#if defined(HAVE_FLOCK)
+    ibis::util::flock flck(fdes);
+    if (flck.isLocked() == false) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to acquire an exclusive lock "
+            "on file " << fnm << " for writing, another thread must be "
+            "writing the index now";
+        return -6;
+    }
+#endif
 
-    ierr = fwrite(reinterpret_cast<const void*>(ind.begin()),
-		  sizeof(uint32_t), ind.size(), fptr);
-    LOGGER(ierr != ind.size() && ibis::gVerbose > 0)
-	<< "Warning -- roster::write expected to write " << ind.size()
-	<< " words but only wrote " << ierr;
-    ierr = fclose(fptr);
+    ierr = UnixWrite(fdes, reinterpret_cast<const void*>(ind.begin()),
+                     sizeof(uint32_t)*ind.size());
+    LOGGER(ierr != sizeof(uint32_t)*ind.size() && ibis::gVerbose > 0)
+	<< "Warning -- " << evt << " expected to write "
+        << sizeof(uint32_t)*ind.size()
+	<< " bytes but only wrote " << ierr;
+    (void) UnixClose(fdes);
 
     return writeSorted(df);
 } // ibis::roster::write
