@@ -96,20 +96,20 @@ int ibis::roster::write(const char* df) const {
         fnm += col->name();
     ierr = fnm.size();
     if (fnm[ierr-4] != '.' || fnm[ierr-3] != 'i' ||
-        fnm[ierr-2] != 'n' || fnm[ierr-1] != 'd')
-        fnm += ".ind";
+	fnm[ierr-2] != 'n' || fnm[ierr-1] != 'd')
+	fnm += ".ind";
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-        ibis::fileManager::instance().flushFile(fnm.c_str());
-        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-        if (fdes < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << evt << " failed to open \"" << fnm
-                << "\" for write ... "
-                << (errno ? strerror(errno) : "no free stdio stream");
-            return -2;
-        }
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to open \"" << fnm
+		<< "\" for write ... "
+		<< (errno ? strerror(errno) : "no free stdio stream");
+	    return -2;
+	}
     }
 #if defined(HAVE_FLOCK)
     ibis::util::flock flck(fdes);
@@ -125,9 +125,9 @@ int ibis::roster::write(const char* df) const {
     ierr = UnixWrite(fdes, reinterpret_cast<const void*>(ind.begin()),
                      sizeof(uint32_t)*ind.size());
     LOGGER(ierr != sizeof(uint32_t)*ind.size() && ibis::gVerbose > 0)
-        << "Warning -- " << evt << " expected to write "
+	<< "Warning -- " << evt << " expected to write "
         << sizeof(uint32_t)*ind.size()
-        << " bytes but only wrote " << ierr;
+	<< " bytes but only wrote " << ierr;
     (void) UnixClose(fdes);
 
     return writeSorted(df);

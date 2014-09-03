@@ -141,11 +141,11 @@ int ibis::entre::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-             0 == fnm.compare(str->filename())) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " can not overwrite the index file \""
-            << fnm << "\" while it is used as a read-only file map";
-        return 0;
+	     0 == fnm.compare(str->filename())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not overwrite the index file \""
+	    << fnm << "\" while it is used as a read-only file map";
+	return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -158,8 +158,9 @@ int ibis::entre::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-	col->logWarning("entre::write", "failed to open \"%s\" for write",
-			fnm.c_str());
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to open \"" << fnm
+            << "\" for write";
 	return -2;
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
@@ -184,8 +185,8 @@ int ibis::entre::write(const char* dt) const {
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- entre[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
     if (useoffset64)
@@ -201,8 +202,7 @@ int ibis::entre::write(const char* dt) const {
 #endif
 #endif
 	LOGGER(ibis::gVerbose > 3)
-	    << "entre[" << col->fullname()
-	    << "]::write -- wrote " << nbits << " bitmap"
+	    << evt << " wrote " << nbits << " bitmap"
 	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
 	    << " object" << (nrows>1?"s":"");
     }

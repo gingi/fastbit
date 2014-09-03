@@ -5986,20 +5986,20 @@ int ibis::bin::write(const char* dt) const {
     }
     catch (const std::exception& e) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << '(' << fnm
-            << ") received a std::exception - " << e.what();
+	    << "Warning -- " << evt
+            << " received a std::exception - " << e.what();
 	return -2;
     }
     catch (const char* s) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fnm
-            << ") received a string exception - " << s;
+	    << "Warning -- " << evt
+            << " received a string exception - " << s;
 	return -3;
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fnm
-            << ") received a unknown exception";
+	    << "Warning -- " << evt
+            << " received a unknown exception";
 	return -4;
     }
 
@@ -6045,8 +6045,8 @@ int ibis::bin::write(const char* dt) const {
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fnm
-            << ") failed to write the 8-byte header, ierr = " << ierr;
+	    << "Warning -- " << evt
+            << " failed to write the 8-byte header, ierr = " << ierr;
 	return -6;
     }
 

@@ -2,6 +2,11 @@
 	* src/category.cpp: in ibis::text::stringSearch, adjust the LOGGER
 	statements to prevent the end of file being recognied as an error
 	(a problem reported by Marek mdmarek at gmail.com)
+	* src/util.h: add ibis::util::flock to wrap around posix function
+	flock, invoke util::flock to make sure an exclusive lock on the
+	index is acquired before attempting to write the actual content of
+	an index.  This is intended to address the problem reported by
+	Petr Velan.
 
 2014-09-02 John Wu <John dot Wu at ACM dot org>
 	* src/tafel.cpp: clarify the inline documentation on type handling

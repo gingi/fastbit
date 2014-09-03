@@ -141,11 +141,11 @@ int ibis::fade::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-             0 == fnm.compare(str->filename())) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " can not overwrite the index file \""
-            << fnm << "\" while it is used as a read-only file map";
-        return 0;
+	     0 == fnm.compare(str->filename())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not overwrite the index file \""
+	    << fnm << "\" while it is used as a read-only file map";
+	return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -193,7 +193,7 @@ int ibis::fade::write(const char* dt) const {
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fnm << ") failed to write "
+	    << "Warning -- " << evt << " failed to write "
 	    << "the 8-byte header to " << fnm << ", ierr = " << ierr;
 	return -3;
     }

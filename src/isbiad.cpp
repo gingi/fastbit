@@ -110,11 +110,11 @@ int ibis::sbiad::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-             0 == fnm.compare(str->filename())) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " can not overwrite the index file \""
-            << fnm << "\" while it is used as a read-only file map";
-        return 0;
+	     0 == fnm.compare(str->filename())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not overwrite the index file \""
+	    << fnm << "\" while it is used as a read-only file map";
+	return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -130,8 +130,9 @@ int ibis::sbiad::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("sbiad::write", "failed to open \"%s\" for write",
-			    fnm.c_str());
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " failed to open \"" << fnm
+                << "\" for writing";
 	    return -2;
 	}
     }
@@ -160,10 +161,10 @@ int ibis::sbiad::write(const char* dt) const {
     header[6] = (char)(useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt
-            << " failed to write the 8-byte header, ierr = " << ierr;
-        return -3;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt
+	    << " failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
     }
     if (useoffset64)
         ierr = ibis::fade::write64(fdes);
@@ -178,9 +179,9 @@ int ibis::sbiad::write(const char* dt) const {
         (void) _commit(fdes);
 #endif
 #endif
-        LOGGER(ierr >= 0 && ibis::gVerbose > 5)
-            << evt << " wrote " << bits.size() << " bitmap"
-            << (bits.size()>1?"s":"") << " to " << fnm;
+	LOGGER(ierr >= 0 && ibis::gVerbose > 5)
+	    << evt << " wrote " << bits.size() << " bitmap"
+	    << (bits.size()>1?"s":"") << " to " << fnm;
     }
     return ierr;
 } // ibis::sbiad::write

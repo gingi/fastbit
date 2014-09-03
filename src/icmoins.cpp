@@ -158,14 +158,14 @@ int ibis::moins::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-        ibis::fileManager::instance().flushFile(fnm.c_str());
-        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-        if (fdes < 0) {
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+	if (fdes < 0) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- " << evt << " failed to open \"" << fnm
                 << "\" for write";
-            return -2;
-        }
+	    return -2;
+	}
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -193,8 +193,8 @@ int ibis::moins::write(const char* dt) const {
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- moins[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
     if (useoffset64)
@@ -210,8 +210,7 @@ int ibis::moins::write(const char* dt) const {
 #endif
 #endif
 	LOGGER(ibis::gVerbose > 3)
-	    << "moins[" << col->fullname()
-	    << "]::write -- wrote " << nbits << " bitmap"
+	    << evt << " wrote " << nbits << " bitmap"
 	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
 	    << " object" << (nrows>1?"s":"");
     }

@@ -565,8 +565,9 @@ int ibis::keywords::write(const char* dt) const {
 	ibis::fileManager::instance().flushFile(fnm.c_str());
 	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
 	if (fdes < 0) {
-	    col->logWarning("keywords::write", "failed to open \"%s\"",
-			    fnm.c_str());
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " failed to open \"" << fnm
+                << "\" for writing";
 	    return -1;
 	}
     }
@@ -598,16 +599,16 @@ int ibis::keywords::write(const char* dt) const {
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write the 8-byte header, ierr = " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to write the 8-byte header, ierr = " << ierr;
 	return -3;
     }
     ierr  = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr += UnixWrite(fdes, &nobs,  sizeof(uint32_t));
     if (ierr < (off_t)(sizeof(uint32_t)*2)) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write nrows and nobs, ierr = " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to write nrows and nobs, ierr = " << ierr;
 	return -4;
     }
     offset64.resize(nobs+1);
@@ -615,8 +616,8 @@ int ibis::keywords::write(const char* dt) const {
     ierr = UnixSeek(fdes, header[6]*(nobs+1), SEEK_CUR);
     if (ierr != offset64[0]) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to seek to " << offset64[0] << ", ierr = " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to seek to " << offset64[0] << ", ierr = " << ierr;
 	return -5;
     }
     for (uint32_t i = 0; i < nobs; ++ i) {
@@ -628,8 +629,8 @@ int ibis::keywords::write(const char* dt) const {
     ierr = UnixSeek(fdes, 16, SEEK_SET);
     if (ierr != 16) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to seek to offset 16, ierr = " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to seek to offset 16, ierr = " << ierr;
 	return -6;
     }
     if (useoffset64) {
@@ -645,8 +646,8 @@ int ibis::keywords::write(const char* dt) const {
     }
     if (ierr < (off_t)(header[6]*(nobs+1))) {
 	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- keywords[" << col->fullname() << "]::write(" << fnm
-	    << ") failed to write bitmap offsets, ierr = " << ierr;
+	    << "Warning -- " << evt
+	    << " failed to write bitmap offsets, ierr = " << ierr;
 	return -7;
     }
 #if defined(FASTBIT_SYNC_WRITE)
@@ -658,7 +659,7 @@ int ibis::keywords::write(const char* dt) const {
 #endif
 
     LOGGER(ibis::gVerbose > 5)
-	<< "keywords[" << col->fullname() << "]::write -- wrote " << nobs
+	<< evt << " wrote " << nobs
         << " bitmap" << (nobs>1?"s":"") << " to " << fnm;
     return 0;
 } // ibis::keywords::write

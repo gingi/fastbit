@@ -292,11 +292,11 @@ int ibis::zone::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-             0 == fnm.compare(str->filename())) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " can not overwrite the index file \""
-            << fnm << "\" while it is used as a read-only file map";
-        return 0;
+	     0 == fnm.compare(str->filename())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not overwrite the index file \""
+	    << fnm << "\" while it is used as a read-only file map";
+	return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -305,15 +305,15 @@ int ibis::zone::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) { // try again
-        ibis::fileManager::instance().flushFile(fnm.c_str());
-        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-        if (fdes < 0) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << evt << " failed to open \"" << fnm
-                << "\" for writing " << (errno ? strerror(errno) : "??");
-            errno = 0;
-            return -2;
-        }
+	ibis::fileManager::instance().flushFile(fnm.c_str());
+	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+	if (fdes < 0) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to open \"" << fnm
+		<< "\" for writing " << (errno ? strerror(errno) : "??");
+	    errno = 0;
+	    return -2;
+	}
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -341,9 +341,9 @@ int ibis::zone::write(const char* dt) const {
     header[6] = (char)(useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt
-            << " failed to write the 8-byte header, ierr = " << ierr;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt
+	    << " failed to write the 8-byte header, ierr = " << ierr;
     }
     if (sub.size() == nobs) {
         if (useoffset64)
@@ -365,11 +365,11 @@ int ibis::zone::write(const char* dt) const {
         (void) _commit(fdes);
 #endif
 #endif
-        LOGGER(ibis::gVerbose > 3)
-            << evt << " wrote " << nobs
-            << (sub.size() == nobs ? " coarse" : "") << " bin"
-            << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
-            << " object" << (nrows>1?"s":"");
+	LOGGER(ibis::gVerbose > 3)
+	    << evt << " wrote " << nobs
+	    << (sub.size() == nobs ? " coarse" : "") << " bin"
+	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
+	    << " object" << (nrows>1?"s":"");
     }
     return ierr;
 } // ibis::zone::write

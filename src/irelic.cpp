@@ -361,11 +361,11 @@ int ibis::relic::write(const char* dt) const {
     }
     evt += "::write";
     if (vals.size() != bits.size()) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " expects vals.size(" << vals.size()
-            << ") and bits.size(" << bits.size()
-            << ") to be the same, but they are not";
-        return -1;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " expects vals.size(" << vals.size()
+	    << ") and bits.size(" << bits.size()
+	    << ") to be the same, but they are not";
+	return -1;
     }
 
     std::string fnm;
@@ -379,11 +379,11 @@ int ibis::relic::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-             0 == fnm.compare(str->filename())) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt << " can not overwrite the index file \""
-            << fnm << "\" while it is used as a read-only file map";
-        return 0;
+	     0 == fnm.compare(str->filename())) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt << " can not overwrite the index file \""
+	    << fnm << "\" while it is used as a read-only file map";
+	return 0;
     }
     if (fname != 0 && *fname != 0 && fnm.compare(fname) == 0) {
         activate(); // read everything into memory
@@ -430,10 +430,10 @@ int ibis::relic::write(const char* dt) const {
     header[6] = (char)(useoffset64 ? 8 : 4);
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-        LOGGER(ibis::gVerbose > 0)
-            << "Warning -- " << evt 
-            << " failed to write the 8-byte header, ierr = " << ierr;
-        return -3;
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- " << evt 
+	    << " failed to write the 8-byte header, ierr = " << ierr;
+	return -3;
     }
     if (useoffset64)
         ierr = write64(fdes); // write the bulk of the index file
