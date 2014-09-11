@@ -128,7 +128,8 @@ ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
 //// @note This function copies the pointers to the columns, it does not
 //// copy the columns themselves, therefore the column objects pointed by
 //// cols can not be deleted while this object is in use.
-ibis::bord::bord(const std::vector<ibis::bord::column*> &cols)
+ibis::bord::bord(const std::vector<ibis::bord::column*> &cols,
+                 uint32_t nr)
     : ibis::part("in-core") {
     if (cols.empty() || cols[0] == 0) return;
     std::ostringstream oss;
@@ -139,6 +140,7 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols)
         oss << ", " << cols[j]->name();
     m_desc = oss.str();
     desc_ = m_desc;
+    nEvents = nr;
     name_ = ibis::util::shortName(m_desc);
     m_name = ibis::util::strnewdup(name_.c_str());
 
@@ -148,52 +150,62 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols)
     case ibis::BYTE: {
         array_t<signed char> *buf =
             static_cast<array_t<signed char>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::UBYTE: {
         array_t<unsigned char> *buf =
             static_cast<array_t<unsigned char>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::SHORT: {
         array_t<int16_t> *buf =
             static_cast<array_t<int16_t>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::USHORT: {
         array_t<uint16_t> *buf =
             static_cast<array_t<uint16_t>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::INT: {
         array_t<int32_t> *buf =
             static_cast<array_t<int32_t>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::UINT: {
         array_t<uint32_t> *buf =
             static_cast<array_t<uint32_t>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::LONG: {
         array_t<int64_t> *buf =
             static_cast<array_t<int64_t>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::ULONG: {
         array_t<uint64_t> *buf =
             static_cast<array_t<uint64_t>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::FLOAT: {
         array_t<float> *buf =
             static_cast<array_t<float>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     case ibis::DOUBLE: {
         array_t<double> *buf =
             static_cast<array_t<double>*>(cols[0]->getArray());
-        nEvents = buf->size();
+        if (nEvents == 0 && buf != 0)
+            nEvents = buf->size();
         break;}
     }
 

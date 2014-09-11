@@ -199,7 +199,7 @@ public:
 
     // forward declarations
     class column;
-    bord(const std::vector<ibis::bord::column*> &cols);
+    bord(const std::vector<ibis::bord::column*> &cols, uint32_t nr=0);
 
 protected:
     /// Default constructor.  Creates a empty unnamed data partition.
