@@ -1,3 +1,8 @@
+2014-09-10 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: in constructor of bord, check the validify of
+	pointer buf before using (to address a problem reported by Jerome
+	Soumagne
+
 2014-09-03 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: in ibis::text::stringSearch, adjust the LOGGER
 	statements to prevent the end of file being recognied as an error
