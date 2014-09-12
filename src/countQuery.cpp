@@ -34,8 +34,12 @@
 int ibis::countQuery::setPartition(const part* tbl) {
     if (tbl == 0) return -1;
     if (tbl == mypart) return 0;
-    if (tbl->nRows() == 0 || tbl->nColumns() == 0 || tbl->name() == 0)
+    if (tbl->nRows() == 0 || tbl->nColumns() == 0 || tbl->name() == 0) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- countQuery::setPartition will not use an empty "
+            "data partition";
 	return -1;
+    }
 
     if (! conds.empty()) {
 	int ierr = conds.verify(*tbl, m_sel);
@@ -75,8 +79,12 @@ int ibis::countQuery::setPartition(const part* tbl) {
 /// This function may be called multiple times and each invocation will
 /// overwrite the previous where clause.
 int ibis::countQuery::setWhereClause(const char* str) {
-    if (str == 0 || *str == static_cast<char>(0))
+    if (str == 0 || *str == static_cast<char>(0)) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- countQuery::setWhereClause will not use an empty "
+            "where clause";
 	return -4; // invalid input where clause
+    }
     if (conds.getString() != 0 && stricmp(conds.getString(), str) == 0)
 	return 0; // no change in where clause
     int ret = 0;
@@ -137,7 +145,12 @@ int ibis::countQuery::setWhereClause(const char* str) {
 /// This function accepts a user constructed query expression object.  It
 /// can be used to bypass the parsing of where clause string.
 int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
-    if (qx == 0) return -4;
+    if (qx == 0) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- countQuery::setWhereClause will not use an empty "
+            "where clause";
+        return -4;
+    }
 
     ibis::whereClause wc;
     int ierr = 0;
@@ -184,8 +197,12 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
 /// also contain some records that are not hits.  Returns 0 for success, a
 /// negative value for error.
 int ibis::countQuery::estimate() {
-    if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
+    if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- countQuery::estimate() can not proceed on an "
+            "empty data partition";
 	return -1;
+    }
     ibis::util::timer mytime("countQuery::estimate", 2);
 #ifndef DONOT_REORDER_EXPRESSION
     if (conds.getExpr() != 0 && false == conds->directEval()) {
@@ -272,8 +289,12 @@ long ibis::countQuery::getMaxNumHits() const {
 ///
 /// Returns 0 for success, a negative value for error.
 int ibis::countQuery::evaluate() {
-    if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0)
+    if (mypart == 0 || mypart->nRows() == 0 || mypart->nColumns() == 0) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- countQuery::evaluate() can not proceed on an "
+            "empty data partition";
 	return -1;
+    }
     int ierr;
     ibis::util::timer mytime("countQuery::evaluate", 1);
 
@@ -363,8 +384,12 @@ long ibis::countQuery::getNumHits() const {
 /// a successful completion of this function, the return value should be
 /// the rids.size().
 long ibis::countQuery::getHitRows(std::vector<uint32_t> &rids) const {
-    if (hits == 0 || (cand != 0 && cand != hits))
+    if (hits == 0 || (cand != 0 && cand != hits)) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- countQuery::getHitRows can proceed because "
+            "the query is not fully resolved";
 	return -1; // no accurate solution yet
+    }
 
     long ierr = hits->cnt();
     try {
@@ -386,7 +411,7 @@ long ibis::countQuery::getHitRows(std::vector<uint32_t> &rids) const {
     }
     catch (...) {
 	LOGGER(ibis::gVerbose > 1)
-	    << "countQuery::getHitRows failed to extract the 1s in hits";
+	    << "Warning -- countQuery::getHitRows failed to extract the ids";
 	return -2;
     }
 } // ibis::countQuery::getHitRows

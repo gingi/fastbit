@@ -13,12 +13,9 @@
 #include <cctype>	// std::isspace
 #include <cstring>	// std::strcpy
 #include <stdio.h>	// sprintf, remove
-//#if HAVE_SYS_STAT_H
 #include <sys/stat.h>	// stat, mkdir, chmod
-//#endif
-//#if HAVE_FCNTL_H
+#include <sys/file.h>	// flock
 #include <fcntl.h>	// open, close
-//#endif
 #include <map>		// std::map
 #include <string>	// std::string
 #include <limits>	// std::numeric_limits

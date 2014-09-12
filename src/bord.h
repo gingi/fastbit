@@ -529,6 +529,7 @@ public:
     virtual ~column();
 
     virtual ibis::fileManager::storage* getRawData() const;
+    virtual bool hasRawData() const;
 
     using ibis::column::evaluateRange;
     virtual long evaluateRange(const ibis::qContinuousRange &cmp,

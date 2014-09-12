@@ -6775,7 +6775,7 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
 	LOGGER(ibis::gVerbose > 5)
 	    << "bin::estimate(" << expr << ") finds no hit";
     }
-    else if (cost > nrows*0.75) { // change to 0.75 based on a set of BP data
+    else if (col != 0 && col->hasRawData() && cost > nrows*0.75) {
 	lower.set(0, nrows);
 	upper.set(1, nrows);
 	LOGGER(ibis::gVerbose > 5)
@@ -6829,10 +6829,11 @@ uint32_t ibis::bin::estimate(const ibis::qContinuousRange& expr) const {
 	     || (offset32.size() > nobs && offset32[cand1] - offset32[cand0]
 		 <= (offset32[nobs] - offset32[0])/2)
 	     || 2*(cand1-cand0) <= nobs) {
-	if ((offset64.size() > nobs &&
-	     offset64[cand1] - offset64[cand0] > 0.75*nrows) ||
-	    (offset32.size() > nobs &&
-	     offset32[cand1] - offset32[cand0] > 0.75*nrows)) {
+	if (col != 0 && col->hasRawData() &&
+            ((offset64.size() > nobs &&
+              offset64[cand1] - offset64[cand0] > 0.75*nrows) ||
+             (offset32.size() > nobs &&
+              offset32[cand1] - offset32[cand0] > 0.75*nrows))) {
 	    nhits = nrows; // give to avoid costly operations
 	    LOGGER(ibis::gVerbose > 5)
 		<< "bin::estimate(" << expr << ") gives up to avoid costly "
@@ -6846,10 +6847,11 @@ uint32_t ibis::bin::estimate(const ibis::qContinuousRange& expr) const {
 	    }
 	}
     }
-    else if ((offset64.size() > nobs && offset64.back()-offset64.front()
-	      -offset64[cand1]+offset64[cand0] > 0.75*nrows) ||
-	     (offset32.size() > nobs && offset32.back()-offset32.front()
-	      -offset32[cand1]+offset32[cand0])) {
+    else if (col != 0 && col->hasRawData() &&
+             ((offset64.size() > nobs && offset64.back()-offset64.front()
+               -offset64[cand1]+offset64[cand0] > 0.75*nrows) ||
+              (offset32.size() > nobs && offset32.back()-offset32.front()
+               -offset32[cand1]+offset32[cand0]))) {
 	nhits = nrows;
 	LOGGER(ibis::gVerbose > 5)
 	    << "bin::estimate(" << expr << ") gives up to avoid costly "

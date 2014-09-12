@@ -482,6 +482,7 @@ ibis::bord::column* __fastbit_iapi_register_array_index_only
         return tmp;
     }
 
+    tmp->setDataflag(-2);
     tmp->setMeshShape(dims, nd);
     int ierr = tmp->attachIndex(keys, nkeys, offsets, noffsets, bms, rd);
     if (ierr < 0) {

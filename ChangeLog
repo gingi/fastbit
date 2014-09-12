@@ -1,3 +1,11 @@
+2014-09-11 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: in function attachIndex, set the mask to all 1s
+	if the existing mask is empty
+	* src/bord.cpp: in constructor of bord from a list of columns, ask
+	each column for the number of rows
+	* src/bord.h: add function ibis::bord::column::getDataflag and
+	ibis::bord::column::setDataflag
+
 2014-09-10 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: in constructor of bord, check the validify of
 	pointer buf before using (to address a problem reported by Jerome

@@ -1070,6 +1070,22 @@ int ibis::column::getValuesArray(void* vals) const {
     return ierr;
 } // ibis::column::getValuesArray
 
+/// Does the raw data file exist?
+bool ibis::column::hasRawData() const {
+    if (dataflag == 0) {
+        std::string sname;
+        const char* name = dataFileName(sname);
+        if (name == 0) return false;
+
+        const unsigned elm = elementSize();
+        if (elm == 0) return true;
+        return (elm*nRows() == ibis::util::getFileSize(name));
+    }
+    else {
+        return (dataflag > 0);
+    }
+} // ibis::column::hasRawData
+
 /// Return the content of base data file as a storage object.
 ibis::fileManager::storage* ibis::column::getRawData() const {
     if (dataflag < 0) return 0;
@@ -1101,7 +1117,8 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 /// of the selectTypes functions.
 ibis::array_t<signed char>*
 ibis::column::selectBytes(const ibis::bitvector& mask) const {
-    std::unique_ptr< ibis::array_t<signed char> > array(new array_t<signed char>);
+    std::unique_ptr< ibis::array_t<signed char> >
+        array(new array_t<signed char>);
     const uint32_t tot = mask.cnt();
     if (dataflag < 0 || tot == 0)
 	return array.release();
@@ -5577,11 +5594,15 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
         if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
             idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms, rd);
+            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
+                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else if (nkeys+1 == noffsets) {
             idx = new ibis::relic(this, static_cast<uint32_t>(nkeys),
                                   keys, offsets, bms, rd);
+            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
+                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else {
@@ -5615,11 +5636,15 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
         if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
             idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms);
+            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
+                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else if (nkeys+1 == noffsets) {
             idx = new ibis::relic(this, static_cast<uint32_t>(nkeys),
                                   keys, offsets, bms);
+            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
+                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else {

@@ -145,6 +145,9 @@ public:
     array_t<double>*  getDoubleArray() const;
     virtual int getValuesArray(void* vals) const;
     virtual ibis::fileManager::storage* getRawData() const;
+    virtual bool hasRawData() const;
+    int  getDataflag() const {return dataflag;}
+    void setDataflag(int df) {dataflag = df;}
 
     virtual array_t<signed char>*   selectBytes(const bitvector& mask) const;
     virtual array_t<unsigned char>* selectUBytes(const bitvector& mask) const;
