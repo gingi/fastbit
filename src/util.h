@@ -10,15 +10,16 @@
 #include "const.h"
 #include <stdlib.h>
 
-#include <cctype>       // std::isspace
-#include <cstring>      // std::strcpy
-#include <stdio.h>      // sprintf, remove
-#include <sys/stat.h>   // stat, mkdir, chmod
-#include <fcntl.h>      // open, close
-#include <map>          // std::map
-#include <string>       // std::string
-#include <limits>       // std::numeric_limits
-#include <sstream>      // std::ostringstream used by ibis::util::logger
+#include <cctype>	// std::isspace
+#include <cstring>	// std::strcpy
+#include <stdio.h>	// sprintf, remove
+#include <sys/stat.h>	// stat, mkdir, chmod
+#include <sys/file.h>	// flock
+#include <fcntl.h>	// open, close
+#include <map>		// std::map
+#include <string>	// std::string
+#include <limits>	// std::numeric_limits
+#include <sstream>	// std::ostringstream used by ibis::util::logger
 
 #include <float.h>
 #include <math.h>       // fabs, floor, ceil, log10, nextafter...

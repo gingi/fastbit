@@ -343,8 +343,12 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols,
         break;}
     }
 
-    if (! cols[0]->getMeshShape().empty())
+    if (! cols[0]->getMeshShape().empty()) {
         setMeshShape(cols[0]->getMeshShape());
+        nEvents = shapeSize[0];
+        for (unsigned j = 1; j < shapeSize.size(); ++ j)
+            nEvents *= shapeSize[j];
+    }
     colorder.reserve(cols.size());
 
     for (unsigned j = 0; j < cols.size(); ++ j) {
@@ -354,15 +358,19 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols,
             tmp->partition() = this;
             colorder.push_back(tmp);
             columns[tmp->name()] = tmp;
+            if (nEvents == 0)
+                nEvents = tmp->nRows();
         }
     }
-    state = ibis::part::STABLE_STATE;
+
     amask.set(1, nEvents);
+    state = ibis::part::STABLE_STATE;
     LOGGER(ibis::gVerbose > 1)
 	<< "Constructed in-memory data partition "
 	<< (m_name != 0 ? m_name : "<unnamed>") << " -- " << m_desc
 	<< " -- with " << columns.size() << " column"
-	<< (columns.size() > 1U ? "s" : "");
+	<< (columns.size() > 1U ? "s" : "") << " and " << nEvents
+        << " row" << (nEvents>1U ? "s" : "");
 } // ibis::bord::bord
 
 /// Constructor.  It produces an empty data partition for storing values to
@@ -5389,6 +5397,7 @@ ibis::bord::column::column(const ibis::bord *tbl, ibis::TYPE_T t,
         else {
             mask_.set(1, nr);
         }
+        dataflag = 1;
     }
     // else { // allocate buffer
     //     switch (m_type) {
@@ -5452,6 +5461,7 @@ ibis::bord::column::column(const ibis::bord *tbl,
 		   old.lowerBound(), old.upperBound()),
       buffer(st), xreader(0), xmeta(0), dic(0) {
     old.getNullMask(mask_);
+    dataflag = (st != 0 ? 1 : -1);
 } // ibis::bord::column::column
 
 /// Constructor.
@@ -5493,6 +5503,7 @@ ibis::bord::column::column(ibis::TYPE_T t, const char *nm, void *st,
         nt *= dim[j];
     if (nt <= 0x7FFFFFFFUL) {
         mask_.set(1, nt);
+        dataflag = (st != 0 ? 1 : -1);
     }
     else {
         LOGGER(ibis::gVerbose > 0)
@@ -5591,6 +5602,7 @@ ibis::bord::column::column(const ibis::bord::column &c)
             << c.name() << ") with type " << ibis::TYPESTRING[(int)c.type()];
         break;}
     }
+    dataflag = (buffer != 0 ? 1 : -1);
 } // ibis::bord::column::column
 
 ibis::bord::column::~column() {
@@ -5626,6 +5638,12 @@ ibis::bord::column::getRawData() const {
             ierr = xreader(xmeta, shape.size(), starts.begin(),
                            const_cast<uint64_t*>(shape.begin()),
                            tmp->begin());
+            if (ierr >= 0) {
+                const_cast<ibis::bord::column*>(this)->setDataflag(1);
+                const_cast<ibis::bord::column*>(this)->buffer = tmp;
+                str = tmp->getStorage();
+                return str;
+            }
             break;}
         }
     }
@@ -12199,6 +12217,12 @@ int ibis::bord::column::setMeshShape(uint64_t *dims, uint64_t nd) {
     shape.insert(shape.end(), dims, dims+nd);
     return 0;
 } // ibis::bord::column::setMeshShape
+
+bool ibis::bord::column::hasRawData() const {
+    if (dataflag == 0)
+        dataflag = (buffer != 0 ? 1 : -1);
+    return (dataflag > 0);
+} // ibis::bord::column::hasRawData
 
 /// Constructor.  It retrieves the columns from the table object using that
 /// function ibis::part::getColumn(uint32_t), which preserves the order

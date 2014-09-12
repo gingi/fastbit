@@ -38,7 +38,7 @@ int ibis::countQuery::setPartition(const part* tbl) {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::setPartition will not use an empty "
             "data partition";
-        return -1;
+	return -1;
     }
 
     if (! conds.empty()) {
@@ -83,7 +83,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::setWhereClause will not use an empty "
             "where clause";
-        return -4; // invalid input where clause
+	return -4; // invalid input where clause
     }
     if (conds.getString() != 0 && stricmp(conds.getString(), str) == 0)
         return 0; // no change in where clause
@@ -202,7 +202,7 @@ int ibis::countQuery::estimate() {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::estimate() can not proceed on an "
             "empty data partition";
-        return -1;
+	return -1;
     }
     ibis::util::timer mytime("countQuery::estimate", 2);
 #ifndef DONOT_REORDER_EXPRESSION
@@ -294,7 +294,7 @@ int ibis::countQuery::evaluate() {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::evaluate() can not proceed on an "
             "empty data partition";
-        return -1;
+	return -1;
     }
     int ierr;
     ibis::util::timer mytime("countQuery::evaluate", 1);
@@ -389,7 +389,7 @@ long ibis::countQuery::getHitRows(std::vector<uint32_t> &rids) const {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::getHitRows can proceed because "
             "the query is not fully resolved";
-        return -1; // no accurate solution yet
+	return -1; // no accurate solution yet
     }
 
     long ierr = hits->cnt();
@@ -411,9 +411,9 @@ long ibis::countQuery::getHitRows(std::vector<uint32_t> &rids) const {
         return ierr;
     }
     catch (...) {
-        LOGGER(ibis::gVerbose > 1)
-            << "Warning -- countQuery::getHitRows failed to extract the ids";
-        return -2;
+	LOGGER(ibis::gVerbose > 1)
+	    << "Warning -- countQuery::getHitRows failed to extract the ids";
+	return -2;
     }
 } // ibis::countQuery::getHitRows
 

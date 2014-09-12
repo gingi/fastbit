@@ -7199,17 +7199,17 @@ void ibis::bin::estimate(const ibis::qContinuousRange& expr,
     }
 #endif
     if (cand0 >= cand1) {
-        lower.set(0, nrows);
-        upper.set(0, nrows);
-        LOGGER(ibis::gVerbose > 5)
-            << "bin::estimate(" << expr << ") finds no hit";
+	lower.set(0, nrows);
+	upper.set(0, nrows);
+	LOGGER(ibis::gVerbose > 5)
+	    << "bin::estimate(" << expr << ") finds no hit";
     }
     else if (col != 0 && col->hasRawData() && cost > nrows*0.75) {
-        lower.set(0, nrows);
-        upper.set(1, nrows);
-        LOGGER(ibis::gVerbose > 5)
-            << "bin::estimate(" << expr << ") gives up to avoid costly "
-            "operations involving the index";
+	lower.set(0, nrows);
+	upper.set(1, nrows);
+	LOGGER(ibis::gVerbose > 5)
+	    << "bin::estimate(" << expr << ") gives up to avoid costly "
+	    "operations involving the index";
     }
     else if (hit0 < hit1) {
         sumBins(hit0, hit1, lower);
@@ -7260,37 +7260,37 @@ uint32_t ibis::bin::estimate(const ibis::qContinuousRange& expr) const {
         nhits = 0;
     }
     else if ((offset64.size() > nobs && offset64[cand1] - offset64[cand0]
-              <= (offset64[nobs] - offset64[0])/2)
-             || (offset32.size() > nobs && offset32[cand1] - offset32[cand0]
-                 <= (offset32[nobs] - offset32[0])/2)
-             || 2*(cand1-cand0) <= nobs) {
-        if (col != 0 && col->hasRawData() &&
+	      <= (offset64[nobs] - offset64[0])/2)
+	     || (offset32.size() > nobs && offset32[cand1] - offset32[cand0]
+		 <= (offset32[nobs] - offset32[0])/2)
+	     || 2*(cand1-cand0) <= nobs) {
+	if (col != 0 && col->hasRawData() &&
             ((offset64.size() > nobs &&
               offset64[cand1] - offset64[cand0] > 0.75*nrows) ||
              (offset32.size() > nobs &&
               offset32[cand1] - offset32[cand0] > 0.75*nrows))) {
-            nhits = nrows; // give to avoid costly operations
-            LOGGER(ibis::gVerbose > 5)
-                << "bin::estimate(" << expr << ") gives up to avoid costly "
-                "operations";
-        }
-        else {
-            activate(cand0, cand1);
-            for (uint32_t i=cand0; i < cand1; ++i) {
-                if (bits[i])
-                    nhits += bits[i]->cnt();
-            }
-        }
+	    nhits = nrows; // give to avoid costly operations
+	    LOGGER(ibis::gVerbose > 5)
+		<< "bin::estimate(" << expr << ") gives up to avoid costly "
+		"operations";
+	}
+	else {
+	    activate(cand0, cand1);
+	    for (uint32_t i=cand0; i < cand1; ++i) {
+		if (bits[i])
+		    nhits += bits[i]->cnt();
+	    }
+	}
     }
     else if (col != 0 && col->hasRawData() &&
              ((offset64.size() > nobs && offset64.back()-offset64.front()
                -offset64[cand1]+offset64[cand0] > 0.75*nrows) ||
               (offset32.size() > nobs && offset32.back()-offset32.front()
                -offset32[cand1]+offset32[cand0]))) {
-        nhits = nrows;
-        LOGGER(ibis::gVerbose > 5)
-            << "bin::estimate(" << expr << ") gives up to avoid costly "
-            "operations";
+	nhits = nrows;
+	LOGGER(ibis::gVerbose > 5)
+	    << "bin::estimate(" << expr << ") gives up to avoid costly "
+	    "operations";
     }
     else { // use complements
 	nhits = 0;

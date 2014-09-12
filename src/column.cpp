@@ -1112,7 +1112,8 @@ ibis::fileManager::storage* ibis::column::getRawData() const {
 /// of the selectTypes functions.
 ibis::array_t<signed char>*
 ibis::column::selectBytes(const ibis::bitvector& mask) const {
-    std::unique_ptr< ibis::array_t<signed char> > array(new array_t<signed char>);
+    std::unique_ptr< ibis::array_t<signed char> >
+        array(new array_t<signed char>);
     const uint32_t tot = mask.cnt();
     if (dataflag < 0 || tot == 0)
 	return array.release();
@@ -5636,11 +5637,15 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
         if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
             idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms, rd);
+            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
+                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else if (nkeys+1 == noffsets) {
             idx = new ibis::relic(this, static_cast<uint32_t>(nkeys),
                                   keys, offsets, bms, rd);
+            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
+                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else {
@@ -5674,11 +5679,15 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
         if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
             idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms);
+            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
+                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else if (nkeys+1 == noffsets) {
             idx = new ibis::relic(this, static_cast<uint32_t>(nkeys),
                                   keys, offsets, bms);
+            if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)
+                const_cast<ibis::bitvector&>(mask_).set(1, idx->getNRows());
             return 0;
         }
         else {
