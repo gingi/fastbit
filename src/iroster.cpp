@@ -38,7 +38,7 @@ ibis::roster::roster(const ibis::column* c, const char* dir)
 	    oocSort(dir);	// out of core sorting
     }
 
-    if (ibis::gVerbose > 4 && (ind.size() > 0 || inddes >= 0)) {
+    if (ibis::gVerbose > 6 && (ind.size() > 0 || inddes >= 0)) {
 	ibis::util::logger lg;
 	print(lg());
     }
@@ -52,7 +52,7 @@ ibis::roster::roster(const ibis::column* c,
 		     uint32_t offset)
     : col(c), ind(st, offset, offset+sizeof(uint32_t)*c->partition()->nRows()),
       inddes(-1) {
-    if (ibis::gVerbose > 8) {
+    if (ibis::gVerbose > 6) {
 	ibis::util::logger lg;
 	print(lg());
     }

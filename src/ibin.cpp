@@ -107,7 +107,7 @@ ibis::bin::bin(const ibis::column* c, const char* f)
 		 << "]::ctor -- initialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 8) {
+	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -157,7 +157,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 		 << "]::ctor -- intialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 8) {
+	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -206,7 +206,7 @@ ibis::bin::bin(const ibis::column* c, const char* f,
 		 << "]::ctor -- intialization completed with "
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 8) {
+	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -231,7 +231,7 @@ ibis::bin::bin(const ibis::bin& rhs)
              << "]::ctor -- initialization completed copying "
              << nobs << " bin" << (nobs>1?"s":"") << " for "
              << nrows << " row" << (nrows>1?"s":"");
-        if (ibis::gVerbose > 8) {
+        if (ibis::gVerbose > 6) {
             lg() << "\n";
             print(lg());
         }
@@ -294,7 +294,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
 		 << nobs << " bin" << (nobs>1?"s":"") << " for "
 		 << nrows << " row" << (nrows>1?"s":"")
 		 << " from a storage object @ " << st << " offset " << start;
-	    if (ibis::gVerbose > 8) {
+	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -347,7 +347,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
 	     << nobs << " bin" << (nobs>1?"s":"") << " for "
 	     << nrows << " row" << (nrows>1?"s":"")
 	     << " from a storage object @ " << st << " offset " << start;
-	if (ibis::gVerbose > 8) {
+	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
 	}
@@ -386,7 +386,7 @@ ibis::bin::bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
 	     << nobs << " bin" << (nobs>1?"s":"") << " for "
 	     << nrows << " row" << (nrows>1?"s":"")
              << " with serialized bitmaps @ " << static_cast<void*>(bms);
-	if (ibis::gVerbose > 8) {
+	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
 	}
@@ -420,8 +420,8 @@ ibis::bin::bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs,
 	     << "]::ctor -- initialization completed with "
 	     << nobs << " bin" << (nobs>1?"s":"") << " for "
 	     << nrows << " row" << (nrows>1?"s":"")
-	     << " from metadata @ " << bms;
-	if (ibis::gVerbose > 8) {
+	     << " from a FastBitReadBitmaps object @ " << bms;
+	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
 	}
@@ -453,7 +453,7 @@ ibis::bin::bin(const ibis::column* c, uint32_t nb, double *keys, int64_t *offs)
 	     << "]::ctor -- initialization completed with "
 	     << nobs << " bin" << (nobs>1?"s":"") << " for "
 	     << nrows << " row" << (nrows>1?"s":"");
-	if (ibis::gVerbose > 8) {
+	if (ibis::gVerbose > 6) {
 	    lg() << "\n";
 	    print(lg());
 	}
@@ -6032,7 +6032,7 @@ void ibis::bin::print(std::ostream& out) const {
     npr = (npr > nobs ? nobs : npr) - 1;
     uint32_t omt = 0;
 
-    // activate(); -- activate may invoke ioLock which causes problems
+    // activate(); -- activate may invoke ioLock and cause deadlocking
     out << "index (equality encoded, binned) for "
         << (col ? col->fullname() : "?")
 	<< " contains " << nobs << " bitvectors for "
@@ -6660,7 +6660,7 @@ long ibis::bin::evaluate(const ibis::qContinuousRange& expr,
 	}
 	if (mask.size() <= nrows && mask.cnt() > 0) {
 	    ibis::bitvector delta;
-            if (col != 0 && col->partition() != 0)
+            if (col != 0 && col->hasRawData())
                 ierr1 = col->partition()->doScan(expr, mask, delta);
             else
                 ierr1 = -4;

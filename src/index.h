@@ -459,10 +459,10 @@ public:
     bitmapReader(void *ctx, FastBitReadBitmaps rd)
         : _context(ctx), _reader(rd) {}
 
-    /// The main function to the serialized bitmaps.  It assumes the
+    /// The main function to read the serialized bitmaps.  It assumes the
     /// bitmaps have been serialized and packed into a 1-D array of type
     /// uint32_t.  This function intends to read @c c elements start with
-    /// @c b.  It uses the buffer object to hold the in-memory data so that
+    /// @c b.  It uses the buffer @c buf to hold the in-memory data so that
     /// the memory can be resized as needed and tracked by the file
     /// manager.
     int read(uint64_t b, uint64_t c, ibis::fileManager::buffer<uint32_t> &buf) {
@@ -480,6 +480,29 @@ public:
         }
 
         return _reader(_context, b, c, buf.address());
+    }
+
+    /// The main function to read the serialized bitmaps.  It assumes the
+    /// bitmaps have been serialized and packed into a 1-D array of type
+    /// uint32_t.  This function intends to read @c c elements start with
+    /// @c b.  It uses the array @c buf to hold the in-memory data so that
+    /// the memory can be resized as needed and tracked by the file
+    /// manager.
+    int read(uint64_t b, uint64_t c, ibis::array_t<uint32_t> &buf) {
+        if (c == 0) return 0; // nothing to read
+        if (buf.size() < c) {
+            buf.resize(c);
+            if (buf.size() < c) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- bitmapReader(" << _context << ", "
+                    << reinterpret_cast<void*>(_reader) << ") failed to "
+                    "allocate enough space to read " << c << " elements "
+                    "from the given context";
+                return -1;
+            }
+        }
+
+        return _reader(_context, b, c, buf.begin());
     }
 
 private:

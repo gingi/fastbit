@@ -107,7 +107,7 @@ ibis::relic::relic(const ibis::column *c, const char *f)
 		 << "]::ctor -- intialized an equality index with "
 		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
 		 << " for " << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 8) {
+	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -255,7 +255,7 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
 		 << " for " << nrows << " row" << (nrows>1?"s":"")
 		 << " from a storage object @ " << st << " starting at "
 		 << start;
-	    if (ibis::gVerbose > 8) {
+	    if (ibis::gVerbose > 6) {
 		lg() << "\n";
 		print(lg());
 	    }
@@ -300,7 +300,7 @@ ibis::relic::relic(const ibis::column* c, uint32_t nb, double *kvs,
              << bits.size() << " bitmap" << (bits.size()>1?"s":"")
              << " for " << nrows << " row" << (nrows>1?"s":"")
              << " from a storage object @ " << static_cast<void*>(bms);
-        if (ibis::gVerbose > 8) {
+        if (ibis::gVerbose > 6) {
             lg() << "\n";
             print(lg());
         }
@@ -323,7 +323,7 @@ ibis::relic::relic(const ibis::column* c, uint32_t nb, double *kvs,
              << bits.size() << " bitmap" << (bits.size()>1?"s":"")
              << " for " << nrows << " row" << (nrows>1?"s":"")
              << " from a storage object @ " << static_cast<void*>(bms);
-        if (ibis::gVerbose > 8) {
+        if (ibis::gVerbose > 6) {
             lg() << "\n";
             print(lg());
         }
@@ -338,7 +338,7 @@ ibis::relic::relic(const ibis::relic &rhs) : ibis::index(rhs), vals(rhs.vals) {
              << "]::ctor -- intialized an equality index with "
              << bits.size() << " bitmap" << (bits.size()>1?"s":"")
              << " for " << nrows << " row" << (nrows>1?"s":"");
-        if (ibis::gVerbose > 8) {
+        if (ibis::gVerbose > 6) {
             lg() << "\n";
             print(lg());
         }

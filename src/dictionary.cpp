@@ -487,7 +487,9 @@ int ibis::dictionary::readKeys1(const char *evt, FILE *fptr) {
 	return -9;
     }
     raw_.resize(nkeys+1);
-    key_.reserve(nkeys+nkeys);
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 7) 
+    key_.reserve(nkeys+nkeys); // older version does not have reserve
+#endif
     for (unsigned j = 0; j < nkeys; ++ j) {
 	raw_[j+1] = buffer_[0] + (offsets[j] - offsets[0]);
         key_[raw_[j+1]] = j+1;

@@ -141,7 +141,7 @@ int mergeDir(char *input_dir, char *output_dir) {
 	    if (dump_mode) {
 		if ((fd = fopen(path, "a")) != NULL) {
 		    for(unsigned j=0; j<part.nRows()-1; j++)
-			fprintf(fd, "%lu\n", s64[j]);
+			fprintf(fd, "%llu\n", s64[j]);
 		    fclose(fd);
 		}
 	    } else {

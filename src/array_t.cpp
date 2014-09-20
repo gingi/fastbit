@@ -108,7 +108,8 @@ ibis::array_t<T>::array_t(size_t n, const T& val)
     }
 }
 
-/// Constructor.  Copy the values from a vector to array_t.
+/// Constructor.  Copy the values from a vector to array_t, i.e., deep
+/// copy.
 template<class T>
 ibis::array_t<T>::array_t(const std::vector<T>& rhs)
     : actual(new ibis::fileManager::storage(rhs.size()*sizeof(T))),
@@ -178,7 +179,8 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs, const size_t begin,
 }
 
 /// Turn a raw storage object into an array_t object.  The input storage
-/// object is used by the array.  No new storage is allocated.
+/// object is used by the array.  No new storage is allocated, i.e.,
+/// shallow copy.
 template<class T>
 ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
     : actual(rhs), m_begin((T*)(rhs->begin())), m_end((T*)(rhs->end())) {
@@ -198,7 +200,7 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
 }
 
 /// Construct an array from a section of the raw storage.  No new storage
-/// is allocated.
+/// is allocated, i.e., shallow copy.
 ///
 /// @note The arguments @c start and @c end are offsets into the raw
 /// storage measured in number of bytes, NOT the number of elements of type
@@ -322,7 +324,8 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
 	<< " beginning at " << begin << " ending at " << end;
 }
 
-/// Constructor.  Directly use the raw pointer provided.
+/// Constructor.  Directly use the raw pointer provided, i.e., shallow
+/// copy.
 ///
 /// @note The second argument is the number of elements starting at the
 /// given address.

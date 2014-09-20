@@ -1,3 +1,17 @@
+2014-09-20 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: when activate a set of bitvectors between i and
+	j, the offsets for buf was computed incorrectly, which leads to
+	wrong bitvectors being reconstructed
+
+2014-09-17 John Wu <John dot Wu at ACM dot org>
+	* src/index.h: add a new variant of index::bitmapReader::read that
+	takes array_t<uint32_t>
+	* src/bitvector.h: add new constructor of bitvector that uses a
+	part of an array_t object
+	* src/index.cpp: use array_t<uint32_t> with index::bitmapReader so
+	that temporary storage could be reference counted, to address the
+	problem reported by Jerome Soumagne
+
 2014-09-11 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: in function attachIndex, set the mask to all 1s
 	if the existing mask is empty

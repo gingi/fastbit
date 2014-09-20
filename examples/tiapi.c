@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+static int msglvl=0;
 void usage(const char *name) {
     fprintf(stdout, "A simple tester for the in-memory API of %s\n\nusage\n"
 	    "%s [maxsize] [verboseness-level]",
@@ -91,47 +92,47 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
 
     ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
     if (ierr < 0) {
-        fflush(0);
         printf("Warning -- fastbit_iapi_register_array failed to register a1, "
                "ierr = %ld\n", ierr);
+        fflush(0);
         return;
     }
     ierr = fastbit_iapi_register_array("a2", FastBitDataTypeInt, a2, n);
     if (ierr < 0) {
-        fflush(0);
         printf("Warning -- fastbit_iapi_register_array failed to register a2, "
                "ierr = %ld\n", ierr);
+        fflush(0);
         return;
     }
     ierr = fastbit_iapi_register_array_ext
         ("a3", FastBitDataTypeDouble, &(dbl.n), 1, &dbl, mydblreader);
     if (ierr < 0) {
-        fflush(0);
         printf("Warning -- fastbit_iapi_register_array failed to register a3, "
                "ierr = %ld\n", ierr);
+        fflush(0);
         return;
     }
 
     /* build index on a1, automatically attached */
     ierr = fastbit_iapi_build_index("a1", "<binning none/>");
     if (ierr < 0) {
-        fflush(0);
         printf("Warning -- fastbit_iapi_build_index failed to create index "
                "for a1, ierr=%ld\n", ierr);
+        fflush(0);
     }
 
     h1 = fastbit_selection_osr("a1", FastBitCompareLess, b1);
     ierr = fastbit_selection_estimate(h1);
     if (ierr < 0) {
-        fflush(0);
         printf("Warning -- fastbit_selection_estimate(a1 < %d) returned %ld\n",
                 (int)b1, ierr);
+        fflush(0);
     }
     ierr = fastbit_selection_evaluate(h1);
     if (ierr < 0) {
-        fflush(0);
         printf("Warning -- fastbit_selection_evaluate(a1 < %d) returned %ld\n",
                 (int)b1, ierr);
+        fflush(0);
     }
     else {
         long int n1 = ierr;
@@ -142,23 +143,23 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             expected = b1;
         expected += b1 * (n >> 15);
         if (ierr != expected) {
-            fflush(0);
             printf("Warning -- fastbit_selection_evaluate(a1 < %d) expected "
                    "%ld, but got %ld\n", (int)b1, expected, ierr);
+            fflush(0);
         }
         else {
-            fflush(0);
             printf("fastbit_selection_evaluate(a1 < %d) returned %ld as "
                    "expected\n", (int)b1, ierr);
+            fflush(0);
         }
 
         if (n1 > 0) {
             ierr = fastbit_selection_read
                 (FastBitDataTypeShort, a1, n, h1, buf1, n1, 0U);
             if (ierr != n1) {
-                fflush(0);
                 printf("Warning -- fastbit_selection_read expected to read %ld "
                        "element(s) of a1, but %ld\n", n1, ierr);
+                fflush(0);
             }
             if (ierr > 0) {
                 printf("read a1 where (a1 < %d) got:", (int)b1);
@@ -170,15 +171,16 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             ierr = fastbit_selection_read
                 (FastBitDataTypeDouble, a3, n, h1, buf3, n1, 0U);
             if (ierr != n1) {
-                fflush(0);
                 printf("Warning -- fastbit_selection_read expected to read %ld "
                        "element(s) of a3, but %ld\n", n1, ierr);
+                fflush(0);
             }
             if (ierr > 0) {
                 printf("read a3 where (a1 < %d) got:", (int)b1);
                 for (i = 0; i < ierr; ++ i)
                     printf(" %.2lf", buf3[i]);
                 printf("\n\n");
+                fflush(0);
             }
         }
         free(buf1);
@@ -192,6 +194,25 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
         ierr = fastbit_iapi_deconstruct_index
             ("a1", &keys, &nk, &offsets, &nf, &bms, &nb);
         if (ierr >= 0) {
+            if (msglvl > 3) {
+                fflush(0);
+                printf("fastbit_iapi_deconstruct_index returned nk=%lld, "
+                       "nf=%lld, and nb=%lld\n", nk, nf, nb);
+                if (nk==2*(nf-1)) { // binned index
+                    for (i = 0; i < nf-1; ++ i) {
+                        printf("[%lg, %lg) [%lli, %lli)\n", keys[i],
+                               keys[nf-1+i], offsets[i], offsets[i+1]);
+                    }
+                }
+                else { // unbinned
+                    for (i = 0; i < nf-1; ++ i) {
+                        printf("[%lg] [%lli, %lli)\n", keys[i],
+                               offsets[i], offsets[i+1]);
+                    }
+                }
+                fflush(0);
+            }
+
             fastbit_iapi_free_array("a1");
             ierr = fastbit_iapi_register_array_index_only
                 ("a1", FastBitDataTypeShort, &nv, 1,
@@ -254,43 +275,45 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             }
         }
         if (ierr != expected) {
-            fflush(0);
             printf("Warning -- fastbit_selection_evaluate(...) expected %ld, "
                    "but got %ld\n", expected, ierr);
+            fflush(0);
         }
         else {
-            fflush(0);
             printf("fastbit_selection_evaluate(...) returned %ld as expected\n",
                    ierr);
+            fflush(0);
         }
 
         if (n1 > 0) {
             ierr = fastbit_selection_read
                 (FastBitDataTypeShort, a1, n, h5, buf1, n1, 0U);
             if (ierr != n1) {
-                fflush(0);
                 printf("Warning -- fastbit_selection_read expected to read %ld "
                        "element(s) of a1, but %ld\n", n1, ierr);
+                fflush(0);
             }
             if (ierr > 0) {
                 printf("read a1 where (...) got:");
                 for (i = 0; i < ierr; ++ i)
                     printf(" %d", (int)buf1[i]);
                 printf("\n");
+                fflush(0);
             }
 
             ierr = fastbit_selection_read
                 (FastBitDataTypeDouble, a3, n, h5, buf3, n1, 0U);
             if (ierr != n1) {
-                fflush(0);
                 printf("Warning -- fastbit_selection_read expected to read %ld "
                        "element(s) of a3, but %ld\n", n1, ierr);
+                fflush(0);
             }
             if (ierr > 0) {
                 printf("read a3 where (a1 < %d) got:", (int)b1);
                 for (i = 0; i < ierr; ++ i)
                     printf(" %.2lf", buf3[i]);
                 printf("\n\n");
+                fflush(0);
             }
         }
 
@@ -306,7 +329,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
 
 int main(int argc, char **argv) {
     long int k, nmax=1000;
-    int ierr, msglvl=0;
+    int ierr;
     const char *conffile=0;
     int16_t *a1;
     int32_t *a2;

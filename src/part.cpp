@@ -3520,8 +3520,9 @@ long ibis::part::evaluateRange(const ibis::qContinuousRange &cmp,
 	hits.set(0, nEvents);
     }
 
-    LOGGER(ibis::gVerbose > 7)
-	<< evt << " completed with ierr = " << ierr;
+    LOGGER(ibis::gVerbose > 7 || (ibis::gVerbose > 1 && ierr < 0))
+	<< (ierr<0?"Waring -- ":"") << evt << " completed with ierr = "
+        << ierr;
     return ierr;
 } // ibis::part::evaluateRange
 
