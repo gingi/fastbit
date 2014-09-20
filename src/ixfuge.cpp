@@ -624,11 +624,11 @@ long ibis::fuge::evaluate(const ibis::qContinuousRange& expr,
     if (tmp.size() == lower.size() && tmp.cnt() > lower.cnt()) {
         if (col == 0 || col->hasRawData() == false) return -1;
 
-        tmp -= lower;
-        ibis::bitvector delta;
-        col->partition()->doScan(expr, tmp, delta);
-        if (delta.size() == lower.size() && delta.cnt() > 0)
-            lower |= delta;
+	tmp -= lower;
+	ibis::bitvector delta;
+	col->partition()->doScan(expr, tmp, delta);
+	if (delta.size() == lower.size() && delta.cnt() > 0)
+	    lower |= delta;
     }
     return lower.cnt();
 } // ibis::fuge::evaluate

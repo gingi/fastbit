@@ -70,6 +70,8 @@ public:
     bitvector(const bitvector& bv);
     explicit bitvector(const char* file);
     explicit bitvector(const array_t<word_t>& arr);
+    explicit bitvector(const array_t<word_t>& arr, const size_t begin,
+                       const size_t end);
     explicit bitvector(word_t*, size_t);
 
     inline const bitvector& operator=(const bitvector& bv);

@@ -5840,17 +5840,22 @@ long ibis::bord::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	{ // use a block to limit the scope of index lock
 	    indexLock lock(this, evt.c_str());
 	    if (idx != 0) {
-		double cost = idx->estimateCost(cmp);
-		// use index only if the cost of using its estimate cost is
-		// less than N/2 bytes
-		if (cost < mask.size() * 0.5 + 999.0) {
-		    idx->estimate(cmp, res, bv2);
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 1)
-			<< evt << " will not use the index because the cost ("
-			<< cost << ") is too high";
-		}
+                if (hasRawData()) {
+                    double cost = idx->estimateCost(cmp);
+                    // use index only if the cost of using its estimate cost is
+                    // less than N/2 bytes
+                    if (cost < mask.size() * 0.5 + 999.0) {
+                        idx->estimate(cmp, res, bv2);
+                    }
+                    else {
+                        LOGGER(ibis::gVerbose > 1)
+                            << evt << " will not use the index because the "
+                            "cost (" << cost << ") is too high";
+                    }
+                }
+                else { // no raw data, must use index
+                    idx->estimate(cmp, res, bv2);
+                }
 	    }
 	    else if (m_sorted) {
 		ierr = searchSorted(cmp, res);
@@ -6077,8 +6082,8 @@ long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     }
 
     try {
-        indexLock lock(this, evt.c_str());
-        if (idx != 0) {
+	indexLock lock(this, evt.c_str());
+	if (idx != 0) {
             if (hasRawData()) { // consider both index and raw data
                 double idxcost = idx->estimateCost(cmp) *
                     (1.0 + log((double)cmp.getValues().size()));
@@ -6117,7 +6122,7 @@ long ibis::bord::column::evaluateRange(const ibis::qDiscreteRange& cmp,
             else {
                 ierr = idx->evaluate(cmp, res);
             }
-            if (ierr < 0) { // index::evaluate failed, try index::estimate
+	    if (ierr < 0) { // index::evaluate failed, try index::estimate
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
                 LOGGER(ibis::gVerbose > 2)
                     << "INFO -- " << evt << " -- idx(" << idx->name()

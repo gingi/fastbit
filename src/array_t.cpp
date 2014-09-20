@@ -324,7 +324,8 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
         << " beginning at " << begin << " ending at " << end;
 }
 
-/// Constructor.  Directly use the raw pointer provided.
+/// Constructor.  Directly use the raw pointer provided, i.e., shallow
+/// copy.
 ///
 /// @note The second argument is the number of elements starting at the
 /// given address.

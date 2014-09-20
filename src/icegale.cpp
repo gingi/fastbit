@@ -1554,7 +1554,7 @@ long ibis::egale::evaluate(const ibis::qContinuousRange& expr,
     ibis::bitvector tmp;
     estimate(expr, lower, tmp);
     if (tmp.size() == lower.size() && tmp.cnt() > lower.cnt()) {
-        if (col == 0 || col->partition() == 0)
+        if (col == 0 || col->hasRawData() == false)
             return -1;
 
 	tmp -= lower;

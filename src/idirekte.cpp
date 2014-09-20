@@ -116,7 +116,7 @@ ibis::direkte::direkte(const ibis::column* c, uint32_t popu, uint32_t ntpl)
         // else
         //     bits[popu]->set(1, nrows);
         bits[popu]->set(1, nrows);
-	if (ibis::gVerbose > 5) {
+	if (ibis::gVerbose > 6) {
 	    ibis::util::logger lg;
 	    print(lg());
 	}
