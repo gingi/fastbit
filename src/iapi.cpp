@@ -1739,7 +1739,7 @@ extern "C" int fastbit_iapi_attach_index
 /// It returns a nil value in case of error.
 extern "C" FastBitSelectionHandle fastbit_selection_osr
 (const char *aname, FastBitCompareType ctype, double bound) {
-    if (aname == 0 || *aname == 0 || bound == 0 || bound == FASTBIT_DOUBLE_NULL)
+    if (aname == 0 || *aname == 0 || bound == FASTBIT_DOUBLE_NULL)
         return 0;
 
     ibis::bord::column *col = __fastbit_iapi_array_by_name(aname);
