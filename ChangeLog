@@ -1,3 +1,8 @@
+2014-20-05 John Wu <John dot Wu at ACM dot org>
+	* src/selectClause.cpp:534 nexted to output numbers in hex format
+	(which creates inconsistent internal names for referring to
+	expressions without aliases)
+
 2014-20-02 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.cpp:1742 remove bound == 0 (an error discovered by
 	Junmin Gu)

@@ -531,7 +531,7 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 		<< pos << ": " << aggDescription(pos);
 
 	    std::ostringstream oss;
-	    oss << "__" << pos;
+	    oss << "__" << std::hex << pos;
 	    ordered_[oss.str()] = pos;
 	    return new ibis::selectClause::variable(oss.str().c_str(), this);
 	}
@@ -572,7 +572,7 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 		<< pos << ": " << aggDescription(pos);
 
 	    std::ostringstream oss;
-	    oss << "__" << pos;
+	    oss << "__" << std::hex << pos;
 	    ordered_[oss.str()] = pos;
 	    return new ibis::selectClause::variable(oss.str().c_str(), this);
 	}
