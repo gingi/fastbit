@@ -15694,7 +15694,7 @@ fi
 done
 
 
-AX_FUNC_SNPRINTF
+#AX_FUNC_SNPRINTF
 #AC_CHECK_FUNCS([getpagesize getpass gettimeofday memset mkdir] , ,)
 for ac_func in gettimeofday mkdir flock
 do :
