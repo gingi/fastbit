@@ -59,7 +59,7 @@ AC_CHECK_HEADERS([inttypes.h stdint.h sys/types.h])
 #AC_FUNC_SELECT_ARGTYPES
 #AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AX_FUNC_SNPRINTF
+#AX_FUNC_SNPRINTF
 #AC_CHECK_FUNCS([getpagesize getpass gettimeofday memset mkdir] , ,)
 AC_CHECK_FUNCS([gettimeofday mkdir flock] , ,)
 
