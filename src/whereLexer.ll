@@ -37,8 +37,8 @@ NAME	{ALPHA}((->)?[{DIGIT}{ALPHA}:.]+)*(\[[^\]]+\])?
 this version works -- guess I can not use {ALPHA}
 NAME	[_a-zA-Z]((->)?[_a-zA-Z0-9.:\[\]]+)*
 */
-WS	[ \t\v\n]
-SEP	[ \t\v\n,;]
+WS	[ \t\v\n\r]
+SEP	[ \t\v\n\r,;]
 STRSEP	{WS}*[,;]{WS}*
 UNSIGNED	([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 NUMBER	[-+]?([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
