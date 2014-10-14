@@ -6,7 +6,13 @@
 ///@file
 /// Define a dictionary data structure used by ibis::category.
 #include "array_t.h"
+#if defined(HAVE_UNORDERED_MAP)
 #include <unordered_map>
+#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ >= 5)
+#include <backward/hash_map>
+#else
+#include <unordered_map>
+#endif
 
 /// Provide a dual-directional mapping between strings and integers.  A
 /// utility class used by ibis::category.  The integer values are always
@@ -81,8 +87,16 @@ protected:
     array_t<char*> buffer_;
     /// Member variable key_ contains the hash_map that connects a string
     /// value to an integer.
-    typedef std::unordered_map<const char*, uint32_t, std::hash<const char*>,
-                               std::equal_to<const char*> > MYMAP;
+    typedef
+#if defined(HAVE_UNORDERED_MAP)
+        std::unordered_map
+#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ >= 5)
+        __gnu_cxx::hash_map
+#else
+        std::unordered_map
+#endif
+        <const char*, uint32_t, std::hash<const char*>,
+         std::equal_to<const char*> > MYMAP;
     MYMAP key_;
 
     int  readRaw(const char*, FILE *);

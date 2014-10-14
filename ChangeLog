@@ -1,9 +1,15 @@
-2014-20-05 John Wu <John dot Wu at ACM dot org>
+2014-10-13 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: extend the checking of std::unordered_map to avoid
+	problem of unset variable
+	* src/dictionary.h: add option to use __gnu_cxx::hash_map instead
+	of std::unordered_map to accommodate order compilers
+
+2014-10-05 John Wu <John dot Wu at ACM dot org>
 	* src/selectClause.cpp:534 nexted to output numbers in hex format
 	(which creates inconsistent internal names for referring to
 	expressions without aliases)
 
-2014-20-02 John Wu <John dot Wu at ACM dot org>
+2014-10-02 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.cpp:1742 remove bound == 0 (an error discovered by
 	Junmin Gu)
 
