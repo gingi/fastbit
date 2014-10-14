@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [1.4.0pre13], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [1.4.0pre15], [fastbit-users@hpcrdm.lbl.gov])
 #AC_PACKAGE_URL(http://sdm.lbl.gov/fastbit/)
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
@@ -170,46 +170,56 @@ AC_ARG_WITH(extracxxflags,
 
 # test to determine if any known flags are needed for unordered_map
 AC_COMPILE_IFELSE([
-	AC_LANG_PROGRAM([[
+    AC_LANG_PROGRAM([[
 	#include <unordered_map>
 	]], [[
 	std::unordered_map<const char*, unsigned, std::hash<const char*>,
 	std::equal_to<const char*> > myhashmap;
 	return (myhashmap.size() == 0);
-	]])], [TRY_STD_CXX11=0], [TRY_STD_CXX11=1])
-if test $TRY_STD_CXX11 -eq 1; then
-	AC_MSG_CHECKING([for c++11])
-	CFLAGS="$CFLAGS -std=c99";
-	EXTRA_CXXFLAGS="-std=c++11";
-	CXXFLAGS="$CXXFLAGS -std=c++11";
-	AC_COMPILE_IFELSE([
-	AC_LANG_PROGRAM([[
+	]])], [AC_DEFINE(HAVE_UNORDERED_MAP, 1, [Compiler support std::unordered_map])], [
+	    AC_MSG_CHECKING([for unordered_map])
+	    ac_save_CFLAGS="$CFLAGS"
+	    ac_save_CXXFLAGS="$CXXFLAGS"
+	    ac_save_XCXXFLAGS="$EXTRA_CXXFLAGS"
+	    CFLAGS="$CFLAGS -std=c99";
+	    EXTRA_CXXFLAGS="-std=c++11";
+	    CXXFLAGS="$CXXFLAGS -std=c++11";
+	    AC_COMPILE_IFELSE([
+	    AC_LANG_PROGRAM([[
 		#include <unordered_map>
 		]], [[
 		std::unordered_map<const char*, unsigned,
 		std::hash<const char*>,
 		std::equal_to<const char*> > myhashmap;
 		return (myhashmap.size() == 0);
-		]])], [AC_MSG_RESULT([yes])],[
-	AC_MSG_RESULT([no])	
+		]])], [AC_MSG_RESULT([yes])
+		AC_DEFINE(HAVE_UNORDERED_MAP, 2, [Compiler support std::unordered_map])],[AC_MSG_RESULT([no])	
 	
-	# c++11 not found, trying c++0x
-	AC_MSG_CHECKING([for c++0x])
-	EXTRA_CXXFLAGS=$(echo "$EXTRA_CXXFLAGS" | sed 's/c++11/c++0x/')
-	CXXFLAGS=$(echo "$CXXFLAGS" | sed 's/c++11/c++0x/')
-	AC_COMPILE_IFELSE([
-		AC_LANG_PROGRAM([[
+		# c++11 not found, trying c++0x
+		AC_MSG_CHECKING([for c++0x])
+		EXTRA_CXXFLAGS=$(echo "$EXTRA_CXXFLAGS" | sed 's/c++11/c++0x/')
+		CXXFLAGS=$(echo "$CXXFLAGS" | sed 's/c++11/c++0x/')
+		AC_COMPILE_IFELSE([
+		   AC_LANG_PROGRAM([[
 			#include <unordered_map>
 			]], [[
 			std::unordered_map<const char*, unsigned,
 			std::hash<const char*>,
 			std::equal_to<const char*> > myhashmap;
 			return (myhashmap.size() == 0);
-			]])], [AC_MSG_RESULT([yes])], [
-		AC_MSG_ERROR([$CXX not able to compile a sample code with std::unordered_map using c++11 or c++0x.  Consider using GCC 4.8 or newer])
-	])
-])
-fi
+			]])], [AC_MSG_RESULT([yes])
+			AC_DEFINE(HAVE_UNORDERED_MAP, 3, [Compiler support std::unordered_map])], [AC_MSG_RESULT([no])
+			      CXXFLAGS="$ac_save_CXXFLAGS -Werror"
+			      AC_TRY_COMPILE([[
+			      #include <ext/hash_map>
+			      ]], [[
+			      using __gnu_cxx::hash_map;
+			      ]],
+			      [CFLAGS="$ac_save_CFLAGS"
+			      CXXFLAGS="$ac_save_CXXFLAGS"
+			      EXTRA_CXXFLAGS="ac_save_X$CXXFLAGS"],
+			      [AC_MSG_ERROR([$CXX not able to compile a sample code with std::unordered_map using c++11 or c++0x.  Consider using GCC 4.8 or newer])])
+	])])])
 
 AC_ARG_WITH(getpwuid,
 	AS_HELP_STRING([--with-getpwuid],[specify --without-getpwuid to disable the attempt to use getpwuid to determine the user name]),
