@@ -1,3 +1,7 @@
+2014-10-16 John Wu <John dot Wu at ACM dot org>
+	* src/util.h, src/dictionary.h: move the specialization of
+	std::hash from util.h to dictionary.h
+
 2014-10-13 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: extend the checking of std::unordered_map to avoid
 	problem of unset variable

@@ -340,11 +340,6 @@ namespace std { // extend namespace std slightly
 	}
     };
 
-    // specialization of hash<> on const char*
-    template <> struct hash< const char* > {
-	size_t operator()(const char* x) const;
-    };
-
     template <> struct less< ibis::rid_t > {
 	bool operator()(const ibis::rid_t& x, const ibis::rid_t& y) const {
 	    return (x < y);

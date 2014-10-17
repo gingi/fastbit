@@ -5,7 +5,6 @@
 #define IBIS_DICTIONARY_H
 ///@file
 /// Define a dictionary data structure used by ibis::category.
-#include "util.h"
 #include "array_t.h"
 #if defined(HAVE_UNORDERED_MAP)
 #include <unordered_map>
@@ -14,6 +13,13 @@
 #else
 #include <unordered_map>
 #endif
+
+namespace std {
+    // specialization of hash<> on const char*
+    template <> struct hash< const char* > {
+	size_t operator()(const char* x) const;
+    };
+}
 
 /// Provide a dual-directional mapping between strings and integers.  A
 /// utility class used by ibis::category.  Both the NULL string and the
