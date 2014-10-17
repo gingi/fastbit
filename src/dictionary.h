@@ -14,6 +14,13 @@
 #include <unordered_map>
 #endif
 
+namespace std {
+    // specialization of hash<> on const char*
+    template <> struct hash< const char* > {
+	size_t operator()(const char* x) const;
+    };
+}
+
 /// Provide a dual-directional mapping between strings and integers.  A
 /// utility class used by ibis::category.  The integer values are always
 /// treated as 32-bit unsigned integers.  The NULL string is always mapped
