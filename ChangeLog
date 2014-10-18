@@ -1,6 +1,14 @@
+2014-10-17 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp: add global variable independent_parts to
+	indicate whether to process each data partition separately.  By
+	default use tableSelect to treat all data partitions as a single
+	data table, which should produce consistent results for the test
+	cases from Jon Strabala
+
 2014-10-16 John Wu <John dot Wu at ACM dot org>
 	* src/util.h, src/dictionary.h: move the specialization of
-	std::hash from util.h to dictionary.h
+	std::hash from util.h to dictionary.h to limit the files that
+	needs to include header file hash_map
 
 2014-10-13 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: extend the checking of std::unordered_map to avoid
