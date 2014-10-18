@@ -76,6 +76,7 @@
     -f query-file-name
     -help
     -interactive
+    -independent-parts
     -join part1 part2 join-column conditions1 conditions2 [columns ...]
     -keep-temporary-files
     -log logfilename
@@ -143,6 +144,7 @@ struct thArg {
 static unsigned testing = 0;
 static unsigned threading = 0;
 static unsigned build_index = 0;
+static unsigned independent_parts = 0; // query each part independently
 // <0 skip estimation, =0 do estimation, >0 estimation only
 static int estimation_opt = -1;
 static bool sequential_scan = false;
@@ -2172,8 +2174,13 @@ static void parse_args(int argc, char** argv, int& mode,
                     exit(0);
                 break;
 	    case 'i':
-	    case 'I': // interactive mode
-		mode = 1;
+	    case 'I': // interactive mode or independent parts
+                if (argv[i][3] == 'd' || argv[i][3] == 'D') {
+                    independent_parts = 1;
+                }
+                else {
+                    mode = 1;
+                }
                 break;
 	    case 'j':
 	    case 'J': {// join part1 part2 join-column constraints1 constratint2
@@ -4760,8 +4767,9 @@ static void parseString(const char* uid, const char* qstr,
 	doQuaere(prts, sstr.c_str(), fstr.c_str(), wstr.c_str(),
 		 ordkeys.c_str(), limit, start);
     }
-    else if (! sstr.empty() && (sstr.find('(') < sstr.size() ||
-				sstr.find(" as ") < sstr.size())) {
+    else if (independent_parts == 0 ||
+             (! sstr.empty() && (sstr.find('(') < sstr.size() ||
+                                 sstr.find(" as ") < sstr.size()))) {
 	//  || recheckvalues || !ordkeys.empty() || limit > 0
 	// more complex select clauses need tableSelect
 	if (! qtables.empty()) {
