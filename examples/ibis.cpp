@@ -2250,20 +2250,26 @@ static void parse_args(int argc, char** argv, int& mode,
 		    accessIndexInWhole = 1;
 		}
                 break;
+	    case 'm':
+	    case 'M': {
+                // mesh query can only be run on independent data
+                // partitions
+                independent_parts = 2;
 #if defined(TEST_SUMBINS_OPTIONS)
                 // _sumBins_option
-                char* ptr = strchr(argv[i], '=');
-                if (ptr != 0) {
-                    ++ ptr; // skip '='
-                    ibis::_sumBins_option = strtol(ptr, 0, 0);
-                }
-                else if (i+1 < argc) {
-                    if (isdigit(*argv[i+1])) {
-                        ibis::_sumBins_option = strtol(argv[i+1], 0, 0);
-                        i = i + 1;
-                    }
-                }
+		char* ptr = strchr(argv[i], '=');
+		if (ptr != 0) {
+		    ++ ptr; // skip '='
+		    ibis::_sumBins_option = strtol(ptr, 0, 0);
+		}
+		else if (i+1 < argc) {
+		    if (isdigit(*argv[i+1])) {
+			ibis::_sumBins_option = strtol(argv[i+1], 0, 0);
+			i = i + 1;
+		    }
+		}
 #endif
+		break;}
 	    case 'n':
 	    case 'N': {
 		// no-estimation, directly call function evaluate
@@ -3011,7 +3017,60 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
         sel1->orderby(ordkeys);
     }
 
-    if (outputname != 0 && 0 == strcmp(outputname, "/dev/null")) {
+    if (outputname != 0 && *outputname != 0) {
+	if (0 != strcmp(outputname, "/dev/null")) {
+	    if (zapping)
+		ibis::util::removeDir(outputname);
+
+	    if (outputbinary) {
+		ierr = sel1->backup(outputname);
+		LOGGER(ierr < 0)
+		    << "Warning -- tableSelect failed to write the content of "
+		    << sel1->name() << " in binary to " << outputname
+		    << ", ierr = " << ierr;
+	    }
+	    else {
+		std::ofstream output(outputname, std::ios::out |
+				     (appendToOutput ? std::ios::app :
+				      std::ios::trunc));
+		if (showheader)
+		    sel1->dumpNames(output, ", ");
+		if (limit == 0)
+		    limit = static_cast<uint32_t>(sel1->nRows());
+		ierr = sel1->dump(output, start, limit, ", ");
+		LOGGER(ierr < 0)
+		    << "Warning -- tableSelect failed to write the content of "
+		    << sel1->name() << " in CSV to " << outputname
+		    << ", ierr = " << ierr;
+	    }
+	}
+    }
+    else if (ibis::gVerbose >= 0) {
+	ibis::util::logger lg;
+	if (limit == 0 && sel1->nColumns() > 0) {
+	    limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
+		1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
+	    if (limit > (sel1->nRows() >> 1))
+		limit = sel1->nRows();
+	}
+	if (limit > 0 && limit < sel1->nRows()) {
+	    lg() << "-- the first ";
+	    if (limit > 1)
+		lg() << limit << " rows ";
+	    else
+		lg() << "row ";
+	    lg() << "(of " << sel1->nRows()
+		 << ") from the result table for \""
+		 << sqlstring << "\"\n";
+	}
+	else {
+	    lg() << "-- the result table (" << sel1->nRows()
+		 << " x " << sel1->nColumns() << ") for \""
+		 << sqlstring << "\"\n";
+	}
+	if (showheader)
+	    sel1->dumpNames(lg(), ", ");
+	sel1->dump(lg(), start, limit, ", ");
     }
     else if (outputbinary) {
         if (zapping)
@@ -3044,9 +3103,9 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		uint64_t cnt = 0;
 		for (ibis::partList::const_iterator it = pl.begin();
 		     it != pl.end(); ++ it) {
-		    if (0 == qq0.setPartition(*it) &&
-			0 == qq1.setPartition(*it)) {
-			if (0 == qq0.evaluate() && 0 == qq1.evaluate()) {
+		    if (0 <= qq0.setPartition(*it) &&
+			0 <= qq1.setPartition(*it)) {
+			if (0 <= qq0.evaluate() && 0 <= qq1.evaluate()) {
 			    if (qq0.getNumHits() > qq1.getNumHits()) {
 				// not expecting this -- find out which
 				// value is not present
@@ -4649,7 +4708,7 @@ static void parseString(const char* uid, const char* qstr,
 	}
     }
     else if (str != 0 && *str != 0 && ibis::gVerbose >= 0) {
-        ibis::util::logger()()
+	ibis::util::logger()()
             << "Warning -- parseString(" << qstr
             << ") expects the key word LIMIT, but got " << str;
     }

@@ -367,7 +367,7 @@ int ibis::countQuery::evaluate() {
         }
     }
     LOGGER(ibis::gVerbose > 0)
-        << "From " << mypart->name() << " Where " << conds << " --> "
+	<< "From " << mypart->name() << " Where " << conds << " --> "
         << hits->cnt();
     return 0;
 } // ibis::countQuery::evaluate
