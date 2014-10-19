@@ -80,6 +80,7 @@
     -join part1 part2 join-column conditions1 conditions2 [columns ...]
     -keep-temporary-files
     -log logfilename
+    -mesh-query
     -no-estimation
     -o[utput-[with-header|as-binary]] name
     -query [SELECT ...] [FROM ...] WHERE ...
@@ -112,7 +113,7 @@
     hits, but different handling is required.
 
     @note Only implicit group by operation is performed.  This program does
-    not accept a group by clause!
+    NOT accept a group by clause!
 
     @ingroup FastBitExamples
 */
@@ -2248,9 +2249,13 @@ static void parse_args(int argc, char** argv, int& mode,
 		    accessIndexInWhole = 1;
 		}
                 break;
-#if defined(TEST_SUMBINS_OPTIONS)
 	    case 'm':
-	    case 'M': {// _sumBins_option
+	    case 'M': {
+                // mesh query can only be run on independent data
+                // partitions
+                independent_parts = 2;
+#if defined(TEST_SUMBINS_OPTIONS)
+                // _sumBins_option
 		char* ptr = strchr(argv[i], '=');
 		if (ptr != 0) {
 		    ++ ptr; // skip '='
@@ -2262,8 +2267,8 @@ static void parse_args(int argc, char** argv, int& mode,
 			i = i + 1;
 		    }
 		}
-		break;}
 #endif
+		break;}
 	    case 'n':
 	    case 'N': {
 		// no-estimation, directly call function evaluate
@@ -2956,12 +2961,19 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	return;
     }
 
-    LOGGER(ibis::gVerbose >= 0)
-	<< "tableSelect -- select(" << sstr << ", " << wstr
-	<< ") on table " << tbl->name() << " produced a table with "
-	<< sel1->nRows() << " row" << (sel1->nRows() > 1 ? "s" : "")
-	<< " and " << sel1->nColumns() << " column"
-	<< (sel1->nColumns() > 1 ? "s" : "");
+    if (sel1->nColumns() == 0) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "FROM " << tbl->name() << " WHERE " << wstr << " produced "
+            << sel1->nRows() << " hit" << (sel1->nRows() > 1 ? "s" : "");
+    }
+    else {
+        LOGGER(ibis::gVerbose >= 0)
+            << "SELECT " << sstr << " FROM " << tbl->name() << " WHERE " << wstr
+            << " produced a table with "
+            << sel1->nRows() << " row" << (sel1->nRows() > 1 ? "s" : "")
+            << " and " << sel1->nColumns() << " column"
+            << (sel1->nColumns() > 1 ? "s" : "");
+    }
     if (sel1->nRows() > 1 && ((ordkeys && *ordkeys) || limit > 0)) {
 	// top-K query
 	sel1->orderby(ordkeys);
@@ -3004,7 +3016,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		limit = sel1->nRows();
 	}
 	if (limit > 0 && limit < sel1->nRows()) {
-	    lg() << "tableSelect -- the first ";
+	    lg() << "-- the first ";
 	    if (limit > 1)
 		lg() << limit << " rows ";
 	    else
@@ -3014,7 +3026,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		 << sqlstring << "\"\n";
 	}
 	else {
-	    lg() << "tableSelect -- the result table (" << sel1->nRows()
+	    lg() << "-- the result table (" << sel1->nRows()
 		 << " x " << sel1->nColumns() << ") for \""
 		 << sqlstring << "\"\n";
 	}
@@ -3050,9 +3062,9 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		uint64_t cnt = 0;
 		for (ibis::partList::const_iterator it = pl.begin();
 		     it != pl.end(); ++ it) {
-		    if (0 == qq0.setPartition(*it) &&
-			0 == qq1.setPartition(*it)) {
-			if (0 == qq0.evaluate() && 0 == qq1.evaluate()) {
+		    if (0 <= qq0.setPartition(*it) &&
+			0 <= qq1.setPartition(*it)) {
+			if (0 <= qq0.evaluate() && 0 <= qq1.evaluate()) {
 			    if (qq0.getNumHits() > qq1.getNumHits()) {
 				// not expecting this -- find out which
 				// value is not present
@@ -4757,9 +4769,9 @@ static void parseString(const char* uid, const char* qstr,
 	}
     }
     else if (str != 0 && *str != 0 && ibis::gVerbose >= 0) {
-	ibis::util::logger lg;
-	lg() << "Warning -- parseString(" << qstr
-	     << ") expects the key word LIMIT, but got " << str;
+	ibis::util::logger()()
+            << "Warning -- parseString(" << qstr
+            << ") expects the key word LIMIT, but got " << str;
     }
 
     ibis::nameList qtables(fstr.c_str());

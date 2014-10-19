@@ -11,38 +11,38 @@ else
     DATADIR="http://sdm.lbl.gov/fastbit/data";
 fi
 if [ ! -f star2002-1.csv ]; then
-if [ ! -f star2002-1.csv.gz ]; then
-/usr/bin/wget ${DATADIR}/star2002-1.csv.gz
-if [ ! -f star2002-1.csv.gz ]; then
-    echo $0 failed to retrieve star2002-1.csv.gz;
-    exit -1;
-fi
-fi
-/usr/bin/gunzip -v star2002-1.csv.gz
+  if [ ! -f star2002-1.csv.gz ]; then
+    wget ${DATADIR}/star2002-1.csv.gz
+    if [ ! -f star2002-1.csv.gz ]; then
+      echo $0 failed to retrieve star2002-1.csv.gz;
+      exit -1;
+    fi
+  fi
+  gunzip -v star2002-1.csv.gz
 fi
 #
 if [ ! -f star2002-2.csv ]; then
-if [ ! -f star2002-2.csv.gz ]; then
-/usr/bin/wget ${DATADIR}/star2002-2.csv.gz
-if [ ! -f star2002-2.csv.gz ]; then
-    echo $0 failed to retrieve star2002-2.csv.gz;
-    exit -1;
-fi
-fi
-/usr/bin/gunzip -v star2002-2.csv.gz
+  if [ ! -f star2002-2.csv.gz ]; then
+    wget ${DATADIR}/star2002-2.csv.gz
+    if [ ! -f star2002-2.csv.gz ]; then
+      echo $0 failed to retrieve star2002-2.csv.gz;
+      exit -1;
+    fi
+  fi
+  gunzip -v star2002-2.csv.gz
 fi
 #
 if [ ! -f star2002-3.csv ]; then
-if [ ! -f star2002-3.csv.gz ]; then
-/usr/bin/wget ${DATADIR}/star2002-3.csv.gz
-if [ ! -f star2002-3.csv.gz ]; then
-    echo $0 failed to retrieve star2002-3.csv.gz;
-    exit -1;
-fi
-fi
-/usr/bin/gunzip -v star2002-3.csv.gz
+  if [ ! -f star2002-3.csv.gz ]; then
+    wget ${DATADIR}/star2002-3.csv.gz
+    if [ ! -f star2002-3.csv.gz ]; then
+      echo $0 failed to retrieve star2002-3.csv.gz;
+      exit -1;
+    fi
+  fi
+  gunzip -v star2002-3.csv.gz
 fi
 ${BIN}/ardea -d star2002 -m "antiNucleus:int, eventFile:int, eventNumber:int, eventTime:double, histFile:int, multiplicity:int, NaboveLb:int, NbelowLb:int, NLb:int, primaryTracks:int, prodTime:double, Pt:float, runNumber:int, vertexX:float, vertexY:float, vertexZ:float" -t star2002-1.csv -t star2002-2.csv -t star2002-3.csv -v
 ${BIN}/ibis -d star2002 -t 2 -v 2
-echo end
+echo "\n$0 ... DONE"
 #

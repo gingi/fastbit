@@ -1,48 +1,48 @@
-<!--?xml version="1.0" encoding="US-ascii"?-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
-"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
-      xmlns:dc="http://purl.org/dc/elements/1.1/"
-      xmlns:foaf="http://xmlns.com/foaf/0.1/">
+"https://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:dc="https://purl.org/dc/elements/1.1/"
+      xmlns:foaf="https://xmlns.com/foaf/0.1/">
 <head>
 <title>FastBit Users Guide</title>
+<meta http-equiv="Content-Type" content="text/html;charset=us-ascii" >
 <meta name="dc:creator" content="Kesheng Wu">
 <meta name="KEYWORDS" content="FastBit, bitmap index, data warehouse,
 efficient query processing, Open Source, LGPL, free download, users guide,
 IBIS, WAH compression, Word-Aligned Hybrid, Wu">
-<link rel="StyleSheet" href="http://sdm.lbl.gov/fastbit/style.css"
+<link rel="StyleSheet" href="https://sdm.lbl.gov/fastbit/style.css"
  type="text/css"/>
 <link rev="made" href="mailto:John.Wu@acm.org"/>
-<link rel="SHORTCUT ICON" HREF="../favicon.ico"/>
+<link rel="SHORTCUT ICON" HREF="https://sdm.lbl.gov/fastbit/favicon.ico"/>
 </head>
 <body>
 <table cellspacing=0 border="0px" cellpadding=2 width="100%" align=center>
 <tr>
-<td colspan=7 align=right border=0><A href="http://sdm.lbl.gov/fastbit"><img class=noborder
+<td colspan=7 align=right border=0><A href="https://sdm.lbl.gov/fastbit"><img class=noborder
 src="../fastbit.gif" alt="FastBit"></A>
 </td></tr>
 <tr><td colspan=7 bgcolor=#009900 height=5></td></tr>
 <tr>
 <td class=other>&nbsp;</td>
-<td class=other><A href="http://sdm.lbl.gov/fastbit/">FastBit Front Page</A></td>
-<td class=other><A href="http://sdm.lbl.gov/fastbit/publications.html">Research Publications</A></td>
+<td class=other><A href="https://sdm.lbl.gov/fastbit/">FastBit Front Page</A></td>
+<td class=other><A href="https://sdm.lbl.gov/fastbit/publications.html">Research Publications</A></td>
 <td class=current><A href="index.html">Software Documentation</A></td>
-<td class=other><A href="http://sdm.lbl.gov/fastbit/src/">Software Download</A></td>
-<td class=other><A rel="license" href="http://sdm.lbl.gov/fastbit/src/license.txt">Software License</A></td>
+<td class=other><A href="https://sdm.lbl.gov/fastbit/src/">Software Download</A></td>
+<td class=other><A rel="license" href="https://sdm.lbl.gov/fastbit/src/license.txt">Software License</A></td>
 <td class=other>&nbsp;</td>
 </tr>
 </table>
 <p class=small>
-<B>Organization</B>: <A HREF="http://www.lbl.gov/">LBNL</A> &raquo;
-<A HREF="http://crd.lbl.gov/">CRD</A> &raquo;
-<A HREF="http://sdm.lbl.gov/">SDM</A> &raquo;
-<A HREF="http://sdm.lbl.gov/fastbit">FastBit</A> &raquo;
+<B>Organization</B>: <A HREF="https://www.lbl.gov/">LBNL</A> &raquo;
+<A HREF="https://crd.lbl.gov/">CRD</A> &raquo;
+<A HREF="https://sdm.lbl.gov/">SDM</A> &raquo;
+<A HREF="https://sdm.lbl.gov/fastbit">FastBit</A> &raquo;
 Documentation </p>
 
 <H1>FastBit Users Guide</H1>
 
 <DIV style="width: 18em; float: right; align: right; border-width: 0px; margin: 1em;">
-<form action="http://www.google.com/cse" id="cse-search-box">
+<form action="https://www.google.com/cse" id="cse-search-box">
   <div>
     <input type="hidden" name="cx" value="partner-pub-3693400486576159:3jwiifucrd4" />
     <input type="hidden" name="ie" value="ISO-8859-1" />
@@ -58,22 +58,22 @@ This package implements a number of different bitmap indexes compressed
 with Word-Aligned Hybrid code.  These indexes differ in their bitmap
 encoding methods and binning options.  The basic bitmap index compressed
 with WAH has been shown to <A
-HREF="http://sdm.lbl.gov/ps/LBNL-49626.html">answer one-dimensional
+HREF="https://sdm.lbl.gov/ps/LBNL-49626.html">answer one-dimensional
 queries in time that is proportional to the number of hits in
 theory</A>. In a number of performance measurements, WAH compressed
 indexes were found to be much more efficient than other indexes <A
-HREF="http://sdm.lbl.gov/ps/LBNL-48975.html">[CIKM 2001]</A> <A
-HREF="http://sdm.lbl.gov/ps/LBNL-49627.html">[SSDBM 2002]</A> <A
-HREF="http://sdm.lbl.gov/ps/LBNL-51791.html">[DOLAP
+HREF="https://sdm.lbl.gov/ps/LBNL-48975.html">[CIKM 2001]</A> <A
+HREF="https://sdm.lbl.gov/ps/LBNL-49627.html">[SSDBM 2002]</A> <A
+HREF="https://sdm.lbl.gov/ps/LBNL-51791.html">[DOLAP
 2002]</A>. One of the crucial step in achieving these efficiency is to
 be able to perform bitwise OR operations on a large compressed bitmaps
 efficiently without decompression <A
-HREF="http://sdm.lbl.gov/ps/LBNL-54673.html">[VLDB
+HREF="https://sdm.lbl.gov/ps/LBNL-54673.html">[VLDB
 2004]</A>. Numerous other bitmap encodings and binning strategies are
 implemented in this software package, please refer to <A
 HREF="indexSpec.html">indexSpec.html</A> for descriptions on how to
 access these indexes and refer to our <A
-HREF="http://sdm.lbl.gov/fastbit/publications.html">publications</A> for
+HREF="https://sdm.lbl.gov/fastbit/publications.html">publications</A> for
 extensive studies on these methods.  FastBit was primarily developed to
 test these techniques for improving compressed bitmap indexes.  Even
 though, it has grown to include a small number other useful data
@@ -97,9 +97,9 @@ of efficient compressed bitmap indexes.</P>
 The name IBIS was used by John because it was the only reasonably short
 English word that contains the abbreviation BI (for Bitmap Index).
 Moreover, it is the name
-of <A HREF="http://www.astrocape.org.za/Rondevlei/Ibis_Sacred10876pa.jpg">an
+of <A HREF="https://www.astrocape.org.za/Rondevlei/Ibis_Sacred10876pa.jpg">an
 attractive bird</A>
-and <A HREF="http://www.marvelfamily.com/WhosWho/whoswho.asp?castid=88">a
+and <A HREF="https://www.marvelfamily.com/WhosWho/whoswho.asp?castid=88">a
 comic book superhero</A>.  However, most people don't associate it with any
 thing of speed or power.  We eventually settled on the name FastBit
 following a suggestion from Arie, because it is much more direct in
@@ -114,10 +114,10 @@ System.
 </p>
 <p style="text-align: center"><B>PS</B>:  The following is the face of a
   more recent rendition of
-<A HREF="http://en.wikipedia.org/wiki/Ibis_the_Invincible">Ibis</A> in
+<A HREF="https://en.wikipedia.org/wiki/Ibis_the_Invincible">Ibis</A> in
 "The Helmet of Fate: Ibis the Invincible" (2007).<br>
 
-<A HREF="http://www.dccomics.com/comics/the-helmet-of-fate-ibis-the-invincible-2007"><img src="SuperheroIbis.gif" width=125 height=125 border=0 alt="Ibis the invincible"></A>
+<A HREF="https://www.dccomics.com/comics/the-helmet-of-fate-ibis-the-invincible-2007"><img src="SuperheroIbis.gif" width=125 height=125 border=0 alt="Ibis the invincible"></A>
 </p>
 </div>
 
@@ -138,7 +138,7 @@ to other documents for finding more information about each task.
 the structure of FastBit data organization in detail.  It also explains
 how to combine smaller datasets into larger ones for better query
 performance.  
-<A HREF="http://sdm.lbl.gov/fastbit/data/samples.html">Two sets of
+<A HREF="https://sdm.lbl.gov/fastbit/data/samples.html">Two sets of
   sample data are available on line along with some instructions on how
   to use them</A>.
 
@@ -156,7 +156,7 @@ index specification string and how to alter the indexes built by FastBit
 functions.  It also contains a set of recommendations on what options to
 use given certain data and query work loads.
 
-<DT> 5 <A HREF="http://sdm.lbl.gov/fastbit/doc/html/index.html">FastBit Reference Guide</A>
+<DT> 5 <A HREF="https://sdm.lbl.gov/fastbit/doc/html/index.html">FastBit Reference Guide</A>
 
 <DD> This is a comprehensive <A HREF="html/index.html">reference
 guide</a> of all classes and functions of FastBit.  It is generated by
@@ -194,8 +194,8 @@ line</A>.</p>
 
 <DIV class=footer>
 <A HREF="contact.html">Contact us</a><BR>
-<A HREF="http://www.lbl.gov/Disclaimers.html">Disclaimers</A><BR>
-<A HREF="http://sdm.lbl.gov/fastbit/">FastBit web site</A><BR>
+<A HREF="https://www.lbl.gov/Disclaimers.html">Disclaimers</A><BR>
+<A HREF="https://sdm.lbl.gov/fastbit/">FastBit web site</A><BR>
 <A HREF="https://hpcrdm.lbl.gov/pipermail/fastbit-users">FastBit mailing
 list</A><BR>
 <SCRIPT LANGUAGE="JavaScript">
@@ -203,7 +203,7 @@ list</A><BR>
 </SCRIPT>
 </DIV>
 
-<script src="http://www.google-analytics.com/ga.js"
+<script src="https://www.google-analytics.com/ga.js"
 type="text/javascript">
 </script>
 <script type="text/javascript">

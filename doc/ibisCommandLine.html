@@ -1,48 +1,48 @@
 <!--?xml version="1.0" encoding="US-ascii"?-->
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
-"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
-      xmlns:dc="http://purl.org/dc/elements/1.1/"
-      xmlns:foaf="http://xmlns.com/foaf/0.1/">
+"https://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:dc="https://purl.org/dc/elements/1.1/"
+      xmlns:foaf="https://xmlns.com/foaf/0.1/">
 <head>
 <meta name="dc:creator" content="John Wu"/>
 <meta name="keywords" content="FastBit, ibis, command line tool, usage"/>
-<link rel="StyleSheet" href="http://sdm.lbl.gov/fastbit/style.css"
+<link rel="StyleSheet" href="https://sdm.lbl.gov/fastbit/style.css"
  type="text/css"/>
 <link rev="made" href="mailto:John.Wu@acm.org"/>
-<link rel="SHORTCUT ICON" HREF="http://sdm.lbl.gov/fastbit/favicon.ico"/>
+<link rel="SHORTCUT ICON" HREF="https://sdm.lbl.gov/fastbit/favicon.ico"/>
 <title>FastBit IBIS Command Line Interface Document</title>
 </head>
 
 <body>
 <table cellspacing=0 border="0px" cellpadding=2 width="100%" align=center>
 <tr>
-<td colspan=7 align=right border=0><A href="http://sdm.lbl.gov/fastbit"><img class=noborder
-src="http://sdm.lbl.gov/fastbit/fastbit.gif" alt="FastBit"></A>
+<td colspan=7 align=right border=0><A href="https://sdm.lbl.gov/fastbit"><img class=noborder
+src="https://sdm.lbl.gov/fastbit/fastbit.gif" alt="FastBit"></A>
 </td></tr>
 <tr><td colspan=7 bgcolor=#009900 height=5></td></tr>
 <tr>
 <td class=other>&nbsp;</td>
-<td class=other><A href="http://sdm.lbl.gov/fastbit/">FastBit Front Page</A></td>
-<td class=other><A href="http://sdm.lbl.gov/fastbit/publications.html">Research Publications</A></td>
+<td class=other><A href="https://sdm.lbl.gov/fastbit/">FastBit Front Page</A></td>
+<td class=other><A href="https://sdm.lbl.gov/fastbit/publications.html">Research Publications</A></td>
 <td class=current><A href="index.html">Software Documentation</A></td>
-<td class=other><A href="http://sdm.lbl.gov/fastbit/src/">Software Download</A></td>
-<td class=other><A rel="license" href="http://sdm.lbl.gov/fastbit/src/license.txt">Software License</A></td>
+<td class=other><A href="https://sdm.lbl.gov/fastbit/src/">Software Download</A></td>
+<td class=other><A rel="license" href="https://sdm.lbl.gov/fastbit/src/license.txt">Software License</A></td>
 <td class=other>&nbsp;</td>
 </tr>
 </table>
 <p class=small>
-<B>Organization</B>: <A HREF="http://www.lbl.gov/">LBNL</A> &raquo;
-<A HREF="http://crd.lbl.gov/">CRD</A> &raquo;
-<A HREF="http://sdm.lbl.gov/">SDM</A> &raquo;
-<A HREF="http://sdm.lbl.gov/fastbit">FastBit</A> &raquo;
-<A HREF="http://sdm.lbl.gov/fastbit/doc">Documentation</A> &raquo;
+<B>Organization</B>: <A HREF="https://www.lbl.gov/">LBNL</A> &raquo;
+<A HREF="https://crd.lbl.gov/">CRD</A> &raquo;
+<A HREF="https://sdm.lbl.gov/">SDM</A> &raquo;
+<A HREF="https://sdm.lbl.gov/fastbit">FastBit</A> &raquo;
+<A HREF="https://sdm.lbl.gov/fastbit/doc">Documentation</A> &raquo;
 Command Line Tool </p>
 
 <H1>FastBit IBIS Command Line Interface Document</H1>
 
 <DIV style="width: 18em; float: right; align: right; border-width: 0px; margin: 1em;">
-<form action="http://www.google.com/cse" id="cse-search-box">
+<form action="https://www.google.com/cse" id="cse-search-box">
   <div>
     <input type="hidden" name="cx" value="partner-pub-3693400486576159:3jwiifucrd4" />
     <input type="hidden" name="ie" value="ISO-8859-1" />
@@ -55,7 +55,7 @@ Command Line Tool </p>
 
 <p class=standout>
 IBIS <A href="#ibis">[1]</A> is an Implementation of Bitmap Indexing
-System named <A href="http://sdm.lbl.gov/fastbit">FastBit</A>.
+System named <A href="https://sdm.lbl.gov/fastbit">FastBit</A>.
 This document explains the command line tool named <code>ibis</code>,
 which is a shorthand for <emph>Interactive Bitmap Index Search</emph>.
 Under FastBit, user data is organized into containers called tables and
@@ -130,7 +130,11 @@ instead of printed to standard output.  To use this option, specify
 
 
 <h2><A name="options">List of options</A></h2>
-Here is the full list of options.
+
+Here is the full list of options.  Additional information about command
+line options, including those not mentioned here, please see the <A
+ HREF="https://sdm.lbl.gov/fastbit/doc/html/ibis_8cpp.html">inline
+documentation of ibis.cpp</A>.
 
 <ul>
 
@@ -405,11 +409,12 @@ available dataset.  The variables not appearing in any functions are
 implicitly passed to a SQL 'GROUP BY' clause and the functions are
 defined on the groups defined by this implicit 'GROUP BY' clause.  For
 example, the select clause 'SELECT mchn, avg(q20), min(snra)' will order
-the selected records according to machine name (mchn) and for each
+the selected records according to machine name (mchn), and for each
 machine the average Q20 score and the minimum SNRA value will be
-computed.  In the printout, the number of selected records is printed at
-the end.  This is equivalent to adding 'count(*)' to the end of every
-(non-empty) select clause.</p>
+computed.
+<B>NOTE</B> that the current version of ibis.cpp does not support
+explicit a 'GROUP BY' clause.
+</p>
 
 <p>  The supported functions are:
 <ul>
@@ -477,83 +482,32 @@ function.  Furthermore, the column names in the ORDER BY clause must be
 a subset of columns specified as output from the SELECT clause.
 
 <h2><A name="output">Sample output</A></h2>
-Here is a sample output produced on June 13, 2005 using the sample
-command shown above.
+Here is a sample output produced on October 17, 2014 using the sample
+data star2002.  The following sample output is produced in the directory
+tests.
 
 <pre>
-ibis::part::readTDC (Tue Jun 14 03:30:32 2005 UTC) --- failed to open file "/home/xhe/TRAC/tmp/dir1/-part.txt" -- No such file or directory
-buildTables: directory /home/xhe/TRAC/tmp/dir1 does not contain a valid <code>-part.txt</code> file or contains an empty table.
-Make sure the parameter Number_of_events has the correct value
-Completed construction of an ibis::part named 200506.
-1766540 records each with 36 attributes
+$ scripts/star2002.sh
+  <<<...output skipped...>>>
+$ ../examples/ibis -d star2002 -q "select eventFile, avg(Pt) where primaryTracks > 2900" -v
 
+Constructed a part named star2002
+filter::sift2(SELECT eventFile, avg(Pt) FROM 1 data partition WHERE 2900 < ...) -- processing data partition star2002
+From star2002 Where 2900 < primaryTracks --> 20
+countQuery::evaluate -- duration: 0.014331 sec(CPU), 0.019357 sec(elapsed)
+SELECT eventFile, avg(Pt) FROM T-star2002 WHERE primaryTracks > 2900 produced a table with 20 rows and 2 columns
+-- the first 2 rows (of 20) from the result table for "SELECT eventFile, avg(Pt) FROM T-star2002 WHERE primaryTracks > 2900"
+1811167, 128.994491577148
+1811207, 42.6615257263184
 
-./ibis: batch mode, log level 1
-
-Tables:
-200506
-
-Query:
-select mchn, tmpr where ! (tmpr == 55 or tmpr == 60)
-
-doQuery (Tue Jun 14 03:31:13 2005 UTC) --- processing query ! (tmpr == 55 or tmpr == 60) on table 200506
-query[LT55J4AkJu400000]::setWhereClause -- WHERE "! (tmpr == 55 or tmpr == 60)"
-query[LT55J4AkJu400000]::setSelectClause -- SELECT mchn,tmpr
-ibis::column[200506.Tmpr](INT)::readIndex -- the basic index was read (/home/xhe/TRAC/tmp/dir1/200506) in 0 sec(CPU), 0.00101352 sec(elapsed)
-query[LT55J4AkJu400000]::estimate -- time to compute the bounds: 0.01 sec(CPU), 0.00476098 sec(elapsed).
-query[LT55J4AkJu400000]::estimate -- # of hits for query "! (tmpr == 55 or tmpr == 60)" is 0
-doQuery (Tue Jun 14 03:31:13 2005 UTC) --- number of hits in [0, 0]
-query[LT55J4AkJu400000]::evaluate -- time to compute the 15744 hits: 0 sec(CPU), 0.000848532 sec(elapsed).
-query[LT55J4AkJu400000]::evaluate -- user kwu SELECT mchn,tmpr FROM 200506 WHERE ! (tmpr == 55 or tmpr == 60) ==> 15744 hit(s).
-doQuery (Tue Jun 14 03:31:13 2005 UTC) --- number of hits = 15744
-doQuery:: evaluate(! (tmpr == 55 or tmpr == 60)) took 0.00626969 sec(elapsed)
-ibis::part[200506]::getRIDs -- number of RIDs (0) does not match the size of the mask (1766540)
-Tue Jun 14 03:31:13 2005 UTC
-Warning -- query[LT55J4AkJu400000]::getRIDs -- got 0 row IDs from table 200506, expected 15744
-ibis::part[200506]::getRIDs -- number of RIDs (0) does not match the size of the mask (1766540)
-ibis::column[200506.MCHN](KEY)::readIndex -- the basic index was read (/home/xhe/TRAC/tmp/dir1/200506) in 0 sec(CPU), 0.000895739 sec(elapsed)
-Query LT55J4AkJu400000 produces 32 distinct tuples of columns mchn,tmpr
-MegaBACE # MB424 -128 
-MegaBACE # MB424 -120 
-MegaBACE # MB424 -112 
-MegaBACE # MB424 -104 
-MegaBACE # MB424 -96 
-MegaBACE # MB424 -88 
-MegaBACE # MB424 -80 
-MegaBACE # MB424 -72 
-MegaBACE # MB424 -64 
-MegaBACE # MB424 -56 
-MegaBACE # MB424 -48 
-MegaBACE # MB424 -40 
-MegaBACE # MB424 -32 
-MegaBACE # MB424 -24 
-MegaBACE # MB424 -16 
-MegaBACE # MB424 -8 
-MegaBACE # MB424 0 
-MegaBACE # MB424 8 
-MegaBACE # MB424 16 
-MegaBACE # MB424 24 
-MegaBACE # MB424 32 
-MegaBACE # MB424 40 
-MegaBACE # MB424 48 
-MegaBACE # MB424 56 
-MegaBACE # MB424 64 
-MegaBACE # MB424 72 
-MegaBACE # MB424 80 
-MegaBACE # MB424 88 
-MegaBACE # MB424 96 
-MegaBACE # MB424 104 
-MegaBACE # MB424 112 
-MegaBACE # MB424 120 
-Cleaning up table 200506
-Cleaning up the file manager
-Total pages accessed through read(unistd.h) is 145
+tableSelect:: complete evaluation of SELECT eventFile, avg(Pt) FROM T-star2002 WHERE primaryTracks > 2900 took 0.029337 CPU seconds, 0.052798 elapsed seconds
+/Users/john/src/ibis/examples/.libs/ibis -- total CPU time 0.037031 s, total elapsed time 0.081198 s
 </pre>
 
 <p>
 The number of hits is printed in the following line
 <pre>
-query[LT55J4AkJu400000]::evaluate -- user ... ==> 15744 hit(s).
+From star2002 Where 2900 < primaryTracks --> 20
 </pre>
 
 <p>
@@ -573,12 +527,12 @@ which incidentally all appears to be multiple of 8.
 
 <li> <A name="trac"></A>FastBit IBIS has been released as open source
 software under LGPL <A
-HREF="http://sdm.lbl.gov/fastbit/src/license.txt">license</A>.  You may
+HREF="https://sdm.lbl.gov/fastbit/src/license.txt">license</A>.  You may
 download a free copy from <A
 HREF="https://codeforge.lbl.gov/frs/?group_id=44">FastBit download page</A>.
 
 <li> <A name="ibis"></A>Additional documentation about FastBit can be
-found on-line at <A HREF="http://sdm.lbl.gov/fastbit/">FastBit
+found on-line at <A HREF="https://sdm.lbl.gov/fastbit/">FastBit
 website</A>.  Questions may be directed to <A
 HREF="mailto:fastbit-users@hpcrdm.lbl.gov">fastbit-users@hpcrdm.lbl.gov</A>
 (free <A
@@ -592,8 +546,8 @@ here</A>).
 
 <div class=footer>
 <A HREF="contact.html">Contact us</a><BR>
-<A HREF="http://www.lbl.gov/Disclaimers.html">Disclaimers</A><BR>
-<A HREF="http://sdm.lbl.gov/fastbit/">FastBit web site</A><br>
+<A HREF="https://www.lbl.gov/Disclaimers.html">Disclaimers</A><BR>
+<A HREF="https://sdm.lbl.gov/fastbit/">FastBit web site</A><br>
 <A HREF="https://hpcrdm.lbl.gov/pipermail/fastbit-users">FastBit mailing
 list</A><br>
 <SCRIPT language=JavaScript>
@@ -601,7 +555,7 @@ list</A><br>
 </SCRIPT>
 </div>
 
-<script src="http://www.google-analytics.com/ga.js"
+<script src="https://www.google-analytics.com/ga.js"
 type="text/javascript">
 </script>
 <script type="text/javascript">

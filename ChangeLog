@@ -1,3 +1,15 @@
+2014-10-18 John Wu <John dot Wu at ACM dot org>
+	* doc/ibisCommandLine.html: update document to reflect the currect
+	ibis code
+	* tests/scripts/star2002.sh: add script to the list of files
+	distributed (the previous dataset used to produce the sample
+	output in doc/ibisCommandLine.html was not captured and can not
+	reproduced)
+	* doc/*.html: change all html page to use https instead of http to
+	avoid complains about mixed content
+	* examples/ibis.cpp: add option -m to allow mesh queries to by
+	pass tableSelect (pass make check)
+
 2014-10-17 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp: add global variable independent_parts to
 	indicate whether to process each data partition separately.  By

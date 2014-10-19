@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS=gnu
 EXTRA_PROGRAMS = readcsv smatch inRange setqgen jrf
-check_SCRIPTS = scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list
+check_SCRIPTS = scripts/matchCounts.pl scripts/printWarning.pl scripts/query-count.list scripts/star2002.sh
 readcsv_SOURCES = readcsv.cpp
 smatch_SOURCES = smatch.cpp
 smatch_CPPFLAGS = -I../src
@@ -113,7 +113,7 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt 
 	@if [ "`$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" 2>&1 | fgrep 15`" == "15" ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch 2>&1 | fgrep -v std::exception | diff - vault/smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
 	@if [ `./inRange${EXEEXT} $(TESTDIR)/inRange 2>&1 | fgrep -v std::exception | diff -w - vault/inRange-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
-	@$(IBISEXE) -d $(TESTDIR)/acmpub -v -o $(TESTDIR)/acmpub-0 -q "select v where v in (VLDB, SIGMOD)" >> $(TESTDIR)/check-text.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/acmpub -v -o $(TESTDIR)/acmpub-0 -q "select v, count(*) where v in (VLDB, SIGMOD)" >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `diff $(TESTDIR)/acmpub-0 vault/acmpub-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub -v -o $(TESTDIR)/acmpub-1 -q "select v where a contains ('Jim Gray', 'J. Ullman')" >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `diff $(TESTDIR)/acmpub-1 vault/acmpub-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
@@ -178,7 +178,7 @@ really-small: $(IBISEXE) $(TCAPIEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part
 	@if [ -f $(TESTDIR)/small-10 -a -f vault/small-10 -a `diff -w $(TESTDIR)/small-10 vault/small-10 | wc -l` -eq 0 ]; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@if [ -f $(TESTDIR)/small-11 -a -f vault/small-11 -a `diff -w $(TESTDIR)/small-11 vault/small-11 | wc -l` -eq 0 ]; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@if [ -f $(TESTDIR)/small-12 -a -f vault/small-12 -a `diff -w $(TESTDIR)/small-12 vault/small-12 | wc -l` -eq 0 ]; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
-	@if [ `$(IBISEXE) -d $(TESTDIR)/w6 -v -q "where M = 144115188075857871ULL OR M = 144115188075857872ULL" 2>&1 | fgrep '==> 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
+	@if [ `$(IBISEXE) -d $(TESTDIR)/w6 -v -q "where M = 144115188075857871ULL OR M = 144115188075857872ULL" 2>&1 | fgrep 'produced 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
 	@$(TCAPIEXE) $(TESTDIR)/w7 "c=\"'twas\"" 2>&1 | if [ `fgrep 'w7 produced 1 hit' | wc -l` -eq 1 ]; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
 	@$(TCAPIEXE) $(TESTDIR)/w7 "c='' and c not null" >> $(TESTDIR)/really-small.log 2>&1
 	@$(TCAPIEXE) $(TESTDIR)/w7 "c='' and c not null" 2>&1 | if [ `fgrep 'w7 produced 2 hits' | wc -l` -eq 1 ]; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
@@ -210,15 +210,15 @@ check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-join.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
 	@echo
 check-labeling: $(IBISEXE) $(TESTDIR)/m0/-part.txt $(TESTDIR)/m1/-part.txt
-	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<10" >| $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m0 -m -v -q "where a<10" >| $(TESTDIR)/check-labeling.log 2>&1
 	@if [ `fgrep " 1 connected component" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where a<40 && c%2 > 0" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m0 -m -v -q "where a<40 && c%2 > 0" >> $(TESTDIR)/check-labeling.log 2>&1
 	@if [ `fgrep " 20 connected components" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@$(IBISEXE) -d $(TESTDIR)/m0 -v -q "where b<75 && c%3 > 0" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m0 -m -v -q "where b<75 && c%3 > 0" >> $(TESTDIR)/check-labeling.log 2>&1
 	@if [ `fgrep " 7 connected components" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a1<5" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m1 -m -v -q "where a1<5" >> $(TESTDIR)/check-labeling.log 2>&1
 	@if [ `fgrep " 35 connected components" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
-	@$(IBISEXE) -d $(TESTDIR)/m1 -v -q "where a2<5 && b1>10" >> $(TESTDIR)/check-labeling.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/m1 -m -v -q "where a2<5 && b1>10" >> $(TESTDIR)/check-labeling.log 2>&1
 	@if [ `fgrep " 14 connected components" $(TESTDIR)/check-labeling.log | wc -l` -eq 2 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-labeling.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-labeling.log; fi
 	@echo
