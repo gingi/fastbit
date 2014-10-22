@@ -4756,7 +4756,7 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
             if (col.getTimeFormat() == 0) {
                 if (var.getDecoration() != 0 && *(var.getDecoration()) != 0)
                     col.setTimeFormat(var.getDecoration());
-                else if (scol->getTimeFormat() != 0)
+                else if (scol != 0 && scol->getTimeFormat() != 0)
                     col.setTimeFormat(*(scol->getTimeFormat()));
             }
 	}
@@ -4879,7 +4879,7 @@ int ibis::bord::append(const ibis::selectClause &sc, const ibis::part& prt,
             if (col.getTimeFormat() == 0) {
                 if (var.getDecoration() != 0 && *(var.getDecoration()) != 0)
                     col.setTimeFormat(var.getDecoration());
-                else if (scol->getTimeFormat() != 0)
+                else if (scol != 0 && scol->getTimeFormat() != 0)
                     col.setTimeFormat(*(scol->getTimeFormat()));
             }
 	}
