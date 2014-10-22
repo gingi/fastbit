@@ -4048,33 +4048,12 @@ void ibis::qAllWords::getTableNames(std::set<std::string>& plist) const {
 } // ibis::qAllWords::getTableNames
 
 void ibis::math::customFunction1::print(std::ostream& out) const {
-    if (fun_ != 0) {
-        fun_->printName(out);
-        out << '(';
-        if (getLeft() != 0) {
-            getLeft()->print(out);
-        }
-        else if (getRight() != 0) {
-            getRight()->print(out);
-        }
-
-        std::ostringstream oss;
-        fun_->printDecoration(oss);
-        if (oss.str().empty() == false) {
-            if (getLeft() != 0 || getRight() != 0)
-                out << ", ";
-            out << oss.str();
-        }
-        out << ')';
-    }
-    else {
-        out << "<Ill-formed one-argument function>";
-    }
+    out << "1-arg function at " << static_cast<const void*>(fun_);
 } // ibis::math::customFunction1::print
 
 double ibis::math::customFunction1::eval() const {
     double arg =
-        static_cast<const ibis::math::term*>(getLeft())->eval();
+	static_cast<const ibis::math::term*>(getLeft())->eval();
     if (fun_ != 0)
         return fun_->eval(arg);
     else
@@ -4103,20 +4082,6 @@ double ibis::math::fromUnixTime::eval(double val) const {
         << " into a double value";
     return res;
 } // ibis::math::fromUnixTime::eval
-
-void ibis::math::fromUnixTime::printName(std::ostream &out) const {
-    out << "FROM_UNIXTIME_";
-    if (tzname_.empty()) {
-        out << "LOCAL";
-    }
-    else {
-        out << tzname_;
-    }
-} // ibis::math::fromUnixTime::print
-
-void ibis::math::fromUnixTime::printDecoration(std::ostream &out) const {
-    out << '"' << fmt_ << '"';
-} // ibis::math::fromUnixTime::printDecoration
 
 double ibis::math::toUnixTime::eval(double val) const {
     double res;
@@ -4161,85 +4126,3 @@ double ibis::math::toUnixTime::eval(double val) const {
     res += val; // add the fraction of second
     return res;
 } // ibis::math::toUnixTime::eval
-
-void ibis::math::toUnixTime::printName(std::ostream &out) const {
-    out << "TO_UNIXTIME_";
-    if (tzname_.empty()) {
-        out << "LOCAL";
-    }
-    else {
-        out << tzname_;
-    }
-} // ibis::math::toUnixTime::print
-
-void ibis::math::toUnixTime::printDecoration(std::ostream &) const {
-    return; // nothing to do
-} // ibis::math::toUnixTime::printDecoration
-
-void ibis::math::stringFunction1::print(std::ostream& out) const {
-    if (fun_ != 0) {
-        fun_->printName(out);
-        out << '(';
-        if (getLeft() != 0) {
-            getLeft()->print(out);
-        }
-        else if (getRight() != 0) {
-            getRight()->print(out);
-        }
-
-        std::ostringstream oss;
-        fun_->printDecoration(oss);
-        if (oss.str().empty() == false) {
-            if (getLeft() != 0 || getRight() != 0)
-                out << ", ";
-            out << oss.str();
-        }
-        out << ')';
-    }
-    else {
-        out << "<Ill-formed one-argument function>";
-    }
-} // ibis::math::stringFunction1::print
-
-std::string ibis::math::stringFunction1::sval() const {
-    double arg =
-        static_cast<const ibis::math::term*>(getLeft())->eval();
-    if (fun_ != 0)
-        return fun_->eval(arg);
-    else
-        return std::string();
-} // ibis::math::stringFunction1::sval
-
-std::string ibis::math::formatUnixTime::eval(double val) const {
-    if (fmt_.empty()) { // convert double to std::string
-        std::ostringstream oss;
-        oss << val;
-        return oss.str();
-    }
-
-    char buf[80];
-    struct tm mytm;
-    const time_t sec = static_cast<time_t>(val);
-    if (tzname_[0] == 'g' || tzname_[0] == 'G' ||
-        tzname_[0] == 'u' || tzname_[0] == 'U')
-        (void) gmtime_r(&sec, &mytm);
-    else
-        (void) localtime_r(&sec, &mytm);
-    (void) strftime(buf, 80, fmt_.c_str(), &mytm);
-    return std::string(buf);
-} // ibis::math::formatUnixTime::eval
-
-void ibis::math::formatUnixTime::printName(std::ostream &out) const {
-    out << "FORMAT_UNIXTIME_";
-    if (tzname_.empty()) {
-        out << "LOCAL";
-    }
-    else {
-        out << tzname_;
-    }
-} // ibis::math::formatUnixTime::print
-
-void ibis::math::formatUnixTime::printDecoration(std::ostream &out) const {
-    out << '"' << fmt_ << '"';
-} // ibis::math::formatUnixTime::printDecoration
-

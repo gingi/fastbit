@@ -117,25 +117,29 @@ namespace ibis {
      EXISTSOP = 272,
      INOP = 273,
      LIKEOP = 274,
-     ANYOP = 275,
-     BITOROP = 276,
-     BITANDOP = 277,
-     ADDOP = 278,
-     MINUSOP = 279,
-     MULTOP = 280,
-     DIVOP = 281,
-     REMOP = 282,
-     EXPOP = 283,
-     INT64 = 284,
-     UINT64 = 285,
-     NUMBER = 286,
-     INTSEQ = 287,
-     UINTSEQ = 288,
-     NOUNSTR = 289,
-     NUMSEQ = 290,
-     STRSEQ = 291,
-     STRLIT = 292,
-     CONSTAINSOP = 293
+     FROM_UNIXTIME_GMT = 275,
+     FROM_UNIXTIME_LOCAL = 276,
+     TO_UNIXTIME_GMT = 277,
+     TO_UNIXTIME_LOCAL = 278,
+     ANYOP = 279,
+     BITOROP = 280,
+     BITANDOP = 281,
+     ADDOP = 282,
+     MINUSOP = 283,
+     MULTOP = 284,
+     DIVOP = 285,
+     REMOP = 286,
+     EXPOP = 287,
+     INT64 = 288,
+     UINT64 = 289,
+     NUMBER = 290,
+     INTSEQ = 291,
+     UINTSEQ = 292,
+     NOUNSTR = 293,
+     NUMSEQ = 294,
+     STRSEQ = 295,
+     STRLIT = 296,
+     CONSTAINSOP = 297
    };
 
     };
@@ -317,7 +321,7 @@ namespace ibis {
 
 } // ibis
 /* Line 33 of lalr1.cc  */
-#line 320 "whereParser.hh"
+#line 324 "whereParser.hh"
 
 
 

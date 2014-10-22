@@ -108,6 +108,48 @@ namespace ibis {
 ///   the string is parsd into the correct elements of the sets.  This
 ///   expression is used to identify sets with the speicified list of
 ///   elements.
+///
+/// - Time handling functions
+///   An integer valued column could be used to store Unix time stamps
+///   (i.e., seconds since beginning of 1970), in which case, it might be
+///   useful to perform comparison on day of the week or hours of a day in
+///   a where clause.  To support such operations, four functions are
+///   provided.
+/// 
+///   -- from_unixtime_local(timestamp, "format"): extract a number from
+///      the time stamp.  The timestamp should be the name of column to be
+///      interpreted as Unix time stamps.  The format string follows the
+///      convention of function @c strftime from @c libc.  Note that this
+///      function actuall uses @c strftime to extract the information in
+///      string form first and then interpret the leading portion of the
+///      string as a floating-point number.  The tailing portion of the
+///      string that could not be interpreted as part of a floating-point
+///      number is ignored.  If this process results no number at all, for
+///      example, @c strftime prints the first date and time with an
+///      alphabet as the first character, then this function returns a NaN
+///      (Not-a-number).
+/// 
+///      This function assumes the time stamps are in the local time zone.
+/// 
+///      Note that the format string must be quoted.
+/// 
+///   -- from_unixtime_gmt(timestamp, "format"): same functionality as
+///      from_unixtime_local, but assumes the time stamps are in time zone
+///      GMT/UTC.
+/// 
+///      Note that the format string must be quoted.
+/// 
+///   -- to_unixtime_local(date-time): This function treats its argument as
+///      a date-time combination following ISO 8601 specification with the
+///      alphabets removed.  For example, noon of December 15, 2014 would
+///      be 20141215120000.  The general form of the number is
+///      yyyymmddhhmmss.  If the value has a fractional part, the
+///      fractional portion is treated as the fraction of a second.  This
+///      function assumes its argument is specified in local time zone.
+/// 
+///   -- to_unixtime_gmt(date-time): same functionality as
+///      to_unixtime_local, but assumes its argument is in time zone GMT.
+/// 
 class ibis::whereClause {
 public:
     /// Construct a where clause from a string.
