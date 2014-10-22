@@ -94,11 +94,13 @@ namespace ibis {
 /// date/time format.  In this case, the following pseudo-function notation
 /// could be used.
 /// @code
-/// select FORMAT_UNIXTIME_LOCAL(colname, formatstring) from ...;
-/// select FORMAT_UNIXTIME_GMT(colname, formatstring) from ...;
+/// select FORMAT_UNIXTIME_LOCAL(colname, "formatstring") from ...;
+/// select FORMAT_UNIXTIME_GMT(colname, "formatstring") from ...;
 /// @endcode
 /// Note that the format string is passed to @c strftime.  Please refer to the
-/// documentation about @c strftime for details about the format.
+/// documentation about @c strftime for details about the format.  Please
+/// also note that the format string must be quoted, single quotes
+/// and double quotes are accepted.
 class FASTBIT_CXX_DLLSPEC ibis::selectClause {
 public:
     /// Parse a new string as a select clause.
