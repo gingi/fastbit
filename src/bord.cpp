@@ -319,6 +319,8 @@ ibis::bord::bord(const char *tn, const char *td,
 			if (bc != 0)
 			    col->setDictionary(bc->getDictionary());
 		    }
+                    if (var.getDecoration() != 0)
+                        col->setTimeFormat(var.getDecoration());
 		    columns[col->name()] = col;
 		    colorder.push_back(col);
 		}
@@ -2359,7 +2361,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<signed char>* vals =
 	    static_cast<const array_t<signed char>*>(buffer);
 	if (i < vals->size()) {
-	    out << (int)((*vals)[i]);
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            else
+                out << (int)((*vals)[i]);
 	    ierr = 0;
 	}
 	else {
@@ -2370,7 +2375,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<unsigned char>* vals =
 	    static_cast<const array_t<unsigned char>*>(buffer);
 	if (i < vals->size()) {
-	    out << (unsigned)((*vals)[i]);
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            else
+                out << (unsigned)((*vals)[i]);
 	    ierr = 0;
 	}
 	else {
@@ -2381,7 +2389,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<int16_t>* vals =
 	    static_cast<const array_t<int16_t>*>(buffer);
 	if (i < vals->size()) {
-	    out << (*vals)[i];
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            else
+                out << (*vals)[i];
 	    ierr = 0;
 	}
 	else {
@@ -2392,7 +2403,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<uint16_t>* vals =
 	    static_cast<const array_t<uint16_t>*>(buffer);
 	if (i < vals->size()) {
-	    out << (*vals)[i];
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            else
+                out << (*vals)[i];
 	    ierr = 0;
 	}
 	else {
@@ -2403,7 +2417,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<int32_t>* vals =
 	    static_cast<const array_t<int32_t>*>(buffer);
 	if (i < vals->size()) {
-	    out << (*vals)[i];
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            else
+                out << (*vals)[i];
 	    ierr = 0;
 	}
 	else {
@@ -2414,7 +2431,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<uint32_t>* vals =
 	    static_cast<const array_t<uint32_t>*>(buffer);
 	if (i < vals->size()) {
-	    if (dic == 0) {
+            if (m_utscribe != 0) {
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            }
+            else if (dic == 0) {
 		out << (*vals)[i];
 	    }
 	    else if ((*vals)[i] > dic->size()) {
@@ -2433,7 +2453,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<int64_t>* vals =
 	    static_cast<const array_t<int64_t>*>(buffer);
 	if (i < vals->size()) {
-	    out << (*vals)[i];
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, ((*vals)[i]));
+            else
+                out << (*vals)[i];
 	    ierr = 0;
 	}
 	else {
@@ -2444,7 +2467,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<uint64_t>* vals =
 	    static_cast<const array_t<uint64_t>*>(buffer);
 	if (i < vals->size()) {
-	    out << (*vals)[i];
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            else
+                out << (*vals)[i];
 	    ierr = 0;
 	}
 	else {
@@ -2455,7 +2481,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<float>* vals =
 	    static_cast<const array_t<float>*>(buffer);
 	if (i < vals->size()) {
-	    out << std::setprecision(7) << (*vals)[i];
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            else
+                out << std::setprecision(7) << (*vals)[i];
 	    ierr = 0;
 	}
 	else {
@@ -2466,7 +2495,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
 	const array_t<double>* vals =
 	    static_cast<const array_t<double>*>(buffer);
 	if (i < vals->size()) {
-	    out << std::setprecision(15) << (*vals)[i];
+            if (m_utscribe != 0)
+                (*m_utscribe)(out, (int64_t)((*vals)[i]));
+            else
+                out << std::setprecision(15) << (*vals)[i];
 	    ierr = 0;
 	}
 	else {
@@ -4721,6 +4753,12 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
 		    << "\" of partition " << prt.name();
 		ierr = col.append(*scol, mask);
 	    }
+            if (col.getTimeFormat() == 0) {
+                if (var.getDecoration() != 0 && *(var.getDecoration()) != 0)
+                    col.setTimeFormat(var.getDecoration());
+                else if (scol->getTimeFormat() != 0)
+                    col.setTimeFormat(*(scol->getTimeFormat()));
+            }
 	}
     }
     if (ierr >= 0) {
@@ -4838,6 +4876,12 @@ int ibis::bord::append(const ibis::selectClause &sc, const ibis::part& prt,
 		    << " of partition " << prt.name();
 		ierr = col.append(*scol, newseg);
 	    }
+            if (col.getTimeFormat() == 0) {
+                if (var.getDecoration() != 0 && *(var.getDecoration()) != 0)
+                    col.setTimeFormat(var.getDecoration());
+                else if (scol->getTimeFormat() != 0)
+                    col.setTimeFormat(*(scol->getTimeFormat()));
+            }
 	}
     }
     if (ierr >= 0) {

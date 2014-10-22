@@ -812,8 +812,8 @@ namespace ibis {
 	    variable(const char* var)
 		: name(ibis::util::strnewdup(var)), myBar(0), varind(0) {}
 	    variable(const variable& v)
-		: name(ibis::util::strnewdup(v.name)), myBar(v.myBar),
-		  varind(v.varind) {}
+		: name(ibis::util::strnewdup(v.name)), decor(v.decor),
+                  myBar(v.myBar), varind(v.varind) {}
 	    virtual ~variable() {delete [] name;}
 
 	    virtual TERM_TYPE termType() const {return VARIABLE;}
@@ -823,7 +823,7 @@ namespace ibis {
 
 	    virtual uint32_t nItems() const {return 1U;}
 	    virtual void print(std::ostream& out) const {out << name;}
-	    virtual void printFull(std::ostream& out) const {out << name;}
+	    virtual void printFull(std::ostream& out) const;
 	    const char* variableName() const {return name;}
 
 	    void recordVariable(barrel& bar) const {
@@ -833,8 +833,12 @@ namespace ibis {
 		}
 	    }
 
+            void addDecoration(const char *, const char*);
+            const char* getDecoration() const {return decor.c_str();}
+
 	protected:
 	    char* name;	// the variable name
+            std::string decor; // name=value pairs
 	    mutable barrel* myBar;// the barrel containing it
 	    mutable uint32_t varind;// the token to retrieve value from myBar
 

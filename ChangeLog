@@ -1,3 +1,10 @@
+2014-10-20 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.h, src/qExpr.cpp, src/column.h, src/column.cpp: rename
+	format_unixtime to unixTimeScribe
+	* src/colValues.h, src/colValues.cpp: add struct
+	ibis::colValues::format_unixtime to allow a column integer or
+	floating-point values to be printed out as unix time stamps
+
 2014-10-18 John Wu <John dot Wu at ACM dot org>
 	* doc/ibisCommandLine.html: update document to reflect the currect
 	ibis code

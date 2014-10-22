@@ -107,7 +107,8 @@ namespace ibis {
      REMOP = 265,
      EXPOP = 266,
      NUMBER = 267,
-     NOUNSTR = 268
+     NOUNSTR = 268,
+     STRLIT = 269
    };
 
     };
@@ -289,7 +290,7 @@ namespace ibis {
 
 } // ibis
 /* Line 33 of lalr1.cc  */
-#line 293 "selectParser.hh"
+#line 294 "selectParser.hh"
 
 
 

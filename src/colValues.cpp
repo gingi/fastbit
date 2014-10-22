@@ -133,6 +133,14 @@ ibis::colValues* ibis::colValues::create(const ibis::column* c,
     }
 } // ibis::colValues::create
 
+/// Add a custom format for the column to be interpretted as unix time stamps.
+void ibis::colValues::setTimeFormat(const char *fmt, const char *tz) {
+    if (utform != 0) {
+        delete utform;
+    }
+    utform = new ibis::column::unixTimeScribe(fmt, tz);
+} // ibis::colValues::setTimeFormat
+
 ibis::colBytes::colBytes(const ibis::column* c)
     : colValues(c), array(new ibis::array_t<signed char>) {
     if (c == 0) return;
@@ -6554,8 +6562,14 @@ long ibis::colInts::write(FILE* fptr) const {
 
 /// Write ith element as text.
 void ibis::colInts::write(std::ostream& out, uint32_t i) const {
-    if (array != 0 && array->size() > i)
-	out << (*array)[i];
+    if (array == 0 || array->size() <= i) return; // nothing to do
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<int64_t>((*array)[i]));
+    }
+    else {
+        out << (*array)[i];
+    }
 }
 
 /// Write out the whole array as binary.
@@ -6583,7 +6597,11 @@ void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
     if (array == 0 || i > array->size()) {
 	return;
     }
-    if (col != 0 && col->type() == ibis::CATEGORY) {
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<int64_t>((*array)[i]));
+    }
+    else if (col != 0 && col->type() == ibis::CATEGORY) {
 	const char* str =
 	    static_cast<const ibis::category*>(col)->getKey((*array)[i]);
 	if (str != 0)
@@ -6607,8 +6625,14 @@ long ibis::colLongs::write(FILE* fptr) const {
 
 /// Write ith element as text
 void ibis::colLongs::write(std::ostream& out, uint32_t i) const {
-    if (array != 0 && array->size() > i)
+    if (array == 0 || array->size() <= i) return;
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<int64_t>((*array)[i]));
+    }
+    else {
 	out << (*array)[i];
+    }
 }
 
 /// Write out whole array as binary.
@@ -6624,8 +6648,14 @@ long ibis::colULongs::write(FILE* fptr) const {
 
 /// write ith element as text
 void ibis::colULongs::write(std::ostream& out, uint32_t i) const {
-    if (array != 0 && array->size() > i)
+    if (array == 0 || array->size() <= i) return;
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<int64_t>((*array)[i]));
+    }
+    else {
 	out << (*array)[i];
+    }
 }
 
 /// Write out whole array as binary.
@@ -6658,8 +6688,14 @@ long ibis::colUShorts::write(FILE* fptr) const {
 
 /// Write ith element as text
 void ibis::colUShorts::write(std::ostream& out, uint32_t i) const {
-    if (array != 0 && array->size() > i)
+    if (array == 0 || array->size() <= i) return;
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<int64_t>((*array)[i]));
+    }
+    else {
 	out << (*array)[i];
+    }
 }
 
 /// Write out whole array as binary.
@@ -6675,8 +6711,14 @@ long ibis::colBytes::write(FILE* fptr) const {
 
 /// Write ith element as text
 void ibis::colBytes::write(std::ostream& out, uint32_t i) const {
-    if (array != 0 && array->size() > i)
-	out << (int16_t)(*array)[i];
+    if (array == 0 || array->size() <= i) return;
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<int64_t>((*array)[i]));
+    }
+    else {
+	out << (*array)[i];
+    }
 }
 
 /// Write out whole array as binary.
@@ -6692,8 +6734,14 @@ long ibis::colUBytes::write(FILE* fptr) const {
 
 /// Write ith element as text
 void ibis::colUBytes::write(std::ostream& out, uint32_t i) const {
-    if (array != 0 && array->size() > i)
-	out << (uint16_t) (*array)[i];
+    if (array == 0 || array->size() <= i) return;
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<int64_t>((*array)[i]));
+    }
+    else {
+	out << (*array)[i];
+    }
 }
 
 /// Write out whole array as binary.
@@ -6709,8 +6757,14 @@ long ibis::colFloats::write(FILE* fptr) const {
 
 /// Write ith element as text
 void ibis::colFloats::write(std::ostream& out, uint32_t i) const {
-    if (array != 0 && array->size() > i)
+    if (array == 0 || array->size() <= i) return;
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<double>((*array)[i]));
+    }
+    else {
 	out << (*array)[i];
+    }
 }
 
 /// Write out whole array as binary.
@@ -6726,8 +6780,14 @@ long ibis::colDoubles::write(FILE* fptr) const {
 
 /// Write ith element as text
 void ibis::colDoubles::write(std::ostream& out, uint32_t i) const {
-    if (array != 0 && array->size() > i)
+    if (array == 0 || array->size() <= i) return;
+
+    if (utform != 0) {
+        (*utform)(out, static_cast<double>((*array)[i]));
+    }
+    else {
 	out << (*array)[i];
+    }
 }
 
 /// Write out whole array as binary.  All bytes including the null
@@ -7184,4 +7244,3 @@ long ibis::colBlobs::truncate(uint32_t keep, uint32_t start) {
     }
     return array->size();
 } // ibis::colBlobs::truncate
-

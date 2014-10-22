@@ -32,6 +32,7 @@ WS	[ \t\v\n]
 SEP	[ \t\v\n,;]
 NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 NUMBER	([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
+QUOTED	\"([^\"\\]*(\\.[^\"\\]*)*)\"|\'([^\'\\]*(\\.[^\'\\]*)*)\'|\`([^\'\\]*(\\.[^\'\\]*)*)\'
 
 %%
 %{
@@ -56,6 +57,15 @@ NUMBER	([0-9]+[.]?|[0-9]*[.][0-9]+)([eE][-+]?[0-9]+)?
 #endif
     yylval->stringVal = new std::string(yytext, yyleng);
     return token::NOUNSTR;
+}
+
+{QUOTED} { /* a quoted string */
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+ 	<< __FILE__ << ":" << __LINE__ << " got a quoted string: " << yytext;
+#endif
+    yylval->stringVal = new std::string(yytext+1, yyleng-2);
+    return token::STRLIT;
 }
 
 {NUMBER} { /* a number (let parser deal with the sign) */

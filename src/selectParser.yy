@@ -48,8 +48,9 @@
 %token <integerVal> DIVOP	"/"
 %token <integerVal> REMOP	"%"
 %token <integerVal> EXPOP	"**"
-%token <doubleVal> NUMBER	"numerical value"
-%token <stringVal> NOUNSTR	"name"
+%token <doubleVal>  NUMBER	"numerical value"
+%token <stringVal>  NOUNSTR	"name"
+%token <stringVal>  STRLIT	"string literal"
 
 %nonassoc ASOP
 %left BITOROP
@@ -60,6 +61,7 @@
 
 %type <selectNode> mathExpr
 
+%destructor { delete $$; } STRLIT
 %destructor { delete $$; } NOUNSTR
 %destructor { delete $$; } mathExpr
 
@@ -416,6 +418,42 @@ mathExpr ADDOP mathExpr {
     delete $1;
     $$ = fun;
 }
+| NOUNSTR '(' NOUNSTR ',' STRLIT ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
+	<< *$3 << ", " << *$5 << ", " << *$7 << ")";
+#endif
+    ibis::math::variable *var = new ibis::math::variable($3->c_str());
+    if (stricmp($1->c_str(), "FORMAT_UNIXTIME_LOCAL") == 0)
+        var->addDecoration($1->c_str(), $5->c_str());
+    else if (stricmp($1->c_str(), "FORMAT_UNIXTIME_GMT") == 0 ||
+             stricmp($1->c_str(), "FORMAT_UNIXTIME_UTC") == 0)
+        var->addDecoration("FORMAT_UNIXTIME_GMT", $5->c_str());
+    else if ((*$7)[0] == 'g' || (*$7)[0] == 'G' ||
+             (*$7)[0] == 'u' || (*$7)[0] == 'U')
+        var->addDecoration("FORMAT_UNIXTIME_GMT", $5->c_str());
+    else
+        var->addDecoration("FORMAT_UNIXTIME_LOCAL", $5->c_str());
+    $$ = var;
+    delete $1;
+    delete $3;
+    delete $5;
+    delete $7;
+}
+| NOUNSTR '(' NOUNSTR ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
+	<< *$3 << ", " << *$5 << ")";
+#endif
+    ibis::math::variable *var = new ibis::math::variable($3->c_str());
+    var->addDecoration($1->c_str(), $5->c_str());
+    $$ = var;
+    delete $1;
+    delete $3;
+    delete $5;
+}
 | NOUNSTR '(' mathExpr ',' mathExpr ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -451,6 +489,14 @@ mathExpr ADDOP mathExpr {
 	<< __FILE__ << ":" << __LINE__ << " got a variable name " << *$1;
 #endif
     $$ = new ibis::math::variable($1->c_str());
+    delete $1;
+}
+| STRLIT {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " got a string literal " << *$1;
+#endif
+    $$ = new ibis::math::literal($1->c_str());
     delete $1;
 }
 | NUMBER {

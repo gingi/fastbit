@@ -1896,6 +1896,55 @@ void ibis::qLike::getTableNames(std::set<std::string>& plist) const {
     }
 } // ibis::qLike::getTableNames
 
+// append the name=vlaue pair.
+void ibis::math::variable::addDecoration(const char *nm, const char *val) {
+    if (nm != 0 && val != 0 && *nm != 0 && *val != 0) {
+        decor += nm;
+        decor += " = ";
+        decor += val;
+    }
+} // ibis::math::variable::addDecoration
+
+void ibis::math::variable::printFull(std::ostream &out) const {
+    ibis::resource::vList nv;
+    if (! decor.empty())
+        ibis::resource::parseNameValuePairs(decor.c_str(), nv);
+    const char *fmt = nv["FORMAT_UNIXTIME_GMT"];
+    if (fmt == 0 || *fmt == 0)
+        fmt = nv["FORMAT_UNIXTIME_UTC"];
+    if (fmt != 0 && *fmt != 0) {
+        out << "FORMAT_UNIXTIME_GMT(" << name << ", " << fmt << ')';
+        return;
+    }
+
+    fmt = nv["FORMAT_UNIXTIME_LOCAL"];
+    if (fmt != 0 && *fmt != 0) {
+        out << "FORMAT_UNIXTIME_LOCAL(" << name << ", " << fmt << ')';
+        return;
+    }
+
+    fmt = nv["FORMAT_UNIXTIME"];
+    if (fmt == 0 || *fmt == 0)
+        fmt = nv["FORMAT_DATE"];
+    if (fmt == 0 || *fmt == 0)
+        fmt = nv["DATE_FORMAT"];
+    if (fmt != 0 && *fmt != 0) {
+        const char *tz = nv["tzname"];
+        if (tz == 0 || *tz == 0)
+            tz = nv["timezone"];
+        if (tz != 0 && (*tz == 'g' || *tz == 'G' || *tz == 'u' || *tz == 'U')) {
+            out << "FORMAT_UNIXTIME_GMT(";
+        }
+        else {
+            out << "FORMAT_UNIXTIME_LOCAL(";
+        }
+        out << name << ", " << fmt << ')';
+    }
+    else {
+        out << name;
+    }
+} // ibis::math::variable::printFull
+
 void ibis::math::variable::getTableNames(std::set<std::string>& plist) const {
     if (name != 0) {
 	const std::string& tn = ibis::qExpr::extractTableName(name);

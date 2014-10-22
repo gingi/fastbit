@@ -93,11 +93,14 @@ public:
     virtual float getFloat(uint32_t) const = 0;
     virtual double getDouble(uint32_t) const = 0;
 
+    void setTimeFormat(const char*, const char* =0);
+
 protected:
     const ibis::column* col; ///!< The column where the value is from.
+    ibis::column::unixTimeScribe *utform;
 
-    colValues() : col(0) {}
-    colValues(const ibis::column* c) : col(c) {};
+    colValues() : col(0), utform(0) {}
+    colValues(const ibis::column* c) : col(c), utform(0) {};
 
 private:
     colValues& operator=(const colValues&);

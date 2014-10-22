@@ -66,6 +66,8 @@ namespace ibis {
 ///   the square root of the sum of squared differences from the mean
 ///   divided by the number of rows.  This function name may also appears
 ///   as stdpop.  This computation is performed in double precision.
+/// - group_concat(expression): concatenate all values of the given
+///   expression in the string form.
 ///
 /// Each term may optionally be followed by an alias for the term.  The
 /// alias must be a valid SQL name.  The alias may optionally be preceded
@@ -86,6 +88,17 @@ namespace ibis {
 /// also involves the column A, all of null values of A are excluded,
 /// therefore 'count(*)' in the second example may be smaller than that
 /// of the first example.
+///
+/// In cases where an integer-valued column is actually storing unix time
+/// stamps, it might be useful to print out the integer values in the usual
+/// date/time format.  In this case, the following pseudo-function notation
+/// could be used.
+/// @code
+/// select FORMAT_UNIXTIME_LOCAL(colname, formatstring) from ...;
+/// select FORMAT_UNIXTIME_GMT(colname, formatstring) from ...;
+/// @endcode
+/// Note that the format string is passed to @c strftime.  Please refer to the
+/// documentation about @c strftime for details about the format.
 class FASTBIT_CXX_DLLSPEC ibis::selectClause {
 public:
     /// Parse a new string as a select clause.
