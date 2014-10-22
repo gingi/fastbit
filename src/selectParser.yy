@@ -419,6 +419,7 @@ mathExpr ADDOP mathExpr {
     $$ = fun;
 }
 | NOUNSTR '(' NOUNSTR ',' STRLIT ',' STRLIT ')' {
+    /* FORMAT_UNIXTIME(name, format, timezone) */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
@@ -442,6 +443,9 @@ mathExpr ADDOP mathExpr {
     delete $7;
 }
 | NOUNSTR '(' NOUNSTR ',' STRLIT ')' {
+    /* FORMAT_UNIXTIME_LOCAL and FORMAT_UNIXTIME_GMT.  This is treated as a
+       decoration to a column name; any unexpected names will be dicarded
+       (not causing an error). */
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
