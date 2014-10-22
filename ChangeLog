@@ -1,3 +1,12 @@
+2014-10-21 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.h, src/qExpr.cpp, src/whereLexer.ll,
+	src/whereParser.yy: add an initial implementation of functions in
+	where clause: from_unixtime_local, from_unixtime_gmt,
+	to_unixtime_local, to_unixtime_gmt (based on discussion with Jon
+	Strabala at QuantumSI dot com)
+	* src/whereClause.h: add explanation of the four time handling
+	functions.
+
 2014-10-20 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp, src/column.h, src/column.cpp: rename
 	format_unixtime to unixTimeScribe

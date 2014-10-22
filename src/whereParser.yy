@@ -59,6 +59,10 @@
 %token <integerVal> EXISTSOP	"exists"
 %token <integerVal> INOP	"in"
 %token <integerVal> LIKEOP	"like"
+%token <integerVal> FROM_UNIXTIME_GMT	"FROM_UNIXTIME_GMT"
+%token <integerVal> FROM_UNIXTIME_LOCAL	"FROM_UNIXTIME_LOCAL"
+%token <integerVal> TO_UNIXTIME_GMT	"TO_UNIXTIME_GMT"
+%token <integerVal> TO_UNIXTIME_LOCAL	"TO_UNIXTIME_LOCAL"
 %token <integerVal> ANYOP	"any"
 %token <integerVal> BITOROP	"|"
 %token <integerVal> BITANDOP	"&"
@@ -1120,6 +1124,60 @@ mathExpr ADDOP mathExpr {
     fun->setLeft($3);
     $$ = static_cast<ibis::qExpr*>(fun);
     delete $1;
+}
+| FROM_UNIXTIME_LOCAL '(' mathExpr ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- FROM_UNIXTIME_LOCAL("
+	<< *$3 << ", " << *$5 << ")";
+#endif
+
+    ibis::math::fromUnixTime fut($5->c_str());
+    ibis::math::customFunction1 *fun =
+	new ibis::math::customFunction1(fut);
+    fun->setLeft($3);
+    $$ = static_cast<ibis::qExpr*>(fun);
+    delete $5;
+}
+| FROM_UNIXTIME_GMT '(' mathExpr ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- FROM_UNIXTIME_GMT("
+	<< *$3 << ", " << *$5 << ")";
+#endif
+
+    ibis::math::fromUnixTime fut($5->c_str(), "GMT0");
+    ibis::math::customFunction1 *fun =
+	new ibis::math::customFunction1(fut);
+    fun->setLeft($3);
+    $$ = static_cast<ibis::qExpr*>(fun);
+    delete $5;
+}
+| TO_UNIXTIME_LOCAL '(' mathExpr ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_LOCAL("
+	<< *$3 << ")";
+#endif
+
+    ibis::math::toUnixTime fut;
+    ibis::math::customFunction1 *fun =
+	new ibis::math::customFunction1(fut);
+    fun->setLeft($3);
+    $$ = static_cast<ibis::qExpr*>(fun);
+}
+| TO_UNIXTIME_GMT '(' mathExpr ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_GMT("
+	<< *$3 << ")";
+#endif
+
+    ibis::math::toUnixTime fut("GMT0");
+    ibis::math::customFunction1 *fun =
+	new ibis::math::customFunction1(fut);
+    fun->setLeft($3);
+    $$ = static_cast<ibis::qExpr*>(fun);
 }
 | MINUSOP mathExpr %prec NOTOP {
 #if defined(DEBUG) && DEBUG + 0 > 1

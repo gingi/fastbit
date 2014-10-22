@@ -3042,7 +3042,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 	ierr = sel1->getColumnAsDoubles(cnames[0], svals);
 	if (ierr < 0 || static_cast<uint64_t>(ierr) != sel1->nRows()) {
 	    LOGGER(ibis::gVerbose >= 0)
-		<< "tableSelect -- can not verify the answers returned for "
+		<< "Warning -- tableSelect can not verify answers returned for "
 		<< sqlstring << ", because of failure to retrieve values "
 		"from an intermediate table object named " << sel1->name()
 		<< ", ierr = " << ierr;
@@ -3098,9 +3098,8 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 		}
 		else {
 		    LOGGER(ibis::gVerbose > 1)
-			<< "tableSelect -- qDiscreteRange(" << cnames[0]
-			<< ", double[" << sel1->nRows() << "]) has " << cnt
-			<< " hits as expected";
+			<< "Successfully verified " << cnt
+			<< " hit" << (cnt > 1 ? "s" : "");
 		}
 	    }
 	}
@@ -3768,7 +3767,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		     << rid1->size();
 	    else
 		lg() << "Successfully verified " << rid0->size()
-		     << " RID" << (rid0->size()>1?"s":"");
+		     << " hit" << (rid0->size()>1?"s":"");
 	}
 	else if (sstr != 0) {
 	    ibis::util::logger lg;
@@ -3830,7 +3829,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 		     << rid1->size();
 	    else
 		lg() << "Successfully verified " << rid1->size()
-		     << " RID" << (rid1->size()>1?"s":"");
+		     << " hit" << (rid1->size()>1?"s":"");
 	}
 	else {
 	    ibis::util::logger lg;

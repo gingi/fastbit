@@ -982,6 +982,75 @@ namespace ibis {
 	private:
 	    STDFUN2 ftype;
 	}; // stdFunction2
+
+        /// Pure virtual base function for custom functions with one
+        /// argument.  Note that the derived classes much support copy
+        /// construction through the function dup.
+        class func1 {
+        public:
+            virtual ~func1() {};
+            virtual func1* dup() const =0;
+            virtual double eval(double) const =0;
+        };
+
+	/// One-argument custom functions.
+	class customFunction1 : public term {
+	public:
+	    virtual ~customFunction1() {delete fun_;}
+	    customFunction1(const func1 &ft)
+                : fun_(ft.dup()) {}
+	    customFunction1(const customFunction1 &rhs)
+                : fun_(rhs.fun_->dup()) {}
+
+	    virtual customFunction1* dup() const {
+		return new customFunction1(*this);
+	    }
+	    virtual TERM_TYPE termType() const {return CUSTOMFUNCTION1;}
+	    virtual double eval() const;
+	    virtual void print(std::ostream& out) const;
+	    virtual void printFull(std::ostream& out) const {print(out);}
+	    virtual term* reduce() {return this;}
+
+	private:
+	    func1 *fun_;
+	}; // customFunction1
+
+        class fromUnixTime : public func1 {
+        public:
+            virtual ~fromUnixTime() {}
+            fromUnixTime(const char *f, const char *z=0)
+                : fmt_(f), tzname_(z!=0?z:"") {}
+            fromUnixTime(const fromUnixTime& rhs)
+                : fmt_(rhs.fmt_), tzname_(rhs.tzname_) {}
+
+            virtual fromUnixTime* dup() const {
+                return new fromUnixTime(*this);
+            }
+
+            virtual double eval(double) const;
+
+        private:
+            std::string fmt_;
+            std::string tzname_;
+        }; // fromUnixTime
+
+        class toUnixTime : public func1 {
+        public:
+            virtual ~toUnixTime() {}
+            toUnixTime(const char *z=0)
+                : tzname_(z!=0?z:"") {}
+            toUnixTime(const toUnixTime& rhs)
+                : tzname_(rhs.tzname_) {}
+
+            virtual toUnixTime* dup() const {
+                return new toUnixTime(*this);
+            }
+
+            virtual double eval(double) const;
+
+        private:
+            std::string tzname_;
+        }; // toUnixTime
     } // namespace ibis::math
 } // namespace ibis
 

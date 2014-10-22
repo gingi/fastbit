@@ -86,6 +86,10 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 [eE][xX][iI][sS][tT][sS] {return token::EXISTSOP;}
 [bB][eE][tT][wW][eE][eE][nN] {return token::BETWEENOP;}
 [cC][oO][nN][tT][aA][iI][nN][sS] {return token::CONTAINSOP;}
+[tT][oO]_[uU][nN][iI][xX][tT][iI][mM][eE]_[gG][mM][tT] {return token::TO_UNIXTIME_GMT;}
+[tT][oO]_[uU][nN][iI][xX][tT][iI][mM][eE]_[lL][oO][cC][aA][lL] {return token::TO_UNIXTIME_LOCAL;}
+[fF][rR][oO][mM]_[uU][nN][iI][xX][tT][iI][mM][eE]_[gG][mM][tT] {return token::FROM_UNIXTIME_GMT;}
+[fF][rR][oO][mM]_[uU][nN][iI][xX][tT][iI][mM][eE]_[lL][oO][cC][aA][lL] {return token::FROM_UNIXTIME_LOCAL;}
 
 {NAME} { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1

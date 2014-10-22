@@ -56,7 +56,7 @@
 
 /* User implementation prologue.  */
 /* Line 289 of lalr1.cc  */
-#line 99 "whereParser.yy"
+#line 103 "whereParser.yy"
 
 #include "whereLexer.h"
 
@@ -257,79 +257,79 @@ namespace ibis {
 
     switch (yytype)
     {
-      case 32: /* "signed integer sequence" */
+      case 36: /* "signed integer sequence" */
 /* Line 452 of lalr1.cc  */
-#line 96 "whereParser.yy"
+#line 100 "whereParser.yy"
         { delete ((*yyvaluep).stringVal); };
 /* Line 452 of lalr1.cc  */
 #line 266 "whereParser.cc"
         break;
-      case 33: /* "unsigned integer sequence" */
+      case 37: /* "unsigned integer sequence" */
 /* Line 452 of lalr1.cc  */
-#line 96 "whereParser.yy"
+#line 100 "whereParser.yy"
         { delete ((*yyvaluep).stringVal); };
 /* Line 452 of lalr1.cc  */
 #line 273 "whereParser.cc"
         break;
-      case 34: /* "name string" */
+      case 38: /* "name string" */
 /* Line 452 of lalr1.cc  */
-#line 96 "whereParser.yy"
+#line 100 "whereParser.yy"
         { delete ((*yyvaluep).stringVal); };
 /* Line 452 of lalr1.cc  */
 #line 280 "whereParser.cc"
         break;
-      case 35: /* "number sequence" */
+      case 39: /* "number sequence" */
 /* Line 452 of lalr1.cc  */
-#line 96 "whereParser.yy"
+#line 100 "whereParser.yy"
         { delete ((*yyvaluep).stringVal); };
 /* Line 452 of lalr1.cc  */
 #line 287 "whereParser.cc"
         break;
-      case 36: /* "string sequence" */
+      case 40: /* "string sequence" */
 /* Line 452 of lalr1.cc  */
-#line 96 "whereParser.yy"
+#line 100 "whereParser.yy"
         { delete ((*yyvaluep).stringVal); };
 /* Line 452 of lalr1.cc  */
 #line 294 "whereParser.cc"
         break;
-      case 37: /* "string literal" */
+      case 41: /* "string literal" */
 /* Line 452 of lalr1.cc  */
-#line 96 "whereParser.yy"
+#line 100 "whereParser.yy"
         { delete ((*yyvaluep).stringVal); };
 /* Line 452 of lalr1.cc  */
 #line 301 "whereParser.cc"
         break;
-      case 44: /* qexpr */
+      case 48: /* qexpr */
 /* Line 452 of lalr1.cc  */
-#line 97 "whereParser.yy"
+#line 101 "whereParser.yy"
         { delete ((*yyvaluep).whereNode); };
 /* Line 452 of lalr1.cc  */
 #line 308 "whereParser.cc"
         break;
-      case 45: /* simpleRange */
+      case 49: /* simpleRange */
 /* Line 452 of lalr1.cc  */
-#line 97 "whereParser.yy"
+#line 101 "whereParser.yy"
         { delete ((*yyvaluep).whereNode); };
 /* Line 452 of lalr1.cc  */
 #line 315 "whereParser.cc"
         break;
-      case 46: /* compRange2 */
+      case 50: /* compRange2 */
 /* Line 452 of lalr1.cc  */
-#line 97 "whereParser.yy"
+#line 101 "whereParser.yy"
         { delete ((*yyvaluep).whereNode); };
 /* Line 452 of lalr1.cc  */
 #line 322 "whereParser.cc"
         break;
-      case 47: /* compRange3 */
+      case 51: /* compRange3 */
 /* Line 452 of lalr1.cc  */
-#line 97 "whereParser.yy"
+#line 101 "whereParser.yy"
         { delete ((*yyvaluep).whereNode); };
 /* Line 452 of lalr1.cc  */
 #line 329 "whereParser.cc"
         break;
-      case 48: /* mathExpr */
+      case 52: /* mathExpr */
 /* Line 452 of lalr1.cc  */
-#line 97 "whereParser.yy"
+#line 101 "whereParser.yy"
         { delete ((*yyvaluep).whereNode); };
 /* Line 452 of lalr1.cc  */
 #line 336 "whereParser.cc"
@@ -552,7 +552,7 @@ namespace ibis {
       {
           case 2:
 /* Line 664 of lalr1.cc  */
-#line 108 "whereParser.yy"
+#line 112 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -567,7 +567,7 @@ namespace ibis {
 
   case 3:
 /* Line 664 of lalr1.cc  */
-#line 118 "whereParser.yy"
+#line 122 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -582,7 +582,7 @@ namespace ibis {
 
   case 4:
 /* Line 664 of lalr1.cc  */
-#line 128 "whereParser.yy"
+#line 132 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -597,7 +597,7 @@ namespace ibis {
 
   case 5:
 /* Line 664 of lalr1.cc  */
-#line 138 "whereParser.yy"
+#line 142 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -612,7 +612,7 @@ namespace ibis {
 
   case 6:
 /* Line 664 of lalr1.cc  */
-#line 148 "whereParser.yy"
+#line 152 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -625,7 +625,7 @@ namespace ibis {
 
   case 7:
 /* Line 664 of lalr1.cc  */
-#line 156 "whereParser.yy"
+#line 160 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(3) - (2)].whereNode);
 }
@@ -633,7 +633,7 @@ namespace ibis {
 
   case 11:
 /* Line 664 of lalr1.cc  */
-#line 165 "whereParser.yy"
+#line 169 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -646,7 +646,7 @@ namespace ibis {
 
   case 12:
 /* Line 664 of lalr1.cc  */
-#line 173 "whereParser.yy"
+#line 177 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -659,7 +659,7 @@ namespace ibis {
 
   case 13:
 /* Line 664 of lalr1.cc  */
-#line 181 "whereParser.yy"
+#line 185 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -672,7 +672,7 @@ namespace ibis {
 
   case 14:
 /* Line 664 of lalr1.cc  */
-#line 189 "whereParser.yy"
+#line 193 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -685,7 +685,7 @@ namespace ibis {
 
   case 15:
 /* Line 664 of lalr1.cc  */
-#line 197 "whereParser.yy"
+#line 201 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -700,7 +700,7 @@ namespace ibis {
 
   case 16:
 /* Line 664 of lalr1.cc  */
-#line 207 "whereParser.yy"
+#line 211 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -717,7 +717,7 @@ namespace ibis {
 
   case 17:
 /* Line 664 of lalr1.cc  */
-#line 219 "whereParser.yy"
+#line 223 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -731,7 +731,7 @@ namespace ibis {
 
   case 18:
 /* Line 664 of lalr1.cc  */
-#line 228 "whereParser.yy"
+#line 232 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -743,7 +743,7 @@ namespace ibis {
 
   case 19:
 /* Line 664 of lalr1.cc  */
-#line 235 "whereParser.yy"
+#line 239 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -759,7 +759,7 @@ namespace ibis {
 
   case 20:
 /* Line 664 of lalr1.cc  */
-#line 246 "whereParser.yy"
+#line 250 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -777,7 +777,7 @@ namespace ibis {
 
   case 21:
 /* Line 664 of lalr1.cc  */
-#line 259 "whereParser.yy"
+#line 263 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -792,7 +792,7 @@ namespace ibis {
 
   case 22:
 /* Line 664 of lalr1.cc  */
-#line 269 "whereParser.yy"
+#line 273 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -807,7 +807,7 @@ namespace ibis {
 
   case 23:
 /* Line 664 of lalr1.cc  */
-#line 279 "whereParser.yy"
+#line 283 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -829,7 +829,7 @@ namespace ibis {
 
   case 24:
 /* Line 664 of lalr1.cc  */
-#line 296 "whereParser.yy"
+#line 300 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -851,7 +851,7 @@ namespace ibis {
 
   case 25:
 /* Line 664 of lalr1.cc  */
-#line 313 "whereParser.yy"
+#line 317 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -873,7 +873,7 @@ namespace ibis {
 
   case 26:
 /* Line 664 of lalr1.cc  */
-#line 330 "whereParser.yy"
+#line 334 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -895,7 +895,7 @@ namespace ibis {
 
   case 27:
 /* Line 664 of lalr1.cc  */
-#line 347 "whereParser.yy"
+#line 351 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -914,7 +914,7 @@ namespace ibis {
 
   case 28:
 /* Line 664 of lalr1.cc  */
-#line 361 "whereParser.yy"
+#line 365 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -933,7 +933,7 @@ namespace ibis {
 
   case 29:
 /* Line 664 of lalr1.cc  */
-#line 375 "whereParser.yy"
+#line 379 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -948,7 +948,7 @@ namespace ibis {
 
   case 30:
 /* Line 664 of lalr1.cc  */
-#line 385 "whereParser.yy"
+#line 389 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -963,7 +963,7 @@ namespace ibis {
 
   case 31:
 /* Line 664 of lalr1.cc  */
-#line 395 "whereParser.yy"
+#line 399 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -979,7 +979,7 @@ namespace ibis {
 
   case 32:
 /* Line 664 of lalr1.cc  */
-#line 406 "whereParser.yy"
+#line 410 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1002,7 +1002,7 @@ namespace ibis {
 
   case 33:
 /* Line 664 of lalr1.cc  */
-#line 424 "whereParser.yy"
+#line 428 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1025,7 +1025,7 @@ namespace ibis {
 
   case 34:
 /* Line 664 of lalr1.cc  */
-#line 442 "whereParser.yy"
+#line 446 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1048,7 +1048,7 @@ namespace ibis {
 
   case 35:
 /* Line 664 of lalr1.cc  */
-#line 460 "whereParser.yy"
+#line 464 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1071,7 +1071,7 @@ namespace ibis {
 
   case 36:
 /* Line 664 of lalr1.cc  */
-#line 478 "whereParser.yy"
+#line 482 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1091,7 +1091,7 @@ namespace ibis {
 
   case 37:
 /* Line 664 of lalr1.cc  */
-#line 493 "whereParser.yy"
+#line 497 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1111,7 +1111,7 @@ namespace ibis {
 
   case 38:
 /* Line 664 of lalr1.cc  */
-#line 508 "whereParser.yy"
+#line 512 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1126,7 +1126,7 @@ namespace ibis {
 
   case 39:
 /* Line 664 of lalr1.cc  */
-#line 518 "whereParser.yy"
+#line 522 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1142,7 +1142,7 @@ namespace ibis {
 
   case 40:
 /* Line 664 of lalr1.cc  */
-#line 529 "whereParser.yy"
+#line 533 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1157,7 +1157,7 @@ namespace ibis {
 
   case 41:
 /* Line 664 of lalr1.cc  */
-#line 539 "whereParser.yy"
+#line 543 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1173,7 +1173,7 @@ namespace ibis {
 
   case 42:
 /* Line 664 of lalr1.cc  */
-#line 550 "whereParser.yy"
+#line 554 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1188,7 +1188,7 @@ namespace ibis {
 
   case 43:
 /* Line 664 of lalr1.cc  */
-#line 560 "whereParser.yy"
+#line 564 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1203,7 +1203,7 @@ namespace ibis {
 
   case 44:
 /* Line 664 of lalr1.cc  */
-#line 570 "whereParser.yy"
+#line 574 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1218,7 +1218,7 @@ namespace ibis {
 
   case 45:
 /* Line 664 of lalr1.cc  */
-#line 580 "whereParser.yy"
+#line 584 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1233,7 +1233,7 @@ namespace ibis {
 
   case 46:
 /* Line 664 of lalr1.cc  */
-#line 590 "whereParser.yy"
+#line 594 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1249,7 +1249,7 @@ namespace ibis {
 
   case 47:
 /* Line 664 of lalr1.cc  */
-#line 601 "whereParser.yy"
+#line 605 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1265,7 +1265,7 @@ namespace ibis {
 
   case 48:
 /* Line 664 of lalr1.cc  */
-#line 612 "whereParser.yy"
+#line 616 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1281,7 +1281,7 @@ namespace ibis {
 
   case 49:
 /* Line 664 of lalr1.cc  */
-#line 623 "whereParser.yy"
+#line 627 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1297,7 +1297,7 @@ namespace ibis {
 
   case 50:
 /* Line 664 of lalr1.cc  */
-#line 634 "whereParser.yy"
+#line 638 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1312,7 +1312,7 @@ namespace ibis {
 
   case 51:
 /* Line 664 of lalr1.cc  */
-#line 644 "whereParser.yy"
+#line 648 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1326,7 +1326,7 @@ namespace ibis {
 
   case 52:
 /* Line 664 of lalr1.cc  */
-#line 653 "whereParser.yy"
+#line 657 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1341,7 +1341,7 @@ namespace ibis {
 
   case 53:
 /* Line 664 of lalr1.cc  */
-#line 663 "whereParser.yy"
+#line 667 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1354,7 +1354,7 @@ namespace ibis {
 
   case 54:
 /* Line 664 of lalr1.cc  */
-#line 671 "whereParser.yy"
+#line 675 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1368,7 +1368,7 @@ namespace ibis {
 
   case 55:
 /* Line 664 of lalr1.cc  */
-#line 680 "whereParser.yy"
+#line 684 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1381,7 +1381,7 @@ namespace ibis {
 
   case 56:
 /* Line 664 of lalr1.cc  */
-#line 688 "whereParser.yy"
+#line 692 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1395,7 +1395,7 @@ namespace ibis {
 
   case 57:
 /* Line 664 of lalr1.cc  */
-#line 697 "whereParser.yy"
+#line 701 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1410,7 +1410,7 @@ namespace ibis {
 
   case 58:
 /* Line 664 of lalr1.cc  */
-#line 707 "whereParser.yy"
+#line 711 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1426,7 +1426,7 @@ namespace ibis {
 
   case 59:
 /* Line 664 of lalr1.cc  */
-#line 718 "whereParser.yy"
+#line 722 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1441,7 +1441,7 @@ namespace ibis {
 
   case 60:
 /* Line 664 of lalr1.cc  */
-#line 728 "whereParser.yy"
+#line 732 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1457,7 +1457,7 @@ namespace ibis {
 
   case 61:
 /* Line 664 of lalr1.cc  */
-#line 739 "whereParser.yy"
+#line 743 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1479,7 +1479,7 @@ namespace ibis {
 
   case 62:
 /* Line 664 of lalr1.cc  */
-#line 756 "whereParser.yy"
+#line 760 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1504,7 +1504,7 @@ namespace ibis {
 
   case 63:
 /* Line 664 of lalr1.cc  */
-#line 779 "whereParser.yy"
+#line 783 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1519,7 +1519,7 @@ namespace ibis {
 
   case 64:
 /* Line 664 of lalr1.cc  */
-#line 789 "whereParser.yy"
+#line 793 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1535,7 +1535,7 @@ namespace ibis {
 
   case 65:
 /* Line 664 of lalr1.cc  */
-#line 800 "whereParser.yy"
+#line 804 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1550,7 +1550,7 @@ namespace ibis {
 
   case 66:
 /* Line 664 of lalr1.cc  */
-#line 810 "whereParser.yy"
+#line 814 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1565,7 +1565,7 @@ namespace ibis {
 
   case 67:
 /* Line 664 of lalr1.cc  */
-#line 820 "whereParser.yy"
+#line 824 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1580,7 +1580,7 @@ namespace ibis {
 
   case 68:
 /* Line 664 of lalr1.cc  */
-#line 830 "whereParser.yy"
+#line 834 "whereParser.yy"
     {
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (3)].whereNode));
     ibis::math::term *me1 = static_cast<ibis::math::term*>((yysemantic_stack_[(3) - (1)].whereNode));
@@ -1595,7 +1595,7 @@ namespace ibis {
 
   case 69:
 /* Line 664 of lalr1.cc  */
-#line 892 "whereParser.yy"
+#line 896 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1612,7 +1612,7 @@ namespace ibis {
 
   case 70:
 /* Line 664 of lalr1.cc  */
-#line 904 "whereParser.yy"
+#line 908 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1629,7 +1629,7 @@ namespace ibis {
 
   case 71:
 /* Line 664 of lalr1.cc  */
-#line 916 "whereParser.yy"
+#line 920 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1646,7 +1646,7 @@ namespace ibis {
 
   case 72:
 /* Line 664 of lalr1.cc  */
-#line 928 "whereParser.yy"
+#line 932 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1663,7 +1663,7 @@ namespace ibis {
 
   case 73:
 /* Line 664 of lalr1.cc  */
-#line 940 "whereParser.yy"
+#line 944 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1680,7 +1680,7 @@ namespace ibis {
 
   case 74:
 /* Line 664 of lalr1.cc  */
-#line 952 "whereParser.yy"
+#line 956 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1697,7 +1697,7 @@ namespace ibis {
 
   case 75:
 /* Line 664 of lalr1.cc  */
-#line 964 "whereParser.yy"
+#line 968 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1714,7 +1714,7 @@ namespace ibis {
 
   case 76:
 /* Line 664 of lalr1.cc  */
-#line 976 "whereParser.yy"
+#line 980 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1731,7 +1731,7 @@ namespace ibis {
 
   case 77:
 /* Line 664 of lalr1.cc  */
-#line 988 "whereParser.yy"
+#line 992 "whereParser.yy"
     {
     ibis::math::term *me3 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (5)].whereNode));
     ibis::math::term *me2 = static_cast<ibis::math::term*>((yysemantic_stack_[(5) - (3)].whereNode));
@@ -1748,7 +1748,7 @@ namespace ibis {
 
   case 78:
 /* Line 664 of lalr1.cc  */
-#line 1003 "whereParser.yy"
+#line 1007 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1765,7 +1765,7 @@ namespace ibis {
 
   case 79:
 /* Line 664 of lalr1.cc  */
-#line 1015 "whereParser.yy"
+#line 1019 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1782,7 +1782,7 @@ namespace ibis {
 
   case 80:
 /* Line 664 of lalr1.cc  */
-#line 1027 "whereParser.yy"
+#line 1031 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1799,7 +1799,7 @@ namespace ibis {
 
   case 81:
 /* Line 664 of lalr1.cc  */
-#line 1039 "whereParser.yy"
+#line 1043 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1816,7 +1816,7 @@ namespace ibis {
 
   case 82:
 /* Line 664 of lalr1.cc  */
-#line 1051 "whereParser.yy"
+#line 1055 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1833,7 +1833,7 @@ namespace ibis {
 
   case 83:
 /* Line 664 of lalr1.cc  */
-#line 1063 "whereParser.yy"
+#line 1067 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1850,7 +1850,7 @@ namespace ibis {
 
   case 84:
 /* Line 664 of lalr1.cc  */
-#line 1075 "whereParser.yy"
+#line 1079 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1867,7 +1867,7 @@ namespace ibis {
 
   case 85:
 /* Line 664 of lalr1.cc  */
-#line 1087 "whereParser.yy"
+#line 1091 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1884,7 +1884,7 @@ namespace ibis {
 
   case 86:
 /* Line 664 of lalr1.cc  */
-#line 1099 "whereParser.yy"
+#line 1103 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1901,7 +1901,7 @@ namespace ibis {
 
   case 87:
 /* Line 664 of lalr1.cc  */
-#line 1111 "whereParser.yy"
+#line 1115 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1919,7 +1919,81 @@ namespace ibis {
 
   case 88:
 /* Line 664 of lalr1.cc  */
-#line 1124 "whereParser.yy"
+#line 1128 "whereParser.yy"
+    {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- FROM_UNIXTIME_LOCAL("
+	<< *(yysemantic_stack_[(6) - (3)].whereNode) << ", " << *(yysemantic_stack_[(6) - (5)].stringVal) << ")";
+#endif
+
+    ibis::math::fromUnixTime fut((yysemantic_stack_[(6) - (5)].stringVal)->c_str());
+    ibis::math::customFunction1 *fun =
+	new ibis::math::customFunction1(fut);
+    fun->setLeft((yysemantic_stack_[(6) - (3)].whereNode));
+    (yyval.whereNode) = static_cast<ibis::qExpr*>(fun);
+    delete (yysemantic_stack_[(6) - (5)].stringVal);
+}
+    break;
+
+  case 89:
+/* Line 664 of lalr1.cc  */
+#line 1142 "whereParser.yy"
+    {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- FROM_UNIXTIME_GMT("
+	<< *(yysemantic_stack_[(6) - (3)].whereNode) << ", " << *(yysemantic_stack_[(6) - (5)].stringVal) << ")";
+#endif
+
+    ibis::math::fromUnixTime fut((yysemantic_stack_[(6) - (5)].stringVal)->c_str(), "GMT0");
+    ibis::math::customFunction1 *fun =
+	new ibis::math::customFunction1(fut);
+    fun->setLeft((yysemantic_stack_[(6) - (3)].whereNode));
+    (yyval.whereNode) = static_cast<ibis::qExpr*>(fun);
+    delete (yysemantic_stack_[(6) - (5)].stringVal);
+}
+    break;
+
+  case 90:
+/* Line 664 of lalr1.cc  */
+#line 1156 "whereParser.yy"
+    {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_LOCAL("
+	<< *(yysemantic_stack_[(4) - (3)].whereNode) << ")";
+#endif
+
+    ibis::math::toUnixTime fut;
+    ibis::math::customFunction1 *fun =
+	new ibis::math::customFunction1(fut);
+    fun->setLeft((yysemantic_stack_[(4) - (3)].whereNode));
+    (yyval.whereNode) = static_cast<ibis::qExpr*>(fun);
+}
+    break;
+
+  case 91:
+/* Line 664 of lalr1.cc  */
+#line 1169 "whereParser.yy"
+    {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_GMT("
+	<< *(yysemantic_stack_[(4) - (3)].whereNode) << ")";
+#endif
+
+    ibis::math::toUnixTime fut("GMT0");
+    ibis::math::customFunction1 *fun =
+	new ibis::math::customFunction1(fut);
+    fun->setLeft((yysemantic_stack_[(4) - (3)].whereNode));
+    (yyval.whereNode) = static_cast<ibis::qExpr*>(fun);
+}
+    break;
+
+  case 92:
+/* Line 664 of lalr1.cc  */
+#line 1182 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1932,25 +2006,25 @@ namespace ibis {
 }
     break;
 
-  case 89:
+  case 93:
 /* Line 664 of lalr1.cc  */
-#line 1134 "whereParser.yy"
+#line 1192 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(2) - (2)].whereNode);
 }
     break;
 
-  case 90:
+  case 94:
 /* Line 664 of lalr1.cc  */
-#line 1137 "whereParser.yy"
+#line 1195 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(3) - (2)].whereNode);
 }
     break;
 
-  case 91:
+  case 95:
 /* Line 664 of lalr1.cc  */
-#line 1140 "whereParser.yy"
+#line 1198 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1963,9 +2037,9 @@ namespace ibis {
 }
     break;
 
-  case 92:
+  case 96:
 /* Line 664 of lalr1.cc  */
-#line 1150 "whereParser.yy"
+#line 1208 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -1976,17 +2050,17 @@ namespace ibis {
 }
     break;
 
-  case 93:
+  case 97:
 /* Line 664 of lalr1.cc  */
-#line 1160 "whereParser.yy"
+#line 1218 "whereParser.yy"
     { /* pass qexpr to the driver */
     driver.expr_ = (yysemantic_stack_[(2) - (1)].whereNode);
 }
     break;
 
-  case 94:
+  case 98:
 /* Line 664 of lalr1.cc  */
-#line 1163 "whereParser.yy"
+#line 1221 "whereParser.yy"
     { /* pass qexpr to the driver */
     driver.expr_ = (yysemantic_stack_[(2) - (1)].whereNode);
 }
@@ -1994,7 +2068,7 @@ namespace ibis {
 
 
 /* Line 664 of lalr1.cc  */
-#line 1998 "whereParser.cc"
+#line 2072 "whereParser.cc"
       default:
         break;
       }
@@ -2294,30 +2368,32 @@ namespace ibis {
 
   /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
      STATE-NUM.  */
-  const signed char whereParser::yypact_ninf_ = -38;
+  const signed char whereParser::yypact_ninf_ = -34;
   const short int
   whereParser::yypact_[] =
   {
-        71,    71,   128,   -37,   -20,   -20,   -38,    88,    62,    71,
-      17,   -38,   -38,   -38,   123,    15,   -38,   -38,   -38,   -21,
-     -14,   -13,   -20,   -38,   -38,     7,   231,   243,    77,   259,
-      56,   -20,    43,    55,    -5,    59,   -38,    71,    71,    71,
-      71,   -38,   -20,   -20,   -20,   -20,   -20,   -20,   -20,   -20,
-     -20,   -20,   -20,   -20,   -20,   -20,   -20,   -38,    -3,    61,
-      96,   197,   -38,   264,   -38,   -38,   -38,   262,   -38,   -38,
-     -38,   262,   -38,   -38,   -38,    66,   -38,   -38,   -38,   -38,
-      39,   -38,   -38,   176,   -38,   -38,   -38,   -38,   -38,   -38,
-      22,    67,   132,   164,   156,   187,   262,   262,   225,   216,
-      30,   115,   115,    68,    68,    68,    68,   -38,   -38,     3,
-     -38,   -38,   -38,   -38,    78,    94,   165,   194,   217,   223,
-     -38,   -20,   -20,   -20,   -20,   -20,   -20,   -20,   -20,   -20,
-     -20,   121,   129,   265,   268,   270,   -38,   134,   -38,   139,
-     -38,   135,   -38,   222,   -38,   241,   205,   262,   262,   262,
-     262,   262,   262,   262,   262,   262,   -38,   -38,   -38,   138,
-     -38,   242,   -38,   267,   154,   167,   229,   253,   272,   273,
-     274,   275,   276,   -38,   277,   278,   279,   280,   281,   -38,
-     -38,   -38,   -38,   -38,   -38,   -38,   -38,   -38,   -38,   -38,
-     -38,   -38,   -38
+        74,    74,   187,   -33,   -19,   -15,   -13,    -2,    83,    83,
+     -34,   104,    -6,    74,    21,   -34,   -34,   -34,   134,    36,
+     -34,   -34,   -34,   -26,    83,    83,    83,    83,    30,    32,
+      83,   -34,   -34,    11,   199,   223,   147,    33,   -18,    83,
+      41,    61,    -5,    56,   -34,    74,    74,    74,    74,   -34,
+      83,    83,    83,    83,    83,    83,    83,    83,    83,    83,
+      83,    83,    83,    83,    83,   -34,    63,   109,   258,   279,
+     287,   307,   123,   315,   -34,   286,   -34,   -34,   -34,   170,
+     -34,   -34,   -34,   170,   -34,   -34,   -34,    51,   -34,   -34,
+     -34,   -34,    39,   -34,   -34,   250,   -34,   -34,   -34,   -34,
+     -34,   -34,    26,   212,   143,   178,   151,   186,   170,   170,
+     242,   270,   325,   339,   339,   157,   157,   157,   157,   -34,
+     -34,   150,   152,   -34,   -34,    -7,   -34,   -34,   -34,   -34,
+     116,   101,   203,   210,   215,   218,   -34,    83,    83,    83,
+      83,    83,    83,    83,    83,    83,    83,   185,   192,   196,
+     200,   247,   276,   283,   -34,    52,   -34,    78,   -34,   206,
+     -34,    86,   -34,    87,   335,   170,   170,   170,   170,   170,
+     170,   170,   170,   170,   -34,   -34,   -34,   -34,   -34,   214,
+     -34,   114,   -34,   197,   208,   221,   249,   304,   305,   306,
+     314,   328,   329,   -34,   330,   331,   332,   333,   334,   -34,
+     -34,   -34,   -34,   -34,   -34,   -34,   -34,   -34,   -34,   -34,
+     -34,   -34,   -34
   };
 
   /* YYDEFACT[S] -- default reduction number in state S.  Performed when
@@ -2326,22 +2402,24 @@ namespace ibis {
   const unsigned char
   whereParser::yydefact_[] =
   {
-         0,     0,     0,     0,     0,     0,    92,    91,     0,     0,
-       0,     8,     9,    10,     0,     0,     6,    11,    12,     0,
-       0,    91,     0,    89,    88,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    93,     0,     0,     0,
-       0,    94,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     1,     0,     0,
-       0,     0,    18,     0,    53,    55,    59,    61,    54,    56,
-      60,    62,    42,    50,    43,     0,    38,    40,    15,    22,
-       0,    29,    30,     0,    57,    58,     7,    90,     4,     5,
-       2,     3,    66,    68,    65,    67,    63,    64,     0,    85,
-      84,    78,    79,    80,    81,    82,    83,    13,    14,     0,
-      39,    41,    19,    31,     0,     0,     0,     0,     0,     0,
-      86,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    44,     0,    45,     0,
-      17,     0,    27,     0,    28,     0,     0,    72,    71,    76,
-      75,    70,    69,    74,    73,    77,    51,    52,    21,     0,
+         0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      96,    95,     0,     0,     0,     8,     9,    10,     0,     0,
+       6,    11,    12,     0,     0,     0,     0,     0,     0,    95,
+       0,    93,    92,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    97,     0,     0,     0,     0,    98,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     1,     0,     0,     0,     0,
+       0,     0,     0,     0,    18,     0,    53,    55,    59,    61,
+      54,    56,    60,    62,    42,    50,    43,     0,    38,    40,
+      15,    22,     0,    29,    30,     0,    57,    58,     7,    94,
+       4,     5,     2,     3,    66,    68,    65,    67,    63,    64,
+       0,    85,    84,    78,    79,    80,    81,    82,    83,    13,
+      14,     0,     0,    91,    90,     0,    39,    41,    19,    31,
+       0,     0,     0,     0,     0,     0,    86,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    44,     0,    45,     0,    17,     0,
+      27,     0,    28,     0,     0,    72,    71,    76,    75,    70,
+      69,    74,    73,    77,    89,    88,    51,    52,    21,     0,
       36,     0,    37,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,    87,     0,     0,     0,     0,     0,    49,
       48,    47,    46,    16,    23,    25,    24,    26,    20,    32,
@@ -2352,14 +2430,14 @@ namespace ibis {
   const signed char
   whereParser::yypgoto_[] =
   {
-       -38,    23,   -38,   -38,   -38,    -4,   -38
+       -34,    12,   -34,   -34,   -34,    -8,   -34
   };
 
   /* YYDEFGOTO[NTERM-NUM].  */
   const signed char
   whereParser::yydefgoto_[] =
   {
-        -1,    10,    11,    12,    13,    14,    15
+        -1,    14,    15,    16,    17,    18,    19
   };
 
   /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -2369,78 +2447,88 @@ namespace ibis {
   const unsigned char
   whereParser::yytable_[] =
   {
-        23,    24,    20,     4,     5,    35,    37,    38,    39,    40,
-      62,     6,   131,    58,    21,    57,    59,    36,    61,    22,
-      60,   132,    67,    71,    16,    63,    31,    83,    37,    38,
-      39,    40,    34,    37,    38,    86,    40,   107,    92,    93,
-      94,    95,    96,    97,    98,    99,   100,   101,   102,   103,
-     104,   105,   106,    51,    52,    53,    54,    55,    56,    41,
-      88,    89,    90,    91,    42,    43,    44,    45,    46,    47,
-     117,    32,    33,   118,    48,     1,   119,    84,    37,    38,
-      49,    50,    51,    52,    53,    54,    55,    56,     2,    85,
-      81,     3,    25,    82,     4,     5,    56,    26,    27,    87,
-     115,   108,     6,   116,    28,     7,    29,    30,     8,   133,
-       9,    72,   134,    73,    74,   135,    75,   146,   147,   148,
-     149,   150,   151,   152,   153,   154,   155,    31,    42,    43,
-      44,    45,    46,    47,   136,   137,   109,   122,    48,   123,
-      53,    54,    55,    56,    49,    50,    51,    52,    53,    54,
-      55,    56,   156,    49,    50,    51,    52,    53,    54,    55,
-      56,   126,    17,   127,   157,    18,   168,    19,   164,   174,
-     124,   165,   125,   166,     0,     0,   167,    49,    50,    51,
-      52,    53,    54,    55,    56,    49,    50,    51,    52,    53,
-      54,    55,    56,   128,   179,   129,     0,    49,    50,    51,
-      52,    53,    54,    55,    56,   138,   139,   180,    49,    50,
-      51,    52,    53,    54,    55,    56,   120,   121,    49,    50,
-      51,    52,    53,    54,    55,    56,    49,    50,    51,    52,
-      53,    54,    55,    56,   140,   141,   130,    87,    50,    51,
-      52,    53,    54,    55,    56,   173,    49,    50,    51,    52,
-      53,    54,    55,    56,     4,     5,   169,   142,   143,   170,
-      64,    65,     6,   144,   145,    21,     4,     5,    66,   181,
-      22,     0,    68,    69,     6,   171,   175,    21,   172,   176,
-      70,     0,    22,    49,    50,    51,    52,    53,    54,    55,
-      56,    76,    77,   182,    78,    79,   110,   111,    80,   112,
-     113,   177,     0,   114,   178,   158,   159,     0,   160,   161,
-     162,   163,   183,   184,   185,   186,   187,   188,   189,   190,
-     191,   192
+        31,    32,   149,    40,    41,    43,    45,    46,    47,    48,
+      24,   150,    66,    20,    74,    67,    68,    69,    70,    71,
+      93,    44,    73,    94,    25,    42,    79,    83,    26,    75,
+      27,    95,    45,    46,    47,    48,    65,    45,    46,    98,
+      48,    28,   104,   105,   106,   107,   108,   109,   110,   111,
+     112,   113,   114,   115,   116,   117,   118,   100,   101,   102,
+     103,    50,    51,    52,    53,    54,    55,    49,    72,    88,
+      89,    56,    90,    91,   133,    39,    92,   134,     1,    96,
+     135,    57,    58,    59,    60,    61,    62,    63,    64,   131,
+     184,     2,   132,   185,     3,     4,     5,     6,     7,    97,
+      99,     8,     9,     3,     4,     5,     6,   119,    33,    10,
+       8,     9,    11,    34,    35,    12,   186,    13,    10,   187,
+      36,    29,    37,    38,   189,   191,    30,   190,   192,   164,
+     165,   166,   167,   168,   169,   170,   171,   172,   173,    50,
+      51,    52,    53,    54,    55,   154,   155,    39,   138,    56,
+     139,   151,   195,   120,   152,   196,   142,   153,   143,    57,
+      58,    59,    60,    61,    62,    63,    64,   125,    57,    58,
+      59,    60,    61,    62,    63,    64,    57,    58,    59,    60,
+      61,    62,    63,    64,   140,    84,   141,    85,    86,    64,
+      87,   147,   144,   148,   145,    57,    58,    59,    60,    61,
+      62,    63,    64,    57,    58,    59,    60,    61,    62,    63,
+      64,    57,    58,    59,    60,    61,    62,    63,    64,     3,
+       4,     5,     6,    45,    46,    21,     8,     9,    22,   174,
+      23,   176,    76,    77,    10,   197,   175,    29,   198,   177,
+      78,   188,    30,     3,     4,     5,     6,   156,   157,   194,
+       8,     9,   199,   146,   158,   159,    80,    81,    10,   160,
+     161,    29,   162,   163,    82,   200,    30,    57,    58,    59,
+      60,    61,    62,    63,    64,    57,    58,    59,    60,    61,
+      62,    63,    64,    57,    58,    59,    60,    61,    62,    63,
+      64,   178,   179,   201,   136,   137,    58,    59,    60,    61,
+      62,    63,    64,   121,    57,    58,    59,    60,    61,    62,
+      63,    64,    57,    58,    59,    60,    61,    62,    63,    64,
+     180,   181,   126,   127,   122,   128,   129,   182,   183,   130,
+       0,   123,    57,    58,    59,    60,    61,    62,    63,    64,
+      57,    58,    59,    60,    61,    62,    63,    64,   202,   203,
+     204,   124,    59,    60,    61,    62,    63,    64,   205,    99,
+      57,    58,    59,    60,    61,    62,    63,    64,    61,    62,
+      63,    64,   206,   207,   208,   209,   210,   211,   212,   193
   };
 
   /* YYCHECK.  */
   const short int
   whereParser::yycheck_[] =
   {
-         4,     5,    39,    23,    24,     9,    11,    12,    13,    14,
-       3,    31,     9,    34,    34,     0,    37,     0,    22,    39,
-      34,    18,    26,    27,     1,    18,    39,    31,    11,    12,
-      13,    14,     9,    11,    12,    40,    14,    40,    42,    43,
-      44,    45,    46,    47,    48,    49,    50,    51,    52,    53,
-      54,    55,    56,    23,    24,    25,    26,    27,    28,    42,
-      37,    38,    39,    40,     5,     6,     7,     8,     9,    10,
-      31,     9,    10,    34,    15,     4,    37,    34,    11,    12,
-      21,    22,    23,    24,    25,    26,    27,    28,    17,    34,
-      34,    20,     4,    37,    23,    24,    28,     9,    10,    40,
-      34,    40,    31,    37,    16,    34,    18,    19,    37,    31,
-      39,    34,    34,    36,    37,    37,    39,   121,   122,   123,
-     124,   125,   126,   127,   128,   129,   130,    39,     5,     6,
-       7,     8,     9,    10,    40,    41,    40,     5,    15,     7,
-      25,    26,    27,    28,    21,    22,    23,    24,    25,    26,
-      27,    28,    31,    21,    22,    23,    24,    25,    26,    27,
-      28,     5,    34,     7,    35,    37,    31,    39,    34,    31,
-       6,    37,     8,    34,    -1,    -1,    37,    21,    22,    23,
-      24,    25,    26,    27,    28,    21,    22,    23,    24,    25,
-      26,    27,    28,     6,    40,     8,    -1,    21,    22,    23,
-      24,    25,    26,    27,    28,    40,    41,    40,    21,    22,
-      23,    24,    25,    26,    27,    28,    40,    41,    21,    22,
-      23,    24,    25,    26,    27,    28,    21,    22,    23,    24,
-      25,    26,    27,    28,    40,    41,    11,    40,    22,    23,
-      24,    25,    26,    27,    28,    40,    21,    22,    23,    24,
-      25,    26,    27,    28,    23,    24,    34,    40,    41,    37,
-      29,    30,    31,    40,    41,    34,    23,    24,    37,    40,
-      39,    -1,    29,    30,    31,    34,    34,    34,    37,    37,
-      37,    -1,    39,    21,    22,    23,    24,    25,    26,    27,
-      28,    32,    33,    40,    35,    36,    32,    33,    39,    35,
-      36,    34,    -1,    39,    37,    40,    41,    -1,    40,    41,
-      40,    41,    40,    40,    40,    40,    40,    40,    40,    40,
-      40,    40
+         8,     9,     9,     9,    10,    13,    11,    12,    13,    14,
+      43,    18,    38,     1,     3,    41,    24,    25,    26,    27,
+      38,     0,    30,    41,    43,    13,    34,    35,    43,    18,
+      43,    39,    11,    12,    13,    14,     0,    11,    12,    44,
+      14,    43,    50,    51,    52,    53,    54,    55,    56,    57,
+      58,    59,    60,    61,    62,    63,    64,    45,    46,    47,
+      48,     5,     6,     7,     8,     9,    10,    46,    38,    36,
+      37,    15,    39,    40,    35,    43,    43,    38,     4,    38,
+      41,    25,    26,    27,    28,    29,    30,    31,    32,    38,
+      38,    17,    41,    41,    20,    21,    22,    23,    24,    38,
+      44,    27,    28,    20,    21,    22,    23,    44,     4,    35,
+      27,    28,    38,     9,    10,    41,    38,    43,    35,    41,
+      16,    38,    18,    19,    38,    38,    43,    41,    41,   137,
+     138,   139,   140,   141,   142,   143,   144,   145,   146,     5,
+       6,     7,     8,     9,    10,    44,    45,    43,     5,    15,
+       7,    35,    38,    44,    38,    41,     5,    41,     7,    25,
+      26,    27,    28,    29,    30,    31,    32,    44,    25,    26,
+      27,    28,    29,    30,    31,    32,    25,    26,    27,    28,
+      29,    30,    31,    32,     6,    38,     8,    40,    41,    32,
+      43,    41,     6,    41,     8,    25,    26,    27,    28,    29,
+      30,    31,    32,    25,    26,    27,    28,    29,    30,    31,
+      32,    25,    26,    27,    28,    29,    30,    31,    32,    20,
+      21,    22,    23,    11,    12,    38,    27,    28,    41,    44,
+      43,    35,    33,    34,    35,    38,    44,    38,    41,    39,
+      41,    35,    43,    20,    21,    22,    23,    44,    45,    35,
+      27,    28,    44,    11,    44,    45,    33,    34,    35,    44,
+      45,    38,    44,    45,    41,    44,    43,    25,    26,    27,
+      28,    29,    30,    31,    32,    25,    26,    27,    28,    29,
+      30,    31,    32,    25,    26,    27,    28,    29,    30,    31,
+      32,    44,    45,    44,    44,    45,    26,    27,    28,    29,
+      30,    31,    32,    45,    25,    26,    27,    28,    29,    30,
+      31,    32,    25,    26,    27,    28,    29,    30,    31,    32,
+      44,    45,    36,    37,    45,    39,    40,    44,    45,    43,
+      -1,    44,    25,    26,    27,    28,    29,    30,    31,    32,
+      25,    26,    27,    28,    29,    30,    31,    32,    44,    44,
+      44,    44,    27,    28,    29,    30,    31,    32,    44,    44,
+      25,    26,    27,    28,    29,    30,    31,    32,    29,    30,
+      31,    32,    44,    44,    44,    44,    44,    44,    44,    44
   };
 
   /* STOS_[STATE-NUM] -- The (internal number of the) accessing
@@ -2448,26 +2536,28 @@ namespace ibis {
   const unsigned char
   whereParser::yystos_[] =
   {
-         0,     4,    17,    20,    23,    24,    31,    34,    37,    39,
-      44,    45,    46,    47,    48,    49,    44,    34,    37,    39,
-      39,    34,    39,    48,    48,     4,     9,    10,    16,    18,
-      19,    39,     9,    10,    44,    48,     0,    11,    12,    13,
-      14,    42,     5,     6,     7,     8,     9,    10,    15,    21,
-      22,    23,    24,    25,    26,    27,    28,     0,    34,    37,
-      34,    48,     3,    18,    29,    30,    37,    48,    29,    30,
-      37,    48,    34,    36,    37,    39,    32,    33,    35,    36,
-      39,    34,    37,    48,    34,    34,    40,    40,    44,    44,
-      44,    44,    48,    48,    48,    48,    48,    48,    48,    48,
-      48,    48,    48,    48,    48,    48,    48,    40,    40,    40,
-      32,    33,    35,    36,    39,    34,    37,    31,    34,    37,
-      40,    41,     5,     7,     6,     8,     5,     7,     6,     8,
-      11,     9,    18,    31,    34,    37,    40,    41,    40,    41,
-      40,    41,    40,    41,    40,    41,    48,    48,    48,    48,
-      48,    48,    48,    48,    48,    48,    31,    35,    40,    41,
-      40,    41,    40,    41,    34,    37,    34,    37,    31,    34,
-      37,    34,    37,    40,    31,    34,    37,    34,    37,    40,
-      40,    40,    40,    40,    40,    40,    40,    40,    40,    40,
-      40,    40,    40
+         0,     4,    17,    20,    21,    22,    23,    24,    27,    28,
+      35,    38,    41,    43,    48,    49,    50,    51,    52,    53,
+      48,    38,    41,    43,    43,    43,    43,    43,    43,    38,
+      43,    52,    52,     4,     9,    10,    16,    18,    19,    43,
+       9,    10,    48,    52,     0,    11,    12,    13,    14,    46,
+       5,     6,     7,     8,     9,    10,    15,    25,    26,    27,
+      28,    29,    30,    31,    32,     0,    38,    41,    52,    52,
+      52,    52,    38,    52,     3,    18,    33,    34,    41,    52,
+      33,    34,    41,    52,    38,    40,    41,    43,    36,    37,
+      39,    40,    43,    38,    41,    52,    38,    38,    44,    44,
+      48,    48,    48,    48,    52,    52,    52,    52,    52,    52,
+      52,    52,    52,    52,    52,    52,    52,    52,    52,    44,
+      44,    45,    45,    44,    44,    44,    36,    37,    39,    40,
+      43,    38,    41,    35,    38,    41,    44,    45,     5,     7,
+       6,     8,     5,     7,     6,     8,    11,    41,    41,     9,
+      18,    35,    38,    41,    44,    45,    44,    45,    44,    45,
+      44,    45,    44,    45,    52,    52,    52,    52,    52,    52,
+      52,    52,    52,    52,    44,    44,    35,    39,    44,    45,
+      44,    45,    44,    45,    38,    41,    38,    41,    35,    38,
+      41,    38,    41,    44,    35,    38,    41,    38,    41,    44,
+      44,    44,    44,    44,    44,    44,    44,    44,    44,    44,
+      44,    44,    44
   };
 
 #if YYDEBUG
@@ -2479,8 +2569,8 @@ namespace ibis {
          0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
      275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292,   293,    40,
-      41,    44,    59
+     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
+     295,   296,   297,    40,    41,    44,    59
   };
 #endif
 
@@ -2488,16 +2578,16 @@ namespace ibis {
   const unsigned char
   whereParser::yyr1_[] =
   {
-         0,    43,    44,    44,    44,    44,    44,    44,    44,    44,
-      44,    45,    45,    45,    45,    45,    45,    45,    45,    45,
-      45,    45,    45,    45,    45,    45,    45,    45,    45,    45,
-      45,    45,    45,    45,    45,    45,    45,    45,    45,    45,
-      45,    45,    45,    45,    45,    45,    45,    45,    45,    45,
-      45,    45,    45,    45,    45,    45,    45,    45,    45,    45,
-      45,    45,    45,    46,    46,    46,    46,    46,    46,    47,
-      47,    47,    47,    47,    47,    47,    47,    47,    48,    48,
-      48,    48,    48,    48,    48,    48,    48,    48,    48,    48,
-      48,    48,    48,    49,    49
+         0,    47,    48,    48,    48,    48,    48,    48,    48,    48,
+      48,    49,    49,    49,    49,    49,    49,    49,    49,    49,
+      49,    49,    49,    49,    49,    49,    49,    49,    49,    49,
+      49,    49,    49,    49,    49,    49,    49,    49,    49,    49,
+      49,    49,    49,    49,    49,    49,    49,    49,    49,    49,
+      49,    49,    49,    49,    49,    49,    49,    49,    49,    49,
+      49,    49,    49,    50,    50,    50,    50,    50,    50,    51,
+      51,    51,    51,    51,    51,    51,    51,    51,    52,    52,
+      52,    52,    52,    52,    52,    52,    52,    52,    52,    52,
+      52,    52,    52,    52,    52,    52,    52,    53,    53
   };
 
   /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -2512,8 +2602,8 @@ namespace ibis {
        3,     6,     6,     3,     3,     3,     3,     3,     3,     3,
        3,     3,     3,     3,     3,     3,     3,     3,     3,     5,
        5,     5,     5,     5,     5,     5,     5,     5,     3,     3,
-       3,     3,     3,     3,     3,     3,     4,     6,     2,     2,
-       3,     1,     1,     2,     2
+       3,     3,     3,     3,     3,     3,     4,     6,     6,     6,
+       4,     4,     2,     2,     3,     1,     1,     2,     2
   };
 
 
@@ -2525,8 +2615,10 @@ namespace ibis {
     "\"end of input\"", "error", "$undefined", "\"null\"", "\"not\"",
   "\"<=\"", "\">=\"", "\"<\"", "\">\"", "\"==\"", "\"!=\"", "\"and\"",
   "\"&!\"", "\"or\"", "\"xor\"", "\"between\"", "\"contains\"",
-  "\"exists\"", "\"in\"", "\"like\"", "\"any\"", "\"|\"", "\"&\"", "\"+\"",
-  "\"-\"", "\"*\"", "\"/\"", "\"%\"", "\"**\"", "\"integer value\"",
+  "\"exists\"", "\"in\"", "\"like\"", "\"FROM_UNIXTIME_GMT\"",
+  "\"FROM_UNIXTIME_LOCAL\"", "\"TO_UNIXTIME_GMT\"",
+  "\"TO_UNIXTIME_LOCAL\"", "\"any\"", "\"|\"", "\"&\"", "\"+\"", "\"-\"",
+  "\"*\"", "\"/\"", "\"%\"", "\"**\"", "\"integer value\"",
   "\"unsigned integer value\"", "\"floating-point number\"",
   "\"signed integer sequence\"", "\"unsigned integer sequence\"",
   "\"name string\"", "\"number sequence\"", "\"string sequence\"",
@@ -2540,54 +2632,56 @@ namespace ibis {
   const whereParser::rhs_number_type
   whereParser::yyrhs_[] =
   {
-        49,     0,    -1,    44,    13,    44,    -1,    44,    14,    44,
-      -1,    44,    11,    44,    -1,    44,    12,    44,    -1,     4,
-      44,    -1,    39,    44,    40,    -1,    45,    -1,    46,    -1,
-      47,    -1,    17,    34,    -1,    17,    37,    -1,    17,    39,
-      34,    40,    -1,    17,    39,    37,    40,    -1,    34,    18,
-      35,    -1,    34,    18,    39,    31,    41,    31,    40,    -1,
-      34,    18,    39,    31,    40,    -1,    34,     4,     3,    -1,
-      34,     4,    18,    35,    -1,    34,     4,    18,    39,    31,
-      41,    31,    40,    -1,    34,     4,    18,    39,    31,    40,
-      -1,    34,    18,    36,    -1,    34,    18,    39,    34,    41,
-      34,    40,    -1,    34,    18,    39,    37,    41,    34,    40,
-      -1,    34,    18,    39,    34,    41,    37,    40,    -1,    34,
-      18,    39,    37,    41,    37,    40,    -1,    34,    18,    39,
-      34,    40,    -1,    34,    18,    39,    37,    40,    -1,    34,
-      19,    34,    -1,    34,    19,    37,    -1,    34,     4,    18,
-      36,    -1,    34,     4,    18,    39,    34,    41,    34,    40,
-      -1,    34,     4,    18,    39,    37,    41,    34,    40,    -1,
-      34,     4,    18,    39,    34,    41,    37,    40,    -1,    34,
-       4,    18,    39,    37,    41,    37,    40,    -1,    34,     4,
-      18,    39,    34,    40,    -1,    34,     4,    18,    39,    37,
-      40,    -1,    34,    18,    32,    -1,    34,     4,    18,    32,
-      -1,    34,    18,    33,    -1,    34,     4,    18,    33,    -1,
-      34,    16,    34,    -1,    34,    16,    37,    -1,    34,    16,
-      39,    34,    40,    -1,    34,    16,    39,    37,    40,    -1,
-      34,    16,    39,    37,    41,    37,    40,    -1,    34,    16,
-      39,    37,    41,    34,    40,    -1,    34,    16,    39,    34,
-      41,    37,    40,    -1,    34,    16,    39,    34,    41,    34,
-      40,    -1,    34,    16,    36,    -1,    20,    39,    34,    40,
-       9,    31,    -1,    20,    39,    34,    40,    18,    35,    -1,
-      34,     9,    29,    -1,    34,    10,    29,    -1,    34,     9,
-      30,    -1,    34,    10,    30,    -1,    37,     9,    34,    -1,
-      37,    10,    34,    -1,    34,     9,    37,    -1,    34,    10,
-      37,    -1,    34,     9,    48,    -1,    34,    10,    48,    -1,
-      48,     9,    48,    -1,    48,    10,    48,    -1,    48,     7,
-      48,    -1,    48,     5,    48,    -1,    48,     8,    48,    -1,
-      48,     6,    48,    -1,    48,     7,    48,     7,    48,    -1,
-      48,     7,    48,     5,    48,    -1,    48,     5,    48,     7,
-      48,    -1,    48,     5,    48,     5,    48,    -1,    48,     8,
-      48,     8,    48,    -1,    48,     8,    48,     6,    48,    -1,
-      48,     6,    48,     8,    48,    -1,    48,     6,    48,     6,
-      48,    -1,    48,    15,    48,    11,    48,    -1,    48,    23,
-      48,    -1,    48,    24,    48,    -1,    48,    25,    48,    -1,
-      48,    26,    48,    -1,    48,    27,    48,    -1,    48,    28,
-      48,    -1,    48,    22,    48,    -1,    48,    21,    48,    -1,
-      34,    39,    48,    40,    -1,    34,    39,    48,    41,    48,
-      40,    -1,    24,    48,    -1,    23,    48,    -1,    39,    48,
-      40,    -1,    34,    -1,    31,    -1,    44,     0,    -1,    44,
-      42,    -1
+        53,     0,    -1,    48,    13,    48,    -1,    48,    14,    48,
+      -1,    48,    11,    48,    -1,    48,    12,    48,    -1,     4,
+      48,    -1,    43,    48,    44,    -1,    49,    -1,    50,    -1,
+      51,    -1,    17,    38,    -1,    17,    41,    -1,    17,    43,
+      38,    44,    -1,    17,    43,    41,    44,    -1,    38,    18,
+      39,    -1,    38,    18,    43,    35,    45,    35,    44,    -1,
+      38,    18,    43,    35,    44,    -1,    38,     4,     3,    -1,
+      38,     4,    18,    39,    -1,    38,     4,    18,    43,    35,
+      45,    35,    44,    -1,    38,     4,    18,    43,    35,    44,
+      -1,    38,    18,    40,    -1,    38,    18,    43,    38,    45,
+      38,    44,    -1,    38,    18,    43,    41,    45,    38,    44,
+      -1,    38,    18,    43,    38,    45,    41,    44,    -1,    38,
+      18,    43,    41,    45,    41,    44,    -1,    38,    18,    43,
+      38,    44,    -1,    38,    18,    43,    41,    44,    -1,    38,
+      19,    38,    -1,    38,    19,    41,    -1,    38,     4,    18,
+      40,    -1,    38,     4,    18,    43,    38,    45,    38,    44,
+      -1,    38,     4,    18,    43,    41,    45,    38,    44,    -1,
+      38,     4,    18,    43,    38,    45,    41,    44,    -1,    38,
+       4,    18,    43,    41,    45,    41,    44,    -1,    38,     4,
+      18,    43,    38,    44,    -1,    38,     4,    18,    43,    41,
+      44,    -1,    38,    18,    36,    -1,    38,     4,    18,    36,
+      -1,    38,    18,    37,    -1,    38,     4,    18,    37,    -1,
+      38,    16,    38,    -1,    38,    16,    41,    -1,    38,    16,
+      43,    38,    44,    -1,    38,    16,    43,    41,    44,    -1,
+      38,    16,    43,    41,    45,    41,    44,    -1,    38,    16,
+      43,    41,    45,    38,    44,    -1,    38,    16,    43,    38,
+      45,    41,    44,    -1,    38,    16,    43,    38,    45,    38,
+      44,    -1,    38,    16,    40,    -1,    24,    43,    38,    44,
+       9,    35,    -1,    24,    43,    38,    44,    18,    39,    -1,
+      38,     9,    33,    -1,    38,    10,    33,    -1,    38,     9,
+      34,    -1,    38,    10,    34,    -1,    41,     9,    38,    -1,
+      41,    10,    38,    -1,    38,     9,    41,    -1,    38,    10,
+      41,    -1,    38,     9,    52,    -1,    38,    10,    52,    -1,
+      52,     9,    52,    -1,    52,    10,    52,    -1,    52,     7,
+      52,    -1,    52,     5,    52,    -1,    52,     8,    52,    -1,
+      52,     6,    52,    -1,    52,     7,    52,     7,    52,    -1,
+      52,     7,    52,     5,    52,    -1,    52,     5,    52,     7,
+      52,    -1,    52,     5,    52,     5,    52,    -1,    52,     8,
+      52,     8,    52,    -1,    52,     8,    52,     6,    52,    -1,
+      52,     6,    52,     8,    52,    -1,    52,     6,    52,     6,
+      52,    -1,    52,    15,    52,    11,    52,    -1,    52,    27,
+      52,    -1,    52,    28,    52,    -1,    52,    29,    52,    -1,
+      52,    30,    52,    -1,    52,    31,    52,    -1,    52,    32,
+      52,    -1,    52,    26,    52,    -1,    52,    25,    52,    -1,
+      38,    43,    52,    44,    -1,    38,    43,    52,    45,    52,
+      44,    -1,    21,    43,    52,    45,    41,    44,    -1,    20,
+      43,    52,    45,    41,    44,    -1,    23,    43,    52,    44,
+      -1,    22,    43,    52,    44,    -1,    28,    52,    -1,    27,
+      52,    -1,    43,    52,    44,    -1,    38,    -1,    35,    -1,
+      48,     0,    -1,    48,    46,    -1
   };
 
   /* YYPRHS[YYN] -- Index of the first RHS symbol of rule number YYN in
@@ -2603,24 +2697,24 @@ namespace ibis {
      272,   276,   283,   290,   294,   298,   302,   306,   310,   314,
      318,   322,   326,   330,   334,   338,   342,   346,   350,   354,
      360,   366,   372,   378,   384,   390,   396,   402,   408,   412,
-     416,   420,   424,   428,   432,   436,   440,   445,   452,   455,
-     458,   462,   464,   466,   469
+     416,   420,   424,   428,   432,   436,   440,   445,   452,   459,
+     466,   471,   476,   479,   482,   486,   488,   490,   493
   };
 
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
   const unsigned short int
   whereParser::yyrline_[] =
   {
-         0,   108,   108,   118,   128,   138,   148,   156,   159,   160,
-     161,   165,   173,   181,   189,   197,   207,   219,   228,   235,
-     246,   259,   269,   279,   296,   313,   330,   347,   361,   375,
-     385,   395,   406,   424,   442,   460,   478,   493,   508,   518,
-     529,   539,   550,   560,   570,   580,   590,   601,   612,   623,
-     634,   644,   653,   663,   671,   680,   688,   697,   707,   718,
-     728,   739,   756,   779,   789,   800,   810,   820,   830,   892,
-     904,   916,   928,   940,   952,   964,   976,   988,  1003,  1015,
-    1027,  1039,  1051,  1063,  1075,  1087,  1099,  1111,  1124,  1134,
-    1137,  1140,  1150,  1160,  1163
+         0,   112,   112,   122,   132,   142,   152,   160,   163,   164,
+     165,   169,   177,   185,   193,   201,   211,   223,   232,   239,
+     250,   263,   273,   283,   300,   317,   334,   351,   365,   379,
+     389,   399,   410,   428,   446,   464,   482,   497,   512,   522,
+     533,   543,   554,   564,   574,   584,   594,   605,   616,   627,
+     638,   648,   657,   667,   675,   684,   692,   701,   711,   722,
+     732,   743,   760,   783,   793,   804,   814,   824,   834,   896,
+     908,   920,   932,   944,   956,   968,   980,   992,  1007,  1019,
+    1031,  1043,  1055,  1067,  1079,  1091,  1103,  1115,  1128,  1142,
+    1156,  1169,  1182,  1192,  1195,  1198,  1208,  1218,  1221
   };
 
   // Print the state stack on the debug stream.
@@ -2664,8 +2758,8 @@ namespace ibis {
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      39,    40,     2,     2,    41,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,    42,
+      43,    44,     2,     2,    45,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,    46,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -2689,7 +2783,7 @@ namespace ibis {
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38
+      35,    36,    37,    38,    39,    40,    41,    42
     };
     if ((unsigned int) t <= yyuser_token_number_max_)
       return translate_table[t];
@@ -2698,23 +2792,23 @@ namespace ibis {
   }
 
   const int whereParser::yyeof_ = 0;
-  const int whereParser::yylast_ = 321;
+  const int whereParser::yylast_ = 379;
   const int whereParser::yynnts_ = 7;
   const int whereParser::yyempty_ = -2;
-  const int whereParser::yyfinal_ = 57;
+  const int whereParser::yyfinal_ = 65;
   const int whereParser::yyterror_ = 1;
   const int whereParser::yyerrcode_ = 256;
-  const int whereParser::yyntokens_ = 43;
+  const int whereParser::yyntokens_ = 47;
 
-  const unsigned int whereParser::yyuser_token_number_max_ = 293;
+  const unsigned int whereParser::yyuser_token_number_max_ = 297;
   const whereParser::token_number_type whereParser::yyundef_token_ = 2;
 
 
 } // ibis
 /* Line 1135 of lalr1.cc  */
-#line 2716 "whereParser.cc"
+#line 2810 "whereParser.cc"
 /* Line 1136 of lalr1.cc  */
-#line 1168 "whereParser.yy"
+#line 1226 "whereParser.yy"
 
 void ibis::whereParser::error(const ibis::whereParser::location_type& l,
 			      const std::string& m) {

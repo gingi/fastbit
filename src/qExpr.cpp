@@ -4029,3 +4029,83 @@ void ibis::qAllWords::getTableNames(std::set<std::string>& plist) const {
 	    plist.insert(tn);
     }
 } // ibis::qAllWords::getTableNames
+
+void ibis::math::customFunction1::print(std::ostream& out) const {
+    out << "1-arg function at " << static_cast<const void*>(fun_);
+} // ibis::math::customFunction1::print
+
+double ibis::math::customFunction1::eval() const {
+    double arg =
+	static_cast<const ibis::math::term*>(getLeft())->eval();
+    if (fun_ != 0)
+        return fun_->eval(arg);
+    else
+        return FASTBIT_DOUBLE_NULL;
+} // ibis::math::customFunction1::eval
+
+double ibis::math::fromUnixTime::eval(double val) const {
+    if (fmt_.empty()) return val; // do nothing
+
+    double res;
+    char buf[80];
+    const char *str;
+    struct tm mytm;
+    const time_t sec = static_cast<time_t>(val);
+    if (tzname_[0] == 'g' || tzname_[0] == 'G' ||
+        tzname_[0] == 'u' || tzname_[0] == 'U')
+        (void) gmtime_r(&sec, &mytm);
+    else
+        (void) localtime_r(&sec, &mytm);
+    (void) strftime(buf, 80, fmt_.c_str(), &mytm);
+    str = buf;
+    ibis::util::readDouble(res, str);
+    LOGGER(*str != 0 && ibis::gVerbose > 1)
+        << "Warning -- fromUnixTime::eval encountered a problem while "
+        "attempting to convert " << fmt_ << " of " << sec
+        << " into a double value";
+    return res;
+} // ibis::math::fromUnixTime::eval
+
+double ibis::math::toUnixTime::eval(double val) const {
+    double res;
+    struct tm mytm;
+    mytm.tm_year = val / 1E10;
+    val -= mytm.tm_year * 1E10;
+    mytm.tm_mon = val / 1E8;
+    val -= mytm.tm_mon * 1E8;
+    LOGGER(mytm.tm_mon > 11 && ibis::gVerbose > 3)
+        << "Warning -- toUnixTime(" << val << ") -- month (" << mytm.tm_mon
+        << ") is out of range";
+
+    mytm.tm_mday = val / 1E6;
+    val -= mytm.tm_mday * 1E6;
+    LOGGER(mytm.tm_mday > 31 && ibis::gVerbose > 3)
+        << "Warning -- toUnixTime(" << val << ") -- day of month ("
+        << mytm.tm_mday << ") is out of range";
+
+    mytm.tm_hour = val / 1E4;
+    val -= mytm.tm_hour * 1E4;
+    LOGGER(mytm.tm_hour > 23 && ibis::gVerbose > 3)
+        << "Warning -- toUnixTime(" << val << ") -- hour of day ("
+        << mytm.tm_hour << ") is out of range";
+
+    mytm.tm_min = val / 1E2;
+    val -= mytm.tm_min * 1E2;
+    LOGGER(mytm.tm_min > 59 && ibis::gVerbose > 3)
+        << "Warning -- toUnixTime(" << val << ") -- minute of hour ("
+        << mytm.tm_min << ") is out of range";
+
+    mytm.tm_sec = static_cast<int>(val);
+    val -= mytm.tm_sec;
+    LOGGER(mytm.tm_sec > 59 && ibis::gVerbose > 3)
+        << "Warning -- toUnixTime(" << val << ") -- second of minute ("
+        << mytm.tm_sec << ") is out of range";
+
+    if (tzname_[0] == 'g' || tzname_[0] == 'G' ||
+        tzname_[0] == 'u' || tzname_[0] == 'U')
+        res = timegm(&mytm);
+    else
+        res = mktime(&mytm);
+    res += val; // add the fraction of second
+    return res;
+} // ibis::math::toUnixTime::eval
