@@ -146,6 +146,13 @@ namespace ibis {
 ///      yyyymmddhhmmss.  If the value has a fractional part, the
 ///      fractional portion is treated as the fraction of a second.  This
 ///      function assumes its argument is specified in local time zone.
+///
+///      The most useful thing to do with this function is like to convert
+///      a date-time value into unix time stamp in a range expression on a
+///      column of unix time stamps, e.g., "timestamp between
+///      to_unixtime_local(20110000000000) and
+///      to_unixtime_local(20110300000000)", which select a three month
+///      time range without having to look up exact unix time stamps.
 /// 
 ///   -- to_unixtime_gmt(date-time): same functionality as
 ///      to_unixtime_local, but assumes its argument is in time zone GMT.
