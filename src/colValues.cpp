@@ -6783,10 +6783,10 @@ void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else if (col != 0 && col->type() == ibis::CATEGORY) {
-        const char* str =
-            static_cast<const ibis::category*>(col)->getKey((*array)[i]);
-        if (str != 0)
-            out << '"' << str << '"';
+	const char* str =
+	    static_cast<const ibis::category*>(col)->getKey((*array)[i]);
+	if (str != 0)
+	    out << '"' << str << '"';
     }
     else {
         out << (*array)[i];
@@ -6812,7 +6812,7 @@ void ibis::colLongs::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-        out << (*array)[i];
+	out << (*array)[i];
     }
 }
 
@@ -6835,7 +6835,7 @@ void ibis::colULongs::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-        out << (*array)[i];
+	out << (*array)[i];
     }
 }
 
@@ -6875,7 +6875,7 @@ void ibis::colUShorts::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-        out << (*array)[i];
+	out << (*array)[i];
     }
 }
 
@@ -6898,7 +6898,7 @@ void ibis::colBytes::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-        out << (*array)[i];
+	out << (*array)[i];
     }
 }
 
@@ -6921,7 +6921,7 @@ void ibis::colUBytes::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-        out << (*array)[i];
+	out << (*array)[i];
     }
 }
 
@@ -6944,7 +6944,7 @@ void ibis::colFloats::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<double>((*array)[i]));
     }
     else {
-        out << (*array)[i];
+	out << (*array)[i];
     }
 }
 
@@ -6967,7 +6967,7 @@ void ibis::colDoubles::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<double>((*array)[i]));
     }
     else {
-        out << (*array)[i];
+	out << (*array)[i];
     }
 }
 

@@ -353,6 +353,45 @@ public:
     class indexLock;
     class mutexLock;
 
+    /// A functor for formatting unix time using the user supplied
+    /// format.
+    struct unixTimeScribe {
+        /// Denstructor.
+        ~unixTimeScribe() {
+            delete format_;
+            delete timezone_;
+        }
+        /// Constructor.
+        unixTimeScribe(const char *fmt, const char *tz=0)
+            : format_(ibis::util::strnewdup(fmt)),
+              timezone_(ibis::util::strnewdup(tz)) {}
+        /// Copy constructor.
+        unixTimeScribe(const unixTimeScribe &rhs)
+            : format_(ibis::util::strnewdup(rhs.format_)),
+              timezone_(ibis::util::strnewdup(rhs.timezone_)) {}
+
+        unixTimeScribe& operator=(const unixTimeScribe &rhs) {
+            delete format_;
+            delete timezone_;
+            format_ = ibis::util::strnewdup(rhs.format_);
+            timezone_ = ibis::util::strnewdup(rhs.timezone_);
+            return *this;
+        }
+
+        unixTimeScribe* dup() const {
+            return new unixTimeScribe(*this);
+        }
+
+        void operator()(std::ostream&, int64_t) const;
+        void operator()(std::ostream&, double) const;
+
+        const char *format_;
+        const char *timezone_;
+    }; // unixTimeScribe
+    void setTimeFormat(const char*);
+    void setTimeFormat(const unixTimeScribe &);
+    const unixTimeScribe* getTimeFormat() const {return m_utscribe;}
+
     /// Compute the minimum and maximum of the values in the array.
     template <typename T> static
     void actualMinMax(const array_t<T>& vals, const ibis::bitvector& mask,
@@ -378,6 +417,7 @@ protected:
     bool m_sorted;	  ///!< Are the column values in ascending order?
     double lower;	  ///!< The minimum value.
     double upper;	  ///!< The maximum value.
+    unixTimeScribe *m_utscribe;
     /// Presence of the data file.
     ///  0 -- don't know.
     /// -1 -- no data file.

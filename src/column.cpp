@@ -43,7 +43,8 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
                      const char* name, const char* desc,
                      double low, double high) :
     thePart(tbl), m_type(t), m_name(name), m_desc(desc), m_bins(""),
-    m_sorted(false), lower(low), upper(high), dataflag(0), idx(0), idxcnt() {
+    m_sorted(false), lower(low), upper(high), m_utscribe(0), dataflag(0),
+    idx(0), idxcnt() {
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
 	throw "column::ctor failed to initialize the rwlock";
     }
@@ -69,7 +70,7 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
 /// A well-formed column must have a valid name, i.e., ! m_name.empty().
 ibis::column::column(const part* tbl, FILE* file)
     : thePart(tbl), m_type(UINT), m_sorted(false), lower(DBL_MAX),
-      upper(-DBL_MAX), dataflag(0), idx(0), idxcnt() {
+      upper(-DBL_MAX), m_utscribe(0), dataflag(0), idx(0), idxcnt() {
     char buf[MAX_LINE];
     char *s1;
     char *s2;
@@ -307,7 +308,8 @@ ibis::column::column(const ibis::column& rhs) :
     thePart(rhs.thePart), mask_(rhs.mask_), m_type(rhs.m_type),
     m_name(rhs.m_name), m_desc(rhs.m_desc), m_bins(rhs.m_bins),
     m_sorted(rhs.m_sorted), lower(rhs.lower), upper(rhs.upper),
-    dataflag(0), idx(rhs.idx!=0 ? rhs.idx->dup() : 0), idxcnt() {
+    m_utscribe(rhs.m_utscribe), dataflag(0),
+    idx(rhs.idx!=0 ? rhs.idx->dup() : 0), idxcnt() {
     if (pthread_rwlock_init(&rwlock, 0)) {
 	throw "column::ctor failed to initialize the rwlock";
     }
@@ -4616,8 +4618,8 @@ void ibis::column::setTimeFormat(const char *nv) {
     }
     else {
         LOGGER(ibis::gVerbose > 2)
-            << "column::setTimeFormat did not find a value format for unix "
-            << "time in \"" << nv << '"';
+            << "column::setTimeFormat did not find a value format for unix time in "
+            << '"' << nv << '"';
     }
 } // ibis::column::setTimeFormat
 
@@ -5516,8 +5518,8 @@ std::string ibis::column::fullname() const {
 // only write some information about the column
 void ibis::column::print(std::ostream& out) const {
     out << m_name.c_str() << ": " << m_desc.c_str()
-        << " (" << ibis::TYPESTRING[(int)m_type] << ") [" << lower << ", "
-        << upper << "]";
+	<< " (" << ibis::TYPESTRING[(int)m_type] << ") [" << lower << ", "
+	<< upper << "]";
     if (m_utscribe != 0)
         out << "{" << m_utscribe->format_ << ", " << m_utscribe->timezone_ << "}";
 } // ibis::column::print

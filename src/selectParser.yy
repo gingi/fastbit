@@ -51,8 +51,6 @@
 %token <doubleVal>  NUMBER	"numerical value"
 %token <stringVal>  NOUNSTR	"name"
 %token <stringVal>  STRLIT	"string literal"
-%token <integerVal> FORMAT_UNIXTIME_GMT   "FORMAT_UNIXTIME_GMT"
-%token <integerVal> FORMAT_UNIXTIME_LOCAL "FORMAT_UNIXTIME_LOCAL"
 
 %nonassoc ASOP
 %left BITOROP
@@ -420,52 +418,40 @@ mathExpr ADDOP mathExpr {
     delete $1;
     $$ = fun;
 }
-| FORMAT_UNIXTIME_GMT '(' mathExpr ',' NOUNSTR ')' {
+| NOUNSTR '(' NOUNSTR ',' STRLIT ',' STRLIT ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_GMT("
-	<< *$3 << ", " << *$5 << ")";
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
+	<< *$3 << ", " << *$5 << ", " << *$7 << ")";
 #endif
-    ibis::math::formatUnixTime fut($5->c_str(), "GMT");
-    ibis::math::stringFunction1 *fun = new ibis::math::stringFunction1(fut);
-    fun->setLeft($3);
-    $$ = fun;
+    ibis::math::variable *var = new ibis::math::variable($3->c_str());
+    if (stricmp($1->c_str(), "FORMAT_UNIXTIME_LOCAL") == 0)
+        var->addDecoration($1->c_str(), $5->c_str());
+    else if (stricmp($1->c_str(), "FORMAT_UNIXTIME_GMT") == 0 ||
+             stricmp($1->c_str(), "FORMAT_UNIXTIME_UTC") == 0)
+        var->addDecoration("FORMAT_UNIXTIME_GMT", $5->c_str());
+    else if ((*$7)[0] == 'g' || (*$7)[0] == 'G' ||
+             (*$7)[0] == 'u' || (*$7)[0] == 'U')
+        var->addDecoration("FORMAT_UNIXTIME_GMT", $5->c_str());
+    else
+        var->addDecoration("FORMAT_UNIXTIME_LOCAL", $5->c_str());
+    $$ = var;
+    delete $1;
+    delete $3;
     delete $5;
+    delete $7;
 }
-| FORMAT_UNIXTIME_GMT '(' mathExpr ',' STRLIT ')' {
+| NOUNSTR '(' NOUNSTR ',' STRLIT ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_GMT("
+	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
 	<< *$3 << ", " << *$5 << ")";
 #endif
-    ibis::math::formatUnixTime fut($5->c_str(), "GMT");
-    ibis::math::stringFunction1 *fun = new ibis::math::stringFunction1(fut);
-    fun->setLeft($3);
-    $$ = fun;
-    delete $5;
-}
-| FORMAT_UNIXTIME_LOCAL '(' mathExpr ',' NOUNSTR ')' {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_LOCAL("
-	<< *$3 << ", " << *$5 << ")";
-#endif
-    ibis::math::formatUnixTime fut($5->c_str());
-    ibis::math::stringFunction1 *fun = new ibis::math::stringFunction1(fut);
-    fun->setLeft($3);
-    $$ = fun;
-    delete $5;
-}
-| FORMAT_UNIXTIME_LOCAL '(' mathExpr ',' STRLIT ')' {
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_LOCAL("
-	<< *$3 << ", " << *$5 << ")";
-#endif
-    ibis::math::formatUnixTime fut($5->c_str());
-    ibis::math::stringFunction1 *fun = new ibis::math::stringFunction1(fut);
-    fun->setLeft($3);
-    $$ = fun;
+    ibis::math::variable *var = new ibis::math::variable($3->c_str());
+    var->addDecoration($1->c_str(), $5->c_str());
+    $$ = var;
+    delete $1;
+    delete $3;
     delete $5;
 }
 | NOUNSTR '(' mathExpr ',' mathExpr ')' {

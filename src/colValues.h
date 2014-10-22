@@ -97,6 +97,7 @@ public:
 
 protected:
     const ibis::column* col; ///!< The column where the value is from.
+    ibis::column::unixTimeScribe *utform;
 
     colValues() : col(0), utform(0) {}
     colValues(const ibis::column* c) : col(c), utform(0) {};
