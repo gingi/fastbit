@@ -452,7 +452,16 @@ mathExpr ADDOP mathExpr {
 	<< *$3 << ", " << *$5 << ")";
 #endif
     ibis::math::variable *var = new ibis::math::variable($3->c_str());
-    var->addDecoration($1->c_str(), $5->c_str());
+    if (stricmp($1->c_str(), "FORMAT_UNIXTIME_LOCAL") == 0 ||
+        stricmp($1->c_str(), "FORMAT_UNIXTIME_GMT") == 0 ||
+        stricmp($1->c_str(), "FORMAT_UNIXTIME") == 0) {
+        var->addDecoration($1->c_str(), $5->c_str());
+    }
+    else {
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- unknown directive for formating unix time stamps \""
+            << *$1 << "\", it will be ignored";
+    }
     $$ = var;
     delete $1;
     delete $3;

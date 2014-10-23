@@ -1,3 +1,8 @@
+2014-10-22 John Wu <John dot Wu at ACM dot org>
+	* src/selectParser.yy: add warning message about ignoring
+	formating directive on unix time stamps (following suggestion from
+	Jon Strabala)
+
 2014-10-21 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp, src/whereLexer.ll,
 	src/whereParser.yy: add an initial implementation of functions in
