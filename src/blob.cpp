@@ -206,32 +206,32 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     int64_t dj = 0;
     uint32_t nnew0 = 0;
     for (uint32_t j = 0; j <= nnew; j += nspbuf) {
-        ierr = UnixRead(ssrc, spbuf, nbuf);
-        if (ierr <= 0) {
-            LOGGER(ierr < 0 && ibis::gVerbose > 0)
-                << "Warning -- " << evt << " failed to read from "
-                << spfrom << ", function read returned " << ierr;
-            break;
-        }
-        int iread = ierr;
-        if (j == 0) {
-            dj = dfsize - *spbuf;
-            iread -= spelem;
-            for (int i = 0; i < iread/spelem; ++ i)
-                spbuf[i] = spbuf[i+1] + dj;
-        }
-        else {
-            for (int i = 0; i < iread/spelem; ++ i)
-                spbuf[i] += dj;
-        }
-        off_t iwrite = UnixWrite(sdest, spbuf, iread);
-        if (iwrite < iread) {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- " << evt << " expects to write " << iread
-                << " byte" << (iread>1?"s":"") << ", but only wrote " << iwrite;
-            return -12;
-        }
-        nnew0 = iwrite / spelem;
+	ierr = UnixRead(ssrc, spbuf, nbuf);
+	if (ierr <= 0) {
+	    LOGGER(ierr < 0 && ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " failed to read from "
+		<< spfrom << ", function read returned " << ierr;
+	    break;
+	}
+	int iread = ierr;
+	if (j == 0) {
+	    dj = dfsize - *spbuf;
+	    iread -= spelem;
+	    for (int i = 0; i < iread/spelem; ++ i)
+		spbuf[i] = spbuf[i+1] + dj;
+	}
+	else {
+	    for (int i = 0; i < iread/spelem; ++ i)
+		spbuf[i] += dj;
+	}
+	off_t iwrite = UnixWrite(sdest, spbuf, iread);
+	if (iwrite < iread) {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- " << evt << " expects to write " << iread
+		<< " byte" << (iread>1?"s":"") << ", but only wrote " << iwrite;
+	    return -12;
+	}
+	nnew0 = iwrite / spelem;
     }
     // explicit close the read source file to reduce the number of open files
     (void) UnixClose(ssrc);

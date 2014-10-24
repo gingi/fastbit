@@ -2286,19 +2286,19 @@ void ibis::part::sortRIDs() const {
 
     const uint32_t nbuf = sizeof(buf);
     for (RIDmap::const_iterator it = rmap.begin(); it != rmap.end(); ++it) {
-        buf[0] = (*it).first->num.run;
-        buf[1] = (*it).first->num.event;
-        off_t ierr = UnixWrite(fdes, buf, nbuf);
-        ierr += UnixWrite(fdes, &((*it).second), sizeof(uint32_t));
-        if (ierr <= 0 ||
-            static_cast<uint32_t>(ierr) != nbuf+sizeof(uint32_t)) {
-            logWarning("sortRIDs", "failed to write run (%lu, %lu, %lu) to "
-                       "file %s", static_cast<long unsigned>(buf[0]),
-                       static_cast<long unsigned>(buf[1]),
-                       static_cast<long unsigned>((*it).second), name);
-            remove(name);
-            return;
-        }
+	buf[0] = (*it).first->num.run;
+	buf[1] = (*it).first->num.event;
+	off_t ierr = UnixWrite(fdes, buf, nbuf);
+	ierr += UnixWrite(fdes, &((*it).second), sizeof(uint32_t));
+	if (ierr <= 0 ||
+	    static_cast<uint32_t>(ierr) != nbuf+sizeof(uint32_t)) {
+	    logWarning("sortRIDs", "failed to write run (%lu, %lu, %lu) to "
+		       "file %s", static_cast<long unsigned>(buf[0]),
+		       static_cast<long unsigned>(buf[1]),
+		       static_cast<long unsigned>((*it).second), name);
+	    remove(name);
+	    return;
+	}
     }
     if (ibis::gVerbose > 4) {
         timer.stop();

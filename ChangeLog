@@ -1,3 +1,7 @@
+2014-10-24 John Wu <John dot Wu at ACM dot org>
+	* src/*.cpp: change varaibles receiving return values of UnixWrite
+	from int to off_t per suggestion of Zheng Yan from Harvard
+
 2014-10-23 John Wu <John dot Wu at ACM dot org>
 	* src/selectParser.yy, src/selectLexer.ll: turn
 	FORMAT_UNIXTIME_LOCAL and FORMAT_UNIXTIME_GMT into fixed tokens to
