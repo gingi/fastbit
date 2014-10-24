@@ -1852,7 +1852,7 @@ int ibis::bylt::write(const char* dt) const {
     }
 #endif
 
-    int32_t ierr = 0;
+    off_t ierr = 0;
 #ifdef FASTBIT_USE_LONG_OFFSETS
     const bool useoffset64 = true;
 #else

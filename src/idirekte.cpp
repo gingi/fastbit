@@ -700,7 +700,7 @@ int ibis::direkte::write(const char* dt) const {
     }
 #endif
 
-    int ierr = 0;
+    off_t ierr = 0;
     const uint32_t nobs = bits.size();
 
 #ifdef FASTBIT_USE_LONG_OFFSETS

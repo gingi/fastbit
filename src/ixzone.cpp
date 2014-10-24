@@ -339,7 +339,7 @@ int ibis::zone::write(const char* dt) const {
     header[5] = (char)(sub.size() == nobs ? ibis::index::ZONE
 		       : ibis::index::BINNING);
     header[6] = (char)(useoffset64 ? 8 : 4);
-    int32_t ierr = UnixWrite(fdes, header, 8);
+    off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt

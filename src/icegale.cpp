@@ -382,7 +382,7 @@ int ibis::egale::write32(int fdes) const {
 
 /// Write the index to an open file.
 int ibis::egale::write64(int fdes) const {
-    int ierr;
+    off_t ierr;
     const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
 	LOGGER(ibis::gVerbose > 0)

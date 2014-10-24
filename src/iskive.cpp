@@ -163,7 +163,7 @@ int ibis::skive::write(const char* dt) const {
     char header[] = "#IBIS\11\0\0";
     header[5] = (char)ibis::index::SKIVE;
     header[6] = (char)(useoffset64 ? 8 : 4);
-    int ierr = UnixWrite(fdes, header, 8);
+    off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt

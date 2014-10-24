@@ -91,7 +91,7 @@ int ibis::roster::write(const char* df) const {
 	if (std::strcmp(fnm.c_str()+pos, col->name()) != 0)
 	    fnm += FASTBIT_DIRSEP;
     }
-    uint32_t ierr = fnm.size();
+    off_t ierr = fnm.size();
     if (fnm[ierr-1] == FASTBIT_DIRSEP)
 	fnm += col->name();
     ierr = fnm.size();

@@ -1081,7 +1081,7 @@ int ibis::zona::write(const char* dt) const {
     }
 #endif
 
-    int ierr = 0;
+    off_t ierr = 0;
     const uint32_t nobs = vals.size();
 #ifdef FASTBIT_USE_LONG_OFFSETS
     const bool useoffset64 = true;

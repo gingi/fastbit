@@ -2253,7 +2253,7 @@ void ibis::part::sortRIDs() const {
     for (RIDmap::const_iterator it = rmap.begin(); it != rmap.end(); ++it) {
 	buf[0] = (*it).first->num.run;
 	buf[1] = (*it).first->num.event;
-	int32_t ierr = UnixWrite(fdes, buf, nbuf);
+	off_t ierr = UnixWrite(fdes, buf, nbuf);
 	ierr += UnixWrite(fdes, &((*it).second), sizeof(uint32_t));
 	if (ierr <= 0 ||
 	    static_cast<uint32_t>(ierr) != nbuf+sizeof(uint32_t)) {

@@ -6040,7 +6040,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<T1>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    int ierr;
+    off_t ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -6119,7 +6119,7 @@ int64_t ibis::query::recordEqualPairs(const array_t<uint32_t>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    int ierr;
+    off_t ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -6287,7 +6287,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<T1>& val1,
 		       static_cast<long unsigned>(ind2[i]),
 		       static_cast<long unsigned>(mypart->nRows()));
 #endif
-    int ierr;
+    off_t ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -6394,7 +6394,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<uint32_t>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    int ierr;
+    off_t ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);
@@ -6462,7 +6462,7 @@ int64_t ibis::query::recordDeltaPairs(const array_t<int32_t>& val1,
     (void)_setmode(fdes, _O_BINARY);
 #endif
 
-    int ierr;
+    off_t ierr;
     int64_t cnt = 0;
     uint32_t idbuf[2];
     const uint32_t idsize = sizeof(idbuf);

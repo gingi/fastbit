@@ -93,7 +93,7 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
 	    << sj << ", will not continue with corrupt data files";
 	return -3;
     }
-    int ierr;
+    off_t ierr;
     const uint32_t nsold = sj / spelem;
     const uint32_t nold0 = (nsold > 1 ? nsold-1 : 0);
     int64_t dfsize = 0;
@@ -224,7 +224,7 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
 	    for (int i = 0; i < iread/spelem; ++ i)
 		spbuf[i] += dj;
 	}
-	int iwrite = UnixWrite(sdest, spbuf, iread);
+	off_t iwrite = UnixWrite(sdest, spbuf, iread);
 	if (iwrite < iread) {
 	    LOGGER(ibis::gVerbose > 0)
 		<< "Warning -- " << evt << " expects to write " << iread

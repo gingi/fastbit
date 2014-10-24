@@ -190,7 +190,7 @@ int ibis::fade::write(const char* dt) const {
     char header[] = "#IBIS\12\0\0";
     header[5] = (char)ibis::index::FADE;
     header[6] = (char)(useoffset64 ? 8 : 4);
-    int32_t ierr = UnixWrite(fdes, header, 8);
+    off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
 	LOGGER(ibis::gVerbose > 0)
 	    << "Warning -- " << evt << " failed to write "
@@ -242,7 +242,7 @@ int ibis::fade::write32(int fdes) const {
     const uint32_t nb = bases.size();
     const uint32_t card = vals.size();
     const uint32_t nobs = bits.size();
-    int ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
+    off_t ierr = UnixWrite(fdes, &nrows, sizeof(nrows));
     ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
     ierr += UnixWrite(fdes, &card, sizeof(card));
     if (ierr < 12) {
@@ -347,7 +347,7 @@ int ibis::fade::write64(int fdes) const {
     const uint32_t nb = bases.size();
     const uint32_t card = vals.size();
     const uint32_t nobs = bits.size();
-    int ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
+    off_t ierr = UnixWrite(fdes, &nrows, sizeof(nobs));
     ierr += UnixWrite(fdes, &nobs, sizeof(nobs));
     ierr += UnixWrite(fdes, &card, sizeof(card));
     if (ierr < 12) {
