@@ -108,7 +108,9 @@ namespace ibis {
      EXPOP = 266,
      NUMBER = 267,
      NOUNSTR = 268,
-     STRLIT = 269
+     STRLIT = 269,
+     FORMAT_UNIXTIME_GMT = 270,
+     FORMAT_UNIXTIME_LOCAL = 271
    };
 
     };
@@ -290,7 +292,7 @@ namespace ibis {
 
 } // ibis
 /* Line 33 of lalr1.cc  */
-#line 294 "selectParser.hh"
+#line 296 "selectParser.hh"
 
 
 

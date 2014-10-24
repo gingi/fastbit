@@ -51,6 +51,8 @@
 %token <doubleVal>  NUMBER	"numerical value"
 %token <stringVal>  NOUNSTR	"name"
 %token <stringVal>  STRLIT	"string literal"
+%token <integerVal> FORMAT_UNIXTIME_GMT   "FORMAT_UNIXTIME_GMT"
+%token <integerVal> FORMAT_UNIXTIME_LOCAL "FORMAT_UNIXTIME_LOCAL"
 
 %nonassoc ASOP
 %left BITOROP
@@ -418,52 +420,27 @@ mathExpr ADDOP mathExpr {
     delete $1;
     $$ = fun;
 }
-| NOUNSTR '(' NOUNSTR ',' STRLIT ',' STRLIT ')' {
-    /* FORMAT_UNIXTIME(name, format, timezone) */
+| FORMAT_UNIXTIME_GMT '(' NOUNSTR ',' STRLIT ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
-	<< *$3 << ", " << *$5 << ", " << *$7 << ")";
-#endif
-    ibis::math::variable *var = new ibis::math::variable($3->c_str());
-    if (stricmp($1->c_str(), "FORMAT_UNIXTIME_LOCAL") == 0)
-        var->addDecoration($1->c_str(), $5->c_str());
-    else if (stricmp($1->c_str(), "FORMAT_UNIXTIME_GMT") == 0 ||
-             stricmp($1->c_str(), "FORMAT_UNIXTIME_UTC") == 0)
-        var->addDecoration("FORMAT_UNIXTIME_GMT", $5->c_str());
-    else if ((*$7)[0] == 'g' || (*$7)[0] == 'G' ||
-             (*$7)[0] == 'u' || (*$7)[0] == 'U')
-        var->addDecoration("FORMAT_UNIXTIME_GMT", $5->c_str());
-    else
-        var->addDecoration("FORMAT_UNIXTIME_LOCAL", $5->c_str());
-    $$ = var;
-    delete $1;
-    delete $3;
-    delete $5;
-    delete $7;
-}
-| NOUNSTR '(' NOUNSTR ',' STRLIT ')' {
-    /* FORMAT_UNIXTIME_LOCAL and FORMAT_UNIXTIME_GMT.  This is treated as a
-       decoration to a column name; any unexpected names will be dicarded
-       (not causing an error). */
-#if defined(DEBUG) && DEBUG + 0 > 1
-    LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- " << *$1 << "("
+	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_GMT("
 	<< *$3 << ", " << *$5 << ")";
 #endif
     ibis::math::variable *var = new ibis::math::variable($3->c_str());
-    if (stricmp($1->c_str(), "FORMAT_UNIXTIME_LOCAL") == 0 ||
-        stricmp($1->c_str(), "FORMAT_UNIXTIME_GMT") == 0 ||
-        stricmp($1->c_str(), "FORMAT_UNIXTIME") == 0) {
-        var->addDecoration($1->c_str(), $5->c_str());
-    }
-    else {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- unknown directive for formating unix time stamps \""
-            << *$1 << "\", it will be ignored";
-    }
+    var->addDecoration("FORMAT_UNIXTIME_GMT", $5->c_str());
     $$ = var;
-    delete $1;
+    delete $3;
+    delete $5;
+}
+| FORMAT_UNIXTIME_LOCAL '(' NOUNSTR ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_LOCAL("
+	<< *$3 << ", " << *$5 << ")";
+#endif
+    ibis::math::variable *var = new ibis::math::variable($3->c_str());
+    var->addDecoration("FORMAT_UNIXTIME_LOCAL", $5->c_str());
+    $$ = var;
     delete $3;
     delete $5;
 }

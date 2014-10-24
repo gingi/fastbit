@@ -2197,9 +2197,9 @@ ibis::math::stdFunction1::stdFunction1(const char* name) {
     else if (0 == stricmp(name, "MODF"))
         ftype = ibis::math::MODF;
     else if (0 == stricmp(name, "ROUND"))
-        ftype = ibis::math::ROUND;
+	ftype = ibis::math::ROUND;
     else if (0 == stricmp(name, "TRUNC"))
-        ftype = ibis::math::TRUNC;
+	ftype = ibis::math::TRUNC;
     else if (0 == stricmp(name, "SIN"))
         ftype = ibis::math::SIN;
     else if (0 == stricmp(name, "SINH"))
@@ -2392,10 +2392,10 @@ ibis::math::stdFunction2::stdFunction2(const char* name) {
     else if (0 == stricmp(name, "LDEXP"))
         ftype = ibis::math::LDEXP;
     else if (0 == stricmp(name, "POW") || 0 == stricmp(name, "POWER"))
-        ftype = ibis::math::POW;
+	ftype = ibis::math::POW;
     else if (0 == stricmp(name, "ROUND2") || 0 == stricmp(name, "ROUND") ||
              0 == stricmp(name, "TRUNC"))
-        ftype = ibis::math::ROUND2;
+	ftype = ibis::math::ROUND2;
     else if (0 == stricmp(name, "IS_EQL"))
         ftype = ibis::math::IS_EQL;
     else if (0 == stricmp(name, "IS_GTE"))
@@ -2511,11 +2511,11 @@ double ibis::math::stdFunction2::eval() const {
             lhs = (double)0.0;
         break;
     case ibis::math::IS_LTE:
-        if (lhs <= rhs)
-            lhs = (double)1.0;
-        else
-            lhs = (double)0.0;
-        break;
+	if (lhs <= rhs)
+	    lhs = (double)1.0;
+	else
+	    lhs = (double)0.0;
+	break;
     default:
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- unknown 2-argument function, "

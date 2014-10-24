@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS=gnu
 ACLOCAL_AMFLAGS=-I tests/m4
 SUBDIRS = src examples java tests contrib
-
+bin_SCRIPTS = tests/scripts/fastbit-config
 EXTRA_DIST = runconfig win/README win/Win.mak win/MinGW.mak win/ardea.vcproj \
 	win/ibis.sln win/ibis.vcproj win/thula.vcproj win/tcapi.vcproj \
 	win/trydll.cpp win/dll.vcproj win/trydll.vcproj win/java.vcproj \
