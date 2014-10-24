@@ -2195,6 +2195,8 @@ ibis::math::stdFunction1::stdFunction1(const char* name) {
 	ftype = ibis::math::MODF;
     else if (0 == stricmp(name, "ROUND"))
 	ftype = ibis::math::ROUND;
+    else if (0 == stricmp(name, "TRUNC"))
+	ftype = ibis::math::TRUNC;
     else if (0 == stricmp(name, "SIN"))
 	ftype = ibis::math::SIN;
     else if (0 == stricmp(name, "SINH"))
@@ -2367,7 +2369,12 @@ double ibis::math::stdFunction1::eval() const {
     case ibis::math::SQRT: arg = sqrt(arg); break;
     case ibis::math::TAN: arg = tan(arg); break;
     case ibis::math::TANH: arg = tanh(arg); break;
-    default: break;
+    case ibis::math::TRUNC: arg = trunc(arg); break;
+    default:
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- unknown 1-argument function, "
+            "returning the argument";
+        break;
     }
     return arg;
 } // ibis::math::stdfunction1::eval
@@ -2381,7 +2388,8 @@ ibis::math::stdFunction2::stdFunction2(const char* name) {
 	ftype = ibis::math::LDEXP;
     else if (0 == stricmp(name, "POW") || 0 == stricmp(name, "POWER"))
 	ftype = ibis::math::POW;
-    else if (0 == stricmp(name, "ROUND") || 0 == stricmp(name, "TRUNC"))
+    else if (0 == stricmp(name, "ROUND2") || 0 == stricmp(name, "ROUND") ||
+             0 == stricmp(name, "TRUNC"))
 	ftype = ibis::math::ROUND2;
     else if (0 == stricmp(name, "IS_EQL"))
 	ftype = ibis::math::IS_EQL;
@@ -2503,7 +2511,11 @@ double ibis::math::stdFunction2::eval() const {
 	else
 	    lhs = (double)0.0;
 	break;
-    default: break;
+    default:
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- unknown 2-argument function, "
+            "returning the 1st argument";
+        break;
     }
     return lhs;
 } // ibis::math::stdfunction2::eval

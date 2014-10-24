@@ -692,7 +692,7 @@ namespace ibis {
 	/// Standard 1-argument and 2-argument functions.
 	enum STDFUN1 {ACOS=0, ASIN, ATAN, CEIL, COS, COSH, EXP, FABS, FLOOR,
 		      FREXP, LOG10, LOG, MODF, ROUND, SIN, SINH, SQRT, TAN,
-		      TANH, IS_ZERO, IS_NONZERO};
+		      TANH, TRUNC, IS_ZERO, IS_NONZERO};
 	enum STDFUN2 {ATAN2=0, FMOD, LDEXP, ROUND2, POW, IS_EQL, IS_GTE,
 		      IS_LTE};
 

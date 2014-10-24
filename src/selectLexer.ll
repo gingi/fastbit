@@ -49,6 +49,9 @@ QUOTED	\"([^\"\\]*(\\.[^\"\\]*)*)\"|\'([^\'\\]*(\\.[^\'\\]*)*)\'|\`([^\'\\]*(\\.
 "%"   {return token::REMOP;}
 "**"  {return token::EXPOP;}
 [aA][sS] {return token::ASOP;}
+[fF][oO][rR][mM][aA][tT]_[uU][nN][iI][xX][tT][iI][mM][eE]_[gG][mM][tT] {return token::FORMAT_UNIXTIME_GMT;}
+[fF][oO][rR][mM][aA][tT]_[uU][nN][iI][xX][tT][iI][mM][eE]_[lL][oO][cC][aA][lL] {return token::FORMAT_UNIXTIME_LOCAL;}
+[fF][oO][rR][mM][aA][tT]_[uU][nN][iI][xX][tT][iI][mM][eE] {return token::FORMAT_UNIXTIME_LOCAL;}
 
 {NAME} { /* a name, unquoted string */
 #if defined(DEBUG) && DEBUG + 0 > 1

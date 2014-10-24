@@ -1,3 +1,10 @@
+2014-10-23 John Wu <John dot Wu at ACM dot org>
+	* src/selectParser.yy, src/selectLexer.ll: turn
+	FORMAT_UNIXTIME_LOCAL and FORMAT_UNIXTIME_GMT into fixed tokens to
+	avoid conflicts with two-argument functions
+	* Makefile.am: put back bin_SCRIPTS line to install fastbit-config
+	script (a problem pointed out by Gunther Weber)
+
 2014-10-22 John Wu <John dot Wu at ACM dot org>
 	* src/selectParser.yy: add warning message about ignoring
 	formating directive on unix time stamps (following suggestion from
