@@ -926,13 +926,12 @@ ibis::index* ibis::index::buildNew
         case ibis::INT: {
             double amin = c->lowerBound();
             double amax = c->upperBound();
-            if (!(amin <= amax) && amin >= 0) {
+            if (!(amin <= amax)) {
                 const_cast<ibis::column*>(c)->computeMinMax();
                 amin = c->lowerBound();
                 amax = c->upperBound();
             }
-            if (amax - amin < 1e3 || c->partition() == 0 ||
-                amax - amin < c->partition()->nRows()*0.1) {
+            if (amax - amin < 1e4 || amax - amin < c->nRows()*0.1) {
                 if (amin >= 0.0 && amin <= ceil(amax*0.01))
                     ind = new ibis::direkte(c, dfname);
                 else if (amax >= amin+1e2)
