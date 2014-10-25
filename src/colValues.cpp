@@ -1166,24 +1166,23 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    int32_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+	else { // sep must be the smallest value and [i] == sep
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colInts::sort
@@ -1262,28 +1261,46 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    int32_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    bool ordered = true;
+    for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
+        ordered = ((*array)[ii-1] <= (*array)[ii]);
+    if (ordered == false && ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- colInts[" << col->fullname() << "]::sort("
+             << i << ", " << j << ") exiting with the following:";
+	for (uint32_t ii = i; ii < j; ++ ii) {
+	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+            for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
+                lg() << ", ";
+                (*it)->write(lg(), ii);
+            }
+        }
+    }
+#endif
 } // colInts::sort
 
 void ibis::colInts::sort(uint32_t i, uint32_t j,
@@ -1359,24 +1376,23 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    uint32_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+	else { // sep is the smallest value and [i] == sep
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colUInts::sort
@@ -1455,20 +1471,19 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else if (j > i+2) {
+	else {
 	    // due to the choice of median of three, element i must be the
-	    // smallest ones
-	    // collect consecutive elements = element i
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == (*array)[i2]; ++ i1);
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
 	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == (*array)[i]) {
-		    uint32_t tmp = (*array)[i1];
-		    (*array)[i1] = (*array)[i2];
-		    (*array)[i2] = tmp;
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
 		    if (bdl) bdl->swapRIDs(i1, i2);
 		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
 			(*ii)->swap(i2, i1);
@@ -1479,6 +1494,23 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    bool ordered = true;
+    for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
+        ordered = ((*array)[ii-1] <= (*array)[ii]);
+    if (ordered == false && ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- colUInts[" << col->fullname() << "]::sort("
+             << i << ", " << j << ") exiting with the following:";
+	for (uint32_t ii = i; ii < j; ++ ii) {
+	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+            for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
+                lg() << ", ";
+                (*it)->write(lg(), ii);
+            }
+        }
+    }
+#endif
 } // colUInts::sort
 
 void ibis::colUInts::sort(uint32_t i, uint32_t j,
@@ -1554,24 +1586,23 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    int64_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colLongs::sort
@@ -1650,28 +1681,46 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    int64_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    bool ordered = true;
+    for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
+        ordered = ((*array)[ii-1] <= (*array)[ii]);
+    if (ordered == false && ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- colLongs[" << col->fullname() << "]::sort("
+             << i << ", " << j << ") exiting with the following:";
+	for (uint32_t ii = i; ii < j; ++ ii) {
+	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+            for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
+                lg() << ", ";
+                (*it)->write(lg(), ii);
+            }
+        }
+    }
+#endif
 } // colLongs::sort
 
 void ibis::colLongs::sort(uint32_t i, uint32_t j,
@@ -1747,24 +1796,23 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    uint64_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colULongs::sort
@@ -1843,28 +1891,46 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    uint64_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    bool ordered = true;
+    for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
+        ordered = ((*array)[ii-1] <= (*array)[ii]);
+    if (ordered == false && ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- colULongs[" << col->fullname() << "]::sort("
+             << i << ", " << j << ") exiting with the following:";
+	for (uint32_t ii = i; ii < j; ++ ii) {
+	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+            for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
+                lg() << ", ";
+                (*it)->write(lg(), ii);
+            }
+        }
+    }
+#endif
 } // colULongs::sort
 
 void ibis::colULongs::sort(uint32_t i, uint32_t j,
@@ -1940,24 +2006,23 @@ void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    int16_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colShorts::sort
@@ -2036,28 +2101,46 @@ void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    int16_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    bool ordered = true;
+    for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
+        ordered = ((*array)[ii-1] <= (*array)[ii]);
+    if (ordered == false && ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- colShorts[" << col->fullname() << "]::sort("
+             << i << ", " << j << ") exiting with the following:";
+	for (uint32_t ii = i; ii < j; ++ ii) {
+	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+            for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
+                lg() << ", ";
+                (*it)->write(lg(), ii);
+            }
+        }
+    }
+#endif
 } // colShorts::sort
 
 void ibis::colShorts::sort(uint32_t i, uint32_t j,
@@ -2133,24 +2216,23 @@ void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    uint16_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colUShorts::sort
@@ -2229,28 +2311,46 @@ void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    uint16_t tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    bool ordered = true;
+    for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
+        ordered = ((*array)[ii-1] <= (*array)[ii]);
+    if (ordered == false && ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- colUShorts[" << col->fullname() << "]::sort("
+             << i << ", " << j << ") exiting with the following:";
+	for (uint32_t ii = i; ii < j; ++ ii) {
+	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+            for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
+                lg() << ", ";
+                (*it)->write(lg(), ii);
+            }
+        }
+    }
+#endif
 } // colUShorts::sort
 
 void ibis::colUShorts::sort(uint32_t i, uint32_t j,
@@ -2326,24 +2426,23 @@ void ibis::colBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    signed char tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colBytes::sort
@@ -2422,28 +2521,46 @@ void ibis::colBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    signed char tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    bool ordered = true;
+    for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
+        ordered = ((*array)[ii-1] <= (*array)[ii]);
+    if (ordered == false && ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- colBytes[" << col->fullname() << "]::sort("
+             << i << ", " << j << ") exiting with the following:";
+	for (uint32_t ii = i; ii < j; ++ ii) {
+	    lg() << "\narray[" << ii << "] = " << (int)(*array)[ii];
+            for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
+                lg() << ", ";
+                (*it)->write(lg(), ii);
+            }
+        }
+    }
+#endif
 } // colBytes::sort
 
 void ibis::colBytes::sort(uint32_t i, uint32_t j,
@@ -2519,24 +2636,23 @@ void ibis::colUBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    unsigned char tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colUBytes::sort
@@ -2615,28 +2731,46 @@ void ibis::colUBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    unsigned char tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
+#if _DEBUG+0 > 2 || DEBUG+0 > 1
+    bool ordered = true;
+    for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
+        ordered = ((*array)[ii-1] <= (*array)[ii]);
+    if (ordered == false && ibis::gVerbose > 0) {
+	ibis::util::logger lg;
+	lg() << "DEBUG -- colUBytes[" << col->fullname() << "]::sort("
+             << i << ", " << j << ") exiting with the following:";
+	for (uint32_t ii = i; ii < j; ++ ii) {
+	    lg() << "\narray[" << ii << "] = " << (unsigned)(*array)[ii];
+            for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
+                lg() << ", ";
+                (*it)->write(lg(), ii);
+            }
+        }
+    }
+#endif
 } // colUBytes::sort
 
 void ibis::colUBytes::sort(uint32_t i, uint32_t j,
@@ -2712,24 +2846,23 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    float tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colFloats::sort
@@ -2808,26 +2941,27 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    float tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
 } // colFloats::sort
@@ -2905,24 +3039,23 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    double tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 } // colDoubles::sort
@@ -3001,26 +3134,27 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += ((*array)[i1] < sep);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    double tmp = (*array)[i1];
-	    (*array)[i1] = (*array)[i2];
-	    (*array)[i2] = tmp;
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1] == (*array)[i2])
-		++i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	else {
+	    // due to the choice of median of three, element i must be the
+	    // smallest ones, and [i] == sep
+	    // collect consecutive elements = sep
+	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2] == sep) {
+		    (*array)[i2] = (*array)[i1];
+		    (*array)[i1] = sep;
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
+	    if (i1+1 < j)
+		sort(i1, j, bdl, head, tail);
 	}
     } // end quick sort
 } // colDoubles::sort
@@ -3094,29 +3228,29 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
 	    }
 	}
 	i1 += (int)stayleft;
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl);
 	    sort(i1, j, bdl);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    (*array)[i1].swap((*array)[i2]);
-	    if (bdl) bdl->swapRIDs(i1, i2);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1].compare((*array)[i2]) == 0)
-		++ i2;
-	    if (i2 < j)
-		sort(i2, j, bdl);
+            for (i1 = i+1; i1 < j && (*array)[i1].compare(sep) == 0; ++ i1);
+	    for (i2 = i1+1; i2 < j; ++ i2) {
+                if ((*array)[i2].compare(sep) == 0) {
+                    (*array)[i2].swap((*array)[i1]);
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    ++ i1;
+                }
+            }
+	    // (*array)[i:i1-1] == sep
+	    if (i1+1 < j) // no need to sort one-element section
+		sort(i1, j, bdl);
 	}
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
-	     << col->name() << "]::sort exiting with the following:";
+	lg() << "DEBUG -- colStrings[" << col->fullname()
+	     << "]::sort exiting with the following:";
 	for (uint32_t ii = istart; ii < jend; ++ ii)
 	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
@@ -3193,31 +3327,28 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
 	    }
 	}
 	i1 += (int)stayleft;
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sort(i, i1, bdl, head, tail);
 	    sort(i1, j, bdl, head, tail);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    (*array)[i1].swap((*array)[i2]);
-	    if (bdl) bdl->swapRIDs(i1, i2);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-
-	    // collect all elements equal to (*array)[i1]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[i1].compare((*array)[i2]) == 0)
-		++ i2;
-	    if (i2 < j)
-		sort(i2, j, bdl, head, tail);
+	    for (i1 = i + 1; i1 < j && (*array)[i1].compare(sep) == 0; ++ i1);
+	    for (i2 = i1 + 1; i2 < j; ++ i2) {
+		if ((*array)[i2].compare(sep) == 0) {
+		    (*array)[i2].swap((*array)[i1]);
+		    if (bdl) bdl->swapRIDs(i1, i2);
+		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+			(*ii)->swap(i2, i1);
+		    ++ i1;
+		}
+	    }
 	}
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
 	ibis::util::logger lg;
-	lg() << "DEBUG -- colStrings[" << col->partition()->name() << '.'
-	     << col->name() << "]::sort exiting with the following:";
+	lg() << "DEBUG -- colStrings[" << col->fullname()
+	     << "]::sort exiting with the following:";
 	for (uint32_t ii = istart; ii < jend; ++ ii)
 	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
@@ -3291,23 +3422,23 @@ void ibis::colStrings::sortsub(uint32_t i, uint32_t j,
 	    }
 	}
 	i1 += (int)(sep.compare((*array)[ind[i1]]) > 0);
-	if (i1 > i+1) { // elements in range [i, i1) are smaller than sep
+	if (i1 > i) { // elements in range [i, i1) are smaller than sep
 	    sortsub(i, i1, ind);
 	    sortsub(i1, j, ind);
 	}
 	else { // elements i and (i+j)/2 must be the smallest ones
-	    i1 = i + 1;
-	    i2 = (i+j) / 2;
-	    const uint32_t tmp = ind[i1];
-	    ind[i1] = ind[i2];
-	    ind[i2] = tmp;
-
-	    // collect all elements equal to (*array)[ind[i1]]
-	    i2 = i1 + 1;
-	    while (i2 < j && (*array)[ind[i1]].compare((*array)[ind[i2]]) == 0)
-		++ i2;
-	    if (i2 < j)
-		sortsub(i2, j, ind);
+            for (i1 = i + 1; i1 < j && (*array)[ind[i1]].compare(sep) == 0;
+                 ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[ind[i2]].compare(sep) == 0) {
+                    uint32_t tmp = ind[i1];
+                    ind[i1] = ind[i2];
+                    ind[i2] = tmp;
+                    ++ i1;
+                }
+            }
+	    if (i1+1 < j)
+		sortsub(i1, j, ind);
 	}
     } // end quick sort
 } // ibis::colStrings::sortsub
@@ -3355,16 +3486,18 @@ uint32_t ibis::colStrings::partitionsub(uint32_t i, uint32_t j,
 	}
     }
     i1 += (int)(sep.compare((*array)[ind[i1]]) > 0);
-    if (i1 <= i+1) { // elements i and (i+j)/2 must be the smallest ones
-	i1 = i + 1;
-	i2 = (i+j) / 2;
-	const uint32_t tmp = ind[i1];
-	ind[i1] = ind[i2];
-	ind[i2] = tmp;
-
+    if (i1 == i) { // elements i and (i+j)/2 must be the smallest ones
+	for (i1 = i + 1; i1 < j && (*array)[ind[i1]].compare(sep) == 0;
+             ++ i1);
 	// collect all elements equal to (*array)[ind[i]]
-	for (++ i1; i1 < j && (*array)[ind[i1]].compare((*array)[ind[i]]) == 0;
-	     ++ i1);
+	for (i2 = i1 + 1; i2 < j; ++ i2) {
+            if ((*array)[ind[i2]].compare(sep) == 0) {
+                uint32_t tmp = ind[i2];
+                ind[i2] = ind[i1];
+                ind[i1] = tmp;
+                ++ i1;
+            }
+        }
     }
     return i1;
 } // ibis::colStrings::partitionsub
@@ -3375,13 +3508,13 @@ void ibis::colBlobs::sort(uint32_t, uint32_t, bundle*) {
 }
 
 void ibis::colBlobs::sort(uint32_t, uint32_t, bundle*,
-		      colList::iterator, colList::iterator) {
+                          colList::iterator, colList::iterator) {
     LOGGER(ibis::gVerbose > 0)
 	<< "Warning -- colBlobs::sort is not implemented";
 }
 
 void ibis::colBlobs::sort(uint32_t, uint32_t,
-		      array_t<uint32_t>&) const {
+                          array_t<uint32_t>&) const {
     LOGGER(ibis::gVerbose > 0)
 	<< "Warning -- colBlobs::sort is not implemented";
 }
@@ -6803,8 +6936,8 @@ long ibis::colStrings::write(FILE* fptr) const {
 			  (*array)[i].size()+1, fptr);
 	cnt += (int) (ierr > long((*array)[i].size()));
 	LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
-	    << "Warning -- colStrings[" << col->partition()->name() << '.'
-	    << col->name() << "]::write failed to write string " << (*array)[i]
+	    << "Warning -- colStrings[" << col->fullname()
+	    << "]::write failed to write string " << (*array)[i]
 	    << "(# " << i << " out of " << nelm << "), ierr = " << ierr;
     }
     return cnt;
@@ -6825,8 +6958,8 @@ long ibis::colBlobs::write(FILE* fptr) const {
 	ierr = 8 - (pos & 7);
 	if (fwrite(padding, 1, ierr, fptr) != (size_t)ierr) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- colBlobs[" << col->partition()->name() << '.'
-		<< col->name() << "]::write failed to write " << ierr
+		<< "Warning -- colBlobs[" << col->fullname()
+		<< "]::write failed to write " << ierr
 		<< " byte" << (ierr>1?"s":"") << " to align the next entry";
 	    return -1;
 	}
@@ -6838,8 +6971,8 @@ long ibis::colBlobs::write(FILE* fptr) const {
 	ierr = fwrite(&sz, 8, 1, fptr);
 	if (ierr < 1) {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- colBlobs[" << col->partition()->name() << '.'
-		<< col->name() << "]::write failed to write the size of "
+		<< "Warning -- colBlobs[" << col->fullname()
+		<< "]::write failed to write the size of "
 		<< " row " << i;
 	    return -2;
 	}
@@ -6849,8 +6982,8 @@ long ibis::colBlobs::write(FILE* fptr) const {
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- colBlobs[" << col->partition()->name() << '.'
-		<< col->name() << "]::write failed to write row "
+		<< "Warning -- colBlobs[" << col->fullname()
+		<< "]::write failed to write row "
 		<< i << " of " << nelm << ", ierr = " << ierr;
 	    return -3;
 	}
