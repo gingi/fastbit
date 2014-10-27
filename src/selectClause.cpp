@@ -470,19 +470,19 @@ bool ibis::selectClause::hasAggregation(const ibis::math::term *tm) const {
     case ibis::math::STDFUNCTION1:
     case ibis::math::CUSTOMFUNCTION1:
     case ibis::math::STRINGFUNCTION1:
-        return hasAggregation(reinterpret_cast<const ibis::math::term*>
-                              (tm->getLeft()));
+	return hasAggregation(reinterpret_cast<const ibis::math::term*>
+			      (tm->getLeft()));
     case ibis::math::OPERATOR:
     case ibis::math::STDFUNCTION2:
     case ibis::math::CUSTOMFUNCTION2:
     case ibis::math::STRINGFUNCTION2:
-        bool res = tm->getLeft() != 0 ?
-            hasAggregation(reinterpret_cast<const ibis::math::term*>
-                           (tm->getLeft())) : false;
-        if (tm->getRight() != 0 && ! res)
-            res = hasAggregation(reinterpret_cast<const ibis::math::term*>
-                                 (tm->getRight()));
-        return res;
+	bool res = tm->getLeft() != 0 ?
+	    hasAggregation(reinterpret_cast<const ibis::math::term*>
+			   (tm->getLeft())) : false;
+	if (tm->getRight() != 0 && ! res)
+	    res = hasAggregation(reinterpret_cast<const ibis::math::term*>
+				 (tm->getRight()));
+	return res;
     }
 } // ibis::selectClause::hasAggregation
 
@@ -513,7 +513,8 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
         }
         break;}
     case ibis::math::STDFUNCTION1:
-    case ibis::math::CUSTOMFUNCTION1: {
+    case ibis::math::CUSTOMFUNCTION1:
+    case ibis::math::STRINGFUNCTION1: {
 	ibis::math::term *nxt =
 	    reinterpret_cast<ibis::math::term*>(tm->getLeft());
 	if (nxt == 0) {
@@ -540,7 +541,8 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
 	break;}
     case ibis::math::OPERATOR:
     case ibis::math::STDFUNCTION2:
-    case ibis::math::CUSTOMFUNCTION2: {
+    case ibis::math::CUSTOMFUNCTION2:
+    case ibis::math::STRINGFUNCTION2: {
 	ibis::math::term *left =
 	    reinterpret_cast<ibis::math::term*>(tm->getLeft());
 	ibis::math::term *right =
@@ -908,13 +910,13 @@ void ibis::selectClause::gatherVariables(ibis::selectClause::varMap &vmap,
     case ibis::math::CUSTOMFUNCTION2:
     case ibis::math::STRINGFUNCTION1:
     case ibis::math::STRINGFUNCTION2: {
-        if (t->getLeft() != 0)
-            gatherVariables(vmap, static_cast<ibis::math::term*>
-                            (t->getLeft()));
-        if (t->getRight() != 0)
-            gatherVariables(vmap, static_cast<ibis::math::term*>
-                            (t->getRight()));
-        break;}
+	if (t->getLeft() != 0)
+	    gatherVariables(vmap, static_cast<ibis::math::term*>
+			    (t->getLeft()));
+	if (t->getRight() != 0)
+	    gatherVariables(vmap, static_cast<ibis::math::term*>
+			    (t->getRight()));
+	break;}
     }
 } // ibis::selectClause::gatherVariables
 

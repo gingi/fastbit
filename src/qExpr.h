@@ -985,15 +985,39 @@ namespace ibis {
 	    STDFUN2 ftype;
 	}; // stdFunction2
 
-        /// Pure virtual base function for custom functions with one
-        /// argument.  Note that the derived classes much support copy
-        /// construction through the function dup.
+        /// Pure virtual base function for 1-argument functions.  It takes
+        /// an argument in double and return a double value.  Note that the
+        /// derived classes much support copy construction through the
+        /// function dup.
         class func1 {
         public:
             virtual ~func1() {};
+            /// Duplicate thyself.  Should follow deep-copy semantics.
             virtual func1* dup() const =0;
+            /// Evaluate the function on the given argument.
             virtual double eval(double) const =0;
-        };
+            /// Print the name of this function.
+            virtual void printName(std::ostream&) const =0;
+            /// Print the decoration on this function.
+            virtual void printDecoration(std::ostream&) const =0;
+        }; // func1
+
+        /// Pure virtual base function for 1-argument functions.  It takes
+        /// an argument in double and return a std::string object.  Note
+        /// that the derived classes much support copy construction through
+        /// the function dup.
+        class sfunc1 {
+        public:
+            virtual ~sfunc1() {};
+            /// Duplicate thyself.  Should follow deep-copy semantics.
+            virtual sfunc1* dup() const =0;
+            /// Evaluate the function on the given argument.
+            virtual std::string eval(double) const =0;
+            /// Print the name of this function.
+            virtual void printName(std::ostream&) const =0;
+            /// Print the decoration on this function.
+            virtual void printDecoration(std::ostream&) const =0;
+        }; // sfunc1
 
 	/// One-argument custom functions.
 	class customFunction1 : public term {
@@ -1017,6 +1041,15 @@ namespace ibis {
 	    func1 *fun_;
 	}; // customFunction1
 
+        /// Functor for converting a unix time stamp into date-time format
+        /// throught @c strftime.  Note that both incoming argument and
+        /// output are treated as double precision floating-point values.
+        ///
+        /// @warning The conversioin only makes use of the leading porting
+        /// of the string printed by @c strftime.  If the format string
+        /// passed to @c strftime produces a string starting with letters
+        /// (not numbers) then the resulting number will be NaN
+        /// (non-a-number).
         class fromUnixTime : public func1 {
         public:
             virtual ~fromUnixTime() {}
@@ -1030,12 +1063,21 @@ namespace ibis {
             }
 
             virtual double eval(double) const;
+            virtual void printName(std::ostream&) const;
+            virtual void printDecoration(std::ostream&) const;
 
         private:
             std::string fmt_;
             std::string tzname_;
         }; // fromUnixTime
 
+        /// Functor to convert ISO 8601 style date time value to a unix
+        /// time stamp.  The incoming value is expected to be in the format
+        /// of YYYYMMDDhhmmss.  If the fractinal part of the incoming
+        /// argument is not zero, this fraction is transfered to the return
+        /// values as the fraction as well.  However, since @c strftime
+        /// does not print the fraction of a second, therefore, the user
+        /// will have deal with the fractions of a second themselves.
         class toUnixTime : public func1 {
         public:
             virtual ~toUnixTime() {}
@@ -1049,10 +1091,58 @@ namespace ibis {
             }
 
             virtual double eval(double) const;
+            virtual void printName(std::ostream&) const;
+            virtual void printDecoration(std::ostream&) const;
 
         private:
             std::string tzname_;
         }; // toUnixTime
+
+	/// One-argument string functions.
+	class stringFunction1 : public term {
+	public:
+	    virtual ~stringFunction1() {delete fun_;}
+	    stringFunction1(const sfunc1 &ft)
+                : fun_(ft.dup()) {}
+	    stringFunction1(const stringFunction1 &rhs)
+                : fun_(rhs.fun_->dup()) {}
+
+	    virtual stringFunction1* dup() const {
+		return new stringFunction1(*this);
+	    }
+	    virtual TERM_TYPE termType() const {return STRINGFUNCTION1;}
+	    virtual double eval() const {return FASTBIT_DOUBLE_NULL;}
+	    virtual std::string sval() const;
+	    virtual void print(std::ostream& out) const;
+	    virtual void printFull(std::ostream& out) const {print(out);}
+	    virtual term* reduce() {return this;}
+
+	private:
+	    sfunc1 *fun_;
+	}; // stringFunction1
+
+        /// Format unix time stamps as strings through the function @c
+        /// strftime.
+        class formatUnixTime : public sfunc1 {
+        public:
+            virtual ~formatUnixTime() {}
+            formatUnixTime(const char *f, const char *z=0)
+                : fmt_(f), tzname_(z!=0?z:"") {}
+            formatUnixTime(const formatUnixTime& rhs)
+                : fmt_(rhs.fmt_), tzname_(rhs.tzname_) {}
+
+            virtual formatUnixTime* dup() const {
+                return new formatUnixTime(*this);
+            }
+
+            virtual std::string eval(double) const;
+            virtual void printName(std::ostream&) const;
+            virtual void printDecoration(std::ostream&) const;
+
+        private:
+            std::string fmt_;
+            std::string tzname_;
+        }; // formatUnixTime
     } // namespace ibis::math
 } // namespace ibis
 

@@ -623,6 +623,20 @@ ibis::bord::bord(const char *tn, const char *td,
 		}
 	    }
 	    break;}
+	case ibis::math::STRINGFUNCTION1: {
+	    ibis::bord::column *col = new ibis::bord::column
+		(this, ibis::TEXT, cname, 0, sc.aggName(j));
+	    if (col != 0) {
+		columns[col->name()] = col;
+		colorder.push_back(col);
+	    }
+	    else {
+		LOGGER(ibis::gVerbose >= 0)
+		    << "Error -- bord::ctor failed to allocate column "
+		    << cname << " for in-memory partition " << tn;
+		throw "bord::ctor failed to allocate a column";
+	    }
+	    break;}
 	default: {
 	    ibis::bord::column *col = new ibis::bord::column
 		(this, ibis::DOUBLE, cname, 0, sc.aggName(j));
@@ -3346,35 +3360,35 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
         des[j] = oss.str();
         dec[j] = des[j].c_str();
 
-        switch (tm->termType()) {
-        case ibis::math::NUMBER: {
-            tps[j] = ibis::DOUBLE;
-            buf[j] = new ibis::array_t<double>(nr, tm->eval());
-            break;}
-        case ibis::math::STRING: {
-            tps[j] = ibis::CATEGORY;
-            const std::string val = (const char*)*
-                (static_cast<const ibis::math::literal*>(tm));
-            buf[j] = new std::vector<std::string>(nr, val);
-            break;}
-        case ibis::math::VARIABLE: {
-            const char* var =
-                static_cast<const ibis::math::variable*>(tm)->variableName();
-            brd1->copyColumn(var, tps[j], buf[j], dct[j]);
-            break;}
-        case ibis::math::STRINGFUNCTION1: {
+	switch (tm->termType()) {
+	case ibis::math::NUMBER: {
+	    tps[j] = ibis::DOUBLE;
+	    buf[j] = new ibis::array_t<double>(nr, tm->eval());
+	    break;}
+	case ibis::math::STRING: {
+	    tps[j] = ibis::CATEGORY;
+	    const std::string val = (const char*)*
+		(static_cast<const ibis::math::literal*>(tm));
+	    buf[j] = new std::vector<std::string>(nr, val);
+	    break;}
+	case ibis::math::VARIABLE: {
+	    const char* var =
+		static_cast<const ibis::math::variable*>(tm)->variableName();
+	    brd1->copyColumn(var, tps[j], buf[j], dct[j]);
+	    break;}
+	case ibis::math::STRINGFUNCTION1: {
             tps[j] = ibis::TEXT;
             buf[j] = new std::vector<std::string>;
-            brd1->calculate
+	    brd1->calculate
                 (*static_cast<const ibis::math::stringFunction1*>(tm), msk,
                  *static_cast<std::vector<std::string>*>(buf[j]));
-            break;}
-        default: {
-            tps[j] = ibis::DOUBLE;
-            buf[j] = new ibis::array_t<double>;
-            brd1->calculate(*tm, msk, *static_cast<array_t<double>*>(buf[j]));
-            break;}
-        }
+	    break;}
+	default: {
+	    tps[j] = ibis::DOUBLE;
+	    buf[j] = new ibis::array_t<double>;
+	    brd1->calculate(*tm, msk, *static_cast<array_t<double>*>(buf[j]));
+	    break;}
+	}
     }
 
     std::unique_ptr<ibis::table>
@@ -3663,35 +3677,35 @@ ibis::bord::groupbyc(const ibis::bord& src, const ibis::selectClause& sel) {
         des[j] = oss.str();
         dec[j] = des[j].c_str();
 
-        switch (tm->termType()) {
-        case ibis::math::NUMBER: {
-            tps[j] = ibis::DOUBLE;
-            buf[j] = new ibis::array_t<double>(nr, tm->eval());
-            break;}
-        case ibis::math::STRING: {
-            tps[j] = ibis::CATEGORY;
-            const std::string val = (const char*)*
-                (static_cast<const ibis::math::literal*>(tm));
-            buf[j] = new std::vector<std::string>(nr, val);
-            break;}
-        case ibis::math::VARIABLE: {
-            const char* var =
-                static_cast<const ibis::math::variable*>(tm)->variableName();
-            src.copyColumn(var, tps[j], buf[j], dct[j]);
-            break;}
-        case ibis::math::STRINGFUNCTION1: {
-            tps[j] = ibis::TEXT;
-            buf[j] = new std::vector<std::string>;
-            src.calculate
+	switch (tm->termType()) {
+	case ibis::math::NUMBER: {
+	    tps[j] = ibis::DOUBLE;
+	    buf[j] = new ibis::array_t<double>(nr, tm->eval());
+	    break;}
+	case ibis::math::STRING: {
+	    tps[j] = ibis::CATEGORY;
+	    const std::string val = (const char*)*
+		(static_cast<const ibis::math::literal*>(tm));
+	    buf[j] = new std::vector<std::string>(nr, val);
+	    break;}
+	case ibis::math::VARIABLE: {
+	    const char* var =
+		static_cast<const ibis::math::variable*>(tm)->variableName();
+	    src.copyColumn(var, tps[j], buf[j], dct[j]);
+	    break;}
+	case ibis::math::STRINGFUNCTION1: {
+	    tps[j] = ibis::TEXT;
+	    buf[j] = new std::vector<std::string>;
+	    src.calculate
                 (*static_cast<const ibis::math::stringFunction1*>(tm), msk,
                  *static_cast<std::vector<std::string>*>(buf[j]));
-            break;}
-        default: {
-            tps[j] = ibis::DOUBLE;
-            buf[j] = new ibis::array_t<double>;
-            src.calculate(*tm, msk, *static_cast<array_t<double>*>(buf[j]));
-            break;}
-        }
+	    break;}
+	default: {
+	    tps[j] = ibis::DOUBLE;
+	    buf[j] = new ibis::array_t<double>;
+	    src.calculate(*tm, msk, *static_cast<array_t<double>*>(buf[j]));
+	    break;}
+	}
     }
 
     return(new ibis::bord(tn.c_str(), td.c_str(), nr, buf, tps, nmc, &dec,
@@ -4870,26 +4884,14 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
         }
 
 	const ibis::math::term *aterm = sc.aggExpr(itm);
-	if (aterm->termType() != ibis::math::VARIABLE) {
-	    if (aterm->termType() == ibis::math::UNDEF_TERM) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " -- can not handle a "
-		    "math::term of undefined type";
-		ierr = -15;
-	    }
-	    else {
-		array_t<double> tmp;
-		ierr = prt.calculate(*aterm, mask, tmp);
-		if (ierr > 0) {
-		    LOGGER(ibis::gVerbose > 2)
-			<< mesg << " -- adding " << tmp.size() << " element"
-			<< (tmp.size()>1?"s":"") << " to column " << cit->first
-			<< " from " << *aterm;
-		    ierr = col.append(&tmp, newseg);
-		}
-	    }
-	}
-	else {
+	switch (aterm->termType()) {
+        case ibis::math::UNDEF_TERM:
+            LOGGER(ibis::gVerbose > 1)
+                << "Warning -- " << mesg << " -- can not handle a "
+                "math::term of undefined type";
+            ierr = -15;
+            break;
+        case ibis::math::VARIABLE: {
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(aterm);
 	    const ibis::column* scol = prt.getColumn(var.variableName());
@@ -4919,7 +4921,32 @@ int ibis::bord::append(const ibis::selectClause& sc, const ibis::part& prt,
                 else if (scol != 0 && scol->getTimeFormat() != 0)
                     col.setTimeFormat(*(scol->getTimeFormat()));
             }
-	}
+            break;}
+        case ibis::math::STRINGFUNCTION1: {
+            std::vector<std::string> tmp;
+            ierr = prt.calculate
+                (*static_cast<const ibis::math::stringFunction1*>(aterm),
+                 mask, tmp);
+            if (ierr > 0) {
+                LOGGER(ibis::gVerbose > 2)
+                    << mesg << " -- adding " << tmp.size() << " element"
+                    << (tmp.size()>1?"s":"") << " to column " << cit->first
+                    << " from " << *aterm;
+                ierr = col.append(&tmp, newseg);
+            }
+            break;}
+        default: {
+            array_t<double> tmp;
+            ierr = prt.calculate(*aterm, mask, tmp);
+            if (ierr > 0) {
+                LOGGER(ibis::gVerbose > 2)
+                    << mesg << " -- adding " << tmp.size() << " element"
+                    << (tmp.size()>1?"s":"") << " to column " << cit->first
+                    << " from " << *aterm;
+                ierr = col.append(&tmp, newseg);
+            }
+            break;}
+        }
     }
     if (ierr >= 0) {
         ierr = nqq;
@@ -5000,26 +5027,14 @@ int ibis::bord::append(const ibis::selectClause &sc, const ibis::part& prt,
 	}
 	const ibis::math::term *aterm = sc.aggExpr(itm);
 
-	if (aterm->termType() != ibis::math::VARIABLE) {
-	    if (aterm->termType() == ibis::math::UNDEF_TERM) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " -- can not handle a "
-		    "math::term of undefined type";
-		ierr = -15;
-	    }
-	    else {
-		array_t<double> tmp;
-		ierr = btmp.calculate(*aterm, newseg, tmp);
-		if (ierr > 0) {
-		    LOGGER(ibis::gVerbose > 2)
-			<< mesg << " -- adding " << tmp.size() << " element"
-			<< (tmp.size()>1?"s":"") << " to column " << cit->first
-			<< " from " << *aterm;
-		    ierr = col.append(&tmp, newseg);
-		}
-	    }
-	}
-	else {
+	switch (aterm->termType()) {
+        case ibis::math::UNDEF_TERM:
+            LOGGER(ibis::gVerbose > 1)
+                << "Warning -- " << mesg << " -- can not handle a "
+                "math::term of undefined type";
+            ierr = -15;
+            break;
+        case ibis::math::VARIABLE: {
 	    const ibis::math::variable &var =
 		*static_cast<const ibis::math::variable*>(aterm);
 	    scol = btmp.getColumn(var.variableName());
@@ -5049,7 +5064,32 @@ int ibis::bord::append(const ibis::selectClause &sc, const ibis::part& prt,
                 else if (scol != 0 && scol->getTimeFormat() != 0)
                     col.setTimeFormat(*(scol->getTimeFormat()));
             }
-	}
+            break;}
+        case ibis::math::STRINGFUNCTION1: {
+            std::vector<std::string> tmp;
+            ierr = btmp.calculate
+                (*static_cast<const ibis::math::stringFunction1*>(aterm),
+                 newseg, tmp);
+            if (ierr > 0) {
+                LOGGER(ibis::gVerbose > 2)
+                    << mesg << " -- adding " << tmp.size() << " element"
+                    << (tmp.size()>1?"s":"") << " to column " << cit->first
+                    << " from " << *aterm;
+                ierr = col.append(&tmp, newseg);
+            }
+            break;}
+        default: {
+            array_t<double> tmp;
+            ierr = btmp.calculate(*aterm, newseg, tmp);
+            if (ierr > 0) {
+                LOGGER(ibis::gVerbose > 2)
+                    << mesg << " -- adding " << tmp.size() << " element"
+                    << (tmp.size()>1?"s":"") << " to column " << cit->first
+                    << " from " << *aterm;
+                ierr = col.append(&tmp, newseg);
+            }
+            break;}
+        }
     }
     if (ierr >= 0) {
         ierr = nqq;

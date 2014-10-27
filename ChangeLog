@@ -1,3 +1,13 @@
+2014-10-25 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.h, src/qExpr.cpp: add stringFunction1
+	* src/selectParser.yy: change FORMAT_UNIXTIME_LOCAL and
+	FORMAT_UNIXTIME_GMT to use the new stringFunction1 instead of
+	treating them directives for printing only.  This change should
+	make these function functions behave like existing functions and
+	address the consistency issues raised by Jon Strabala.
+	* src/part.h, src/part.cpp: add new vresion of function calculate
+	to evaluate the string value functions
+
 2014-10-24 John Wu <John dot Wu at ACM dot org>
 	* src/*.cpp: change varaibles receiving return values of UnixWrite
 	from int to off_t per suggestion of Zheng Yan from Harvard
