@@ -332,6 +332,8 @@ public:
     long selectValues(const ibis::qContinuousRange& cond, void* vals) const;
     long calculate(const ibis::math::term&, const ibis::bitvector&,
 		   array_t<double>&) const;
+    long calculate(const ibis::math::stringFunction1&, const ibis::bitvector&,
+		   std::vector<std::string>&) const;
 
     /******************************************************************/
     // A group of functions added August, 2005 to provide summary

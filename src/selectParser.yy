@@ -420,28 +420,52 @@ mathExpr ADDOP mathExpr {
     delete $1;
     $$ = fun;
 }
-| FORMAT_UNIXTIME_GMT '(' NOUNSTR ',' STRLIT ')' {
+| FORMAT_UNIXTIME_GMT '(' mathExpr ',' NOUNSTR ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_GMT("
 	<< *$3 << ", " << *$5 << ")";
 #endif
-    ibis::math::variable *var = new ibis::math::variable($3->c_str());
-    var->addDecoration("FORMAT_UNIXTIME_GMT", $5->c_str());
-    $$ = var;
-    delete $3;
+    ibis::math::formatUnixTime fut($5->c_str(), "GMT");
+    ibis::math::stringFunction1 *fun = new ibis::math::stringFunction1(fut);
+    fun->setLeft($3);
+    $$ = fun;
     delete $5;
 }
-| FORMAT_UNIXTIME_LOCAL '(' NOUNSTR ',' STRLIT ')' {
+| FORMAT_UNIXTIME_GMT '(' mathExpr ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_GMT("
+	<< *$3 << ", " << *$5 << ")";
+#endif
+    ibis::math::formatUnixTime fut($5->c_str(), "GMT");
+    ibis::math::stringFunction1 *fun = new ibis::math::stringFunction1(fut);
+    fun->setLeft($3);
+    $$ = fun;
+    delete $5;
+}
+| FORMAT_UNIXTIME_LOCAL '(' mathExpr ',' NOUNSTR ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_LOCAL("
 	<< *$3 << ", " << *$5 << ")";
 #endif
-    ibis::math::variable *var = new ibis::math::variable($3->c_str());
-    var->addDecoration("FORMAT_UNIXTIME_LOCAL", $5->c_str());
-    $$ = var;
-    delete $3;
+    ibis::math::formatUnixTime fut($5->c_str());
+    ibis::math::stringFunction1 *fun = new ibis::math::stringFunction1(fut);
+    fun->setLeft($3);
+    $$ = fun;
+    delete $5;
+}
+| FORMAT_UNIXTIME_LOCAL '(' mathExpr ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- FORMAT_UNIXTIME_LOCAL("
+	<< *$3 << ", " << *$5 << ")";
+#endif
+    ibis::math::formatUnixTime fut($5->c_str());
+    ibis::math::stringFunction1 *fun = new ibis::math::stringFunction1(fut);
+    fun->setLeft($3);
+    $$ = fun;
     delete $5;
 }
 | NOUNSTR '(' mathExpr ',' mathExpr ')' {

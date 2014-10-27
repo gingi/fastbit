@@ -6017,7 +6017,7 @@ long ibis::part::doScan(const ibis::compRange &cmp,
     return ierr;
 } // ibis::part::doScan
 
-/// Calculate the values of an arithmetic expression.
+/// Calculate the values of an arithmetic expression as doubles.
 /// The arithmetic expression is applied to each row that are marked 1 in
 /// the mask, msk, with names in the arithmetic expression interpretted as
 /// column names.  The resulting values are packed into the array res as
@@ -6092,6 +6092,89 @@ long ibis::part::calculate(const ibis::math::term &trm,
 		vlist.seek(iix[j]);
 		vlist.read();
 		res.push_back(trm.eval());
+	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
+	}
+
+	++ idx;
+    } // while (idx.nIndices() > 0)
+
+    if (ibis::gVerbose > 3) {
+	timer.stop();
+	ibis::util::logger lg;
+	lg() << "part[" << (m_name ? m_name : "?")
+	     << "]::calculate -- evaluating " << trm << " on "
+	     << msk.cnt() << " records (total: " << nEvents
+	     << ") took " << timer.realTime()
+	     << " sec elapsed time and produced " << res.size()
+	     << " value" << (res.size() > 1 ? "s" : "");
+    }
+    if (ierr >= 0)
+	ierr = res.size();
+    return ierr;
+} // ibis::part::calculate
+
+/// Calculate the values of a math expression as strings.
+/// The expression is applied to each row that are marked 1 in
+/// the mask, msk, with names in the arithmetic expression interpretted as
+/// column names.  The resulting values are packed into the array res as
+/// strings.  Upon the successful completion of this function, the return
+/// value should be the number of records examined, which should be same as
+/// msk.cnt() and res.size().
+long ibis::part::calculate(const ibis::math::stringFunction1 &trm,
+			   const ibis::bitvector &msk,
+			   std::vector<std::string> &res) const {
+    if (columns.empty() || nEvents == 0 || msk.size() == 0 || msk.cnt() == 0)
+	return 0;
+
+    long ierr = 0;
+    ibis::horometer timer;
+    if (ibis::gVerbose > 3) {
+	LOGGER(ibis::gVerbose > 4)
+	    << "part[" << name()
+	    << "]::calculate - starting to evaluate \"" << trm
+	    << "\" with mask (" << msk.cnt() << " out of "
+	    << msk.size() << ")";
+	timer.start();
+    }
+
+    ibis::part::barrel vlist(this);
+    vlist.recordVariable(&trm);
+    res.reserve(msk.cnt());
+    res.clear(); // clear the existing content
+    if (vlist.size() == 0) { // a constant expression
+	res.resize(msk.cnt());
+	const std::string val = trm.sval();
+	for (unsigned i = 0; i < msk.cnt(); ++ i)
+	    res[i] = val;
+	return msk.cnt();
+    }
+
+    // open all necessary files
+    ierr = vlist.open();
+    if (ierr < 0) {
+	LOGGER(ibis::gVerbose > 0)
+	    << "Warning -- part[" << (m_name ? m_name : "?")
+	    << "]::calculate -- failed to prepare data for " << trm;
+	return ierr;
+    }
+
+    // feed the values into vlist and evaluate the arithmetic expression
+    ibis::bitvector::indexSet idx = msk.firstIndexSet();
+    const ibis::bitvector::word_t *iix = idx.indices();
+    while (idx.nIndices() > 0) {
+	if (idx.isRange()) {
+	    // move the file pointers of open files
+	    vlist.seek(*iix);
+	    for (uint32_t j = 0; j < idx.nIndices(); ++j) {
+		vlist.read();
+		res.push_back(trm.sval());
+	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
+	}
+	else {
+	    for (uint32_t j = 0; j < idx.nIndices(); ++j) {
+		vlist.seek(iix[j]);
+		vlist.read();
+		res.push_back(trm.sval());
 	    } // for (uint32_t j = 0; j < idx.nIndices(); ++j)
 	}
 
