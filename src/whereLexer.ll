@@ -86,8 +86,11 @@ NAME	[_a-zA-Z]((->)?[0-9A-Za-z_:.]+)*(\[[^\]]+\])?
 [eE][xX][iI][sS][tT][sS] {return token::EXISTSOP;}
 [bB][eE][tT][wW][eE][eE][nN] {return token::BETWEENOP;}
 [cC][oO][nN][tT][aA][iI][nN][sS] {return token::CONTAINSOP;}
+[iI][sS][oO]_[tT][oO]_[uU][nN][iI][xX][tT][iI][mM][eE]_[gG][mM][tT] {return token::ISO_TO_UNIXTIME_GMT;}
+[iI][sS][oO]_[tT][oO]_[uU][nN][iI][xX][tT][iI][mM][eE]_[lL][oO][cC][aA][lL] {return token::ISO_TO_UNIXTIME_LOCAL;}
 [tT][oO]_[uU][nN][iI][xX][tT][iI][mM][eE]_[gG][mM][tT] {return token::TO_UNIXTIME_GMT;}
 [tT][oO]_[uU][nN][iI][xX][tT][iI][mM][eE]_[lL][oO][cC][aA][lL] {return token::TO_UNIXTIME_LOCAL;}
+[sS][tT][rR][pP][tT][iI][mM][eE] {return token::FROM_UNIXTIME_LOCAL;}
 [fF][rR][oO][mM]_[uU][nN][iI][xX][tT][iI][mM][eE]_[gG][mM][tT] {return token::FROM_UNIXTIME_GMT;}
 [fF][rR][oO][mM]_[uU][nN][iI][xX][tT][iI][mM][eE]_[lL][oO][cC][aA][lL] {return token::FROM_UNIXTIME_LOCAL;}
 

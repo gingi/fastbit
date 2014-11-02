@@ -716,10 +716,16 @@ public:
     /// object.
     virtual table* toTable(const char* nm=0, const char* de=0) =0;
 
-    /// Set the recommended data partition size.
+    /// Set the recommended number of rows in a data partition.
     virtual void setPartitionMax(uint32_t m) {maxpart=m;}
-    /// Get the recommended data partition size.
+    /// Get the recommended number of rows in a data partition.
     virtual uint32_t getPartitionMax() const {return maxpart;}
+    /// Set the name of the ASCII dictionary file for a column of
+    /// categorical values.
+    virtual void setASCIIDictionary(const char*, const char*) =0;
+    /// Retrieve the name of the ASCII dictionary file associated with a
+    /// column of categorical values.
+    virtual const char* getASCIIDictionary(const char*) const =0;
 
 protected:
     /// Protected default constructor.  Derived classes need a default

@@ -65,16 +65,19 @@ public:
     const char* find(const char* str) const;
     void patternSearch(const char* pat, array_t<uint32_t>& matches) const;
 
-    uint32_t insert(const char* str);
-    uint32_t insertRaw(char* str);
-    uint32_t appendOrdered(const char* str);
+    uint32_t insert(const char*, uint32_t);
+    uint32_t insert(const char*);
+    uint32_t insertRaw(char*);
+    uint32_t appendOrdered(const char*);
 
     void clear();
     void swap(dictionary&);
 
     int  read(const char* name);
     int  write(const char* name) const;
-    void print(std::ostream &) const;
+
+    int  fromASCII(std::istream &);
+    void toASCII(std::ostream &) const;
 
     void sort(array_t<uint32_t>&);
     int  merge(const dictionary&);

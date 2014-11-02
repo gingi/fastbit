@@ -1702,26 +1702,26 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
     md << "\nEND HEADER\n";
 
     if (colorder.size() == cols.size()) { // in input order
-        for (size_t j = 0; j < cols.size(); ++ j) {
-            const column& col = *(colorder[j]);
-            md << "\nBegin Column\nname = " << col.name << "\ndata_type = "
-               << ibis::TYPESTRING[(int) col.type];
-            if (!col.desc.empty())
-                md << "\ndescription = " << col.desc;
-            if (! col.indexSpec.empty()) {
-                md << "\nindex = " << col.indexSpec;
-            }
-            else {
-                std::string idxkey = "ibis.";
-                idxkey += tname;
-                idxkey += ".";
-                idxkey += col.name;
-                idxkey += ".index";
-                const char* str = ibis::gParameters()[idxkey.c_str()];
-                if (str != 0)
-                    md << "\nindex = " << str;
-            }
-            md << "\nEnd Column\n";
+	for (size_t j = 0; j < cols.size(); ++ j) {
+	    const column& col = *(colorder[j]);
+	    md << "\nBegin Column\nname = " << col.name << "\ndata_type = "
+	       << ibis::TYPESTRING[(int) col.type];
+	    if (!col.desc.empty())
+		md << "\ndescription = " << col.desc;
+	    if (! col.indexSpec.empty()) {
+		md << "\nindex = " << col.indexSpec;
+	    }
+	    else {
+		std::string idxkey = "ibis.";
+		idxkey += tname;
+		idxkey += ".";
+		idxkey += col.name;
+		idxkey += ".index";
+		const char* str = ibis::gParameters()[idxkey.c_str()];
+		if (str != 0)
+		    md << "\nindex = " << str;
+	    }
+	    md << "\nEnd Column\n";
             if (! col.dictfile.empty()) {
                 // read the ASCII dictionary, then write it out in binary
                 ibis::dictionary tmp;
@@ -1736,16 +1736,10 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
                 dfile.close();
                 if (ierr < 0) {
                     LOGGER(ibis::gVerbose > 0)
-                        << "Warning -- tafel::writeMetaData failed to read the "
+                        << "Warning -- tafe::writeMetaData failed to read the "
                         "content of user supplied ASCII dictionary file \""
                         << col.dictfile << '"';
                     continue;
-                }
-                else {
-                    LOGGER(ibis::gVerbose > 2)
-                        << "tafel::writeMetaData read " << tmp.size()
-                        << " dictionary entries from " << col.dictfile
-                        << " for column " << col.name;
                 }
 
                 // successfully read the ASCII dictionary
@@ -1759,30 +1753,30 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
                     "content of \"" << col.dictfile
                     << "\" in the binary format to \"" << dictname << '"';
             }
-        }
+	}
     }
     else { // write columns in alphabetic order
-        for (columnList::const_iterator it = cols.begin();
-             it != cols.end(); ++ it) {
-            const column& col = *((*it).second);
-            md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
-               << ibis::TYPESTRING[(int) col.type];
-            if (!col.desc.empty())
-                md << "\ndescription = " << col.desc;
-            if (! col.indexSpec.empty()) {
-                md << "\nindex = " << col.indexSpec;
-            }
-            else {
-                std::string idxkey = "ibis.";
-                idxkey += tname;
-                idxkey += ".";
-                idxkey += (*it).first;
-                idxkey += ".index";
-                const char* str = ibis::gParameters()[idxkey.c_str()];
-                if (str != 0)
-                    md << "\nindex = " << str;
-            }
-            md << "\nEnd Column\n";
+	for (columnList::const_iterator it = cols.begin();
+	     it != cols.end(); ++ it) {
+	    const column& col = *((*it).second);
+	    md << "\nBegin Column\nname = " << (*it).first << "\ndata_type = "
+	       << ibis::TYPESTRING[(int) col.type];
+	    if (!col.desc.empty())
+		md << "\ndescription = " << col.desc;
+	    if (! col.indexSpec.empty()) {
+		md << "\nindex = " << col.indexSpec;
+	    }
+	    else {
+		std::string idxkey = "ibis.";
+		idxkey += tname;
+		idxkey += ".";
+		idxkey += (*it).first;
+		idxkey += ".index";
+		const char* str = ibis::gParameters()[idxkey.c_str()];
+		if (str != 0)
+		    md << "\nindex = " << str;
+	    }
+	    md << "\nEnd Column\n";
             if (! col.dictfile.empty()) {
                 // read the ASCII dictionary, then write it out in binary
                 ibis::dictionary tmp;
@@ -1797,16 +1791,10 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
                 dfile.close();
                 if (ierr < 0) {
                     LOGGER(ibis::gVerbose > 0)
-                        << "Warning -- tafel::writeMetaData failed to read the "
+                        << "Warning -- tafe::writeMetaData failed to read the "
                         "content of user supplied ASCII dictionary file \""
                         << col.dictfile << '"';
                     continue;
-                }
-                else {
-                    LOGGER(ibis::gVerbose > 2)
-                        << "tafel::writeMetaData read " << tmp.size()
-                        << " dictionary entries from " << col.dictfile
-                        << " for column " << col.name;
                 }
 
                 // successfully read the ASCII dictionary
@@ -1820,7 +1808,7 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
                     "content of \"" << col.dictfile
                     << "\" in the binary format to \"" << dictname << '"';
             }
-        }
+	}
     }
     md.close(); // close the file
     if (ibis::gVerbose > 0) {
@@ -3285,10 +3273,10 @@ int ibis::tafel::readCSV(const char* filename, int maxrows,
     ibis::fileManager::buffer<char> linebuf(MAX_LINE);
     std::ifstream csv(filename);
     if (! csv) {
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- tafel::readCSV(" << filename << ") failed to open "
-            "the named file for reading";
-        return -3; // failed to open the specified data file
+	LOGGER(ibis::gVerbose >= 0)
+	    << "Warning -- tafel::readCSV(" << filename << ") failed to open "
+	    "the named file for reading";
+	return -3; // failed to open the specified data file
     }
     if (maxrows <= 0)
         maxrows = preferredSize();
@@ -3818,8 +3806,6 @@ void ibis::tafel::setASCIIDictionary
         return;
     }
     col.dictfile = dictfile;
-    LOGGER(ibis::gVerbose > 2)
-        << "tafel::setASCIIDictionary -- " << col.name << " : " << col.dictfile;
 } // ibis::tafel::setASCIIDictionary
 
 const char* ibis::tafel::getASCIIDictionary(const char *colname) const {

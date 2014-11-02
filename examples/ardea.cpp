@@ -217,6 +217,19 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		    build_indexes = 1;
 		}
 		break;
+            case 'k':
+            case 'K': { // key (aka dictionary)
+                if (i+2 < argc) {
+                    userdicts.push_back(argv[i+1]);
+                    userdicts.push_back(argv[i+2]);
+                    i += 2;
+                }
+                else {
+                    std::clog << *argv << " skipping option -k because it is "
+                        "not followed by two-argument <columname, "
+                        "dictfilename> pair";
+                }
+                break;}
 	    case 'm':
 		if (i+1 < argc) {
 		    ++ i;
@@ -869,7 +882,8 @@ int main(int argc, char** argv) {
 		}
 		ta->clearData();
 		if (build_indexes > 0) { // build indexes
-		    std::unique_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    std::unique_ptr<ibis::table>
+                        tbl(ibis::table::create(outdir));
 		    if (tbl.get() != 0)
 			tbl->buildIndexes(0);
 		}

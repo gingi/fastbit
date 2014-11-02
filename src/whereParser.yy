@@ -64,6 +64,8 @@
 %token <integerVal> FROM_UNIXTIME_LOCAL	"FROM_UNIXTIME_LOCAL"
 %token <integerVal> TO_UNIXTIME_GMT	"TO_UNIXTIME_GMT"
 %token <integerVal> TO_UNIXTIME_LOCAL	"TO_UNIXTIME_LOCAL"
+%token <integerVal> ISO_TO_UNIXTIME_GMT	"ISO_TO_UNIXTIME_GMT"
+%token <integerVal> ISO_TO_UNIXTIME_LOCAL	"ISO_TO_UNIXTIME_LOCAL"
 %token <integerVal> ANYOP	"any"
 %token <integerVal> BITOROP	"|"
 %token <integerVal> BITANDOP	"&"
@@ -1132,7 +1134,6 @@ mathExpr ADDOP mathExpr {
 	<< __FILE__ << ":" << __LINE__ << " parsing -- FROM_UNIXTIME_LOCAL("
 	<< *$3 << ", " << *$5 << ")";
 #endif
-
     ibis::math::fromUnixTime fut($5->c_str());
     ibis::math::customFunction1 *fun =
 	new ibis::math::customFunction1(fut);
@@ -1147,17 +1148,17 @@ mathExpr ADDOP mathExpr {
 	<< *$3 << ", " << *$5 << ")";
 #endif
 
-    ibis::math::fromUnixTime fut($5->c_str(), "GMT0");
+    ibis::math::fromUnixTime fut($5->c_str(), "GMT");
     ibis::math::customFunction1 *fun =
 	new ibis::math::customFunction1(fut);
     fun->setLeft($3);
     $$ = static_cast<ibis::qExpr*>(fun);
     delete $5;
 }
-| TO_UNIXTIME_LOCAL '(' mathExpr ')' {
+| ISO_TO_UNIXTIME_LOCAL '(' mathExpr ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_LOCAL("
+	<< __FILE__ << ":" << __LINE__ << " parsing -- ISO_TO_UNIXTIME_LOCAL("
 	<< *$3 << ")";
 #endif
 
@@ -1167,10 +1168,10 @@ mathExpr ADDOP mathExpr {
     fun->setLeft($3);
     $$ = static_cast<ibis::qExpr*>(fun);
 }
-| TO_UNIXTIME_GMT '(' mathExpr ')' {
+| ISO_TO_UNIXTIME_GMT '(' mathExpr ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
-	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_GMT("
+	<< __FILE__ << ":" << __LINE__ << " parsing -- ISO_TO_UNIXTIME_GMT("
 	<< *$3 << ")";
 #endif
 
@@ -1179,6 +1180,51 @@ mathExpr ADDOP mathExpr {
 	new ibis::math::customFunction1(fut);
     fun->setLeft($3);
     $$ = static_cast<ibis::qExpr*>(fun);
+}
+| TO_UNIXTIME_LOCAL '(' STRLIT ',' STRLIT ')' {
+    //#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_LOCAL("
+	<< *$3 << ", " << *$5  << ")";
+    //#endif
+    struct tm mytm;
+    memset(&mytm, 0, sizeof(mytm));
+    const char *ret = strptime($3->c_str(), $5->c_str(), &mytm);
+    if (ret != 0)
+        $$ = new ibis::math::number(mktime(&mytm));
+    delete $3;
+    delete $5;
+
+    if (ret == 0) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- " << __FILE__ << ':' << __LINE__
+            << " failed to parse \"" << *$3 << "\" using format string \""
+            << *$5 << "\", errno = " << errno;
+        throw "Failed to parse string value in TO_UNIXTIME_LOCAL";
+    }
+}
+| TO_UNIXTIME_GMT '(' STRLIT ',' STRLIT ')' {
+#if defined(DEBUG) && DEBUG + 0 > 1
+    LOGGER(ibis::gVerbose >= 0)
+	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_GMT("
+	<< *$3 << ", " << *$5  << ")";
+#endif
+
+    struct tm mytm;
+    memset(&mytm, 0, sizeof(mytm));
+    const char *ret = strptime($3->c_str(), $5->c_str(), &mytm);
+    if (ret != 0)
+        $$ = new ibis::math::number(timegm(&mytm));
+    delete $3;
+    delete $5;
+
+    if (ret == 0) {
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- " << __FILE__ << ':' << __LINE__
+            << " failed to parse \"" << *$3 << "\" using format string \""
+            << *$5 << "\", errno = " << errno;
+        throw "Failed to parse string value in TO_UNIXTIME_GM";
+    }
 }
 | MINUSOP mathExpr %prec NOTOP {
 #if defined(DEBUG) && DEBUG + 0 > 1
