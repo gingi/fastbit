@@ -1,3 +1,21 @@
+2014-11-01 John Wu <John dot Wu at ACM dot org>
+	* src/whereParser.yy: update TO_UNIXTIME_LOCAL and TO_UNIXTIME_GMT
+	based on suggestion from Jan Stabala
+	* src/table.h, src/tafel.h, src/tafel.cpp: add functions
+	getASCIIDictionary and setASCIIDictionary
+
+2014-10-29 John Wu <John dot Wu at ACM dot org>
+	* src/whereLexer.ll, src/whereParser.yy: change TO_UNIXTIME_LOCAL
+	and TO_UNIXTIME_GMT to be the inverse of FROM_UNIXTIME_LOCAL and
+	FROM_UNIXTIME_GMT
+	* src/dictioinary.h, src/dictionary.cpp: rename print to toASCII
+	and add function fromASCII to read the output of toASCII
+
+2014-10-28 John Wu <John dot Wu at ACM dot org>
+	* src/qExpr.h: assign the left child in the copy constructors of
+	customFunction1 and stringFunction1 to avoid the problem seg fault
+	reported by Jon Strabala when using TO_UNIXTIME_LOCAL
+
 2014-10-25 John Wu <John dot Wu at ACM dot org>
 	* src/qExpr.h, src/qExpr.cpp: add stringFunction1
 	* src/selectParser.yy: change FORMAT_UNIXTIME_LOCAL and

@@ -56,6 +56,8 @@ public:
     virtual uint32_t mColumns() const {return cols.size();}
     virtual void describe(std::ostream&) const;
     virtual table* toTable(const char* nm=0, const char* de=0);
+    virtual void setASCIIDictionary(const char*, const char*);
+    virtual const char* getASCIIDictionary(const char*) const;
 
     /// In-memory version of a column.
     struct column {
@@ -65,6 +67,10 @@ public:
 	std::string desc;
 	/// Index specification for the column
 	std::string indexSpec;
+        /// Dictionary file name.  The name of an ASCII dictionary in a
+        /// format similar to the one produced by
+        /// ibis::dictionary::toASCII.
+        std::string dictfile;
 	/// Type of the data.
 	ibis::TYPE_T type;
 	/// Pointer to the in-memory storage.  For fix-sized elements, this

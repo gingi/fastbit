@@ -47,6 +47,11 @@ Here is a list of arguments.
   in an input file, used to allocate internal read buffer.  This is an
   optional advisory parameter.
 
+- <code>-k column-name dictionary-filename</code> supply an ASCII
+  dictionary for the column of categorical values.  The ASCII dictionary
+  contains a pair of "integer-code: string value" on each line.  Must
+  provide two separate arguments to <code>-k</code>.
+
 - <code>-n name-of-dataset</code> the name to be associated with the
   dataset.
 
@@ -97,6 +102,7 @@ static const char* metadatafile = 0;
 static const char* indexing = 0;
 static std::string namestypes;
 static std::string metatags;
+static std::vector<const char*> userdicts;
 static int build_indexes = 0;
 static unsigned xrepeats = 0;
 
@@ -130,8 +136,8 @@ static void usage(const char* name) {
 
 // function to parse the command line arguments
 // output arguments are:
-// qcnd --   list of query conditions, i.e., where clauses
-// sel  --   select clause (only one of this, all query conditions share the
+// qcnd   -- list of query conditions, i.e., where clauses
+// sel    -- select clause (only one of this, all query conditions share the
 //           same select clause)
 // outdir -- The output directory name, where to output the data read into
 //           memory
@@ -211,6 +217,19 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
 		    build_indexes = 1;
 		}
 		break;
+            case 'k':
+            case 'K': { // key (aka dictionary)
+                if (i+2 < argc) {
+                    userdicts.push_back(argv[i+1]);
+                    userdicts.push_back(argv[i+2]);
+                    i += 2;
+                }
+                else {
+                    std::clog << *argv << " skipping option -k because it is "
+                        "not followed by two-argument <columname, "
+                        "dictfilename> pair";
+                }
+                break;}
 	    case 'm':
 		if (i+1 < argc) {
 		    ++ i;
@@ -863,7 +882,8 @@ int main(int argc, char** argv) {
 		}
 		ta->clearData();
 		if (build_indexes > 0) { // build indexes
-		    std::unique_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    std::unique_ptr<ibis::table>
+                        tbl(ibis::table::create(outdir));
 		    if (tbl.get() != 0)
 			tbl->buildIndexes(0);
 		}

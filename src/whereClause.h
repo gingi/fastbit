@@ -139,23 +139,14 @@ namespace ibis {
 /// 
 ///      Note that the format string must be quoted.
 /// 
-///   -- to_unixtime_local(date-time): This function treats its argument as
-///      a date-time combination following ISO 8601 specification with the
-///      alphabets removed.  For example, noon of December 15, 2014 would
-///      be 20141215120000.  The general form of the number is
-///      yyyymmddhhmmss.  If the value has a fractional part, the
-///      fractional portion is treated as the fraction of a second.  This
-///      function assumes its argument is specified in local time zone.
-///
-///      The most useful thing to do with this function is like to convert
-///      a date-time value into unix time stamp in a range expression on a
-///      column of unix time stamps, e.g., "timestamp between
-///      to_unixtime_local(20110000000000) and
-///      to_unixtime_local(20110300000000)", which select a three month
-///      time range without having to look up exact unix time stamps.
+///   -- to_unixtime_local("date-time-string", "format"): This function
+///      attempts to be the inverse of from_unixtime_local.  It is a
+///      constant function at this time and only transform one specific
+///      time value to unix time stamp.  Therefore this is only useful for
+///      generating a constant for bounding a unix time stamp.
 /// 
-///   -- to_unixtime_gmt(date-time): same functionality as
-///      to_unixtime_local, but assumes its argument is in time zone GMT.
+///   -- to_unixtime_gmt("date-time-string", "format"): the inverse of
+///      from_unixtime_gmt, but only works with a simple time constant.
 /// 
 class ibis::whereClause {
 public:

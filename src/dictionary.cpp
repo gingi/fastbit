@@ -317,7 +317,7 @@ int ibis::dictionary::read(const char* name) {
     if (ibis::gVerbose > 4) {
         ibis::util::logger lg;
         lg() << evt << " completed with ";
-        print(lg());
+        toASCII(lg());
     }
     return ierr;
 } // ibis::dictionary::read
@@ -509,12 +509,100 @@ int ibis::dictionary::readKeys1(const char *evt, FILE *fptr) {
     return 0;
 } // ibis::dictionary::readKeys1
 
-void ibis::dictionary::print(std::ostream &out) const {
-    out << "dictionary @" << static_cast<const void*>(this) << " with "
+/// Output the current content in ASCII format.  Each non-empty entry is
+/// printed in the format of "number: string".
+void ibis::dictionary::toASCII(std::ostream &out) const {
+    out << "-- dictionary @" << static_cast<const void*>(this) << " with "
         << raw_.size() - 1 << " entr" << (raw_.size()>2?"ies":"y");
     for (unsigned j = 1; j < raw_.size(); ++ j)
-        out << "\n" << j << ": \"" << (raw_[j]?raw_[j]:"") << '"';
-} // ibis::dictionary::print
+        if (raw_[j] != 0)
+            out << "\n" << j << ": \"" << raw_[j] << '"';
+} // ibis::dictionary::toASCII
+
+/// Read the ASCII formatted disctionary.  This is meant to be the reverse
+/// of toASCII, where each line of the input stream contains a positve
+/// integer followed by a string value, with an optioinal ':' (plus white
+/// space) as separators.
+///
+/// The new entries read from the incoming I/O stream are merged with the
+/// existing dictioinary.  If the string has already been assigned a code,
+/// the existing code will be used.  If the given code has been used for
+/// another string, the incoming string will be assined a new code.
+/// Warning messages will be printed to logging channel when such a
+/// conflict is encountered.
+int ibis::dictionary::fromASCII(std::istream &in) {
+    ibis::fileManager::buffer<char> linebuf(MAX_LINE);
+    if (! in) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- dictionary::fromASCII can not proceed because "
+            "the input I/O stream is in an error state";
+        return -1;
+    }
+
+    int ierr;
+    const char *str;
+    bool more = true;
+    const char *delim = ":,; \t\v";
+    while (more) {
+        std::streampos linestart = in.tellg();
+        // read the next line
+        while (! in.getline(linebuf.address(), linebuf.size())) {
+            if (in.eof()) { // end of file, no more to read
+                *(linebuf.address()) = 0;
+                more  = false;
+                break;
+            }
+            // more to read, linebuf needs to be increased
+            const size_t nold =
+                (linebuf.size() > 0 ? linebuf.size() : MAX_LINE);
+            if (nold+nold != linebuf.resize(nold+nold)) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- dictionary::fromASCII failed to allocate "
+                    "linebuf of " << nold+nold << " bytes";
+                more = false;
+                return -2;
+            }
+            in.clear(); // clear the error bit
+            // go back to the beginning of the line
+            if (! in.seekg(linestart, std::ios::beg)) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- dictionary::fromASCII failed to seek back "
+                    "to the beginning of a line of text";
+                *(linebuf.address()) = 0;
+                more = false;
+                return -3;
+            }
+        }
+        // got a line of text
+        str = linebuf.address();
+        if (str == 0) break;
+        while (*str != 0 && isspace(*str)) ++ str; // skip leading space
+	if (*str == 0 || *str == '#' || (*str == '-' && str[1] == '-')) {
+	    // skip comment line (shell style comment and SQL style comments)
+	    continue;
+	}
+
+        uint64_t posi;
+        ierr = ibis::util::readUInt(posi, str, delim);
+        if (ierr < 0) {
+            LOGGER(ibis::gVerbose > 3)
+                << "Warning -- dictionary::fromASCII could not extract a "
+                "number from \"" << linebuf.address() << '"';
+            posi = 0;
+        }
+        str += strspn(str, delim); // skip delimiters
+        if (posi > 0 && posi < 0X7FFFFFFF) {
+            insert(ibis::util::getString(str), static_cast<uint32_t>(posi));
+        }
+        else {
+            LOGGER(ibis::gVerbose > 3 && posi > 0)
+                << "Warning -- dictionary::fromASCII can not use a code ("
+                << posi << ") that is larger than 2^31";
+            insert(ibis::util::getString(str));
+        }
+    } // while (more)
+    return 0;
+} // ibis::dictionary::fromASCII
 
 /// Clear the allocated memory.  Leave only the NULL entry.
 void ibis::dictionary::clear() {
@@ -645,6 +733,82 @@ uint32_t ibis::dictionary::operator[](const char* str) const {
     }
 } // string to int
 
+/// Insert a string to the specified position.  Returns the integer value
+/// assigned to the string.  A copy of the string is stored internally.
+///
+/// If the incoming string value is already in the dictionary, its existing
+/// value will be returned.  If the given position is already occupied, the
+/// incoming string is inserted into the next available space and its
+/// position is returned.
+uint32_t ibis::dictionary::insert(const char* str, uint32_t pos) {
+    if (str == 0) return 0;
+#ifdef FASTBIT_EMPTY_STRING_AS_NULL
+    if (*str == 0) return 0;
+#endif
+#if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
+    for (char *ptr = const_cast<char*>(str); *ptr != 0; ++ ptr) {
+	*ptr = toupper(*ptr);
+    }
+#endif
+    if (pos < raw_.size() && raw_[pos] != 0 && strcmp(str, raw_[pos]) == 0)
+        return pos;
+
+    MYMAP::const_iterator it = key_.find(str);
+    if (it != key_.end()) {
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
+        LOGGER(ibis::gVerbose > 0)
+            << "DEBUG -- dictionary::insert(" << str
+            << ") return an existing code " << it->second;
+#endif
+        LOGGER(it->second != pos && ibis::gVerbose > 0)
+            << "Warning -- dictionary::insert(" << str << ", " << pos
+            << ") found the string already present at position " << it->second;
+        return it->second;
+    }
+    if (pos < raw_.size()) {
+        if (raw_[pos] != 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- dictionary::insert(" << str << ", " << pos
+                << ") found another string (" << raw_[pos]
+                << ") at the position, try to find the next available position";
+            for (pos = 1; pos < raw_.size(); ++ pos) {
+                if (raw_[pos] == 0)
+                    break;
+            }
+        }
+        if (pos < raw_.size()) {
+            char *copy = ibis::util::strnewdup(str);
+            buffer_.push_back(copy);
+            key_[copy] = pos;
+            raw_[pos] = copy;
+    return pos;
+        }
+    }
+    if (pos+1 > 0x7FFFFFFFU) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- dictionary::insert is not designed to work with "
+            "more than 2^31 enteries";
+        return 0xFFFFFFFFU;
+    }
+    if (pos >= raw_.size()) {
+        // need to expand raw_ 
+        const uint32_t nk = raw_.size();
+        raw_.resize(pos+1);
+        for (unsigned j = nk; j < pos; ++ j)
+            raw_[j] = 0;
+        char *copy = ibis::util::strnewdup(str);
+        buffer_.push_back(copy);
+        raw_[pos] = copy;
+        key_[copy] = pos;
+#if DEBUG+0 > 2 || _DEBUG+0 > 2
+        LOGGER(ibis::gVerbose > 0)
+            << "DEBUG -- dictionary::insert(" << raw_.back()
+            << ") return a new code " << pos;
+#endif
+    }
+    return pos;
+} // ibis::dictionary::insert
+
 /// Insert a string to the dictionary.  Returns the integer value assigned
 /// to the string.  A copy of the string is stored internally.
 uint32_t ibis::dictionary::insert(const char* str) {
@@ -661,8 +825,8 @@ uint32_t ibis::dictionary::insert(const char* str) {
     if (it != key_.end()) {
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
         LOGGER(ibis::gVerbose > 0)
-            << "DEBUG -- dictionary::insert(" << str << ") return an existing code "
-            << it->second;
+            << "DEBUG -- dictionary::insert(" << str
+            << ") return an existing code " << it->second;
 #endif
         return it->second;
     }
@@ -675,7 +839,8 @@ uint32_t ibis::dictionary::insert(const char* str) {
         key_[copy] = nk;
 #if DEBUG+0 > 2 || _DEBUG+0 > 2
         LOGGER(ibis::gVerbose > 0)
-            << "DEBUG -- dictionary::insert(" << raw_.back() << ") return a new code " << nk;
+            << "DEBUG -- dictionary::insert(" << raw_.back()
+            << ") return a new code " << nk;
 #endif
         return nk;
     }

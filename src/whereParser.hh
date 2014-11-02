@@ -45,10 +45,11 @@
 #line 13 "whereParser.yy"
 
 #include "whereClause.h"	// class whereClause
+#include <time.h>		// strptime
 
 
 /* Line 33 of lalr1.cc  */
-#line 52 "whereParser.hh"
+#line 53 "whereParser.hh"
 
 
 #include <string>
@@ -64,7 +65,7 @@
 
 namespace ibis {
 /* Line 33 of lalr1.cc  */
-#line 68 "whereParser.hh"
+#line 69 "whereParser.hh"
 
   /// A Bison parser.
   class whereParser
@@ -75,7 +76,7 @@ namespace ibis {
     union semantic_type
     {
 /* Line 33 of lalr1.cc  */
-#line 35 "whereParser.yy"
+#line 36 "whereParser.yy"
 
     int		 integerVal;
     int64_t	 int64Val;
@@ -86,7 +87,7 @@ namespace ibis {
 
 
 /* Line 33 of lalr1.cc  */
-#line 90 "whereParser.hh"
+#line 91 "whereParser.hh"
     };
 #else
     typedef YYSTYPE semantic_type;
@@ -120,25 +121,27 @@ namespace ibis {
      FROM_UNIXTIME_LOCAL = 276,
      TO_UNIXTIME_GMT = 277,
      TO_UNIXTIME_LOCAL = 278,
-     ANYOP = 279,
-     BITOROP = 280,
-     BITANDOP = 281,
-     ADDOP = 282,
-     MINUSOP = 283,
-     MULTOP = 284,
-     DIVOP = 285,
-     REMOP = 286,
-     EXPOP = 287,
-     INT64 = 288,
-     UINT64 = 289,
-     NUMBER = 290,
-     INTSEQ = 291,
-     UINTSEQ = 292,
-     NOUNSTR = 293,
-     NUMSEQ = 294,
-     STRSEQ = 295,
-     STRLIT = 296,
-     CONSTAINSOP = 297
+     ISO_TO_UNIXTIME_GMT = 279,
+     ISO_TO_UNIXTIME_LOCAL = 280,
+     ANYOP = 281,
+     BITOROP = 282,
+     BITANDOP = 283,
+     ADDOP = 284,
+     MINUSOP = 285,
+     MULTOP = 286,
+     DIVOP = 287,
+     REMOP = 288,
+     EXPOP = 289,
+     INT64 = 290,
+     UINT64 = 291,
+     NUMBER = 292,
+     INTSEQ = 293,
+     UINTSEQ = 294,
+     NOUNSTR = 295,
+     NUMSEQ = 296,
+     STRSEQ = 297,
+     STRLIT = 298,
+     CONSTAINSOP = 299
    };
 
     };
@@ -320,7 +323,7 @@ namespace ibis {
 
 } // ibis
 /* Line 33 of lalr1.cc  */
-#line 324 "whereParser.hh"
+#line 327 "whereParser.hh"
 
 
 

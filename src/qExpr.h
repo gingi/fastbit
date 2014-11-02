@@ -747,6 +747,7 @@ namespace ibis {
 
 	protected:
 	    term() : qExpr(MATHTERM) {}; // used by concrete derived classes
+            term(const term &rhs) : qExpr(rhs) {}
 	}; // abstract term
 
 	/// A barrel to hold a list of variables.  It defines an interface
@@ -1025,7 +1026,14 @@ namespace ibis {
 	    customFunction1(const func1 &ft)
                 : fun_(ft.dup()) {}
 	    customFunction1(const customFunction1 &rhs)
-                : fun_(rhs.fun_->dup()) {}
+                : fun_(rhs.fun_->dup()) {
+                if (rhs.getLeft() != 0) {
+                    setLeft(rhs.getLeft()->dup());
+                }
+                else if (rhs.getRight() != 0) {
+                    setLeft(rhs.getRight()->dup());
+                }
+            }
 
 	    virtual customFunction1* dup() const {
 		return new customFunction1(*this);
@@ -1080,10 +1088,8 @@ namespace ibis {
         class toUnixTime : public func1 {
         public:
             virtual ~toUnixTime() {}
-            toUnixTime(const char *z=0)
-                : tzname_(z!=0?z:"") {}
-            toUnixTime(const toUnixTime& rhs)
-                : tzname_(rhs.tzname_) {}
+            toUnixTime(const char *z=0) : tzname_(z!=0?z:"") {}
+            toUnixTime(const toUnixTime& rhs) : tzname_(rhs.tzname_) {}
 
             virtual toUnixTime* dup() const {
                 return new toUnixTime(*this);
@@ -1104,7 +1110,14 @@ namespace ibis {
 	    stringFunction1(const sfunc1 &ft)
                 : fun_(ft.dup()) {}
 	    stringFunction1(const stringFunction1 &rhs)
-                : fun_(rhs.fun_->dup()) {}
+                : fun_(rhs.fun_->dup()) {
+                if (rhs.getLeft() != 0) {
+                    setLeft(rhs.getLeft()->dup());
+                }
+                else if (rhs.getRight() != 0) {
+                    setLeft(rhs.getRight()->dup());
+                }
+            }
 
 	    virtual stringFunction1* dup() const {
 		return new stringFunction1(*this);
@@ -1121,7 +1134,8 @@ namespace ibis {
 	}; // stringFunction1
 
         /// Format unix time stamps as strings through the function @c
-        /// strftime.
+        /// strftime and then output the leading portion as a
+        /// floating-point number.
         class formatUnixTime : public sfunc1 {
         public:
             virtual ~formatUnixTime() {}
