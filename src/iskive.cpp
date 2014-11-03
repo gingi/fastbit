@@ -292,6 +292,10 @@ int ibis::skive::write32(int fdes) const {
 	return -12;
     }
     ierr = UnixSeek(fdes, offset32.back(), SEEK_SET);
+    LOGGER(ibis::gVerbose > 0 && ierr != (off_t)offset32.back())
+        << "Warning -- " << evt << " expected to position file pointer "
+        << fdes << " to " << offset32.back()
+        << ", but the function seek returned " << ierr;
     return (ierr == offset32[nbits] ? 0 : -13);
 } // ibis::skive::write32
 
@@ -397,6 +401,10 @@ int ibis::skive::write64(int fdes) const {
 	return -12;
     }
     ierr = UnixSeek(fdes, offset64.back(), SEEK_SET);
+    LOGGER(ibis::gVerbose > 0 && ierr != (off_t)offset64.back())
+        << "Warning -- " << evt << " expected to position file pointer "
+        << fdes << " to " << offset64.back()
+        << ", but the function seek returned " << ierr;
     return (ierr == offset64[nbits] ? 0 : -13);
 } // ibis::skive::write64
 

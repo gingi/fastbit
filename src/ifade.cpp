@@ -319,7 +319,11 @@ int ibis::fade::write32(int fdes) const {
 	return -12;
     }
     ierr = UnixSeek(fdes, offset32[nobs], SEEK_SET);
-    return (ierr == offset32[nobs] ?0 : -13);
+    LOGGER(ibis::gVerbose > 0 && ierr != (off_t)offset32[nobs])
+        << "Warning -- " << evt << " expected to position file pointer "
+        << fdes << " to " << offset32[nobs]
+        << ", but the function seek returned " << ierr;
+    return (ierr == offset32[nobs] ? 0 : -13);
 } // ibis::fade::write32
 
 /// Write the content to a file already opened.
@@ -425,7 +429,11 @@ int ibis::fade::write64(int fdes) const {
     }
 
     ierr = UnixSeek(fdes, offset64[nobs], SEEK_SET);
-    return (ierr == offset64[nobs] ?0 : -13);
+    LOGGER(ibis::gVerbose > 0 && ierr != (off_t)offset64[nobs])
+        << "Warning -- " << evt << " expected to position file pointer "
+        << fdes << " to " << offset64[nobs]
+        << ", but the function seek returned " << ierr;
+    return (ierr == offset64[nobs] ? 0 : -13);
 } // ibis::fade::write64
 
 /// Read the index contained in the file named @c f.
