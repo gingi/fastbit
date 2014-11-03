@@ -1,3 +1,8 @@
+2014-11-03 John Wu <John dot Wu at ACM dot org>
+	* src/ifade.cpp, src/ixpack.cpp, src/ixpale.cpp, src/ixzone.cpp:
+	add statement to log conditions leading to error code -13 to
+	address a problem reported by Fasika Daksa
+
 2014-11-01 John Wu <John dot Wu at ACM dot org>
 	* src/whereParser.yy: update TO_UNIXTIME_LOCAL and TO_UNIXTIME_GMT
 	based on suggestion from Jan Stabala
