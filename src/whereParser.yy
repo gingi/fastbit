@@ -1189,13 +1189,14 @@ mathExpr ADDOP mathExpr {
 #endif
     struct tm mytm;
     memset(&mytm, 0, sizeof(mytm));
-    // A negative value for tm_isdst causes mktime() to attempt to
-    // determine whether Daylight Saving Time is in effect for the
-    // specified time.
-    mytm.tm_isdst = -1;
     const char *ret = strptime($3->c_str(), $5->c_str(), &mytm);
-    if (ret != 0)
+    if (ret != 0) {
+        // A negative value for tm_isdst causes mktime() to attempt to
+        // determine whether Daylight Saving Time is in effect for the
+        // specified time.
+        mytm.tm_isdst = -1;
         $$ = new ibis::math::number(mktime(&mytm));
+    }
     delete $3;
     delete $5;
 
