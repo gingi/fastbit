@@ -1,24 +1,25 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
-VisualStudioVersion = 12.0.30723.0
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ibis", "ibis.vcxproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0F}"
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ibis", "ibis.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thula", "thula.vcxproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thula", "thula.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rara", "rara.vcxproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rara", "rara.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ardea", "ardea.vcxproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ardea", "ardea.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcapi", "tcapi.vcxproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcapi", "tcapi.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7AB0C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "java", "java.vcxproj", "{C5EE61F0-0EF6-431A-90C1-3F6FF3F5B614}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "java", "java.vcproj", "{C5EE61F0-0EF6-431A-90C1-3F6FF3F5B614}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dll", "dll.vcxproj", "{1BF44EB1-E02B-4F85-BC0F-33AAC503BA13}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dll", "dll.vcproj", "{1BF44EB1-E02B-4F85-BC0F-33AAC503BA13}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "setqgen", "setqgen.vcxproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7BAE0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "setqgen", "setqgen.vcproj", "{360DF97D-FEAB-4A6F-B84F-E348FCA7BAE0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "trydll", "trydll.vcxproj", "{8B00104E-D878-4579-9E4D-801860997AB3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "trydll", "trydll.vcproj", "{8B00104E-D878-4579-9E4D-801860997AB3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BF44EB1-E02B-4F85-BC0F-33AAC503BA13} = {1BF44EB1-E02B-4F85-BC0F-33AAC503BA13}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
