@@ -27,7 +27,7 @@ ARDEAEXE=$(EXDIR)/ardea$(EXEEXT)
 THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
-EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv \
+EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv js2.csv \
     scripts/hcompare.pl scripts/jrf-check.pl scripts/printWarning.pl \
     scripts/matchCounts.pl scripts/query-count.list \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
@@ -42,7 +42,7 @@ EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv \
 # tests with different levels of thoroughness
 check: clean-tmp check-am TESTDIR
 	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} >> $(TESTDIR)/std.log 2>&1
-	make really-small check-thula check-tcapi check-text check-marksdb check-maurel check-ibis check-join check-labeling
+	make really-small check-thula check-tcapi check-text check-marksdb check-maurel check-ibis check-join check-labeling check-js2
 more-check: check
 	@$(MAKE) setqgen${EXEEXT} jrf${EXEEXT} >> $(TESTDIR)/std.log 2>&1
 	make check-jrf small-tests check-sq0
@@ -352,6 +352,16 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	scripts/matchCounts.pl "$(IBISEXE) -c $(TESTDIR)/test.rc -v 2" scripts/query-count.list $(TESTDIR); \
 	done;
 	@echo
+# run a set of tests from Jon Strabala on functions dealing with unix time stamps
+check-js2: $(IBISEXE) $(TESTDIR)/js2/-part.txt
+	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_LOCAL('20110426020156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-1 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_GMT('20110426090156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-2 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = 1303808516 order by t ASC" -o $(TESTDIR)/js2-3 >> $(TESTDIR)/$@.log 2>&1
+	@if [ "`cat  $(TESTDIR)/js2-1 | wc -l`" -eq 1 -a `diff -w $(TESTDIR)/js2-1 $(TESTDIR)/js2-2 | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@if [ `diff -w $(TESTDIR)/js2-1 $(TESTDIR)/js2-3 | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@if [ `diff -w $(TESTDIR)/js2-2 $(TESTDIR)/js2-3 | wc -l` -eq 0 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/check-js2.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
+	@echo
 # run a set of tests with 1.6 million rows split into three
 # subdirectories.  Tests may take half a hour or longer depending on
 # your test machine.
@@ -404,6 +414,8 @@ $(TESTDIR)/maurel/-part.txt: $(ARDEAEXE) maurel.csv TESTDIR
 	@test -f $(TESTDIR)/maurel/-part.txt || $(ARDEAEXE) -t maurel.csv -d $(TESTDIR)/maurel -m "b:k, r:s, c:s, f:s, e:s, y:s, g:k, t:s, n:k, a:k, v:s, i:k, h:s, d:k, p:s, q:k, s:s, m:s, j:k" >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/jrf/-part.txt: jrf$(EXEEXT) TESTDIR
 	@test -f $(TESTDIR)/jrf/-part.txt || ./jrf$(EXEEXT) $(TESTDIR)/jrf 1e5 >> $(TESTDIR)/std.log 2>&1
+$(TESTDIR)/js2/-part.txt: $(ARDEAEXE) js2.csv TESTDIR
+	@test -f $(TESTDIR)/js2/-part.txt || $(ARDEAEXE) -t js2.csv -m "id:s, s:b, t:d" -d $(TESTDIR)/js2 >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/0/test0/-part.txt: $(TESTDIR)/0 test0.csv $(ARDEAEXE) TESTDIR
 	@test -f $(TESTDIR)/0/test0/-part.txt || $(ARDEAEXE) -v -m "i0:ub, i1:f, i2:s" -t test0.csv -d $(TESTDIR)/0/test0 >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/0/test1/-part.txt: $(TESTDIR)/0 test1.csv readcsv$(EXEEXT) TESTDIR
@@ -521,3 +533,4 @@ $(TCAPIEXE):
 .PHONY: check-ibis check-thula check-tcapi do-small-append do-large-append
 .PHONY: check-text check-marksdb check-maurel small-tests really-small
 .PHONY: check-jrf check-labeling TESTDIR check-sq0 check-sq1 check-sq2
+.PHONY: check-js2
