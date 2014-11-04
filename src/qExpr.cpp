@@ -1598,24 +1598,24 @@ void ibis::qContinuousRange::printFull(std::ostream& out) const {
 
     switch (left_op) {
     case OP_EQ: {
-        out << std::setprecision(16) << lower << " == ";
-        break;
+	out << std::setprecision(16) << lower << " == ";
+	break;
     }
     case OP_LT: {
-        out << std::setprecision(16) << lower << " < ";
-        break;
+	out << std::setprecision(16) << lower << " < ";
+	break;
     } // case OP_LT
     case OP_LE: {
-        out << std::setprecision(16) << lower << " <= ";
-        break;
+	out << std::setprecision(16) << lower << " <= ";
+	break;
     } // case OP_LE
     case OP_GT: {
-        out << std::setprecision(16) << lower << " > ";
-        break;
+	out << std::setprecision(16) << lower << " > ";
+	break;
     } // case OP_GT
     case OP_GE: {
-        out << std::setprecision(16) << lower << " >= ";
-        break;
+	out << std::setprecision(16) << lower << " >= ";
+	break;
     } // case OP_GE
     default:
         break;
@@ -1623,20 +1623,20 @@ void ibis::qContinuousRange::printFull(std::ostream& out) const {
     out << name;
     switch (right_op) {
     case OP_EQ:
-        out << " == " << std::setprecision(16) << upper;
-        break;
+	out << " == " << std::setprecision(16) << upper;
+	break;
     case OP_LT:
-        out << " < " << std::setprecision(16) << upper;
-        break;
+	out << " < " << std::setprecision(16) << upper;
+	break;
     case OP_LE:
-        out << " <= " << std::setprecision(16) << upper;
-        break;
+	out << " <= " << std::setprecision(16) << upper;
+	break;
     case OP_GT:
-        out << " > " << std::setprecision(16) << upper;
-        break;
+	out << " > " << std::setprecision(16) << upper;
+	break;
     case OP_GE:
-        out << " >= " << std::setprecision(16) << upper;
-        break;
+	out << " >= " << std::setprecision(16) << upper;
+	break;
     default:
         break;
     } // end of switch right_op

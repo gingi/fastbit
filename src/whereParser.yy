@@ -1182,13 +1182,17 @@ mathExpr ADDOP mathExpr {
     $$ = static_cast<ibis::qExpr*>(fun);
 }
 | TO_UNIXTIME_LOCAL '(' STRLIT ',' STRLIT ')' {
-    //#if defined(DEBUG) && DEBUG + 0 > 1
+#if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_LOCAL("
 	<< *$3 << ", " << *$5  << ")";
-    //#endif
+#endif
     struct tm mytm;
     memset(&mytm, 0, sizeof(mytm));
+    // A negative value for tm_isdst causes mktime() to attempt to
+    // determine whether Daylight Saving Time is in effect for the
+    // specified time.
+    mytm.tm_isdst = -1;
     const char *ret = strptime($3->c_str(), $5->c_str(), &mytm);
     if (ret != 0)
         $$ = new ibis::math::number(mktime(&mytm));
