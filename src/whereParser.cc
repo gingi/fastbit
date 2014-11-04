@@ -2001,13 +2001,14 @@ namespace ibis {
 #endif
     struct tm mytm;
     memset(&mytm, 0, sizeof(mytm));
-    // A negative value for tm_isdst causes mktime() to attempt to
-    // determine whether Daylight Saving Time is in effect for the
-    // specified time.
-    mytm.tm_isdst = -1;
     const char *ret = strptime((yysemantic_stack_[(6) - (3)].stringVal)->c_str(), (yysemantic_stack_[(6) - (5)].stringVal)->c_str(), &mytm);
-    if (ret != 0)
+    if (ret != 0) {
+        // A negative value for tm_isdst causes mktime() to attempt to
+        // determine whether Daylight Saving Time is in effect for the
+        // specified time.
+        mytm.tm_isdst = -1;
         (yyval.whereNode) = new ibis::math::number(mktime(&mytm));
+    }
     delete (yysemantic_stack_[(6) - (3)].stringVal);
     delete (yysemantic_stack_[(6) - (5)].stringVal);
 
@@ -2023,7 +2024,7 @@ namespace ibis {
 
   case 93:
 /* Line 664 of lalr1.cc  */
-#line 1210 "whereParser.yy"
+#line 1211 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -2051,7 +2052,7 @@ namespace ibis {
 
   case 94:
 /* Line 664 of lalr1.cc  */
-#line 1233 "whereParser.yy"
+#line 1234 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -2066,7 +2067,7 @@ namespace ibis {
 
   case 95:
 /* Line 664 of lalr1.cc  */
-#line 1243 "whereParser.yy"
+#line 1244 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(2) - (2)].whereNode);
 }
@@ -2074,7 +2075,7 @@ namespace ibis {
 
   case 96:
 /* Line 664 of lalr1.cc  */
-#line 1246 "whereParser.yy"
+#line 1247 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(3) - (2)].whereNode);
 }
@@ -2082,7 +2083,7 @@ namespace ibis {
 
   case 97:
 /* Line 664 of lalr1.cc  */
-#line 1249 "whereParser.yy"
+#line 1250 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -2097,7 +2098,7 @@ namespace ibis {
 
   case 98:
 /* Line 664 of lalr1.cc  */
-#line 1259 "whereParser.yy"
+#line 1260 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -2110,7 +2111,7 @@ namespace ibis {
 
   case 99:
 /* Line 664 of lalr1.cc  */
-#line 1269 "whereParser.yy"
+#line 1270 "whereParser.yy"
     { /* pass qexpr to the driver */
     driver.expr_ = (yysemantic_stack_[(2) - (1)].whereNode);
 }
@@ -2118,7 +2119,7 @@ namespace ibis {
 
   case 100:
 /* Line 664 of lalr1.cc  */
-#line 1272 "whereParser.yy"
+#line 1273 "whereParser.yy"
     { /* pass qexpr to the driver */
     driver.expr_ = (yysemantic_stack_[(2) - (1)].whereNode);
 }
@@ -2126,7 +2127,7 @@ namespace ibis {
 
 
 /* Line 664 of lalr1.cc  */
-#line 2130 "whereParser.cc"
+#line 2131 "whereParser.cc"
       default:
         break;
       }
@@ -2784,8 +2785,8 @@ namespace ibis {
      735,   746,   763,   786,   796,   807,   817,   827,   837,   899,
      911,   923,   935,   947,   959,   971,   983,   995,  1010,  1022,
     1034,  1046,  1058,  1070,  1082,  1094,  1106,  1118,  1131,  1144,
-    1158,  1171,  1184,  1210,  1233,  1243,  1246,  1249,  1259,  1269,
-    1272
+    1158,  1171,  1184,  1211,  1234,  1244,  1247,  1250,  1260,  1270,
+    1273
   };
 
   // Print the state stack on the debug stream.
@@ -2877,9 +2878,9 @@ namespace ibis {
 
 } // ibis
 /* Line 1135 of lalr1.cc  */
-#line 2881 "whereParser.cc"
+#line 2882 "whereParser.cc"
 /* Line 1136 of lalr1.cc  */
-#line 1277 "whereParser.yy"
+#line 1278 "whereParser.yy"
 
 void ibis::whereParser::error(const ibis::whereParser::location_type& l,
 			      const std::string& m) {
