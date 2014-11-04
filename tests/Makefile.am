@@ -27,8 +27,7 @@ ARDEAEXE=$(EXDIR)/ardea$(EXEEXT)
 THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
-EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv \
-    acmpub.v.a acmpub.v.b js2.csv \
+EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv js2.csv \
     scripts/hcompare.pl scripts/jrf-check.pl scripts/printWarning.pl \
     scripts/matchCounts.pl scripts/query-count.list scripts/star2002.sh \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
@@ -367,24 +366,13 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	@echo
 # run a set of tests from Jon Strabala on functions dealing with unix time stamps
 check-js2: $(IBISEXE) $(TESTDIR)/js2/-part.txt
-	@/bin/date >| $(TESTDIR)/$@.log
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_LOCAL('20110426020156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-1 >> $(TESTDIR)/$@.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_GMT('20110426090156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-2 >> $(TESTDIR)/$@.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = 1303808516 order by t ASC" -o $(TESTDIR)/js2-3 >> $(TESTDIR)/$@.log 2>&1
 	@if [ "`cat  $(TESTDIR)/js2-1 | wc -l`" -eq 1 -a `diff -w $(TESTDIR)/js2-1 $(TESTDIR)/js2-2 | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@if [ `diff -w $(TESTDIR)/js2-1 $(TESTDIR)/js2-3 | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@if [ `diff -w $(TESTDIR)/js2-2 $(TESTDIR)/js2-3 | wc -l` -eq 0 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@if [ ` $(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t = 1303808516 order by t ASC" -o $(TESTDIR)/js2-4 2>&1 | fgrep "produced a table with 1 row and 7 columns" - | wc -l` -eq 1 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
-	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t = TO_UNIXTIME_GMT('2011-04-26 09:01:56','%Y-%m-%d %H:%M:%S') order by t ASC" -o $(TESTDIR)/js2-5 >> $(TESTDIR)/$@.log 2>&1
-	@if [ `diff -w $(TESTDIR)/js2-4 $(TESTDIR)/js2-5 | wc -l` -eq 0 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
-	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t = TO_UNIXTIME_GMT('20110426090156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-6 >> $(TESTDIR)/$@.log 2>&1
-	@if [ `diff -w $(TESTDIR)/js2-4 $(TESTDIR)/js2-6 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
-	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t >= TO_UNIXTIME_GMT('201104260901','%Y%m%d%H%M') and t <= TO_UNIXTIME_GMT('201104260902','%Y%m%d%H%M') order by t ASC" -o $(TESTDIR)/js2-7 >> $(TESTDIR)/$@.log 2>&1
-	@if [ `diff -w $(TESTDIR)/js2-4 $(TESTDIR)/js2-7 | wc -l` -eq 0 ]; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
-	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and ( t between TO_UNIXTIME_GMT('2011/04/26 09:01','%Y/%m/%d %H:%M') and TO_UNIXTIME_GMT('201104260902','%Y%m%d%H%M') ) order by t ASC" -o $(TESTDIR)/js2-8 >> $(TESTDIR)/$@.log 2>&1
-	@if [ `diff -w $(TESTDIR)/js2-4 $(TESTDIR)/js2-8 | wc -l` -eq 0 ]; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
-	@if [ ` $(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t < TO_UNIXTIME_GMT('2011/04','%Y/%m') order by t ASC" 2>&1 | fgrep "produced a table with 1 row and 7 columns" - | wc -l` -eq 1 ]; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
-	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/check-js2.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
 	@echo
 # run a set of tests with 1.6 million rows split into three
 # subdirectories.  Tests may take half a hour or longer depending on

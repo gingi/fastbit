@@ -5,6 +5,8 @@
 	* src/whereParser.yy:1195 initialize tm_isdst to -1 to tell mktime
 	to figure out whether DST is in effect (a solution found by Jon
 	Strabala)
+	* test/Makefile.am: add test case check-js2 based on examples from
+	Jon Strabala
 
 2014-11-01 John Wu <John dot Wu at ACM dot org>
 	* src/whereParser.yy: update TO_UNIXTIME_LOCAL and TO_UNIXTIME_GMT
