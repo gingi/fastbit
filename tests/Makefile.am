@@ -163,7 +163,7 @@ check-maurel: $(TESTDIR)/maurel/-part.txt $(IBISEXE)
 	@echo
 #
 really-small: $(IBISEXE) $(TCAPIEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part.txt $(TESTDIR)/w3/-part.txt $(TESTDIR)/w4/-part.txt $(TESTDIR)/w5/-part.txt $(TESTDIR)/w6/-part.txt $(TESTDIR)/w7/-part.txt
-	@date >| $(TESTDIR)/really-small.log
+	@/bin/date >| $(TESTDIR)/really-small.log
 	@$(IBISEXE) -d $(TESTDIR)/w1 -v -q "select countd(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-1 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w2 -v -q "select countd(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-2 >> $(TESTDIR)/really-small.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/w3 -v -q "select countd(c_1) as n, c_2 where c_1 > 0" -output $(TESTDIR)/small-3 >> $(TESTDIR)/really-small.log 2>&1
@@ -197,8 +197,8 @@ really-small: $(IBISEXE) $(TCAPIEXE) $(TESTDIR)/w1/-part.txt $(TESTDIR)/w2/-part
 	@echo
 check-join: $(IBISEXE) $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@/bin/date >| $(TESTDIR)/check-join.log
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "from t2a join t2b using a where t2a.a < 10 and t2b.b > 10" 2>&1 | if [ `fgrep ' a table with 0 row and 0 column' - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
-	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" 2>&1 | if [ `fgrep ' table with 4 rows and 0 column' - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "from t2a join t2b using a where t2a.a < 10 and t2b.b > 10" 2>&1 | if [ `fgrep ' result table (0 x 0)' - | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
+	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" 2>&1 | if [ `fgrep ' result table (4 x 0)' - | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -q "select s.a from t2a as s where s.a = t2a.a and s.a < 10 and t2a.b > 5" -o $(TESTDIR)/join-1 2>&1 | if [ `fgrep ' produced a table with 4 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@if [ -f $(TESTDIR)/join-1 -a -f vault/join-1 -a `diff -w $(TESTDIR)/join-1 vault/join-1 | wc -l` -eq 0 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@$(IBISEXE) -d $(TESTDIR)/t2/t2a -d $(TESTDIR)/t2/t2b -q "select s.a from t2a as s, t2b as t where s.a = t.a and s.a < 10 and t.b > 5" -o $(TESTDIR)/join-2 2>&1 | if [ `fgrep ' produced a table with 8 rows' - | wc -l` -eq 1 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
@@ -366,13 +366,24 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	@echo
 # run a set of tests from Jon Strabala on functions dealing with unix time stamps
 check-js2: $(IBISEXE) $(TESTDIR)/js2/-part.txt
+	@/bin/date >| $(TESTDIR)/$@.log
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_LOCAL('20110426020156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-1 >> $(TESTDIR)/$@.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_GMT('20110426090156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-2 >> $(TESTDIR)/$@.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = 1303808516 order by t ASC" -o $(TESTDIR)/js2-3 >> $(TESTDIR)/$@.log 2>&1
 	@if [ "`cat  $(TESTDIR)/js2-1 | wc -l`" -eq 1 -a `diff -w $(TESTDIR)/js2-1 $(TESTDIR)/js2-2 | wc -l` -eq 0 ]; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@if [ `diff -w $(TESTDIR)/js2-1 $(TESTDIR)/js2-3 | wc -l` -eq 0 ]; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@if [ `diff -w $(TESTDIR)/js2-2 $(TESTDIR)/js2-3 | wc -l` -eq 0 ]; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@if [ `scripts/printWarning.pl $(TESTDIR)/check-js2.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-join.log; fi
+	@if [ ` $(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t = 1303808516 order by t ASC" -o $(TESTDIR)/js2-4 2>&1 | fgrep "produced a table with 1 row and 7 columns" - | wc -l` -eq 1 ]; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t = TO_UNIXTIME_GMT('2011-04-26 09:01:56','%Y-%m-%d %H:%M:%S') order by t ASC" -o $(TESTDIR)/js2-5 >> $(TESTDIR)/$@.log 2>&1
+	@if [ `diff -w $(TESTDIR)/js2-4 $(TESTDIR)/js2-5 | wc -l` -eq 0 ]; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
+	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t = TO_UNIXTIME_GMT('20110426090156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-6 >> $(TESTDIR)/$@.log 2>&1
+	@if [ `diff -w $(TESTDIR)/js2-4 $(TESTDIR)/js2-6 | wc -l` -eq 0 ]; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
+	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t >= TO_UNIXTIME_GMT('201104260901','%Y%m%d%H%M') and t <= TO_UNIXTIME_GMT('201104260902','%Y%m%d%H%M') order by t ASC" -o $(TESTDIR)/js2-7 >> $(TESTDIR)/$@.log 2>&1
+	@if [ `diff -w $(TESTDIR)/js2-4 $(TESTDIR)/js2-7 | wc -l` -eq 0 ]; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
+	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and ( t between TO_UNIXTIME_GMT('2011/04/26 09:01','%Y/%m/%d %H:%M') and TO_UNIXTIME_GMT('201104260902','%Y%m%d%H%M') ) order by t ASC" -o $(TESTDIR)/js2-8 >> $(TESTDIR)/$@.log 2>&1
+	@if [ `diff -w $(TESTDIR)/js2-4 $(TESTDIR)/js2-8 | wc -l` -eq 0 ]; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@if [ ` $(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_GMT(t,'%Y%m%d%H%M%S') as GMT_TIME_STR, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') as LOCAL_TIME_STR,  FORMAT_UNIXTIME_GMT(t,'%Y-%m-%d') AS GMT_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'%Y-%m-%d') AS LOCAL_YYYYMMDD, FORMAT_UNIXTIME_LOCAL(t,'local offset %z') AS LOC_TZ_OFF where s > 0 and t < TO_UNIXTIME_GMT('2011/04','%Y/%m') order by t ASC" 2>&1 | fgrep "produced a table with 1 row and 7 columns" - | wc -l` -eq 1 ]; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
+	@if [ `scripts/printWarning.pl $(TESTDIR)/$@.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
 # run a set of tests with 1.6 million rows split into three
 # subdirectories.  Tests may take half a hour or longer depending on

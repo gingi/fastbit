@@ -23,13 +23,13 @@ if (${HOSTNAME} =~ m/^bit/) {
 } elsif (${HOSTNAME} =~ m/^edison\w+[.nersc.gov]?$/) {
   # on the front end of edison at NERSC, the default compiler is from Intel
   print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-intel PrgEnv-gnu'\n\n";
-  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O -std=c++11' CXXFLAGS='-fPIC -O -std=c++11' --without-java --prefix=/project/projectdirs/m1248/edison/gnu/fastbit";
-  #$cmd="./configure CC=icc CXX=icpc --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -g -O' CXXFLAGS='-fPIC -g -O' --without-java --prefix=/project/projectdirs/m1248/edison/intel/fastbit";
+  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/edison/gnu/fastbit";
+  #$cmd="./configure CC=icc CXX=icpc --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -g -O3' CXXFLAGS='-fPIC -g -O3' --without-java --prefix=/project/projectdirs/m1248/edison/intel/fastbit";
 } elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/) {
   # on the front end of hopper at NERSC, there is a choice to be made about what compiler to use
   # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-pgi PrgEnv-gnu'\n\n";
-  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O -std=c++11' CXXFLAGS='-fPIC -O -std=c++11' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
-  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O' CXXFLAGS='-fPIC -O' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
+  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu/fastbit";
+  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3' CXXFLAGS='-fPIC -O3' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi/fastbit";
 } elsif (${HOSTNAME} =~ m/^sith/) {# sith.ccs.ornl.gov
   # on sith at ORNL, try GNU compilers
   $cmd="./configure --prefix=${HOME}/`uname -s`/fastbit/sith-gnu --without-java --enable-xopt --disable-debug"

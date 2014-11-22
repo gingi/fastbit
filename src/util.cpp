@@ -2024,12 +2024,12 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
     const char *str = ibis::util::getVersionString();
     std::string tmp;
     if (str == 0 || *str == 0) {
-        tmp = "FastBit ibis";
-        std::ostringstream oss;
-        oss << ibis::util::getVersionNumber();
-        tmp += oss.str();
-        tmp += ", Copyright (c) (c)-2015";
-        str = tmp.c_str();
+	tmp = "FastBit ibis";
+	std::ostringstream oss;
+	oss << ibis::util::getVersionNumber();
+	tmp += oss.str();
+        tmp += ", Copyright (c) 2000-2014";
+	str = tmp.c_str();
     }
     int ierr = 0;
     if (fname != 0 && *fname != 0)
