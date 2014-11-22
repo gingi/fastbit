@@ -1994,6 +1994,7 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
 	std::ostringstream oss;
 	oss << ibis::util::getVersionNumber();
 	tmp += oss.str();
+        tmp += ", Copyright (c) 2000-2014";
 	str = tmp.c_str();
     }
     int ierr = 0;

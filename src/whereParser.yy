@@ -1195,6 +1195,12 @@ mathExpr ADDOP mathExpr {
         // determine whether Daylight Saving Time is in effect for the
         // specified time.
         mytm.tm_isdst = -1;
+        if (mytm.tm_mday == 0) {
+            // This can happen if we are using a format without '%d'
+            // e.g. "%Y%m" as tm_mday is day of the month (in the range 1
+            // through 31).
+            mytm.tm_mday = 1;
+        }
         $$ = new ibis::math::number(mktime(&mytm));
     }
     delete $3;
@@ -1218,8 +1224,15 @@ mathExpr ADDOP mathExpr {
     struct tm mytm;
     memset(&mytm, 0, sizeof(mytm));
     const char *ret = strptime($3->c_str(), $5->c_str(), &mytm);
-    if (ret != 0)
+    if (ret != 0) {
+        if (mytm.tm_mday == 0) {
+            // This can happen if we are using a format without '%d'
+            // e.g. "%Y%m" as tm_mday is day of the month (in the range 1
+            // through 31).
+            mytm.tm_mday = 1;
+        }
         $$ = new ibis::math::number(timegm(&mytm));
+    }
     delete $3;
     delete $5;
 

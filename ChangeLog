@@ -1,3 +1,15 @@
+2014-11-19 John Wu <John dot Wu at ACM dot org>
+	* tests/Makefile.am: add test cases based on input from Jon
+	Strabala
+
+2014-11-10 Jon Strabala <jon dot strabala at quantumsi dot com>
+	* src/whereParser.yy: addressing the issue with tm_mday being left
+	as 0 by the conversion functions
+
+2014-11-07 John Wu <John dot Wu at ACM dot org>
+	* COPYING: replace the license with the 3-clause BSD
+	* configure.ac: mark the current soruce code as 2.0.0
+
 2014-11-03 John Wu <John dot Wu at ACM dot org>
 	* src/ifade.cpp, src/ixpack.cpp, src/ixpale.cpp, src/ixzone.cpp:
 	add statement to log conditions leading to error code -13 to
