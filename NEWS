@@ -13,7 +13,7 @@ Version 2.0.0
 -- accepted a patch from Zhongbo Tian that fixes the order of bound
    check in ibis::mensa::cursor
 -- add iapi for operations on in-memory data with the help in design and
-   debuggin from Junmin Gu
+   debugging from Junmin Gu
 -- address thread-safety issue report by Dominique Prunier
 -- address data type recognition problem reported by Li Jun
 -- address index file locking problem reported by Petr Velan
