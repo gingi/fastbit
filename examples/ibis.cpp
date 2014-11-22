@@ -202,7 +202,7 @@ static void usage(const char* name) {
 #else
 	      << "FastBit ibis1.2"
 #endif
-	      << "\n\nList of options for " << name
+	      << ", Copyright (c) 2000-2014\n\nList of options for " << name
 	      << "\n\t[-a[ppend] data_dir [output_dir / partition_name]]"
 	"\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
 	"\n\t[-c[onf] conf_file]"

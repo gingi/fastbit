@@ -147,7 +147,7 @@
 2014-09-10 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: in constructor of bord, check the validify of
 	pointer buf before using (to address a problem reported by Jerome
-	Soumagne
+	Soumagne)
 
 2014-09-03 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: in ibis::text::stringSearch, adjust the LOGGER
@@ -230,8 +230,8 @@
 2014-07-22 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: remove the check for nil data file
 	name from column::selectValues because the underlying
-	implementation actually deal with the case correctly previous, the
-	recent changes were incorrect
+	implementation actually deal with the case correctly previously,
+	the recent changes were incorrect
 
 2014-07-20 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/column.cpp: add member variable dataflag
@@ -331,7 +331,8 @@
 2014-06-17 John Wu <John dot Wu at ACM dot org>
 	* src/bundle.cpp:1466 rewrite the conditional test to capture the
 	case where the name cn do not match c->name() -- to address a
-	problem reported by Hendrik Heinemann <hendrik.heinemann at questback.com>
+	problem reported by Hendrik Heinemann <hendrik.heinemann at
+	questback.com>
 
 2014-06-15 John Wu <John dot Wu at ACM dot org>
 	* src/bundles.cpp:1500 move the LOGGER statement before push_back
