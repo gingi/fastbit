@@ -1,3 +1,12 @@
+2014-11-24 John Wu <John dot Wu at ACM dot org>
+	* doc/footer.html: fix path to cowboy1a.gif
+	* examples/thula.cpp: remove -q option, add explanation of -x
+	option, per suggestion from Jon Strabala
+	* examples/ibis.cpp: streamline output option to ensure the
+	existing content of the output file is cleared before running any
+	queries, this option leaves the output file empty when query
+	operations encounter any error (suggested by Jon Strabala)
+
 2014-11-19 John Wu <John dot Wu at ACM dot org>
 	* tests/Makefile.am: add test cases based on input from Jon
 	Strabala

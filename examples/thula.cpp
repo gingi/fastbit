@@ -48,29 +48,29 @@ int testing = 0;
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] [-help] "
-        "[-d directory_containing_a_dataset] [-s select-clause] "
-        "[-w where-clause] [-o order-by-clasue] [-f from-clause] "
-        "[-v[=| ]verbose_level] [-t[=| ]#-of-cases] "
-        "[-m[erge-dictionaries][[=| ]column-names]] "
+	"[-d directory_containing_a_dataset] [-s select-clause] "
+	"[-w where-clause] [-o order-by-clasue] [-f from-clause] "
+	"[-v[=| ]verbose_level] [-t[=| ]#-of-cases] "
+	"[-m[erge-dictionaries][[=| ]column-names]] "
         "[-m[erge-dictionaries][[=| ]column-names]]"
-        "\n\nPerforms a projection of rows satisfying the specified "
-        "conditions, a very limited version of SQL"
-        "\n  SELECT select-clause FROM from-clause WHERE where-clause."
-        "\nEach where-clause will be used in turn."
-        "\n\n-- both select clause and where clause may contain "
-        "arithmetic expressions."
-        "\n-- data in all directories specified by -c and -d "
-        "options are considered as one table!"
-        "\n-- when multiple select clauses are specified, only "
-        "the last one is used."
-        "\n-- a from clause specifies what data partitions "
-        "participate in the query.  It may contain wild characters '_' and '%'."
-        "  When multiple from clauses are specified, only the last one is used."
+	"\n\nPerforms a projection of rows satisfying the specified "
+	"conditions, a very limited version of SQL"
+	"\n  SELECT select-clause FROM from-clause WHERE where-clause."
+	"\nEach where-clause will be used in turn."
+	"\n\n-- both select clause and where clause may contain "
+	"arithmetic expressions."
+	"\n-- data in all directories specified by -c and -d "
+	"options are considered as one table!"
+	"\n-- when multiple select clauses are specified, only "
+	"the last one is used."
+	"\n-- a from clause specifies what data partitions "
+	"participate in the query.  It may contain wild characters '_' and '%'."
+	"  When multiple from clauses are specified, only the last one is used."
         "\n-- the file named by -x would be overwritten regardless of "
         "whether any output is produced by this command.  "
         "If multiple -x options are specified, each file is overwritten"
         " and only the last file may contain the new query results."
-              << std::endl;
+	      << std::endl;
 } // usage
 
 // function to parse the command line arguments
@@ -94,132 +94,130 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
     frm = 0;
     ord = 0;
     for (int i=1; i<argc; ++i) {
-        if (*argv[i] == '-') { // normal arguments starting with -
-            switch (argv[i][1]) {
-            default:
-            case 'h':
-            case 'H':
-                usage(*argv);
-                exit(0);
-            case 'c':
-            case 'C':
-                if (i+1 < argc) {
-                    ++ i;
-                    ibis::gParameters().read(argv[i]);
-                }
-                break;
-            case 'd':
-            case 'D':
-                if (i+1 < argc) {
-                    ++ i;
-                    dirs.push_back(argv[i]);
-                }
-                break;
-            case 'f':
-            case 'F':
-                if (i+1 < argc) {
-                    ++ i;
-                    frm = argv[i];
-                }
-                break;
-            case 'm':
-            case 'M': {
-                if (0 == cats)
-                    cats = new ibis::table::stringList;
-                char *ptr = strchr(argv[i], '=');
-                if (ptr == 0) {
-                    if (i+1 < argc) {
-                        if ('-' != *argv[i+1]) {
-                            ibis::table::parseNames(argv[i+1], *cats);
-                            i = i + 1;
-                        }
-                    }
-                }
-                else {
-                    ibis::table::parseNames(++ptr, *cats);
-                }
-                break;}
-            case 'w':
-            case 'W':
-                if (i+1 < argc) {
-                    ++ i;
-                    qcnd.insert(argv[i]);
-                }
-                break;
-            case 'o':
-            case 'O':
-                if (i+1 < argc) {
-                    ++ i;
-                    ord = argv[i];
-                }
-                break;
-            case 's':
-            case 'S':
-                if (i+1 < argc) {
-                    ++ i;
-                    sel = argv[i];
-                }
-                break;
-            case 'v':
-            case 'V': {
-                char *ptr = strchr(argv[i], '=');
-                if (ptr == 0) {
-                    if (i+1 < argc) {
-                        if (isdigit(*argv[i+1])) {
-                            ibis::gVerbose += strtol(argv[i+1], 0, 0);
-                            i = i + 1;
-                        }
-                        else {
-                            ++ ibis::gVerbose;
-                        }
-                    }
-                    else {
-                        ++ ibis::gVerbose;
-                    }
-                }
-                else {
-                    ibis::gVerbose += strtol(++ptr, 0, 0);
-                }
-                break;}
-            case 't':
-            case 'T': {
-                char *ptr = strchr(argv[i], '=');
-                if (ptr == 0) {
-                    if (i+1 < argc) {
-                        if (isdigit(*argv[i+1])) {
-                            testing += strtol(argv[i+1], 0, 0);
-                            i = i + 1;
-                        }
-                        else {
-                            ++ testing;
-                        }
-                    }
-                    else {
-                        ++ testing;
-                    }
-                }
-                else {
-                    testing += strtol(++ptr, 0, 0);
-                }
-                break;}
-            case 'x':
-            case 'X':
-                if (i+1 < argc) {
-                    ++ i;
-                    xfile.open(argv[i],
-                               std::ios_base::out|std::ios_base::trunc);
-                    if (!xfile)
-                        std::cerr << "Warning -- " << *argv
-                                  << " failed to open \"" << argv[i]
-                                  << "\" for writing output records"
-                                  << std::endl;
-                }
-                break;
-            } // switch (argv[i][1])
-        } // normal arguments
-        else { // assume to be a set of query conditioins
-            qcnd.insert(argv[i]);
-        }
+	if (*argv[i] == '-') { // normal arguments starting with -
+	    switch (argv[i][1]) {
+	    default:
+	    case 'h':
+	    case 'H':
+		usage(*argv);
+		exit(0);
+	    case 'c':
+	    case 'C':
+		if (i+1 < argc) {
+		    ++ i;
+		    ibis::gParameters().read(argv[i]);
+		}
+		break;
+	    case 'd':
+	    case 'D':
+		if (i+1 < argc) {
+		    ++ i;
+		    dirs.push_back(argv[i]);
+		}
+		break;
+	    case 'f':
+	    case 'F':
+		if (i+1 < argc) {
+		    ++ i;
+		    frm = argv[i];
+		}
+		break;
+	    case 'm':
+	    case 'M': {
+		if (0 == cats)
+		    cats = new ibis::table::stringList;
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if ('-' != *argv[i+1]) {
+			    ibis::table::parseNames(argv[i+1], *cats);
+			    i = i + 1;
+			}
+		    }
+		}
+		else {
+		    ibis::table::parseNames(++ptr, *cats);
+		}
+		break;}
+	    case 'w':
+	    case 'W':
+		if (i+1 < argc) {
+		    ++ i;
+		    qcnd.insert(argv[i]);
+		}
+		break;
+	    case 'o':
+	    case 'O':
+		if (i+1 < argc) {
+		    ++ i;
+		    ord = argv[i];
+		}
+		break;
+	    case 's':
+	    case 'S':
+		if (i+1 < argc) {
+		    ++ i;
+		    sel = argv[i];
+		}
+		break;
+	    case 'v':
+	    case 'V': {
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    ibis::gVerbose += strtol(argv[i+1], 0, 0);
+			    i = i + 1;
+			}
+			else {
+			    ++ ibis::gVerbose;
+			}
+		    }
+		    else {
+			++ ibis::gVerbose;
+		    }
+		}
+		else {
+		    ibis::gVerbose += strtol(++ptr, 0, 0);
+		}
+		break;}
+	    case 't':
+	    case 'T': {
+		char *ptr = strchr(argv[i], '=');
+		if (ptr == 0) {
+		    if (i+1 < argc) {
+			if (isdigit(*argv[i+1])) {
+			    testing += strtol(argv[i+1], 0, 0);
+			    i = i + 1;
+			}
+			else {
+			    ++ testing;
+			}
+		    }
+		    else {
+			++ testing;
+		    }
+		}
+		else {
+		    testing += strtol(++ptr, 0, 0);
+		}
+		break;}
+	    case 'x':
+	    case 'X': 
+		if (i+1 < argc) {
+		    ++ i;
+		    xfile.open(argv[i], std::ios_base::out|std::ios_base::trunc);
+		    if (!xfile)
+			std::cerr << *argv << " failed to open \"" << argv[i]
+				  << "\" for writing output records"
+				  << std::endl;
+		}
+		break;
+	    } // switch (argv[i][1])
+	} // normal arguments
+	else { // assume to be a set of query conditioins
+	    qcnd.insert(argv[i]);
+	}
     } // for (inti=1; ...)
 
     // add the data partitions from configuartion files first

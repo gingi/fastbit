@@ -244,11 +244,11 @@ static void usage(const char* name) {
 	"from the data files.\n\n"
 	"NOTE: option -y is applied to all data partitions known to this "
         "program.  Use with care!\n\n"
-        "NOTE: the output file stores the results selected by queries, the "
-        "log file is for the rest of the messages such error messages and "
-        "debug information.  The existing content of the output file is "
+	"NOTE: the output file stores the results selected by queries, the "
+	"log file is for the rest of the messages such error messages and "
+	"debug information.  The existing content of the output file is "
         "cleared before any query is evaluated.\n"
-              << std::endl;
+	      << std::endl;
 } // usage
 
 // printout the help message
@@ -2697,15 +2697,15 @@ static void printQueryResults(std::ostream &out, ibis::query &q) {
 static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
                      const char* sstr) {
     LOGGER(ibis::gVerbose > 0)
-        << "xdoQuery -- processing query " << wstr
-        << " on partition " << tbl->name();
+	<< "xdoQuery -- processing query " << wstr
+	<< " on partition " << tbl->name();
     std::ofstream outputstream;
     if (outputname != 0 && *outputname != 0 &&
         0 != strcmp(outputname, "/dev/null")) {
         // open the file now to clear the existing content, in cases of
         // error, the output file would have been cleared
         outputstream.open(outputname,
-                          std::ios::out |
+                          std::ios::out | 
                           (appendToOutput ? std::ios::app : std::ios::trunc));
         appendToOutput = true; // all query output go to the same file
     }
@@ -2770,7 +2770,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 &&
         (outputname == 0 || 0 != strcmp(outputname, "/dev/null"))) {
-        if (outputstream.is_open() && outputstream.good()) {
+        if (outputstream.is_open()) {
             LOGGER(ibis::gVerbose >= 0)
                 << "xdoQuery -- query (" <<  aQuery.getWhereClause()
                 << ") results written to file \"" <<  outputname << "\"";
@@ -2968,6 +2968,16 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
 
     ibis::horometer timer;
     timer.start();
+    std::ofstream outputstream;
+    if (outputname != 0 && *outputname != 0 &&
+        0 != strcmp(outputname, "/dev/null")) {
+        // open the file now to clear the existing content, in cases of
+        // error, the output file would have been cleared
+        outputstream.open(outputname,
+                          std::ios::out | 
+                          (appendToOutput ? std::ios::app : std::ios::trunc));
+        appendToOutput = true; // all query output go to the same file
+    }
 
     if (estimation_opt >= 0) {
 	uint64_t num1, num2;
@@ -3017,33 +3027,28 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
         sel1->orderby(ordkeys);
     }
 
-    if (outputname != 0 && *outputname != 0) {
-	if (0 != strcmp(outputname, "/dev/null")) {
-	    if (zapping)
-		ibis::util::removeDir(outputname);
+    if (outputname != 0 && 0 == strcmp(outputname, "/dev/null")) {
+    }
+    else if (outputbinary) {
+        if (zapping)
+            ibis::util::removeDir(outputname);
 
-	    if (outputbinary) {
-		ierr = sel1->backup(outputname);
-		LOGGER(ierr < 0)
-		    << "Warning -- tableSelect failed to write the content of "
-		    << sel1->name() << " in binary to " << outputname
-		    << ", ierr = " << ierr;
-	    }
-	    else {
-		std::ofstream output(outputname, std::ios::out |
-				     (appendToOutput ? std::ios::app :
-				      std::ios::trunc));
-		if (showheader)
-		    sel1->dumpNames(output, ", ");
-		if (limit == 0)
-		    limit = static_cast<uint32_t>(sel1->nRows());
-		ierr = sel1->dump(output, start, limit, ", ");
-		LOGGER(ierr < 0)
-		    << "Warning -- tableSelect failed to write the content of "
-		    << sel1->name() << " in CSV to " << outputname
-		    << ", ierr = " << ierr;
-	    }
-	}
+        ierr = sel1->backup(outputname);
+        LOGGER(ierr < 0 && 0 != outputname && sel1->name() != 0)
+            << "Warning -- tableSelect failed to write the content of "
+            << sel1->name() << " in binary to " << outputname
+            << ", ierr = " << ierr;
+    }
+    else if (outputstream.is_open()) {
+        if (showheader)
+            sel1->dumpNames(outputstream, ", ");
+        if (limit == 0)
+            limit = static_cast<uint32_t>(sel1->nRows());
+        ierr = sel1->dump(outputstream, start, limit, ", ");
+        LOGGER(ierr < 0 && 0 != outputname && sel1->name() != 0)
+            << "Warning -- tableSelect failed to write the content of "
+            << sel1->name() << " in CSV to " << outputname
+            << ", ierr = " << ierr;
     }
     else if (ibis::gVerbose >= 0) {
 	ibis::util::logger lg;
@@ -3180,6 +3185,16 @@ static void doQuaere(const ibis::partList& pl,
     }
     LOGGER(ibis::gVerbose > 1)
 	<< "doQuaere -- processing \"" << sqlstring << '\"';
+    std::ofstream outputstream;
+    if (outputname != 0 && *outputname != 0 &&
+        0 != strcmp(outputname, "/dev/null")) {
+        // open the file now to clear the existing content, in cases of
+        // error, the output file would have been cleared
+        outputstream.open(outputname,
+                          std::ios::out | 
+                          (appendToOutput ? std::ios::app : std::ios::trunc));
+        appendToOutput = true; // all query output go to the same file
+    }
 
     std::unique_ptr<ibis::table> res;
     if (estimation_opt < 0) { // directly evaluate the select clause
@@ -3283,7 +3298,7 @@ static void doQuaere(const ibis::partList& pl,
             << res->name() << " in binary to " << outputname
             << ", ierr = " << ierr;
     }
-    else if (outputstream.is_open() && outputstream.good()) {
+    else if (outputstream.is_open()) {
         if (showheader)
             res->dumpNames(outputstream, ", ");
         if (limit == 0)
@@ -3519,7 +3534,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
         // open the file now to clear the existing content, in cases of
         // error, the output file would have been cleared
         outputstream.open(outputname,
-                          std::ios::out |
+                          std::ios::out | 
                           (appendToOutput ? std::ios::app : std::ios::trunc));
         appendToOutput = true; // all query output go to the same file
     }
@@ -3666,57 +3681,14 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    num2 = bdl->truncate(limit, start);
 	    if (num2 < 0) {
 		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- doQuery failed to truncate the bundle object";
+		    << "Warning -- doQuery failed to truncate the bundle";
 		return;
 	    }
 	}
 	if (0 != outputname && 0 == strcmp(outputname, "/dev/null")) {
 	    // no need to actually write anything to the output file
 	}
-	else if (outputname != 0 && *outputname != 0) {
-	    std::ofstream output(outputname,
-				 std::ios::out | 
-				 (appendToOutput ? std::ios::app :
-				  std::ios::trunc));
-	    if (output) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "doQuery -- query (" << aQuery.getWhereClause()
-		    << ") results written to file \""
-		    <<  outputname << "\"";
-		if (ibis::gVerbose > 8 || recheckvalues) {
-		    bdl->printAll(output);
-                }
-		else {
-                    const int gvold = ibis::gVerbose;
-                    if (gvold < 4) ibis::gVerbose = 4;
-		    bdl->print(output);
-                    ibis::gVerbose = gvold;
-                }
-	    }
-	    else {
-		ibis::util::logger lg;
-		lg() << "Warning ** doQuery failed to open file \""
-		     << outputname << "\" for writing query ("
-		     << aQuery.getWhereClause() << ")\n";
-		if (ibis::gVerbose > 8 || recheckvalues) {
-		    bdl->printAll(lg());
-                }
-		else {
-		    bdl->print(lg());
-                }
-	    }
-	    appendToOutput = true; // all query output go to the same file
-	}
-	else {
-	    ibis::util::logger lg;
-	    if (ibis::gVerbose > 8 || recheckvalues) {
-		bdl->printAll(lg());
-            }
-        }
-        if (0 != outputname && 0 == strcmp(outputname, "/dev/null")) {
-            // no need to actually write anything to the output file
-        }
-        else if (outputstream.is_open() && outputstream.good()) {
+	else if (outputstream.is_open()) {
             LOGGER(ibis::gVerbose >= 0)
                 << "doQuery -- query (" << aQuery.getWhereClause()
                 << ") results written to file \""
@@ -3770,7 +3742,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	    num2 = cq.evaluate();
 	    if (num2 < 0) {
 		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- doQuery failed to evaluate the count query on "
+		    << "Warning -- doQuery failed to count the where clause "
 		    << aQuery.getWhereClause();
 	    }
 	    else if (cq.getNumHits() != num1) {
@@ -3949,15 +3921,15 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
 
     LOGGER(ibis::gVerbose > 0)
-        << "doMeshQuery -- processing query " << wstr
-        << " on partition " << tbl->name();
+	<< "doMeshQuery -- processing query " << wstr
+	<< " on partition " << tbl->name();
     std::ofstream outputstream;
     if (outputname != 0 && *outputname != 0 &&
         0 != strcmp(outputname, "/dev/null")) {
         // open the file now to clear the existing content, in cases of
         // error, the output file would have been cleared
         outputstream.open(outputname,
-                          std::ios::out |
+                          std::ios::out | 
                           (appendToOutput ? std::ios::app : std::ios::trunc));
         appendToOutput = true; // all query output go to the same file
     }
@@ -4076,39 +4048,31 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
         << "doMeshQuery: identified " << num2 << " connected component"
         << (num2>1?"s":"") << " among the query lines";
 
-    if (asstr != 0 && *asstr != 0 && ibis::gVerbose > 0) {
-	if (outputname != 0 && *outputname != 0) {
-	    std::ofstream output(outputname,
-				 std::ios::out | std::ios::app);
-	    if (output) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "doMeshQuery -- query (" << aQuery.getWhereClause()
-		    << ") results written to file \""
-		    << outputname << "\"";
-		if (ibis::gVerbose > 8 || recheckvalues)
-		    aQuery.printSelectedWithRID(output);
-		else
-		    aQuery.printSelected(output);
-	    }
-	    else {
-		ibis::util::logger lg;
-		lg() << "Warning ** doMeshQuery failed to "
-		     << "open file \"" << outputname
-		     << "\" for writing query ("
-		     << aQuery.getWhereClause() << ") output\n";
-		if (ibis::gVerbose > 8 || recheckvalues)
-		    aQuery.printSelectedWithRID(lg());
-		else
-		    aQuery.printSelected(lg());
-	    }
-	}
-	else {
-	    ibis::util::logger lg;
-	    if (ibis::gVerbose > 8 || recheckvalues)
-		aQuery.printSelectedWithRID(lg());
-	    else
-		aQuery.printSelected(lg());
-	}
+    if (asstr != 0 && *asstr != 0 && ibis::gVerbose > 0 &&
+        (outputname == 0 || 0 != strcmp(outputname, "/dev/null"))) {
+        if (outputstream.is_open()) {
+            LOGGER(ibis::gVerbose > 0)
+                << "doMeshQuery -- query (" << aQuery.getWhereClause()
+                << ") results written to file \""
+                << outputname << "\"";
+            if (ibis::gVerbose > 8 || recheckvalues)
+                aQuery.printSelectedWithRID(outputstream);
+            else
+                aQuery.printSelected(outputstream);
+        }
+        else {
+            ibis::util::logger lg;
+            if (outputname != 0) {
+                lg() << "Warning -- doMeshQuery failed to "
+                     << "open file \"" << outputname
+                     << "\" for writing query ("
+                     << aQuery.getWhereClause() << ") output\n";
+            }
+            if (ibis::gVerbose > 8 || recheckvalues)
+                aQuery.printSelectedWithRID(lg());
+            else
+                aQuery.printSelected(lg());
+        }
     } // if (asstr != 0 && num1>0 && ibis::gVerbose > 0)
 } // doMeshQuery
 
