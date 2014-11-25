@@ -298,13 +298,16 @@ letter b is not found, <code>ibis</code> will write the selected data in
 ASCII format.  If it finds the letter h in this option, it will also
 write a header before writing the ASCII data.
 
-<p>
-<em>NOTE</em>: the results from multiple select clauses on the same
-command line will be written to the same output file or directory.
-When outputting in the binary format, the new results is always
-appended, however, when writing in ASCII format, the existing file
-content can be erased if the additional opton <code>-z</code> is also
-specified.
+<p> <em>NOTE</em>: the results from multiple select clauses on the same
+command line will be written to the same output file or directory.  When
+outputting in the binary format (-output-as-binary), the given name is
+taken to be a directory name, in all other cases, the given name is
+taken to be the output file name.  When output binary data, the new
+results is always appended; when writing in ASCII format, the existing
+file content will be erased regardless of whether the query processing
+is successful or not.  In cases of error, the output file would be
+empty.
+
 <p>
 <em>NOTE</em>: When outputting ASCII data with header, the results from each
 select clause will have its own header since different select clause

@@ -4,13 +4,13 @@
 /** @file thula.cpp
 
 This is a simple test program for the querying functions of ibis::table.
-The data must already be on disk and all data directories are treated as
-one ibis::table.
+The data records must already be on disk and all data directories are
+treated as a single ibis::table.
 
 Command line arguments
 [-c conf-file] [-d directory_containing_a_dataset] [-s select-clause]
 [-w where-clause] [-f from-clause] [-o order-by] [-v[=| ]verbose_level] [-help]
-[-t[=| ]#-of-cases] [-m[erge-dictionaries][[=| ]column-names]]
+[-t[=| ]#-of-cases] [-m[erge-dictionaries][[=| ]column-names]] [-x outputfilename]
 
 @note All data directories specified through options -d and -c are treated
 as partitions of one data table.
@@ -51,7 +51,8 @@ static void usage(const char* name) {
 	"[-d directory_containing_a_dataset] [-s select-clause] "
 	"[-w where-clause] [-o order-by-clasue] [-f from-clause] "
 	"[-v[=| ]verbose_level] [-t[=| ]#-of-cases] "
-	"[-m[erge-dictionaries][[=| ]column-names]]"
+	"[-m[erge-dictionaries][[=| ]column-names]] "
+        "[-m[erge-dictionaries][[=| ]column-names]]"
 	"\n\nPerforms a projection of rows satisfying the specified "
 	"conditions, a very limited version of SQL"
 	"\n  SELECT select-clause FROM from-clause WHERE where-clause."
@@ -65,6 +66,10 @@ static void usage(const char* name) {
 	"\n-- a from clause specifies what data partitions "
 	"participate in the query.  It may contain wild characters '_' and '%'."
 	"  When multiple from clauses are specified, only the last one is used."
+        "\n-- the file named by -x would be overwritten regardless of "
+        "whether any output is produced by this command.  "
+        "If multiple -x options are specified, each file is overwritten"
+        " and only the last file may contain the new query results."
 	      << std::endl;
 } // usage
 
@@ -134,8 +139,6 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 		    ibis::table::parseNames(++ptr, *cats);
 		}
 		break;}
-	    case 'q':
-	    case 'Q':
 	    case 'w':
 	    case 'W':
 		if (i+1 < argc) {
@@ -203,7 +206,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 	    case 'X': 
 		if (i+1 < argc) {
 		    ++ i;
-		    xfile.open(argv[i], std::ios_base::out|std::ios_base::app);
+		    xfile.open(argv[i], std::ios_base::out|std::ios_base::trunc);
 		    if (!xfile)
 			std::cerr << *argv << " failed to open \"" << argv[i]
 				  << "\" for writing output records"
