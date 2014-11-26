@@ -112,14 +112,17 @@ static void usage(const char* name) {
 	"[-d directory-to-write-data] [-n name-of-dataset] "
 	"[-r a-row-in-ASCII] [-t text-file-to-read] "
 	"[-sqldump file-to-read] [-b break/delimiters-in-text-data]"
-	"[-M metadata-file] [-m name:type[,name:type,...]] [-m max-rows-per-file] "
-	"[-tag name-value-pair] [-p max-per-partition]"
+	"[-M metadata-file] [-m name:type[,name:type,...]] "
+	"[-m max-rows-per-file] [-tag name-value-pair] [-p max-per-partition]"
 	"[-select clause] [-where clause] [-v[=| ]verbose_level]\n\n"
-	"Note:\n\tColumn name must start with an alphabet and can only contain alphanumeric values, and max-rows-per-file must start with a decimal digit\n"
+	"Note:\n\tColumn name must start with an alphabet and can only "
+        "contain alphanumeric values, and max-rows-per-file must start "
+        "with a decimal digit\n"
 	"\tThis program only recognize the following column types:\n"
 	"\tbyte, short, int, long, float, double, key, and text\n"
 	"\tIt only checks the first character of the types.\n"
-	"\tFor example, one can load the data in tests/test0.csv either one of the following command lines:\n"
+	"\tFor example, one can load the data in tests/test0.csv either "
+        "one of the following command lines:\n"
 	"\tardea -d somwhere1 -m a:i,b:i,c:i -t tests/test0.csv\n"
 	"\tardea -d somwhere2 -m a:i -m b:f -m c:d -t tests/test0.csv\n"
 	      << std::endl;
@@ -890,11 +893,11 @@ int main(int argc, char** argv) {
 	    }
 	}
 
-        // process the metadata explicitly entered
-        if (! namestypes.empty())
-            ta->parseNamesAndTypes(namestypes.c_str());
-        if (metadatafile != 0)
-            ta->readNamesAndTypes(metadatafile);
+	// process the metadata explicitly entered
+	if (! namestypes.empty())
+	    ta->parseNamesAndTypes(namestypes.c_str());
+	if (metadatafile != 0)
+	    ta->readNamesAndTypes(metadatafile);
         for (unsigned j = 0; j+1 < userdicts.size(); j += 2) {
             ta->setASCIIDictionary(userdicts[j], userdicts[j+1]);
         }
@@ -930,7 +933,8 @@ int main(int argc, char** argv) {
 		}
 		ta->clearData();
 		if (build_indexes > 0) { // build indexes
-		    std::unique_ptr<ibis::table> tbl(ibis::table::create(outdir));
+		    std::unique_ptr<ibis::table>
+                        tbl(ibis::table::create(outdir));
 		    if (tbl.get() != 0)
 			tbl->buildIndexes(0);
 		}
@@ -996,9 +1000,9 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::unique_ptr<ibis::table> tb(outdir!=0 && *outdir != 0 ?
-				  ibis::table::create(outdir) :
-				  ta->toTable());
+    std::unique_ptr<ibis::table> tb(outdir != 0 && *outdir != 0 ?
+                                    ibis::table::create(outdir) :
+                                    ta->toTable());
     delete ta.release(); // no long need the tablex object
     if (tb.get() == 0) {
         std::cerr << "Warning -- " << *argv
@@ -1010,12 +1014,12 @@ int main(int argc, char** argv) {
         return -10;
     }
     else if (! usersupplied && (tb->nRows() == 0 || tb->nColumns() != 8 ||
-                                tb->nRows() % 91 != 0)) {
-        std::cerr << "Warning -- " << *argv << " data in "
-                  << (outdir!=0&&*outdir!=0 ? outdir : "memory")
-                  << " is expected to have 8 columns and a multiple of 91 "
+				tb->nRows() % 91 != 0)) {
+	std::cerr << "Warning -- " << *argv << " data in "
+		  << (outdir!=0&&*outdir!=0 ? outdir : "memory")
+		  << " is expected to have 8 columns and a multiple of 91 "
             "rows, but it does not"
-                  << std::endl;
+		  << std::endl;
     }
     if (ibis::gVerbose > 0) {
         // use a logger object to hold the print out in memory to avoid it

@@ -1736,10 +1736,16 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
                 dfile.close();
                 if (ierr < 0) {
                     LOGGER(ibis::gVerbose > 0)
-                        << "Warning -- tafe::writeMetaData failed to read the "
+                        << "Warning -- tafel::writeMetaData failed to read the "
                         "content of user supplied ASCII dictionary file \""
                         << col.dictfile << '"';
                     continue;
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 2)
+                        << "tafel::writeMetaData read " << tmp.size()
+                        << " dictionary entries from " << col.dictfile
+                        << " for column " << col.name;
                 }
 
                 // successfully read the ASCII dictionary
@@ -1791,10 +1797,16 @@ int ibis::tafel::writeMetaData(const char* dir, const char* tname,
                 dfile.close();
                 if (ierr < 0) {
                     LOGGER(ibis::gVerbose > 0)
-                        << "Warning -- tafe::writeMetaData failed to read the "
+                        << "Warning -- tafel::writeMetaData failed to read the "
                         "content of user supplied ASCII dictionary file \""
                         << col.dictfile << '"';
                     continue;
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 2)
+                        << "tafel::writeMetaData read " << tmp.size()
+                        << " dictionary entries from " << col.dictfile
+                        << " for column " << col.name;
                 }
 
                 // successfully read the ASCII dictionary
@@ -2384,6 +2396,43 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
 		md << "\nindex = " << str;
 	}
 	md << "\nEnd Column\n";
+        if (! col.dictfile.empty()) {
+            // read the ASCII dictionary, then write it out in binary
+            ibis::dictionary tmp;
+            std::ifstream dfile(col.dictfile.c_str());
+            if (! dfile) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- tafel::writeData failed to open \""
+                    << col.dictfile << '"';
+                continue;
+            }
+            ierr = tmp.fromASCII(dfile);
+            dfile.close();
+            if (ierr < 0) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- tafel::writeData failed to read the "
+                    "content of user supplied ASCII dictionary file \""
+                    << col.dictfile << '"';
+                continue;
+            }
+            else {
+                LOGGER(ibis::gVerbose > 2)
+                    << "tafel::writeData read " << tmp.size()
+                    << " dictionary entries from " << col.dictfile
+                    << " for column " << col.name;
+            }
+
+            // successfully read the ASCII dictionary
+            std::string dictname = dir;
+            dictname += FASTBIT_DIRSEP;
+            dictname += col.name;
+            dictname += ".dic";
+            ierr = tmp.write(dictname.c_str());
+            LOGGER(ierr < 0 && ibis::gVerbose > 0)
+                << "Warning -- tafel::writeData failed to write the "
+                "content of \"" << col.dictfile
+                << "\" in the binary format to \"" << dictname << '"';
+        }
     }
     md.close(); // close the metadata file
     ibis::fileManager::instance().flushDir(mydir);
@@ -3806,6 +3855,8 @@ void ibis::tafel::setASCIIDictionary
         return;
     }
     col.dictfile = dictfile;
+    LOGGER(ibis::gVerbose > 2)
+        << "tafel::setASCIIDictionary -- " << col.name << " : " << col.dictfile;
 } // ibis::tafel::setASCIIDictionary
 
 const char* ibis::tafel::getASCIIDictionary(const char *colname) const {

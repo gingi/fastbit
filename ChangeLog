@@ -1,3 +1,9 @@
+2014-11-26 John Wu <John dot Wu at ACM dot org>
+	* examples/ardea.cpp: invoke tablex::setASCIIDictionary to make
+	use of the user supplied dictionary file
+	* tests/Makefile.am: add test cases 13, 14 and 15 to exercise the
+	text data with external ASCII dictionaries
+
 2014-11-24 John Wu <John dot Wu at ACM dot org>
 	* doc/footer.html: fix path to cowboy1a.gif
 	* examples/thula.cpp: remove -q option, add explanation of -x
@@ -31,7 +37,7 @@
 
 2014-11-01 John Wu <John dot Wu at ACM dot org>
 	* src/whereParser.yy: update TO_UNIXTIME_LOCAL and TO_UNIXTIME_GMT
-	based on suggestion from Jan Stabala
+	based on suggestion from Jon Strabala
 	* src/table.h, src/tafel.h, src/tafel.cpp: add functions
 	getASCIIDictionary and setASCIIDictionary
 

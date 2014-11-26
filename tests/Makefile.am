@@ -27,7 +27,8 @@ ARDEAEXE=$(EXDIR)/ardea$(EXEEXT)
 THULAEXE=$(EXDIR)/thula$(EXEEXT)
 TCAPIEXE=$(EXDIR)/tcapi$(EXEEXT)
 #
-EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv js2.csv \
+EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv \
+    acmpub.v.a acmpub.v.b js2.csv \
     scripts/hcompare.pl scripts/jrf-check.pl scripts/printWarning.pl \
     scripts/matchCounts.pl scripts/query-count.list scripts/star2002.sh \
     m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 m4/ltversion.m4 \
@@ -115,7 +116,7 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt 
 	@if [ "`$(IBISEXE) -d $(TESTDIR)/t0 -q "select AVG(c) where -3 < c < 20 || a = '79'" 2>&1 | fgrep 15`" == "15" ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
 	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch 2>&1 | fgrep -v std::exception | diff - vault/smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
 	@if [ `./inRange${EXEEXT} $(TESTDIR)/inRange 2>&1 | fgrep -v std::exception | diff -w - vault/inRange-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
-	@$(IBISEXE) -d $(TESTDIR)/acmpub -v -o $(TESTDIR)/acmpub-0 -q "select v, count(*) where v in (VLDB, SIGMOD)" >> $(TESTDIR)/check-text.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/acmpub1 -v -o $(TESTDIR)/acmpub-0 -q "select v, count(*) where v in (VLDB, SIGMOD)" >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `diff $(TESTDIR)/acmpub-0 vault/acmpub-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub1 -v -o $(TESTDIR)/acmpub-1 -q "select v where a contains ('Jim Gray', 'J. Ullman')" >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `diff $(TESTDIR)/acmpub-1 vault/acmpub-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
@@ -260,7 +261,7 @@ $(TESTDIR)/acmpub1/-part.txt: $(ARDEAEXE) $(IBISEXE) acmpub.csv TESTDIR
 	@$(IBISEXE) -d $(TESTDIR)/acmpub1 -b "a:keywords delimiters=','" -b "id:noindex" -b "<binning none>" -v >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/acmpub2/-part.txt: $(ARDEAEXE) $(IBISEXE) acmpub.csv TESTDIR
 	@rm -rf $(TESTDIR)/acmpub2
-	@$(ARDEAEXE) -d $(TESTDIR)/acmpub2 -m "id:u, t:t, a:t, v:k, y:u" -t acmpub.csv -k v acmpub.v.b >> $(TESTDIR)/std.log 2>&1
+	@$(ARDEAEXE) -d $(TESTDIR)/acmpub2 -m "id:u, t:t, a:t, v:k, y:u" -t acmpub.csv -k v acmpub.v.a >> $(TESTDIR)/std.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/acmpub2 -b "a:keywords delimiters=','" -b "id:noindex" -b "<binning none>" -v >> $(TESTDIR)/std.log 2>&1
 # a simple internal sanity check
 sanity-check: TESTDIR $(IBISEXE) $(TESTDIR)/append.log

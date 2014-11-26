@@ -206,10 +206,12 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
 	    case 'X': 
 		if (i+1 < argc) {
 		    ++ i;
-		    xfile.open(argv[i], std::ios_base::out|std::ios_base::trunc);
+		    xfile.open(argv[i],
+                               std::ios_base::out|std::ios_base::trunc);
 		    if (!xfile)
-			std::cerr << *argv << " failed to open \"" << argv[i]
-				  << "\" for writing output records"
+			std::cerr << "Warning -- " << *argv
+                                  << " failed to open \"" << argv[i]
+                                  << "\" for writing output records"
 				  << std::endl;
 		}
 		break;
