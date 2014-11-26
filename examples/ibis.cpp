@@ -2735,7 +2735,7 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 &&
         (outputname == 0 || 0 != strcmp(outputname, "/dev/null"))) {
-        if (outputstream.is_open()) {
+        if (outputstream.is_open() && outputstream.good()) {
             LOGGER(ibis::gVerbose >= 0)
                 << "xdoQuery -- query (" <<  aQuery.getWhereClause()
                 << ") results written to file \"" <<  outputname << "\"";
@@ -3004,7 +3004,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
             << sel1->name() << " in binary to " << outputname
             << ", ierr = " << ierr;
     }
-    else if (outputstream.is_open()) {
+    else if (outputstream.is_open() && outputstream.good()) {
         if (showheader)
             sel1->dumpNames(outputstream, ", ");
         if (limit == 0)
@@ -3260,7 +3260,7 @@ static void doQuaere(const ibis::partList& pl,
             << res->name() << " in binary to " << outputname
             << ", ierr = " << ierr;
     }
-    else if (outputstream.is_open()) {
+    else if (outputstream.is_open() && outputstream.good()) {
         if (showheader)
             res->dumpNames(outputstream, ", ");
         if (limit == 0)
@@ -3650,7 +3650,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
 	if (0 != outputname && 0 == strcmp(outputname, "/dev/null")) {
 	    // no need to actually write anything to the output file
 	}
-	else if (outputstream.is_open()) {
+	else if (outputstream.is_open() && outputstream.good()) {
             LOGGER(ibis::gVerbose >= 0)
                 << "doQuery -- query (" << aQuery.getWhereClause()
                 << ") results written to file \""
@@ -4160,7 +4160,7 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 
     if (asstr != 0 && *asstr != 0 && ibis::gVerbose > 0 &&
         (outputname == 0 || 0 != strcmp(outputname, "/dev/null"))) {
-        if (outputstream.is_open()) {
+        if (outputstream.is_open() && outputstream.good()) {
             LOGGER(ibis::gVerbose > 0)
                 << "doMeshQuery -- query (" << aQuery.getWhereClause()
                 << ") results written to file \""
