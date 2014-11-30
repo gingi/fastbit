@@ -2209,9 +2209,9 @@ ibis::math::stdFunction1::stdFunction1(const char* name) {
     else if (0 == stricmp(name, "TAN"))
         ftype = ibis::math::TAN;
     else if (0 == stricmp(name, "TANH"))
-        ftype = ibis::math::TANH;
+	ftype = ibis::math::TANH;
     else if (0 == stricmp(name, "INT_FROM_DICT"))
-        ftype = ibis::math::ROUND;
+	ftype = ibis::math::ROUND;
     else {
         LOGGER(ibis::gVerbose >= 0)
             << "math::stdFunction1::stdFunction1(" << name

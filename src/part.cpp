@@ -19647,18 +19647,18 @@ long ibis::part::barrel::open(const ibis::part *t) {
             ++ dirlen;
         }
 
-        for (uint32_t i = 0; i < size(); ++ i) {
-            ibis::column *col = t->getColumn(name(i));
-            if (col == 0) {
-                fdes.resize(i);
-                close();
-                ierr = -2;
-                LOGGER(ibis::gVerbose > 0)
-                    << "Warning -- barrel::open failed to find a column "
-                    "named \"" << name(i) << "\" in data partition "
-                    << t->name();
-                return ierr;
-            }
+	for (uint32_t i = 0; i < size(); ++ i) {
+	    ibis::column *col = t->getColumn(name(i));
+	    if (col == 0) {
+		fdes.resize(i);
+		close();
+		ierr = -2;
+		LOGGER(ibis::gVerbose > 0)
+		    << "Warning -- barrel::open failed to find a column "
+		    "named \"" << name(i) << "\" in data partition "
+		    << t->name();
+		return ierr;
+	    }
             else if (col->type() == ibis::BLOB || col->type() == ibis::TEXT) {
                 fdes.resize(i);
                 close();
@@ -19669,27 +19669,27 @@ long ibis::part::barrel::open(const ibis::part *t) {
                     << name(i) << "\"";
                 return ierr;
             }
-            // use the name from col to ensure the case is correct
-            dfn += col->name();
+	    // use the name from col to ensure the case is correct
+	    dfn += col->name();
             if (col->type() == ibis::CATEGORY)
                 dfn += ".int";
-            // use getFile first
-            ierr = ibis::fileManager::instance().
-                getFile(dfn.c_str(), &(stores[i]));
-            if (ierr == 0) {
-                stores[i]->beginUse();
-            }
-            else { // getFile failed, open the name file
-                fdes[i] = UnixOpen(dfn.c_str(), OPEN_READONLY);
-                if (fdes[i] < 0) {
-                    LOGGER(ibis::gVerbose > 0)
-                        << "Warning -- barrel::open failed to open file \""
-                        << dfn.c_str() << "\"";
-                    fdes.resize(i);
-                    close();
-                    ierr = -4;
-                    return ierr;
-                }
+	    // use getFile first
+	    ierr = ibis::fileManager::instance().
+		getFile(dfn.c_str(), &(stores[i]));
+	    if (ierr == 0) {
+		stores[i]->beginUse();
+	    }
+	    else { // getFile failed, open the name file
+		fdes[i] = UnixOpen(dfn.c_str(), OPEN_READONLY);
+		if (fdes[i] < 0) {
+		    LOGGER(ibis::gVerbose > 0)
+			<< "Warning -- barrel::open failed to open file \""
+			<< dfn.c_str() << "\"";
+		    fdes.resize(i);
+		    close();
+		    ierr = -4;
+		    return ierr;
+		}
 #if defined(_WIN32) && defined(_MSC_VER)
                 (void)_setmode(fdes[i], _O_BINARY);
 #endif
@@ -19700,26 +19700,26 @@ long ibis::part::barrel::open(const ibis::part *t) {
         }
     }
     else { // in-memory data
-        for (uint32_t i = 0; ierr == 0 && i < size(); ++ i) {
-            ibis::column *col = t->getColumn(name(i));
-            if (col == 0) {
-                ierr = -2;
-            }
-            else {
-                stores[i] = col->getRawData();
-                if (stores[i] != 0) {
-                    stores[i]->beginUse();
-                    cols[i] = col;
-                }
-                else {
-                    ierr = -5;
-                }
-            }
-        }
-        if (ierr < 0) {
-            close();
-            return ierr;
-        }
+	for (uint32_t i = 0; ierr == 0 && i < size(); ++ i) {
+	    ibis::column *col = t->getColumn(name(i));
+	    if (col == 0) {
+		ierr = -2;
+	    }
+	    else {
+		stores[i] = col->getRawData();
+		if (stores[i] != 0) {
+		    stores[i]->beginUse();
+		    cols[i] = col;
+		}
+		else {
+		    ierr = -5;
+		}
+	    }
+	}
+	if (ierr < 0) {
+	    close();
+	    return ierr;
+	}
     }
     if (ibis::gVerbose > 5) {
         ibis::util::logger lg;
@@ -20048,45 +20048,45 @@ long ibis::part::vault::open(const ibis::part *t) {
 
     // the remaining variables are opened the same way as in barrel
     for (uint32_t i = 1; i < size(); ++ i) {
-        ibis::column *col = t->getColumn(name(i));
-        if (col == 0) {
-            fdes.resize(i);
-            close();
-            ierr = -2;
-            t->logWarning("vault::open",
-                          "failed to find a column named \"%s\"",
-                          name(i));
-            return ierr;
-        }
-        else if (col->type() == ibis::BLOB || col->type() == ibis::TEXT) {
-            fdes.resize(i);
-            close();
-            ierr = -3;
-            t->logWarning("vault::open",
-                          "does not support type \"%s\" of column \"%s\"",
-                          ibis::TYPESTRING[(int)col->type()], name(i));
-            return ierr;
-        }
+	ibis::column *col = t->getColumn(name(i));
+	if (col == 0) {
+	    fdes.resize(i);
+	    close();
+	    ierr = -2;
+	    t->logWarning("vault::open",
+			  "failed to find a column named \"%s\"",
+			  name(i));
+	    return ierr;
+	}
+	else if (col->type() == ibis::BLOB || col->type() == ibis::TEXT) {
+	    fdes.resize(i);
+	    close();
+	    ierr = -3;
+	    t->logWarning("vault::open",
+			  "does not support type \"%s\" of column \"%s\"",
+			  ibis::TYPESTRING[(int)col->type()], name(i));
+	    return ierr;
+	}
 
-        dfn += col->name(); // the data file name
+	dfn += col->name(); // the data file name
         if (col->type() == ibis::CATEGORY)
             dfn += ".int";
-        // use getFile first
-        ierr = ibis::fileManager::instance().
-            getFile(dfn.c_str(), &(stores[i]));
-        if (ierr == 0) {
-            stores[i]->beginUse();
-        }
-        else { // getFile failed, open the name file
-            fdes[i] = UnixOpen(dfn.c_str(), OPEN_READONLY);
-            if (fdes[i] < 0) {
-                t->logWarning("vault::open",
-                              "failed to open file \"%s\"", dfn.c_str());
-                fdes.resize(i);
-                close();
-                ierr = -4;
-                return ierr;
-            }
+	// use getFile first
+	ierr = ibis::fileManager::instance().
+	    getFile(dfn.c_str(), &(stores[i]));
+	if (ierr == 0) {
+	    stores[i]->beginUse();
+	}
+	else { // getFile failed, open the name file
+	    fdes[i] = UnixOpen(dfn.c_str(), OPEN_READONLY);
+	    if (fdes[i] < 0) {
+		t->logWarning("vault::open",
+			      "failed to open file \"%s\"", dfn.c_str());
+		fdes.resize(i);
+		close();
+		ierr = -4;
+		return ierr;
+	    }
 #if defined(_WIN32) && defined(_MSC_VER)
             (void)_setmode(fdes[i], _O_BINARY);
 #endif
