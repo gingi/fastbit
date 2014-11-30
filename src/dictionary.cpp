@@ -528,7 +528,7 @@ void ibis::dictionary::toASCII(std::ostream &out) const {
 /// existing dictioinary.  If the string has already been assigned a code,
 /// the existing code will be used.  If the given code has been used for
 /// another string, the incoming string will be assined a new code.
-/// Warning messages will be printed to logging channel when such a
+/// Warning messages will be printed to the logging channel when such a
 /// conflict is encountered.
 int ibis::dictionary::fromASCII(std::istream &in) {
     ibis::fileManager::buffer<char> linebuf(MAX_LINE);
