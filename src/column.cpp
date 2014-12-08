@@ -5629,7 +5629,7 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
     evt += "::attachIndex";
     softWriteLock lock(this, evt.c_str());
     if (lock.isLocked() && 0 == idx) {
-        if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
+        if (nkeys == 2*(noffsets-1)) {
             idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms, rd);
             if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0) {
@@ -5691,7 +5691,7 @@ int ibis::column::attachIndex(double *keys, uint64_t nkeys,
     evt += "::attachIndex";
     softWriteLock lock(this, evt.c_str());
     if (lock.isLocked() && 0 == idx) {
-        if (nkeys > noffsets && nkeys == 2*(noffsets-1)) {
+        if (nkeys == 2*(noffsets-1)) {
             idx = new ibis::bin(this, static_cast<uint32_t>(noffsets-1),
                                 keys, offsets, bms);
             if (mask_.size() == 0 && idx != 0 && idx->getNRows() > 0)

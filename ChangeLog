@@ -1,3 +1,13 @@
+2014-12-07 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp:5641,5703 remove the check of noffsets > nkeys,
+	to allow binned index with a single bitmap to be accepted (to
+	address a problem reported by Junmin Gu)
+
+2014-12-06 John Wu <John dot Wu at ACM dot org>
+	* examples/tiapi.c: add fillarray2 and queryarray2 to exercise the
+	case of indexing values that are all the same in an attempt to
+	address the problem reported by Junmin Gu
+
 2014-11-26 John Wu <John dot Wu at ACM dot org>
 	* examples/ardea.cpp: invoke tablex::setASCIIDictionary to make
 	use of the user supplied dictionary file
