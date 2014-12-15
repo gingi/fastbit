@@ -14,7 +14,6 @@
 #include <cstring>	// std::strcpy
 #include <stdio.h>	// sprintf, remove
 #include <sys/stat.h>	// stat, mkdir, chmod
-#include <sys/file.h>	// flock
 #include <fcntl.h>	// open, close
 #include <map>		// std::map
 #include <string>	// std::string
@@ -40,6 +39,9 @@ int truncate(const char*, uint32_t);
 #endif
 #if defined(HAVE_ATOMIC_TEMPLATE)
 #include <atomic>
+#endif
+#if defined(HAVE_FLOCK)
+#include <sys/file.h>	// flock
 #endif
 
 // minimum size for invoking mmap operation, default to 1 MB

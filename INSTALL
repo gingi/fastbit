@@ -13,15 +13,16 @@ executables, for example,
 
 gmake -j 3 all
 
-Since it take a while (~ 20 min) to build the libraries, it is a good
-idea to spawn multiple jobs to compile them.  However, it is NOT safe to
-run the tests in parallel because different jobs will attempt to write
-the same files.  The commands 'make check', 'make more-check', and 'make
-full-check' must be run as serial jobs (with only one thread of
-execution).
+Since it take a while (~ 20 min with GCC and ~ 2 min with clang) to
+build the libraries, it is a good idea to spawn multiple jobs to compile
+them.  However, it is NOT safe to run the tests in parallel because
+different jobs will attempt to write the same files.  The commands 'make
+check', 'make more-check', and 'make full-check' must be run as serial
+jobs (with only one thread of execution).
 
-If you are compiling with GCC, please choose version 4 for better
-support of the extensive template use.
+If you are compiling with GCC, please choose version 4.8 for better
+support of the extensive template use.  For clang compiler suite, use
+version 3.5 or later.
 
 To place the executable files and libraries in their expected locations,
 execute 'make install'.  As usual, the location of the installed files

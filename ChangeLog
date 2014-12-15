@@ -1,3 +1,15 @@
+2014-12-14 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: add test for presence of strptime
+	* src/whereParser.yy: add conditional macro HAVE_STRPTIME to check
+	for the presence of strptime before using it.  If strptime is not
+	available, TO_UNIXTIME_LOCAL and TO_UNIXTIME_GMT will cause
+	exceptions
+
+2014-12-11 John Wu <John dot Wu at ACM dot org>
+	* INSTALL: update to reflect the recent failed tests with intel,
+	PGI and pathscale compilers on hopper.nersc.gov.  These compilers
+	do not have support for either unique_ptr or unordered_map.
+
 2014-12-07 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp:5641,5703 remove the check of noffsets > nkeys,
 	to allow binned index with a single bitmap to be accepted (to

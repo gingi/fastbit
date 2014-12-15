@@ -1187,6 +1187,7 @@ mathExpr ADDOP mathExpr {
 	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_LOCAL("
 	<< *$3 << ", " << *$5  << ")";
 #endif
+#if defined(HAVE_STRPTIME)
     struct tm mytm;
     memset(&mytm, 0, sizeof(mytm));
     const char *ret = strptime($3->c_str(), $5->c_str(), &mytm);
@@ -1213,6 +1214,13 @@ mathExpr ADDOP mathExpr {
             << *$5 << "\", errno = " << errno;
         throw "Failed to parse string value in TO_UNIXTIME_LOCAL";
     }
+#else
+    LOGGER(ibis::gVerbose >= 0)
+        << "Warning -- " << __FILE__ << ':' << __LINE__
+        << " failed to parse \"" << *$3 << "\" using format string \""
+        << *$5 << "\" because there is no strptime";
+    throw "No strptime to parse string value in TO_UNIXTIME_LOCAL";
+#endif
 }
 | TO_UNIXTIME_GMT '(' STRLIT ',' STRLIT ')' {
 #if defined(DEBUG) && DEBUG + 0 > 1
@@ -1220,7 +1228,7 @@ mathExpr ADDOP mathExpr {
 	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_GMT("
 	<< *$3 << ", " << *$5  << ")";
 #endif
-
+#if defined(HAVE_STRPTIME)
     struct tm mytm;
     memset(&mytm, 0, sizeof(mytm));
     const char *ret = strptime($3->c_str(), $5->c_str(), &mytm);
@@ -1241,8 +1249,15 @@ mathExpr ADDOP mathExpr {
             << "Warning -- " << __FILE__ << ':' << __LINE__
             << " failed to parse \"" << *$3 << "\" using format string \""
             << *$5 << "\", errno = " << errno;
-        throw "Failed to parse string value in TO_UNIXTIME_GM";
+        throw "Failed to parse string value in TO_UNIXTIME_GMT";
     }
+#else
+    LOGGER(ibis::gVerbose >= 0)
+        << "Warning -- " << __FILE__ << ':' << __LINE__
+        << " failed to parse \"" << *$3 << "\" using format string \""
+        << *$5 << "\" because there is no strptime";
+    throw "No strptime to parse string value in TO_UNIXTIME_GMT";
+#endif
 }
 | MINUSOP mathExpr %prec NOTOP {
 #if defined(DEBUG) && DEBUG + 0 > 1

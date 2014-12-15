@@ -1,3 +1,12 @@
+Mon Dec 15 01:26:31 PST 2014
+Version 2.0.1
+-- fixing problem with html documentation
+-- clear the output when ibis.cpp encounters an error (suggested by Jon Strabala)
+-- add test cases to exercise the option of using external dictionary
+-- fixing problem with indexing a single value in iapi.cpp
+-- update the compilation instructions in INSTALL to reflect the requirement of C++11 features by FastBit
+
+
 Fri Nov 21 21:38:00 PST 2014
 Version 2.0.0
 -- remove the prefix 'ibis' from the version number based on a
