@@ -13,15 +13,16 @@ executables, for example,
 
 gmake -j 3 all
 
-Since it take a while (~ 20 min) to build the libraries, it is a good
-idea to spawn multiple jobs to compile them.  However, it is NOT safe to
-run the tests in parallel because different jobs will attempt to write
-the same files.  The commands 'make check', 'make more-check', and 'make
-full-check' must be run as serial jobs (with only one thread of
-execution).
+Since it take a while (~ 20 min with GCC and ~ 2 min with clang) to
+build the libraries, it is a good idea to spawn multiple jobs to compile
+them.  However, it is NOT safe to run the tests in parallel because
+different jobs will attempt to write the same files.  The commands 'make
+check', 'make more-check', and 'make full-check' must be run as serial
+jobs (with only one thread of execution).
 
-If you are compiling with GCC, please choose version 4 for better
-support of the extensive template use.
+If you are compiling with GCC, please choose version 4.8 for better
+support of the extensive template use.  For clang compiler suite, use
+version 3.5 or later.
 
 To place the executable files and libraries in their expected locations,
 execute 'make install'.  As usual, the location of the installed files
@@ -259,13 +260,12 @@ Known Issues
     fail.  Please examine the differences between file marksdb-[1234]
     against the ones in directory tests.  If the values differ only in
     the last one or two digits, then the tests run fine.  However, if
-    they different beyong the last two digits, please report the problem
-    to <fastbit-users@hpcrdm.lbl.gov>.
+    they are different beyond the last two digits, please report the
+    problem to <fastbit-users@hpcrdm.lbl.gov>.
 
-(5) The macro LOGGER (defined in util.h) is known to cause gcc 3.3.3 to
-    choke up on a SGI Altix system.  It seems to work fine with newer
-    versions of gcc or other compilers such Intel's icpc on the same
-    system.
+(5) Due to extensive uses of C++11 features (such as unordered_map and
+    unique_ptr), the current release of FastBit can only be compiled
+    with GCC 4.8 or clang 3.5
 
 (6) Certain machines with a large mount of memory actually limits the
     amount of memory each process may use.  In such cases, the default
@@ -273,14 +273,14 @@ Known Issues
     of the memory allowed by the OS.  It is important to coordinate
     these two limits.  More specifically, the memory used by FastBit
     memory cache should be less than the OS limit, otherwise, FastBit
-    program may crash due to memory allocation problem.  For example, on
-    jacquard.nersc.gov, the maximum virtual memory allowed per process
-    is 2GB for certain class of interactive jobs, but there are 6GB of
-    physical memory.  By default, FastBit will attempt to use 3GB of
-    memory, which is over the OS assigned memory limit.  In this case,
-    adding an RC file with something like "fileManager.maxBytes=1.8GB"
-    will reduce the memory allowed to FastBit and avoid memory usage
-    problem.
+    program may crash due to memory allocation problems.  For example,
+    on jacquard.nersc.gov, the maximum virtual memory allowed per
+    process is 2GB for certain class of interactive jobs, but there are
+    6GB of physical memory.  By default, FastBit will attempt to use 3GB
+    of memory, which is over the OS assigned memory limit.  In this
+    case, adding an RC file with something like
+    "fileManager.maxBytes=1.8GB" will reduce the memory allowed to
+    FastBit and avoid memory usage problem.
 
 (7) Certain linux clusters do not support shared libraries on compute
     nodes, even though shared libraries are supported on the front end.

@@ -1999,6 +1999,7 @@ namespace ibis {
 	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_LOCAL("
 	<< *(yysemantic_stack_[(6) - (3)].stringVal) << ", " << *(yysemantic_stack_[(6) - (5)].stringVal)  << ")";
 #endif
+#if defined(HAVE_STRPTIME)
     struct tm mytm;
     memset(&mytm, 0, sizeof(mytm));
     const char *ret = strptime((yysemantic_stack_[(6) - (3)].stringVal)->c_str(), (yysemantic_stack_[(6) - (5)].stringVal)->c_str(), &mytm);
@@ -2025,19 +2026,26 @@ namespace ibis {
             << *(yysemantic_stack_[(6) - (5)].stringVal) << "\", errno = " << errno;
         throw "Failed to parse string value in TO_UNIXTIME_LOCAL";
     }
+#else
+    LOGGER(ibis::gVerbose >= 0)
+        << "Warning -- " << __FILE__ << ':' << __LINE__
+        << " failed to parse \"" << *(yysemantic_stack_[(6) - (3)].stringVal) << "\" using format string \""
+        << *(yysemantic_stack_[(6) - (5)].stringVal) << "\" because there is no strptime";
+    throw "No strptime to parse string value in TO_UNIXTIME_LOCAL";
+#endif
 }
     break;
 
   case 93:
 /* Line 664 of lalr1.cc  */
-#line 1217 "whereParser.yy"
+#line 1225 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
 	<< __FILE__ << ":" << __LINE__ << " parsing -- TO_UNIXTIME_GMT("
 	<< *(yysemantic_stack_[(6) - (3)].stringVal) << ", " << *(yysemantic_stack_[(6) - (5)].stringVal)  << ")";
 #endif
-
+#if defined(HAVE_STRPTIME)
     struct tm mytm;
     memset(&mytm, 0, sizeof(mytm));
     const char *ret = strptime((yysemantic_stack_[(6) - (3)].stringVal)->c_str(), (yysemantic_stack_[(6) - (5)].stringVal)->c_str(), &mytm);
@@ -2058,14 +2066,21 @@ namespace ibis {
             << "Warning -- " << __FILE__ << ':' << __LINE__
             << " failed to parse \"" << *(yysemantic_stack_[(6) - (3)].stringVal) << "\" using format string \""
             << *(yysemantic_stack_[(6) - (5)].stringVal) << "\", errno = " << errno;
-        throw "Failed to parse string value in TO_UNIXTIME_GM";
+        throw "Failed to parse string value in TO_UNIXTIME_GMT";
     }
+#else
+    LOGGER(ibis::gVerbose >= 0)
+        << "Warning -- " << __FILE__ << ':' << __LINE__
+        << " failed to parse \"" << *(yysemantic_stack_[(6) - (3)].stringVal) << "\" using format string \""
+        << *(yysemantic_stack_[(6) - (5)].stringVal) << "\" because there is no strptime";
+    throw "No strptime to parse string value in TO_UNIXTIME_GMT";
+#endif
 }
     break;
 
   case 94:
 /* Line 664 of lalr1.cc  */
-#line 1247 "whereParser.yy"
+#line 1262 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -2080,7 +2095,7 @@ namespace ibis {
 
   case 95:
 /* Line 664 of lalr1.cc  */
-#line 1257 "whereParser.yy"
+#line 1272 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(2) - (2)].whereNode);
 }
@@ -2088,7 +2103,7 @@ namespace ibis {
 
   case 96:
 /* Line 664 of lalr1.cc  */
-#line 1260 "whereParser.yy"
+#line 1275 "whereParser.yy"
     {
     (yyval.whereNode) = (yysemantic_stack_[(3) - (2)].whereNode);
 }
@@ -2096,7 +2111,7 @@ namespace ibis {
 
   case 97:
 /* Line 664 of lalr1.cc  */
-#line 1263 "whereParser.yy"
+#line 1278 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -2111,7 +2126,7 @@ namespace ibis {
 
   case 98:
 /* Line 664 of lalr1.cc  */
-#line 1273 "whereParser.yy"
+#line 1288 "whereParser.yy"
     {
 #if defined(DEBUG) && DEBUG + 0 > 1
     LOGGER(ibis::gVerbose >= 0)
@@ -2124,7 +2139,7 @@ namespace ibis {
 
   case 99:
 /* Line 664 of lalr1.cc  */
-#line 1283 "whereParser.yy"
+#line 1298 "whereParser.yy"
     { /* pass qexpr to the driver */
     driver.expr_ = (yysemantic_stack_[(2) - (1)].whereNode);
 }
@@ -2132,7 +2147,7 @@ namespace ibis {
 
   case 100:
 /* Line 664 of lalr1.cc  */
-#line 1286 "whereParser.yy"
+#line 1301 "whereParser.yy"
     { /* pass qexpr to the driver */
     driver.expr_ = (yysemantic_stack_[(2) - (1)].whereNode);
 }
@@ -2140,7 +2155,7 @@ namespace ibis {
 
 
 /* Line 664 of lalr1.cc  */
-#line 2144 "whereParser.cc"
+#line 2159 "whereParser.cc"
       default:
         break;
       }
@@ -2798,8 +2813,8 @@ namespace ibis {
      735,   746,   763,   786,   796,   807,   817,   827,   837,   899,
      911,   923,   935,   947,   959,   971,   983,   995,  1010,  1022,
     1034,  1046,  1058,  1070,  1082,  1094,  1106,  1118,  1131,  1144,
-    1158,  1171,  1184,  1217,  1247,  1257,  1260,  1263,  1273,  1283,
-    1286
+    1158,  1171,  1184,  1225,  1262,  1272,  1275,  1278,  1288,  1298,
+    1301
   };
 
   // Print the state stack on the debug stream.
@@ -2891,9 +2906,9 @@ namespace ibis {
 
 } // ibis
 /* Line 1135 of lalr1.cc  */
-#line 2895 "whereParser.cc"
+#line 2910 "whereParser.cc"
 /* Line 1136 of lalr1.cc  */
-#line 1291 "whereParser.yy"
+#line 1306 "whereParser.yy"
 
 void ibis::whereParser::error(const ibis::whereParser::location_type& l,
 			      const std::string& m) {

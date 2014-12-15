@@ -73,6 +73,9 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
+/* Define to 1 if you have the `strptime' function. */
+#undef HAVE_STRPTIME
+
 /* Set to 1 if strtoll is defined in stdlib.h */
 #undef HAVE_STRTOLL
 
