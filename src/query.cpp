@@ -3942,7 +3942,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
     case ibis::qExpr::LOGICAL_OR: {
 	ierr = doEvaluate(term->getLeft(), ht);
-	if (ierr >= 0 && ht.cnt() < ht.size()) {
+	if (ierr >= 0) { //  && ht.cnt() < ht.size()
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), b1);
 	    if (ierr > 0)
@@ -4197,7 +4197,7 @@ int ibis::query::doEvaluate(const ibis::qExpr* term,
     }
     case ibis::qExpr::LOGICAL_OR: {
 	ierr = doEvaluate(term->getLeft(), mask, ht);
-	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
+	if (ierr >= 0) {// && ht.cnt() < mask.cnt()
 	    ibis::bitvector b1;
 	    ierr = doEvaluate(term->getRight(), mask, b1);
 	    if (ierr > 0)

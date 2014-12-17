@@ -767,9 +767,8 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 	// simply directly compare the two
 	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
-		ibis::bitvector* newmask = mask - ht;
+                std::unique_ptr<ibis::bitvector> newmask(mask - ht);
 		ierr = doScan(term->getRight(), *newmask, b1);
-		delete newmask;
 	    }
 	    else {
 		ierr = doScan(term->getRight(), mask, b1);
@@ -967,9 +966,8 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
 	    ibis::bitvector b1;
 	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
-		ibis::bitvector* newmask = mask - ht;
+                std::unique_ptr<ibis::bitvector> newmask(mask - ht);
 		ierr = doEvaluate(term->getRight(), *newmask, b1);
-		delete newmask;
 	    }
 	    else {
 		ierr = doEvaluate(term->getRight(), mask, b1);

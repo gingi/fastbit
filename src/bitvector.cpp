@@ -697,22 +697,22 @@ ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
     word_t ns = 0;
     word_t nb = 0;
     if (m_vec.begin() != 0 && m_vec.end() != 0) {
-        for (array_t<word_t>::const_iterator it = m_vec.begin();
-             it < m_vec.end(); ++ it) {
-            if ((*it) < HEADER0) {
-                nb += MAXBITS;
-                ns += cnt_ones(*it);
-            }
-            else {
-                word_t tmp = (*it & MAXCNT) * MAXBITS;
-                nb += tmp;
-                ns += tmp * ((*it) >= HEADER1);
-            }
-        }
+	for (array_t<word_t>::const_iterator it = m_vec.begin();
+	     it < m_vec.end(); ++ it) {
+	    if ((*it) < HEADER0) {
+		nb += MAXBITS;
+		ns += cnt_ones(*it);
+	    }
+	    else {
+		word_t tmp = (*it & MAXCNT) * MAXBITS;
+		nb += tmp;
+		ns += tmp * ((*it) >= HEADER1);
+	    }
+	}
         // when nset == 0, this function is invoked again to recompute
         // nset, the following statements make the future computerations faster.
         if (ns == 0 && m_vec.size() > 1) {
-            const_cast<word_t&>(m_vec.front()) = (HEADER0 + (nb/MAXBITS));
+            const_cast<word_t&>(m_vec.front()) = (HEADER0 + (ns/MAXBITS));
             const_cast<ibis::array_t<word_t>*>(&m_vec)->resize(1);
         }
     }
