@@ -715,6 +715,8 @@ long ibis::category::stringSearch(const char* str,
     else { // not in the dictionary
         hits.set(0, thePart->nRows());
     }
+    LOGGER(ibis::gVerbose > 8)
+        << evt << " return hit vector\n" << hits;
     return hits.sloppyCount();
 } // ibis::category::stringSearch
 

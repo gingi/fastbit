@@ -10,6 +10,7 @@
 #pragma warning(disable:4786)	// some identifier longer than 256 characters
 #endif
 #include "bitvector.h"
+#define FASTBIT_LAZY_INIT 1
 
 #include <iomanip>	// setw
 
@@ -577,24 +578,33 @@ ibis::bitvector::word_t ibis::bitvector::compressible() const {
 } // ibis::bitvector::compressible
 
 /// Count the number of bits and number of ones in m_vec.  Return the
-/// number of bits.  Modify the member variable nset to the correct value.
+/// number of bits.  Modify the member variable nset to the correct value
+/// in a single assignment near the end in an attempt to avoid the need to
+/// use mutex lock to ensure thread safety.
 ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
-    nset = 0;
+    word_t ns = 0;
     word_t nb = 0;
     if (m_vec.begin() != 0 && m_vec.end() != 0) {
 	for (array_t<word_t>::const_iterator it = m_vec.begin();
 	     it < m_vec.end(); ++ it) {
 	    if ((*it) < HEADER0) {
 		nb += MAXBITS;
-		nset += cnt_ones(*it);
+		ns += cnt_ones(*it);
 	    }
 	    else {
 		word_t tmp = (*it & MAXCNT) * MAXBITS;
 		nb += tmp;
-		nset += tmp * ((*it) >= HEADER1);
+		ns += tmp * ((*it) >= HEADER1);
 	    }
 	}
+        // when nset == 0, this function is invoked again to recompute
+        // nset, the following statements make the future computerations faster.
+        if (ns == 0 && m_vec.size() > 1) {
+            const_cast<word_t&>(m_vec.front()) = (HEADER0 + (ns/MAXBITS));
+            const_cast<ibis::array_t<word_t>*>(&m_vec)->resize(1);
+        }
     }
+    nset = ns;
     return nb;
 } // ibis::bitvector::do_cnt
 

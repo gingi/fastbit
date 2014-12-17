@@ -1,3 +1,16 @@
+2014-12-16 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.cpp: change do_cnt() to use local variable to
+	count the number of set bits so as to avoid the thread-safety
+	issue, define FASTBIT_LAZY_INIT to be 1 (i.e., go back to lazy
+	initialization in bitvectors, reversing the change makde on
+	2014/08/06)
+
+2014-12-15 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.cpp: in do_cnt() add code blocks to reduce the
+	future cost of counting a bitvector of all 0s
+	* src/query.cpp: in doEvaluate remove the test on ht.cnt() to
+	avoid a problem reported by Steven Enns
+
 2014-12-14 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: add test for presence of strptime
 	* src/whereParser.yy: add conditional macro HAVE_STRPTIME to check
