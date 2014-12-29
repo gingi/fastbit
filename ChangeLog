@@ -1,4 +1,10 @@
 2014-12-28 John Wu <John dot Wu at ACM dot org>
+	* tests/acmpub.v.a, tests/acmpub.v.b: modify the test dictionary
+	to exercise the new feature in dictionary class
+	* src/bord.cpp: update the use of dictionaries to allow 0 as a
+	regular code word
+
+2014-12-27 John Wu <John dot Wu at ACM dot org>
 	* src/ikeywords.cpp: update functions to reflect the change in
 	dictionary
 

@@ -495,11 +495,7 @@ void ibis::column::actualMinMax(const char *name, const ibis::bitvector& mask,
     std::string evt = "column";
     if (ibis::gVerbose > 2) {
         evt += '[';
-        if (thePart != 0) {
-            evt += thePart->name();
-            evt += '.';
-        }
-        evt += m_name;
+        evt += fullname();
         evt += ']';
     }
     evt += "::actualMinMax";
@@ -4651,9 +4647,7 @@ long ibis::column::selectValuesT(const char* dfn,
     const long unsigned tot = mask.cnt();
     if (mask.cnt() == 0) return ierr;
     std::string evt = "column[";
-    evt += (thePart!=0 ? thePart->name() : "");
-    evt += '.';
-    evt += m_name;
+    evt += fullname();
     evt += "]::selectValuesT<";
     evt += typeid(T).name();
     evt += '>';
@@ -4859,9 +4853,7 @@ long ibis::column::selectValuesT(const char *dfn,
 	return ierr;
 
     std::string evt = "column[";
-    evt += (thePart!=0 ? thePart->name() : "");
-    evt += '.';
-    evt += m_name;
+    evt += fullname();
     evt += "]::selectValuesT<";
     evt += typeid(T).name();
     evt += '>';
@@ -5769,11 +5761,7 @@ void ibis::column::loadIndex(const char* iopt, int ropt) const throw () {
     std::string evt = "column";
     if (ibis::gVerbose > 1) {
         evt += '[';
-        if (thePart != 0) {
-            evt += thePart->name();
-            evt += '.';
-        }
-        evt += name();
+        evt += fullname();
         evt += ']';
     }
     evt += "::loadIndex";
@@ -6037,9 +6025,7 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
 	return -9;
 
     std::string evt = "column[";
-    evt += thePart->name();
-    evt += ".";
-    evt += m_name;
+    evt += fullname();
     evt += "]::evaluateRange";
     if (ibis::gVerbose > 0) {
 	std::ostringstream oss;
@@ -6242,9 +6228,7 @@ long ibis::column::evaluateAndSelect(const ibis::qContinuousRange& cmp,
 	return -9;
 
     std::string evt = "column[";
-    evt += thePart->name();
-    evt += ".";
-    evt += m_name;
+    evt += fullname();
     evt += "]::evaluateAndSelect";
     if (ibis::gVerbose > 0) {
 	std::ostringstream oss;
@@ -6329,9 +6313,7 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     if (thePart == 0)
 	return -9;
     std::string evt = "column[";
-    evt += thePart->name();
-    evt += ".";
-    evt += m_name;
+    evt += fullname();
     evt += "]::evaluateRange";
     if (ibis::gVerbose > 0) {
 	std::ostringstream oss;
@@ -6794,9 +6776,7 @@ long ibis::column::evaluateRange(const ibis::qIntHod& cmp,
     if (thePart == 0)
 	return -9;
     std::string evt = "column[";
-    evt += thePart->name();
-    evt += ".";
-    evt += m_name;
+    evt += fullname();
     evt += "]::evaluateRange";
     if (ibis::gVerbose > 0) {
 	std::ostringstream oss;
@@ -6911,9 +6891,7 @@ long ibis::column::evaluateRange(const ibis::qUIntHod& cmp,
 	return -9;
 
     std::string evt = "column[";
-    evt += thePart->name();
-    evt += ".";
-    evt += m_name;
+    evt += fullname();
     evt += "]::evaluateRange";
     if (ibis::gVerbose > 0) {
 	std::ostringstream oss;

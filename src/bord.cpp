@@ -2451,10 +2451,10 @@ int ibis::bord::column::dump(std::ostream& out, uint32_t i) const {
             else if (dic == 0) {
 		out << (*vals)[i];
 	    }
-	    else if ((*vals)[i] > dic->size()) {
+	    else if ((*vals)[i] >= dic->size()) {
 		out << (*vals)[i];
 	    }
-	    else if ((*vals)[i] > 0) {
+	    else {
 		out << '"' << (*dic)[(*vals)[i]] << '"';
 	    }
 	    ierr = 0;
@@ -10447,8 +10447,9 @@ int ibis::bord::column::getString(uint32_t i, std::string &val) const {
 	    val = str_column->at(i);
     }
     else if (dic != 0) {
-	if (i > 0 && i <= (*dic).size())
-	    val = (*dic)[i];
+        const char *tmp  = (*dic)[i];
+	if (tmp != 0)
+	    val = tmp;
     }
     return 0;
 } // ibis::bord::column::getString
@@ -10546,7 +10547,7 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 			if (dic == 0) {
 			    (*array)[i].copy(&(prop[j]), sizeof(uint32_t));
 			}
-			else if (prop[j] <= dic->size()) {
+			else if (prop[j] < dic->size()) {
 			    const char* str =(*dic)[prop[j]]; 
 			    (*array)[i].copy(str, std::strlen(str));
 			}
@@ -10560,7 +10561,7 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 			if (dic == 0) {
 			    (*array)[i].copy(&(prop[idx0[j]]), sizeof(uint32_t));
 			}
-			else if (prop[idx0[j]] <= dic->size()) {
+			else if (prop[idx0[j]] < dic->size()) {
 			    const char* str =(*dic)[prop[idx0[j]]]; 
 			    (*array)[i].copy(str, std::strlen(str));
 			}
@@ -10583,7 +10584,7 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 			if (dic == 0) {
 			    (*array)[i].copy(&(prop[j]), sizeof(uint32_t));
 			}
-			else if (prop[j] <= dic->size()) {
+			else if (prop[j] < dic->size()) {
 			    const char* str =(*dic)[prop[j]]; 
 			    (*array)[i].copy(str, std::strlen(str));
 			}
@@ -10599,7 +10600,7 @@ ibis::bord::column::selectOpaques(const bitvector& mask) const {
 				(*array)[i].copy(&(prop[idx0[j]]),
 						 sizeof(uint32_t));
 			    }
-			    else if (prop[idx0[j]] <= dic->size()) {
+			    else if (prop[idx0[j]] < dic->size()) {
 				const char* str =(*dic)[prop[idx0[j]]]; 
 				(*array)[i].copy(str, std::strlen(str));
 			    }
