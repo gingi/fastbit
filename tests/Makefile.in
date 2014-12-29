@@ -936,7 +936,7 @@ $(TESTDIR)/acmpub1/-part.txt: $(ARDEAEXE) $(IBISEXE) acmpub.csv TESTDIR
 	@$(IBISEXE) -d $(TESTDIR)/acmpub1 -b "a:keywords delimiters=','" -b "id:noindex" -b "<binning none>" -v >> $(TESTDIR)/std.log 2>&1
 $(TESTDIR)/acmpub2/-part.txt: $(ARDEAEXE) $(IBISEXE) acmpub.csv TESTDIR
 	@rm -rf $(TESTDIR)/acmpub2
-	@$(ARDEAEXE) -d $(TESTDIR)/acmpub2 -m "id:u, t:t, a:t, v:k, y:u" -t acmpub.csv -k v acmpub.v.a >> $(TESTDIR)/std.log 2>&1
+	@$(ARDEAEXE) -d $(TESTDIR)/acmpub2 -m "id:u, t:t, a:t, v:k, y:u" -t acmpub.csv -k v acmpub.v.b >> $(TESTDIR)/std.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/acmpub2 -b "a:keywords delimiters=','" -b "id:noindex" -b "<binning none>" -v >> $(TESTDIR)/std.log 2>&1
 # a simple internal sanity check
 sanity-check: TESTDIR $(IBISEXE) $(TESTDIR)/append.log
