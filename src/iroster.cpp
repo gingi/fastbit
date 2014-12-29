@@ -174,9 +174,7 @@ int ibis::roster::writeSorted(const char *df) const {
     std::string evt;
     if (ibis::gVerbose > 1) {
 	evt = "roster[";
-        evt += col->partition()->name();
-        evt += '.';
-        evt += col->name();
+        evt += col->fullname();
 	evt += "]::writeSorted";
     }
     else {
@@ -2306,9 +2304,7 @@ ibis::roster::icSearch(const ibis::array_t<T>& vals,
     std::string evt;
     if (ibis::gVerbose > 3) {
         evt = "roster[";
-        evt += col->partition()->name();
-        evt += '.';
-        evt += col->name();
+        evt += col->fullname();
         evt += "]::icSearch<";
         evt += typeid(T).name();
         evt += '>';
@@ -2454,9 +2450,7 @@ ibis::roster::oocSearch(const ibis::array_t<T>& vals,
     std::string evt;
     if (ibis::gVerbose > 3) {
         evt = "roster[";
-        evt += col->partition()->name();
-        evt += '.';
-        evt += col->name();
+        evt += col->fullname();
         evt += "]::oocSearch<";
         evt += typeid(T).name();
         evt += '>';
@@ -2655,9 +2649,7 @@ ibis::roster::icSearch(const std::vector<T>& vals,
     std::string evt;
     if (ibis::gVerbose > 3) {
         evt = "roster[";
-        evt += col->partition()->name();
-        evt += '.';
-        evt += col->name();
+        evt += col->fullname();
         evt += "]::icSearch<";
         evt += typeid(T).name();
         evt += '>';
@@ -2788,9 +2780,7 @@ ibis::roster::oocSearch(const std::vector<T>& vals,
     std::string evt;
     if (ibis::gVerbose > 3) {
         evt = "roster[";
-        evt += col->partition()->name();
-        evt += '.';
-        evt += col->name();
+        evt += col->fullname();
         evt += "]::oocSearch<";
         evt += typeid(T).name();
         evt += '>';
@@ -3246,7 +3236,7 @@ ibis::roster::locate(const std::vector<T>& vals,
     std::string evt;
     if (ibis::gVerbose > 1) {
 	std::ostringstream oss;
-        oss << "roster[" << col->partition()->name() << '.' << col->name()
+        oss << "roster[" << col->fullname()
             << "]::locate<" << typeid(T).name()<< ">(" << vals.size() << ')';
 	evt = oss.str();
     }
@@ -3326,7 +3316,7 @@ ibis::roster::locate(const std::vector<double>& vals,
     std::string evt;
     if (ibis::gVerbose >= 0) {
 	std::ostringstream oss;
-	oss << "roster[" << col->partition()->name() << '.' << col->name()
+	oss << "roster[" << col->fullname()
 	    << "]::locate<double>(" << vals.size() << ')';
 	evt = oss.str();
     }

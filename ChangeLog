@@ -1,3 +1,13 @@
+2014-12-28 John Wu <John dot Wu at ACM dot org>
+	* src/ikeywords.cpp: update functions to reflect the change in
+	dictionary
+
+2014-12-26 John Wu <John dot Wu at ACM dot org>
+	* src/dictionary.h, src/dictionary.cpp: modify the dictionary code
+	to allow users to pass in an arbitrary combination of integers and
+	strings, chnage the integer code for null values from 0 to -1
+	(0xFFFFFFFFU in 32-bit unsigned integer format)
+
 2014-12-16 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.cpp: change do_cnt() to use local variable to
 	count the number of set bits so as to avoid the thread-safety

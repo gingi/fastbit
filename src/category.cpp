@@ -238,7 +238,7 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 } // ibis::category::selectStrings
 
 /// A function to read the dictionary and load the index.
-/// 
+///
 /// This is a const function because it only manipulates mutable data
 /// members, which is necessary to make it callable from const member
 /// functions.
@@ -306,9 +306,14 @@ void ibis::category::readDictionary(const char *dir) const {
     fnm += ".dic"; // suffix of the dictionary
     int ierr = dic.read(fnm.c_str());
     LOGGER(ierr < 0 && ibis::gVerbose > 2)
-        << "Warning -- category[" << (thePart ? thePart->name() : "?") << '.'
-        << m_name << "] failed to read dictionary file " << fnm << ", ierr = "
+        << "Warning -- category[" << fullname()
+        << "] failed to read dictionary file " << fnm << ", ierr = "
         << ierr;
+    if (ierr >= 0 && ibis::gVerbose > 5) {
+        ibis::util::logger lg;
+        lg() << "Dictionary from " << fnm << " for " << fullname() << "\n";
+        dic.toASCII(lg());
+    }
 } // ibis::category::readDictionary
 
 /// Build an ibis::direkte index using the existing primary data.
@@ -695,7 +700,7 @@ long ibis::category::stringSearch(const char* str,
     ibis::util::timer mytimer(evt.c_str(), 4);
     prepareMembers();
     uint32_t ind = dic[str];
-    if (ind <= dic.size()) { // found it in the dictionary
+    if (ind < dic.size()) { // found it in the dictionary
         indexLock lock(this, evt.c_str());
         if (idx != 0) {
             ibis::qContinuousRange expr(m_name.c_str(),
@@ -730,7 +735,7 @@ long ibis::category::stringSearch(const char* str) const {
     long ret;
     prepareMembers();
     uint32_t ind = dic[str];
-    if (ind <= dic.size()) { // found it
+    if (ind < dic.size()) { // found it
         indexLock lock(this, "category::stringSearch");
         if (idx != 0) {
             ibis::qContinuousRange expr(m_name.c_str(),
@@ -753,7 +758,7 @@ double ibis::category::estimateCost(const ibis::qString& qstr) const {
     const char* str = (stricmp(qstr.leftString(), m_name.c_str()) == 0 ?
                        qstr.rightString() : qstr.leftString());
     uint32_t ind = dic[str];
-    if (ind <= dic.size()) {
+    if (ind < dic.size()) {
         indexLock lock(this, "category::estimateCost");
         if (idx != 0) {
             ibis::qContinuousRange expr(m_name.c_str(),
@@ -780,7 +785,7 @@ double ibis::category::estimateCost(const ibis::qAnyString& qstr) const {
         inds.reserve(strs.size());
         for (unsigned j = 0; j < strs.size(); ++ j) {
             uint32_t jnd = dic[strs[j].c_str()];
-            if (jnd <= dic.size())
+            if (jnd < dic.size())
                 inds.push_back(jnd);
         }
         ibis::qDiscreteRange expr(m_name.c_str(), inds);
@@ -816,7 +821,7 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs,
     for (std::vector<std::string>::const_iterator it = strs.begin();
          it != strs.end(); ++ it) {
         uint32_t ind = dic[(*it).c_str()];
-        if (ind > 0 && ind <= dic.size())
+        if (ind < dic.size())
             inds.push_back(ind);
     }
 
@@ -868,7 +873,7 @@ long ibis::category::stringSearch(const std::vector<std::string>& strs) const {
         for (std::vector<std::string>::const_iterator it = strs.begin();
              it != strs.end(); ++ it) {
             uint32_t ind = dic[(*it).c_str()];
-            if (ind > 0 && ind <= dic.size())
+            if (ind < dic.size())
                 inds.push_back(ind);
         }
 
@@ -979,7 +984,7 @@ int ibis::category::getString(uint32_t i, std::string &str) const {
     str.clear();
     if (i == 0) return 0; // nothing else to do
 
-    if (i > dic.size())
+    if (i >= dic.size())
         prepareMembers();
 
     int ierr;
@@ -1240,7 +1245,7 @@ long ibis::category::append(const char* dt, const char* df,
     dest += ".dic";
     dic.write(dest.c_str());
     LOGGER(ibis::gVerbose > 4)
-        << evt << "appended " << cnt << " row" << (cnt>1?"s":"") 
+        << evt << "appended " << cnt << " row" << (cnt>1?"s":"")
         << ", new dictionary size is " << dic.size();
 
     ////////////////////////////////////////
@@ -1373,7 +1378,7 @@ void ibis::category::write(FILE* file) const {
     off_t ierr = 0;
     fputs("\nBegin Column\n", file);
     fprintf(file, "name = \"%s\"\n", (const char*)m_name.c_str());
-    if ((m_desc.empty() || m_desc == m_name) && dic.size() > 1) {
+    if ((m_desc.empty() || m_desc == m_name) && dic.size() > 0) {
         fprintf(file, "description = %s ", m_name.c_str());
         unsigned lim = (dic.size()+1);
         unsigned nchar = 0;
@@ -1391,10 +1396,10 @@ void ibis::category::write(FILE* file) const {
             }
             nchar += ierr;
         }
-        if (i <= dic.size()) {
+        if (i < dic.size()) {
             fprintf(file, "...");
-            if (nchar+std::strlen(dic[dic.size()]) < 200) {
-                fprintf(file, ", %s", dic[dic.size()]);
+            if (nchar+std::strlen(dic[dic.size()-1]) < 200) {
+                fprintf(file, ", %s", dic[dic.size()-1]);
             }
         }
         fprintf(file, "\n");
@@ -1415,14 +1420,14 @@ void ibis::category::write(FILE* file) const {
 /// Print header info.
 void ibis::category::print(std::ostream& out) const {
     out << m_name << ": " << m_desc << " (KEY) [";
-    if (dic.size() > 21) {
-        for (int i = 1; i < 20; ++ i)
+    if (dic.size() > 20) {
+        for (int i = 0; i < 9; ++ i)
             out << dic[i] << ", ";
-        out << "...(" << dic.size()-20 << " skipped), " << dic[dic.size()];
+        out << "...(" << dic.size()-10 << " skipped), " << dic[dic.size()-1];
     }
     else if (dic.size() > 1) {
-        out << dic[1];
-        for (unsigned int i = 2; i < dic.size(); ++ i)
+        out << dic[0U];
+        for (unsigned int i = 1; i < dic.size(); ++ i)
             out << ", " << dic[i];
     }
     out << "]";
@@ -2887,7 +2892,7 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
     else if (boffset + (off_t)inbuf > be) { // partially in buffer
         for (uint32_t j = be - boffset; j < inbuf; ++ j)
             res += buf[j];
-        
+
         off_t ierr = UnixSeek(fdes, boffset+inbuf, SEEK_SET);
         if (ierr != boffset+(long)inbuf) {
             LOGGER(ibis::gVerbose > 1)

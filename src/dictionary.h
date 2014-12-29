@@ -8,7 +8,7 @@
 #include "array_t.h"
 #if defined(HAVE_UNORDERED_MAP)
 #include <unordered_map>
-#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ >= 5)
+#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ <= 5)
 #include <backward/hash_map>
 #else
 #include <unordered_map>
@@ -36,16 +36,6 @@ namespace std {
 /// completely before any use, the size of a dictionary is generally
 /// limited by the size of the computer memory.
 ///
-/// This version uses an in-memory hash_map to provide a mapping from a
-/// string to an integer.
-///
-/// @note The integer returned from this class is a unsigned 32-bit integer
-/// (uint32_t).  This limits the size of the dictionary to be no more than
-/// 2^32 entries.  The dictionary file is written with 64-bit internal
-/// pointers.  However, since the dictionary has to be read into memory
-/// completely to be used, therefore, the size of dictionary is generally
-/// limited by the size of the computer memory.
-/// 
 /// @note If FASTBIT_CASE_SENSITIVE_COMPARE is defined to be 0, the values
 /// stored in a dictionary will be folded to the upper case.  This will
 /// allow the words in the dictionary to be stored in a simple sorted
@@ -73,8 +63,8 @@ public:
     void clear();
     void swap(dictionary&);
 
-    int  read(const char* name);
-    int  write(const char* name) const;
+    int  read(const char*);
+    int  write(const char*) const;
 
     int  fromASCII(std::istream &);
     void toASCII(std::ostream &) const;
@@ -100,7 +90,7 @@ protected:
     typedef
 #if defined(HAVE_UNORDERED_MAP)
         std::unordered_map
-#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ >= 5)
+#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ <= 5)
         __gnu_cxx::hash_map
 #else
         std::unordered_map
@@ -112,9 +102,12 @@ protected:
     int  readRaw(const char*, FILE *);
     int  readKeys0(const char*, FILE *);
     int  readKeys1(const char*, FILE *);
+    int  readKeys2(const char*, FILE *);
     void mergeBuffers() const;
-    int  writeKeys(FILE*, uint32_t, array_t<uint64_t>&) const;
-    int  writeBuffer(FILE*, uint32_t, array_t<uint64_t>&) const;
+    int  writeKeys(FILE*, uint32_t, array_t<uint64_t>&,
+                   array_t<uint32_t>&) const;
+    int  writeBuffer(FILE*, uint32_t, array_t<uint64_t>&,
+                     array_t<uint32_t>&) const;
 
 private:
     dictionary& operator=(const dictionary&);
