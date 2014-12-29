@@ -247,9 +247,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     }
     tdf.close();
     if (tbmap.empty())
-	return ierr;
-    if (ierr > 0) // ignore warnings
-	ierr = 0;
+	return -1;
 
     if (ibis::gVerbose > 1) {
 	col->logMessage("keywords::readTermDocFile", "read %lu keyword%s "
@@ -259,15 +257,14 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
 			(idcol ? idcol->name() : "the row number"));
     }
     // translates tbmap into a dictionary and a vector of pointers
-    bits.resize(tbmap.size()+1);
-    bits[0] = new ibis::bitvector;
-    bits[0]->set(0, nrows);
+    bits.resize(tbmap.size());
+    for (size_t j = 0; j < bits.size(); ++ j)
+        bits[j] = 0;
     std::vector<char*> toDelete;
     for (TBMap::const_iterator it = tbmap.begin();
 	 it != tbmap.end(); ++ it) {
 	uint32_t sz0 = terms.size();
 	uint32_t pos = terms.insertRaw((*it).first);
-	*(bits[0]) |= *((*it).second);
 	if (pos >= sz0) { // a new word in the dictionary
 	    bits[pos] = (*it).second;
 	}
@@ -279,8 +276,7 @@ int ibis::keywords::readTermDocFile(const ibis::column* idcol, const char* f) {
     }
     for (unsigned i = 0; i < toDelete.size(); ++ i)
 	delete [] toDelete[i];
-    bits[0]->compress();
-    bits[0]->flip();
+    ierr = bits.size();
     return ierr;
 } // ibis::keywords::readTermDocFile
 
@@ -501,7 +497,7 @@ void ibis::keywords::binWeights(std::vector<uint32_t>& bw) const {
 
 void ibis::keywords::print(std::ostream& out) const {
     const uint32_t nobs = bits.size();
-    if (terms.size()+1 == bits.size() && terms.size() > 0) {
+    if (terms.size() == bits.size() && terms.size() > 0) {
 	out << "The keywords index for column ";
 	if (col->partition() != 0)
 	    out << col->partition()->name() << '.';
@@ -526,16 +522,14 @@ void ibis::keywords::print(std::ostream& out) const {
 	if (skip > 1) {
 	    out << " (printing 1 out of every " << skip << ")\n";
 	}
-	for (uint32_t i = 1; i < bits.size(); i += skip) {
-	    out << terms[i] << "\t";
-	    if (bits[i])
-		out << bits[i]->cnt();
-	    out << "\n";
+	for (uint32_t i = 0; i < bits.size(); i += skip) {
+	    if (terms[i] && bits[i])
+                out << terms[i] << "\t" << bits[i]->cnt() << "\n";
 	}
     }
     else if (col != 0) {
 	out << "The boolean term-document matrix for " << col->name()
-	    << " is empty";
+	    << " is empty or ill-formed";
     }
     out << std::endl;
 } // ibis::keywords::print
@@ -830,11 +824,15 @@ int ibis::keywords::read(ibis::fileManager::storage* st) {
     }
 
     initBitmaps(st);
-    if (terms.size() < bits.size()) { // need to read the dictionary
+    if (terms.size() != bits.size()) { // need to read the dictionary
 	std::string fnm;
 	dataFileName(fnm);
 	fnm += ".terms";
 	terms.read(fnm.c_str());
+        LOGGER(terms.size() != bits.size() && ibis::gVerbose > 0)
+            << "Warning -- keywords::read expects terms and bits to have the "
+            "same number of elements, but they are different, terms.size()="
+            << terms.size() << " and bits.size()=" << bits.size();
     }
     return 0;
 } // ibis::keywords::read
@@ -926,7 +924,9 @@ long ibis::keywords::search(const std::vector<std::string> &kw,
 		activate(pos);
 	    if (bits[pos] != 0) {
                 LOGGER(ibis::gVerbose > 0)
-                    << "keywords::search found \"" << kw[j] << "\" associated with bits[" << pos << "] (" << bits[pos]->cnt() << ", " << bits[pos]->size() << ')';
+                    << "keywords::search found \"" << kw[j]
+                    << "\" associated with bits[" << pos << "] ("
+                    << bits[pos]->cnt() << ", " << bits[pos]->size() << ')';
 		if (hits.size() == 0)
 		    hits.copy(*bits[pos]);
 		else

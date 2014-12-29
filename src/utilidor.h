@@ -78,17 +78,15 @@ namespace ibis {
 	sortStrings(std::vector<std::string>& keys, array_t<uint32_t>& vals);
 	/// Quicksort for strings.
 	void FASTBIT_CXX_DLLSPEC
-        sortStrings(std::vector<std::string>& keys,
-                    array_t<uint32_t>& vals, uint32_t begin,
-                    uint32_t end);
+        sortStrings(std::vector<std::string>& keys, array_t<uint32_t>& vals,
+                    uint32_t begin, uint32_t end);
 	/// Sorting function with string as keys and uint32_t as payload.
 	void FASTBIT_CXX_DLLSPEC
 	sortStrings(array_t<const char*>& keys, array_t<uint32_t>& vals);
 	/// Quicksort for strings.
 	void FASTBIT_CXX_DLLSPEC
-        sortStrings(array_t<const char*>& keys,
-                    array_t<uint32_t>& vals, uint32_t begin,
-                    uint32_t end);
+        sortStrings(array_t<const char*>& keys, array_t<uint32_t>& vals,
+                    uint32_t begin, uint32_t end);
 
         template <typename T> size_t
         find(const std::vector<T>&, const T&, size_t);

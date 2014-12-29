@@ -8,7 +8,7 @@
 #include "array_t.h"
 #if defined(HAVE_UNORDERED_MAP)
 #include <unordered_map>
-#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ >= 5)
+#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ <= 5)
 #include <backward/hash_map>
 #else
 #include <unordered_map>
@@ -22,8 +22,9 @@ namespace std {
 }
 
 /// Provide a dual-directional mapping between strings and integers.  A
-/// utility class used by ibis::category.  Both the NULL string and the
-/// empty string are mapped to 0.
+/// utility class used by ibis::category.  The integer values are always
+/// treated as 32-bit unsigned integers.  The NULL string is always mapped
+/// to 0xFFFFFFFF (-1U) and is NOT counted as an entry in a dictionary.
 ///
 /// This version uses an in-memory hash_map to provide a mapping from a
 /// string to an integer.
@@ -32,9 +33,9 @@ namespace std {
 /// (uint32_t).  This limits the size of the dictionary to be no more than
 /// 2^32 entries.  The dictionary file is written with 64-bit internal
 /// pointers.  However, since the dictionary has to be read into memory
-/// completely to be used, therefore, the size of dictionary is generally
+/// completely before any use, the size of a dictionary is generally
 /// limited by the size of the computer memory.
-/// 
+///
 /// @note If FASTBIT_CASE_SENSITIVE_COMPARE is defined to be 0, the values
 /// stored in a dictionary will be folded to the upper case.  This will
 /// allow the words in the dictionary to be stored in a simple sorted
@@ -42,12 +43,12 @@ namespace std {
 class FASTBIT_CXX_DLLSPEC ibis::dictionary {
 public:
     ~dictionary() {clear();}
+    dictionary();
     dictionary(const dictionary& dic);
-    /// Default constructor.  Generates one (NULL) entry.
-    dictionary() : raw_(1) {raw_[0] = 0;}
 
-    /// Return the number of valid (not null) strings in the dictionary.
-    uint32_t size() const {return key_.size();}
+    /// Return the number of entries in the dictionary.  May have undefined
+    /// entries.
+    uint32_t size() const {return raw_.size();}
 
     const char* operator[](uint32_t i) const;
     uint32_t operator[](const char* str) const;
@@ -62,8 +63,8 @@ public:
     void clear();
     void swap(dictionary&);
 
-    int  read(const char* name);
-    int  write(const char* name) const;
+    int  read(const char*);
+    int  write(const char*) const;
 
     int  fromASCII(std::istream &);
     void toASCII(std::ostream &) const;
@@ -89,7 +90,7 @@ protected:
     typedef
 #if defined(HAVE_UNORDERED_MAP)
         std::unordered_map
-#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ >= 5)
+#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ <= 5)
         __gnu_cxx::hash_map
 #else
         std::unordered_map
@@ -101,9 +102,12 @@ protected:
     int  readRaw(const char*, FILE *);
     int  readKeys0(const char*, FILE *);
     int  readKeys1(const char*, FILE *);
+    int  readKeys2(const char*, FILE *);
     void mergeBuffers() const;
-    int  writeKeys(FILE*, uint32_t, array_t<uint64_t>&) const;
-    int  writeBuffer(FILE*, uint32_t, array_t<uint64_t>&) const;
+    int  writeKeys(FILE*, uint32_t, array_t<uint64_t>&,
+                   array_t<uint32_t>&) const;
+    int  writeBuffer(FILE*, uint32_t, array_t<uint64_t>&,
+                     array_t<uint32_t>&) const;
 
 private:
     dictionary& operator=(const dictionary&);
@@ -120,7 +124,7 @@ inline void ibis::dictionary::swap(ibis::dictionary& rhs) {
 /// the valid range, i.e., i > size(), then a null pointer will be
 /// returned.
 inline const char* ibis::dictionary::operator[](uint32_t i) const {
-    return (i < raw_.size() ? raw_[i] : raw_[0]);
+    return (i < raw_.size() ? raw_[i] : static_cast<const char*>(0));
 } // int to string
 
 /// Find the given string in the dictionary.  If the input string is found
