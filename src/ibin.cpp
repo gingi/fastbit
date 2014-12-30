@@ -2905,7 +2905,7 @@ void ibis::bin::construct(const char* df) {
     if (ibis::gVerbose > 4) {
 	ibis::util::logger lg;
 	lg() << "bin[" << col->fullname() << "]::construct(" << (df ? df : "")
-             << ") -- finished constructing a simple equality index with "
+             << ") -- finished constructing a binned equality index with "
 	     << nobs << " bin" << (nobs>1?"s":"");
 	if (ibis::gVerbose > 8) {
 	    lg() << "\n";
@@ -2960,7 +2960,7 @@ void ibis::bin::construct(const array_t<E>& varr) {
 	ibis::util::logger lg;
 	lg() << "bin[" << (col ? col->fullname() : "?.?")
 	     << "]::construct<" << typeid(E).name() << '[' << varr.size()
-	     << "]> -- finished constructing a simple equality index with "
+	     << "]> -- finished constructing a binned equality index with "
 	     << nobs << " bin" << (nobs>1?"s":"");
 	if (ibis::gVerbose > 8) {
 	    lg() << "\n";
