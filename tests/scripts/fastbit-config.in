@@ -79,6 +79,7 @@ if test "$echo_cflags" = "yes" ; then
   else
     echo $cflags
   fi
+  echo "Note: include <fastbit/capi.h> instead of <capi.h>"
 fi
 
 if test "$echo_cxxflags" = "yes" ; then
@@ -88,6 +89,7 @@ if test "$echo_cxxflags" = "yes" ; then
   else
     echo $cxxflags
   fi
+  echo "Note: include <fastbit/ibis.h> instead of <ibis.h>"
 fi
 
 if test "$echo_cxxextra" = "yes" ; then

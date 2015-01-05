@@ -15,7 +15,7 @@ tests/TestFastBitJava.java
 if BUILD_JAVA_INTERFACE
 lib_LTLIBRARIES = libfastbitjni.la
 libfastbitjni_la_SOURCES = FastBit.c
-include_HEADERS = FastBit.h ../src/capi.h
+pkginclude_HEADERS = FastBit.h ../src/capi.h
 libfastbitjni_la_DEPENDENCIES = ../src/libfastbit.la build.properties
 libfastbitjni_la_LIBADD = ../src/libfastbit.la
 #

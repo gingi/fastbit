@@ -1,3 +1,13 @@
+2014-01-04 John Wu <John dot Wu at ACM dot org>
+	* java/Makefile.am: change include_HEADERS to pkginclude_HEADERS to
+	allow installing in standard system directory
+	* tests/scripts/fastbit-config.in: add notes about including
+	FastBit header files as <fastbit/ibis.h> instead of <ibis.h>
+
+2014-01-04 Martin Hauke <mardnh at gmx.de>
+	* src/Makefile.am: change include_HEADERS to pkginclude_HEADERS to
+	allow installing in standard system directory
+
 2014-12-28 John Wu <John dot Wu at ACM dot org>
 	* tests/acmpub.v.a, tests/acmpub.v.b: modify the test dictionary
 	to exercise the new feature in dictionary class
