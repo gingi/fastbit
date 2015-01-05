@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2000-2014 the Regents of the University of California
+// Copyright (c) 2000-2015 the Regents of the University of California
 //
 // This file contains the implementation of the class ibis::pack.  It
 // defines a two-level index where the coarse level is formed with

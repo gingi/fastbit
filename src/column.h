@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2000-2014 the Regents of the University of California
+// Copyright (c) 2000-2015 the Regents of the University of California
 #ifndef IBIS_COLUMN_H
 #define IBIS_COLUMN_H
 ///@file

@@ -1,6 +1,6 @@
 // $Id$
 // Authors: John Wu and Aaron Hong, Lawrence Berkeley National Laboratory
-// Copyright 2006-2013 the Regents of the University of California
+// Copyright 2006-2015 the Regents of the University of California
 
 /// @defgroup FastBitJava FastBit Java API.
 /// @{

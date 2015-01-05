@@ -1,5 +1,5 @@
 // $Id$
-// Copyright 2000-2014 the Regents of the University of California
+// Copyright (c) 2000-2015 the Regents of the University of California
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 //
@@ -1994,7 +1994,7 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
 	std::ostringstream oss;
 	oss << ibis::util::getVersionNumber();
 	tmp += oss.str();
-        tmp += ", Copyright (c) 2000-2014";
+        tmp += ", Copyright (c) (c)-2015";
 	str = tmp.c_str();
     }
     int ierr = 0;

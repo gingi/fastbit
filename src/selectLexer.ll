@@ -2,7 +2,7 @@
 
    Author: John Wu <John.Wu at acm.org>
    Lawrence Berkeley National Laboratory
-   Copyright 2007-2014 the Regents of the University of California
+   Copyright (c) 2007-2015 the Regents of the University of California
  */
 
 %{ /* C++ declarations */
