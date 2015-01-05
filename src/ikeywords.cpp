@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2006-2014 the Regents of the University of California
+// Copyright (c) 2006-2015 the Regents of the University of California
 //
 // This file implements the ibis::keywords class.
 #include "ikeywords.h"

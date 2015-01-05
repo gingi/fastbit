@@ -1,6 +1,6 @@
 // File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright 2008-2014 the Regents of the University of California
+// Copyright (c) 2008-2015 the Regents of the University of California
 #include "jnatural.h"	// ibis::jNatural
 #include "tab.h"	// ibis::tabula
 #include "bord.h"	// ibis::bord, ibis::table::bufferList
