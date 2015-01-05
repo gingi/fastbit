@@ -80,6 +80,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = src
+DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
+	$(srcdir)/fastbit-config.h.in $(top_srcdir)/depcomp \
+	$(pkginclude_HEADERS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/tests/m4/libtool.m4 \
 	$(top_srcdir)/tests/m4/ltoptions.m4 \
@@ -361,7 +364,7 @@ libfastbit_la_SOURCES = part.cpp bordm.cpp bord.cpp ibin.cpp column.cpp \
  fromLexer.cc whereParser.cc selectLexer.cc whereLexer.cc fromParser.cc
 
 libfastbit_la_LDFLAGS = -version-info $(LIB_VERSION_INFO)
-include_HEADERS = array_t.h bitvector.h bitvector64.h blob.h bord.h bundle.h capi.h category.h colValues.h column.h const.h countQuery.h dictionary.h fileManager.h horometer.h iapi.h ibin.h ibis.h idirekte.h ikeywords.h index.h irelic.h iroster.h quaere.h mensa.h meshQuery.h part.h filter.h jnatural.h jrange.h whereClause.h whereLexer.h whereParser.hh qExpr.h query.h resource.h rids.h tab.h table.h tafel.h twister.h util.h utilidor.h location.hh position.hh stack.hh selectClause.h selectLexer.h selectParser.hh fromClause.h fromLexer.h fromParser.hh fastbit-config.h
+pkginclude_HEADERS = array_t.h bitvector.h bitvector64.h blob.h bord.h bundle.h capi.h category.h colValues.h column.h const.h countQuery.h dictionary.h fileManager.h horometer.h iapi.h ibin.h ibis.h idirekte.h ikeywords.h index.h irelic.h iroster.h quaere.h mensa.h meshQuery.h part.h filter.h jnatural.h jrange.h whereClause.h whereLexer.h whereParser.hh qExpr.h query.h resource.h rids.h tab.h table.h tafel.h twister.h util.h utilidor.h location.hh position.hh stack.hh selectClause.h selectLexer.h selectParser.hh fromClause.h fromLexer.h fromParser.hh fastbit-config.h
 EXTRA_DIST = whereLexer.ll whereParser.yy selectLexer.ll selectParser.yy fromLexer.ll fromParser.yy Doxyfile
 all: fastbit-config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -802,8 +805,6 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-pkgincludeHEADERS
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
 	uninstall-libLTLIBRARIES uninstall-pkgincludeHEADERS
-
-.PRECIOUS: Makefile
 
 
 # use a useless print statement to prevent the use of implicit rule
