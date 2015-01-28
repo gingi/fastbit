@@ -48,6 +48,20 @@ namespace ibis { // additional names to the namespace ibis
 /// efficiency of searching on relatively small number of attributes
 /// compared to the horizontal data organization used in typical relational
 /// database systems.
+///
+/// Rules about column names.
+/// - a column name must be started with one of underscore ('_'), lower
+///   case ASCII letters (a-z) or upper case ASCII letter (A-Z).
+/// - the number of characters in a name must be one or more
+/// - the character following the first character can be any of the
+///   following: _, a-z, A-Z, 0-9, ',', ':', '[' and ']'.  When the square
+///   brackets are used, they must appear in pair with proper nesting and
+///   there must be one or more other characters in between any matching
+///   pairs of square brackets.
+/// - in most cases, the column names are used without considering the
+///   cases of the letters a-z.  The developers of this software recommend
+///   the users to stick with either lower-case letters or upper-case
+///   letters in the column names, but do not mix them.
 class FASTBIT_CXX_DLLSPEC ibis::column {
 public:
 
@@ -391,6 +405,12 @@ public:
     /// Compute the sum of values in the array.
     template <typename T> static
     double computeSum(const array_t<T>& vals, const ibis::bitvector& mask);
+
+    /// Is the given string a valid FastBit name for a data column?
+    static bool isValidName(const char*);
+    /// Remove unallowed characters from the given string to produce a
+    /// valid column name.
+    static void consecrateName(const char*);
 
 protected:
     // protected member variables

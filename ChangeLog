@@ -1,3 +1,15 @@
+2014-01-26 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: check for the integers read back from metadata
+	file in function readMedaData
+
+2014-01-25 John Wu <John dot Wu at ACM dot org>
+	* src/iapi.cpp: correct the misuses of the declarations of
+	mutexLock
+
+2014-01-23 John Wu <John dot Wu at ACM dot org>
+	* src/column.h, src/iapi.h: add notes about the names of the
+	columns
+
 2014-01-04 John Wu <John dot Wu at ACM dot org>
 	* java/Makefile.am: change include_HEADERS to pkginclude_HEADERS to
 	allow installing in standard system directory
