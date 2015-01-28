@@ -144,7 +144,8 @@ ibis::bord::column* __fastbit_iapi_register_array
         || n == 0)
         return 0;
 
-    ibis::util::mutexLock(&__fastbit_iapi_lock, "__fastbit_iapi_register_array");
+    ibis::util::mutexLock
+        lock(&__fastbit_iapi_lock, "__fastbit_iapi_register_array");
     FastBitIAPIAddressMap::iterator it = __fastbit_iapi_address_map.find(addr);
     if (it != __fastbit_iapi_address_map.end())
         return __fastbit_iapi_all_arrays[it->second];
@@ -268,8 +269,8 @@ ibis::bord::column* __fastbit_iapi_register_array_nd
         return 0;
     }
 
-    ibis::util::mutexLock(&__fastbit_iapi_lock,
-                          "__fastbit_iapi_register_array_nd");
+    ibis::util::mutexLock
+        lock(&__fastbit_iapi_lock, "__fastbit_iapi_register_array_nd");
     FastBitIAPIAddressMap::iterator it = __fastbit_iapi_address_map.find(addr);
     if (it != __fastbit_iapi_address_map.end()) {
         __fastbit_iapi_all_arrays[it->second]->setMeshShape(dims, nd);
@@ -448,8 +449,8 @@ ibis::bord::column* __fastbit_iapi_register_array_ext
         return tmp;
     }
 
-    ibis::util::mutexLock(&__fastbit_iapi_lock,
-                          "__fastbit_iapi_register_array_ext");
+    ibis::util::mutexLock
+        lock(&__fastbit_iapi_lock, "__fastbit_iapi_register_array_ext");
     uint64_t pos = __fastbit_iapi_all_arrays.size();
     __fastbit_iapi_name_map[tmp->name()] = pos;
     __fastbit_iapi_all_arrays.push_back(tmp);
@@ -493,8 +494,8 @@ ibis::bord::column* __fastbit_iapi_register_array_index_only
         return 0;
     }
 
-    ibis::util::mutexLock(&__fastbit_iapi_lock,
-                          "__fastbit_iapi_register_array_index_only");
+    ibis::util::mutexLock
+        lock(&__fastbit_iapi_lock, "__fastbit_iapi_register_array_index_only");
     uint64_t pos = __fastbit_iapi_all_arrays.size();
     __fastbit_iapi_name_map[tmp->name()] = pos;
     __fastbit_iapi_all_arrays.push_back(tmp);
@@ -735,7 +736,8 @@ void fastbit_iapi_gather_columns
         break;}
     case ibis::qExpr::STRING: {
         ibis::qString *qr = static_cast<ibis::qString*>(h);
-        ibis::bord::column *tmp = __fastbit_iapi_array_by_name(qr->leftString());
+        ibis::bord::column *tmp =
+            __fastbit_iapi_array_by_name(qr->leftString());
         if (tmp != 0) {
             ibis::util::mutexLock
                 lck1(&__fastbit_iapi_lock, "fastbit_iapi_gather_columns");
@@ -1094,7 +1096,8 @@ extern "C" FastBitSelectionHandle fastbit_selection_create
     if (col == 0) {
         std::ostringstream oss;
         oss << 'A' << std::hex << buf;
-        col = __fastbit_iapi_register_array(oss.str().c_str(), dtype, buf, nelm);
+        col = __fastbit_iapi_register_array
+            (oss.str().c_str(), dtype, buf, nelm);
         if (col == 0) {
             LOGGER(ibis::gVerbose > 1)
                 << "Warning -- fastbit_selection_create failed to register buf "
@@ -1472,6 +1475,14 @@ extern "C" void fastbit_iapi_free_array_by_addr(void *addr) {
     __fastbit_free_array(addr);
 } // fastbit_iapi_free_array_by_addr
 
+/**
+   @note the array name @c nm must follow the naming convention specified
+   in the documentation for ibis::column.  More specifically, the name must
+   start with a underscore (_) or one of the 26 English alphabets, and the
+   remaining characters in the name must be drawn from _, a-z, A-Z, 0-9,
+   '.', and ':'.  Additionally, the column names are used without
+   considering the cases of the letters a-z.
+ */
 extern "C" int fastbit_iapi_register_array
 (const char *nm, FastBitDataType dtype, void *buf, uint64_t nelm) {
     if (nm == 0 || *nm == 0 || dtype == FastBitDataTypeUnknown || buf == 0)
@@ -1495,6 +1506,14 @@ extern "C" int fastbit_iapi_register_array
         return -2;
 } // fastbit_iapi_register_array
 
+/**
+   @note the array name @c nm must follow the naming convention specified
+   in the documentation for ibis::column.  More specifically, the name must
+   start with a underscore (_) or one of the 26 English alphabets, and the
+   remaining characters in the name must be drawn from _, a-z, A-Z, 0-9,
+   '.', and ':'.  Additionally, the column names are used without
+   considering the cases of the letters a-z.
+ */
 extern "C" int fastbit_iapi_register_array_nd
 (const char *nm, FastBitDataType dtype, void *buf, uint64_t *dims, uint64_t nd) {
     if (nm == 0 || *nm == 0 || dtype == FastBitDataTypeUnknown || buf == 0 ||
@@ -1519,6 +1538,16 @@ extern "C" int fastbit_iapi_register_array_nd
         return -2;
 } // fastbit_iapi_register_array_nd
 
+/**
+   The content of the array is available through FastBitReadExtArray.
+
+   @note the array name @c nm must follow the naming convention specified
+   in the documentation for ibis::column.  More specifically, the name must
+   start with a underscore (_) or one of the 26 English alphabets, and the
+   remaining characters in the name must be drawn from _, a-z, A-Z, 0-9,
+   '.', and ':'.  Additionally, the column names are used without
+   considering the cases of the letters a-z.
+ */
 extern "C" int fastbit_iapi_register_array_ext
 (const char *nm, FastBitDataType dtype, uint64_t *dims, uint64_t nd,
  void *ctx, FastBitReadExtArray rd) {
@@ -1538,6 +1567,16 @@ extern "C" int fastbit_iapi_register_array_ext
         return -2;
 } // fastbit_iapi_register_array_ext
 
+/**
+   Only the index for the array is actually available.
+
+   @note the array name @c nm must follow the naming convention specified
+   in the documentation for ibis::column.  More specifically, the name must
+   start with a underscore (_) or one of the 26 English alphabets, and the
+   remaining characters in the name must be drawn from _, a-z, A-Z, 0-9,
+   '.', and ':'.  Additionally, the column names are used without
+   considering the cases of the letters a-z.
+ */
 extern "C" int fastbit_iapi_register_array_index_only
 (const char *nm, FastBitDataType dtype, uint64_t *dims, uint64_t nd,
  double *keys, uint64_t nkeys, int64_t *offsets, uint64_t noffsets,

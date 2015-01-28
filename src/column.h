@@ -406,6 +406,12 @@ public:
     template <typename T> static
     double computeSum(const array_t<T>& vals, const ibis::bitvector& mask);
 
+    /// Is the given string a valid FastBit name for a data column?
+    static bool isValidName(const char*);
+    /// Remove unallowed characters from the given string to produce a
+    /// valid column name.
+    static void consecrateName(const char*);
+
 protected:
     // protected member variables
     const part* thePart;  ///!< Data partition containing this column.

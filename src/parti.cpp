@@ -1174,6 +1174,14 @@ long ibis::part::appendToBackup(const char* dir) {
                        dir);
         return ierr;
     }
+    if ((uint64_t)nEvents + (uint64_t)napp > 0x7FFFFFFFUL) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- part::appendToBackup can not proceed because the "
+            "resulting partition will have " << nEvents << " + " << napp
+            << " = " << nEvents + napp
+            << " rows, which is more than this software could handle";
+        return -18;
+    }
 
     if (ibis::gVerbose > 1)
 	logMessage("appendToBackup", "starting to append new data in \"%s\" "

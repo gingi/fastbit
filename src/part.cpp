@@ -1338,7 +1338,8 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
     int  maxLength = 0;
     int  tot_columns = INT_MAX;
     int  num_columns = INT_MAX;
-    const bool isActive = (activeDir ? std::strcmp(activeDir, dir) == 0 : false);
+    const bool isActive =
+        (activeDir ? std::strcmp(activeDir, dir) == 0 : false);
     std::set<int> selected; // list of selected columns
     char buf[MAX_LINE];
 
@@ -1369,13 +1370,13 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 	    s1 = 0;
 	}
 
-        if (strnicmp(buf, "END HEADER", 10) == 0) {
-            break;
-        }
-        else if (strnicmp(buf, "Number_of_rows", 14) == 0 ||
-                 strnicmp(buf, "Number_of_events", 16) == 0 ||
-                 strnicmp(buf, "Number_of_records", 17) == 0) {
-            ret = strtol(s1, 0, 0);
+	if (strnicmp(buf, "END HEADER", 10) == 0) {
+	    break;
+	}
+	else if (strnicmp(buf, "Number_of_rows", 14) == 0 ||
+		 strnicmp(buf, "Number_of_events", 16) == 0 ||
+		 strnicmp(buf, "Number_of_records", 17) == 0) {
+	    ret = strtol(s1, 0, 0);
             if (ret <= 0x7FFFFFFF) {
                 nrows = ret;
                 if (isActive)
@@ -1388,10 +1389,10 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
                 nEvents = -1;
                 return -92;
             }
-        }
-        else if (strnicmp(buf, "Number_of_columns", 17) == 0 ||
-                 strnicmp(buf, "Number_of_properties", 20) == 0) {
-            ret = strtol(s1, 0, 0);
+	}
+	else if (strnicmp(buf, "Number_of_columns", 17) == 0 ||
+		 strnicmp(buf, "Number_of_properties", 20) == 0) {
+	    ret = strtol(s1, 0, 0);
             if (ret <= 0x7FFFFFFF) {
                 num_columns = ret;
             }
@@ -1401,9 +1402,9 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
                     << ret << ", which is more than 2 billion limit";
                 return -93;
             }
-        }
-        else if (strnicmp(buf, "Tot_num_of", 10) == 0) {
-            ret = strtol(s1, 0, 0);
+	}
+	else if (strnicmp(buf, "Tot_num_of", 10) == 0) {
+	    ret = strtol(s1, 0, 0);
             if (ret <= 0x7FFFFFFF) {
                 tot_columns = ret;
             }
@@ -1414,10 +1415,10 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
                     << ret << ", which is more than 2 billion limit";
                 return -94;
             }
-        }
-        else if (strnicmp(buf, "index", 5) == 0) {
-            delete [] idxstr; // discard the old value
-            idxstr = ibis::util::getString(s1);
+	}
+	else if (strnicmp(buf, "index", 5) == 0) {
+	    delete [] idxstr; // discard the old value
+	    idxstr = ibis::util::getString(s1);
 #if defined(INDEX_SPEC_TO_LOWER)
 	    s1 = idxstr + std::strlen(idxstr) - 1;
 	    while (s1 >= idxstr) {
