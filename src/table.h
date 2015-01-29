@@ -439,13 +439,16 @@ public:
     /// Create a @c cursor object to perform row-wise data access.
     virtual cursor* createCursor() const =0;
 
-    static void parseNames(char* in, stringList& out);
-    static void parseOrderby(char* in, stringList& out,
-			     std::vector<bool>& direc);
-
     static void* allocateBuffer(ibis::TYPE_T, size_t);
     static void freeBuffer(void* buffer, ibis::TYPE_T type);
     static void freeBuffers(bufferList&, typeList&);
+
+
+    static void parseNames(char* in, stringList& out);
+    static void parseOrderby(char* in, stringList& out,
+			     std::vector<bool>& direc);
+    static bool isValidName(const char*);
+    static void consecrateName(char*);
 
 protected:
 

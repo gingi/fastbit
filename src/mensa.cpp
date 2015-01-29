@@ -4452,9 +4452,9 @@ void ibis::table::parseOrderby(char* in, ibis::table::stringList& out,
 	}
 	else {
 	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- table::parseOrderby can not part string \"" << ptr1
-		<< "\" into a column name or a function, skip till first "
-		"character after the next comma or space";
+		<< "Warning -- table::parseOrderby can not part string \""
+                << ptr1 << "\" into a column name or a function, skip till "
+		"first character after the next comma or space";
 
 	    while (*ptr2 != 0 && ispunct(*ptr2) == 0 && isspace(*ptr2) == 0)
 		++ ptr2;
@@ -4522,6 +4522,69 @@ void ibis::table::parseNames(char* in, ibis::table::stringList& out) {
 	for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
     }
 } // ibis::table::parseNames
+
+/// Is the given string a valid FastBit name for a data column?
+bool ibis::table::isValidName(const char *nm) {
+    if (nm == 0 || *nm == 0) return false;
+    if (! (*nm == '_' || (*nm >= 'a' && *nm <= 'z') ||
+           (*nm >= 'A' && *nm <= 'Z'))) return false;
+    for (++ nm; *nm != 0; ++ nm) {
+        if (*nm == '_'  || (*nm >= 'a' && *nm <= 'z') ||
+            (*nm >= 'A' && *nm <= 'Z') || (*nm >= '0' && *nm <= '9') ||
+            *nm == '[' || *nm == ']' || *nm == '.') {
+            ;
+        }
+        else if (*nm == '-' && nm[1] == '>') {
+            ++ nm;
+        }
+        else {
+            return false;
+        }
+    }
+    return true;
+} // ibis::table::isValidName
+
+/// Remove unallowed characters from the given string to produce a
+/// valid column name.  This function will not allocate new memory,
+/// therefore, if the incoming string is nil, nothing is done.
+void ibis::table::consecrateName(char *nm) {
+    if (nm == 0 || *nm == 0) return;
+    // 1st character must be either _ or one of the 26 English alphabets
+    if (! (*nm == '_' || (*nm >= 'a' && *nm <= 'z') ||
+           (*nm >= 'A' && *nm <= 'Z'))) {
+        short j = (*nm % 27);
+        if (j < 26)
+            *nm = 'A' + j;
+        else
+            *nm = '_';
+    }
+    ++ nm;
+    char *ptr = nm;
+    while (*ptr != 0) {
+        if (*ptr == '_'  || (*ptr >= 'a' && *ptr <= 'z') ||
+            (*ptr >= 'A' && *ptr <= 'Z') || (*ptr >= '0' && *ptr <= '9') ||
+            *ptr == '[' || *ptr == ']' || *ptr == '.') {
+            *nm = *ptr;
+            ++ ptr;
+            ++ nm;
+        }
+        else if (*ptr == '-' && ptr[1] == '>') {
+            *nm = *ptr;
+            ++ ptr;
+            ++ nm;
+            *nm = *ptr;
+            ++ ptr;
+            ++ nm;
+        }
+        else {
+            ++ ptr;
+        }
+    }
+    while (nm < ptr) {
+        *nm = 0;
+        ++ nm;
+    }
+} // ibis::table::consecrateName
 
 ibis::table* ibis::table::groupby(const char* str) const {
     stringList lst;
