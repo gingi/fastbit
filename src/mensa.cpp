@@ -4409,60 +4409,60 @@ void ibis::table::parseOrderby(char* in, ibis::table::stringList& out,
     }
 
     while (*ptr1 != 0) {
-        for (ptr2 = ptr1; *ptr2 == '_' || isalnum(*ptr2) != 0; ++ ptr2);
-        while (*ptr2 == '(') {
-            int nesting = 1;
-            for (++ ptr2; *ptr2 != 0 && nesting > 0; ++ ptr2) {
-                nesting -= (*ptr2 == ')');
-                nesting += (*ptr2 == '(');
-            }
-            while (*ptr2 != 0 && *ptr2 != ',' && *ptr2 != ';' && *ptr2 != '(')
-                ++ ptr2;
-        }
-        if (*ptr2 == 0) {
-            out.push_back(ptr1);
-            direc.push_back(true);
-        }
-        else if (ispunct(*ptr2)) {
-            *ptr2 = 0;
-            out.push_back(ptr1);
-            direc.push_back(true);
-            ++ ptr2;
-        }
-        else if (isspace(*ptr2)) {
-            // skip over spaces
-            *ptr2 = 0;
-            out.push_back(ptr1);
-            for (++ ptr2; isspace(*ptr2); ++ ptr2);
-            if ((ptr2[0] == 'a' || ptr2[0] == 'A') &&
-                (ptr2[1] == 's' || ptr2[1] == 'S') &&
-                (ptr2[2] == 'c' || ptr2[2] == 'c') &&
-                (ptr2[3] == 0 || isspace(ptr2[3]) || ispunct(ptr2[3]))) {
-                direc.push_back(true);
-                ptr2 += 3;
-            }
-            else if ((ptr2[0] == 'd' || ptr2[0] == 'D') &&
-                     (ptr2[1] == 'e' || ptr2[1] == 'E') &&
-                     (ptr2[2] == 's' || ptr2[2] == 'S') &&
-                     (ptr2[3] == 'c' || ptr2[3] == 'C') &&
-                     (ptr2[4] == 0 || isspace(ptr2[4]) || ispunct(ptr2[4]))) {
-                direc.push_back(false);
-                ptr2 += 4;
-            }
-        }
-        else {
-            LOGGER(ibis::gVerbose > 0)
-                << "Warning -- table::parseOrderby can not part string \""
+	for (ptr2 = ptr1; *ptr2 == '_' || isalnum(*ptr2) != 0; ++ ptr2);
+	while (*ptr2 == '(') {
+	    int nesting = 1;
+	    for (++ ptr2; *ptr2 != 0 && nesting > 0; ++ ptr2) {
+		nesting -= (*ptr2 == ')');
+		nesting += (*ptr2 == '(');
+	    }
+	    while (*ptr2 != 0 && *ptr2 != ',' && *ptr2 != ';' && *ptr2 != '(')
+		++ ptr2;
+	}
+	if (*ptr2 == 0) {
+	    out.push_back(ptr1);
+	    direc.push_back(true);
+	}
+	else if (ispunct(*ptr2)) {
+	    *ptr2 = 0;
+	    out.push_back(ptr1);
+	    direc.push_back(true);
+	    ++ ptr2;
+	}
+	else if (isspace(*ptr2)) {
+	    // skip over spaces
+	    *ptr2 = 0;
+	    out.push_back(ptr1);
+	    for (++ ptr2; isspace(*ptr2); ++ ptr2);
+	    if ((ptr2[0] == 'a' || ptr2[0] == 'A') &&
+		(ptr2[1] == 's' || ptr2[1] == 'S') &&
+		(ptr2[2] == 'c' || ptr2[2] == 'c') &&
+		(ptr2[3] == 0 || isspace(ptr2[3]) || ispunct(ptr2[3]))) {
+		direc.push_back(true);
+		ptr2 += 3;
+	    }
+	    else if ((ptr2[0] == 'd' || ptr2[0] == 'D') &&
+		     (ptr2[1] == 'e' || ptr2[1] == 'E') &&
+		     (ptr2[2] == 's' || ptr2[2] == 'S') &&
+		     (ptr2[3] == 'c' || ptr2[3] == 'C') &&
+		     (ptr2[4] == 0 || isspace(ptr2[4]) || ispunct(ptr2[4]))) {
+		direc.push_back(false);
+		ptr2 += 4;
+	    }
+	}
+	else {
+	    LOGGER(ibis::gVerbose > 0)
+		<< "Warning -- table::parseOrderby can not part string \""
                 << ptr1 << "\" into a column name or a function, skip till "
-                "first character after the next comma or space";
+		"first character after the next comma or space";
 
-            while (*ptr2 != 0 && ispunct(*ptr2) == 0 && isspace(*ptr2) == 0)
-                ++ ptr2;
-            if (*ptr2 != 0) ++ ptr2;
-            while (*ptr2 != 0 && isspace(*ptr2) != 0) ++ ptr2;
-        }
-        // skip spaces and punctuations
-        for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
+	    while (*ptr2 != 0 && ispunct(*ptr2) == 0 && isspace(*ptr2) == 0)
+		++ ptr2;
+	    if (*ptr2 != 0) ++ ptr2;
+	    while (*ptr2 != 0 && isspace(*ptr2) != 0) ++ ptr2;
+	}
+	// skip spaces and punctuations
+	for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
     }
 } // ibis::table::parseOrderby
 

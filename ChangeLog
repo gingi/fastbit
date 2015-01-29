@@ -1,3 +1,7 @@
+2014-01-28 John Wu <John dot Wu at ACM dot org>
+	* src/table.h, src/mensa.cpp: add functions
+	ibis::table::isValidName and ibis::table::consecrateName
+
 2014-01-26 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: check for the integers read back from metadata
 	file in function readMedaData
