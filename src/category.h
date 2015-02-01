@@ -100,7 +100,8 @@ protected:
     int  readString(uint32_t i, std::string &val) const;
     int  readString(std::string&, int, long, long, char*, uint32_t,
 		    uint32_t&, off_t&) const;
-    int  readStrings(const ibis::bitvector &, std::vector<std::string> &) const;
+    int  readStrings1(const ibis::bitvector&, std::vector<std::string>&) const;
+    int  readStrings2(const ibis::bitvector&, std::vector<std::string>&) const;
     int  writeStrings(const char *to, const char *from,
 		      const char *spto, const char *spfrom,
 		      ibis::bitvector &msk, const ibis::bitvector &sel,

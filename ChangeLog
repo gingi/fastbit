@@ -1,3 +1,15 @@
+2014-01-31 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: Chen's change is equivalent to
+	text::readStrings, rename the original selectStrings to
+	text::readStrings2 and the original text::readStrings to
+	text::readStrings1, add new implementation of selectStrings in
+	terms of readStrings1 and readStrings2
+
+2014-01-30 Chen HANG <hangchen at diditaxi dot com dot cn>
+	* src/category.cpp: change text::selectStrings to read values from
+	.sp file instead of using a file map.  This improves performance
+	when one or two entries are read from a text file
+
 2014-01-28 John Wu <John dot Wu at ACM dot org>
 	* src/table.h, src/mensa.cpp: add functions
 	ibis::table::isValidName and ibis::table::consecrateName
