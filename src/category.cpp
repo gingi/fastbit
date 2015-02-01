@@ -2772,12 +2772,14 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     if (mask.cnt() == 0) return res.release();
 
     int ierr;
-    std::string evt = "text[";
-    evt += (thePart != 0 ? thePart->name() : "?");
-    evt += '.';
-    evt += name();
-    evt += "]::selectStrings";
-    ibis::util::timer mytime(evt.c_str(), 3);
+    std::string evt = "text";
+    if (ibis::gVerbose > 1) {
+        evt += "[";
+        evt += fullname();
+        evt += "]";
+    }
+    evt += "::selectStrings";
+
     std::string fname = thePart->currentDataDir();
     fname += FASTBIT_DIRSEP;
     fname += m_name;
@@ -2787,7 +2789,7 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
         startPositions(thePart->currentDataDir(), (char*)0, 0U);
         spsize = ibis::util::getFileSize(fname.c_str());
         if (spsize < 0 || (uint32_t)spsize != (mask.size()+1)*sizeof(int64_t)) {
-            LOGGER(ibis::gVerbose > 1)
+            LOGGER(ibis::gVerbose > 0)
                 << "Warning -- " << evt
                 << " failed to create .sp file after retrying";
             return 0;
@@ -2795,85 +2797,38 @@ ibis::text::selectStrings(const ibis::bitvector& mask) const {
     }
 
     try {
-        const array_t<int64_t>
-            sp(fname.c_str(), static_cast<off_t>(0),
-               static_cast<off_t>((mask.size()+1)*sizeof(int64_t)));
-        fname.erase(fname.size()-3); // remove .sp
-        int fdata = UnixOpen(fname.c_str(), OPEN_READONLY);
-        if (fdata < 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- " << evt << " failed to open data file "
-                << fname;
-            return 0;
+        // compute the threshold for deciding when to invoke readStrings1
+        // or readString2
+        size_t thr = ibis::util::log2(mask.size());
+        if (thr > 6U && mask.cnt() > thr) {
+            // when the number of rows > 2^6 (64) and number of elements to
+            // be read is more than log_2(N), then try readStrings2
+            ierr = readStrings2(mask, *res);
         }
-        IBIS_BLOCK_GUARD(UnixClose, fdata);
-#if defined(_WIN32) && defined(_MSC_VER)
-        (void)_setmode(fdata, _O_BINARY);
-#endif
-
-        std::string tmp;
-        off_t boffset = 0;
-        uint32_t inbuf = 0;
-        ibis::fileManager::buffer<char> mybuf;
-        char* buf = mybuf.address();
-        uint32_t nbuf = mybuf.size();
-        if (buf == 0 || nbuf == 0) {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- " << evt
-                << " failed to allocate buffer for reading";
-            return 0;
-        }
-
-        for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
-             ix.nIndices() > 0; ++ ix) {
-            const ibis::bitvector::word_t *ixval = ix.indices();
-            if (ix.isRange()) {
-                const ibis::bitvector::word_t top =
-                    (ixval[1] <= sp.size()-1 ? ixval[1] : sp.size()-1);
-                for (ibis::bitvector::word_t i = *ixval; i < top; ++ i) {
-                    ierr = readString(tmp, fdata, sp[i], sp[i+1],
-                                      buf, nbuf, inbuf, boffset);
-                    if (ierr >= 0) {
-                        res->push_back(tmp);
-                    }
-                    else {
-                        LOGGER(ibis::gVerbose >= 0)
-                            << "Warning -- " << evt
-                            << " failed to read from file \"" << fname
-                            << "\" (position " << sp[i] <<
-                            "), readString returned ierr = " << ierr;
-                        return 0;
-                    }
-                }
-            }
-            else {
-                for (unsigned i = 0; i < ix.nIndices(); ++ i) {
-                    if (ixval[i] < sp.size()-1) {
-                        ierr = readString(tmp, fdata, sp[ixval[i]],
-                                          sp[ixval[i]+1],
-                                          buf, nbuf, inbuf, boffset);
-                        if (ierr >= 0) {
-                            res->push_back(tmp);
-                        }
-                        else {
-                            LOGGER(ibis::gVerbose >= 0)
-                                << (thePart != 0 ? thePart->name() : "")
-                                << " failed to read from file \"" << fname
-                                << "\" (position " << sp[ixval[i]]
-                                << "), readString returned ierr = " << ierr;
-                            return 0;
-                        }
-                    }
-                }
-            }
+        else {
+            // the total number of strings is small or the number of
+            // strings to be read is small
+            ierr = readStrings1(mask, *res);
         }
     }
     catch (...) {
-        // resort to reading the strings one at a time
-        ierr = readStrings(mask, *res);
+        // attempt to reading the strings one at a time
+        ierr = readStrings1(mask, *res);
     }
 
-    return res.release();
+    if (ierr >= 0) {
+        LOGGER(ibis::gVerbose > 4)
+            << evt << " read " << res->size() << " string"
+            << (res->size() > 1 ? "s" : "") << ", " << mask.cnt()
+            << " expected";
+        return res.release();
+    }
+    else {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- " << evt << " failed with error " << ierr
+            << " from readStrings1 or readStrings2";
+        return 0;
+    }
 } // ibis::text::selectStrings
 
 /// Read one string from an open file.
@@ -2896,21 +2851,23 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
         off_t ierr = UnixSeek(fdes, boffset+inbuf, SEEK_SET);
         if (ierr != boffset+(long)inbuf) {
             LOGGER(ibis::gVerbose > 1)
-                << "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
-                << "." << name() << "]::readString failed to move file pointer "
-                "to " << (boffset+inbuf);
+                << "Warning -- text[" << fullname()
+                << "]::readString failed to move file pointer to "
+                << (boffset+inbuf);
             return -1;
         }
         ierr = UnixRead(fdes, buf, nbuf);
         if (ierr < 0) {
             LOGGER(ibis::gVerbose > 1)
-                << "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
-                << "." << name()
+                << "Warning -- text[" << fullname()
                 << "]::readString failed to read from data file position "
                 << (boffset+inbuf);
             inbuf = 0;
             return -2;
         }
+
+        ibis::fileManager::instance().recordPages
+            (boffset+inbuf, boffset+inbuf+nbuf);
         boffset += static_cast<long>(inbuf);
         inbuf = static_cast<uint32_t>(ierr);
         be = boffset;
@@ -2920,8 +2877,7 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
             ierr = UnixRead(fdes, buf, nbuf);
             if (ierr < 0) {
                 LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- text["
-                    << (thePart != 0 ? thePart->name() : "") << "." << name()
+                    << "Warning -- text[" << fullname()
                     << "]::readString failed to read from data file position "
                     << (boffset+inbuf);
                 inbuf = 0;
@@ -2936,21 +2892,21 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
         off_t ierr = UnixSeek(fdes, be, SEEK_SET);
         if (ierr != static_cast<off_t>(be)) {
             LOGGER(ibis::gVerbose > 1)
-                << "Warning -- text["
-                << (thePart != 0 ? thePart->name() : "") << "." << name()
+                << "Warning -- text[" << fullname()
                 << "]::readString failed to move file pointer to " << be;
             return -4;
         }
         ierr = UnixRead(fdes, buf, nbuf);
         if (ierr < 0) {
             LOGGER(ibis::gVerbose > 1)
-                << "Warning -- text["
-                << (thePart != 0 ? thePart->name() : "") << "." << name()
+                << "Warning -- text[" << fullname()
                 << "]::readString failed to read from data file position "
                 << be;
             inbuf = 0;
             return -5;
         }
+
+        ibis::fileManager::instance().recordPages(be, be+nbuf);
         boffset = be;
         inbuf = static_cast<uint32_t>(ierr);
         while (en > boffset+(off_t)inbuf) {
@@ -2959,8 +2915,7 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
             ierr = UnixRead(fdes, buf, nbuf);
             if (ierr < 0) {
                 LOGGER(ibis::gVerbose > 1)
-                    << "Warning-- text["
-                    << (thePart != 0 ? thePart->name() : "") << "." << name()
+                    << "Warning-- text[" << fullname()
                     << "]::readString failed to read from data file position "
                     << be;
                 inbuf = 0;
@@ -2973,7 +2928,7 @@ int ibis::text::readString(std::string& res, int fdes, long be, long en,
     }
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 5)
-        << "DEBUG -- text[" << partition()->name() << '.' << m_name
+        << "DEBUG -- text[" << fullname()
         << "]::readString got string value \"" << res
         << "\" from file descriptor " << fdes << " offsets " << be << " -- "
         << en;
@@ -3110,32 +3065,35 @@ int ibis::text::readString(uint32_t i, std::string &ret) const {
     return 0;
 } // ibis::text::readString
 
-/// Read the strings marked 1 in the mask.
-/// It goes through a two-stage process by reading from two files, first
-/// from the .sp file to read the position of the string in the second file
-/// and the second file contains the actual string values (with nil
-/// terminators).  This can be quite slow!
-int ibis::text::readStrings(const ibis::bitvector &msk,
-                            std::vector<std::string> &ret) const {
+/// Read the strings marked 1 in the mask.  It goes through a two-stage
+/// process by reading from two files, first from the .sp file to read the
+/// position of the string in the second file containing the actual string
+/// values (with nil terminators), and then go to the second file to read
+/// the string value.  This can be quite slow if you are attempting to read
+/// a lot of strings, however it could be faster than readStrings2 if only
+/// a few strings are expected.
+///
+/// @note This function assumes that the .sp file has been prepared
+/// properly.
+int ibis::text::readStrings1(const ibis::bitvector &msk,
+                             std::vector<std::string> &ret) const {
     ret.clear();
     if (msk.empty()) return 0;
     if (thePart == 0 || thePart->currentDataDir() == 0 ||
         *(thePart->currentDataDir()) == 0) return -1;
+    std::string evt = "text";
+    if (ibis::gVerbose > 1) {
+        evt += '[';
+        evt += fullname();
+        evt += ']';
+    }
+    evt += "::readStrings1";
+
+    ibis::util::timer mytimer(evt.c_str(), 4);
     std::string fnm = thePart->currentDataDir();
     fnm += FASTBIT_DIRSEP;
     fnm += m_name;
     fnm += ".sp"; // starting position file
-    std::string evt = "text";
-    if (ibis::gVerbose > 1) {
-        evt += '[';
-        evt += thePart->name();
-        evt += '.';
-        evt += m_name;
-        evt += ']';
-    }
-    evt += "::readStrings";
-
-    ibis::util::timer mytimer(evt.c_str(), 2);
     try {
         ret.reserve(msk.cnt());
     }
@@ -3158,7 +3116,7 @@ int ibis::text::readStrings(const ibis::bitvector &msk,
             LOGGER(ibis::gVerbose > 1)
                 << "Warning -- " << evt << " failed to open file \""
                 << fnm << "\" for reading";
-            return -2;
+            return -3;
         }
     }
     IBIS_BLOCK_GUARD(UnixClose, dsp);
@@ -3173,7 +3131,7 @@ int ibis::text::readStrings(const ibis::bitvector &msk,
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- " << evt << " failed to open file \""
             << fnm << "\" for reading";
-        return -3;
+        return -4;
     }
     IBIS_BLOCK_GUARD(UnixClose, draw);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -3190,24 +3148,29 @@ int ibis::text::readStrings(const ibis::bitvector &msk,
             LOGGER(ibis::gVerbose > 1)
                 << "Warning -- " << evt << " failed to locate position "
                 << positions[1] << " in the .sp file";
-            return -4;
+            return -5;
         }
 
         if (ix.isRange()) {
+            ibis::fileManager::instance().recordPages
+                (ierr, ierr+8*ix.nIndices()+8);
             ierr = UnixRead(dsp, positions, sizeof(int64_t));
             if (ierr != 8) {
                 LOGGER(ibis::gVerbose > 1)
                     << "Warning -- " << evt << " failed to read the starting "
                     "position at " << positions[1] << std::endl;
-                return -5;
+                return -6;
             }
             for (unsigned j = ind[0]; j < ind[1]; ++ j) {
                 ierr = UnixRead(dsp, positions+1, sizeof(int64_t));
                 ierr = UnixSeek(draw, positions[0], SEEK_SET);
-                std::string tmp;
                 ierr = positions[1] - positions[0];
-                tmp.resize(ierr);
-                ierr = UnixRead(draw, const_cast<char*>(tmp.data()), ierr);
+                std::string tmp;
+                if (ierr > 1) {
+                    -- ierr;
+                    tmp.resize(ierr);
+                    ierr = UnixRead(draw, const_cast<char*>(tmp.data()), ierr);
+                }
                 positions[0] = positions[1];
                 ret.push_back(tmp);
             }
@@ -3215,32 +3178,152 @@ int ibis::text::readStrings(const ibis::bitvector &msk,
         else {
             for (unsigned j = 0; j < ix.nIndices(); ++ j) {
                 positions[1] = ind[j] * sizeof(int64_t);
+                ibis::fileManager::instance().recordPages
+                    (positions[1], positions[1]+16);
                 ierr = UnixSeek(dsp, positions[1], SEEK_SET);
                 if (ierr != positions[1]) {
                     LOGGER(ibis::gVerbose > 1)
                         << "Warning -- " << evt << " failed to seek to "
                         "position at " << positions[1] << std::endl;
-                    return -6;
+                    return -7;
                 }
                 ierr = UnixRead(dsp, positions, sizeof(int64_t)*2);
                 ierr = UnixSeek(draw, positions[0], SEEK_SET);
                 ierr = positions[1] - positions[0];
                 std::string tmp;
-                tmp.resize(ierr);
-                ierr = UnixRead(draw, const_cast<char*>(tmp.data()), ierr);
+                if (ierr > 1) {
+                    -- ierr;
+                    tmp.resize(ierr);
+                    ierr = UnixRead(draw, const_cast<char*>(tmp.data()), ierr);
+                }
                 ret.push_back(tmp);
             }
         }
     }
 
-    ibis::fileManager::instance().recordPages(0, 8*(msk.size()+1));
-    ibis::fileManager::instance().recordPages(0, positions[1]);
-    LOGGER(ibis::gVerbose > 1)
+    LOGGER(ibis::gVerbose > 2)
         << evt << " completed processing " << fnm << " to locate "
         << ret.size() << " string value" << (ret.size()>1?"s":"")
         << ", expected " << msk.cnt();
     return ret.size();
-} // ibis::text::readStrings
+} // ibis::text::readStrings1
+
+/// Read the strings marked 1 in the mask.  It creates a memory map of the
+/// .sp file before reading the actual string values.  Because the process
+/// of creating the memory map can take more time than reading a few values,
+/// this function is much more appropriate for reading a relatively large
+/// number of string values.
+///
+/// @note This function assumes that the .sp file has been prepared
+/// properly.
+int ibis::text::readStrings2(const ibis::bitvector& mask,
+                             std::vector<std::string>& res) const {
+    res.clear();
+    if (mask.cnt() == 0) return 0;
+    if (thePart == 0 || thePart->currentDataDir() == 0 ||
+        *(thePart->currentDataDir()) == 0) return -1;
+
+    int ierr;
+    std::string evt = "text";
+    if (ibis::gVerbose > 1) {
+        evt += "[";
+        evt += fullname();
+        evt += "]";
+    }
+    evt += "::readStrings2";
+
+    ibis::util::timer mytime(evt.c_str(), 4);
+    std::string fnm = thePart->currentDataDir();
+    fnm += FASTBIT_DIRSEP;
+    fnm += m_name;
+    fnm += ".sp";
+    const array_t<int64_t>
+        sp(fnm.c_str(), static_cast<off_t>(0),
+           static_cast<off_t>((mask.size()+1)*sizeof(int64_t)));
+    if (sp.size() != mask.size()+1U) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- " << evt << " failed to find " << mask.size()+1U
+            << " elements in .sp file " << fnm;
+        return -2;
+    }
+
+    fnm.erase(fnm.size()-3); // remove .sp
+    int fdata = UnixOpen(fnm.c_str(), OPEN_READONLY);
+    if (fdata < 0) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- " << evt << " failed to open data file "
+            << fnm;
+        return -3;
+    }
+    IBIS_BLOCK_GUARD(UnixClose, fdata);
+#if defined(_WIN32) && defined(_MSC_VER)
+    (void)_setmode(fdata, _O_BINARY);
+#endif
+
+    std::string tmp;
+    off_t boffset = 0;
+    uint32_t inbuf = 0;
+    ibis::fileManager::buffer<char> mybuf;
+    char* buf = mybuf.address();
+    uint32_t nbuf = mybuf.size();
+    if (buf == 0 || nbuf == 0) {
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- " << evt
+            << " failed to allocate buffer for reading";
+        return -4;
+    }
+
+    for (ibis::bitvector::indexSet ix = mask.firstIndexSet();
+         ix.nIndices() > 0; ++ ix) {
+        const ibis::bitvector::word_t *ixval = ix.indices();
+        if (ix.isRange()) {
+            const ibis::bitvector::word_t top =
+                (ixval[1] <= sp.size()-1 ? ixval[1] : sp.size()-1);
+            for (ibis::bitvector::word_t i = *ixval; i < top; ++ i) {
+                ierr = readString(tmp, fdata, sp[i], sp[i+1],
+                                  buf, nbuf, inbuf, boffset);
+                if (ierr >= 0) {
+                    res.push_back(tmp);
+                }
+                else {
+                    LOGGER(ibis::gVerbose >= 0)
+                        << "Warning -- " << evt
+                        << " failed to read from file \"" << fnm
+                        << "\" (position " << sp[i] <<
+                        "), readString returned ierr = " << ierr;
+                    return ierr;
+                }
+            }
+        }
+        else {
+            for (unsigned i = 0; i < ix.nIndices(); ++ i) {
+                if (ixval[i] < sp.size()-1) {
+                    ierr = readString(tmp, fdata, sp[ixval[i]],
+                                      sp[ixval[i]+1],
+                                      buf, nbuf, inbuf, boffset);
+                    if (ierr >= 0) {
+                        res.push_back(tmp);
+                    }
+                    else {
+                        LOGGER(ibis::gVerbose >= 0)
+                            << (thePart != 0 ? thePart->name() : "")
+                            << " failed to read from file \"" << fnm
+                            << "\" (position " << sp[ixval[i]]
+                            << "), readString returned ierr = " << ierr;
+                        return ierr;
+                    }
+                }
+            }
+        }
+    }
+
+    ibis::fileManager::instance().recordPages(0, 8*(mask.size()+1));
+    LOGGER(ibis::gVerbose > 2)
+        << evt << " completed processing " << fnm << " to locate "
+        << res.size() << " string value" << (res.size()>1?"s":"")
+        << ", expected " << mask.cnt();
+    return res.size();
+} // ibis::text::readStrings2
 
 /// If the input string is found in the data file, it is returned, else
 /// this function returns 0.  It needs to keep both the data file and the

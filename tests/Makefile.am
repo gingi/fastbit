@@ -105,7 +105,7 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt 
 	@if [ `awk -F ', ' '{if ($$1 != $$2) print $$0}' $(TESTDIR)/t0-1 | wc -l` -le 2 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a where c in (11)" -o $(TESTDIR)/t0-2 >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `tail -1 $(TESTDIR)/t0-2 | fgrep 88 - | wc -l` -eq 1 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
-	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, 99-min(c), count(*) where -4 < c < 10" -o $(TESTDIR)/t0-3 >> $(TESTDIR)/check-text.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select a, 99-min(c) where -4 < c < 10" -o $(TESTDIR)/t0-3 >> $(TESTDIR)/check-text.log 2>&1
 	@perl -pi -e 's/\"//g' $(TESTDIR)/t0-3
 	@fgrep -v 'a, b' $(TESTDIR)/t0-0 | cut -d',' -f1 - > $(TESTDIR)/t0-4
 	@fgrep -v 'a, b' $(TESTDIR)/t0-3 | cut -d',' -f1 - > $(TESTDIR)/t0-5
