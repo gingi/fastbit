@@ -109,6 +109,16 @@ namespace ibis {
 ///   expression is used to identify sets with the speicified list of
 ///   elements.
 ///
+/// - Operator NOT NULL
+///   The only way to mention NULL values in a query expression is through
+///   this operator.
+///   @code
+///   column_name NOT NULL
+///   @endcode
+/// 
+///   Note that there is no support for NULL as an operator.  The way to
+///   select only NULL values is through (NOT column_name NOT NULL).
+/// 
 /// - Time handling functions
 ///   An integer valued column could be used to store Unix time stamps
 ///   (i.e., seconds since beginning of 1970), in which case, it might be
