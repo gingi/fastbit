@@ -277,6 +277,7 @@ extern "C" {
     FASTBIT_DLLSPEC const char* fastbit_get_logfile();
     /** @brief Return the file pointer to the log file. */
     FASTBIT_DLLSPEC FILE* fastbit_get_logfilepointer();
+    FASTBIT_DLLSPEC double fastbit_read_clock();
 
     /** @brief Return the software version as a string. */
     FASTBIT_DLLSPEC const char* fastbit_get_version_string();
