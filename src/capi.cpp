@@ -41,6 +41,38 @@
 #   include <unistd.h>
 #endif
 
+#include <time.h>	// clock, clock_gettime
+#if defined(__sun) || defined(__linux__) || defined(__HOS_AIX__) || \
+    defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD__)
+#   include <limits.h> // CLK_TCK
+#   include <sys/time.h> // gettimeofday, timeval
+#   include <sys/times.h> // times, struct tms
+#   include <sys/resource.h> // getrusage
+#   ifndef RUSAGE_SELF
+#       define RUSAGE_SELF 0
+#   endif
+#   ifndef RUSAGE_CHILDREN
+#       define RUSAGE_CHILDRED -1
+#   endif
+#elif defined(CRAY)
+#   include <sys/times.h> // times
+#elif defined(sgi)
+#   include <limits.h> // CLK_TCK
+#   define RUSAGE_SELF      0         /* calling process */
+#   define RUSAGE_CHILDREN  -1        /* terminated child processes */
+#   include <sys/times.h> // times
+//#   include <sys/types.h> // struct tms
+#   include <sys/time.h> // gettimeofday, getrusage
+#   include <sys/resource.h> // getrusage
+#elif defined(__MINGW32__)
+#   include <limits.h> // CLK_TCK
+#   include <sys/time.h> // gettimeofday, timeval
+#elif defined(_WIN32)
+#   include <windows.h>
+#elif defined(VMS)
+#   include <unistd.h>
+#endif
+
 // FIXME: we should not have to do this but C99 limit macros are not
 // defined in C++ unless __STDC_LIMIT_MACROS is defined
 #ifndef INT64_MAX
@@ -1960,12 +1992,12 @@ extern "C" double fastbit_read_clock() {
 #if defined(CLOCK_MONOTONIC) && !defined(__CYGWIN__)
     struct timespec tb;
     if (0 == clock_gettime(CLOCK_MONOTONIC, &tb)) {
-        return static_cast<double>(tb.tv_sec) + (1e-9 * tb.tv_nsec);
+	return static_cast<double>(tb.tv_sec) + (1e-9 * tb.tv_nsec);
     }
     else {
-        struct timeval cpt;
-        gettimeofday(&cpt, 0);
-        return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);
+	struct timeval cpt;
+	gettimeofday(&cpt, 0);
+	return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);
     }
 #elif defined(HAVE_GETTIMEOFDAY) || defined(__unix__) || defined(CRAY) || \
     defined(__linux__) || defined(__HOS_AIX__) || defined(__APPLE__) || \
@@ -1976,18 +2008,18 @@ extern "C" double fastbit_read_clock() {
 #elif defined(_WIN32) && defined(_MSC_VER)
     double ret = 0.0;
     if (countPeriod != 0) {
-        LARGE_INTEGER cnt;
-        if (QueryPerformanceCounter(&cnt)) {
-            ret = countPeriod * cnt.QuadPart;
-        }
+	LARGE_INTEGER cnt;
+	if (QueryPerformanceCounter(&cnt)) {
+	    ret = countPeriod * cnt.QuadPart;
+	}
     }
     if (ret == 0.0) { // fallback option -- use GetSystemTime
-        union {
-            FILETIME ftFileTime;
-            __int64  ftInt64;
-        } ftRealTime;
-        GetSystemTimeAsFileTime(&ftRealTime.ftFileTime);
-        ret = (double) ftRealTime.ftInt64 * 1e-7;
+	union {
+	    FILETIME ftFileTime;
+	    __int64  ftInt64;
+	} ftRealTime;
+	GetSystemTimeAsFileTime(&ftRealTime.ftFileTime);
+	ret = (double) ftRealTime.ftInt64 * 1e-7;
     }
     return ret;
 #elif defined(VMS)
