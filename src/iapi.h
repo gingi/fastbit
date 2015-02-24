@@ -29,21 +29,30 @@ The word iapi appears to be a Dekota word for "word" or "language".
 
 /** An enum for data types supported by this interface.
 
-    @note Would have preferred to reuse the enum type ibis::TYPE_T,
-    however, there isn't a good way known to the author.
+    @note Only fixed-size data types are supported.
+
+    @note The two types of bit sequences are used to distinguish the input
+    formats of the bit sequences.  The type FastBitDataTypeBitRaw is meant
+    for user to pass in a sequence of bits in a byte array, where the most
+    significant bit in a byte is considered as appearing earlier in the
+    sequence; The type FastBitDataTypeBitCompressed is meant for user to
+    passing a sequence of bits represented by class ibis::bitvector.
+    Internally, a bit sequence is represented by the class ibis::bitvector.
 */
 typedef enum FastBitDataType {
-    FastBitDataTypeUnknown=0,
-    FastBitDataTypeByte=2,
-    FastBitDataTypeUByte=3,
-    FastBitDataTypeShort=4,
-    FastBitDataTypeUShort=5,
-    FastBitDataTypeInt=6,
-    FastBitDataTypeUInt=7,
-    FastBitDataTypeLong=8,
-    FastBitDataTypeULong=9,
-    FastBitDataTypeFloat=10,
-    FastBitDataTypeDouble=11
+    FastBitDataTypeUnknown,
+    FastBitDataTypeByte,
+    FastBitDataTypeUByte,
+    FastBitDataTypeShort,
+    FastBitDataTypeUShort,
+    FastBitDataTypeInt,
+    FastBitDataTypeUInt,
+    FastBitDataTypeLong,
+    FastBitDataTypeULong,
+    FastBitDataTypeFloat,
+    FastBitDataTypeDouble,
+    FastBitDataTypeBitRaw,
+    FastBitDataTypeBitCompressed
 } FastBitDataType;
 
 /** An enum for comparison operators supported.
@@ -111,6 +120,8 @@ extern "C" {
     (FastBitDataType, const void *, uint64_t, FastBitSelectionHandle,
      void *, uint64_t, uint64_t);
 
+    /** Free in-memory resources associated with the selection handle. */
+    void fastbit_selection_purge_results(FastBitSelectionHandle);
     /** Free all cached object for IAPI. */
     void fastbit_iapi_free_all();
     /** Remove an array from the list of known variables. */
@@ -121,6 +132,9 @@ extern "C" {
     void fastbit_iapi_free_array_by_addr(void *);
     /** Register a simple array under the specified name. */
     int fastbit_iapi_register_array
+    (const char*, FastBitDataType, void*, uint64_t);
+    /** Extend the array with the given name with new content. */
+    int fastbit_iapi_extend_array
     (const char*, FastBitDataType, void*, uint64_t);
     /** Register a n-dimensional array under the specified name. */
     int fastbit_iapi_register_array_nd

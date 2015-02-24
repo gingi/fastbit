@@ -152,135 +152,135 @@ ibis::column::column(const part* tbl, FILE* file)
 		-- s2;
 	    }
 #endif
-            m_bins = s1;
-            delete [] s1;
-        }
-        else if (strnicmp(buf, "sorted", 6) == 0 && s1 != 0 && *s1 != 0) {
-            while (s1 != 0 && *s1 != 0 && isspace(*s1))
-                ++ s1;
-            if (s1 != 0 && *s1 != 0)
-                m_sorted = ibis::resource::isStringTrue(s1);
-        }
-        else if (strnicmp(buf, "Property_data_type", 18) == 0 ||
-                 strnicmp(buf, "data_type", 9) == 0 ||
-                 strnicmp(buf, "type", 4) == 0) {
-            s1 += strspn(s1, " \t=\'\"");
+	    m_bins = s1;
+	    delete [] s1;
+	}
+	else if (strnicmp(buf, "sorted", 6) == 0 && s1 != 0 && *s1 != 0) {
+	    while (s1 != 0 && *s1 != 0 && isspace(*s1))
+		++ s1;
+	    if (s1 != 0 && *s1 != 0)
+		m_sorted = ibis::resource::isStringTrue(s1);
+	}
+	else if (strnicmp(buf, "Property_data_type", 18) == 0 ||
+		 strnicmp(buf, "data_type", 9) == 0 ||
+		 strnicmp(buf, "type", 4) == 0) {
+	    s1 += strspn(s1, " \t=\'\"");
 
-            switch (*s1) {
-            case 'i':
-            case 'I': { // can only be INT
-                m_type = ibis::INT;
-                break;}
-            case 'u':
-            case 'U': { // likely unsigned type, but maybe UNKNOWN or UDT
-                m_type = ibis::UNKNOWN_TYPE;
-                if (s1[1] == 's' || s1[1] == 'S') { // USHORT
-                    m_type = ibis::USHORT;
-                }
-                else if (s1[1] == 'b' || s1[1] == 'B' ||
-                         s1[1] == 'c' || s1[1] == 'C') { // UBYTE
-                    m_type = ibis::UBYTE;
-                }
-                else if (s1[1] == 'i' || s1[1] == 'I') { // UINT
-                    m_type = ibis::UINT;
-                }
-                else if (s1[1] == 'l' || s1[1] == 'L') { // ULONG
-                    m_type = ibis::ULONG;
-                }
-                else if (s1[1] == 'd' || s1[1] == 'd') { // UDT
-                    m_type = ibis::UDT;
-                }
-                else if (strnicmp(s1, "unsigned", 8) == 0) { // unsigned xx
-                    s1 += 8; // skip "unsigned"
-                    s1 += strspn(s1, " \t=\'\""); // skip space
-                    if (*s1 == 's' || *s1 == 'S') { // USHORT
-                        m_type = ibis::USHORT;
-                    }
-                    else if (*s1 == 'b' || *s1 == 'B' ||
-                             *s1 == 'c' || *s1 == 'C') { // UBYTE
-                        m_type = ibis::UBYTE;
-                    }
-                    else if (*s1 == 0 || *s1 == 'i' || *s1 == 'I') { // UINT
-                        m_type = ibis::UINT;
-                    }
-                    else if (*s1 == 'l' || *s1 == 'L') { // ULONG
-                        m_type = ibis::ULONG;
-                    }
-                }
-                break;}
-            case 'r':
-            case 'R': { // FLOAT
-                m_type = ibis::FLOAT;
-                break;}
-            case 'f':
-            case 'F': {// FLOAT
-                m_type = ibis::FLOAT;
-                break;}
-            case 'd':
-            case 'D': { // DOUBLE
-                m_type = ibis::DOUBLE;
-                break;}
-            case 'c':
-            case 'C':
-            case 'k':
-            case 'K': { // KEY
-                m_type = ibis::CATEGORY;
-                break;}
-            case 's':
-            case 'S': { // default to string, but could be short
-                m_type = ibis::TEXT;
-                if (s1[1] == 'h' || s1[1] == 'H')
-                    m_type = ibis::SHORT;
-                break;}
-            case 't':
-            case 'T': {
-                m_type = ibis::TEXT;
-                break;}
-            case 'a':
-            case 'A': { // UBYTE
-                m_type = ibis::UBYTE;
-                break;}
-            case 'b':
-            case 'B': { // BYTE/BIT/BLOB
-                if (s1[1] == 'l' || s1[1] == 'L')
-                    m_type = ibis::BLOB;
-                else if (s1[1] == 'i' || s1[1] == 'I')
+	    switch (*s1) {
+	    case 'i':
+	    case 'I': { // can only be INT
+		m_type = ibis::INT;
+		break;}
+	    case 'u':
+	    case 'U': { // likely unsigned type, but maybe UNKNOWN or UDT
+		m_type = ibis::UNKNOWN_TYPE;
+		if (s1[1] == 's' || s1[1] == 'S') { // USHORT
+		    m_type = ibis::USHORT;
+		}
+		else if (s1[1] == 'b' || s1[1] == 'B' ||
+			 s1[1] == 'c' || s1[1] == 'C') { // UBYTE
+		    m_type = ibis::UBYTE;
+		}
+		else if (s1[1] == 'i' || s1[1] == 'I') { // UINT
+		    m_type = ibis::UINT;
+		}
+		else if (s1[1] == 'l' || s1[1] == 'L') { // ULONG
+		    m_type = ibis::ULONG;
+		}
+		else if (s1[1] == 'd' || s1[1] == 'd') { // UDT
+		    m_type = ibis::UDT;
+		}
+		else if (strnicmp(s1, "unsigned", 8) == 0) { // unsigned xx
+		    s1 += 8; // skip "unsigned"
+		    s1 += strspn(s1, " \t=\'\""); // skip space
+		    if (*s1 == 's' || *s1 == 'S') { // USHORT
+			m_type = ibis::USHORT;
+		    }
+		    else if (*s1 == 'b' || *s1 == 'B' ||
+			     *s1 == 'c' || *s1 == 'C') { // UBYTE
+			m_type = ibis::UBYTE;
+		    }
+		    else if (*s1 == 0 || *s1 == 'i' || *s1 == 'I') { // UINT
+			m_type = ibis::UINT;
+		    }
+		    else if (*s1 == 'l' || *s1 == 'L') { // ULONG
+			m_type = ibis::ULONG;
+		    }
+		}
+		break;}
+	    case 'r':
+	    case 'R': { // FLOAT
+		m_type = ibis::FLOAT;
+		break;}
+	    case 'f':
+	    case 'F': {// FLOAT
+		m_type = ibis::FLOAT;
+		break;}
+	    case 'd':
+	    case 'D': { // DOUBLE
+		m_type = ibis::DOUBLE;
+		break;}
+	    case 'c':
+	    case 'C':
+	    case 'k':
+	    case 'K': { // KEY
+		m_type = ibis::CATEGORY;
+		break;}
+	    case 's':
+	    case 'S': { // default to string, but could be short
+		m_type = ibis::TEXT;
+		if (s1[1] == 'h' || s1[1] == 'H')
+		    m_type = ibis::SHORT;
+		break;}
+	    case 't':
+	    case 'T': {
+		m_type = ibis::TEXT;
+		break;}
+	    case 'a':
+	    case 'A': { // UBYTE
+		m_type = ibis::UBYTE;
+		break;}
+	    case 'b':
+	    case 'B': { // BYTE/BIT/BLOB
+		if (s1[1] == 'l' || s1[1] == 'L')
+		    m_type = ibis::BLOB;
+		else if (s1[1] == 'i' || s1[1] == 'I')
                     m_type = ibis::BIT;
-                else
-                    m_type = ibis::BYTE;
-                break;}
-            case 'g':
-            case 'G': { // USHORT
-                m_type = ibis::USHORT;
-                break;}
-            case 'H':
-            case 'h': { // short, half word
-                m_type = ibis::SHORT;
-                break;}
-            case 'l':
-            case 'L': { // LONG (int64_t)
-                m_type = ibis::LONG;
-                break;}
-            case 'v':
-            case 'V': { // unsigned long (uint64_t)
-                m_type = ibis::ULONG;
-                break;}
-            case 'q':
-            case 'Q': { // BLOB
-                m_type = ibis::BLOB;
-                break;}
-            default: {
-                LOGGER(ibis::gVerbose > 1)
-                    << "Warning -- column::ctor encountered "
-                    "unknown data type \"" << s1 << "\"";
-                badType = true;
-                break;}
-            }
-        }
-        else if (strnicmp(buf, "End", 3) && ibis::gVerbose > 4){
-            ibis::util::logMessage("column::column",
-                                   "skipping line:\n%s", buf);
-        }
+		else
+		    m_type = ibis::BYTE;
+		break;}
+	    case 'g':
+	    case 'G': { // USHORT
+		m_type = ibis::USHORT;
+		break;}
+	    case 'H':
+	    case 'h': { // short, half word
+		m_type = ibis::SHORT;
+		break;}
+	    case 'l':
+	    case 'L': { // LONG (int64_t)
+		m_type = ibis::LONG;
+		break;}
+	    case 'v':
+	    case 'V': { // unsigned long (uint64_t)
+		m_type = ibis::ULONG;
+		break;}
+	    case 'q':
+	    case 'Q': { // BLOB
+		m_type = ibis::BLOB;
+		break;}
+	    default: {
+		LOGGER(ibis::gVerbose > 1)
+		    << "Warning -- column::ctor encountered "
+		    "unknown data type \"" << s1 << "\"";
+		badType = true;
+		break;}
+	    }
+	}
+	else if (strnicmp(buf, "End", 3) && ibis::gVerbose > 4){
+	    ibis::util::logMessage("column::column",
+				   "skipping line:\n%s", buf);
+	}
     } while (strnicmp(buf, "End", 3));
 
     if (m_name.empty() || badType) {
@@ -4614,8 +4614,8 @@ void ibis::column::setTimeFormat(const char *nv) {
     }
     else {
         LOGGER(ibis::gVerbose > 2)
-            << "column::setTimeFormat did not find a value format for unix time in "
-            << '"' << nv << '"';
+            << "column::setTimeFormat did not find a value format for unix "
+            << "time in \"" << nv << '"';
     }
 } // ibis::column::setTimeFormat
 

@@ -156,16 +156,16 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
     int ierr = 0;
     wc.setExpr(qx);
     if (mypart != 0) {
-        int ierr = wc.verify(*mypart);
-        if (ierr != 0) {
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- countQuery::setWhereClause(" << *qx
-                << ") found the qExpr object with " << ierr << " incorrect name"
-                << (ierr > 1 ? "s" : "")
-                << ".  Keeping the existing where clause ";
-            ierr = -6;
+	int ierr = wc.verify(*mypart);
+	if (ierr != 0) {
+	    LOGGER(ibis::gVerbose >= 0)
+		<< "Warning -- countQuery::setWhereClause(" << *qx
+		<< ") found the qExpr object with " << ierr << " incorrect name"
+		<< (ierr > 1 ? "s" : "")
+		<< ".  Keeping the existing where clause ";
+	    ierr = -6;
             return ierr;
-        }
+	}
     }
     if (ibis::gVerbose > 0 &&
         wc.getExpr()->nItems() <= static_cast<unsigned>(ibis::gVerbose)) {

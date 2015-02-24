@@ -304,7 +304,7 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
             }
         }
     } // if (dfname != 0 && *dfname != 0)
-    if (ind != 0)
+    if (ind != 0) // successfully read an index
         return ind;
 
     // could not read an index, try to create a new one
@@ -312,6 +312,9 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 	return ind;
     if (c->partition() != 0 && c->partition()->nRows() == 0)
 	return ind;
+    if (c->type() == ibis::UNKNOWN_TYPE || c->type() == ibis::BLOB ||
+        c->type() == ibis::BIT)
+        return ind;
 
     if (spec == 0 || *spec == static_cast<char>(0))
 	spec = c->indexSpec(); // index spec of the column

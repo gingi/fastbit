@@ -1,3 +1,32 @@
+2014-02-22 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: update bord::column::append to handle column type
+	BIT following the new storage scheme
+
+2014-02-21 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp:19568 "cols[i] == 0" should be "cols[i] != 0"
+	* src/bord.cpp: change back the representation of BIT to separate
+	the content of buffer from mask_ -- to address the problem of a BIT
+
+2014-02-20 John Wu <John dot Wu at ACM dot org>
+	* src/iapi.cpp: modify functions that frees an array to reduce the
+	size of the global std::vector used to keep track of all arrays
+
+2014-02-17 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: update to work with type BIT in the constructors
+	of ibis::bord::column
+
+2014-02-10 John Wu <John dot Wu at ACM dot org>
+	* src/table.h, src/column.cpp: remove the unused global variable
+	TYPECODE (avoid the need to update it for the addition of BIT
+	type)
+	* src/bitvector.h, src/bitvector64.h: add function appendByte
+	* src/bord.cpp: change ibis::bord::column to use mask_ for columns
+	with 0/1 values (i.e., bit values)
+	* src/iapi.h, src/iapi.cpp: add function fastbit_iapi_extend_array
+
+2014-02-09 John Wu <John dot Wu at ACM dot org>
+	* src/capi.h, src/bord.h, src/bord.cpp: add type ibis::BIT
+
 2014-02-06 John Wu <John dot Wu at ACM dot org>
 	* src/capi.h, src/capi.cpp: add function fastbit_read_clock to
 	report the current time in seconds

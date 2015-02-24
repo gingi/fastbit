@@ -19582,29 +19582,29 @@ void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
 
     _tbl->getNullMask(mask);
     for (uint32_t i = 0; i < namelist.size(); ++ i) {
-        ibis::bitvector tmp;
-        if (i < cols.size() && cols[i] != 0) {
-            cols[i]->getNullMask(tmp);
-        }
-        else {
-            const char *nm = name(i);
-            const ibis::column* col = _tbl->getColumn(nm);
-            if (col) {
-                col->getNullMask(tmp);
-            }
-            else if (nm != 0 && *nm != 0 && *nm != '*') {
-                LOGGER(ibis::gVerbose > 2)
-                    << "Warning -- barrel::getNullMask failed to find a "
-                    "column named \"" << nm << "\" in partition "
-                    << _tbl->name();
-            }
-        }
-        if (tmp.size() == _tbl->nRows()) {
-            if (mask.size() == _tbl->nRows())
-                mask &= tmp;
-            else
-                mask.copy(tmp);
-        }
+	ibis::bitvector tmp;
+	if (i < cols.size() && cols[i] != 0) {
+	    cols[i]->getNullMask(tmp);
+	}
+	else {
+	    const char *nm = name(i);
+	    const ibis::column* col = _tbl->getColumn(nm);
+	    if (col) {
+		col->getNullMask(tmp);
+	    }
+	    else if (nm != 0 && *nm != 0 && *nm != '*') {
+		LOGGER(ibis::gVerbose > 2)
+		    << "Warning -- barrel::getNullMask failed to find a "
+		    "column named \"" << nm << "\" in partition "
+		    << _tbl->name();
+	    }
+	}
+	if (tmp.size() == _tbl->nRows()) {
+	    if (mask.size() == _tbl->nRows())
+		mask &= tmp;
+	    else
+		mask.copy(tmp);
+	}
     }
 } // ibis::part::barrel::getNullMask
 

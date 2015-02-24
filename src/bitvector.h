@@ -778,7 +778,7 @@ void ibis::bitvector::appendByte(unsigned char c) {
         active.val += c;
     }
     else if (active.nbits+8 > MAXBITS) {
-        unsigned na = MAXBITS - active.nbits;
+        unsigned na = MAXBITS - nbits;
         unsigned hi = (c >> (8 - na));
         active.val <<= na;
         active.val += hi;
