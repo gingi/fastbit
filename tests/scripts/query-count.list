@@ -38,4 +38,4 @@ from test1 where z1=0; 0
 from test1 where c6z0<2000; 2
 from test1 where c2z2 > 50 && c6z0 > 2000; 7
 from test1 where c2z1 == 50 && c6z0 == 522316; 1
-from test1 where c2z2 == 4 && z1 = 1; 19
+from test1 where c2z2 == 4 && z1 = 1 && z0 < 1; 19

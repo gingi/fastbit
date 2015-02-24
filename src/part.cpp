@@ -19565,7 +19565,7 @@ void ibis::part::barrel::getNullMask(ibis::bitvector &mask) const {
     _tbl->getNullMask(mask);
     for (uint32_t i = 0; i < namelist.size(); ++ i) {
 	ibis::bitvector tmp;
-	if (i < cols.size() && cols[i] == 0) {
+	if (i < cols.size() && cols[i] != 0) {
 	    cols[i]->getNullMask(tmp);
 	}
 	else {

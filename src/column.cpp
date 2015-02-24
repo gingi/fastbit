@@ -32,10 +32,9 @@
 #endif
 
 // constants defined for type name and type code used in the metadata file
-FASTBIT_CXX_DLLSPEC const char* ibis::TYPECODE   = "?OBAHGIULVRDKSQT";
 static const char* _ibis_TYPESTRING_local[] = {
     "UNKNOWN", "OID", "BYTE", "UBYTE", "SHORT", "USHORT", "INT", "UINT",
-    "LONG", "ULONG", "FLOAT", "DOUBLE", "CATEGORY", "TEXT", "BLOB", "UDT"
+    "LONG", "ULONG", "FLOAT", "DOUBLE", "BIT", "CATEGORY", "TEXT", "BLOB", "UDT"
 };
 FASTBIT_CXX_DLLSPEC const char** ibis::TYPESTRING = _ibis_TYPESTRING_local;
 
@@ -244,9 +243,11 @@ ibis::column::column(const part* tbl, FILE* file)
 		m_type = ibis::UBYTE;
 		break;}
 	    case 'b':
-	    case 'B': { // BYTE/BLOB
+	    case 'B': { // BYTE/BIT/BLOB
 		if (s1[1] == 'l' || s1[1] == 'L')
 		    m_type = ibis::BLOB;
+		else if (s1[1] == 'i' || s1[1] == 'I')
+                    m_type = ibis::BIT;
 		else
 		    m_type = ibis::BYTE;
 		break;}
@@ -4619,8 +4620,8 @@ void ibis::column::setTimeFormat(const char *nv) {
     }
     else {
         LOGGER(ibis::gVerbose > 2)
-            << "column::setTimeFormat did not find a value format for unix time in "
-            << '"' << nv << '"';
+            << "column::setTimeFormat did not find a value format for unix "
+            << "time in \"" << nv << '"';
     }
 } // ibis::column::setTimeFormat
 

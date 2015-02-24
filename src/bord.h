@@ -618,7 +618,8 @@ public:
 
 protected:
     /// The in-memory storage.  A pointer to an array<T> or
-    /// std::vector<std::string> depending on data type.
+    /// std::vector<std::string> depending on the data type.
+    /// @sa ibis::table::freeBuffer
     void *buffer;
     /// Reader for externally managed data.
     FastBitReadExtArray xreader;

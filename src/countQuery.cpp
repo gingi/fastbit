@@ -164,6 +164,7 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
 		<< (ierr > 1 ? "s" : "")
 		<< ".  Keeping the existing where clause ";
 	    ierr = -6;
+            return ierr;
 	}
     }
     if (ibis::gVerbose > 0 &&

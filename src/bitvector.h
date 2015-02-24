@@ -91,6 +91,7 @@ public:
 
     bitvector& operator+=(const bitvector& bv);
     inline bitvector& operator+=(int b);
+    inline void appendByte(unsigned char);
     void appendWord(word_t w);
     inline void appendFill(int val, word_t n);
 
@@ -696,7 +697,7 @@ inline void ibis::bitvector::append_active() {
 	    m_vec.back() = (HEADER1 | 2);
 	}
 	else if (m_vec.back() >= HEADER1) {
-	    ++m_vec.back();
+	    ++ m_vec.back();
 	}
 	else {
 	    m_vec.push_back(active.val);
@@ -742,6 +743,32 @@ inline ibis::bitvector& ibis::bitvector::operator+=(int b) {
 	append_active();
     return *this;
 } // ibis::bitvector::operator+=
+
+/// Append all 8 bits of the incoming bytes as literal bits.
+void ibis::bitvector::appendByte(unsigned char c) {
+    if (active.nbits >= MAXBITS)
+        append_active();
+
+    if (active.nbits+8 < MAXBITS) {
+        active.val <<= 8;
+        active.nbits += 8;
+        active.val += c;
+    }
+    else if (active.nbits+8 > MAXBITS) {
+        unsigned na = MAXBITS - nbits;
+        unsigned hi = (c >> (8 - na));
+        active.val <<= na;
+        active.val += hi;
+        append_active();
+        active.nbits = 8 - na;
+        active.val = ((hi << active.nbits) ^ c);
+    }
+    else {
+        active.val <<= 8;
+        active.val += c;
+        append_active();
+    }
+} // ibis::bitvector::appendByte
 
 /// Append @c n bits of @c val.  The value @c n may be arbitrary integer as
 /// long as the resulting size is still representable by a

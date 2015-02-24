@@ -38,6 +38,8 @@ inline ibis::TYPE_T __fastbit_iapi_convert_data_type(FastBitDataType t) {
     default:
     case FastBitDataTypeUnknown:
         return ibis::UNKNOWN_TYPE;
+    case FastBitDataTypeBitCompressed:
+        return ibis::BIT;
     case FastBitDataTypeByte:
         return ibis::BYTE;
     case FastBitDataTypeUByte:
@@ -112,9 +114,10 @@ inline double __fastbit_iapi_convert_data_to_double
     return ret;
 } // __fastbit_iapi_convert_data_to_double
 
-// Convert comparison operators to FastBit IBIS type.
-// FastBit IBIS does not have NOT-EQUAL.  This function translates it to
-// OP_UNDEFINED.
+// Convert comparison operators to FastBit IBIS type.  FastBit IBIS does
+// not have an operator for NOT-EQUAL.  This function translates it to
+// OP_UNDEFINED.  The caller to this function is to take the OP_UNDEFINED
+// return value as NOT-EQUAL.
 inline ibis::qExpr::COMPARE
 __fastbit_iapi_convert_compare_type(FastBitCompareType t) {
     switch (t) {
@@ -135,9 +138,9 @@ __fastbit_iapi_convert_compare_type(FastBitCompareType t) {
 
 /// @note This function assumes the given name is not already in the list
 /// of known arrays.
-/// 
+///
 /// @note This function returns a nil pointer to indicate error.
-/// 
+///
 ibis::bord::column* __fastbit_iapi_register_array
 (const char *name, FastBitDataType t, void* addr, uint64_t n) {
     if (name == 0 || *name == 0 || addr == 0 || t == FastBitDataTypeUnknown
@@ -245,14 +248,55 @@ ibis::bord::column* __fastbit_iapi_register_array
         __fastbit_iapi_address_map[addr] = pos;
         __fastbit_iapi_name_map[tmp->name()] = pos;
         return tmp;}
+    case FastBitDataTypeBitRaw: { // raw bitmap
+        const unsigned char *uptr = static_cast<const unsigned char*>(addr);
+        ibis::bitvector bv;
+        while (bv.size()+8 <= n) {
+            bv.appendByte(*uptr);
+            ++ uptr;
+        }
+        if (bv.size() < n) {
+            bv += ((*uptr & 0x80) >> 7);
+        }
+        if (bv.size() < n) {
+            bv += ((*uptr & 0x40) >> 6);
+        }
+        if (bv.size() < n) {
+            bv += ((*uptr & 0x20) >> 5);
+        }
+        if (bv.size() < n) {
+            bv += ((*uptr & 0x10) >> 4);
+        }
+        if (bv.size() < n) {
+            bv += ((*uptr & 0x08) >> 3);
+        }
+        if (bv.size() < n) {
+            bv += ((*uptr & 0x04) >> 2);
+        }
+        if (bv.size() < n) {
+            bv += ((*uptr & 0x02) >> 1);
+        }
+        ibis::bord::column *tmp =
+            new ibis::bord::column(0, ibis::BIT, name, &bv);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        //__fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
+    case FastBitDataTypeBitCompressed: { // compressed bitmap
+        ibis::bord::column *tmp =
+            new ibis::bord::column(0, ibis::BIT, name, addr);
+        __fastbit_iapi_all_arrays.push_back(tmp);
+        //__fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[tmp->name()] = pos;
+        return tmp;}
     }
 } // __fastbit_iapi_register_array
 
 /// @note This function assumes the given name is not already in the list
 /// of known arrays.
-/// 
+///
 /// @note This function returns a nil pointer to indicate error.
-/// 
+///
 ibis::bord::column* __fastbit_iapi_register_array_nd
 (const char *name, FastBitDataType t, void* addr, uint64_t *dims, uint64_t nd) {
     if (name == 0 || *name == 0 || addr == 0 || t == FastBitDataTypeUnknown ||
@@ -419,9 +463,9 @@ inline void* __fastbit_iapi_get_array_addr(const ibis::bord::column &col) {
 
 /// @note This function assumes the given name is not already in the list
 /// of known arrays.
-/// 
+///
 /// @note This function returns a nil pointer to indicate error.
-/// 
+///
 ibis::bord::column* __fastbit_iapi_register_array_ext
 (const char *name, FastBitDataType t, uint64_t *dims, uint64_t nd, void* ctx,
  FastBitReadExtArray rd) {
@@ -459,9 +503,9 @@ ibis::bord::column* __fastbit_iapi_register_array_ext
 
 /// @note This function assumes the given name is not already in the list
 /// of known arrays.
-/// 
+///
 /// @note This function returns a nil pointer to indicate error.
-/// 
+///
 /// If the index can not be properly reconstructed, this function returns a
 /// nil pointer.
 ibis::bord::column* __fastbit_iapi_register_array_index_only
@@ -508,55 +552,64 @@ ibis::bord::column* __fastbit_iapi_array_by_addr(const void *addr) {
         __fastbit_iapi_address_map.find(addr);
     if (it != __fastbit_iapi_address_map.end()) {
         if (it->second < __fastbit_iapi_all_arrays.size()) {
+            LOGGER(ibis::gVerbose > 6)
+                << "__fastbit_iapi_array_by_addr found column from address \""
+                << addr << "\" as __fastbit_iapi_all_arrays[" << it->second
+                << "] (name=" << __fastbit_iapi_all_arrays[it->second]->name()
+                << ", description="
+                << __fastbit_iapi_all_arrays[it->second]->description()
+                << ")";
             return __fastbit_iapi_all_arrays[it->second];
         }
     }
     return 0;
 } // __fastbit_iapi_array_by_addr
 
-void __fastbit_free_array(void *addr) {
-    FastBitIAPIAddressMap::const_iterator it =
-        __fastbit_iapi_address_map.find(addr);
-    if (it == __fastbit_iapi_address_map.end()) return;
-
-    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_array");
-    if (it->second < __fastbit_iapi_all_arrays.size()) {
-        ibis::bord::column *col = __fastbit_iapi_all_arrays[it->second];
-        __fastbit_iapi_all_arrays[it->second] = 0;
-        __fastbit_iapi_name_map.erase(col->name());
-        delete col;
-    }
-    __fastbit_iapi_address_map.erase(it);
-} // __fastbit_free_array
-
 ibis::bord::column* __fastbit_iapi_array_by_name(const char *name) {
     if (name == 0 || *name == 0) return 0;
     FastBitIAPINameMap::const_iterator it = __fastbit_iapi_name_map.find(name);
     if (it != __fastbit_iapi_name_map.end()) {
         if (it->second < __fastbit_iapi_all_arrays.size()) {
+            LOGGER(ibis::gVerbose > 6)
+                << "__fastbit_iapi_array_by_name found column named \"" << name
+                << "\" as __fastbit_iapi_all_arrays[" << it->second
+                << "] (name=" << __fastbit_iapi_all_arrays[it->second]->name()
+                << ", description="
+                << __fastbit_iapi_all_arrays[it->second]->description()
+                << ")";
             return __fastbit_iapi_all_arrays[it->second];
         }
     }
     return 0;
 } // __fastbit_iapi_array_by_name
 
-void __fastbit_free_array(const char *nm) {
-    FastBitIAPINameMap::const_iterator it =
-        __fastbit_iapi_name_map.find(nm);
-    if (it == __fastbit_iapi_name_map.end()) return;
+// An internal utility function that actually modify the global variabls
+// keeping track of arrays.  The caller must hold a mutex lock.
+void __fastbit_iapi_free_array(uint64_t pos) {
+    if (pos >= __fastbit_iapi_all_arrays.size()) return;
 
-    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "__fastbit_free_array");
-    if (it->second < __fastbit_iapi_all_arrays.size()) {
-        ibis::bord::column *col = __fastbit_iapi_all_arrays[it->second];
-        if (col != 0) {
-            void *addr = __fastbit_iapi_get_array_addr(*col);
-            __fastbit_iapi_all_arrays[it->second] = 0;
+    ibis::bord::column *col = __fastbit_iapi_all_arrays[pos];
+    if (col != 0) { // erase the entry related to col
+        void *addr = __fastbit_iapi_get_array_addr(*col);
+        if (addr != 0)
             __fastbit_iapi_address_map.erase(addr);
-            delete col;
-        }
+        __fastbit_iapi_name_map.erase(col->name());
+        delete col;
     }
-    __fastbit_iapi_name_map.erase(it);
-} // __fastbit_free_array
+
+    if (pos < __fastbit_iapi_all_arrays.size()-1) {
+        // move the last entry in __fastbit_iapi_all_arrays to the position
+        // being vacated
+        __fastbit_iapi_all_arrays[pos] = __fastbit_iapi_all_arrays.back();
+        col = __fastbit_iapi_all_arrays.back();
+        void *addr = __fastbit_iapi_get_array_addr(*col);
+        if (addr != 0)
+            __fastbit_iapi_address_map[addr] = pos;
+        __fastbit_iapi_name_map[col->name()] = pos;
+    }
+    // remove the vacated entry from __fastbit_iapi_all_arrays
+    __fastbit_iapi_all_arrays.resize(__fastbit_iapi_all_arrays.size()-1);
+} // __fastbit_iapi_free_array
 
 void __fastbit_free_all_arrays() {
     ibis::util::mutexLock
@@ -568,15 +621,15 @@ void __fastbit_free_all_arrays() {
     __fastbit_iapi_address_map.clear();
 } // __fastbit_free_all_arrays
 
-void __fastbit_free_all_selections() {
+void __fastbit_free_all_selected() {
     ibis::util::mutexLock
-        lock(&__fastbit_iapi_lock, "__fastbit_free_all_arrays");
+        lock(&__fastbit_iapi_lock, "__fastbit_free_all_selected");
     for (FastBitIAPISelectionList::iterator it =
              __fastbit_iapi_selection_list.begin();
-         it != __fastbit_iapi_selection_list.end(); ++ it) 
+         it != __fastbit_iapi_selection_list.end(); ++ it)
         delete it->second;
     __fastbit_iapi_selection_list.clear();
-} // __fastbit_free_all_arrays
+} // __fastbit_free_all_selected
 
 void fastbit_iapi_reregister_array(uint64_t i) {
     ibis::bord::column *col = __fastbit_iapi_all_arrays[i];
@@ -882,7 +935,7 @@ int64_t fastbit_iapi_get_coordinates_1d
 /// argument @c dim1 is the size of the faster varying dimension.  The
 /// return value is the number of positions (each position taking up two
 /// elements) in 'buf'.
-/// 
+///
 /// Note that the argument @c skip refers to the number of positions marked
 /// 1 to be skipped and the argument @c nbuf refers to the number of
 /// elements in the argument @c buf.
@@ -940,7 +993,7 @@ int64_t fastbit_iapi_get_coordinates_2d
 /// Convert the selected positions to 3-dimension coordinates.  The
 /// argument @c dim2 is the size of the fastest varying dimension and @c
 /// dim2 is the size of the second fastest varying dimension.
-/// 
+///
 /// Note that the argument @c skip refers to the number of positions marked
 /// 1 to be skipped and the argument @c nbuf refers to the number of
 /// elements in the argument @c buf.
@@ -1016,7 +1069,7 @@ inline void fastbit_iapi_global_to_nd
 
 /// Convert the selected positions to N-dimension coordinates.  This
 /// function can not be used for cases with 1 dimension.
-/// 
+///
 /// Note that the argument @c skip refers to the number of positions marked
 /// 1 to be skipped and the argument @c nbuf refers to the number of
 /// elements in the argument @c buf.
@@ -1295,8 +1348,12 @@ extern "C" int64_t fastbit_selection_evaluate(FastBitSelectionHandle h) {
     }
 
     const ibis::bitvector *res = fastbit_iapi_lookup_solution(h);
-    if (res != 0)
+    if (res != 0) {
+        LOGGER(ibis::gVerbose > 3)
+            << "Warning -- fastbit_selection_evaluate returns cached result "
+            "for query \"" << *static_cast<const ibis::qExpr*>(h) << '"';
         return res->cnt();
+    }
 
     std::unique_ptr<ibis::bord> brd(fastbit_iapi_gather_columns(h));
     if (brd.get() == 0)
@@ -1411,7 +1468,7 @@ extern "C" int64_t fastbit_selection_read
 ///           are placed in @c buf.  This is necessary if the incoming
 ///           buffer is too small to hold all the points and the caller has
 ///           to invoke this function repeatedly.
-/// 
+///
 /// The shape of the array is determined by shape of the array in the first
 /// (left-most) selection condition tree.  The implicit assumption is that
 /// all arrays/variables involved in the selection conditions have the same
@@ -1462,26 +1519,82 @@ extern "C" int64_t fastbit_selection_get_coordinates
     return ierr;
 } // fastbit_selection_get_coordinates
 
+extern "C" void fastbit_selection_purge_results(FastBitSelectionHandle h) {
+    if (h == 0) return;
+
+    ibis::util::mutexLock lock(&__fastbit_iapi_lock,
+                               "fastbit_selection_purge_results");
+    FastBitIAPISelectionList::iterator it =
+        __fastbit_iapi_selection_list.find(h);
+    if (it == __fastbit_iapi_selection_list.end()) return;
+
+    delete it->second;
+    __fastbit_iapi_selection_list.erase(it);
+} // fastbit_selection_purge_results
+
 extern "C" void fastbit_iapi_free_all() {
-    __fastbit_free_all_selections();
+    __fastbit_free_all_selected();
     __fastbit_free_all_arrays();
 } // fastbit_iapi_free_all
 
 extern "C" void fastbit_iapi_free_array(const char *nm) {
-    __fastbit_free_array(nm);
+    FastBitIAPINameMap::const_iterator it =
+        __fastbit_iapi_name_map.find(nm);
+    if (it == __fastbit_iapi_name_map.end()) return;
+
+    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_array");
+    it = __fastbit_iapi_name_map.find(nm);
+    if (it->second < __fastbit_iapi_all_arrays.size()) {
+        __fastbit_iapi_free_array(it->second);
+    }
+    else {
+        __fastbit_iapi_name_map.erase(it);
+    }
 } // fastbit_iapi_free_array
 
 extern "C" void fastbit_iapi_free_array_by_addr(void *addr) {
-    __fastbit_free_array(addr);
+    FastBitIAPIAddressMap::const_iterator it =
+        __fastbit_iapi_address_map.find(addr);
+    if (it == __fastbit_iapi_address_map.end()) return;
+
+    ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_array");
+    it = __fastbit_iapi_address_map.find(addr);
+    if (it->second < __fastbit_iapi_all_arrays.size()) {
+        __fastbit_iapi_free_array(it->second);
+    }
+    else {
+        __fastbit_iapi_address_map.erase(it);
+    }
 } // fastbit_iapi_free_array_by_addr
 
 /**
-   @note the array name @c nm must follow the naming convention specified
-   in the documentation for ibis::column.  More specifically, the name must
-   start with a underscore (_) or one of the 26 English alphabets, and the
-   remaining characters in the name must be drawn from _, a-z, A-Z, 0-9,
-   '.', and ':'.  Additionally, the column names are used without
-   considering the cases of the letters a-z.
+   @arg nm name of the array.  The array name @c nm must follow the naming
+   convention specified in the documentation for ibis::column.  More
+   specifically, the name must start with a underscore (_) or one of the 26
+   English alphabets, and the remaining characters in the name must be
+   drawn from _, a-z, A-Z, 0-9, '.', and ':'.  Additionally, the column
+   names are used without considering the cases of the letters a-z.
+
+   @arg dtype data type.
+
+   @arg buf the data buffer.  For most data types, this is a raw pointer to
+   data from user.  For example, if the type is FastBitDataTypeDouble, buf
+   is of type 'double *'.  The exception is when the type is either
+   FastBitDataTypeBitRaw or FastBitDataTypeBitCompressed.  When the type is
+   FastBitDataTypeBitRaw, the buffer is expected to be 'unsigned char*',
+   and each bit in the buffer is treated as the literal bits.  When the
+   type is FastBitDataTypeBitCompressed, the buffer is expected to
+   'ibis::bitvector*'.
+
+   @arg nelm number of elements of the specified type in the data buffer.
+   When the data type is FastBitDataTypeBitRaw or
+   FastBitDataTypeBitCompressed, nelm refers to the number of bits
+   represented by the content of data buffer.
+
+   @return This function returns 0 to indicate success, a positive number
+   to indicate that the content has already been registered, a negative
+   number to indicate error such as unknown data type, null string for name
+   or memory allocation error.
  */
 extern "C" int fastbit_iapi_register_array
 (const char *nm, FastBitDataType dtype, void *buf, uint64_t nelm) {
@@ -1505,6 +1618,116 @@ extern "C" int fastbit_iapi_register_array
     else
         return -2;
 } // fastbit_iapi_register_array
+
+extern "C" int fastbit_iapi_extend_array
+(const char *nm, FastBitDataType dtype, void *addr, uint64_t nelm) {
+    if (nm == 0 || *nm == 0 || dtype == FastBitDataTypeUnknown || addr == 0)
+        return -1;
+    ibis::bord::column *col = __fastbit_iapi_array_by_name(nm);
+    if (col == 0) {
+        if (__fastbit_iapi_register_array(nm, dtype, addr, nelm) != 0)
+            return 0;
+        else
+            return -2;
+    }
+
+    ibis::bitvector msk;
+    msk.set(1, nelm);
+    int ierr = 0;
+    switch (dtype) {
+    default:
+    case FastBitDataTypeUnknown:
+        return 0;
+    case FastBitDataTypeByte: {
+        ibis::array_t<signed char> *buf =
+            new ibis::array_t<signed char>((signed char*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeUByte: {
+        ibis::array_t<unsigned char> *buf
+            = new ibis::array_t<unsigned char>((unsigned char*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeShort: {
+        ibis::array_t<int16_t> *buf =
+            new ibis::array_t<int16_t>((int16_t*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeUShort: {
+        ibis::array_t<uint16_t> *buf =
+            new ibis::array_t<uint16_t>((uint16_t*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeInt: {
+        ibis::array_t<int32_t> *buf =
+            new ibis::array_t<int32_t>((int32_t*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeUInt: {
+        ibis::array_t<uint32_t> *buf =
+            new ibis::array_t<uint32_t>((uint32_t*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeLong: {
+        ibis::array_t<int64_t> *buf =
+            new ibis::array_t<int64_t>((int64_t*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeULong: {
+        ibis::array_t<uint64_t> *buf =
+            new ibis::array_t<uint64_t>((uint64_t*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeFloat: {
+        ibis::array_t<float> *buf =
+            new ibis::array_t<float>((float*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeDouble: {
+        ibis::array_t<double> *buf =
+            new ibis::array_t<double>((double*)addr, nelm);
+        ierr = col->append(buf, msk);
+        break;}
+    case FastBitDataTypeBitRaw: {
+        if (col->type() != ibis::BIT) return -3;
+
+        const unsigned char *uptr = static_cast<const unsigned char*>(addr);
+        ibis::bitvector bv;
+        while (bv.size()+8 <= nelm) {
+            bv.appendByte(*uptr);
+            ++ uptr;
+        }
+        if (bv.size() < nelm) {
+            bv += ((*uptr & 0x80) >> 7);
+        }
+        if (bv.size() < nelm) {
+            bv += ((*uptr & 0x40) >> 6);
+        }
+        if (bv.size() < nelm) {
+            bv += ((*uptr & 0x20) >> 5);
+        }
+        if (bv.size() < nelm) {
+            bv += ((*uptr & 0x10) >> 4);
+        }
+        if (bv.size() < nelm) {
+            bv += ((*uptr & 0x08) >> 3);
+        }
+        if (bv.size() < nelm) {
+            bv += ((*uptr & 0x04) >> 2);
+        }
+        if (bv.size() < nelm) {
+            bv += ((*uptr & 0x02) >> 1);
+        }
+        ierr = col->append(&bv, msk);
+        break;}
+    case FastBitDataTypeBitCompressed: {
+        if (col->type() != ibis::BIT) return -4;
+
+        ierr = col->append(addr, msk);
+        break;}
+    }
+    return ierr;
+} // fastbit_iapi_extend_array
 
 /**
    @note the array name @c nm must follow the naming convention specified
