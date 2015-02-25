@@ -5513,8 +5513,10 @@ ibis::bord::column::column(ibis::TYPE_T t, const char *nm, void *st,
 ibis::bord::column::column(const ibis::bord::column &c)
     : ibis::column(c), buffer(0), xreader(c.xreader), xmeta(c.xmeta),
       dic(c.dic), shape(c.shape) {
-    if (c.buffer == 0) return;
+    if (c.idx != 0) // to deal with the index only columns
+        idx = c.idx->dup();
 
+    if (c.buffer == 0) return;
     switch (c.m_type) {
     case ibis::BIT: {
 	buffer = new bitvector(* static_cast<bitvector*>(c.buffer));
@@ -11539,6 +11541,12 @@ long ibis::bord::column::append(const void* vals, const ibis::bitvector& msk) {
     int ierr = 0;
     if (vals == 0 || msk.size() == 0 || msk.cnt() == 0)
         return ierr;
+    if (buffer == 0 && mask_.cnt() > 0) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- column[" << fullname() << "]::append can not "
+            "proceed because the existing data is not in memory";
+        return -20;
+    }
 
     switch (m_type) {
     case ibis::BYTE: {
@@ -11638,7 +11646,7 @@ long ibis::bord::column::append(const void* vals, const ibis::bitvector& msk) {
 	break;}
     default: {
 	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- column[" << thePart->name() << '.' << m_name
+	    << "Warning -- column[" << fullname()
 	    << "]::append -- unable to process column " << m_name
 	    << " (type " << ibis::TYPESTRING[(int)m_type] << ")";
 	ierr = -17;
@@ -11650,6 +11658,7 @@ long ibis::bord::column::append(const void* vals, const ibis::bitvector& msk) {
             mask_.adjustSize(0, thePart->nRows());
 	mask_ += msk;
     }
+    unloadIndex();
     return ierr;
 } // ibis::bord::column::append
 

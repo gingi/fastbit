@@ -1898,7 +1898,10 @@ int ibis::tafel::write(const char* dir, const char* tname,
 int ibis::tafel::writeData(const char* dir, const char* tname,
                            const char* tdesc, const char* idx,
                            const char* nvpairs, uint32_t voffset) const {
-    if (cols.empty() || mrows == 0) return 0; // nothing new to write
+    const uint32_t prows =
+        (maxpart>0 ? (mrows-voffset>=maxpart ? maxpart : mrows-voffset) :
+         mrows);
+    if (cols.empty() || prows == 0) return 0; // nothing new to write
     if (dir == 0 || *dir == 0) {
         dir = "tmp";
 	LOGGER(ibis::gVerbose >= 0)
@@ -2037,8 +2040,8 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
 		    << " row" << (tmp.nRows()>1 ? "s" : "")
 		    << " and " << tmp.nColumns() << " column"
 		    << (tmp.nColumns()>1?"s":"")
-		    << ", will append " << mrows << " new row"
-		    << (mrows>1 ? "s" : "");
+		    << ", will append " << prows << " new row"
+		    << (prows>1 ? "s" : "");
 	    }
 	    tmp.emptyCache(); // empty cached content from mydir
 	}
@@ -2055,8 +2058,8 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
 	std::ostringstream oss;
 	oss << "Data initially wrote with ibis::tablex interface on "
 	    << stamp << " with " << cols.size() << " column"
-	    << (cols.size() > 1 ? "s" : "") << " and " << nold + mrows
-	    << " row" << (nold+mrows>1 ? "s" : "");
+	    << (cols.size() > 1 ? "s" : "") << " and " << nold + prows
+	    << " row" << (nold+prows>1 ? "s" : "");
 	olddesc = oss.str();
 	tdesc = olddesc.c_str();
     }
@@ -2093,8 +2096,8 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
 	}
     }
     LOGGER(ibis::gVerbose > 1)
-	<< "tafel::writeData starting to write " << mrows << " row"
-	<< (mrows>1?"s":"") << " and " << cols.size() << " column"
+	<< "tafel::writeData starting to write " << prows << " row"
+	<< (prows>1?"s":"") << " and " << cols.size() << " column"
 	<< (cols.size()>1?"s":"") << " to " << mydir << " as data partition "
 	<< tname;
 
@@ -2112,7 +2115,7 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
     md << "# meta data for data partition " << tname
        << " written by ibis::tafel::writeData on " << stamp << "\n\n"
        << "BEGIN HEADER\nName = " << tname << "\nDescription = "
-       << tdesc << "\nNumber_of_rows = " << nold+mrows
+       << tdesc << "\nNumber_of_rows = " << nold+prows
        << "\nNumber_of_columns = " << cols.size()
        << "\nTimestamp = " << currtime;
     if (idx != 0 && *idx != 0) {
