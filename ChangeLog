@@ -1,6 +1,8 @@
 2014-02-24 Justin Swanhart <greenlion at gmail dot com>
 	* src/tafel.cpp: patch writeData to correctly print the number of
 	rows handles
+	* src/ibis.cpp: change reorder function to walk through all
+	subdirectories
 
 2014-02-24 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: prevent column::append to work with index only

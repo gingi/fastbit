@@ -124,10 +124,10 @@
 #include <mensa.h>      // ibis::mensa
 #include <twister.h>
 
-#include <sstream>	// std::ostringstream
-#include <algorithm>	// std::sort
-#include <memory>	// std::unique_ptr
-#include <iomanip>	// std::setprecision
+#include <sstream>      // std::ostringstream
+#include <algorithm>    // std::sort
+#include <memory>       // std::unique_ptr
+#include <iomanip>      // std::setprecision
 
 /// The data structure for holding information about query jobs for
 /// multi-threaded testing.
@@ -202,53 +202,53 @@ static void usage(const char* name) {
 #else
               << "FastBit ibis1.2"
 #endif
-	      << ", Copyright (c) 2000-2015\n\nList of options for " << name
-	      << "\n\t[-a[ppend] data_dir [output_dir / partition_name]]"
-	"\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
-	"\n\t[-c[onf] conf_file]"
-	"\n\t[-d[atadir] data_dir]"
-	"\n\t[-e[stimation]]"
-	"\n\t[-f query-file]"
-	"\n\t[-h[elp]]"
-	"\n\t[-i[nteractive]]"
-	"\n\t[-j[oin] part1 part2 join-column conditions1 conditions2 [columns ...]]"
-	"\n\t[-k[eep-temporary-files]]"
-	"\n\t[-l logfilename]"
-	"\n\t[-n[o-estimation]]"
-	"\n\t[-o[utput-file] filename]"
-	"\n\t[-p[rint] options]"
-	"\n\t[-q[uery] [SELECT ...] [FROM ...] WHERE ...]"
-	"\n\t[-ri[d-check] [filename]]"
-	"\n\t[-r[eorder] data_dir[:colname1,colname2...]]"
-	"\n\t[-s[quential-scan]]"
-	"\n\t[-t[=n]]"
-	"\n\t[-v[=n]]"
-	"\n\t[-y[ank] filename|conditions]"
-	"\n\t[-z[ap]]\n\n"
-	"NOTE: multiple -c -d -f -q and -v options may be specified.  "
-	"Queries are applied to all data partitions by default.  "
-	"Verboseness levels are cumulated.\n\n"
-	"NOTE: options -n and -e are mutually exclusive, the one that appears "
-	"later overwrites the earlier ones on the same command line.\n\n"
-	"NOTE: option -t is interpreted as testing if specified alone, "
-	"however if any query is also specified, it is interpreted as "
-	"number of threads\n\n"
-	"NOTE: option -y must be followed by either a file name or a list "
-	"of conditions.  The named file may contain arbitrary number of "
-	"non-negative integers that are treated as row numbers (starting "
-	"from 0).  The rows whose numbers are specified in the file will "
-	"be marked inactive and will not participate in any further queries.  "
-	"If a set of conditions are specified, all rows satisfying the "
-	"conditions will be marked inactive.  Additionally, if the -z option "
-	"is also specified, all inactive rows will be purged permanently "
-	"from the data files.\n\n"
-	"NOTE: option -y is applied to all data partitions known to this "
+              << ", Copyright (c) 2000-2015\n\nList of options for " << name
+              << "\n\t[-a[ppend] data_dir [output_dir / partition_name]]"
+        "\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
+        "\n\t[-c[onf] conf_file]"
+        "\n\t[-d[atadir] data_dir]"
+        "\n\t[-e[stimation]]"
+        "\n\t[-f query-file]"
+        "\n\t[-h[elp]]"
+        "\n\t[-i[nteractive]]"
+        "\n\t[-j[oin] part1 part2 join-column conditions1 conditions2 [columns ...]]"
+        "\n\t[-k[eep-temporary-files]]"
+        "\n\t[-l logfilename]"
+        "\n\t[-n[o-estimation]]"
+        "\n\t[-o[utput-file] filename]"
+        "\n\t[-p[rint] options]"
+        "\n\t[-q[uery] [SELECT ...] [FROM ...] WHERE ...]"
+        "\n\t[-ri[d-check] [filename]]"
+        "\n\t[-r[eorder] data_dir[:colname1,colname2...]]"
+        "\n\t[-s[quential-scan]]"
+        "\n\t[-t[=n]]"
+        "\n\t[-v[=n]]"
+        "\n\t[-y[ank] filename|conditions]"
+        "\n\t[-z[ap]]\n\n"
+        "NOTE: multiple -c -d -f -q and -v options may be specified.  "
+        "Queries are applied to all data partitions by default.  "
+        "Verboseness levels are cumulated.\n\n"
+        "NOTE: options -n and -e are mutually exclusive, the one that appears "
+        "later overwrites the earlier ones on the same command line.\n\n"
+        "NOTE: option -t is interpreted as testing if specified alone, "
+        "however if any query is also specified, it is interpreted as "
+        "number of threads\n\n"
+        "NOTE: option -y must be followed by either a file name or a list "
+        "of conditions.  The named file may contain arbitrary number of "
+        "non-negative integers that are treated as row numbers (starting "
+        "from 0).  The rows whose numbers are specified in the file will "
+        "be marked inactive and will not participate in any further queries.  "
+        "If a set of conditions are specified, all rows satisfying the "
+        "conditions will be marked inactive.  Additionally, if the -z option "
+        "is also specified, all inactive rows will be purged permanently "
+        "from the data files.\n\n"
+        "NOTE: option -y is applied to all data partitions known to this "
         "program.  Use with care!\n\n"
-	"NOTE: the output file stores the results selected by queries, the "
-	"log file is for the rest of the messages such error messages and "
-	"debug information.  The existing content of the output file is "
+        "NOTE: the output file stores the results selected by queries, the "
+        "log file is for the rest of the messages such error messages and "
+        "debug information.  The existing content of the output file is "
         "cleared before any query is evaluated.\n"
-	      << std::endl;
+              << std::endl;
 } // usage
 
 // printout the help message
@@ -356,74 +356,74 @@ static void printColumn(const ibis::part& tbl, const char* cname,
         return;
     }
     else {
-	uint32_t tot = 0;
-	ibis::util::logger lg;
-	lg() << "Column " << cname << " in Partition "
-	     << tbl.name() << ":\n";
-	col->print(lg());
-	lg() << ", actual range <" << amin << ", " << amax
-	     << ">\nHistogram [" << nb << "]";
-	if (cond != 0 && *cond != 0)
-	    lg() << " under the condition of \"" << cond
-		 << "\"";
-	lg() << "\n(bounds,\t# records in bin)\n";
-	for (int j = 0; j < nb; ++ j) {
-	    if (! (fabs(bounds[j] - bounds[j+1]) >
-		   1e-15*(fabs(bounds[j])+fabs(bounds[j+1]))))
-		lg() << "*** Error *** bounds[" << j << "] ("
-		     << bounds[j] << ") is too close to bounds[" << j+1
-		     << "] (" << bounds[j+1] << ")\n";
-	    lg() << "[" << bounds[j] << ", " << bounds[j+1] << ")\t"
-		 << counts[j] << "\n";
-	    tot += counts[j];
-	}
-	lg() << "  total count = " << tot << ", tbl.nRows() = "
-	     << tbl.nRows();
+        uint32_t tot = 0;
+        ibis::util::logger lg;
+        lg() << "Column " << cname << " in Partition "
+             << tbl.name() << ":\n";
+        col->print(lg());
+        lg() << ", actual range <" << amin << ", " << amax
+             << ">\nHistogram [" << nb << "]";
+        if (cond != 0 && *cond != 0)
+            lg() << " under the condition of \"" << cond
+                 << "\"";
+        lg() << "\n(bounds,\t# records in bin)\n";
+        for (int j = 0; j < nb; ++ j) {
+            if (! (fabs(bounds[j] - bounds[j+1]) >
+                   1e-15*(fabs(bounds[j])+fabs(bounds[j+1]))))
+                lg() << "*** Error *** bounds[" << j << "] ("
+                     << bounds[j] << ") is too close to bounds[" << j+1
+                     << "] (" << bounds[j+1] << ")\n";
+            lg() << "[" << bounds[j] << ", " << bounds[j+1] << ")\t"
+                 << counts[j] << "\n";
+            tot += counts[j];
+        }
+        lg() << "  total count = " << tot << ", tbl.nRows() = "
+             << tbl.nRows();
     }
     if (nb > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-	std::vector<ibis::bitvector> bins;
-	std::vector<double> boundt;
-	ibis::util::logger lg;
-	long ierr = tbl.get1DBins(cond, cname, nb, boundt, bins);
-	lg() << "\nprintColumn(" << cname << ") -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get1DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size()) {
-	    lg() << "get1DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (bounds.size() != boundt.size() ||
-		 counts.size() != bins.size()) {
-	    lg() << "get1DDistribution returned " << counts.size()
-		 << " bin" << (counts.size() > 1 ? "s" : "")
-		 << ", but get1DBins returned " << bins.size()
-		 << " bin" << (bins.size() > 1 ? "s" : "")
-		 << "; bounds.size(" << bounds.size()
-		 << "), boundt.size(" << boundt.size()
-		 << "), counts.size(" << counts.size()
-		 << "), bins.size(" << bins.size() << ")";
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < bounds.size(); ++ i)
-		if (bounds[i] != boundt[i]) {
-		    lg() << "bounds[" << i << "] (" << bounds[i]
-			 << ") != boundt[" << i << "] (" << boundt[i]
-			 << ")\n";
-		    ++ ierr;
-		}
-	    for (size_t i = 0; i < counts.size(); ++ i)
-		if (bins[i].cnt() != counts[i]) {
-		    lg() << "counts[" << i << "] (" << counts[i]
-			 << ") != bins[" << i << "].cnt() ("
-			 << bins[i].cnt() << ")\n";
-		    ++ ierr;
-		}
-	    lg() << "matching arrays counts and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "");
-	}
+        std::vector<ibis::bitvector> bins;
+        std::vector<double> boundt;
+        ibis::util::logger lg;
+        long ierr = tbl.get1DBins(cond, cname, nb, boundt, bins);
+        lg() << "\nprintColumn(" << cname << ") -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get1DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size()) {
+            lg() << "get1DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (bounds.size() != boundt.size() ||
+                 counts.size() != bins.size()) {
+            lg() << "get1DDistribution returned " << counts.size()
+                 << " bin" << (counts.size() > 1 ? "s" : "")
+                 << ", but get1DBins returned " << bins.size()
+                 << " bin" << (bins.size() > 1 ? "s" : "")
+                 << "; bounds.size(" << bounds.size()
+                 << "), boundt.size(" << boundt.size()
+                 << "), counts.size(" << counts.size()
+                 << "), bins.size(" << bins.size() << ")";
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < bounds.size(); ++ i)
+                if (bounds[i] != boundt[i]) {
+                    lg() << "bounds[" << i << "] (" << bounds[i]
+                         << ") != boundt[" << i << "] (" << boundt[i]
+                         << ")\n";
+                    ++ ierr;
+                }
+            for (size_t i = 0; i < counts.size(); ++ i)
+                if (bins[i].cnt() != counts[i]) {
+                    lg() << "counts[" << i << "] (" << counts[i]
+                         << ") != bins[" << i << "].cnt() ("
+                         << bins[i].cnt() << ")\n";
+                    ++ ierr;
+                }
+            lg() << "matching arrays counts and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "");
+        }
     }
 } // printColumn
 
@@ -432,38 +432,38 @@ static void printColumn0(const ibis::part& tbl, const char* cname,
                          const char* cond) {
     ibis::column* col = tbl.getColumn(cname);
     if (col) {
-	std::vector<double> bounds;
-	std::vector<uint32_t> counts;
-	double amin = col->getActualMin();
-	double amax = col->getActualMax();
-	long nb = tbl.getCumulativeDistribution(cond, cname, bounds, counts);
+        std::vector<double> bounds;
+        std::vector<uint32_t> counts;
+        double amin = col->getActualMin();
+        double amax = col->getActualMax();
+        long nb = tbl.getCumulativeDistribution(cond, cname, bounds, counts);
 
-	ibis::util::logger lg;
-	lg() << "Column " << cname << " in Partition "
-	     << tbl.name() << ":\n";
-	if (nb > 0) {
-	    col->print(lg());
-	    lg() << ", actual range <" << amin << ", " << amax
-		 << ">\ncumulative distribution [" << nb
-		 << "]";
-	    if (cond != 0 && *cond != 0)
-		lg() << " under the condition of \"" << cond
-		     << "\"";
-	    lg() << "\n(bound,\t# records < bound)\n";
-	    for (int j = 0; j < nb; ++ j) {
-		if (j > 0 && ! (fabs(bounds[j] - bounds[j-1]) >
-				1e-15*(fabs(bounds[j])+fabs(bounds[j-1]))))
-		    lg() << "*** Error *** bounds[" << j
-			 << "] is too close to bounds[" << j-1
-			 << "]\n";
-		lg() << bounds[j] << ",\t" << counts[j] << "\n";
-	    }
-	}
-	else {
-	    col->print(lg());
-	    lg() << "\nWarning -- getCumulativeDistribution(" << cname
-		 << ") failed with error code " << nb;
-	}
+        ibis::util::logger lg;
+        lg() << "Column " << cname << " in Partition "
+             << tbl.name() << ":\n";
+        if (nb > 0) {
+            col->print(lg());
+            lg() << ", actual range <" << amin << ", " << amax
+                 << ">\ncumulative distribution [" << nb
+                 << "]";
+            if (cond != 0 && *cond != 0)
+                lg() << " under the condition of \"" << cond
+                     << "\"";
+            lg() << "\n(bound,\t# records < bound)\n";
+            for (int j = 0; j < nb; ++ j) {
+                if (j > 0 && ! (fabs(bounds[j] - bounds[j-1]) >
+                                1e-15*(fabs(bounds[j])+fabs(bounds[j-1]))))
+                    lg() << "*** Error *** bounds[" << j
+                         << "] is too close to bounds[" << j-1
+                         << "]\n";
+                lg() << bounds[j] << ",\t" << counts[j] << "\n";
+            }
+        }
+        else {
+            col->print(lg());
+            lg() << "\nWarning -- getCumulativeDistribution(" << cname
+                 << ") failed with error code " << nb;
+        }
     }
 } // printColumn0
 
@@ -599,82 +599,82 @@ static void print1DDistribution(const ibis::part& tbl, const char *cond,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-	ibis::util::logger lg;
-	lg() << "Warning -- " << evt
-	     << " get1DDistribution returned with ierr = " << ierr
-	     << ", weights.size() = " << weights.size();
-	return;
+        ibis::util::logger lg;
+        lg() << "Warning -- " << evt
+             << " get1DDistribution returned with ierr = " << ierr
+             << ", weights.size() = " << weights.size();
+        return;
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-	std::vector<double> sum2;
-	std::vector<ibis::bitvector*> bins;
-	ierr = tbl.get1DBins(cond,
-			     col1, amin1, amax1, stride1,
-			     wt, sum2, bins);
-	ibis::util::logger lg;
-	lg() << "\n" << evt << "-- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get1DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
-	    lg() << "get1DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << " and sum2.size() is " << sum2.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (weights.size() != bins.size()) {
-	    lg() << "get1DDistribution returned " << weights.size()
-		 << " bin" << (weights.size() > 1 ? "s" : "")
-		 << ", but get1DBins returned " << bins.size()
-		 << " bin" << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < weights.size(); ++ i) {
-		if (sum2[i] != weights[i]) {
-		    lg() << "weights[" << i << "] (" << weights[i]
-			 << ") != sum2[" << i << "] (" << sum2[i]
-			 << ")\n";
-		}
-		if (bins[i] != 0) {
-		    ibis::array_t<double> *tmp =
-			cptrw->selectDoubles(*(bins[i]));
-		    if (tmp == 0) {
-			lg() << "Warning -- failed to retrieve "
-			     << bins[i]->cnt() << " value"
-			     << (bins[i]->cnt() > 1 ? "s" : "")
-			     << " from " << wt << "for bin " << i
-			     << "\n";
-			++ ierr;
-		    }
-		    else {
-			double w = 0.0;
-			for (size_t j = 0; j < tmp->size(); ++ j)
-			    w += (*tmp)[j];
-			if (w != weights[i]) {
-			    lg() << "weights[" << i << "] ("
-				 << weights[i]
-				 << ") != sum of bins[" << i << "] ("
-				 << w << ") from " << bins[i]->cnt()
-				 << " value"
-				 << (bins[i]->cnt() > 1 ? "s" : "")
-				 << "\n";
-			    ++ ierr;
-			}
-		    }
-		}
-		else if (bins[i] == 0 && weights[i] != 0) {
-		    lg() << "weights[" << i << "] (" << weights[i]
-			 << "), but bins[" << i << "] is nil (0)\n";
-		    ++ ierr;
-		}
-	    }
-	    if (ierr > 0)
-		lg() << "Warning -- ";
-	    lg() << "matching arrays weights and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
-	}
-	ibis::util::clearVec(bins);
+        std::vector<double> sum2;
+        std::vector<ibis::bitvector*> bins;
+        ierr = tbl.get1DBins(cond,
+                             col1, amin1, amax1, stride1,
+                             wt, sum2, bins);
+        ibis::util::logger lg;
+        lg() << "\n" << evt << "-- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get1DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+            lg() << "get1DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << " and sum2.size() is " << sum2.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (weights.size() != bins.size()) {
+            lg() << "get1DDistribution returned " << weights.size()
+                 << " bin" << (weights.size() > 1 ? "s" : "")
+                 << ", but get1DBins returned " << bins.size()
+                 << " bin" << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < weights.size(); ++ i) {
+                if (sum2[i] != weights[i]) {
+                    lg() << "weights[" << i << "] (" << weights[i]
+                         << ") != sum2[" << i << "] (" << sum2[i]
+                         << ")\n";
+                }
+                if (bins[i] != 0) {
+                    ibis::array_t<double> *tmp =
+                        cptrw->selectDoubles(*(bins[i]));
+                    if (tmp == 0) {
+                        lg() << "Warning -- failed to retrieve "
+                             << bins[i]->cnt() << " value"
+                             << (bins[i]->cnt() > 1 ? "s" : "")
+                             << " from " << wt << "for bin " << i
+                             << "\n";
+                        ++ ierr;
+                    }
+                    else {
+                        double w = 0.0;
+                        for (size_t j = 0; j < tmp->size(); ++ j)
+                            w += (*tmp)[j];
+                        if (w != weights[i]) {
+                            lg() << "weights[" << i << "] ("
+                                 << weights[i]
+                                 << ") != sum of bins[" << i << "] ("
+                                 << w << ") from " << bins[i]->cnt()
+                                 << " value"
+                                 << (bins[i]->cnt() > 1 ? "s" : "")
+                                 << "\n";
+                            ++ ierr;
+                        }
+                    }
+                }
+                else if (bins[i] == 0 && weights[i] != 0) {
+                    lg() << "weights[" << i << "] (" << weights[i]
+                         << "), but bins[" << i << "] is nil (0)\n";
+                    ++ ierr;
+                }
+            }
+            if (ierr > 0)
+                lg() << "Warning -- ";
+            lg() << "matching arrays weights and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+        }
+        ibis::util::clearVec(bins);
     }
 } // print1DDistribution
 
@@ -779,83 +779,83 @@ static void print2DDistribution(const ibis::part& tbl, const char *cond,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-	ibis::util::logger lg;
-	lg() << "Warning -- part[" << tbl.name()
-	     << "].get2DDistribution returned with ierr = " << ierr
-	     << ", weights.size() = " << weights.size();
-	return;
+        ibis::util::logger lg;
+        lg() << "Warning -- part[" << tbl.name()
+             << "].get2DDistribution returned with ierr = " << ierr
+             << ", weights.size() = " << weights.size();
+        return;
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-	std::vector<double> sum2;
-	std::vector<ibis::bitvector*> bins;
-	ierr = tbl.get2DBins(cond,
-			     col1, amin1, amax1, stride1,
-			     col2, amin2, amax2, stride2,
-			     wt, sum2, bins);
-	ibis::util::logger lg;
-	lg() << "\n" << evt << " -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get2DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
-	    lg() << "get2DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << " and sum2.size() is " << sum2.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (weights.size() != bins.size()) {
-	    lg() << "get2DDistribution returned " << weights.size()
-		 << " bin" << (weights.size() > 1 ? "s" : "")
-		 << ", but get2DBins returned " << bins.size()
-		 << " bin" << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < weights.size(); ++ i) {
-		if (sum2[i] != weights[i]) {
-		    lg() << "weights[" << i << "] (" << weights[i]
-			 << ") != sum2[" << i << "] (" << sum2[i]
-			 << ")\n";
-		}
-		if (bins[i] != 0) {
-		    ibis::array_t<double> *tmp =
-			cptrw->selectDoubles(*(bins[i]));
-		    if (tmp == 0) {
-			lg() << "Warning -- failed to retrieve "
-			     << bins[i]->cnt() << " value"
-			     << (bins[i]->cnt() > 1 ? "s" : "")
-			     << " from " << wt << "for bin " << i
-			     << "\n";
-			++ ierr;
-		    }
-		    else {
-			double w = 0.0;
-			for (size_t j = 0; j < tmp->size(); ++ j)
-			    w += (*tmp)[j];
-			if (w != weights[i]) {
-			    lg() << "weights[" << i << "] ("
-				 << weights[i]
-				 << ") != sum of bins[" << i << "] ("
-				 << w << ") from " << bins[i]->cnt()
-				 << " value"
-				 << (bins[i]->cnt() > 1 ? "s" : "")
-				 << "\n";
-			    ++ ierr;
-			}
-		    }
-		}
-		else if (bins[i] == 0 && weights[i] != 0) {
-		    lg() << "weights[" << i << "] (" << weights[i]
-			 << "), but bins[" << i << "] is nil (0)\n";
-		    ++ ierr;
-		}
-	    }
-	    if (ierr > 0)
-		lg() << "Warning -- ";
-	    lg() << "matching arrays weights and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
-	}
-	ibis::util::clearVec(bins);
+        std::vector<double> sum2;
+        std::vector<ibis::bitvector*> bins;
+        ierr = tbl.get2DBins(cond,
+                             col1, amin1, amax1, stride1,
+                             col2, amin2, amax2, stride2,
+                             wt, sum2, bins);
+        ibis::util::logger lg;
+        lg() << "\n" << evt << " -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get2DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+            lg() << "get2DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << " and sum2.size() is " << sum2.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (weights.size() != bins.size()) {
+            lg() << "get2DDistribution returned " << weights.size()
+                 << " bin" << (weights.size() > 1 ? "s" : "")
+                 << ", but get2DBins returned " << bins.size()
+                 << " bin" << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < weights.size(); ++ i) {
+                if (sum2[i] != weights[i]) {
+                    lg() << "weights[" << i << "] (" << weights[i]
+                         << ") != sum2[" << i << "] (" << sum2[i]
+                         << ")\n";
+                }
+                if (bins[i] != 0) {
+                    ibis::array_t<double> *tmp =
+                        cptrw->selectDoubles(*(bins[i]));
+                    if (tmp == 0) {
+                        lg() << "Warning -- failed to retrieve "
+                             << bins[i]->cnt() << " value"
+                             << (bins[i]->cnt() > 1 ? "s" : "")
+                             << " from " << wt << "for bin " << i
+                             << "\n";
+                        ++ ierr;
+                    }
+                    else {
+                        double w = 0.0;
+                        for (size_t j = 0; j < tmp->size(); ++ j)
+                            w += (*tmp)[j];
+                        if (w != weights[i]) {
+                            lg() << "weights[" << i << "] ("
+                                 << weights[i]
+                                 << ") != sum of bins[" << i << "] ("
+                                 << w << ") from " << bins[i]->cnt()
+                                 << " value"
+                                 << (bins[i]->cnt() > 1 ? "s" : "")
+                                 << "\n";
+                            ++ ierr;
+                        }
+                    }
+                }
+                else if (bins[i] == 0 && weights[i] != 0) {
+                    lg() << "weights[" << i << "] (" << weights[i]
+                         << "), but bins[" << i << "] is nil (0)\n";
+                    ++ ierr;
+                }
+            }
+            if (ierr > 0)
+                lg() << "Warning -- ";
+            lg() << "matching arrays weights and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+        }
+        ibis::util::clearVec(bins);
     }
 } // print2DDistribution
 
@@ -980,85 +980,85 @@ static void print3DDistribution(const ibis::part& tbl, const char *cond,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-	ibis::util::logger lg;
-	lg() << "Warning -- part[" << tbl.name()
-	     << "].get3DDistribution returned with ierr = " << ierr
-	     << ", weights.size() = " << weights.size();
-	return;
+        ibis::util::logger lg;
+        lg() << "Warning -- part[" << tbl.name()
+             << "].get3DDistribution returned with ierr = " << ierr
+             << ", weights.size() = " << weights.size();
+        return;
     }
 
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-	std::vector<double> sum2;
-	std::vector<ibis::bitvector*> bins;
-	ierr = tbl.get3DBins(cond,
-			     col1, amin1, amax1, stride1,
-			     col2, amin2, amax2, stride2,
-			     col3, amin3, amax3, stride3,
-			     wt, sum2, bins);
-	ibis::util::logger lg;
-	lg() << "\n" << evt << " -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get3DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
-	    lg() << "get3DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << " and sum2.size() is " << sum2.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (weights.size() != bins.size()) {
-	    lg() << "get3DDistribution returned " << weights.size()
-		 << " bin" << (weights.size() > 1 ? "s" : "")
-		 << ", but get3DBins returned " << bins.size()
-		 << " bin" << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < weights.size(); ++ i) {
-		if (sum2[i] != weights[i]) {
-		    lg() << "weights[" << i << "] (" << weights[i]
-			 << ") != sum2[" << i << "] (" << sum2[i]
-			 << ")\n";
-		}
-		if (bins[i] != 0) {
-		    ibis::array_t<double> *tmp =
-			cptrw->selectDoubles(*(bins[i]));
-		    if (tmp == 0) {
-			lg() << "Warning -- failed to retrieve "
-			     << bins[i]->cnt() << " value"
-			     << (bins[i]->cnt() > 1 ? "s" : "")
-			     << " from " << wt << "for bin " << i
-			     << "\n";
-			++ ierr;
-		    }
-		    else {
-			double w = 0.0;
-			for (size_t j = 0; j < tmp->size(); ++ j)
-			    w += (*tmp)[j];
-			if (w != weights[i]) {
-			    lg() << "weights[" << i << "] ("
-				 << weights[i]
-				 << ") != sum of bins[" << i << "] ("
-				 << w << ") from " << bins[i]->cnt()
-				 << " value"
-				 << (bins[i]->cnt() > 1 ? "s" : "")
-				 << "\n";
-			    ++ ierr;
-			}
-		    }
-		}
-		else if (bins[i] == 0 && weights[i] != 0) {
-		    lg() << "weights[" << i << "] (" << weights[i]
-			 << "), but bins[" << i << "] is nil (0)\n";
-		    ++ ierr;
-		}
-	    }
-	    if (ierr > 0)
-		lg() << "Warning -- ";
-	    lg() << "matching arrays weights and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
-	}
-	ibis::util::clearVec(bins);
+        std::vector<double> sum2;
+        std::vector<ibis::bitvector*> bins;
+        ierr = tbl.get3DBins(cond,
+                             col1, amin1, amax1, stride1,
+                             col2, amin2, amax2, stride2,
+                             col3, amin3, amax3, stride3,
+                             wt, sum2, bins);
+        ibis::util::logger lg;
+        lg() << "\n" << evt << " -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get3DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size() || ierr != (long)sum2.size()) {
+            lg() << "get3DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << " and sum2.size() is " << sum2.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (weights.size() != bins.size()) {
+            lg() << "get3DDistribution returned " << weights.size()
+                 << " bin" << (weights.size() > 1 ? "s" : "")
+                 << ", but get3DBins returned " << bins.size()
+                 << " bin" << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < weights.size(); ++ i) {
+                if (sum2[i] != weights[i]) {
+                    lg() << "weights[" << i << "] (" << weights[i]
+                         << ") != sum2[" << i << "] (" << sum2[i]
+                         << ")\n";
+                }
+                if (bins[i] != 0) {
+                    ibis::array_t<double> *tmp =
+                        cptrw->selectDoubles(*(bins[i]));
+                    if (tmp == 0) {
+                        lg() << "Warning -- failed to retrieve "
+                             << bins[i]->cnt() << " value"
+                             << (bins[i]->cnt() > 1 ? "s" : "")
+                             << " from " << wt << "for bin " << i
+                             << "\n";
+                        ++ ierr;
+                    }
+                    else {
+                        double w = 0.0;
+                        for (size_t j = 0; j < tmp->size(); ++ j)
+                            w += (*tmp)[j];
+                        if (w != weights[i]) {
+                            lg() << "weights[" << i << "] ("
+                                 << weights[i]
+                                 << ") != sum of bins[" << i << "] ("
+                                 << w << ") from " << bins[i]->cnt()
+                                 << " value"
+                                 << (bins[i]->cnt() > 1 ? "s" : "")
+                                 << "\n";
+                            ++ ierr;
+                        }
+                    }
+                }
+                else if (bins[i] == 0 && weights[i] != 0) {
+                    lg() << "weights[" << i << "] (" << weights[i]
+                         << "), but bins[" << i << "] is nil (0)\n";
+                    ++ ierr;
+                }
+            }
+            if (ierr > 0)
+                lg() << "Warning -- ";
+            lg() << "matching arrays weights and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "") << "\n";
+        }
+        ibis::util::clearVec(bins);
     }
 } // print3DDistribution
 
@@ -1156,81 +1156,81 @@ static void print2DDistribution(const ibis::part& tbl, const char *col1,
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 #if defined(TEST_CONTAINER_OF_OBJECTS)
-	std::vector<ibis::bitvector> bins;
-	ierr = tbl.get2DBins(cond,
-			     col1, amin1, amax1, stride1,
-			     col2, amin2, amax2, stride2,
-			     bins);
-	ibis::util::logger lg;
-	lg() << "\nprint2DDistribution(" << col1 << ", " << col2
-	     << ") -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get2DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size()) {
-	    lg() << "get2DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (cnts.size() != bins.size()) {
-	    lg() << "get2DDistribution returned " << cnts.size()
-		 << " bin" << (cnts.size() > 1 ? "s" : "")
-		 << ", but get2DBins returned " << bins.size()
-		 << " bin" << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < cnts.size(); ++ i)
-		if (bins[i].cnt() != cnts[i]) {
-		    lg() << "cnts[" << i << "] (" << cnts[i]
-			 << ") != bins[" << i << "].cnt() ("
-			 << bins[i].cnt() << ")\n";
-		    ++ ierr;
-		}
-	    lg() << "matching arrays cnts and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "");
-	}
+        std::vector<ibis::bitvector> bins;
+        ierr = tbl.get2DBins(cond,
+                             col1, amin1, amax1, stride1,
+                             col2, amin2, amax2, stride2,
+                             bins);
+        ibis::util::logger lg;
+        lg() << "\nprint2DDistribution(" << col1 << ", " << col2
+             << ") -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get2DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size()) {
+            lg() << "get2DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (cnts.size() != bins.size()) {
+            lg() << "get2DDistribution returned " << cnts.size()
+                 << " bin" << (cnts.size() > 1 ? "s" : "")
+                 << ", but get2DBins returned " << bins.size()
+                 << " bin" << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < cnts.size(); ++ i)
+                if (bins[i].cnt() != cnts[i]) {
+                    lg() << "cnts[" << i << "] (" << cnts[i]
+                         << ") != bins[" << i << "].cnt() ("
+                         << bins[i].cnt() << ")\n";
+                    ++ ierr;
+                }
+            lg() << "matching arrays cnts and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "");
+        }
 #else
-	std::vector<ibis::bitvector*> bins;
-	ierr = tbl.get2DBins(cond,
-			     col1, amin1, amax1, stride1,
-			     col2, amin2, amax2, stride2,
-			     bins);
-	ibis::util::logger lg;
-	lg() << "\nprint2DDistribution(" << col1 << ", " << col2
-	     << ") -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get2DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size()) {
-	    lg() << "get2DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (cnts.size() != bins.size()) {
-	    lg() << "get2DDistribution returned " << cnts.size()
-		 << " bin" << (cnts.size() > 1 ? "s" : "")
-		 << ", but get2DBins returned " << bins.size()
-		 << " bin" << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < cnts.size(); ++ i)
-		if (bins[i] != 0 && bins[i]->cnt() != cnts[i]) {
-		    lg() << "cnts[" << i << "] (" << cnts[i]
-			 << ") != bins[" << i << "].cnt() ("
-			 << bins[i]->cnt() << ")\n";
-		    ++ ierr;
-		}
-		else if (bins[i] == 0 && cnts[i] != 0) {
-		    lg() << "cnts[" << i << "] (" << cnts[i]
-			 << ") != bins[" << i << "] (0)\n";
-		    ++ ierr;
-		}
-	    lg() << "matching arrays cnts and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "");
-	}
-	ibis::util::clearVec(bins);
+        std::vector<ibis::bitvector*> bins;
+        ierr = tbl.get2DBins(cond,
+                             col1, amin1, amax1, stride1,
+                             col2, amin2, amax2, stride2,
+                             bins);
+        ibis::util::logger lg;
+        lg() << "\nprint2DDistribution(" << col1 << ", " << col2
+             << ") -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get2DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size()) {
+            lg() << "get2DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (cnts.size() != bins.size()) {
+            lg() << "get2DDistribution returned " << cnts.size()
+                 << " bin" << (cnts.size() > 1 ? "s" : "")
+                 << ", but get2DBins returned " << bins.size()
+                 << " bin" << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < cnts.size(); ++ i)
+                if (bins[i] != 0 && bins[i]->cnt() != cnts[i]) {
+                    lg() << "cnts[" << i << "] (" << cnts[i]
+                         << ") != bins[" << i << "].cnt() ("
+                         << bins[i]->cnt() << ")\n";
+                    ++ ierr;
+                }
+                else if (bins[i] == 0 && cnts[i] != 0) {
+                    lg() << "cnts[" << i << "] (" << cnts[i]
+                         << ") != bins[" << i << "] (0)\n";
+                    ++ ierr;
+                }
+            lg() << "matching arrays cnts and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "");
+        }
+        ibis::util::clearVec(bins);
 #endif
     }
 } // print2DDistribution
@@ -1275,70 +1275,70 @@ static void print2DDist(const ibis::part& tbl, const char *col1,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-	ibis::util::logger lg;
-	lg() << "part[" << tbl.name()
-	     << "].get2DDistribution returned with ierr = " << ierr
-	     << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
-	     << bds2.size() << ", cnts.size() = " << cnts.size();
-	return;
+        ibis::util::logger lg;
+        lg() << "part[" << tbl.name()
+             << "].get2DDistribution returned with ierr = " << ierr
+             << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
+             << bds2.size() << ", cnts.size() = " << cnts.size();
+        return;
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-	std::vector<ibis::bitvector> bins;
-	std::vector<double> bdt1, bdt2;
-	ierr = tbl.get2DBins(cond, col1, col2, NB1, NB1, bdt1, bdt2, bins);
-	ibis::util::logger lg;
-	lg() << "\nprint2DDistribution(" << col1 << ", " << col2
-	     << ") -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get2DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size()) {
-	    lg() << "get2DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
-		 cnts.size() != bins.size()) {
-	    lg() << "get2DDistribution returned a " << bds1.size()-1
-		 << " x " << bds2.size()-1 << " 2D mesh with "
-		 << cnts.size() << " element"
-		 << (cnts.size() > 1 ? "s" : "")
-		 << ", but get2DBins returned a " << bdt1.size()-1
-		 << " x " << bdt2.size()-1 << " 2D mesh with "
-		 << bins.size() << " element"
-		 << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < bds1.size(); ++ i)
-		if (bds1[i] != bdt1[i]) {
-		    lg() << "bds1[" << i << "] (" << bds1[i]
-			 << ") != bdt1[" << i << "] (" << bdt1[i]
-			 << ")\n";
-		    ++ ierr;
-		}
-	    for (size_t i = 0; i < bds2.size(); ++ i)
-		if (bds2[i] != bdt2[i]) {
-		    lg() << "bds2[" << i << "] (" << bds2[i]
-			 << ") != bdt2[" << i << "] (" << bdt2[i]
-			 << ")\n";
-		    ++ ierr;
-		}
-	    for (size_t i = 0; i < cnts.size(); ++ i)
-		if (bins[i].cnt() != cnts[i]) {
-		    lg() << "cnts[" << i << "] (" << cnts[i]
-			 << ") != bins[" << i << "].cnt() ("
-			 << bins[i].cnt() << ")\n";
-		    ++ ierr;
-		}
-	    lg() << "matching arrays cnts and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "");
-	    if (ierr > 0)
-		lg() << "\nNOTE: due to the different numbers of "
-		    "internal bins used for the adaptive histograms, "
-		    "get2DDistribution and get2DBins may not produce "
-		    "exactly the same answers";
-	}
+        std::vector<ibis::bitvector> bins;
+        std::vector<double> bdt1, bdt2;
+        ierr = tbl.get2DBins(cond, col1, col2, NB1, NB1, bdt1, bdt2, bins);
+        ibis::util::logger lg;
+        lg() << "\nprint2DDistribution(" << col1 << ", " << col2
+             << ") -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get2DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size()) {
+            lg() << "get2DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
+                 cnts.size() != bins.size()) {
+            lg() << "get2DDistribution returned a " << bds1.size()-1
+                 << " x " << bds2.size()-1 << " 2D mesh with "
+                 << cnts.size() << " element"
+                 << (cnts.size() > 1 ? "s" : "")
+                 << ", but get2DBins returned a " << bdt1.size()-1
+                 << " x " << bdt2.size()-1 << " 2D mesh with "
+                 << bins.size() << " element"
+                 << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < bds1.size(); ++ i)
+                if (bds1[i] != bdt1[i]) {
+                    lg() << "bds1[" << i << "] (" << bds1[i]
+                         << ") != bdt1[" << i << "] (" << bdt1[i]
+                         << ")\n";
+                    ++ ierr;
+                }
+            for (size_t i = 0; i < bds2.size(); ++ i)
+                if (bds2[i] != bdt2[i]) {
+                    lg() << "bds2[" << i << "] (" << bds2[i]
+                         << ") != bdt2[" << i << "] (" << bdt2[i]
+                         << ")\n";
+                    ++ ierr;
+                }
+            for (size_t i = 0; i < cnts.size(); ++ i)
+                if (bins[i].cnt() != cnts[i]) {
+                    lg() << "cnts[" << i << "] (" << cnts[i]
+                         << ") != bins[" << i << "].cnt() ("
+                         << bins[i].cnt() << ")\n";
+                    ++ ierr;
+                }
+            lg() << "matching arrays cnts and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "");
+            if (ierr > 0)
+                lg() << "\nNOTE: due to the different numbers of "
+                    "internal bins used for the adaptive histograms, "
+                    "get2DDistribution and get2DBins may not produce "
+                    "exactly the same answers";
+        }
     }
 } // print2DDist
 
@@ -1510,78 +1510,78 @@ static void print3DDistribution(const ibis::part& tbl, const char *col1,
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
 #if defined(TEST_CONTAINER_OF_OBJECTS)
-	std::vector<ibis::bitvector> bins;
-	ierr = tbl.get3DBins(cond,
-			     col1, amin1, amax1, stride1,
-			     col2, amin2, amax2, stride2,
-			     col3, amin3, amax3, stride3,
-			     bins);
-	ibis::util::logger lg;
-	lg() << "\nprint3DDistribution(" << col1 << ", " << col2
-	     << ", " << col3 << ") -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get3DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size()) {
-	    lg() << "get3DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (cnts.size() != bins.size()) {
-	    lg() << "get3DDistribution returned " << cnts.size()
-		 << " bin" << (cnts.size() > 1 ? "s" : "")
-		 << ", but get3DBins returned " << bins.size()
-		 << " bin" << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < cnts.size(); ++ i)
-		if (bins[i].cnt() != cnts[i]) {
-		    lg() << "cnts[" << i << "] (" << cnts[i]
-			 << ") != bins[" << i << "].cnt() ("
-			 << bins[i].cnt() << ")\n";
-		    ++ ierr;
-		}
-	    lg() << "matching arrays cnts and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "");
-	}
+        std::vector<ibis::bitvector> bins;
+        ierr = tbl.get3DBins(cond,
+                             col1, amin1, amax1, stride1,
+                             col2, amin2, amax2, stride2,
+                             col3, amin3, amax3, stride3,
+                             bins);
+        ibis::util::logger lg;
+        lg() << "\nprint3DDistribution(" << col1 << ", " << col2
+             << ", " << col3 << ") -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get3DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size()) {
+            lg() << "get3DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (cnts.size() != bins.size()) {
+            lg() << "get3DDistribution returned " << cnts.size()
+                 << " bin" << (cnts.size() > 1 ? "s" : "")
+                 << ", but get3DBins returned " << bins.size()
+                 << " bin" << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < cnts.size(); ++ i)
+                if (bins[i].cnt() != cnts[i]) {
+                    lg() << "cnts[" << i << "] (" << cnts[i]
+                         << ") != bins[" << i << "].cnt() ("
+                         << bins[i].cnt() << ")\n";
+                    ++ ierr;
+                }
+            lg() << "matching arrays cnts and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "");
+        }
 #else
-	std::vector<ibis::bitvector*> bins;
-	ierr = tbl.get3DBins(cond,
-			     col1, amin1, amax1, stride1,
-			     col2, amin2, amax2, stride2,
-			     col3, amin3, amax3, stride3,
-			     bins);
-	ibis::util::logger lg;
-	lg() << "\nprint3DDistribution(" << col1 << ", " << col2
-	     << ", " << col3 << ") -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get3DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size()) {
-	    lg() << "get3DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (cnts.size() != bins.size()) {
-	    lg() << "get3DDistribution returned " << cnts.size()
-		 << " bin" << (cnts.size() > 1 ? "s" : "")
-		 << ", but get3DBins returned " << bins.size()
-		 << " bin" << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < cnts.size(); ++ i)
-		if (bins[i] != 0 ? bins[i]->cnt() != cnts[i] : cnts[i] != 0) {
-		    lg() << "cnts[" << i << "] (" << cnts[i]
-			 << ") != bins[" << i << "].cnt() ("
-			 << (bins[i]!=0 ? bins[i]->cnt() : 0) << ")\n";
-		    ++ ierr;
-		}
-	    lg() << "matching arrays cnts and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "");
-	}
-	ibis::util::clearVec(bins);
+        std::vector<ibis::bitvector*> bins;
+        ierr = tbl.get3DBins(cond,
+                             col1, amin1, amax1, stride1,
+                             col2, amin2, amax2, stride2,
+                             col3, amin3, amax3, stride3,
+                             bins);
+        ibis::util::logger lg;
+        lg() << "\nprint3DDistribution(" << col1 << ", " << col2
+             << ", " << col3 << ") -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get3DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size()) {
+            lg() << "get3DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (cnts.size() != bins.size()) {
+            lg() << "get3DDistribution returned " << cnts.size()
+                 << " bin" << (cnts.size() > 1 ? "s" : "")
+                 << ", but get3DBins returned " << bins.size()
+                 << " bin" << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < cnts.size(); ++ i)
+                if (bins[i] != 0 ? bins[i]->cnt() != cnts[i] : cnts[i] != 0) {
+                    lg() << "cnts[" << i << "] (" << cnts[i]
+                         << ") != bins[" << i << "].cnt() ("
+                         << (bins[i]!=0 ? bins[i]->cnt() : 0) << ")\n";
+                    ++ ierr;
+                }
+            lg() << "matching arrays cnts and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "");
+        }
+        ibis::util::clearVec(bins);
 #endif
     }
 } // print3DDistribution
@@ -1632,79 +1632,79 @@ static void print3DDist(const ibis::part& tbl, const char *col1,
              << tbl.name() << " = " << tbl.nRows() << "\n";
     }
     else {
-	ibis::util::logger lg;
-	lg() << "part[" << tbl.name()
-	     << "].get3DDistribution returned with ierr = " << ierr
-	     << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
-	     << bds2.size() << ", bds3.size() = " << bds3.size()
-	     << ", cnts.size() = " << cnts.size();
-	return;
+        ibis::util::logger lg;
+        lg() << "part[" << tbl.name()
+             << "].get3DDistribution returned with ierr = " << ierr
+             << ", bds1.size() = " << bds1.size() << ", bds2.size() = "
+             << bds2.size() << ", bds3.size() = " << bds3.size()
+             << ", cnts.size() = " << cnts.size();
+        return;
     }
     if (ierr > 0 && (recheckvalues || ibis::gVerbose > 10)) {
-	std::vector<ibis::bitvector> bins;
-	std::vector<double> bdt1, bdt2, bdt3;
-	ierr = tbl.get3DBins(cond, col1, col2, col3, NB1, NB1, NB1,
-			     bdt1, bdt2, bdt3, bins);
-	ibis::util::logger lg;
-	lg() << "\nprint3DDistribution(" << col1 << ", " << col2
-	     << ", " << col3 << ") -- \n";
-	if (ierr < 0) {
-	    lg() << "Warning -- get3DBins failed with error " << ierr;
-	}
-	else if (ierr != (long)bins.size()) {
-	    lg() << "get3DBins returned " << ierr
-		 << ", but bins.size() is " << bins.size()
-		 << "; these two values are expected to be the same";
-	}
-	else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
-		 bds3.size() != bdt3.size() || cnts.size() != bins.size()) {
-	    lg() << "get3DDistribution returned a " << bds1.size()-1
-		 << " x " << bds2.size()-1 << " x " << bds3.size()-1
-		 << " 3D mesh with " << cnts.size() << " element"
-		 << (cnts.size() > 1 ? "s" : "")
-		 << ", but get3DBins returned a " << bdt1.size()-1
-		 << " x " << bdt2.size()-1 << " x " << bdt3.size()-1
-		 << " 3D mesh with " << bins.size() << " element"
-		 << (bins.size() > 1 ? "s" : "");
-	}
-	else {
-	    ierr = 0;
-	    for (size_t i = 0; i < bds1.size(); ++ i)
-		if (bds1[i] != bdt1[i]) {
-		    lg() << "bds1[" << i << "] (" << bds1[i]
-			 << ") != bdt1[" << i << "] (" << bdt1[i]
-			 << ")\n";
-		    ++ ierr;
-		}
-	    for (size_t i = 0; i < bds2.size(); ++ i)
-		if (bds2[i] != bdt2[i]) {
-		    lg() << "bds2[" << i << "] (" << bds2[i]
-			 << ") != bdt2[" << i << "] (" << bdt2[i]
-			 << ")\n";
-		    ++ ierr;
-		}
-	    for (size_t i = 0; i < bds3.size(); ++ i)
-		if (bds3[i] != bdt3[i]) {
-		    lg() << "bds3[" << i << "] (" << bds3[i]
-			 << ") != bdt3[" << i << "] (" << bdt3[i]
-			 << ")\n";
-		    ++ ierr;
-		}
-	    for (size_t i = 0; i < cnts.size(); ++ i)
-		if (bins[i].cnt() != cnts[i]) {
-		    lg() << "cnts[" << i << "] (" << cnts[i]
-			 << ") != bins[" << i << "].cnt() ("
-			 << bins[i].cnt() << ")\n";
-		    ++ ierr;
-		}
-	    lg() << "matching arrays cnts and bins produces "
-		 << ierr << " error" << (ierr > 1 ? "s" : "");
-	    if (ierr > 0)
-		lg() << "\nNOTE: due to the different numbers of "
-		    "internal bins used for the adaptive histograms, "
-		    "get3DDistribution and get3DBins may not produce "
-		    "exactly the same answers";
-	}
+        std::vector<ibis::bitvector> bins;
+        std::vector<double> bdt1, bdt2, bdt3;
+        ierr = tbl.get3DBins(cond, col1, col2, col3, NB1, NB1, NB1,
+                             bdt1, bdt2, bdt3, bins);
+        ibis::util::logger lg;
+        lg() << "\nprint3DDistribution(" << col1 << ", " << col2
+             << ", " << col3 << ") -- \n";
+        if (ierr < 0) {
+            lg() << "Warning -- get3DBins failed with error " << ierr;
+        }
+        else if (ierr != (long)bins.size()) {
+            lg() << "get3DBins returned " << ierr
+                 << ", but bins.size() is " << bins.size()
+                 << "; these two values are expected to be the same";
+        }
+        else if (bds1.size() != bdt1.size() || bds2.size() != bdt2.size() ||
+                 bds3.size() != bdt3.size() || cnts.size() != bins.size()) {
+            lg() << "get3DDistribution returned a " << bds1.size()-1
+                 << " x " << bds2.size()-1 << " x " << bds3.size()-1
+                 << " 3D mesh with " << cnts.size() << " element"
+                 << (cnts.size() > 1 ? "s" : "")
+                 << ", but get3DBins returned a " << bdt1.size()-1
+                 << " x " << bdt2.size()-1 << " x " << bdt3.size()-1
+                 << " 3D mesh with " << bins.size() << " element"
+                 << (bins.size() > 1 ? "s" : "");
+        }
+        else {
+            ierr = 0;
+            for (size_t i = 0; i < bds1.size(); ++ i)
+                if (bds1[i] != bdt1[i]) {
+                    lg() << "bds1[" << i << "] (" << bds1[i]
+                         << ") != bdt1[" << i << "] (" << bdt1[i]
+                         << ")\n";
+                    ++ ierr;
+                }
+            for (size_t i = 0; i < bds2.size(); ++ i)
+                if (bds2[i] != bdt2[i]) {
+                    lg() << "bds2[" << i << "] (" << bds2[i]
+                         << ") != bdt2[" << i << "] (" << bdt2[i]
+                         << ")\n";
+                    ++ ierr;
+                }
+            for (size_t i = 0; i < bds3.size(); ++ i)
+                if (bds3[i] != bdt3[i]) {
+                    lg() << "bds3[" << i << "] (" << bds3[i]
+                         << ") != bdt3[" << i << "] (" << bdt3[i]
+                         << ")\n";
+                    ++ ierr;
+                }
+            for (size_t i = 0; i < cnts.size(); ++ i)
+                if (bins[i].cnt() != cnts[i]) {
+                    lg() << "cnts[" << i << "] (" << cnts[i]
+                         << ") != bins[" << i << "].cnt() ("
+                         << bins[i].cnt() << ")\n";
+                    ++ ierr;
+                }
+            lg() << "matching arrays cnts and bins produces "
+                 << ierr << " error" << (ierr > 1 ? "s" : "");
+            if (ierr > 0)
+                lg() << "\nNOTE: due to the different numbers of "
+                    "internal bins used for the adaptive histograms, "
+                    "get3DDistribution and get3DBins may not produce "
+                    "exactly the same answers";
+        }
     }
 } // print3DDist
 
@@ -1715,14 +1715,14 @@ static void print(const char* cmd) {
 
     const char* names = cmd;
     if (strnicmp(cmd, "print ", 6) == 0)
-	names += 6;
+        names += 6;
     while (*names && std::isspace(*names))
-	++ names;
+        ++ names;
     const char *cond = strchr(names, ':');
     if (cond > names) {
-	*const_cast<char*>(cond) = 0; // add a null terminator
-	// skip to the next non-space character
-	for (++ cond; *cond != 0 && std::isspace(*cond); ++ cond);
+        *const_cast<char*>(cond) = 0; // add a null terminator
+        // skip to the next non-space character
+        for (++ cond; *cond != 0 && std::isspace(*cond); ++ cond);
     }
     if (strnicmp(names, "joint ", 6) == 0) {
         names += 6;
@@ -1867,43 +1867,43 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
     char buf[MAX_LINE];
     std::string qtemp;
     while (qfile.getline(buf, MAX_LINE)) {
-	if (*buf != 0 || *buf != '#') { // line started with # is a comment
-	    char *ch = buf;
-	    while (*ch != 0 && std::isspace(*ch)) ++ ch; // skip leading space
-	    if (ch != buf || ! qtemp.empty())
-		qtemp += ' '; // add a space
+        if (*buf != 0 || *buf != '#') { // line started with # is a comment
+            char *ch = buf;
+            while (*ch != 0 && std::isspace(*ch)) ++ ch; // skip leading space
+            if (ch != buf || ! qtemp.empty())
+                qtemp += ' '; // add a space
 
-	    while (*ch != 0) {
-		if (*ch == ';') { // terminating a SQL statement
-		    if (! qtemp.empty()) {
-			bool onlyspace = true;
-			for (unsigned i = 0; onlyspace && i < qtemp.size();
-			     ++ i)
-			    onlyspace = (std::isspace(qtemp[i]) != 0);
-			if (! onlyspace) {
-			    queff.push_back(qtemp);
-			}
-		    }
-		    qtemp.clear();
-		    ++ ch;
-		}
-		else if (*ch == '-' && ch[1] == '-') {
-		    *ch = 0; // ignore the rest of the line
-		}
-		else {
-		    qtemp += *ch;
-		    ++ ch;
-		}
-	    }
-	}
+            while (*ch != 0) {
+                if (*ch == ';') { // terminating a SQL statement
+                    if (! qtemp.empty()) {
+                        bool onlyspace = true;
+                        for (unsigned i = 0; onlyspace && i < qtemp.size();
+                             ++ i)
+                            onlyspace = (std::isspace(qtemp[i]) != 0);
+                        if (! onlyspace) {
+                            queff.push_back(qtemp);
+                        }
+                    }
+                    qtemp.clear();
+                    ++ ch;
+                }
+                else if (*ch == '-' && ch[1] == '-') {
+                    *ch = 0; // ignore the rest of the line
+                }
+                else {
+                    qtemp += *ch;
+                    ++ ch;
+                }
+            }
+        }
     }
     if (! qtemp.empty()) {
-	bool onlyspace = true;
-	for (unsigned i = 0; onlyspace && i < qtemp.size(); ++ i)
-	    onlyspace = (std::isspace(qtemp[i]) != 0);
-	if (! onlyspace) {
-	    queff.push_back(qtemp);
-	}
+        bool onlyspace = true;
+        for (unsigned i = 0; onlyspace && i < qtemp.size(); ++ i)
+            onlyspace = (std::isspace(qtemp[i]) != 0);
+        if (! onlyspace) {
+            queff.push_back(qtemp);
+        }
     }
 } // readQueryFile
 
@@ -2062,121 +2062,121 @@ static void parse_args(int argc, char** argv, int& mode,
     std::vector<const char*> printcmds; // printing commands
     const char* mesgfile = 0;
     for (int i=1; i<argc; ++i) {
-	if (*argv[i] == '-') { // normal arguments starting with -
-	    switch (argv[i][1]) {
-	    case 'a': // append a directory of data (must have a directory
-	    case 'A': // name, optionally specify data partition name with "to
-		      // name", where the name can be a data partition name
-		      // or a directory name)
-		if (i+1 < argc) {
-		    alist.push_back(argv[i+1]);
-		    if (i+3 < argc && stricmp(argv[i+2], "to")==0 &&
-			argv[i+3][0] != '-') {
-			appendTarget = argv[i+3];
-			i += 3;
-		    }
-		    else if (i+2 < argc && argv[i+2][0] != '-') {
-			appendTarget = argv[i+2];
-			i += 2;
-		    }
-		    else {
-			++ i;
-		    }
-		}
+        if (*argv[i] == '-') { // normal arguments starting with -
+            switch (argv[i][1]) {
+            case 'a': // append a directory of data (must have a directory
+            case 'A': // name, optionally specify data partition name with "to
+                      // name", where the name can be a data partition name
+                      // or a directory name)
+                if (i+1 < argc) {
+                    alist.push_back(argv[i+1]);
+                    if (i+3 < argc && stricmp(argv[i+2], "to")==0 &&
+                        argv[i+3][0] != '-') {
+                        appendTarget = argv[i+3];
+                        i += 3;
+                    }
+                    else if (i+2 < argc && argv[i+2][0] != '-') {
+                        appendTarget = argv[i+2];
+                        i += 2;
+                    }
+                    else {
+                        ++ i;
+                    }
+                }
                 break;
-	    case 'b':
-	    case 'B': { // build indexes,
-		// if this argument is followed by an integer, the integer
-		// is taken to be the number of threads to use for building
-		// indexes; if this argument is followed by anything else,
-		// it is assumed to be an index speicification.
-		char *ptr = strchr(argv[i], '=');
-		if (ptr == 0) {
-		    if (i+1 < argc) {
-			if (isdigit(*argv[i+1])) {
-			    build_index += strtol(argv[i+1], 0, 0);
-			    i = i + 1;
-			}
-			else if (*argv[i+1] != '-') {
-			    // assume to be an index specification
-			    char *str1 = argv[i+1];
-			    char *str2 = strchr(argv[i+1], ':');
-			    if (str2 != 0) {
-				*str2 = 0;
-				++ str2;
-				indexingOptions.push_back(str1);
-				indexingOptions.push_back(str2);
-			    }
-			    else {
-				defaultIndexing = argv[i+1];
-			    }
-			    i = i + 1;
-			}
-			else {
-			    ++ build_index;
-			}
-		    }
-		    else {
-			++ build_index;
-		    }
-		}
-		else {
-		    build_index += strtol(++ptr, 0, 0);
-		    if (i+1 < argc && *argv[i+1] != '-') {
-			// assume to be an index specification
-			char *str1 = argv[i+1];
-			char *str2 = strchr(argv[i+1], ':');
-			if (str2 != 0) {
-			    *str2 = 0;
-			    ++ str2;
-			    indexingOptions.push_back(str1);
-			    indexingOptions.push_back(str2);
-			}
-			else {
-			    defaultIndexing = argv[i+1];
-			}
-			i = i + 1;
-		    }
-		}
-		break;}
-	    case 'c':
-	    case 'C': // configuration file, multiple files allowed
-		if (i+1 < argc) {
-		    confs.push_back(argv[i+1]);
-		    ++ i;
-		}
+            case 'b':
+            case 'B': { // build indexes,
+                // if this argument is followed by an integer, the integer
+                // is taken to be the number of threads to use for building
+                // indexes; if this argument is followed by anything else,
+                // it is assumed to be an index speicification.
+                char *ptr = strchr(argv[i], '=');
+                if (ptr == 0) {
+                    if (i+1 < argc) {
+                        if (isdigit(*argv[i+1])) {
+                            build_index += strtol(argv[i+1], 0, 0);
+                            i = i + 1;
+                        }
+                        else if (*argv[i+1] != '-') {
+                            // assume to be an index specification
+                            char *str1 = argv[i+1];
+                            char *str2 = strchr(argv[i+1], ':');
+                            if (str2 != 0) {
+                                *str2 = 0;
+                                ++ str2;
+                                indexingOptions.push_back(str1);
+                                indexingOptions.push_back(str2);
+                            }
+                            else {
+                                defaultIndexing = argv[i+1];
+                            }
+                            i = i + 1;
+                        }
+                        else {
+                            ++ build_index;
+                        }
+                    }
+                    else {
+                        ++ build_index;
+                    }
+                }
+                else {
+                    build_index += strtol(++ptr, 0, 0);
+                    if (i+1 < argc && *argv[i+1] != '-') {
+                        // assume to be an index specification
+                        char *str1 = argv[i+1];
+                        char *str2 = strchr(argv[i+1], ':');
+                        if (str2 != 0) {
+                            *str2 = 0;
+                            ++ str2;
+                            indexingOptions.push_back(str1);
+                            indexingOptions.push_back(str2);
+                        }
+                        else {
+                            defaultIndexing = argv[i+1];
+                        }
+                        i = i + 1;
+                    }
+                }
+                break;}
+            case 'c':
+            case 'C': // configuration file, multiple files allowed
+                if (i+1 < argc) {
+                    confs.push_back(argv[i+1]);
+                    ++ i;
+                }
                 break;
-	    case 'd':
-	    case 'D': // data directory, multiple directory allowed
-		if (i+1 < argc && argv[i+1][0] != '-') {
-		    dirs.push_back(argv[i+1]);
-		    i = i + 1;
-		}
-		else {
-		    std::clog << "Warning -- argument -d must be followed by "
-			      << "a directory name" << std::endl;
-		}
+            case 'd':
+            case 'D': // data directory, multiple directory allowed
+                if (i+1 < argc && argv[i+1][0] != '-') {
+                    dirs.push_back(argv[i+1]);
+                    i = i + 1;
+                }
+                else {
+                    std::clog << "Warning -- argument -d must be followed by "
+                              << "a directory name" << std::endl;
+                }
                 break;
-	    case 'e':
-	    case 'E': // estiamtion option
-		estimation_opt += 1;
+            case 'e':
+            case 'E': // estiamtion option
+                estimation_opt += 1;
                 break;
-	    case 'f':
-	    case 'F': // query file, multiple files allowed
-		if (i+1 < argc) {
-		    readQueryFile(argv[i+1], queff);
-		    ++ i;
-		}
+            case 'f':
+            case 'F': // query file, multiple files allowed
+                if (i+1 < argc) {
+                    readQueryFile(argv[i+1], queff);
+                    ++ i;
+                }
                 break;
-	    default:
-	    case 'h':
-	    case 'H': // print usage
-		usage(*argv);
+            default:
+            case 'h':
+            case 'H': // print usage
+                usage(*argv);
                 if (argc <= 2)
                     exit(0);
                 break;
-	    case 'i':
-	    case 'I': // interactive mode or independent parts
+            case 'i':
+            case 'I': // interactive mode or independent parts
                 if (argv[i][3] == 'd' || argv[i][3] == 'D') {
                     independent_parts = 1;
                 }
@@ -2184,177 +2184,177 @@ static void parse_args(int argc, char** argv, int& mode,
                     mode = 1;
                 }
                 break;
-	    case 'j':
-	    case 'J': {// join part1 part2 join-column constraints1 constratint2
-		ibis::joinspec js;
-		if (i+3 < argc) {
-		    js.part1 = argv[i+1];
-		    js.part2 = argv[i+2];
-		    js.jcol  = argv[i+3];
-		    i += 3;
-		}
-		if (i+1 < argc && *argv[i+1] != '-') {
-		    ++ i;
-		    if (*argv[i] != '*' && *argv[i] != 0 &&
+            case 'j':
+            case 'J': {// join part1 part2 join-column constraints1 constratint2
+                ibis::joinspec js;
+                if (i+3 < argc) {
+                    js.part1 = argv[i+1];
+                    js.part2 = argv[i+2];
+                    js.jcol  = argv[i+3];
+                    i += 3;
+                }
+                if (i+1 < argc && *argv[i+1] != '-') {
+                    ++ i;
+                    if (*argv[i] != '*' && *argv[i] != 0 &&
                         ! std::isspace(*argv[i]))
-			js.cond1 = argv[i];
-		}
-		if (i+1 < argc && *argv[i+1] != '-') {
-		    ++ i;
-		    if (*argv[i] != '*' && *argv[i] != 0 &&
+                        js.cond1 = argv[i];
+                }
+                if (i+1 < argc && *argv[i+1] != '-') {
+                    ++ i;
+                    if (*argv[i] != '*' && *argv[i] != 0 &&
                         ! std::isspace(*argv[i]))
-			js.cond2 = argv[i];
-		}
-		while (i+1 < argc && *argv[i+1] != '-') {
-		    ++ i;
-		    if (js.selcol.empty()) {
-			js.selcol = argv[i];
-		    }
-		    else {
-			js.selcol += ", ";
-			js.selcol += argv[i];
-		    }
-		}
-		if (js.part1 != 0 && js.part2 != 0 && js.jcol != 0) {
-		    joins.push_back(new ibis::joinspec(js));
-		}
-		else {
-		    LOGGER(1) << *argv << " -j option did not specify a "
-			"complete join operation, discard it.\nUsage\n\t-j "
-			"part1 part2 join-column conditions1 conditions2 "
-			"[columns ...]\n\nNote: Table care not to have any "
-			"of the strings start with -";
-		}
-		break;}
-	    case 'k':
-	    case 'K': // keep temporary query files or reverse -y
-		if (i+1 < argc && *argv[i+1] != '-') { // reverse -y
-		    keepstring = argv[i+1];
-		    i = i + 1;
-		}
-		else { // keep temporary files
-		    ibis::query::keepQueryRecords();
-		}
+                        js.cond2 = argv[i];
+                }
+                while (i+1 < argc && *argv[i+1] != '-') {
+                    ++ i;
+                    if (js.selcol.empty()) {
+                        js.selcol = argv[i];
+                    }
+                    else {
+                        js.selcol += ", ";
+                        js.selcol += argv[i];
+                    }
+                }
+                if (js.part1 != 0 && js.part2 != 0 && js.jcol != 0) {
+                    joins.push_back(new ibis::joinspec(js));
+                }
+                else {
+                    LOGGER(1) << *argv << " -j option did not specify a "
+                        "complete join operation, discard it.\nUsage\n\t-j "
+                        "part1 part2 join-column conditions1 conditions2 "
+                        "[columns ...]\n\nNote: Table care not to have any "
+                        "of the strings start with -";
+                }
+                break;}
+            case 'k':
+            case 'K': // keep temporary query files or reverse -y
+                if (i+1 < argc && *argv[i+1] != '-') { // reverse -y
+                    keepstring = argv[i+1];
+                    i = i + 1;
+                }
+                else { // keep temporary files
+                    ibis::query::keepQueryRecords();
+                }
                 break;
-	    case 'l':
-	    case 'L': // logfile or load index in one-shot
-		if (i+1 < argc && argv[i+1][0] != '-') {
-		    mesgfile = argv[i+1];
-		    ++ i;
-		}
-		else if ((argv[i][2] == 'o' || argv[i][2] == 'O') &&
-			 (argv[i][3] == 'g' || argv[i][3] == 'G')) {
-		    mesgfile = 0; // reset the log file to stdout
-		}
-		else {
-		    accessIndexInWhole = 1;
-		}
+            case 'l':
+            case 'L': // logfile or load index in one-shot
+                if (i+1 < argc && argv[i+1][0] != '-') {
+                    mesgfile = argv[i+1];
+                    ++ i;
+                }
+                else if ((argv[i][2] == 'o' || argv[i][2] == 'O') &&
+                         (argv[i][3] == 'g' || argv[i][3] == 'G')) {
+                    mesgfile = 0; // reset the log file to stdout
+                }
+                else {
+                    accessIndexInWhole = 1;
+                }
                 break;
-	    case 'm':
-	    case 'M': {
+            case 'm':
+            case 'M': {
                 // mesh query can only be run on independent data
                 // partitions
                 independent_parts = 2;
 #if defined(TEST_SUMBINS_OPTIONS)
                 // _sumBins_option
-		char* ptr = strchr(argv[i], '=');
-		if (ptr != 0) {
-		    ++ ptr; // skip '='
-		    ibis::_sumBins_option = strtol(ptr, 0, 0);
-		}
-		else if (i+1 < argc) {
-		    if (isdigit(*argv[i+1])) {
-			ibis::_sumBins_option = strtol(argv[i+1], 0, 0);
-			i = i + 1;
-		    }
-		}
+                char* ptr = strchr(argv[i], '=');
+                if (ptr != 0) {
+                    ++ ptr; // skip '='
+                    ibis::_sumBins_option = strtol(ptr, 0, 0);
+                }
+                else if (i+1 < argc) {
+                    if (isdigit(*argv[i+1])) {
+                        ibis::_sumBins_option = strtol(argv[i+1], 0, 0);
+                        i = i + 1;
+                    }
+                }
 #endif
-		break;}
-	    case 'n':
-	    case 'N': {
-		// no-estimation, directly call function evaluate
-		estimation_opt = -1;
-		break;}
-	    case 'o':
-	    case 'O':
-		if (argv[i][2] == 'n' || argv[i][2] == 'N') {
-		    // only-evaluate, directly call function evaluate
-		    estimation_opt = -1;
-		}
-		else if (i+1 < argc && argv[i+1][0] != '-') {
-		    // output file specified
-		    if (! outputbinary)
-			outputbinary =
-			    (0 != strchr(argv[i]+2, 'b') ||
-			     0 != strchr(argv[i]+2, 'B'));
-		    if (! showheader && ! outputbinary)
-			showheader =
-			    (0 != strchr(argv[i]+2, 'h') ||
-			     0 != strchr(argv[i]+2, 'H'));
-		    outputname = argv[i+1];
-		    i = i + 1;
-		}
+                break;}
+            case 'n':
+            case 'N': {
+                // no-estimation, directly call function evaluate
+                estimation_opt = -1;
+                break;}
+            case 'o':
+            case 'O':
+                if (argv[i][2] == 'n' || argv[i][2] == 'N') {
+                    // only-evaluate, directly call function evaluate
+                    estimation_opt = -1;
+                }
+                else if (i+1 < argc && argv[i+1][0] != '-') {
+                    // output file specified
+                    if (! outputbinary)
+                        outputbinary =
+                            (0 != strchr(argv[i]+2, 'b') ||
+                             0 != strchr(argv[i]+2, 'B'));
+                    if (! showheader && ! outputbinary)
+                        showheader =
+                            (0 != strchr(argv[i]+2, 'h') ||
+                             0 != strchr(argv[i]+2, 'H'));
+                    outputname = argv[i+1];
+                    i = i + 1;
+                }
                 break;
-	    case 'p':
-	    case 'P': // collect the print options
-		if (i+1 < argc) {
-		    if (argv[i+1][0] != '-') {
-			printcmds.push_back(argv[i+1]);
-			++ i;
-		    }
-		    else if (printcmds.empty()) {
-			printcmds.push_back("parts");
-		    }
-		}
-		else  if (printcmds.empty()) { // at least print partition names
-		    printcmds.push_back("parts");
-		}
+            case 'p':
+            case 'P': // collect the print options
+                if (i+1 < argc) {
+                    if (argv[i+1][0] != '-') {
+                        printcmds.push_back(argv[i+1]);
+                        ++ i;
+                    }
+                    else if (printcmds.empty()) {
+                        printcmds.push_back("parts");
+                    }
+                }
+                else  if (printcmds.empty()) { // at least print partition names
+                    printcmds.push_back("parts");
+                }
                 break;
-	    case 'q':
-	    case 'Q': // specify a query "[select ...] [from ...] where ..."
-		if (i+1 < argc) {
-		    qlist.push_back(argv[i+1]);
-		    ++ i;
-		}
+            case 'q':
+            case 'Q': // specify a query "[select ...] [from ...] where ..."
+                if (i+1 < argc) {
+                    qlist.push_back(argv[i+1]);
+                    ++ i;
+                }
                 break;
-	    case 'r':
-	    case 'R': // RID/result check or reorder
-		if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
-		    recheckvalues = true;
-		    if (i+1 < argc) { // there is one more argument
-			if (argv[i+1][0] != '-') { // assume to be a file name
-			    ridfile = argv[i+1];
-			    ++ i;
-			}
-		    }
-		}
-		else if (i+1 < argc && argv[i+1][0] != '-') { // reorder
-		    rdirs.push_back(argv[i+1]);
-		    ++ i;
-		}
-		else { // rid
-		    recheckvalues = true;
-		}
+            case 'r':
+            case 'R': // RID/result check or reorder
+                if (argv[i][2] == 'i' || argv[i][2] == 'I') { // rid
+                    recheckvalues = true;
+                    if (i+1 < argc) { // there is one more argument
+                        if (argv[i+1][0] != '-') { // assume to be a file name
+                            ridfile = argv[i+1];
+                            ++ i;
+                        }
+                    }
+                }
+                else if (i+1 < argc && argv[i+1][0] != '-') { // reorder
+                    rdirs.push_back(argv[i+1]);
+                    ++ i;
+                }
+                else { // rid
+                    recheckvalues = true;
+                }
                 break;
-	    case 's':
-	    case 'S': // sequential scan, or sort option
+            case 's':
+            case 'S': // sequential scan, or sort option
 #if defined(TEST_SCAN_OPTIONS)
-		if (i+1 < argc) {
-		    if (isdigit(*argv[i+1])) {
-			ibis::_scan_option = strtol(argv[i+1], 0, 0);
-			i = i + 1;
-		    }
-		    else if (std::isalpha(*argv[i+1])) {
-			slist.push_back(argv[i+1]);
-			i = i + 1;
-		    }
-		    else {
-			sequential_scan = true;
-		    }
-		}
-		else {
-		    sequential_scan = true;
-		}
+                if (i+1 < argc) {
+                    if (isdigit(*argv[i+1])) {
+                        ibis::_scan_option = strtol(argv[i+1], 0, 0);
+                        i = i + 1;
+                    }
+                    else if (std::isalpha(*argv[i+1])) {
+                        slist.push_back(argv[i+1]);
+                        i = i + 1;
+                    }
+                    else {
+                        sequential_scan = true;
+                    }
+                }
+                else {
+                    sequential_scan = true;
+                }
 #else
                 if (i+1 < argc) {
                     if (std::isalpha(*argv[i+1])) {
@@ -2370,78 +2370,82 @@ static void parse_args(int argc, char** argv, int& mode,
                 }
 #endif
                 break;
-	    case 't':
-	    case 'T': { // self-testing mode or number of threads
-		bool thr = (argv[i][2] == 'h' || argv[i][2] == 'H'); // thread
-		char *ptr = strchr(argv[i], '=');
-		if (ptr == 0) {
-		    if (i+1 < argc) {
-			if (isdigit(*argv[i+1])) {
-			    if (thr)
-				threading += strtol(argv[i+1], 0, 0);
-			    else
-				testing += strtol(argv[i+1], 0, 0);
-			    i = i + 1;
-			}
-			else if (thr) {
-			    ++ threading;
-			}
-			else {
-			    ++ testing;
-			}
-		    }
-		    else if (thr) {
-			++ threading;
-		    }
-		    else {
-			++ testing;
-		    }
-		}
-		else if (thr) { // override previous values
-		    threading = strtol(++ptr, 0, 0);
-		}
-		else { // override previous values
-		    testing = strtol(++ptr, 0, 0);
-		}
-		break;}
-	    case 'v':
-	    case 'V': { // verboseness
-		char *ptr = strchr(argv[i], '=');
-		if (ptr == 0) {
-		    if (i+1 < argc) {
-			if (isdigit(*argv[i+1])) {
-			    ibis::gVerbose += strtol(argv[i+1], 0, 0);
-			    i = i + 1;
-			}
-			else {
-			    ++ ibis::gVerbose;
-			}
-		    }
-		    else {
-			sequential_scan = true;
-		    }
-		}
-		else {
-		    sequential_scan = true;
-		}
-#else
-	    if (i+1 < argc) {
-		if (std::isalpha(*argv[i+1])) {
-		    slist.push_back(argv[i+1]);
-		    i = i + 1;
-		}
+            case 't':
+            case 'T': { // self-testing mode or number of threads
+                bool thr = (argv[i][2] == 'h' || argv[i][2] == 'H'); // thread
+                char *ptr = strchr(argv[i], '=');
+                if (ptr == 0) {
+                    if (i+1 < argc) {
+                        if (isdigit(*argv[i+1])) {
+                            if (thr)
+                                threading += strtol(argv[i+1], 0, 0);
+                            else
+                                testing += strtol(argv[i+1], 0, 0);
+                            i = i + 1;
+                        }
+                        else if (thr) {
+                            ++ threading;
+                        }
+                        else {
+                            ++ testing;
+                        }
+                    }
+                    else if (thr) {
+                        ++ threading;
+                    }
+                    else {
+                        ++ testing;
+                    }
+                }
+                else if (thr) { // override previous values
+                    threading = strtol(++ptr, 0, 0);
+                }
+                else { // override previous values
+                    testing = strtol(++ptr, 0, 0);
+                }
+                break;}
+            case 'v':
+            case 'V': { // verboseness
+                char *ptr = strchr(argv[i], '=');
+                if (ptr == 0) {
+                    if (i+1 < argc) {
+                        if (isdigit(*argv[i+1])) {
+                            ibis::gVerbose += strtol(argv[i+1], 0, 0);
+                            i = i + 1;
+                        }
+                        else {
+                            ++ ibis::gVerbose;
+                        }
+                    }
+                    else {
+                        ++ ibis::gVerbose;
+                    }
+                }
+                else { // override previous values
+                    ibis::gVerbose = strtol(++ptr, 0, 0);
+                }
+                break;}
+            case 'y':
+            case 'Y': // yank some rows of every data partition available
+                // must have an argument after the flag to indicate a file
+                // containing row numbers or a string indicate conditions
+                // on rows to mark as inactive/junk
+                if (i+1 < argc) {
+                    yankstring = argv[i+1];
+                    i = i + 1;
+                }
                 break;
-	    case 'z':
-	    case 'Z': {
-		zapping = true;
-		break;}
-	    } // switch (argv[i][1])
-	} // normal arguments
-	else { // argument not started with '-' and not following
-	       // apropriate '-' operations are assumed to be names of the
-	       // data directories and are read one at a time
-	    dirs.push_back(argv[i]);
-	}
+            case 'z':
+            case 'Z': {
+                zapping = true;
+                break;}
+            } // switch (argv[i][1])
+        } // normal arguments
+        else { // argument not started with '-' and not following
+               // apropriate '-' operations are assumed to be names of the
+               // data directories and are read one at a time
+            dirs.push_back(argv[i]);
+        }
     } // for (inti=1; ...)
 
     if (defaultIndexing != 0 && *defaultIndexing != 0)
@@ -2475,51 +2479,51 @@ static void parse_args(int argc, char** argv, int& mode,
         }
     }
     if (mesgfile != 0 && *mesgfile != 0) {
-	int ierr = ibis::util::setLogFileName(mesgfile);
-	if (ierr < 0)
-	    std::clog << "Warning -- " << *argv << " failed to open file "
-		      << mesgfile << " for logging error messages" << std::endl;
-	else if (ibis::gVerbose > 2)
-	    std::clog << *argv << " will write messages to " << mesgfile
-		      << std::endl;
+        int ierr = ibis::util::setLogFileName(mesgfile);
+        if (ierr < 0)
+            std::clog << "Warning -- " << *argv << " failed to open file "
+                      << mesgfile << " for logging error messages" << std::endl;
+        else if (ibis::gVerbose > 2)
+            std::clog << *argv << " will write messages to " << mesgfile
+                      << std::endl;
     }
     if (ibis::gVerbose > 1) {
-	ibis::util::logger lg;
-	lg() << "\n" << *argv;
-	if (ibis::gVerbose > 5) {
-	    for (int i = 1; i < argc; ++ i)
-		lg() << ' ' << argv[i];
-	    lg() << "\n";
-	}
-	lg() << "\nOptions summary: "
-	     << (mode ? "interactive mode" : "batch mode")
-	     << ", log level " << ibis::gVerbose;
-	if (build_index > 0) {
-	    lg() << ", building indexes";
-	    if (zapping)
-		lg() << " (remove any existing indexes)";
-	}
-	if (testing > 0)
-	    lg() << ", testing " << testing;
-	if (threading > 0)
-	    lg() << ", threading " << threading;
-	if (mode > 0 || qlist.size() > 0) {
-	    if (estimation_opt < 0)
-		lg() << ", skipping estimation";
-	    else if (estimation_opt > 0)
-		lg() << ", computing only bounds";
-	    else
-		lg() << ", with estimation";
-	}
-	if (! alist.empty()) {
-	    lg() << "\nappending data in the following director"
-		 << (alist.size()>1 ? "ies" : "y");
-	    if (appendTarget)
-		lg() << " to " << appendTarget;
-	    for (uint32_t i = 0; i < alist.size(); ++ i)
-		lg() << "\n" << alist[i];
-	}
-	lg() << "\n";
+        ibis::util::logger lg;
+        lg() << "\n" << *argv;
+        if (ibis::gVerbose > 5) {
+            for (int i = 1; i < argc; ++ i)
+                lg() << ' ' << argv[i];
+            lg() << "\n";
+        }
+        lg() << "\nOptions summary: "
+             << (mode ? "interactive mode" : "batch mode")
+             << ", log level " << ibis::gVerbose;
+        if (build_index > 0) {
+            lg() << ", building indexes";
+            if (zapping)
+                lg() << " (remove any existing indexes)";
+        }
+        if (testing > 0)
+            lg() << ", testing " << testing;
+        if (threading > 0)
+            lg() << ", threading " << threading;
+        if (mode > 0 || qlist.size() > 0) {
+            if (estimation_opt < 0)
+                lg() << ", skipping estimation";
+            else if (estimation_opt > 0)
+                lg() << ", computing only bounds";
+            else
+                lg() << ", with estimation";
+        }
+        if (! alist.empty()) {
+            lg() << "\nappending data in the following director"
+                 << (alist.size()>1 ? "ies" : "y");
+            if (appendTarget)
+                lg() << " to " << appendTarget;
+            for (uint32_t i = 0; i < alist.size(); ++ i)
+                lg() << "\n" << alist[i];
+        }
+        lg() << "\n";
     }
     if (confs.size() > 1) {
         // read all configuration files except the last one
@@ -2697,15 +2701,15 @@ static void printQueryResults(std::ostream &out, ibis::query &q) {
 static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
                      const char* sstr) {
     LOGGER(ibis::gVerbose > 0)
-	<< "xdoQuery -- processing query " << wstr
-	<< " on partition " << tbl->name();
+        << "xdoQuery -- processing query " << wstr
+        << " on partition " << tbl->name();
     std::ofstream outputstream;
     if (outputname != 0 && *outputname != 0 &&
         0 != strcmp(outputname, "/dev/null")) {
         // open the file now to clear the existing content, in cases of
         // error, the output file would have been cleared
         outputstream.open(outputname,
-                          std::ios::out | 
+                          std::ios::out |
                           (appendToOutput ? std::ios::app : std::ios::trunc));
         appendToOutput = true; // all query output go to the same file
     }
@@ -2733,37 +2737,37 @@ static void xdoQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
     const char* asstr = 0;
     if (sstr != 0) {
-	aQuery.setSelectClause(sstr);
-	asstr = aQuery.getSelectClause();
+        aQuery.setSelectClause(sstr);
+        asstr = aQuery.getSelectClause();
     }
 
     if (estimation_opt >= 0) {
-	num2 = aQuery.estimate();
-	if (num2 < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- xdoQuery failed to estimate \"" << wstr
-		<< "\", error code = " << num2;
-	    return;
-	}
-	num1 = aQuery.getMinNumHits();
-	num2 = aQuery.getMaxNumHits();
-	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg;
-	    lg() << "xdoQuery -- the number of hits is ";
-	    if (num2 > num1) 
-		lg() << "between " << num1 << " and ";
-	    lg() << num2;
-	}
-	if (estimation_opt > 0)
-	    return;
+        num2 = aQuery.estimate();
+        if (num2 < 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- xdoQuery failed to estimate \"" << wstr
+                << "\", error code = " << num2;
+            return;
+        }
+        num1 = aQuery.getMinNumHits();
+        num2 = aQuery.getMaxNumHits();
+        if (ibis::gVerbose > 0) {
+            ibis::util::logger lg;
+            lg() << "xdoQuery -- the number of hits is ";
+            if (num2 > num1)
+                lg() << "between " << num1 << " and ";
+            lg() << num2;
+        }
+        if (estimation_opt > 0)
+            return;
     }
 
     num2 = aQuery.evaluate();
     if (num2 < 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- xdoQuery failed to evaluate \"" << wstr
-	    << "\", error code = " << num2;
-	return;
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- xdoQuery failed to evaluate \"" << wstr
+            << "\", error code = " << num2;
+        return;
     }
     num1 = aQuery.getNumHits();
     LOGGER(ibis::gVerbose > 0) << "xdoQuery -- the number of hits = " << num1;
@@ -2922,46 +2926,46 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
     std::unique_ptr<ibis::table> tbl(ibis::table::create(pl));
     std::string sqlstring; //
     {
-	std::ostringstream ostr;
-	if (sstr != 0 && *sstr != 0)
-	    ostr << "SELECT " << sstr;
-	ostr << " FROM " << tbl->name();
-	if (wstr != 0 && *wstr != 0) {
-	    const int nwstr = strlen(wstr);
-	    if (nwstr < 80) {
-		ostr << " WHERE " << wstr;
-	    }
-	    else {
-		ostr << " WHERE ";
-		int i = 0;
-		while (i < 40) {
-		    ostr << wstr[i];
-		    ++ i;
-		}
-		while (i < nwstr && std::isspace(wstr[i]) == 0) {
-		    ostr << wstr[i];
-		    ++ i;
-		}
-		if (i+20 < nwstr) {
-		    ostr << " ...";
-		}
-		else {
-		    while (i < nwstr) {
-			ostr << wstr[i];
-			++ i;
-		    }
-		}
-	    }
-	}
-	if (ordkeys && *ordkeys) {
-	    ostr << " ORDER BY " << ordkeys;
-	}
-	if (limit > 0) {
-	    ostr << " LIMIT ";
-	    if (start > 0) ostr << start << ", ";
-	    ostr << limit;
-	}
-	sqlstring = ostr.str();
+        std::ostringstream ostr;
+        if (sstr != 0 && *sstr != 0)
+            ostr << "SELECT " << sstr;
+        ostr << " FROM " << tbl->name();
+        if (wstr != 0 && *wstr != 0) {
+            const int nwstr = strlen(wstr);
+            if (nwstr < 80) {
+                ostr << " WHERE " << wstr;
+            }
+            else {
+                ostr << " WHERE ";
+                int i = 0;
+                while (i < 40) {
+                    ostr << wstr[i];
+                    ++ i;
+                }
+                while (i < nwstr && std::isspace(wstr[i]) == 0) {
+                    ostr << wstr[i];
+                    ++ i;
+                }
+                if (i+20 < nwstr) {
+                    ostr << " ...";
+                }
+                else {
+                    while (i < nwstr) {
+                        ostr << wstr[i];
+                        ++ i;
+                    }
+                }
+            }
+        }
+        if (ordkeys && *ordkeys) {
+            ostr << " ORDER BY " << ordkeys;
+        }
+        if (limit > 0) {
+            ostr << " LIMIT ";
+            if (start > 0) ostr << start << ", ";
+            ostr << limit;
+        }
+        sqlstring = ostr.str();
     }
     LOGGER(ibis::gVerbose > 1)
         << "tableSelect -- processing \"" << sqlstring << '\"';
@@ -2974,39 +2978,39 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
         // open the file now to clear the existing content, in cases of
         // error, the output file would have been cleared
         outputstream.open(outputname,
-                          std::ios::out | 
+                          std::ios::out |
                           (appendToOutput ? std::ios::app : std::ios::trunc));
         appendToOutput = true; // all query output go to the same file
     }
 
     if (estimation_opt >= 0) {
-	uint64_t num1, num2;
-	tbl->estimate(wstr, num1, num2);
-	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg;
-	    lg() << "tableSelect -- the number of hits is ";
-	    if (num2 > num1)
-		lg() << "between " << num1 << " and ";
-	    lg() << num2;
-	}
-	if (estimation_opt > 0 || num2 == 0) {
-	    if (ibis::gVerbose > 0) {
-		timer.stop();
-		ibis::util::logger lg;
-		lg() << "tableSelect:: estimate(" << wstr << ") took "
-		     << timer.CPUTime() << " CPU seconds, "
-		     << timer.realTime() << " elapsed seconds";
-	    }
-	    return; // stop here is only want to estimate
-	}
+        uint64_t num1, num2;
+        tbl->estimate(wstr, num1, num2);
+        if (ibis::gVerbose > 0) {
+            ibis::util::logger lg;
+            lg() << "tableSelect -- the number of hits is ";
+            if (num2 > num1)
+                lg() << "between " << num1 << " and ";
+            lg() << num2;
+        }
+        if (estimation_opt > 0 || num2 == 0) {
+            if (ibis::gVerbose > 0) {
+                timer.stop();
+                ibis::util::logger lg;
+                lg() << "tableSelect:: estimate(" << wstr << ") took "
+                     << timer.CPUTime() << " CPU seconds, "
+                     << timer.realTime() << " elapsed seconds";
+            }
+            return; // stop here is only want to estimate
+        }
     }
 
     std::unique_ptr<ibis::table> sel1(tbl->select(sstr, wstr));
     if (sel1.get() == 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- tableSelect:: select(" << sstr << ", " << wstr
-	    << ") failed on table " << tbl->name();
-	return;
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- tableSelect:: select(" << sstr << ", " << wstr
+            << ") failed on table " << tbl->name();
+        return;
     }
 
     if (sel1->nColumns() == 0) {
@@ -3051,104 +3055,104 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
             << ", ierr = " << ierr;
     }
     else if (ibis::gVerbose >= 0) {
-	ibis::util::logger lg;
-	if (limit == 0 && sel1->nColumns() > 0) {
-	    limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
-		1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
-	    if (limit > (sel1->nRows() >> 1))
-		limit = sel1->nRows();
-	}
-	if (limit > 0 && limit < sel1->nRows()) {
-	    lg() << "-- the first ";
-	    if (limit > 1)
-		lg() << limit << " rows ";
-	    else
-		lg() << "row ";
-	    lg() << "(of " << sel1->nRows()
-		 << ") from the result table for \""
-		 << sqlstring << "\"\n";
-	}
-	else {
-	    lg() << "-- the result table (" << sel1->nRows()
-		 << " x " << sel1->nColumns() << ") for \""
-		 << sqlstring << "\"\n";
-	}
-	if (showheader)
-	    sel1->dumpNames(lg(), ", ");
-	sel1->dump(lg(), start, limit, ", ");
+        ibis::util::logger lg;
+        if (limit == 0 && sel1->nColumns() > 0) {
+            limit = (sel1->nRows() >> ibis::gVerbose) > 0 ?
+                1 << ibis::gVerbose : static_cast<uint32_t>(sel1->nRows());
+            if (limit > (sel1->nRows() >> 1))
+                limit = sel1->nRows();
+        }
+        if (limit > 0 && limit < sel1->nRows()) {
+            lg() << "-- the first ";
+            if (limit > 1)
+                lg() << limit << " rows ";
+            else
+                lg() << "row ";
+            lg() << "(of " << sel1->nRows()
+                 << ") from the result table for \""
+                 << sqlstring << "\"\n";
+        }
+        else {
+            lg() << "-- the result table (" << sel1->nRows()
+                 << " x " << sel1->nColumns() << ") for \""
+                 << sqlstring << "\"\n";
+        }
+        if (showheader)
+            sel1->dumpNames(lg(), ", ");
+        sel1->dump(lg(), start, limit, ", ");
     }
     else if (outputbinary) {
         if (zapping)
             ibis::util::removeDir(outputname);
 
     if (recheckvalues && sel1->nRows() > 1 && sel1->nColumns() > 0) {
-	// query the list of values selected by the 1st column
-	std::vector<double> svals;
-	const ibis::table::stringList cnames = sel1->columnNames();
-	ierr = sel1->getColumnAsDoubles(cnames[0], svals);
-	if (ierr < 0 || static_cast<uint64_t>(ierr) != sel1->nRows()) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- tableSelect can not verify answers returned for "
-		<< sqlstring << ", because of failure to retrieve values "
-		"from an intermediate table object named " << sel1->name()
-		<< ", ierr = " << ierr;
-	}
-	else {
-	    ibis::qDiscreteRange dr(cnames[0], svals);
-	    ibis::query qq0(uid), qq1(uid);
-	    ierr = qq0.setWhereClause(wstr);
-	    ierr = qq1.setWhereClause(&dr);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- tableSelect failed to set where clause "
-		    "expressed as a qDiscreteRange(" << cnames[0] << ", double["
-		    << sel1->nRows() << "])";
-	    }
-	    else {
-		uint64_t cnt = 0;
-		for (ibis::partList::const_iterator it = pl.begin();
-		     it != pl.end(); ++ it) {
-		    if (0 <= qq0.setPartition(*it) &&
-			0 <= qq1.setPartition(*it)) {
-			if (0 <= qq0.evaluate() && 0 <= qq1.evaluate()) {
-			    if (qq0.getNumHits() > qq1.getNumHits()) {
-				// not expecting this -- find out which
-				// value is not present
-				const ibis::bitvector *ht0 = qq0.getHitVector();
-				const ibis::bitvector *ht1 = qq1.getHitVector();
-				LOGGER(ibis::gVerbose >= 0)
-				    << "Warning -- query 1 (" << qq1.id()
-				    << ": " << cnames[0] << " IN ...) is "
-				    "expected to produce no less hits than "
-				    "query 0 (" << qq0.id() << ": "
-				    << qq0.getWhereClause()
-				    << ") on data partition " << (*it)->name()
-				    << ", but query 1 has " << qq1.getNumHits()
-				    << ", while query 0 has "
-				    << qq0.getNumHits();
-				if (ht0 != 0 && ht1 != 0) {
-				    findMissingValues(*(*it), cnames[0],
-						      *ht0, *ht1);
-				}
-			    }
-			    cnt += qq1.getNumHits();
-			}
-		    }
-		}
-		if (cnt != sel1->nRows()) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "Warning -- tableSelect -- qDiscreteRange("
-			<< cnames[0] << ", double[" << sel1->nRows()
-			<< "]) has " << cnt << " hit" << (cnt > 1 ? "s" : "")
-			<< ", but should have " << sel1->nRows();
-		}
-		else {
-		    LOGGER(ibis::gVerbose > 1)
-			<< "Successfully verified " << cnt
-			<< " hit" << (cnt > 1 ? "s" : "");
-		}
-	    }
-	}
+        // query the list of values selected by the 1st column
+        std::vector<double> svals;
+        const ibis::table::stringList cnames = sel1->columnNames();
+        ierr = sel1->getColumnAsDoubles(cnames[0], svals);
+        if (ierr < 0 || static_cast<uint64_t>(ierr) != sel1->nRows()) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- tableSelect can not verify answers returned for "
+                << sqlstring << ", because of failure to retrieve values "
+                "from an intermediate table object named " << sel1->name()
+                << ", ierr = " << ierr;
+        }
+        else {
+            ibis::qDiscreteRange dr(cnames[0], svals);
+            ibis::query qq0(uid), qq1(uid);
+            ierr = qq0.setWhereClause(wstr);
+            ierr = qq1.setWhereClause(&dr);
+            if (ierr < 0) {
+                LOGGER(ibis::gVerbose >= 0)
+                    << "Warning -- tableSelect failed to set where clause "
+                    "expressed as a qDiscreteRange(" << cnames[0] << ", double["
+                    << sel1->nRows() << "])";
+            }
+            else {
+                uint64_t cnt = 0;
+                for (ibis::partList::const_iterator it = pl.begin();
+                     it != pl.end(); ++ it) {
+                    if (0 <= qq0.setPartition(*it) &&
+                        0 <= qq1.setPartition(*it)) {
+                        if (0 <= qq0.evaluate() && 0 <= qq1.evaluate()) {
+                            if (qq0.getNumHits() > qq1.getNumHits()) {
+                                // not expecting this -- find out which
+                                // value is not present
+                                const ibis::bitvector *ht0 = qq0.getHitVector();
+                                const ibis::bitvector *ht1 = qq1.getHitVector();
+                                LOGGER(ibis::gVerbose >= 0)
+                                    << "Warning -- query 1 (" << qq1.id()
+                                    << ": " << cnames[0] << " IN ...) is "
+                                    "expected to produce no less hits than "
+                                    "query 0 (" << qq0.id() << ": "
+                                    << qq0.getWhereClause()
+                                    << ") on data partition " << (*it)->name()
+                                    << ", but query 1 has " << qq1.getNumHits()
+                                    << ", while query 0 has "
+                                    << qq0.getNumHits();
+                                if (ht0 != 0 && ht1 != 0) {
+                                    findMissingValues(*(*it), cnames[0],
+                                                      *ht0, *ht1);
+                                }
+                            }
+                            cnt += qq1.getNumHits();
+                        }
+                    }
+                }
+                if (cnt != sel1->nRows()) {
+                    LOGGER(ibis::gVerbose >= 0)
+                        << "Warning -- tableSelect -- qDiscreteRange("
+                        << cnames[0] << ", double[" << sel1->nRows()
+                        << "]) has " << cnt << " hit" << (cnt > 1 ? "s" : "")
+                        << ", but should have " << sel1->nRows();
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 1)
+                        << "Successfully verified " << cnt
+                        << " hit" << (cnt > 1 ? "s" : "");
+                }
+            }
+        }
     }
 
     timer.stop();
@@ -3184,86 +3188,86 @@ static void doQuaere(const ibis::partList& pl,
         sqlstring = ostr.str();
     }
     LOGGER(ibis::gVerbose > 1)
-	<< "doQuaere -- processing \"" << sqlstring << '\"';
+        << "doQuaere -- processing \"" << sqlstring << '\"';
     std::ofstream outputstream;
     if (outputname != 0 && *outputname != 0 &&
         0 != strcmp(outputname, "/dev/null")) {
         // open the file now to clear the existing content, in cases of
         // error, the output file would have been cleared
         outputstream.open(outputname,
-                          std::ios::out | 
+                          std::ios::out |
                           (appendToOutput ? std::ios::app : std::ios::trunc));
         appendToOutput = true; // all query output go to the same file
     }
 
     std::unique_ptr<ibis::table> res;
     if (estimation_opt < 0) { // directly evaluate the select clause
-	std::unique_ptr<ibis::quaere>
-	    qq(ibis::quaere::create(0, fstr, wstr, pl));
-	if (qq.get() == 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") failed to create an ibis::quaere object";
-	    return;
-	}
-	res.reset(qq->select(sstr));
+        std::unique_ptr<ibis::quaere>
+            qq(ibis::quaere::create(0, fstr, wstr, pl));
+        if (qq.get() == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") failed to create an ibis::quaere object";
+            return;
+        }
+        res.reset(qq->select(sstr));
     }
     else {
-	std::unique_ptr<ibis::quaere>
-	    qq(ibis::quaere::create(sstr, fstr, wstr, pl));
-	if (qq.get() == 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") failed to create an ibis::quaere object";
-	    return;
-	}
+        std::unique_ptr<ibis::quaere>
+            qq(ibis::quaere::create(sstr, fstr, wstr, pl));
+        if (qq.get() == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") failed to create an ibis::quaere object";
+            return;
+        }
 
-	uint64_t nhits=1, hmax=0;
-	qq->roughCount(nhits, hmax);
-	if (nhits < hmax) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "doQuaere -- " << wstr << " --> [" << nhits << ", "
-		<< hmax << ']';
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "doQuaere -- " << wstr << " --> " << nhits
-		<< " hit" << (hmax>1?"s":"");
-	}
-	if (estimation_opt > 0) return;
+        uint64_t nhits=1, hmax=0;
+        qq->roughCount(nhits, hmax);
+        if (nhits < hmax) {
+            LOGGER(ibis::gVerbose > 0)
+                << "doQuaere -- " << wstr << " --> [" << nhits << ", "
+                << hmax << ']';
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << "doQuaere -- " << wstr << " --> " << nhits
+                << " hit" << (hmax>1?"s":"");
+        }
+        if (estimation_opt > 0) return;
 
-	int64_t cnts = qq->count();
-	if (cnts < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") failed to produce a count of the number of hits"
-		<< ", ierr = " << cnts;
-	    return;
-	}
-	else if (nhits < hmax) {
-	    LOGGER(ibis::gVerbose >= 0 &&
-		   ((uint64_t)cnts < nhits || (uint64_t)cnts > hmax))
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") expects the return of count to be between "
-		<< nhits << " and " << hmax
-		<< ", but the actual return value is " << cnts;
-	    nhits = cnts;
-	}
-	else if ((uint64_t)cnts != nhits) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") expects the return of count to be " << nhits
-		<< ", but the actual return value is " << cnts;
-	    nhits = cnts;
-	}
+        int64_t cnts = qq->count();
+        if (cnts < 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") failed to produce a count of the number of hits"
+                << ", ierr = " << cnts;
+            return;
+        }
+        else if (nhits < hmax) {
+            LOGGER(ibis::gVerbose >= 0 &&
+                   ((uint64_t)cnts < nhits || (uint64_t)cnts > hmax))
+                << "Warning -- doQuaere(" << sqlstring
+                << ") expects the return of count to be between "
+                << nhits << " and " << hmax
+                << ", but the actual return value is " << cnts;
+            nhits = cnts;
+        }
+        else if ((uint64_t)cnts != nhits) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") expects the return of count to be " << nhits
+                << ", but the actual return value is " << cnts;
+            nhits = cnts;
+        }
 
-	res.reset(qq->select());
+        res.reset(qq->select());
     }
     if (res.get() == 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- doQuaere(" << sqlstring
-	    << ") failed to produce a result table";
-	return;
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- doQuaere(" << sqlstring
+            << ") failed to produce a result table";
+        return;
     }
 
     if (res->nRows() > 1 && ((ordkeys && *ordkeys) || limit > 0)) {
@@ -3350,151 +3354,151 @@ static void doQuaere(const ibis::partList& pl,
         ct.back() = t;
     }
     if (ibis::gVerbose > 3 && res->nRows() > 1 && !cn.empty() && !ct.empty() &&
-	(ct.back() == ibis::BYTE || ct.back() == ibis::UBYTE ||
-	 ct.back() == ibis::SHORT || ct.back() == ibis::USHORT ||
-	 ct.back() == ibis::INT || ct.back() == ibis::UINT ||
-	 ct.back() == ibis::LONG || ct.back() == ibis::ULONG ||
-	 ct.back() == ibis::FLOAT || ct.back() == ibis::DOUBLE)) {
-	// try a silly query on res
-	std::string cnd3, sel1, sel3;
-	sel1 = "max(";
-	sel1 += cn.back();
-	sel1 += ") as mx, min(";
-	sel1 += cn.back();
-	sel1 += ") as mn";
-	if (cn.size() > 1) {
-	    sel3 = cn[0];
-	    sel3 += ", avg(";
-	    sel3 += cn[1];
-	    sel3 += ')';
-	}
-	else {
-	    sel3 = "floor(";
-	    sel3 += cn[0];
-	    sel3 += "/10), avg(";
-	    sel3 += cn[0];
-	    sel3 += ')';
-	}
+        (ct.back() == ibis::BYTE || ct.back() == ibis::UBYTE ||
+         ct.back() == ibis::SHORT || ct.back() == ibis::USHORT ||
+         ct.back() == ibis::INT || ct.back() == ibis::UINT ||
+         ct.back() == ibis::LONG || ct.back() == ibis::ULONG ||
+         ct.back() == ibis::FLOAT || ct.back() == ibis::DOUBLE)) {
+        // try a silly query on res
+        std::string cnd3, sel1, sel3;
+        sel1 = "max(";
+        sel1 += cn.back();
+        sel1 += ") as mx, min(";
+        sel1 += cn.back();
+        sel1 += ") as mn";
+        if (cn.size() > 1) {
+            sel3 = cn[0];
+            sel3 += ", avg(";
+            sel3 += cn[1];
+            sel3 += ')';
+        }
+        else {
+            sel3 = "floor(";
+            sel3 += cn[0];
+            sel3 += "/10), avg(";
+            sel3 += cn[0];
+            sel3 += ')';
+        }
 
-	std::unique_ptr<ibis::table> res1(res->select(sel1.c_str(), "1=1"));
-	if (res1.get() == 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") failed to find the min and max of " << cn.back()
-		<< " in the result table " << res->name();
-	    return;
-	}
-	double minval, maxval;
-	ierr = res1->getColumnAsDoubles("mx", &maxval);
-	if (ierr != 1) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") expects to retrieve exactly one value from res1, "
-		"but getColumnAsDoubles returned " << ierr;
-	    return;
-	}
-	ierr = res1->getColumnAsDoubles("mn", &minval);
-	if (ierr != 1) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") expects to retrieve exactly one value from res1, "
-		"but getColumnAsDoubles returned " << ierr;
-	    return;
-	}
+        std::unique_ptr<ibis::table> res1(res->select(sel1.c_str(), "1=1"));
+        if (res1.get() == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") failed to find the min and max of " << cn.back()
+                << " in the result table " << res->name();
+            return;
+        }
+        double minval, maxval;
+        ierr = res1->getColumnAsDoubles("mx", &maxval);
+        if (ierr != 1) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") expects to retrieve exactly one value from res1, "
+                "but getColumnAsDoubles returned " << ierr;
+            return;
+        }
+        ierr = res1->getColumnAsDoubles("mn", &minval);
+        if (ierr != 1) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") expects to retrieve exactly one value from res1, "
+                "but getColumnAsDoubles returned " << ierr;
+            return;
+        }
 
-	std::ostringstream oss;
-	oss << "log(" << (0.5*(minval+maxval)) << ") <= log("
-	    << cn.back() << ')';
-	std::unique_ptr<ibis::table>
-	    res3(res->select(sel3.c_str(), oss.str().c_str()));
-	if (res3.get() == 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") failed to evaluate query " << oss.str()
-		<< " on the table " << res->name();
-	    return;
-	}
+        std::ostringstream oss;
+        oss << "log(" << (0.5*(minval+maxval)) << ") <= log("
+            << cn.back() << ')';
+        std::unique_ptr<ibis::table>
+            res3(res->select(sel3.c_str(), oss.str().c_str()));
+        if (res3.get() == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") failed to evaluate query " << oss.str()
+                << " on the table " << res->name();
+            return;
+        }
 
-	ibis::util::logger lg;
-	res3->describe(lg());
-	res3->dump(lg(), ", ");
+        ibis::util::logger lg;
+        res3->describe(lg());
+        res3->dump(lg(), ", ");
     }
     else if (ibis::gVerbose > 3 && res->nRows() > 1 &&
-	     cn.size() > 1 && ct.size() > 1 &&
-	     (ct.back() == ibis::CATEGORY ||
-	      ct.back() == ibis::TEXT)) {
-	// try a silly query on res
-	std::string cnd2, sel2;
-	if (cn.size() > 1) {
-	    sel2 = "floor(";
-	    sel2 += cn[0];
-	    sel2 += ")/3, min(";
-	    sel2 += cn[0];
-	    sel2 += "), avg(";
-	    sel2 += cn[1];
-	    sel2 += ')';
-	}
-	else {
-	    sel2 = "floor(";
-	    sel2 += cn[0];
-	    sel2 += "/10, avg(";
-	    sel2 += cn[0];
-	    sel2 += ')';
-	}
-	{
-	    std::unique_ptr<ibis::table::cursor> cur(res->createCursor());
-	    if (cur.get() == 0) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- doQuaere(" << sqlstring
-		    << ") failed to create a cursor from the result table";
-		return;
-	    }
-	    std::string tmp;
-	    for (size_t j = 0; tmp.empty() && j < cur->nRows(); ++ j) {
-		ierr = cur->fetch();
-		if (ierr != 0) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "Warning -- doQuaere(" << sqlstring
-			<< ") failed to fetch row " << j
-			<< " for the cursor from table " << res->name();
-		    return;
-		}
-		ierr = cur->getColumnAsString(cn.back(), tmp);
-		if (ierr != 0) {
-		    LOGGER(ibis::gVerbose >= 0)
-			<< "Warning -- doQuaere(" << sqlstring
-			<< ") failed to retrieve row " << j << " of column "
-			<< cn.back() << " from the cursor for table "
-			<< res->name();
-		    return;
-		}
-	    }
-	    if (tmp.empty()) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "doQuaere(" << sqlstring
-		    << ") can not find a non-empty string for column "
-		    << cn.back() << " from the table " << res->name();
-		return;
-	    }
-	    cnd2 = cn.back();
-	    cnd2 += " = \"";
-	    cnd2 += tmp;
-	    cnd2 += '"';
-	}
+             cn.size() > 1 && ct.size() > 1 &&
+             (ct.back() == ibis::CATEGORY ||
+              ct.back() == ibis::TEXT)) {
+        // try a silly query on res
+        std::string cnd2, sel2;
+        if (cn.size() > 1) {
+            sel2 = "floor(";
+            sel2 += cn[0];
+            sel2 += ")/3, min(";
+            sel2 += cn[0];
+            sel2 += "), avg(";
+            sel2 += cn[1];
+            sel2 += ')';
+        }
+        else {
+            sel2 = "floor(";
+            sel2 += cn[0];
+            sel2 += "/10, avg(";
+            sel2 += cn[0];
+            sel2 += ')';
+        }
+        {
+            std::unique_ptr<ibis::table::cursor> cur(res->createCursor());
+            if (cur.get() == 0) {
+                LOGGER(ibis::gVerbose >= 0)
+                    << "Warning -- doQuaere(" << sqlstring
+                    << ") failed to create a cursor from the result table";
+                return;
+            }
+            std::string tmp;
+            for (size_t j = 0; tmp.empty() && j < cur->nRows(); ++ j) {
+                ierr = cur->fetch();
+                if (ierr != 0) {
+                    LOGGER(ibis::gVerbose >= 0)
+                        << "Warning -- doQuaere(" << sqlstring
+                        << ") failed to fetch row " << j
+                        << " for the cursor from table " << res->name();
+                    return;
+                }
+                ierr = cur->getColumnAsString(cn.back(), tmp);
+                if (ierr != 0) {
+                    LOGGER(ibis::gVerbose >= 0)
+                        << "Warning -- doQuaere(" << sqlstring
+                        << ") failed to retrieve row " << j << " of column "
+                        << cn.back() << " from the cursor for table "
+                        << res->name();
+                    return;
+                }
+            }
+            if (tmp.empty()) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "doQuaere(" << sqlstring
+                    << ") can not find a non-empty string for column "
+                    << cn.back() << " from the table " << res->name();
+                return;
+            }
+            cnd2 = cn.back();
+            cnd2 += " = \"";
+            cnd2 += tmp;
+            cnd2 += '"';
+        }
 
-	std::unique_ptr<ibis::table>
-	    res2(res->select(sel2.c_str(), cnd2.c_str()));
-	if (res2.get() == 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuaere(" << sqlstring
-		<< ") failed to evaluate query " << cnd2
-		<< " on the table " << res->name();
-	    return;
-	}
+        std::unique_ptr<ibis::table>
+            res2(res->select(sel2.c_str(), cnd2.c_str()));
+        if (res2.get() == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuaere(" << sqlstring
+                << ") failed to evaluate query " << cnd2
+                << " on the table " << res->name();
+            return;
+        }
 
-	ibis::util::logger lg;
-	res2->describe(lg());
-	res2->dump(lg(), ", ");
+        ibis::util::logger lg;
+        res2->describe(lg());
+        res2->dump(lg(), ", ");
     }
 } // doQuaere
 
@@ -3534,7 +3538,7 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
         // open the file now to clear the existing content, in cases of
         // error, the output file would have been cleared
         outputstream.open(outputname,
-                          std::ios::out | 
+                          std::ios::out |
                           (appendToOutput ? std::ios::app : std::ios::trunc));
         appendToOutput = true; // all query output go to the same file
     }
@@ -3542,10 +3546,10 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     // created for the query object to store the results produced by the
     // select clause.
     ibis::query aQuery(uid, tbl,
-		       ((sstr != 0 && *sstr != 0 &&
-			 ((ordkeys != 0 && *ordkeys != 0) || limit > 0 ||
-			  recheckvalues || testing > 0)) ?
-			"ibis" : static_cast<const char*>(0)));
+                       ((sstr != 0 && *sstr != 0 &&
+                         ((ordkeys != 0 && *ordkeys != 0) || limit > 0 ||
+                          recheckvalues || testing > 0)) ?
+                        "ibis" : static_cast<const char*>(0)));
     if (ridfile != 0) {
         ibis::ridHandler handle(0); // a sample ridHandler
         ibis::RIDSet rset;
@@ -3595,100 +3599,100 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
 
     if (sequential_scan) {
-	num2 = aQuery.countHits();
-	if (num2 < 0) {
-	    ibis::bitvector btmp;
-	    num2 = aQuery.sequentialScan(btmp);
-	    if (num2 < 0) {
-		ibis::util::logger lg;
-		lg() << "Warning -- doQuery:: sequentialScan("
-		     << aQuery.getWhereClause() << ") failed";
-		return;
-	    }
+        num2 = aQuery.countHits();
+        if (num2 < 0) {
+            ibis::bitvector btmp;
+            num2 = aQuery.sequentialScan(btmp);
+            if (num2 < 0) {
+                ibis::util::logger lg;
+                lg() << "Warning -- doQuery:: sequentialScan("
+                     << aQuery.getWhereClause() << ") failed";
+                return;
+            }
 
-	    num2 = btmp.cnt();
-	}
-	if (ibis::gVerbose >= 0) {
-	    timer.stop();
-	    ibis::util::logger lg;
-	    lg() << "doQuery:: sequentialScan("
-		 << aQuery.getWhereClause() << ") produced "
-		 << num2 << " hit" << (num2>1 ? "s" : "");
-	    if (ibis::gVerbose > 0)
-		lg () << ", took " << timer.CPUTime() << " CPU seconds, "
-		      << timer.realTime() << " elapsed seconds";
-	}
-	return;
+            num2 = btmp.cnt();
+        }
+        if (ibis::gVerbose >= 0) {
+            timer.stop();
+            ibis::util::logger lg;
+            lg() << "doQuery:: sequentialScan("
+                 << aQuery.getWhereClause() << ") produced "
+                 << num2 << " hit" << (num2>1 ? "s" : "");
+            if (ibis::gVerbose > 0)
+                lg () << ", took " << timer.CPUTime() << " CPU seconds, "
+                      << timer.realTime() << " elapsed seconds";
+        }
+        return;
     }
 
     if (estimation_opt >= 0) {
-	num2 = aQuery.estimate();
-	if (num2 < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuery failed to estimate \"" << wstr
-		<< "\", error code = " << num2;
-	    return;
-	}
-	num1 = aQuery.getMinNumHits();
-	num2 = aQuery.getMaxNumHits();
-	if (ibis::gVerbose > 1) {
-	    ibis::util::logger lg;
-	    lg() << "doQuery -- the number of hits is ";
-	    if (num2 > num1)
-		lg() << "between " << num1 << " and ";
-	    lg() << num2;
-	}
-	if (estimation_opt > 0 || num2 == 0) {
-	    if (ibis::gVerbose >= 0) {
-		timer.stop();
-		ibis::util::logger lg;
-		lg() << "doQuery:: estimate("
-		     << aQuery.getWhereClause() << ") took "
-		     << timer.CPUTime() << " CPU seconds, "
-		     << timer.realTime() << " elapsed seconds.";
-		if (num1 == num2)
-		    lg() << "  The number of hits is " << num1;
-		else
-		    lg() << "  The number of hits is between "
-			 << num1 << " and " << num2;
-	    }
-	    return; // stop here is only want to estimate
-	}
+        num2 = aQuery.estimate();
+        if (num2 < 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuery failed to estimate \"" << wstr
+                << "\", error code = " << num2;
+            return;
+        }
+        num1 = aQuery.getMinNumHits();
+        num2 = aQuery.getMaxNumHits();
+        if (ibis::gVerbose > 1) {
+            ibis::util::logger lg;
+            lg() << "doQuery -- the number of hits is ";
+            if (num2 > num1)
+                lg() << "between " << num1 << " and ";
+            lg() << num2;
+        }
+        if (estimation_opt > 0 || num2 == 0) {
+            if (ibis::gVerbose >= 0) {
+                timer.stop();
+                ibis::util::logger lg;
+                lg() << "doQuery:: estimate("
+                     << aQuery.getWhereClause() << ") took "
+                     << timer.CPUTime() << " CPU seconds, "
+                     << timer.realTime() << " elapsed seconds.";
+                if (num1 == num2)
+                    lg() << "  The number of hits is " << num1;
+                else
+                    lg() << "  The number of hits is between "
+                         << num1 << " and " << num2;
+            }
+            return; // stop here is only want to estimate
+        }
     }
 
     num2 = aQuery.evaluate();
     if (num2 < 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- doQuery failed to evaluate \"" << wstr
-	    << "\", error code = " << num2;
-	return;
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- doQuery failed to evaluate \"" << wstr
+            << "\", error code = " << num2;
+        return;
     }
     num1 = aQuery.getNumHits();
 
     if (asstr != 0 && *asstr != 0 && num1 > 0 && ibis::gVerbose >= 0) {
-	std::unique_ptr<ibis::bundle> bdl(ibis::bundle::create(aQuery));
-	if (bdl.get() == 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doQuery(" << sqlstring
-		<< ") failed to create the bundle object for output operations";
-	    return;
-	}
+        std::unique_ptr<ibis::bundle> bdl(ibis::bundle::create(aQuery));
+        if (bdl.get() == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doQuery(" << sqlstring
+                << ") failed to create the bundle object for output operations";
+            return;
+        }
 
-	if (ordkeys && *ordkeys) { // top-K query
-	    bdl->reorder(ordkeys);
-	}
-	if (limit > 0 || start > 0) {
-	    num2 = bdl->truncate(limit, start);
-	    if (num2 < 0) {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "Warning -- doQuery failed to truncate the bundle";
-		return;
-	    }
-	}
-	if (0 != outputname && 0 == strcmp(outputname, "/dev/null")) {
-	    // no need to actually write anything to the output file
-	}
-	else if (outputstream.is_open() && outputstream.good()) {
+        if (ordkeys && *ordkeys) { // top-K query
+            bdl->reorder(ordkeys);
+        }
+        if (limit > 0 || start > 0) {
+            num2 = bdl->truncate(limit, start);
+            if (num2 < 0) {
+                LOGGER(ibis::gVerbose >= 0)
+                    << "Warning -- doQuery failed to truncate the bundle";
+                return;
+            }
+        }
+        if (0 != outputname && 0 == strcmp(outputname, "/dev/null")) {
+            // no need to actually write anything to the output file
+        }
+        else if (outputstream.is_open() && outputstream.good()) {
             LOGGER(ibis::gVerbose >= 0)
                 << "doQuery -- query (" << aQuery.getWhereClause()
                 << ") results written to file \""
@@ -3729,184 +3733,184 @@ static void doQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
 
     if (ibis::gVerbose > 0 && (sstr == 0 || *sstr == 0) &&
-	aQuery.getWhereClause()) {
-	ibis::countQuery cq(tbl);
-	num2 = cq.setWhereClause(aQuery.getWhereClause());
-	if (num2 < 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- doQuery failed to set \""
+        aQuery.getWhereClause()) {
+        ibis::countQuery cq(tbl);
+        num2 = cq.setWhereClause(aQuery.getWhereClause());
+        if (num2 < 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- doQuery failed to set \""
                 << aQuery.getWhereClause()
-		<< "\" on a countQuery";
-	}
-	else {
-	    num2 = cq.evaluate();
-	    if (num2 < 0) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- doQuery failed to count the where clause "
-		    << aQuery.getWhereClause();
-	    }
-	    else if (cq.getNumHits() != num1) {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- countQuery.getNumHits returned "
-		    << cq.getNumHits() << ", while query.getNumHits returned "
-		    << num1;
-	    }
-	}
+                << "\" on a countQuery";
+        }
+        else {
+            num2 = cq.evaluate();
+            if (num2 < 0) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- doQuery failed to count the where clause "
+                    << aQuery.getWhereClause();
+            }
+            else if (cq.getNumHits() != num1) {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- countQuery.getNumHits returned "
+                    << cq.getNumHits() << ", while query.getNumHits returned "
+                    << num1;
+            }
+        }
     }
     if (ibis::gVerbose > 5 || (recheckvalues && ibis::gVerbose >= 0)) {
-	ibis::bitvector btmp;
-	num2 = aQuery.sequentialScan(btmp);
-	if (num2 < 0) {
-	    ibis::util::logger lg;
-	    lg() << "Warning -- doQuery:: sequentialScan("
-		 << aQuery.getWhereClause() << ") failed";
-	}
-	else {
-	    num2 = btmp.cnt();
-	    if (num1 != num2 && ibis::gVerbose >= 0) {
-		ibis::util::logger lg;
-		lg() << "Warning ** query \"" << aQuery.getWhereClause()
-		     << "\" generated " << num1
-		     << " hit" << (num1 >1  ? "s" : "")
-		     << " with evaluate(), but generated "
-		     << num2 << " hit" << (num2 >1  ? "s" : "")
-		     << " with sequentialScan";
-	    }
-	}
+        ibis::bitvector btmp;
+        num2 = aQuery.sequentialScan(btmp);
+        if (num2 < 0) {
+            ibis::util::logger lg;
+            lg() << "Warning -- doQuery:: sequentialScan("
+                 << aQuery.getWhereClause() << ") failed";
+        }
+        else {
+            num2 = btmp.cnt();
+            if (num1 != num2 && ibis::gVerbose >= 0) {
+                ibis::util::logger lg;
+                lg() << "Warning ** query \"" << aQuery.getWhereClause()
+                     << "\" generated " << num1
+                     << " hit" << (num1 >1  ? "s" : "")
+                     << " with evaluate(), but generated "
+                     << num2 << " hit" << (num2 >1  ? "s" : "")
+                     << " with sequentialScan";
+            }
+        }
     }
 
     if (ibis::gVerbose >= 0 && (recheckvalues || testing > 1)) {
-	// retrieve RIDs as bundles
-	uint32_t nbdl = 0;
-	ibis::RIDSet* rid0 = new ibis::RIDSet;
-	const ibis::RIDSet *tmp = aQuery.getRIDsInBundle(0);
-	while (tmp != 0) {
-	    rid0->insert(rid0->end(), tmp->begin(), tmp->end());
-	    delete tmp;
-	    ++ nbdl;
-	    tmp = aQuery.getRIDsInBundle(nbdl);
-	}
-	if (rid0->size() == 0) {
-	    delete rid0;
-	    return;
-	}
-	ibis::util::sortRIDs(*rid0);
+        // retrieve RIDs as bundles
+        uint32_t nbdl = 0;
+        ibis::RIDSet* rid0 = new ibis::RIDSet;
+        const ibis::RIDSet *tmp = aQuery.getRIDsInBundle(0);
+        while (tmp != 0) {
+            rid0->insert(rid0->end(), tmp->begin(), tmp->end());
+            delete tmp;
+            ++ nbdl;
+            tmp = aQuery.getRIDsInBundle(nbdl);
+        }
+        if (rid0->size() == 0) {
+            delete rid0;
+            return;
+        }
+        ibis::util::sortRIDs(*rid0);
 
-	// retrieve the RIDs in one shot
-	ibis::RIDSet* rid1 = aQuery.getRIDs();
-	if (rid1 == 0) {
-	    delete rid0;
-	    return;
-	}
+        // retrieve the RIDs in one shot
+        ibis::RIDSet* rid1 = aQuery.getRIDs();
+        if (rid1 == 0) {
+            delete rid0;
+            return;
+        }
 
-	ibis::util::sortRIDs(*rid1);
-	if (rid1->size() == rid0->size()) {
-	    uint32_t i, cnt=0;
-	    ibis::util::logger lg;
-	    for (i=0; i<rid1->size(); ++i) {
-		if ((*rid1)[i].value != (*rid0)[i].value) {
-		    ++cnt;
-		    lg() << i << "th RID (" << (*rid1)[i]
-			 << ") != (" << (*rid0)[i] << ")\n";
-		}
-	    }
-	    if (cnt > 0)
-		lg() << "Warning -- " << cnt
-		     << " mismatches out of a total of "
-		     << rid1->size();
-	    else
-		lg() << "Successfully verified " << rid0->size()
-		     << " hit" << (rid0->size()>1?"s":"");
-	}
-	else if (sstr != 0) {
-	    ibis::util::logger lg;
-	    lg() << "sent " << rid1->size() << " RIDs, got back "
-		 << rid0->size();
-	    uint32_t i=0, cnt;
-	    cnt = (rid1->size() < rid0->size()) ? rid1->size() :
-		rid0->size();
-	    while (i < cnt) {
-		lg() << "\n(" << (*rid1)[i] << ") >>> (" << (*rid0)[i];
-		++i;
-	    }
-	    if (rid1->size() < rid0->size()) {
-		while (i < rid0->size()) {
-		    lg() << "\n??? >>> (" << (*rid0)[i] << ")";
-		    ++i;
-		}
-	    }
-	    else {
-		while (i < rid1->size()) {
-		    lg() << "\n(" << (*rid1)[i] << ") >>> ???";
-		    ++i;
-		}
-	    }
-	}
-	delete rid0;
+        ibis::util::sortRIDs(*rid1);
+        if (rid1->size() == rid0->size()) {
+            uint32_t i, cnt=0;
+            ibis::util::logger lg;
+            for (i=0; i<rid1->size(); ++i) {
+                if ((*rid1)[i].value != (*rid0)[i].value) {
+                    ++cnt;
+                    lg() << i << "th RID (" << (*rid1)[i]
+                         << ") != (" << (*rid0)[i] << ")\n";
+                }
+            }
+            if (cnt > 0)
+                lg() << "Warning -- " << cnt
+                     << " mismatches out of a total of "
+                     << rid1->size();
+            else
+                lg() << "Successfully verified " << rid0->size()
+                     << " hit" << (rid0->size()>1?"s":"");
+        }
+        else if (sstr != 0) {
+            ibis::util::logger lg;
+            lg() << "sent " << rid1->size() << " RIDs, got back "
+                 << rid0->size();
+            uint32_t i=0, cnt;
+            cnt = (rid1->size() < rid0->size()) ? rid1->size() :
+                rid0->size();
+            while (i < cnt) {
+                lg() << "\n(" << (*rid1)[i] << ") >>> (" << (*rid0)[i];
+                ++i;
+            }
+            if (rid1->size() < rid0->size()) {
+                while (i < rid0->size()) {
+                    lg() << "\n??? >>> (" << (*rid0)[i] << ")";
+                    ++i;
+                }
+            }
+            else {
+                while (i < rid1->size()) {
+                    lg() << "\n(" << (*rid1)[i] << ") >>> ???";
+                    ++i;
+                }
+            }
+        }
+        delete rid0;
 
-	if (rid1->size() > 1024) {
-	    // select no more than 1024 RIDs -- RID2Hits is slow
-	    uint32_t len = 512 + (511 & rid1->size());
-	    if (len == 0) len = 1024;
-	    rid1->resize(len);
-	}
+        if (rid1->size() > 1024) {
+            // select no more than 1024 RIDs -- RID2Hits is slow
+            uint32_t len = 512 + (511 & rid1->size());
+            if (len == 0) len = 1024;
+            rid1->resize(len);
+        }
 
-	ibis::RIDSet* rid2 = new ibis::RIDSet;
-	rid2->deepCopy(*rid1);
-	delete rid1; // setRIDs removes the underlying file for rid1
-	aQuery.setRIDs(*rid2);
-	rid1 = rid2; // setRIDs has copied rid2
-	aQuery.evaluate();
-	rid2 = aQuery.getRIDs();
-	if (rid2 == 0) { // make sure the pointer is valid
-	    rid2 = new ibis::RIDSet;
-	}
-	ibis::util::sortRIDs(*rid2);
-	if (rid1->size() == rid2->size()) {
-	    uint32_t i, cnt=0;
-	    ibis::util::logger lg;
-	    for (i=0; i<rid1->size(); ++i) {
-		if ((*rid1)[i].value != (*rid2)[i].value) {
-		    ++cnt;
-		    lg() << i << "th RID (" << (*rid1)[i]
-			 << ") != (" << (*rid2)[i] << ")\n";
-		}
-	    }
-	    if (cnt > 0)
-		lg() << "Warning -- " << cnt
-		     << " mismatches out of a total of "
-		     << rid1->size();
-	    else
-		lg() << "Successfully verified " << rid1->size()
-		     << " hit" << (rid1->size()>1?"s":"");
-	}
-	else {
-	    ibis::util::logger lg;
-	    lg() << "sent " << rid1->size() << " RIDs, got back "
-		 << rid2->size();
-	    uint32_t i=0, cnt;
-	    cnt = (rid1->size() < rid2->size()) ? rid1->size() :
-		rid2->size();
-	    while (i < cnt) {
-		lg() << "\n(" << (*rid1)[i] << ") >>> (" << (*rid2)[i]
-		     << ")";
-		++i;
-	    }
-	    if (rid1->size() < rid2->size()) {
-		while (i < rid2->size()) {
-		    lg() << "\n??? >>> (" << (*rid2)[i] << ")";
-		    ++i;
-		}
-	    }
-	    else {
-		while (i < rid1->size()) {
-		    lg() << "\n(" << (*rid1)[i] << ") >>> ???";
-		    ++i;
-		}
-	    }
-	}
-	delete rid1;
-	delete rid2;
+        ibis::RIDSet* rid2 = new ibis::RIDSet;
+        rid2->deepCopy(*rid1);
+        delete rid1; // setRIDs removes the underlying file for rid1
+        aQuery.setRIDs(*rid2);
+        rid1 = rid2; // setRIDs has copied rid2
+        aQuery.evaluate();
+        rid2 = aQuery.getRIDs();
+        if (rid2 == 0) { // make sure the pointer is valid
+            rid2 = new ibis::RIDSet;
+        }
+        ibis::util::sortRIDs(*rid2);
+        if (rid1->size() == rid2->size()) {
+            uint32_t i, cnt=0;
+            ibis::util::logger lg;
+            for (i=0; i<rid1->size(); ++i) {
+                if ((*rid1)[i].value != (*rid2)[i].value) {
+                    ++cnt;
+                    lg() << i << "th RID (" << (*rid1)[i]
+                         << ") != (" << (*rid2)[i] << ")\n";
+                }
+            }
+            if (cnt > 0)
+                lg() << "Warning -- " << cnt
+                     << " mismatches out of a total of "
+                     << rid1->size();
+            else
+                lg() << "Successfully verified " << rid1->size()
+                     << " hit" << (rid1->size()>1?"s":"");
+        }
+        else {
+            ibis::util::logger lg;
+            lg() << "sent " << rid1->size() << " RIDs, got back "
+                 << rid2->size();
+            uint32_t i=0, cnt;
+            cnt = (rid1->size() < rid2->size()) ? rid1->size() :
+                rid2->size();
+            while (i < cnt) {
+                lg() << "\n(" << (*rid1)[i] << ") >>> (" << (*rid2)[i]
+                     << ")";
+                ++i;
+            }
+            if (rid1->size() < rid2->size()) {
+                while (i < rid2->size()) {
+                    lg() << "\n??? >>> (" << (*rid2)[i] << ")";
+                    ++i;
+                }
+            }
+            else {
+                while (i < rid1->size()) {
+                    lg() << "\n(" << (*rid1)[i] << ") >>> ???";
+                    ++i;
+                }
+            }
+        }
+        delete rid1;
+        delete rid2;
     }
 } // doQuery
 
@@ -3921,15 +3925,15 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
     }
 
     LOGGER(ibis::gVerbose > 0)
-	<< "doMeshQuery -- processing query " << wstr
-	<< " on partition " << tbl->name();
+        << "doMeshQuery -- processing query " << wstr
+        << " on partition " << tbl->name();
     std::ofstream outputstream;
     if (outputname != 0 && *outputname != 0 &&
         0 != strcmp(outputname, "/dev/null")) {
         // open the file now to clear the existing content, in cases of
         // error, the output file would have been cleared
         outputstream.open(outputname,
-                          std::ios::out | 
+                          std::ios::out |
                           (appendToOutput ? std::ios::app : std::ios::trunc));
         appendToOutput = true; // all query output go to the same file
     }
@@ -3960,37 +3964,37 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
 
     const char* asstr = 0;
     if (sstr != 0 && *sstr != 0) {
-	aQuery.setSelectClause(sstr);
-	asstr = aQuery.getSelectClause();
+        aQuery.setSelectClause(sstr);
+        asstr = aQuery.getSelectClause();
     }
     if (estimation_opt >= 0) {
-	num2 = aQuery.estimate();
-	if (num2 < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doMeshQuery failed to estimate \"" << wstr
-		<< "\", error code = " << num2;
-	    return;
-	}
-	num1 = aQuery.getMinNumHits();
-	num2 = aQuery.getMaxNumHits();
-	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg;
-	    lg() << "doMeshQuery -- the number of hits is ";
-	    if (num1 < num2)
-		lg() << "between " << num1 << " and ";
-	    lg() << num2;
-	}
-	if (estimation_opt > 0 || num2 == 0) {
-	    if (ibis::gVerbose > 0) {
-		timer.stop();
-		ibis::util::logger lg;
-		lg() << "doMeshQuery:: estimate("
-		     << aQuery.getWhereClause() << ") took "
-		     << timer.CPUTime() << " CPU seconds, "
-		     << timer.realTime() << " elapsed seconds";
-	    }
-	    return; // stop here is only want to estimate
-	}
+        num2 = aQuery.estimate();
+        if (num2 < 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doMeshQuery failed to estimate \"" << wstr
+                << "\", error code = " << num2;
+            return;
+        }
+        num1 = aQuery.getMinNumHits();
+        num2 = aQuery.getMaxNumHits();
+        if (ibis::gVerbose > 0) {
+            ibis::util::logger lg;
+            lg() << "doMeshQuery -- the number of hits is ";
+            if (num1 < num2)
+                lg() << "between " << num1 << " and ";
+            lg() << num2;
+        }
+        if (estimation_opt > 0 || num2 == 0) {
+            if (ibis::gVerbose > 0) {
+                timer.stop();
+                ibis::util::logger lg;
+                lg() << "doMeshQuery:: estimate("
+                     << aQuery.getWhereClause() << ") took "
+                     << timer.CPUTime() << " CPU seconds, "
+                     << timer.realTime() << " elapsed seconds";
+            }
+            return; // stop here is only want to estimate
+        }
     }
 
     num2 = aQuery.evaluate();
@@ -4047,6 +4051,154 @@ static void doMeshQuery(ibis::part* tbl, const char* uid, const char* wstr,
     LOGGER(ibis::gVerbose > 0)
         << "doMeshQuery: identified " << num2 << " connected component"
         << (num2>1?"s":"") << " among the query lines";
+
+    if (ibis::gVerbose >= 0 || testing > 0) {
+        std::vector< std::vector<uint32_t> > blocks;
+        std::vector<uint32_t> label2;
+        num2 = aQuery.getHitsAsBlocks(blocks);
+        if (num2 < 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- aQuery.getHitsAsBlocks returned " << num2;
+            return;
+        }
+        else if (blocks.empty()) {
+            LOGGER(ibis::gVerbose > 1)
+                << "Warning -- aQuery.getHitsAsBlocks returned no blocks";
+            return;
+        }
+
+        num2 = aQuery.labelBlocks(blocks, label2);
+        if (num2 < 0) {
+            LOGGER(num2 < 0)
+                << "Warning -- aQuery.labelBlocks failed with error code "
+                << num2;
+            return;
+        }
+        LOGGER(ibis::gVerbose > 0)
+            << "doMeshQuery:: converted " << num1 << " hit" << (num1>1?"s":"")
+            << " into " << blocks.size() << " block" << (blocks.size()>1?"s":"")
+            << " and identified " << num2 << " connected component"
+            << (num2>1?"s":"") << " among the blocks";
+
+        /// compare the output from labeling lines against those from labeling
+        /// the blocks
+        const unsigned ndim = dim.size();
+        const unsigned ndm1 = dim.size() - 1;
+        const unsigned ndp1 = dim.size() + 1;
+        size_t jb = 0;  // pointing to a block
+        size_t jl = 0;  // pointing to a line
+        num1 = 0;       // number of mismatches
+        ibis::util::logger lg;
+        lg() << "\ndoMeshQuery -- Compare the two sets of labels";
+        while (jb < blocks.size() || jl < lines.size()) {
+            if (jb < blocks.size()) { // has a valid block
+                if (jl < lines.size()) { // has a valid line
+                    int cmp = (lines[jl] < blocks[jb][0] ? -1 :
+                               lines[jl] >= blocks[jb][1] ? 1 : 0);
+                    for (unsigned j3 = 1; cmp == 0 && j3 < ndm1; ++ j3)
+                        cmp = (lines[jl+j3] < blocks[jb][j3+j3] ? -1 :
+                               lines[jl+j3] >= blocks[jb][j3+j3+1] ? 1 : 0);
+                    if (cmp == 0)
+                        cmp = (lines[jl+ndim] <= blocks[jb][ndm1+ndm1] ? -1 :
+                               lines[jl+ndm1] >= blocks[jb][ndm1+ndm1+1] ? 1 :
+                               0);
+                    if (cmp > 0) { // extra block?
+                        lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
+                             << ", " << blocks[jb][1];
+                        for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
+                            lg() << ", " << blocks[jb][j3];
+                        lg() << "\tline[??]( )";
+                        ++ jb;
+                        ++ num1;
+                    }
+                    else if (cmp < 0) { // extra line?
+                        lg() << "\nblock[??]( )\tline[" << jl/ndp1 << "] ("
+                             << lines[jl];
+                        for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
+                            lg() << ", " << lines[j4];
+                        lg() << ")";
+                        jl += ndp1;
+                        ++ num1;
+                    }
+                    else { // matching block and line
+                        size_t j3;
+                        unsigned linecount = 0;
+                        unsigned labelcount = 0;
+                        unsigned expectedcount = blocks[jb][1] - blocks[jb][0];
+                        for (unsigned jj = 2; jj+3 < blocks[jb].size(); jj += 2)
+                            expectedcount *=
+                                (blocks[jb][jj+1] - blocks[jb][jj]);
+                        linecount = (blocks[jb][ndm1+ndm1] == lines[jl+ndm1] &&
+                                     blocks[jb][ndm1+ndim] == lines[jl+ndim]);
+                        labelcount = (label2[jb] == label1[jl/ndp1]);
+                        for (j3 = jl+ndp1; j3 < lines.size(); j3 += ndp1) {
+                            bool match =
+                                (blocks[jb][ndm1+ndm1] == lines[j3+ndm1] &&
+                                 blocks[jb][ndm1+ndim] == lines[j3+ndim]);
+                            for (unsigned jj = 0;
+                                 match && jj < ndm1;
+                                 ++ jj) {
+                                match = (blocks[jb][jj+jj] <= lines[j3+jj] &&
+                                         blocks[jb][jj+jj+1] > lines[j3+jj]);
+                            }
+                            if (match) {
+                                labelcount += (label2[jb] == label1[j3/ndp1]);
+                                ++ linecount;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                        if (linecount != expectedcount ||
+                            labelcount != expectedcount || ibis::gVerbose > 6) {
+                            lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
+                                 << ", " << blocks[jb][1];
+                            for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
+                                lg() << ", " << blocks[jb][j3];
+                            lg() << ")\tline[" << jl << "] (" << lines[jl];
+                            for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
+                                lg() << ", " << lines[j4];
+                            lg() << "),\tlabelb = " << label2[jb]
+                                 << "\tlabell = " << label1[jl/ndp1];
+                            if (expectedcount > 1)
+                                lg() << "\t... expected " << expectedcount
+                                     << " lines, found " << linecount
+                                     << " matching line" << (linecount>1?"s":"")
+                                     << " with " << labelcount
+                                     << " correct label"
+                                     << (labelcount>1?"s":"");
+                            if (linecount != expectedcount ||
+                                labelcount != expectedcount) lg() << " ??";
+                        }
+                        num1 += (linecount != expectedcount ||
+                                 labelcount != expectedcount);
+                        jl = j3;
+                        ++ jb;
+                    }
+                }
+                else { // no more lines
+                    lg() << "\nblock[" << jb << "] (" << blocks[jb][0]
+                         << ", " << blocks[jb][1];
+                    for (unsigned j3 = 2; j3 < ndim+ndim; ++ j3)
+                        lg() << ", " << blocks[jb][j3];
+                    lg() << ")\tline[??]( )";
+                    ++ jb;
+                    ++ num1;
+                }
+            }
+            else { // no more blocks
+                lg() << "\nblock[??]( )\tline[" << jl << "] ("
+                     << lines[jl];
+                for (unsigned j4 = jl+1; j4 < jl+ndp1; ++ j4)
+                    lg() << ", " << lines[j4];
+                lg() << ")";
+                jl += ndp1;
+                ++ num1;
+            }
+        }
+        lg() << "\n" << (num1>0?"Warning (!__!) --":"(^o^)") << " found "
+             << num1 << " mismatch" << (num1>1 ? "es" : "") << "\n";
+    }
 
     if (asstr != 0 && *asstr != 0 && ibis::gVerbose > 0 &&
         (outputname == 0 || 0 != strcmp(outputname, "/dev/null"))) {
@@ -4151,25 +4303,25 @@ static void doAppend(const char* dir) {
     }
 
     if (tbl == 0) { // need to allocate a new partition
-	if (appendTarget != 0) { // use externally specified name
-	    tbl = new ibis::part(appendTarget);
-	}
-	else { // generate an random name based on user name and dir
-	    char tmp[128];
-	    const char* name = ibis::util::userName();
-	    sprintf(tmp, "%c%lX",
+        if (appendTarget != 0) { // use externally specified name
+            tbl = new ibis::part(appendTarget);
+        }
+        else { // generate an random name based on user name and dir
+            char tmp[128];
+            const char* name = ibis::util::userName();
+            sprintf(tmp, "%c%lX",
                     (std::isalpha(*name) ? std::toupper(*name) : 'T'),
-		    static_cast<long unsigned>
-		    (ibis::util::checksum(dir, strlen(dir))));
-	    tbl = new ibis::part(tmp);
-	}
-	newtable = true;
+                    static_cast<long unsigned>
+                    (ibis::util::checksum(dir, strlen(dir))));
+            tbl = new ibis::part(tmp);
+        }
+        newtable = true;
     }
     if (tbl == 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- doAppend(" << dir << ") failed to allocate an "
-	    "ibis::part object.  Can NOT continue.\n";
-	return;
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- doAppend(" << dir << ") failed to allocate an "
+            "ibis::part object.  Can NOT continue.\n";
+        return;
     }
 
     ibis::horometer timer;
@@ -4197,81 +4349,81 @@ static void doAppend(const char* dir) {
     }
     const long napp = ierr;
     if (tbl->getState() != ibis::part::STABLE_STATE) {
-	if (ibis::gVerbose > 3 ||
-	    (ibis::gVerbose >= 0 && testing > 0)) {// self test after append
-	    int nth = static_cast<int>(ibis::gVerbose < 20
-				       ? 1+sqrt((double)ibis::gVerbose)
-				       : 3+log((double)ibis::gVerbose));
-	    tbl->buildIndexes(0, 1);
-	    ierr = tbl->selfTest(nth);
-	}
-	else { // very quiet, skip self testing
-	    ierr = 0;
-	}
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doAppend(" << dir << "): selfTest encountered "
-		<< ierr << " error" << (ierr > 1 ? "s." : ".")
-		<< " Will attempt to roll back the changes.";
-	    ierr = tbl->rollback();
-	    LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
-		<< "doAppend(" << dir << "): rollback returned with "
-		<< ierr << "\n";
-	    if (newtable)
-		delete tbl;
-	    return;
-	}
+        if (ibis::gVerbose > 3 ||
+            (ibis::gVerbose >= 0 && testing > 0)) {// self test after append
+            int nth = static_cast<int>(ibis::gVerbose < 20
+                                       ? 1+sqrt((double)ibis::gVerbose)
+                                       : 3+log((double)ibis::gVerbose));
+            tbl->buildIndexes(0, 1);
+            ierr = tbl->selfTest(nth);
+        }
+        else { // very quiet, skip self testing
+            ierr = 0;
+        }
+        if (ierr != 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doAppend(" << dir << "): selfTest encountered "
+                << ierr << " error" << (ierr > 1 ? "s." : ".")
+                << " Will attempt to roll back the changes.";
+            ierr = tbl->rollback();
+            LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
+                << "doAppend(" << dir << "): rollback returned with "
+                << ierr << "\n";
+            if (newtable)
+                delete tbl;
+            return;
+        }
 
-	timer.start();
-	ierr = tbl->commit(dir);
-	timer.stop();
-	if (ierr != napp) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- doAppend(" << dir
-		<< "): expected commit to return "
-		<< napp << ", but it actually retruned " << ierr
-		<< ".  Unrecoverable error!\n";
-	    return;
-	}
-	else if (ibis::gVerbose >= 0) {
-	    ibis::util::logger lg;
-	    lg() << "doAppend(" << dir << "): committing " << napp
-		 << " rows to partition \"" << tbl->name() << "\"";
-	    if (ibis::gVerbose > 0)
-		lg() << " took " << timer.CPUTime() << " CPU seconds, "
-		     << timer.realTime() << " elapsed seconds";
-	    lg() << ".  Total number of rows is " << tbl->nRows() << ".";
-	}
+        timer.start();
+        ierr = tbl->commit(dir);
+        timer.stop();
+        if (ierr != napp) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- doAppend(" << dir
+                << "): expected commit to return "
+                << napp << ", but it actually retruned " << ierr
+                << ".  Unrecoverable error!\n";
+            return;
+        }
+        else if (ibis::gVerbose >= 0) {
+            ibis::util::logger lg;
+            lg() << "doAppend(" << dir << "): committing " << napp
+                 << " rows to partition \"" << tbl->name() << "\"";
+            if (ibis::gVerbose > 0)
+                lg() << " took " << timer.CPUTime() << " CPU seconds, "
+                     << timer.realTime() << " elapsed seconds";
+            lg() << ".  Total number of rows is " << tbl->nRows() << ".";
+        }
 
-	if (ierr <= 0) {
-	    if (newtable) // new partition, delete it
-		delete tbl;
-	    return;
-	}
+        if (ierr <= 0) {
+            if (newtable) // new partition, delete it
+                delete tbl;
+            return;
+        }
 
-	// self test after commit
-	if (ibis::gVerbose > 4 || (ibis::gVerbose > 0 && testing > 0)) {
-	    tbl->buildIndexes(0, 1);
-	    ierr = tbl->selfTest(0);
-	    LOGGER(ibis::gVerbose > 0)
+        // self test after commit
+        if (ibis::gVerbose > 4 || (ibis::gVerbose > 0 && testing > 0)) {
+            tbl->buildIndexes(0, 1);
+            ierr = tbl->selfTest(0);
+            LOGGER(ibis::gVerbose > 0)
                 << (ierr>0?"Warning -- ":"")
-		<< "doAppend(" << dir << "): selfTest on partition \""
-		<< tbl->name() << "\" (after committing " << napp
-		<< (napp > 1 ? " rows" : " row")
-		<< ") encountered " << ierr
-		<< (ierr > 1 ? " errors\n" : " error\n");
-	}
+                << "doAppend(" << dir << "): selfTest on partition \""
+                << tbl->name() << "\" (after committing " << napp
+                << (napp > 1 ? " rows" : " row")
+                << ") encountered " << ierr
+                << (ierr > 1 ? " errors\n" : " error\n");
+        }
     }
     else if (ibis::gVerbose > 3 || (ibis::gVerbose >= 0 && testing > 0)) {
-	tbl->buildIndexes(0, 1);
-	ierr = tbl->selfTest(0);
-	LOGGER(ibis::gVerbose > 0)
-	    << (ierr>0?"Warning -- ":"")
+        tbl->buildIndexes(0, 1);
+        ierr = tbl->selfTest(0);
+        LOGGER(ibis::gVerbose > 0)
+            << (ierr>0?"Warning -- ":"")
             << "doAppend(" << dir << "): selfTest on partition \""
-	    << tbl->name() << "\" (after appending " << napp
-	    << (napp > 1 ? " rows" : " row")
-	    << ") encountered " << ierr
-	    << (ierr > 1 ? " errors\n" : " error\n");
+            << tbl->name() << "\" (after appending " << napp
+            << (napp > 1 ? " rows" : " row")
+            << ") encountered " << ierr
+            << (ierr > 1 ? " errors\n" : " error\n");
     }
     if (newtable) // new partition, add it to the list of partitions
         ibis::datasets.push_back(tbl);
@@ -4299,14 +4451,14 @@ static void doJoin(const char* uid, ibis::joinspec& js,
              stricmp((*pt2)->name(), js.part2) != 0;
          ++ pt2);
     if (pt2 == prts.end()) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- " << oss.str() << ": " << js.part2
-	    << " is not a know data partition";
-	return;
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- " << oss.str() << ": " << js.part2
+            << " is not a know data partition";
+        return;
     }
     std::unique_ptr<ibis::quaere>
-	jn(ibis::quaere::create
-	   (*pt1, *pt2, js.jcol, js.cond1, js.cond2, js.selcol.c_str()));
+        jn(ibis::quaere::create
+           (*pt1, *pt2, js.jcol, js.cond1, js.cond2, js.selcol.c_str()));
     if (jn.get() == 0) {
         LOGGER(ibis::gVerbose >= 0)
             << "Warning -- " << oss.str()
@@ -4500,67 +4652,67 @@ static void parseString(const char* uid, const char* qstr,
     while (std::isspace(*str)) ++str;
     // look for key word SELECT
     if (0 == strnicmp(str, "select ", 7)) {
-	str += 7;
-	while (std::isspace(*str)) ++str;
-	// look for the next key word (either FROM or WHERE)
-	end = strstr(str, " from ");
-	if (end == 0) {
-	    end = strstr(str, " FROM ");
-	    if (end == 0)
-		end = strstr(str, " From ");
-	}
-	if (end) { // found FROM clause
-	    while (str < end) {
-		sstr += *str;
-		++ str;
-	    }
-	    str = end + 1;
-	}
-	else { // no FROM clause, try to locate WHERE
-	    end = strstr(str, " where ");
-	    if (end == 0) {
-		end = strstr(str, " WHERE ");
-		if (end == 0)
-		    end = strstr(str, " Where ");
-	    }
-	    if (end == 0) {
-		sstr = str;
-		str = 0;
-	    }
-	    else {
-		while (str < end) {
-		    sstr += *str;
-		    ++ str;
-		}
-		str = end + 1;
-	    }
-	}
+        str += 7;
+        while (std::isspace(*str)) ++str;
+        // look for the next key word (either FROM or WHERE)
+        end = strstr(str, " from ");
+        if (end == 0) {
+            end = strstr(str, " FROM ");
+            if (end == 0)
+                end = strstr(str, " From ");
+        }
+        if (end) { // found FROM clause
+            while (str < end) {
+                sstr += *str;
+                ++ str;
+            }
+            str = end + 1;
+        }
+        else { // no FROM clause, try to locate WHERE
+            end = strstr(str, " where ");
+            if (end == 0) {
+                end = strstr(str, " WHERE ");
+                if (end == 0)
+                    end = strstr(str, " Where ");
+            }
+            if (end == 0) {
+                sstr = str;
+                str = 0;
+            }
+            else {
+                while (str < end) {
+                    sstr += *str;
+                    ++ str;
+                }
+                str = end + 1;
+            }
+        }
     }
 
     // look for key word FROM
     if (str != 0 && 0 == strnicmp(str, "from ", 5)) {
-	str += 5;
-	while (std::isspace(*str)) ++str;
-	end = strstr(str, " where "); // look for key word WHERE
-	if (end == 0) {
-	    end = strstr(str, " WHERE ");
-	    if (end == 0)
-		end = strstr(str, " Where ");
-	}
-	if (end == 0 && sstr.empty()) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "parseString(" << qstr << ") is unable to locate "
-		<< "key word WHERE following FROM clause";
-	    return;
-	}
-	else if (end != 0) {
-	    fstr.append(str, end);
-	    str = end + 1;
-	}
-	else {
-	    fstr = str;
-	    str = 0;
-	}
+        str += 5;
+        while (std::isspace(*str)) ++str;
+        end = strstr(str, " where "); // look for key word WHERE
+        if (end == 0) {
+            end = strstr(str, " WHERE ");
+            if (end == 0)
+                end = strstr(str, " Where ");
+        }
+        if (end == 0 && sstr.empty()) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "parseString(" << qstr << ") is unable to locate "
+                << "key word WHERE following FROM clause";
+            return;
+        }
+        else if (end != 0) {
+            fstr.append(str, end);
+            str = end + 1;
+        }
+        else {
+            fstr = str;
+            str = 0;
+        }
     }
 
     // check for the WHERE clause
@@ -4639,72 +4791,72 @@ static void parseString(const char* uid, const char* qstr,
         }
     }
     while (str != 0 && *str && std::isspace(*str)) // skip blank spaces
-	++ str;
+        ++ str;
     if (str != 0 && 0 == strnicmp(str, "limit ", 6)) {
-	str += 6;
-	uint64_t tmp;
-	int ierr = ibis::util::readUInt(tmp, str, ", ");
-	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- parseString(" << qstr
-		<< ") expects a unsigned interger following "
-		"the keyword LIMIT, but got '" << *str
-		<< "', skip the limit clause";
-	}
-	else if (std::isspace(*str) || *str == ',') {
-	    for (++ str; *str != 0 && (std::isspace(*str) || *str == ',');
+        str += 6;
+        uint64_t tmp;
+        int ierr = ibis::util::readUInt(tmp, str, ", ");
+        if (ierr < 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- parseString(" << qstr
+                << ") expects a unsigned interger following "
+                "the keyword LIMIT, but got '" << *str
+                << "', skip the limit clause";
+        }
+        else if (std::isspace(*str) || *str == ',') {
+            for (++ str; *str != 0 && (std::isspace(*str) || *str == ',');
                  ++ str);
-	    limit = static_cast<uint32_t>(tmp);
-	    ierr = ibis::util::readUInt(tmp, str, 0);
-	    if (ierr >= 0) {
-		start = limit;
-		limit = static_cast<uint32_t>(tmp);
-	    }
-	}
-	else if (*str == 0) {
-	    limit = static_cast<uint32_t>(tmp);
-	}
-	else {
-	    ibis::util::logger()()
-		<< "Warning -- parseString(" << qstr
-		<< ") reached a unexpected end of string \"" << str << "\"";
-	}
+            limit = static_cast<uint32_t>(tmp);
+            ierr = ibis::util::readUInt(tmp, str, 0);
+            if (ierr >= 0) {
+                start = limit;
+                limit = static_cast<uint32_t>(tmp);
+            }
+        }
+        else if (*str == 0) {
+            limit = static_cast<uint32_t>(tmp);
+        }
+        else {
+            ibis::util::logger()()
+                << "Warning -- parseString(" << qstr
+                << ") reached a unexpected end of string \"" << str << "\"";
+        }
     }
     else if (str != 0 && *str != 0 && ibis::gVerbose >= 0) {
-	ibis::util::logger()()
+        ibis::util::logger()()
             << "Warning -- parseString(" << qstr
             << ") expects the key word LIMIT, but got " << str;
     }
 
     ibis::nameList qtables(fstr.c_str());
     if (usequaere) {
-	doQuaere(prts, sstr.c_str(), fstr.c_str(), wstr.c_str(),
-		 ordkeys.c_str(), limit, start);
+        doQuaere(prts, sstr.c_str(), fstr.c_str(), wstr.c_str(),
+                 ordkeys.c_str(), limit, start);
     }
     else if (independent_parts == 0 ||
              (! sstr.empty() && (sstr.find('(') < sstr.size() ||
                                  sstr.find(" as ") < sstr.size()))) {
-	//  || recheckvalues || !ordkeys.empty() || limit > 0
-	// more complex select clauses need tableSelect
-	if (! qtables.empty()) {
-	    ibis::partList tl2;
-	    for (unsigned k = 0; k < prts.size(); ++ k) {
-		for (unsigned j = 0; j < qtables.size(); ++ j) {
-		    if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
-			ibis::util::strMatch(prts[k]->name(),
-					     qtables[j])) {
-			tl2.push_back(prts[k]);
-			break;
-		    }
-		}
-	    }
-	    try {
-		tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), limit, start);
-	    }
-	    catch (...) {
-		if (ibis::util::serialNumber() % 3 == 0) {
-		    ibis::util::quietLock lock(&ibis::util::envLock);
+        //  || recheckvalues || !ordkeys.empty() || limit > 0
+        // more complex select clauses need tableSelect
+        if (! qtables.empty()) {
+            ibis::partList tl2;
+            for (unsigned k = 0; k < prts.size(); ++ k) {
+                for (unsigned j = 0; j < qtables.size(); ++ j) {
+                    if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
+                        ibis::util::strMatch(prts[k]->name(),
+                                             qtables[j])) {
+                        tl2.push_back(prts[k]);
+                        break;
+                    }
+                }
+            }
+            try {
+                tableSelect(tl2, uid, wstr.c_str(), sstr.c_str(),
+                            ordkeys.c_str(), limit, start);
+            }
+            catch (...) {
+                if (ibis::util::serialNumber() % 3 == 0) {
+                    ibis::util::quietLock lock(&ibis::util::envLock);
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
                     sleep(1);
 #endif
@@ -4739,24 +4891,24 @@ static void parseString(const char* uid, const char* qstr,
         }
     }
     else if (! qtables.empty()) {
-	// simple select clauses can be handled through doQuery
-	for (unsigned k = 0; k < prts.size(); ++ k) {
-	    // go through each partition the user has specified
-	    for (unsigned j = 0; j < qtables.size(); ++ j) {
-		if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
-		    ibis::util::strMatch(prts[k]->name(),
-					 qtables[j])) {
-		    if (recheckvalues || sequential_scan ||
-			prts[k]->getMeshShape().empty()) {
-			try {
-			    doQuery(prts[k], uid, wstr.c_str(),
+        // simple select clauses can be handled through doQuery
+        for (unsigned k = 0; k < prts.size(); ++ k) {
+            // go through each partition the user has specified
+            for (unsigned j = 0; j < qtables.size(); ++ j) {
+                if (stricmp(prts[k]->name(), qtables[j]) == 0 ||
+                    ibis::util::strMatch(prts[k]->name(),
+                                         qtables[j])) {
+                    if (recheckvalues || sequential_scan ||
+                        prts[k]->getMeshShape().empty()) {
+                        try {
+                            doQuery(prts[k], uid, wstr.c_str(),
                                     sstr.c_str(), ordkeys.c_str(),
-				    limit, start);
-			}
-			catch (...) {
-			    if (ibis::util::serialNumber() % 3 == 0) {
-				ibis::util::quietLock
-				    lock(&ibis::util::envLock);
+                                    limit, start);
+                        }
+                        catch (...) {
+                            if (ibis::util::serialNumber() % 3 == 0) {
+                                ibis::util::quietLock
+                                    lock(&ibis::util::envLock);
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
                                 sleep(1);
 #endif
@@ -4807,18 +4959,18 @@ static void parseString(const char* uid, const char* qstr,
         }
     }
     else {
-	for (ibis::partList::iterator tit = prts.begin();
-	     tit != prts.end(); ++ tit) {
-	    // go through every partition and process the user query
-	    if (recheckvalues || sequential_scan ||
-		(*tit)->getMeshShape().empty()) {
-		try {
-		    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
-			    ordkeys.c_str(), limit, start);
-		}
-		catch (...) {
-		    if (ibis::util::serialNumber() % 3 == 0) {
-			ibis::util::quietLock lock(&ibis::util::envLock);
+        for (ibis::partList::iterator tit = prts.begin();
+             tit != prts.end(); ++ tit) {
+            // go through every partition and process the user query
+            if (recheckvalues || sequential_scan ||
+                (*tit)->getMeshShape().empty()) {
+                try {
+                    doQuery((*tit), uid, wstr.c_str(), sstr.c_str(),
+                            ordkeys.c_str(), limit, start);
+                }
+                catch (...) {
+                    if (ibis::util::serialNumber() % 3 == 0) {
+                        ibis::util::quietLock lock(&ibis::util::envLock);
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
                         sleep(1);
 #endif
@@ -4878,32 +5030,32 @@ static void readInput(std::string& str) {
     int wait = 0;
     char buf[MAX_LINE];
     do {
-	std::cout << (wait ? "more > " : "ibis > ");
-	std::flush(std::cout);
+        std::cout << (wait ? "more > " : "ibis > ");
+        std::flush(std::cout);
 
-	if (0 == fgets(buf, MAX_LINE, stdin)) *buf = 0;
-	// remove trailing space
-	char* tmp = buf + strlen(buf) - 1;
-	while (tmp>=buf && std::isspace(*tmp)) {
-	    *tmp = 0; -- tmp;
-	}
+        if (0 == fgets(buf, MAX_LINE, stdin)) *buf = 0;
+        // remove trailing space
+        char* tmp = buf + strlen(buf) - 1;
+        while (tmp>=buf && std::isspace(*tmp)) {
+            *tmp = 0; -- tmp;
+        }
 
-	if (tmp < buf) {
-	    wait = 1;
-	}
-	else {
-	    wait = 0;
-	    if (*tmp == '\\') {
-		int cnt = 0;
-		char* t2 = tmp;
-		while (t2 > buf && *t2 == '\\') {
-		    --t2; ++cnt;
-		}
-		wait = (cnt % 2);
-		if (wait) *tmp = ' ';
-	    }
-	    str += buf + strspn(buf, " \t");
-	}
+        if (tmp < buf) {
+            wait = 1;
+        }
+        else {
+            wait = 0;
+            if (*tmp == '\\') {
+                int cnt = 0;
+                char* t2 = tmp;
+                while (t2 > buf && *t2 == '\\') {
+                    --t2; ++cnt;
+                }
+                wait = (cnt % 2);
+                if (wait) *tmp = ' ';
+            }
+            str += buf + strspn(buf, " \t");
+        }
     } while (wait);
 } // readInput
 
@@ -4963,145 +5115,56 @@ int main(int argc, char** argv) {
     _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
     try {
-	int interactive;
-	std::vector<const char*> alist, qlist, slist;
-	ibis::joinlist joins;
-	std::vector<std::string> queff; // queries read from files (-f)
-	const char* uid = ibis::util::userName();
-	ibis::horometer timer; // total elapsed time
-	timer.start();
+        int interactive;
+        std::vector<const char*> alist, qlist, slist;
+        ibis::joinlist joins;
+        std::vector<std::string> queff; // queries read from files (-f)
+        const char* uid = ibis::util::userName();
+        ibis::horometer timer; // total elapsed time
+        timer.start();
 
-	// parse the command line arguments
-	parse_args(argc, argv, interactive, alist, slist, qlist,
-		   queff, joins);
+        // parse the command line arguments
+        parse_args(argc, argv, interactive, alist, slist, qlist,
+                   queff, joins);
 
-	// append new data one directory at a time, the same directory may
-	// be used many times, all incoming directories appended to the
-	// same output directory specified by appendTarget
-	for (std::vector<const char*>::const_iterator it = alist.begin();
-	     it != alist.end();
-	     ++ it) { // add new data before doing anything else
-	    doAppend(*it);
-	}
-	alist.clear(); // no more use for it
+        // append new data one directory at a time, the same directory may
+        // be used many times, all incoming directories appended to the
+        // same output directory specified by appendTarget
+        for (std::vector<const char*>::const_iterator it = alist.begin();
+             it != alist.end();
+             ++ it) { // add new data before doing anything else
+            doAppend(*it);
+        }
+        alist.clear(); // no more use for it
 
-	if (yankstring != 0 && *yankstring != 0)
-	    doDeletion();
-	if (keepstring != 0 && *keepstring != 0)
-	    reverseDeletion();
+        if (yankstring != 0 && *yankstring != 0)
+            doDeletion();
+        if (keepstring != 0 && *keepstring != 0)
+            reverseDeletion();
 
-	// build new indexes
-	if (build_index > 0 && ! ibis::datasets.empty()) {
-	    if (ibis::gVerbose > 0) {
-		ibis::util::logger lg;
-		lg() << *argv << ": start building indexes (nthreads="
-		     << build_index << ", indexingOption";
-		if (indexingOptions.empty()) {
-		    lg() << "= -";
-		}
-		else if (indexingOptions.size() == 1) {
-		    lg() << "= " << indexingOptions.back();
-		}
-		else {
-		    lg() << "s= {";
-		    for (unsigned j = 0; j+1 < indexingOptions.size(); j += 2)
-			lg() << (j>0?", ":"") << indexingOptions[j] << ':'
-			     << indexingOptions[j+1];
-		    if (indexingOptions.size() % 2 > 0)
-			lg() << ", *:" << indexingOptions.back();
-		    lg() << "}";
-		}
-		lg() << ") ...";
-	    }
-
-	    ibis::horometer timer1;
-	    timer1.start();
-	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
-		 it != ibis::datasets.end(); ++ it) {
-		if (indexingOptions.size() == 1 &&
-		    ((*it)->indexSpec() == 0 ||
-		     stricmp(indexingOptions.back(), (*it)->indexSpec())
-		     != 0)) {
-		    (*it)->indexSpec(indexingOptions.back());
-		    (*it)->purgeIndexFiles();
-		}
-		else if (zapping) {
-		    (*it)->purgeIndexFiles();
-		}
-		(*it)->buildIndexes(indexingOptions, build_index);
-	    }
-	    timer1.stop();
-	    if (ibis::gVerbose >= 0) {
-		ibis::util::logger lg;
-		lg() << *argv << ": building indexes for "
-		     << ibis::datasets.size() << " data partition"
-		     << (ibis::datasets.size()>1 ? "s" : "");
-		if (ibis::gVerbose > 0)
-		    lg() << " took " << timer1.CPUTime() << " CPU seconds, "
-			 << timer1.realTime() << " elapsed seconds\n";
-	    }
-	    zapping = false;
-	}
-	// sort the specified columns
-	if (slist.size() > 0) {
-	    ibis::horometer timer2;
-	    timer2.start();
-	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
-		 it != ibis::datasets.end(); ++ it) {
-		for (size_t j = 0; j < slist.size(); ++ j)
-		    (*it)->buildSorted(slist[j]);
-	    }
-	    timer2.stop();
-	    if (ibis::gVerbose >= 0) {
-		ibis::util::logger lg;
-		lg() << *argv << ": building sorted version of "
-		     << slist.size() << " column" << (slist.size()>1 ? "s" : "")
-		     << " for " << ibis::datasets.size() << " data partition"
-		     << (ibis::datasets.size()>1 ? "s" : "");
-		if (ibis::gVerbose > 0)
-		    lg() << " took " << timer2.CPUTime() << " CPU seconds, "
-			 << timer2.realTime() << " elapsed seconds\n";
-	    }
-	    slist.clear(); // no longer needed
-	}
-
-	if (testing > 0 && ! ibis::datasets.empty() && threading > 0 &&
-	    qlist.empty()) { // generate random queries
-	    const unsigned mq = (threading > 1 ? threading : 2) *
-		(testing > 0 ? testing+1 : 5);
-	    randomQueries(*ibis::datasets[0], mq, qlist, queff);
-	}
-	else if (testing > 0 && ! ibis::datasets.empty()) {
-	    // performing self test
-	    LOGGER(ibis::gVerbose > 0) << *argv << ": start testing ...";
-	    ibis::horometer timer3;
-	    timer3.start();
-	    for (ibis::partList::const_iterator it = ibis::datasets.begin();
-		 it != ibis::datasets.end(); ++ it) {
-		// tell the partition to perform self tests
-		long nerr = (*it)->selfTest(testing);
-		(*it)->unloadIndexes();
-
-		if (ibis::gVerbose >= 0) {
-		    ibis::util::logger lg;
-		    lg() << "self tests on " << (*it)->name();
-		    if (nerr == 0)
-			lg() << " found no error";
-		    else if (nerr == 1)
-			lg() << " found 1 error";
-		    else if (nerr > 1)
-			lg() << " found " << nerr << " errors";
-		    else
-			lg() << " returned unexpected value " << nerr;
-		}
-	    }
-	    timer3.stop();
-	    LOGGER(ibis::gVerbose > 0)
-		<< *argv << ": testing " << ibis::datasets.size()
-		<< " data partition" << (ibis::datasets.size()>1 ? "s" : "")
-		<< " took " << timer3.CPUTime() << " CPU seconds, "
-		<< timer3.realTime() << " elapsed seconds\n";
-	}
+        // build new indexes
+        if (build_index > 0 && ! ibis::datasets.empty()) {
+            if (ibis::gVerbose > 0) {
+                ibis::util::logger lg;
+                lg() << *argv << ": start building indexes (nthreads="
+                     << build_index << ", indexingOption";
+                if (indexingOptions.empty()) {
+                    lg() << "= -";
+                }
+                else if (indexingOptions.size() == 1) {
+                    lg() << "= " << indexingOptions.back();
+                }
+                else {
+                    lg() << "s= {";
+                    for (unsigned j = 0; j+1 < indexingOptions.size(); j += 2)
+                        lg() << (j>0?", ":"") << indexingOptions[j] << ':'
+                             << indexingOptions[j+1];
+                    if (indexingOptions.size() % 2 > 0)
+                        lg() << ", *:" << indexingOptions.back();
+                    lg() << "}";
+                }
+                lg() << ") ...";
+            }
 
             ibis::horometer timer1;
             timer1.start();
@@ -5260,42 +5323,42 @@ int main(int argc, char** argv) {
                 help(*argv);
             }
 
-	    while (1) {
-		readInput(str);
-		switch (*(str.c_str())) {
-		case 'h': // help
-		case 'H':
-		case '?':
-		default:
-		    help(*argv);
+            while (1) {
+                readInput(str);
+                switch (*(str.c_str())) {
+                case 'h': // help
+                case 'H':
+                case '?':
+                default:
+                    help(*argv);
                     break;
-		case 'e': // exit
-		case 'E':
-		case 'q':
-		case 'Q':
-		    clean_up(true);
+                case 'e': // exit
+                case 'E':
+                case 'q':
+                case 'Q':
+                    clean_up(true);
                     return(0);
-		case 'p': // print command
-		case 'P':
-		    print(str.c_str()); break;
-		case 's': // a select statement
-		case 'f':
-		case 'w':
-		case 'S':
-		case 'F':
-		case 'W': {
-		    parseString(uid, str.c_str(), ibis::datasets);
-		    break;}
-		case 'a':
-		case 'A': {
-		    const char* dir = str.c_str();
-		    while(std::isalpha(*dir)) ++dir; // skip key word append
-		    while(std::isspace(*dir)) ++dir; // skip space
-		    doAppend(dir);
-		    break;}
-		}
-	    }
-	}
+                case 'p': // print command
+                case 'P':
+                    print(str.c_str()); break;
+                case 's': // a select statement
+                case 'f':
+                case 'w':
+                case 'S':
+                case 'F':
+                case 'W': {
+                    parseString(uid, str.c_str(), ibis::datasets);
+                    break;}
+                case 'a':
+                case 'A': {
+                    const char* dir = str.c_str();
+                    while(std::isalpha(*dir)) ++dir; // skip key word append
+                    while(std::isspace(*dir)) ++dir; // skip space
+                    doAppend(dir);
+                    break;}
+                }
+            }
+        }
 
         timer.stop();
         LOGGER(timer.realTime() > 0.001 && ibis::gVerbose > 0)
