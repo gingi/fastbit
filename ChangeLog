@@ -1,3 +1,13 @@
+2014-02-24 Justin Swanhart <greenlion at gmail dot com>
+	* src/tafel.cpp: patch writeData to correctly print the number of
+	rows handles
+
+2014-02-24 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp: prevent column::append to work with index only
+	column, in copy constructor, copy index as well as data values
+	* examples/tiapi.c: move the code that makes a3 index only in
+	queryarray2 to after the doubling of data
+
 2014-02-22 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: update bord::column::append to handle column type
 	BIT following the new storage scheme
