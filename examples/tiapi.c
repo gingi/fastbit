@@ -358,6 +358,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
     double  b31 = 2.0, b32 = 3;
     long int i, ierr;
     FastBitSelectionHandle h1, h2, h3, h4, h5;
+    uint64_t cooa[n], coob[n];
     dblbuffer dbl;
     /* NOTE: keys, offsets and bms are used by FastBit after invoking
        fastbit_iapi_attach_index; they can only be freed after the index is
@@ -433,6 +434,27 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
         }
     }
     fflush(stdout);
+    /* store the result twice as an array named "r2" */
+    fastbit_iapi_register_selection_as_bit_array("r2", h5);
+    fastbit_iapi_extend_bit_array_with_selection("r2", h5);
+    h2 = fastbit_selection_osr("r2", FastBitCompareGreater, 0.0);
+    i = fastbit_selection_evaluate(h2);
+    if (i < 0) {
+        printf("Warning -- fastbit_selection_evaluate(r2 > 0.0) failed with "
+               "code %ld\n", i);
+        for (i=0; i < n; i++)
+            cooa[i] = n;
+    }
+    else {
+        i = fastbit_selection_get_coordinates(h2, cooa, n, 0);
+        if (i < 0) {
+            printf("Warning -- fastbit_selection_get_coordinates failed with "
+                   "code %ld in option A\n", i);
+        }
+    }
+    /* query "r2 > 0" is no longer needed */
+    fastbit_selection_free(h2);
+
     /* free cached results, not h5 itself */
     fastbit_selection_purge_results(h5);
 
@@ -530,6 +552,31 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
                 printf("fastbit_selection_evaluate(...) returned %ld as "
                        "expected\n", ierr);
             }
+            i = fastbit_selection_get_coordinates(h5, coob, n, 0);
+            if (i < 0) {
+                printf("Warning -- fastbit_selection_get_coordinates failed with "
+                       "code %ld in option B\n", i);
+            }
+            else {
+                int cnt = 0;
+                for (i = 0; i < expected; ++ i) {
+                    if (cooa[i] != coob[i]) {
+                        printf("cooa[%ld] (%lu) != coob[%ld] (%lu)\n",
+                               i, (unsigned long)cooa[i],
+                               i, (unsigned long)coob[i]);
+                        ++ cnt;
+                    }
+                }
+                if (cnt == 0) {
+                    printf("queryarray2 -- coordinates from two evaluation "
+                           "options match exactly\n");
+                }
+                else {
+                    printf("Warning -- queryarray2 found %d mismatches among "
+                           "the coordinates returned by the two evaluation "
+                           "options\n", cnt);
+                }
+            }
         }
         fflush(stdout);
     }
@@ -584,10 +631,8 @@ int main(int argc, char **argv) {
         fillarray2(k, a1, a2, a3);
         queryarray2(k, a1, a2, a3);
 
-        /*
         fillarrays(k, a1, a2, a3);
         queryarrays(k, a1, a2, a3);
-        */
         // need to clear all cached objects so that we can reuse the same
         // pointers a1, a2, a3
         fastbit_iapi_free_all();

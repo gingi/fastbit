@@ -1349,7 +1349,7 @@ extern "C" int64_t fastbit_selection_evaluate(FastBitSelectionHandle h) {
 
     const ibis::bitvector *res = fastbit_iapi_lookup_solution(h);
     if (res != 0) {
-        LOGGER(ibis::gVerbose > 3)
+        LOGGER(ibis::gVerbose > 6)
             << "Warning -- fastbit_selection_evaluate returns cached result "
             "for query \"" << *static_cast<const ibis::qExpr*>(h) << '"';
         return res->cnt();
@@ -2028,3 +2028,30 @@ extern "C" FastBitSelectionHandle fastbit_selection_osr
     }
     return ret;
 } // fastbit_selection_osr
+
+/**
+   @warning the selection/query must have been evaluated already, otherwise
+   ther is no bitvector to be used for this function.
+ */
+extern "C" int fastbit_iapi_register_selection_as_bit_array
+(const char *nm, FastBitSelectionHandle h) {
+    ibis::bitvector *bv =
+        const_cast<ibis::bitvector*>(fastbit_iapi_lookup_solution(h));
+    if (bv == 0) return -1;
+    return fastbit_iapi_register_array
+        (nm, FastBitDataTypeBitCompressed, bv, bv->size());
+} // fastbit_iapi_register_selection_as_bit_array
+
+/** 
+   @warning the selection/query must have been evaluated already, otherwise
+   ther is no bitvector to be used for this function.
+ */
+extern "C" int fastbit_iapi_extend_bit_array_with_selection
+(const char *nm, FastBitSelectionHandle h) {
+    ibis::bitvector *bv =
+        const_cast<ibis::bitvector*>(fastbit_iapi_lookup_solution(h));
+    if (bv == 0) return -1;
+    return fastbit_iapi_extend_array
+        (nm, FastBitDataTypeBitCompressed, bv, bv->size());
+} // fastbit_iapi_extend_bit_array_with_selection
+

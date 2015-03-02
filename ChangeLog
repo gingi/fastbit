@@ -1,6 +1,9 @@
 2014-03-02 John Wu <John dot Wu at ACM dot org>
 	* example/tiapi.c:476 logical error, "nv=n;" should have been
 	"nv=n+n;"
+	* src/iapi.h: add functions
+	fastbit_iapi_register_selection_as_bit_array and
+	fastbit_iapi_extend_bit_array_with_selection
 
 2014-02-28 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h:781 nbits should have been active.nbits
