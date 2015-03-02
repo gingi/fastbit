@@ -147,6 +147,12 @@ extern "C" {
     int fastbit_iapi_register_array_index_only
     (const char*, FastBitDataType, uint64_t*, uint64_t,
      double*, uint64_t, int64_t*, uint64_t, void*, FastBitReadBitmaps);
+    /** Register query result as a bit array. */
+    int fastbit_iapi_register_selection_as_bit_array
+    (const char*, FastBitSelectionHandle);
+    /** Extend the array with the given name with new content. */
+    int fastbit_iapi_extend_bit_array_with_selection
+    (const char*, FastBitSelectionHandle);
 
     /** Build index. */
     int fastbit_iapi_build_index(const char*, const char*);

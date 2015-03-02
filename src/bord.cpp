@@ -219,7 +219,7 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols,
             nEvents = buf->size();
         break;}
     }
-    LOGGER(nr == 0 && ibis::gVerbose > 3)
+    LOGGER(nr == 0 && ibis::gVerbose > 6)
         << "Warning -- bord::ctor determines the number of rows ("
         << nEvents << ") in the data partition based on column[0] "
         << cols[0]->name() << " (" << cols[0]->description()
@@ -242,12 +242,12 @@ ibis::bord::bord(const std::vector<ibis::bord::column*> &cols,
             columns[tmp->name()] = tmp;
             if (nEvents == 0)
                 nEvents = tmp->nRows();
-            LOGGER(ibis::gVerbose > 3)
+            LOGGER(ibis::gVerbose > 6)
                 << "bord::ctor adding column[" << j << "] " << tmp->name()
                 << " (" << tmp->description() << ") to " << m_name;
         }
         else {
-            LOGGER(ibis::gVerbose > 0)
+            LOGGER(ibis::gVerbose > 6)
                 << "Warning -- bord::ctor encountered column[" << j << "] "
                 << cols[j]->name() << " (" << cols[j]->description()
                 << ") already appeared in " << m_name;
