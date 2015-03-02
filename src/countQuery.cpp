@@ -11,8 +11,8 @@
 #include "countQuery.h"         // class countQuery
 #include "query.h"              // ibis::query
 
-#include <memory>	// std::unique_ptr
-#include <sstream>	// std::ostringstream
+#include <memory>       // std::unique_ptr
+#include <sstream>      // std::ostringstream
 
 ////////////////////////////////////////////////////////////
 // public functions of ibis::countQuery
@@ -38,7 +38,7 @@ int ibis::countQuery::setPartition(const part* tbl) {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::setPartition will not use an empty "
             "data partition";
-	return -1;
+        return -1;
     }
 
     if (! conds.empty()) {
@@ -83,7 +83,7 @@ int ibis::countQuery::setWhereClause(const char* str) {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::setWhereClause will not use an empty "
             "where clause";
-	return -4; // invalid input where clause
+        return -4; // invalid input where clause
     }
     if (conds.getString() != 0 && stricmp(conds.getString(), str) == 0)
         return 0; // no change in where clause
@@ -156,16 +156,16 @@ int ibis::countQuery::setWhereClause(const ibis::qExpr* qx) {
     int ierr = 0;
     wc.setExpr(qx);
     if (mypart != 0) {
-	int ierr = wc.verify(*mypart);
-	if (ierr != 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- countQuery::setWhereClause(" << *qx
-		<< ") found the qExpr object with " << ierr << " incorrect name"
-		<< (ierr > 1 ? "s" : "")
-		<< ".  Keeping the existing where clause ";
-	    ierr = -6;
+        int ierr = wc.verify(*mypart);
+        if (ierr != 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- countQuery::setWhereClause(" << *qx
+                << ") found the qExpr object with " << ierr << " incorrect name"
+                << (ierr > 1 ? "s" : "")
+                << ".  Keeping the existing where clause ";
+            ierr = -6;
             return ierr;
-	}
+        }
     }
     if (ibis::gVerbose > 0 &&
         wc.getExpr()->nItems() <= static_cast<unsigned>(ibis::gVerbose)) {
@@ -202,7 +202,7 @@ int ibis::countQuery::estimate() {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::estimate() can not proceed on an "
             "empty data partition";
-	return -1;
+        return -1;
     }
     ibis::util::timer mytime("countQuery::estimate", 2);
 #ifndef DONOT_REORDER_EXPRESSION
@@ -294,7 +294,7 @@ int ibis::countQuery::evaluate() {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::evaluate() can not proceed on an "
             "empty data partition";
-	return -1;
+        return -1;
     }
     int ierr;
     ibis::util::timer mytime("countQuery::evaluate", 1);
@@ -367,7 +367,7 @@ int ibis::countQuery::evaluate() {
         }
     }
     LOGGER(ibis::gVerbose > 0)
-	<< "From " << mypart->name() << " Where " << conds << " --> "
+        << "From " << mypart->name() << " Where " << conds << " --> "
         << hits->cnt();
     return 0;
 } // ibis::countQuery::evaluate
@@ -389,7 +389,7 @@ long ibis::countQuery::getHitRows(std::vector<uint32_t> &rids) const {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- countQuery::getHitRows can proceed because "
             "the query is not fully resolved";
-	return -1; // no accurate solution yet
+        return -1; // no accurate solution yet
     }
 
     long ierr = hits->cnt();
@@ -411,9 +411,9 @@ long ibis::countQuery::getHitRows(std::vector<uint32_t> &rids) const {
         return ierr;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- countQuery::getHitRows failed to extract the ids";
-	return -2;
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- countQuery::getHitRows failed to extract the ids";
+        return -2;
     }
 } // ibis::countQuery::getHitRows
 
@@ -445,28 +445,28 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
         break;
     }
     case ibis::qExpr::LOGICAL_AND: {
-	doEstimate(term->getLeft(), low, high);
-	// there is no need to evaluate the right-hand side if the left-hand
-	// is evaluated to have no hit
-	if (low.sloppyCount() > 0) {
-	    // continue to evaluate the right-hand side
-	    ibis::bitvector b1, b2;
-	    doEstimate(term->getRight(), b1, b2);
-	    if (high.size() == low.size()) {
-		if (b2.size() == b1.size()) {
-		    high &= b2;
-		}
-		else {
-		    high &= b1;
-		}
-	    }
-	    else if (b2.size() == b1.size()) {
-		high.copy(low);
-		high &= b2;
-	    }
-	    low &= b1;
-	}
-	break;
+        doEstimate(term->getLeft(), low, high);
+        // there is no need to evaluate the right-hand side if the left-hand
+        // is evaluated to have no hit
+        if (low.sloppyCount() > 0) {
+            // continue to evaluate the right-hand side
+            ibis::bitvector b1, b2;
+            doEstimate(term->getRight(), b1, b2);
+            if (high.size() == low.size()) {
+                if (b2.size() == b1.size()) {
+                    high &= b2;
+                }
+                else {
+                    high &= b1;
+                }
+            }
+            else if (b2.size() == b1.size()) {
+                high.copy(low);
+                high &= b2;
+            }
+            low &= b1;
+        }
+        break;
     }
     case ibis::qExpr::LOGICAL_OR: {
         ibis::bitvector b1, b2;
@@ -589,8 +589,8 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
             mypart->getNullMask(high);
         }
         else { // does not exist
-	    high.set(0, mypart->nRows());
-	    low.set(0, mypart->nRows());
+            high.set(0, mypart->nRows());
+            low.set(0, mypart->nRows());
         }
         break;}
     case ibis::qExpr::RANGE:
@@ -680,19 +680,19 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
         }
         break;
     default:
-	if (term->isConstant() && term->getType() == ibis::qExpr::MATHTERM) {
-	    const int tf = (reinterpret_cast<const ibis::math::term*>
-			    (term)->isTrue() ? 1 : 0);
-	    high.set(tf, mypart->nRows());
-	    low.set(tf, mypart->nRows());
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 2)
-		<< "Warning -- countQuery::doEstimate encountered a "
-		"unexpected term, presume every row is a possible hit";
-	    high.set(1, mypart->nRows());
-	    low.set(0, mypart->nRows());
-	}
+        if (term->isConstant() && term->getType() == ibis::qExpr::MATHTERM) {
+            const int tf = (reinterpret_cast<const ibis::math::term*>
+                            (term)->isTrue() ? 1 : 0);
+            high.set(tf, mypart->nRows());
+            low.set(tf, mypart->nRows());
+        }
+        else {
+            LOGGER(ibis::gVerbose > 2)
+                << "Warning -- countQuery::doEstimate encountered a "
+                "unexpected term, presume every row is a possible hit";
+            high.set(1, mypart->nRows());
+            low.set(0, mypart->nRows());
+        }
     }
 #if defined(DEBUG) || defined(_DEBUG)
     ibis::util::logger lg;
@@ -708,7 +708,7 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-	<< "countQuery::doEstimate(" << *term
+        << "countQuery::doEstimate(" << *term
         << ") --> [" << low.cnt() << ",  "
         << (high.size()==low.size()?high.cnt():low.cnt()) << ']';
 #endif
@@ -734,13 +734,13 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
 
     switch (term->getType()) {
     case ibis::qExpr::LOGICAL_NOT: {
-	ierr = doScan(term->getLeft(), mask, ht);
-	if (ierr >= 0) {
-	    std::unique_ptr<ibis::bitvector> tmp(mask - ht);
-	    ht.copy(*tmp);
-	    ierr = ht.sloppyCount();
-	}
-	break;}
+        ierr = doScan(term->getLeft(), mask, ht);
+        if (ierr >= 0) {
+            std::unique_ptr<ibis::bitvector> tmp(mask - ht);
+            ht.copy(*tmp);
+            ierr = ht.sloppyCount();
+        }
+        break;}
     case ibis::qExpr::LOGICAL_AND: {
         ierr = doScan(term->getLeft(), mask, ht);
         if (ierr > 0) {
@@ -751,34 +751,34 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
         }
         break;}
     case ibis::qExpr::LOGICAL_OR: {
-	ibis::bitvector b1;
-	ierr = doScan(term->getLeft(), mask, ht);
-	// decide whether to update the mask use for the next evalutation
-	// the reason for using the new mask is that we can avoid examining
-	// the rows that already known to satisfy the query condition (i.e.,
-	// already known to be hits)
-	// want to make sure the cost of generating the new mask is less
-	// than the time saved by using the new task
-	// cost of generating new mask is roughly proportional
-	// (mask.bytes() + ht.bytes())
-	// the reduction in query evalution time is likely to be proportional
-	// to ht.cnt()
-	// since there are no good estimates on the coefficients, we will
-	// simply directly compare the two
-	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
-	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
+        ibis::bitvector b1;
+        ierr = doScan(term->getLeft(), mask, ht);
+        // decide whether to update the mask use for the next evalutation
+        // the reason for using the new mask is that we can avoid examining
+        // the rows that already known to satisfy the query condition (i.e.,
+        // already known to be hits)
+        // want to make sure the cost of generating the new mask is less
+        // than the time saved by using the new task
+        // cost of generating new mask is roughly proportional
+        // (mask.bytes() + ht.bytes())
+        // the reduction in query evalution time is likely to be proportional
+        // to ht.cnt()
+        // since there are no good estimates on the coefficients, we will
+        // simply directly compare the two
+        if (ierr >= 0 && ht.cnt() < mask.cnt()) {
+            if (ht.cnt() > mask.bytes() + ht.bytes()) {
                 std::unique_ptr<ibis::bitvector> newmask(mask - ht);
-		ierr = doScan(term->getRight(), *newmask, b1);
-	    }
-	    else {
-		ierr = doScan(term->getRight(), mask, b1);
-	    }
-	    if (ierr > 0)
-		ht |= b1;
+                ierr = doScan(term->getRight(), *newmask, b1);
+            }
+            else {
+                ierr = doScan(term->getRight(), mask, b1);
+            }
+            if (ierr > 0)
+                ht |= b1;
             if (ierr >= 0)
                 ierr = ht.sloppyCount();
-	}
-	break;}
+        }
+        break;}
     case ibis::qExpr::LOGICAL_XOR: {
         ierr = doScan(term->getLeft(), mask, ht);
         if (ierr >= 0) {
@@ -790,15 +790,15 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
         }
         break;}
     case ibis::qExpr::LOGICAL_MINUS: {
-	ierr = doScan(term->getLeft(), mask, ht);
-	if (ierr >= 0) {
-	    ibis::bitvector b1;
-	    ierr = doScan(term->getRight(), ht, b1);
-	    if (ierr >= 0)
-		ht -= b1;
-	    ierr = ht.sloppyCount();
-	}
-	break;}
+        ierr = doScan(term->getLeft(), mask, ht);
+        if (ierr >= 0) {
+            ibis::bitvector b1;
+            ierr = doScan(term->getRight(), ht, b1);
+            if (ierr >= 0)
+                ht -= b1;
+            ierr = ht.sloppyCount();
+        }
+        break;}
     case ibis::qExpr::EXISTS: {
         const ibis::qExists *qex = reinterpret_cast<const ibis::qExists*>(term);
         if (qex != 0 && mypart->getColumn(qex->colName())) { // does exist
@@ -806,7 +806,7 @@ int ibis::countQuery::doScan(const ibis::qExpr* term,
             ht &= mask;
         }
         else { // does not exist
-	    ht.set(0, mypart->nRows());
+            ht.set(0, mypart->nRows());
         }
         ierr = ht.sloppyCount();
         break;}
@@ -962,22 +962,22 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
         }
         break;}
     case ibis::qExpr::LOGICAL_OR: {
-	ierr = doEvaluate(term->getLeft(), mask, ht);
-	if (ierr >= 0 && ht.cnt() < mask.cnt()) {
-	    ibis::bitvector b1;
-	    if (ht.cnt() > mask.bytes() + ht.bytes()) {
+        ierr = doEvaluate(term->getLeft(), mask, ht);
+        if (ierr >= 0 && ht.cnt() < mask.cnt()) {
+            ibis::bitvector b1;
+            if (ht.cnt() > mask.bytes() + ht.bytes()) {
                 std::unique_ptr<ibis::bitvector> newmask(mask - ht);
-		ierr = doEvaluate(term->getRight(), *newmask, b1);
-	    }
-	    else {
-		ierr = doEvaluate(term->getRight(), mask, b1);
-	    }
-	    if (ierr > 0)
-		ht |= b1;
-	    if (ierr >= 0)
+                ierr = doEvaluate(term->getRight(), *newmask, b1);
+            }
+            else {
+                ierr = doEvaluate(term->getRight(), mask, b1);
+            }
+            if (ierr > 0)
+                ht |= b1;
+            if (ierr >= 0)
                 ierr = ht.sloppyCount();
-	}
-	break;}
+        }
+        break;}
     case ibis::qExpr::LOGICAL_XOR: {
         ierr = doEvaluate(term->getLeft(), mask, ht);
         if (ierr >= 0) {
@@ -990,15 +990,15 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
         break;
     }
     case ibis::qExpr::LOGICAL_MINUS: {
-	ierr = doEvaluate(term->getLeft(), mask, ht);
-	if (ierr >= 0) {
-	    ibis::bitvector b1;
-	    ierr = doEvaluate(term->getRight(), ht, b1);
-	    if (ierr >= 0)
-		ht -= b1;
-	    ierr = ht.sloppyCount();
-	}
-	break;}
+        ierr = doEvaluate(term->getLeft(), mask, ht);
+        if (ierr >= 0) {
+            ibis::bitvector b1;
+            ierr = doEvaluate(term->getRight(), ht, b1);
+            if (ierr >= 0)
+                ht -= b1;
+            ierr = ht.sloppyCount();
+        }
+        break;}
     case ibis::qExpr::EXISTS: {
         const ibis::qExists *qex = reinterpret_cast<const ibis::qExists*>(term);
         if (qex != 0 && mypart->getColumn(qex->colName())) { // does exist
@@ -1006,7 +1006,7 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
             ht &= mask;
         }
         else { // does not exist
-	    ht.set(0, mypart->nRows());
+            ht.set(0, mypart->nRows());
         }
         ierr = ht.sloppyCount();
         break;}
@@ -1190,8 +1190,8 @@ int ibis::countQuery::doEvaluate(const ibis::qExpr* term,
 #endif
 #else
     LOGGER(ibis::gVerbose > 3)
-	<< "countQuery::doEvaluate(" << *term << ", mask.cnt()="
-	<< mask.cnt() << ") --> " << ht.cnt() << ", ierr = " << ierr;
+        << "countQuery::doEvaluate(" << *term << ", mask.cnt()="
+        << mask.cnt() << ") --> " << ht.cnt() << ", ierr = " << ierr;
 #endif
     return ierr;
 } // ibis::countQuery::doEvaluate

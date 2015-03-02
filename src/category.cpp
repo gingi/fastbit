@@ -14,8 +14,8 @@
 #include "irelic.h"     // ibis::relic
 #include "ikeywords.h"
 
-#include <algorithm>	// std::copy
-#include <memory>	// std::unique_ptr
+#include <algorithm>    // std::copy
+#include <memory>       // std::unique_ptr
 
 ////////////////////////////////////////////////////////////////////////
 // functions for ibis::category
@@ -100,10 +100,10 @@ ibis::category::selectUInts(const ibis::bitvector& mask) const {
                       (ibis::util::getFileSize(fname.c_str()) >> 2));
     }
     if (tryintfile) {
-	std::unique_ptr< ibis::array_t<uint32_t> >
-	    tmp(new ibis::array_t<uint32_t>);
-	if (selectValuesT(fname.c_str(), mask, *tmp) >= 0)
-	    return tmp.release();
+        std::unique_ptr< ibis::array_t<uint32_t> >
+            tmp(new ibis::array_t<uint32_t>);
+        if (selectValuesT(fname.c_str(), mask, *tmp) >= 0)
+            return tmp.release();
     }
 
     indexLock lock(this, "category::selectUInts");
@@ -205,32 +205,32 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
     }
 
     if (opt > 0) {
-	std::unique_ptr< ibis::array_t<uint32_t> >
-	    keys(new ibis::array_t<uint32_t>);
-	if (opt == 1) {
-	    (void) selectValuesT(fname.c_str(), mask, *keys);
-	}
-	else {
-	    const ibis::direkte *dir = dynamic_cast<const ibis::direkte*>(idx);
-	    if (dir != 0) {
-		keys.reset(dir->keys(mask));
-	    }
-	    else {
-		const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
-		if (rlc != 0)
-		    keys.reset(rlc->keys(mask));
-	    }
-	}
-	if (keys->size() == mask.cnt()) {
-	    std::unique_ptr< std::vector<std::string> >
-		strings(new std::vector<std::string>());
-	    strings->reserve(keys->size());
-	    for (unsigned i = 0; i < keys->size(); ++i) {
-		const char *ptr = dic[(*keys)[i]];
-		strings->push_back(ptr!=0 ? ptr : "");
-	    }
-	    return strings.release();
-	}
+        std::unique_ptr< ibis::array_t<uint32_t> >
+            keys(new ibis::array_t<uint32_t>);
+        if (opt == 1) {
+            (void) selectValuesT(fname.c_str(), mask, *keys);
+        }
+        else {
+            const ibis::direkte *dir = dynamic_cast<const ibis::direkte*>(idx);
+            if (dir != 0) {
+                keys.reset(dir->keys(mask));
+            }
+            else {
+                const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+                if (rlc != 0)
+                    keys.reset(rlc->keys(mask));
+            }
+        }
+        if (keys->size() == mask.cnt()) {
+            std::unique_ptr< std::vector<std::string> >
+                strings(new std::vector<std::string>());
+            strings->reserve(keys->size());
+            for (unsigned i = 0; i < keys->size(); ++i) {
+                const char *ptr = dic[(*keys)[i]];
+                strings->push_back(ptr!=0 ? ptr : "");
+            }
+            return strings.release();
+        }
     }
 
     // the option to read the strings from the raw data file

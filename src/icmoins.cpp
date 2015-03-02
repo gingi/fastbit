@@ -31,14 +31,14 @@ ibis::moins::moins(const ibis::column* c, const char* f,
     }
 
     if (ibis::gVerbose > 2) {
-	ibis::util::logger lg;
-	lg() << "moins[" << col->fullname() << "]::ctor -- initialized a "
-	     << nbases << "-component range index with "
-	     << nbits << " bitmap" << (nbits>1?"s":"");
-	if (ibis::gVerbose > 6) {
-	    lg() << "\n";
-	    print(lg());
-	}
+        ibis::util::logger lg;
+        lg() << "moins[" << col->fullname() << "]::ctor -- initialized a "
+             << nbases << "-component range index with "
+             << nbits << " bitmap" << (nbits>1?"s":"");
+        if (ibis::gVerbose > 6) {
+            lg() << "\n";
+            print(lg());
+        }
     }
 } // constructor
 
@@ -55,14 +55,14 @@ ibis::moins::moins(const ibis::column* c, const char* f,
     }
 
     if (ibis::gVerbose > 2) {
-	ibis::util::logger lg;
-	lg() << "moins[" << col->fullname() << "]::ctor -- initialized a "
-	     << nbases << "-component range index with "
-	     << nbits << " bitmap" << (nbits>1?"s":"");
-	if (ibis::gVerbose > 6) {
-	    lg() << "\n";
-	    print(lg());
-	}
+        ibis::util::logger lg;
+        lg() << "moins[" << col->fullname() << "]::ctor -- initialized a "
+             << nbases << "-component range index with "
+             << nbits << " bitmap" << (nbits>1?"s":"");
+        if (ibis::gVerbose > 6) {
+            lg() << "\n";
+            print(lg());
+        }
     }
 } // constructor
 
@@ -78,15 +78,15 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
     }
 
     if (ibis::gVerbose > 2) {
-	ibis::util::logger lg;
-	lg() << "moins[" << col->fullname()
-	     << "]::ctor -- converted a 1-component index into a "
-	     << nbases << "-component range index with "
-	     << nbits << " bitmap" << (nbits>1?"s":"");
-	if (ibis::gVerbose > 6) {
-	    lg() << "\n";
-	    print(lg());
-	}
+        ibis::util::logger lg;
+        lg() << "moins[" << col->fullname()
+             << "]::ctor -- converted a 1-component index into a "
+             << nbases << "-component range index with "
+             << nbits << " bitmap" << (nbits>1?"s":"");
+        if (ibis::gVerbose > 6) {
+            lg() << "\n";
+            print(lg());
+        }
     }
 } // copy from an ibis::bin
 
@@ -108,16 +108,16 @@ ibis::moins::moins(const ibis::bin& rhs, uint32_t nb) : ibis::egale(rhs, nb) {
 ibis::moins::moins(const ibis::column* c, ibis::fileManager::storage* st,
                    size_t start) : ibis::egale(c, st, start) {
     if (ibis::gVerbose > 2) {
-	ibis::util::logger lg;
-	lg() << "moins[" << col->fullname()
-	     << "]::ctor -- initialized a " << nbases
-	     << "-component interval index with " << nbits << " bitmap"
-	     << (nbits>1?"s":"") << " from a storage object @ " << st
-	     << " starting from position " << start;
-	if (ibis::gVerbose > 6) {
-	    lg() << "\n";
-	    print(lg());
-	}
+        ibis::util::logger lg;
+        lg() << "moins[" << col->fullname()
+             << "]::ctor -- initialized a " << nbases
+             << "-component interval index with " << nbits << " bitmap"
+             << (nbits>1?"s":"") << " from a storage object @ " << st
+             << " starting from position " << start;
+        if (ibis::gVerbose > 6) {
+            lg() << "\n";
+            print(lg());
+        }
     }
 } // reconstruct data from content of a file
 
@@ -158,14 +158,14 @@ int ibis::moins::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	if (fdes < 0) {
+        ibis::fileManager::instance().flushFile(fnm.c_str());
+        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+        if (fdes < 0) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- " << evt << " failed to open \"" << fnm
                 << "\" for write";
-	    return -2;
-	}
+            return -2;
+        }
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -192,10 +192,10 @@ int ibis::moins::write(const char* dt) const {
     header[6] = (char) (useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt
-	    << " failed to write the 8-byte header, ierr = " << ierr;
-	return -3;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt
+            << " failed to write the 8-byte header, ierr = " << ierr;
+        return -3;
     }
     if (useoffset64)
         ierr = ibis::egale::write64(fdes); // use the function ibis::egale
@@ -209,10 +209,10 @@ int ibis::moins::write(const char* dt) const {
         (void) _commit(fdes);
 #endif
 #endif
-	LOGGER(ibis::gVerbose > 3)
-	    << evt << " wrote " << nbits << " bitmap"
-	    << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
-	    << " object" << (nrows>1?"s":"");
+        LOGGER(ibis::gVerbose > 3)
+            << evt << " wrote " << nbits << " bitmap"
+            << (nbits>1?"s":"") << " to file " << fnm << " for " << nrows
+            << " object" << (nrows>1?"s":"");
     }
     return ierr;
 } // ibis::moins::write
@@ -232,10 +232,10 @@ void ibis::moins::convert() {
         nbits += bases[i];
     nbits -= nbases;
     LOGGER(ibis::gVerbose > 4)
-	<< "moins[" << col->fullname()
-	<< "]::convert -- converting " << nobs << "-bin "
-	<< nbases << "-component index from equality encoding to "
-	"interval encoding (using " << nbits << " bitvectors)";
+        << "moins[" << col->fullname()
+        << "]::convert -- converting " << nobs << "-bin "
+        << nbases << "-component index from equality encoding to "
+        "interval encoding (using " << nbits << " bitvectors)";
 
     // store the current bitvectors in simple
     array_t<bitvector*> simple(nbits, 0);
@@ -324,26 +324,26 @@ void ibis::moins::speedTest(std::ostream& out) const {
 // the printing function
 void ibis::moins::print(std::ostream& out) const {
     out << col->fullname() << ".index(MCBin range code ncomp=" << bases.size()
-	<< " nbins=" << nobs << ") contains " << bits.size()
-	<< " bitmaps for " << nrows
-	<< " objects\nThe base sizes: ";
+        << " nbins=" << nobs << ") contains " << bits.size()
+        << " bitmaps for " << nrows
+        << " objects\nThe base sizes: ";
     for (uint32_t i = 0; i < nbases; ++ i)
         out << bases[i] << ' ';
     out << "\nbitvector information (number of set bits, number of "
         "bytes)\n";
     for (uint32_t i = 0; i < nbits; ++ i) {
-	if (bits[i]) {
-	    out << i << '\t' << bits[i]->cnt() << '\t'
-		<< bits[i]->bytes() << "\n";
-	}
+        if (bits[i]) {
+            out << i << '\t' << bits[i]->cnt() << '\t'
+                << bits[i]->bytes() << "\n";
+        }
     }
     if (ibis::gVerbose > 7) { // also print the list of distinct values
-	out << "bin boundary, [minval, maxval] in bin, number of records\n";
-	for (uint32_t i = 0; i < nobs; ++ i) {
-	    out.precision(12);
-	    out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]
-		<< "]\t" << cnts[i] << "\n";
-	}
+        out << "bin boundary, [minval, maxval] in bin, number of records\n";
+        for (uint32_t i = 0; i < nobs; ++ i) {
+            out.precision(12);
+            out << bounds[i] << "\t[" << minval[i] << ", " << maxval[i]
+                << "]\t" << cnts[i] << "\n";
+        }
     }
     out << std::endl;
 } // ibis::moins::print
@@ -494,111 +494,111 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
         res.set(0, nrows);
     }
     else if (b1+1 >= nobs) { // x > b0
-	evalLE(res, b0);
-	res.flip();
+        evalLE(res, b0);
+        res.flip();
     }
     else { // the general case
-	// res temporarily stores the result of x <= b1
-	ibis::bitvector low; // x <= b0
-	uint32_t k0, k1;
-	uint32_t i = 0;
-	uint32_t offset = 0;
-	// skip till the first component that isn't the maximum value
-	while (i < bases.size()) {
-	    k0 = b0 % bases[i];
-	    k1 = b1 % bases[i];
-	    if (k0 == bases[i]-1 && k1 == bases[i]-1) {
-		offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
-		b0 /= bases[i];
-		b1 /= bases[i];
-		++ i;
-	    }
-	    else {
-		break;
-	    }
-	}
-	// the first (least-significant) non-maximum component
-	if (i < bases.size()) {
-	    k0 = b0 % bases[i];
-	    k1 = b1 % bases[i];
-	    if (k0+1 < bases[i]) {
-		const uint32_t j = offset + k0;
-		if (bits[j] == 0)
-		    activate(j);
-		if (bits[j])
-		    low = *(bits[j]);
-		else
-		    low.set(0, nrows);
-	    }
-	    else {
-		low.set(1, nrows);
-	    }
-	    if (k1+1 < bases[i]) {
-		const uint32_t j = offset + k1;
-		if (bits[j] == 0)
-		    activate(j);
-		if (bits[j])
-		    res = *(bits[j]);
-		else
-		    res.set(0, nrows);
-	    }
-	    else {
-		res.set(1, nrows);
-	    }
-	    offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
-	    b0 /= bases[i];
-	    b1 /= bases[i];
-	}
-	else {
-	    res.set(0, nrows);
-	}
-	++ i;
-	// deal with the remaining components
-	while (i < bases.size()) {
-	    if (b1 > b0) { // low and res have to be processed separately
-		k0 = b0 % bases[i];
-		k1 = b1 % bases[i];
-		b0 /= bases[i];
-		b1 /= bases[i];
-		if (k0+1 < bases[i] || bases[i] == 1) {
-		    const uint32_t j = offset + k0;
-		    if (bits[j] == 0)
-			activate(j);
-		    if (bits[j])
-			low &= *(bits[j]);
-		    else
-			low.set(0, low.size());
-		}
-		if (k1+1 < bases[i] || bases[i] == 1) {
-		    const uint32_t j = offset + k1;
-		    if (bits[j] == 0)
-			activate(j);
-		    if (bits[j])
-			res &= *(bits[j]);
-		    else
-			res.set(0, low.size());
-		}
-		if (k0 > 0) {
-		    const uint32_t j = offset + k0 - 1;
-		    if (bits[j] == 0)
-			activate(j);
-		    if (bits[j])
-			low |= *(bits[j]);
-		}
-		if (k1 > 0) {
-		    const uint32_t j = offset + k1 - 1;
-		    if (bits[j] == 0)
-			activate(j);
-		    if (bits[j])
-			res |= *(bits[j]);
-		}
-		offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
-	    }
-	    else { // the more significant components are the same
+        // res temporarily stores the result of x <= b1
+        ibis::bitvector low; // x <= b0
+        uint32_t k0, k1;
+        uint32_t i = 0;
+        uint32_t offset = 0;
+        // skip till the first component that isn't the maximum value
+        while (i < bases.size()) {
+            k0 = b0 % bases[i];
+            k1 = b1 % bases[i];
+            if (k0 == bases[i]-1 && k1 == bases[i]-1) {
+                offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
+                b0 /= bases[i];
+                b1 /= bases[i];
+                ++ i;
+            }
+            else {
+                break;
+            }
+        }
+        // the first (least-significant) non-maximum component
+        if (i < bases.size()) {
+            k0 = b0 % bases[i];
+            k1 = b1 % bases[i];
+            if (k0+1 < bases[i]) {
+                const uint32_t j = offset + k0;
+                if (bits[j] == 0)
+                    activate(j);
+                if (bits[j])
+                    low = *(bits[j]);
+                else
+                    low.set(0, nrows);
+            }
+            else {
+                low.set(1, nrows);
+            }
+            if (k1+1 < bases[i]) {
+                const uint32_t j = offset + k1;
+                if (bits[j] == 0)
+                    activate(j);
+                if (bits[j])
+                    res = *(bits[j]);
+                else
+                    res.set(0, nrows);
+            }
+            else {
+                res.set(1, nrows);
+            }
+            offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
+            b0 /= bases[i];
+            b1 /= bases[i];
+        }
+        else {
+            res.set(0, nrows);
+        }
+        ++ i;
+        // deal with the remaining components
+        while (i < bases.size()) {
+            if (b1 > b0) { // low and res have to be processed separately
+                k0 = b0 % bases[i];
+                k1 = b1 % bases[i];
+                b0 /= bases[i];
+                b1 /= bases[i];
+                if (k0+1 < bases[i] || bases[i] == 1) {
+                    const uint32_t j = offset + k0;
+                    if (bits[j] == 0)
+                        activate(j);
+                    if (bits[j])
+                        low &= *(bits[j]);
+                    else
+                        low.set(0, low.size());
+                }
+                if (k1+1 < bases[i] || bases[i] == 1) {
+                    const uint32_t j = offset + k1;
+                    if (bits[j] == 0)
+                        activate(j);
+                    if (bits[j])
+                        res &= *(bits[j]);
+                    else
+                        res.set(0, low.size());
+                }
+                if (k0 > 0) {
+                    const uint32_t j = offset + k0 - 1;
+                    if (bits[j] == 0)
+                        activate(j);
+                    if (bits[j])
+                        low |= *(bits[j]);
+                }
+                if (k1 > 0) {
+                    const uint32_t j = offset + k1 - 1;
+                    if (bits[j] == 0)
+                        activate(j);
+                    if (bits[j])
+                        res |= *(bits[j]);
+                }
+                offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
+            }
+            else { // the more significant components are the same
                 // LOGGER(ibis::gVerbose > 5)
                 //     << "res: " << res << "\nlow: " << low;
                 // ibis::bitvector tmp(res);
-		res -= low;
+                res -= low;
                 // LOGGER(ibis::gVerbose > 5)
                 //     << "res-low: " << res;
                 // low.flip(); // NOT
@@ -608,51 +608,51 @@ void ibis::moins::evalLL(ibis::bitvector& res, uint32_t b0, uint32_t b1) const {
                 // tmp &= low;
                 // LOGGER(ibis::gVerbose > 5)
                 //     << "tmp (expected to all 0s): " << tmp;
-		low.clear(); // no longer need low
-		while (i < bases.size()) {
-		    k1 = b1 % bases[i];
-		    if (k1+1 < bases[i] || bases[i] == 1) {
-			const uint32_t j = offset + k1;
-			if (bits[j] == 0)
-			    activate(j);
-			if (bits[j])
-			    res &= *(bits[j]);
-			else
-			    res.set(0, res.size());
-		    }
-		    if (k1 > 0) {
-			const uint32_t j = offset + k1 - 1;
-			if (bits[j] == 0)
-			    activate(j);
-			if (bits[j])
-			    res -= *(bits[j]);
-		    }
-		    offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
-		    b1 /= bases[i];
-		    ++ i;
-		}
-	    }
-	    ++ i;
-	}
-	if (low.size() == res.size()) { // subtract low from res
-	    res -= low;
-	    low.clear();
-	}
+                low.clear(); // no longer need low
+                while (i < bases.size()) {
+                    k1 = b1 % bases[i];
+                    if (k1+1 < bases[i] || bases[i] == 1) {
+                        const uint32_t j = offset + k1;
+                        if (bits[j] == 0)
+                            activate(j);
+                        if (bits[j])
+                            res &= *(bits[j]);
+                        else
+                            res.set(0, res.size());
+                    }
+                    if (k1 > 0) {
+                        const uint32_t j = offset + k1 - 1;
+                        if (bits[j] == 0)
+                            activate(j);
+                        if (bits[j])
+                            res -= *(bits[j]);
+                    }
+                    offset += (bases[i] > 1 ? bases[i] - 1 : bases[i]);
+                    b1 /= bases[i];
+                    ++ i;
+                }
+            }
+            ++ i;
+        }
+        if (low.size() == res.size()) { // subtract low from res
+            res -= low;
+            low.clear();
+        }
     }
 } // evalLL
 
 long ibis::moins::evaluate(const ibis::qContinuousRange& expr,
-			   ibis::bitvector& lower) const {
+                           ibis::bitvector& lower) const {
     ibis::bitvector tmp;
     estimate(expr, lower, tmp);
     if (tmp.size() == lower.size() && tmp.cnt() > lower.cnt()) {
         if (col == 0 || col->hasRawData() == false) return -1;
 
-	tmp -= lower;
-	ibis::bitvector delta;
-	col->partition()->doScan(expr, tmp, delta);
-	if (delta.size() == lower.size() && delta.cnt() > 0)
-	    lower |= delta;
+        tmp -= lower;
+        ibis::bitvector delta;
+        col->partition()->doScan(expr, tmp, delta);
+        if (delta.size() == lower.size() && delta.cnt() > 0)
+            lower |= delta;
     }
     return lower.cnt();
 } // ibis::moins::evaluate

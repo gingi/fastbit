@@ -16,11 +16,11 @@
 #include "blob.h"       // ibis::blob
 #include "category.h"   // ibis::text
 
-#include <algorithm>	// std::sort, std::copy
-#include <sstream>	// std::ostringstream
-#include <limits>	// std::numeric_limits
-#include <cmath>	// std::floor
-#include <iomanip>	// std::setprecision
+#include <algorithm>    // std::sort, std::copy
+#include <sstream>      // std::ostringstream
+#include <limits>       // std::numeric_limits
+#include <cmath>        // std::floor
+#include <iomanip>      // std::setprecision
 
 /// This function expects a valid data directory to find data partitions.
 /// If the incoming directory is not a valid string, it will use
@@ -818,49 +818,49 @@ int64_t ibis::mensa::getColumnAsShorts(const char* cn, int16_t* vals,
     switch ((*nit).second) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	array_t<signed char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<signed char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += (i1-i0);
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += (i1-i0);
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::SHORT:
     case ibis::USHORT: {
-	array_t<int16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
                                    end-irow) - i0;
                 memcpy(vals+ival, tmp.begin()+i0, i1 * 2U);
-		ival += i1;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -879,49 +879,49 @@ int64_t ibis::mensa::getColumnAsUShorts(const char* cn, uint16_t* vals,
     switch ((*nit).second) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	array_t<unsigned char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<unsigned char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += (i1-i0);
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += (i1-i0);
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::SHORT:
     case ibis::USHORT: {
-	array_t<uint16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
                                    end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1 * 2U);
-		ival += i1;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                memcpy(vals+ival, tmp.begin()+i0, i1 * 2U);
+                ival += i1;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -939,112 +939,112 @@ int64_t ibis::mensa::getColumnAsInts(const char* cn, int32_t* vals,
     uint64_t ival = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<signed char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<signed char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::UBYTE: {
-	array_t<unsigned char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<unsigned char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::SHORT: {
-	array_t<int16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::USHORT: {
-	array_t<uint16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::INT:
     case ibis::UINT: {
-	array_t<int32_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int32_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1*4U);
-		ival += i1;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                                   end-irow) - i0;
+                memcpy(vals+ival, tmp.begin()+i0, i1*4U);
+                ival += i1;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -1063,71 +1063,71 @@ int64_t ibis::mensa::getColumnAsUInts(const char* cn, uint32_t* vals,
     switch ((*nit).second) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	array_t<unsigned char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<unsigned char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::SHORT:
     case ibis::USHORT: {
-	array_t<uint16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::INT:
     case ibis::UINT: {
-	array_t<uint32_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint32_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1 * 4U);
-		ival += i1;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                                   end-irow) - i0;
+                memcpy(vals+ival, tmp.begin()+i0, i1 * 4U);
+                ival += i1;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -1148,155 +1148,155 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
     uint64_t ival = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<signed char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<signed char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::UBYTE: {
-	array_t<unsigned char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<unsigned char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::SHORT: {
-	array_t<int16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::USHORT: {
-	array_t<uint16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::INT: {
-	array_t<int32_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int32_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::UINT: {
-	array_t<uint32_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint32_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::OID:
     case ibis::LONG:
     case ibis::ULONG: {
-	array_t<int64_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int64_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1*8U);
-		ival += i1;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                                   end-irow) - i0;
+                memcpy(vals+ival, tmp.begin()+i0, i1*8U);
+                ival += i1;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -1317,94 +1317,94 @@ int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
     switch ((*nit).second) {
     case ibis::BYTE:
     case ibis::UBYTE: {
-	array_t<unsigned char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<unsigned char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::SHORT:
     case ibis::USHORT: {
-	array_t<uint16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::INT:
     case ibis::UINT: {
-	array_t<uint32_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint32_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::OID:
     case ibis::LONG:
     case ibis::ULONG: {
-	array_t<uint64_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint64_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1*8U);
-		ival += i1;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                                   end-irow) - i0;
+                memcpy(vals+ival, tmp.begin()+i0, i1*8U);
+                ival += i1;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -1424,111 +1424,111 @@ int64_t ibis::mensa::getColumnAsFloats(const char* cn, float* vals,
     uint64_t ival = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<signed char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<signed char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::UBYTE: {
-	array_t<unsigned char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<unsigned char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::SHORT: {
-	array_t<int16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::USHORT: {
-	array_t<uint16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::FLOAT: {
-	array_t<float> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<float> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1*4U);
-		ival += i1;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                                   end-irow) - i0;
+                memcpy(vals+ival, tmp.begin()+i0, i1*4U);
+                ival += i1;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -1548,174 +1548,174 @@ int64_t ibis::mensa::getColumnAsDoubles(const char* cn, double* vals,
     uint64_t ival = 0;
     switch ((*nit).second) {
     case ibis::BYTE: {
-	array_t<signed char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<signed char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::UBYTE: {
-	array_t<unsigned char> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<unsigned char> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::SHORT: {
-	array_t<int16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::USHORT: {
-	array_t<uint16_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint16_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::INT: {
-	array_t<int32_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<int32_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::UINT: {
-	array_t<uint32_t> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<uint32_t> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::FLOAT: {
-	array_t<float> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<float> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() : end-irow);
                 std::copy(tmp.begin()+i0, tmp.begin()+i1, vals+ival);
-		ival += i1 - i0;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                ival += i1 - i0;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     case ibis::DOUBLE: {
-	array_t<double> tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
-		if (col->getValuesArray(&tmp) < 0)
-		    return -4;
+        array_t<double> tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
+                if (col->getValuesArray(&tmp) < 0)
+                    return -4;
 
-		const size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow) - i0;
-		memcpy(vals+ival, tmp.begin()+i0, i1*8);
-		ival += i1;
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                const size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                                   end-irow) - i0;
+                memcpy(vals+ival, tmp.begin()+i0, i1*8);
+                ival += i1;
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -2248,29 +2248,29 @@ int64_t ibis::mensa::getColumnAsStrings(const char* cn,
         break;}
     case ibis::CATEGORY:
     case ibis::TEXT: {
-	std::string tmp;
-	uint64_t irow = 0;
-	for (ibis::partList::const_iterator it = parts.begin();
-	     it != parts.end() && irow < end; ++ it) {
-	    const ibis::part& dp = **it;
-	    if (irow + dp.nRows() > begin) {
-		const ibis::column* col = dp.getColumn(cn);
-		if (col == 0)
-		    return -3;
+        std::string tmp;
+        uint64_t irow = 0;
+        for (ibis::partList::const_iterator it = parts.begin();
+             it != parts.end() && irow < end; ++ it) {
+            const ibis::part& dp = **it;
+            if (irow + dp.nRows() > begin) {
+                const ibis::column* col = dp.getColumn(cn);
+                if (col == 0)
+                    return -3;
 
-		size_t i0 = (begin > irow ? begin - irow : 0);
-		const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
-				   end-irow);
-		while (i0 < i1) {
-		    static_cast<const ibis::text*>(col)->getString(i0, tmp);
-		    vals[ival] = tmp;
-		    ++ ival;
-		    ++ i0;
-		}
-	    }
-	    irow += dp.nRows();
-	}
-	break;}
+                size_t i0 = (begin > irow ? begin - irow : 0);
+                const size_t i1 = (end>=irow+dp.nRows() ? dp.nRows() :
+                                   end-irow);
+                while (i0 < i1) {
+                    static_cast<const ibis::text*>(col)->getString(i0, tmp);
+                    vals[ival] = tmp;
+                    ++ ival;
+                    ++ i0;
+                }
+            }
+            irow += dp.nRows();
+        }
+        break;}
     default:
         return -2;
     }
@@ -3125,8 +3125,8 @@ int ibis::mensa::cursor::fetch(uint64_t irow) {
 
     while (curPart < tab.parts.size() &&
            pBegin + tab.parts[curPart]->nRows() <= irow) {
-	pBegin += tab.parts[curPart]->nRows();
-	++ curPart;
+        pBegin += tab.parts[curPart]->nRows();
+        ++ curPart;
     }
     if (curPart < tab.parts.size()) {
         curRow = irow;
@@ -4291,12 +4291,12 @@ ibis::liga::liga(ibis::part& p) : ibis::mensa() {
         desc_ += p.name();
     }
     else if (p.description() != 0 && *(p.description()) != 0) {
-	unsigned sum =
-	    ibis::util::checksum(p.description(), std::strlen(p.description()));
-	std::string tmp;
-	ibis::util::int2string(tmp, sum);
-	name_ += tmp;
-	desc_ += p.description();
+        unsigned sum =
+            ibis::util::checksum(p.description(), std::strlen(p.description()));
+        std::string tmp;
+        ibis::util::int2string(tmp, sum);
+        name_ += tmp;
+        desc_ += p.description();
     }
     else { // produce a random name from the size of the data partition
         const unsigned v2 = (p.nColumns() ^ ibis::fileManager::iBeat());
@@ -4409,60 +4409,60 @@ void ibis::table::parseOrderby(char* in, ibis::table::stringList& out,
     }
 
     while (*ptr1 != 0) {
-	for (ptr2 = ptr1; *ptr2 == '_' || isalnum(*ptr2) != 0; ++ ptr2);
-	while (*ptr2 == '(') {
-	    int nesting = 1;
-	    for (++ ptr2; *ptr2 != 0 && nesting > 0; ++ ptr2) {
-		nesting -= (*ptr2 == ')');
-		nesting += (*ptr2 == '(');
-	    }
-	    while (*ptr2 != 0 && *ptr2 != ',' && *ptr2 != ';' && *ptr2 != '(')
-		++ ptr2;
-	}
-	if (*ptr2 == 0) {
-	    out.push_back(ptr1);
-	    direc.push_back(true);
-	}
-	else if (ispunct(*ptr2)) {
-	    *ptr2 = 0;
-	    out.push_back(ptr1);
-	    direc.push_back(true);
-	    ++ ptr2;
-	}
-	else if (isspace(*ptr2)) {
-	    // skip over spaces
-	    *ptr2 = 0;
-	    out.push_back(ptr1);
-	    for (++ ptr2; isspace(*ptr2); ++ ptr2);
-	    if ((ptr2[0] == 'a' || ptr2[0] == 'A') &&
-		(ptr2[1] == 's' || ptr2[1] == 'S') &&
-		(ptr2[2] == 'c' || ptr2[2] == 'c') &&
-		(ptr2[3] == 0 || isspace(ptr2[3]) || ispunct(ptr2[3]))) {
-		direc.push_back(true);
-		ptr2 += 3;
-	    }
-	    else if ((ptr2[0] == 'd' || ptr2[0] == 'D') &&
-		     (ptr2[1] == 'e' || ptr2[1] == 'E') &&
-		     (ptr2[2] == 's' || ptr2[2] == 'S') &&
-		     (ptr2[3] == 'c' || ptr2[3] == 'C') &&
-		     (ptr2[4] == 0 || isspace(ptr2[4]) || ispunct(ptr2[4]))) {
-		direc.push_back(false);
-		ptr2 += 4;
-	    }
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- table::parseOrderby can not part string \""
+        for (ptr2 = ptr1; *ptr2 == '_' || isalnum(*ptr2) != 0; ++ ptr2);
+        while (*ptr2 == '(') {
+            int nesting = 1;
+            for (++ ptr2; *ptr2 != 0 && nesting > 0; ++ ptr2) {
+                nesting -= (*ptr2 == ')');
+                nesting += (*ptr2 == '(');
+            }
+            while (*ptr2 != 0 && *ptr2 != ',' && *ptr2 != ';' && *ptr2 != '(')
+                ++ ptr2;
+        }
+        if (*ptr2 == 0) {
+            out.push_back(ptr1);
+            direc.push_back(true);
+        }
+        else if (ispunct(*ptr2)) {
+            *ptr2 = 0;
+            out.push_back(ptr1);
+            direc.push_back(true);
+            ++ ptr2;
+        }
+        else if (isspace(*ptr2)) {
+            // skip over spaces
+            *ptr2 = 0;
+            out.push_back(ptr1);
+            for (++ ptr2; isspace(*ptr2); ++ ptr2);
+            if ((ptr2[0] == 'a' || ptr2[0] == 'A') &&
+                (ptr2[1] == 's' || ptr2[1] == 'S') &&
+                (ptr2[2] == 'c' || ptr2[2] == 'c') &&
+                (ptr2[3] == 0 || isspace(ptr2[3]) || ispunct(ptr2[3]))) {
+                direc.push_back(true);
+                ptr2 += 3;
+            }
+            else if ((ptr2[0] == 'd' || ptr2[0] == 'D') &&
+                     (ptr2[1] == 'e' || ptr2[1] == 'E') &&
+                     (ptr2[2] == 's' || ptr2[2] == 'S') &&
+                     (ptr2[3] == 'c' || ptr2[3] == 'C') &&
+                     (ptr2[4] == 0 || isspace(ptr2[4]) || ispunct(ptr2[4]))) {
+                direc.push_back(false);
+                ptr2 += 4;
+            }
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- table::parseOrderby can not part string \""
                 << ptr1 << "\" into a column name or a function, skip till "
-		"first character after the next comma or space";
+                "first character after the next comma or space";
 
-	    while (*ptr2 != 0 && ispunct(*ptr2) == 0 && isspace(*ptr2) == 0)
-		++ ptr2;
-	    if (*ptr2 != 0) ++ ptr2;
-	    while (*ptr2 != 0 && isspace(*ptr2) != 0) ++ ptr2;
-	}
-	// skip spaces and punctuations
-	for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
+            while (*ptr2 != 0 && ispunct(*ptr2) == 0 && isspace(*ptr2) == 0)
+                ++ ptr2;
+            if (*ptr2 != 0) ++ ptr2;
+            while (*ptr2 != 0 && isspace(*ptr2) != 0) ++ ptr2;
+        }
+        // skip spaces and punctuations
+        for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
     }
 } // ibis::table::parseOrderby
 
@@ -4590,9 +4590,9 @@ ibis::table* ibis::table::groupby(const char* str) const {
     stringList lst;
     char* buf = 0;
     if (str != 0 && *str != 0) {
-	buf = new char[std::strlen(str)+1];
-	strcpy(buf, str);
-	parseNames(buf, lst);
+        buf = new char[std::strlen(str)+1];
+        strcpy(buf, str);
+        parseNames(buf, lst);
     }
     ibis::table* res = groupby(lst);
     delete [] buf;
@@ -4604,9 +4604,9 @@ void ibis::table::orderby(const char* str) {
     std::vector<bool> direc;
     char* buf = 0;
     if (str != 0 && *str != 0) {
-	buf = new char[std::strlen(str)+1];
-	strcpy(buf, str);
-	parseOrderby(buf, lst, direc);
+        buf = new char[std::strlen(str)+1];
+        strcpy(buf, str);
+        parseOrderby(buf, lst, direc);
     }
     orderby(lst, direc);
     delete [] buf;

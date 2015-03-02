@@ -28,14 +28,14 @@ http://msnucleus.org/watersheds/elizabeth/duck_island.htm for some pictures.
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)   // some identifier longer than 256 characters
 #endif
-#include "table.h"	// ibis::table
-#include "resource.h"	// ibis::gParameters
-#include "mensa.h"	// ibis::mensa::select2
-#include "blob.h"	// operator<< involving ibis::opaque
-#include <set>		// std::set
-#include <iomanip>	// std::setprecision
-#include <memory>	// std::unique_ptr
-#include <cmath>	// std::floor
+#include "table.h"      // ibis::table
+#include "resource.h"   // ibis::gParameters
+#include "mensa.h"      // ibis::mensa::select2
+#include "blob.h"       // operator<< involving ibis::opaque
+#include <set>          // std::set
+#include <iomanip>      // std::setprecision
+#include <memory>       // std::unique_ptr
+#include <cmath>        // std::floor
 
 // local data types
 typedef std::set< const char*, ibis::lessi > qList;
@@ -48,29 +48,29 @@ int testing = 0;
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " [-c conf-file] [-help] "
-	"[-d directory_containing_a_dataset] [-s select-clause] "
-	"[-w where-clause] [-o order-by-clasue] [-f from-clause] "
-	"[-v[=| ]verbose_level] [-t[=| ]#-of-cases] "
-	"[-m[erge-dictionaries][[=| ]column-names]] "
+        "[-d directory_containing_a_dataset] [-s select-clause] "
+        "[-w where-clause] [-o order-by-clasue] [-f from-clause] "
+        "[-v[=| ]verbose_level] [-t[=| ]#-of-cases] "
+        "[-m[erge-dictionaries][[=| ]column-names]] "
         "[-m[erge-dictionaries][[=| ]column-names]]"
-	"\n\nPerforms a projection of rows satisfying the specified "
-	"conditions, a very limited version of SQL"
-	"\n  SELECT select-clause FROM from-clause WHERE where-clause."
-	"\nEach where-clause will be used in turn."
-	"\n\n-- both select clause and where clause may contain "
-	"arithmetic expressions."
-	"\n-- data in all directories specified by -c and -d "
-	"options are considered as one table!"
-	"\n-- when multiple select clauses are specified, only "
-	"the last one is used."
-	"\n-- a from clause specifies what data partitions "
-	"participate in the query.  It may contain wild characters '_' and '%'."
-	"  When multiple from clauses are specified, only the last one is used."
+        "\n\nPerforms a projection of rows satisfying the specified "
+        "conditions, a very limited version of SQL"
+        "\n  SELECT select-clause FROM from-clause WHERE where-clause."
+        "\nEach where-clause will be used in turn."
+        "\n\n-- both select clause and where clause may contain "
+        "arithmetic expressions."
+        "\n-- data in all directories specified by -c and -d "
+        "options are considered as one table!"
+        "\n-- when multiple select clauses are specified, only "
+        "the last one is used."
+        "\n-- a from clause specifies what data partitions "
+        "participate in the query.  It may contain wild characters '_' and '%'."
+        "  When multiple from clauses are specified, only the last one is used."
         "\n-- the file named by -x would be overwritten regardless of "
         "whether any output is produced by this command.  "
         "If multiple -x options are specified, each file is overwritten"
         " and only the last file may contain the new query results."
-	      << std::endl;
+              << std::endl;
 } // usage
 
 // function to parse the command line arguments
@@ -94,132 +94,132 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
     frm = 0;
     ord = 0;
     for (int i=1; i<argc; ++i) {
-	if (*argv[i] == '-') { // normal arguments starting with -
-	    switch (argv[i][1]) {
-	    default:
-	    case 'h':
-	    case 'H':
-		usage(*argv);
-		exit(0);
-	    case 'c':
-	    case 'C':
-		if (i+1 < argc) {
-		    ++ i;
-		    ibis::gParameters().read(argv[i]);
-		}
-		break;
-	    case 'd':
-	    case 'D':
-		if (i+1 < argc) {
-		    ++ i;
-		    dirs.push_back(argv[i]);
-		}
-		break;
-	    case 'f':
-	    case 'F':
-		if (i+1 < argc) {
-		    ++ i;
-		    frm = argv[i];
-		}
-		break;
-	    case 'm':
-	    case 'M': {
-		if (0 == cats)
-		    cats = new ibis::table::stringList;
-		char *ptr = strchr(argv[i], '=');
-		if (ptr == 0) {
-		    if (i+1 < argc) {
-			if ('-' != *argv[i+1]) {
-			    ibis::table::parseNames(argv[i+1], *cats);
-			    i = i + 1;
-			}
-		    }
-		}
-		else {
-		    ibis::table::parseNames(++ptr, *cats);
-		}
-		break;}
-	    case 'w':
-	    case 'W':
-		if (i+1 < argc) {
-		    ++ i;
-		    qcnd.insert(argv[i]);
-		}
-		break;
-	    case 'o':
-	    case 'O':
-		if (i+1 < argc) {
-		    ++ i;
-		    ord = argv[i];
-		}
-		break;
-	    case 's':
-	    case 'S':
-		if (i+1 < argc) {
-		    ++ i;
-		    sel = argv[i];
-		}
-		break;
-	    case 'v':
-	    case 'V': {
-		char *ptr = strchr(argv[i], '=');
-		if (ptr == 0) {
-		    if (i+1 < argc) {
-			if (isdigit(*argv[i+1])) {
-			    ibis::gVerbose += strtol(argv[i+1], 0, 0);
-			    i = i + 1;
-			}
-			else {
-			    ++ ibis::gVerbose;
-			}
-		    }
-		    else {
-			++ ibis::gVerbose;
-		    }
-		}
-		else {
-		    ibis::gVerbose += strtol(++ptr, 0, 0);
-		}
-		break;}
-	    case 't':
-	    case 'T': {
-		char *ptr = strchr(argv[i], '=');
-		if (ptr == 0) {
-		    if (i+1 < argc) {
-			if (isdigit(*argv[i+1])) {
-			    testing += strtol(argv[i+1], 0, 0);
-			    i = i + 1;
-			}
-			else {
-			    ++ testing;
-			}
-		    }
-		    else {
-			++ testing;
-		    }
-		}
-		else {
-		    testing += strtol(++ptr, 0, 0);
-		}
-		break;}
-	    case 'x':
-	    case 'X': 
-		if (i+1 < argc) {
-		    ++ i;
-		    xfile.open(argv[i],
+        if (*argv[i] == '-') { // normal arguments starting with -
+            switch (argv[i][1]) {
+            default:
+            case 'h':
+            case 'H':
+                usage(*argv);
+                exit(0);
+            case 'c':
+            case 'C':
+                if (i+1 < argc) {
+                    ++ i;
+                    ibis::gParameters().read(argv[i]);
+                }
+                break;
+            case 'd':
+            case 'D':
+                if (i+1 < argc) {
+                    ++ i;
+                    dirs.push_back(argv[i]);
+                }
+                break;
+            case 'f':
+            case 'F':
+                if (i+1 < argc) {
+                    ++ i;
+                    frm = argv[i];
+                }
+                break;
+            case 'm':
+            case 'M': {
+                if (0 == cats)
+                    cats = new ibis::table::stringList;
+                char *ptr = strchr(argv[i], '=');
+                if (ptr == 0) {
+                    if (i+1 < argc) {
+                        if ('-' != *argv[i+1]) {
+                            ibis::table::parseNames(argv[i+1], *cats);
+                            i = i + 1;
+                        }
+                    }
+                }
+                else {
+                    ibis::table::parseNames(++ptr, *cats);
+                }
+                break;}
+            case 'w':
+            case 'W':
+                if (i+1 < argc) {
+                    ++ i;
+                    qcnd.insert(argv[i]);
+                }
+                break;
+            case 'o':
+            case 'O':
+                if (i+1 < argc) {
+                    ++ i;
+                    ord = argv[i];
+                }
+                break;
+            case 's':
+            case 'S':
+                if (i+1 < argc) {
+                    ++ i;
+                    sel = argv[i];
+                }
+                break;
+            case 'v':
+            case 'V': {
+                char *ptr = strchr(argv[i], '=');
+                if (ptr == 0) {
+                    if (i+1 < argc) {
+                        if (isdigit(*argv[i+1])) {
+                            ibis::gVerbose += strtol(argv[i+1], 0, 0);
+                            i = i + 1;
+                        }
+                        else {
+                            ++ ibis::gVerbose;
+                        }
+                    }
+                    else {
+                        ++ ibis::gVerbose;
+                    }
+                }
+                else {
+                    ibis::gVerbose += strtol(++ptr, 0, 0);
+                }
+                break;}
+            case 't':
+            case 'T': {
+                char *ptr = strchr(argv[i], '=');
+                if (ptr == 0) {
+                    if (i+1 < argc) {
+                        if (isdigit(*argv[i+1])) {
+                            testing += strtol(argv[i+1], 0, 0);
+                            i = i + 1;
+                        }
+                        else {
+                            ++ testing;
+                        }
+                    }
+                    else {
+                        ++ testing;
+                    }
+                }
+                else {
+                    testing += strtol(++ptr, 0, 0);
+                }
+                break;}
+            case 'x':
+            case 'X':
+                if (i+1 < argc) {
+                    ++ i;
+                    xfile.open(argv[i],
                                std::ios_base::out|std::ios_base::trunc);
-		    if (!xfile)
-			std::cerr << "Warning -- " << *argv
+                    if (!xfile)
+                        std::cerr << "Warning -- " << *argv
                                   << " failed to open \"" << argv[i]
                                   << "\" for writing output records"
-				  << std::endl;
-		}
-		break;
-	    } // switch (argv[i][1])
-	} // normal arguments
-	else { // assume to be a set of query conditioins
-	    qcnd.insert(argv[i]);
-	}
+                                  << std::endl;
+                }
+                break;
+            } // switch (argv[i][1])
+        } // normal arguments
+        else { // assume to be a set of query conditioins
+            qcnd.insert(argv[i]);
+        }
     } // for (inti=1; ...)
 
     // add the data partitions from configuartion files first
@@ -725,80 +725,80 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
 
     // exercise the class function ibis::table::select
     if (ibis::gVerbose > 2 && sstr != 0 && *sstr != 0 && n0 > 0 &&
-	sel->nColumns() > 0 && (fstr == 0 || *fstr == 0)) {
-	std::cout << "\n-- +++ extra test for class function "
-	    "ibis::table::select +++ --\n";
-	std::vector<const ibis::part*> parts;
-	int ierr = tbl.getPartitions(parts);
-	if (ierr <= 0) {
-	    std::cout << "Warning -- " << mesg << " tbl.getPartitions failed "
-		"with error code " << ierr << ", can not proceed with the "
-		"test on class function ibis::table::select\n" << std::endl;
-	}
-	else {
-	    std::unique_ptr<ibis::table>
-		sel2(ibis::table::select(parts, sstr, wstr));
-	    if (sel2.get() == 0) {
-		std::cout << "Warning -- " << mesg
-			  << "class function ibis::table::select failed\n"
-			  << std::endl;
-	    }
-	    else if (sel2->nRows() != n0 ||
-		     sel2->nColumns() != sel->nColumns()) {
-		std::cout << "Warning -- " << mesg << " class function "
-		    "ibis::table::select return a table with " << sel2->nRows()
-			  << " row" << (sel2->nRows()>1?"s":"") << " and "
-			  << sel2->nColumns() << " column"
-			  << (sel2->nColumns()>1?"s":"") << ", but the member "
-		    "function version returned a table of " << n0 << " x "
-			  << sel->nColumns() << "\n" << std::endl;
-	    }
-	    else {
-		std::cout << mesg << " passed the test on class function "
-		    "ibis::table::select\n" << std::endl;
-	    }
-	}
+        sel->nColumns() > 0 && (fstr == 0 || *fstr == 0)) {
+        std::cout << "\n-- +++ extra test for class function "
+            "ibis::table::select +++ --\n";
+        std::vector<const ibis::part*> parts;
+        int ierr = tbl.getPartitions(parts);
+        if (ierr <= 0) {
+            std::cout << "Warning -- " << mesg << " tbl.getPartitions failed "
+                "with error code " << ierr << ", can not proceed with the "
+                "test on class function ibis::table::select\n" << std::endl;
+        }
+        else {
+            std::unique_ptr<ibis::table>
+                sel2(ibis::table::select(parts, sstr, wstr));
+            if (sel2.get() == 0) {
+                std::cout << "Warning -- " << mesg
+                          << "class function ibis::table::select failed\n"
+                          << std::endl;
+            }
+            else if (sel2->nRows() != n0 ||
+                     sel2->nColumns() != sel->nColumns()) {
+                std::cout << "Warning -- " << mesg << " class function "
+                    "ibis::table::select return a table with " << sel2->nRows()
+                          << " row" << (sel2->nRows()>1?"s":"") << " and "
+                          << sel2->nColumns() << " column"
+                          << (sel2->nColumns()>1?"s":"") << ", but the member "
+                    "function version returned a table of " << n0 << " x "
+                          << sel->nColumns() << "\n" << std::endl;
+            }
+            else {
+                std::cout << mesg << " passed the test on class function "
+                    "ibis::table::select\n" << std::endl;
+            }
+        }
     }
 
     // exercise some functions on the in-memory table sel
     if (sel->nColumns() > 0 && ibis::gVerbose > 0 && sstr != 0 && *sstr != 0
-	&& strchr(sstr, '(') == 0) {
-	std::cout << "\n-- *** extra test on the in-memory data *** --\n";
-	std::unique_ptr<ibis::table> gb;
-	ibis::table::stringList nl = sel->columnNames();
-	ibis::table::typeList tl = sel->columnTypes();
-	std::vector<std::string> strs;
-	ibis::table::stringList strc;
-	if (nl.size() == 1) {
-	    if (ibis::util::isNumericType(tl[0])) {
-		strs.resize(10);
-		strs[0] = sstr;
-		strs[1] = "min(";     strs[1] += sstr; strs[1] += ')';
-		strs[2] = "max(";     strs[2] += sstr; strs[2] += ')';
-		strs[3] = "sum(";     strs[3] += sstr; strs[3] += ')';
-		strs[4] = "avg(";     strs[4] += sstr; strs[4] += ')';
-		strs[5] = "varpop(";  strs[5] += sstr; strs[5] += ')';
-		strs[6] = "varsamp("; strs[6] += sstr; strs[6] += ')';
-		strs[7] = "stdpop(";  strs[7] += sstr; strs[7] += ')';
-		strs[8] = "stdsamp("; strs[8] += sstr; strs[8] += ')';
-		strs[9] = "distinct(";strs[9] += sstr; strs[9] += ')';
-	    }
-	    else {
-		strs.resize(1);
-		strs[0] = sstr;
-	    }
-	}
-	else if (nl.size() == 2) {
-	    if (! ibis::util::isNumericType(tl[1])) {
-		if (ibis::util::isNumericType(tl[0])) {
-		    const char* ts = nl[0];
-		    nl[0] = nl[1];
-		    nl[1] = ts;
-		    ibis::TYPE_T tt = tl[0];
-		    tl[0] = tl[1];
-		    tl[1] = tt;
-		}
-	    }
+        && strchr(sstr, '(') == 0) {
+        std::cout << "\n-- *** extra test on the in-memory data *** --\n";
+        std::unique_ptr<ibis::table> gb;
+        ibis::table::stringList nl = sel->columnNames();
+        ibis::table::typeList tl = sel->columnTypes();
+        std::vector<std::string> strs;
+        ibis::table::stringList strc;
+        if (nl.size() == 1) {
+            if (ibis::util::isNumericType(tl[0])) {
+                strs.resize(10);
+                strs[0] = sstr;
+                strs[1] = "min(";     strs[1] += sstr; strs[1] += ')';
+                strs[2] = "max(";     strs[2] += sstr; strs[2] += ')';
+                strs[3] = "sum(";     strs[3] += sstr; strs[3] += ')';
+                strs[4] = "avg(";     strs[4] += sstr; strs[4] += ')';
+                strs[5] = "varpop(";  strs[5] += sstr; strs[5] += ')';
+                strs[6] = "varsamp("; strs[6] += sstr; strs[6] += ')';
+                strs[7] = "stdpop(";  strs[7] += sstr; strs[7] += ')';
+                strs[8] = "stdsamp("; strs[8] += sstr; strs[8] += ')';
+                strs[9] = "distinct(";strs[9] += sstr; strs[9] += ')';
+            }
+            else {
+                strs.resize(1);
+                strs[0] = sstr;
+            }
+        }
+        else if (nl.size() == 2) {
+            if (! ibis::util::isNumericType(tl[1])) {
+                if (ibis::util::isNumericType(tl[0])) {
+                    const char* ts = nl[0];
+                    nl[0] = nl[1];
+                    nl[1] = ts;
+                    ibis::TYPE_T tt = tl[0];
+                    tl[0] = tl[1];
+                    tl[1] = tt;
+                }
+            }
 
             if (ibis::util::isNumericType(tl[1])) {
                 strs.resize(10);
@@ -812,7 +812,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
                 strs[6] = "varsamp("; strs[6] += nm2; strs[6] += ')';
                 strs[7] = "stdpop(";  strs[7] += nm2; strs[7] += ')';
                 strs[8] = "stdsamp("; strs[8] += nm2; strs[8] += ')';
-                strs[9] = "countdistinct(";strs[9] += nm2; strs[9] += ')';
+                strs[9] = "distinct(";strs[9] += nm2; strs[9] += ')';
             }
             else {
                 strs.resize(2);
@@ -857,65 +857,65 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
                 strs[i] = "varsamp("; strs[i] += nm2; strs[i] += ')'; ++ i;
                 strs[i] = "stdpop(";  strs[i] += nm2; strs[i] += ')'; ++ i;
                 strs[i] = "stdsamp("; strs[i] += nm2; strs[i] += ')'; ++ i;
-                strs[i] = "countdistinct(";strs[i] += nm2; strs[i] += ')';
+                strs[i] = "distinct(";strs[i] += nm2; strs[i] += ')';
             }
             else {
                 strs.resize(i);
             }
 
-	    if (ibis::util::isStringType(tl[0]) && sel->nRows() > 5) {
-		std::unique_ptr<ibis::table> incore = std::move(sel);
-		std::unique_ptr<ibis::table::cursor> csr(incore->createCursor());
-		int ierr = csr->fetch();
-		if (ierr < 0) {
-		    std::clog << "Warning -- cursor on " << incore->name()
-			      << " failed to fetch the 1st row, ierr = "
-			      << ierr << std::endl;
-		}
-		else {
-		    std::string wtmp, stmp;
-		    ierr = csr->getColumnAsString(nl[0], stmp);
-		    wtmp = nl[0];
-		    wtmp += " = '";
-		    wtmp += stmp;
-		    wtmp += '\'';
-		    stmp = nl[0];
-		    for (i = 1; i < nl.size(); ++ i) {
-			stmp += ", ";
-			stmp += nl[i];
-		    }
-		    sel.reset(incore->select(stmp.c_str(), wtmp.c_str()));
-		    if (sel.get() == 0)
-			sel.reset(incore.release());
-		}
-	    }
-	    if (ibis::util::isNumericType(tl[0]) && sel->nRows() > 5) {
-		std::unique_ptr<ibis::table> incore = std::move(sel);
-		std::unique_ptr<ibis::table::cursor> csr(incore->createCursor());
-		int ierr = csr->fetch();
-		if (ierr < 0) {
-		    std::clog << "Warning -- cursor on " << incore->name()
-			      << " failed to fetch the 1st row, ierr = "
-			      << ierr << std::endl;
-		}
-		else {
-		    double vtmp;
-		    std::string stmp;
-		    std::ostringstream wtmp;
-		    ierr = csr->getColumnAsDouble(nl[0], vtmp);
-		    wtmp << nl[0] << " >= " << vtmp;
-		    stmp = nl[0];
-		    for (i = 1; i < nl.size(); ++ i) {
-			stmp += ", ";
-			stmp += nl[i];
-		    }
-		    sel.reset(incore->select
-			      (stmp.c_str(), wtmp.str().c_str()));
-		    if (sel.get() == 0)
-			sel.reset(incore.release());
-		}
-	    }
-	}
+            if (ibis::util::isStringType(tl[0]) && sel->nRows() > 5) {
+                std::unique_ptr<ibis::table> incore = std::move(sel);
+                std::unique_ptr<ibis::table::cursor> csr(incore->createCursor());
+                int ierr = csr->fetch();
+                if (ierr < 0) {
+                    std::clog << "Warning -- cursor on " << incore->name()
+                              << " failed to fetch the 1st row, ierr = "
+                              << ierr << std::endl;
+                }
+                else {
+                    std::string wtmp, stmp;
+                    ierr = csr->getColumnAsString(nl[0], stmp);
+                    wtmp = nl[0];
+                    wtmp += " = '";
+                    wtmp += stmp;
+                    wtmp += '\'';
+                    stmp = nl[0];
+                    for (i = 1; i < nl.size(); ++ i) {
+                        stmp += ", ";
+                        stmp += nl[i];
+                    }
+                    sel.reset(incore->select(stmp.c_str(), wtmp.c_str()));
+                    if (sel.get() == 0)
+                        sel.reset(incore.release());
+                }
+            }
+            if (ibis::util::isNumericType(tl[0]) && sel->nRows() > 5) {
+                std::unique_ptr<ibis::table> incore = std::move(sel);
+                std::unique_ptr<ibis::table::cursor> csr(incore->createCursor());
+                int ierr = csr->fetch();
+                if (ierr < 0) {
+                    std::clog << "Warning -- cursor on " << incore->name()
+                              << " failed to fetch the 1st row, ierr = "
+                              << ierr << std::endl;
+                }
+                else {
+                    double vtmp;
+                    std::string stmp;
+                    std::ostringstream wtmp;
+                    ierr = csr->getColumnAsDouble(nl[0], vtmp);
+                    wtmp << nl[0] << " >= " << vtmp;
+                    stmp = nl[0];
+                    for (i = 1; i < nl.size(); ++ i) {
+                        stmp += ", ";
+                        stmp += nl[i];
+                    }
+                    sel.reset(incore->select
+                              (stmp.c_str(), wtmp.str().c_str()));
+                    if (sel.get() == 0)
+                        sel.reset(incore.release());
+                }
+            }
+        }
 
         strc.resize(strs.size());
         for (size_t i = 0; i < strs.size(); ++ i)
@@ -974,55 +974,55 @@ void doTest(const ibis::table& tbl) {
             << ibis::util::groupby1000(ibis::fileManager::bytesFree())
             << " bytes free";
 
-	// select a random column to build a where clause
-	int iw = std::floor(ibis::util::rand() * cols.size());
-	std::string selmm = "min(";
-	selmm += cols[iw];
-	selmm += ") as a, max(";
-	selmm += cols[iw];
-	selmm += ") as b";
-	std::unique_ptr<ibis::table> minmax(tbl.select(selmm.c_str(), "1=1"));
-	if (minmax.get() == 0) {
-	    std::cerr << "Warning -- doTest iteration " << j
-		      << " failed to compute the minimum and the maximum of "
-		      << cols[iw] << "\n" << std::endl;
-	    continue;
-	}
-	std::vector<double> wmin, wmax;
-	int64_t ierr = minmax->getColumnAsDoubles("a", wmin);
-	if (ierr < 1) {
-	    std::cerr << "Warning -- doTest iteration " << j
-		      << " failed to retrieve the minimum value of "
-		      << cols[iw] << "\n" << std::endl;
-	    continue;
-	}
-	ierr = minmax->getColumnAsDoubles("b", wmax);
-	if (ierr < 1) {
-	    std::cerr << "Warning -- doTest iteration " << j
-		      << " failed to retrieve the maximum value of "
-		      << cols[iw] << "\n" << std::endl;
-	    continue;
-	}
+        // select a random column to build a where clause
+        int iw = std::floor(ibis::util::rand() * cols.size());
+        std::string selmm = "min(";
+        selmm += cols[iw];
+        selmm += ") as a, max(";
+        selmm += cols[iw];
+        selmm += ") as b";
+        std::unique_ptr<ibis::table> minmax(tbl.select(selmm.c_str(), "1=1"));
+        if (minmax.get() == 0) {
+            std::cerr << "Warning -- doTest iteration " << j
+                      << " failed to compute the minimum and the maximum of "
+                      << cols[iw] << "\n" << std::endl;
+            continue;
+        }
+        std::vector<double> wmin, wmax;
+        int64_t ierr = minmax->getColumnAsDoubles("a", wmin);
+        if (ierr < 1) {
+            std::cerr << "Warning -- doTest iteration " << j
+                      << " failed to retrieve the minimum value of "
+                      << cols[iw] << "\n" << std::endl;
+            continue;
+        }
+        ierr = minmax->getColumnAsDoubles("b", wmax);
+        if (ierr < 1) {
+            std::cerr << "Warning -- doTest iteration " << j
+                      << " failed to retrieve the maximum value of "
+                      << cols[iw] << "\n" << std::endl;
+            continue;
+        }
 
-	std::ostringstream where;
-	where << cols[iw] << " <= "
-	      << wmin[0] + ibis::util::rand() * (1.0 + wmax[0] - wmin[0]);
-	// choose four random columns for the select clause
-	std::ostringstream sel;
-	sel << "floor(" << cols[(int)(ibis::util::rand() * cols.size())]
-	    << "/80), sum(" << cols[(int)(ibis::util::rand() * cols.size())]
-	    << "), stdev(" << cols[(int)(ibis::util::rand() * cols.size())]
-	    << "), count(" << cols[(int)(ibis::util::rand() * cols.size())]
-	    << ") as count0";
-	std::unique_ptr<ibis::table>
-	    res(tbl.select(sel.str().c_str(), where.str().c_str()));
-	if (res.get() == 0) {
-	    std::cerr << "Warning -- doTest iteration " << j
-		      << " failed to produce a table for \"select " << sel.str()
-		      << " from " << tbl.name() << " where " << where.str()
-		      << "\"\n" << std::endl;
-	    continue;
-	}
+        std::ostringstream where;
+        where << cols[iw] << " <= "
+              << wmin[0] + ibis::util::rand() * (1.0 + wmax[0] - wmin[0]);
+        // choose four random columns for the select clause
+        std::ostringstream sel;
+        sel << "floor(" << cols[(int)(ibis::util::rand() * cols.size())]
+            << "/80), sum(" << cols[(int)(ibis::util::rand() * cols.size())]
+            << "), stdev(" << cols[(int)(ibis::util::rand() * cols.size())]
+            << "), count(" << cols[(int)(ibis::util::rand() * cols.size())]
+            << ") as count0";
+        std::unique_ptr<ibis::table>
+            res(tbl.select(sel.str().c_str(), where.str().c_str()));
+        if (res.get() == 0) {
+            std::cerr << "Warning -- doTest iteration " << j
+                      << " failed to produce a table for \"select " << sel.str()
+                      << " from " << tbl.name() << " where " << where.str()
+                      << "\"\n" << std::endl;
+            continue;
+        }
 
         std::cout << "doTest iteration " << j << " produced " << res->nRows()
                   << " row" << (res->nRows()>1?"s":"") << std::endl;

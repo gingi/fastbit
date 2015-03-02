@@ -11,7 +11,7 @@
 #endif
 #include "bitvector64.h"
 #include "bitvector.h"
-#include <iomanip>	// setw
+#include <iomanip>      // setw
 
 // constances defined in bitvector64
 const unsigned ibis::bitvector64::MAXBITS = 63;
@@ -31,27 +31,27 @@ const ibis::bitvector64::word_t ibis::bitvector64::HEADER1 =
 ibis::bitvector64::bitvector64(const array_t<ibis::bitvector64::word_t>& arr)
     : m_vec(arr) {
     if (m_vec.size() > 1) { // non-trivial size
-	if (m_vec.back()) { // has active bits
-	    if (m_vec.back() < MAXBITS) {
-		active.nbits = m_vec.back();
-		m_vec.pop_back();
-		active.val = m_vec.back();
-	    }
-	    else {
-		ibis::util::logMessage
-		    ("Error", "the serialized version of bitvector contains "
-		     "an expected last word (%lu)",
-		     static_cast<long unsigned>(m_vec.back()));
-		throw "bitvector constructor failure "
-		    "-- the input is not a serialized bitvector";
-	    }
-	}
-	else {
-	    active.reset();
-	}
-	m_vec.pop_back();
+        if (m_vec.back()) { // has active bits
+            if (m_vec.back() < MAXBITS) {
+                active.nbits = m_vec.back();
+                m_vec.pop_back();
+                active.val = m_vec.back();
+            }
+            else {
+                ibis::util::logMessage
+                    ("Error", "the serialized version of bitvector contains "
+                     "an expected last word (%lu)",
+                     static_cast<long unsigned>(m_vec.back()));
+                throw "bitvector constructor failure "
+                    "-- the input is not a serialized bitvector";
+            }
+        }
+        else {
+            active.reset();
+        }
+        m_vec.pop_back();
 #ifndef FASTBIT_LAZY_INIT
-	nbits = do_cnt(); // count the number of bits
+        nbits = do_cnt(); // count the number of bits
 #else
         nbits = 0;
         nset = 0;
@@ -342,9 +342,9 @@ ibis::bitvector64::copy_comp(array_t<ibis::bitvector64::word_t>& tmp) const {
 ibis::bitvector64::word_t ibis::bitvector64::compressible() const {
     word_t cnt = 0;
     for (word_t i = 0; i+1 < m_vec.size(); ++ i) {
-	cnt += ((m_vec[i] == m_vec[i+1]) &&
-		((m_vec[i] == static_cast<word_t>(0)) ||
-		 (m_vec[i] == ALLONES)));
+        cnt += ((m_vec[i] == m_vec[i+1]) &&
+                ((m_vec[i] == static_cast<word_t>(0)) ||
+                 (m_vec[i] == ALLONES)));
     }
     return cnt;
 } // ibis::bitvector64::compressible
@@ -1484,15 +1484,15 @@ void ibis::bitvector64::and_c2(const ibis::bitvector64& rhs,
         }
     }
     else if (m_vec.size() > 1) {
-	run x, y;
-	x.it = m_vec.begin();
-	y.it = rhs.m_vec.begin();
-	while (x.it < m_vec.end()) { // go through all words in m_vec
-	    if (x.nWords == 0)
-		x.decode();
-	    if (y.nWords == 0)
-		y.decode();
-	    if (x.nWords == 0 || y.nWords == 0) {
+        run x, y;
+        x.it = m_vec.begin();
+        y.it = rhs.m_vec.begin();
+        while (x.it < m_vec.end()) { // go through all words in m_vec
+            if (x.nWords == 0)
+                x.decode();
+            if (y.nWords == 0)
+                y.decode();
+            if (x.nWords == 0 || y.nWords == 0) {
                 while (x.nWords == 0 && x.it < m_vec.end()) {
                     ++ x.it;
                     x.decode();
@@ -1514,69 +1514,69 @@ void ibis::bitvector64::and_c2(const ibis::bitvector64& rhs,
                            (x.nWords == 0 || y.nWords == 0))
                         << "ERROR bitvector64::and_c2 -- serious problem ...";
                 }
-	    }
-	    if (x.isFill) {	    // x points to a fill
-		// if both x and y point to fills, use the long one
-		if (y.isFill && y.nWords >= x.nWords) {
-		    if (y.fillBit == 0) {
-			res.append_counter(0, y.nWords);
-			x -= y.nWords;
-			y.nWords = 0;
-			++ y.it;
-		    }
-		    else {
-			res.copy_runs(x, y.nWords);
-			y.it += (y.nWords == 0);
-		    }
-		}
-		else if (x.fillBit == 0) { // generate a 0-fill as the result
-		    res.append_counter(0, x.nWords);
-		    y -= x.nWords;
-		    x.nWords = 0;
-		    ++ x.it;
-		}
-		else { // copy the content of y
-		    res.copy_runs(y, x.nWords);
-		    x.it += (x.nWords == 0);
-		}
-	    }
-	    else if (y.isFill) {	    // i1 is compressed
-		if (y.fillBit == 0) { // generate a 0-fill as the result
-		    res.append_counter(0, y.nWords);
-		    x -= y.nWords;
-		    y.nWords = 0;
-		    ++ y.it;
-		}
-		else { // copy the content of x
-		    res.copy_runs(x, y.nWords);
-		    y.it += (y.nWords == 0);
-		}
-	    }
-	    else { // both words are not compressed
-		res.active.val = *(x.it) & *(y.it);
-		res.append_active();
-		x.nWords = 0;
-		y.nWords = 0;
-		++ x.it;
-		++ y.it;
-	    }
-	} // while (x.it < m_vec.end())
+            }
+            if (x.isFill) {         // x points to a fill
+                // if both x and y point to fills, use the long one
+                if (y.isFill && y.nWords >= x.nWords) {
+                    if (y.fillBit == 0) {
+                        res.append_counter(0, y.nWords);
+                        x -= y.nWords;
+                        y.nWords = 0;
+                        ++ y.it;
+                    }
+                    else {
+                        res.copy_runs(x, y.nWords);
+                        y.it += (y.nWords == 0);
+                    }
+                }
+                else if (x.fillBit == 0) { // generate a 0-fill as the result
+                    res.append_counter(0, x.nWords);
+                    y -= x.nWords;
+                    x.nWords = 0;
+                    ++ x.it;
+                }
+                else { // copy the content of y
+                    res.copy_runs(y, x.nWords);
+                    x.it += (x.nWords == 0);
+                }
+            }
+            else if (y.isFill) {            // i1 is compressed
+                if (y.fillBit == 0) { // generate a 0-fill as the result
+                    res.append_counter(0, y.nWords);
+                    x -= y.nWords;
+                    y.nWords = 0;
+                    ++ y.it;
+                }
+                else { // copy the content of x
+                    res.copy_runs(x, y.nWords);
+                    y.it += (y.nWords == 0);
+                }
+            }
+            else { // both words are not compressed
+                res.active.val = *(x.it) & *(y.it);
+                res.append_active();
+                x.nWords = 0;
+                y.nWords = 0;
+                ++ x.it;
+                ++ y.it;
+            }
+        } // while (x.it < m_vec.end())
 
-	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::and_c2 "
-				   "expects to exhaust i0 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(m_vec.end() - x.it));
-	    throw "and_c2 iternal error";
-	}
+        if (x.it != m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::and_c2 "
+                                   "expects to exhaust i0 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(m_vec.end() - x.it));
+            throw "and_c2 iternal error";
+        }
 
-	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::and_c2 "
-				   "expects to exhaust i1 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(rhs.m_vec.end() - y.it));
-	    throw "and_c2 iternal error";
-	}
+        if (y.it != rhs.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::and_c2 "
+                                   "expects to exhaust i1 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(rhs.m_vec.end() - y.it));
+            throw "and_c2 iternal error";
+        }
     }
 
     // the last thing -- work with the two active_words
@@ -1699,17 +1699,17 @@ void ibis::bitvector64::and_d2(const ibis::bitvector64& rhs,
         }
     }
     else if (m_vec.size() > 1) { // more than one word in *this
-	run x, y;
-	res.nset = 0;
-	x.it = m_vec.begin();
-	y.it = rhs.m_vec.begin();
-	array_t<word_t>::iterator ir = res.m_vec.begin();
-	while (x.it < m_vec.end()) {	// go through all words in m_vec
-	    if (x.nWords == 0)
-		x.decode();
-	    if (y.nWords == 0)
-		y.decode();
-	    if (x.nWords == 0 || y.nWords == 0) {
+        run x, y;
+        res.nset = 0;
+        x.it = m_vec.begin();
+        y.it = rhs.m_vec.begin();
+        array_t<word_t>::iterator ir = res.m_vec.begin();
+        while (x.it < m_vec.end()) {    // go through all words in m_vec
+            if (x.nWords == 0)
+                x.decode();
+            if (y.nWords == 0)
+                y.decode();
+            if (x.nWords == 0 || y.nWords == 0) {
                 while (x.nWords == 0 && x.it < m_vec.end()) {
                     ++ x.it;
                     x.decode();
@@ -1731,70 +1731,70 @@ void ibis::bitvector64::and_d2(const ibis::bitvector64& rhs,
                            (x.nWords == 0 || y.nWords == 0))
                         << "ERROR bitvector64::and_d2 -- serious problem ...";
                 }
-	    }
-	    if (x.isFill) {
-		if (y.isFill && y.nWords >= x.nWords) {
-		    if (y.fillBit == 0) {
-			x -= y.nWords;
-			res.copy_fill(ir, y);
-		    }
-		    else {
-			res.copy_runs(ir, x, y.nWords);
-			y.it += (y.nWords == 0);
-		    }
-		}
-		else if (x.fillBit == 0) {
-		    y -= x.nWords;
-		    res.copy_fill(ir, x);
-		}
-		else {
-		    res.copy_runs(ir, y, x.nWords);
-		    x.it += (x.nWords == 0);
-		}
-	    }
-	    else if (y.isFill) {
-		if (y.fillBit == 0) {
-		    x -= y.nWords;
-		    res.copy_fill(ir, y);
-		}
-		else {
-		    res.copy_runs(ir, x, y.nWords);
-		    y.it += (y.nWords == 0);
-		}
-	    }
-	    else { // both words are not compressed
-		*ir = *x.it & *y.it;
-		x.nWords = 0;
-		y.nWords = 0;
-		++ x.it;
-		++ y.it;
-		++ ir;
-	    }
-	} // while (x.it < m_vec.end())
+            }
+            if (x.isFill) {
+                if (y.isFill && y.nWords >= x.nWords) {
+                    if (y.fillBit == 0) {
+                        x -= y.nWords;
+                        res.copy_fill(ir, y);
+                    }
+                    else {
+                        res.copy_runs(ir, x, y.nWords);
+                        y.it += (y.nWords == 0);
+                    }
+                }
+                else if (x.fillBit == 0) {
+                    y -= x.nWords;
+                    res.copy_fill(ir, x);
+                }
+                else {
+                    res.copy_runs(ir, y, x.nWords);
+                    x.it += (x.nWords == 0);
+                }
+            }
+            else if (y.isFill) {
+                if (y.fillBit == 0) {
+                    x -= y.nWords;
+                    res.copy_fill(ir, y);
+                }
+                else {
+                    res.copy_runs(ir, x, y.nWords);
+                    y.it += (y.nWords == 0);
+                }
+            }
+            else { // both words are not compressed
+                *ir = *x.it & *y.it;
+                x.nWords = 0;
+                y.nWords = 0;
+                ++ x.it;
+                ++ y.it;
+                ++ ir;
+            }
+        } // while (x.it < m_vec.end())
 
-	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::and_d2 "
-				   "expects to exhaust i0 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(m_vec.end() - x.it));
-	    throw "and_d2 internal error";
-	}
+        if (x.it != m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::and_d2 "
+                                   "expects to exhaust i0 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(m_vec.end() - x.it));
+            throw "and_d2 internal error";
+        }
 
-	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::and_d2 "
-				   "expects to exhaust i1 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(rhs.m_vec.end() - y.it));
-	    throw "and_d2 internal error";
-	}
+        if (y.it != rhs.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::and_d2 "
+                                   "expects to exhaust i1 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(rhs.m_vec.end() - y.it));
+            throw "and_d2 internal error";
+        }
 
-	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::and_d2 "
-				   "expects to exhaust ir but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(res.m_vec.end() - ir));
-	    throw "and_d2 internal error";
-	}
+        if (ir != res.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::and_d2 "
+                                   "expects to exhaust ir but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(res.m_vec.end() - ir));
+            throw "and_d2 internal error";
+        }
     }
 
     // work with the two active_words
@@ -1925,15 +1925,15 @@ void ibis::bitvector64::or_c2(const ibis::bitvector64& rhs,
         }
     }
     else if (m_vec.size() > 1) {
-	run x, y;
-	x.it = m_vec.begin();
-	y.it = rhs.m_vec.begin();
-	while (x.it < m_vec.end()) {	// go through all words in m_vec
-	    if (x.nWords == 0)
-		x.decode();
-	    if (y.nWords == 0)
-		y.decode();
-	    if (x.nWords == 0 || y.nWords == 0) {
+        run x, y;
+        x.it = m_vec.begin();
+        y.it = rhs.m_vec.begin();
+        while (x.it < m_vec.end()) {    // go through all words in m_vec
+            if (x.nWords == 0)
+                x.decode();
+            if (y.nWords == 0)
+                y.decode();
+            if (x.nWords == 0 || y.nWords == 0) {
                 while (x.nWords == 0 && x.it < m_vec.end()) {
                     ++ x.it;
                     x.decode();
@@ -1955,59 +1955,59 @@ void ibis::bitvector64::or_c2(const ibis::bitvector64& rhs,
                            (x.nWords == 0 || y.nWords == 0))
                         << "ERROR bitvector64::or_c2 -- serious problem ...";
                 }
-	    }
-	    if (x.isFill) { // x points to a fill
-		// if both x and y point to fills, use the longer one
-		if (y.isFill && y.nWords >= x.nWords) {
-		    if (y.fillBit) {
-			res.append_counter(y.fillBit, y.nWords);
-			x -= y.nWords;
-			y.nWords = 0;
-			++ y.it;
-		    }
-		    else {
-			res.copy_runs(x, y.nWords);
-			y.it += (y.nWords == 0);
-		    }
-		}
-		else if (x.fillBit) { // the result is all ones
-		    res.append_counter(x.fillBit, x.nWords);
-		    y -= x.nWords; // advance the pointer in y
-		    x.nWords = 0;
-		    ++ x.it;
-		}
-		else { // copy the content of y
-		    res.copy_runs(y, x.nWords);
-		    x.it += (x.nWords == 0);
-		}
-	    }
-	    else if (y.isFill) { // y points to a fill
-		if (y.fillBit) {
-		    res.append_counter(y.fillBit, y.nWords);
-		    x -= y.nWords;
-		    y.nWords = 0;
-		    ++ y.it;
-		}
-		else {
-		    res.copy_runs(x, y.nWords);
-		    y.it += (y.nWords == 0);
-		}
-	    }
-	    else { // both words are not compressed
-		res.active.val = *x.it | *y.it;
-		res.append_active();
-		x.nWords = 0;
-		y.nWords = 0;
-		++ x.it;
-		++ y.it;
-	    }
-	} // while (x.it < m_vec.end())
+            }
+            if (x.isFill) { // x points to a fill
+                // if both x and y point to fills, use the longer one
+                if (y.isFill && y.nWords >= x.nWords) {
+                    if (y.fillBit) {
+                        res.append_counter(y.fillBit, y.nWords);
+                        x -= y.nWords;
+                        y.nWords = 0;
+                        ++ y.it;
+                    }
+                    else {
+                        res.copy_runs(x, y.nWords);
+                        y.it += (y.nWords == 0);
+                    }
+                }
+                else if (x.fillBit) { // the result is all ones
+                    res.append_counter(x.fillBit, x.nWords);
+                    y -= x.nWords; // advance the pointer in y
+                    x.nWords = 0;
+                    ++ x.it;
+                }
+                else { // copy the content of y
+                    res.copy_runs(y, x.nWords);
+                    x.it += (x.nWords == 0);
+                }
+            }
+            else if (y.isFill) { // y points to a fill
+                if (y.fillBit) {
+                    res.append_counter(y.fillBit, y.nWords);
+                    x -= y.nWords;
+                    y.nWords = 0;
+                    ++ y.it;
+                }
+                else {
+                    res.copy_runs(x, y.nWords);
+                    y.it += (y.nWords == 0);
+                }
+            }
+            else { // both words are not compressed
+                res.active.val = *x.it | *y.it;
+                res.append_active();
+                x.nWords = 0;
+                y.nWords = 0;
+                ++ x.it;
+                ++ y.it;
+            }
+        } // while (x.it < m_vec.end())
 
-	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::or_c2 "
-				   "expects to exhaust i0 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(m_vec.end() - x.it));
+        if (x.it != m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::or_c2 "
+                                   "expects to exhaust i0 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(m_vec.end() - x.it));
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
             {
                 ibis::util::logger lg(4);
@@ -2164,17 +2164,17 @@ void ibis::bitvector64::or_d2(const ibis::bitvector64& rhs,
         }
     }
     else if (m_vec.size() > 1) { // more than one word in *this
-	run x, y;
-	res.nset = 0;
-	x.it = m_vec.begin();
-	y.it = rhs.m_vec.begin();
-	array_t<word_t>::iterator ir = res.m_vec.begin();
-	while (x.it < m_vec.end()) {	// go through all words in m_vec
-	    if (x.nWords == 0)
-		x.decode();
-	    if (y.nWords == 0)
-		y.decode();
-	    if (x.nWords == 0 || y.nWords == 0) {
+        run x, y;
+        res.nset = 0;
+        x.it = m_vec.begin();
+        y.it = rhs.m_vec.begin();
+        array_t<word_t>::iterator ir = res.m_vec.begin();
+        while (x.it < m_vec.end()) {    // go through all words in m_vec
+            if (x.nWords == 0)
+                x.decode();
+            if (y.nWords == 0)
+                y.decode();
+            if (x.nWords == 0 || y.nWords == 0) {
                 while (x.nWords == 0 && x.it < m_vec.end()) {
                     ++ x.it;
                     x.decode();
@@ -2196,70 +2196,70 @@ void ibis::bitvector64::or_d2(const ibis::bitvector64& rhs,
                            (x.nWords == 0 || y.nWords == 0))
                         << "ERROR bitvector64::or_d2 -- serious problem ...";
                 }
-	    }
-	    if (x.isFill) {
-		if (y.isFill && y.nWords >= x.nWords) {
-		    if (y.fillBit == 0) {
-			res.copy_runs(ir, x, y.nWords);
-			y.it += (y.nWords == 0);
-		    }
-		    else {
-			x -= y.nWords;
-			res.copy_fill(ir, y);
-		    }
-		}
-		else if (x.fillBit == 0) {
-		    res.copy_runs(ir, y, x.nWords);
-		    x.it += (x.nWords == 0);
-		}
-		else {
-		    y -= x.nWords;
-		    res.copy_fill(ir, x);
-		}
-	    }
-	    else if (y.isFill) {
-		if (y.fillBit == 0) {
-		    res.copy_runs(ir, x, y.nWords);
-		    y.it += (y.nWords == 0);
-		}
-		else {
-		    x -= y.nWords;
-		    res.copy_fill(ir, y);
-		}
-	    }
-	    else { // both words are not compressed
-		*ir = *x.it | *y.it;
-		x.nWords = 0;
-		y.nWords = 0;
-		++ x.it;
-		++ y.it;
-		++ ir;
-	    }
-	} // while (x.it < m_vec.end())
+            }
+            if (x.isFill) {
+                if (y.isFill && y.nWords >= x.nWords) {
+                    if (y.fillBit == 0) {
+                        res.copy_runs(ir, x, y.nWords);
+                        y.it += (y.nWords == 0);
+                    }
+                    else {
+                        x -= y.nWords;
+                        res.copy_fill(ir, y);
+                    }
+                }
+                else if (x.fillBit == 0) {
+                    res.copy_runs(ir, y, x.nWords);
+                    x.it += (x.nWords == 0);
+                }
+                else {
+                    y -= x.nWords;
+                    res.copy_fill(ir, x);
+                }
+            }
+            else if (y.isFill) {
+                if (y.fillBit == 0) {
+                    res.copy_runs(ir, x, y.nWords);
+                    y.it += (y.nWords == 0);
+                }
+                else {
+                    x -= y.nWords;
+                    res.copy_fill(ir, y);
+                }
+            }
+            else { // both words are not compressed
+                *ir = *x.it | *y.it;
+                x.nWords = 0;
+                y.nWords = 0;
+                ++ x.it;
+                ++ y.it;
+                ++ ir;
+            }
+        } // while (x.it < m_vec.end())
 
-	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::or_d2 "
-				   "expects to exhaust i0 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(m_vec.end() - x.it));
-	    throw "or_d2 internal error";
-	}
+        if (x.it != m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::or_d2 "
+                                   "expects to exhaust i0 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(m_vec.end() - x.it));
+            throw "or_d2 internal error";
+        }
 
-	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::or_d2 "
-				   "expects to exhaust i1 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(rhs.m_vec.end() - y.it));
-	    throw "or_d2 internal error";
-	}
+        if (y.it != rhs.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::or_d2 "
+                                   "expects to exhaust i1 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(rhs.m_vec.end() - y.it));
+            throw "or_d2 internal error";
+        }
 
-	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::or_d2 "
-				   "expects to exhaust ir but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(res.m_vec.end() - ir));
-	    throw "or_d2 internal error";
-	}
+        if (ir != res.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::or_d2 "
+                                   "expects to exhaust ir but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(res.m_vec.end() - ir));
+            throw "or_d2 internal error";
+        }
     }
 
     // work with the two active_words
@@ -2386,11 +2386,11 @@ void ibis::bitvector64::xor_c2(const ibis::bitvector64& rhs,
     res.clear();
     x.it = m_vec.begin();
     y.it = rhs.m_vec.begin();
-    while (x.it < m_vec.end()) {	// go through all words in m_vec
-	if (x.nWords == 0)
-	    x.decode();
-	if (y.nWords == 0)
-	    y.decode();
+    while (x.it < m_vec.end()) {        // go through all words in m_vec
+        if (x.nWords == 0)
+            x.decode();
+        if (y.nWords == 0)
+            y.decode();
         if (x.nWords == 0 || y.nWords == 0) {
             while (x.nWords == 0 && x.it < m_vec.end()) {
                 ++ x.it;
@@ -2424,39 +2424,39 @@ void ibis::bitvector64::xor_c2(const ibis::bitvector64& rhs,
                 }
             }
         }
-	if (x.isFill) { // x points to a fill
-	    // if both x and y point to a fill, use the longer fill
-	    if (y.isFill && y.nWords >= x.nWords) {
-		if (y.fillBit == 0)
-		    res.copy_runs(x, y.nWords);
-		else
-		    res.copy_runsn(x, y.nWords);
-		y.it += (y.nWords == 0);
-	    }
-	    else if (x.fillBit == 0) {
-		res.copy_runs(y, x.nWords);
-		x.it += (x.nWords == 0);
-	    }
-	    else {
-		res.copy_runsn(y, x.nWords);
-		x.it += (x.nWords == 0);
-	    }
-	}
-	else if (y.isFill) {	// y points to a fill
-	    if (y.fillBit == 0)
-		res.copy_runs(x, y.nWords);
-	    else
-		res.copy_runsn(x, y.nWords);
-	    y.it += (y.nWords == 0);
-	}
-	else { // both words are not compressed
-	    res.active.val = *x.it ^ *y.it;
-	    res.append_active();
-	    x.nWords = 0;
-	    y.nWords = 0;
-	    ++ x.it;
-	    ++ y.it;
-	}
+        if (x.isFill) { // x points to a fill
+            // if both x and y point to a fill, use the longer fill
+            if (y.isFill && y.nWords >= x.nWords) {
+                if (y.fillBit == 0)
+                    res.copy_runs(x, y.nWords);
+                else
+                    res.copy_runsn(x, y.nWords);
+                y.it += (y.nWords == 0);
+            }
+            else if (x.fillBit == 0) {
+                res.copy_runs(y, x.nWords);
+                x.it += (x.nWords == 0);
+            }
+            else {
+                res.copy_runsn(y, x.nWords);
+                x.it += (x.nWords == 0);
+            }
+        }
+        else if (y.isFill) {    // y points to a fill
+            if (y.fillBit == 0)
+                res.copy_runs(x, y.nWords);
+            else
+                res.copy_runsn(x, y.nWords);
+            y.it += (y.nWords == 0);
+        }
+        else { // both words are not compressed
+            res.active.val = *x.it ^ *y.it;
+            res.append_active();
+            x.nWords = 0;
+            y.nWords = 0;
+            ++ x.it;
+            ++ y.it;
+        }
     } // while (x.it < m_vec.end())
 
     if (x.it != m_vec.end()) {
@@ -2572,17 +2572,17 @@ void ibis::bitvector64::xor_d2(const ibis::bitvector64& rhs,
         }
     }
     else if (m_vec.size() > 1) { // more than one word in *this
-	run x, y;
-	res.nset = 0;
-	x.it = m_vec.begin();
-	y.it = rhs.m_vec.begin();
-	array_t<word_t>::iterator ir = res.m_vec.begin();
-	while (x.it < m_vec.end()) {	// go through all words in m_vec
-	    if (x.nWords == 0)
-		x.decode();
-	    if (y.nWords == 0)
-		y.decode();
-	    if (x.nWords == 0 || y.nWords == 0) {
+        run x, y;
+        res.nset = 0;
+        x.it = m_vec.begin();
+        y.it = rhs.m_vec.begin();
+        array_t<word_t>::iterator ir = res.m_vec.begin();
+        while (x.it < m_vec.end()) {    // go through all words in m_vec
+            if (x.nWords == 0)
+                x.decode();
+            if (y.nWords == 0)
+                y.decode();
+            if (x.nWords == 0 || y.nWords == 0) {
                 while (x.nWords == 0 && x.it < m_vec.end()) {
                     ++ x.it;
                     x.decode();
@@ -2604,69 +2604,69 @@ void ibis::bitvector64::xor_d2(const ibis::bitvector64& rhs,
                            (x.nWords == 0 || y.nWords == 0))
                         << "ERROR bitvector64::xor_d2 -- serious problem ...";
                 }
-	    }
-	    if (x.isFill) {
-		if (y.isFill && y.nWords >= x.nWords) {
-		    if (y.fillBit == 0) {
-			res.copy_runs(ir, x, y.nWords);
-		    }
-		    else {
-			res.copy_runsn(ir, x, y.nWords);
-		    }
-		    y.it += (y.nWords == 0);
-		}
-		else {
-		    if (x.fillBit == 0) {
-			res.copy_runs(ir, y, x.nWords);
-		    }
-		    else {
-			res.copy_runsn(ir, y, x.nWords);
-		    }
-		    x.it += (x.nWords == 0);
-		}
-	    }
-	    else if (y.isFill) {
-		if (y.fillBit == 0) {
-		    res.copy_runs(ir, x, y.nWords);
-		}
-		else {
-		    res.copy_runsn(ir, x, y.nWords);
-		}
-		y.it += (y.nWords == 0);
-	    }
-	    else { // both words are not compressed
-		*ir = *x.it ^ *y.it;
-		x.nWords = 0;
-		y.nWords = 0;
-		++ x.it;
-		++ y.it;
-		++ ir;
-	    }
-	} // while (x.it < m_vec.end())
+            }
+            if (x.isFill) {
+                if (y.isFill && y.nWords >= x.nWords) {
+                    if (y.fillBit == 0) {
+                        res.copy_runs(ir, x, y.nWords);
+                    }
+                    else {
+                        res.copy_runsn(ir, x, y.nWords);
+                    }
+                    y.it += (y.nWords == 0);
+                }
+                else {
+                    if (x.fillBit == 0) {
+                        res.copy_runs(ir, y, x.nWords);
+                    }
+                    else {
+                        res.copy_runsn(ir, y, x.nWords);
+                    }
+                    x.it += (x.nWords == 0);
+                }
+            }
+            else if (y.isFill) {
+                if (y.fillBit == 0) {
+                    res.copy_runs(ir, x, y.nWords);
+                }
+                else {
+                    res.copy_runsn(ir, x, y.nWords);
+                }
+                y.it += (y.nWords == 0);
+            }
+            else { // both words are not compressed
+                *ir = *x.it ^ *y.it;
+                x.nWords = 0;
+                y.nWords = 0;
+                ++ x.it;
+                ++ y.it;
+                ++ ir;
+            }
+        } // while (x.it < m_vec.end())
 
-	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::xor_d2 "
-				   "expects to exhaust i0 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(m_vec.end() - x.it));
-	    throw "xor_d2 internal error";
-	}
+        if (x.it != m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::xor_d2 "
+                                   "expects to exhaust i0 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(m_vec.end() - x.it));
+            throw "xor_d2 internal error";
+        }
 
-	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::xor_d2 "
-				   "expects to exhaust i1 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(rhs.m_vec.end() - y.it));
-	    throw "xor_d2 internal error";
-	}
+        if (y.it != rhs.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::xor_d2 "
+                                   "expects to exhaust i1 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(rhs.m_vec.end() - y.it));
+            throw "xor_d2 internal error";
+        }
 
-	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::xor_d2 "
-				   "expects to exhaust ir but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(res.m_vec.end() - ir));
-	    throw "xor_d2 internal error";
-	}
+        if (ir != res.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::xor_d2 "
+                                   "expects to exhaust ir but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(res.m_vec.end() - ir));
+            throw "xor_d2 internal error";
+        }
     }
 
     // work with the two active_words
@@ -2816,15 +2816,15 @@ void ibis::bitvector64::minus_c2(const ibis::bitvector64& rhs,
         }
     }
     else if (m_vec.size() > 1) {
-	run x, y;
-	x.it = m_vec.begin();
-	y.it = rhs.m_vec.begin();
-	while (x.it < m_vec.end()) {	// go through all words in m_vec
-	    if (x.nWords == 0)
-		x.decode();
-	    if (y.nWords == 0)
-		y.decode();
-	    if (x.nWords == 0 || y.nWords == 0) {
+        run x, y;
+        x.it = m_vec.begin();
+        y.it = rhs.m_vec.begin();
+        while (x.it < m_vec.end()) {    // go through all words in m_vec
+            if (x.nWords == 0)
+                x.decode();
+            if (y.nWords == 0)
+                y.decode();
+            if (x.nWords == 0 || y.nWords == 0) {
                 while (x.nWords == 0 && x.it < m_vec.end()) {
                     ++ x.it;
                     x.decode();
@@ -2846,68 +2846,68 @@ void ibis::bitvector64::minus_c2(const ibis::bitvector64& rhs,
                            (x.nWords == 0 || y.nWords == 0))
                         << "ERROR bitvector64::minus_c2 -- serious problem ...";
                 }
-	    }
-	    if (x.isFill) {
-		if (y.isFill && y.nWords >= x.nWords) {
-		    if (y.fillBit == 0) {
-			res.copy_runs(x, y.nWords);
-			y.it += (y.nWords == 0);
-		    }
-		    else {
-			res.append_counter(0, y.nWords);
-			x -= y.nWords;
-			y.nWords = 0;
-			++ y.it;
-		    }
-		}
-		else if (x.fillBit == 0) {
-		    res.append_counter(0, x.nWords);
-		    y -= x.nWords;
-		    x.nWords = 0;
-		    ++ x.it;
-		}
-		else {
-		    res.copy_runsn(y, x.nWords);
-		    x.it += (x.nWords == 0);
-		}
-	    }
-	    else if (y.isFill) {	    // y is compressed but not x
-		if (y.fillBit == 0) {
-		    res.copy_runs(x, y.nWords);
-		    y.it += (y.nWords == 0);
-		}
-		else {
-		    res.append_counter(0, y.nWords);
-		    x -= y.nWords;
-		    y.nWords = 0;
-		    ++ y.it;
-		}
-	    }
-	    else { // both words are not compressed
-		res.active.val = *x.it & ~(*y.it);
-		res.append_active();
-		x.nWords = 0;
-		y.nWords = 0;
-		++ x.it;
-		++ y.it;
-	    }
-	} // while (x.it < m_vec.end())
+            }
+            if (x.isFill) {
+                if (y.isFill && y.nWords >= x.nWords) {
+                    if (y.fillBit == 0) {
+                        res.copy_runs(x, y.nWords);
+                        y.it += (y.nWords == 0);
+                    }
+                    else {
+                        res.append_counter(0, y.nWords);
+                        x -= y.nWords;
+                        y.nWords = 0;
+                        ++ y.it;
+                    }
+                }
+                else if (x.fillBit == 0) {
+                    res.append_counter(0, x.nWords);
+                    y -= x.nWords;
+                    x.nWords = 0;
+                    ++ x.it;
+                }
+                else {
+                    res.copy_runsn(y, x.nWords);
+                    x.it += (x.nWords == 0);
+                }
+            }
+            else if (y.isFill) {            // y is compressed but not x
+                if (y.fillBit == 0) {
+                    res.copy_runs(x, y.nWords);
+                    y.it += (y.nWords == 0);
+                }
+                else {
+                    res.append_counter(0, y.nWords);
+                    x -= y.nWords;
+                    y.nWords = 0;
+                    ++ y.it;
+                }
+            }
+            else { // both words are not compressed
+                res.active.val = *x.it & ~(*y.it);
+                res.append_active();
+                x.nWords = 0;
+                y.nWords = 0;
+                ++ x.it;
+                ++ y.it;
+            }
+        } // while (x.it < m_vec.end())
 
-	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::minus_c2 "
-				   "expects to exhaust i0 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(m_vec.end() - x.it));
-	    throw "minus_c2 internal error";
-	}
+        if (x.it != m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::minus_c2 "
+                                   "expects to exhaust i0 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(m_vec.end() - x.it));
+            throw "minus_c2 internal error";
+        }
 
-	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::minus_c2 "
-				   "expects to exhaust i1 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(rhs.m_vec.end() - y.it));
-	    throw "minus_c2 internal error";
-	}
+        if (y.it != rhs.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::minus_c2 "
+                                   "expects to exhaust i1 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(rhs.m_vec.end() - y.it));
+            throw "minus_c2 internal error";
+        }
     }
 
     // the last thing -- work with the two active_words
@@ -3086,17 +3086,17 @@ void ibis::bitvector64::minus_d2(const ibis::bitvector64& rhs,
         }
     }
     else if (m_vec.size() > 1) { // more than one word in *this
-	run x, y;
-	res.nset = 0;
-	x.it = m_vec.begin();
-	y.it = rhs.m_vec.begin();
-	array_t<word_t>::iterator ir = res.m_vec.begin();
-	while (x.it < m_vec.end()) {	// go through all words in m_vec
-	    if (x.nWords == 0)
-		x.decode();
-	    if (y.nWords == 0)
-		y.decode();
-	    if (x.nWords == 0 || y.nWords == 0) {
+        run x, y;
+        res.nset = 0;
+        x.it = m_vec.begin();
+        y.it = rhs.m_vec.begin();
+        array_t<word_t>::iterator ir = res.m_vec.begin();
+        while (x.it < m_vec.end()) {    // go through all words in m_vec
+            if (x.nWords == 0)
+                x.decode();
+            if (y.nWords == 0)
+                y.decode();
+            if (x.nWords == 0 || y.nWords == 0) {
                 while (x.nWords == 0 && x.it < m_vec.end()) {
                     ++ x.it;
                     x.decode();
@@ -3118,72 +3118,72 @@ void ibis::bitvector64::minus_d2(const ibis::bitvector64& rhs,
                            (x.nWords == 0 || y.nWords == 0))
                         << "ERROR bitvector64::minus_d2 -- serious problem ...";
                 }
-	    }
-	    if (x.isFill) {
-		if (y.isFill && y.nWords >= x.nWords) {
-		    if (y.fillBit == 0) {
-			res.copy_runs(ir, x, y.nWords);
-			y.it += (y.nWords == 0);
-		    }
-		    else {
-			x -= y.nWords;
-			y.fillBit = 0;
-			res.copy_fill(ir, y);
-		    }
-		}
-		else if (x.fillBit == 0) {
-		    y -= x.nWords;
-		    res.copy_fill(ir, x);
-		}
-		else {
-		    res.copy_runsn(ir, y, x.nWords);
-		    x.it += (x.nWords == 0);
-		}
-	    }
-	    else if (y.isFill) {
-		if (y.fillBit == 0) {
-		    res.copy_runs(ir, x, y.nWords);
-		    y.it += (y.nWords == 0);
-		}
-		else {
-		    x -= y.nWords;
-		    y.fillBit = 0;
-		    res.copy_fill(ir, y);
-		}
-	    }
-	    else { // both words are not compressed
-		*ir = *x.it & ~*y.it;
-		x.nWords = 0;
-		y.nWords = 0;
-		++ x.it;
-		++ y.it;
-		++ ir;
-	    }
-	} // while (x.it < m_vec.end())
+            }
+            if (x.isFill) {
+                if (y.isFill && y.nWords >= x.nWords) {
+                    if (y.fillBit == 0) {
+                        res.copy_runs(ir, x, y.nWords);
+                        y.it += (y.nWords == 0);
+                    }
+                    else {
+                        x -= y.nWords;
+                        y.fillBit = 0;
+                        res.copy_fill(ir, y);
+                    }
+                }
+                else if (x.fillBit == 0) {
+                    y -= x.nWords;
+                    res.copy_fill(ir, x);
+                }
+                else {
+                    res.copy_runsn(ir, y, x.nWords);
+                    x.it += (x.nWords == 0);
+                }
+            }
+            else if (y.isFill) {
+                if (y.fillBit == 0) {
+                    res.copy_runs(ir, x, y.nWords);
+                    y.it += (y.nWords == 0);
+                }
+                else {
+                    x -= y.nWords;
+                    y.fillBit = 0;
+                    res.copy_fill(ir, y);
+                }
+            }
+            else { // both words are not compressed
+                *ir = *x.it & ~*y.it;
+                x.nWords = 0;
+                y.nWords = 0;
+                ++ x.it;
+                ++ y.it;
+                ++ ir;
+            }
+        } // while (x.it < m_vec.end())
 
-	if (x.it != m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::minus_d2 "
-				   "expects to exhaust i0 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(m_vec.end() - x.it));
-	    throw "minus_d2 internal error";
-	}
+        if (x.it != m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::minus_d2 "
+                                   "expects to exhaust i0 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(m_vec.end() - x.it));
+            throw "minus_d2 internal error";
+        }
 
-	if (y.it != rhs.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::minus_d2 "
-				   "expects to exhaust i1 but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(rhs.m_vec.end() - y.it));
-	    throw "minus_d2 internal error";
-	}
+        if (y.it != rhs.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::minus_d2 "
+                                   "expects to exhaust i1 but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(rhs.m_vec.end() - y.it));
+            throw "minus_d2 internal error";
+        }
 
-	if (ir != res.m_vec.end()) {
-	    ibis::util::logMessage("Error", "bitvector64::minus_d2 "
-				   "expects to exhaust ir but there are %ld "
-				   "word(s) left",
-				   static_cast<long>(res.m_vec.end() - ir));
-	    throw "minus_d2 internal error";
-	}
+        if (ir != res.m_vec.end()) {
+            ibis::util::logMessage("Error", "bitvector64::minus_d2 "
+                                   "expects to exhaust ir but there are %ld "
+                                   "word(s) left",
+                                   static_cast<long>(res.m_vec.end() - ir));
+            throw "minus_d2 internal error";
+        }
     }
 
     // work with the two active_words

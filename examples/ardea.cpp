@@ -1048,7 +1048,7 @@ int main(int argc, char** argv) {
     if (usersupplied == false && qcnd.empty()) {
         // check the number of hits of built-in queries
         const char* arq[] = {"s1=1", "i2<=3", "l4<4",
-                             "b3 between 10 and 100", "b3 > 0 && i2 < 0", 
+                             "b3 between 10 and 100", "b3 > 0 && i2 < 0",
                              "\"8\" == k7 or \"8\" == t8", "1+f5 == d6",
                              "s1 between 0 and 10 and i2 between 0 and 10",
                              "t8=a && l4 > 8", "sqrt(d6)+log(f5)<5 && b3 <0"};

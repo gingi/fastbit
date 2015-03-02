@@ -103,12 +103,12 @@ int ibis::selectClause::parse(const char *cl) {
 #elif _DEBUG+0 > 2
         parser.set_debug_level(_DEBUG-1);
 #endif
-	parser.set_debug_stream(lg());
-	ierr = parser.parse();
-	lexer = 0;
-	if (ierr == 0) {
-	    fillNames();
-	}
+        parser.set_debug_stream(lg());
+        ierr = parser.parse();
+        lexer = 0;
+        if (ierr == 0) {
+            fillNames();
+        }
         else {
             clear();
             LOGGER(ibis::gVerbose > 0)
@@ -194,23 +194,23 @@ void ibis::selectClause::fillNames() {
 
     // fill the external names
     for (uint32_t j = 0; j < xtms_.size(); ++ j) {
-	if (xnames_[j].empty() &&
+        if (xnames_[j].empty() &&
             xtms_[j]->termType() == ibis::math::VARIABLE) {
-	    const char *vn = static_cast<const ibis::math::variable*>
-		(xtms_[j])->variableName();
-	    uint64_t jv = atms_.size();
-	    if (vn[0] == '_' && vn[1] == '_')
-		if (0 > ibis::util::decode16(jv, vn+2))
-		    jv = atms_.size();
-	    if (jv < names_.size() && !names_[jv].empty())
-		xnames_[j] = names_[jv];
-	    else
-		xnames_[j] = vn;
+            const char *vn = static_cast<const ibis::math::variable*>
+                (xtms_[j])->variableName();
+            uint64_t jv = atms_.size();
+            if (vn[0] == '_' && vn[1] == '_')
+                if (0 > ibis::util::decode16(jv, vn+2))
+                    jv = atms_.size();
+            if (jv < names_.size() && !names_[jv].empty())
+                xnames_[j] = names_[jv];
+            else
+                xnames_[j] = vn;
 
-	    // size_t pos = xnames_[j].rfind('.');
-	    // if (pos < xnames_[j].size())
-	    // 	xnames_[j].erase(0, pos+1);
-	}
+            // size_t pos = xnames_[j].rfind('.');
+            // if (pos < xnames_[j].size())
+            //  xnames_[j].erase(0, pos+1);
+        }
 
         if (xnames_[j].empty()) {
             std::ostringstream oss;
@@ -394,7 +394,7 @@ bool ibis::selectClause::isSeparable() const {
                      aggr_[j] == MAX || aggr_[j] == MIN);
     }
     if (separable)
-	separable = (nplains < aggr_.size());
+        separable = (nplains < aggr_.size());
     return separable;
 } // ibis::selectClause::isSeparable
 
@@ -470,19 +470,19 @@ bool ibis::selectClause::hasAggregation(const ibis::math::term *tm) const {
     case ibis::math::STDFUNCTION1:
     case ibis::math::CUSTOMFUNCTION1:
     case ibis::math::STRINGFUNCTION1:
-	return hasAggregation(reinterpret_cast<const ibis::math::term*>
-			      (tm->getLeft()));
+        return hasAggregation(reinterpret_cast<const ibis::math::term*>
+                              (tm->getLeft()));
     case ibis::math::OPERATOR:
     case ibis::math::STDFUNCTION2:
     case ibis::math::CUSTOMFUNCTION2:
     case ibis::math::STRINGFUNCTION2:
-	bool res = tm->getLeft() != 0 ?
-	    hasAggregation(reinterpret_cast<const ibis::math::term*>
-			   (tm->getLeft())) : false;
-	if (tm->getRight() != 0 && ! res)
-	    res = hasAggregation(reinterpret_cast<const ibis::math::term*>
-				 (tm->getRight()));
-	return res;
+        bool res = tm->getLeft() != 0 ?
+            hasAggregation(reinterpret_cast<const ibis::math::term*>
+                           (tm->getLeft())) : false;
+        if (tm->getRight() != 0 && ! res)
+            res = hasAggregation(reinterpret_cast<const ibis::math::term*>
+                                 (tm->getRight()));
+        return res;
     }
 } // ibis::selectClause::hasAggregation
 
@@ -515,72 +515,72 @@ ibis::math::term* ibis::selectClause::addRecursive(ibis::math::term*& tm) {
     case ibis::math::STDFUNCTION1:
     case ibis::math::CUSTOMFUNCTION1:
     case ibis::math::STRINGFUNCTION1: {
-	ibis::math::term *nxt =
-	    reinterpret_cast<ibis::math::term*>(tm->getLeft());
-	if (nxt == 0) {
-	    return nxt;
-	}
-	else if (hasAggregation(nxt)) {
-	    ibis::math::term *tmp = addRecursive(nxt);
-	    if (tmp != nxt)
-		tm->getLeft() = tmp;
-	}
-	else {
-	    const unsigned pos = atms_.size();
-	    aggr_.push_back(ibis::selectClause::NIL_AGGR);
-	    atms_.push_back(tm);
-	    LOGGER(ibis::gVerbose > 5)
-		<< "selectClause::addRecursive -- adding term "
-		<< pos << ": " << aggDescription(pos);
+        ibis::math::term *nxt =
+            reinterpret_cast<ibis::math::term*>(tm->getLeft());
+        if (nxt == 0) {
+            return nxt;
+        }
+        else if (hasAggregation(nxt)) {
+            ibis::math::term *tmp = addRecursive(nxt);
+            if (tmp != nxt)
+                tm->getLeft() = tmp;
+        }
+        else {
+            const unsigned pos = atms_.size();
+            aggr_.push_back(ibis::selectClause::NIL_AGGR);
+            atms_.push_back(tm);
+            LOGGER(ibis::gVerbose > 5)
+                << "selectClause::addRecursive -- adding term "
+                << pos << ": " << aggDescription(pos);
 
-	    std::ostringstream oss;
-	    oss << "__" << std::hex << pos;
-	    ordered_[oss.str()] = pos;
-	    return new ibis::selectClause::variable(oss.str().c_str(), this);
-	}
-	break;}
+            std::ostringstream oss;
+            oss << "__" << std::hex << pos;
+            ordered_[oss.str()] = pos;
+            return new ibis::selectClause::variable(oss.str().c_str(), this);
+        }
+        break;}
     case ibis::math::OPERATOR:
     case ibis::math::STDFUNCTION2:
     case ibis::math::CUSTOMFUNCTION2:
     case ibis::math::STRINGFUNCTION2: {
-	ibis::math::term *left =
-	    reinterpret_cast<ibis::math::term*>(tm->getLeft());
-	ibis::math::term *right =
-	    reinterpret_cast<ibis::math::term*>(tm->getRight());
-	if (left == 0) {
-	    if (right == 0) {
-		return 0;
-	    }
-	    else if (dynamic_cast<ibis::selectClause::variable*>(right) == 0) {
-		tm->getRight() = addRecursive(right);
-	    }
-	}
-	else if (dynamic_cast<ibis::selectClause::variable*>(left) != 0) {
-	    if (dynamic_cast<ibis::selectClause::variable*>(right) == 0) {
-		tm->getRight() = addRecursive(right);
-	    }
-	}
-	else if (dynamic_cast<ibis::selectClause::variable*>(right) != 0) {
-	    tm->getLeft() = addRecursive(left);
-	}
-	else if (hasAggregation(tm)) {
-	    tm->getLeft() = addRecursive(left);
-	    tm->getRight() = addRecursive(right);
-	}
-	else {
-	    const unsigned pos = atms_.size();
-	    aggr_.push_back(ibis::selectClause::NIL_AGGR);
-	    atms_.push_back(tm);
-	    LOGGER(ibis::gVerbose > 5)
-		<< "selectClause::addRecursive -- adding term "
-		<< pos << ": " << aggDescription(pos);
+        ibis::math::term *left =
+            reinterpret_cast<ibis::math::term*>(tm->getLeft());
+        ibis::math::term *right =
+            reinterpret_cast<ibis::math::term*>(tm->getRight());
+        if (left == 0) {
+            if (right == 0) {
+                return 0;
+            }
+            else if (dynamic_cast<ibis::selectClause::variable*>(right) == 0) {
+                tm->getRight() = addRecursive(right);
+            }
+        }
+        else if (dynamic_cast<ibis::selectClause::variable*>(left) != 0) {
+            if (dynamic_cast<ibis::selectClause::variable*>(right) == 0) {
+                tm->getRight() = addRecursive(right);
+            }
+        }
+        else if (dynamic_cast<ibis::selectClause::variable*>(right) != 0) {
+            tm->getLeft() = addRecursive(left);
+        }
+        else if (hasAggregation(tm)) {
+            tm->getLeft() = addRecursive(left);
+            tm->getRight() = addRecursive(right);
+        }
+        else {
+            const unsigned pos = atms_.size();
+            aggr_.push_back(ibis::selectClause::NIL_AGGR);
+            atms_.push_back(tm);
+            LOGGER(ibis::gVerbose > 5)
+                << "selectClause::addRecursive -- adding term "
+                << pos << ": " << aggDescription(pos);
 
-	    std::ostringstream oss;
-	    oss << "__" << std::hex << pos;
-	    ordered_[oss.str()] = pos;
-	    return new ibis::selectClause::variable(oss.str().c_str(), this);
-	}
-	break;}
+            std::ostringstream oss;
+            oss << "__" << std::hex << pos;
+            ordered_[oss.str()] = pos;
+            return new ibis::selectClause::variable(oss.str().c_str(), this);
+        }
+        break;}
     }
     return tm;
 } // ibis::selectClause::addRecursive
@@ -910,13 +910,13 @@ void ibis::selectClause::gatherVariables(ibis::selectClause::varMap &vmap,
     case ibis::math::CUSTOMFUNCTION2:
     case ibis::math::STRINGFUNCTION1:
     case ibis::math::STRINGFUNCTION2: {
-	if (t->getLeft() != 0)
-	    gatherVariables(vmap, static_cast<ibis::math::term*>
-			    (t->getLeft()));
-	if (t->getRight() != 0)
-	    gatherVariables(vmap, static_cast<ibis::math::term*>
-			    (t->getRight()));
-	break;}
+        if (t->getLeft() != 0)
+            gatherVariables(vmap, static_cast<ibis::math::term*>
+                            (t->getLeft()));
+        if (t->getRight() != 0)
+            gatherVariables(vmap, static_cast<ibis::math::term*>
+                            (t->getRight()));
+        break;}
     }
 } // ibis::selectClause::gatherVariables
 

@@ -127,11 +127,11 @@ int ibis::skive::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-	     0 == fnm.compare(str->filename())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not overwrite the index file \""
-	    << fnm << "\" while it is used as a read-only file map";
-	return 0;
+             0 == fnm.compare(str->filename())) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " can not overwrite the index file \""
+            << fnm << "\" while it is used as a read-only file map";
+        return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -141,14 +141,14 @@ int ibis::skive::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	if (fdes < 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << " failed to open \"" << fnm
-		<< "\" for writing";
-	    return -2;
-	}
+        ibis::fileManager::instance().flushFile(fnm.c_str());
+        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+        if (fdes < 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " failed to open \"" << fnm
+                << "\" for writing";
+            return -2;
+        }
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -165,10 +165,10 @@ int ibis::skive::write(const char* dt) const {
     header[6] = (char)(useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt
-	    << " failed to write the 8-byte header, ierr = " << ierr;
-	return -3;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt
+            << " failed to write the 8-byte header, ierr = " << ierr;
+        return -3;
     }
     if (useoffset64)
         ierr = write64(fdes);
@@ -183,9 +183,9 @@ int ibis::skive::write(const char* dt) const {
 #endif
 #endif
 
-	LOGGER(ibis::gVerbose > 3)
-	    << evt << " wrote " << bits.size() << " bitmap"
-	    << (bits.size()>1?"s":"") << " to file " << fnm;
+        LOGGER(ibis::gVerbose > 3)
+            << evt << " wrote " << bits.size() << " bitmap"
+            << (bits.size()>1?"s":"") << " to file " << fnm;
     }
     return ierr;
 } // ibis::skive::write
@@ -1209,9 +1209,9 @@ void ibis::skive::construct2(const char* f) {
         col->logWarning("skive::ctor", "no need for another index");
         return;
     default:
-	col->logWarning("skive::ctor", "failed to create bit skive index "
-			"for this type of column");
-	return;
+        col->logWarning("skive::ctor", "failed to create bit skive index "
+                        "for this type of column");
+        return;
     }
 
     // make sure all bit vectors are the same size

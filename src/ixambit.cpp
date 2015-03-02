@@ -936,11 +936,11 @@ int ibis::ambit::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-	     0 == fnm.compare(str->filename())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not overwrite the index file \""
-	    << fnm << "\" while it is used as a read-only file map";
-	return 0;
+             0 == fnm.compare(str->filename())) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " can not overwrite the index file \""
+            << fnm << "\" while it is used as a read-only file map";
+        return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -950,14 +950,14 @@ int ibis::ambit::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) { // try again
-	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	if (fdes < 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << " failed to open \""
-		<< fnm << "\" for write";
-	    return -2;
-	}
+        ibis::fileManager::instance().flushFile(fnm.c_str());
+        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+        if (fdes < 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " failed to open \""
+                << fnm << "\" for write";
+            return -2;
+        }
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -984,9 +984,9 @@ int ibis::ambit::write(const char* dt) const {
     header[6] = (char)(useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << evt << " failed to write the 8-byte header, ierr = " << ierr;
-	return -3;
+        LOGGER(ibis::gVerbose > 0)
+            << evt << " failed to write the 8-byte header, ierr = " << ierr;
+        return -3;
     }
     if (useoffset64)
         ierr = write64(fdes); // wrtie recursively
@@ -1001,10 +1001,10 @@ int ibis::ambit::write(const char* dt) const {
         (void) _commit(fdes);
 #endif
 #endif
-	LOGGER(ibis::gVerbose > 5)
-	    << evt << " wrote " << nobs << " coarse bin"
-	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
-	    << " object" << (nrows>1?"s":"");
+        LOGGER(ibis::gVerbose > 5)
+            << evt << " wrote " << nobs << " coarse bin"
+            << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
+            << " object" << (nrows>1?"s":"");
     }
     return ierr;
 } // ibis::ambit::write
@@ -1523,38 +1523,38 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
         fnm += col->name();
     }
     else {
-	j = std::strlen(f);
-	if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' && f[j-3] == 'i' &&
-	    f[j-4] == '.') { // index file name
-	    fnm = f;
-	    fnm.erase(j-4);
-	}
-	else {
-	    bool isFile = false;
-	    i = std::strlen(col->name());
-	    if (j >= i) {
-		const char* tail = f + (j - i);
-		isFile = (std::strcmp(tail, col->name()) == 0);
-	    }
-	    if (isFile) {
-		fnm = f;
-	    }
-	    else { // check the existence of the file or direcotry
-		Stat_T st0;
-		if (UnixStat(f, &st0)) { // assume to be a file
-		    fnm = f;
-		}
-		else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
-		    // named directory exist
-		    fnm = f;
-		    fnm += FASTBIT_DIRSEP;
-		    fnm += col->name();
-		}
-		else { // given name is the data file name
-		    fnm = f;
-		}
-	    }
-	}
+        j = std::strlen(f);
+        if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' && f[j-3] == 'i' &&
+            f[j-4] == '.') { // index file name
+            fnm = f;
+            fnm.erase(j-4);
+        }
+        else {
+            bool isFile = false;
+            i = std::strlen(col->name());
+            if (j >= i) {
+                const char* tail = f + (j - i);
+                isFile = (std::strcmp(tail, col->name()) == 0);
+            }
+            if (isFile) {
+                fnm = f;
+            }
+            else { // check the existence of the file or direcotry
+                Stat_T st0;
+                if (UnixStat(f, &st0)) { // assume to be a file
+                    fnm = f;
+                }
+                else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
+                    // named directory exist
+                    fnm = f;
+                    fnm += FASTBIT_DIRSEP;
+                    fnm += col->name();
+                }
+                else { // given name is the data file name
+                    fnm = f;
+                }
+            }
+        }
     }
 
     int ierr;
@@ -1572,16 +1572,16 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
     switch (col->type()) {
     case ibis::TEXT:
     case ibis::UINT: {// unsigned int
-	array_t<uint32_t> val;
-	if (! fnm.empty())
-	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	else
-	    ierr = col->getValuesArray(&val);
-	if (ierr < 0 || val.size() <= 0) {
-	    col->logWarning("ambit::construct", "failed to read %s",
-			    fnm.c_str());
-	    break;
-	}
+        array_t<uint32_t> val;
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+        if (ierr < 0 || val.size() <= 0) {
+            col->logWarning("ambit::construct", "failed to read %s",
+                            fnm.c_str());
+            break;
+        }
 
         nrows = val.size();
         for (i = 0; i < nrows; ++i) {
@@ -1620,16 +1620,16 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
         }
         break;}
     case ibis::INT: {// signed int
-	array_t<int32_t> val;
-	if (! fnm.empty())
-	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	else
-	    ierr = col->getValuesArray(&val);
-	if (ierr < 0 || val.size() <= 0) {
-	    col->logWarning("ambit::construct", "failed to read %s",
-			    fnm.c_str());
-	    break;
-	}
+        array_t<int32_t> val;
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+        if (ierr < 0 || val.size() <= 0) {
+            col->logWarning("ambit::construct", "failed to read %s",
+                            fnm.c_str());
+            break;
+        }
 
         nrows = val.size();
         for (i = 0; i < nrows; ++i) {
@@ -1668,16 +1668,16 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
         }
         break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
-	array_t<float> val;
-	if (! fnm.empty())
-	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	else
-	    ierr = col->getValuesArray(&val);
-	if (ierr < 0 || val.size() <= 0) {
-	    col->logWarning("ambit::construct", "failed to read %s",
-			    fnm.c_str());
-	    break;
-	}
+        array_t<float> val;
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+        if (ierr < 0 || val.size() <= 0) {
+            col->logWarning("ambit::construct", "failed to read %s",
+                            fnm.c_str());
+            break;
+        }
 
         nrows = val.size();
         for (i = 0; i < nrows; ++i) {
@@ -1716,16 +1716,16 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
         }
         break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
-	array_t<double> val;
-	if (! fnm.empty())
-	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	else
-	    ierr = col->getValuesArray(&val);
-	if (ierr < 0 || val.size() <= 0) {
-	    col->logWarning("ambit::construct", "failed to read %s",
-			    fnm.c_str());
-	    break;
-	}
+        array_t<double> val;
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+        if (ierr < 0 || val.size() <= 0) {
+            col->logWarning("ambit::construct", "failed to read %s",
+                            fnm.c_str());
+            break;
+        }
 
         nrows = val.size();
         for (i = 0; i < nrows; ++i) {
@@ -1767,9 +1767,9 @@ void ibis::ambit::construct(const char* f, const array_t<double>& bd) {
         col->logWarning("ambit::construct", "no need for an index");
         return;
     default:
-	col->logWarning("ambit::construct", "failed to create index for "
-			"this type of column");
-	return;
+        col->logWarning("ambit::construct", "failed to create index for "
+                        "this type of column");
+        return;
     }
 
     // make sure all bit vectors are the same size
@@ -2084,11 +2084,11 @@ long ibis::ambit::evaluate(const ibis::qContinuousRange& expr,
     if (tmp.size() == lower.size() && tmp.cnt() > lower.cnt()) {
         if (col == 0 || col->hasRawData() == false) return -1;
 
-	tmp -= lower;
-	ibis::bitvector delta;
-	col->partition()->doScan(expr, tmp, delta);
-	if (delta.size() == lower.size() && delta.cnt() > 0)
-	    lower |= delta;
+        tmp -= lower;
+        ibis::bitvector delta;
+        col->partition()->doScan(expr, tmp, delta);
+        if (delta.size() == lower.size() && delta.cnt() > 0)
+            lower |= delta;
     }
     return lower.cnt();
 } // ibis::ambit::evaluate

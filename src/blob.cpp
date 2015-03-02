@@ -41,8 +41,8 @@ void ibis::blob::print(std::ostream& out) const {
 long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
                         const uint32_t nnew, uint32_t nbuf, char* buf) {
     if (nnew == 0 || dt == 0 || df == 0 || *dt == 0 || *df == 0 ||
-	dt == df || std::strcmp(dt, df) == 0)
-	return 0;
+        dt == df || std::strcmp(dt, df) == 0)
+        return 0;
     std::string evt = "blob[";
     if (thePart != 0)
         evt += thePart->name();
@@ -73,11 +73,11 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     // rely on .sp file for existing data size
     int sdest = UnixOpen(spdest.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
     if (sdest < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " failed to open file \"" << spdest
-	    << "\" for append ... "
-	    << (errno ? strerror(errno) : "no free stdio stream");
-	return -2;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to open file \"" << spdest
+            << "\" for append ... "
+            << (errno ? strerror(errno) : "no free stdio stream");
+        return -2;
     }
     ibis::util::guard gsdest = ibis::util::makeGuard(UnixClose, sdest);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -189,16 +189,16 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
         buf = dbuff.address();
     }
     if (nbuf <= (unsigned)spelem) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not continue because of "
-	    "insufficient amount of available buffer space";
-	return -1;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " can not continue because of "
+            "insufficient amount of available buffer space";
+        return -1;
     }
     if ((unsigned long)nold+nnew >= (unsigned long)(INT_MAX / spelem)) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not continue because the "
-	    "resulting .sp will be too large";
-	return -1;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " can not continue because the "
+            "resulting .sp will be too large";
+        return -1;
     }
 
     const uint32_t nspbuf = nbuf / spelem;
@@ -206,32 +206,32 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     int64_t dj = 0;
     uint32_t nnew0 = 0;
     for (uint32_t j = 0; j <= nnew; j += nspbuf) {
-	ierr = UnixRead(ssrc, spbuf, nbuf);
-	if (ierr <= 0) {
-	    LOGGER(ierr < 0 && ibis::gVerbose > 0)
-		<< "Warning -- " << evt << " failed to read from "
-		<< spfrom << ", function read returned " << ierr;
-	    break;
-	}
-	int iread = ierr;
-	if (j == 0) {
-	    dj = dfsize - *spbuf;
-	    iread -= spelem;
-	    for (int i = 0; i < iread/spelem; ++ i)
-		spbuf[i] = spbuf[i+1] + dj;
-	}
-	else {
-	    for (int i = 0; i < iread/spelem; ++ i)
-		spbuf[i] += dj;
-	}
-	off_t iwrite = UnixWrite(sdest, spbuf, iread);
-	if (iwrite < iread) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << " expects to write " << iread
-		<< " byte" << (iread>1?"s":"") << ", but only wrote " << iwrite;
-	    return -12;
-	}
-	nnew0 = iwrite / spelem;
+        ierr = UnixRead(ssrc, spbuf, nbuf);
+        if (ierr <= 0) {
+            LOGGER(ierr < 0 && ibis::gVerbose > 0)
+                << "Warning -- " << evt << " failed to read from "
+                << spfrom << ", function read returned " << ierr;
+            break;
+        }
+        int iread = ierr;
+        if (j == 0) {
+            dj = dfsize - *spbuf;
+            iread -= spelem;
+            for (int i = 0; i < iread/spelem; ++ i)
+                spbuf[i] = spbuf[i+1] + dj;
+        }
+        else {
+            for (int i = 0; i < iread/spelem; ++ i)
+                spbuf[i] += dj;
+        }
+        off_t iwrite = UnixWrite(sdest, spbuf, iread);
+        if (iwrite < iread) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " expects to write " << iread
+                << " byte" << (iread>1?"s":"") << ", but only wrote " << iwrite;
+            return -12;
+        }
+        nnew0 = iwrite / spelem;
     }
     // explicit close the read source file to reduce the number of open files
     (void) UnixClose(ssrc);
@@ -259,11 +259,11 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
     // open destination data file
     int ddest = UnixOpen(datadest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (ddest < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " failed to open file \"" << datadest
-	    << "\" for append ... "
-	    << (errno ? strerror(errno) : "no free stdio stream");
-	return -13;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to open file \"" << datadest
+            << "\" for append ... "
+            << (errno ? strerror(errno) : "no free stdio stream");
+        return -13;
     }
     // this statement guarantees UnixClose will be called on ddest upon
     // termination of this function
@@ -379,11 +379,11 @@ long ibis::blob::append(const char* dt, const char* df, const uint32_t nold,
                        static_cast<long unsigned>(mtot.size()));
     }
     if (thePart == 0 || thePart->currentDataDir() == 0)
-	return nnew0;
+        return nnew0;
     if (std::strcmp(dt, thePart->currentDataDir()) == 0) {
-	// update the mask stored internally
-	mutexLock lck(this, "column::append");
-	mask_.swap(mtot);
+        // update the mask stored internally
+        mutexLock lck(this, "column::append");
+        mask_.swap(mtot);
     }
 
     return nnew0;
@@ -428,11 +428,11 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     // rely on .sp file for existing data size
     int sdest = UnixOpen(spdest.c_str(), OPEN_READWRITE, OPEN_FILEMODE);
     if (sdest < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " failed to open file \"" << spdest
-	    << "\" for append ... "
-	    << (errno ? strerror(errno) : "no free stdio stream");
-	return -2;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to open file \"" << spdest
+            << "\" for append ... "
+            << (errno ? strerror(errno) : "no free stdio stream");
+        return -2;
     }
     ibis::util::guard gsdest = ibis::util::makeGuard(UnixClose, sdest);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -558,11 +558,11 @@ long ibis::blob::writeData(const char* dir, uint32_t nold, uint32_t nnew,
     // open destination data file
     int ddest = UnixOpen(datadest.c_str(), OPEN_APPENDONLY, OPEN_FILEMODE);
     if (ddest < 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " failed to open file \"" << datadest
-	    << "\" for append ... "
-	    << (errno ? strerror(errno) : "no free stdio stream");
-	return -13;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to open file \"" << datadest
+            << "\" for append ... "
+            << (errno ? strerror(errno) : "no free stdio stream");
+        return -13;
     }
     // this statement guarantees UnixClose will be called on ddest upon
     // termination of this function

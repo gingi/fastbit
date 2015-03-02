@@ -374,11 +374,11 @@ int ibis::range::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-	     0 == fnm.compare(str->filename())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not overwrite the index file \""
-	    << fnm << "\" while it is used as a read-only file map";
-	return 0;
+             0 == fnm.compare(str->filename())) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " can not overwrite the index file \""
+            << fnm << "\" while it is used as a read-only file map";
+        return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -392,14 +392,14 @@ int ibis::range::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) { // try to close the file and open it again
-	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	if (fdes < 0) {
+        ibis::fileManager::instance().flushFile(fnm.c_str());
+        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+        if (fdes < 0) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- " << evt << " failed to open \"" << fnm 
                 << "\" for writing";
-	    return -2;
-	}
+            return -2;
+        }
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -425,10 +425,10 @@ int ibis::range::write(const char* dt) const {
     header[6] = (char) (useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt
-	    << " failed to write the 8-byte header, ierr = " << ierr;
-	return -3;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt
+            << " failed to write the 8-byte header, ierr = " << ierr;
+        return -3;
     }
     if (useoffset64)
         ierr = write64(fdes);
@@ -443,11 +443,11 @@ int ibis::range::write(const char* dt) const {
 #endif
 #endif
 
-	LOGGER(ibis::gVerbose > 3)
-	    << evt << " wrote " << nobs << " bitmap"
-	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
-	    << " object" << (nrows>1?"s":"") << ", file size "
-	    << (useoffset64 ? offset64.back() : (int64_t)offset32.back());
+        LOGGER(ibis::gVerbose > 3)
+            << evt << " wrote " << nobs << " bitmap"
+            << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
+            << " object" << (nrows>1?"s":"") << ", file size "
+            << (useoffset64 ? offset64.back() : (int64_t)offset32.back());
     }
     return ierr;
 } // ibis::range::write
@@ -735,38 +735,38 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
         fnm += col->name();
     }
     else {
-	j = std::strlen(f);
-	if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' && f[j-3] == 'i' &&
-	    f[j-4] == '.') { // index file name
-	    fnm = f;
-	    fnm.erase(j-4);
-	}
-	else {
-	    bool isFile = false;
-	    i = std::strlen(col->name());
-	    if (j >= i) {
-		const char* tail = f + (j - i);
-		isFile = (std::strcmp(tail, col->name()) == 0);
-	    }
-	    if (isFile) {
-		fnm = f;
-	    }
-	    else { // check the existence of the file or direcotry
-		Stat_T st0;
-		if (UnixStat(f, &st0)) { // assume to be a file
-		    fnm = f;
-		}
-		else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
-		    // named directory exist
-		    fnm = f;
-		    fnm += FASTBIT_DIRSEP;
-		    fnm += col->name();
-		}
-		else { // given name is the data file name
-		    fnm = f;
-		}
-	    }
-	}
+        j = std::strlen(f);
+        if (j > 4 && f[j-1] == 'x' && f[j-2] == 'd' && f[j-3] == 'i' &&
+            f[j-4] == '.') { // index file name
+            fnm = f;
+            fnm.erase(j-4);
+        }
+        else {
+            bool isFile = false;
+            i = std::strlen(col->name());
+            if (j >= i) {
+                const char* tail = f + (j - i);
+                isFile = (std::strcmp(tail, col->name()) == 0);
+            }
+            if (isFile) {
+                fnm = f;
+            }
+            else { // check the existence of the file or direcotry
+                Stat_T st0;
+                if (UnixStat(f, &st0)) { // assume to be a file
+                    fnm = f;
+                }
+                else if ((st0.st_mode & S_IFDIR) == S_IFDIR) {
+                    // named directory exist
+                    fnm = f;
+                    fnm += FASTBIT_DIRSEP;
+                    fnm += col->name();
+                }
+                else { // given name is the data file name
+                    fnm = f;
+                }
+            }
+        }
     }
 
     ibis::bitvector mask;
@@ -783,128 +783,128 @@ void ibis::range::construct(const char* f, const array_t<double>& bd) {
     switch (col->type()) {
     case ibis::TEXT:
     case ibis::UINT: {// unsigned int
-	array_t<uint32_t> val;
-	if (! fnm.empty())
-	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	else
-	    ierr = col->getValuesArray(&val);
-	if (ierr < 0 || val.size() <= 0)
-	    col->logWarning("range::construct", "failed to read %s",
-			    fnm.c_str());
+        array_t<uint32_t> val;
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+        if (ierr < 0 || val.size() <= 0)
+            col->logWarning("range::construct", "failed to read %s",
+                            fnm.c_str());
 
-	nrows = val.size();
-	for (i = 0; i < nrows; ++i) {
-	    j = locate(val[i]);
-	    if (j < nobs) {
-		if (maxval[j] < val[i])
-		    maxval[j] = val[i];
-		if (minval[j] > val[i])
-		    minval[j] = val[i];
-	    }
-	    else {
-		if (max1 < val[i])
-		    max1 = val[i];
-		if (min1 > val[i])
-		    min1 = val[i];
-	    }
-	    while (j < nobs)
-		bits[j++]->setBit(i, 1);
-	}
-	break;}
+        nrows = val.size();
+        for (i = 0; i < nrows; ++i) {
+            j = locate(val[i]);
+            if (j < nobs) {
+                if (maxval[j] < val[i])
+                    maxval[j] = val[i];
+                if (minval[j] > val[i])
+                    minval[j] = val[i];
+            }
+            else {
+                if (max1 < val[i])
+                    max1 = val[i];
+                if (min1 > val[i])
+                    min1 = val[i];
+            }
+            while (j < nobs)
+                bits[j++]->setBit(i, 1);
+        }
+        break;}
     case ibis::INT: {// signed int
-	array_t<int32_t> val;
-	if (! fnm.empty())
-	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	else
-	    ierr = col->getValuesArray(&val);
-	if (ierr < 0 || val.size() <= 0)
-	    col->logWarning("range::construct", "failed to read %s",
-			    fnm.c_str());
+        array_t<int32_t> val;
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+        if (ierr < 0 || val.size() <= 0)
+            col->logWarning("range::construct", "failed to read %s",
+                            fnm.c_str());
 
-	nrows = val.size();
-	for (i = 0; i < nrows; ++i) {
-	    j = locate(val[i]);
-	    if (j < nobs) {
-		if (maxval[j] < val[i])
-		    maxval[j] = val[i];
-		if (minval[j] > val[i])
-		    minval[j] = val[i];
-	    }
-	    else {
-		if (max1 < val[i])
-		    max1 = val[i];
-		if (min1 > val[i])
-		    min1 = val[i];
-	    }
-	    while (j < nobs)
-		bits[j++]->setBit(i, 1);
-	}
-	break;}
+        nrows = val.size();
+        for (i = 0; i < nrows; ++i) {
+            j = locate(val[i]);
+            if (j < nobs) {
+                if (maxval[j] < val[i])
+                    maxval[j] = val[i];
+                if (minval[j] > val[i])
+                    minval[j] = val[i];
+            }
+            else {
+                if (max1 < val[i])
+                    max1 = val[i];
+                if (min1 > val[i])
+                    min1 = val[i];
+            }
+            while (j < nobs)
+                bits[j++]->setBit(i, 1);
+        }
+        break;}
     case ibis::FLOAT: {// (4-byte) floating-point values
-	array_t<float> val;
-	if (! fnm.empty())
-	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	else
-	    ierr = col->getValuesArray(&val);
-	if (ierr < 0 || val.size() <= 0)
-	    col->logWarning("range::construct", "failed to read %s",
-			    fnm.c_str());
+        array_t<float> val;
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+        if (ierr < 0 || val.size() <= 0)
+            col->logWarning("range::construct", "failed to read %s",
+                            fnm.c_str());
 
-	nrows = val.size();
-	for (i = 0; i < nrows; ++i) {
-	    j = locate(val[i]);
-	    if (j < nobs) {
-		if (maxval[j] < val[i])
-		    maxval[j] = val[i];
-		if (minval[j] > val[i])
-		    minval[j] = val[i];
-	    }
-	    else {
-		if (max1 < val[i])
-		    max1 = val[i];
-		if (min1 > val[i])
-		    min1 = val[i];
-	    }
-	    while (j < nobs)
-		bits[j++]->setBit(i, 1);
-	}
-	break;}
+        nrows = val.size();
+        for (i = 0; i < nrows; ++i) {
+            j = locate(val[i]);
+            if (j < nobs) {
+                if (maxval[j] < val[i])
+                    maxval[j] = val[i];
+                if (minval[j] > val[i])
+                    minval[j] = val[i];
+            }
+            else {
+                if (max1 < val[i])
+                    max1 = val[i];
+                if (min1 > val[i])
+                    min1 = val[i];
+            }
+            while (j < nobs)
+                bits[j++]->setBit(i, 1);
+        }
+        break;}
     case ibis::DOUBLE: {// (8-byte) floating-point values
-	array_t<double> val;
-	if (! fnm.empty())
-	    ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
-	else
-	    ierr = col->getValuesArray(&val);
-	if (ierr < 0 || val.size() <= 0)
-	    col->logWarning("range::construct", "failed to read %s",
-			    fnm.c_str());
+        array_t<double> val;
+        if (! fnm.empty())
+            ierr = ibis::fileManager::instance().getFile(fnm.c_str(), val);
+        else
+            ierr = col->getValuesArray(&val);
+        if (ierr < 0 || val.size() <= 0)
+            col->logWarning("range::construct", "failed to read %s",
+                            fnm.c_str());
 
-	nrows = val.size();
-	for (i = 0; i < nrows; ++i) {
-	    j = locate(val[i]);
-	    if (j < nobs) {
-		if (maxval[j] < val[i])
-		    maxval[j] = val[i];
-		if (minval[j] > val[i])
-		    minval[j] = val[i];
-	    }
-	    else {
-		if (max1 < val[i])
-		    max1 = val[i];
-		if (min1 > val[i])
-		    min1 = val[i];
-	    }
-	    while (j < nobs)
-		bits[j++]->setBit(i, 1);
-	}
-	break;}
+        nrows = val.size();
+        for (i = 0; i < nrows; ++i) {
+            j = locate(val[i]);
+            if (j < nobs) {
+                if (maxval[j] < val[i])
+                    maxval[j] = val[i];
+                if (minval[j] > val[i])
+                    minval[j] = val[i];
+            }
+            else {
+                if (max1 < val[i])
+                    max1 = val[i];
+                if (min1 > val[i])
+                    min1 = val[i];
+            }
+            while (j < nobs)
+                bits[j++]->setBit(i, 1);
+        }
+        break;}
     case ibis::CATEGORY: // no need for a separate index
         col->logWarning("range::construct", "no need for an index");
         return;
     default:
-	col->logWarning("range::construct", "failed to create index for "
-			"this type of column");
-	return;
+        col->logWarning("range::construct", "failed to create index for "
+                        "this type of column");
+        return;
     }
 
     // make sure all bit vectors are the same size

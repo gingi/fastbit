@@ -110,11 +110,11 @@ int ibis::sbiad::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-	     0 == fnm.compare(str->filename())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not overwrite the index file \""
-	    << fnm << "\" while it is used as a read-only file map";
-	return 0;
+             0 == fnm.compare(str->filename())) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " can not overwrite the index file \""
+            << fnm << "\" while it is used as a read-only file map";
+        return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -127,14 +127,14 @@ int ibis::sbiad::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	if (fdes < 0) {
+        ibis::fileManager::instance().flushFile(fnm.c_str());
+        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+        if (fdes < 0) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- " << evt << " failed to open \"" << fnm
                 << "\" for writing";
-	    return -2;
-	}
+            return -2;
+        }
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -161,10 +161,10 @@ int ibis::sbiad::write(const char* dt) const {
     header[6] = (char)(useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt
-	    << " failed to write the 8-byte header, ierr = " << ierr;
-	return -3;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt
+            << " failed to write the 8-byte header, ierr = " << ierr;
+        return -3;
     }
     if (useoffset64)
         ierr = ibis::fade::write64(fdes);
@@ -179,9 +179,9 @@ int ibis::sbiad::write(const char* dt) const {
         (void) _commit(fdes);
 #endif
 #endif
-	LOGGER(ierr >= 0 && ibis::gVerbose > 5)
-	    << evt << " wrote " << bits.size() << " bitmap"
-	    << (bits.size()>1?"s":"") << " to " << fnm;
+        LOGGER(ierr >= 0 && ibis::gVerbose > 5)
+            << evt << " wrote " << bits.size() << " bitmap"
+            << (bits.size()>1?"s":"") << " to " << fnm;
     }
     return ierr;
 } // ibis::sbiad::write
@@ -947,10 +947,10 @@ void ibis::sbiad::construct2(const char* f, const uint32_t nbase) {
         col->logWarning("sbiad::ctor", "no need for another index");
         return;
     default:
-	col->logWarning("sbiad::ctor", "failed to create bit sbiad index "
-			"for column type %s",
-			ibis::TYPESTRING[(int)col->type()]);
-	return;
+        col->logWarning("sbiad::ctor", "failed to create bit sbiad index "
+                        "for column type %s",
+                        ibis::TYPESTRING[(int)col->type()]);
+        return;
     }
 
     // make sure all bit vectors are the same size

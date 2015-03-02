@@ -159,2264 +159,2264 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	array_t<int32_t>* vals1 = col1->selectInts(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<int32_t>* vals1 = col1->selectInts(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::CATEGORY:
     case ibis::UINT: {
-	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<uint32_t>* vals1 = col1->selectUInts(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	array_t<int64_t>* vals1 = col1->selectLongs(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<int64_t>* vals1 = col1->selectLongs(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     case ibis::FLOAT: {
-	array_t<float>* vals1 = col1->selectFloats(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<float>* vals1 = col1->selectFloats(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     case ibis::DOUBLE: {
-	array_t<double>* vals1 = col1->selectDoubles(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<double>* vals1 = col1->selectDoubles(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DBins(*vals1, begin1, end1, stride1,
-				   *vals2, begin2, end2, stride2,
-				   *vals3, begin3, end3, stride3, counts);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DBins(*vals1, begin1, end1, stride1,
+                                   *vals2, begin2, end2, stride2,
+                                   *vals3, begin3, end3, stride3, counts);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     default: {
-	LOGGER(ibis::gVerbose > 3)
-	    << "part::get3DDistribution -- can not "
-	    "handle column (" << cname1 << ") type "
-	    << ibis::TYPESTRING[(int)col1->type()];
+        LOGGER(ibis::gVerbose > 3)
+            << "part::get3DDistribution -- can not "
+            "handle column (" << cname1 << ") type "
+            << ibis::TYPESTRING[(int)col1->type()];
 
         ierr = -3;
         break;}
@@ -2585,2389 +2585,2389 @@ long ibis::part::get3DDistribution(const char *constraints, const char *cname1,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	array_t<int32_t>* vals1 = col1->selectInts(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<int32_t>* vals1 = col1->selectInts(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::CATEGORY:
     case ibis::UINT: {
-	array_t<uint32_t>* vals1 = col1->selectUInts(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<uint32_t>* vals1 = col1->selectUInts(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	array_t<int64_t>* vals1 = col1->selectLongs(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<int64_t>* vals1 = col1->selectLongs(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     case ibis::FLOAT: {
-	array_t<float>* vals1 = col1->selectFloats(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<float>* vals1 = col1->selectFloats(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     case ibis::DOUBLE: {
-	array_t<double>* vals1 = col1->selectDoubles(hits);
-	if (vals1 == 0) {
-	    ierr = -4;
-	    break;
-	}
+        array_t<double>* vals1 = col1->selectDoubles(hits);
+        if (vals1 == 0) {
+            ierr = -4;
+            break;
+        }
 
-	switch (col2->type()) {
-	case ibis::BYTE:
-	case ibis::SHORT:
-	case ibis::INT: {
-	    array_t<int32_t>* vals2 = col2->selectInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+        switch (col2->type()) {
+        case ibis::BYTE:
+        case ibis::SHORT:
+        case ibis::INT: {
+            array_t<int32_t>* vals2 = col2->selectInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::UBYTE:
-	case ibis::USHORT:
-	case ibis::CATEGORY:
-	case ibis::UINT: {
-	    array_t<uint32_t>* vals2 = col2->selectUInts(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::UBYTE:
+        case ibis::USHORT:
+        case ibis::CATEGORY:
+        case ibis::UINT: {
+            array_t<uint32_t>* vals2 = col2->selectUInts(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::ULONG:
-	case ibis::LONG: {
-	    array_t<int64_t>* vals2 = col2->selectLongs(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::ULONG:
+        case ibis::LONG: {
+            array_t<int64_t>* vals2 = col2->selectLongs(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float>* vals2 = col2->selectFloats(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float>* vals2 = col2->selectFloats(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double>* vals2 = col2->selectDoubles(hits);
-	    if (vals2 == 0) {
-		ierr = -5;
-		break;
-	    }
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double>* vals2 = col2->selectDoubles(hits);
+            if (vals2 == 0) {
+                ierr = -5;
+                break;
+            }
 
-	    switch (col3->type()) {
-	    case ibis::BYTE:
-	    case ibis::SHORT:
-	    case ibis::INT: {
-		array_t<int32_t>* vals3 =
-		    col3->selectInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::UBYTE:
-	    case ibis::USHORT:
-	    case ibis::CATEGORY:
-	    case ibis::UINT: {
-		array_t<uint32_t>* vals3 =
-		    col3->selectUInts(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::ULONG:
-	    case ibis::LONG: {
-		array_t<int64_t>* vals3 =
-		    col3->selectLongs(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float>* vals3 =
-		    col3->selectFloats(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double>* vals3 =
-		    col3->selectDoubles(hits);
-		if (vals3 == 0) {
-		    ierr = -6;
-		    break;
-		}
-		ierr = count3DWeights(*vals1, begin1, end1, stride1,
-				      *vals2, begin2, end2, stride2,
-				      *vals3, begin3, end3, stride3,
-				      *wts, weights);
-		delete vals3;
-		break;}
-	    default: {
-		LOGGER(ibis::gVerbose > 3)
-		    << "part::get3DDistribution -- can not "
-		    "handle column (" << cname3 << ") type "
-		    << ibis::TYPESTRING[(int)col3->type()];
+            switch (col3->type()) {
+            case ibis::BYTE:
+            case ibis::SHORT:
+            case ibis::INT: {
+                array_t<int32_t>* vals3 =
+                    col3->selectInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::UBYTE:
+            case ibis::USHORT:
+            case ibis::CATEGORY:
+            case ibis::UINT: {
+                array_t<uint32_t>* vals3 =
+                    col3->selectUInts(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::ULONG:
+            case ibis::LONG: {
+                array_t<int64_t>* vals3 =
+                    col3->selectLongs(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float>* vals3 =
+                    col3->selectFloats(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double>* vals3 =
+                    col3->selectDoubles(hits);
+                if (vals3 == 0) {
+                    ierr = -6;
+                    break;
+                }
+                ierr = count3DWeights(*vals1, begin1, end1, stride1,
+                                      *vals2, begin2, end2, stride2,
+                                      *vals3, begin3, end3, stride3,
+                                      *wts, weights);
+                delete vals3;
+                break;}
+            default: {
+                LOGGER(ibis::gVerbose > 3)
+                    << "part::get3DDistribution -- can not "
+                    "handle column (" << cname3 << ") type "
+                    << ibis::TYPESTRING[(int)col3->type()];
 
-		ierr = -3;
-		break;}
-	    }
-	    delete vals2;
-	    break;}
-	default: {
-	    LOGGER(ibis::gVerbose > 3)
-		<< "part::get3DDistribution -- can not "
-		"handle column (" << cname2 << ") type "
-		<< ibis::TYPESTRING[(int)col2->type()];
+                ierr = -3;
+                break;}
+            }
+            delete vals2;
+            break;}
+        default: {
+            LOGGER(ibis::gVerbose > 3)
+                << "part::get3DDistribution -- can not "
+                "handle column (" << cname2 << ") type "
+                << ibis::TYPESTRING[(int)col2->type()];
 
-	    ierr = -3;
-	    break;}
-	}
-	delete vals1;
-	break;}
+            ierr = -3;
+            break;}
+        }
+        delete vals1;
+        break;}
     default: {
-	LOGGER(ibis::gVerbose > 3)
-	    << "part::get3DDistribution -- can not "
-	    "handle column (" << cname1 << ") type "
-	    << ibis::TYPESTRING[(int)col1->type()];
+        LOGGER(ibis::gVerbose > 3)
+            << "part::get3DDistribution -- can not "
+            "handle column (" << cname1 << ") type "
+            << ibis::TYPESTRING[(int)col1->type()];
 
         ierr = -3;
         break;}

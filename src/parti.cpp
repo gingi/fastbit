@@ -293,13 +293,6 @@ long ibis::part::reorder(const ibis::table::stringList& names,
         writeMetaData(nEvents, columns, activeDir);
         return ierr;
     }
-    ierr = 0;
-    for (uint32_t i = 0; 0 == ierr && i < ind1.size(); ++ i)
-        ierr = (ind1[i] != i);
-    if (ierr == 0) {// no need for further action
-        writeMetaData(nEvents, columns, activeDir);
-        return ierr;
-    }
 
     LOGGER(ibis::gVerbose > 2 && load.size() > 0)
         << evt << " start moving unsorted columns ...";
@@ -733,32 +726,32 @@ long ibis::part::append(const char* dir) {
     }
 
     try {
-	if (backupDir != 0 && *backupDir != 0 && activeDir != backupDir &&
-	    std::strcmp(activeDir, backupDir) != 0) {
-	    //ibis::fileManager::instance().flushDir(backupDir);
-	    ierr = append2(dir);
-	}
-	else {
-	    //ibis::fileManager::instance().flushDir(activeDir);
-	    ierr = append1(dir);
-	}
+        if (backupDir != 0 && *backupDir != 0 && activeDir != backupDir &&
+            std::strcmp(activeDir, backupDir) != 0) {
+            //ibis::fileManager::instance().flushDir(backupDir);
+            ierr = append2(dir);
+        }
+        else {
+            //ibis::fileManager::instance().flushDir(activeDir);
+            ierr = append1(dir);
+        }
     }
     catch (const char* s) { // revert to previous state
-	LOGGER(ibis::gVerbose > 0)
+        LOGGER(ibis::gVerbose > 0)
             << "Warning -- " << evt << " received the following error "
             "message, will reverse changes made so far.\n\t" << s;
-	state = UNKNOWN_STATE;
-	makeBackupCopy();
-	ierr = -2021;
+        state = UNKNOWN_STATE;
+        makeBackupCopy();
+        ierr = -2021;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 0)
+        LOGGER(ibis::gVerbose > 0)
             << "Warning" << evt << " received a unexpected exception, "
             "will reverse changes made so far.";
-	state = UNKNOWN_STATE;
-	makeBackupCopy();
-	ierr = -2020;
- 	throw; // can not handle unknown error -- rethrow exception
+        state = UNKNOWN_STATE;
+        makeBackupCopy();
+        ierr = -2020;
+        throw; // can not handle unknown error -- rethrow exception
     }
 
     return ierr;
@@ -769,17 +762,17 @@ long ibis::part::append(const char* dir) {
 long ibis::part::append1(const char *dir) {
     // can not handle dir == activeDir
     if (std::strcmp(dir, activeDir) == 0)
-	return -1;
+        return -1;
 
     long ierr = 0;
     uint32_t ntot = 0;
     {   // need an exclusive lock to allow file manager to close all
-	// open files
-	writeLock rw(this, "append");
-	unloadIndexes();	// remove all indices
-	delete rids;	// remove the RID list
-	rids = 0;
-	ibis::fileManager::instance().flushDir(activeDir);
+        // open files
+        writeLock rw(this, "append");
+        unloadIndexes();        // remove all indices
+        delete rids;    // remove the RID list
+        rids = 0;
+        ibis::fileManager::instance().flushDir(activeDir);
     }
 
     // assign backupDir so that appendToBackup will work correctly
@@ -809,9 +802,9 @@ long ibis::part::append1(const char *dir) {
     fn += "-rids";
     rids = new array_t<ibis::rid_t>;
     if (0 != ibis::fileManager::instance().getFile(fn.c_str(),*rids)) {
-	if (nEvents > 0 && ibis::gVerbose > 4)
-	    logMessage("append", "failed to read rid file \"%s\" ... %s",
-		       fn.c_str(), strerror(errno));
+        if (nEvents > 0 && ibis::gVerbose > 4)
+            logMessage("append", "failed to read rid file \"%s\" ... %s",
+                       fn.c_str(), strerror(errno));
 
         std::string fillrids(m_name);
         fillrids += ".fillRIDs";
@@ -858,34 +851,34 @@ long ibis::part::append2(const char *dir) {
     // only need to copy files if the files are not already in the
     // activeDir
     if (std::strcmp(dir, activeDir)) {
-	ierr = verifyBackupDir(); // make sure the backup is there
-	if (ierr != 0) {
-	    if (nEvents > 0) {
-		state = UNKNOWN_STATE;
-		doBackup(); // actually copy the files
-	    }
-	    else {
-		ibis::util::removeDir(backupDir, true);
-	    }
-	}
-	state = PRETRANSITION_STATE;
-	ierr = appendToBackup(dir);
-	if (ierr < 0) {
-	    logWarning("append", "appendToBackup(%s) returned with "
-		       "%ld, restore the content of backupDir",
-		       dir, ierr);
-	    state = UNKNOWN_STATE;
-	    makeBackupCopy();
-	    ierr = -2023;
-	    return ierr;
-	}
-	else if (ierr == 0) {
-	    if (ibis::gVerbose > 1)
-		logMessage("append", "appendToBackup(%s) appended no "
-			   "new rows", dir);
-	    state = STABLE_STATE;
-	    return ierr;
-	}
+        ierr = verifyBackupDir(); // make sure the backup is there
+        if (ierr != 0) {
+            if (nEvents > 0) {
+                state = UNKNOWN_STATE;
+                doBackup(); // actually copy the files
+            }
+            else {
+                ibis::util::removeDir(backupDir, true);
+            }
+        }
+        state = PRETRANSITION_STATE;
+        ierr = appendToBackup(dir);
+        if (ierr < 0) {
+            logWarning("append", "appendToBackup(%s) returned with "
+                       "%ld, restore the content of backupDir",
+                       dir, ierr);
+            state = UNKNOWN_STATE;
+            makeBackupCopy();
+            ierr = -2023;
+            return ierr;
+        }
+        else if (ierr == 0) {
+            if (ibis::gVerbose > 1)
+                logMessage("append", "appendToBackup(%s) appended no "
+                           "new rows", dir);
+            state = STABLE_STATE;
+            return ierr;
+        }
 
         // make sure that the number of RIDs is as expected
         std::string fn(backupDir);
@@ -907,50 +900,50 @@ long ibis::part::append2(const char *dir) {
     }
 
     {   // need an exclusive lock to allow file manager to close all
-	// open files and switch the roles of the activeDir and the
-	// backupDir
-	writeLock rw(this, "append");
-	if (std::strcmp(dir, activeDir)) {
-	    unloadIndexes();	// remove all indices
-	    delete rids;	// remove the RID list
-	    rids = 0;
-	    ibis::fileManager::instance().flushDir(activeDir);
-	    columnList::iterator it;
-	    for (it = columns.begin(); it != columns.end(); ++it)
-		delete (*it).second;
-	    columns.clear();
+        // open files and switch the roles of the activeDir and the
+        // backupDir
+        writeLock rw(this, "append");
+        if (std::strcmp(dir, activeDir)) {
+            unloadIndexes();    // remove all indices
+            delete rids;        // remove the RID list
+            rids = 0;
+            ibis::fileManager::instance().flushDir(activeDir);
+            columnList::iterator it;
+            for (it = columns.begin(); it != columns.end(); ++it)
+                delete (*it).second;
+            columns.clear();
 
-	    // switch the directory name and read the rids
-	    char* tstr = activeDir;
-	    activeDir = backupDir;
-	    backupDir = tstr;
-	}
+            // switch the directory name and read the rids
+            char* tstr = activeDir;
+            activeDir = backupDir;
+            backupDir = tstr;
+        }
 
-	// retrieve the new column list
-	readMetaData(nEvents, columns, activeDir);
-	if (ntot > 0 && ntot != nEvents) {
-	    logWarning("append", "expected %lu rows, but the table.tdc "
-		       "file says %lu", static_cast<long unsigned>(ierr),
-		       static_cast<long unsigned>(nEvents));
-	    return -2025;
-	}
-	// retrieve the new RID list
-	std::string fn(activeDir);
-	fn += FASTBIT_DIRSEP;
-	fn += "-rids";
-	rids = new array_t<ibis::rid_t>;
-	if (0 != ibis::fileManager::instance().
-	    getFile(fn.c_str(),*rids)) {
-	    if (nEvents > 0 && ibis::gVerbose > 4)
-		logMessage("append", "failed to read rid file \"%s\" ... %s",
-			   fn.c_str(), strerror(errno));
+        // retrieve the new column list
+        readMetaData(nEvents, columns, activeDir);
+        if (ntot > 0 && ntot != nEvents) {
+            logWarning("append", "expected %lu rows, but the table.tdc "
+                       "file says %lu", static_cast<long unsigned>(ierr),
+                       static_cast<long unsigned>(nEvents));
+            return -2025;
+        }
+        // retrieve the new RID list
+        std::string fn(activeDir);
+        fn += FASTBIT_DIRSEP;
+        fn += "-rids";
+        rids = new array_t<ibis::rid_t>;
+        if (0 != ibis::fileManager::instance().
+            getFile(fn.c_str(),*rids)) {
+            if (nEvents > 0 && ibis::gVerbose > 4)
+                logMessage("append", "failed to read rid file \"%s\" ... %s",
+                           fn.c_str(), strerror(errno));
 
-	    std::string fillrids(m_name);
-	    fillrids += ".fillRIDs";
-	    if (nEvents > 0 &&
-		ibis::gParameters().isTrue(fillrids.c_str()))
-		fillRIDs(fn.c_str());
-	}
+            std::string fillrids(m_name);
+            fillrids += ".fillRIDs";
+            if (nEvents > 0 &&
+                ibis::gParameters().isTrue(fillrids.c_str()))
+                fillRIDs(fn.c_str());
+        }
 
         switchTime = time(0);
         state = TRANSITION_STATE; // switched successfully
@@ -1157,9 +1150,9 @@ long ibis::part::appendToBackup(const char* dir) {
     if (dir == 0 || *dir == 0)
         return ierr;
     if (backupDir == 0 || *backupDir == 0 || readonly)
-	return -1;
+        return -1;
     if (std::strcmp(dir, backupDir) == 0)
-	return -1;
+        return -1;
 
     uint32_t napp;
     columnList clist; // combined list of attributes
@@ -1184,20 +1177,20 @@ long ibis::part::appendToBackup(const char* dir) {
     }
 
     if (ibis::gVerbose > 1)
-	logMessage("appendToBackup", "starting to append new data in \"%s\" "
-		   "(%lu rows) to %s", dir, static_cast<long unsigned>(napp),
-		   backupDir);
+        logMessage("appendToBackup", "starting to append new data in \"%s\" "
+                   "(%lu rows) to %s", dir, static_cast<long unsigned>(napp),
+                   backupDir);
     ibis::horometer timer;
     if (ibis::gVerbose > 0)
-	timer.start();
+        timer.start();
 
     std::string fn;
     bool has_rids = true;
     if (nEvents > 0) {
-	if (rids == 0)
-	    has_rids = false;
-	else if (rids->empty())
-	    has_rids = false;
+        if (rids == 0)
+            has_rids = false;
+        else if (rids->empty())
+            has_rids = false;
     }
     if (! has_rids) {
         fn = dir;
@@ -1235,41 +1228,41 @@ long ibis::part::appendToBackup(const char* dir) {
 
     // integerate the two column list, the combined list is stored in clist
     for (cit = clist.begin(); cit != clist.end(); ++ cit) {
-	pit = columns.find((*cit).first);
-	if (pit != columns.end()) { // update the min/max pair
-	    if ((*pit).second->upperBound() >
-		(*pit).second->lowerBound()) {
-		if ((*pit).second->upperBound() >
-		    (*cit).second->upperBound())
-		    (*cit).second->upperBound((*pit).second->upperBound());
-		if ((*pit).second->lowerBound() <
-		    (*cit).second->lowerBound())
-		    (*cit).second->lowerBound((*pit).second->lowerBound());
-	    }
-	}
+        pit = columns.find((*cit).first);
+        if (pit != columns.end()) { // update the min/max pair
+            if ((*pit).second->upperBound() >
+                (*pit).second->lowerBound()) {
+                if ((*pit).second->upperBound() >
+                    (*cit).second->upperBound())
+                    (*cit).second->upperBound((*pit).second->upperBound());
+                if ((*pit).second->lowerBound() <
+                    (*cit).second->lowerBound())
+                    (*cit).second->lowerBound((*pit).second->lowerBound());
+            }
+        }
     }
     for (pit = columns.begin(); pit != columns.end(); ++ pit) {
-	cit = clist.find((*pit).first);
-	if (cit == clist.end()) { // attribute in columns but not in clist
-	    ibis::column* prop = 0;
-	    if ((*pit).second->type() == ibis::CATEGORY) {
-		prop = new ibis::category(*((*pit).second));
-	    }
-	    else if ((*pit).second->type() == ibis::TEXT) {
-		prop = new ibis::text(*((*pit).second));
-	    }
-	    else {
-		prop = new ibis::column(*((*pit).second));
-	    }
-	    clist[prop->name()] = prop;
-	}
+        cit = clist.find((*pit).first);
+        if (cit == clist.end()) { // attribute in columns but not in clist
+            ibis::column* prop = 0;
+            if ((*pit).second->type() == ibis::CATEGORY) {
+                prop = new ibis::category(*((*pit).second));
+            }
+            else if ((*pit).second->type() == ibis::TEXT) {
+                prop = new ibis::text(*((*pit).second));
+            }
+            else {
+                prop = new ibis::column(*((*pit).second));
+            }
+            clist[prop->name()] = prop;
+        }
     }
     if (ibis::gVerbose > 6) {
-	ibis::util::logger lg;
-	lg() << "part::appendToBackup -- The combined (new) "
-	    "attribute list (" << clist.size() << ")\n";
-	for (cit = clist.begin(); cit != clist.end(); ++ cit)
-	    lg() << *((*cit).second) << "\n";
+        ibis::util::logger lg;
+        lg() << "part::appendToBackup -- The combined (new) "
+            "attribute list (" << clist.size() << ")\n";
+        for (cit = clist.begin(); cit != clist.end(); ++ cit)
+            lg() << *((*cit).second) << "\n";
     }
 
     ibis::fileManager::buffer<char> mybuf;
@@ -1308,24 +1301,24 @@ long ibis::part::appendToBackup(const char* dir) {
 
     // go through each column in the combined column list
     for (cit = clist.begin(); cit != clist.end(); ++ cit) {
-	if (ibis::gVerbose > 6)
-	    logMessage("appendToBackup", "processing %s (%s)", (*cit).first,
-		       ibis::TYPESTRING[(*cit).second->type()]);
-	long tmp = (*cit).second->append
+        if (ibis::gVerbose > 6)
+            logMessage("appendToBackup", "processing %s (%s)", (*cit).first,
+                       ibis::TYPESTRING[(*cit).second->type()]);
+        long tmp = (*cit).second->append
             (backupDir, dir, nold, napp, nbuf, buf);
-	if (tmp != ierr)
-	    logWarning("appendToBackup", "expected to add %ld elements "
-		       "of \"%s\", but actually added %ld", ierr,
-		       (*cit).first, tmp);
-	else if (ibis::gVerbose > 3)
-	    logMessage("appendToBackup", "completed processing %s",
-		       (*cit).first);
+        if (tmp != ierr)
+            logWarning("appendToBackup", "expected to add %ld elements "
+                       "of \"%s\", but actually added %ld", ierr,
+                       (*cit).first, tmp);
+        else if (ibis::gVerbose > 3)
+            logMessage("appendToBackup", "completed processing %s",
+                       (*cit).first);
 
-	// the lower and upper bounds have not been set, set them the
-	// actual min and max values
-	if (tmp == ierr && (*cit).second->elementSize() > 0 &&
-	    (*cit).second->lowerBound() > (*cit).second->upperBound())
-	    (*cit).second->computeMinMax(backupDir);
+        // the lower and upper bounds have not been set, set them the
+        // actual min and max values
+        if (tmp == ierr && (*cit).second->elementSize() > 0 &&
+            (*cit).second->lowerBound() > (*cit).second->upperBound())
+            (*cit).second->computeMinMax(backupDir);
     }
 
     // ibis::fileManager::decreaseUse(nbuf, "appendToBackup");
@@ -1815,27 +1808,27 @@ int ibis::part::updateData() {
 int ibis::part::clear() {
     softWriteLock lock(this, "clear");
     if (lock.isLocked() == false) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- part[" << name() << "]::clear can not proceed, "
-	    "must free all queries and stop other accesses before continuing";
-	return -2;
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- part[" << name() << "]::clear can not proceed, "
+            "must free all queries and stop other accesses before continuing";
+        return -2;
     }
     LOGGER(ibis::gVerbose > 2)
-	<< "part[" << name() << "] (" << m_desc
+        << "part[" << name() << "] (" << m_desc
         << ") is unused, proceed to clear";
 
     emptyCache();
     { // remove the columns
-	std::vector<ibis::column*> tmp;
-	tmp.reserve(columns.size());
-	for (columnList::const_iterator it = columns.begin();
-	     it != columns.end(); ++ it)
-	    tmp.push_back((*it).second);
-	columns.clear();
+        std::vector<ibis::column*> tmp;
+        tmp.reserve(columns.size());
+        for (columnList::const_iterator it = columns.begin();
+             it != columns.end(); ++ it)
+            tmp.push_back((*it).second);
+        columns.clear();
 
-	for (uint32_t i = 0; i < tmp.size(); ++ i)
-	    delete tmp[i];
-	tmp.clear();
+        for (uint32_t i = 0; i < tmp.size(); ++ i)
+            delete tmp[i];
+        tmp.clear();
     }
 
     ibis::fileManager::instance().removeCleaner(myCleaner);
@@ -1867,16 +1860,16 @@ int ibis::part::clear() {
 ibis::part::softWriteLock::softWriteLock(const part* tbl, const char* m)
     : thePart(tbl), mesg(m), lckd(tbl->tryWriteAccess()) {
     if (lckd != 0) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- part[" << thePart->name()
-	    << "]::softWriteLock -- pthread_rwlock_trywrlock for " << mesg
-	    << " returned " << lckd << " (" << strerror(lckd) << ')';
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- part[" << thePart->name()
+            << "]::softWriteLock -- pthread_rwlock_trywrlock for " << mesg
+            << " returned " << lckd << " (" << strerror(lckd) << ')';
     }
     else if (ibis::gVerbose > 9) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "part[" << thePart->name()
-	    << "]::softWriteLock -- pthread_rwlock_trywrlock("
-	    << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg;
+        LOGGER(ibis::gVerbose >= 0)
+            << "part[" << thePart->name()
+            << "]::softWriteLock -- pthread_rwlock_trywrlock("
+            << static_cast<const void*>(&(tbl->rwlock)) << ") for " << mesg;
     }
 }
 

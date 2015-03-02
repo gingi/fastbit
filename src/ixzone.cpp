@@ -292,11 +292,11 @@ int ibis::zone::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-	     0 == fnm.compare(str->filename())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not overwrite the index file \""
-	    << fnm << "\" while it is used as a read-only file map";
-	return 0;
+             0 == fnm.compare(str->filename())) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " can not overwrite the index file \""
+            << fnm << "\" while it is used as a read-only file map";
+        return 0;
     }
     else if (fname != 0 && *fname != 0 && 0 == fnm.compare(fname)) {
         activate(); // read everything into memory
@@ -305,15 +305,15 @@ int ibis::zone::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) { // try again
-	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	if (fdes < 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << " failed to open \"" << fnm
-		<< "\" for writing " << (errno ? strerror(errno) : "??");
-	    errno = 0;
-	    return -2;
-	}
+        ibis::fileManager::instance().flushFile(fnm.c_str());
+        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+        if (fdes < 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << " failed to open \"" << fnm
+                << "\" for writing " << (errno ? strerror(errno) : "??");
+            errno = 0;
+            return -2;
+        }
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -341,9 +341,9 @@ int ibis::zone::write(const char* dt) const {
     header[6] = (char)(useoffset64 ? 8 : 4);
     off_t ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt
-	    << " failed to write the 8-byte header, ierr = " << ierr;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt
+            << " failed to write the 8-byte header, ierr = " << ierr;
     }
     if (sub.size() == nobs) {
         if (useoffset64)
@@ -365,11 +365,11 @@ int ibis::zone::write(const char* dt) const {
         (void) _commit(fdes);
 #endif
 #endif
-	LOGGER(ibis::gVerbose > 3)
-	    << evt << " wrote " << nobs
-	    << (sub.size() == nobs ? " coarse" : "") << " bin"
-	    << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
-	    << " object" << (nrows>1?"s":"");
+        LOGGER(ibis::gVerbose > 3)
+            << evt << " wrote " << nobs
+            << (sub.size() == nobs ? " coarse" : "") << " bin"
+            << (nobs>1?"s":"") << " to file " << fnm << " for " << nrows
+            << " object" << (nrows>1?"s":"");
     }
     return ierr;
 } // ibis::zone::write
@@ -385,22 +385,22 @@ int ibis::zone::write32(int fdes) const {
     evt += "::write32";
     const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << ": seek(" << fdes
-	    << ", 0, SEEK_CUR) returned " << start
-	    << ", but a value >= 8 is expected";
-	return -4;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << ": seek(" << fdes
+            << ", 0, SEEK_CUR) returned " << start
+            << ", but a value >= 8 is expected";
+        return -4;
     }
 
     uint32_t i;
     // write out bit sequences of this level of the index
     off_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     if (ierr < (off_t)sizeof(uint32_t)) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to write "
-	    "nrows (" << nrows << "), ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -5;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to write "
+            "nrows (" << nrows << "), ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -5;
     }
     ierr = UnixWrite(fdes, &nobs, sizeof(uint32_t));
 
@@ -409,31 +409,31 @@ int ibis::zone::write32(int fdes) const {
     offset32[0] = ((start+sizeof(int32_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
     ierr = UnixSeek(fdes, offset32[0], SEEK_SET);
     if (ierr != offset32[0]) {
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
-	    << offset32[0] << ", ierr = " << ierr;
-	return -6;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
+            << offset32[0] << ", ierr = " << ierr;
+        return -6;
     }
 
     ierr  = UnixWrite(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr += UnixWrite(fdes, minval.begin(), sizeof(double)*nobs);
     if (ierr < (off_t)(sizeof(double)*(3*nobs))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to write "
-	    << (3*nobs) << " doubles, ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -7;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to write "
+            << (3*nobs) << " doubles, ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -7;
     }
     offset32[0] += sizeof(double)*(3*nobs) + sizeof(int32_t)*(nobs+1);
     ierr = UnixSeek(fdes, sizeof(int32_t)*(nobs+1), SEEK_CUR);
     if (ierr != offset32[0]) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
-	    << offset32[0] << ", ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -8;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
+            << offset32[0] << ", ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -8;
     }
     for (i = 0; i < nobs; ++i) {
         if (bits[i])
@@ -442,19 +442,19 @@ int ibis::zone::write32(int fdes) const {
     }
     ierr = UnixSeek(fdes, start+sizeof(uint32_t)*2, SEEK_SET);
     if (ierr != (off_t)(start+sizeof(uint32_t)*2)) {
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
-	    << start+sizeof(uint32_t)*2 << ", ierr = " << ierr;
-	return -9;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
+            << start+sizeof(uint32_t)*2 << ", ierr = " << ierr;
+        return -9;
     }
     ierr = UnixWrite(fdes, offset32.begin(), sizeof(int32_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int32_t)*(nobs+1))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to write "
-	    << (nobs+1) << " offsets, ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -10;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to write "
+            << (nobs+1) << " offsets, ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -10;
     }
     (void) UnixSeek(fdes, offset32[nobs], SEEK_SET); // move to the end
 
@@ -483,27 +483,27 @@ int ibis::zone::write32(int fdes) const {
     // write the offsets for the subranges
     ierr = UnixSeek(fdes, nloff, SEEK_SET);
     if (ierr != nloff) {
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
-	    << nloff << ", ierr = " << ierr;
-	return -11;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
+            << nloff << ", ierr = " << ierr;
+        return -11;
     }
     ierr = UnixWrite(fdes, nextlevel.begin(), sizeof(int32_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int32_t)*(nobs+1))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to write "
-	    << (nobs+1) << " offsets for fine level, ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -12;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to write "
+            << (nobs+1) << " offsets for fine level, ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -12;
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(4);
-	lg() << "DEBUG -- " << evt "(" << col->name() << ", "
-	     << start << ") -- offsets of the file levels\n";
-	for (i=0; i<=nobs; ++i)
-	    lg() << "offset[" << i << "] = " << nextlevel[i] << "\n";
+        ibis::util::logger lg(4);
+        lg() << "DEBUG -- " << evt "(" << col->name() << ", "
+             << start << ") -- offsets of the file levels\n";
+        for (i=0; i<=nobs; ++i)
+            lg() << "offset[" << i << "] = " << nextlevel[i] << "\n";
     }
 #endif
     ierr = UnixSeek(fdes, nextlevel[nobs], SEEK_SET); // move to the end
@@ -525,11 +525,11 @@ int ibis::zone::write64(int fdes) const {
     evt += "::write64";
     const off_t start = UnixSeek(fdes, 0, SEEK_CUR);
     if (start < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << ": seek(" << fdes
-	    << ", 0, SEEK_CUR) returned " << start
-	    << ", but a value >= 8 is expected";
-	return -4;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << ": seek(" << fdes
+            << ", 0, SEEK_CUR) returned " << start
+            << ", but a value >= 8 is expected";
+        return -4;
     }
 
     uint32_t i;
@@ -537,42 +537,42 @@ int ibis::zone::write64(int fdes) const {
     off_t ierr = UnixWrite(fdes, &nrows, sizeof(uint32_t));
     ierr += UnixWrite(fdes, &nobs, sizeof(uint32_t));
     if (ierr < (off_t)sizeof(uint32_t)*2) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to write "
-	    "nrows (" << nrows << ") or nobs (" << nobs << "), ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -5;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to write "
+            "nrows (" << nrows << ") or nobs (" << nobs << "), ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -5;
     }
     offset32.clear();
     offset64.resize(nobs+1);
     offset64[0] = ((start+sizeof(int64_t)*(nobs+1)+2*sizeof(uint32_t)+7)/8)*8;
     ierr = UnixSeek(fdes, offset64[0], SEEK_SET);
     if (ierr != offset64[0]) {
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt  << "(" << fdes << ") failed to seek to "
-	    << offset64[0] << ", ierr = " << ierr;
-	return -6;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt  << "(" << fdes << ") failed to seek to "
+            << offset64[0] << ", ierr = " << ierr;
+        return -6;
     }
 
     ierr  = ibis::util::write(fdes, bounds.begin(), sizeof(double)*nobs);
     ierr += ibis::util::write(fdes, maxval.begin(), sizeof(double)*nobs);
     ierr += ibis::util::write(fdes, minval.begin(), sizeof(double)*nobs);
     if (ierr < (off_t)(sizeof(double)*(3*nobs))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to write "
-	    << (3*nobs) << " doubles, ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -7;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to write "
+            << (3*nobs) << " doubles, ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -7;
     }
     offset64[0] += sizeof(double)*(3*nobs) + sizeof(int64_t)*(nobs+1);
     ierr = UnixSeek(fdes, sizeof(int64_t)*(nobs+1), SEEK_CUR);
     if (ierr != offset64[0]) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
-	    << offset64[0] << ", ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -8;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
+            << offset64[0] << ", ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -8;
     }
     for (i = 0; i < nobs; ++i) {
         if (bits[i])
@@ -581,19 +581,19 @@ int ibis::zone::write64(int fdes) const {
     }
     ierr = UnixSeek(fdes, start+sizeof(uint32_t)*2, SEEK_SET);
     if (ierr != (off_t)(start+sizeof(uint32_t)*2)) {
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
-	    << start+sizeof(uint32_t)*2 << ", ierr = " << ierr;
-	return -9;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
+            << start+sizeof(uint32_t)*2 << ", ierr = " << ierr;
+        return -9;
     }
     ierr = ibis::util::write(fdes, offset64.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to write "
-	    << (nobs+1) << " offsets, ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -10;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to write "
+            << (nobs+1) << " offsets, ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -10;
     }
     (void) UnixSeek(fdes, offset64[nobs], SEEK_SET); // move to the end
 
@@ -622,27 +622,27 @@ int ibis::zone::write64(int fdes) const {
     // write the offsets for the subranges
     ierr = UnixSeek(fdes, nloff, SEEK_SET);
     if (ierr != nloff) {
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
-	    << nloff << ", ierr = " << ierr;
-	return -11;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to seek to "
+            << nloff << ", ierr = " << ierr;
+        return -11;
     }
     ierr = ibis::util::write(fdes, nextlevel.begin(), sizeof(int64_t)*(nobs+1));
     if (ierr < (off_t)(sizeof(int64_t)*(nobs+1))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << "(" << fdes << ") failed to write "
-	    << (nobs+1) << " offsets for fine level, ierr = " << ierr;
-	(void) UnixSeek(fdes, start, SEEK_SET);
-	return -12;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << "(" << fdes << ") failed to write "
+            << (nobs+1) << " offsets for fine level, ierr = " << ierr;
+        (void) UnixSeek(fdes, start, SEEK_SET);
+        return -12;
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg(4);
-	lg() << "DEBUG -- " << evt << "(" << col->name() << ", "
-	     << start << ") -- offsets of the file levels\n";
-	for (i=0; i<=nobs; ++i)
-	    lg() << "offset[" << i << "] = " << nextlevel[i] << "\n";
+        ibis::util::logger lg(4);
+        lg() << "DEBUG -- " << evt << "(" << col->name() << ", "
+             << start << ") -- offsets of the file levels\n";
+        for (i=0; i<=nobs; ++i)
+            lg() << "offset[" << i << "] = " << nextlevel[i] << "\n";
     }
 #endif
     ierr = UnixSeek(fdes, nextlevel[nobs], SEEK_SET); // move to the end
@@ -1107,11 +1107,11 @@ long ibis::zone::evaluate(const ibis::qContinuousRange& expr,
     if (tmp.size() == lower.size() && tmp.cnt() > lower.cnt()) {
         if (col == 0 || col->hasRawData() == false) return -1;
 
-	tmp -= lower;
-	ibis::bitvector delta;
-	col->partition()->doScan(expr, tmp, delta);
-	if (delta.size() == lower.size() && delta.cnt() > 0)
-	    lower |= delta;
+        tmp -= lower;
+        ibis::bitvector delta;
+        col->partition()->doScan(expr, tmp, delta);
+        if (delta.size() == lower.size() && delta.cnt() > 0)
+            lower |= delta;
     }
     return lower.cnt();
 } // ibis::zone::evaluate

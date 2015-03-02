@@ -7,11 +7,11 @@
 #include "countQuery.h" // ibis::countQuery
 #include "part.h"
 
-#include <math.h>	// ceil, sqrt
-#include <limits>	// std::numeric_limits
-#include <typeinfo>	// typeid
-#include <memory>	// unique_ptr
-#include <iomanip>	// setw, setprecision
+#include <math.h>       // ceil, sqrt
+#include <limits>       // std::numeric_limits
+#include <typeinfo>     // typeid
+#include <memory>       // unique_ptr
+#include <iomanip>      // setw, setprecision
 
 // This file definte does not use the min and max macro.  Their presence
 // could cause the calls to numeric_limits::min and numeric_limits::max to
@@ -109,69 +109,69 @@ long ibis::part::get1DDistribution(const char *constraints, const char *cname,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	std::unique_ptr< array_t<int32_t> > vals(col->selectInts(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<int32_t> > vals(col->selectInts(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     case ibis::CATEGORY:
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-	std::unique_ptr< array_t<uint32_t> > vals(col->selectUInts(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<uint32_t> > vals(col->selectUInts(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	std::unique_ptr< array_t<int64_t> > vals(col->selectLongs(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<int64_t> > vals(col->selectLongs(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     case ibis::FLOAT: {
-	std::unique_ptr< array_t<float> > vals(col->selectFloats(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<float> > vals(col->selectFloats(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     case ibis::DOUBLE: {
-	std::unique_ptr< array_t<double> > vals(col->selectDoubles(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<double> > vals(col->selectDoubles(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                ++ counts[static_cast<uint32_t>(((*vals)[i] - begin) / stride)];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     default: {
-	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DDistribution -- can not "
-	    "handle column (" << cname << ") type "
-	    << ibis::TYPESTRING[(int)col->type()];
+        LOGGER(ibis::gVerbose > 3)
+            << "part::get1DDistribution -- can not "
+            "handle column (" << cname << ") type "
+            << ibis::TYPESTRING[(int)col->type()];
 
         ierr = -3;
         break;}
@@ -291,74 +291,74 @@ long ibis::part::get1DDistribution(const char *constraints, const char *bname,
     case ibis::BYTE:
     case ibis::SHORT:
     case ibis::INT: {
-	std::unique_ptr< array_t<int32_t> > vals(bcol->selectInts(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-		    += (*wts)[i];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<int32_t> > vals(bcol->selectInts(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+                    += (*wts)[i];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     case ibis::CATEGORY:
     case ibis::UBYTE:
     case ibis::USHORT:
     case ibis::UINT: {
-	std::unique_ptr< array_t<uint32_t> > vals(bcol->selectUInts(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-		    += (*wts)[i];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<uint32_t> > vals(bcol->selectUInts(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+                    += (*wts)[i];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     case ibis::ULONG:
     case ibis::LONG: {
-	std::unique_ptr< array_t<int64_t> > vals(bcol->selectLongs(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-		    += (*wts)[i];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<int64_t> > vals(bcol->selectLongs(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+                    += (*wts)[i];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     case ibis::FLOAT: {
-	std::unique_ptr< array_t<float> > vals(bcol->selectFloats(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-		    += (*wts)[i];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<float> > vals(bcol->selectFloats(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+                    += (*wts)[i];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     case ibis::DOUBLE: {
-	std::unique_ptr< array_t<double> > vals(bcol->selectDoubles(mask));
-	if (vals.get() != 0) {
-	    for (uint32_t i = 0; i < vals->size(); ++ i) {
-		weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
-		    += (*wts)[i];
-	    }
-	}
-	else {
-	    ierr = -4;
-	}
-	break;}
+        std::unique_ptr< array_t<double> > vals(bcol->selectDoubles(mask));
+        if (vals.get() != 0) {
+            for (uint32_t i = 0; i < vals->size(); ++ i) {
+                weights[static_cast<uint32_t>(((*vals)[i] - begin) / stride)]
+                    += (*wts)[i];
+            }
+        }
+        else {
+            ierr = -4;
+        }
+        break;}
     default: {
-	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DDistribution -- can not "
-	    "handle column (" << bname << ") type "
-	    << ibis::TYPESTRING[(int)bcol->type()];
+        LOGGER(ibis::gVerbose > 3)
+            << "part::get1DDistribution -- can not "
+            "handle column (" << bname << ") type "
+            << ibis::TYPESTRING[(int)bcol->type()];
 
         ierr = -3;
         break;}
@@ -731,10 +731,10 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
         }
         break;}
     default: {
-	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DBins -- can not "
-	    "handle column (" << cname << ") type "
-	    << ibis::TYPESTRING[(int)col->type()];
+        LOGGER(ibis::gVerbose > 3)
+            << "part::get1DBins -- can not "
+            "handle column (" << cname << ") type "
+            << ibis::TYPESTRING[(int)col->type()];
 
         ierr = -3;
         break;}
@@ -1090,10 +1090,10 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
         }
         break;}
     default: {
-	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DBins -- can not "
-	    "handle column (" << cname << ") type "
-	    << ibis::TYPESTRING[(int)col->type()];
+        LOGGER(ibis::gVerbose > 3)
+            << "part::get1DBins -- can not "
+            "handle column (" << cname << ") type "
+            << ibis::TYPESTRING[(int)col->type()];
 
         ierr = -3;
         break;}
@@ -1496,10 +1496,10 @@ long ibis::part::get1DBins(const char *constraints, const char *cname,
         }
         break;}
     default: {
-	LOGGER(ibis::gVerbose > 3)
-	    << "part::get1DBins -- can not "
-	    "handle column (" << cname << ") type "
-	    << ibis::TYPESTRING[(int)col->type()];
+        LOGGER(ibis::gVerbose > 3)
+            << "part::get1DBins -- can not "
+            "handle column (" << cname << ") type "
+            << ibis::TYPESTRING[(int)col->type()];
 
         ierr = -3;
         break;}
@@ -2561,24 +2561,24 @@ int ibis::part::coarsenBins(const ibis::column &col, uint32_t nbin,
     rng.leftOperator() = ibis::qExpr::OP_LE;
     rng.rightOperator() = ibis::qExpr::OP_LT;
     for (unsigned i = 1; i < wbnds.size()-1; ++ i) {
-	rng.leftBound() = idxbin[wbnds[i-1]];
-	rng.rightBound() = idxbin[wbnds[i]];
-	bnds[i] = idxbin[wbnds[i]];
-	LOGGER(ibis::gVerbose > 5)
-	    << "part[" << (m_name ? m_name : "")
-	    << "]::coarsenBins evaluating " << rng << " for bin "
-	    << i << " in " << col.name();
+        rng.leftBound() = idxbin[wbnds[i-1]];
+        rng.rightBound() = idxbin[wbnds[i]];
+        bnds[i] = idxbin[wbnds[i]];
+        LOGGER(ibis::gVerbose > 5)
+            << "part[" << (m_name ? m_name : "")
+            << "]::coarsenBins evaluating " << rng << " for bin "
+            << i << " in " << col.name();
 
-	ierr = idx->evaluate(rng, bv);
-	if (ierr < 0) {
-	    LOGGER(ibis::gVerbose > 2)
-		<< "part[" << (m_name ? m_name : "")
-		<< "]::coarsenBins failed to evaluate query " << rng
-		<< ", ierr=" << ierr;
-	    return -6;
-	}
+        ierr = idx->evaluate(rng, bv);
+        if (ierr < 0) {
+            LOGGER(ibis::gVerbose > 2)
+                << "part[" << (m_name ? m_name : "")
+                << "]::coarsenBins failed to evaluate query " << rng
+                << ", ierr=" << ierr;
+            return -6;
+        }
 
-	btmp.push_back(new ibis::bitvector(bv));
+        btmp.push_back(new ibis::bitvector(bv));
     }
     bnds.resize(wbnds.size()-1); // remove the last element
 
@@ -2586,16 +2586,16 @@ int ibis::part::coarsenBins(const ibis::column &col, uint32_t nbin,
     rng.rightOperator() = ibis::qExpr::OP_UNDEFINED;
     rng.leftBound() = idxbin[wbnds[wbnds.size()-2]];
     LOGGER(ibis::gVerbose > 5)
-	<< "part[" << (m_name ? m_name : "")
-	<< "]::coarsenBins evaluating " << rng << " for bin "
-	<< wbnds.size()-1 << " in " << col.name();
+        << "part[" << (m_name ? m_name : "")
+        << "]::coarsenBins evaluating " << rng << " for bin "
+        << wbnds.size()-1 << " in " << col.name();
     ierr = idx->evaluate(rng, bv);
     if (ierr < 0) {
-	LOGGER(ibis::gVerbose > 2)
-	    << "part[" << (m_name ? m_name : "")
-	    << "]::coarsenBins failed to evaluate query " << rng
-	    << ", ierr=" << ierr;
-	return -6;
+        LOGGER(ibis::gVerbose > 2)
+            << "part[" << (m_name ? m_name : "")
+            << "]::coarsenBins failed to evaluate query " << rng
+            << ", ierr=" << ierr;
+        return -6;
     }
 
     btmp.push_back(new ibis::bitvector(bv));
@@ -2605,517 +2605,108 @@ int ibis::part::coarsenBins(const ibis::column &col, uint32_t nbin,
 /// Based on the column type, decide how to retrieve the values and
 /// invokethe lower level support functions.
 long ibis::part::get1DBins_(const ibis::bitvector &mask,
-			    const ibis::column &col,
-			    uint32_t nbin, std::vector<double> &bounds,
-			    std::vector<ibis::bitvector> &bins,
-			    const char *mesg) const {
+                            const ibis::column &col,
+                            uint32_t nbin, std::vector<double> &bounds,
+                            std::vector<ibis::bitvector> &bins,
+                            const char *mesg) const {
     if (mask.cnt() == 0) return 0L;
     if (mask.size() != nEvents) return -6L;
     if (mesg == 0 || *mesg == 0)
-	mesg = ibis::util::userName();
+        mesg = ibis::util::userName();
     LOGGER(ibis::gVerbose > 3)
-	<< mesg << " -- invoking get1DBins_ on column " << col.name()
-	<< " type " << ibis::TYPESTRING[(int)col.type()] << "(" << col.type()
-	<< ") with mask of " << mask.cnt() << " out of " << mask.size();
+        << mesg << " -- invoking get1DBins_ on column " << col.name()
+        << " type " << ibis::TYPESTRING[(int)col.type()] << "(" << col.type()
+        << ") with mask of " << mask.cnt() << " out of " << mask.size();
 
     long ierr;
     switch (col.type()) {
     default: {
-	LOGGER(ibis::gVerbose > 0)
-	    << mesg << " -- can not work with column " << col.name()
-	    << " of type " << ibis::TYPESTRING[(int)col.type()] << "("
-	    << col.type() << ")";
-	ierr = -7;
-	break;}
+        LOGGER(ibis::gVerbose > 0)
+            << mesg << " -- can not work with column " << col.name()
+            << " of type " << ibis::TYPESTRING[(int)col.type()] << "("
+            << col.type() << ")";
+        ierr = -7;
+        break;}
     case ibis::BYTE: {
-	signed char vmin, vmax;
-	array_t<signed char> *vals=0;
-	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
-	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<signed char>;
-	    ierr = col.getValuesArray(vals);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning - " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		delete vals;
-		return -8L;
-	    }
-	    else if (vals->size() != nEvents) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve "
-		    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
-		    << ", but got " << vals->size();
-		delete vals;
-		return -9L;
-	    }
-	    vmin = 127; //std::numeric_limits<char>::max();
-	    vmax = -128; //std::numeric_limits<char>::lowest();
-	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
-		 is.nIndices() > 0; ++ is) {
-		const ibis::bitvector::word_t nind = is.nIndices();
-		const ibis::bitvector::word_t *idx = is.indices();
-		if (is.isRange()) {
-		    for (ibis::bitvector::word_t ii = *idx;
-			 ii < idx[1]; ++ ii) {
-			if (vmin > (*vals)[ii])
-			    vmin = (*vals)[ii];
-			if (vmax < (*vals)[ii])
-			    vmax = (*vals)[ii];
-		    }
-		}
-		else {
-		    for (uint32_t ii = 0; ii < nind; ++ ii) {
-			const uint32_t jj = idx[ii];
-			if (vmin > (*vals)[jj])
-			    vmin = (*vals)[jj];
-			if (vmax < (*vals)[jj])
-			    vmax = (*vals)[jj];
-		    }
-		}
-	    }
-	}
-	else {
-	    ibis::bitvector::word_t nsel = mask.cnt();
-	    vals = col.selectBytes(mask);
-	    if (vals == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		return -10L;
-	    }
-	    else if (vals->size() != nsel) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve " << nsel
-		    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
-		    << vals->size();
-		delete vals;
-		return -11L;
-	    }
-	    vmin = (*vals)[0];
-	    vmax = (*vals)[0];
-	    for (uint32_t i = 1; i < nsel; ++ i) {
-		if (vmin > (*vals)[i])
-		    vmin = (*vals)[i];
-		if (vmax < (*vals)[i])
-		    vmax = (*vals)[i];
-	    }
-	}
-	ierr = adaptiveIntsDetailed(mask, *vals, vmin, vmax, nbin,
-				    bounds, bins);
-	delete vals;
-	break;}
-    case ibis::UBYTE: {
-	unsigned char vmin, vmax;
-	array_t<unsigned char> *vals=0;
-	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
-	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<unsigned char>;
-	    ierr = col.getValuesArray(vals);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		delete vals;
-		return -12L;
-	    }
-	    else if (vals->size() != nEvents) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve "
-		    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
-		    << ", but got " << vals->size();
-		delete vals;
-		return -13L;
-	    }
-	    vmin = 255;
-	    vmax = 0;
-	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
-		 is.nIndices() > 0; ++ is) {
-		const ibis::bitvector::word_t nind = is.nIndices();
-		const ibis::bitvector::word_t *idx = is.indices();
-		if (is.isRange()) {
-		    for (ibis::bitvector::word_t ii = *idx;
-			 ii < idx[1]; ++ ii) {
-			if (vmin > (*vals)[ii])
-			    vmin = (*vals)[ii];
-			if (vmax < (*vals)[ii])
-			    vmax = (*vals)[ii];
-		    }
-		}
-		else {
-		    for (uint32_t ii = 0; ii < nind; ++ ii) {
-			const uint32_t jj = idx[ii];
-			if (vmin > (*vals)[jj])
-			    vmin = (*vals)[jj];
-			if (vmax < (*vals)[jj])
-			    vmax = (*vals)[jj];
-		    }
-		}
-	    }
-	}
-	else {
-	    ibis::bitvector::word_t nsel = mask.cnt();
-	    vals = col.selectUBytes(mask);
-	    if (vals == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		return -14L;
-	    }
-	    else if (vals->size() != nsel) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve " << nsel
-		    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
-		    << vals->size();
-		delete vals;
-		return -15L;
-	    }
-	    vmin = (*vals)[0];
-	    vmax = (*vals)[0];
-	    for (uint32_t i = 1; i < nsel; ++ i) {
-		if (vmin > (*vals)[i])
-		    vmin = (*vals)[i];
-		if (vmax < (*vals)[i])
-		    vmax = (*vals)[i];
-	    }
-	}
-	ierr = adaptiveIntsDetailed(mask, *vals, vmin, vmax, nbin,
-				    bounds, bins);
-	delete vals;
-	break;}
-    case ibis::SHORT: {
-	int16_t vmin, vmax;
-	array_t<int16_t> *vals=0;
-	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
-	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<int16_t>;
-	    ierr = col.getValuesArray(vals);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		delete vals;
-		return -16L;
-	    }
-	    else if (vals->size() != nEvents) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve "
-		    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
-		    << ", but got " << vals->size();
-		delete vals;
-		return -17L;
-	    }
-	    vmin = std::numeric_limits<int16_t>::max();
-	    vmax = std::numeric_limits<int16_t>::min();
-	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
-		 is.nIndices() > 0; ++ is) {
-		const ibis::bitvector::word_t nind = is.nIndices();
-		const ibis::bitvector::word_t *idx = is.indices();
-		if (is.isRange()) {
-		    for (ibis::bitvector::word_t ii = *idx;
-			 ii < idx[1]; ++ ii) {
-			if (vmin > (*vals)[ii])
-			    vmin = (*vals)[ii];
-			if (vmax < (*vals)[ii])
-			    vmax = (*vals)[ii];
-		    }
-		}
-		else {
-		    for (uint32_t ii = 0; ii < nind; ++ ii) {
-			const uint32_t jj = idx[ii];
-			if (vmin > (*vals)[jj])
-			    vmin = (*vals)[jj];
-			if (vmax < (*vals)[jj])
-			    vmax = (*vals)[jj];
-		    }
-		}
-	    }
-	}
-	else {
-	    ibis::bitvector::word_t nsel = mask.cnt();
-	    vals = col.selectShorts(mask);
-	    if (vals == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		return -18L;
-	    }
-	    else if (vals->size() != nsel) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve " << nsel
-		    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
-		    << vals->size();
-		delete vals;
-		return -19L;
-	    }
-	    vmin = (*vals)[0];
-	    vmax = (*vals)[0];
-	    for (uint32_t i = 1; i < nsel; ++ i) {
-		if (vmin > (*vals)[i])
-		    vmin = (*vals)[i];
-		if (vmax < (*vals)[i])
-		    vmax = (*vals)[i];
-	    }
-	}
-	ierr = adaptiveIntsDetailed(mask, *vals, vmin, vmax, nbin,
-				    bounds, bins);
-	delete vals;
-	break;}
-    case ibis::USHORT: {
-	uint16_t vmin, vmax;
-	array_t<uint16_t> *vals=0;
-	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
-	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<uint16_t>;
-	    ierr = col.getValuesArray(vals);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		delete vals;
-		return -20L;
-	    }
-	    else if (vals->size() != nEvents) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve "
-		    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
-		    << ", but got " << vals->size();
-		delete vals;
-		return -21L;
-	    }
-	    vmin = std::numeric_limits<uint16_t>::max();
-	    vmax = 0;
-	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
-		 is.nIndices() > 0; ++ is) {
-		const ibis::bitvector::word_t nind = is.nIndices();
-		const ibis::bitvector::word_t *idx = is.indices();
-		if (is.isRange()) {
-		    for (ibis::bitvector::word_t ii = *idx;
-			 ii < idx[1]; ++ ii) {
-			if (vmin > (*vals)[ii])
-			    vmin = (*vals)[ii];
-			if (vmax < (*vals)[ii])
-			    vmax = (*vals)[ii];
-		    }
-		}
-		else {
-		    for (uint32_t ii = 0; ii < nind; ++ ii) {
-			const uint32_t jj = idx[ii];
-			if (vmin > (*vals)[jj])
-			    vmin = (*vals)[jj];
-			if (vmax < (*vals)[jj])
-			    vmax = (*vals)[jj];
-		    }
-		}
-	    }
-	}
-	else {
-	    ibis::bitvector::word_t nsel = mask.cnt();
-	    vals = col.selectUShorts(mask);
-	    if (vals == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		return -22L;
-	    }
-	    else if (vals->size() != nsel) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve " << nsel
-		    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
-		    << vals->size();
-		delete vals;
-		return -23L;
-	    }
-	    vmin = (*vals)[0];
-	    vmax = (*vals)[0];
-	    for (uint32_t i = 1; i < nsel; ++ i) {
-		if (vmin > (*vals)[i])
-		    vmin = (*vals)[i];
-		if (vmax < (*vals)[i])
-		    vmax = (*vals)[i];
-	    }
-	}
-	ierr = adaptiveIntsDetailed(mask, *vals, vmin, vmax, nbin,
-				    bounds, bins);
-	delete vals;
-	break;}
-    case ibis::INT: {
-	int32_t vmin, vmax;
-	array_t<int32_t> *vals=0;
-	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
-	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<int32_t>;
-	    ierr = col.getValuesArray(vals);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		delete vals;
-		return -24L;
-	    }
-	    else if (vals->size() != nEvents) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve "
-		    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
-		    << ", but got " << vals->size();
-		delete vals;
-		return -25L;
-	    }
-	    vmin = std::numeric_limits<int32_t>::max();
-	    vmax = std::numeric_limits<int32_t>::min();
-	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
-		 is.nIndices() > 0; ++ is) {
-		const ibis::bitvector::word_t nind = is.nIndices();
-		const ibis::bitvector::word_t *idx = is.indices();
-		if (is.isRange()) {
-		    for (ibis::bitvector::word_t ii = *idx;
-			 ii < idx[1]; ++ ii) {
-			if (vmin > (*vals)[ii])
-			    vmin = (*vals)[ii];
-			if (vmax < (*vals)[ii])
-			    vmax = (*vals)[ii];
-		    }
-		}
-		else {
-		    for (uint32_t ii = 0; ii < nind; ++ ii) {
-			const uint32_t jj = idx[ii];
-			if (vmin > (*vals)[jj])
-			    vmin = (*vals)[jj];
-			if (vmax < (*vals)[jj])
-			    vmax = (*vals)[jj];
-		    }
-		}
-	    }
-	}
-	else {
-	    ibis::bitvector::word_t nsel = mask.cnt();
-	    vals = col.selectInts(mask);
-	    if (vals == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		return -26L;
-	    }
-	    else if (vals->size() != nsel) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve " << nsel
-		    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
-		    << vals->size();
-		delete vals;
-		return -27L;
-	    }
-	    vmin = (*vals)[0];
-	    vmax = (*vals)[0];
-	    for (uint32_t i = 1; i < nsel; ++ i) {
-		if (vmin > (*vals)[i])
-		    vmin = (*vals)[i];
-		if (vmax < (*vals)[i])
-		    vmax = (*vals)[i];
-	    }
-	}
-	if (static_cast<uint32_t>(vmax-vmin) < vals->size()) {
-	    ierr = adaptiveIntsDetailed(mask, *vals, vmin, vmax, nbin,
-					bounds, bins);
-	}
-	else {
-	    ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
-					  bounds, bins);
-	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bounds[i] = ceil(bounds[i]);
-	}
-	delete vals;
-	break;}
-    case ibis::CATEGORY:
-    case ibis::UINT: {
-	uint32_t vmin, vmax;
-	array_t<uint32_t> *vals=0;
-	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
-	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<signed char>;
-	    ierr = col.getValuesArray(vals);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning - " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		delete vals;
-		return -8L;
-	    }
-	    else if (vals->size() != nEvents) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve "
-		    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
-		    << ", but got " << vals->size();
-		delete vals;
-		return -9L;
-	    }
-	    vmin = 127; //std::numeric_limits<char>::max();
-	    vmax = -128; //std::numeric_limits<char>::lowest();
-	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
-		 is.nIndices() > 0; ++ is) {
-		const ibis::bitvector::word_t nind = is.nIndices();
-		const ibis::bitvector::word_t *idx = is.indices();
-		if (is.isRange()) {
-		    for (ibis::bitvector::word_t ii = *idx;
-			 ii < idx[1]; ++ ii) {
-			if (vmin > (*vals)[ii])
-			    vmin = (*vals)[ii];
-			if (vmax < (*vals)[ii])
-			    vmax = (*vals)[ii];
-		    }
-		}
-		else {
-		    for (uint32_t ii = 0; ii < nind; ++ ii) {
-			const uint32_t jj = idx[ii];
-			if (vmin > (*vals)[jj])
-			    vmin = (*vals)[jj];
-			if (vmax < (*vals)[jj])
-			    vmax = (*vals)[jj];
-		    }
-		}
-	    }
-	}
-	else {
-	    ibis::bitvector::word_t nsel = mask.cnt();
-	    vals = col.selectBytes(mask);
-	    if (vals == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		return -10L;
-	    }
-	    else if (vals->size() != nsel) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve " << nsel
-		    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
-		    << vals->size();
-		delete vals;
-		return -11L;
-	    }
-	    vmin = (*vals)[0];
-	    vmax = (*vals)[0];
-	    for (uint32_t i = 1; i < nsel; ++ i) {
-		if (vmin > (*vals)[i])
-		    vmin = (*vals)[i];
-		if (vmax < (*vals)[i])
-		    vmax = (*vals)[i];
-	    }
-	}
-	ierr = adaptiveIntsDetailed(mask, *vals, vmin, vmax, nbin,
-				    bounds, bins);
-	delete vals;
-	break;}
+        signed char vmin, vmax;
+        array_t<signed char> *vals=0;
+        ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
+        if (acc == ibis::fileManager::PREFER_READ) {
+            vals = new array_t<signed char>;
+            ierr = col.getValuesArray(vals);
+            if (ierr < 0) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning - " << mesg
+                    << " failed to retrieve any values for column "
+                    << col.name();
+                delete vals;
+                return -8L;
+            }
+            else if (vals->size() != nEvents) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg << " expected to retrieve "
+                    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
+                    << ", but got " << vals->size();
+                delete vals;
+                return -9L;
+            }
+            vmin = 127; //std::numeric_limits<char>::max();
+            vmax = -128; //std::numeric_limits<char>::lowest();
+            for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+                 is.nIndices() > 0; ++ is) {
+                const ibis::bitvector::word_t nind = is.nIndices();
+                const ibis::bitvector::word_t *idx = is.indices();
+                if (is.isRange()) {
+                    for (ibis::bitvector::word_t ii = *idx;
+                         ii < idx[1]; ++ ii) {
+                        if (vmin > (*vals)[ii])
+                            vmin = (*vals)[ii];
+                        if (vmax < (*vals)[ii])
+                            vmax = (*vals)[ii];
+                    }
+                }
+                else {
+                    for (uint32_t ii = 0; ii < nind; ++ ii) {
+                        const uint32_t jj = idx[ii];
+                        if (vmin > (*vals)[jj])
+                            vmin = (*vals)[jj];
+                        if (vmax < (*vals)[jj])
+                            vmax = (*vals)[jj];
+                    }
+                }
+            }
+        }
+        else {
+            ibis::bitvector::word_t nsel = mask.cnt();
+            vals = col.selectBytes(mask);
+            if (vals == 0) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg
+                    << " failed to retrieve any values for column "
+                    << col.name();
+                return -10L;
+            }
+            else if (vals->size() != nsel) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg << " expected to retrieve " << nsel
+                    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
+                    << vals->size();
+                delete vals;
+                return -11L;
+            }
+            vmin = (*vals)[0];
+            vmax = (*vals)[0];
+            for (uint32_t i = 1; i < nsel; ++ i) {
+                if (vmin > (*vals)[i])
+                    vmin = (*vals)[i];
+                if (vmax < (*vals)[i])
+                    vmax = (*vals)[i];
+            }
+        }
+        ierr = adaptiveIntsDetailed(mask, *vals, vmin, vmax, nbin,
+                                    bounds, bins);
+        delete vals;
+        break;}
     case ibis::UBYTE: {
         unsigned char vmin, vmax;
         array_t<unsigned char> *vals=0;
@@ -3710,165 +3301,165 @@ long ibis::part::get1DBins_(const ibis::bitvector &mask,
         delete vals;
         break;}
     case ibis::FLOAT: {
-	float vmin, vmax;
-	array_t<float> *vals=0;
-	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
-	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<float>;
-	    ierr = col.getValuesArray(vals);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		delete vals;
-		return -40L;
-	    }
-	    else if (vals->size() != nEvents) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve "
-		    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
-		    << ", but got " << vals->size();
-		delete vals;
-		return -41L;
-	    }
-	    vmin = std::numeric_limits<float>::max();
-	    vmax = -std::numeric_limits<float>::max();
-	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
-		 is.nIndices() > 0; ++ is) {
-		const ibis::bitvector::word_t nind = is.nIndices();
-		const ibis::bitvector::word_t *idx = is.indices();
-		if (is.isRange()) {
-		    for (ibis::bitvector::word_t ii = *idx;
-			 ii < idx[1]; ++ ii) {
-			if (vmin > (*vals)[ii])
-			    vmin = (*vals)[ii];
-			if (vmax < (*vals)[ii])
-			    vmax = (*vals)[ii];
-		    }
-		}
-		else {
-		    for (uint32_t ii = 0; ii < nind; ++ ii) {
-			const uint32_t jj = idx[ii];
-			if (vmin > (*vals)[jj])
-			    vmin = (*vals)[jj];
-			if (vmax < (*vals)[jj])
-			    vmax = (*vals)[jj];
-		    }
-		}
-	    }
-	}
-	else {
-	    ibis::bitvector::word_t nsel = mask.cnt();
-	    vals = col.selectFloats(mask);
-	    if (vals == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		return -42L;
-	    }
-	    else if (vals->size() != nsel) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve " << nsel
-		    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
-		    << vals->size();
-		delete vals;
-		return -43L;
-	    }
-	    vmin = (*vals)[0];
-	    vmax = (*vals)[0];
-	    for (uint32_t i = 1; i < nsel; ++ i) {
-		if (vmin > (*vals)[i])
-		    vmin = (*vals)[i];
-		if (vmax < (*vals)[i])
-		    vmax = (*vals)[i];
-	    }
-	}
-	ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
-				      bounds, bins);
-	delete vals;
-	break;}
+        float vmin, vmax;
+        array_t<float> *vals=0;
+        ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
+        if (acc == ibis::fileManager::PREFER_READ) {
+            vals = new array_t<float>;
+            ierr = col.getValuesArray(vals);
+            if (ierr < 0) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg
+                    << " failed to retrieve any values for column "
+                    << col.name();
+                delete vals;
+                return -40L;
+            }
+            else if (vals->size() != nEvents) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg << " expected to retrieve "
+                    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
+                    << ", but got " << vals->size();
+                delete vals;
+                return -41L;
+            }
+            vmin = std::numeric_limits<float>::max();
+            vmax = -std::numeric_limits<float>::max();
+            for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+                 is.nIndices() > 0; ++ is) {
+                const ibis::bitvector::word_t nind = is.nIndices();
+                const ibis::bitvector::word_t *idx = is.indices();
+                if (is.isRange()) {
+                    for (ibis::bitvector::word_t ii = *idx;
+                         ii < idx[1]; ++ ii) {
+                        if (vmin > (*vals)[ii])
+                            vmin = (*vals)[ii];
+                        if (vmax < (*vals)[ii])
+                            vmax = (*vals)[ii];
+                    }
+                }
+                else {
+                    for (uint32_t ii = 0; ii < nind; ++ ii) {
+                        const uint32_t jj = idx[ii];
+                        if (vmin > (*vals)[jj])
+                            vmin = (*vals)[jj];
+                        if (vmax < (*vals)[jj])
+                            vmax = (*vals)[jj];
+                    }
+                }
+            }
+        }
+        else {
+            ibis::bitvector::word_t nsel = mask.cnt();
+            vals = col.selectFloats(mask);
+            if (vals == 0) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg
+                    << " failed to retrieve any values for column "
+                    << col.name();
+                return -42L;
+            }
+            else if (vals->size() != nsel) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg << " expected to retrieve " << nsel
+                    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
+                    << vals->size();
+                delete vals;
+                return -43L;
+            }
+            vmin = (*vals)[0];
+            vmax = (*vals)[0];
+            for (uint32_t i = 1; i < nsel; ++ i) {
+                if (vmin > (*vals)[i])
+                    vmin = (*vals)[i];
+                if (vmax < (*vals)[i])
+                    vmax = (*vals)[i];
+            }
+        }
+        ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
+                                      bounds, bins);
+        delete vals;
+        break;}
     case ibis::DOUBLE: {
-	double vmin, vmax;
-	array_t<double> *vals=0;
-	ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
-	if (acc == ibis::fileManager::PREFER_READ) {
-	    vals = new array_t<double>;
-	    ierr = col.getValuesArray(vals);
-	    if (ierr < 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		delete vals;
-		return -44L;
-	    }
-	    else if (vals->size() != nEvents) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve "
-		    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
-		    << ", but got " << vals->size();
-		delete vals;
-		return -45L;
-	    }
-	    vmin = std::numeric_limits<double>::max();
-	    vmax = -std::numeric_limits<double>::max();
-	    for (ibis::bitvector::indexSet is = mask.firstIndexSet();
-		 is.nIndices() > 0; ++ is) {
-		const ibis::bitvector::word_t nind = is.nIndices();
-		const ibis::bitvector::word_t *idx = is.indices();
-		if (is.isRange()) {
-		    for (ibis::bitvector::word_t ii = *idx;
-			 ii < idx[1]; ++ ii) {
-			if (vmin > (*vals)[ii])
-			    vmin = (*vals)[ii];
-			if (vmax < (*vals)[ii])
-			    vmax = (*vals)[ii];
-		    }
-		}
-		else {
-		    for (uint32_t ii = 0; ii < nind; ++ ii) {
-			const uint32_t jj = idx[ii];
-			if (vmin > (*vals)[jj])
-			    vmin = (*vals)[jj];
-			if (vmax < (*vals)[jj])
-			    vmax = (*vals)[jj];
-		    }
-		}
-	    }
-	}
-	else {
-	    ibis::bitvector::word_t nsel = mask.cnt();
-	    vals = col.selectDoubles(mask);
-	    if (vals == 0) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg
-		    << " failed to retrieve any values for column "
-		    << col.name();
-		return -46L;
-	    }
-	    else if (vals->size() != nsel) {
-		LOGGER(ibis::gVerbose > 1)
-		    << "Warning -- " << mesg << " expected to retrieve " << nsel
-		    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
-		    << vals->size();
-		delete vals;
-		return -47L;
-	    }
-	    vmin = (*vals)[0];
-	    vmax = (*vals)[0];
-	    for (uint32_t i = 1; i < nsel; ++ i) {
-		if (vmin > (*vals)[i])
-		    vmin = (*vals)[i];
-		if (vmax < (*vals)[i])
-		    vmax = (*vals)[i];
-	    }
-	}
-	ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
-				      bounds, bins);
-	delete vals;
-	break;}
+        double vmin, vmax;
+        array_t<double> *vals=0;
+        ibis::fileManager::ACCESS_PREFERENCE acc = accessHint(mask, 1);
+        if (acc == ibis::fileManager::PREFER_READ) {
+            vals = new array_t<double>;
+            ierr = col.getValuesArray(vals);
+            if (ierr < 0) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg
+                    << " failed to retrieve any values for column "
+                    << col.name();
+                delete vals;
+                return -44L;
+            }
+            else if (vals->size() != nEvents) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg << " expected to retrieve "
+                    << nEvents << " byte" << (nEvents > 1 ? "s" : "")
+                    << ", but got " << vals->size();
+                delete vals;
+                return -45L;
+            }
+            vmin = std::numeric_limits<double>::max();
+            vmax = -std::numeric_limits<double>::max();
+            for (ibis::bitvector::indexSet is = mask.firstIndexSet();
+                 is.nIndices() > 0; ++ is) {
+                const ibis::bitvector::word_t nind = is.nIndices();
+                const ibis::bitvector::word_t *idx = is.indices();
+                if (is.isRange()) {
+                    for (ibis::bitvector::word_t ii = *idx;
+                         ii < idx[1]; ++ ii) {
+                        if (vmin > (*vals)[ii])
+                            vmin = (*vals)[ii];
+                        if (vmax < (*vals)[ii])
+                            vmax = (*vals)[ii];
+                    }
+                }
+                else {
+                    for (uint32_t ii = 0; ii < nind; ++ ii) {
+                        const uint32_t jj = idx[ii];
+                        if (vmin > (*vals)[jj])
+                            vmin = (*vals)[jj];
+                        if (vmax < (*vals)[jj])
+                            vmax = (*vals)[jj];
+                    }
+                }
+            }
+        }
+        else {
+            ibis::bitvector::word_t nsel = mask.cnt();
+            vals = col.selectDoubles(mask);
+            if (vals == 0) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg
+                    << " failed to retrieve any values for column "
+                    << col.name();
+                return -46L;
+            }
+            else if (vals->size() != nsel) {
+                LOGGER(ibis::gVerbose > 1)
+                    << "Warning -- " << mesg << " expected to retrieve " << nsel
+                    << " byte" << (nsel > 1 ? "s" : "") << ", but got "
+                    << vals->size();
+                delete vals;
+                return -47L;
+            }
+            vmin = (*vals)[0];
+            vmax = (*vals)[0];
+            for (uint32_t i = 1; i < nsel; ++ i) {
+                if (vmin > (*vals)[i])
+                    vmin = (*vals)[i];
+                if (vmax < (*vals)[i])
+                    vmax = (*vals)[i];
+            }
+        }
+        ierr = adaptiveFloatsDetailed(mask, *vals, vmin, vmax, nbin,
+                                      bounds, bins);
+        delete vals;
+        break;}
     }
 #if defined(_DEBUG) || defined(DEBUG)
     if (ibis::gVerbose > 5) {
@@ -4074,121 +3665,121 @@ ibis::part::getDistribution(const char *constraints,
         usebnds = (bounds[i] > bounds[i-1]);
 
     if (usebnds) { // use the input bin boundaries
-	switch ((*it).second->type()) {
-	case ibis::SHORT:
-	case ibis::BYTE:
-	case ibis::INT: {
-	    array_t<int32_t> *vals = col->selectInts(mask);
-	    if (vals == 0) {
-		ierr = -4;
-		break;
-	    }
-	    array_t<int32_t> bnds(bounds.size());
-	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bnds[i] = static_cast<int32_t>(bounds[i]);
-	    ibis::index::mapValues<int32_t>(*vals, bnds, counts);
-	    delete vals;
-	    break;}
-	case ibis::USHORT:
-	case ibis::UBYTE:
-	case ibis::UINT:
-	case ibis::CATEGORY: {
-	    array_t<uint32_t> *vals = col->selectUInts(mask);
-	    if (vals == 0) {
-		ierr = -4;
-		break;
-	    }
-	    array_t<uint32_t> bnds(bounds.size());
-	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bnds[i] = static_cast<uint32_t>(bounds[i]);
-	    ibis::index::mapValues<uint32_t>(*vals, bnds, counts);
-	    delete vals;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float> *vals = col->selectFloats(mask);
-	    if (vals == 0) {
-		ierr = -4;
-		break;
-	    }
-	    array_t<float> bnds(bounds.size());
-	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bnds[i] = static_cast<float>(bounds[i]);
-	    ibis::index::mapValues<float>(*vals, bnds, counts);
-	    delete vals;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double> *vals = col->selectDoubles(mask);
-	    if (vals == 0) {
-		ierr = -4;
-		break;
-	    }
-	    array_t<double> bnds(bounds.size());
-	    for (uint32_t i = 0; i < bounds.size(); ++ i)
-		bnds[i] = bounds[i];
-	    ibis::index::mapValues<double>(*vals, bnds, counts);
-	    delete vals;
-	    break;}
-	default: {
-	    ierr = -3;
-	    logWarning("getDistribution",
-		       "can not handle column type %d",
-		       static_cast<int>((*it).second->type()));
-	    break;}
-	}
+        switch ((*it).second->type()) {
+        case ibis::SHORT:
+        case ibis::BYTE:
+        case ibis::INT: {
+            array_t<int32_t> *vals = col->selectInts(mask);
+            if (vals == 0) {
+                ierr = -4;
+                break;
+            }
+            array_t<int32_t> bnds(bounds.size());
+            for (uint32_t i = 0; i < bounds.size(); ++ i)
+                bnds[i] = static_cast<int32_t>(bounds[i]);
+            ibis::index::mapValues<int32_t>(*vals, bnds, counts);
+            delete vals;
+            break;}
+        case ibis::USHORT:
+        case ibis::UBYTE:
+        case ibis::UINT:
+        case ibis::CATEGORY: {
+            array_t<uint32_t> *vals = col->selectUInts(mask);
+            if (vals == 0) {
+                ierr = -4;
+                break;
+            }
+            array_t<uint32_t> bnds(bounds.size());
+            for (uint32_t i = 0; i < bounds.size(); ++ i)
+                bnds[i] = static_cast<uint32_t>(bounds[i]);
+            ibis::index::mapValues<uint32_t>(*vals, bnds, counts);
+            delete vals;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float> *vals = col->selectFloats(mask);
+            if (vals == 0) {
+                ierr = -4;
+                break;
+            }
+            array_t<float> bnds(bounds.size());
+            for (uint32_t i = 0; i < bounds.size(); ++ i)
+                bnds[i] = static_cast<float>(bounds[i]);
+            ibis::index::mapValues<float>(*vals, bnds, counts);
+            delete vals;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double> *vals = col->selectDoubles(mask);
+            if (vals == 0) {
+                ierr = -4;
+                break;
+            }
+            array_t<double> bnds(bounds.size());
+            for (uint32_t i = 0; i < bounds.size(); ++ i)
+                bnds[i] = bounds[i];
+            ibis::index::mapValues<double>(*vals, bnds, counts);
+            delete vals;
+            break;}
+        default: {
+            ierr = -3;
+            logWarning("getDistribution",
+                       "can not handle column type %d",
+                       static_cast<int>((*it).second->type()));
+            break;}
+        }
     }
     else { // need to determine bin boundaries in this function
-	ibis::index::histogram hist;
-	bounds.clear();
-	counts.clear();
-	switch ((*it).second->type()) {
-	case ibis::SHORT:
-	case ibis::BYTE:
-	case ibis::INT: {
-	    array_t<int32_t> *vals = col->selectInts(mask);
-	    if (vals == 0) {
-		ierr = -4;
-		break;
-	    }
-	    ibis::index::mapValues<int32_t>(*vals, hist);
-	    delete vals;
-	    break;}
-	case ibis::USHORT:
-	case ibis::UBYTE:
-	case ibis::UINT:
-	case ibis::CATEGORY: {
-	    array_t<uint32_t> *vals = col->selectUInts(mask);
-	    if (vals == 0) {
-		ierr = -4;
-		break;
-	    }
-	    ibis::index::mapValues<uint32_t>(*vals, hist);
-	    delete vals;
-	    break;}
-	case ibis::FLOAT: {
-	    array_t<float> *vals = col->selectFloats(mask);
-	    if (vals == 0) {
-		ierr = -4;
-		break;
-	    }
-	    ibis::index::mapValues<float>(*vals, hist);
-	    delete vals;
-	    break;}
-	case ibis::DOUBLE: {
-	    array_t<double> *vals = col->selectDoubles(mask);
-	    if (vals == 0) {
-		ierr = -4;
-		break;
-	    }
-	    ibis::index::mapValues<double>(*vals, hist);
-	    delete vals;
-	    break;}
-	default: {
-	    ierr = -3;
-	    logWarning("getDistribution",
-		       "can not handle column type %d",
-		       static_cast<int>((*it).second->type()));
-	    break;}
-	}
+        ibis::index::histogram hist;
+        bounds.clear();
+        counts.clear();
+        switch ((*it).second->type()) {
+        case ibis::SHORT:
+        case ibis::BYTE:
+        case ibis::INT: {
+            array_t<int32_t> *vals = col->selectInts(mask);
+            if (vals == 0) {
+                ierr = -4;
+                break;
+            }
+            ibis::index::mapValues<int32_t>(*vals, hist);
+            delete vals;
+            break;}
+        case ibis::USHORT:
+        case ibis::UBYTE:
+        case ibis::UINT:
+        case ibis::CATEGORY: {
+            array_t<uint32_t> *vals = col->selectUInts(mask);
+            if (vals == 0) {
+                ierr = -4;
+                break;
+            }
+            ibis::index::mapValues<uint32_t>(*vals, hist);
+            delete vals;
+            break;}
+        case ibis::FLOAT: {
+            array_t<float> *vals = col->selectFloats(mask);
+            if (vals == 0) {
+                ierr = -4;
+                break;
+            }
+            ibis::index::mapValues<float>(*vals, hist);
+            delete vals;
+            break;}
+        case ibis::DOUBLE: {
+            array_t<double> *vals = col->selectDoubles(mask);
+            if (vals == 0) {
+                ierr = -4;
+                break;
+            }
+            ibis::index::mapValues<double>(*vals, hist);
+            delete vals;
+            break;}
+        default: {
+            ierr = -3;
+            logWarning("getDistribution",
+                       "can not handle column type %d",
+                       static_cast<int>((*it).second->type()));
+            break;}
+        }
 
         if (hist.size() == 1) { // special case of a single value
             ibis::index::histogram::const_iterator it1 =
@@ -4400,71 +3991,71 @@ ibis::part::getCumulativeDistribution(const char *constraints,
         }
     }
     else {
-	ibis::bitvector hits;
-	const ibis::column *col = (*it).second;
-	{
-	    ibis::countQuery q(this);
-	    q.setWhereClause(constraints);
-	    ierr = q.evaluate();
-	    if (ierr < 0)
-		return ierr;
-	    hits.copy(*(q.getHitVector()));
-	    if (hits.cnt() == 0)
-		return 0;
-	}
-	ibis::index::histogram hist;
-	bounds.clear();
-	counts.clear();
-	if (hits.cnt() > 0) {
-	    switch ((*it).second->type()) {
-	    case ibis::SHORT:
-	    case ibis::BYTE:
-	    case ibis::INT: {
-		array_t<int32_t> *vals = col->selectInts(hits);
-		if (vals == 0) {
-		    ierr = -4;
-		    break;
-		}
-		ibis::index::mapValues<int32_t>(*vals, hist);
-		delete vals;
-		break;}
-	    case ibis::USHORT:
-	    case ibis::UBYTE:
-	    case ibis::UINT:
-	    case ibis::CATEGORY: {
-		array_t<uint32_t> *vals = col->selectUInts(hits);
-		if (vals == 0) {
-		    ierr = -4;
-		    break;
-		}
-		ibis::index::mapValues<uint32_t>(*vals, hist);
-		delete vals;
-		break;}
-	    case ibis::FLOAT: {
-		array_t<float> *vals = col->selectFloats(hits);
-		if (vals == 0) {
-		    ierr = -4;
-		    break;
-		}
-		ibis::index::mapValues<float>(*vals, hist);
-		delete vals;
-		break;}
-	    case ibis::DOUBLE: {
-		array_t<double> *vals = col->selectDoubles(hits);
-		if (vals == 0) {
-		    ierr = -4;
-		    break;
-		}
-		ibis::index::mapValues<double>(*vals, hist);
-		delete vals;
-		break;}
-	    default: {
-		ierr = -3;
-		logWarning("getCumulativeDistribution",
-			   "can not handle column type %d",
-			   static_cast<int>((*it).second->type()));
-		break;}
-	    }
+        ibis::bitvector hits;
+        const ibis::column *col = (*it).second;
+        {
+            ibis::countQuery q(this);
+            q.setWhereClause(constraints);
+            ierr = q.evaluate();
+            if (ierr < 0)
+                return ierr;
+            hits.copy(*(q.getHitVector()));
+            if (hits.cnt() == 0)
+                return 0;
+        }
+        ibis::index::histogram hist;
+        bounds.clear();
+        counts.clear();
+        if (hits.cnt() > 0) {
+            switch ((*it).second->type()) {
+            case ibis::SHORT:
+            case ibis::BYTE:
+            case ibis::INT: {
+                array_t<int32_t> *vals = col->selectInts(hits);
+                if (vals == 0) {
+                    ierr = -4;
+                    break;
+                }
+                ibis::index::mapValues<int32_t>(*vals, hist);
+                delete vals;
+                break;}
+            case ibis::USHORT:
+            case ibis::UBYTE:
+            case ibis::UINT:
+            case ibis::CATEGORY: {
+                array_t<uint32_t> *vals = col->selectUInts(hits);
+                if (vals == 0) {
+                    ierr = -4;
+                    break;
+                }
+                ibis::index::mapValues<uint32_t>(*vals, hist);
+                delete vals;
+                break;}
+            case ibis::FLOAT: {
+                array_t<float> *vals = col->selectFloats(hits);
+                if (vals == 0) {
+                    ierr = -4;
+                    break;
+                }
+                ibis::index::mapValues<float>(*vals, hist);
+                delete vals;
+                break;}
+            case ibis::DOUBLE: {
+                array_t<double> *vals = col->selectDoubles(hits);
+                if (vals == 0) {
+                    ierr = -4;
+                    break;
+                }
+                ibis::index::mapValues<double>(*vals, hist);
+                delete vals;
+                break;}
+            default: {
+                ierr = -3;
+                logWarning("getCumulativeDistribution",
+                           "can not handle column type %d",
+                           static_cast<int>((*it).second->type()));
+                break;}
+            }
 
             if (hist.empty()) {
                 if (ierr >= 0)

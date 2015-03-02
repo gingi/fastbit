@@ -14,10 +14,10 @@
 #include "util.h"
 #include "table.h"      // ibis::TYPE_T
 
-#include <memory>	// std::unique_ptr
-#include <algorithm>	// std::sort
-#include <iomanip>	// std::setw
-#include <typeinfo>	// typeid
+#include <memory>       // std::unique_ptr
+#include <algorithm>    // std::sort
+#include <iomanip>      // std::setw
+#include <typeinfo>     // typeid
 
 // When the number of elements in an array to be sorted by qsort is less
 // than QSORT_MIN, the insert sort routine will be used.
@@ -121,12 +121,12 @@ ibis::array_t<T>::array_t(const std::vector<T>& rhs)
         std::copy(rhs.begin(), rhs.end(), m_begin);
     }
     LOGGER(ibis::gVerbose > 9)
-	<< "array_t<" << typeid(T).name() << "> constructed at "
-	<< static_cast<void*>(this) << " with actual="
-	<< static_cast<void*>(actual) << ", m_begin="
-	<< static_cast<void*>(m_begin) << " and m_end="
-	<< static_cast<void*>(m_end) << ", copied from std::vector @ "
-	<< static_cast<const void*>(&rhs);
+        << "array_t<" << typeid(T).name() << "> constructed at "
+        << static_cast<void*>(this) << " with actual="
+        << static_cast<void*>(actual) << ", m_begin="
+        << static_cast<void*>(m_begin) << " and m_end="
+        << static_cast<void*>(m_end) << ", copied from std::vector @ "
+        << static_cast<const void*>(&rhs);
 }
 
 /// Copy constructor.  Makes a shallow copy.  Should not throw any
@@ -138,12 +138,12 @@ ibis::array_t<T>::array_t(const array_t<T>& rhs)
         actual->beginUse();
 
     LOGGER(ibis::gVerbose > 9)
-	<< "array_t<" << typeid(T).name() << "> constructed at "
-	<< static_cast<void*>(this) << " with actual="
-	<< static_cast<void*>(actual) << ", m_begin="
-	<< static_cast<void*>(m_begin) << " and m_end="
-	<< static_cast<void*>(m_end) << ", copied from array_t @ "
-	<< static_cast<const void*>(&rhs);
+        << "array_t<" << typeid(T).name() << "> constructed at "
+        << static_cast<void*>(this) << " with actual="
+        << static_cast<void*>(actual) << ", m_begin="
+        << static_cast<void*>(m_begin) << " and m_end="
+        << static_cast<void*>(m_end) << ", copied from array_t @ "
+        << static_cast<const void*>(&rhs);
 }
 
 /// A shallow copy constructor.  It makes a new array out of a section of
@@ -382,21 +382,21 @@ void ibis::array_t<T>::copy(const array_t<T>& rhs) {
 template<class T> 
 void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
     if (rhs.m_begin != 0 && rhs.m_end != 0) { // valid rhs
-	if (actual != 0 && actual->inUse() < 2U &&
-	    actual->end() >= rhs.size() * sizeof(T) + actual->begin()) {
-	    // already has enough memory allocated, stay with it
-	    const size_t n = rhs.size();
-	    m_begin = (T*)(actual->begin());
-	    m_end = m_begin + n;
-	    for (size_t i = 0; i < n; ++ i)
-		m_begin[i] = rhs[i];
-	}
-	else {
-	    array_t<T> tmp(rhs.size()); // allocate memory
-	    for (size_t i = 0; i < rhs.size(); ++ i)
-		tmp[i] = rhs[i];
-	    swap(tmp);
-	}
+        if (actual != 0 && actual->inUse() < 2U &&
+            actual->end() >= rhs.size() * sizeof(T) + actual->begin()) {
+            // already has enough memory allocated, stay with it
+            const size_t n = rhs.size();
+            m_begin = (T*)(actual->begin());
+            m_end = m_begin + n;
+            for (size_t i = 0; i < n; ++ i)
+                m_begin[i] = rhs[i];
+        }
+        else {
+            array_t<T> tmp(rhs.size()); // allocate memory
+            for (size_t i = 0; i < rhs.size(); ++ i)
+                tmp[i] = rhs[i];
+            swap(tmp);
+        }
     }
     else { // invalid rhs, mark existing array as empty
         m_end = m_begin;
@@ -423,13 +423,13 @@ void ibis::array_t<T>::deepCopy(const array_t<T>& rhs) {
 template<class T>
 void ibis::array_t<T>::nosharing() {
     if (m_begin != 0 && m_end >= m_begin) { // a well-formed object
-	if (actual == 0 || m_begin != (T*)actual->begin() ||
-	    actual->filename() != 0 || actual->inUse() > 1) {
-	    // copy-and-swap
-	    std::unique_ptr<ibis::fileManager::storage>
-		tmp(new ibis::fileManager::storage
-		    (reinterpret_cast<const char*>(m_begin),
-		     reinterpret_cast<const char*>(m_end)));
+        if (actual == 0 || m_begin != (T*)actual->begin() ||
+            actual->filename() != 0 || actual->inUse() > 1) {
+            // copy-and-swap
+            std::unique_ptr<ibis::fileManager::storage>
+                tmp(new ibis::fileManager::storage
+                    (reinterpret_cast<const char*>(m_begin),
+                     reinterpret_cast<const char*>(m_end)));
 #if defined(DEBUG) || defined(_DEBUG)
             LOGGER(ibis::gVerbose > 10)
                 << "array_t<" << typeid(T).name() << ">::nosharing copied ("
@@ -1512,45 +1512,45 @@ void ibis::array_t<T>::reserve(size_t n) {
         throw "array_t must have less than 2^31 elements";
     }
     if (n == 0) { // special case with n = 0
-	n = 32 / sizeof(T);
-	if (n == 0)
-	    n = 2;
+        n = 32 / sizeof(T);
+        if (n == 0)
+            n = 2;
     }
 
     size_t n0 = 0;
     if (actual != 0)
         n0 = (reinterpret_cast<T const *>(actual->end()) - m_begin);
     if (m_begin != 0 && m_end >= m_begin) { // a valid existing array
-	if (n > n0 || (actual != 0 && actual->filename() != 0)) {
-	    // attempt to allocate new storage space
-	    n0 = (m_end-m_begin);
-	    if (n < n0) n = n0;
-	    std::unique_ptr<ibis::fileManager::storage>
-		tmp(new ibis::fileManager::storage(n*sizeof(T)));
-	    if (tmp.get() != 0) { // copy and swap
-		(void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));
+        if (n > n0 || (actual != 0 && actual->filename() != 0)) {
+            // attempt to allocate new storage space
+            n0 = (m_end-m_begin);
+            if (n < n0) n = n0;
+            std::unique_ptr<ibis::fileManager::storage>
+                tmp(new ibis::fileManager::storage(n*sizeof(T)));
+            if (tmp.get() != 0) { // copy and swap
+                (void) memcpy(tmp->begin(), m_begin, n0*sizeof(T));
                 if (n > n0)
                     memset(tmp->begin()+n0*sizeof(T), 0, (n-n0)*sizeof(T));
-		freeMemory(); // free the old content
-		actual = tmp.release();
-		actual->beginUse();
-		m_begin = (T*)(actual->begin());
-		m_end = m_begin + n0;
-	    }
-	    else {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- array_t::reserve failed to allocate " << n
-		    << ' ' << sizeof(T) << "-byte elements";
-	    }
-	}
+                freeMemory(); // free the old content
+                actual = tmp.release();
+                actual->beginUse();
+                m_begin = (T*)(actual->begin());
+                m_end = m_begin + n0;
+            }
+            else {
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- array_t::reserve failed to allocate " << n
+                    << ' ' << sizeof(T) << "-byte elements";
+            }
+        }
     }
     else {
-	freeMemory(); // just in case actual is not nil
-	actual = new ibis::fileManager::storage(n*sizeof(T));
+        freeMemory(); // just in case actual is not nil
+        actual = new ibis::fileManager::storage(n*sizeof(T));
         (void) memset(actual->begin(), 0, n*sizeof(T));
-	actual->beginUse();
-	m_begin = (T*)(actual->begin());
-	m_end = m_begin;
+        actual->beginUse();
+        m_begin = (T*)(actual->begin());
+        m_end = m_begin;
     }
 } // ibis::array_t<T>::reserve
 

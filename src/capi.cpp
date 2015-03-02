@@ -41,38 +41,6 @@
 #   include <unistd.h>
 #endif
 
-#include <time.h>	// clock, clock_gettime
-#if defined(__sun) || defined(__linux__) || defined(__HOS_AIX__) || \
-    defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD__)
-#   include <limits.h> // CLK_TCK
-#   include <sys/time.h> // gettimeofday, timeval
-#   include <sys/times.h> // times, struct tms
-#   include <sys/resource.h> // getrusage
-#   ifndef RUSAGE_SELF
-#       define RUSAGE_SELF 0
-#   endif
-#   ifndef RUSAGE_CHILDREN
-#       define RUSAGE_CHILDRED -1
-#   endif
-#elif defined(CRAY)
-#   include <sys/times.h> // times
-#elif defined(sgi)
-#   include <limits.h> // CLK_TCK
-#   define RUSAGE_SELF      0         /* calling process */
-#   define RUSAGE_CHILDREN  -1        /* terminated child processes */
-#   include <sys/times.h> // times
-//#   include <sys/types.h> // struct tms
-#   include <sys/time.h> // gettimeofday, getrusage
-#   include <sys/resource.h> // getrusage
-#elif defined(__MINGW32__)
-#   include <limits.h> // CLK_TCK
-#   include <sys/time.h> // gettimeofday, timeval
-#elif defined(_WIN32)
-#   include <windows.h>
-#elif defined(VMS)
-#   include <unistd.h>
-#endif
-
 // FIXME: we should not have to do this but C99 limit macros are not
 // defined in C++ unless __STDC_LIMIT_MACROS is defined
 #ifndef INT64_MAX
@@ -82,18 +50,18 @@
 extern "C" {
     /// The object underlying the FastBit query handle.
     struct FastBitQuery {
-	const ibis::part *t; ///!< The ibis::part this query refers to.
-	ibis::query q; ///!< The ibis::query object
-	typedef std::map< int, void* > typeValues;
-	typedef std::map< const char*, typeValues*, ibis::lessi > valList;
-	/// List of values that has been selected and sent to user.
-	valList vlist;
+        const ibis::part *t; ///!< The ibis::part this query refers to.
+        ibis::query q; ///!< The ibis::query object
+        typedef std::map< int, void* > typeValues;
+        typedef std::map< const char*, typeValues*, ibis::lessi > valList;
+        /// List of values that has been selected and sent to user.
+        valList vlist;
 
-	/// For storing null-terminated strings.
-	struct NullTerminatedStrings {
-	    const char **pointers; ///!< The pointer passed to the caller.
-	    std::vector<std::string> *values; ///!< Actual string values.
-	}; // NullTerminatedStrings
+        /// For storing null-terminated strings.
+        struct NullTerminatedStrings {
+            const char **pointers; ///!< The pointer passed to the caller.
+            std::vector<std::string> *values; ///!< Actual string values.
+        }; // NullTerminatedStrings
     };
 
     /// A @c FastBitResultSet holds the results of a query in memory and
@@ -151,11 +119,11 @@ static pthread_mutex_t _capi_mutex = PTHREAD_MUTEX_INITIALIZER;;
 int fastbit_part_list::clear() {
     int cnt = 0;
     for (ibis::partAssoc::iterator it = parts.begin();
-	 it != parts.end();) {
+         it != parts.end();) {
         ibis::partAssoc::iterator todel = it;
         ++ it;
-	char* name = const_cast<char*>((*todel).first);
-	ibis::part* tbl = (*todel).second;
+        char* name = const_cast<char*>((*todel).first);
+        ibis::part* tbl = (*todel).second;
         if (tbl->clear() == 0) {
             delete [] name;
             delete tbl;
@@ -269,16 +237,16 @@ extern "C" int fastbit_build_indexes(const char *dir, const char *opt) {
         return ierr;
 
     try {
-	ibis::part *t = _capi_get_part(dir);
-	if (t != 0 && t->nRows() > 0 && t->nColumns() > 0) {
-	    ierr = t->buildIndexes(opt, 1);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "fastbit_build_indexes -- data directory \"" << dir
-		<< "\" contains no data";
-	    ierr = 1;
-	}
+        ibis::part *t = _capi_get_part(dir);
+        if (t != 0 && t->nRows() > 0 && t->nColumns() > 0) {
+            ierr = t->buildIndexes(opt, 1);
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << "fastbit_build_indexes -- data directory \"" << dir
+                << "\" contains no data";
+            ierr = 1;
+        }
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -308,12 +276,12 @@ extern "C" int fastbit_purge_indexes(const char *dir) {
         return ierr;
 
     try {
-	ibis::part *t = _capi_get_part(dir);
-	if (t == 0) return ierr;
+        ibis::part *t = _capi_get_part(dir);
+        if (t == 0) return ierr;
 
-	t->purgeIndexFiles();
+        t->purgeIndexFiles();
         t->releaseAccess();
-	ierr = 0;
+        ierr = 0;
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -344,14 +312,14 @@ extern "C" int fastbit_build_index(const char *dir, const char *att,
         return ierr;
 
     try {
-	ibis::part *t = _capi_get_part(dir);
-	if (t == 0 || t->nRows() == 0 || t->nColumns() == 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "fastbit_build_index -- data directory \"" << dir
-		<< "\" contains no data";
-	    ierr = 1;
-	    return ierr;
-	}
+        ibis::part *t = _capi_get_part(dir);
+        if (t == 0 || t->nRows() == 0 || t->nColumns() == 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "fastbit_build_index -- data directory \"" << dir
+                << "\" contains no data";
+            ierr = 1;
+            return ierr;
+        }
 
         ibis::column *c = t->getColumn(att);
         if (c == 0) {
@@ -399,14 +367,14 @@ fastbit_purge_index(const char *dir, const char *att) {
         return ierr;
 
     try {
-	ibis::part *t = _capi_get_part(dir);
-	if (t == 0 || t->nRows() == 0 || t->nColumns() == 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "fastbit_purge_index -- data directory \"" << dir
-		<< "\" contains no data";
+        ibis::part *t = _capi_get_part(dir);
+        if (t == 0 || t->nRows() == 0 || t->nColumns() == 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "fastbit_purge_index -- data directory \"" << dir
+                << "\" contains no data";
             t->releaseAccess();
-	    return 1;
-	}
+            return 1;
+        }
 
         ibis::column *c = t->getColumn(att);
         if (c == 0) {
@@ -414,9 +382,9 @@ fastbit_purge_index(const char *dir, const char *att) {
             return ierr;
         }
 
-	c->purgeIndexFile();
+        c->purgeIndexFile();
         t->releaseAccess();
-	ierr = 0;
+        ierr = 0;
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -455,17 +423,17 @@ extern "C" int fastbit_reorder_partition(const char *dir) {
     try {
         ibis::part *t = _capi_get_part(dir);
 
-	if (t != 0) {
+        if (t != 0) {
             t->releaseAccess(); // release read lock, before reorder
-	    long ierr = t->reorder();
-	    if (ierr < 0)
-		return ierr;
-	    else
-		return 0;
-	}
-	else {
-	    return -2;
-	}
+            long ierr = t->reorder();
+            if (ierr < 0)
+                return ierr;
+            else
+                return 0;
+        }
+        else {
+            return -2;
+        }
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -500,19 +468,19 @@ extern "C" FastBitQueryHandle
 fastbit_build_query(const char *select, const char *datadir,
                     const char *where) {
     if (datadir == 0 || *datadir == 0)
-	return 0;
+        return 0;
 
     try {
-	FastBitQueryHandle h = new FastBitQuery;
-	h->t = _capi_get_part(datadir);
-	if (h->t == 0) {
-	    LOGGER(ibis::gVerbose >= 0)
-		<< "Warning -- fastbit_build_query failed to generate table "
-		"object from data directory \"" << datadir << "\"";
-	    delete h;
-	    h = 0;
-	    return h;
-	}
+        FastBitQueryHandle h = new FastBitQuery;
+        h->t = _capi_get_part(datadir);
+        if (h->t == 0) {
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- fastbit_build_query failed to generate table "
+                "object from data directory \"" << datadir << "\"";
+            delete h;
+            h = 0;
+            return h;
+        }
 
         int ierr = h->q.setPartition(h->t);
         if (ierr < 0) {
@@ -543,34 +511,34 @@ fastbit_build_query(const char *select, const char *datadir,
             }
         }
 
-	// evaluate the query here
-	ierr = h->q.evaluate();
-	if (ierr < 0) {
-	    fastbit_destroy_query(h);
-	    h = 0;
-	}
-	return h;
+        // evaluate the query here
+        ierr = h->q.evaluate();
+        if (ierr < 0) {
+            fastbit_destroy_query(h);
+            h = 0;
+        }
+        return h;
     }
     catch (const std::exception& e) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fastbit_build_query failed for \"SELECT "
-	    << (select && *select ? select : "count(*)")
-	    << " FROM " << datadir << " WHERE " << where
-	    << "\" due to exception: " << e.what();
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_build_query failed for \"SELECT "
+            << (select && *select ? select : "count(*)")
+            << " FROM " << datadir << " WHERE " << where
+            << "\" due to exception: " << e.what();
     }
     catch (const char* s) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fastbit_build_query failed for \"SELECT "
-	    << (select && *select ? select : "count(*)")
-	    << " FROM " << datadir << " WHERE " << where
-	    << "\" due to a string exception: " << s;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_build_query failed for \"SELECT "
+            << (select && *select ? select : "count(*)")
+            << " FROM " << datadir << " WHERE " << where
+            << "\" due to a string exception: " << s;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- fastbit_build_query failed for \"SELECT "
-	    << (select && *select ? select : "count(*)")
-	    << " FROM " << datadir << " WHERE " << where
-	    << "\" due to a unknown exception";
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_build_query failed for \"SELECT "
+            << (select && *select ? select : "count(*)")
+            << " FROM " << datadir << " WHERE " << where
+            << "\" due to a unknown exception";
     }
     return 0;
 } // fastbit_build_query
@@ -666,9 +634,9 @@ fastbit_destroy_query(FastBitQueryHandle qhandle) {
 
         // release the read lock on the data partition object
         qhandle->t->releaseAccess();
-	// finally remove the FastBitQuery object itself
-	delete qhandle;
-	return 0;
+        // finally remove the FastBitQuery object itself
+        delete qhandle;
+        return 0;
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -1896,7 +1864,7 @@ extern "C" void fastbit_init(const char *rcfile) {
     }
 #endif
     if (rcfile && *rcfile)
-	ibis::gParameters().read(rcfile);
+        ibis::gParameters().read(rcfile);
     ibis::util::mutexLock lock(&_capi_mutex, "fastbit_init");
     if (_capi_tlist == 0)
         _capi_tlist = new fastbit_part_list;
@@ -1992,12 +1960,12 @@ extern "C" double fastbit_read_clock() {
 #if defined(CLOCK_MONOTONIC) && !defined(__CYGWIN__)
     struct timespec tb;
     if (0 == clock_gettime(CLOCK_MONOTONIC, &tb)) {
-	return static_cast<double>(tb.tv_sec) + (1e-9 * tb.tv_nsec);
+        return static_cast<double>(tb.tv_sec) + (1e-9 * tb.tv_nsec);
     }
     else {
-	struct timeval cpt;
-	gettimeofday(&cpt, 0);
-	return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);
+        struct timeval cpt;
+        gettimeofday(&cpt, 0);
+        return static_cast<double>(cpt.tv_sec) + (1e-6 * cpt.tv_usec);
     }
 #elif defined(HAVE_GETTIMEOFDAY) || defined(__unix__) || defined(CRAY) || \
     defined(__linux__) || defined(__HOS_AIX__) || defined(__APPLE__) || \
@@ -2008,18 +1976,18 @@ extern "C" double fastbit_read_clock() {
 #elif defined(_WIN32) && defined(_MSC_VER)
     double ret = 0.0;
     if (countPeriod != 0) {
-	LARGE_INTEGER cnt;
-	if (QueryPerformanceCounter(&cnt)) {
-	    ret = countPeriod * cnt.QuadPart;
-	}
+        LARGE_INTEGER cnt;
+        if (QueryPerformanceCounter(&cnt)) {
+            ret = countPeriod * cnt.QuadPart;
+        }
     }
     if (ret == 0.0) { // fallback option -- use GetSystemTime
-	union {
-	    FILETIME ftFileTime;
-	    __int64  ftInt64;
-	} ftRealTime;
-	GetSystemTimeAsFileTime(&ftRealTime.ftFileTime);
-	ret = (double) ftRealTime.ftInt64 * 1e-7;
+        union {
+            FILETIME ftFileTime;
+            __int64  ftInt64;
+        } ftRealTime;
+        GetSystemTimeAsFileTime(&ftRealTime.ftFileTime);
+        ret = (double) ftRealTime.ftInt64 * 1e-7;
     }
     return ret;
 #elif defined(VMS)
@@ -2523,31 +2491,31 @@ fastbit_flush_buffer(const char *dir) {
         return -1;
 
     try {
-	ibis::util::mutexLock lock(&_capi_mutex, "fastbit_flush_buffer");
-	
-	if (_capi_tablex != 0) {
-	    ierr = _capi_tablex->write(dir, 0, 0);
-	    delete _capi_tablex;
-	    _capi_tablex = 0;
+        ibis::util::mutexLock lock(&_capi_mutex, "fastbit_flush_buffer");
+        
+        if (_capi_tablex != 0) {
+            ierr = _capi_tablex->write(dir, 0, 0);
+            delete _capi_tablex;
+            _capi_tablex = 0;
 
-	    // update the data partition in the directory dir
-	    if (ierr == 0 && _capi_tlist != 0) {
-		ibis::part *t = _capi_tlist->find(dir);
-		if (t != 0) {
+            // update the data partition in the directory dir
+            if (ierr == 0 && _capi_tlist != 0) {
+                ibis::part *t = _capi_tlist->find(dir);
+                if (t != 0) {
                     t->releaseAccess(); // release read lock before update
-		    ierr = t->updateData();
-		    if (ierr < 0) {
-			// failed to update the data partition
-			LOGGER(ibis::gVerbose > 2)
-			    << "fastbit_flush_buffer failed to update the data "
-			    "partition based on directory " << dir
-			    << ", will remove it from the list of known data "
-			    "partitions";
-			_capi_tlist->remove(dir);
-		    }
-		}
-	    }
-	}
+                    ierr = t->updateData();
+                    if (ierr < 0) {
+                        // failed to update the data partition
+                        LOGGER(ibis::gVerbose > 2)
+                            << "fastbit_flush_buffer failed to update the data "
+                            "partition based on directory " << dir
+                            << ", will remove it from the list of known data "
+                            "partitions";
+                        _capi_tlist->remove(dir);
+                    }
+                }
+            }
+        }
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -2653,22 +2621,22 @@ fastbit_add_values(const char *colname, const char *coltype,
         }
         if (_capi_tablex == 0) return -3;
 
-	ierr = _capi_tablex->addColumn(colname, type);
-	if (type == ibis::TEXT || type == ibis::CATEGORY) {
-	    // copying incoming strings to a std::vector<std::string>
-	    std::vector<std::string> tvals(nelem);
-	    char **tmp = (char **)vals;
-	    for(unsigned i = 0; i < nelem; ++ i) {
-		std::cout.flush();
-		tvals[i] = tmp[i];
-	    }
-	    ierr = _capi_tablex->append(colname, start, start+nelem,
-					(void *)&tvals);
-	}
-	else {
-	    // pass the raw pointer
-	    ierr = _capi_tablex->append(colname, start, start+nelem, vals);
-	}
+        ierr = _capi_tablex->addColumn(colname, type);
+        if (type == ibis::TEXT || type == ibis::CATEGORY) {
+            // copying incoming strings to a std::vector<std::string>
+            std::vector<std::string> tvals(nelem);
+            char **tmp = (char **)vals;
+            for(unsigned i = 0; i < nelem; ++ i) {
+                std::cout.flush();
+                tvals[i] = tmp[i];
+            }
+            ierr = _capi_tablex->append(colname, start, start+nelem,
+                                        (void *)&tvals);
+        }
+        else {
+            // pass the raw pointer
+            ierr = _capi_tablex->append(colname, start, start+nelem, vals);
+        }
     }
     catch (const std::exception& e) {
         LOGGER(ibis::gVerbose > 0)
@@ -2699,11 +2667,11 @@ extern "C" int fastbit_rows_in_partition(const char *dir) {
     ibis::part *t = _capi_get_part(dir);
 
     if (t != 0) {
-	ierr = t->nRows();
+        ierr = t->nRows();
         t->releaseAccess();
     }
     else {
-	ierr = -2;
+        ierr = -2;
     }
     return ierr;
 } // fastbit_rows_in_partition
@@ -2713,11 +2681,11 @@ extern "C" int fastbit_columns_in_partition(const char *dir) {
     ibis::part *t = _capi_get_part(dir);
 
     if (t != 0) {
-	ierr = t->nColumns();
+        ierr = t->nColumns();
         t->releaseAccess();
     }
     else {
-	ierr = -2;
+        ierr = -2;
     }
     return ierr;
 } // fastbit_columns_in_partition

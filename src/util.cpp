@@ -19,14 +19,17 @@
 #include "horometer.h"
 #include "resource.h"
 #include <stdarg.h>     // vsprintf
+#if defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
+#include <pwd.h>        // getpwuid
+#include <unistd.h>     // getuid, rmdir, sysconf
+#include <sys/stat.h>   // stat
+#include <dirent.h>     // opendir, readdir
+#endif
 
 #include <set>          // std::set
 #include <limits>       // std::numeric_limits
 #include <locale>       // std::numpunct<char>
 #include <iostream>     // std::cout
-#if  (defined(HAVE_GETPWUID) || defined(HAVE_GETPWUID_R)) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__))
-#include <pwd.h>        // getpwuid
-#endif
 
 // global variables
 #if defined(DEBUG)
@@ -208,10 +211,10 @@ char* ibis::util::getString(const char* buf) {
         }
     }
     else { // not quoted, copy all characters
-	const char *tmp = s1 + std::strlen(s1) - 1;
-	while (tmp>s1 && isspace(*tmp))
-	    -- tmp;
-	s2 = ibis::util::strnewdup(s1, tmp-s1+1);
+        const char *tmp = s1 + std::strlen(s1) - 1;
+        while (tmp>s1 && isspace(*tmp))
+            -- tmp;
+        s2 = ibis::util::strnewdup(s1, tmp-s1+1);
     }
 #if DEBUG+0 > 0 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 0)
@@ -816,37 +819,6 @@ int ibis::util::readDouble(double& val, const char *&str, const char* del) {
         str += 9;
         return 0;
     }
-    if (str[3] == 0 && ((str[0]=='N' || str[0]=='n') &&
-                        (str[1]=='A' || str[1]=='a') &&
-                        (str[2]=='N' || str[2]=='n'))) {
-        val = std::numeric_limits<double>::quiet_NaN();
-        str += 4;
-        return 0;
-    }
-    else if (str[7] == 0 && ((str[0]=='I' || str[0]=='i') &&
-                             (str[1]=='N' || str[1]=='n') &&
-                             (str[2]=='F' || str[2]=='f') &&
-                             (str[3]=='I' || str[3]=='i') &&
-                             (str[4]=='N' || str[4]=='n') &&
-                             (str[5]=='I' || str[5]=='i') &&
-                             (str[6]=='T' || str[6]=='t'))) {
-        val = std::numeric_limits<double>::infinity();
-        str += 8;
-        return 0;
-    }
-    else if (str[8] == 0 && ((str[0]=='+' || str[0]=='-') &&
-                             (str[1]=='I' || str[0]=='i') &&
-                             (str[2]=='N' || str[1]=='n') &&
-                             (str[3]=='F' || str[2]=='f') &&
-                             (str[4]=='I' || str[3]=='i') &&
-                             (str[5]=='N' || str[4]=='n') &&
-                             (str[6]=='I' || str[5]=='i') &&
-                             (str[7]=='T' || str[6]=='t'))) {
-        val = (str[0]=='+' ? std::numeric_limits<double>::infinity() :
-               -std::numeric_limits<double>::infinity());
-        str += 9;
-        return 0;
-    }
 
     double tmp;
     const bool neg = (*str == '-');
@@ -1062,21 +1034,21 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
 
     FILE* fptr = popen(cmd, "r");
     if (fptr) {
-	while (fgets(buf, PATH_MAX, fptr)) {
-	    LOGGER(ibis::gVerbose > 4)
-		<< event << " got message -- " << buf;
-	}
+        while (fgets(buf, PATH_MAX, fptr)) {
+            LOGGER(ibis::gVerbose > 4)
+                << event << " got message -- " << buf;
+        }
 
-	int ierr = pclose(fptr);
-	if (ierr != 0) {
+        int ierr = pclose(fptr);
+        if (ierr != 0) {
             LOGGER(ibis::gVerbose >= 0)
                 << "Warning -- command \"" << cmd << "\" returned with error "
                 << ierr << " ... " << strerror(errno);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
                 << event << " -- command \"" << cmd << "\" succeeded";
-	}
+        }
     }
     else {
         LOGGER(ibis::gVerbose >= 0)
@@ -1144,10 +1116,10 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     }
     uint32_t len = std::strlen(buf);
     if (strncmp(buf, name, len)) { // names differ
-	ibis::util::logMessage("util::removeDir", "specified dir name "
-			       "is %s, but CWD is actually %s", name, buf);
-	strcpy(buf, name);
-	len = std::strlen(buf);
+        ibis::util::logMessage("util::removeDir", "specified dir name "
+                               "is %s, but CWD is actually %s", name, buf);
+        strcpy(buf, name);
+        len = std::strlen(buf);
     }
     if (buf[len-1] != FASTBIT_DIRSEP) {
         buf[len] = FASTBIT_DIRSEP;
@@ -1158,34 +1130,34 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     bool isEmpty = true;
     DIR* dirp = opendir(".");
     while ((ent = readdir(dirp)) != 0) {
-	if (ent->d_name[0] == '.' &&
-	    (ent->d_name[1] == static_cast<char>(0) ||
-	     ent->d_name[1] == '.')) {
-	    continue;	    // skip '.' and '..'
-	}
-	Stat_T fst;
+        if (ent->d_name[0] == '.' &&
+            (ent->d_name[1] == static_cast<char>(0) ||
+             ent->d_name[1] == '.')) {
+            continue;       // skip '.' and '..'
+        }
+        Stat_T fst;
 
-	// construct the full name
-	if (len+std::strlen(ent->d_name) >= PATH_MAX) {
-	    ibis::util::logMessage("util::removeDir", "file name "
-				   "\"%s%s\" too long", buf, ent->d_name);
-	    isEmpty = false;
-	    continue;
-	}
-	strcpy(buf+len, ent->d_name);
+        // construct the full name
+        if (len+std::strlen(ent->d_name) >= PATH_MAX) {
+            ibis::util::logMessage("util::removeDir", "file name "
+                                   "\"%s%s\" too long", buf, ent->d_name);
+            isEmpty = false;
+            continue;
+        }
+        strcpy(buf+len, ent->d_name);
 
-	if (UnixStat(buf, &fst) != 0) {
-	    ibis::util::logMessage("util::removeDir",
-				   "stat(%s) failed ... %s",
-				   buf, strerror(errno));
-	    if (0 != remove(buf)) {
-		ibis::util::logMessage("util::removeDir",
-				       "can not remove %s ... %s",
-				       buf, strerror(errno));
-		if (errno != ENOENT) isEmpty = false;
-	    }
-	    continue;
-	}
+        if (UnixStat(buf, &fst) != 0) {
+            ibis::util::logMessage("util::removeDir",
+                                   "stat(%s) failed ... %s",
+                                   buf, strerror(errno));
+            if (0 != remove(buf)) {
+                ibis::util::logMessage("util::removeDir",
+                                       "can not remove %s ... %s",
+                                       buf, strerror(errno));
+                if (errno != ENOENT) isEmpty = false;
+            }
+            continue;
+        }
 
         if ((fst.st_mode & S_IFDIR) == S_IFDIR) {
             if (leaveDir)
@@ -1448,9 +1420,9 @@ char* ibis::util::strnewdup(const char* s) {
 #ifdef FASTBIT_EMPTY_STRING_AS_NULL
         && *s != static_cast<char>(0)
 #endif
-	) { //
-	str = new char[std::strlen(s)+1];
-	std::strcpy(str, s);
+        ) { //
+        str = new char[std::strlen(s)+1];
+        std::strcpy(str, s);
     }
     return str;
 } // ibis::util::strnewdup
@@ -1458,12 +1430,12 @@ char* ibis::util::strnewdup(const char* s) {
 char* ibis::util::strnewdup(const char* s, const uint32_t n) {
     char* str = 0;
     if (n > 0 && s != 0 && *s != static_cast<char>(0)) {
-	uint32_t len = std::strlen(s);
-	if (n < len)
-	    len = n;
-	str = new char[len+1];
-	strncpy(str, s, len);
-	str[len] = 0;
+        uint32_t len = std::strlen(s);
+        if (n < len)
+            len = n;
+        str = new char[len+1];
+        strncpy(str, s, len);
+        str[len] = 0;
     }
     return str;
 } // ibis::util::strnewdup
@@ -1848,9 +1820,9 @@ const char* ibis::util::userName() {
         char buf[64];
         if (GetUserName(buf, &len))
             uid = buf;
-#elif defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__)
+#elif defined(__MINGW32__)
         // MinGW does not have support for user names?!
-#elif defined(HAVE_GETPWUID) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__))
+#elif defined(HAVE_GETPWUID)
 #if (defined(HAVE_GETPWUID_R) || defined(_REENTRANT) || \
      defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(__sun) || \
      defined(_THREAD_SAFE) || defined(__APPLE__) || defined(__FreeBSD__)) && \
@@ -1976,25 +1948,25 @@ void ibis::util::logMessage(const char* event, const char* fmt, ...) {
 /// @sa ibis::util::getLogFile
 int ibis::util::setLogFileName(const char* filename) {
     if (filename == 0 || *filename == 0) {
-	if (ibis_util_logfilename.empty() &&
-	    ibis_util_logfilepointer == FASTBIT_DEFAULT_LOG)
-	    return 0;
-	else
-	    return ibis::util::writeLogFileHeader(FASTBIT_DEFAULT_LOG, 0);
+        if (ibis_util_logfilename.empty() &&
+            ibis_util_logfilepointer == FASTBIT_DEFAULT_LOG)
+            return 0;
+        else
+            return ibis::util::writeLogFileHeader(FASTBIT_DEFAULT_LOG, 0);
     }
     else if (std::strcmp(filename, "stderr") == 0) {
-	if (ibis_util_logfilename.empty() &&
-	    ibis_util_logfilepointer == stderr)
-	    return 0;
-	else
-	    return ibis::util::writeLogFileHeader(stderr, 0);
+        if (ibis_util_logfilename.empty() &&
+            ibis_util_logfilepointer == stderr)
+            return 0;
+        else
+            return ibis::util::writeLogFileHeader(stderr, 0);
     }
     else if (std::strcmp(filename, "stdout") == 0) {
-	if (ibis_util_logfilename.empty() &&
-	    ibis_util_logfilepointer == stdout)
-	    return 0;
-	else
-	    return ibis::util::writeLogFileHeader(stdout, 0);
+        if (ibis_util_logfilename.empty() &&
+            ibis_util_logfilepointer == stdout)
+            return 0;
+        else
+            return ibis::util::writeLogFileHeader(stdout, 0);
     }
     if (ibis_util_logfilename.compare(filename) == 0)
         return 0;
@@ -2024,20 +1996,20 @@ int ibis::util::writeLogFileHeader(FILE *fptr, const char *fname) {
     const char *str = ibis::util::getVersionString();
     std::string tmp;
     if (str == 0 || *str == 0) {
-	tmp = "FastBit ibis";
-	std::ostringstream oss;
-	oss << ibis::util::getVersionNumber();
-	tmp += oss.str();
+        tmp = "FastBit ibis";
+        std::ostringstream oss;
+        oss << ibis::util::getVersionNumber();
+        tmp += oss.str();
         tmp += ", Copyright (c) (c)-2015";
-	str = tmp.c_str();
+        str = tmp.c_str();
     }
     int ierr = 0;
     if (fname != 0 && *fname != 0)
         ierr = fprintf(fptr, "\n%s\nLog file %s opened on %s\n",
                        str, fname, tstr);
     else if (ibis::gVerbose > 1)
-	ierr = fprintf(fptr, "\n%s\nLog started on %s\n",
-		       str, tstr);
+        ierr = fprintf(fptr, "\n%s\nLog started on %s\n",
+                       str, tstr);
     else
         ierr = fprintf(fptr, "\n");
     if (ierr > 0) {
@@ -2187,14 +2159,14 @@ ibis::util::logger::logger(int lvl) {
 ibis::util::logger::~logger() {
     const std::string& mystr = mybuffer.str();
     if (ibis::gVerbose >= 0 && ! mystr.empty()) {
-	FILE* fptr = ibis::util::getLogFile();
-	// The lock is still necessary because other logging functions use
-	// multiple fprintf statements.
-	ibis::util::ioLock lock;
-	(void) fwrite(mystr.c_str(), mystr.size(), 1U, fptr);
+        FILE* fptr = ibis::util::getLogFile();
+        // The lock is still necessary because other logging functions use
+        // multiple fprintf statements.
+        ibis::util::ioLock lock;
+        (void) fwrite(mystr.c_str(), mystr.size(), 1U, fptr);
         (void) fwrite("\n", 1U, 1U, fptr);
 #if defined(_DEBUG) || defined(DEBUG) || defined(FASTBIT_SYNC_WRITE)
-	(void) fflush(fptr);
+        (void) fflush(fptr);
 #endif
     }
 } // ibis::util::logger::~logger
@@ -2289,7 +2261,7 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
         return (0 == stricmp(str, pat));
 #else
-	return (0 == std::strcmp(str, pat));
+        return (0 == std::strcmp(str, pat));
 #endif
     }
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
@@ -2368,18 +2340,18 @@ bool ibis::util::strMatch(const char *str, const char *pat) {
     }
 
     if (s2 < s1) { // no more meta character
-	const uint32_t ntail = std::strlen(s1);
-	if (ntail <= 0U)
-	    return true;
+        const uint32_t ntail = std::strlen(s1);
+        if (ntail <= 0U)
+            return true;
 
-	uint32_t nstr = std::strlen(s0);
-	if (nstr < ntail)
-	    return false;
-	else
+        uint32_t nstr = std::strlen(s0);
+        if (nstr < ntail)
+            return false;
+        else
 #if FASTBIT_CASE_SENSITIVE_COMPARE+0 == 0
             return (0 == stricmp(s1, s0+(nstr-ntail)));
 #else
-	    return (0 == std::strcmp(s1, s0+(nstr-ntail)));
+            return (0 == std::strcmp(s1, s0+(nstr-ntail)));
 #endif
     }
 
@@ -2506,15 +2478,15 @@ bool ibis::util::nameMatch(const char *str, const char *pat) {
     }
 
     if (s2 < s1) { // no more meta character
-	const uint32_t ntail = std::strlen(s1);
-	if (ntail <= 0U)
-	    return true;
+        const uint32_t ntail = std::strlen(s1);
+        if (ntail <= 0U)
+            return true;
 
-	uint32_t nstr = std::strlen(s0);
-	if (nstr < ntail)
-	    return false;
-	else
-	    return (0 == stricmp(s1, s0+(nstr-ntail)));
+        uint32_t nstr = std::strlen(s0);
+        if (nstr < ntail)
+            return false;
+        else
+            return (0 == stricmp(s1, s0+(nstr-ntail)));
     }
 
     const std::string anchor(s1, s2);

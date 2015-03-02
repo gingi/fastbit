@@ -91,7 +91,7 @@ ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr)
         m_vec.pop_back();
 
 #ifndef FASTBIT_LAZY_INIT
-	nbits = do_cnt(); // count the number of bits
+        nbits = do_cnt(); // count the number of bits
 #endif
     }
     else { // a one-word bitvector can only be an empty one
@@ -215,119 +215,6 @@ ibis::bitvector::bitvector(ibis::bitvector::word_t *buf, size_t nbuf)
         << ") constructed with m_vec at " << static_cast<void*>(&m_vec)
         << " based on a buf at " << static_cast<const void*>(buf)
         << " with " << nbuf << " element" << (nbuf>1?"s":"");
-} // ctor from array_t
-
-/// Construct a bitvector from an array.  Because the array copy
-/// constructor performs shallow copy, this bitvector is not using any new
-/// space for the underlying vector.
-ibis::bitvector::bitvector(const array_t<ibis::bitvector::word_t>& arr,
-                           const size_t begin, const size_t end)
-    : nbits(0), nset(0), m_vec(arr, begin, end) {
-    if (m_vec.size() > 1) { // non-trivial size
-	if (m_vec.back() > 0) { // has active bits
-	    if (m_vec.back() < MAXBITS) {
-		active.nbits = m_vec.back();
-		m_vec.pop_back();
-		active.val = m_vec.back();
-	    }
-	    else {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- the serialized version of bitvector "
-		    "contains an unexpected last word (" << m_vec.back() << ')';
-#if DEBUG+0 > 1 || _DEBUG+0 > 1
-		{ // print the array out
-		    word_t nb = 0;
-		    ibis::util::logger lg(4);
-		    lg() << "bitvector constructor received an array["
-			 << arr.size() << "] with the following values:";
-		    for (word_t i = 0; i < arr.size(); ++ i) {
-			if (arr[i] < HEADER0)
-			    nb += MAXBITS;
-			else
-			    nb += (arr[i] & MAXCNT) * MAXBITS;
-			lg() << "\n" << i << ",\t0x" << std::hex
-			     << std::setw(8) << std::setfill('0')
-			     << arr[i] << std::dec << "\tnb=" << nb;
-		    }
-		}
-// 		throw ibis::bad_alloc("bitvector -- the input is not a "
-// 				      "serialized bitvector");
-#endif
-	    }
-	}
-	else {
-	    active.reset();
-	}
-	m_vec.pop_back();
-
-#ifndef FASTBIT_LAZY_INIT
-	nbits = do_cnt(); // count the number of bits
-#endif
-    }
-    else { // a one-word bitvector can only be an empty one
-	clear();
-    }
-    LOGGER(ibis::gVerbose > 9)
-	<< "bitvector (" << static_cast<void*>(this)
-	<< ") constructed with m_vec at " << static_cast<void*>(&m_vec)
-	<< " based on an array_t<word_t> at " << static_cast<const void*>(&arr)
-	<< " with m_begin at " << static_cast<const void*>(arr.begin());
-} // ctor from array_t
-
-/// Construct a bitvector from an array.  Because the array copy
-/// constructor performs shallow copy, this bitvector is not using any new
-/// space for the underlying vector.
-ibis::bitvector::bitvector(ibis::bitvector::word_t *buf, size_t nbuf)
-    : nbits(0), nset(0), m_vec(buf, nbuf) {
-    if (m_vec.size() > 1) { // non-trivial size
-	if (m_vec.back() > 0) { // has active bits
-	    if (m_vec.back() < MAXBITS) {
-		active.nbits = m_vec.back();
-		m_vec.pop_back();
-		active.val = m_vec.back();
-	    }
-	    else {
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- the serialized version of bitvector "
-		    "contains an unexpected last word (" << m_vec.back() << ')';
-#if DEBUG+0 > 1 || _DEBUG+0 > 1
-		{ // print the array out
-		    word_t nb = 0;
-		    ibis::util::logger lg(4);
-		    lg() << "bitvector constructor received an array["
-			 << arr.size() << "] with the following values:";
-		    for (word_t i = 0; i < arr.size(); ++ i) {
-			if (arr[i] < HEADER0)
-			    nb += MAXBITS;
-			else
-			    nb += (arr[i] & MAXCNT) * MAXBITS;
-			lg() << "\n" << i << ",\t0x" << std::hex
-			     << std::setw(8) << std::setfill('0')
-			     << arr[i] << std::dec << "\tnb=" << nb;
-		    }
-		}
-// 		throw ibis::bad_alloc("bitvector -- the input is not a "
-// 				      "serialized bitvector");
-#endif
-	    }
-	}
-	else {
-	    active.reset();
-	}
-	m_vec.pop_back();
-
-#ifndef FASTBIT_LAZY_INIT
-	nbits = do_cnt(); // count the number of bits
-#endif
-    }
-    else { // a one-word bitvector can only be an empty one
-	clear();
-    }
-    LOGGER(ibis::gVerbose > 9)
-	<< "bitvector (" << static_cast<void*>(this)
-	<< ") constructed with m_vec at " << static_cast<void*>(&m_vec)
-	<< " based on a buf at " << static_cast<const void*>(buf)
-	<< " with " << nbuf << " element" << (nbuf>1?"s":"");
 } // ctor from array_t
 
 /// Constructor.  Reconstruct a bitvector from a file.
@@ -683,8 +570,8 @@ void ibis::bitvector::copy_comp(array_t<ibis::bitvector::word_t>& tmp) const {
 ibis::bitvector::word_t ibis::bitvector::compressible() const {
     word_t cnt = 0;
     for (word_t i = 0; i+1 < m_vec.size(); ++ i) {
-	cnt += ((m_vec[i] == m_vec[i+1]) &&
-		((m_vec[i] == 0) || (m_vec[i] == ALLONES)));
+        cnt += ((m_vec[i] == m_vec[i+1]) &&
+                ((m_vec[i] == 0) || (m_vec[i] == ALLONES)));
     }
     return cnt;
 } // ibis::bitvector::compressible
@@ -697,22 +584,22 @@ ibis::bitvector::word_t ibis::bitvector::do_cnt() const throw() {
     word_t ns = 0;
     word_t nb = 0;
     if (m_vec.begin() != 0 && m_vec.end() != 0) {
-	for (array_t<word_t>::const_iterator it = m_vec.begin();
-	     it < m_vec.end(); ++ it) {
-	    if ((*it) < HEADER0) {
-		nb += MAXBITS;
-		ns += cnt_ones(*it);
-	    }
-	    else {
-		word_t tmp = (*it & MAXCNT) * MAXBITS;
-		nb += tmp;
-		ns += tmp * ((*it) >= HEADER1);
-	    }
-	}
+        for (array_t<word_t>::const_iterator it = m_vec.begin();
+             it < m_vec.end(); ++ it) {
+            if ((*it) < HEADER0) {
+                nb += MAXBITS;
+                ns += cnt_ones(*it);
+            }
+            else {
+                word_t tmp = (*it & MAXCNT) * MAXBITS;
+                nb += tmp;
+                ns += tmp * ((*it) >= HEADER1);
+            }
+        }
         // when nset == 0, this function is invoked again to recompute
         // nset, the following statements make the future computerations faster.
         if (ns == 0 && m_vec.size() > 1) {
-            const_cast<word_t&>(m_vec.front()) = (HEADER0 + (ns/MAXBITS));
+            const_cast<word_t&>(m_vec.front()) = (HEADER0 + (nb/MAXBITS));
             const_cast<ibis::array_t<word_t>*>(&m_vec)->resize(1);
         }
     }
@@ -1309,9 +1196,9 @@ void ibis::bitvector::operator&=(const ibis::bitvector& rhs) {
     if (nbits == 0)
         nbits = do_cnt();
     LOGGER((rhs.nbits > 0 && nbits != rhs.nbits) ||
-	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator&= is to operate on two bitvectors "
-	"of different sizes (" << size() << " != " << rhs.size() << ')';
+           active.nbits != rhs.active.nbits)
+        << "Warning -- bitvector::operator&= is to operate on two bitvectors "
+        "of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 30 || ((1U << ibis::gVerbose) >= bytes() &&
@@ -1406,9 +1293,9 @@ ibis::bitvector* ibis::bitvector::operator&(const ibis::bitvector& rhs)
     const {
 #if defined(WAH_CHECK_SIZE)
     LOGGER((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
-	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator& is to operate on two bitvectors "
-	"of different sizes (" << size() << " != " << rhs.size() << ')';
+           active.nbits != rhs.active.nbits)
+        << "Warning -- bitvector::operator& is to operate on two bitvectors "
+        "of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
     ibis::bitvector *res = new ibis::bitvector;
     if (size() > rhs.size()) {
@@ -1528,9 +1415,9 @@ void ibis::bitvector::operator|=(const ibis::bitvector& rhs) {
     if (nbits == 0)
         nbits = do_cnt();
     LOGGER((rhs.nbits > 0 && nbits != rhs.nbits) ||
-	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator|= is to operate on two bitvectors "
-	"of different sizes (" << size() << " != " << rhs.size() << ')';
+           active.nbits != rhs.active.nbits)
+        << "Warning -- bitvector::operator|= is to operate on two bitvectors "
+        "of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 30 || ((1U << ibis::gVerbose) >= bytes() &&
@@ -1602,9 +1489,9 @@ ibis::bitvector* ibis::bitvector::operator|(const ibis::bitvector& rhs)
     const {
 #if defined(WAH_CHECK_SIZE)
     LOGGER((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
-	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator| is to operate on two bitvectors "
-	"of different sizes (" << size() << " != " << rhs.size() << ')';
+           active.nbits != rhs.active.nbits)
+        << "Warning -- bitvector::operator| is to operate on two bitvectors "
+        "of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
     ibis::bitvector *res = new ibis::bitvector;
     if (size() > rhs.size()) {
@@ -1672,9 +1559,9 @@ void ibis::bitvector::operator^=(const ibis::bitvector& rhs) {
     if (nbits == 0)
         nbits = do_cnt();
     LOGGER((rhs.nbits > 0 && nbits != rhs.nbits) ||
-	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator^= is to operate on two bitvectors "
-	"of different sizes (" << size() << " != " << rhs.size() << ')';
+           active.nbits != rhs.active.nbits)
+        << "Warning -- bitvector::operator^= is to operate on two bitvectors "
+        "of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 30 || ((1U << ibis::gVerbose) >= bytes() &&
@@ -1738,9 +1625,9 @@ ibis::bitvector* ibis::bitvector::operator^(const ibis::bitvector& rhs)
     const {
 #if defined(WAH_CHECK_SIZE)
     LOGGER((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
-	active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator^ is to operate on two bitvectors "
-	"of different sizes (" << size() << " != " << rhs.size() << ')';
+        active.nbits != rhs.active.nbits)
+        << "Warning -- bitvector::operator^ is to operate on two bitvectors "
+        "of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
     ibis::bitvector *res = new ibis::bitvector;
     if (size() > rhs.size()) {
@@ -1800,9 +1687,9 @@ void ibis::bitvector::operator-=(const ibis::bitvector& rhs) {
     if (nbits == 0)
         nbits = do_cnt();
     LOGGER((rhs.nbits > 0 && nbits != rhs.nbits) ||
-	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator-= is to operate on two bitvectors "
-	"of different sizes (" << size() << " != " << rhs.size() << ')';
+           active.nbits != rhs.active.nbits)
+        << "Warning -- bitvector::operator-= is to operate on two bitvectors "
+        "of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     LOGGER(ibis::gVerbose > 30 || ((1U << ibis::gVerbose) >= bytes() &&
@@ -1882,9 +1769,9 @@ ibis::bitvector* ibis::bitvector::operator-(const ibis::bitvector& rhs)
     const {
 #if defined(WAH_CHECK_SIZE)
     LOGGER((nbits > 0 && rhs.nbits > 0 && nbits != rhs.nbits) ||
-	   active.nbits != rhs.active.nbits)
-	<< "Warning -- bitvector::operator- is to operate on two bitvectors "
-	"of different sizes (" << size() << " != " << rhs.size() << ')';
+           active.nbits != rhs.active.nbits)
+        << "Warning -- bitvector::operator- is to operate on two bitvectors "
+        "of different sizes (" << size() << " != " << rhs.size() << ')';
 #endif
     ibis::bitvector *res = new ibis::bitvector;
     if (size() > rhs.size()) {

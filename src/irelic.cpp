@@ -28,15 +28,15 @@
 ibis::relic::relic(const ibis::column *c, const char *f)
     : ibis::index(c) {
     try {
-	if (0 != f && 0 == read(f)) {
-	    return;
-	}
+        if (0 != f && 0 == read(f)) {
+            return;
+        }
 
         if (c == 0) return;  // nothing can be done
-	if (vals.empty() && 
-	    c->type() != ibis::CATEGORY &&
-	    c->type() != ibis::TEXT &&
-	    c->type() != ibis::BLOB) {
+        if (vals.empty() && 
+            c->type() != ibis::CATEGORY &&
+            c->type() != ibis::TEXT &&
+            c->type() != ibis::BLOB) {
             if (c->partition() != 0 || f != 0) {
                 construct(f);
             }
@@ -100,25 +100,25 @@ ibis::relic::relic(const ibis::column *c, const char *f)
                     break;}
                 }
             }
-	}
-	if (! vals.empty() && ibis::gVerbose > 2) {
-	    ibis::util::logger lg;
-	    lg() << "relic[" << col->fullname()
-		 << "]::ctor -- intialized an equality index with "
-		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
-		 << " for " << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 6) {
-		lg() << "\n";
-		print(lg());
-	    }
-	}
+        }
+        if (! vals.empty() && ibis::gVerbose > 2) {
+            ibis::util::logger lg;
+            lg() << "relic[" << col->fullname()
+                 << "]::ctor -- intialized an equality index with "
+                 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+                 << " for " << nrows << " row" << (nrows>1?"s":"");
+            if (ibis::gVerbose > 6) {
+                lg() << "\n";
+                print(lg());
+            }
+        }
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- relic[" << col->fullname()
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- relic[" << col->fullname()
             << "]::ctor received an exception, cleaning up ...";
-	clear();
-	throw;
+        clear();
+        throw;
     }
 } // constructor
 
@@ -127,29 +127,29 @@ ibis::relic::relic(const ibis::column *c, const char *f)
 ibis::relic::relic(const ibis::column* c, uint32_t popu, uint32_t ntpl)
     : ibis::index(c) {
     try {
-	if (ntpl == 0)
-	    ntpl = c->partition()->nRows();
-	nrows = ntpl;
-	vals.resize(1);
-	bits.resize(1);
-	vals[0] = popu;
-	bits[0] = new ibis::bitvector();
-	bits[0]->set(1, ntpl);
+        if (ntpl == 0)
+            ntpl = c->partition()->nRows();
+        nrows = ntpl;
+        vals.resize(1);
+        bits.resize(1);
+        vals[0] = popu;
+        bits[0] = new ibis::bitvector();
+        bits[0]->set(1, ntpl);
         offset64.resize(2);
         offset64[0] = 0;
         offset64[1] = bits[0]->getSerialSize();
         offset32.clear();
-	if (ibis::gVerbose > 5) {
-	    ibis::util::logger lg;
-	    print(lg());
-	}
+        if (ibis::gVerbose > 5) {
+            ibis::util::logger lg;
+            print(lg());
+        }
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- relic[" << (col ? col->fullname() : "?.?")
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- relic[" << (col ? col->fullname() : "?.?")
             << "]::ctor received an exception, cleaning up ...";
-	clear();
-	throw;
+        clear();
+        throw;
     }
 } // constructor for dummy attributes
 
@@ -158,55 +158,55 @@ ibis::relic::relic(const ibis::column* c, uint32_t popu, uint32_t ntpl)
 /// discarded and corresponding rows would be regarded as having NULL
 /// values.
 ibis::relic::relic(const ibis::column* c, uint32_t card,
-		   array_t<uint32_t>& ind) : ibis::index(c) {
+                   array_t<uint32_t>& ind) : ibis::index(c) {
     if (ind.empty()) return;
 
     try {
-	vals.resize(card);
-	bits.resize(card);
+        vals.resize(card);
+        bits.resize(card);
         offset32.clear();
         offset64.resize(card+1);
-	for (uint32_t i = 0; i < card; ++i) {
-	    vals[i] = i;
-	    bits[i] = new ibis::bitvector();
-	}
-	nrows = ind.size();
-	for (uint32_t i = 0; i < nrows; ++i) {
-	    if (ind[i] < card) {
-		bits[ind[i]]->setBit(i, 1);
-	    }
+        for (uint32_t i = 0; i < card; ++i) {
+            vals[i] = i;
+            bits[i] = new ibis::bitvector();
+        }
+        nrows = ind.size();
+        for (uint32_t i = 0; i < nrows; ++i) {
+            if (ind[i] < card) {
+                bits[ind[i]]->setBit(i, 1);
+            }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
-	    else {
-		LOGGER(ibis::gVerbose >= 0)
-		    << "DEBUG -- relic[" << (col ? col->fullname() : "?.?")
+            else {
+                LOGGER(ibis::gVerbose >= 0)
+                    << "DEBUG -- relic[" << (col ? col->fullname() : "?.?")
                     << "]::ctor ind[" << i << "]=" << ind[i] << " >=" << card;
-	    }
+            }
 #endif
-	}
+        }
 
         offset64[0] = 0;
-	for (uint32_t i = 0; i < card; ++i) {
-	    bits[i]->adjustSize(0, nrows);
+        for (uint32_t i = 0; i < card; ++i) {
+            bits[i]->adjustSize(0, nrows);
             offset64[i+1] = offset64[i] + bits[i]->getSerialSize();
-	}
-	if (ibis::gVerbose > 2) {
-	    ibis::util::logger lg;
-	    lg() << "relic[" << (col ? col->fullname() : "?.?")
-		 << "]::ctor -- constructed an equality index with "
-		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
-		 << " for " << nrows << " row" << (nrows>1?"s":"");
-	    if (ibis::gVerbose > 6) {
-		lg() << "\n";
-		print(lg());
-	    }
-	}
+        }
+        if (ibis::gVerbose > 2) {
+            ibis::util::logger lg;
+            lg() << "relic[" << (col ? col->fullname() : "?.?")
+                 << "]::ctor -- constructed an equality index with "
+                 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+                 << " for " << nrows << " row" << (nrows>1?"s":"");
+            if (ibis::gVerbose > 6) {
+                lg() << "\n";
+                print(lg());
+            }
+        }
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- relic[" << (col ? col->fullname() : "?.?")
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- relic[" << (col ? col->fullname() : "?.?")
             << "]::ctor received an exception, cleaning up ...";
-	clear();
-	throw;
+        clear();
+        throw;
     }
 } // construct an index from an integer array
 
@@ -246,27 +246,27 @@ ibis::relic::relic(const ibis::column* c, ibis::fileManager::storage* st,
             return;
         }
 
-	initBitmaps(st);
-	if (ibis::gVerbose > 2) {
-	    ibis::util::logger lg;
-	    lg() << "relic[" << (col ? col->fullname() : "?.?")
-		 << "]::ctor -- intialized an equality index with "
-		 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
-		 << " for " << nrows << " row" << (nrows>1?"s":"")
-		 << " from a storage object @ " << st << " starting at "
-		 << start;
-	    if (ibis::gVerbose > 6) {
-		lg() << "\n";
-		print(lg());
-	    }
-	}
+        initBitmaps(st);
+        if (ibis::gVerbose > 2) {
+            ibis::util::logger lg;
+            lg() << "relic[" << (col ? col->fullname() : "?.?")
+                 << "]::ctor -- intialized an equality index with "
+                 << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+                 << " for " << nrows << " row" << (nrows>1?"s":"")
+                 << " from a storage object @ " << st << " starting at "
+                 << start;
+            if (ibis::gVerbose > 6) {
+                lg() << "\n";
+                print(lg());
+            }
+        }
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 1)
-	    << "Warning -- relic[" << (col ? col->fullname() : "?.?")
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- relic[" << (col ? col->fullname() : "?.?")
             << "]::ctor received an exception, cleaning up ...";
-	clear();
-	throw;
+        clear();
+        throw;
     }
 } // constructor
 
@@ -355,17 +355,17 @@ int ibis::relic::write(const char* dt) const {
     if (vals.empty() || bits.empty() || nrows == 0) return -1;
     std::string evt = "relic";
     if (ibis::gVerbose > 0 && col != 0) {
-	evt += '[';
-	evt += col->fullname();
-	evt += ']';
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
     }
     evt += "::write";
     if (vals.size() != bits.size()) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " expects vals.size(" << vals.size()
-	    << ") and bits.size(" << bits.size()
-	    << ") to be the same, but they are not";
-	return -1;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " expects vals.size(" << vals.size()
+            << ") and bits.size(" << bits.size()
+            << ") to be the same, but they are not";
+        return -1;
     }
 
     std::string fnm;
@@ -379,11 +379,11 @@ int ibis::relic::write(const char* dt) const {
         return 0;
     }
     else if (0 != str && 0 != str->filename() &&
-	     0 == fnm.compare(str->filename())) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " can not overwrite the index file \""
-	    << fnm << "\" while it is used as a read-only file map";
-	return 0;
+             0 == fnm.compare(str->filename())) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " can not overwrite the index file \""
+            << fnm << "\" while it is used as a read-only file map";
+        return 0;
     }
     if (fname != 0 && *fname != 0 && fnm.compare(fname) == 0) {
         activate(); // read everything into memory
@@ -394,14 +394,14 @@ int ibis::relic::write(const char* dt) const {
 
     int fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
     if (fdes < 0) {
-	ibis::fileManager::instance().flushFile(fnm.c_str());
-	fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
-	if (fdes < 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- " << evt << "failed to open \"" << fnm
-		<< "\" for write";
-	    return -2;
-	}
+        ibis::fileManager::instance().flushFile(fnm.c_str());
+        fdes = UnixOpen(fnm.c_str(), OPEN_WRITENEW, OPEN_FILEMODE);
+        if (fdes < 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- " << evt << "failed to open \"" << fnm
+                << "\" for write";
+            return -2;
+        }
     }
     IBIS_BLOCK_GUARD(UnixClose, fdes);
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -430,10 +430,10 @@ int ibis::relic::write(const char* dt) const {
     header[6] = (char)(useoffset64 ? 8 : 4);
     ierr = UnixWrite(fdes, header, 8);
     if (ierr < 8) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt 
-	    << " failed to write the 8-byte header, ierr = " << ierr;
-	return -3;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt 
+            << " failed to write the 8-byte header, ierr = " << ierr;
+        return -3;
     }
     if (useoffset64)
         ierr = write64(fdes); // write the bulk of the index file
@@ -462,9 +462,9 @@ int ibis::relic::write32(int fdes) const {
 
     std::string evt = "relic";
     if (ibis::gVerbose > 0 && col != 0) {
-	evt += '[';
-	evt += col->fullname();
-	evt += ']';
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
     }
     evt += "::write32";
     const uint32_t nobs = (vals.size()<=bits.size()?vals.size():bits.size());
@@ -555,9 +555,9 @@ int ibis::relic::write64(int fdes) const {
 
     std::string evt = "relic";
     if (ibis::gVerbose > 0 && col != 0) {
-	evt += '[';
-	evt += col->fullname();
-	evt += ']';
+        evt += '[';
+        evt += col->fullname();
+        evt += ']';
     }
     evt += "::write64";
     const uint32_t nobs = (vals.size()<=bits.size()?vals.size():bits.size());
@@ -704,22 +704,22 @@ int ibis::relic::read(const char* f) {
     }
 
     if (false == (header[0] == '#' && header[1] == 'I' &&
-		  header[2] == 'B' && header[3] == 'I' &&
-		  header[4] == 'S' &&
-		  (header[5] == RELIC || header[5] == BYLT ||
-		   header[5] == FADE || header[5] == SBIAD ||
-		   header[5] == SAPID || header[5] == FUZZ ||
-		   header[5] == SLICE || header[5] == ZONA) &&
-		  (header[6] == 8 || header[6] == 4) &&
-		  header[7] == static_cast<char>(0))) {
-	if (ibis::gVerbose > 0) {
-	    ibis::util::logger lg;
-	    lg() << "Warning -- relic[" << (col ? col->fullname() : "?.?")
-		 << "]::read the header from " << fnm << " (";
-	    printHeader(lg(), header);
-	    lg() << ") does not contain the expected values";
-	}
-	return -3;
+                  header[2] == 'B' && header[3] == 'I' &&
+                  header[4] == 'S' &&
+                  (header[5] == RELIC || header[5] == BYLT ||
+                   header[5] == FADE || header[5] == SBIAD ||
+                   header[5] == SAPID || header[5] == FUZZ ||
+                   header[5] == SLICE || header[5] == ZONA) &&
+                  (header[6] == 8 || header[6] == 4) &&
+                  header[7] == static_cast<char>(0))) {
+        if (ibis::gVerbose > 0) {
+            ibis::util::logger lg;
+            lg() << "Warning -- relic[" << (col ? col->fullname() : "?.?")
+                 << "]::read the header from " << fnm << " (";
+            printHeader(lg(), header);
+            lg() << ") does not contain the expected values";
+        }
+        return -3;
     }
 
     uint32_t dim[3];
@@ -729,11 +729,11 @@ int ibis::relic::read(const char* f) {
 
     int ierr = UnixRead(fdes, static_cast<void*>(dim), 3*sizeof(uint32_t));
     if (ierr < static_cast<int>(3*sizeof(uint32_t))) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- relic[" << (col ? col->fullname() : "?.?")
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- relic[" << (col ? col->fullname() : "?.?")
             << "]::read failed to read the size inforamtion from index file "
             << fnm;
-	return -4;
+        return -4;
     }
 
     nrows = dim[0];
@@ -752,35 +752,35 @@ int ibis::relic::read(const char* f) {
     ibis::fileManager::instance().recordPages(0, end);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     if (ibis::gVerbose > 5) {
-	unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
-	if (nprt > dim[1])
-	    nprt = dim[1];
-	ibis::util::logger lg(4);
-	lg() << "DEBUG -- relic[" << (col ? col->fullname() : "?.?")
+        unsigned nprt = (ibis::gVerbose < 30 ? (1 << ibis::gVerbose) : dim[1]);
+        if (nprt > dim[1])
+            nprt = dim[1];
+        ibis::util::logger lg(4);
+        lg() << "DEBUG -- relic[" << (col ? col->fullname() : "?.?")
              << "]::read(" << f << ") got nobs = " << dim[1]
              << ", card = " << dim[2]
-	     << ", the offsets of the bit vectors are\n";
-	if (header[6] == 8) {
-	    for (unsigned i = 0; i < nprt; ++ i)
-		lg() << offset64[i] << " ";
-	}
-	else {
-	    for (unsigned i = 0; i < nprt; ++ i)
-		lg() << offset32[i] << " ";
-	}
-	if (nprt < dim[1])
-	    lg() << "... (skipping " << dim[1]-nprt << ") ... ";
-	if (header[6] == 8)
-	    lg() << offset64[dim[1]];
-	else
-	    lg() << offset32[dim[1]];
+             << ", the offsets of the bit vectors are\n";
+        if (header[6] == 8) {
+            for (unsigned i = 0; i < nprt; ++ i)
+                lg() << offset64[i] << " ";
+        }
+        else {
+            for (unsigned i = 0; i < nprt; ++ i)
+                lg() << offset32[i] << " ";
+        }
+        if (nprt < dim[1])
+            lg() << "... (skipping " << dim[1]-nprt << ") ... ";
+        if (header[6] == 8)
+            lg() << offset64[dim[1]];
+        else
+            lg() << offset32[dim[1]];
     }
 #endif
 
     initBitmaps(fdes);
     LOGGER(ibis::gVerbose > 3)
-	<< "relic[" << (col ? col->fullname() : "?.?")
-	<< "]::read finished reading the header from " << fnm;
+        << "relic[" << (col ? col->fullname() : "?.?")
+        << "]::read finished reading the header from " << fnm;
     return 0;
 } // ibis::relic::read
 
@@ -811,8 +811,8 @@ int ibis::relic::read(ibis::fileManager::storage* st) {
 
     initBitmaps(st);
     LOGGER(ibis::gVerbose > 3)
-	<< "relic[" << (col ? col->fullname() : "?.?")
-	<< "]::read finished reading the header from a storage object @ " << st;
+        << "relic[" << (col ? col->fullname() : "?.?")
+        << "]::read finished reading the header from a storage object @ " << st;
     return 0;
 } // ibis::relic::read
 
@@ -836,10 +836,10 @@ void ibis::relic::construct(const char* f) {
         mapValues(f, bmap);
     }
     catch (...) { // need to clean up bmap
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- relic[" << col->fullname()
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- relic[" << col->fullname()
             << "]::construct reclaiming storage allocated to bitvectors ("
-	    << bmap.size() << ")";
+            << bmap.size() << ")";
 
         for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)
             delete (*it).second;
@@ -883,17 +883,17 @@ void ibis::relic::construct(const array_t<E>& arr) {
         mapValues(arr, bmap);
     }
     catch (...) { // need to clean up bmap
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- relic[" << (col ? col->fullname() : "?.?")
-	    << "]::construct<" << typeid(E).name()
-	    << "> reclaiming storage allocated to bitvectors ("
-	    << bmap.size() << ")";
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- relic[" << (col ? col->fullname() : "?.?")
+            << "]::construct<" << typeid(E).name()
+            << "> reclaiming storage allocated to bitvectors ("
+            << bmap.size() << ")";
 
-	for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)
-	    delete (*it).second;
-	bmap.clear();
-	ibis::fileManager::instance().signalMemoryAvailable();
-	throw;
+        for (VMap::iterator it = bmap.begin(); it != bmap.end(); ++ it)
+            delete (*it).second;
+        bmap.clear();
+        ibis::fileManager::instance().signalMemoryAvailable();
+        throw;
     }
     if (bmap.empty()) return; // bmap is empty
 
@@ -911,16 +911,16 @@ void ibis::relic::construct(const array_t<E>& arr) {
 
     // write out the current content
     if (ibis::gVerbose > 2) {
- 	ibis::util::logger lg;
-	lg() << "relic[" << (col ? col->fullname() : "?.?")
-	     << "]::construct<" << typeid(E).name() << "[" << arr.size()
-	     << "]> -- built an equality index with "
-	     << bits.size() << " bitmap" << (bits.size()>1?"s":"")
-	     << " for " << nrows << " row" << (nrows>1?"s":"");
-	if (ibis::gVerbose > 6) {
-	    lg() << "\n";
-	    print(lg());
-	}
+        ibis::util::logger lg;
+        lg() << "relic[" << (col ? col->fullname() : "?.?")
+             << "]::construct<" << typeid(E).name() << "[" << arr.size()
+             << "]> -- built an equality index with "
+             << bits.size() << " bitmap" << (bits.size()>1?"s":"")
+             << " for " << nrows << " row" << (nrows>1?"s":"");
+        if (ibis::gVerbose > 6) {
+            lg() << "\n";
+            print(lg());
+        }
     }
 } // ibis::relic::construct
 
@@ -947,73 +947,73 @@ void ibis::relic::speedTest(std::ostream& out) const {
         activate(); // activate all bitvectors
     }
     catch (const std::exception& e) {
-	LOGGER(ibis::gVerbose > 0)
+        LOGGER(ibis::gVerbose > 0)
             << "Warning -- relic::speedTest received a standard exception - "
             << e.what();
-	return;
+        return;
     }
     catch (const char* s) {
-	LOGGER(ibis::gVerbose > 0)
+        LOGGER(ibis::gVerbose > 0)
             << "Warning -- relic::speedTest received a string exception - "
             << s;
-	return;
+        return;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 0)
+        LOGGER(ibis::gVerbose > 0)
             << "Warning -- relic::speedTest received a unexpected exception";
-	return;
+        return;
     }
     bool crossproduct = false;
     if (col != 0) {
-	std::string which = col->fullname();
-	which += ".measureCrossProduct";
-	crossproduct = ibis::gParameters().isTrue(which.c_str());
+        std::string which = col->fullname();
+        which += ".measureCrossProduct";
+        crossproduct = ibis::gParameters().isTrue(which.c_str());
     }
     if (crossproduct) {
-	out << "relic::speedTest -- testing the speed of cross "
+        out << "relic::speedTest -- testing the speed of cross "
             "product operation\n# bits, # 1s, # 1s, # bytes, "
             "# bytes, clustering factor, result 1s, result "
             "bytes, wall time";
-	nloops = 2;
+        nloops = 2;
     }
     else {
-	out << "relic::speedTest -- testing the speed of operator "
+        out << "relic::speedTest -- testing the speed of operator "
             "|\n# bits, # 1s, # 1s, # bytes, # bytes, "
             "clustering factor, result 1s, result bytes, "
             "wall time";
     }
 
     for (unsigned i = 1; i < bits.size(); ++i) {
-	if (bits[i-1] == 0 || bits[i] == 0)
-	    continue;
-	int64_t ocnt, osize; // the size of the output of operation
-	ibis::bitvector* tmp;
-	try {
-	    tmp = *(bits[i-1]) | *(bits[i]);
-	    osize = tmp->bytes();
-	    ocnt = tmp->cnt();
-	    delete tmp;
-	}
-	catch (const std::exception& e) {
-	    LOGGER(ibis::gVerbose > 0)
+        if (bits[i-1] == 0 || bits[i] == 0)
+            continue;
+        int64_t ocnt, osize; // the size of the output of operation
+        ibis::bitvector* tmp;
+        try {
+            tmp = *(bits[i-1]) | *(bits[i]);
+            osize = tmp->bytes();
+            ocnt = tmp->cnt();
+            delete tmp;
+        }
+        catch (const std::exception& e) {
+            LOGGER(ibis::gVerbose > 0)
                 << "Warning -- relic::speedTest received a standard "
                 "exception while calling operator | (i=" << i << ") - "
                 << e.what();
-	    continue;
-	}
-	catch (const char* s) {
-	    LOGGER(ibis::gVerbose > 0)
+            continue;
+        }
+        catch (const char* s) {
+            LOGGER(ibis::gVerbose > 0)
                 << "Warning -- relic::speedTest received a string "
                 "exception while calling operator | (i=" << i << ") - "
                 << s;
-	    continue;
-	}
-	catch (...) {
-	    LOGGER(ibis::gVerbose > 0)
+            continue;
+        }
+        catch (...) {
+            LOGGER(ibis::gVerbose > 0)
                 << "Warning -- relic::speedTest received a unexpected "
                 "exception while calling operator | (i=" << i << ')';
-	    continue;
-	}
+            continue;
+        }
 
         try {
             const double cf = ibis::bitvector::clusteringFactor
@@ -1113,48 +1113,48 @@ ibis::relic::keys(const ibis::bitvector& mask) const {
 
     activate(); // need all bitvectors to be in memory
     for (uint32_t i = 0; i < nobs; ++i) { // loop to generate ii
-	if (bits[i]) {
-	    if (bits[i]->size() == mask.size()) {
-		uint32_t nind = 0;
-		tmp = mask & *(bits[i]);
-		ibis::bitvector::indexSet is = tmp->firstIndexSet();
-		const ibis::bitvector::word_t *iix = is.indices();
-		nind = is.nIndices();
-		while (nind > 0) {
-		    if (is.isRange()) {
-			for (uint32_t j = *iix; j < iix[1]; ++j)
-			    ii[j] = static_cast<uint32_t>(vals[i]);
-		    }
-		    else if (nind > 0) {
-			for  (uint32_t j = 0; j < nind; ++j)
-			    ii[iix[j]] = static_cast<uint32_t>(vals[i]);
-		    }
+        if (bits[i]) {
+            if (bits[i]->size() == mask.size()) {
+                uint32_t nind = 0;
+                tmp = mask & *(bits[i]);
+                ibis::bitvector::indexSet is = tmp->firstIndexSet();
+                const ibis::bitvector::word_t *iix = is.indices();
+                nind = is.nIndices();
+                while (nind > 0) {
+                    if (is.isRange()) {
+                        for (uint32_t j = *iix; j < iix[1]; ++j)
+                            ii[j] = static_cast<uint32_t>(vals[i]);
+                    }
+                    else if (nind > 0) {
+                        for  (uint32_t j = 0; j < nind; ++j)
+                            ii[iix[j]] = static_cast<uint32_t>(vals[i]);
+                    }
 
-		    ++ is;
-		    nind =is.nIndices();
-		}
-		delete tmp;
-	    }
-	    else {
+                    ++ is;
+                    nind =is.nIndices();
+                }
+                delete tmp;
+            }
+            else {
                 LOGGER(ibis::gVerbose > 2) 
                     << "relic::keys -- bits[" << i << "]->size()="
                     << bits[i]->size() << ", mask.size()=" << mask.size();
-	    }
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 4)
+            }
+        }
+        else {
+            LOGGER(ibis::gVerbose > 4)
                 << "relic::keys -- bits[" << i << "] can not be activated";
-	}
+        }
     }
 
     array_t<uint32_t>* ret = new array_t<uint32_t>(ii.size());
     std::map<uint32_t, uint32_t>::const_iterator it = ii.begin();
     for (uint32_t i = 0; i < ii.size(); ++i) {
-	(*ret)[i] = (*it).second;
-	++ it;
+        (*ret)[i] = (*it).second;
+        ++ it;
     }
     LOGGER(ibis::gVerbose > 0 && ret->empty())
-	<< "Warning -- relic::keys failed to compute the keys, most "
+        << "Warning -- relic::keys failed to compute the keys, most "
         "likely because the index has changed";
     return ret;
 } // ibis::relic::keys
@@ -1179,11 +1179,11 @@ long ibis::relic::append(const array_t<uint32_t>& ind) {
 
     uint32_t nset = 0;
     for (i = 0; i < nobs; ++i) {
-	bits[i]->adjustSize(0, nrows);
-	nset += bits[i]->cnt();
+        bits[i]->adjustSize(0, nrows);
+        nset += bits[i]->cnt();
     }
     LOGGER(ibis::gVerbose > 0 && nset != nrows)
-	<< "Warning -- relic::append new index contains " << nset
+        << "Warning -- relic::append new index contains " << nset
         << " bits, but it is expected to be " << nrows;
     return ind.size();
 } // ibis::relic::append
@@ -1213,39 +1213,39 @@ long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
     ibis::fileManager::storage* st0=0;
     int ierr = ibis::fileManager::instance().getFile(fnm.c_str(), &st0);
     if (ierr == 0 && st0 != 0) {
-	const char* header = st0->begin();
-	if (header[0] == '#' && header[1] == 'I' && header[2] == 'B' &&
-	    header[3] == 'I' && header[4] == 'S' &&
-	    header[5] == ibis::index::RELIC &&
-	    (header[6] == 8 || header[6] == 4) &&
-	    header[7] == static_cast<char>(0)) {
-	    bin0 = new ibis::relic(col, st0);
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 5)
-		<< "Warning -- relic::append found file \"" << fnm
+        const char* header = st0->begin();
+        if (header[0] == '#' && header[1] == 'I' && header[2] == 'B' &&
+            header[3] == 'I' && header[4] == 'S' &&
+            header[5] == ibis::index::RELIC &&
+            (header[6] == 8 || header[6] == 4) &&
+            header[7] == static_cast<char>(0)) {
+            bin0 = new ibis::relic(col, st0);
+        }
+        else {
+            LOGGER(ibis::gVerbose > 5)
+                << "Warning -- relic::append found file \"" << fnm
                 << "\" to have a unexecpted header -- it will be removed";
-	    ibis::fileManager::instance().flushFile(fnm.c_str());
-	    remove(fnm.c_str());
-	}
+            ibis::fileManager::instance().flushFile(fnm.c_str());
+            remove(fnm.c_str());
+        }
     }
     if (bin0 == 0) {
-	if (col->type() == ibis::TEXT) {
-	    fnm.erase(fnm.size()-3);
-	    fnm += "int";
-	    if (ibis::util::getFileSize(fnm.c_str()) > 0)
-		bin0 = new ibis::relic(col, fnm.c_str());
-	    else {
+        if (col->type() == ibis::TEXT) {
+            fnm.erase(fnm.size()-3);
+            fnm += "int";
+            if (ibis::util::getFileSize(fnm.c_str()) > 0)
+                bin0 = new ibis::relic(col, fnm.c_str());
+            else {
                 LOGGER(ibis::gVerbose > 0)
                     << "Warning -- relic::append can not find file \"" << fnm
                     << '"';
-		ierr = -2;
-		return ierr;
-	    }
-	}
-	else {
-	    bin0 = new ibis::relic(col, df);
-	}
+                ierr = -2;
+                return ierr;
+            }
+        }
+        else {
+            bin0 = new ibis::relic(col, df);
+        }
     }
 
     if (bin0) {
@@ -1263,7 +1263,7 @@ long ibis::relic::append(const char* dt, const char* df, uint32_t nnew) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- relic::append failed to generate index with "
             "data from " << df;
-	return -6;
+        return -6;
     }
 } // ibis::relic::append
 
@@ -1284,17 +1284,17 @@ long ibis::relic::append(const ibis::relic& tail) {
     // copy *this into bmap, make another copy just in case of the current
     // bitmap index is built on top of file maps
     for (i = 0; i < nobs; ++i) {
-	ibis::bitvector* tmp = new ibis::bitvector();
-	if (bits[i] != 0) {
-	    tmp->copy(*(bits[i]));
-	    bmap[vals[i]] = tmp;
-	}
-	else {
+        ibis::bitvector* tmp = new ibis::bitvector();
+        if (bits[i] != 0) {
+            tmp->copy(*(bits[i]));
+            bmap[vals[i]] = tmp;
+        }
+        else {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- relic::append -- bits[" << i << "] (<==> "
                 << vals[i] << ") is nil, assume it is no longer needed";
-	    delete tmp;
-	}
+            delete tmp;
+        }
     }
     clear(); // clear the current content
 
@@ -1324,15 +1324,15 @@ long ibis::relic::append(const ibis::relic& tail) {
     uint32_t nset = 0;
     const uint32_t totbits = n0 + tail.nrows;
     for (it = bmap.begin(); it != bmap.end(); ++it) {
-	(*it).second->adjustSize(0, totbits);
-	nobs += ((*it).second->cnt() > 0);
-	nset += (*it).second->cnt();
-	LOGGER(ibis::gVerbose > 18)
-	    << "relic::append -- value "<< (*it).first << " appeared "
+        (*it).second->adjustSize(0, totbits);
+        nobs += ((*it).second->cnt() > 0);
+        nset += (*it).second->cnt();
+        LOGGER(ibis::gVerbose > 18)
+            << "relic::append -- value "<< (*it).first << " appeared "
             << (*it).second->cnt() << " times out of " << totbits;
     }
     LOGGER(nset != totbits && ibis::gVerbose > 0)
-	<< "Warning -- relic::append created a new index for " << nset
+        << "Warning -- relic::append created a new index for " << nset
         << " objects (!= bitmap length " << totbits << ")";
     nrows = totbits;
     // convert from bmap to the linear structure
@@ -1756,55 +1756,55 @@ void ibis::relic::locate(const ibis::qContinuousRange& expr, uint32_t& hit0,
         break; // case ibis::qExpr::OP_EQ
     default:
     case ibis::qExpr::OP_UNDEFINED:
-	switch (expr.rightOperator()) {
-	default:
-	case ibis::qExpr::OP_UNDEFINED:
+        switch (expr.rightOperator()) {
+        default:
+        case ibis::qExpr::OP_UNDEFINED:
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- relic::locate encounters a unknown operator";
-	    hit0 = 0;
-	    hit1 = 0;
-	    return;
-	case ibis::qExpr::OP_LT:
-	    hit0 = 0;
-	    if (bin1 > 0)
-		hit1 = bin1 - (expr.rightBound() == vals[bin1-1]);
-	    else
-		hit1 = 0;
-	    break;
-	case ibis::qExpr::OP_LE:
-	    hit0 = 0;
-	    hit1 = bin1;
-	    break;
-	case ibis::qExpr::OP_GT:
-	    hit1 = nval;
-	    hit0 = bin1;
-	    break;
-	case ibis::qExpr::OP_GE:
-	    hit1 = nval;
-	    if (bin1 > 0)
-		hit0 = bin1 - (expr.rightBound() == vals[bin1-1]);
-	    else
-		hit0 = 0;
-	    break;
-	case ibis::qExpr::OP_EQ:
-	    if (bin1 > nval || bin1 == 0) {
-		hit0 = 0;
-		hit1 = 0;
-	    }
-	    else if (expr.rightBound() == vals[bin1-1]) {
-		hit0 = bin1 - 1;
-		hit1 = bin1;
-	    }
-	    else {
-		hit0 = 0;
-		hit1 = 0;
-	    }
-	    break;
-	} // switch (expr.rightOperator())
-	break; // case ibis::qExpr::OP_UNDEFINED
+            hit0 = 0;
+            hit1 = 0;
+            return;
+        case ibis::qExpr::OP_LT:
+            hit0 = 0;
+            if (bin1 > 0)
+                hit1 = bin1 - (expr.rightBound() == vals[bin1-1]);
+            else
+                hit1 = 0;
+            break;
+        case ibis::qExpr::OP_LE:
+            hit0 = 0;
+            hit1 = bin1;
+            break;
+        case ibis::qExpr::OP_GT:
+            hit1 = nval;
+            hit0 = bin1;
+            break;
+        case ibis::qExpr::OP_GE:
+            hit1 = nval;
+            if (bin1 > 0)
+                hit0 = bin1 - (expr.rightBound() == vals[bin1-1]);
+            else
+                hit0 = 0;
+            break;
+        case ibis::qExpr::OP_EQ:
+            if (bin1 > nval || bin1 == 0) {
+                hit0 = 0;
+                hit1 = 0;
+            }
+            else if (expr.rightBound() == vals[bin1-1]) {
+                hit0 = bin1 - 1;
+                hit1 = bin1;
+            }
+            else {
+                hit0 = 0;
+                hit1 = 0;
+            }
+            break;
+        } // switch (expr.rightOperator())
+        break; // case ibis::qExpr::OP_UNDEFINED
     } // switch (expr.leftOperator())
     LOGGER(ibis::gVerbose > 5)
-	<< "relic::locate -- expr(" << expr << ") -> [" << hit0 << ", "
+        << "relic::locate -- expr(" << expr << ") -> [" << hit0 << ", "
         << hit1 << ")";
 } // ibis::relic::locate
 
@@ -1986,13 +1986,13 @@ double ibis::relic::getSum() const {
     double ret;
     bool here = false;
     if (col != 0) {
-	const uint32_t nbv = col->elementSize() * col->partition()->nRows();
-	if (str != 0)
-	    here = (str->bytes() < nbv);
-	else if (offset64.size() > bits.size())
-	    here = (static_cast<uint32_t>(offset64[bits.size()]) < nbv);
-	else if (offset32.size() > bits.size())
-	    here = (static_cast<uint32_t>(offset32[bits.size()]) < nbv);
+        const uint32_t nbv = col->elementSize() * col->partition()->nRows();
+        if (str != 0)
+            here = (str->bytes() < nbv);
+        else if (offset64.size() > bits.size())
+            here = (static_cast<uint32_t>(offset64[bits.size()]) < nbv);
+        else if (offset32.size() > bits.size())
+            here = (static_cast<uint32_t>(offset32[bits.size()]) < nbv);
     }
     if (here) {
         ret = computeSum();
@@ -2021,25 +2021,25 @@ long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
     long ierr = 0;
     binBoundaries(bds);
     if (bds.size() > 0) {
-	binWeights(cts);
-	if (bds.size() == cts.size()) {
-	    // convert to cumulative distribution
-	    // cts[i] = number of values less than bds[i]
-	    uint32_t cnt = cts[0];
-	    cts[0] = 0;
-	    for (uint32_t i = 1; i < bds.size(); ++ i) {
-		uint32_t tmp = cts[i] + cnt;
-		cts[i] = cnt;
-		cnt = tmp;
-	    }
-	    bds.push_back(ibis::util::compactValue
-			  (bds.back(), bds.back()+bds.back()));
-	    cts.push_back(cnt);
-	    ierr = bds.size();
-	}
-	else {
-	    // don't match, delete the content
-	    LOGGER(ibis::gVerbose > 0)
+        binWeights(cts);
+        if (bds.size() == cts.size()) {
+            // convert to cumulative distribution
+            // cts[i] = number of values less than bds[i]
+            uint32_t cnt = cts[0];
+            cts[0] = 0;
+            for (uint32_t i = 1; i < bds.size(); ++ i) {
+                uint32_t tmp = cts[i] + cnt;
+                cts[i] = cnt;
+                cnt = tmp;
+            }
+            bds.push_back(ibis::util::compactValue
+                          (bds.back(), bds.back()+bds.back()));
+            cts.push_back(cnt);
+            ierr = bds.size();
+        }
+        else {
+            // don't match, delete the content
+            LOGGER(ibis::gVerbose > 0)
                 << "Warning -- relic::getCumulativeDistribution -- bds["
                 << bds.size() << "] and cts[" << cts.size()
                 << "] sizes do not match";
@@ -2061,12 +2061,12 @@ long ibis::relic::getCumulativeDistribution(std::vector<double>& bds,
         }
     }
     else {
-	LOGGER(ibis::gVerbose > 0)
+        LOGGER(ibis::gVerbose > 0)
             << "Warning -- relic::getCumulativeDistribution can not find "
             "bin boundaries, probably not data";
-	bds.clear();
-	cts.clear();
-	ierr = -1;
+        bds.clear();
+        cts.clear();
+        ierr = -1;
     }
     return ierr;
 } // ibis::relic::getCumulativeDistribution
@@ -2079,16 +2079,16 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
     long ierr = 0;
     binBoundaries(bds);
     if (bds.size() > 0) {
-	binWeights(cts);
-	if (bds.size() == cts.size()) {
-	    for (uint32_t i = 0; i+1 < bds.size(); ++ i)
-		bds[i] = bds[i+1];
-	    bds.resize(bds.size()-1);
-	    ierr = cts.size();
-	}
-	else {
-	    // don't match, delete the content
-	    LOGGER(ibis::gVerbose > 0)
+        binWeights(cts);
+        if (bds.size() == cts.size()) {
+            for (uint32_t i = 0; i+1 < bds.size(); ++ i)
+                bds[i] = bds[i+1];
+            bds.resize(bds.size()-1);
+            ierr = cts.size();
+        }
+        else {
+            // don't match, delete the content
+            LOGGER(ibis::gVerbose > 0)
                 << "Warning -- relic::getDistribution -- bds["
                 << bds.size() << "] and cts[" << cts.size()
                 << "] sizes do not match";
@@ -2109,12 +2109,12 @@ long ibis::relic::getDistribution(std::vector<double>& bds,
         }
     }
     else {
-	LOGGER(ibis::gVerbose > 0)
+        LOGGER(ibis::gVerbose > 0)
             << "Warning -- relic::getDistribution can not find bin "
             "boundaries, probably not data";
-	bds.clear();
-	cts.clear();
-	ierr = -1;
+        bds.clear();
+        cts.clear();
+        ierr = -1;
     }
     return ierr;
 } // ibis::relic::getDistribution
@@ -2159,34 +2159,34 @@ void ibis::relic::estimate(const ibis::relic& idx2,
         cnt = compJoin(idx2, mask, range1, range2, *(expr.getRange()), lower);
     }
     if (ibis::gVerbose > 1) {
-	timer.stop();
-	std::ostringstream ostr;
-	ostr << expr;
-	ostr << " with a mask (" << mask.cnt() << ")";
-	if (range1) {
-	    if (range2)
-		ostr << ", " << *range1 << ", and " << *range2;
-	    else
-		ostr << " and " << *range1;
-	}
-	else if (range2) {
-	    ostr << " and " << *range2;
-	}
-	if (cnt >= 0) {
-	    ostr << " produced " << cnt << " hit" << (cnt>1 ? "s" : "")
-		 << "(result bitvector size " << lower.bytes() << " bytes)";
-	    ibis::util::logMessage
-		("relic::estimate", "processing %s took %g sec(CPU), "
-		 "%g sec(elapsed)",
-		 ostr.str().c_str(), timer.CPUTime(), timer.realTime());
-	}
-	else if (col != 0 && col->partition() != 0) {
-	    LOGGER(ibis::gVerbose > 0)
+        timer.stop();
+        std::ostringstream ostr;
+        ostr << expr;
+        ostr << " with a mask (" << mask.cnt() << ")";
+        if (range1) {
+            if (range2)
+                ostr << ", " << *range1 << ", and " << *range2;
+            else
+                ostr << " and " << *range1;
+        }
+        else if (range2) {
+            ostr << " and " << *range2;
+        }
+        if (cnt >= 0) {
+            ostr << " produced " << cnt << " hit" << (cnt>1 ? "s" : "")
+                 << "(result bitvector size " << lower.bytes() << " bytes)";
+            ibis::util::logMessage
+                ("relic::estimate", "processing %s took %g sec(CPU), "
+                 "%g sec(elapsed)",
+                 ostr.str().c_str(), timer.CPUTime(), timer.realTime());
+        }
+        else if (col != 0 && col->partition() != 0) {
+            LOGGER(ibis::gVerbose > 0)
                 << "Warning -- relic::estimate could not effectively evaluate "
                 << ostr.str() << ", reverting to simple scans";
-	    cnt = col->partition()->evaluateJoin(expr, mask, lower);
-	    upper.clear();
-	}
+            cnt = col->partition()->evaluateJoin(expr, mask, lower);
+            upper.clear();
+        }
         else {
             lower.set(0, nrows * idx2.nrows);
             upper.set(1, nrows * idx2.nrows);
@@ -2488,22 +2488,22 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 
 /// Evaluate an equi-join with explicit restrictions on the join columns.
 int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
-			      const ibis::bitvector& mask,
-			      const ibis::qRange* const range1,
-			      const ibis::qRange* const range2,
-			      ibis::bitvector64& hits) const {
+                              const ibis::bitvector& mask,
+                              const ibis::qRange* const range1,
+                              const ibis::qRange* const range2,
+                              ibis::bitvector64& hits) const {
     if (col == 0 || idx2.col == 0) return -1L;
     hits.clear();
     if (mask.cnt() == 0) return 0;
 
     ibis::horometer timer;
     if (ibis::gVerbose > 3) {
-	timer.start();
-	LOGGER(ibis::gVerbose > 3)
-	    << "relic::equiJoin starting to evaluate join("
-	    << (col ? col->name() : "?.?") << ", "
+        timer.start();
+        LOGGER(ibis::gVerbose > 3)
+            << "relic::equiJoin starting to evaluate join("
+            << (col ? col->name() : "?.?") << ", "
             << (idx2.col ? idx2.col->name() : "?.?") << ") using " << name()
-	    << " indexes";
+            << " indexes";
     }
 
     // use the range restrictions to figure out what bitvectors to activate
@@ -2588,9 +2588,9 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 
 /// Evaluate an equi-join with explicit restrictions on the join columns.
 int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
-			      const ibis::bitvector& mask,
-			      const ibis::qRange* const range1,
-			      const ibis::qRange* const range2) const {
+                              const ibis::bitvector& mask,
+                              const ibis::qRange* const range1,
+                              const ibis::qRange* const range2) const {
     if (col == 0 || idx2.col == 0) return -1L;
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;
@@ -2684,9 +2684,9 @@ int64_t ibis::relic::equiJoin(const ibis::relic& idx2,
 /// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
 int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
-			       const ibis::bitvector& mask,
-			       const double& delta,
-			       ibis::bitvector64& hits) const {
+                               const ibis::bitvector& mask,
+                               const double& delta,
+                               ibis::bitvector64& hits) const {
     if (col == 0 || idx2.col == 0) return -1L;
     hits.clear();
     if (mask.cnt() == 0) return 0;
@@ -2750,8 +2750,8 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 } // ibis::relic::deprecatedJoin
 
 int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
-			       const ibis::bitvector& mask,
-			       const double& delta) const {
+                               const ibis::bitvector& mask,
+                               const double& delta) const {
     if (col == 0 || idx2.col == 0) return -1L;
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;
@@ -2815,11 +2815,11 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 /// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
 int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
-			       const ibis::bitvector& mask,
-			       const ibis::qRange* const range1,
-			       const ibis::qRange* const range2,
-			       const double& delta,
-			       ibis::bitvector64& hits) const {
+                               const ibis::bitvector& mask,
+                               const ibis::qRange* const range1,
+                               const ibis::qRange* const range2,
+                               const double& delta,
+                               ibis::bitvector64& hits) const {
     if (col == 0 || idx2.col == 0) return -1L;
     hits.clear();
     if (mask.cnt() == 0) return 0;
@@ -2922,10 +2922,10 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 } // ibis::relic::deprecatedJoin
 
 int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
-			       const ibis::bitvector& mask,
-			       const ibis::qRange* const range1,
-			       const ibis::qRange* const range2,
-			       const double& delta) const {
+                               const ibis::bitvector& mask,
+                               const ibis::qRange* const range1,
+                               const ibis::qRange* const range2,
+                               const double& delta) const {
     if (col == 0 || idx2.col == 0) return -1L;
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;
@@ -3027,9 +3027,9 @@ int64_t ibis::relic::deprecatedJoin(const ibis::relic& idx2,
 /// @note If the input value @c delta is less than zero it is treated as
 /// equal to zero (0).
 int64_t ibis::relic::compJoin(const ibis::relic& idx2,
-			      const ibis::bitvector& mask,
-			      const ibis::math::term& delta,
-			      ibis::bitvector64& hits) const {
+                              const ibis::bitvector& mask,
+                              const ibis::math::term& delta,
+                              ibis::bitvector64& hits) const {
     if (col == 0 || idx2.col == 0) return -1L;
     hits.clear();
     if (mask.cnt() == 0) return 0;
@@ -3093,8 +3093,8 @@ int64_t ibis::relic::compJoin(const ibis::relic& idx2,
 } // ibis::relic::compJoin
 
 int64_t ibis::relic::compJoin(const ibis::relic& idx2,
-			      const ibis::bitvector& mask,
-			      const ibis::math::term& delta) const {
+                              const ibis::bitvector& mask,
+                              const ibis::math::term& delta) const {
     if (col == 0 || idx2.col == 0) return -1L;
     int64_t cnt = 0;
     if (mask.cnt() == 0) return cnt;

@@ -50,13 +50,13 @@ int ibis::resource::read(const char* fn) {
         tried = name;
         conf = fopen(name, "r");
 
-	if (conf == 0){
-	    // LOGGER(ibis::gVerbose >= 0)
-	    //     << "Warning -- resource::read failed to open user "
-	    //     "specified file \"" << name << "\" ... "
-	    //     << (errno ? strerror(errno) : "no free stdio stream");
-	    return -1;
-	}
+        if (conf == 0){
+            // LOGGER(ibis::gVerbose >= 0)
+            //     << "Warning -- resource::read failed to open user "
+            //     "specified file \"" << name << "\" ... "
+            //     << (errno ? strerror(errno) : "no free stdio stream");
+            return -1;
+        }
     }
     if (conf == 0) {
         // second choice is the environment variable
@@ -94,14 +94,14 @@ int ibis::resource::read(const char* fn) {
         }
     }
     if (conf == 0) {
-	// the fifth choice is .ibisrc in the home directory
-	name = getenv("HOME");
-	if (name != 0 && *name != 0) {
+        // the fifth choice is .ibisrc in the home directory
+        name = getenv("HOME");
+        if (name != 0 && *name != 0) {
 #if defined(HAVE_SNPRINTF)
-	    long ierr = UnixSnprintf(line, MAX_LINE, "%s%c.ibisrc",
-				     name, FASTBIT_DIRSEP);
+            long ierr = UnixSnprintf(line, MAX_LINE, "%s%c.ibisrc",
+                                     name, FASTBIT_DIRSEP);
 #else
-	    long ierr = sprintf(line, "%s%c.ibisrc", name, FASTBIT_DIRSEP);
+            long ierr = sprintf(line, "%s%c.ibisrc", name, FASTBIT_DIRSEP);
 #endif
             if (ierr > 0 && ierr < MAX_LINE &&
                 ibis::util::getFileSize(line) > 0) {
@@ -117,10 +117,10 @@ int ibis::resource::read(const char* fn) {
         }
     }
     if (0 == conf) {
-	// LOGGER(ibis::gVerbose > 3)
-	//     << "resource::read -- can not open any of the "
-	//     "following configuration files:\n" << tried.c_str();
-	return 1;
+        // LOGGER(ibis::gVerbose > 3)
+        //     << "resource::read -- can not open any of the "
+        //     "following configuration files:\n" << tried.c_str();
+        return 1;
     }
 
     char *value;
@@ -135,26 +135,26 @@ int ibis::resource::read(const char* fn) {
              line[0]=='!' || line[0]=='#' )
             continue; // skip comment line
 
-	char* tmp = line + (std::strlen(line) - 1);
-	*tmp = static_cast<char>(0); // get rid of the '\n'
-	--tmp;
-	while (isspace(*tmp) && tmp>=line) { // remove trailing blanks
-	    *tmp = static_cast<char>(0); -- tmp;
-	}
-	if (tmp <= line) continue; // empty line (or a single character)
+        char* tmp = line + (std::strlen(line) - 1);
+        *tmp = static_cast<char>(0); // get rid of the '\n'
+        --tmp;
+        while (isspace(*tmp) && tmp>=line) { // remove trailing blanks
+            *tmp = static_cast<char>(0); -- tmp;
+        }
+        if (tmp <= line) continue; // empty line (or a single character)
 
-	name = line;
-	value = strchr(line, '=');
-	if (value) {
-	    *value = static_cast<char>(0); // terminate name string
-	    ++value;
-	    add(name, ibis::util::trim(value));
-	}
-	// else {
-	//     LOGGER(ibis::gVerbose > 6)
-	// 	<< "resource::read -- skipping line \""
-	// 	<< line << "\" because it contains no '='";
-	// }
+        name = line;
+        value = strchr(line, '=');
+        if (value) {
+            *value = static_cast<char>(0); // terminate name string
+            ++value;
+            add(name, ibis::util::trim(value));
+        }
+        // else {
+        //     LOGGER(ibis::gVerbose > 6)
+        //      << "resource::read -- skipping line \""
+        //      << line << "\" because it contains no '='";
+        // }
     }
     fclose(conf);
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
@@ -361,74 +361,74 @@ void ibis::resource::parseNameValuePairs(const char *in,
         if (end > str) { // found a name string
             char *name = ibis::util::strnewdup(str, end-str);
 
-	    str = tmp + 1;
-	    while (*str && isspace(*str)) // skip space
-		++ str;
-	    if (*str) { // nonempty value string
-		std::stack<char> parens;
-		for (tmp = str;
-		     *tmp != 0 &&
-			 ((! parens.empty()) ||
-			  (*tmp != ',' && *tmp != ';' && isspace(*tmp) == 0));
-		     ++ tmp) {
-		    if (! parens.empty() && parens.top() == *tmp) {
-			parens.pop();
-		    }
-		    else if (*tmp == '(') {
-			parens.push(')');
-		    }
-		    else if (*tmp == '[') {
-			parens.push(']');
-		    }
-		    else if (*tmp == '{') {
-			parens.push('}');
-		    }
-		    else if (*tmp == '"') {
-			parens.push('"');
-		    }
-		    else if (*tmp == '\'' || *tmp == '`') {
-			parens.push('\'');
-		    }
-		}
-		if (tmp) {
-		    end = tmp;
-		    while (end > str && isspace(end[-1]))
-			-- end;
-		    if (end > str) {
-			if (end > str + 2 &&
-			    ((*str == '"' && end[-1] == '"') ||
-			     ((*str == '\'' || *str == '`') &&
-			      end[-1] == '\''))) {
-			    // strip the outer quotes
-			    ++ str;
-			    -- end;
-			}
-			lst[name] = ibis::util::strnewdup(str, end-str);
-		    }
-		    else {
-			lst[name] = ibis::util::strnewdup("*");
-		    }
-		    str = tmp + strspn(tmp,",; \t");
-		}
-		else {
-		    lst[name] = ibis::util::strnewdup(str);
-		    str += std::strlen(str);
-		}
-	    }
-	    else  {
-		lst[name] = ibis::util::strnewdup("*");
-	    }
-	} // if (end > str)
-	else { // skip till next , or ;
-	    str = tmp + 1;
-	    if (*str) {
-		tmp = strchr(str, ',');
-		if (tmp == 0)
-		    tmp = strchr(str, ';');
-		if (tmp != 0)
-		    str = tmp + strspn(tmp, ",; \t");
-	    }
-	}
+            str = tmp + 1;
+            while (*str && isspace(*str)) // skip space
+                ++ str;
+            if (*str) { // nonempty value string
+                std::stack<char> parens;
+                for (tmp = str;
+                     *tmp != 0 &&
+                         ((! parens.empty()) ||
+                          (*tmp != ',' && *tmp != ';' && isspace(*tmp) == 0));
+                     ++ tmp) {
+                    if (! parens.empty() && parens.top() == *tmp) {
+                        parens.pop();
+                    }
+                    else if (*tmp == '(') {
+                        parens.push(')');
+                    }
+                    else if (*tmp == '[') {
+                        parens.push(']');
+                    }
+                    else if (*tmp == '{') {
+                        parens.push('}');
+                    }
+                    else if (*tmp == '"') {
+                        parens.push('"');
+                    }
+                    else if (*tmp == '\'' || *tmp == '`') {
+                        parens.push('\'');
+                    }
+                }
+                if (tmp) {
+                    end = tmp;
+                    while (end > str && isspace(end[-1]))
+                        -- end;
+                    if (end > str) {
+                        if (end > str + 2 &&
+                            ((*str == '"' && end[-1] == '"') ||
+                             ((*str == '\'' || *str == '`') &&
+                              end[-1] == '\''))) {
+                            // strip the outer quotes
+                            ++ str;
+                            -- end;
+                        }
+                        lst[name] = ibis::util::strnewdup(str, end-str);
+                    }
+                    else {
+                        lst[name] = ibis::util::strnewdup("*");
+                    }
+                    str = tmp + strspn(tmp,",; \t");
+                }
+                else {
+                    lst[name] = ibis::util::strnewdup(str);
+                    str += std::strlen(str);
+                }
+            }
+            else  {
+                lst[name] = ibis::util::strnewdup("*");
+            }
+        } // if (end > str)
+        else { // skip till next , or ;
+            str = tmp + 1;
+            if (*str) {
+                tmp = strchr(str, ',');
+                if (tmp == 0)
+                    tmp = strchr(str, ';');
+                if (tmp != 0)
+                    str = tmp + strspn(tmp, ",; \t");
+            }
+        }
     } // while ((tmp = strchr(str, '=')) != 0)
     if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
@@ -472,26 +472,26 @@ void ibis::resource::write(std::ostream& out, const char* ctx) const {
             out  << ctx << "*";
         out << prefix << std::endl;
 
-	// write groups recursively
-	char* tmp;
-	if (ctx) {
-	    tmp = new char[std::strlen(ctx)+std::strlen(prefix)+3];
-	    strcpy(tmp, ctx);
-	    strcat(tmp, "*");
-	    strcat(tmp, prefix);
-	}
-	else if (prefix) {
-	    tmp = ibis::util::strnewdup(prefix);
-	}
-	else {
-	    tmp = new char[4];
-	    tmp[0] = '*';
-	    tmp[1] = 0;
-	}
-	for (gList::const_iterator git = groups.begin();
-	     git != groups.end(); ++git)
-	    (*git).second->write(out, tmp);
-	delete [] tmp;
+        // write groups recursively
+        char* tmp;
+        if (ctx) {
+            tmp = new char[std::strlen(ctx)+std::strlen(prefix)+3];
+            strcpy(tmp, ctx);
+            strcat(tmp, "*");
+            strcat(tmp, prefix);
+        }
+        else if (prefix) {
+            tmp = ibis::util::strnewdup(prefix);
+        }
+        else {
+            tmp = new char[4];
+            tmp[0] = '*';
+            tmp[1] = 0;
+        }
+        for (gList::const_iterator git = groups.begin();
+             git != groups.end(); ++git)
+            (*git).second->write(out, tmp);
+        delete [] tmp;
     }
     else {
         out << "global prefix" << std::endl;

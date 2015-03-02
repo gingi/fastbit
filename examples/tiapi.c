@@ -368,6 +368,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
     dbl.n = n;
     dbl.ptr = a3;
     printf("\n*** queryarray2 - starting with n=%lu ***\n", n);
+    fflush(stdout);
 
     ierr = fastbit_iapi_register_array("a1", FastBitDataTypeBitRaw, a1, n);
     if (ierr < 0) {
@@ -437,7 +438,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
 
     /* double the data */
     fflush(stdout);
-    printf("\n*** queryarray2 - will duplicate the data ***\n");
+    printf("\n*** queryarray2 - will duplicate the data to %lu rows ***\n", n+n);
     fflush(stdout);
     ierr = 0;
     i = fastbit_iapi_extend_array("a1", FastBitDataTypeBitRaw, a1, n);
@@ -472,7 +473,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
 
     if (ierr >= 0) {
         /* Serialize the index for a3 and register the index alone as a3 */
-        uint64_t nk, nf, nb, nv=n;
+        uint64_t nk, nf, nb, nv=n+n;
         ierr = fastbit_iapi_deconstruct_index
             ("a3", &keys3, &nk, &offsets3, &nf, &bms3, &nb);
         if (ierr >= 0) {
@@ -497,7 +498,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
 
             fastbit_iapi_free_array("a3");
             ierr = fastbit_iapi_register_array_index_only
-                ("a3", FastBitDataTypeShort, &nv, 1,
+                ("a3", FastBitDataTypeDouble, &nv, 1,
                  keys3, nk, offsets3, nf, bms3, mybmreader);
             if (ierr < 0) {
                 fflush(stdout);
@@ -520,7 +521,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
                    ierr);
         }
         else {
-            long int expected = n;
+            long int expected = 2*(n/2);
             if (ierr != expected) {
                 printf("Warning -- fastbit_selection_evaluate(...) expected %ld, "
                        "but got %ld\n", expected, ierr);

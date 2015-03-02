@@ -1121,58 +1121,58 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    int32_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    int32_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	int32_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		int32_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // sep must be the smallest value and [i] == sep
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            int32_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            int32_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        int32_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                int32_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // sep must be the smallest value and [i] == sep
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -1180,10 +1180,10 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colInts::sort
 
@@ -1208,92 +1208,92 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    int32_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    int32_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	int32_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		int32_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            int32_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            int32_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        int32_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                int32_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     bool ordered = true;
     for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
         ordered = ((*array)[ii-1] <= (*array)[ii]);
     if (ordered == false && ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colInts[" << col->fullname() << "]::sort("
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colInts[" << col->fullname() << "]::sort("
              << i << ", " << j << ") exiting with the following:";
-	for (uint32_t ii = i; ii < j; ++ ii) {
-	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+        for (uint32_t ii = i; ii < j; ++ ii) {
+            lg() << "\narray[" << ii << "] = " << (*array)[ii];
             for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
                 lg() << ", ";
                 (*it)->write(lg(), ii);
@@ -1331,58 +1331,58 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    uint32_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    uint32_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	uint32_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		uint32_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // sep is the smallest value and [i] == sep
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            uint32_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            uint32_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        uint32_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                uint32_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // sep is the smallest value and [i] == sep
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -1390,10 +1390,10 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colUInts::sort
 
@@ -1418,92 +1418,92 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    uint32_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    uint32_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	uint32_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		uint32_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            uint32_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            uint32_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        uint32_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                uint32_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     bool ordered = true;
     for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
         ordered = ((*array)[ii-1] <= (*array)[ii]);
     if (ordered == false && ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colUInts[" << col->fullname() << "]::sort("
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colUInts[" << col->fullname() << "]::sort("
              << i << ", " << j << ") exiting with the following:";
-	for (uint32_t ii = i; ii < j; ++ ii) {
-	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+        for (uint32_t ii = i; ii < j; ++ ii) {
+            lg() << "\narray[" << ii << "] = " << (*array)[ii];
             for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
                 lg() << ", ";
                 (*it)->write(lg(), ii);
@@ -1541,58 +1541,58 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    int64_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    int64_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	int64_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		int64_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            int64_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            int64_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        int64_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                int64_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -1600,10 +1600,10 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colLongs::sort
 
@@ -1628,92 +1628,92 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    int64_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    int64_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	int64_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		int64_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            int64_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            int64_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        int64_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                int64_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     bool ordered = true;
     for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
         ordered = ((*array)[ii-1] <= (*array)[ii]);
     if (ordered == false && ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colLongs[" << col->fullname() << "]::sort("
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colLongs[" << col->fullname() << "]::sort("
              << i << ", " << j << ") exiting with the following:";
-	for (uint32_t ii = i; ii < j; ++ ii) {
-	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+        for (uint32_t ii = i; ii < j; ++ ii) {
+            lg() << "\narray[" << ii << "] = " << (*array)[ii];
             for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
                 lg() << ", ";
                 (*it)->write(lg(), ii);
@@ -1751,58 +1751,58 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    uint64_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    uint64_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	uint64_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		uint64_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            uint64_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            uint64_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        uint64_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                uint64_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -1810,10 +1810,10 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colULongs::sort
 
@@ -1838,92 +1838,92 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    uint64_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    uint64_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	uint64_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		uint64_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            uint64_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            uint64_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        uint64_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                uint64_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     bool ordered = true;
     for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
         ordered = ((*array)[ii-1] <= (*array)[ii]);
     if (ordered == false && ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colULongs[" << col->fullname() << "]::sort("
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colULongs[" << col->fullname() << "]::sort("
              << i << ", " << j << ") exiting with the following:";
-	for (uint32_t ii = i; ii < j; ++ ii) {
-	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+        for (uint32_t ii = i; ii < j; ++ ii) {
+            lg() << "\narray[" << ii << "] = " << (*array)[ii];
             for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
                 lg() << ", ";
                 (*it)->write(lg(), ii);
@@ -1961,58 +1961,58 @@ void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    int16_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    int16_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	int16_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		int16_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            int16_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            int16_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        int16_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                int16_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -2020,120 +2020,120 @@ void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colShorts::sort
 
 void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
-			   ibis::colList::iterator head,
-			   ibis::colList::iterator tail) {
+                           ibis::colList::iterator head,
+                           ibis::colList::iterator tail) {
     if (i+32 > j) { // use selection sort
-	for (uint32_t i1=i; i1+1<j; ++i1) {
-	    uint32_t imin = i1;
-	    for (uint32_t i2=i1+1; i2<j; ++i2) {
-		if ((*array)[i2] < (*array)[imin])
-		    imin = i2;
-	    }
-	    if (imin > i1) {
-		int16_t tmp = (*array)[i1];
-		(*array)[i1] = (*array)[imin];
-		(*array)[imin] = tmp;
-		if (bdl) bdl->swapRIDs(i1, imin);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i1, imin);
-	    }
-	}
+        for (uint32_t i1=i; i1+1<j; ++i1) {
+            uint32_t imin = i1;
+            for (uint32_t i2=i1+1; i2<j; ++i2) {
+                if ((*array)[i2] < (*array)[imin])
+                    imin = i2;
+            }
+            if (imin > i1) {
+                int16_t tmp = (*array)[i1];
+                (*array)[i1] = (*array)[imin];
+                (*array)[imin] = tmp;
+                if (bdl) bdl->swapRIDs(i1, imin);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i1, imin);
+            }
+        }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    int16_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    int16_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	int16_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		int16_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            int16_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            int16_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        int16_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                int16_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     bool ordered = true;
     for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
         ordered = ((*array)[ii-1] <= (*array)[ii]);
     if (ordered == false && ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colShorts[" << col->fullname() << "]::sort("
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colShorts[" << col->fullname() << "]::sort("
              << i << ", " << j << ") exiting with the following:";
-	for (uint32_t ii = i; ii < j; ++ ii) {
-	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+        for (uint32_t ii = i; ii < j; ++ ii) {
+            lg() << "\narray[" << ii << "] = " << (*array)[ii];
             for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
                 lg() << ", ";
                 (*it)->write(lg(), ii);
@@ -2171,58 +2171,58 @@ void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    uint16_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    uint16_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	uint16_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		uint16_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            uint16_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            uint16_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        uint16_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                uint16_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -2230,10 +2230,10 @@ void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colUShorts::sort
 
@@ -2258,92 +2258,92 @@ void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    uint16_t tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    uint16_t tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	uint16_t sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		uint16_t tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            uint16_t tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            uint16_t tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        uint16_t sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                uint16_t tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     bool ordered = true;
     for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
         ordered = ((*array)[ii-1] <= (*array)[ii]);
     if (ordered == false && ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colUShorts[" << col->fullname() << "]::sort("
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colUShorts[" << col->fullname() << "]::sort("
              << i << ", " << j << ") exiting with the following:";
-	for (uint32_t ii = i; ii < j; ++ ii) {
-	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+        for (uint32_t ii = i; ii < j; ++ ii) {
+            lg() << "\narray[" << ii << "] = " << (*array)[ii];
             for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
                 lg() << ", ";
                 (*it)->write(lg(), ii);
@@ -2381,58 +2381,58 @@ void ibis::colBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    signed char tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    signed char tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	signed char sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		signed char tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            signed char tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            signed char tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        signed char sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                signed char tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -2440,10 +2440,10 @@ void ibis::colBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colBytes::sort
 
@@ -2468,92 +2468,92 @@ void ibis::colBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    signed char tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    signed char tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	signed char sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		signed char tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            signed char tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            signed char tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        signed char sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                signed char tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     bool ordered = true;
     for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
         ordered = ((*array)[ii-1] <= (*array)[ii]);
     if (ordered == false && ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colBytes[" << col->fullname() << "]::sort("
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colBytes[" << col->fullname() << "]::sort("
              << i << ", " << j << ") exiting with the following:";
-	for (uint32_t ii = i; ii < j; ++ ii) {
-	    lg() << "\narray[" << ii << "] = " << (int)(*array)[ii];
+        for (uint32_t ii = i; ii < j; ++ ii) {
+            lg() << "\narray[" << ii << "] = " << (int)(*array)[ii];
             for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
                 lg() << ", ";
                 (*it)->write(lg(), ii);
@@ -2591,58 +2591,58 @@ void ibis::colUBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    unsigned char tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    unsigned char tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	unsigned char sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		unsigned char tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            unsigned char tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            unsigned char tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        unsigned char sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                unsigned char tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -2650,10 +2650,10 @@ void ibis::colUBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colUBytes::sort
 
@@ -2678,92 +2678,92 @@ void ibis::colUBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    unsigned char tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    unsigned char tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	unsigned char sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		unsigned char tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            unsigned char tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            unsigned char tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        unsigned char sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                unsigned char tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     bool ordered = true;
     for (uint32_t ii = i+1; ordered && ii < j; ++ ii)
         ordered = ((*array)[ii-1] <= (*array)[ii]);
     if (ordered == false && ibis::gVerbose > 0) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colUBytes[" << col->fullname() << "]::sort("
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colUBytes[" << col->fullname() << "]::sort("
              << i << ", " << j << ") exiting with the following:";
-	for (uint32_t ii = i; ii < j; ++ ii) {
-	    lg() << "\narray[" << ii << "] = " << (unsigned)(*array)[ii];
+        for (uint32_t ii = i; ii < j; ++ ii) {
+            lg() << "\narray[" << ii << "] = " << (unsigned)(*array)[ii];
             for (ibis::colList::const_iterator it = head; it != tail; ++ it) {
                 lg() << ", ";
                 (*it)->write(lg(), ii);
@@ -2801,58 +2801,58 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    float tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    float tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	float sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		float tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            float tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            float tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        float sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                float tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -2860,10 +2860,10 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colFloats::sort
 
@@ -2888,81 +2888,81 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    float tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    float tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	float sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		float tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            float tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            float tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        float sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                float tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 } // colFloats::sort
 
@@ -2994,58 +2994,58 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    double tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    double tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	double sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		double tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            double tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            double tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        double sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                double tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2] == sep) {
                     (*array)[i2] = (*array)[i1];
                     (*array)[i1] = sep;
@@ -3053,10 +3053,10 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 } // colDoubles::sort
 
@@ -3081,81 +3081,81 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i] > (*array)[i1]) {
-	    double tmp = (*array)[i];
-	    (*array)[i] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1] > (*array)[i2]) {
-	    double tmp = (*array)[i2];
-	    (*array)[i2] = (*array)[i1];
-	    (*array)[i1] = tmp;
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i] > (*array)[i1]) {
-		tmp = (*array)[i];
-		(*array)[i] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	double sep = (*array)[i1]; // sep the median of the three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    if ((*array)[i1] < sep && (*array)[i2] >= sep) {
-		// both i1 and i2 are in the right places
-		++i1; --i2;
-	    }
-	    else if ((*array)[i1] < sep) {
-		// i1 is in the right place
-		++i1;
-	    }
-	    else if ((*array)[i2] >= sep) {
-		// i2 is in the right place
-		--i2;
-	    }
-	    else { // both are in the wrong places, swap them
-		double tmp = (*array)[i2];
-		(*array)[i2] = (*array)[i1];
-		(*array)[i1] = tmp;
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++i1; --i2;
-	    }
-	}
-	i1 += ((*array)[i1] < sep);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else {
-	    // due to the choice of median of three, element i must be the
-	    // smallest ones, and [i] == sep
-	    // collect consecutive elements = sep
-	    for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2] == sep) {
-		    (*array)[i2] = (*array)[i1];
-		    (*array)[i1] = sep;
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	    if (i1+1 < j)
-		sort(i1, j, bdl, head, tail);
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i] > (*array)[i1]) {
+            double tmp = (*array)[i];
+            (*array)[i] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1] > (*array)[i2]) {
+            double tmp = (*array)[i2];
+            (*array)[i2] = (*array)[i1];
+            (*array)[i1] = tmp;
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i] > (*array)[i1]) {
+                tmp = (*array)[i];
+                (*array)[i] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        double sep = (*array)[i1]; // sep the median of the three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            if ((*array)[i1] < sep && (*array)[i2] >= sep) {
+                // both i1 and i2 are in the right places
+                ++i1; --i2;
+            }
+            else if ((*array)[i1] < sep) {
+                // i1 is in the right place
+                ++i1;
+            }
+            else if ((*array)[i2] >= sep) {
+                // i2 is in the right place
+                --i2;
+            }
+            else { // both are in the wrong places, swap them
+                double tmp = (*array)[i2];
+                (*array)[i2] = (*array)[i1];
+                (*array)[i1] = tmp;
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++i1; --i2;
+            }
+        }
+        i1 += ((*array)[i1] < sep);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else {
+            // due to the choice of median of three, element i must be the
+            // smallest ones, and [i] == sep
+            // collect consecutive elements = sep
+            for (i1 = i + 1; i1 < j && (*array)[i1] == sep; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2] == sep) {
+                    (*array)[i2] = (*array)[i1];
+                    (*array)[i1] = sep;
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
+        }
     } // end quick sort
 } // colDoubles::sort
 
@@ -3189,70 +3189,70 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i].compare((*array)[i1]) > 0) {
-	    (*array)[i].swap((*array)[i1]);
-	    if (bdl) bdl->swapRIDs(i, i1);
-	}
-	if ((*array)[i1].compare((*array)[i2]) > 0) {
-	    (*array)[i2].swap((*array)[i1]);
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    if ((*array)[i].compare((*array)[i1]) > 0) {
-		(*array)[i].swap((*array)[i1]);
-		if (bdl) bdl->swapRIDs(i, i1);
-	    }
-	}
-	const std::string sep = (*array)[i1]; // sep is the median of three
-	i1 = i;
-	i2 = j - 1;
-	bool stayleft  = ((*array)[i1].compare(sep) < 0);
-	bool stayright = ((*array)[i2].compare(sep) >= 0);
-	while (i1 < i2) {
-	    if (stayleft || stayright) {
-		if (stayleft) {
-		    ++ i1;
-		    stayleft  = ((*array)[i1].compare(sep) < 0);
-		}
-		if (stayright) {
-		    -- i2;
-		    stayright = ((*array)[i2].compare(sep) >= 0);
-		}
-	    }
-	    else { // both are in the wrong places, swap them
-		(*array)[i2].swap((*array)[i1]);
-		if (bdl) bdl->swapRIDs(i2, i1);
-		++ i1; -- i2;
-		stayleft  = ((*array)[i1].compare(sep) < 0);
-		stayright = ((*array)[i2].compare(sep) >= 0);
-	    }
-	}
-	i1 += (int)stayleft;
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl);
-	    sort(i1, j, bdl);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i].compare((*array)[i1]) > 0) {
+            (*array)[i].swap((*array)[i1]);
+            if (bdl) bdl->swapRIDs(i, i1);
+        }
+        if ((*array)[i1].compare((*array)[i2]) > 0) {
+            (*array)[i2].swap((*array)[i1]);
+            if (bdl) bdl->swapRIDs(i2, i1);
+            if ((*array)[i].compare((*array)[i1]) > 0) {
+                (*array)[i].swap((*array)[i1]);
+                if (bdl) bdl->swapRIDs(i, i1);
+            }
+        }
+        const std::string sep = (*array)[i1]; // sep is the median of three
+        i1 = i;
+        i2 = j - 1;
+        bool stayleft  = ((*array)[i1].compare(sep) < 0);
+        bool stayright = ((*array)[i2].compare(sep) >= 0);
+        while (i1 < i2) {
+            if (stayleft || stayright) {
+                if (stayleft) {
+                    ++ i1;
+                    stayleft  = ((*array)[i1].compare(sep) < 0);
+                }
+                if (stayright) {
+                    -- i2;
+                    stayright = ((*array)[i2].compare(sep) >= 0);
+                }
+            }
+            else { // both are in the wrong places, swap them
+                (*array)[i2].swap((*array)[i1]);
+                if (bdl) bdl->swapRIDs(i2, i1);
+                ++ i1; -- i2;
+                stayleft  = ((*array)[i1].compare(sep) < 0);
+                stayright = ((*array)[i2].compare(sep) >= 0);
+            }
+        }
+        i1 += (int)stayleft;
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl);
+            sort(i1, j, bdl);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1].compare(sep) == 0; ++ i1);
-	    for (i2 = i1+1; i2 < j; ++ i2) {
+            for (i2 = i1+1; i2 < j; ++ i2) {
                 if ((*array)[i2].compare(sep) == 0) {
                     (*array)[i2].swap((*array)[i1]);
                     if (bdl) bdl->swapRIDs(i1, i2);
                     ++ i1;
                 }
             }
-	    // (*array)[i:i1-1] == sep
-	    if (i1+1 < j) // no need to sort one-element section
-		sort(i1, j, bdl);
-	}
+            // (*array)[i:i1-1] == sep
+            if (i1+1 < j) // no need to sort one-element section
+                sort(i1, j, bdl);
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colStrings[" << col->fullname()
-	     << "]::sort exiting with the following:";
-	for (uint32_t ii = istart; ii < jend; ++ ii)
-	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colStrings[" << col->fullname()
+             << "]::sort exiting with the following:";
+        for (uint32_t ii = istart; ii < jend; ++ ii)
+            lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
 #endif
 } // colStrings::sort
@@ -3280,77 +3280,77 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[i].compare((*array)[i1]) > 0) {
-	    (*array)[i].swap((*array)[i1]);
-	    if (bdl) bdl->swapRIDs(i, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i, i1);
-	}
-	if ((*array)[i1].compare((*array)[i2]) > 0){
-	    (*array)[i2].swap((*array)[i1]);
-	    if (bdl) bdl->swapRIDs(i2, i1);
-	    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		(*ii)->swap(i2, i1);
-	    if ((*array)[i].compare((*array)[i1]) > 0) {
-		(*array)[i].swap((*array)[i1]);
-		if (bdl) bdl->swapRIDs(i, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i, i1);
-	    }
-	}
-	const std::string sep = (*array)[i1]; // sep is the median of three
-	i1 = i;
-	i2 = j - 1;
-	bool stayleft  = (sep.compare((*array)[i1]) > 0);
-	bool stayright = (sep.compare((*array)[i2]) <= 0);
-	while (i1 < i2) {
-	    if (stayleft || stayright) { // at least one is in the right place
-		if (stayleft) {
-		    ++ i1;
-		    stayleft = (sep.compare((*array)[i1]) > 0);
-		}
-		if (stayright) {
-		    -- i2;
-		    stayright = (sep.compare((*array)[i2]) <= 0);
-		}
-	    }
-	    else { // both are in the wrong places, swap them
-		(*array)[i2].swap((*array)[i1]);
-		if (bdl) bdl->swapRIDs(i2, i1);
-		for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-		    (*ii)->swap(i2, i1);
-		++ i1; -- i2;
-		stayleft  = (sep.compare((*array)[i1]) > 0);
-		stayright = (sep.compare((*array)[i2]) <= 0);
-	    }
-	}
-	i1 += (int)stayleft;
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sort(i, i1, bdl, head, tail);
-	    sort(i1, j, bdl, head, tail);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
-	    for (i1 = i + 1; i1 < j && (*array)[i1].compare(sep) == 0; ++ i1);
-	    for (i2 = i1 + 1; i2 < j; ++ i2) {
-		if ((*array)[i2].compare(sep) == 0) {
-		    (*array)[i2].swap((*array)[i1]);
-		    if (bdl) bdl->swapRIDs(i1, i2);
-		    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
-			(*ii)->swap(i2, i1);
-		    ++ i1;
-		}
-	    }
-	}
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[i].compare((*array)[i1]) > 0) {
+            (*array)[i].swap((*array)[i1]);
+            if (bdl) bdl->swapRIDs(i, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i, i1);
+        }
+        if ((*array)[i1].compare((*array)[i2]) > 0){
+            (*array)[i2].swap((*array)[i1]);
+            if (bdl) bdl->swapRIDs(i2, i1);
+            for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                (*ii)->swap(i2, i1);
+            if ((*array)[i].compare((*array)[i1]) > 0) {
+                (*array)[i].swap((*array)[i1]);
+                if (bdl) bdl->swapRIDs(i, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i, i1);
+            }
+        }
+        const std::string sep = (*array)[i1]; // sep is the median of three
+        i1 = i;
+        i2 = j - 1;
+        bool stayleft  = (sep.compare((*array)[i1]) > 0);
+        bool stayright = (sep.compare((*array)[i2]) <= 0);
+        while (i1 < i2) {
+            if (stayleft || stayright) { // at least one is in the right place
+                if (stayleft) {
+                    ++ i1;
+                    stayleft = (sep.compare((*array)[i1]) > 0);
+                }
+                if (stayright) {
+                    -- i2;
+                    stayright = (sep.compare((*array)[i2]) <= 0);
+                }
+            }
+            else { // both are in the wrong places, swap them
+                (*array)[i2].swap((*array)[i1]);
+                if (bdl) bdl->swapRIDs(i2, i1);
+                for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                    (*ii)->swap(i2, i1);
+                ++ i1; -- i2;
+                stayleft  = (sep.compare((*array)[i1]) > 0);
+                stayright = (sep.compare((*array)[i2]) <= 0);
+            }
+        }
+        i1 += (int)stayleft;
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sort(i, i1, bdl, head, tail);
+            sort(i1, j, bdl, head, tail);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
+            for (i1 = i + 1; i1 < j && (*array)[i1].compare(sep) == 0; ++ i1);
+            for (i2 = i1 + 1; i2 < j; ++ i2) {
+                if ((*array)[i2].compare(sep) == 0) {
+                    (*array)[i2].swap((*array)[i1]);
+                    if (bdl) bdl->swapRIDs(i1, i2);
+                    for (ibis::colList::iterator ii=head; ii!=tail; ++ii)
+                        (*ii)->swap(i2, i1);
+                    ++ i1;
+                }
+            }
+        }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
     if (ibis::gVerbose > 5) {
-	ibis::util::logger lg;
-	lg() << "DEBUG -- colStrings[" << col->fullname()
-	     << "]::sort exiting with the following:";
-	for (uint32_t ii = istart; ii < jend; ++ ii)
-	    lg() << "\narray[" << ii << "] = " << (*array)[ii];
+        ibis::util::logger lg;
+        lg() << "DEBUG -- colStrings[" << col->fullname()
+             << "]::sort exiting with the following:";
+        for (uint32_t ii = istart; ii < jend; ++ ii)
+            lg() << "\narray[" << ii << "] = " << (*array)[ii];
     }
 #endif
 } // colStrings::sort
@@ -3386,47 +3386,47 @@ void ibis::colStrings::sortsub(uint32_t i, uint32_t j,
         }
     } // end selection sort
     else { // use quick sort
-	// sort three rows to find the median
-	uint32_t i1=(i+j)/2, i2=j-1;
-	if ((*array)[ind[i]].compare((*array)[ind[i1]]) > 0) {
-	    uint32_t tmp = ind[i];
-	    ind[i] = ind[i1];
-	    ind[i1] = tmp;
-	}
-	if ((*array)[ind[i1]].compare((*array)[ind[i2]]) > 0) {
-	    uint32_t tmp = ind[i1];
-	    ind[i1] = ind[i2];
-	    ind[i2] = tmp;
-	    if ((*array)[ind[i]].compare((*array)[ind[i1]]) > 0) {
-		tmp = ind[i];
-		ind[i] = ind[i1];
-		ind[i1] = tmp;
-	    }
-	}
-	const std::string& sep = (*array)[ind[i1]]; // the median of three
-	i1 = i;
-	i2 = j - 1;
-	while (i1 < i2) {
-	    const bool stayleft  = (sep.compare((*array)[ind[i1]]) > 0);
-	    const bool stayright = (sep.compare((*array)[ind[i2]]) <= 0);
-	    if (stayleft || stayright) {
-		// either i1 or i2 is in the right places
-		i1 += (int)stayleft;
-		i2 -= (int)stayright;
-	    }
-	    else { // both are in the wrong places, swap them
-		uint32_t tmp = ind[i2];
-		ind[i2] = ind[i1];
-		ind[i1] = tmp;
-		++ i1; -- i2;
-	    }
-	}
-	i1 += (int)(sep.compare((*array)[ind[i1]]) > 0);
-	if (i1 > i) { // elements in range [i, i1) are smaller than sep
-	    sortsub(i, i1, ind);
-	    sortsub(i1, j, ind);
-	}
-	else { // elements i and (i+j)/2 must be the smallest ones
+        // sort three rows to find the median
+        uint32_t i1=(i+j)/2, i2=j-1;
+        if ((*array)[ind[i]].compare((*array)[ind[i1]]) > 0) {
+            uint32_t tmp = ind[i];
+            ind[i] = ind[i1];
+            ind[i1] = tmp;
+        }
+        if ((*array)[ind[i1]].compare((*array)[ind[i2]]) > 0) {
+            uint32_t tmp = ind[i1];
+            ind[i1] = ind[i2];
+            ind[i2] = tmp;
+            if ((*array)[ind[i]].compare((*array)[ind[i1]]) > 0) {
+                tmp = ind[i];
+                ind[i] = ind[i1];
+                ind[i1] = tmp;
+            }
+        }
+        const std::string& sep = (*array)[ind[i1]]; // the median of three
+        i1 = i;
+        i2 = j - 1;
+        while (i1 < i2) {
+            const bool stayleft  = (sep.compare((*array)[ind[i1]]) > 0);
+            const bool stayright = (sep.compare((*array)[ind[i2]]) <= 0);
+            if (stayleft || stayright) {
+                // either i1 or i2 is in the right places
+                i1 += (int)stayleft;
+                i2 -= (int)stayright;
+            }
+            else { // both are in the wrong places, swap them
+                uint32_t tmp = ind[i2];
+                ind[i2] = ind[i1];
+                ind[i1] = tmp;
+                ++ i1; -- i2;
+            }
+        }
+        i1 += (int)(sep.compare((*array)[ind[i1]]) > 0);
+        if (i1 > i) { // elements in range [i, i1) are smaller than sep
+            sortsub(i, i1, ind);
+            sortsub(i1, j, ind);
+        }
+        else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i + 1; i1 < j && (*array)[ind[i1]].compare(sep) == 0;
                  ++ i1);
             for (i2 = i1 + 1; i2 < j; ++ i2) {
@@ -3437,9 +3437,9 @@ void ibis::colStrings::sortsub(uint32_t i, uint32_t j,
                     ++ i1;
                 }
             }
-	    if (i1+1 < j)
-		sortsub(i1, j, ind);
-	}
+            if (i1+1 < j)
+                sortsub(i1, j, ind);
+        }
     } // end quick sort
 } // ibis::colStrings::sortsub
 
@@ -3487,10 +3487,10 @@ uint32_t ibis::colStrings::partitionsub(uint32_t i, uint32_t j,
     }
     i1 += (int)(sep.compare((*array)[ind[i1]]) > 0);
     if (i1 == i) { // elements i and (i+j)/2 must be the smallest ones
-	for (i1 = i + 1; i1 < j && (*array)[ind[i1]].compare(sep) == 0;
+        for (i1 = i + 1; i1 < j && (*array)[ind[i1]].compare(sep) == 0;
              ++ i1);
-	// collect all elements equal to (*array)[ind[i]]
-	for (i2 = i1 + 1; i2 < j; ++ i2) {
+        // collect all elements equal to (*array)[ind[i]]
+        for (i2 = i1 + 1; i2 < j; ++ i2) {
             if ((*array)[ind[i2]].compare(sep) == 0) {
                 uint32_t tmp = ind[i2];
                 ind[i2] = ind[i1];
@@ -4570,40 +4570,40 @@ void ibis::colInts::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<int>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>
-			(fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<int>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<int>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<int>
+                        (fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-		}
-		else {
-		    (*array)[i] = static_cast<int>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<int>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -4754,40 +4754,40 @@ void ibis::colUInts::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<unsigned>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>
-			(fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<unsigned>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<unsigned>
+                        (fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-		}
-		else {
-		    (*array)[i] = static_cast<unsigned>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<unsigned>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -4937,40 +4937,40 @@ void ibis::colLongs::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<int>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>
-			(fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<int>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<int>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<int>
+                        (fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-		}
-		else {
-		    (*array)[i] = static_cast<int>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<int>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5121,40 +5121,40 @@ void ibis::colULongs::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<unsigned>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>
-			(fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<unsigned>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<unsigned>
+                        (fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-		}
-		else {
-		    (*array)[i] = static_cast<unsigned>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<unsigned>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5304,40 +5304,40 @@ void ibis::colShorts::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<int>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>
-			(fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<int>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<int>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<int>
+                        (fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-		}
-		else {
-		    (*array)[i] = static_cast<int>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<int>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5488,40 +5488,40 @@ void ibis::colUShorts::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<unsigned>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>
-			(fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<unsigned>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<unsigned>
+                        (fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-		}
-		else {
-		    (*array)[i] = static_cast<unsigned>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<unsigned>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5671,40 +5671,40 @@ void ibis::colBytes::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<int>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<int>
-			(fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<int>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<int>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<int>
+                        (fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-		}
-		else {
-		    (*array)[i] = static_cast<int>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<int>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -5855,40 +5855,40 @@ void ibis::colUBytes::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<unsigned>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<unsigned>
-			(fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<unsigned>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<unsigned>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<unsigned>
+                        (fabs(((*array)[starts[i]]-avg)
                               *((*array)[starts[i]]-avg)/count));
-		}
-		else {
-		    (*array)[i] = static_cast<unsigned>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<unsigned>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -6039,39 +6039,39 @@ void ibis::colFloats::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = static_cast<float>(fabs(variance/count));
-		}
-		else {
-		    (*array)[i] = static_cast<float>
-			(sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = static_cast<float>(fabs(variance/count));
+                }
+                else {
+                    (*array)[i] = static_cast<float>
+                        (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = fabs(((*array)[starts[i]]-avg)
                                        *((*array)[starts[i]]-avg)/count);
-		}
-		else {
-		    (*array)[i] = static_cast<float>
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] = static_cast<float>
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -6221,38 +6221,38 @@ void ibis::colDoubles::reduce(const array_t<uint32_t>& starts,
 
 
             if (((func == ibis::selectClause::VARSAMP) ||
-		 (func == ibis::selectClause::STDSAMP)) && count > 1) {
-		-- count; // sample version denominator is number of rows -1
-	    }
+                 (func == ibis::selectClause::STDSAMP)) && count > 1) {
+                -- count; // sample version denominator is number of rows -1
+            }
 
-	    if (starts[i+1] > starts[i]+1) {
-		double variance = (((*array)[starts[i]])-avg)
-		    *(((*array)[starts[i]]-avg));
-		for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
-		    variance += ((*array)[j]-avg)*((*array)[j]-avg);
+            if (starts[i+1] > starts[i]+1) {
+                double variance = (((*array)[starts[i]])-avg)
+                    *(((*array)[starts[i]]-avg));
+                for (uint32_t j = starts[i]+1; j < starts[i+1]; ++ j)
+                    variance += ((*array)[j]-avg)*((*array)[j]-avg);
 
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = fabs(variance/count);
-		}
-		else {
-		    (*array)[i] = (sqrt(fabs(variance/count)));
-		}
-	    }
-	    else {
-		if (func == ibis::selectClause::VARPOP ||
-		    func == ibis::selectClause::VARSAMP) {
-		    (*array)[i] = fabs(((*array)[starts[i]]-avg)
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = fabs(variance/count);
+                }
+                else {
+                    (*array)[i] = (sqrt(fabs(variance/count)));
+                }
+            }
+            else {
+                if (func == ibis::selectClause::VARPOP ||
+                    func == ibis::selectClause::VARSAMP) {
+                    (*array)[i] = fabs(((*array)[starts[i]]-avg)
                                        *((*array)[starts[i]]-avg)/count);
-		}
-		else {
-		    (*array)[i] =
-			(sqrt(fabs(((*array)[starts[i]]-avg)
+                }
+                else {
+                    (*array)[i] =
+                        (sqrt(fabs(((*array)[starts[i]]-avg)
                                    *((*array)[starts[i]]-avg)/count)));
-		}
-	    }
-	}
-	break;
+                }
+            }
+        }
+        break;
     case ibis::selectClause::DISTINCT: // count distinct values
         for (uint32_t i = 0; i < nseg; ++i) {
             const uint32_t nv = starts[i+1] - starts[i];
@@ -6735,10 +6735,10 @@ void ibis::colUInts::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else if (col != 0 && col->type() == ibis::CATEGORY) {
-	const char* str =
-	    static_cast<const ibis::category*>(col)->getKey((*array)[i]);
-	if (str != 0)
-	    out << '"' << str << '"';
+        const char* str =
+            static_cast<const ibis::category*>(col)->getKey((*array)[i]);
+        if (str != 0)
+            out << '"' << str << '"';
     }
     else {
         out << (*array)[i];
@@ -6764,7 +6764,7 @@ void ibis::colLongs::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-	out << (*array)[i];
+        out << (*array)[i];
     }
 }
 
@@ -6787,7 +6787,7 @@ void ibis::colULongs::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-	out << (*array)[i];
+        out << (*array)[i];
     }
 }
 
@@ -6827,7 +6827,7 @@ void ibis::colUShorts::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-	out << (*array)[i];
+        out << (*array)[i];
     }
 }
 
@@ -6850,7 +6850,7 @@ void ibis::colBytes::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-	out << (*array)[i];
+        out << (*array)[i];
     }
 }
 
@@ -6873,7 +6873,7 @@ void ibis::colUBytes::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<int64_t>((*array)[i]));
     }
     else {
-	out << (*array)[i];
+        out << (*array)[i];
     }
 }
 
@@ -6896,7 +6896,7 @@ void ibis::colFloats::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<double>((*array)[i]));
     }
     else {
-	out << (*array)[i];
+        out << (*array)[i];
     }
 }
 
@@ -6919,7 +6919,7 @@ void ibis::colDoubles::write(std::ostream& out, uint32_t i) const {
         (*utform)(out, static_cast<double>((*array)[i]));
     }
     else {
-	out << (*array)[i];
+        out << (*array)[i];
     }
 }
 
@@ -6932,13 +6932,13 @@ long ibis::colStrings::write(FILE* fptr) const {
     long cnt = 0;
     const uint32_t nelm = array->size();
     for (uint32_t i = 0; i < nelm; ++ i) {
-	int ierr = fwrite((*array)[i].c_str(), sizeof(char),
-			  (*array)[i].size()+1, fptr);
-	cnt += (int) (ierr > long((*array)[i].size()));
-	LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
-	    << "Warning -- colStrings[" << col->fullname()
-	    << "]::write failed to write string " << (*array)[i]
-	    << "(# " << i << " out of " << nelm << "), ierr = " << ierr;
+        int ierr = fwrite((*array)[i].c_str(), sizeof(char),
+                          (*array)[i].size()+1, fptr);
+        cnt += (int) (ierr > long((*array)[i].size()));
+        LOGGER(ierr <= 0 && ibis::gVerbose >= 0)
+            << "Warning -- colStrings[" << col->fullname()
+            << "]::write failed to write string " << (*array)[i]
+            << "(# " << i << " out of " << nelm << "), ierr = " << ierr;
     }
     return cnt;
 } // ibis::colStrings::write
@@ -6955,38 +6955,38 @@ long ibis::colBlobs::write(FILE* fptr) const {
     long int pos = ftell(fptr);
     long int ierr;
     if ((pos & 7) != 0) {
-	ierr = 8 - (pos & 7);
-	if (fwrite(padding, 1, ierr, fptr) != (size_t)ierr) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- colBlobs[" << col->fullname()
-		<< "]::write failed to write " << ierr
-		<< " byte" << (ierr>1?"s":"") << " to align the next entry";
-	    return -1;
-	}
+        ierr = 8 - (pos & 7);
+        if (fwrite(padding, 1, ierr, fptr) != (size_t)ierr) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- colBlobs[" << col->fullname()
+                << "]::write failed to write " << ierr
+                << " byte" << (ierr>1?"s":"") << " to align the next entry";
+            return -1;
+        }
     }
 
     const uint32_t nelm = array->size();
     for (uint32_t i = 0; i < nelm; ++ i) {
-	uint64_t sz = (*array)[i].size();
-	ierr = fwrite(&sz, 8, 1, fptr);
-	if (ierr < 1) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- colBlobs[" << col->fullname()
-		<< "]::write failed to write the size of "
-		<< " row " << i;
-	    return -2;
-	}
-	ierr = fwrite((*array)[i].address(), 1, ierr, fptr);
-	if (ierr == (long)(sz)) {
-	    ++ cnt;
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< "Warning -- colBlobs[" << col->fullname()
-		<< "]::write failed to write row "
-		<< i << " of " << nelm << ", ierr = " << ierr;
-	    return -3;
-	}
+        uint64_t sz = (*array)[i].size();
+        ierr = fwrite(&sz, 8, 1, fptr);
+        if (ierr < 1) {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- colBlobs[" << col->fullname()
+                << "]::write failed to write the size of "
+                << " row " << i;
+            return -2;
+        }
+        ierr = fwrite((*array)[i].address(), 1, ierr, fptr);
+        if (ierr == (long)(sz)) {
+            ++ cnt;
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- colBlobs[" << col->fullname()
+                << "]::write failed to write row "
+                << i << " of " << nelm << ", ierr = " << ierr;
+            return -3;
+        }
     }
     return cnt;
 } // ibis::colBlobs::write

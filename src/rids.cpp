@@ -193,8 +193,8 @@ int ibis::ridHandler::readDBName(std::istream& from) {
 
     from >> text;
     if (std::strcmp(text, _dbName)) { 
-	delete [] _dbName;
-	_dbName = ibis::util::strnewdup(text);
+        delete [] _dbName;
+        _dbName = ibis::util::strnewdup(text);
     }
 
     return 0;

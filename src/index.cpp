@@ -20,11 +20,11 @@
 #include "resource.h"
 #include "bitvector64.h"
 
-#include <memory>	// std::unique_ptr
-#include <queue>	// priority queue
-#include <algorithm>	// std::sort
-#include <sstream>	// std::ostringstream
-#include <typeinfo>	// typeid
+#include <memory>       // std::unique_ptr
+#include <queue>        // priority queue
+#include <algorithm>    // std::sort
+#include <sstream>      // std::ostringstream
+#include <typeinfo>     // typeid
 
 namespace ibis {
 #if defined(TEST_SUMBINS_OPTIONS)
@@ -309,174 +309,174 @@ ibis::index* ibis::index::create(const ibis::column* c, const char* dfname,
 
     // could not read an index, try to create a new one
     if (c == 0) // can not proceed
-	return ind;
+        return ind;
     if (c->partition() != 0 && c->partition()->nRows() == 0)
-	return ind;
+        return ind;
     if (c->type() == ibis::UNKNOWN_TYPE || c->type() == ibis::BLOB ||
         c->type() == ibis::BIT)
         return ind;
 
     if (spec == 0 || *spec == static_cast<char>(0))
-	spec = c->indexSpec(); // index spec of the column
+        spec = c->indexSpec(); // index spec of the column
     if ((spec == 0 || *spec == static_cast<char>(0)) && c->partition() != 0)
-	spec = c->partition()->indexSpec(); // index spec of the table
+        spec = c->partition()->indexSpec(); // index spec of the table
     if (spec == 0 || *spec == static_cast<char>(0)) {
-	// attempt to retrieve the value of tableName.columnName.index for
-	// the index specification in the global resource
-	std::string idxnm;
+        // attempt to retrieve the value of tableName.columnName.index for
+        // the index specification in the global resource
+        std::string idxnm;
         if (c->partition() != 0) {
             idxnm = c->partition()->name();
             idxnm += '.';
         }
-	idxnm += c->name();
-	idxnm += ".index";
-	spec = ibis::gParameters()[idxnm.c_str()];
+        idxnm += c->name();
+        idxnm += ".index";
+        spec = ibis::gParameters()[idxnm.c_str()];
     }
     if (spec) {
         // skip leading spaces
         while (spec && isspace(*spec)) ++ spec;
-	// no index is to be used if the index specification start
-	// with "noindex", "null" or "none".
-	if (strncmp(spec, "noindex", 7) == 0 ||
-	    strncmp(spec, "null", 4) == 0 ||
-	    strncmp(spec, "none", 4) == 0) {
-	    return ind;
-	}
+        // no index is to be used if the index specification start
+        // with "noindex", "null" or "none".
+        if (strncmp(spec, "noindex", 7) == 0 ||
+            strncmp(spec, "null", 4) == 0 ||
+            strncmp(spec, "none", 4) == 0) {
+            return ind;
+        }
     }
     ibis::horometer timer;
     if (ibis::gVerbose > 1)
-	timer.start();
+        timer.start();
 
     try {
-	if (dfname == 0) {
-	    // user has passed in an explicit nil pointer, purge index files
-	    c->purgeIndexFile();
-	}
+        if (dfname == 0) {
+            // user has passed in an explicit nil pointer, purge index files
+            c->purgeIndexFile();
+        }
 
-	if (ind == 0) {
-	    isRead = false;
+        if (ind == 0) {
+            isRead = false;
             ibis::horometer tm3;
             if (ibis::gVerbose > 2)
                 tm3.start();
-	    ind = buildNew(c, dfname, spec);
+            ind = buildNew(c, dfname, spec);
             if (ind != 0 && ibis::gVerbose > 2) {
                 tm3.stop();
                 LOGGER(1) << evt << " building a new index took "
                           << tm3.realTime() << " sec";
             }
-	}
-	if (ind == 0) {
-	    LOGGER(ibis::gVerbose > 0)
-		<< evt << " failed to create an index for " << c->name();
-	}
-	else if (ind->getNRows() == 0) {
-	    delete ind;
-	    ind = 0;
-	    LOGGER(ibis::gVerbose > 0)
-		<< evt << " create an empty index for " << c->name();
-	}
-	else if (c->partition() == 0 ||
+        }
+        if (ind == 0) {
+            LOGGER(ibis::gVerbose > 0)
+                << evt << " failed to create an index for " << c->name();
+        }
+        else if (ind->getNRows() == 0) {
+            delete ind;
+            ind = 0;
+            LOGGER(ibis::gVerbose > 0)
+                << evt << " create an empty index for " << c->name();
+        }
+        else if (c->partition() == 0 ||
                  ind->getNRows() == c->partition()->nRows()) {
-	    // having built a valid index, write out its content
-	    try {
-		if (! isRead) {
+            // having built a valid index, write out its content
+            try {
+                if (! isRead) {
                     ibis::horometer tm2;
                     if (ibis::gVerbose > 2)
                         tm2.start();
-		    ierr = ind->write(dfname);
+                    ierr = ind->write(dfname);
                     if (ierr >= 0 && ibis::gVerbose > 2) {
                         tm2.stop();
                         LOGGER(1) << evt << " writing the index took "
                                   << tm2.realTime() << " sec";
                     }
                 }
-		else {
-		    ierr = 0;
+                else {
+                    ierr = 0;
                 }
-		if (ierr < 0) {
-		    std::string idxname;
-		    ind->indexFileName(idxname, dfname);
-		    remove(idxname.c_str());
-		    LOGGER(ibis::gVerbose > 0)
-			<< "Warning -- " << evt
+                if (ierr < 0) {
+                    std::string idxname;
+                    ind->indexFileName(idxname, dfname);
+                    remove(idxname.c_str());
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt
                         << " failed to write the index ("
-			<< ind->name() << ") to " << idxname << ", ierr = "
-			<< ierr;
-		}
-	    }
-	    catch (...) {
-		std::string idxname;
-		ind->indexFileName(idxname, dfname);
-		remove(idxname.c_str());
-		LOGGER(ibis::gVerbose > 0)
-		    << "Warning -- " << evt
+                        << ind->name() << ") to " << idxname << ", ierr = "
+                        << ierr;
+                }
+            }
+            catch (...) {
+                std::string idxname;
+                ind->indexFileName(idxname, dfname);
+                remove(idxname.c_str());
+                LOGGER(ibis::gVerbose > 0)
+                    << "Warning -- " << evt
                     << " failed to write the index (" << ind->name()
-		    << ") to " << idxname << ", received an exception";
-	    }
-	}
-	else {
-	    LOGGER(ibis::gVerbose > 0)
-		<< evt << " created an index with "
-		<< ind->getNRows() << " row"
-		<< (ind->getNRows() > 1 ? "s" : "")
-		<< ", but the data partition has "
-		<< c->partition()->nRows() << " row"
-		<< (c->partition()->nRows() > 1 ? "s" : "");
-	}
+                    << ") to " << idxname << ", received an exception";
+            }
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << evt << " created an index with "
+                << ind->getNRows() << " row"
+                << (ind->getNRows() > 1 ? "s" : "")
+                << ", but the data partition has "
+                << c->partition()->nRows() << " row"
+                << (c->partition()->nRows() > 1 ? "s" : "");
+        }
     }
     catch (const char* s) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " received a string exception -- " << s;
-	delete ind;
-	ind = 0;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " received a string exception -- " << s;
+        delete ind;
+        ind = 0;
     }
     catch (const ibis::bad_alloc& e) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " failed to allocate memory -- "
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to allocate memory -- "
             << e.what();
-	delete ind;
-	ind = 0;
+        delete ind;
+        ind = 0;
     }
     catch (const std::exception& e) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " received an std::exception -- "
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " received an std::exception -- "
             << e.what();
-	delete ind;
-	ind = 0;
+        delete ind;
+        ind = 0;
     }
     catch (...) {
-	LOGGER(ibis::gVerbose > 0)
-	    << "Warning -- " << evt << " received a unexpected exception";
-	delete ind;
-	ind = 0;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " received a unexpected exception";
+        delete ind;
+        ind = 0;
     }
 
     if (ind == 0) {
-	LOGGER(ibis::gVerbose >= 0)
-	    << "Warning -- " << evt << " failed to create an index of type "
-	    << (spec != 0 && *spec != 0 ? spec : "default");
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- " << evt << " failed to create an index of type "
+            << (spec != 0 && *spec != 0 ? spec : "default");
     }
     else if (ibis::gVerbose > 1) {
-	timer.stop();
-	ibis::util::logger lg;
-	lg() << evt << " -- the " << ind->name() << " index for column "
-	     << c->fullname();
-	if (isRead) {
-	    lg() << " was read from " << dfname;
-	}
-	else if (c->partition() != 0 && c->partition()->currentDataDir() != 0) {
-	    lg() << " was created from data in "
-		 << c->partition()->currentDataDir();
-	}
-	else {
-	    lg() << " was created from in-memory data";
-	}
-	lg() << " in " << timer.CPUTime() <<" sec(CPU), "<< timer.realTime()
-	     << " sec(elapsed)";
-	if (ibis::gVerbose > 3) {
-	    lg() << "\n";
-	    ind->print(lg());
-	}
+        timer.stop();
+        ibis::util::logger lg;
+        lg() << evt << " -- the " << ind->name() << " index for column "
+             << c->fullname();
+        if (isRead) {
+            lg() << " was read from " << dfname;
+        }
+        else if (c->partition() != 0 && c->partition()->currentDataDir() != 0) {
+            lg() << " was created from data in "
+                 << c->partition()->currentDataDir();
+        }
+        else {
+            lg() << " was created from in-memory data";
+        }
+        lg() << " in " << timer.CPUTime() <<" sec(CPU), "<< timer.realTime()
+             << " sec(elapsed)";
+        if (ibis::gVerbose > 3) {
+            lg() << "\n";
+            ind->print(lg());
+        }
     }
     return ind;
 } // ibis::index::create
@@ -8798,6 +8798,7 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& pile,
         }
     }
     else { // check ibis::gParameters
+        const size_t barmin = sizeof(ibis::bitvector) + 12U;
         std::string uA;
         if (col != 0) {
             if (col->partition() != 0) {
@@ -8822,6 +8823,7 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& pile,
             // decompress the bitvectors as requested -- decompress those
             // with compression ratios larger than 1/3
             size_t bar0 = nrows / 24;
+            if (bar0 < barmin) bar0 = barmin;
             for (size_t i = 0; i < nobs; ++i) {
                 if (pile[i]) {
 #ifdef FASTBIT_RETRY_COMPRESSION
@@ -8835,6 +8837,7 @@ void ibis::index::optionalUnpack(array_t<bitvector*>& pile,
         else {
             // decompress very heavy bitvectors, > 8/9
             size_t bar1 = nrows / 9;
+            if (bar1 < barmin) bar1 = barmin;
             for (size_t i = 0; i < nobs; ++i) {
                 if (pile[i]) {
 #ifdef FASTBIT_RETRY_COMPRESSION
