@@ -1,4 +1,15 @@
-2014-02-24 Justin Swanhart <greenlion at gmail dot com>
+2014-03-02 John Wu <John dot Wu at ACM dot org>
+	* example/tiapi.c:476 logical error, "nv=n;" should have been
+	"nv=n+n;"
+
+2014-02-28 John Wu <John dot Wu at ACM dot org>
+	* src/bitvector.h:781 nbits should have been active.nbits
+
+2014-02-26 John Wu <John dot Wu at ACM dot org>
+	* bitvector.cpp:602 ns should be nb - this causes bad bug in the
+	indexes
+
+2014-02-25 Justin Swanhart <greenlion at gmail dot com>
 	* src/tafel.cpp: patch writeData to correctly print the number of
 	rows handles
 	* src/ibis.cpp: change reorder function to walk through all

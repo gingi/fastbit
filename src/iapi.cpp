@@ -8,7 +8,7 @@
 #include "ibin.h"
 #include "irelic.h"
 #include "countQuery.h"
-#include <memory>	// std::unique_ptr
+#include <memory>       // std::unique_ptr
 #include <unordered_map>
 
 /// A global variable in the file scope to hold all the active arrays known

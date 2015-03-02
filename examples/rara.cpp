@@ -26,19 +26,19 @@
 
     @ingroup FastBitExamples
 */
-#include "ibis.h"	// FastBit IBIS primary include file
+#include "ibis.h"       // FastBit IBIS primary include file
 
 // printout the usage string
 static void usage(const char* name) {
     std::cout << "usage:\n" << name << " data-dir query-conditions"
-	      << " [column-to-print [column-to-print ...]]\n"
-	      << std::endl;
+              << " [column-to-print [column-to-print ...]]\n"
+              << std::endl;
 } // usage
 
 int main(int argc, char** argv) {
     if (argc < 3) {
-	usage(*argv);
-	return -1;
+        usage(*argv);
+        return -1;
     }
 
     // construct a data partition from the given data directory.
@@ -48,44 +48,44 @@ int main(int argc, char** argv) {
     // assign the query conditions as the where clause.
     int ierr = aquery.setWhereClause(argv[2]);
     if (ierr < 0) {
-	std::clog << *argv << " setWhereClause(" << argv[2]
-		  << ") failed with error code " << ierr << std::endl;
-	return -2;
+        std::clog << *argv << " setWhereClause(" << argv[2]
+                  << ") failed with error code " << ierr << std::endl;
+        return -2;
     }
     // collect all column-to-print together
     std::string sel;
     for (int j = 3; j < argc; ++ j) {
-	if (j > 3)
-	    sel += ", ";
-	sel += argv[j];
+        if (j > 3)
+            sel += ", ";
+        sel += argv[j];
     }
     if (sel.empty()) { // select count(*)...
-	ierr = aquery.evaluate(); // evaluate the query
-	std::cout << "SELECT count(*) FROM " << argv[1] << " WHERE "
-		  << argv[2] << "\n--> ";
-	if (ierr >= 0) {
-	    std::cout << aquery.getNumHits();
-	}
-	else {
-	    std::cout << "error " << ierr;
-	}
+        ierr = aquery.evaluate(); // evaluate the query
+        std::cout << "SELECT count(*) FROM " << argv[1] << " WHERE "
+                  << argv[2] << "\n--> ";
+        if (ierr >= 0) {
+            std::cout << aquery.getNumHits();
+        }
+        else {
+            std::cout << "error " << ierr;
+        }
     }
     else { // select column-to-print...
-	ierr = aquery.setSelectClause(sel.c_str());
-	if (ierr < 0) {
-	    std::clog << *argv << " setSelectClause(" << sel
-		      << ") failed with error code " << ierr << std::endl;
-	    return -3;
-	}
-	ierr = aquery.evaluate(); // evaluate the query
-	std::cout << "SELECT " << sel << " FROM " << argv[1] << " WHERE "
-		  << argv[2] << "\n--> ";
-	if (ierr >= 0) { // print out the select values
-	    aquery.printSelected(std::cout);
-	}
-	else {
-	    std::cout << "error " << ierr;
-	}
+        ierr = aquery.setSelectClause(sel.c_str());
+        if (ierr < 0) {
+            std::clog << *argv << " setSelectClause(" << sel
+                      << ") failed with error code " << ierr << std::endl;
+            return -3;
+        }
+        ierr = aquery.evaluate(); // evaluate the query
+        std::cout << "SELECT " << sel << " FROM " << argv[1] << " WHERE "
+                  << argv[2] << "\n--> ";
+        if (ierr >= 0) { // print out the select values
+            aquery.printSelected(std::cout);
+        }
+        else {
+            std::cout << "error " << ierr;
+        }
     }
     std::cout << std::endl;
     return ierr;

@@ -6,16 +6,16 @@
 // and ibis::text
 //
 #if defined(_WIN32) && defined(_MSC_VER)
-#pragma warning(disable:4786)	// some identifier longer than 256 characters
+#pragma warning(disable:4786)   // some identifier longer than 256 characters
 #endif
 
 #include "part.h"
 #include "category.h"
-#include "irelic.h"	// ibis::relic
+#include "irelic.h"     // ibis::relic
 #include "ikeywords.h"
 
-#include <algorithm>	// std::copy
-#include <memory>	// std::unique_ptr
+#include <algorithm>    // std::copy
+#include <memory>       // std::unique_ptr
 
 ////////////////////////////////////////////////////////////////////////
 // functions for ibis::category
@@ -41,7 +41,7 @@ ibis::category::category(const part* tbl, const char* name)
 /// Copy constructor.  Copy from a collumn object of the type CATEGORY.
 ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
     if (m_type != ibis::CATEGORY) {
-	throw ibis::bad_alloc("Must be type CATEGORY");
+        throw ibis::bad_alloc("Must be type CATEGORY");
     }
 #ifdef FASTBIT_EAGER_INIT
     prepareMembers();
@@ -53,8 +53,8 @@ ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
 /// Construct a categorical column that has only one possible value.  Also
 /// builds the corresponding index.
 ibis::category::category(const part* tbl, const char* name,
-			 const char* value, const char* dir,
-			 uint32_t nevt)
+                         const char* value, const char* dir,
+                         uint32_t nevt)
     : text(tbl, name, ibis::CATEGORY), dic() {
     dic.insert(value);
     lower = 1;
@@ -67,8 +67,8 @@ ibis::category::category(const part* tbl, const char* name,
     if (nevt == 0) nevt = tbl->nRows();
     if (dir == 0)  dir  = tbl->currentDataDir();
     if (nevt > 0 && dir != 0) { // generate a trivial index
-	ibis::direkte rlc(this, 1, nevt);
-	rlc.write(dir);
+        ibis::direkte rlc(this, 1, nevt);
+        rlc.write(dir);
     }
 } // ibis::category::category
 
@@ -77,48 +77,48 @@ ibis::category::category(const part* tbl, const char* name,
 ibis::category::~category() {
     unloadIndex();
     if (dic.size() > 0) {
-	std::string dname;
-	dataFileName(dname);
-	if (! dname.empty()) {
-	    dname += ".dic";
-	    if (ibis::util::getFileSize(dname.c_str()) <= 0)
-		dic.write(dname.c_str());
-	}
+        std::string dname;
+        dataFileName(dname);
+        if (! dname.empty()) {
+            dname += ".dic";
+            if (ibis::util::getFileSize(dname.c_str()) <= 0)
+                dic.write(dname.c_str());
+        }
     }
 } // ibis::category::~category
 
 ibis::array_t<uint32_t>*
 ibis::category::selectUInts(const ibis::bitvector& mask) const {
     if (idx == 0)
-	prepareMembers();
+        prepareMembers();
 
     std::string fname;
     bool tryintfile = (0 != dataFileName(fname));
     if (tryintfile) {
-	fname += ".int";
-	tryintfile = (thePart->nRows() ==
-		      (ibis::util::getFileSize(fname.c_str()) >> 2));
+        fname += ".int";
+        tryintfile = (thePart->nRows() ==
+                      (ibis::util::getFileSize(fname.c_str()) >> 2));
     }
     if (tryintfile) {
-	std::unique_ptr< ibis::array_t<uint32_t> >
-	    tmp(new ibis::array_t<uint32_t>);
-	if (selectValuesT(fname.c_str(), mask, *tmp) >= 0)
-	    return tmp.release();
+        std::unique_ptr< ibis::array_t<uint32_t> >
+            tmp(new ibis::array_t<uint32_t>);
+        if (selectValuesT(fname.c_str(), mask, *tmp) >= 0)
+            return tmp.release();
     }
 
     indexLock lock(this, "category::selectUInts");
     if (idx != 0) {
-	const ibis::direkte *dir = dynamic_cast<const ibis::direkte*>(idx);
-	if (dir != 0)
-	    return dir->keys(mask);
-	const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
-	if (rlc != 0)
-	    return rlc->keys(mask);
+        const ibis::direkte *dir = dynamic_cast<const ibis::direkte*>(idx);
+        if (dir != 0)
+            return dir->keys(mask);
+        const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+        if (rlc != 0)
+            return rlc->keys(mask);
     }
 
     LOGGER(ibis::gVerbose >= 0)
-	<< "Warning -- category[" << (thePart ? thePart->name() : "?") << '.'
-	<< m_name << "]::selectUInts failed the .int option and .idx option";
+        << "Warning -- category[" << (thePart ? thePart->name() : "?") << '.'
+        << m_name << "]::selectUInts failed the .int option and .idx option";
     return 0;
 } // ibis::category::selectUInts
 
@@ -129,33 +129,33 @@ ibis::category::selectUInts(const ibis::bitvector& mask) const {
 std::vector<std::string>*
 ibis::category::selectStrings(const ibis::bitvector& mask) const {
     if (mask.cnt() == 0)
-	return new std::vector<std::string>();
+        return new std::vector<std::string>();
     if (dic.size() == 0 || idx == 0)
-	prepareMembers();
+        prepareMembers();
     if (dic.size() == 0) // return empty strings
-	return new std::vector<std::string>(mask.cnt(), "");
+        return new std::vector<std::string>(mask.cnt(), "");
 
     if (idx != 0 && (idx->getBitvector(0) == 0 ||
-		     idx->getBitvector(0)->cnt() == 0)) {
-	// an index exist and there is no null value, try to see if all
-	// values are the same
-	unsigned j = 1;
-	while (j < idx->numBitvectors()) {
-	    if (idx->getBitvector(j) == 0) {
-		++ j;
-	    }
-	    else {
-		unsigned nb = idx->getBitvector(j)->cnt();
-		if (nb == 0)
-		    ++ j;
-		else if (nb == mask.size())
-		    break;
-		else
-		    j = UINT_MAX;
-	    }
-	}
-	if (j <= dic.size())
-	    return new std::vector<std::string>(mask.cnt(), dic[j]);
+                     idx->getBitvector(0)->cnt() == 0)) {
+        // an index exist and there is no null value, try to see if all
+        // values are the same
+        unsigned j = 1;
+        while (j < idx->numBitvectors()) {
+            if (idx->getBitvector(j) == 0) {
+                ++ j;
+            }
+            else {
+                unsigned nb = idx->getBitvector(j)->cnt();
+                if (nb == 0)
+                    ++ j;
+                else if (nb == mask.size())
+                    break;
+                else
+                    j = UINT_MAX;
+            }
+        }
+        if (j <= dic.size())
+            return new std::vector<std::string>(mask.cnt(), dic[j]);
     }
 
     unsigned int opt = 0; // 0: raw data, 1: int file, 2: idx
@@ -164,73 +164,73 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
     float rawdata = (hasbase ? ibis::util::getFileSize(fname.c_str()) : -1.0);
     float intfile = 0.0, idxfile = 0.0;
     if (hasbase) { // check the size of the .int file
-	fname += ".int";
-	if (thePart->nRows() ==
-	    (ibis::util::getFileSize(fname.c_str()) >> 2))
-	    intfile = 4.0 * thePart->nRows();
+        fname += ".int";
+        if (thePart->nRows() ==
+            (ibis::util::getFileSize(fname.c_str()) >> 2))
+            intfile = 4.0 * thePart->nRows();
     }
     if (idx != 0) {
-	idxfile = idx->sizeInBytes();
-	idxfile *= ibis::util::log2(idx->numBitvectors());
+        idxfile = idx->sizeInBytes();
+        idxfile *= ibis::util::log2(idx->numBitvectors());
     }
 
     if (rawdata <= 0.0 && intfile <= 0.0 && idxfile <= 0.0)
-	return 0;
+        return 0;
     if (rawdata > 0.0) {
-	if (intfile > 0.0 && intfile < rawdata) {
-	    if (idxfile > 0.0 && idxfile < intfile) {
-		opt = 2;
-	    }
-	    else {
-		opt = 1;
-	    }
-	}
-	else if (idxfile > 0.0 && idxfile < rawdata) {
-	    opt = 2;
-	}
-	else {
-	    opt = 0;
-	}
+        if (intfile > 0.0 && intfile < rawdata) {
+            if (idxfile > 0.0 && idxfile < intfile) {
+                opt = 2;
+            }
+            else {
+                opt = 1;
+            }
+        }
+        else if (idxfile > 0.0 && idxfile < rawdata) {
+            opt = 2;
+        }
+        else {
+            opt = 0;
+        }
     }
     else if (intfile > 0.0) {
-	if (idxfile > 0.0 && idxfile < intfile) {
-	    opt = 2;
-	}
-	else {
-	    opt = 1;
-	}
+        if (idxfile > 0.0 && idxfile < intfile) {
+            opt = 2;
+        }
+        else {
+            opt = 1;
+        }
     }
     else if (idxfile > 0.0) {
-	opt = 2;
+        opt = 2;
     }
 
     if (opt > 0) {
-	std::unique_ptr< ibis::array_t<uint32_t> >
-	    keys(new ibis::array_t<uint32_t>);
-	if (opt == 1) {
-	    (void) selectValuesT(fname.c_str(), mask, *keys);
-	}
-	else {
-	    const ibis::direkte *dir = dynamic_cast<const ibis::direkte*>(idx);
-	    if (dir != 0) {
-		keys.reset(dir->keys(mask));
-	    }
-	    else {
-		const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
-		if (rlc != 0)
-		    keys.reset(rlc->keys(mask));
-	    }
-	}
-	if (keys->size() == mask.cnt()) {
-	    std::unique_ptr< std::vector<std::string> >
-		strings(new std::vector<std::string>());
-	    strings->reserve(keys->size());
-	    for (unsigned i = 0; i < keys->size(); ++i) {
-		const char *ptr = dic[(*keys)[i]];
-		strings->push_back(ptr!=0 ? ptr : "");
-	    }
-	    return strings.release();
-	}
+        std::unique_ptr< ibis::array_t<uint32_t> >
+            keys(new ibis::array_t<uint32_t>);
+        if (opt == 1) {
+            (void) selectValuesT(fname.c_str(), mask, *keys);
+        }
+        else {
+            const ibis::direkte *dir = dynamic_cast<const ibis::direkte*>(idx);
+            if (dir != 0) {
+                keys.reset(dir->keys(mask));
+            }
+            else {
+                const ibis::relic *rlc = dynamic_cast<const ibis::relic*>(idx);
+                if (rlc != 0)
+                    keys.reset(rlc->keys(mask));
+            }
+        }
+        if (keys->size() == mask.cnt()) {
+            std::unique_ptr< std::vector<std::string> >
+                strings(new std::vector<std::string>());
+            strings->reserve(keys->size());
+            for (unsigned i = 0; i < keys->size(); ++i) {
+                const char *ptr = dic[(*keys)[i]];
+                strings->push_back(ptr!=0 ? ptr : "");
+            }
+            return strings.release();
+        }
     }
 
     // the option to read the strings from the raw data file
