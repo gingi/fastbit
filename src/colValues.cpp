@@ -1167,8 +1167,10 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // sep must be the smallest value and [i] == sep
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -1262,8 +1264,10 @@ void ibis::colInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -1377,8 +1381,10 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // sep is the smallest value and [i] == sep
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -1472,8 +1478,10 @@ void ibis::colUInts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -1587,8 +1595,10 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -1682,8 +1692,10 @@ void ibis::colLongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -1797,8 +1809,10 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -1892,8 +1906,10 @@ void ibis::colULongs::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -2007,8 +2023,10 @@ void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -2102,8 +2120,10 @@ void ibis::colShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -2217,8 +2237,10 @@ void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -2312,8 +2334,10 @@ void ibis::colUShorts::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -2427,8 +2451,10 @@ void ibis::colBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -2522,8 +2548,10 @@ void ibis::colBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -2637,8 +2665,10 @@ void ibis::colUBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -2732,8 +2762,10 @@ void ibis::colUBytes::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -2847,8 +2879,10 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -2942,8 +2976,10 @@ void ibis::colFloats::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -3040,8 +3076,10 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1] == sep; ++ i1);
@@ -3135,8 +3173,10 @@ void ibis::colDoubles::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += ((*array)[i1] < sep);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else {
             // due to the choice of median of three, element i must be the
@@ -3229,8 +3269,10 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl) {
         }
         i1 += (int)stayleft;
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl);
-            sort(i1, j, bdl);
+            if (i+1 < i1)
+                sort(i, i1, bdl);
+            if (i1+1 < j)
+                sort(i1, j, bdl);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i+1; i1 < j && (*array)[i1].compare(sep) == 0; ++ i1);
@@ -3328,8 +3370,10 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
         }
         i1 += (int)stayleft;
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sort(i, i1, bdl, head, tail);
-            sort(i1, j, bdl, head, tail);
+            if (i+1 < i1)
+                sort(i, i1, bdl, head, tail);
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i + 1; i1 < j && (*array)[i1].compare(sep) == 0; ++ i1);
@@ -3342,6 +3386,8 @@ void ibis::colStrings::sort(uint32_t i, uint32_t j, ibis::bundle* bdl,
                     ++ i1;
                 }
             }
+            if (i1+1 < j)
+                sort(i1, j, bdl, head, tail);
         }
     } // end quick sort
 #if _DEBUG+0 > 2 || DEBUG+0 > 1
@@ -3423,8 +3469,10 @@ void ibis::colStrings::sortsub(uint32_t i, uint32_t j,
         }
         i1 += (int)(sep.compare((*array)[ind[i1]]) > 0);
         if (i1 > i) { // elements in range [i, i1) are smaller than sep
-            sortsub(i, i1, ind);
-            sortsub(i1, j, ind);
+            if (i+1 < i1)
+                sortsub(i, i1, ind);
+            if (i1+1 < j)
+                sortsub(i1, j, ind);
         }
         else { // elements i and (i+j)/2 must be the smallest ones
             for (i1 = i + 1; i1 < j && (*array)[ind[i1]].compare(sep) == 0;
