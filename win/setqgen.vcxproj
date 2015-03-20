@@ -1,0 +1,267 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{360DF97D-FEAB-4A6F-B84F-E348FCA7BAE0}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>Debug\</OutDir>
+    <IntDir>Debug\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>Release\</OutDir>
+    <IntDir>Release\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <BuildLog>
+      <Path>$(IntDir)BuildSetqgen.htm</Path>
+    </BuildLog>
+    <Midl>
+      <TypeLibraryName>Debug\setqgen.tlb</TypeLibraryName>
+      <HeaderFileName />
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\Tools\pthreads\include;..\src;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>FASTBIT_MAX_WAIT_TIME=10;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>Debug\setqgen.pch</PrecompiledHeaderOutputFile>
+      <BrowseInformation />
+      <WarningLevel>Level1</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>pthreadVC2.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>Debug\setqgen.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>C:\Tools\pthreads\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>Debug\setqgen.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>NotSet</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <BuildLog>
+      <Path>$(IntDir)BuildSetqgen.htm</Path>
+    </BuildLog>
+    <Midl>
+      <TypeLibraryName>Release\setqgen.tlb</TypeLibraryName>
+      <HeaderFileName />
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>C:\Tools\pthreads\include;..\src;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>FASTBIT_MAX_WAIT_TIME=30;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>Release\setqgen.pch</PrecompiledHeaderOutputFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>pthreadVC2.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>Release\setqgen.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>C:\Tools\pthreads\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>Release\setqgen.pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <ImportLibrary>pthreadVCE.lib</ImportLibrary>
+      <TargetMachine>NotSet</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\array_t.cpp" />
+    <ClCompile Include="..\src\bitvector.cpp" />
+    <ClCompile Include="..\src\bitvector64.cpp" />
+    <ClCompile Include="..\src\blob.cpp" />
+    <ClCompile Include="..\src\bord.cpp" />
+    <ClCompile Include="..\src\bordm.cpp" />
+    <ClCompile Include="..\src\bundle.cpp" />
+    <ClCompile Include="..\src\category.cpp" />
+    <ClCompile Include="..\src\column.cpp" />
+    <ClCompile Include="..\src\colValues.cpp" />
+    <ClCompile Include="..\src\countQuery.cpp" />
+    <ClCompile Include="..\src\dictionary.cpp" />
+    <ClCompile Include="..\src\fileManager.cpp" />
+    <ClCompile Include="..\src\filter.cpp" />
+    <ClCompile Include="..\src\fromClause.cpp" />
+    <ClCompile Include="..\src\fromLexer.cc" />
+    <ClCompile Include="..\src\fromParser.cc" />
+    <ClCompile Include="..\src\ibin.cpp" />
+    <ClCompile Include="..\src\icegale.cpp" />
+    <ClCompile Include="..\src\icentre.cpp" />
+    <ClCompile Include="..\src\icmoins.cpp" />
+    <ClCompile Include="..\src\idbak.cpp" />
+    <ClCompile Include="..\src\idbak2.cpp" />
+    <ClCompile Include="..\src\idirekte.cpp" />
+    <ClCompile Include="..\src\ifade.cpp" />
+    <ClCompile Include="..\src\ikeywords.cpp" />
+    <ClCompile Include="..\src\imesa.cpp" />
+    <ClCompile Include="..\src\index.cpp" />
+    <ClCompile Include="..\src\irange.cpp" />
+    <ClCompile Include="..\src\irelic.cpp" />
+    <ClCompile Include="..\src\iroster.cpp" />
+    <ClCompile Include="..\src\isapid.cpp" />
+    <ClCompile Include="..\src\isbiad.cpp" />
+    <ClCompile Include="..\src\iskive.cpp" />
+    <ClCompile Include="..\src\islice.cpp" />
+    <ClCompile Include="..\src\ixambit.cpp" />
+    <ClCompile Include="..\src\ixbylt.cpp" />
+    <ClCompile Include="..\src\ixfuge.cpp" />
+    <ClCompile Include="..\src\ixfuzz.cpp" />
+    <ClCompile Include="..\src\ixpack.cpp" />
+    <ClCompile Include="..\src\ixpale.cpp" />
+    <ClCompile Include="..\src\ixzona.cpp" />
+    <ClCompile Include="..\src\ixzone.cpp" />
+    <ClCompile Include="..\src\jnatural.cpp" />
+    <ClCompile Include="..\src\jrange.cpp" />
+    <ClCompile Include="..\src\mensa.cpp" />
+    <ClCompile Include="..\src\meshQuery.cpp" />
+    <ClCompile Include="..\src\part.cpp" />
+    <ClCompile Include="..\src\parth.cpp" />
+    <ClCompile Include="..\src\parth2d.cpp" />
+    <ClCompile Include="..\src\parth3d.cpp" />
+    <ClCompile Include="..\src\parth3da.cpp" />
+    <ClCompile Include="..\src\parth3db.cpp" />
+    <ClCompile Include="..\src\parth3dw.cpp" />
+    <ClCompile Include="..\src\parti.cpp" />
+    <ClCompile Include="..\src\party.cpp" />
+    <ClCompile Include="..\src\qExpr.cpp" />
+    <ClCompile Include="..\src\quaere.cpp" />
+    <ClCompile Include="..\src\query.cpp" />
+    <ClCompile Include="..\src\resource.cpp" />
+    <ClCompile Include="..\src\rids.cpp" />
+    <ClCompile Include="..\src\selectClause.cpp" />
+    <ClCompile Include="..\src\selectLexer.cc" />
+    <ClCompile Include="..\src\selectParser.cc" />
+    <ClCompile Include="..\src\tafel.cpp" />
+    <ClCompile Include="..\src\util.cpp" />
+    <ClCompile Include="..\src\utilidor.cpp" />
+    <ClCompile Include="..\src\whereClause.cpp" />
+    <ClCompile Include="..\src\whereLexer.cc" />
+    <ClCompile Include="..\src\whereParser.cc" />
+    <ClCompile Include="..\tests\setqgen.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\array_t.h" />
+    <ClInclude Include="..\src\bitvector.h" />
+    <ClInclude Include="..\src\bitvector64.h" />
+    <ClInclude Include="..\src\blob.h" />
+    <ClInclude Include="..\src\bord.h" />
+    <ClInclude Include="..\src\bundle.h" />
+    <ClInclude Include="..\src\category.h" />
+    <ClInclude Include="..\src\column.h" />
+    <ClInclude Include="..\src\colValues.h" />
+    <ClInclude Include="..\src\const.h" />
+    <ClInclude Include="..\src\countQuery.h" />
+    <ClInclude Include="..\src\dictionary.h" />
+    <ClInclude Include="..\src\fileManager.h" />
+    <ClInclude Include="..\src\filter.h" />
+    <ClInclude Include="..\src\fromClause.h" />
+    <ClInclude Include="..\src\fromLexer.h" />
+    <ClInclude Include="..\src\fromParser.hh" />
+    <ClInclude Include="..\src\horometer.h" />
+    <ClInclude Include="..\src\ibis.h" />
+    <ClInclude Include="..\src\idirekte.h" />
+    <ClInclude Include="..\src\ikeywords.h" />
+    <ClInclude Include="..\src\index.h" />
+    <ClInclude Include="..\src\iroster.h" />
+    <ClInclude Include="..\src\jrange.h" />
+    <ClInclude Include="..\src\location.hh" />
+    <ClInclude Include="..\src\mensa.h" />
+    <ClInclude Include="..\src\meshQuery.h" />
+    <ClInclude Include="..\src\part.h" />
+    <ClInclude Include="..\src\position.hh" />
+    <ClInclude Include="..\src\qExpr.h" />
+    <ClInclude Include="..\src\quaere.h" />
+    <ClInclude Include="..\src\query.h" />
+    <ClInclude Include="..\src\resource.h" />
+    <ClInclude Include="..\src\rids.h" />
+    <ClInclude Include="..\src\selectClause.h" />
+    <ClInclude Include="..\src\selectLexer.h" />
+    <ClInclude Include="..\src\selectParser.hh" />
+    <ClInclude Include="..\src\stack.hh" />
+    <ClInclude Include="..\src\tab.h" />
+    <ClInclude Include="..\src\table.h" />
+    <ClInclude Include="..\src\tafel.h" />
+    <ClInclude Include="..\src\util.h" />
+    <ClInclude Include="..\src\utilidor.h" />
+    <ClInclude Include="..\src\whereClause.h" />
+    <ClInclude Include="..\src\whereLexer.h" />
+    <ClInclude Include="..\src\whereParser.hh" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
