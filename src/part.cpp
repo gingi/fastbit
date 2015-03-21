@@ -2659,6 +2659,8 @@ uint32_t ibis::part::countPages(const ibis::bitvector &mask,
             ++ ix;
         }
     }
+    if (res == 0)
+        res = 1;
     return res;
 } // ibis::part::countPages
 

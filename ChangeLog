@@ -1,55 +1,67 @@
-2014-03-04 John Wu <John dot Wu at ACM dot org>
+2015-03-18 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: countPages return at least one when the mask is
+	not empty (this could happen when all the elements are on the same
+	page)
+
+2015-03-18 John Wu <John dot Wu at ACM dot org>
+	* win: convert *.vcproj to *.vcxproj, update ibis.sln, rename the
+	old file as ibis-vc8.sln
+
+2015-03-11 John Wu <John dot Wu at ACM dot org>
+	* src/iapi.cpp: add print statements to public functions
+
+2015-03-04 John Wu <John dot Wu at ACM dot org>
 	* src/colValues.cpp: review all sorting functions to check for the
 	condition identified by Divya
 
-2014-03-04 Divya Chandrasekar <chadivya at a9 dot com>
+2015-03-04 Divya Chandrasekar <chadivya at a9 dot com>
 	* src/colValues.cpp: add statement to sort the second half of the
 	list of strings
 
-2014-03-02 John Wu <John dot Wu at ACM dot org>
+2015-03-02 John Wu <John dot Wu at ACM dot org>
 	* example/tiapi.c:476 logical error, "nv=n;" should have been
 	"nv=n+n;"
 	* src/iapi.h: add functions
 	fastbit_iapi_register_selection_as_bit_array and
 	fastbit_iapi_extend_bit_array_with_selection
 
-2014-02-28 John Wu <John dot Wu at ACM dot org>
+2015-02-28 John Wu <John dot Wu at ACM dot org>
 	* src/bitvector.h:781 nbits should have been active.nbits
 
-2014-02-26 John Wu <John dot Wu at ACM dot org>
+2015-02-26 John Wu <John dot Wu at ACM dot org>
 	* bitvector.cpp:602 ns should be nb - this causes bad bug in the
 	indexes
 
-2014-02-25 Justin Swanhart <greenlion at gmail dot com>
+2015-02-25 Justin Swanhart <greenlion at gmail dot com>
 	* src/tafel.cpp: patch writeData to correctly print the number of
 	rows handles
 	* src/ibis.cpp: change reorder function to walk through all
 	subdirectories
 
-2014-02-24 John Wu <John dot Wu at ACM dot org>
+2015-02-24 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: prevent column::append to work with index only
 	column, in copy constructor, copy index as well as data values
 	* examples/tiapi.c: move the code that makes a3 index only in
 	queryarray2 to after the doubling of data
 
-2014-02-22 John Wu <John dot Wu at ACM dot org>
+2015-02-22 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: update bord::column::append to handle column type
 	BIT following the new storage scheme
 
-2014-02-21 John Wu <John dot Wu at ACM dot org>
+2015-02-21 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp:19568 "cols[i] == 0" should be "cols[i] != 0"
 	* src/bord.cpp: change back the representation of BIT to separate
 	the content of buffer from mask_ -- to address the problem of a BIT
 
-2014-02-20 John Wu <John dot Wu at ACM dot org>
+2015-02-20 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.cpp: modify functions that frees an array to reduce the
 	size of the global std::vector used to keep track of all arrays
 
-2014-02-17 John Wu <John dot Wu at ACM dot org>
+2015-02-17 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp: update to work with type BIT in the constructors
 	of ibis::bord::column
 
-2014-02-10 John Wu <John dot Wu at ACM dot org>
+2015-02-10 John Wu <John dot Wu at ACM dot org>
 	* src/table.h, src/column.cpp: remove the unused global variable
 	TYPECODE (avoid the need to update it for the addition of BIT
 	type)
@@ -58,47 +70,48 @@
 	with 0/1 values (i.e., bit values)
 	* src/iapi.h, src/iapi.cpp: add function fastbit_iapi_extend_array
 
-2014-02-09 John Wu <John dot Wu at ACM dot org>
+2015-02-09 John Wu <John dot Wu at ACM dot org>
 	* src/capi.h, src/bord.h, src/bord.cpp: add type ibis::BIT
 
-2014-02-06 John Wu <John dot Wu at ACM dot org>
+2015-02-06 John Wu <John dot Wu at ACM dot org>
 	* src/capi.h, src/capi.cpp: add function fastbit_read_clock to
 	report the current time in seconds
 
-2014-02-05 John Wu <John dot Wu at ACM dot org>
+2015-02-05 John Wu <John dot Wu at ACM dot org>
+        * src/Makefile.am: change include_HEADERS to pkginclude_HEADERS
 	* runconfig: change the default path of FastBit install directory
 	to not include fastbit
 	* tests/scripts/fastbit-config.in: move notes into usage
 
-2014-01-31 John Wu <John dot Wu at ACM dot org>
+2015-01-31 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp: Chen's change is equivalent to
 	text::readStrings, rename the original selectStrings to
 	text::readStrings2 and the original text::readStrings to
 	text::readStrings1, add new implementation of selectStrings in
 	terms of readStrings1 and readStrings2
 
-2014-01-30 Chen HANG <hangchen at diditaxi dot com dot cn>
+2015-01-30 Chen HANG <hangchen at diditaxi dot com dot cn>
 	* src/category.cpp: change text::selectStrings to read values from
 	.sp file instead of using a file map.  This improves performance
 	when one or two entries are read from a text file
 
-2014-01-28 John Wu <John dot Wu at ACM dot org>
+2015-01-28 John Wu <John dot Wu at ACM dot org>
 	* src/table.h, src/mensa.cpp: add functions
 	ibis::table::isValidName and ibis::table::consecrateName
 
-2014-01-26 John Wu <John dot Wu at ACM dot org>
+2015-01-26 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: check for the integers read back from metadata
 	file in function readMedaData
 
-2014-01-25 John Wu <John dot Wu at ACM dot org>
+2015-01-25 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.cpp: correct the misuses of the declarations of
 	mutexLock
 
-2014-01-23 John Wu <John dot Wu at ACM dot org>
+2015-01-23 John Wu <John dot Wu at ACM dot org>
 	* src/column.h, src/iapi.h: add notes about the names of the
 	columns
 
-2014-01-04 John Wu <John dot Wu at ACM dot org>
+2015-01-04 John Wu <John dot Wu at ACM dot org>
 	* java/Makefile.am: change include_HEADERS to pkginclude_HEADERS to
 	allow installing in standard system directory
 	* tests/scripts/fastbit-config.in: add notes about including
