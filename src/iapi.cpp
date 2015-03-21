@@ -147,6 +147,9 @@ ibis::bord::column* __fastbit_iapi_register_array
         || n == 0)
         return 0;
 
+    LOGGER(ibis::gVerbose > 3)
+        << "FastBit IAPI registering array \"" << name << "\" with content at "
+        << addr;
     ibis::util::mutexLock
         lock(&__fastbit_iapi_lock, "__fastbit_iapi_register_array");
     FastBitIAPIAddressMap::iterator it = __fastbit_iapi_address_map.find(addr);
@@ -313,6 +316,9 @@ ibis::bord::column* __fastbit_iapi_register_array_nd
         return 0;
     }
 
+    LOGGER(ibis::gVerbose > 3)
+        << "FastBit IAPI registering array \"" << name << "\" with content at "
+        << addr;
     ibis::util::mutexLock
         lock(&__fastbit_iapi_lock, "__fastbit_iapi_register_array_nd");
     FastBitIAPIAddressMap::iterator it = __fastbit_iapi_address_map.find(addr);
@@ -483,6 +489,9 @@ ibis::bord::column* __fastbit_iapi_register_array_ext
         return 0;
     }
 
+    LOGGER(ibis::gVerbose > 3)
+        << "FastBit IAPI registering array \"" << name << "\" with a reader "
+        "function at " << rd;
     ibis::bord::column *tmp =
         new ibis::bord::column(rd, ctx, dims, nd,
                                __fastbit_iapi_convert_data_type(t), name);
@@ -516,6 +525,9 @@ ibis::bord::column* __fastbit_iapi_register_array_index_only
         dims == 0 || nd == 0 || keys == 0 || nkeys == 0 ||
         offsets == 0 || noffsets == 0 || rd == 0)
         return 0;
+    LOGGER(ibis::gVerbose > 3)
+        << "FastBit IAPI registering array \"" << name << "\" (index-only) with "
+        "bitmaps at " << bms;
 
     ibis::bord::column *tmp =
         new ibis::bord::column(static_cast<const ibis::bord*>(0),
@@ -1172,10 +1184,20 @@ extern "C" FastBitSelectionHandle fastbit_selection_create
         return 0;
 
     ret = new ibis::qContinuousRange(col->name(), cmp, dval);
-    if (negate) {
+    if (ret != 0 && negate) {
         ibis::qExpr *tmp = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
         tmp->setLeft(ret);
         ret = tmp;
+    }
+    if (ret != 0) {
+        LOGGER(ibis::gVerbose > 3)
+            << "fastbit_selection_create produced query expression \"" << *ret
+            << '"';
+    }
+    else {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_selection_create failed to create a range "
+            "condition on " << buf;
     }
     return ret;
 } // fastbit_selection_create
@@ -1223,6 +1245,16 @@ extern "C" FastBitSelectionHandle fastbit_selection_create_nd
         ibis::qExpr *tmp = new ibis::qExpr(ibis::qExpr::LOGICAL_NOT);
         tmp->setLeft(ret);
         ret = tmp;
+    }
+    if (ret != 0) {
+        LOGGER(ibis::gVerbose > 3)
+            << "fastbit_selection_create_nd produced query expression \"" << *ret
+            << '"';
+    }
+    else {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_selection_create_nd failed to create a range "
+            "condition on " << buf;
     }
     return ret;
 } // fastbit_selection_create_nd
@@ -1293,6 +1325,16 @@ extern "C" FastBitSelectionHandle fastbit_selection_combine
         ret->setLeft(tmp);
         break;}
     }
+    if (ret != 0) {
+        LOGGER(ibis::gVerbose > 3)
+            << "fastbit_selection_combine successfully combined " << h1
+            << " and " << h2 << " into " << *ret;
+    }
+    else {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_selection_combine failed to combine " << h1
+            << " with " << h2;
+    }
     return ret;
 } // fastbit_selection_combine
 
@@ -1320,11 +1362,10 @@ extern "C" int64_t fastbit_selection_estimate(FastBitSelectionHandle h) {
     ierr = que.estimate();
     if (ierr < 0)
         return -4;
-
+    LOGGER(ibis::gVerbose > 2)
+        << "fastbit_selection_estimate: " << que.getWhereClause() << " --> ["
+        << que.getMinNumHits() << ", " << que.getMinNumHits() << ']';
     if (que.getMinNumHits() == que.getMaxNumHits()) {
-        LOGGER(ibis::gVerbose > 4)
-            << "fastbit_selection_estimate: " << que.getWhereClause()
-            << " ==> " << que.getNumHits();
         ibis::util::mutexLock lock(&__fastbit_iapi_lock,
                                    "fastbit_selection_estimate");
         __fastbit_iapi_selection_list[h] =
@@ -1367,7 +1408,7 @@ extern "C" int64_t fastbit_selection_evaluate(FastBitSelectionHandle h) {
     if (ierr < 0)
         return -4;
 
-    LOGGER(ibis::gVerbose > 4)
+    LOGGER(ibis::gVerbose > 2)
         << "fastbit_selection_evaluate: " << que.getWhereClause()
         << " ==> " << que.getNumHits();
     ibis::util::mutexLock lock(&__fastbit_iapi_lock,
@@ -1542,6 +1583,8 @@ extern "C" void fastbit_iapi_free_array(const char *nm) {
         __fastbit_iapi_name_map.find(nm);
     if (it == __fastbit_iapi_name_map.end()) return;
 
+    LOGGER(ibis::gVerbose > 3)
+        << "FastBit IAPI freeing array \"" << nm << '"';
     ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_array");
     it = __fastbit_iapi_name_map.find(nm);
     if (it->second < __fastbit_iapi_all_arrays.size()) {
@@ -1557,6 +1600,8 @@ extern "C" void fastbit_iapi_free_array_by_addr(void *addr) {
         __fastbit_iapi_address_map.find(addr);
     if (it == __fastbit_iapi_address_map.end()) return;
 
+    LOGGER(ibis::gVerbose > 3)
+        << "FastBit IAPI freeing array at " << addr;
     ibis::util::mutexLock lock(&__fastbit_iapi_lock, "fastbit_free_array");
     it = __fastbit_iapi_address_map.find(addr);
     if (it->second < __fastbit_iapi_all_arrays.size()) {
