@@ -1,3 +1,22 @@
+Mon Mar 23 23:14:31 PDT 2015
+Version 2.0.2
+-- address thread safty issue with bitvector::do_cnt
+-- modify dictionary impelementation to allow users to specify arbitrary
+   non-negative values (reserve -1 for NULL values)
+-- install header files in subdirectory fastbit (requiring #include
+   <fastbit/ibis.h> instead of #include <ibis.h>)
+-- accept a patch from Chen HANG to improve the performance of reading a
+   small number of string values in the query results
+-- add support for ibis::BIT as a data type
+-- accept a patch from Justin Swnhart to fix problem in tafel::writeData
+-- fix problem with bitvecotr::do_cnt zeroing out the incorrect data
+   elements
+-- accept a patch from Divya Chandrasekar in sorting string values in
+   colValues.cpp
+-- fix the problem of part::countPages returning 0 when all data are
+   located on the same page
+
+
 Mon Dec 15 01:26:31 PST 2014
 Version 2.0.1
 -- fixing problem with html documentation

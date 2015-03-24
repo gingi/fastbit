@@ -78,7 +78,6 @@
 	report the current time in seconds
 
 2015-02-05 John Wu <John dot Wu at ACM dot org>
-        * src/Makefile.am: change include_HEADERS to pkginclude_HEADERS
 	* runconfig: change the default path of FastBit install directory
 	to not include fastbit
 	* tests/scripts/fastbit-config.in: move notes into usage
@@ -101,7 +100,7 @@
 
 2015-01-26 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: check for the integers read back from metadata
-	file in function readMedaData
+	file in function readMetaData
 
 2015-01-25 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.cpp: correct the misuses of the declarations of
@@ -134,7 +133,7 @@
 2014-12-26 John Wu <John dot Wu at ACM dot org>
 	* src/dictionary.h, src/dictionary.cpp: modify the dictionary code
 	to allow users to pass in an arbitrary combination of integers and
-	strings, chnage the integer code for null values from 0 to -1
+	strings, change the integer code for null values from 0 to -1
 	(0xFFFFFFFFU in 32-bit unsigned integer format)
 
 2014-12-16 John Wu <John dot Wu at ACM dot org>
