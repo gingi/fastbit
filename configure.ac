@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [2.0.2], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [2.0.2.1], [fastbit-users@hpcrdm.lbl.gov])
 #AC_PACKAGE_URL(http://sdm.lbl.gov/fastbit/)
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
@@ -193,8 +193,8 @@ AC_COMPILE_IFELSE([
 		std::equal_to<const char*> > myhashmap;
 		return (myhashmap.size() == 0);
 		]])], [AC_MSG_RESULT([yes])
-		AC_DEFINE(HAVE_UNORDERED_MAP, 2, [Compiler support std::unordered_map])],[AC_MSG_RESULT([no])	
-	
+		AC_DEFINE(HAVE_UNORDERED_MAP, 2, [Compiler support std::unordered_map])],[AC_MSG_RESULT([no])
+
 		# c++11 not found, trying c++0x
 		AC_MSG_CHECKING([for c++0x])
 		EXTRA_CXXFLAGS=$(echo "$EXTRA_CXXFLAGS" | sed 's/c++11/c++0x/')
@@ -209,6 +209,21 @@ AC_COMPILE_IFELSE([
 			return (myhashmap.size() == 0);
 			]])], [AC_MSG_RESULT([yes])
 			AC_DEFINE(HAVE_UNORDERED_MAP, 3, [Compiler support std::unordered_map])], [AC_MSG_RESULT([no])
+
+			# c++0x not found, trying gnu++0x
+			AC_MSG_CHECKING([for gnu++0x])
+			EXTRA_CXXFLAGS=$(echo "$EXTRA_CXXFLAGS" | sed 's/c++0x/gnu++0x/')
+			CXXFLAGS=$(echo "$CXXFLAGS" | sed 's/c++0x/gnu++0x/')
+			AC_COMPILE_IFELSE([
+		   	AC_LANG_PROGRAM([[
+			#include <unordered_map>
+			]], [[
+			std::unordered_map<const char*, unsigned,
+			std::hash<const char*>,
+			std::equal_to<const char*> > myhashmap;
+			return (myhashmap.size() == 0);
+			]])], [AC_MSG_RESULT([yes])
+			AC_DEFINE(HAVE_UNORDERED_MAP, 4, [Compiler support std::unordered_map])], [AC_MSG_RESULT([no])
 			      CXXFLAGS="$ac_save_CXXFLAGS -Werror"
 			      AC_TRY_COMPILE([[
 			      #include <ext/hash_map>
@@ -219,7 +234,7 @@ AC_COMPILE_IFELSE([
 			      CXXFLAGS="$ac_save_CXXFLAGS"
 			      EXTRA_CXXFLAGS="ac_save_X$CXXFLAGS"],
 			      [AC_MSG_ERROR([$CXX not able to compile a sample code with std::unordered_map using c++11 or c++0x.  Consider using GCC 4.8 or newer])])
-	])])])
+	])])])])
 
 AC_ARG_WITH(getpwuid,
 	AS_HELP_STRING([--with-getpwuid],[specify --without-getpwuid to disable the attempt to use getpwuid to determine the user name]),
@@ -576,17 +591,17 @@ AC_TRY_LINK([
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
-AC_MSG_CHECKING([whether necessary to undefine __STRICT_ANSI__ for use of popen/pclose])
-if AC_TRY_COMMAND($CXX $CXXFLAGS -DFASTBIT_RMDIR_USE_RM -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp) && test -s util.o; then
+AC_MSG_CHECKING([whether necessary to undefine __STRINCT_ANSI__ for use of popen/pclose])
+if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
   AC_MSG_RESULT([no])
 else
   CXXCPP="$CXXCPP -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
   CXXFLAGS="$CXXFLAGS -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
   EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
-  if AC_TRY_COMMAND($CXX $CXXFLAGS -DFASTBIT_RMDIR_USE_RM -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp) && test -s util.o; then
+  if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
     AC_MSG_RESULT([undefining __STRICT_ANSI__ works])
   else
-    AC_MSG_ERROR([undefining __STRICT_ANSI__ did not work, src/util.cpp can not be compiled with $CXX $CXXFLAGS -DFASTBIT_RMDIR_USE_RM -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp])
+    AC_MSG_ERROR([undefining __STRICT_ANSI__ did not work, src/util.cpp can not be compiled with $CXX $CXXFLAGS])
   fi
 fi
 rm -f util.o

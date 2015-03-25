@@ -1,4 +1,11 @@
-2015-03-18 John Wu <John dot Wu at ACM dot org>
+2015-03-25 John Wu <John dot Wu at ACM dot org>
+	* src/const.h: on MINGW, stricmp should be _stricmp
+	* src/util.cpp: add conditional compilation for pwd.h on MinGW
+
+2015-03-24 John Wu <John dot Wu at ACM dot org>
+	* runconfig: add special flags for compiling on cygwin and mingw
+
+2015-03-21 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: countPages return at least one when the mask is
 	not empty (this could happen when all the elements are on the same
 	page)

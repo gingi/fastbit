@@ -63,8 +63,8 @@ http://sdm.lbl.gov/fastbit/doc/.
 As of 2014, FastBit source code starts to make use of some C++11x
 features that are not supported yet in MS Visual Studio, therefore,
 there is no way to compile with Visual Studio until C++0x is
-supported.  However, it is possible to compile with CYGWIN.
-
+supported.  However, it is possible to compile with MinGW and CYGWIN.
+Take are to use the extra flags presented in 
 
 The FastBit mailing list could be a valuable resource.  It is archived
 on line at http://hpcrdm.lbl.gov/mailman/private/fastbit-users/.  If you have
