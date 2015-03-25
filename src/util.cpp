@@ -9,16 +9,19 @@
 #pragma warning(disable:4786)   // some identifier longer than 256 characters
 #include <direct.h>     // _rmdir
 #endif
-#include "util.h"
-#include "horometer.h"
-#include "resource.h"
-#include <stdarg.h>     // vsprintf
-#if defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
+#if defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE) || defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__)
+#if defined(HAVE_GETPWUID) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__))
 #include <pwd.h>        // getpwuid
+#endif
 #include <unistd.h>     // getuid, rmdir, sysconf
 #include <sys/stat.h>   // stat
 #include <dirent.h>     // opendir, readdir
 #endif
+
+#include "util.h"
+#include "horometer.h"
+#include "resource.h"
+#include <stdarg.h>     // vsprintf
 
 #include <set>          // std::set
 #include <limits>       // std::numeric_limits
@@ -1814,7 +1817,7 @@ const char* ibis::util::userName() {
         char buf[64];
         if (GetUserName(buf, &len))
             uid = buf;
-#elif defined(__MINGW32__)
+#elif defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__)
         // MinGW does not have support for user names?!
 #elif defined(HAVE_GETPWUID)
 #if (defined(HAVE_GETPWUID_R) || defined(_REENTRANT) || \
@@ -2503,7 +2506,7 @@ bool ibis::util::nameMatch(const char *str, const char *pat) {
 /// the string (as from asctime_r).  The argument @c str must contain at
 /// least 26 bytes.  The new line character is turned into null.
 void ibis::util::secondsToString(const time_t sec, char *str) {
-#if defined(_MSC_VER) && defined(_WIN32)
+#if (defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)) && defined(_WIN32)
     strcpy(str, asctime(localtime(&sec)));
     str[24] = 0;
 #else
@@ -2526,7 +2529,7 @@ void ibis::util::secondsToString(const time_t sec, char *str) {
 /// Therefore the returned string contains only 24 characters.
 void ibis::util::getLocalTime(char *str) {
     time_t sec = time(0); // current time in seconds
-#if defined(_MSC_VER) && defined(_WIN32)
+#if (defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)) && defined(_WIN32)
     strcpy(str, asctime(localtime(&sec)));
     str[24] = 0;
 #else
@@ -2546,7 +2549,7 @@ void ibis::util::getLocalTime(char *str) {
 /// carry the time output.
 void ibis::util::getGMTime(char *str) {
     time_t sec = time(0); // current time in seconds
-#if defined(_MSC_VER) && defined(_WIN32)
+#if (defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)) && defined(_WIN32)
     strcpy(str, asctime(gmtime(&sec)));
     str[24] = 0;
 #else

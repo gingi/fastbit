@@ -366,7 +366,7 @@ typedef int (*FastBitReadExtArray)
 // functions for case-insensitive string comparisons
 //
 #ifdef _WIN32
-#  if _MSC_VER >= 1500
+#  if _MSC_VER >= 1500 || defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__)
 #    define strnicmp _strnicmp
 #    define stricmp _stricmp
 #  endif

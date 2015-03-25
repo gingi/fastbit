@@ -24,10 +24,11 @@
 #include <stdexcept>    // std::invalid_argument
 #include <memory>       // std::unique_ptr
 
-#include <signal.h>     // SIGINT
+#include <stdio.h>      // popen, pclose
 #include <stdlib.h>     // rand
 #include <stdarg.h>     // vsprintf, ...
 #include <ctype.h>      // tolower
+#include <signal.h>     // SIGINT
 
 #if defined(HAVE_DIRENT_H) || defined(__unix__) || defined(__HOS_AIX__) \
     || defined(__APPLE__) || defined(__CYGWIN__) || defined(__MINGW32__) \

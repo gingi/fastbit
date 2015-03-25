@@ -5,10 +5,12 @@
 # might be instructive for configuring the package on other machines.
 #
 use Env qw(HOME HOSTNAME PWD);
+
 if (! ${HOSTNAME}) {
   $HOSTNAME=`hostname`;
 }
 print "Configuring on ${HOSTNAME}\n";
+
 if (${HOSTNAME} =~ m/^bit/) {
   # on a Mac used by a developer, enable maintainer mode, use debug options # CC=gcc-mp-4.7 CXX=g++-mp-4.7 # CC=clang CXX=clang++ -gdwarf-2 
   $cmd="./configure --prefix=${HOME}/tmp --enable-maintainer-mode --with-java CFLAGS='-g -O0 -Wall' CXXFLAGS='-g -O0 -Wall'";
@@ -47,8 +49,14 @@ if (${HOSTNAME} =~ m/^bit/) {
   # on other NERSC machines, use the GNU compilers, no debugging
   use Env qw(NERSC_HOST);
   $cmd="./configure --prefix=/project/projectdirs/m1248/${NERSC_HOST}/gnu --without-getpwuid --with-quiet-nan --disable-debug --enable-xopt";
-} else {	# use all default options on generic linux/unix machines
-  $cmd="./configure --prefix=${PWD}/installed";
+} else {	# based on machine type
+  $HOSTTYPE=`uname`;
+#  if (${HOSTTYPE} =~ m/CYGWIN/i || ${HOSTTYPE} =~ m/MINGW/i) {
+#    $cmd="./configure --prefix=${PWD}/installed CXXFLAGS='-O2 -g -std=gnu++0x -U__STRICT_ANSI__'";
+#  }
+#  else { # default options on generic linux/unix machines
+    $cmd="./configure --prefix=${PWD}/$HOSTTYPE";
+#  }
 }
 print "$cmd\n\n";
 system($cmd);
