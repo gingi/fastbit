@@ -1,3 +1,8 @@
+2015-03-30 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: add -DWITHOUT_FASTBIT_CONFIG_H when attempting to
+	compile util.cpp for testing the compiler flags needed for popen
+	and pclose
+
 2015-03-25 John Wu <John dot Wu at ACM dot org>
 	* src/const.h: on MINGW, stricmp should be _stricmp
 	* src/util.cpp: add conditional compilation for pwd.h on MinGW

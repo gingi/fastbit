@@ -1,3 +1,11 @@
+*********************************************************************
+* NOTE: Due to the uses of C++11 and C99 features, as of late 2014, *
+* FastBit code can only be compiled on MS Windows under CygWin with *
+* the latest GCC/G++ compilers!                                     *
+*********************************************************************
+
+
+
 This directory contains a makefile (Win.mak) and a set of project files
 for building the library and the examples.  They require Visual Studio
 .NET or later as well as a version of pthreads-win32.  You have to edit

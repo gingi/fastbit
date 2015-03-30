@@ -548,7 +548,7 @@ AC_TRY_LINK([
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
-AC_MSG_CHECKING([whether necessary to undefine __STRINCT_ANSI__ for use of popen/pclose])
+AC_MSG_CHECKING([whether necessary to undefine __STRICT_ANSI__ for use of popen/pclose])
 if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
   AC_MSG_RESULT([no])
 else
@@ -566,17 +566,17 @@ rm -f util.o
 # make sure FlexLexer.h defines yywrap
 #AC_CHECK_HEADER([FlexLexer.h], [], [AC_MSG_ERROR([unable to find FlexLexer.h])])
 AC_MSG_CHECKING([if the default FlexLexer.h defines yywrap])
-if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/whereLexer.cc) && test -s whereLexer.o; then
+if AC_TRY_COMMAND($CXX $CXXFLAGS -DWITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
   AC_MSG_RESULT([yes])
 else
   T=`which flex`
   if test ${#T} -gt 9 ; then
     FLDIR="-I `echo $T | cut -c 1-$((${#T} - 8))`include"
-    if AC_TRY_COMMAND($CXX $CXXFLAGS $FLDIR -c src/whereLexer.cc) && test -s whereLexer.o; then
+    if AC_TRY_COMMAND($CXX $CXXFLAGS $FLDIR -DWITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
       AC_MSG_RESULT([yes, use ${FLDIR}])
       AM_CPPFLAGS="${AM_CPPFLAGS} ${FLDIR}"
     else
-      if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -D WITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
+      if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -DWITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
         AC_MSG_RESULT([no, use ${PWD}/win/FlexLexer.h])
 	AM_CPPFLAGS="${AM_CPPFLAGS} -I ${PWD}/win"
       else
@@ -584,7 +584,7 @@ else
       fi
     fi
   else
-    if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -D WITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
+    if AC_TRY_COMMAND($CXX $CXXFLAGS -I ${PWD}/win -DWITHOUT_FASTBIT_CONFIG_H -c src/whereLexer.cc) && test -s whereLexer.o; then
       AC_MSG_RESULT([no, use ${PWD}/win/FlexLexer.h])
       AM_CPPFLAGS="${AM_CPPFLAGS} -I ${PWD}/win"
     else
