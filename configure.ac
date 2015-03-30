@@ -591,7 +591,7 @@ AC_TRY_LINK([
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
-AC_MSG_CHECKING([whether necessary to undefine __STRINCT_ANSI__ for use of popen/pclose])
+AC_MSG_CHECKING([whether necessary to undefine __STRICT_ANSI__ for use of popen/pclose])
 if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
   AC_MSG_RESULT([no])
 else
