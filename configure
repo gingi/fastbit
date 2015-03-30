@@ -16731,7 +16731,7 @@ CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether necessary to undefine __STRICT_ANSI__ for use of popen/pclose" >&5
 $as_echo_n "checking whether necessary to undefine __STRICT_ANSI__ for use of popen/pclose... " >&6; }
-if { ac_try='$CXX $CXXFLAGS -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp'
+if { ac_try='$CXX $CXXFLAGS -DFASTBIT_RMDIR_USE_RM -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -16743,7 +16743,7 @@ else
   CXXCPP="$CXXCPP -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
   CXXFLAGS="$CXXFLAGS -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
   EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
-  if { ac_try='$CXX $CXXFLAGS -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp'
+  if { ac_try='$CXX $CXXFLAGS -DFASTBIT_RMDIR_USE_RM -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -16752,7 +16752,7 @@ else
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: undefining __STRICT_ANSI__ works" >&5
 $as_echo "undefining __STRICT_ANSI__ works" >&6; }
   else
-    as_fn_error $? "undefining __STRICT_ANSI__ did not work, src/util.cpp can not be compiled with $CXX $CXXFLAGS -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp" "$LINENO" 5
+    as_fn_error $? "undefining __STRICT_ANSI__ did not work, src/util.cpp can not be compiled with $CXX $CXXFLAGS -DFASTBIT_RMDIR_USE_RM -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp" "$LINENO" 5
   fi
 fi
 rm -f util.o
