@@ -1049,7 +1049,7 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     }
     else {
         LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- " << event << " failed to popen(" << cmd << ") ... ",
+            << "Warning -- " << event << " failed to popen(" << cmd << ") ... "
             << strerror(errno);
     }
 #elif defined(_WIN32) && defined(_MSC_VER)
