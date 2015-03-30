@@ -13,9 +13,9 @@
 #if defined(HAVE_GETPWUID) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__))
 #include <pwd.h>        // getpwuid
 #endif
-#include <unistd.h>     // getuid, rmdir, sysconf
+#include <unistd.h>     // getuid, rmdir, sysconf, popen, pclose
 #include <sys/stat.h>   // stat
-#include <dirent.h>     // opendir, readdir
+#include <dirent.h>     // DIR, opendir, readdir
 #endif
 
 #include "util.h"
