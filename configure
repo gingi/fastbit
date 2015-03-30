@@ -16729,8 +16729,8 @@ rm -f core conftest.err conftest.$ac_objext \
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether necessary to undefine __STRINCT_ANSI__ for use of popen/pclose" >&5
-$as_echo_n "checking whether necessary to undefine __STRINCT_ANSI__ for use of popen/pclose... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether necessary to undefine __STRICT_ANSI__ for use of popen/pclose" >&5
+$as_echo_n "checking whether necessary to undefine __STRICT_ANSI__ for use of popen/pclose... " >&6; }
 if { ac_try='$CXX $CXXFLAGS -c src/util.cpp'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
