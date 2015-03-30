@@ -592,16 +592,16 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 
 AC_MSG_CHECKING([whether necessary to undefine __STRICT_ANSI__ for use of popen/pclose])
-if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
+if AC_TRY_COMMAND($CXX $CXXFLAGS -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp) && test -s util.o; then
   AC_MSG_RESULT([no])
 else
   CXXCPP="$CXXCPP -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
   CXXFLAGS="$CXXFLAGS -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
   EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC"
-  if AC_TRY_COMMAND($CXX $CXXFLAGS -c src/util.cpp) && test -s util.o; then
+  if AC_TRY_COMMAND($CXX $CXXFLAGS -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp) && test -s util.o; then
     AC_MSG_RESULT([undefining __STRICT_ANSI__ works])
   else
-    AC_MSG_ERROR([undefining __STRICT_ANSI__ did not work, src/util.cpp can not be compiled with $CXX $CXXFLAGS])
+    AC_MSG_ERROR([undefining __STRICT_ANSI__ did not work, src/util.cpp can not be compiled with $CXX $CXXFLAGS -DWITHOUT_FASTBIT_CONFIG_H -c src/util.cpp])
   fi
 fi
 rm -f util.o
