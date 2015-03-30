@@ -9,6 +9,11 @@
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable:4786)   // some identifier longer than 256 characters
 #endif
+#if defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE) || defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__)
+#include <unistd.h>     // popen, pclose
+#include <sys/stat.h>   // stat
+#include <dirent.h>     // DIR, opendir, readdir
+#endif
 
 #include "blob.h"       // ibis::blob
 #include "category.h"   // ibis::text, ibis::category, ibis::column
