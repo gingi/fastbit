@@ -1021,7 +1021,7 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     std::string event = "util::removeDir(";
     event += name;
     event += ")";
-#if defined(USE_RM)
+#if defined(FASTBIT_RMDIR_USE_RM)
     if (leaveDir)
         sprintf(cmd, "/bin/rm -rf \"%s\"/*", name);
     else
