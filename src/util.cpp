@@ -10,9 +10,6 @@
 #include <direct.h>     // _rmdir
 #endif
 #if defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE) || defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
-#if  (defined(HAVE_GETPWUID) || defined(HAVE_GETPWUID_R)) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__))
-#include <pwd.h>        // getpwuid
-#endif
 #include <unistd.h>     // getuid, rmdir, sysconf, popen, pclose
 #include <sys/stat.h>   // stat
 #include <dirent.h>     // DIR, opendir, readdir
@@ -27,6 +24,9 @@
 #include <limits>       // std::numeric_limits
 #include <locale>       // std::numpunct<char>
 #include <iostream>     // std::cout
+#if  (defined(HAVE_GETPWUID) || defined(HAVE_GETPWUID_R)) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__))
+#include <pwd.h>        // getpwuid
+#endif
 
 // global variables
 #if defined(DEBUG)
