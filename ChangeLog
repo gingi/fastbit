@@ -1,3 +1,8 @@
+2015-03-31 Petr Velan <petr dot velan at cesnet dot cz>
+	* src/util.cpp: move the include <pwd.h> statement to after util.h
+	is included because HAVE_GETPWUID is defined in util.h (which
+	eventually get it from src/fastbit-config.h)
+
 2015-03-30 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: add -DWITHOUT_FASTBIT_CONFIG_H when attempting to
 	compile util.cpp for testing the compiler flags needed for popen
