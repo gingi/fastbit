@@ -10,7 +10,7 @@
 #include <direct.h>     // _rmdir
 #endif
 #if defined(__unix__) || defined(__HOS_AIX__) || defined(__APPLE__) || defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE) || defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
-#if  (defined(HAVE_GETPWUID) || defined(HAVE_GETPWUID_R)) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__))
+#if  (defined(HAVE_GETPWUID) || defined(HAVE_GETPWUID_R)) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__))
 #include <pwd.h>        // getpwuid
 #endif
 #include <unistd.h>     // getuid, rmdir, sysconf, popen, pclose
@@ -1819,7 +1819,7 @@ const char* ibis::util::userName() {
             uid = buf;
 #elif defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__)
         // MinGW does not have support for user names?!
-#elif defined(HAVE_GETPWUID)
+#elif defined(HAVE_GETPWUID) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__))
 #if (defined(HAVE_GETPWUID_R) || defined(_REENTRANT) || \
      defined(_POSIX_THREAD_SAFE_FUNCTIONS) || defined(__sun) || \
      defined(_THREAD_SAFE) || defined(__APPLE__) || defined(__FreeBSD__)) && \
