@@ -28,11 +28,11 @@
 #include <typeinfo>     // typeid
 #include <stdexcept>    // std::invalid_argument
 #include <memory>       // std::unique_ptr
+#include <cctype>       // std::tolower
 
 #include <stdio.h>      // popen, pclose
 #include <stdlib.h>     // rand
 #include <stdarg.h>     // vsprintf, ...
-#include <ctype.h>      // tolower
 #include <signal.h>     // SIGINT
 
 #if defined(HAVE_DIRENT_H) || defined(__unix__) || defined(__HOS_AIX__) \
@@ -1423,7 +1423,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 #if defined(INDEX_SPEC_TO_LOWER)
             s1 = idxstr + std::strlen(idxstr) - 1;
             while (s1 >= idxstr) {
-                *s1 = tolower(*s1);
+                *s1 = std::tolower(*s1);
                 -- s1;
             }
 #endif
@@ -1436,7 +1436,7 @@ int ibis::part::readMetaData(uint32_t &nrows, columnList &plist,
 #if defined(INDEX_SPEC_TO_LOWER)
             s1 = idxstr + std::strlen(idxstr) - 1;
             while (s1 >= idxstr) {
-                *s1 = tolower(*s1);
+                *s1 = std::tolower(*s1);
                 -- s1;
             }
 #endif
@@ -1991,7 +1991,7 @@ void ibis::part::digestMeshShape(const char *shape) {
             }
             str = tmp + strspn(tmp, " \t=");
         }
-        while (*str && !isdigit(*str)) // skip everything not a digit
+        while (*str && !std::isdigit(*str)) // skip everything not a digit
             ++ str;
 
         uint32_t dim = 0;
@@ -6834,10 +6834,18 @@ ibis::column* ibis::part::getColumn(const char* prop) const {
     }
     else if (*prop == '_') {
         for (++ prop; *prop == '_'; ++ prop); // skip leading '_'
-        if (isdigit(*prop) != 0) {
-            unsigned ind = *prop - '0';
-            for (++ prop; isdigit(*prop); ++ prop) {
-                ind = ind * 10 + (*prop - '0');
+        if (std::isxdigit(*prop) != 0) { // hexdecimal digits
+            unsigned ind = 0;
+            for (; std::isxdigit(*prop); ++ prop) {
+                if (std::isdigit(*prop)) {
+                    ind = ind * 16 + (*prop - '0');
+                }
+                else if (*prop >= 'A' && *prop <= 'F') {
+                    ind = ind * 16 + (10 + *prop - 'A');
+                }
+                else {
+                    ind = ind * 16 + (10 + *prop - 'a');
+                }
             }
             if (ind < colorder.size()) {
                 return const_cast<ibis::column*>(colorder[ind]);
@@ -18738,7 +18746,7 @@ void ibis::part::deriveBackupDirName() {
     backupDir = new char[j+12];
     (void) strcpy(backupDir, activeDir);
     char* ptr = backupDir + j - 1;
-    while (ptr>=backupDir && isdigit(*ptr)) {
+    while (ptr>=backupDir && std::isdigit(*ptr)) {
         -- ptr;
     }
     ++ ptr;
