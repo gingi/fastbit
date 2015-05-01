@@ -4282,18 +4282,23 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
                           const char* desc) const {
     std::string mydesc;
     if (desc == 0 || *desc == 0) {
-        mydesc = sel.getString();
-        mydesc += " on ";
-        mydesc += m_desc;
+        mydesc = "SELECT ";
+        mydesc += sel.getString();
+        mydesc += " FROM ";
+        mydesc += m_name;
         desc = mydesc.c_str();
     }
     std::string tn = ibis::util::randName(desc);
     if (nEvents == 0 || columns.empty() || sel.empty()) {
         return 0;
     }
-    LOGGER(ibis::gVerbose > 4)
-        << "bord[" << ibis::part::name() << "]::evaluateTerms processing "
-        << desc << " to produce an in-memory data partition named " << tn;
+    if (ibis::gVerbose > 4) {
+        ibis::util::logger lg(4);
+        lg() << "bord[" << ibis::part::name() << "]::evaluateTerms processing "
+             << desc << " to produce an in-memory data partition named " << tn;
+        if (ibis::gVerbose > 6)
+            print(lg());
+    }
 
     long ierr;
     ibis::bitvector msk;
@@ -4311,8 +4316,8 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
         const ibis::math::term* t = sel.aggExpr(j);
         std::string de = sel.aggDescription(j);
         LOGGER(ibis::gVerbose > 4)
-            << "bord[" << ibis::part::name() << "] -- evaluating \""
-            << de << '"';
+            << "bord[" << ibis::part::name() << "] -- evaluating term # " << j
+            << ": \"" << de << '"';
 
         dct.push_back(0);
         switch (t->termType()) {
@@ -4367,7 +4372,7 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
             if (col == 0) {
                 LOGGER(ibis::gVerbose > 0)
                     << "Warning -- bord::evaluateTerms(" << desc
-                    << ") failed to find a column " << j << " named " << cn1;
+                    << ") failed to find column # " << j << " named " << cn1;
                 continue;
             }
 

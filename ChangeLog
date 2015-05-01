@@ -1,3 +1,9 @@
+2015-04-30 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: in function getColumn, the column name of the form
+	'__xx' is interpreted as decimal numbers, but the function
+	selectClause::fillNames that generated these names are producing
+	hexadecimal numbers
+
 2015-03-31 Petr Velan <petr dot velan at cesnet dot cz>
 	* src/util.cpp: move the include <pwd.h> statement to after util.h
 	is included because HAVE_GETPWUID is defined in util.h (which

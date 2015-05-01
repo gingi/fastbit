@@ -338,7 +338,7 @@ be placed in a file, where each select statement is followed by a
 semi-column ';' per SQL standard.  This option take the query file name
 and read the queries into an internal list of queries.  It is possible
 to execute the queries using multiple threads with the option
-<code>-t</code>.
+<code>-th</code>.
 
 <li><code>-rid[-check] [filename]</code>
 
@@ -370,8 +370,12 @@ a sequence scan of the raw data.
 
 <li><code>-t[=n]</code>
 <br>Instructs ibis to perform predefined self tests.  If a positive
-integer is provided, it take the given number as the number of tests to
+integer is provided, it takes the given number as the number of tests to
 perform.
+
+<li><code>-th=n</code>
+<br>Instructs ibis to start <code>n</code> threads to answer queries.
+Typically, the queries would be specified through the option <code>-f</code>.
 
 <li><code>-v[=n]</code>
 <br>Any integer can be specified as the verbose level.  Typically range
