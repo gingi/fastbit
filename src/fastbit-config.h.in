@@ -9,6 +9,9 @@
 /* Define an integer version of FastBit IBIS version number */
 #undef FASTBIT_IBIS_INT_VERSION
 
+/* Compiler support <atomic> template */
+#undef HAVE_ATOMIC_TEMPLATE
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H

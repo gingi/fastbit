@@ -15853,6 +15853,8 @@ fi
 
 
 # test to determine if any known flags are needed for unordered_map
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for unordered_map" >&5
+$as_echo_n "checking for unordered_map... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -15877,8 +15879,6 @@ $as_echo "#define HAVE_UNORDERED_MAP 1" >>confdefs.h
 
 else
 
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for unordered_map" >&5
-$as_echo_n "checking for unordered_map... " >&6; }
 	    ac_save_CFLAGS="$CFLAGS"
 	    ac_save_CXXFLAGS="$CXXFLAGS"
 	    ac_save_XCXXFLAGS="$EXTRA_CXXFLAGS"
@@ -16180,6 +16180,7 @@ $as_echo "#define FASTBIT_DOUBLE_NULL std::numeric_limits<double>::max()" >>conf
 
 fi
 
+# check the option about threading
 
 # Check whether --with-pthread was given.
 if test "${with_pthread+set}" = set; then :
@@ -16507,6 +16508,82 @@ $as_echo "#define HAVE_STRTOLL 1" >>confdefs.h
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
+
+# check for the presence of <atomic> template and
+# test for the usability of atomic<uint32_t> and atomic<uint64_t>
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for atomic template" >&5
+$as_echo_n "checking for atomic template... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+	#include <atomic>
+
+int
+main ()
+{
+
+	std::atomic<uint32_t> ai32(0);
+	std::atomic<uint64_t> ai64(1);
+	ai32++;
+	ai64--;
+	if (ai32.load() == 1 && ai64.load() == 0)
+	    return 0;
+	else
+	    return -1;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_ATOMIC_TEMPLATE 1" >>confdefs.h
+
+else
+  ac_save_CXXFLAGS="$CXXFLAGS"
+     ac_save_XCXXFLAGS="$EXTRA_CXXFLAGS"
+     EXTRA_CXXFLAGS="-std=c++11";
+     CXXFLAGS="$CXXFLAGS -std=c++11";
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+	#include <atomic>
+
+int
+main ()
+{
+
+	std::atomic<uint32_t> ai32(0);
+	std::atomic<uint64_t> ai64(1);
+	ai32++;
+	ai64--;
+	if (ai32.load() == 1 && ai64.load() == 0)
+	    return 0;
+	else
+	    return -1;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_ATOMIC_TEMPLATE 2" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	 EXTRA_CXXFLAGS="$ac_save_XCXXFLAGS";
+	 CXXFLAGS="$ac_save_CXXFLAGS";
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 # Does this compiler have built-in functions for atomic memory access?
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if compiler supports __sync_add_and_fetch for 32-bit integers" >&5
@@ -16858,7 +16935,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16861 "configure" */
+/* #line 16938 "configure" */
 public class Test {
 }
 EOF
@@ -16989,7 +17066,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 16992: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 17069: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -17066,7 +17143,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17069 "configure" */
+/* #line 17146 "configure" */
 public class Test {
 }
 EOF
@@ -17101,7 +17178,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 17104 "configure" */
+/* [#]line 17181 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

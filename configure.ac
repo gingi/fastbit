@@ -169,6 +169,7 @@ AC_ARG_WITH(extracxxflags,
 	fi], [])
 
 # test to determine if any known flags are needed for unordered_map
+AC_MSG_CHECKING([for unordered_map])
 AC_COMPILE_IFELSE([
     AC_LANG_PROGRAM([[
 	#include <unordered_map>
@@ -177,7 +178,6 @@ AC_COMPILE_IFELSE([
 	std::equal_to<const char*> > myhashmap;
 	return (myhashmap.size() == 0);
 	]])], [AC_DEFINE(HAVE_UNORDERED_MAP, 1, [Compiler support std::unordered_map])], [
-	    AC_MSG_CHECKING([for unordered_map])
 	    ac_save_CFLAGS="$CFLAGS"
 	    ac_save_CXXFLAGS="$CXXFLAGS"
 	    ac_save_XCXXFLAGS="$EXTRA_CXXFLAGS"
@@ -299,6 +299,7 @@ else
   AC_DEFINE(FASTBIT_DOUBLE_NULL, std::numeric_limits<double>::max(), [define the null values used])
 fi
 
+# check the option about threading
 AC_ARG_WITH(pthread,
 	AS_HELP_STRING([--with-pthread=dir],[use dir as pthread root directory]),
         [if test -x $with_pthread/pthread-config; then
@@ -487,6 +488,48 @@ AC_LINK_IFELSE(
 	 [[char *s=0; long long tmp = strtoll("1", &s, 0);]])],
 	[AC_DEFINE(HAVE_STRTOLL, 1, [Set to 1 if strtoll is defined in stdlib.h])],
 	[])
+
+# check for the presence of <atomic> template and
+# test for the usability of atomic<uint32_t> and atomic<uint64_t>
+AC_MSG_CHECKING([for atomic template])
+AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([[
+	#include <atomic>
+	]], [[
+	std::atomic<uint32_t> ai32(0);
+	std::atomic<uint64_t> ai64(1);
+	ai32++;
+	ai64--;
+	if (ai32.load() == 1 && ai64.load() == 0)
+	    return 0;
+	else
+	    return -1;
+	]])],
+    [AC_MSG_RESULT([yes])
+     AC_DEFINE(HAVE_ATOMIC_TEMPLATE, 1, [Compiler support <atomic> template])],
+    [ac_save_CXXFLAGS="$CXXFLAGS"
+     ac_save_XCXXFLAGS="$EXTRA_CXXFLAGS"
+     EXTRA_CXXFLAGS="-std=c++11";
+     CXXFLAGS="$CXXFLAGS -std=c++11";
+     AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[
+	#include <atomic>
+	]], [[
+	std::atomic<uint32_t> ai32(0);
+	std::atomic<uint64_t> ai64(1);
+	ai32++;
+	ai64--;
+	if (ai32.load() == 1 && ai64.load() == 0)
+	    return 0;
+	else
+	    return -1;
+	]])],
+	[AC_MSG_RESULT([yes])
+	 AC_DEFINE(HAVE_ATOMIC_TEMPLATE, 2, [Compiler support <atomic> template])],
+	[AC_MSG_RESULT([no])
+	 EXTRA_CXXFLAGS="$ac_save_XCXXFLAGS";
+	 CXXFLAGS="$ac_save_CXXFLAGS";
+	])])
 
 # Does this compiler have built-in functions for atomic memory access?
 AC_MSG_CHECKING([if compiler supports __sync_add_and_fetch for 32-bit integers])
