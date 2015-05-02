@@ -15853,6 +15853,8 @@ fi
 
 
 # test to determine if any known flags are needed for unordered_map
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for unordered_map" >&5
+$as_echo_n "checking for unordered_map... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -15877,8 +15879,6 @@ $as_echo "#define HAVE_UNORDERED_MAP 1" >>confdefs.h
 
 else
 
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for unordered_map" >&5
-$as_echo_n "checking for unordered_map... " >&6; }
 	    ac_save_CFLAGS="$CFLAGS"
 	    ac_save_CXXFLAGS="$CXXFLAGS"
 	    ac_save_XCXXFLAGS="$EXTRA_CXXFLAGS"
@@ -16935,7 +16935,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 16861 "configure" */
+/* #line 16938 "configure" */
 public class Test {
 }
 EOF
@@ -17066,7 +17066,7 @@ EOF
 if uudecode$EXEEXT Test.uue; then
         ac_cv_prog_uudecode_base64=yes
 else
-        echo "configure: 16992: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
+        echo "configure: 17069: uudecode had trouble decoding base 64 file 'Test.uue'" >&5
         echo "configure: failed file was:" >&5
         cat Test.uue >&5
         ac_cv_prog_uudecode_base64=no
@@ -17143,7 +17143,7 @@ else
 	JAVA_TEST=Test.java
 	CLASS_TEST=Test.class
 cat << \EOF > $JAVA_TEST
-/* #line 17069 "configure" */
+/* #line 17146 "configure" */
 public class Test {
 }
 EOF
@@ -17178,7 +17178,7 @@ JAVA_TEST=Test.java
 CLASS_TEST=Test.class
 TEST=Test
 cat << \EOF > $JAVA_TEST
-/* [#]line 17104 "configure" */
+/* [#]line 17181 "configure" */
 public class Test {
 public static void main (String args[]) {
         System.exit (0);

@@ -1,3 +1,11 @@
+2015-05-01 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: change the read functions of sharedInt32 and
+	sharedInt64 to invoke the mutex lock when atomic is not supported
+	(per request of Jilong Wang)
+	* src/util.h, configure.ac: add conditional macro for std::atomic,
+	use std::atomic in sharedInt32 and sharedInt64 when
+	HAVE_ATOMIC_TEMPLATE
+
 2015-04-30 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: in function getColumn, the column name of the form
 	'__xx' is interpreted as decimal numbers, but the function

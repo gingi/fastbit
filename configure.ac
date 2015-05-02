@@ -169,6 +169,7 @@ AC_ARG_WITH(extracxxflags,
 	fi], [])
 
 # test to determine if any known flags are needed for unordered_map
+AC_MSG_CHECKING([for unordered_map])
 AC_COMPILE_IFELSE([
     AC_LANG_PROGRAM([[
 	#include <unordered_map>
@@ -177,7 +178,6 @@ AC_COMPILE_IFELSE([
 	std::equal_to<const char*> > myhashmap;
 	return (myhashmap.size() == 0);
 	]])], [AC_DEFINE(HAVE_UNORDERED_MAP, 1, [Compiler support std::unordered_map])], [
-	    AC_MSG_CHECKING([for unordered_map])
 	    ac_save_CFLAGS="$CFLAGS"
 	    ac_save_CXXFLAGS="$CXXFLAGS"
 	    ac_save_XCXXFLAGS="$EXTRA_CXXFLAGS"

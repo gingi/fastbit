@@ -37,6 +37,9 @@ int truncate(const char*, uint32_t);
 #if defined(HAVE_FLOCK)
 #include <sys/file.h>   // flock
 #endif
+#if defined(HAVE_ATOMIC_TEMPLATE)
+#include <atomic>
+#endif
 
 // minimum size for invoking mmap operation, default to 1 MB
 #ifndef FASTBIT_MIN_MAP_SIZE
@@ -919,14 +922,14 @@ namespace ibis {
             counter& operator=(const counter&);
         }; // counter
 
-        /// A shared integer class.  Multiply threads may safely perform
-        /// different operations on this integer at the same time.  It
-        /// serializes the operations by using the atomic operations
-        /// provided by GCC extension.  The availability of automic
-        /// operations is indicated by whether or not the compiler macro
-        /// HAVE_GCC_ATOMIC32 is defined.  If the atomic extension is not
-        /// available, it falls back on the mutual exclusion lock provided
-        /// by pthread library.
+        /// A shared unsigned 32-bit integer class.  Multiply threads may
+        /// safely perform different operations on this integer at the same
+        /// time.  It serializes the operations by using the atomic
+        /// operations provided by GCC extension.  The availability of
+        /// automic operations is indicated by whether or not the compiler
+        /// macro HAVE_GCC_ATOMIC32 is defined.  If the atomic extension is
+        /// not available, it falls back on the mutual exclusion lock
+        /// provided by pthread library.
         ///
         /// @note The overhead of using mutual exclusion lock is large.  In
         /// one test that acquires and release three locks a million time
@@ -936,7 +939,8 @@ namespace ibis {
         class FASTBIT_CXX_DLLSPEC sharedInt32 {
         public:
             sharedInt32() : val_(0) {
-#if defined(HAVE_GCC_ATOMIC32)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+#elif defined(HAVE_GCC_ATOMIC32)
 #elif defined(HAVE_WIN_ATOMIC32)
 #else
                 if (pthread_mutex_init(&mytex, 0) != 0)
@@ -945,7 +949,8 @@ namespace ibis {
             }
 
             ~sharedInt32() {
-#if defined(HAVE_GCC_ATOMIC32)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+#elif defined(HAVE_GCC_ATOMIC32)
 #elif defined(HAVE_WIN_ATOMIC32)
 #else
                 (void)pthread_mutex_destroy(&mytex);
@@ -953,11 +958,25 @@ namespace ibis {
             }
 
             /// Read the current value.
-            uint32_t operator()() const {return val_;}
+            uint32_t operator()() const {
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                return val_.load();
+#elif defined(HAVE_GCC_ATOMIC32)
+                return __sync_add_and_fetch(const_cast<uint32_t*>(&val_), 0);
+#elif defined(HAVE_WIN_ATOMIC32)
+                return val_;
+#else
+                ibis::util::quietLock lck(const_cast<pthread_mutex_t*>(&mytex));
+                return val_;
+#endif
+            }
 
             /// Increment operator.
             uint32_t operator++() {
-#if defined(HAVE_GCC_ATOMIC32)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                ++ val_;
+                return val_.load();
+#elif defined(HAVE_GCC_ATOMIC32)
                 return __sync_add_and_fetch(&val_, 1);
 #elif defined(HAVE_WIN_ATOMIC32)
                 return InterlockedIncrement((volatile long *)&val_);
@@ -970,7 +989,10 @@ namespace ibis {
 
             /// Decrement operator.
             uint32_t operator--() {
-#if defined(HAVE_GCC_ATOMIC32)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                -- val_;
+                return val_.load();
+#elif defined(HAVE_GCC_ATOMIC32)
                 return __sync_sub_and_fetch(&val_, 1);
 #elif defined(HAVE_WIN_ATOMIC32)
                 return InterlockedDecrement((volatile long *)&val_);
@@ -983,7 +1005,9 @@ namespace ibis {
 
             /// In-place addition operator.
             void operator+=(const uint32_t rhs) {
-#if defined(HAVE_GCC_ATOMIC32)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                (void) val_.fetch_add(rhs);
+#elif defined(HAVE_GCC_ATOMIC32)
                 (void) __sync_add_and_fetch(&val_, rhs);
 #elif defined(HAVE_WIN_ATOMIC32)
                 (void) InterlockedExchangeAdd((volatile long *)&val_, rhs);
@@ -995,7 +1019,9 @@ namespace ibis {
 
             /// In-place subtraction operator.
             void operator-=(const uint32_t rhs) {
-#if defined(HAVE_GCC_ATOMIC32)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                (void) val_.fetch_sub(rhs);
+#elif defined(HAVE_GCC_ATOMIC32)
                 (void) __sync_sub_and_fetch(&val_, rhs);
 #elif defined(HAVE_WIN_ATOMIC32)
                 (void) InterlockedExchangeAdd((volatile long *)&val_,
@@ -1006,21 +1032,37 @@ namespace ibis {
 #endif
             }
 
-            /// Swap the contents of two integer variables.
-            void swap(sharedInt32 &rhs) {
-                uint32_t tmp = rhs.val_;
-                rhs.val_ = val_;
-                val_ = tmp;
-            }
+//             /// Swap the contents of two integer variables.
+//             void swap(sharedInt32 &rhs) {
+// #if defined(HAVE_GCC_ATOMIC32)
+//                 uint32_t tmp = rhs.val_;
+//                 rhs.val_ = val_;
+//                 val_ = tmp;
+// #elif defined(HAVE_WIN_ATOMIC32)
+//                 uint32_t tmp = rhs.val_;
+//                 rhs.val_ = val_;
+//                 val_ = tmp;
+// #else
+//                 ibis::util::quietLock lock(&mytex);
+//                 uint32_t tmp = rhs.val_;
+//                 rhs.val_ = val_;
+//                 val_ = tmp;
+// #endif
+//             }
 
         private:
+#if defined(HAVE_ATOMIC_TEMPLATE)
+            /// The actual integer value is encapsulated by std::atomic
+            std::atomic<uint32_t> val_;
+#elif defined(HAVE_GCC_ATOMIC32)
             /// The actual integer value.
             uint32_t volatile val_;
-#if defined(HAVE_GCC_ATOMIC32)
 #elif defined(HAVE_WIN_ATOMIC32)
-                (void) InterlockedExchangeAdd((volatile long *)&val_,
-                                              -(long)rhs);
+            /// The actual integer value.
+            uint32_t volatile val_;
 #else
+            /// The actual integer value.
+            uint32_t volatile val_;
             /// The mutex for this object.
             pthread_mutex_t mytex;
 #endif
@@ -1029,16 +1071,17 @@ namespace ibis {
             sharedInt32& operator=(const sharedInt32&); // no assignment
         }; // sharedInt32
 
-        /// A 64-bit shared integer class.  It allows multiple threads to
-        /// safely operate on the integer through the use of the atomic
-        /// operations provided by GCC extension.  If the atomic extension
-        /// is not available, it falls back on the mutual exclusion lock
-        /// provided by pthread library.
-        /// @sa ibis::util::sharedInt32
+        /// A unsigned 64-bit shared integer class.  It allows multiple
+        /// threads to safely operate on the integer through the use of the
+        /// atomic operations provided by GCC extension.  If the atomic
+        /// extension is not available, it falls back on the mutual
+        /// exclusion lock provided by pthread library.  @sa
+        /// ibis::util::sharedInt32
         class sharedInt64 {
         public:
             sharedInt64() : val_(0) {
-#if defined(HAVE_GCC_ATOMIC64)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+#elif defined(HAVE_GCC_ATOMIC64)
 #elif defined(HAVE_WIN_ATOMIC64)
 #else
                 if (pthread_mutex_init(&mytex, 0) != 0)
@@ -1047,7 +1090,8 @@ namespace ibis {
             }
 
             ~sharedInt64() {
-#if defined(HAVE_GCC_ATOMIC64)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+#elif defined(HAVE_GCC_ATOMIC64)
 #elif defined(HAVE_WIN_ATOMIC64)
 #else
                 (void)pthread_mutex_destroy(&mytex);
@@ -1055,11 +1099,25 @@ namespace ibis {
             }
 
             /// Read the current value.
-            uint64_t operator()() const {return val_;}
+            uint64_t operator()() const {
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                return val_.load();
+#elif defined(HAVE_GCC_ATOMIC64)
+                return __sync_add_and_fetch(const_cast<uint64_t*>(&val_), 0);
+#elif defined(HAVE_WIN_ATOMIC64)
+                return val_;
+#else
+                ibis::util::quietLock lck(const_cast<pthread_mutex_t*>(&mytex));
+                return val_;
+#endif
+            }
 
             /// Increment operator.
             uint64_t operator++() {
-#if defined(HAVE_GCC_ATOMIC64)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                ++ val_;
+                return val_.load();
+#elif defined(HAVE_GCC_ATOMIC64)
                 return __sync_add_and_fetch(&val_, 1);
 #elif defined(HAVE_WIN_ATOMIC64)
                 return InterlockedIncrement64((volatile LONGLONG *)&val_);
@@ -1072,7 +1130,10 @@ namespace ibis {
 
             /// Decrement operator.
             uint64_t operator--() {
-#if defined(HAVE_GCC_ATOMIC64)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                -- val_;
+                return val_.load();
+#elif defined(HAVE_GCC_ATOMIC64)
                 return __sync_sub_and_fetch(&val_, 1);
 #elif defined(HAVE_WIN_ATOMIC64)
                 return InterlockedDecrement64((volatile LONGLONG *)&val_);
@@ -1085,7 +1146,9 @@ namespace ibis {
 
             /// In-place addition operator.
             void operator+=(const uint64_t rhs) {
-#if defined(HAVE_GCC_ATOMIC64)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                (void) val_.fetch_add(rhs);
+#elif defined(HAVE_GCC_ATOMIC64)
                 (void) __sync_add_and_fetch(&val_, rhs);
 #elif defined(HAVE_WIN_ATOMIC64)
                 (void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
@@ -1098,7 +1161,9 @@ namespace ibis {
 
             /// In-place subtraction operator.
             void operator-=(const uint64_t rhs) {
-#if defined(HAVE_GCC_ATOMIC64)
+#if defined(HAVE_ATOMIC_TEMPLATE)
+                (void) val_.fetch_sub(rhs);
+#elif defined(HAVE_GCC_ATOMIC64)
                 (void) __sync_sub_and_fetch(&val_, rhs);
 #elif defined(HAVE_WIN_ATOMIC64)
                 (void) InterlockedExchangeAdd64((volatile LONGLONG *)&val_,
@@ -1109,21 +1174,37 @@ namespace ibis {
 #endif
             }
 
-            /// Swap the contents of two integer variables.
-            void swap(sharedInt64 &rhs) {
-                uint64_t tmp = rhs.val_;
-                rhs.val_ = val_;
-                val_ = tmp;
-            }
+//             /// Swap the contents of two integer variables.
+//             void swap(sharedInt64 &rhs) {
+// #if defined(HAVE_GCC_ATOMIC64)
+//                 uint64_t tmp = rhs.val_;
+//                 rhs.val_ = val_;
+//                 val_ = tmp;
+// #elif defined(HAVE_WIN_ATOMIC64)
+//                 uint64_t tmp = rhs.val_;
+//                 rhs.val_ = val_;
+//                 val_ = tmp;
+// #else
+//                 ibis::util::quietLock lock(&mytex);
+//                 uint64_t tmp = rhs.val_;
+//                 rhs.val_ = val_;
+//                 val_ = tmp;
+// #endif
+//             }
 
         private:
+#if defined(HAVE_ATOMIC_TEMPLATE)
+            /// The actual value is encapsulated in std::atomic
+            std::atomic<uint64_t> val_;
+#elif defined(HAVE_GCC_ATOMIC64)
             /// The actual integer value.
             uint64_t volatile val_;
-#if defined(HAVE_GCC_ATOMIC64)
 #elif defined(HAVE_WIN_ATOMIC64)
             /// The actual integer value.
             uint64_t volatile val_;
 #else
+            /// The actual integer value.
+            uint64_t volatile val_;
             /// The mutex for this object.
             pthread_mutex_t mytex;
 #endif
