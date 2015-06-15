@@ -4628,7 +4628,9 @@ void ibis::bin::scanAndPartition(const char* f, unsigned eqw, uint32_t nbins) {
 /// sharp '#' symbol is used to indicate comments in the file.
 ///
 /// The file name can use either an absolute path or a relative path
-/// (relative to the current data directory of the data partition).
+/// (relative to the current data directory of the data partition).  The
+/// file name could be specified throught binFile="filename" option of a
+/// bin specification.
 void ibis::bin::readBinBoundaries(const char *fnm, uint32_t nb) {
     if (fnm == 0 || *fnm == 0) return;
 

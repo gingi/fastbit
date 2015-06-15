@@ -1,3 +1,11 @@
+2015-06-14 John Wu <John dot Wu at ACM dot org>
+	* src/index.cpp: add timer to all versions of index::activate at
+	verboseness level 4
+
+2015-05-08 John Wu <John dot Wu at ACM dot org>
+	* examples/thula.cpp: update operator "distinct" to
+	"countdistinct"
+
 2015-05-01 John Wu <John dot Wu at ACM dot org>
 	* src/util.h: change the read functions of sharedInt32 and
 	sharedInt64 to invoke the mutex lock when atomic is not supported

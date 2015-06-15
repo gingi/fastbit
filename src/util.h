@@ -21,7 +21,7 @@
 #include <sstream>      // std::ostringstream used by ibis::util::logger
 
 #include <float.h>
-#include <math.h>       // fabs, floor, ceil, log10, ...
+#include <math.h>       // fabs, floor, ceil, log10, nextafter...
 #if !defined(unix) && defined(_WIN32)
 #include <windows.h>
 #include <io.h>

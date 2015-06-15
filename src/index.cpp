@@ -4644,6 +4644,7 @@ void ibis::index::activate() const {
     }
     evt += "::activate";
     ibis::column::mutexLock lock(col, evt.c_str());
+    ibis::util::timer mytimer(evt.c_str(), 4);
 
     const size_t nobs = bits.size();
     bool missing = false; // any bits[i] missing (is 0)?
@@ -4962,6 +4963,7 @@ void ibis::index::activate(uint32_t i) const {
     }
     evt += "::activate";
     ibis::column::mutexLock lock(col, evt.c_str());
+    ibis::util::timer mytimer(evt.c_str(), 4);
 
     if (bits[i] != 0) return;   // already active
     if (offset32.size() <= bits.size() && offset64.size() <= bits.size()) {
@@ -5195,6 +5197,7 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
     }
     evt += "::activate";
     ibis::column::mutexLock lock(col, evt.c_str());
+    ibis::util::timer mytimer(evt.c_str(), 4);
 
     while (i < j && bits[i] != 0) ++ i;
     while (i < j && bits[j-1] != 0) j = j - 1;
