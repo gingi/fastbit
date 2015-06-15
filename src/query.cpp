@@ -24,6 +24,7 @@
 #include <memory>       // std::unique_ptr
 #include <algorithm>    // std::sort
 #include <sstream>      // std::ostringstream
+#include <cmath>	// std::log
 
 namespace ibis {
 #if defined(TEST_SCAN_OPTIONS)
@@ -38,7 +39,7 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
     double res = dataset->nRows();
     switch (ex->getType()) {
     case ibis::qExpr::EXISTS: {
-        res = dataset->nColumns()*0.0078125;
+        res = (res>0.0 ? std::log(res) : 0.0);
         break;}
     case ibis::qExpr::RANGE: {
         const ibis::qContinuousRange* tmp =

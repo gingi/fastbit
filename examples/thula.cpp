@@ -781,7 +781,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
                 strs[6] = "varsamp("; strs[6] += sstr; strs[6] += ')';
                 strs[7] = "stdpop(";  strs[7] += sstr; strs[7] += ')';
                 strs[8] = "stdsamp("; strs[8] += sstr; strs[8] += ')';
-                strs[9] = "distinct(";strs[9] += sstr; strs[9] += ')';
+                strs[9] = "countdistinct(";strs[9] += sstr; strs[9] += ')';
             }
             else {
                 strs.resize(1);
@@ -812,7 +812,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
                 strs[6] = "varsamp("; strs[6] += nm2; strs[6] += ')';
                 strs[7] = "stdpop(";  strs[7] += nm2; strs[7] += ')';
                 strs[8] = "stdsamp("; strs[8] += nm2; strs[8] += ')';
-                strs[9] = "distinct(";strs[9] += nm2; strs[9] += ')';
+                strs[9] = "countdistinct(";strs[9] += nm2; strs[9] += ')';
             }
             else {
                 strs.resize(2);
@@ -857,7 +857,7 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
                 strs[i] = "varsamp("; strs[i] += nm2; strs[i] += ')'; ++ i;
                 strs[i] = "stdpop(";  strs[i] += nm2; strs[i] += ')'; ++ i;
                 strs[i] = "stdsamp("; strs[i] += nm2; strs[i] += ')'; ++ i;
-                strs[i] = "distinct(";strs[i] += nm2; strs[i] += ')';
+                strs[i] = "countdistinct(";strs[i] += nm2; strs[i] += ')';
             }
             else {
                 strs.resize(i);

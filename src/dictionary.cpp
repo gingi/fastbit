@@ -330,6 +330,9 @@ int ibis::dictionary::read(const char* name) {
             header[15] == _fastbit_dictionary_header[15]) {
             version = (header[16] << 24 | header[17] << 16 |
                        header[18] << 8 | header[19]);
+            LOGGER(ibis::gVerbose > 3)
+                << evt << " detected dictionary version 0x" << std::hex
+                << version << std::dec;
         }
         else {
             LOGGER(ibis::gVerbose > 2)
@@ -353,7 +356,7 @@ int ibis::dictionary::read(const char* name) {
             ierr = readRaw(evt.c_str(), fptr);
             break;
     }
-    if (ibis::gVerbose > 4) {
+    if (ibis::gVerbose > 3) {
         ibis::util::logger lg;
         lg() << evt << " completed with ";
         toASCII(lg());
