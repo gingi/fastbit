@@ -893,7 +893,7 @@ void ibis::qExpr::simplify(ibis::qExpr*& expr) {
         if (expr != 0) {
             lg() << "qExpr::simplify -- output expression "
                  << "(@" << static_cast<const void*>(expr) << ") ";
-            if (ibis::gVerbose > 8)
+            if (ibis::gVerbose > 7)
                 expr->printFull(lg());
             else
                 expr->print(lg());
@@ -1029,7 +1029,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
     if (ibis::gVerbose > 5) {
         ibis::util::logger lg;
         lg() << "qExpr::reorder -- input: ";
-        if (ibis::gVerbose > 8)
+        if (ibis::gVerbose > 7)
             printFull(lg());
         else
             print(lg());
@@ -1147,7 +1147,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
             }
         }
 
-#if DEBUG+0 > 0 || _DEBUG+0 > 0
+        //#if DEBUG+0 > 0 || _DEBUG+0 > 0
         if (ibis::gVerbose > 4) {
             ibis::util::logger lg(4);
             lg() << "DEBUG -- qExpr::reorder(" << *this
@@ -1155,7 +1155,7 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
             for (i = 0; i < terms.size(); ++ i)
                 lg() << *(terms[i]) << ":" << wgt[i] << ", ";
         }
-#endif
+        //#endif
 
         // populate the tree -- copy the heaviest nodes first to the right
         ptr = this;
@@ -1170,12 +1170,15 @@ double ibis::qExpr::reorder(const ibis::qExpr::weight& wt) {
         ret = left->reorder(wt);
         ret += right->reorder(wt);
     } // else if (type == LOGICAL_MINUS)
+    else { // fallback, see if the weight operator could do something
+        ret = wt(this);
+    }
 
     if (ibis::gVerbose > 4) {
         ibis::util::logger lg;
         lg() << "qExpr::reorder -- output (" << ret << ", @"
              << static_cast<const void*>(this) << "): ";
-        if (ibis::gVerbose > 8)
+        if (ibis::gVerbose > 7)
             printFull(lg());
         else
             print(lg());

@@ -39,7 +39,7 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
     double res = dataset->nRows();
     switch (ex->getType()) {
     case ibis::qExpr::EXISTS: {
-        res = (res>0.0 ? std::log(res) : 0.0);
+        res = (res>1.0 ? 1.0 : 0.0);
         break;}
     case ibis::qExpr::RANGE: {
         const ibis::qContinuousRange* tmp =
@@ -88,6 +88,8 @@ double ibis::query::weight::operator()(const ibis::qExpr* ex) const {
         }
         break;}
     } // switch
+    if (res < 0.0) // failed, give it an arbitrary number
+        res = std::abs(res) * 2.5;
     return res;
 } // ibis::query::weight::operator
 

@@ -6625,8 +6625,9 @@ double ibis::column::estimateCost(const ibis::qContinuousRange& cmp) const {
         ret = idx->estimateCost(cmp);
     }
     else {
+        ret = elementSize();
         ret = static_cast<double>(thePart != 0 ? thePart->nRows() :
-                                  0xFFFFFFFFU) * elementSize();
+                                  0xFFFFFFFFU) * (ret > 0.0 ? ret : 32.0);
     }
     return ret;
 } // ibis::column::estimateCost
@@ -6641,8 +6642,9 @@ double ibis::column::estimateCost(const ibis::qDiscreteRange& cmp) const {
         ret = idx->estimateCost(cmp);
     }
     else {
+        ret = elementSize();
         ret = static_cast<double>(thePart != 0 ? thePart->nRows() :
-                                  0xFFFFFFFFU) * elementSize();
+                                  0xFFFFFFFFU) * (ret > 0.0 ? ret : 32.0);
         double width = 1.0 + (cmp.rightBound()<upper?cmp.rightBound():upper)
             - (cmp.leftBound()>lower?cmp.leftBound():lower);
         if (upper > lower && width >= 1.0 && width < (1.0+upper-lower)) {
@@ -6853,9 +6855,9 @@ long ibis::column::estimateRange(const ibis::qIntHod& cmp,
 } // ibis::column::estimateRange
 
 double ibis::column::estimateCost(const ibis::qIntHod& cmp) const {
-    double ret;
+    double ret = elementSize();
     ret = static_cast<double>(thePart != 0 ? thePart->nRows() :
-                              0xFFFFFFFFU) * elementSize();
+                              0xFFFFFFFFU) * (ret > 0.0 ? ret : 32.0);
     return ret;
 } // ibis::column::estimateCost
 
@@ -6967,9 +6969,9 @@ long ibis::column::estimateRange(const ibis::qUIntHod& cmp,
 } // ibis::column::estimateRange
 
 double ibis::column::estimateCost(const ibis::qUIntHod& cmp) const {
-    double ret;
+    double ret = elementSize();
     ret = static_cast<double>(thePart != 0 ? thePart->nRows() :
-                              0xFFFFFFFFU) * elementSize();
+                              0xFFFFFFFFU) * (ret > 0.0 ? ret : 32.0);
     return ret;
 } // ibis::column::estimateCost
 
