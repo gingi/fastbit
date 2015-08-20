@@ -83,39 +83,71 @@ class ibis::index {
 public:
     /// The integer values of this enum type are used in the index files to
     /// differentiate the indexes.
-    /// **** Reordering the list will make some index files invalid ****
     enum INDEX_TYPE {
-	BINNING=0,	///!< ibis::bin.
-	RANGE,	///!< ibis::range.
-	MESA,	///!< ibis::interval.
-	AMBIT,	///!< ibis::ambit, range-range two level encoding on bins.
-	PALE,	///!< ibis::pale, equality-range encoding on bins.
-	PACK,	///!< ibis::pack, range-equality encoding on bins.
-	ZONE,	///!< ibis::zone, equality-equality encoding on bins.
-	RELIC,	///!< ibis::relic, the basic bitmap index.
-	ROSTER,	///!< ibis::roster, RID list.
-	SKIVE,	///!< ibis::skive, binary encoding with recoding of key values.
-	FADE,	///!< ibis::fade, multicomponent range encoding (unbinned).
-	SBIAD,	///!< ibis::sbiad, multicomponent interval encoding (unbinned).
-	SAPID,	///!< ibis::sapid, multicomponent equality encoding (unbinned).
-	EGALE,	///!< ibis::egale, multicomponent equality encoding on bins.
-	MOINS,	///!< ibis::moins, multicomponent range encoding on bins.
-	ENTRE,	///!< ibis::entre, multicomponent interval encoding on bins.
-	BAK,	///!< ibis::bak, reduced precision mapping, equality code.
-	BAK2,	///!< ibis::bak2, splits each BAK bin in two, one less than
-		/// the mapped value, one greater and equal
-		/// to the mapped value.
-	KEYWORDS,	///!< ibis::keywords, boolean term-document matrix.
-	MESH,	///!< not used.
-	BAND,	///!< not used.
-	DIREKTE,///!< ibis::direkte, hash value to bitmaps.
-	GENERIC,///!< not used.
-	BYLT,	///!< ibis::bylt, unbinned range-equality encoding.
-	FUZZ,	///!< ibis::fuzz, unbinned interval-equality encoding.
-	ZONA,	///!< ibis::zona, unbinned equality-equality encoding.
-	FUGE,	///!< ibis::fuge, binned interval-equality encoding.
-	SLICE,	///!< ibis::slice, bit-sliced index.
-	EXTERN	///!< externally defined index
+        /// ibis::bin.  Fix this as 0 so that the index type indicator will
+        /// be known all versions of the program.  This should ensure the
+        /// index files from different version of FastBit code are
+        /// recognized correctly.
+	BINNING=0,
+        /// ibis::range.
+	RANGE,
+	/// ibis::interval.
+	MESA,
+        /// ibis::ambit, range-range two level encoding on bins.
+	AMBIT,
+        /// ibis::pale, equality-range encoding on bins.
+	PALE,
+        /// ibis::pack, range-equality encoding on bins.
+	PACK,
+        /// ibis::zone, equality-equality encoding on bins.
+	ZONE,
+        /// ibis::relic, the basic bitmap index.
+	RELIC,
+        /// ibis::roster, RID list.
+	ROSTER,
+        /// ibis::skive, binary encoding with recoding of key values.
+	SKIVE,
+        /// ibis::fade, multicomponent range encoding (unbinned).
+	FADE,
+        /// ibis::sbiad, multicomponent interval encoding (unbinned).
+	SBIAD,
+        /// ibis::sapid, multicomponent equality encoding (unbinned).
+	SAPID,
+        /// ibis::egale, multicomponent equality encoding on bins.
+	EGALE,
+        /// ibis::moins, multicomponent range encoding on bins.
+	MOINS,
+        /// ibis::entre, multicomponent interval encoding on bins.
+	ENTRE,
+        /// ibis::bak, reduced precision mapping, equality code.
+	BAK,
+        /// ibis::bak2, splits each BAK bin in three, one less than the
+        /// mapped value, one greater than the mapped value, and one equal
+        /// to the mapped value.  This is used to implement the
+        /// low-precision binning scheme.
+	BAK2,
+        /// ibis::keywords, boolean term-document matrix.
+	KEYWORDS,
+        /// not used.
+	MESH,
+        /// not used.
+	BAND,
+        /// ibis::direkte, hash value to bitmaps.
+	DIREKTE,
+        /// not used.
+	GENERIC,
+	/// ibis::bylt, unbinned range-equality encoding.
+	BYLT,
+	/// ibis::fuzz, unbinned interval-equality encoding.
+	FUZZ,
+	/// ibis::zona, unbinned equality-equality encoding.
+	ZONA,
+	/// ibis::fuge, binned interval-equality encoding.
+	FUGE,
+	/// ibis::slice, bit-sliced index.
+	SLICE,
+	/// externally defined index.
+	EXTERN
     };
 
     static index* create(const column* c, const char* name=0,
