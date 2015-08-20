@@ -1,3 +1,7 @@
+2015-08-19 John Wu <John dot Wu at ACM dot org>
+	* src/ibis.h: update the in-line documentation of
+	ibis::index::INDEX_TYPE
+
 2015-06-20 John Wu <John dot Wu at ACM dot org>
 	* src/query.cpp, src/qExpr.cpp: fix problem associated with
 	estimation of query processing costs, a problem behind the use
