@@ -1,3 +1,9 @@
+2015-08-23 John Wu <John dot Wu at ACM dot org>
+	* src/utilidor.cpp: protect all calls to strcmp to prevent sending
+	null pointer to it (strcmp(A, B) > 0 ==> (A != 0 && (B == 0 ||
+	strcmp(A, B) > 0)), strcmp(A, B) >= 0 ==> ((A != 0 && (B == 0 ||
+	strcmp(A, B) >= 0)) || (A == 0 && B == 0))
+
 2015-08-19 John Wu <John dot Wu at ACM dot org>
 	* src/ibis.h: update the in-line documentation of
 	ibis::index::INDEX_TYPE

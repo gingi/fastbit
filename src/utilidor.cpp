@@ -1566,6 +1566,12 @@ void ibis::util::sortStrings(ibis::array_t<const char*> &keys,
 #endif
 } // ibis::util::sortStrings
 
+/// Shell sort of string values.  The string values are represented as
+/// "const char*".  This function uses std::strcmp to perform the
+/// comparisons of string.  Since strcmp can not accept nil pointers, this
+/// function has to check for nil pointers, which effectively treats a nil
+/// pointer as a special value of string that is less than all other string
+/// values.
 void ibis::util::sortStrings_shell(ibis::array_t<const char*> &keys,
                                    ibis::array_t<uint32_t> &vals,
                                    uint32_t begin, uint32_t end) {
@@ -1576,7 +1582,9 @@ void ibis::util::sortStrings_shell(ibis::array_t<const char*> &keys,
             const char *ktmp = keys[j];
             const uint32_t vtmp = vals[j];
             uint32_t i = j;
-            while (i >= begin+gap && std::strcmp(keys[i], keys[i-gap]) < 0) {
+            // keys[i-gap] > keys[i]
+            while (i >= begin+gap && keys[i-gap] != 0 &&
+                   (keys[i] == 0 || std::strcmp(keys[i-gap], keys[i]) > 0)) {
                 keys[i] = keys[i-gap];
                 vals[i] = vals[i-gap];
                 i -= gap;
@@ -1595,7 +1603,9 @@ void ibis::util::sortStrings_shell(ibis::array_t<const char*> &keys,
             const char *ktmp = keys[j];
             const uint32_t vtmp = vals[j];
             uint32_t i = j;
-            while (i >= begin+gap && std::strcmp(ktmp, keys[i-gap]) < 0) {
+            // keys[i-gap] > ktmp
+            while (i >= begin+gap && keys[i-gap] != 0 &&
+                   (ktmp == 0 || std::strcmp(keys[i-gap], ktmp) > 0)) {
                 keys[i] = keys[i-gap];
                 vals[i] = vals[i-gap];
                 i -= gap;
@@ -1605,7 +1615,9 @@ void ibis::util::sortStrings_shell(ibis::array_t<const char*> &keys,
 #if DEBUG+0 > 3 || _DEBUG+0 > 3
             bool sorted = true;
             for (i = begin + (j-begin) % gap; i < j; i += gap) {
-                if (std::strcmp(keys[i], keys[i+gap]) > 0) {
+                // keys[i] > keys[i+gap]
+                if (keys[i] != 0 && (keys[i+gap] == 0 ||
+                                     std::strcmp(keys[i], keys[i+gap]) > 0)) {
                     sorted = false;
                     break;
                 }
@@ -1635,7 +1647,9 @@ void ibis::util::sortStrings_shell(ibis::array_t<const char*> &keys,
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     bool sorted = true;
     for (uint32_t j = begin+1; j < end; ++ j) {
-        if (std::strcmp(keys[j-1], keys[j]) > 0) {
+        // keys[j-1] > keys[j]
+        if (keys[j-1] != 0 && (keys[j] == 0 ||
+                               std::strcmp(keys[j-1], keys[j]) > 0)) {
             sorted = false;
             break;
         }
@@ -1651,15 +1665,24 @@ void ibis::util::sortStrings_shell(ibis::array_t<const char*> &keys,
          << vals.size() << "], " << begin << ", " << end
          << ") completed " << (sorted?"successfully":"with errors");
     for (unsigned j = begin; j < begin+iprt; ++ j)
+        // keys[j-1]>keys[j] --> '*'
         lg() << "\nkeys[" << j << "]=" << keys[j] << ", vals[" << j << "]="
              << vals[j]
-             << (j>begin ? (std::strcmp(keys[j-1],keys[j])>0?'*':' ') : ' ');
+             << (j>begin ?
+                 (keys[j-1] != && (keys[j] == 0 ||
+                                   std::strcmp(keys[j-1],keys[j])>0)) ?
+                 '*' : ' ') : ' ');
     if (iprt < nelm)
         lg() << "\n... " << nelm-iprt << " ommitted\n";
 #endif
 } // ibis::util::sortStrings_shell
 
-/// Median-of-3 partitioning algorithm.
+/// Median-of-3 partitioning algorithm.  The string values are represented
+/// as "const char*".  This function uses std::strcmp to perform the
+/// comparisons of string.  Since strcmp can not accept nil pointers, this
+/// function has to check for nil pointers, which effectively treats a nil
+/// pointer as a special value of string that is less than all other string
+/// values.
 #if defined(_MSC_VER) && defined(_WIN32) && _MSC_VER < 1400
 #pragma optimize("g", off)
 #endif
@@ -1673,7 +1696,10 @@ ibis::util::sortStrings_partition(ibis::array_t<const char*> &keys,
     }
 
     // sort three values at position 0, nelm/2, and nelm-1
-    if (std::strcmp(keys[begin], keys[(begin+end)/2]) > 0) {
+    // keys[begin] > keys[(begin+end)/2]
+    if (keys[begin] != 0 &&
+        (keys[(begin+end)/2] == 0 ||
+         std::strcmp(keys[begin], keys[(begin+end)/2]) > 0)) {
         const char *ktmp = keys[begin];
         keys[begin] = keys[(begin+end)/2];
         keys[(begin+end)/2] = ktmp;
@@ -1681,14 +1707,20 @@ ibis::util::sortStrings_partition(ibis::array_t<const char*> &keys,
         vals[begin] = vals[(begin+end)/2];
         vals[(begin+end)/2] = vtmp;
     }
-    if (std::strcmp(keys[(begin+end)/2], keys[end-1]) > 0) {
+    // keys[(begin+end)/2] > keys[end-1]
+    if (keys[(begin+end)/2] != 0 &&
+        (keys[end-1] == 0 ||
+         std::strcmp(keys[(begin+end)/2], keys[end-1]) > 0)) {
         const char *ktmp = keys[(begin+end)/2];
         keys[(begin+end)/2] = keys[end-1];
         keys[end-1] = ktmp;
         uint32_t vtmp = vals[(begin+end)/2];
         vals[(begin+end)/2] = vals[end-1];
         vals[end-1] = vtmp;
-        if (std::strcmp(keys[begin], keys[(begin+end)/2]) > 0) {
+        // keys[begin] > keys[(begin+end)/2]
+        if (keys[begin] != 0 &&
+            (keys[(begin+end)/2] == 0 ||
+             std::strcmp(keys[begin], keys[(begin+end)/2]) > 0)) {
             ktmp = keys[begin];
             keys[begin] = keys[(begin+end)/2];
             keys[(begin+end)/2] = ktmp;
@@ -1702,11 +1734,16 @@ ibis::util::sortStrings_partition(ibis::array_t<const char*> &keys,
 
     uint32_t i0 = begin;
     uint32_t i1 = end;
+    // normal partition: left side < pivot, right side >= pivot
     while (i0 < i1) {
-        if (std::strcmp(pivot, keys[i1-1]) <= 0) {
+        // keys[i1-1] >= pivot
+        if ((keys[i1-1] != 0 &&
+             (pivot == 0 || std::strcmp(keys[i1-1], pivot) >= 0))
+            || (keys[i1-1] == 0 && pivot == 0)) {
             -- i1;
         }
-        else if (std::strcmp(pivot, keys[i0]) > 0) {
+        else if (pivot != 0 &&
+                 (keys[i0] == 0 || std::strcmp(pivot, keys[i0]) > 0)) {
             ++ i0;
         }
         else {
@@ -1722,14 +1759,19 @@ ibis::util::sortStrings_partition(ibis::array_t<const char*> &keys,
         }
     }
     if (i0 == begin) {
-        // The median of three was the smallest value, switch to have the
+        // The pivot was the smallest value, switch to have the
         // left side <= pivot.
         i1 = end;
         while (i0 < i1) {
-            if (std::strcmp(pivot, keys[i1-1]) < 0) {
+            // keys[i1-1] > pivot
+            if (keys[i1-1] != 0 &&
+                (pivot == 0 || std::strcmp(keys[i1-1], pivot) > 0)) {
                 -- i1;
             }
-            else if (std::strcmp(pivot, keys[i0]) >= 0) {
+            // pivot >= keys[i0]
+            else if ((pivot != 0 &&
+                      (keys[i0] == 0 || std::strcmp(pivot, keys[i0]) >= 0))
+                     || (pivot == 0 && keys[i0] == 0)) {
                 ++ i0;
             }
             else {

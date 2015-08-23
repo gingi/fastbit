@@ -2610,11 +2610,13 @@ ibis::math::term* ibis::math::bediener::reduce() {
         }
         else if (lhs->termType() == ibis::math::NUMBER &&
                  lhs->eval() == 0.0) {
+            // 0 + A ==> A
             ret = static_cast<ibis::math::term*>(getRight());
             getRight() = 0;
         }
         else if (rhs->termType() == ibis::math::NUMBER &&
                  rhs->eval() == 0.0) {
+            // A + 0 ==> A
             ret = static_cast<ibis::math::term*>(getLeft());
             getLeft() = 0;
         }
@@ -2624,7 +2626,7 @@ ibis::math::term* ibis::math::bediener::reduce() {
                              (lhs)->variableName(),
                              static_cast<ibis::math::variable*>
                              (rhs)->variableName()) == 0) {
-            // both sides are the same variable name
+            // A + A ==> 2*A
             number *ntmp = new number(2.0);
             bediener *btmp = new bediener(MULTIPLY);
             btmp->getLeft() = ntmp;
@@ -2646,6 +2648,7 @@ ibis::math::term* ibis::math::bediener::reduce() {
                              (lhs->getRight())->variableName(),
                              static_cast<ibis::math::variable*>
                              (rhs->getRight())->variableName()) == 0) {
+            // x*A + y*A ==> (x+y)*A
             ret = lhs->dup();
             static_cast<ibis::math::number*>(ret->getLeft())->val +=
                 static_cast<ibis::math::term*>(rhs->getLeft())->eval();

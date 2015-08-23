@@ -40,9 +40,15 @@ Here is a list of arguments.
 - <code>-M metadata-filename</code> name the metadata file that contains
   the name and type information.  The names and types can be either
   specified in the form of 'name:type' pairs or in the form of "-part.txt"
-  files.
+  files.  The 'name:type' string is parsed by the function
+  ibis::tablex::parseNamesAndTypes.
+
 - <code>-m name:type[name:type,..]</code> metadata, i.e., the names and
-  types of the columns.
+  types of the columns.  All specification of 'name:type' pairs are
+  concatenated according to the order they appear on the command line.
+  This order is used to match with the order of the columns in the in the
+  text file to be processed.
+
 - <code>-m max-rows-per-file</code> an upper bound on the number of rows
   in an input file, used to allocate internal read buffer.  This is an
   optional advisory parameter.
@@ -77,8 +83,8 @@ Here is a list of arguments.
       end-of-line character, then it is possible that this program will not
       process the end-of-line correctly.  If you see this program putting
       an entire line of text into one field, it is likely that you are
-      experiencing this problem.  Please convert the end-of-line to
-      unix-type.
+      experiencing the problem with the end-of-line characters.  Please
+      convert the end-of-line to unix-type.
 
 @note This file is named after Cattle Egret, whose Latin name is <A
     HREF="http://tinyurl.com/ded8yj">Ardea ibis</A>.
@@ -223,7 +229,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
                 }
                 break;
             case 'k':
-            case 'K': { // key (aka dictionary)
+            case 'K': { // key (aka category) and dictionary
                 if (i+2 < argc) {
                     userdicts.push_back(argv[i+1]);
                     userdicts.push_back(argv[i+2]);
