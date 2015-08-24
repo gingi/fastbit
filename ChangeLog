@@ -3,6 +3,10 @@
 	null pointer to it (strcmp(A, B) > 0 ==> (A != 0 && (B == 0 ||
 	strcmp(A, B) > 0)), strcmp(A, B) >= 0 ==> ((A != 0 && (B == 0 ||
 	strcmp(A, B) >= 0)) || (A == 0 && B == 0))
+	* tests/Makefile.am: adapted changes from Jon Strabala to
+	tests/Makefile.in to tests/Makefile.am to address problems with
+	more strict sh script syntax under solaris derivatives (works on
+	Mac OS X 10.10.5, will ask Jon to try the new Makefile.am)
 
 2015-08-19 John Wu <John dot Wu at ACM dot org>
 	* src/ibis.h: update the in-line documentation of
