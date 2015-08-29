@@ -1,3 +1,7 @@
+2015-08-28 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp: minor reordering of states that read
+	configuration files supplied from the command line
+
 2015-08-23 John Wu <John dot Wu at ACM dot org>
 	* src/utilidor.cpp: protect all calls to strcmp to prevent sending
 	null pointer to it (strcmp(A, B) > 0 ==> (A != 0 && (B == 0 ||

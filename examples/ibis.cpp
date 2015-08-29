@@ -2526,15 +2526,18 @@ static void parse_args(int argc, char** argv, int& mode,
         lg() << "\n";
     }
     if (confs.size() > 1) {
-        // read all configuration files except the last one
+        // read all configuration files, except the last one
         for (uint32_t i = 0; i < confs.size()-1; ++ i)
             ibis::gParameters().read(confs[i]);
     }
+    // make sure to invoke ibis::init; if there is any configuration file
+    // supplied on command-line, this processes the last file
+    ibis::init(confs.empty()?(const char*)0:confs.back());
+    // the parameter from command line take precedence over the same in
+    // configuration files
     if (accessIndexInWhole > 0) {
         ibis::gParameters().add("all.preferMMapIndex", "T");
     }
-    // process data directories specified in the rc files
-    ibis::init(confs.empty()?(const char*)0:confs.back());
 
     // reorder the data directories first, a data directory may be followed
     // by ':' and column names
