@@ -1,3 +1,10 @@
+2015-09-02 John Wu <John dot Wu at ACM dot org>
+	* src/fileManger.cpp:634 move tests on OPEN_MAX and STREAM_MAX as
+	fallback option of sysconf(_SC_OPEN_MAX), which should give the
+	correct number of file descriptors available at runtime, the other
+	macros contains static file descriptor limits predefined by POSIX
+	standards (to address a problem observed by Jon Stabala)
+
 2015-08-28 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp: minor reordering of states that read
 	configuration files supplied from the command line

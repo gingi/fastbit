@@ -628,19 +628,16 @@ ibis::fileManager::fileManager()
         // maximum number of open files is defined in sysconf
         uint32_t sz = sysconf(_SC_OPEN_MAX);
         maxOpenFiles = static_cast<uint32_t>(0.75*sz);
+#elif defined(OPEN_MAX)
+        maxOpenFiles = static_cast<int>(0.8*OPEN_MAX);
+#elif defined(STREAM_MAX)
+        maxOpenFiles = static_cast<int>(0.9*STREAM_MAX);
 #else
         maxOpenFiles = 60;
 #endif
     }
-    // final adjustment based on stdio limitation
-#if defined(OPEN_MAX)
-    maxOpenFiles = static_cast<int>
-        (maxOpenFiles<=0.8*OPEN_MAX?maxOpenFiles:0.8*OPEN_MAX);
-#elif defined(STREAM_MAX)
-    maxOpenFiles = static_cast<int>
-        (maxOpenFiles<=0.9*STREAM_MAX?maxOpenFiles:0.9*STREAM_MAX);
-#endif
 #if defined(FOPEN_MAX)
+    // should be able to open more files than FOPEN_MAX
     if (maxOpenFiles < FOPEN_MAX)
         maxOpenFiles = FOPEN_MAX;
 #endif
