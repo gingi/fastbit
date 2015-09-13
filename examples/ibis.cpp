@@ -4357,7 +4357,7 @@ static void doAppend(const char* dir) {
             int nth = static_cast<int>(ibis::gVerbose < 20
                                        ? 1+sqrt((double)ibis::gVerbose)
                                        : 3+log((double)ibis::gVerbose));
-            tbl->buildIndexes(0, 1);
+            tbl->buildIndexes(indexingOptions, build_index);
             ierr = tbl->selfTest(nth);
         }
         else { // very quiet, skip self testing
@@ -4406,7 +4406,7 @@ static void doAppend(const char* dir) {
 
         // self test after commit
         if (ibis::gVerbose > 4 || (ibis::gVerbose > 0 && testing > 0)) {
-            tbl->buildIndexes(0, 1);
+            tbl->buildIndexes(indexingOptions, build_index);
             ierr = tbl->selfTest(0);
             LOGGER(ibis::gVerbose > 0)
                 << (ierr>0?"Warning -- ":"")
@@ -4418,7 +4418,7 @@ static void doAppend(const char* dir) {
         }
     }
     else if (ibis::gVerbose > 3 || (ibis::gVerbose >= 0 && testing > 0)) {
-        tbl->buildIndexes(0, 1);
+        tbl->buildIndexes(indexingOptions, build_index);
         ierr = tbl->selfTest(0);
         LOGGER(ibis::gVerbose > 0)
             << (ierr>0?"Warning -- ":"")

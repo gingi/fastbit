@@ -8,6 +8,9 @@
 	* test/Makefile.am: change check-sq0 and check-sq1 to use multiple
 	threads to speed up the test execution.  On a MacBook Pro,
 	check-sq0 runs in 90 seconds.
+	* examples/ibis.cpp: change all invocations of buildIndexes to use
+	global variables indexingOptioins and build_index to control the
+	type of index built and the number of threads used
 
 2015-09-02 John Wu <John dot Wu at ACM dot org>
 	* src/fileManger.cpp:634 move tests on OPEN_MAX and STREAM_MAX as
