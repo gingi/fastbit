@@ -393,30 +393,36 @@ check-js2: $(IBISEXE) $(TESTDIR)/js2/-part.txt
 # subdirectories.  Tests may take half a hour or longer depending on
 # your test machine.
 check-sq0: $(THULAEXE) $(IBISEXE) $(TESTDIR)/sq0 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
-	@$(IBISEXE) -d $(TESTDIR)/sq0 -v -thr 4 -t 25 >> $(TESTDIR)/$@.log 2>&1
-	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
-	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
-	@$(IBISEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq0 -v -thr 3 -t 33 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/sq0 -v -thr 5 -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq0 -v -thr 2 -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq0 -v -thr 3 -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq0 -v -thr 4 -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -eq 0 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
+#	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
+#	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 $(TESTDIR)/sq0: setqgen$(EXEEXT) TESTDIR
 	@test -d $(TESTDIR)/sq0 || ./setqgen$(EXEEXT) $(TESTDIR)/sq0 1.6e6 7e5 >| $(TESTDIR)/check-sq0.log 2>&1
 # testing with enough rows to fill a 1.6GB memory cache, completing this
 # set of tests might take a couple of hours on a typical machine with at
 # least 4GB of memory.  More memory will typlically reduce the test
-# time, but not significantly.  The number of rows in the test data is
-# about 25 million.
+# time, because most of the command lines contains configuration that
+# limits the memory it will use.  The number of rows in the test data is
+# about 25 million.  This test dataset is large enough that it has to be
+# run with one a single thread with smallmem1.rc.
 check-sq1: $(THULAEXE) $(IBISEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
-	@$(IBISEXE) -d $(TESTDIR)/sq1 -v -thr 4 -t 25 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -d $(TESTDIR)/sq1 -v -thr 5 -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq1 -v -thr 3 -t 100 >> $(TESTDIR)/$@.log 2>&1
+	@$(IBISEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq1 -v -thr 2 -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
-	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
-	@$(THULAEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq1 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@if [ `fgrep 'doTest iteration' $(TESTDIR)/$@.log | fgrep Warning | wc -l` -le 200 ]; then echo Log file for $@ contains the expected number of warnings; else echo Log file for $@ contains some extra warnings, please examine the file $(TESTDIR)/$@.log; fi
 	@echo
 $(TESTDIR)/sq1: setqgen$(EXEEXT) $(TESTDIR)/smallmem3.rc TESTDIR
 	@test -d $(TESTDIR)/sq1 || ./setqgen$(EXEEXT) $(TESTDIR)/sq1 -1 -1 $(TESTDIR)/smallmem3.rc >| $(TESTDIR)/check-sq1.log 2>&1
 # testing with 1 billion rows, will encounter failures.  Tests could
-# take ten hours or more depending on your test machine.
+# take ten hours or more depending on your test machine.  Because most
+# of the query evaluation will take a significant amount of memory, this
+# test will run in in single-thread mode
 check-sq2: $(THULAEXE) $(TESTDIR)/sq2 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
 	@$(THULAEXE) -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(THULAEXE) -c $(TESTDIR)/smallmem1.rc -d $(TESTDIR)/sq2 -v -t 100 >> $(TESTDIR)/$@.log 2>&1

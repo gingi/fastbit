@@ -2025,7 +2025,7 @@ static void randomQueries(const ibis::part& pt, unsigned mq,
     qlist.reserve(queff.size());
     for (unsigned j = 0; j < queff.size(); ++ j)
         qlist.push_back(queff[j].c_str());
-    LOGGER(ibis::gVerbose > 2)
+    LOGGER(ibis::gVerbose > 0)
         << "randomQueries generated " << qlist.size() << " random quer"
         << (qlist.size()>1?"ies":"y");
 } // randomQueries
@@ -5222,8 +5222,8 @@ int main(int argc, char** argv) {
 
         if (testing > 0 && ! ibis::datasets.empty() && threading > 0 &&
             qlist.empty()) { // generate random queries
-            const unsigned mq = (threading > 1 ? threading : 2) *
-                (testing > 0 ? testing+1 : 5);
+            const unsigned mq = 
+                (testing > (threading+threading) ? testing : (threading+threading));
             randomQueries(*ibis::datasets[0], mq, qlist, queff);
         }
         else if (testing > 0 && ! ibis::datasets.empty()) {

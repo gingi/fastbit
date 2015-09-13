@@ -1,3 +1,14 @@
+2015-09-12 John Wu <John dot Wu at ACM dot org>
+	* examples/ibis.cpp: change the number of test queries to be
+	determined by -t option instead of a product of number of threads
+	and the testing option, i.e., -t 100 will always generate 100
+	random queries.  It will try to make sure each thread has two
+	queries to process, so when the number of threads is large, it
+	will still inscrease the number of random queries generated.
+	* test/Makefile.am: change check-sq0 and check-sq1 to use multiple
+	threads to speed up the test execution.  On a MacBook Pro,
+	check-sq0 runs in 90 seconds.
+
 2015-09-02 John Wu <John dot Wu at ACM dot org>
 	* src/fileManger.cpp:634 move tests on OPEN_MAX and STREAM_MAX as
 	fallback option of sysconf(_SC_OPEN_MAX), which should give the
