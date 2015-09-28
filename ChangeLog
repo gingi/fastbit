@@ -1,4 +1,9 @@
 2015-09-12 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.h, src/fileManager.cpp: add function
+	getMaxOpenMmapFiles and getMaxMmapBytes per suggestion of Jon
+	Stabala
+
+2015-09-12 John Wu <John dot Wu at ACM dot org>
 	* examples/ibis.cpp: change the number of test queries to be
 	determined by -t option instead of a product of number of threads
 	and the testing option, i.e., -t 100 will always generate 100

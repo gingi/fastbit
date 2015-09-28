@@ -381,14 +381,32 @@ int ibis::fileManager::adjustCacheSize(uint64_t newsize) {
     }
 } // ibis::fileManager::adjustCacheSize
 
-/// This function cleans the memory cache used by FastBit.  It cleans the
+// Return the count of files that are memory mapped
+unsigned int ibis::fileManager::getMaxOpenMmapFiles() const {
+    return mapped.size();
+} // ibis::fileManager::getMaxOpenMmapFiles
+
+// Return the size in bytes of files that are memory mapped.
+uint64_t ibis::fileManager::getMaxMmapBytes() const {
+    uint64_t mtot=0;
+    for (fileList::const_iterator it0 = mapped.begin(); it0 != mapped.end();
+         ++it0) {
+        mtot += (*it0).second->size();
+    }
+    return mtot;
+} // ibis::fileManager::getMaxMmapBytes
+
+
+/// This function cleans the memory cache used by FastBit.  It clears the
 /// two lists of files held by this class and therefore makes the files not
-/// accessible any new objects.  However, the actual underlying memory may
-/// still be present if they are being actively used.  This function is
-/// effective only if all other operations have ceased!  To force an
-/// individual file to be unloaded use ibis::fileManager::flushFile.  To
-/// force all files in a directory to be unloaded used
-/// ibis::fileManager::flushDir.
+/// accessible to any new objects.  <em>Important note, the actual
+/// underlying memory may still be present if they are being actively
+/// used.</em> This function is effective only if all other operations have
+/// ceased!
+/// 
+/// To force an individual file to be unloaded use
+/// ibis::fileManager::flushFile.  To force all files in a directory to be
+/// unloaded used ibis::fileManager::flushDir.
 ///
 /// @note This function will not do anything if it is not able to acquire a
 /// write lock in the file manager object.
@@ -443,7 +461,9 @@ void ibis::fileManager::clear() {
         incore.clear();
         // delete the read-only files stored in the std::vector because the
         // FileList uses the name of the file (part of the object to be
-        // deleted) as the key (of a std::map).
+        // deleted) as the key (of a std::map).  The delete function will
+        // actually invoke the function ibis::fileManager::storage::clear
+        // to free the memory
         for (size_t j = 0; j < tmp.size(); ++ j)
             delete tmp[j];
     }
@@ -2029,7 +2049,10 @@ void ibis::fileManager::storage::enlarge(size_t nelm) {
     }
 } // ibis::fileManager::storage::enlarge
 
-/// Actually freeing the storage allocated.
+/// Actually freeing the storage allocated.  The storage object is
+/// reference counted (through the variable nref).  If the reference count
+/// is not zer0, this function will only print a warning message, but will
+/// not actually attempt to free the memory.
 ///
 /// @note When name is not nil, but *name == 0, then the pointer is given
 /// by the user and the user is responsible for freeing the memory.

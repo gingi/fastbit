@@ -116,6 +116,11 @@ public:
     /// Return the number of bytes free.
     static uint64_t bytesFree();
 
+    /// Return the count of files that are memory mapped.
+    unsigned int getMaxOpenMmapFiles() const;
+    /// Return the size in bytes of files that are memory mapped.
+    uint64_t getMaxMmapBytes() const;
+
     /// A buffer is intended to be a temporary workspace in memory.  The
     /// constructor allocates a certain amount of memory, default to 16 MB;
     /// the destructor release the memory.  Its size can not be changed.
@@ -179,10 +184,14 @@ private:
 		      std::less< const char* > > fileList;
     typedef std::set< const cleaner* > cleanerList;
     typedef std::set< const char*, std::less< const char* > > nameList;
-    fileList mapped; // files that are memory mapped
-    fileList incore; // files that have been read into the main memory
-    nameList reading;// files that are being read by the function getFile
-    cleanerList cleaners; // list of external cleaners
+    /// Files that are memory mapped.
+    fileList mapped;
+    /// Files that have been read into the main memory.
+    fileList incore;
+    /// Files that are being read by the function getFile.
+    nameList reading;
+    /// List of external cleaners.
+    cleanerList cleaners;
     /// The number of pages read by read from @c unistd.h.
     double page_count;
     /// the minimum size of a file before it is memory mapped.
@@ -200,7 +209,8 @@ private:
     /// and memory allocations.
     mutable pthread_cond_t cond;
 
-    static time_t hbeat;	// a simple counter, no mutex lock
+    /// A simple counter.  No mutex lock.
+    static time_t hbeat;
     /// The number of bytes in a page.
     static uint32_t pagesize;
 
