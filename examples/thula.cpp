@@ -76,7 +76,7 @@ static void usage(const char* name) {
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, ibis::table*& tbl,
                        qList& qcnd, const char*& sel, const char*& frm,
-                       const char*& ord, ibis::table::stringList *&cats) {
+                       const char*& ord, ibis::table::stringVector *&cats) {
 #if defined(DEBUG) || defined(_DEBUG)
 #if DEBUG + 0 > 10 || _DEBUG + 0 > 10
     ibis::gVerbose = INT_MAX;
@@ -125,7 +125,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
             case 'm':
             case 'M': {
                 if (0 == cats)
-                    cats = new ibis::table::stringList;
+                    cats = new ibis::table::stringVector;
                 char *ptr = strchr(argv[i], '=');
                 if (ptr == 0) {
                     if (i+1 < argc) {
@@ -249,7 +249,7 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
     }
 } // parse_args
 
-static void clearBuffers(const ibis::table::typeList& tps,
+static void clearBuffers(const ibis::table::typeArray& tps,
                          std::vector<void*>& buffers) {
     const size_t nc = (tps.size() <= buffers.size() ?
                        tps.size() : buffers.size());
@@ -385,8 +385,8 @@ static int printValues1(const ibis::table& tbl) {
         return -1;
     }
 
-    ibis::table::stringList nms = tbl.columnNames();
-    ibis::table::typeList tps = tbl.columnTypes();
+    ibis::table::stringArray nms = tbl.columnNames();
+    ibis::table::typeArray tps = tbl.columnTypes();
     std::vector<void*> buffers(nms.size(), 0);
     for (size_t i = 0; i < nms.size(); ++ i) {
         switch (tps[i]) {
@@ -601,7 +601,7 @@ static int printValues2(const ibis::table& tbl) {
     if (nprt > nr)
         nprt = static_cast<size_t>(nr);
     if (nprt > 0) {
-        ibis::table::stringList nms = tbl.columnNames();
+        ibis::table::stringArray nms = tbl.columnNames();
         std::cout << nms[0];
         for (size_t j = 1; j < nms.size(); ++ j)
             std::cout << ", " << nms[j];
@@ -765,10 +765,10 @@ void doQuery(const ibis::table& tbl, const char* wstr, const char* sstr,
         && strchr(sstr, '(') == 0) {
         std::cout << "\n-- *** extra test on the in-memory data *** --\n";
         std::unique_ptr<ibis::table> gb;
-        ibis::table::stringList nl = sel->columnNames();
-        ibis::table::typeList tl = sel->columnTypes();
+        ibis::table::stringArray nl = sel->columnNames();
+        ibis::table::typeArray tl = sel->columnTypes();
         std::vector<std::string> strs;
-        ibis::table::stringList strc;
+        ibis::table::stringArray strc;
         if (nl.size() == 1) {
             if (ibis::util::isNumericType(tl[0])) {
                 strs.resize(10);
@@ -965,7 +965,7 @@ void doTest(const ibis::table& tbl) {
         return;
     }
 
-    const ibis::table::stringList& cols(tbl.columnNames());
+    const ibis::table::stringArray& cols(tbl.columnNames());
     for (int j = 0; j < testing; ++ j) {
         LOGGER(ibis::gVerbose > 2)
             << "Info -- doTest iteration " << j << " starting with "
@@ -1052,7 +1052,7 @@ void doTest(const ibis::table& tbl) {
 
 int main(int argc, char** argv) {
     ibis::table* tbl = 0;
-    ibis::table::stringList *cats = 0;
+    ibis::table::stringVector *cats = 0;
     const char* sel; // only one select clause
     const char* frm; // only one string to select different data partitions
     const char* ord; // only one order clause

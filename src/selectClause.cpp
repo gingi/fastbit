@@ -20,7 +20,7 @@ ibis::selectClause::selectClause(const char *cl) : lexer(0) {
         << "\", function parse returned " << ierr;
 } // ibis::selectClause::selectClause
 
-ibis::selectClause::selectClause(const ibis::table::stringList &sl)
+ibis::selectClause::selectClause(const ibis::table::stringArray &sl)
     : lexer(0) {
     //#if defined(DEBUG) || defined(_DEBUG)
     LOGGER(ibis::gVerbose > 3)
@@ -404,7 +404,7 @@ const char* ibis::selectClause::isUnivariate() const {
     ibis::math::barrel bar;
     for (size_t j = 0; j < atms_.size(); ++ j)
         bar.recordVariable(atms_[j]);
-    ibis::table::stringList sl;
+    ibis::table::stringArray sl;
     for (size_t j = 0; j < bar.size(); ++ j) {
         const char* str = bar.name(j);
         if (*str != 0) {

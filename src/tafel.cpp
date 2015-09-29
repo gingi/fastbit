@@ -3786,9 +3786,9 @@ void ibis::tafel::describe(std::ostream &out) const {
 } // ibis::tafel::describe
 
 ibis::table* ibis::tafel::toTable(const char *nm, const char *de) {
-    ibis::table::bufferList databuf;
-    ibis::table::stringList cname;
-    ibis::table::typeList ctype;
+    ibis::table::bufferArray databuf;
+    ibis::table::stringArray cname;
+    ibis::table::typeArray ctype;
     if (mrows == 0 || cols.empty())
         return new ibis::bord(nm, de, 0, databuf, ctype, cname);
 

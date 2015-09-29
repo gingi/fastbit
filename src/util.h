@@ -308,6 +308,9 @@ inline uint64_t _rotl64( uint64_t x, int8_t r ) {
 // #elif !defined(isfinite)
 // #define isfinite finite
 // #endif
+#define IBIS_2STR(x) #x
+#define IBIS_INT_STR(x) IBIS_2STR(x)
+#define IBIS_FILE_LINE " @ " __FILE__ ":" IBIS_INT_STR(__LINE__)
 
 #define LOGGER(v)                                       \
     if (false == (v)) ; else ibis::util::logger(0)() 

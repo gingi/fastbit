@@ -114,7 +114,7 @@ public:
     /// Parse a new string as a select clause.
     explicit selectClause(const char *cl=0);
     /// Parse a list of strings.
-    selectClause(const ibis::table::stringList&);
+    selectClause(const ibis::table::stringArray&);
     ~selectClause();
 
     /// Copy constructor.  Deep copy.

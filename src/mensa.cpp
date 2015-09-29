@@ -263,9 +263,9 @@ uint32_t ibis::mensa::nColumns() const {
 /// @note the list of column names contains raw pointers to column names.
 /// If the underlying data partition is removed, these pointers will become
 /// invalid.
-ibis::table::stringList ibis::mensa::columnNames() const {
+ibis::table::stringArray ibis::mensa::columnNames() const {
     if (parts.empty()) {
-        ibis::table::stringList res;
+        ibis::table::stringArray res;
         return res;
     }
     else {
@@ -274,9 +274,9 @@ ibis::table::stringList ibis::mensa::columnNames() const {
 } // ibis::mensa::columnNames
 
 /// Return the column types in a list.
-ibis::table::typeList ibis::mensa::columnTypes() const {
+ibis::table::typeArray ibis::mensa::columnTypes() const {
     if (parts.empty()) {
-        ibis::table::typeList res;
+        ibis::table::typeArray res;
         return res;
     }
     else {
@@ -372,7 +372,7 @@ int ibis::mensa::buildIndexes(const char* opt) {
     return 0;
 } // ibis::mensa::buildIndexes
 
-int ibis::mensa::buildIndexes(const ibis::table::stringList &opt) {
+int ibis::mensa::buildIndexes(const ibis::table::stringArray &opt) {
     for (ibis::partList::const_iterator it = parts.begin();
          it != parts.end(); ++ it) {
         (*it)->buildIndexes(opt);
@@ -380,7 +380,7 @@ int ibis::mensa::buildIndexes(const ibis::table::stringList &opt) {
     return 0;
 } // ibis::mensa::buildIndexes
 
-int ibis::mensa::mergeCategories(const ibis::table::stringList &nms) {
+int ibis::mensa::mergeCategories(const ibis::table::stringArray &nms) {
     if (parts.size() <= 1 && nms.size() == 0)
         return 0;
 
@@ -410,7 +410,7 @@ int ibis::mensa::mergeCategories(const ibis::table::stringList &nms) {
     int ierr = 0, cnt = 0;
 
     if (nms.empty()) { // merge categorical columns with the same name
-        ibis::table::stringList names;
+        ibis::table::stringArray names;
         std::vector<ibis::dictionary*> words;
         for (ibis::table::namesTypes::const_iterator it = naty.begin();
              it != naty.end();
@@ -469,7 +469,7 @@ int ibis::mensa::mergeCategories(const ibis::table::stringList &nms) {
         for (ibis::partList::const_iterator pit = parts.begin();
              pit != parts.end();
              ++ pit) {
-            for (ibis::table::stringList::const_iterator nit = nms.begin();
+            for (ibis::table::stringArray::const_iterator nit = nms.begin();
                  nit != nms.end();
                  ++ nit) {
                 const ibis::column *c0 = (*pit)->getColumn(*nit);
@@ -492,7 +492,7 @@ int ibis::mensa::mergeCategories(const ibis::table::stringList &nms) {
         for (ibis::partList::iterator pit = parts.begin();
              pit != parts.end();
              ++ pit) {
-            for (ibis::table::stringList::const_iterator nit = nms.begin();
+            for (ibis::table::stringArray::const_iterator nit = nms.begin();
                  nit != nms.end();
                  ++ nit) {
                 ibis::column *c0 = (*pit)->getColumn(*nit);
@@ -705,7 +705,7 @@ ibis::table* ibis::mensa::select2(const char* sel, const char* cond,
 
 /// Reordering the rows using the specified columns.  Each data partition
 /// is reordered separately.
-void ibis::mensa::orderby(const ibis::table::stringList& names) {
+void ibis::mensa::orderby(const ibis::table::stringArray& names) {
     for (ibis::partList::iterator it = parts.begin();
          it != parts.end(); ++ it) {
         long ierr = (*it)->reorder(names);
@@ -719,7 +719,7 @@ void ibis::mensa::orderby(const ibis::table::stringList& names) {
 
 /// Reordering the rows using the specified columns.  Each data partition
 /// is reordered separately.
-void ibis::mensa::orderby(const ibis::table::stringList& names,
+void ibis::mensa::orderby(const ibis::table::stringArray& names,
                           const std::vector<bool>& asc) {
     for (ibis::partList::iterator it = parts.begin();
          it != parts.end(); ++ it) {
@@ -4388,7 +4388,7 @@ ibis::table* ibis::table::create(const char* dir1, const char* dir2) {
 ///
 /// @note Some bytes in the incoming string may be turned into nil (0) to
 /// mark the end of names.
-void ibis::table::parseOrderby(char* in, ibis::table::stringList& out,
+void ibis::table::parseOrderby(char* in, ibis::table::stringArray& out,
                                std::vector<bool>& direc) {
     char* ptr1 = in;
     char* ptr2;
@@ -4469,7 +4469,64 @@ void ibis::table::parseOrderby(char* in, ibis::table::stringList& out,
 /// Parse the incoming string into a set of names.  Some bytes in the
 /// incoming string may be turned into nil (0) to mark the end of names or
 /// functions.  Newly discovered tokens will be appended to out.
-void ibis::table::parseNames(char* in, ibis::table::stringList& out) {
+void ibis::table::parseNames(char* in, ibis::table::stringVector& out) {
+    char* ptr1 = in;
+    char* ptr2;
+    while (*ptr1 != 0 && isspace(*ptr1) != 0) ++ ptr1; // leading space
+    // since SQL names can not contain space, quotes must be for the whole
+    // list of names
+    if (*ptr1 == '\'') {
+        ++ ptr1; // skip opening quote
+        ptr2 = strchr(ptr1, '\'');
+        if (ptr2 > ptr1)
+            *ptr2 = 0; // string terminates here
+    }
+    else if (*ptr1 == '"') {
+        ++ ptr1;
+        ptr2 = strchr(ptr1, '"');
+        if (ptr2 > ptr1)
+            *ptr2 = 0;
+    }
+
+    while (*ptr1 != 0) {
+        for (ptr2 = ptr1; *ptr2 == '_' || isalnum(*ptr2) != 0; ++ ptr2);
+        while (*ptr2 == '(') {
+            int nesting = 1;
+            for (++ ptr2; *ptr2 != 0 && nesting > 0; ++ ptr2) {
+                nesting -= (*ptr2 == ')');
+                nesting += (*ptr2 == '(');
+            }
+            while (*ptr2 != 0 && *ptr2 != ',' && *ptr2 != ';' && *ptr2 != '(')
+                ++ ptr2;
+        }
+        if (*ptr2 == 0) {
+            out.push_back(ptr1);
+        }
+        else if (ispunct(*ptr2) || isspace(*ptr2)) {
+            *ptr2 = 0;
+            out.push_back(ptr1);
+            ++ ptr2;
+        }
+        else {
+            LOGGER(ibis::gVerbose > 0)
+                << "Warning -- table::parseNames can not part string \"" << ptr1
+                << "\" into a column name or a function, skip till first "
+                "character after the next comma or space";
+
+            while (*ptr2 != 0 && ispunct(*ptr2) == 0 && isspace(*ptr2) == 0)
+                ++ ptr2;
+            if (*ptr2 != 0) ++ ptr2;
+            while (*ptr2 != 0 && isspace(*ptr2) != 0) ++ ptr2;
+        }
+        // skip spaces and punctuations
+        for (ptr1 = ptr2; *ptr1 && (ispunct(*ptr1) || isspace(*ptr1)); ++ ptr1);
+    }
+} // ibis::table::parseNames
+
+/// Parse the incoming string into a set of names.  Some bytes in the
+/// incoming string may be turned into nil (0) to mark the end of names or
+/// functions.  Newly discovered tokens will be appended to out.
+void ibis::table::parseNames(char* in, ibis::table::stringArray& out) {
     char* ptr1 = in;
     char* ptr2;
     while (*ptr1 != 0 && isspace(*ptr1) != 0) ++ ptr1; // leading space
@@ -4587,7 +4644,7 @@ void ibis::table::consecrateName(char *nm) {
 } // ibis::table::consecrateName
 
 ibis::table* ibis::table::groupby(const char* str) const {
-    stringList lst;
+    stringArray lst;
     char* buf = 0;
     if (str != 0 && *str != 0) {
         buf = new char[std::strlen(str)+1];
@@ -4600,7 +4657,7 @@ ibis::table* ibis::table::groupby(const char* str) const {
 } // ibis::table::groupby
 
 void ibis::table::orderby(const char* str) {
-    stringList lst;
+    stringArray lst;
     std::vector<bool> direc;
     char* buf = 0;
     if (str != 0 && *str != 0) {

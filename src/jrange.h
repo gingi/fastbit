@@ -49,7 +49,7 @@ public:
 
     virtual ibis::table* select() const;
     virtual ibis::table* select(const char*) const;
-    virtual ibis::table* select(const ibis::table::stringList& colnames) const;
+    virtual ibis::table* select(const ibis::table::stringArray& colnames) const;
 
 protected:
     std::string desc_;
@@ -75,12 +75,12 @@ protected:
     fillResult(size_t nrows, double delta1, double delta2,
 	       const std::string &desc,
 	       const ibis::array_t<T>& rjcol,
-	       const ibis::table::typeList& rtypes,
-	       const ibis::table::bufferList& rbuff,
+	       const ibis::table::typeArray& rtypes,
+	       const ibis::table::bufferArray& rbuff,
 	       const ibis::array_t<T>& sjcol,
-	       const ibis::table::typeList& stypes,
-	       const ibis::table::bufferList& sbuff,
-	       const ibis::table::stringList& cnamet,
+	       const ibis::table::typeArray& stypes,
+	       const ibis::table::bufferArray& sbuff,
+	       const ibis::table::stringArray& cnamet,
 	       const std::vector<uint32_t>& cnpos);
 
 private:

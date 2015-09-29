@@ -159,7 +159,7 @@ static const char *appendTarget = 0;
 static const char *outputname = 0;
 static const char *yankstring = 0;
 static const char *keepstring = 0;
-static ibis::table::stringList indexingOptions;
+static std::vector<const char*> indexingOptions;
 
 typedef std::pair<const char*, const char*> namepair;
 
@@ -2548,14 +2548,14 @@ static void parse_args(int argc, char** argv, int& mode,
         std::string dir;
         ibis::partList plist;  
         bool has_collist=false;
-        ibis::table::stringList slist;
+        ibis::table::stringVector slist;
         char* str = const_cast<char*>(strrchr(rdirs[i], ':'));
         // if (str != 0 && str > rdirs[i] && str[1] != '/' && str[1] != '\\') {
         //     std::string dir;
         //     for (const char* tmp = rdirs[i]; tmp < str; ++ tmp)
         //         dir += *tmp;
         //     str = ibis::util::strnewdup(str+1);
-        //     ibis::table::stringList slist;
+        //     ibis::table::stringArray slist;
         //     ibis::table::parseNames(str, slist);
         //     uint32_t nr = 0;
         //     {
@@ -3091,7 +3091,7 @@ static void tableSelect(const ibis::partList &pl, const char* uid,
     if (recheckvalues && sel1->nRows() > 1 && sel1->nColumns() > 0) {
         // query the list of values selected by the 1st column
         std::vector<double> svals;
-        const ibis::table::stringList cnames = sel1->columnNames();
+        const ibis::table::stringArray cnames = sel1->columnNames();
         ierr = sel1->getColumnAsDoubles(cnames[0], svals);
         if (ierr < 0 || static_cast<uint64_t>(ierr) != sel1->nRows()) {
             LOGGER(ibis::gVerbose >= 0)
@@ -3344,8 +3344,8 @@ static void doQuaere(const ibis::partList& pl,
         res->dump(lg(), start, limit, ", ");
     }
 
-    ibis::table::stringList cn = res->columnNames();
-    ibis::table::typeList ct = res->columnTypes();
+    ibis::table::stringArray cn = res->columnNames();
+    ibis::table::typeArray ct = res->columnTypes();
     if (cn.size() > 1 && ct.size() == cn.size() &&
         (ct[0] == ibis::TEXT || ct[0] == ibis::CATEGORY) &&
         (ct.back() != ibis::TEXT && ct.back() != ibis::CATEGORY)) {

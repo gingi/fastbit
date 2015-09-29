@@ -52,7 +52,7 @@ ibis::quaere::create(const char* sel, const char* fr, const char* wh,
         if (sel == 0 || *sel == 0) {
         }
         else if (*sel == '*' && sel[1] == 0) {
-            const ibis::table::stringList sl = prts[0]->columnNames();
+            const ibis::table::stringArray sl = prts[0]->columnNames();
             ibis::selectClause sc1(sl);
             sc.swap(sc1);
         }

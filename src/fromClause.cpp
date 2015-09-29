@@ -15,7 +15,7 @@ ibis::fromClause::fromClause(const char *cl) : jcond_(0), lexer(0) {
     parse(cl);
 } // ibis::fromClause::fromClause
 
-ibis::fromClause::fromClause(const ibis::table::stringList &sl)
+ibis::fromClause::fromClause(const ibis::table::stringArray &sl)
     : jcond_(0), lexer(0) {
     for (size_t j = 0; j < sl.size(); ++ j) {
         if (sl[j] != 0 && *(sl[j]) != 0) {
@@ -130,7 +130,7 @@ int ibis::fromClause::parse(const char *cl) {
 
 /// Fill the array nms with the known names.  It returns both actual table
 /// names and their aliases in alphabetic order.
-void ibis::fromClause::getNames(ibis::table::stringList& nms) const {
+void ibis::fromClause::getNames(ibis::table::stringArray& nms) const {
     nms.clear();
     nms.reserve(ordered_.size());
     for (std::map<const char*, size_t, ibis::lessi>::const_iterator it

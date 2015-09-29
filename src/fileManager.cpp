@@ -666,13 +666,13 @@ ibis::fileManager::fileManager()
     //                        "ctor");
     if (pthread_mutex_init(&mutex, 0) != 0)
         throw ibis::bad_alloc("pthread_mutex_init failed in "
-                              "fileManager ctor");
+                              "fileManager ctor" IBIS_FILE_LINE);
     if (pthread_cond_init(&cond, 0) != 0)
         throw ibis::bad_alloc("pthread_cond_init(cond) failed in "
-                              "fileManager ctor");
+                              "fileManager ctor" IBIS_FILE_LINE);
     if (pthread_cond_init(&readCond, 0) != 0)
         throw ibis::bad_alloc("pthread_cond_init(readCond) failed in "
-                              "fileManager ctor");
+                              "fileManager ctor" IBIS_FILE_LINE);
 
     LOGGER(ibis::gVerbose > 1)
         << "fileManager initialization complete -- maxBytes="
@@ -719,7 +719,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile *st) {
                     << "the incore list";
                 throw "fileManager::recordFile trying to register two "
                     "storages with the same file name (old incore, "
-                    "new mapped)";
+                    "new mapped)" IBIS_FILE_LINE;
             }
             mapped[st->filename()] = st;
         }
@@ -731,7 +731,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile *st) {
                 << ") while one with the same name is already in "
                 << "the mapped list";
             throw "fileManager::recordFile trying to register two "
-                "storage related the same file (both mapped)";
+                "storage related the same file (both mapped)" IBIS_FILE_LINE;
         }
     }
     else {
@@ -746,7 +746,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile *st) {
                     << "the mapped list";
                 throw "fileManager::recordFile trying to register two "
                     "storage related the same file (old mapped, "
-                    "new incore)";
+                    "new incore)" IBIS_FILE_LINE;
             }
             incore[st->filename()] = st;
         }
@@ -758,7 +758,7 @@ void ibis::fileManager::recordFile(ibis::fileManager::roFile *st) {
                 << ") while one with the same name is already in "
                 << "the mapped list";
             throw "fileManager::recordFile trying to register two "
-                "storage related the same file (both incore)";
+                "storage related the same file (both incore)" IBIS_FILE_LINE;
         }
     }
 } // ibis::fileManager::recordFile
@@ -936,15 +936,18 @@ int ibis::fileManager::getFile(const char* name, storage **st,
         // map the file read-only
         tmp->mapFile(name);
         if (tmp->begin() == 0) {
+            tmp->enlarge(bytes);
             // read the file into memory
             tmp->doRead(name);
         }
     }
     else {
+        tmp->enlarge(bytes);
         // read the file into memory
         tmp->doRead(name);
     }
 #else
+    tmp->enlarge(bytes);
     tmp->doRead(name);
 #endif
     if (tmp->size() == bytes) {
@@ -1087,15 +1090,18 @@ int ibis::fileManager::tryGetFile(const char* name, storage **st,
         // map the file read-only
         tmp->mapFile(name);
         if (tmp->begin() == 0) {
+            tmp->enlarge(bytes);
             // read the file into memory
             tmp->doRead(name);
         }
     }
     else {
+        tmp->enlarge(bytes);
         // read the file into memory
         tmp->doRead(name);
     }
 #else
+    tmp->enlarge(bytes);
     tmp->doRead(name);
 #endif
     if (tmp->size() == bytes) {
@@ -1773,18 +1779,32 @@ ibis::fileManager::storage::storage(size_t n)
         << "fileManager::storage::storage(" << n << ") ...";
     if (n == 0) n = 8; // give 8 bytes if asks for 0
     if (n+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
+#ifdef FASTBIT_RECURSIVE_UNLOAD
         ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
                                   "fileManager::storage::ctor");
         int ierr = ibis::fileManager::instance().unload(n);
         if (ierr < 0) {
             LOGGER(ibis::gVerbose >= 0)
                 << "Warning -- fileManager::storage::ctor failed to find "
-                << ibis::util::groupby1000(n) << " bytes of space in memory";
-            throw ibis::bad_alloc("storage::ctor(memory) failed");
+                << ibis::util::groupby1000(n) << " bytes of space in memory, "
+                << "totalBytes = " << ibis::fileManager::totalBytes()
+                << ", maxBytes = " << ibis::fileManager::maxBytes;
+            throw ibis::bad_alloc("storage::ctor(memory):loc1 failed"
+                                  IBIS_FILE_LINE);
         }
+#else
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- fileManager::storage::ctor failed to find "
+            << ibis::util::groupby1000(n) << " bytes of space in memory, "
+            << "totalBytes = " << ibis::fileManager::totalBytes()
+            << ", maxBytes = " << ibis::fileManager::maxBytes;
+        throw ibis::bad_alloc("storage::ctor(memory):loc1 failed"
+                              IBIS_FILE_LINE);
+#endif
     }
     m_begin = static_cast<char*>(malloc(n));
-    if (m_begin == 0) { // retry
+    if (m_begin == 0) { // failed to allocate memory
+#ifdef FASTBIT_RECURSIVE_UNLOAD
         LOGGER(ibis::gVerbose > 2)
             << "fileManager::storage::ctor failed malloc(" << n
             << "), will attempt to free some memory";
@@ -1794,8 +1814,11 @@ ibis::fileManager::storage::storage(size_t n)
             if (0 > ibis::fileManager::instance().unload(0)) {
                 LOGGER(ibis::gVerbose >= 0)
                     << "Error -- fileManager::storage::ctor failed to "
-                    " unload space";
-                throw ibis::bad_alloc("storage::ctor(memory) failed");
+                    "unload space, "
+                    << "totalBytes = " << ibis::fileManager::totalBytes()
+                    << ", maxBytes = " << ibis::fileManager::maxBytes;
+                throw ibis::bad_alloc("storage::ctor(memory):loc2 failed"
+                                      IBIS_FILE_LINE);
             }
         }
         m_begin = static_cast<char*>(malloc(n));
@@ -1811,23 +1834,30 @@ ibis::fileManager::storage::storage(size_t n)
                     ibis::fileManager::instance().printStatus(lg());
                 }
             }
-            throw ibis::bad_alloc("failed to allocate new storage object");
+            throw ibis::bad_alloc("storage::ctor(memory):loc3 failed"
+                                  IBIS_FILE_LINE);
         }
+#else
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- fileManager::storage::ctor failed to find "
+            << ibis::util::groupby1000(n) << " bytes of space in memory";
+        throw ibis::bad_alloc("storage::ctor(memory):loc2 failed"
+                              IBIS_FILE_LINE);
+#endif
     }
-    if (m_begin != 0) { // malloc was a success
-        m_end = m_begin + n;
-        std::string evt = "fileManager::storage";
-        if (ibis::gVerbose > 6) {
-            std::ostringstream oss;
-            oss << "(" << static_cast<void*>(this) << ", "
-                << static_cast<void*>(m_begin) << ")";
-            evt += oss.str();
-        }
-        ibis::fileManager::increaseUse(n, evt.c_str());
-        LOGGER(ibis::gVerbose > 8)
-            << evt << " initialization completed with " << n << " element"
-            << (n>1?"s":"");
+    // malloc was a success
+    m_end = m_begin + n;
+    std::string evt = "fileManager::storage";
+    if (ibis::gVerbose > 6) {
+        std::ostringstream oss;
+        oss << "(" << static_cast<void*>(this) << ", "
+            << static_cast<void*>(m_begin) << ")";
+        evt += oss.str();
     }
+    ibis::fileManager::increaseUse(n, evt.c_str());
+    LOGGER(ibis::gVerbose > 8)
+        << evt << " initialization completed with " << n << " element"
+        << (n>1?"s":"");
 } // ibis::fileManager::storage::storage
 
 /// Constructor.  Read part of a file from [begin, end).
@@ -1851,7 +1881,8 @@ ibis::fileManager::storage::storage(const char* fname,
             << "Error -- fileManager::storage expected to read " << nbytes
             << " byte" << (nbytes > 1 ? "s" : "") << " from " << fname
             << ", but only read " << ierr;
-        throw ibis::bad_alloc("storage::ctor failed to read file segement");
+        throw ibis::bad_alloc("storage::ctor(file segement) failed"
+                              IBIS_FILE_LINE);
     }
 } // ibis::fileManager::storage::storage
 
@@ -1876,7 +1907,8 @@ ibis::fileManager::storage::storage(const int fdes,
             << "Error -- fileManager expected to read " << nbytes << " byte"
             << (nbytes > 1 ? "s" : "") << " from file descriptor " << fdes
             << ", but only read " << ierr;
-        throw ibis::bad_alloc("storage::ctor failed to read file segement");
+        throw ibis::bad_alloc("storage::ctor(file segement) failed"
+                              IBIS_FILE_LINE);
     }
 } // ibis::fileManager::storage::storage
 
@@ -1889,6 +1921,7 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
         << ", " << static_cast<const void*>(end) << ") ...";
     int64_t nbytes = end - begin;
     if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
+#ifdef FASTBIT_RECURSIVE_UNLOAD
         ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
                                   "fileManager::storage::ctor");
         int ierr = ibis::fileManager::instance().unload(nbytes);
@@ -1898,11 +1931,20 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
                 << ibis::util::groupby1000(nbytes)
                 << " bytes of space to copy from "
                 << static_cast<const void*>(begin);
-            throw ibis::bad_alloc("storage::ctor(copy memory) failed");
+            throw ibis::bad_alloc("storage::ctor(copy memory) failed"
+                                  IBIS_FILE_LINE);
         }
+#else
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- fileManager::storage::ctor failed to find "
+            << ibis::util::groupby1000(nbytes) << " bytes of space in memory";
+        throw ibis::bad_alloc("storage::ctor(copy memory) failed"
+                              IBIS_FILE_LINE);
+#endif
     }
     m_begin = static_cast<char*>(malloc(nbytes));
-    if (m_begin == 0) { // retry
+    if (m_begin == 0) { // memory allocation failed
+#ifdef FASTBIT_RECURSIVE_UNLOAD
         LOGGER(ibis::gVerbose > 2)
             << "fileManager::storage::ctor failed malloc(" << nbytes
             << "), will attempt to free some memory";
@@ -1914,7 +1956,8 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
                     << "Error -- fileManager::storage failed to unload "
                     " space for copying from "
                     << static_cast<const void*>(begin);
-                throw ibis::bad_alloc("storage::ctor(copy memory) failed");
+                throw ibis::bad_alloc("storage::ctor(copy memory) failed"
+                                      IBIS_FILE_LINE);
             }
         }
         m_begin = static_cast<char*>(malloc(nbytes));
@@ -1927,25 +1970,32 @@ ibis::fileManager::storage::storage(const char* begin, const char* end)
                 if (ibis::gVerbose > 2) // dump the current list of files
                     ibis::fileManager::instance().printStatus(lg());
             }
-            throw ibis::bad_alloc("unable to copy of in-memory object");
+            throw ibis::bad_alloc("storage::ctor(copy memory) failed"
+                                  IBIS_FILE_LINE);
         }
+#else
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- fileManager::storage::ctor failed to find "
+            << ibis::util::groupby1000(nbytes) << " bytes of space in memory";
+        throw ibis::bad_alloc("storage::ctor(copy memory) failed"
+                              IBIS_FILE_LINE);
+#endif
     }
-    if (m_begin != 0) { // success
-        (void)memcpy(m_begin, begin, nbytes);
-        m_end = m_begin + nbytes;
-        std::string evt = "fileManager::storage";
-        if (ibis::gVerbose > 6) {
-            std::ostringstream oss;
-            oss << "(" << static_cast<void*>(this) << ", "
-                << static_cast<const void*>(m_begin) << ")";
-            evt += oss.str();
-        }
-        ibis::fileManager::increaseUse(nbytes, evt.c_str());
-        LOGGER(ibis::gVerbose > 8)
-            << evt << " initialization completed by copying from "
-            << static_cast<const void*>(begin) << " to "
-            << static_cast<const void*>(end);
+    // success
+    (void)memcpy(m_begin, begin, nbytes);
+    m_end = m_begin + nbytes;
+    std::string evt = "fileManager::storage";
+    if (ibis::gVerbose > 6) {
+        std::ostringstream oss;
+        oss << "(" << static_cast<void*>(this) << ", "
+            << static_cast<const void*>(m_begin) << ")";
+        evt += oss.str();
     }
+    ibis::fileManager::increaseUse(nbytes, evt.c_str());
+    LOGGER(ibis::gVerbose > 8)
+        << evt << " initialization completed by copying from "
+        << static_cast<const void*>(begin) << " to "
+        << static_cast<const void*>(end);
 } // ibis::fileManager::storage::storage
 
 /// Copy constructor.  Make an in-memory copy.
@@ -1958,6 +2008,7 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
     if (nbytes == 0) return;
 
     if (nbytes+ibis::fileManager::totalBytes() > ibis::fileManager::maxBytes) {
+#ifdef FASTBIT_RECURSIVE_UNLOAD
         ibis::util::mutexLock lck(&ibis::fileManager::instance().mutex,
                                   "fileManager::storage::ctor");
         int ierr = ibis::fileManager::instance().unload(nbytes);
@@ -1966,11 +2017,18 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
                 << "Error -- fileManager::storage failed to find "
                 << ibis::util::groupby1000(nbytes)
                 << " bytes of space to make an in-memory copy";
-            throw ibis::bad_alloc("storage::ctor(copy) failed");
+            throw ibis::bad_alloc("storage::ctor(copy) failed" IBIS_FILE_LINE);
         }
+#else
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- fileManager::storage::ctor failed to find "
+            << ibis::util::groupby1000(nbytes) << " bytes of space in memory";
+        throw ibis::bad_alloc("storage::ctor(copy) failed" IBIS_FILE_LINE);
+#endif
     }
     m_begin = static_cast<char*>(malloc(nbytes));
-    if (m_begin == 0) { // retry
+    if (m_begin == 0) { // failed to allocate memory
+#ifdef FASTBIT_RECURSIVE_UNLOAD
         LOGGER(ibis::gVerbose > 2)
             << "fileManager::storage::ctor failed malloc(" << nbytes
             << "), will attempt to free some memory";
@@ -1981,7 +2039,8 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
                 LOGGER(ibis::gVerbose >= 0)
                     << "Error -- fileManager::storage failed to unload "
                     "space to make an in-memory copy";
-                throw ibis::bad_alloc("storage::ctor(copy) failed");
+                throw ibis::bad_alloc("storage::ctor(copy) failed"
+                                      IBIS_FILE_LINE);
             }
         }
         m_begin = static_cast<char*>(malloc(nbytes));
@@ -1994,25 +2053,30 @@ ibis::fileManager::storage::storage(const ibis::fileManager::storage& rhs)
                 if (ibis::gVerbose > 2) // dump the current list of files
                     ibis::fileManager::instance().printStatus(lg());
             }
-            throw ibis::bad_alloc("unable to copy a storage object");
+            throw ibis::bad_alloc("storage::ctor(copy) failed" IBIS_FILE_LINE);
         }
+#else
+        LOGGER(ibis::gVerbose >= 0)
+            << "Warning -- fileManager::storage::ctor failed to find "
+            << ibis::util::groupby1000(nbytes) << " bytes of space in memory";
+        throw ibis::bad_alloc("storage::ctor(copy) failed" IBIS_FILE_LINE);
+#endif
     }
-    if (m_begin != 0) { // success
-        (void)memcpy(static_cast<void*>(m_begin),
-                     static_cast<void*>(rhs.m_begin), nbytes);
-        m_end = m_begin + nbytes;
-        std::string evt = "fileManager::storage";
-        if (ibis::gVerbose > 6) {
-            std::ostringstream oss;
-            oss << "(" << static_cast<void*>(this) << ", "
-                << static_cast<void*>(m_begin) << ")";
-            evt += oss.str();
-        }
-        ibis::fileManager::increaseUse(nbytes, evt.c_str());
-        LOGGER(ibis::gVerbose > 8)
-            << evt << " initialization completed by copying from storage object "
-            << static_cast<const void*>(&rhs);
+    // success
+    (void)memcpy(static_cast<void*>(m_begin),
+                 static_cast<void*>(rhs.m_begin), nbytes);
+    m_end = m_begin + nbytes;
+    std::string evt = "fileManager::storage";
+    if (ibis::gVerbose > 6) {
+        std::ostringstream oss;
+        oss << "(" << static_cast<void*>(this) << ", "
+            << static_cast<void*>(m_begin) << ")";
+        evt += oss.str();
     }
+    ibis::fileManager::increaseUse(nbytes, evt.c_str());
+    LOGGER(ibis::gVerbose > 8)
+        << evt << " initialization completed by copying from storage object "
+        << static_cast<const void*>(&rhs);
 } // ibis::fileManager::storage::storage
 
 /// Assignment operator.  Make an in-memory copy through the copy
@@ -2694,7 +2758,8 @@ ibis::fileManager::rofSegment::rofSegment(const char *fn, off_t b, off_t e)
     if (m_begin == 0 || m_begin + (e-b) != m_end) {
         // clear the partially filled object and try again
         clear();
-        throw ibis::bad_alloc("fileManager::rofSegment failed to map file");
+        throw ibis::bad_alloc("fileManager::rofSegment::ctor failed to map file"
+                              IBIS_FILE_LINE);
     }
 
     if (m_begin != 0) {
@@ -2709,7 +2774,8 @@ ibis::fileManager::rofSegment::rofSegment(const char *fn, off_t b, off_t e)
         ibis::fileManager::increaseUse(size(), evt.c_str());
     }
     else {
-        throw ibis::bad_alloc("fileManager::rofSegment failed to map file");
+        throw ibis::bad_alloc("fileManager::rofSegment::ctor failed to map file"
+                              IBIS_FILE_LINE);
     }
 } // ibis::fileManager::rofSegment::rofSegment
 

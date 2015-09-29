@@ -3,7 +3,7 @@
 // Copyright (c) 2008-2015 the Regents of the University of California
 #include "jnatural.h"   // ibis::jNatural
 #include "tab.h"        // ibis::tabula
-#include "bord.h"       // ibis::bord, ibis::table::bufferList
+#include "bord.h"       // ibis::bord, ibis::table::bufferArray
 #include "category.h"   // ibis::category
 #include "countQuery.h" // ibis::countQuery
 #include "utilidor.h"   // ibis::util::sortMerge
@@ -495,12 +495,12 @@ ibis::table*
 ibis::jNatural::fillResult(size_t nrows,
                            const std::string &desc,
                            const ibis::array_t<T>& rjcol,
-                           const ibis::table::typeList& rtypes,
-                           const ibis::table::bufferList& rbuff,
+                           const ibis::table::typeArray& rtypes,
+                           const ibis::table::bufferArray& rbuff,
                            const ibis::array_t<T>& sjcol,
-                           const ibis::table::typeList& stypes,
-                           const ibis::table::bufferList& sbuff,
-                           const ibis::table::stringList& tcname,
+                           const ibis::table::typeArray& stypes,
+                           const ibis::table::bufferArray& sbuff,
+                           const ibis::table::stringArray& tcname,
                            const std::vector<uint32_t>& tcnpos) {
     if (nrows > (rjcol.size() * sjcol.size()) ||
         rtypes.size() != rbuff.size() || stypes.size() != sbuff.size() ||
@@ -516,8 +516,8 @@ ibis::jNatural::fillResult(size_t nrows,
         (stypes.empty() && rtypes.empty()))
         return new ibis::tabula(tn.c_str(), desc.c_str(), nrows);
 
-    ibis::table::bufferList tbuff(tcname.size());
-    ibis::table::typeList   ttypes(tcname.size());
+    ibis::table::bufferArray tbuff(tcname.size());
+    ibis::table::typeArray   ttypes(tcname.size());
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers,
                      ibis::util::ref(tbuff),
                      ibis::util::ref(ttypes));
@@ -614,12 +614,12 @@ ibis::table*
 ibis::jNatural::fillResult(size_t nrows,
                            const std::string &desc,
                            const std::vector<std::string>& rjcol,
-                           const ibis::table::typeList& rtypes,
-                           const ibis::table::bufferList& rbuff,
+                           const ibis::table::typeArray& rtypes,
+                           const ibis::table::bufferArray& rbuff,
                            const std::vector<std::string>& sjcol,
-                           const ibis::table::typeList& stypes,
-                           const ibis::table::bufferList& sbuff,
-                           const ibis::table::stringList& tcname,
+                           const ibis::table::typeArray& stypes,
+                           const ibis::table::bufferArray& sbuff,
+                           const ibis::table::stringArray& tcname,
                            const std::vector<uint32_t>& tcnpos) {
     if (rjcol.empty() || sjcol.empty() ||
         (nrows > rjcol.size() * sjcol.size()) ||
@@ -634,8 +634,8 @@ ibis::jNatural::fillResult(size_t nrows,
         return 0;
     }
 
-    ibis::table::bufferList tbuff(tcname.size());
-    ibis::table::typeList   ttypes(tcname.size());
+    ibis::table::bufferArray tbuff(tcname.size());
+    ibis::table::typeArray   ttypes(tcname.size());
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers,
                      ibis::util::ref(tbuff),
                      ibis::util::ref(ttypes));
@@ -726,7 +726,7 @@ ibis::jNatural::fillResult(size_t nrows,
 /// @note The incoming argument MUST be a list of column names.  Can not be
 /// any aggregation functions!
 ibis::table*
-ibis::jNatural::select(const ibis::table::stringList& colnames) const {
+ibis::jNatural::select(const ibis::table::stringArray& colnames) const {
     ibis::table *res = 0;
     if (nrows < 0) {
         int64_t ierr = count();
@@ -926,12 +926,12 @@ ibis::jNatural::select(const ibis::table::stringList& colnames) const {
         if (ipToPos[j] <= ncols && ipToPos[j] >= ircol.size())
             ipToPos[j] = (ncols - ipToPos[j]) + ircol.size();
     }
-    ibis::table::typeList   rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
-    ibis::table::bufferList rbuff(ircol.size(), 0);
+    ibis::table::typeArray   rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::bufferArray rbuff(ircol.size(), 0);
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(rbuff),
                      ibis::util::ref(rtypes));
-    ibis::table::typeList   stypes(iscol.size(), ibis::UNKNOWN_TYPE);
-    ibis::table::bufferList sbuff(iscol.size(), 0);
+    ibis::table::typeArray   stypes(iscol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::bufferArray sbuff(iscol.size(), 0);
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(sbuff),
                      ibis::util::ref(stypes));
     bool sane = true;
@@ -1318,8 +1318,8 @@ ibis::table* ibis::jNatural::select(const char* sstr) const {
             features |= 2; // aggregation
         }
     }
-    // convert the barrel into a stringList for processing
-    ibis::table::stringList sl;
+    // convert the barrel into a stringArray for processing
+    ibis::table::stringArray sl;
     sl.reserve(brl.size());
     for (unsigned j = 0; j < brl.size(); ++ j) {
         const char* str = brl.name(j);
@@ -1412,8 +1412,8 @@ ibis::table* ibis::jNatural::select() const {
             features |= 2; // aggregation
         }
     }
-    // convert the barrel into a stringList for processing
-    ibis::table::stringList sl;
+    // convert the barrel into a stringArray for processing
+    ibis::table::stringArray sl;
     sl.reserve(brl.size());
     for (unsigned j = 0; j < brl.size(); ++ j) {
         const char* str = brl.name(j);

@@ -189,7 +189,7 @@ extern "C" {
         if (arg == 0) return reinterpret_cast<void*>(-1L);
         ibis::part::indexBuilderPool &pool =
             *(reinterpret_cast<ibis::part::indexBuilderPool*>(arg));
-        const ibis::table::stringList &opt = pool.opt;
+        const ibis::table::stringArray &opt = pool.opt;
         const char *iopt;
         try {
             for (uint32_t i = pool.cnt(); i < pool.tbl.nColumns();
@@ -2050,8 +2050,8 @@ void ibis::part::combineNames(ibis::table::namesTypes &metalist) const {
 /// The names are in the same order as specified during the construction of
 /// the data partition.  If no order was specified at that time, the
 /// columns are in alphabetical order.
-ibis::table::stringList ibis::part::columnNames() const {
-    ibis::table::stringList res(columns.size());
+ibis::table::stringArray ibis::part::columnNames() const {
+    ibis::table::stringArray res(columns.size());
     if (columns.empty()) return res;
 
     if (colorder.empty()) {
@@ -2084,8 +2084,8 @@ ibis::table::stringList ibis::part::columnNames() const {
 } // ibis::part::columnNames
 
 /// Return column types in a list.
-ibis::table::typeList ibis::part::columnTypes() const {
-    ibis::table::typeList res(columns.size());
+ibis::table::typeArray ibis::part::columnTypes() const {
+    ibis::table::typeArray res(columns.size());
     if (columns.empty()) return res;
 
     if (colorder.empty()) {
@@ -6560,7 +6560,7 @@ int ibis::part::buildIndexes(const char* iopt, int nthr) {
 /// indexes.
 ///
 /// @sa ibis::part::loadIndexes
-int ibis::part::buildIndexes(const ibis::table::stringList &iopt, int nthr) {
+int ibis::part::buildIndexes(const ibis::table::stringArray &iopt, int nthr) {
     std::string evt = "part[";
     evt += m_name;
     evt += "]::buildIndexes";
@@ -20431,7 +20431,7 @@ uint32_t ibis::part::vault::tellReal() const {
 } // ibis::part::vault::tellReal
 
 ibis::part::indexBuilderPool::indexBuilderPool
-(const ibis::part &t, const ibis::table::stringList &p)
+(const ibis::part &t, const ibis::table::stringArray &p)
     : cnt(), opt(p.size()), tbl(t) {
     for (size_t j = 0; j < p.size(); ++ j)
         opt[j] = p[j];

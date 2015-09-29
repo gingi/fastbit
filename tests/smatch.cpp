@@ -195,7 +195,7 @@ void tester::query(const char *datadir, const char *where) {
 	return;
     }
 
-    ibis::table::stringList cnames = table->columnNames();
+    ibis::table::stringArray cnames = table->columnNames();
     if (cnames.empty()) {
 	LOGGER(ibis::gVerbose >= 0)
 	    << "failed to retrieve column names from table " << table->name()

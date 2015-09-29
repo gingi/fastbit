@@ -3,7 +3,7 @@
 // Copyright (c) 2010-2015 the Regents of the University of California
 #include "jrange.h"
 #include "tab.h"        // ibis::tabula
-#include "bord.h"       // ibis::bord, ibis::table::bufferList
+#include "bord.h"       // ibis::bord, ibis::table::bufferArray
 #include "category.h"   // ibis::category
 #include "countQuery.h" // ibis::countQuery
 #include "utilidor.h"   // ibis::util::sortMerge
@@ -385,8 +385,8 @@ ibis::table* ibis::jRange::select() const {
             features |= 2; // aggregation
         }
     }
-    // convert the barrel into a stringList for processing
-    ibis::table::stringList sl;
+    // convert the barrel into a stringArray for processing
+    ibis::table::stringArray sl;
     sl.reserve(brl.size());
     for (unsigned j = 0; j < brl.size(); ++ j) {
         const char *str = brl.name(j);
@@ -477,8 +477,8 @@ ibis::table* ibis::jRange::select(const char *sstr) const {
             features |= 2; // aggregation
         }
     }
-    // convert the barrel into a stringList for processing
-    ibis::table::stringList sl;
+    // convert the barrel into a stringArray for processing
+    ibis::table::stringArray sl;
     sl.reserve(brl.size());
     for (unsigned j = 0; j < brl.size(); ++ j) {
         const char* str = brl.name(j);
@@ -539,7 +539,7 @@ ibis::table* ibis::jRange::select(const char *sstr) const {
 } // ibis::jRange::select
 
 ibis::table*
-ibis::jRange::select(const ibis::table::stringList& colnames) const {
+ibis::jRange::select(const ibis::table::stringArray& colnames) const {
     ibis::table *res = 0;
     if (nrows < 0) {
         int64_t ierr = count();
@@ -734,12 +734,12 @@ ibis::jRange::select(const ibis::table::stringList& colnames) const {
         if (ipToPos[j] <= ncols && ipToPos[j] >= ircol.size())
             ipToPos[j] = (ncols - ipToPos[j]) + ircol.size();
     }
-    ibis::table::typeList   rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
-    ibis::table::bufferList rbuff(ircol.size(), 0);
+    ibis::table::typeArray   rtypes(ircol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::bufferArray rbuff(ircol.size(), 0);
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(rbuff),
                      ibis::util::ref(rtypes));
-    ibis::table::typeList   stypes(iscol.size(), ibis::UNKNOWN_TYPE);
-    ibis::table::bufferList sbuff(iscol.size(), 0);
+    ibis::table::typeArray   stypes(iscol.size(), ibis::UNKNOWN_TYPE);
+    ibis::table::bufferArray sbuff(iscol.size(), 0);
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(sbuff),
                      ibis::util::ref(stypes));
     bool sane = true;
@@ -1081,12 +1081,12 @@ ibis::table*
 ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
                          const std::string &desc,
                          const ibis::array_t<T>& rjcol,
-                         const ibis::table::typeList& rtypes,
-                         const ibis::table::bufferList& rbuff,
+                         const ibis::table::typeArray& rtypes,
+                         const ibis::table::bufferArray& rbuff,
                          const ibis::array_t<T>& sjcol,
-                         const ibis::table::typeList& stypes,
-                         const ibis::table::bufferList& sbuff,
-                         const ibis::table::stringList& tcname,
+                         const ibis::table::typeArray& stypes,
+                         const ibis::table::bufferArray& sbuff,
+                         const ibis::table::stringArray& tcname,
                          const std::vector<uint32_t>& tcnpos) {
     if (nrows > (rjcol.size() * sjcol.size()) ||
         rtypes.size() != rbuff.size() || stypes.size() != sbuff.size() ||
@@ -1102,8 +1102,8 @@ ibis::jRange::fillResult(size_t nrows, double delta1, double delta2,
         (stypes.empty() && rtypes.empty()))
         return new ibis::tabula(tn.c_str(), desc.c_str(), nrows);
 
-    ibis::table::bufferList tbuff(tcname.size());
-    ibis::table::typeList   ttypes(tcname.size());
+    ibis::table::bufferArray tbuff(tcname.size());
+    ibis::table::typeArray   ttypes(tcname.size());
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(tbuff),
                      ibis::util::ref(ttypes));
     try {

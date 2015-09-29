@@ -111,18 +111,19 @@ public:
     /// A list of strings.
     /// @note The pointers are expected to point to names stored internally.
     /// The caller should not attempt to free these pointers.
-    typedef ibis::array_t<const char*> stringList;
+    typedef ibis::array_t<const char*> stringArray;
+    typedef std::vector<const char*> stringVector;
     /// A list of data types.
-    typedef ibis::array_t<ibis::TYPE_T> typeList;
+    typedef ibis::array_t<ibis::TYPE_T> typeArray;
     /// A list to hold the in-memory buffers.  The void* is either
     /// ibis::array_t* or std::vector<std::string> depending on the
-    /// underlying data type.  Typically used together with typeList.
-    typedef ibis::array_t<void *> bufferList;
+    /// underlying data type.  Typically used together with typeArray.
+    typedef ibis::array_t<void *> bufferArray;
     /// An associative array of names and types.
     typedef std::map<const char*, ibis::TYPE_T, ibis::lessi> namesTypes;
 
-    virtual stringList columnNames() const =0; ///!< Return column names.
-    virtual typeList columnTypes() const =0; ///!< Return data types.
+    virtual stringArray columnNames() const =0; ///!< Return column names.
+    virtual typeArray columnTypes() const =0; ///!< Return data types.
 
     /// Print a description of the table to the specified output stream.
     virtual void describe(std::ostream&) const =0;
@@ -179,7 +180,7 @@ public:
     /// Currently, only functions COUNT, AVG, MIN, MAX, SUM, VARPOP,
     /// VARSAMP, STDPOP, STDSAMP and DISTINCT are supported, and the
     /// functions can only accept a column name as arguments.
-    virtual table* groupby(const stringList&) const =0;
+    virtual table* groupby(const stringArray&) const =0;
     /// Perform a group-by operation.  The column names and operations are
     /// separated by commas.
     virtual table* groupby(const char*) const;
@@ -190,8 +191,8 @@ public:
     /// @note If an empty list is passed to this function, it will reorder
     /// rows using all columns with the column having the smallest number
     /// of distinct values first.
-    virtual void orderby(const stringList&)=0;
-    virtual void orderby(const stringList&, const std::vector<bool>&)=0;
+    virtual void orderby(const stringArray&)=0;
+    virtual void orderby(const stringArray&, const std::vector<bool>&)=0;
     /// Reorder the rows.  The column names are separated by commas.
     virtual void orderby(const char*);
     /// Reverse the order of the rows.
@@ -244,7 +245,7 @@ public:
     /// internally recorded options will be used.
     /// @sa buildIndex
     virtual int buildIndexes(const char* options) =0;
-    virtual int buildIndexes(const stringList&) =0;
+    virtual int buildIndexes(const stringArray&) =0;
     /// Retrieve the current indexing option.  If no column name is
     /// specified, it retrieve the indexing option for the table.
     virtual const char* indexSpec(const char* colname=0) const =0;
@@ -262,7 +263,7 @@ public:
     /// A default implementation is provided.  This default implementation
     /// does nothing and returns 0.  This action is valid for a table with
     /// only a single partition and the incoming list is empty.
-    virtual int mergeCategories(const stringList&) {return 0;}
+    virtual int mergeCategories(const stringArray&) {return 0;}
     /// @}
 
     /// Retrieve all values of the named column.  The member functions of
@@ -440,11 +441,12 @@ public:
 
     static void* allocateBuffer(ibis::TYPE_T, size_t);
     static void freeBuffer(void* buffer, ibis::TYPE_T type);
-    static void freeBuffers(bufferList&, typeList&);
+    static void freeBuffers(bufferArray&, typeArray&);
 
 
-    static void parseNames(char* in, stringList& out);
-    static void parseOrderby(char* in, stringList& out,
+    static void parseNames(char* in, stringVector& out);
+    static void parseNames(char* in, stringArray& out);
+    static void parseOrderby(char* in, stringArray& out,
 			     std::vector<bool>& direc);
     static bool isValidName(const char*);
     static void consecrateName(char*);
@@ -835,8 +837,8 @@ public:
     virtual ~cursor() {};
     virtual uint64_t nRows() const =0;
     virtual uint32_t nColumns() const =0;
-    virtual ibis::table::typeList columnTypes() const =0;
-    virtual ibis::table::stringList columnNames() const =0;
+    virtual ibis::table::typeArray columnTypes() const =0;
+    virtual ibis::table::stringArray columnNames() const =0;
     /// Make the next row of the data set available for retrieval.  Returns
     /// 0 if successful, returns a negative number to indicate error.
     virtual int fetch() =0;

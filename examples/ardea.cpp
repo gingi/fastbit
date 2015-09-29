@@ -435,7 +435,7 @@ static void parse_args(int argc, char** argv, qList& qcnd, const char*& sel,
     std::cout << std::endl;
 } // parse_args
 
-static void clearBuffers(const ibis::table::typeList& tps,
+static void clearBuffers(const ibis::table::typeArray& tps,
                          std::vector<void*>& buffers) {
     const size_t nc = (tps.size() <= buffers.size() ?
                        tps.size() : buffers.size());
@@ -565,8 +565,8 @@ static int printValues1(const ibis::table& tbl) {
         return -1;
     }
 
-    ibis::table::stringList nms = tbl.columnNames();
-    ibis::table::typeList tps = tbl.columnTypes();
+    ibis::table::stringArray nms = tbl.columnNames();
+    ibis::table::typeArray tps = tbl.columnTypes();
     std::vector<void*> buffers(nms.size(), 0);
     for (size_t i = 0; i < nms.size(); ++ i) {
         switch (tps[i]) {

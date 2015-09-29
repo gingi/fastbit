@@ -461,7 +461,7 @@ ibis::table* ibis::filter::select(const char* sstr) const {
 } // ibis::filter::select
 
 ibis::table*
-ibis::filter::select(const ibis::table::stringList& colnames) const {
+ibis::filter::select(const ibis::table::stringArray& colnames) const {
     const ibis::constPartList &myparts =
         (parts_ ? *parts_ :
          reinterpret_cast<const constPartList&>(ibis::datasets));

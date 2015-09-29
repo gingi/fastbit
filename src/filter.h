@@ -34,7 +34,7 @@ public:
     virtual int64_t count() const;
     virtual table*  select() const;
     virtual table*  select(const char*) const;
-    virtual table*  select(const ibis::table::stringList& colnames) const;
+    virtual table*  select(const ibis::table::stringArray& colnames) const;
 
     static table*   sift(const ibis::selectClause  &sel,
 			 const ibis::constPartList &pl,

@@ -216,12 +216,12 @@ private:
 
     int unload(size_t size);	// try to unload size bytes
     void invokeCleaners() const;// invoke external cleaners
-    inline void gainWriteAccess(const char* m) const;
+    //inline void gainWriteAccess(const char* m) const;
 
-    class writeLock;
-    class softWriteLock;
-    friend class writeLock;
-    friend class softWriteLock;
+    // class writeLock;
+    // class softWriteLock;
+    // friend class writeLock;
+    // friend class softWriteLock;
 }; // class fileManager
 
 /// The storage class treats all memory as @a char*.
@@ -440,22 +440,22 @@ private:
 //     writeLock& operator=(const writeLock&);
 // }; // ibis::fileManager::writeLock
 
-/// A soft write lock for controlling access to the two internal lists.
-class ibis::fileManager::softWriteLock {
-public:
-    softWriteLock(const char* m);
-    ~softWriteLock();
-    /// Has a write lock been acquired?  Returns true or false to indicate
-    /// yes or no.
-    bool isLocked() const {return(locked_==0);}
+// /// A soft write lock for controlling access to the two internal lists.
+// class ibis::fileManager::softWriteLock {
+// public:
+//     softWriteLock(const char* m);
+//     ~softWriteLock();
+//     /// Has a write lock been acquired?  Returns true or false to indicate
+//     /// yes or no.
+//     bool isLocked() const {return(locked_==0);}
 
-private:
-    const char* mesg;
-    const int locked_;
+// private:
+//     const char* mesg;
+//     const int locked_;
 
-    softWriteLock(const softWriteLock&);
-    softWriteLock& operator=(const softWriteLock&);
-}; // ibis::fileManager::softWriteLock
+//     softWriteLock(const softWriteLock&);
+//     softWriteLock& operator=(const softWriteLock&);
+// }; // ibis::fileManager::softWriteLock
 
 inline uint64_t ibis::fileManager::bytesFree() {
     if (maxBytes == 0)

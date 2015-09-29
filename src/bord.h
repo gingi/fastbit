@@ -51,10 +51,10 @@ class FASTBIT_CXX_DLLSPEC ibis::hyperslab {
 class FASTBIT_CXX_DLLSPEC ibis::bord : public ibis::table, public ibis::part {
 public:
     bord(const char *tn, const char *td, uint64_t nr,
-	 ibis::table::bufferList &buf,
-	 const ibis::table::typeList &ct,
-	 const ibis::table::stringList &cn,
-	 const ibis::table::stringList *cdesc=0,
+	 ibis::table::bufferArray &buf,
+	 const ibis::table::typeArray &ct,
+	 const ibis::table::stringArray &cn,
+	 const ibis::table::stringArray *cdesc=0,
 	 const std::vector<const ibis::dictionary*> *dct=0);
     bord(const char *tn, const char *td,
 	 const ibis::selectClause &sc, const ibis::part &ref);
@@ -65,8 +65,8 @@ public:
     virtual uint64_t nRows() const {return nEvents;}
     virtual uint32_t nColumns() const {return ibis::part::nColumns();}
 
-    virtual ibis::table::stringList columnNames() const;
-    virtual ibis::table::typeList columnTypes() const;
+    virtual ibis::table::stringArray columnNames() const;
+    virtual ibis::table::typeArray columnTypes() const;
 
     virtual void describe(std::ostream&) const;
     virtual void dumpNames(std::ostream&, const char*) const;
@@ -128,17 +128,17 @@ public:
 			  uint64_t &nmin, uint64_t &nmax) const;
     using table::select;
     virtual table* select(const char* sel, const char* cond) const;
-    virtual table* groupby(const ibis::table::stringList&) const;
+    virtual table* groupby(const ibis::table::stringArray&) const;
     virtual table* groupby(const char* str) const;
     using table::orderby;
-    virtual void   orderby(const ibis::table::stringList&);
-    virtual void   orderby(const ibis::table::stringList&,
+    virtual void   orderby(const ibis::table::stringArray&);
+    virtual void   orderby(const ibis::table::stringArray&,
 			   const std::vector<bool>&);
     virtual void reverseRows();
 
     using ibis::part::buildIndexes;
     virtual int buildIndex(const char*, const char*) {return -1;}
-    virtual int buildIndexes(const ibis::table::stringList&) {return -1;}
+    virtual int buildIndexes(const ibis::table::stringArray&) {return -1;}
     virtual int buildIndexes(const char*) {return -1;}
     virtual int getPartitions(constPartList&) const;
     virtual void indexSpec(const char*, const char*) {return;}
@@ -157,8 +157,8 @@ public:
 	groupbyc(const ibis::bord&, const ibis::selectClause&);
 
     virtual long reorder();
-    virtual long reorder(const ibis::table::stringList&);
-    virtual long reorder(const ibis::table::stringList&,
+    virtual long reorder(const ibis::table::stringArray&);
+    virtual long reorder(const ibis::table::stringArray&,
 			 const std::vector<bool>&);
 
     int append(const ibis::selectClause&, const ibis::part&,
@@ -646,9 +646,9 @@ public:
 
     virtual uint64_t nRows() const {return tab.nRows();}
     virtual uint32_t nColumns() const {return tab.nColumns();}
-    virtual ibis::table::stringList columnNames() const {
+    virtual ibis::table::stringArray columnNames() const {
 	return tab.columnNames();}
-    virtual ibis::table::typeList columnTypes() const {
+    virtual ibis::table::typeArray columnTypes() const {
 	return tab.columnTypes();}
     virtual int fetch();
     virtual int fetch(uint64_t);

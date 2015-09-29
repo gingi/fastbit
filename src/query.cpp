@@ -199,7 +199,7 @@ int ibis::query::setSelectClause(const char* str) {
 
     if (*str == '*' && str[1] == 0) {
         if (mypart != 0) {
-            const ibis::table::stringList sl = mypart->columnNames();
+            const ibis::table::stringArray sl = mypart->columnNames();
             ibis::selectClause sc(sl);
             writeLock control(this, "setSelectClause");
             comps.swap(sc);

@@ -1,3 +1,22 @@
+2015-09-29 John Wu <John dot Wu at ACM dot org>
+	* src/*.h, src/*.cpp: rename stringList to stringArray, typeList
+	to typeArray, bufferList to bufferArray, to make it clear these
+	types are using ibis::array_t
+	* src/table.h: add type stringVector to create a new version of
+	ibis::table::parseNames
+
+2015-09-28 John Wu <John dot Wu at ACM dot org>
+	* src/fileManager.h: comment out the code for softWriteLock, it is
+	not used
+	* src/fileManager.cpp: make sure there is enough space to read the
+	expected content before calling doRead, in an attempt to avoid
+	deadlock ibis::fileManager::mutex
+	* examples/ibis.cpp, examples/thula.cpp: replace the use of
+	ibis::table::stringList with std::vector<const char*> for local
+	variables -- these local variables were tiggering the invocation
+	of fileManager::instance() before the parameters for the file
+	manager is known
+
 2015-09-12 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.h, src/fileManager.cpp: add function
 	getMaxOpenMmapFiles and getMaxMmapBytes per suggestion of Jon
@@ -3338,7 +3357,7 @@
 	want them to be in the same as as they appear elsewhere in the
 	code) (addresses some of problems reported by Andreas Streichardt)
 	* src/fileManager.cpp: in getFile accquire read lock before the
-	mutex lock (helgrind complained about lock order violation),
+	mutex lock (velgrind complained about lock order violation),
 	remove the read lock from ibis::fileManager::recordFile (because
 	it is unnecessary)
 	* src/fileManager.cpp:1306 refer to undefined variable it

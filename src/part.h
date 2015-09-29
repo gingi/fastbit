@@ -54,7 +54,7 @@ public:
     TABLE_STATE getStateNoLocking() const {return state;}
 
     virtual int buildIndexes(const char* iopt, int nthr);
-    virtual int buildIndexes(const ibis::table::stringList&, int nthr=1);
+    virtual int buildIndexes(const ibis::table::stringArray&, int nthr=1);
     void buildSorted(const char* colname) const;
     void loadIndexes(const char* iopt=0, int ropt=0) const;
     void unloadIndexes() const;
@@ -73,8 +73,8 @@ public:
     /// Return the list of meta tags as a single string.  The meta tags
     /// appears as 'name=value' pairs separated by comma (,).
     std::string metaTags()	const;
-    ibis::table::stringList columnNames() const;
-    ibis::table::typeList   columnTypes() const;
+    ibis::table::stringArray columnNames() const;
+    ibis::table::typeArray   columnTypes() const;
     column* getColumn(const char* name) const;
     column* getColumn(uint32_t ind) const;
 
@@ -604,8 +604,8 @@ public:
 
     /******************************************************************/
     virtual long reorder();
-    virtual long reorder(const ibis::table::stringList &names);
-    virtual long reorder(const ibis::table::stringList &names,
+    virtual long reorder(const ibis::table::stringArray &names);
+    virtual long reorder(const ibis::table::stringArray &names,
 			 const std::vector<bool> &directions);
 
     long deactivate(const std::vector<uint32_t> &rows);
@@ -651,11 +651,11 @@ public:
     /// A struct to pack arguments to the function ibis_part_build_index.
     struct indexBuilderPool {
 	ibis::util::counter cnt;
-	ibis::table::stringList opt;
+	ibis::table::stringArray opt;
 	const part &tbl;
 	indexBuilderPool(const part &t, const char* spec)
 	    : cnt(), tbl(t) {opt.push_back(spec);}
-	indexBuilderPool(const part&, const ibis::table::stringList&);
+	indexBuilderPool(const part&, const ibis::table::stringArray&);
     };
 
     /// Generate and run random queries for slefTest.
@@ -1331,7 +1331,7 @@ protected:
 			     const ibis::bitvector &,
 			     const ibis::array_t<uint32_t> &);
 
-    void gatherSortKeys(ibis::table::stringList& names);
+    void gatherSortKeys(ibis::table::stringArray& names);
     void composeQueryString(std::string &str,
 			    const ibis::column* col1, const ibis::column* col2,
 			    const double &lower1, const double &upper1,

@@ -24,10 +24,10 @@
 /// Constructor.  The responsibility of freeing the memory pointed by the
 /// elements of buf is transferred to this object.
 ibis::bord::bord(const char *tn, const char *td, uint64_t nr,
-                 ibis::table::bufferList       &buf,
-                 const ibis::table::typeList   &ct,
-                 const ibis::table::stringList &cn,
-                 const ibis::table::stringList *cdesc,
+                 ibis::table::bufferArray       &buf,
+                 const ibis::table::typeArray   &ct,
+                 const ibis::table::stringArray &cn,
+                 const ibis::table::stringArray *cdesc,
                  const std::vector<const ibis::dictionary*> *dct)
     : ibis::table(), ibis::part("in-core") {
     nEvents = static_cast<uint32_t>(nr);
@@ -561,11 +561,11 @@ void ibis::bord::clear() {
 
 /// @note The pointers returned are pointing to names stored internally.
 /// The caller should not attempt to free these pointers.
-ibis::table::stringList ibis::bord::columnNames() const {
+ibis::table::stringArray ibis::bord::columnNames() const {
     return ibis::part::columnNames();
 } // ibis::bord::columnNames
 
-ibis::table::typeList ibis::bord::columnTypes() const {
+ibis::table::typeArray ibis::bord::columnTypes() const {
     return ibis::part::columnTypes();
 } // ibis::bord::columnTypes
 
@@ -2996,7 +2996,7 @@ ibis::table* ibis::bord::groupby(const char* keys) const {
 } // ibis::bord::groupby
 
 ibis::table*
-ibis::bord::groupby(const ibis::table::stringList& keys) const {
+ibis::bord::groupby(const ibis::table::stringArray& keys) const {
     ibis::selectClause sel(keys);
     return groupby(sel);
 } // ibis::bord::groupby
@@ -3058,9 +3058,9 @@ ibis::bord::xgroupby(const ibis::selectClause& sel) const {
     // prepare the types and values for the new table
     std::vector<const ibis::dictionary*> dct(nc1, 0);
     std::vector<std::string> nms(nc1), des(nc1);
-    ibis::table::stringList  nmc(nc1), dec(nc1);
-    ibis::table::bufferList  buf(nc1, 0);
-    ibis::table::typeList    tps(nc1, ibis::UNKNOWN_TYPE);
+    ibis::table::stringArray  nmc(nc1), dec(nc1);
+    ibis::table::bufferArray  buf(nc1, 0);
+    ibis::table::typeArray    tps(nc1, ibis::UNKNOWN_TYPE);
     ibis::util::guard gbuf
         = ibis::util::makeGuard(ibis::table::freeBuffers,
                                 ibis::util::ref(buf),
@@ -3376,9 +3376,9 @@ ibis::bord::groupbya(const ibis::bord& src, const ibis::selectClause& sel) {
     const uint32_t nca = sel.aggSize();
     std::vector<const ibis::dictionary*> dct(nca, 0);
     std::vector<std::string> nms(nca), des(nca);
-    ibis::table::stringList  nmc(nca), dec(nca);
-    ibis::table::bufferList  buf(nca, 0);
-    ibis::table::typeList    tps(nca, ibis::UNKNOWN_TYPE);
+    ibis::table::stringArray  nmc(nca), dec(nca);
+    ibis::table::bufferArray  buf(nca, 0);
+    ibis::table::typeArray    tps(nca, ibis::UNKNOWN_TYPE);
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(buf),
                      ibis::util::ref(tps));
     uint32_t jbdl = 0;
@@ -3543,9 +3543,9 @@ ibis::bord::groupbyc(const ibis::bord& src, const ibis::selectClause& sel) {
     const ibis::selectClause::mathTerms& xtms(sel.getTerms());
     std::vector<const ibis::dictionary*> dct(ncx, 0);
     std::vector<std::string> nms(ncx), des(ncx);
-    ibis::table::stringList  nmc(ncx), dec(ncx);
-    ibis::table::bufferList  buf(ncx, 0);
-    ibis::table::typeList    tps(ncx, ibis::UNKNOWN_TYPE);
+    ibis::table::stringArray  nmc(ncx), dec(ncx);
+    ibis::table::bufferArray  buf(ncx, 0);
+    ibis::table::typeArray    tps(ncx, ibis::UNKNOWN_TYPE);
     IBIS_BLOCK_GUARD(ibis::table::freeBuffers, ibis::util::ref(buf),
                      ibis::util::ref(tps));
     ibis::bitvector msk;
@@ -3603,12 +3603,12 @@ ibis::bord::groupbyc(const ibis::bord& src, const ibis::selectClause& sel) {
                           &dct));
 } // ibis::bord::groupbyc
 
-void ibis::bord::orderby(const ibis::table::stringList& keys) {
+void ibis::bord::orderby(const ibis::table::stringArray& keys) {
     std::vector<bool> directions;
     (void) reorder(keys, directions);
 } // ibis::bord::orderby
 
-void ibis::bord::orderby(const ibis::table::stringList& keys,
+void ibis::bord::orderby(const ibis::table::stringArray& keys,
                          const std::vector<bool>& directions) {
     (void) reorder(keys, directions);
 } // ibis::bord::orderby
@@ -3617,12 +3617,12 @@ long ibis::bord::reorder() {
     return ibis::part::reorder();
 } // ibis::bord::reorder
 
-long ibis::bord::reorder(const ibis::table::stringList& keys) {
+long ibis::bord::reorder(const ibis::table::stringArray& keys) {
     std::vector<bool> directions;
     return reorder(keys, directions);
 } // ibis::bord::reorder
 
-long ibis::bord::reorder(const ibis::table::stringList& cols,
+long ibis::bord::reorder(const ibis::table::stringArray& cols,
                          const std::vector<bool>& directions) {
     long ierr = 0;
     if (nRows() == 0 || nColumns() == 0) return ierr;
@@ -3649,7 +3649,7 @@ long ibis::bord::reorder(const ibis::table::stringList& cols,
     typedef std::vector<ibis::column*> colVector;
     std::set<const char*, ibis::lessi> used;
     colVector keys, load; // sort according to the keys
-    for (ibis::table::stringList::const_iterator nit = cols.begin();
+    for (ibis::table::stringArray::const_iterator nit = cols.begin();
          nit != cols.end(); ++ nit) {
         ibis::part::columnList::iterator it = columns.find(*nit);
         if (it != columns.end()) {
@@ -4312,10 +4312,10 @@ ibis::bord::evaluateTerms(const ibis::selectClause& sel,
     long ierr;
     ibis::bitvector msk;
     msk.set(1, nEvents);
-    ibis::table::bufferList  buf;
-    ibis::table::typeList    ct;
-    ibis::table::stringList  cn;
-    ibis::table::stringList  cd;
+    ibis::table::bufferArray  buf;
+    ibis::table::typeArray    ct;
+    ibis::table::stringArray  cn;
+    ibis::table::stringArray  cd;
     std::vector<std::string> cdesc;
     std::vector<const ibis::dictionary*> dct;
     ibis::util::guard gbuf =
@@ -5153,8 +5153,8 @@ void ibis::table::freeBuffer(void *buffer, ibis::TYPE_T type) {
 /// Freeing a list of buffers.
 ///
 /// @sa ibis::table::freeBuffer
-void ibis::table::freeBuffers(ibis::table::bufferList& buf,
-                              ibis::table::typeList& typ) {
+void ibis::table::freeBuffers(ibis::table::bufferArray& buf,
+                              ibis::table::typeArray& typ) {
     LOGGER(ibis::gVerbose > 3)
         << "table::freeBuffers to free buf[" << buf.size() << "] and typ["
         << typ.size() << "]";

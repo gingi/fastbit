@@ -82,15 +82,15 @@
 #include <sstream> // std::ostringstream
 
 // local data types
-typedef std::vector<const char*> stringList;
+typedef std::vector<const char*> stringArray;
 
 struct thArg {
     const char* uid;
-    const stringList& qlist;
+    const stringArray& qlist;
     ibis::partList tlist;
     ibis::util::counter& task;
 
-    thArg(const char* id, const stringList& ql, ibis::partList& tl,
+    thArg(const char* id, const stringArray& ql, ibis::partList& tl,
 	  ibis::util::counter& tc) : uid(id), qlist(ql), tlist(tl), task(tc) {}
 };
 
@@ -493,7 +493,7 @@ static void readQueryFile(const char *fname, std::vector<std::string> &queff) {
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv,
 		       int& mode, ibis::partList& tlist,
-		       stringList& qlist, stringList& alist,
+		       stringArray& qlist, stringArray& alist,
 		       std::vector<std::string> &queff) {
     mode = -1;
     tlist.clear();
@@ -886,7 +886,7 @@ static void parse_args(int argc, char** argv,
 	if (qlist.size()) {
 	    lg() << "Quer" << (qlist.size()>1 ? "ies" : "y")
 		 << "[" << qlist.size() << "]:\n";
-	    for (stringList::const_iterator it = qlist.begin();
+	    for (stringArray::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it)
 		lg() << *it << "\n";
 	}
@@ -2105,8 +2105,8 @@ int main(int argc, char** argv) {
     ibis::partList tlist;
     try {
 	int interactive;
-	stringList qlist;
-	stringList alist;
+	stringArray qlist;
+	stringArray alist;
 	std::vector<std::string> queff; // queries read from files (-f)
 	const char* uid = ibis::util::userName();
 	ibis::horometer timer; // total elapsed time
@@ -2116,7 +2116,7 @@ int main(int argc, char** argv) {
 	parse_args(argc, argv, interactive, tlist, qlist, alist, queff);
 
 	// add new data if any
-	for (stringList::const_iterator it = alist.begin();
+	for (stringArray::const_iterator it = alist.begin();
 	     it != alist.end();
 	     ++ it) { // add new data before doing anything else
 	    doAppend(*it, tlist);
@@ -2188,7 +2188,7 @@ int main(int argc, char** argv) {
 	}
 	else if (qlist.size() > 1 && threading > 0) {
 #if defined(_DEBUG) || defined(DEBUG)
-	    for (stringList::const_iterator it = qlist.begin();
+	    for (stringArray::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
 		parseString(tlist, uid, *it);
 	    }
@@ -2221,7 +2221,7 @@ int main(int argc, char** argv) {
 	    qlist.clear();
 	}
 	else if (qlist.size() > 0) { // no new threads
-	    for (stringList::const_iterator it = qlist.begin();
+	    for (stringArray::const_iterator it = qlist.begin();
 		 it != qlist.end(); ++it) {
 		parseString(tlist, uid, *it);
 	    }

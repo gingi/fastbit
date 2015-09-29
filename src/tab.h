@@ -38,8 +38,8 @@ public:
     virtual uint64_t nRows() const {return nrows;}
     virtual uint32_t nColumns() const {return 0;}
 
-    virtual stringList columnNames() const;
-    virtual typeList columnTypes() const;
+    virtual stringArray columnNames() const;
+    virtual typeArray columnTypes() const;
 
     virtual void describe(std::ostream&) const;
     virtual void dumpNames(std::ostream&, const char*) const {}
@@ -118,16 +118,16 @@ public:
     using ibis::table::select;
     virtual table* select(const char*, const char*) const {return 0;}
 
-    virtual table* groupby(const stringList&) const {return 0;}
+    virtual table* groupby(const stringArray&) const {return 0;}
     virtual table* groupby(const char*) const {return 0;}
-    virtual void orderby(const stringList&, const std::vector<bool>&) {};
-    virtual void orderby(const stringList&) {};
+    virtual void orderby(const stringArray&, const std::vector<bool>&) {};
+    virtual void orderby(const stringArray&) {};
     virtual void orderby(const char*) {};
     virtual void reverseRows() {};
 
     virtual int buildIndex(const char*, const char*) {return -1;}
     virtual int buildIndexes(const char*) {return -1;}
-    virtual int buildIndexes(const ibis::table::stringList&) {return -1;}
+    virtual int buildIndexes(const ibis::table::stringArray&) {return -1;}
     virtual const char* indexSpec(const char*) const {return 0;}
     virtual void indexSpec(const char*, const char*) {return;}
 
@@ -164,8 +164,8 @@ public:
     virtual uint64_t nRows() const {return 1U;}
     virtual uint32_t nColumns() const {return 1U;}
 
-    virtual stringList columnNames() const;
-    virtual typeList columnTypes() const;
+    virtual stringArray columnNames() const;
+    virtual typeArray columnTypes() const;
 
     virtual void describe(std::ostream&) const;
     virtual void dumpNames(std::ostream&, const char*) const;
@@ -286,16 +286,16 @@ public:
     using ibis::table::select;
     virtual table* select(const char*, const char*) const {return 0;}
 
-    virtual table* groupby(const stringList&) const {return 0;}
+    virtual table* groupby(const stringArray&) const {return 0;}
     virtual table* groupby(const char*) const {return 0;}
-    virtual void orderby(const stringList&, const std::vector<bool>&) {};
-    virtual void orderby(const stringList&) {};
+    virtual void orderby(const stringArray&, const std::vector<bool>&) {};
+    virtual void orderby(const stringArray&) {};
     virtual void orderby(const char*) {};
     virtual void reverseRows() {};
 
     virtual int buildIndex(const char*, const char*) {return -1;}
     virtual int buildIndexes(const char*) {return -1;}
-    virtual int buildIndexes(const ibis::table::stringList&) {return -1;}
+    virtual int buildIndexes(const ibis::table::stringArray&) {return -1;}
     virtual const char* indexSpec(const char*) const {return 0;}
     virtual void indexSpec(const char*, const char*) {return;}
 
@@ -319,13 +319,13 @@ private:
 }; // ibis::tabele
 
 // Inline functions
-inline ibis::table::stringList ibis::tabula::columnNames() const {
-    ibis::table::stringList tmp;
+inline ibis::table::stringArray ibis::tabula::columnNames() const {
+    ibis::table::stringArray tmp;
     return tmp;
 }
 
-inline ibis::table::typeList ibis::tabula::columnTypes() const {
-    ibis::table::typeList tmp;
+inline ibis::table::typeArray ibis::tabula::columnTypes() const {
+    ibis::table::typeArray tmp;
     return tmp;
 }
 
@@ -355,9 +355,9 @@ public:
 
     virtual uint64_t nRows() const {return tab.nRows();}
     virtual uint32_t nColumns() const {return tab.nColumns();}
-    virtual ibis::table::stringList columnNames() const {
+    virtual ibis::table::stringArray columnNames() const {
 	return tab.columnNames();}
-    virtual ibis::table::typeList columnTypes() const {
+    virtual ibis::table::typeArray columnTypes() const {
 	return tab.columnTypes();}
     virtual int fetch() {return -1;}
     virtual int fetch(uint64_t) {return -1;}
@@ -405,14 +405,14 @@ inline ibis::table::cursor* ibis::tabula::createCursor() const {
     return new ibis::tabula::cursor(*this);
 } // ibis::tabula::createCursor
 
-inline ibis::table::stringList ibis::tabele::columnNames() const {
-    ibis::table::stringList tmp(1);
+inline ibis::table::stringArray ibis::tabele::columnNames() const {
+    ibis::table::stringArray tmp(1);
     tmp[0] = col.c_str();
     return tmp;
 }
 
-inline ibis::table::typeList ibis::tabele::columnTypes() const {
-    ibis::table::typeList tmp(1);
+inline ibis::table::typeArray ibis::tabele::columnTypes() const {
+    ibis::table::typeArray tmp(1);
     tmp[0] = ibis::ULONG;
     return tmp;
 }
@@ -453,9 +453,9 @@ public:
 
     virtual uint64_t nRows() const {return tab.nRows();}
     virtual uint32_t nColumns() const {return tab.nColumns();}
-    virtual ibis::table::stringList columnNames() const {
+    virtual ibis::table::stringArray columnNames() const {
 	return tab.columnNames();}
-    virtual ibis::table::typeList columnTypes() const {
+    virtual ibis::table::typeArray columnTypes() const {
 	return tab.columnTypes();}
     virtual int fetch() {
 	++ current;

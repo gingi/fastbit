@@ -32,7 +32,7 @@ long ibis::part::reorder() {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0)
         return 0;
 
-    ibis::table::stringList keys;
+    ibis::table::stringArray keys;
     gatherSortKeys(keys);
     if (keys.empty()) {
         return -1;
@@ -52,7 +52,7 @@ long ibis::part::reorder() {
 /// @note This function is not a const function because it computes the
 /// actual minimum and maximum values of some columns if the existing
 /// minimum is greater than the existing maximum.
-void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
+void ibis::part::gatherSortKeys(ibis::table::stringArray& names) {
     // first gather all integer-valued columns
     typedef std::vector<column*> colVector;
     colVector keys; // sort according to the keys
@@ -96,7 +96,7 @@ void ibis::part::gatherSortKeys(ibis::table::stringList& names) {
 } // ibis::part::getherSortKeys
 
 /// Reorder the rows using the given column list.
-long ibis::part::reorder(const ibis::table::stringList& names) {
+long ibis::part::reorder(const ibis::table::stringArray& names) {
     std::vector<bool> direc;
     return reorder(names, direc);
 } // ibis::part::reorder
@@ -112,7 +112,7 @@ long ibis::part::reorder(const ibis::table::stringList& names) {
 /// read-only at construction time.  If the data partition is not
 /// read-only, then this function will attempt to purge the inactive rows
 /// which will reduce the number of rows in the data partition.
-long ibis::part::reorder(const ibis::table::stringList& names,
+long ibis::part::reorder(const ibis::table::stringArray& names,
                          const std::vector<bool>& directions) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;
     std::string evt = "part[";
@@ -130,7 +130,7 @@ long ibis::part::reorder(const ibis::table::stringList& names,
     typedef std::vector<column*> colVector;
     std::set<const char*, ibis::lessi> used;
     colVector keys, load; // sort according to the keys
-    for (ibis::table::stringList::const_iterator nit = names.begin();
+    for (ibis::table::stringArray::const_iterator nit = names.begin();
          nit != names.end(); ++ nit) {
         ibis::part::columnList::iterator it = columns.find(*nit);
         if (it != columns.end()) {

@@ -36,8 +36,8 @@ public:
     virtual uint64_t nRows() const {return nrows;}
     virtual uint32_t nColumns() const;
 
-    virtual typeList columnTypes() const;
-    virtual stringList columnNames() const;
+    virtual typeArray columnTypes() const;
+    virtual stringArray columnNames() const;
     virtual int addPartition(const char*);
     virtual int dropPartition(const char*);
 
@@ -107,26 +107,26 @@ public:
     virtual table* select2(const char* sel, const char* cond,
 			   const char* pts) const;
 
-    virtual void orderby(const stringList&, const std::vector<bool>&);
-    virtual void orderby(const stringList&);
+    virtual void orderby(const stringArray&, const std::vector<bool>&);
+    virtual void orderby(const stringArray&);
     virtual void orderby(const char *str) {ibis::table::orderby(str);}
     /// Reversing the ordering of the rows on disk requires too much work
     /// but has no obvious benefit.
     virtual void reverseRows() {};
     /// Directly performing group-by on the base data (without selection)
     /// is not currently supported.
-    virtual table* groupby(const stringList&) const {return 0;}
+    virtual table* groupby(const stringArray&) const {return 0;}
     /// Directly performing group-by on the base data (without selection)
     /// is not currently supported.
     virtual table* groupby(const char *) const {return 0;}
 
     virtual int buildIndex(const char*, const char*);
     virtual int buildIndexes(const char*);
-    virtual int buildIndexes(const ibis::table::stringList&);
+    virtual int buildIndexes(const ibis::table::stringArray&);
     virtual const char* indexSpec(const char*) const;
     virtual void indexSpec(const char*, const char*);
     virtual int getPartitions(ibis::constPartList &) const;
-    virtual int mergeCategories(const ibis::table::stringList&);
+    virtual int mergeCategories(const ibis::table::stringArray&);
 
     // Cursor class for row-wise data accesses.
     class cursor;
@@ -163,9 +163,9 @@ public:
 
     virtual uint64_t nRows() const {return tab.nRows();}
     virtual uint32_t nColumns() const {return tab.nColumns();}
-    virtual ibis::table::stringList columnNames() const {
+    virtual ibis::table::stringArray columnNames() const {
 	return tab.columnNames();}
-    virtual ibis::table::typeList columnTypes() const {
+    virtual ibis::table::typeArray columnTypes() const {
 	return tab.columnTypes();}
     virtual int fetch();
     virtual int fetch(uint64_t);

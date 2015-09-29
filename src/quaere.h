@@ -69,7 +69,7 @@ public:
     /// @note This function assumes that this query object is used only
     /// once and therefore does not cache the results.
     virtual ibis::table* 
-	select(const ibis::table::stringList& colnames) const = 0;
+	select(const ibis::table::stringArray& colnames) const = 0;
 
     virtual ~quaere() {};
 

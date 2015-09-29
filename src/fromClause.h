@@ -42,7 +42,7 @@ public:
     /// Parse a new string as a from clause.
     explicit fromClause(const char *cl=0);
     /// Parse a list of strings.
-    fromClause(const ibis::table::stringList&);
+    fromClause(const ibis::table::stringArray&);
     ~fromClause();
     fromClause(const fromClause&);
 
@@ -57,7 +57,7 @@ public:
     bool empty() const {return names_.empty();}
     /// Returns the number of valid names.
     uint32_t size() const {return names_.size();}
-    void getNames(ibis::table::stringList&) const;
+    void getNames(ibis::table::stringArray&) const;
 
     /// Report the join condition.
     const ibis::compRange* getJoinCondition() const {return jcond_;}
