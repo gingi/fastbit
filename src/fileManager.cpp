@@ -936,18 +936,63 @@ int ibis::fileManager::getFile(const char* name, storage **st,
         // map the file read-only
         tmp->mapFile(name);
         if (tmp->begin() == 0) {
-            tmp->enlarge(bytes);
+            try {
+                tmp->enlarge(bytes);
+            }
+            catch (std::bad_alloc& e1) {
+                // retry once
+                LOGGER(ibis::gVerbose > 7)
+                    << evt << " -- need to unload some files before reading \""
+                    << name << "\", maxBytes=" << maxBytes
+                    << ", totalBytes=" << ibis::fileManager::totalBytes();
+                (void) unload(0); // unload whatever can be freed
+                tmp->enlarge(bytes);
+            }
+            catch (...) {
+                // simply rethrow
+                throw;
+            }
             // read the file into memory
             tmp->doRead(name);
         }
     }
     else {
-        tmp->enlarge(bytes);
+        try {
+            tmp->enlarge(bytes);
+        }
+        catch (std::bad_alloc& e1) {
+            // retry once
+            LOGGER(ibis::gVerbose > 7)
+                << evt << " -- need to unload some files before reading \""
+                << name << "\", maxBytes=" << maxBytes
+                << ", totalBytes=" << ibis::fileManager::totalBytes();
+            (void) unload(0); // unload whatever can be freed
+            tmp->enlarge(bytes);
+        }
+        catch (...) {
+            // simply rethrow
+            throw;
+        }
         // read the file into memory
         tmp->doRead(name);
     }
 #else
-    tmp->enlarge(bytes);
+    try {
+        tmp->enlarge(bytes);
+    }
+    catch (std::bad_alloc& e1) {
+        // retry once
+        LOGGER(ibis::gVerbose > 7)
+            << evt << " -- need to unload some files before reading \""
+            << name << "\", maxBytes=" << maxBytes
+            << ", totalBytes=" << ibis::fileManager::totalBytes();
+        (void) unload(0); // unload whatever can be freed
+        tmp->enlarge(bytes);
+    }
+    catch (...) {
+        // simply rethrow
+        throw;
+    }
     tmp->doRead(name);
 #endif
     if (tmp->size() == bytes) {
@@ -1090,18 +1135,63 @@ int ibis::fileManager::tryGetFile(const char* name, storage **st,
         // map the file read-only
         tmp->mapFile(name);
         if (tmp->begin() == 0) {
-            tmp->enlarge(bytes);
+            try {
+                tmp->enlarge(bytes);
+            }
+            catch (std::bad_alloc& e1) {
+                // retry once
+                LOGGER(ibis::gVerbose > 7)
+                    << evt << " -- need to unload some files before reading \""
+                    << name << "\", maxBytes=" << maxBytes
+                    << ", totalBytes=" << ibis::fileManager::totalBytes();
+                (void) unload(0); // unload whatever can be freed
+                tmp->enlarge(bytes);
+            }
+            catch (...) {
+                // simply rethrow
+                throw;
+            }
             // read the file into memory
             tmp->doRead(name);
         }
     }
     else {
-        tmp->enlarge(bytes);
+        try {
+            tmp->enlarge(bytes);
+        }
+        catch (std::bad_alloc& e1) {
+            // retry once
+            LOGGER(ibis::gVerbose > 7)
+                << evt << " -- need to unload some files before reading \""
+                << name << "\", maxBytes=" << maxBytes
+                << ", totalBytes=" << ibis::fileManager::totalBytes();
+            (void) unload(0); // unload whatever can be freed
+            tmp->enlarge(bytes);
+        }
+        catch (...) {
+            // simply rethrow
+            throw;
+        }
         // read the file into memory
         tmp->doRead(name);
     }
 #else
-    tmp->enlarge(bytes);
+    try {
+        tmp->enlarge(bytes);
+    }
+    catch (std::bad_alloc& e1) {
+        // retry once
+        LOGGER(ibis::gVerbose > 7)
+            << evt << " -- need to unload some files before reading \""
+            << name << "\", maxBytes=" << maxBytes
+            << ", totalBytes=" << ibis::fileManager::totalBytes();
+        (void) unload(0); // unload whatever can be freed
+        tmp->enlarge(bytes);
+    }
+    catch (...) {
+        // simply rethrow
+        throw;
+    }
     tmp->doRead(name);
 #endif
     if (tmp->size() == bytes) {
