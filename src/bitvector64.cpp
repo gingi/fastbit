@@ -42,8 +42,8 @@ ibis::bitvector64::bitvector64(const array_t<ibis::bitvector64::word_t>& arr)
                     ("Error", "the serialized version of bitvector contains "
                      "an expected last word (%lu)",
                      static_cast<long unsigned>(m_vec.back()));
-                throw "bitvector constructor failure "
-                    "-- the input is not a serialized bitvector";
+                throw "bitvector constructor failure -- the input "
+                    "is not a serialized bitvector" IBIS_FILE_LINE;
             }
         }
         else {
@@ -1346,7 +1346,7 @@ void ibis::bitvector64::read(const char * fn) {
         ibis::util::logMessage("Error", "bitvector64::read(%s) found "
                                "%d error%s in four integrity checks.",
                                fn, ierr, (ierr>1?"s":""));
-        throw "bitvector64::read failed integrity check";
+        throw "bitvector64::read failed integrity check" IBIS_FILE_LINE;
     }
 } // ibis::bitvector64::read
 
@@ -1358,7 +1358,7 @@ void ibis::bitvector64::write(const char * fn) const {
             ("Error", "bitvector64::write() Failed to "
              "open \"%s\" to write the bit vector ... %s",
              fn, (errno ? strerror(errno) : "no free stdio stream"));
-        throw "bitvector64::write failed to open file";
+        throw "bitvector64::write failed to open file" IBIS_FILE_LINE;
     }
 
 #if defined(WAH_CHECK_SIZE)
@@ -1381,7 +1381,7 @@ void ibis::bitvector64::write(const char * fn) const {
                                static_cast<long unsigned>(j),
                                static_cast<long unsigned>(n), fn);
         fclose(out);
-        throw "bitvector64::write failed to write all bytes";
+        throw "bitvector64::write failed to write all bytes" IBIS_FILE_LINE;
     }
     if (active.nbits > 0) {
         fwrite((const void*)&(active.val), sizeof(word_t), 1, out);
@@ -1392,14 +1392,14 @@ void ibis::bitvector64::write(const char * fn) const {
     //  ibis::util::logMessage("Error", "bitvector64::write() fail to "
     //                         "write nset to %s", fn);
     //  fclose(out);
-    //  throw "bitvector64::write failed to write the size";
+    //  throw "bitvector64::write failed to write the size" IBIS_FILE_LINE;
     //     }
 
     //     if (0 == fwrite((const void*)&nbits, sizeof(word_t), 1, out)) {
     //  ibis::util::logMessage("Error", "bitvector64::write() fail to "
     //                         "write nbits to %s", fn);
     //  fclose(out);
-    //  throw "bitvector64::write failed to write the cnt";
+    //  throw "bitvector64::write failed to write the cnt" IBIS_FILE_LINE;
     //     }
 
     fclose(out);
@@ -1425,7 +1425,7 @@ void ibis::bitvector64::write(FILE* out) const {
                                "wrote %lu out of %lu words",
                                static_cast<long unsigned>(j),
                                static_cast<long unsigned>(n));
-        throw "bitvector64::write failed to write all bytes";
+        throw "bitvector64::write failed to write all bytes" IBIS_FILE_LINE;
     }
     if (active.nbits > 0) {
         fwrite((const void*)&(active.val), sizeof(word_t), 1, out);
@@ -1567,7 +1567,7 @@ void ibis::bitvector64::and_c2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - x.it));
-            throw "and_c2 iternal error";
+            throw "and_c2 iternal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
@@ -1575,7 +1575,7 @@ void ibis::bitvector64::and_c2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - y.it));
-            throw "and_c2 iternal error";
+            throw "and_c2 iternal error" IBIS_FILE_LINE;
         }
     }
 
@@ -1645,7 +1645,7 @@ void ibis::bitvector64::and_c1(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - i1));
-            throw "and_c1 iternal error";
+            throw "and_c1 iternal error" IBIS_FILE_LINE;
         }
     }
 
@@ -1777,7 +1777,7 @@ void ibis::bitvector64::and_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - x.it));
-            throw "and_d2 internal error";
+            throw "and_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
@@ -1785,7 +1785,7 @@ void ibis::bitvector64::and_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - y.it));
-            throw "and_d2 internal error";
+            throw "and_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (ir != res.m_vec.end()) {
@@ -1793,7 +1793,7 @@ void ibis::bitvector64::and_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust ir but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(res.m_vec.end() - ir));
-            throw "and_d2 internal error";
+            throw "and_d2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -1857,7 +1857,7 @@ void ibis::bitvector64::and_d1(const ibis::bitvector64& rhs) {
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - i0));
-            throw "and_d1 internal error";
+            throw "and_d1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2016,7 +2016,7 @@ void ibis::bitvector64::or_c2(const ibis::bitvector64& rhs,
                 lg() << "res: " << res << std::endl;
             }
 #else
-            throw "or_c2 internal error";
+            throw "or_c2 internal error" IBIS_FILE_LINE;
 #endif
         }
 
@@ -2033,7 +2033,7 @@ void ibis::bitvector64::or_c2(const ibis::bitvector64& rhs,
                 lg() << "res: " << res << std::endl;
             }
 #else
-            throw "or_c2 internal error";
+            throw "or_c2 internal error" IBIS_FILE_LINE;
 #endif
         }
     }
@@ -2107,7 +2107,7 @@ void ibis::bitvector64::or_c1(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - i1));
-            throw "or_c1 internal error";
+            throw "or_c1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2242,7 +2242,7 @@ void ibis::bitvector64::or_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - x.it));
-            throw "or_d2 internal error";
+            throw "or_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
@@ -2250,7 +2250,7 @@ void ibis::bitvector64::or_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - y.it));
-            throw "or_d2 internal error";
+            throw "or_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (ir != res.m_vec.end()) {
@@ -2258,7 +2258,7 @@ void ibis::bitvector64::or_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust ir but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(res.m_vec.end() - ir));
-            throw "or_d2 internal error";
+            throw "or_d2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2326,7 +2326,7 @@ void ibis::bitvector64::or_d1(const ibis::bitvector64& rhs) {
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - i0));
-            throw "or_d1 internal error";
+            throw "or_d1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2463,14 +2463,14 @@ void ibis::bitvector64::xor_c2(const ibis::bitvector64& rhs,
         ibis::util::logMessage("Error", "bitvector64::xor_c2 expects "
                                "to exhaust i0 but there are %ld word(s) left",
                                static_cast<long>(m_vec.end() - x.it));
-        throw "xor_c2 interal error";
+        throw "xor_c2 interal error" IBIS_FILE_LINE;
     }
 
     if (y.it != rhs.m_vec.end()) {
         ibis::util::logMessage("Error", "bitvector64::xor_c2 expects "
                                "to exhaust i1 but there are %ld word(s) left",
                                static_cast<long>(rhs.m_vec.end() - y.it));
-        throw "xor_c2 internal error";
+        throw "xor_c2 internal error" IBIS_FILE_LINE;
     }
 
     // the last thing -- work with the two active_words
@@ -2516,7 +2516,7 @@ void ibis::bitvector64::xor_c1(const ibis::bitvector64& rhs,
         ibis::util::logMessage("Error", "bitvector64::xor_c1 expects "
                                "to exhaust i1 but there are %ld word(s) left",
                                static_cast<long>(rhs.m_vec.end() - i1));
-        throw "xor_c1 iternal error";
+        throw "xor_c1 iternal error" IBIS_FILE_LINE;
     }
 
     // the last thing -- work with the two active_words
@@ -2649,7 +2649,7 @@ void ibis::bitvector64::xor_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - x.it));
-            throw "xor_d2 internal error";
+            throw "xor_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
@@ -2657,7 +2657,7 @@ void ibis::bitvector64::xor_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - y.it));
-            throw "xor_d2 internal error";
+            throw "xor_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (ir != res.m_vec.end()) {
@@ -2665,7 +2665,7 @@ void ibis::bitvector64::xor_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust ir but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(res.m_vec.end() - ir));
-            throw "xor_d2 internal error";
+            throw "xor_d2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2740,7 +2740,7 @@ void ibis::bitvector64::xor_d1(const ibis::bitvector64& rhs) {
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - i0));
-            throw "xor_d1 internal error";
+            throw "xor_d1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2898,7 +2898,7 @@ void ibis::bitvector64::minus_c2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - x.it));
-            throw "minus_c2 internal error";
+            throw "minus_c2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
@@ -2906,7 +2906,7 @@ void ibis::bitvector64::minus_c2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - y.it));
-            throw "minus_c2 internal error";
+            throw "minus_c2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2978,7 +2978,7 @@ void ibis::bitvector64::minus_c1(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - i1));
-            throw "minus_c1 internal error";
+            throw "minus_c1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3029,7 +3029,7 @@ void ibis::bitvector64::minus_c1x(const ibis::bitvector64& rhs,
         ibis::util::logMessage("Error", "bitvector64::minus_c1x expects "
                                "to exhaust i0 but there are %ld word(s) left",
                                static_cast<long>(m_vec.end() - i0));
-        throw "minus_c1x internal error";
+        throw "minus_c1x internal error" IBIS_FILE_LINE;
     }
 
     // the last thing -- work with the two active_words
@@ -3166,7 +3166,7 @@ void ibis::bitvector64::minus_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - x.it));
-            throw "minus_d2 internal error";
+            throw "minus_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
@@ -3174,7 +3174,7 @@ void ibis::bitvector64::minus_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust i1 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(rhs.m_vec.end() - y.it));
-            throw "minus_d2 internal error";
+            throw "minus_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (ir != res.m_vec.end()) {
@@ -3182,7 +3182,7 @@ void ibis::bitvector64::minus_d2(const ibis::bitvector64& rhs,
                                    "expects to exhaust ir but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(res.m_vec.end() - ir));
-            throw "minus_d2 internal error";
+            throw "minus_d2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3245,7 +3245,7 @@ void ibis::bitvector64::minus_d1(const ibis::bitvector64& rhs) {
                                    "expects to exhaust i0 but there are %ld "
                                    "word(s) left",
                                    static_cast<long>(m_vec.end() - i0));
-            throw "minus_d1 internal error";
+            throw "minus_d1 internal error" IBIS_FILE_LINE;
         }
     }
 

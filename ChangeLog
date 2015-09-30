@@ -7,6 +7,10 @@
 	* src/fileManager.cpp: in getFile, surround tmp->enlarge call with
 	try-catch blocks to enable retry to allocate memory (but only
 	retry once)
+	* src/fileManager.cpp: in function fileManager::flushDir, correct
+	the error in the computation of offset (renamed to len1)
+	* examples/ibis.cpp: move dirs to be a global variable, invoke
+	flushDir in function clean_up
 
 2015-09-28 John Wu <John dot Wu at ACM dot org>
 	* src/fileManager.h: comment out the code for softWriteLock, it is

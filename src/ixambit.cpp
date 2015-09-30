@@ -24,7 +24,8 @@ ibis::ambit::ambit(const ibis::column* c, const char* f) : ibis::bin(c, f) {
     if (nobs <= 2) {
         clear();
         ibis::bin::clear();
-        throw "ambix -- binning produced two or less bins, need more";
+        throw "ambit::ctor needs more bins but there are two or fewer bins"
+            IBIS_FILE_LINE;
     }
 
     try {

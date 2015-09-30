@@ -115,7 +115,8 @@ int ibis::selectClause::parse(const char *cl) {
                 << "Warning -- selectClause::parse failed to parse string \""
                 << cl << "\"";
 #ifdef FASTBIT_HALT_ON_PARSER_ERROR
-            throw "selectClause failed to parse the incoming string";
+            throw "selectClause failed to parse the incoming string"
+                IBIS_FILE_LINE;
 #endif
         }
     }
@@ -297,7 +298,8 @@ ibis::selectClause::addAgregado(ibis::selectClause::AGREGADO agr,
         LOGGER(ibis::gVerbose >= 0)
             << "Warning -- selectClause can not have aggregations inside "
             "another aggregation operation (" << *expr << ')';
-        throw "nested aggregations";
+        throw "selectClause::addAgregado failed due to nested aggregations"
+            IBIS_FILE_LINE;
     }
 
     const unsigned end = atms_.size();
@@ -454,7 +456,8 @@ void ibis::selectClause::addTerm(ibis::math::term *tm, const std::string* al) {
         LOGGER(ibis::gVerbose >= 0)
             << "Warning -- selectClause::addTerm(" << *tm
             << ") encountered an ill-formed arithmetic expression";
-        throw "selectClause encountered an ill-formed expression";
+        throw "selectClause encountered an ill-formed expression"
+            IBIS_FILE_LINE;
     }
 } // ibis::selectClause::addTerm
 

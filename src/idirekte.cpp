@@ -24,7 +24,8 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
             << "Error -- direkte can only be used for columns with "
             "nonnegative integer values (current column " << c->name()
             << ", type=" << ibis::TYPESTRING[(int)c->type()] << ')';
-        throw ibis::bad_alloc("wrong column type for ibis::direkte");
+        throw ibis::bad_alloc("wrong column type for ibis::direkte"
+                              IBIS_FILE_LINE);
     }
     if (c->lowerBound() < 0.0 || c->upperBound() < 0.0) {
         const_cast<ibis::column*>(c)->computeMinMax();
@@ -34,7 +35,8 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
                 "values, but the current minimal value is "
                 << (c->lowerBound()<=c->upperBound() ? c->lowerBound() :
                     c->upperBound());
-            throw ibis::bad_alloc("minimal value must >= 0 for ibis::direkte");
+            throw ibis::bad_alloc("minimal value must >= 0 for ibis::direkte"
+                                  IBIS_FILE_LINE);
         }
     }
 
@@ -49,7 +51,8 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
             << "Error -- direkte can only be used for columns with "
             "nonnegative integer values (current column " << c->name()
             << ", type=" << ibis::TYPESTRING[(int)c->type()] << ')';
-        throw ibis::bad_alloc("wrong column type for ibis::direkte");}
+        throw ibis::bad_alloc("wrong column type for ibis::direkte"
+                              IBIS_FILE_LINE);}
     case ibis::BYTE: {
         ierr = construct0<signed char>(dfname.c_str());
         break;}
@@ -79,7 +82,7 @@ ibis::direkte::direkte(const ibis::column* c, const char* f)
     if (ierr < 0) {
         LOGGER(ibis::gVerbose >= 0)
             << "Error -- direkte::construct0 failed with error code " << ierr;
-        throw ibis::bad_alloc("direkte construction failure");
+        throw ibis::bad_alloc("direkte construction failure" IBIS_FILE_LINE);
     }
     if (ibis::gVerbose > 2) {
         ibis::util::logger lg;

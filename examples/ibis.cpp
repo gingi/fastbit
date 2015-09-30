@@ -2030,6 +2030,7 @@ static void randomQueries(const ibis::part& pt, unsigned mq,
         << (qlist.size()>1?"ies":"y");
 } // randomQueries
 
+static std::vector<const char*> dirs;  // directories specified on command line
 // function to parse the command line arguments
 static void parse_args(int argc, char** argv, int& mode,
                        std::vector<const char*>& alist,
@@ -2057,7 +2058,6 @@ static void parse_args(int argc, char** argv, int& mode,
     const char* defaultIndexing = 0;
     int accessIndexInWhole = 0;
     std::vector<const char*> confs; // name of the configuration files
-    std::vector<const char*> dirs;  // directories specified on command line
     std::vector<const char*> rdirs; // directories to be reordered
     std::vector<const char*> printcmds; // printing commands
     const char* mesgfile = 0;
@@ -5073,6 +5073,11 @@ static void clean_up(bool sane=true) {
         }
         ibis::datasets.clear();
     }
+    for (std::vector<const char*>::const_iterator it = dirs.begin();
+         it != dirs.end(); ++ it) {
+        ibis::fileManager::instance().flushDir(*it);
+    }
+
     LOGGER(ibis::gVerbose > 1)
         << "Cleaning up the file manager\n"
         "Total pages accessed through read(unistd.h) is estimated to be "

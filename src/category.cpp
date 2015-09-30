@@ -41,7 +41,8 @@ ibis::category::category(const part* tbl, const char* name)
 /// Copy constructor.  Copy from a collumn object of the type CATEGORY.
 ibis::category::category(const ibis::column& col) : ibis::text(col), dic() {
     if (m_type != ibis::CATEGORY) {
-        throw ibis::bad_alloc("Must be type CATEGORY");
+        throw ibis::bad_alloc("Must be type CATEGORY -- category::ctor"
+                              IBIS_FILE_LINE);
     }
 #ifdef FASTBIT_EAGER_INIT
     prepareMembers();
@@ -1478,7 +1479,8 @@ ibis::text::text(const part* tbl, const char* name, ibis::TYPE_T t)
 /// Copy constructor.  Copy from a column of the type TEXT.
 ibis::text::text(const ibis::column& col) : ibis::column(col) {
     if (m_type != ibis::TEXT && m_type != ibis::CATEGORY) {
-        throw "Must be either TEXT or CATEGORY";
+        throw ibis::bad_alloc("Must be either TEXT or CATEGORY -- text::ctor"
+                              IBIS_FILE_LINE);
     }
 #ifdef FASTBIT_EAGER_INIT
     if (thePart != 0 && thePart->urrentDataDir() != 0)

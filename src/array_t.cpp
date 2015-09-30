@@ -49,7 +49,7 @@ ibis::array_t<T>::array_t()
         LOGGER(ibis::gVerbose >= 0)
             << "Warning -- array_t<" << typeid(T).name()
             << "> failed to allocate an empty array";
-        throw ibis::bad_alloc("array_t<T>::ctor failed");
+        throw ibis::bad_alloc("array_t<T>::ctor failed" IBIS_FILE_LINE);
     }
 }
 
@@ -75,7 +75,7 @@ ibis::array_t<T>::array_t(size_t n)
             << "Warning -- array_t<" << typeid(T).name()
             << "> failed to allocate an array with "
             << n << " element" << (n > 1 ? "s" : "");
-        throw ibis::bad_alloc("array_t<T>::ctor failed");
+        throw ibis::bad_alloc("array_t<T>::ctor failed" IBIS_FILE_LINE);
     }
 }
 
@@ -104,7 +104,7 @@ ibis::array_t<T>::array_t(size_t n, const T& val)
             << "Warning -- array_t<" << typeid(T).name()
             << "> failed to allocate memory for copying "
             << n << " element" << (n > 1 ? "s" : "");
-        throw ibis::bad_alloc("array_t<T>::ctor failed");
+        throw ibis::bad_alloc("array_t<T>::ctor failed" IBIS_FILE_LINE);
     }
 }
 
@@ -187,9 +187,6 @@ ibis::array_t<T>::array_t(ibis::fileManager::storage* rhs)
     if (actual != 0)
         actual->beginUse();
     difference_type diff = m_end - m_begin;
-    if (diff > 0x7FFFFFFF) {
-        throw "array_t can not handle more than 2 billion elements";
-    }
 
     LOGGER(ibis::gVerbose > 9)
         << "array_t<" << typeid(T).name() << "> constructed at "
@@ -261,7 +258,8 @@ ibis::array_t<T>::array_t(const int fdes, const off_t begin, const off_t end)
             << "Warning -- array_t<" << typeid(T).name() << "> failed to read "
             << "from file descriptor " << fdes << " between " << begin
             << " and " << end;
-        throw ibis::bad_alloc("array_t failed to read file segment");
+        throw ibis::bad_alloc("array_t failed to read file segment"
+                              IBIS_FILE_LINE);
     }
     if (actual != 0)
         actual->beginUse();
@@ -286,7 +284,8 @@ ibis::array_t<T>::array_t(const char *fn, const off_t begin, const off_t end)
             << "Warning -- array_t<" << typeid(T).name() << "> failed to read "
             << "from file \"" << fn << "\" between " << begin
             << " and " << end;
-        throw ibis::bad_alloc("array_t failed to read file segment");
+        throw ibis::bad_alloc("array_t failed to read file segment"
+                              IBIS_FILE_LINE);
     }
     if (actual != 0)
         actual->beginUse();
@@ -312,7 +311,8 @@ ibis::array_t<T>::array_t(const char *fn, const int fdes,
             << "Warning -- array_t<" << typeid(T).name() << "> failed to read "
             << "from file \"" << fn << "\" (" << fdes << ") between " << begin
             << " and " << end;
-        throw ibis::bad_alloc("array_t failed to read file segment");
+        throw ibis::bad_alloc("array_t failed to read file segment"
+                              IBIS_FILE_LINE);
     }
     if (actual != 0)
         actual->beginUse();
@@ -1485,7 +1485,7 @@ void ibis::array_t<T>::resize(size_t n) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- array_t::resize(" << n << ") failed to allocate "
             " sufficient space";
-        throw ibis::bad_alloc("failed to resize array");
+        throw ibis::bad_alloc("failed to resize array" IBIS_FILE_LINE);
     }
     else {
         m_end = m_begin + n;

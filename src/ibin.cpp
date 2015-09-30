@@ -282,7 +282,7 @@ ibis::bin::bin(const ibis::column* c, ibis::fileManager::storage* st,
                 << "]::bin failed to initialize bitmap offsets"
                 << " from storage object @ " << st << " with start = " << start
                 << ", ierr = " << ierr;
-            throw "bin::ctor failed to initOffsets from storage";
+            throw "bin::ctor failed to initOffsets from storage" IBIS_FILE_LINE;
         }
 
         initBitmaps(st);
@@ -336,7 +336,7 @@ ibis::bin::bin(const ibis::column* c, const uint32_t nbits,
             << "]::bin failed to initialize bitmap offsets from storage "
             << "object @ " << st << " with start = " << start
             << ", ierr = " << ierr;
-        throw "bin::ctor failed to initOffsets from storage";
+        throw "bin::ctor failed to initOffsets from storage" IBIS_FILE_LINE;
     }
     initBitmaps(st);
 
@@ -794,7 +794,8 @@ void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
             << "Warning -- failed to bin column " << col->name()
             << " (type " << (int)(col->type()) << ", "
             << ibis::TYPESTRING[(int)(col->type())] << ')';
-        throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
+        throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning"
+                              IBIS_FILE_LINE);
     }
 } // ibis::bin::binning (specified bin boundaries)
 
@@ -848,7 +849,8 @@ void ibis::bin::binning(const char* f, const array_t<double>& bd) {
             << "Warning -- failed to bin column " << col->name()
             << " (type " << (int)(col->type()) << ", "
             << ibis::TYPESTRING[(int)(col->type())] << ')';
-        throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning");
+        throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning"
+                              IBIS_FILE_LINE);
     }
 } // ibis::bin::binning (specified bin boundaries)
 
@@ -902,7 +904,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -969,7 +971,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1036,7 +1038,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1116,7 +1118,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1190,7 +1192,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1264,7 +1266,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1338,7 +1340,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1412,7 +1414,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1486,7 +1488,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1560,7 +1562,7 @@ void ibis::bin::binning(const char* f) {
         if (val.size() <= 0) {
             col->logWarning("bin::binning", "failed to read %s",
                             fnm.c_str());
-            throw ibis::bad_alloc("fail to read data file");
+            throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
         }
         else {
             nrows = val.size();
@@ -1758,7 +1760,7 @@ void ibis::bin::binningT(const char* f) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- " << evt << " failed to read " << fnm << " as "
             << typeid(E).name();
-        throw ibis::bad_alloc("fail to read data file");
+        throw ibis::bad_alloc("fail to read data file" IBIS_FILE_LINE);
     }
     else {
         nrows = val.size();
@@ -2643,7 +2645,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::FLOAT: {
@@ -2655,7 +2657,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::ULONG: {
@@ -2667,7 +2669,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::LONG: {
@@ -2679,7 +2681,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::UINT: {
@@ -2691,7 +2693,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::INT: {
@@ -2703,7 +2705,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::USHORT: {
@@ -2715,7 +2717,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::SHORT: {
@@ -2727,7 +2729,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::UBYTE: {
@@ -2739,7 +2741,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::BYTE: {
@@ -2751,7 +2753,7 @@ void ibis::bin::construct(const char* df) {
             else
                 ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         default:
@@ -2759,7 +2761,7 @@ void ibis::bin::construct(const char* df) {
                 << "Warning -- failed to bin column " << col->name()
                 << " (type " << (int)(col->type()) << ", "
                 << ibis::TYPESTRING[(int)(col->type())] << ')';
-            throw "Unexpected data type for ibis::bin";
+            throw "Unexpected data type for ibis::bin" IBIS_FILE_LINE;
         }
 #endif
         if (reorder && ! fname.empty())
@@ -2805,7 +2807,7 @@ void ibis::bin::construct(const char* df) {
                     << "Warning -- failed to bin column " << col->name()
                     << " (type " << (int)(col->type()) << ", "
                     << ibis::TYPESTRING[(int)(col->type())] << ')';
-                throw "Unexpected data type for ibis::bin";
+                throw "Unexpected data type for ibis::bin" IBIS_FILE_LINE;
             }
         }
         else {
@@ -2818,70 +2820,70 @@ void ibis::bin::construct(const char* df) {
             array_t<double> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::FLOAT: {
             array_t<float> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::ULONG: {
             array_t<uint64_t> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::LONG: {
             array_t<int64_t> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::UINT: {
             array_t<uint32_t> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::INT: {
             array_t<int32_t> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::USHORT: {
             array_t<uint16_t> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::SHORT: {
             array_t<int16_t> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::UBYTE: {
             array_t<unsigned char> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         case ibis::BYTE: {
             array_t<signed char> vals;
             int ierr = col->getValuesArray(&vals);
             if (ierr < 0)
-                throw "bin::construct failed to read raw data";
+                throw "bin::construct failed to read raw data" IBIS_FILE_LINE;
             construct(vals);
             break;}
         default:
@@ -2889,7 +2891,7 @@ void ibis::bin::construct(const char* df) {
                 << "Warning -- failed to bin column " << col->name()
                 << " (type " << (int)(col->type()) << ", "
                 << ibis::TYPESTRING[(int)(col->type())] << ')';
-            throw "Unexpected data type for ibis::bin";
+            throw "Unexpected data type for ibis::bin" IBIS_FILE_LINE;
         }
     }
 

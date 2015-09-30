@@ -124,9 +124,6 @@ int ibis::resource::read(const char* fn) {
     }
 
     char *value;
-    // LOGGER(ibis::gVerbose > 0)
-    //     << "resource::read -- parsing configuration file \""
-    //     << (name?name:"") << "\""; 
     while ( !feof(conf) ) {
         if (fgets(line, MAX_LINE, conf) == 0) continue; // skip empty line
 
@@ -143,12 +140,11 @@ int ibis::resource::read(const char* fn) {
         }
         if (tmp <= line) continue; // empty line (or a single character)
 
-        name = line;
         value = strchr(line, '=');
         if (value) {
             *value = static_cast<char>(0); // terminate name string
-            ++value;
-            add(name, ibis::util::trim(value));
+            ++ value;
+            add(line, ibis::util::trim(value));
         }
         // else {
         //     LOGGER(ibis::gVerbose > 6)
@@ -160,6 +156,10 @@ int ibis::resource::read(const char* fn) {
 #if DEBUG+0 > 0 || _DEBUG+0 > 0
     ibis::util::logger lg;
     write(lg());
+#else
+    LOGGER(ibis::gVerbose > 0)
+        << "resource::read -- parsed configuration file \""
+        << (name?name:"") << "\""; 
 #endif
     return 0; // normal return
 } // ibis::resource::read

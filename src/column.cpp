@@ -46,11 +46,11 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
     m_sorted(false), lower(low), upper(high), m_utscribe(0), dataflag(0),
     idx(0), idxcnt() {
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "column::ctor failed to initialize the rwlock";
+        throw "column::ctor failed to initialize the rwlock" IBIS_FILE_LINE;
     }
     if (0 != pthread_mutex_init
         (&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-        throw "column::ctor failed to initialize the mutex";
+        throw "column::ctor failed to initialize the mutex" IBIS_FILE_LINE;
     }
     if (m_desc.empty()) m_desc = name;
     if (ibis::gVerbose > 5 && !m_name.empty()) {
@@ -76,11 +76,11 @@ ibis::column::column(const part* tbl, FILE* file)
     char *s2;
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "column::ctor failed to initialize the rwlock";
+        throw "column::ctor failed to initialize the rwlock" IBIS_FILE_LINE;
     }
     if (0 != pthread_mutex_init
         (&mutex, static_cast<const pthread_mutexattr_t *>(0))) {
-        throw "column::ctor failed to initialize the mutex";
+        throw "column::ctor failed to initialize the mutex" IBIS_FILE_LINE;
     }
 
     bool badType = false;
@@ -311,10 +311,10 @@ ibis::column::column(const ibis::column& rhs) :
     m_utscribe(rhs.m_utscribe), dataflag(0),
     idx(rhs.idx!=0 ? rhs.idx->dup() : 0), idxcnt() {
     if (pthread_rwlock_init(&rwlock, 0)) {
-        throw "column::ctor failed to initialize the rwlock";
+        throw "column::ctor failed to initialize the rwlock" IBIS_FILE_LINE;
     }
     if (pthread_mutex_init(&mutex, 0)) {
-        throw "column::ctor failed to initialize the mutex";
+        throw "column::ctor failed to initialize the mutex" IBIS_FILE_LINE;
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
         ibis::util::logger lg;
@@ -8313,7 +8313,8 @@ long ibis::column::saveSelected(const ibis::bitvector& sel, const char *dest,
         buf = mybuf.address();
     }
     if (buf == 0) {
-        throw new ibis::bad_alloc("saveSelected cannot allocate workspace");
+        throw new ibis::bad_alloc("saveSelected cannot allocate workspace"
+                                  IBIS_FILE_LINE);
     }
 
     if (dest == 0 || dest == thePart->currentDataDir() ||

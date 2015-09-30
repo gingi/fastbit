@@ -4709,7 +4709,8 @@ void ibis::index::activate() const {
                     << "Warning -- " << evt << " failed to read "
                     "bitvector # " << 0 << " - # " << nobs
                     << ", which occupies " << buf.size() << " words";
-                throw "FastBitReadBitmaps failed to read bitvectors";
+                throw "FastBitReadBitmaps failed to read bitvectors"
+                    IBIS_FILE_LINE;
             }
             str = buf.getStorage();
             for (size_t j = 0; j < nobs; ++ j) {
@@ -4854,7 +4855,8 @@ void ibis::index::activate() const {
                 << "Warning -- " << evt << " failed to read "
                 "bitvector # " << 0 << " - # " << nobs
                 << ", which occupies " << buf.size() << " words";
-            throw "FastBitReadBitmaps failed to read bitvectors";
+            throw "FastBitReadBitmaps failed to read bitvectors"
+                IBIS_FILE_LINE;
         }
         str = buf.getStorage();
         for (size_t j = 0; j < nobs; ++ j) {
@@ -5264,7 +5266,8 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                     << "Warning -- " << evt << " failed to read bitvectors "
                     << i << " - " << j << ", which occupies "
                     << (offset64[j]-offset64[i])/4 << " words";
-                throw "FastBitReadBitmaps failed to read bitvectors";
+                throw "FastBitReadBitmaps failed to read bitvectors"
+                    IBIS_FILE_LINE;
             }
             for (size_t j0 = i; j0 < j; ++ j0) {
                 size_t j1 = j0+1;
@@ -5419,7 +5422,8 @@ void ibis::index::activate(uint32_t i, uint32_t j) const {
                 << "Warning -- " << evt << " failed to read bitvectors "
                 << i << " - " << j << ", which occupies "
                 << (offset32[j]-offset32[i])/4 << " words";
-            throw "FastBitReadBitmaps failed to read bitvectors";
+            throw "FastBitReadBitmaps failed to read bitvectors"
+                IBIS_FILE_LINE;
         }
         for (size_t j0 = i; j0 < j; ++ j0) {
             size_t j1 = j0+1;

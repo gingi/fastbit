@@ -2216,7 +2216,8 @@ ibis::math::stdFunction1::stdFunction1(const char* name) {
         LOGGER(ibis::gVerbose >= 0)
             << "math::stdFunction1::stdFunction1(" << name
             << ") UNKNOWN (one-argument) function name";
-        throw "unknown function name";
+        throw "math::stdFunction1::ctor failed due to a unknown function name"
+            IBIS_FILE_LINE;
     }
 } // constructor of ibis::math::stdFunction1
 
@@ -2406,7 +2407,8 @@ ibis::math::stdFunction2::stdFunction2(const char* name) {
         LOGGER(ibis::gVerbose >= 0)
             << "math::stdFunction2::stdFunction2(" << name
             << ") UNKNOWN (two-argument) function name";
-        throw "unknown function name";
+        throw "math::stdFunction2::ctor failed due to a unknown function name"
+            IBIS_FILE_LINE;
     }
 } // constructor of ibis::math::stdFunction2
 

@@ -23,7 +23,8 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
         LOGGER(ibis::gVerbose >= 0)
             << "keywords::keywords -- can only index categorical "
             "values or string values";
-        throw ibis::bad_alloc("wrong column type for ibis::keywords");
+        throw ibis::bad_alloc("wrong column type for ibis::keywords"
+                              IBIS_FILE_LINE);
     }
 
     // try to read an existing keyword index
@@ -69,8 +70,8 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
             LOGGER(ibis::gVerbose >= 0)
                 << "Warning -- keywords::keywords -- the id column of "
                 "keywords can only be 4-byte integers";
-            throw ibis::bad_alloc("keywords can only use 4-byte "
-                                  "integers as ids");
+            throw ibis::bad_alloc("keywords can only use 4-byte integers as "
+                                  "IDs, keywords::ctor failed " IBIS_FILE_LINE);
         }
         ierr = readTermDocFile(idcol, fdic.c_str());
         if (ierr == -1 && f != 0 && *f != 0)
@@ -112,7 +113,8 @@ ibis::keywords::keywords(const ibis::column* c, const char* f)
                 << "Warning -- keywords::keywords failed to parse text "
                 "file to build a keyword index, parseTextFile returned "
                 << ierr;
-            throw ibis::bad_alloc("keywords::ctr failed to parse text");
+            throw ibis::bad_alloc("keywords::ctr failed to parse text"
+                                  IBIS_FILE_LINE);
         }
     }
 
@@ -150,7 +152,8 @@ ibis::keywords::keywords(const ibis::column *c,
         LOGGER(ibis::gVerbose >= 0)
             << "Warning -- keywords::keywords -- parseTextFile failed with "
             "error code " << ierr;
-        throw ibis::bad_alloc("keywords::ctor failed to parse text file");
+        throw ibis::bad_alloc("keywords::ctor failed to parse text file"
+                              IBIS_FILE_LINE);
     }
 } // ibis::keywords::keywords
 

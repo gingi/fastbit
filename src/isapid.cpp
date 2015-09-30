@@ -232,7 +232,8 @@ void ibis::sapid::construct1(const char* f, const uint32_t nbase) {
                 "do not have the expected size(" << col->partition()->nRows()
                 << "). stopping..";
         }
-        throw ibis::bad_alloc("incorrect bitvector sizes");
+        throw ibis::bad_alloc("sapid::construct1 failed due to incorrect "
+                              "bitvector sizes" IBIS_FILE_LINE);
     }
 
     // convert bmap into the current data structure

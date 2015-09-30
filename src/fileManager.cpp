@@ -255,97 +255,99 @@ void ibis::fileManager::flushFile(const char* name) {
     }
 } // ibis::fileManager::flushFile
 
-// remove all files from the specified directory (include all sub
-// directories)
+/// @note This function expects the name to contain no leading or trailing
+/// blank spaces.
+/// 
 void ibis::fileManager::flushDir(const char* name) {
     if (name == 0 || *name == 0) return;
     ibis::util::mutexLock lck(&mutex, name);
-    LOGGER(ibis::gVerbose > 5)
+    LOGGER(ibis::gVerbose > 1)
         << "fileManager::flushDir -- removing records of all files in " << name;
 
     uint32_t deleted = 0;
-    const uint32_t len = std::strlen(name);
-    const uint32_t offset = len + (FASTBIT_DIRSEP != name[len-1]);
+    // Variable len1 holds the number of characters in name, variable len0
+    // holds the number of characters before the terminating directory
+    // separator (defined by FASTBIT_DIRSEP).  The logic of file name
+    // comparison is as follows: a file is in the given directory if and
+    // only if the first len1 characters match exactly of that of name, and
+    // character number len1 must be the directorty separator (defined by
+    // FASTBIT_DIRSEP).
+    const uint32_t len1 = std::strlen(name);
+    const uint32_t len0 = len1 - (FASTBIT_DIRSEP == name[len1-1]);
 
-    while (1) { // loop forever
-        // is there any files within the directory
-        uint32_t cnt = 0;
-        fileList::iterator it = mapped.begin();
-        while (it != mapped.end()) {
-            fileList::iterator next = it; ++next;
-            if (strncmp((*it).first, name, len)==0) {
-                if (strchr((*it).first+offset, FASTBIT_DIRSEP) == 0) {
-                    if ((*it).second->inUse() > 0) {
-                        ++ cnt;
-                        ibis::util::logger lg;
-                        lg() << "Warning -- fileManager::flushDir "
-                             << "can not remove mapped file ("
-                             << (*it).first << ").  It is in use";
-                        if (ibis::gVerbose > 3) {
-                            lg() << "\n";
-                            (*it).second->printStatus(lg());
-                        }
-                    }
-                    else {
-                        //writeLock wlck("fileManager::flushDir");
-                        LOGGER(ibis::gVerbose > 7)
-                            << "fileManager::flushDir -- removing \""
-                            << (*it).first
-                            << "\" from the list of mapped files";
-                        delete (*it).second;
-                        mapped.erase(it);
-                        ++ deleted;
+    uint32_t cnt = 0;
+    fileList::iterator it = mapped.begin();
+    // look through all files in mapped
+    while (it != mapped.end()) {
+        fileList::iterator next = it; ++next;
+        if (strncmp((*it).first, name, len0) == 0) {
+            if ((*it).first[len0] == FASTBIT_DIRSEP) {
+                if ((*it).second->inUse() > 0) {
+                    ++ cnt;
+                    ibis::util::logger lg;
+                    lg() << "Warning -- fileManager::flushDir "
+                         << "can not remove mapped file ("
+                         << (*it).first << ").  It is in use";
+                    if (ibis::gVerbose > 3) {
+                        lg() << "\n";
+                        (*it).second->printStatus(lg());
                     }
                 }
-            }
-            it = next;
-        }
-
-        it = incore.begin();
-        while (it != incore.end()) {
-            fileList::iterator next = it; ++next;
-            if (strncmp((*it).first, name, len)==0) {
-                if (strchr((*it).first+offset, FASTBIT_DIRSEP) == 0) {
-                    if ((*it).second->inUse()) {
-                        ++ cnt;
-                        ibis::util::logger lg;
-                        lg() << "Warning -- fileManager::flushDir "
-                             << "can not remove in-memory file ("
-                             << (*it).first << ").  It is in use";
-                        if (ibis::gVerbose > 3) {
-                            lg() << "\n";
-                            (*it).second->printStatus(lg());
-                        }
-                    }
-                    else {
-                        //writeLock wlck("flushDir");
-                        LOGGER(ibis::gVerbose > 7)
-                            << "fileManager::flushDir -- removing \""
-                            << (*it).first
-                            << "\" from the list of incore files";
-                        delete (*it).second;
-                        incore.erase(it);
-                        ++ deleted;
-                    }
+                else {
+                    LOGGER(ibis::gVerbose > 7)
+                        << "fileManager::flushDir -- removing \""
+                        << (*it).first
+                        << "\" from the list of mapped files";
+                    delete (*it).second;
+                    mapped.erase(it);
+                    ++ deleted;
                 }
             }
-            it = next;
         }
+        it = next;
+    }
 
-        if (cnt) {// there are files in use
-            LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- fileManager::flushDir(" << name
-                << ") finished with " << cnt << " file"
-                << (cnt>1?"s":"") << " still in memory";
-            return;
-            //      pthread_cond_wait(&cond, &mutex);
+    it = incore.begin();
+    // loop through all files in incore
+    while (it != incore.end()) {
+        fileList::iterator next = it; ++next;
+        if (strncmp((*it).first, name, len0) == 0) {
+            if ((*it).first[len0] == FASTBIT_DIRSEP) {
+                if ((*it).second->inUse()) {
+                    ++ cnt;
+                    ibis::util::logger lg;
+                    lg() << "Warning -- fileManager::flushDir "
+                         << "can not remove in-memory file ("
+                         << (*it).first << ").  It is in use";
+                    if (ibis::gVerbose > 3) {
+                        lg() << "\n";
+                        (*it).second->printStatus(lg());
+                    }
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 7)
+                        << "fileManager::flushDir -- removing \""
+                        << (*it).first
+                        << "\" from the list of incore files";
+                    delete (*it).second;
+                    incore.erase(it);
+                    ++ deleted;
+                }
+            }
         }
-        else {
-            LOGGER(ibis::gVerbose > 5)
-                << "fileManager::flushDir -- removed " << deleted
-                << " file" << (deleted>1?"s":"") << " from " << name;
-            return;
-        }
+        it = next;
+    }
+
+    if (cnt) {// there are files in use
+        LOGGER(ibis::gVerbose > 1)
+            << "Warning -- fileManager::flushDir(" << name
+            << ") finished with " << cnt << " file"
+            << (cnt>1?"s":"") << " still in memory";
+    }
+    else {
+        LOGGER(ibis::gVerbose > 3)
+            << "fileManager::flushDir -- removed " << deleted
+            << " file" << (deleted>1?"s":"") << " from " << name;
     }
 } // ibis::fileManager::flushDir
 

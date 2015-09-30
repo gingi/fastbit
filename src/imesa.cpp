@@ -21,7 +21,8 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
     if (nrows == 0) return;
     if (nobs <= 2) {
         clear();
-        throw "mesa -- binning produced two or less bins, need more";
+        throw "mesa::ctor needs more bins but there are two or fewer bins"
+            IBIS_FILE_LINE;
     }
 
     // b2 is the temporary storage for the bitvectors of ibis::bin object
@@ -79,7 +80,7 @@ ibis::mesa::mesa(const ibis::column* c, const char* f) : ibis::bin(c, f) {
 ibis::mesa::mesa(const ibis::bin& rhs) {
     if (rhs.nrows == 0) return;
     if (rhs.nobs <= 2) { // rhs does not contain a valid index
-        throw ibis::bad_alloc("mesa -- too few bitmaps");
+        throw ibis::bad_alloc("mesa::ctor needs more bins" IBIS_FILE_LINE);
     }
     try {
         uint32_t i, n2 = (rhs.nobs+1) / 2;

@@ -484,8 +484,8 @@ void ibis::bitvector::decompress() {
             << "Warning -- bitvector::decompress(nbits=" << nbits
             << ") failed to allocate a temp array of "
             << nbits/MAXBITS << "-word";
-        throw ibis::bad_alloc("bitvector::decompress failed to "
-                              "allocate array to uncompressed bits");
+        throw ibis::bad_alloc("bitvector::decompress failed to allocate "
+                              "array to uncompressed bits" IBIS_FILE_LINE);
     }
 
     array_t<word_t>::iterator it = tmp.begin();
@@ -2093,7 +2093,7 @@ void ibis::bitvector::read(const char * fn) {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- bitvector::read(" << fn << ") found "
             << ierr << " error" << (ierr>1?"s":"") << " in three sanity checks";
-        throw "bitvector::read failed integrity check";
+        throw "bitvector::read failed integrity check" IBIS_FILE_LINE;
     }
 } // ibis::bitvector::read
 
@@ -2108,7 +2108,7 @@ void ibis::bitvector::write(const char * fn) const {
             << "Warning -- bitvector::write failed to open \""
             << fn << "\" to write the bit vector ... "
             << (errno ? strerror(errno) : "no free stdio stream");
-        throw "bitvector::write failed to open file";
+        throw "bitvector::write failed to open file" IBIS_FILE_LINE;
     }
 
     int ierr;
@@ -2129,7 +2129,7 @@ void ibis::bitvector::write(const char * fn) const {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- bitvector::write only wrote " << ierr
             << " out of " << m_vec.size() << " words to " << fn;
-        throw "bitvector::write failed to write all bytes";
+        throw "bitvector::write failed to write all bytes" IBIS_FILE_LINE;
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     active_word tmp(active);
@@ -2196,7 +2196,7 @@ void ibis::bitvector::write(int out) const {
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- bitvector::write only wrote " << ierr << " out of "
             << n << " bytes to open file " << out;
-        throw "bitvector::write failed to write all bytes";
+        throw "bitvector::write failed to write all bytes" IBIS_FILE_LINE;
     }
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
     active_word tmp(active);
@@ -2519,14 +2519,14 @@ void ibis::bitvector::and_c2(const ibis::bitvector& rhs,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::and_c2 expects to exhaust i0 "
                 "but there are " << (m_vec.end() - x.it) << " word(s) left";
-            throw "and_c2 iternal error";
+            throw "and_c2 iternal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::and_c2 expects to exhaust i1 "
                 "but there are " << (rhs.m_vec.end() - y.it) << " word(s) left";
-            throw "and_c2 iternal error";
+            throw "and_c2 iternal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2596,7 +2596,7 @@ void ibis::bitvector::and_c1(const ibis::bitvector& rhs,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::and_c1 expects to exhaust i1 "
                 "but there are " << (rhs.m_vec.end() - i1) << " word(s) left";
-            throw "and_c1 iternal error";
+            throw "and_c1 iternal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2715,7 +2715,7 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::and_d2 expects to exhaust i0 "
                 "but there are " << (m_vec.end() - x.it) << " word(s) left";
-            throw "and_d2 internal error";
+            throw "and_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
@@ -2726,14 +2726,14 @@ void ibis::bitvector::and_d2(const ibis::bitvector& rhs,
                 "sizes " << nb0 << ':' << bytes() << " and "
                 << nb1 << ':' << rhs.bytes() << "expects to exhaust i1 "
                 "but there are " << (rhs.m_vec.end()-y.it) << " word(s) left";
-            throw "and_d2 internal error";
+            throw "and_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (ir != res.m_vec.end()) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::and_d2 expects to exhaust ir "
                 "but there are " << (res.m_vec.end() - ir) << " word(s) left";
-            throw "and_d2 internal error";
+            throw "and_d2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2796,7 +2796,7 @@ void ibis::bitvector::and_d1(const ibis::bitvector& rhs) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::and_d1 expects to exhaust i0 "
                 "but there are " << (m_vec.end() - i0) << " word(s) left";
-            throw "and_d1 internal error";
+            throw "and_d1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -2945,7 +2945,7 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
                 lg() << "res: " << res;
             }
 #else
-            throw "or_c2 internal error";
+            throw "or_c2 internal error" IBIS_FILE_LINE;
 #endif
         }
 
@@ -2961,7 +2961,7 @@ void ibis::bitvector::or_c2(const ibis::bitvector& rhs,
                 lg() << "res: " << res;
             }
 #else
-            throw "or_c2 internal error";
+            throw "or_c2 internal error" IBIS_FILE_LINE;
 #endif
         }
     }
@@ -3034,7 +3034,7 @@ void ibis::bitvector::or_c1(const ibis::bitvector& rhs,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::or_c1 expects to exhaust i1 but "
                 "there are " << (rhs.m_vec.end() - i1) << " word(s) left";
-            throw "or_c1 internal error";
+            throw "or_c1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3147,7 +3147,7 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
                 "there are " << (m_vec.end() - x.it) << " word(s) left\n"
                 << "Operand 1 or or_d2 " << *this << "\nOperand 2 or or_d2 "
                 << rhs << "\nResult of or_d2 " << res;
-            throw "or_d2 internal error";
+            throw "or_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
@@ -3156,7 +3156,7 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
                 "there are " << (rhs.m_vec.end() - y.it) << " word(s) left\n"
                 << "Operand 1 or or_d2 " << *this << "\nOperand 2 or or_d2 "
                 << rhs << "\nResult of or_d2 " << res;
-            throw "or_d2 internal error";
+            throw "or_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (ir != res.m_vec.end()) {
@@ -3165,7 +3165,7 @@ void ibis::bitvector::or_d2(const ibis::bitvector& rhs,
                 "there are " << (res.m_vec.end() - ir) << " word(s) left\n"
                 << "Operand 1 or or_d2 " << *this << "\nOperand 2 or or_d2 "
                 << rhs << "\nResult of or_d2 " << res;
-            throw "or_d2 internal error";
+            throw "or_d2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3232,7 +3232,7 @@ void ibis::bitvector::or_d1(const ibis::bitvector& rhs) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::or_d1 expects to exhaust i0 but "
                 "there are " << (m_vec.end() - i0) << " word(s) left";
-            throw "or_d1 internal error";
+            throw "or_d1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3328,7 +3328,7 @@ void ibis::bitvector::xor_c2(const ibis::bitvector& rhs,
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- bitvector::xor_c2 expects to exhaust i0 but "
             "there are " << (m_vec.end() - x.it) << " word(s) left";
-        throw "xor_c2 interal error";
+        throw "xor_c2 interal error" IBIS_FILE_LINE;
     }
 
     if (y.it != rhs.m_vec.end()) {
@@ -3338,7 +3338,7 @@ void ibis::bitvector::xor_c2(const ibis::bitvector& rhs,
         LOGGER(ibis::gVerbose > 4)
             << "Bitvector 1\n" << *this << "\n Bitvector 2\n"
             << rhs << "\nXOR result so far\n" << res;
-        throw "xor_c2 internal error";
+        throw "xor_c2 internal error" IBIS_FILE_LINE;
     }
 
     // the last thing -- work with the two active_words
@@ -3384,7 +3384,7 @@ void ibis::bitvector::xor_c1(const ibis::bitvector& rhs,
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- bitvector::xor_c1 expects to exhaust i1 but "
             "there are " << (rhs.m_vec.end() - i1) << " word(s) left";
-        throw "xor_c1 iternal error";
+        throw "xor_c1 iternal error" IBIS_FILE_LINE;
     }
 
     // the last thing -- work with the two active_words
@@ -3493,21 +3493,21 @@ void ibis::bitvector::xor_d2(const ibis::bitvector& rhs,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::xor_d2 expects to exhaust i0 but "
                 "there are " << (m_vec.end() - x.it) << " word(s) left";
-            throw "xor_d2 internal error";
+            throw "xor_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::xor_d2 expects to exhaust i1 but "
                 "there are " << (rhs.m_vec.end() - y.it) << " word(s) left";
-            throw "xor_d2 internal error";
+            throw "xor_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (ir != res.m_vec.end()) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::xor_d2 expects to exhaust ir but "
                 "there are " << (res.m_vec.end() - ir) << " word(s) left";
-            throw "xor_d2 internal error";
+            throw "xor_d2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3581,7 +3581,7 @@ void ibis::bitvector::xor_d1(const ibis::bitvector& rhs) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::xor_d1 expects to exhaust i0 but "
                 "there are " << (m_vec.end() - i0) << " word(s) left";
-            throw "xor_d1 internal error";
+            throw "xor_d1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3720,14 +3720,14 @@ void ibis::bitvector::minus_c2(const ibis::bitvector& rhs,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::minus_c2 expects to exhaust i0 but "
                 "there are " << (m_vec.end() - x.it) << " word(s) left";
-            throw "minus_c2 internal error";
+            throw "minus_c2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::minus_c2 expects to exhaust i1 but "
                 "there are " << (rhs.m_vec.end() - y.it) << " word(s) left";
-            throw "minus_c2 internal error";
+            throw "minus_c2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3803,7 +3803,7 @@ void ibis::bitvector::minus_c1(const ibis::bitvector& rhs,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::minus_c1 expects to exhaust i1 but "
                 "there are " << (rhs.m_vec.end() - i1) << " word(s) left";
-            throw "minus_c1 internal error";
+            throw "minus_c1 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -3854,7 +3854,7 @@ void ibis::bitvector::minus_c1x(const ibis::bitvector& rhs,
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- bitvector::minus_c1x expects to exhaust i0 but "
             "there are " << (m_vec.end() - i0) << " word(s) left";
-        throw "minus_c1x internal error";
+        throw "minus_c1x internal error" IBIS_FILE_LINE;
     }
 
     // the last thing -- work with the two active_words
@@ -3968,21 +3968,21 @@ void ibis::bitvector::minus_d2(const ibis::bitvector& rhs,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::minus_d2 expects to exhaust i0 but "
                 "there are " << (m_vec.end() - x.it) << " word(s) left";
-            throw "minus_d2 internal error";
+            throw "minus_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (y.it != rhs.m_vec.end()) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::minus_d2 expects to exhaust i1 but "
                 "there are " << (rhs.m_vec.end() - y.it) << " word(s) left";
-            throw "minus_d2 internal error";
+            throw "minus_d2 internal error" IBIS_FILE_LINE;
         }
 
         if (ir != res.m_vec.end()) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::minus_d2 expects to exhaust ir but "
                 "there are " << (res.m_vec.end() - ir) << " word(s) left";
-            throw "minus_d2 internal error";
+            throw "minus_d2 internal error" IBIS_FILE_LINE;
         }
     }
 
@@ -4044,7 +4044,7 @@ void ibis::bitvector::minus_d1(const ibis::bitvector& rhs) {
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- bitvector::minus_d1 expects to exhaust i0 but "
                 "there are " << (m_vec.end() - i0) << " word(s) left";
-            throw "minus_d1 internal error";
+            throw "minus_d1 internal error" IBIS_FILE_LINE;
         }
     }
 

@@ -63,7 +63,7 @@ int ibis::whereClause::parse(const char* cl) {
                 << "Warning -- whereClause(" << cl
                 << ") failed to parse the string into an expression tree";
 #ifdef FASTBIT_HALT_ON_PARSER_ERROR
-            throw "whereClause failed to parse query conditions";
+            throw "whereClause failed to parse query conditions" IBIS_FILE_LINE;
 #endif
         }
     }

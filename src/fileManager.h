@@ -43,7 +43,7 @@ public:
     void printStatus(std::ostream& out) const;
     /// Close the file, remove the record about it from the file manager.
     void flushFile(const char* name);
-    /// Close all files in the named directory, but not subdirectories.
+    /// Close all files in the named directory, including subdirectories.
     void flushDir(const char* name);
     /// Close all files and remove all records of them.
     void clear();

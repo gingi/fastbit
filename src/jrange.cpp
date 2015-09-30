@@ -46,7 +46,8 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
                 << "Warning -- jRange(" << desc_ << ") could apply "
                 << condr << " on partition " << partr.name()
                 << ", ierr = " << ierr;
-            throw "jRange failed to apply conditions on partr";
+            throw "jRange::ctor failed to apply conditions on partr"
+                IBIS_FILE_LINE;
         }
         ierr = que.evaluate();
         if (ierr < 0) {
@@ -54,7 +55,8 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
                 << "Warning -- jRange(" << desc_
                 << ") could not evaluate " << que.getWhereClause()
                 << " on partition " << partr.name() << ", ierr = " << ierr;
-            throw "jRange failed to evaluate constraints on partr";
+            throw "jRange::ctor failed to evaluate constraints on partr"
+                IBIS_FILE_LINE;
         }
         maskr_.copy(*que.getHitVector());
     }
@@ -69,7 +71,8 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
                 << "Warning -- jRange(" << desc_ << ") could apply "
                 << conds << " on partition " << parts.name()
                 << ", ierr = " << ierr;
-            throw "jRange failed to apply conditions on parts";
+            throw "jRange::ctor failed to apply conditions on parts"
+                IBIS_FILE_LINE;
         }
         ierr = que.evaluate();
         if (ierr < 0) {
@@ -77,7 +80,8 @@ ibis::jRange::jRange(const ibis::part& partr, const ibis::part& parts,
                 << "Warning -- jRange(" << desc_
                 << ") could not evaluate " << que.getWhereClause()
                 << " on partition " << parts.name() << ", ierr = " << ierr;
-            throw "jRange failed to evaluate constraints on parts";
+            throw "jRange::ctor failed to evaluate constraints on parts"
+                IBIS_FILE_LINE;
         }
         masks_.copy(*que.getHitVector());
     }

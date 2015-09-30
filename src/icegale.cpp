@@ -76,7 +76,7 @@ ibis::egale::egale(const ibis::column* c, const char* f,
                         "(=%lu)", static_cast<long unsigned>(nbases),
                         static_cast<long unsigned>(nbits),
                         static_cast<long unsigned>(nobs));
-        throw "egale::egale bases too small";
+        throw "egale::ctor failed because bases are too small" IBIS_FILE_LINE;
     }
     try { // convert from simple equality code to multicomponent code
         convert();
@@ -814,7 +814,8 @@ void ibis::egale::construct(const char* f) {
         else
             ierr = col->getValuesArray(&val);
         if  (ierr < 0)
-            throw "cegale::construct failed to retrieve data values";
+            throw "cegale::construct failed to retrieve data values"
+                IBIS_FILE_LINE;
 
         if (val.size() > 0) {
             if (val.size() > mask.size()) {
@@ -866,7 +867,8 @@ void ibis::egale::construct(const char* f) {
         else
             ierr = col->getValuesArray(&val);
         if  (ierr < 0)
-            throw "cegale::construct failed to retrieve data values";
+            throw "cegale::construct failed to retrieve data values"
+                IBIS_FILE_LINE;
 
         if (val.size() > 0) {
             if (val.size() > mask.size()) {
@@ -918,7 +920,8 @@ void ibis::egale::construct(const char* f) {
         else
             ierr = col->getValuesArray(&val);
         if  (ierr < 0)
-            throw "cegale::construct failed to retrieve data values";
+            throw "cegale::construct failed to retrieve data values"
+                IBIS_FILE_LINE;
 
         if (val.size() > 0) {
             if (val.size() > mask.size()) {
@@ -970,7 +973,8 @@ void ibis::egale::construct(const char* f) {
         else
             ierr = col->getValuesArray(&val);
         if  (ierr < 0)
-            throw "cegale::construct failed to retrieve data values";
+            throw "cegale::construct failed to retrieve data values"
+                IBIS_FILE_LINE;
 
         if (val.size() > 0) {
             if (val.size() > mask.size()) {

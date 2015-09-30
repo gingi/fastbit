@@ -185,7 +185,7 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
         LOGGER(ibis::gVerbose >= 0)
             << "Error -- bundle::readRIDs -- argument dir (" << dir
             << ") too long";
-        throw "bundle::readRIDs -- argument dir too long";
+        throw "bundle::readRIDs -- argument dir too long" IBIS_FILE_LINE;
     }
 
     if (dir[len-1] == FASTBIT_DIRSEP) {
@@ -396,7 +396,7 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
         LOGGER(ibis::gVerbose >= 0)
             << "Error -- bundle1 can not continue with an empty "
             "select clause";
-        throw "bundle1 can not work with empty select clauses";
+        throw "bundle1 can not work with empty select clauses" IBIS_FILE_LINE;
     }
     LOGGER(comps.aggSize() != 1 && ibis::gVerbose > 0)
         << "Warning -- bundle1 will only use the 1st term out of "
@@ -427,7 +427,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
                 LOGGER(ibis::gVerbose >= 0)
                     << "Error -- bundle1::ctor failed to retrieve bundle file "
                     << bdlfile;
-                throw ibis::bad_alloc("failed to retrieve bundle file");
+                throw ibis::bad_alloc("failed to retrieve bundle file"
+                                      IBIS_FILE_LINE);
             }
             // no need to explicitly call beginUse() because array_t sizes will
             // hold a read lock long enough until starts holds another one for
@@ -525,7 +526,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
                         << " but expected " << hits->cnt();
                     delete col;
                     col = 0;
-                    throw ibis::bad_alloc("incorrect number of bundles");
+                    throw ibis::bad_alloc("incorrect number of bundles"
+                                          IBIS_FILE_LINE);
                 }
             }
             sort(dir);
@@ -548,7 +550,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundle1::ctor received an exception, freeing col";
+            << "Error -- bundle1::ctor received an exception, freeing col"
+            IBIS_FILE_LINE;
         delete col;
         throw; // rethrow the exception
     }
@@ -614,14 +617,15 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
                     << hits.cnt();
                 delete col;
                 col = 0;
-                throw ibis::bad_alloc("incorrect number of bundles");
+                throw ibis::bad_alloc("incorrect number of bundles"
+                                      IBIS_FILE_LINE);
             }
         }
         else {
             LOGGER(ibis::gVerbose >= 0)
                 << "Error -- bundle1::ctor name \"" << comps.aggName(0)
                 << "\" is not a column in table " << tbl->name();
-            throw ibis::bad_alloc("not a valid column name");
+            throw ibis::bad_alloc("not a valid column name" IBIS_FILE_LINE);
         }
         sort(dir);
 
@@ -642,7 +646,8 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundle1::ctor received an exception, freeing col";
+            << "Error -- bundle1::ctor received an exception, freeing col"
+            IBIS_FILE_LINE;
         delete col;
         throw; // rethrow the exception
     }
@@ -672,7 +677,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
         LOGGER(ibis::gVerbose >= 0)
             << "Error -- bundle1::ctor failed to locate a valid column "
             "name in " << comps;
-        throw "bundle1::ctor can not find a column name";
+        throw "bundle1::ctor can not find a column name" IBIS_FILE_LINE;
     }
 
     ibis::column* c = 0;
@@ -685,7 +690,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
         LOGGER(ibis::gVerbose >= 0)
             << "Error -- bundle1 constructor failed to find column "
             << comps.aggName(icol) << " in " << tbl.name();
-        throw "bundle1::ctor can find the named column";
+        throw "bundle1::ctor can find the named column" IBIS_FILE_LINE;
     }
 
     try {
@@ -730,7 +735,7 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
             LOGGER(ibis::gVerbose >= 0)
                 << "Error -- bundle1::ctor failed to create an in-memory "
                 "representation for " << *comps;
-            throw "bundle1::ctor failed to create a bundle";
+            throw "bundle1::ctor failed to create a bundle" IBIS_FILE_LINE;
         }
         else if (ibis::gVerbose > 5) {
             ibis::util::logger lg;
@@ -1195,7 +1200,8 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
                 LOGGER(ibis::gVerbose >= 0)
                     << "Error -- bundles::ctor failed to retrieve bundle file "
                     << bdlfile;
-                throw ibis::bad_alloc("failed to retrieve bundle file");
+                throw ibis::bad_alloc("failed to retrieve bundle file"
+                                      IBIS_FILE_LINE);
             }
             // no need to explicitly call beginUse() because array_t sizes
             // will hold a read lock long enough until starts holds another
@@ -1249,7 +1255,8 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
                             << "Error -- bundles::ctor \"" << comps.aggName(i)
                             << "\" is not the name of a column in table "
                             << tbl->name();
-                        throw ibis::bad_alloc("unknown column name");
+                        throw ibis::bad_alloc("unknown column name"
+                                              IBIS_FILE_LINE);
                     }
                 }
                 starts = new
@@ -1319,7 +1326,7 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
                         << "Error -- bundles::ctor \"" << comps.aggName(i)
                         << "\" is not the name of a column in table "
                         << tbl->name();
-                    throw ibis::bad_alloc("unknown column name");
+                    throw ibis::bad_alloc("unknown column name" IBIS_FILE_LINE);
                 }
             }
 
@@ -1398,7 +1405,7 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits,
                     << "Error -- bundles::ctr \"" << comps.aggExpr(i)
                     << "\" is not the name of a column in table "
                     << tbl->name();
-                throw ibis::bad_alloc("unknown column name");
+                throw ibis::bad_alloc("unknown column name" IBIS_FILE_LINE);
             }
         }
         if (rids == 0) {
@@ -1461,7 +1468,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
                     << "Warning -- bundles(" << tbl.name() << ", "
                     << comps << ") can not find a column named "
                     << (cn ? cn : "");
-                throw "bundle1::ctor can not find a column name";
+                throw "bundle1::ctor can not find a column name"
+                    IBIS_FILE_LINE;
             }
 
             LOGGER(ibis::gVerbose > 6)
@@ -2585,11 +2593,12 @@ ibis::query::result::result(ibis::query& q)
     if (st == ibis::query::UNINITIALIZED ||
         st == ibis::query::SET_COMPONENTS) {
         throw ibis::bad_alloc("Can not construct query::result on "
-                              "an incomplete query");
+                              "an incomplete query" IBIS_FILE_LINE);
     }
     if (sel.empty()) {
         throw ibis::bad_alloc("Can not construct query::result on "
-                              "a query with an empty select clause");
+                              "a query with an empty select clause"
+                              IBIS_FILE_LINE);
     }
     if (st == ibis::query::SPECIFIED ||
         st == ibis::query::QUICK_ESTIMATE) {
@@ -2598,7 +2607,7 @@ ibis::query::result::result(ibis::query& q)
             LOGGER(ibis::gVerbose >= 0)
                 << "Error -- query::result constructor failed "
                 "to evaluate query " <<  q.id();
-            throw ibis::bad_alloc("Can not evaluate query");
+            throw ibis::bad_alloc("Can not evaluate query" IBIS_FILE_LINE);
         }
     }
     bdl_ = ibis::bundle::create(q);
@@ -2606,7 +2615,8 @@ ibis::query::result::result(ibis::query& q)
         LOGGER(ibis::gVerbose >= 0)
             << "Error -- query::result constructor failed "
             "to create a bundle object from query " << q.id();
-        throw ibis::bad_alloc("failed to create a result set from query");
+        throw ibis::bad_alloc("failed to create a result set from query"
+                              IBIS_FILE_LINE);
     }
 } // ibis::query::result::result
 

@@ -278,11 +278,11 @@ ibis::part::part(const char* name, bool ro) :
     // initialize the locks
     if (0 != pthread_mutex_init
         (&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-        throw "part failed to initialize the mutex lock";
+        throw "part::ctor failed to initialize the mutex lock" IBIS_FILE_LINE;
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "part failed to initialize the rwlock";
+        throw "part::ctor failed to initialize the rwlock" IBIS_FILE_LINE;
     }
 
     // for the special "in-core" data partition, there is no need to call
@@ -301,11 +301,11 @@ ibis::part::part(const std::vector<const char*> &mtags, bool ro) :
     // initialize the locks
     if (0 != pthread_mutex_init
         (&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-        throw "part failed to initialize the mutex lock";
+        throw "part::ctor failed to initialize the mutex lock" IBIS_FILE_LINE;
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "part failed to initialize the rwlock";
+        throw "part::ctor failed to initialize the rwlock" IBIS_FILE_LINE;
     }
 
     std::string pref;
@@ -323,11 +323,11 @@ ibis::part::part(const ibis::resource::vList &mtags, bool ro) :
     // initialize the locks
     if (0 != pthread_mutex_init
         (&mutex, static_cast<const pthread_mutexattr_t*>(0))) {
-        throw "part failed to initialize the mutex lock";
+        throw "part::ctor failed to initialize the mutex lock" IBIS_FILE_LINE;
     }
 
     if (0 != pthread_rwlock_init(&rwlock, 0)) {
-        throw "part failed to initialize the rwlock";
+        throw "part::ctor failed to initialize the rwlock" IBIS_FILE_LINE;
     }
 
     std::string pref; // new name
@@ -357,11 +357,11 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
     (void) ibis::fileManager::instance(); // initialize the file manager
     // initialize the locks
     if (pthread_mutex_init(&mutex, 0)) {
-        throw "part::ctor failed to initialize the mutex lock";
+        throw "part::ctor failed to initialize the mutex lock" IBIS_FILE_LINE;
     }
 
     if (pthread_rwlock_init(&rwlock, 0)) {
-        throw "part::ctor failed to initialize the rwlock";
+        throw "part::ctor failed to initialize the rwlock" IBIS_FILE_LINE;
     }
 
     if (adir == 0) return;
@@ -381,8 +381,8 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
                     << "Error -- part::part(" << adir << ", "
                     << (const void*)bdir << "): stat.st_mode="
                     << static_cast<int>(tmp.st_mode) << " is not a directory";
-                throw std::invalid_argument("the argument to part::part "
-                                            "was not a directory name");
+                throw std::invalid_argument("the argument to part::ctor was not "
+                                            "a directory name" IBIS_FILE_LINE);
             }
         }
         else {
@@ -396,7 +396,7 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
                     int ierr = ibis::util::makeDir(adir);
                     if (ierr < 0)
                         throw "part::ctor can NOT generate the "
-                            "specified directory";
+                            "specified directory" IBIS_FILE_LINE;
                 }
             }
             else if (errno != 0) {
@@ -404,8 +404,8 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
                     << "Warning -- part::part(" << (void*)adir << ", "
                     << (void*)bdir << ") stat(" << adir << ") failed ... "
                     << strerror(errno);
-                throw std::invalid_argument("the argument to part::part "
-                                            "was not a directory name");
+                throw std::invalid_argument("the argument to part::part was not "
+                                            "a directory name" IBIS_FILE_LINE);
             }
         }
     }
@@ -537,7 +537,7 @@ ibis::part::part(const char* adir, const char* bdir, bool ro) :
                                backupDir);
         ++j;
     }
-    if (j) throw "direcotry names too long";
+    if (j) throw "part::ctor -- direcotry names too long" IBIS_FILE_LINE;
 
     if (backupDir != 0) {
         ibis::util::removeTail(backupDir, FASTBIT_DIRSEP);
@@ -894,7 +894,8 @@ void ibis::part::init(const char* iname) {
     if (activeDir == 0) {
         if (readonly) {
             throw std::invalid_argument
-                ("part::init failed to determine a data directory");
+                ("part::init failed to determine a data directory"
+                 IBIS_FILE_LINE);
         }
         else if (FASTBIT_DIRSEP == '/') {
             activeDir = ibis::util::strnewdup(".ibis/dir1");
@@ -912,7 +913,8 @@ void ibis::part::init(const char* iname) {
                 LOGGER(ibis::gVerbose >= 0)
                     << "Error -- part::init(" << (iname!=0 ? iname : "")
                     << ") failed to create directory " << activeDir;
-                throw "Can NOT generate the necessary data directory";
+                throw "part::init can NOT generate the necessary data directory"
+                    IBIS_FILE_LINE;
             }
         }
     }
@@ -1107,7 +1109,8 @@ void ibis::part::init(const char* iname) {
             << "Warning -- directory name \"" << backupDir << "\" is too long";
         ++j;
     }
-    if (j) throw "direcotry names too long";
+    if (j) throw "part::init failed because direcotry names are too long"
+               IBIS_FILE_LINE;
 
     myCleaner = new ibis::part::cleaner(this);
     ibis::fileManager::instance().addCleaner(myCleaner);

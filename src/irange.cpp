@@ -25,7 +25,8 @@ ibis::range::range(const ibis::column* c, const char* f)
     if (c == 0) return; // nothing else can be done
     if (nobs <= 2) {
         clear();
-        throw "range -- binning produced two or less bins, need more";
+        throw "range::ctor needs more bins but only has two or fewer bins"
+            IBIS_FILE_LINE;
     }
 
     try {

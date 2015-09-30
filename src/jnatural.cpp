@@ -62,8 +62,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
                 << "Warning -- jNatural(" << desc_
                 << ") could not assign " << *condr << " on partition "
                 << R_.name() << ", ierr = " << ierr;
-            throw std::invalid_argument("jNatural failed to parse "
-                                        "constraints on R_");
+            throw std::invalid_argument("jNatural::ctor failed to parse "
+                                        "constraints on R_" IBIS_FILE_LINE);
         }
         ierr = que.evaluate();
         if (ierr < 0) {
@@ -71,8 +71,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
                 << "Warning -- jNatural(" << desc_
                 << ") could not evaluate " << que.getWhereClause()
                 << " on partition " << R_.name() << ", ierr = " << ierr;
-            throw std::invalid_argument("jNatural failed to "
-                                        "evaluate constraints on R_");
+            throw std::invalid_argument("jNatural::ctor failed to evaluate "
+                                        "constraints on R_" IBIS_FILE_LINE);
         }
         maskR_.copy(*que.getHitVector());
     }
@@ -87,8 +87,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
                 << "Warning -- jNatural(" << desc_
                 << ") could not parse " << conds << " on partition "
                 << S_.name() << ", ierr = " << ierr;
-            throw std::invalid_argument("jNatural failed to "
-                                        "parse constraints on S_");
+            throw std::invalid_argument("jNatural::ctor failed to parse "
+                                        "constraints on S_" IBIS_FILE_LINE);
         }
         ierr = que.evaluate();
         if (ierr < 0) {
@@ -96,8 +96,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
                 << "Warning -- jNatural(" << desc_
                 << ") could not evaluate " << que.getWhereClause()
                 << " on partition " << S_.name() << ", ierr = " << ierr;
-            throw std::invalid_argument("jNatural failed to evaluate "
-                                        "constraints on S_");
+            throw std::invalid_argument("jNatural::ctor failed to evaluate "
+                                        "constraints on S_" IBIS_FILE_LINE);
         }
         maskS_.copy(*que.getHitVector());
     }
@@ -128,7 +128,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
     if (colname == 0 || *colname == 0) {
         LOGGER(ibis::gVerbose > 1)
             << "Warning -- jNatural must have a valid string for colname";
-        throw "jNatural must have a valid colname as join columns";
+        throw "jNatural::ctor must have a valid colname as join columns"
+            IBIS_FILE_LINE;
     }
 
     if (colR_.type() != colS_.type()) {
@@ -140,7 +141,7 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
             << ibis::TYPESTRING[colS_.type()] << ")";
 
         throw std::invalid_argument("jNatural join columns missing "
-                                    "or having different types");
+                                    "or having different types" IBIS_FILE_LINE);
     }
     desc_ = "From ";
     desc_ += R_.name();
@@ -162,7 +163,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
                 << "Warning -- jNatural(" << desc_
                 << ") could not parse " << condr << " on partition "
                 << R_.name() << ", ierr = " << ierr;
-            throw "jNatural failed to parse constraints on R_";
+            throw "jNatural::ctor failed to parse constraints on R_"
+                IBIS_FILE_LINE;
         }
         ierr = que.evaluate();
         if (ierr < 0) {
@@ -170,7 +172,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
                 << "Warning -- jNatural(" << desc_
                 << ") could not evaluate " << que.getWhereClause()
                 << " on partition " << R_.name() << ", ierr = " << ierr;
-            throw "jNatural failed to evaluate constraints on R_";
+            throw "jNatural::ctor failed to evaluate constraints on R_"
+                IBIS_FILE_LINE;
         }
         maskR_.copy(*que.getHitVector());
     }
@@ -185,7 +188,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
                 << "Warning -- jNatural(" << desc_
                 << ") could not parse " << conds << " on partition "
                 << S_.name() << ", ierr = " << ierr;
-            throw "jNatural failed to parse constraints on S_";
+            throw "jNatural::ctor failed to parse constraints on S_"
+                IBIS_FILE_LINE;
         }
         ierr = que.evaluate();
         if (ierr < 0) {
@@ -193,7 +197,8 @@ ibis::jNatural::jNatural(const ibis::part* partr, const ibis::part* parts,
                 << "Warning -- jNatural(" << desc_
                 << ") could not evaluate " << que.getWhereClause()
                 << " on partition " << S_.name() << ", ierr = " << ierr;
-            throw "jNatural failed to evaluate constraints on S_";
+            throw "jNatural::ctor failed to evaluate constraints on S_"
+                IBIS_FILE_LINE;
         }
         maskS_.copy(*que.getHitVector());
     }

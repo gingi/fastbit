@@ -24,7 +24,8 @@ ibis::ridHandler::ridHandler(const char *dbName, const char *pref) {
         _prefix = ibis::util::strnewdup("ibis");
     }
     if (0 != pthread_mutex_init(&mutex, 0))
-        throw "unable to initialize a mutex lock for ridHandler";
+        throw "ridHandler::ctor failed to initialize a mutex lock"
+            IBIS_FILE_LINE;
 }
 
 ibis::ridHandler::~ridHandler() {
