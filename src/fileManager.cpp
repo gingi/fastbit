@@ -255,9 +255,14 @@ void ibis::fileManager::flushFile(const char* name) {
     }
 } // ibis::fileManager::flushFile
 
-/// @note This function expects the name to contain no leading or trailing
-/// blank spaces.
-/// 
+/// @note The incoming argument must be a whole directory name (either
+/// absolute path or relative path, but the same path must have been used
+/// to construct the data partition to start with), without leading or
+/// trailing blanks in the name.
+///
+/// @example If there is a directory named "a" and another named "a1", when
+/// the argument to this function is "a", it should remove every file in
+/// "a", but leave those in "a1" alone.
 void ibis::fileManager::flushDir(const char* name) {
     if (name == 0 || *name == 0) return;
     ibis::util::mutexLock lck(&mutex, name);
