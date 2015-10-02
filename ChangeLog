@@ -1,3 +1,17 @@
+2015-10-01 John Wu <John dot Wu at ACM dot org>
+	* src/column.cpp: in function column::purgeIndexFile comment out
+	the code that delete .dic and .int files, this will allow the
+	dictionaries supplied by users to be kept and will address the
+	problem reported by Jon Strabala on 9/10
+	* src/category.cpp: add code to adjust mask and write the new mask
+	to the corresponding mask file in text::startPositions, to add the
+	problem reported by masks with text values by Jon Strabala on 9/1
+	* part.h, part.cpp, bord.cpp, tafel.cpp: rename part::writeString
+	to be part::writeStrings, change its 1st argument to be a
+	filename, use fwrite to write the string to take advantage of the
+	system buffering.  This should address the performance problem
+	observed by Jon Strabala (reported on 8/22)
+
 2015-09-29 John Wu <John dot Wu at ACM dot org>
 	* src/*.h, src/*.cpp: rename stringList to stringArray, typeList
 	to typeArray, bufferList to bufferArray, to make it clear these

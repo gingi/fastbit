@@ -62,7 +62,7 @@ ibis::range::range(const ibis::column* c, const char* f)
     }
     catch (...) {
         LOGGER(ibis::gVerbose > 1)
-            << "Warning - ibis::column[" << col->name()
+            << "Warning -- column[" << col->name()
             << "]::range::ctor encountered an exception, cleaning up ...";
         clear();
         throw;
@@ -122,7 +122,7 @@ ibis::range::range(const ibis::bin& rhs) : max1(-DBL_MAX), min1(DBL_MAX) {
     }
     catch (...) {
         LOGGER(ibis::gVerbose > 1)
-            << "Warning - ibis::column[" << col->name()
+            << "Warning -- column[" << col->name()
             << "]::range::ctor encountered an exception, cleaning up ...";
         clear();
         throw;

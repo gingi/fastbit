@@ -679,12 +679,12 @@ public:
 		    const array_t<T>& vals, const T& fill,
 		    ibis::bitvector& totmask,
 		    const ibis::bitvector& newmask);
-    static int writeString(int fdes, ibis::bitvector::word_t nold,
-			   ibis::bitvector::word_t nnew,
-			   ibis::bitvector::word_t voffset,
-			   const std::vector<std::string>& vals,
-			   ibis::bitvector& totmask,
-			   const ibis::bitvector& newmask);
+    static int writeStrings(const char *fnm, ibis::bitvector::word_t nold,
+                            ibis::bitvector::word_t nnew,
+                            ibis::bitvector::word_t voffset,
+                            const std::vector<std::string>& vals,
+                            ibis::bitvector& totmask,
+                            const ibis::bitvector& newmask);
     static int writeRaw(int bdes, int sdes, ibis::bitvector::word_t nold,
 			ibis::bitvector::word_t nnew,
                         ibis::bitvector::word_t voffset,

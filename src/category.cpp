@@ -241,8 +241,7 @@ ibis::category::selectStrings(const ibis::bitvector& mask) const {
 /// A function to read the dictionary and load the index.
 ///
 /// This is a const function because it only manipulates mutable data
-/// members, which is necessary to make it callable from const member
-/// functions.
+/// members.  It is callable from const member functions.
 void ibis::category::prepareMembers() const {
     mutexLock lock(this, "category::prepareMembers");
     if (dic.size() == 0) {
@@ -325,7 +324,8 @@ void ibis::category::readDictionary(const char *dir) const {
 /// @note It also writes the index to the same directory.
 ibis::direkte* ibis::category::fillIndex(const char *dir) const {
     std::string dirstr;
-    if (dir != 0 && *dir != 0) { // the name may be a filename
+    if (dir != 0 && *dir != 0) {
+        // the name may be a filename instead of directory name
         unsigned ldir = std::strlen(dir);
         std::string idx = m_name;
         idx += ".idx";
@@ -1729,6 +1729,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
         << sizeof(int64_t)*(nnew+nold+1) << " bytes)";
 
     if (isActiveData && nold + nnew > thePart->nRows()) {
+        // too many strings in the base data file, truncate the file
         fsp = fopen(spfile.c_str(), "rb");
         ierr = fseek(fsp, thePart->nRows()*sizeof(int64_t), SEEK_SET);
         ierr = fread(&pos, sizeof(int64_t), 1, fsp);
@@ -1739,6 +1740,20 @@ void ibis::text::startPositions(const char *dir, char *buf,
             << "Warning -- " << evt << " truncated files " << dfile << " and "
             << spfile << " to contain only " << thePart->nRows() << " record"
             << (thePart->nRows() > 1 ? "s" : "");
+    }
+
+    ibis::bitvector msk;
+    if (isActiveData)
+        msk.copy(mask_);
+    msk.adjustSize(nold+nnew, thePart->nRows());
+    if (msk.cnt() < msk.size()) {
+        spfile.erase(spfile.size()-2);
+        spfile += "msk";
+        (void) msk.write(spfile.c_str());
+    }
+    if (isActiveData) {
+        // we have discovered something unexpected, need to modify the mask
+        const_cast<ibis::bitvector&>(mask_).swap(msk);
     }
 } // ibis::text::startPositions
 
@@ -1775,6 +1790,9 @@ long ibis::text::append(const char* dt, const char* df,
         startPositions(dt, buf, nbuf);
 
     // step 2: append the content of file in df to that in dt.
+    std::string evt = "text[";
+    evt += fullname();
+    evt += "]::append";
     std::string dest = dt;
     std::string src = df;
     src += FASTBIT_DIRSEP;
@@ -1785,8 +1803,7 @@ long ibis::text::append(const char* dt, const char* df,
     int fsrc = UnixOpen(src.c_str(), OPEN_READONLY);
     if (fsrc < 0) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
-            << "." << name() << "]::append failed to open file \"" << src
+            << "Warning -- " << evt << " failed to open file \"" << src
             <<"\" for reading";
         return -1;
     }
@@ -1797,8 +1814,7 @@ long ibis::text::append(const char* dt, const char* df,
     if (fdest < 0) {
         UnixClose(fsrc);
         LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
-            << "." << name() << "]::append failed to open file \"" << dest
+            << "Warning -- " << evt << " failed to open file \"" << dest
             <<"\" for appending";
         return -2;
     }
@@ -1810,8 +1826,7 @@ long ibis::text::append(const char* dt, const char* df,
         ret = UnixWrite(fdest, buf, ierr);
         if (ret < ierr) {
             LOGGER(ibis::gVerbose >= 0)
-                << "Warning -- text[" << (thePart != 0 ? thePart->name() : "")
-                << "." << name() << "]::append failed to write " << ierr
+                << "Warning -- " << evt << " failed to write " << ierr
                 << " bytes to file \"" << dest << "\", only wrote " << ret;
             ret = -3;
             break;
@@ -1838,6 +1853,63 @@ long ibis::text::append(const char* dt, const char* df,
     // step 3: update the starting positions after copying the values
     startPositions(dt, buf, nbuf);
     ret = nnew;
+
+    // step 4: deals with the masks
+    std::string filename;
+    filename = fsrc;
+    filename += ".msk";
+    ibis::bitvector mapp;
+    try {mapp.read(filename.c_str());} catch (...) {/* ok to continue */}
+    mapp.adjustSize(nnew, nnew);
+    LOGGER(ibis::gVerbose > 7)
+        << evt << " mask file \"" << filename << "\" contains "
+        << mapp.cnt() << " set bits out of " << mapp.size()
+        << " total bits";
+
+    filename = dest;
+    filename += ".msk";
+    ibis::bitvector mtot;
+    try {mtot.read(filename.c_str());} catch (...) {/* ok to continue */}
+    mtot.adjustSize(nold, nold);
+    LOGGER(ibis::gVerbose > 7)
+        << evt << " mask file \"" << filename << "\" contains " << mtot.cnt()
+        << " set bits out of " << mtot.size() << " total bits before append";
+
+    mtot += mapp; // append the new ones at the end
+    if (mtot.size() != nold+nnew) {
+        if (ibis::gVerbose > 0)
+            logWarning("append", "combined mask (%lu-bits) is expected to "
+                       "have %lu bits, but it is not.  Will force it to "
+                       "the expected size",
+                       static_cast<long unsigned>(mtot.size()),
+                       static_cast<long unsigned>(nold+nnew));
+        mtot.adjustSize(nold+nnew, nold+nnew);
+    }
+    if (mtot.cnt() != mtot.size()) {
+        mtot.write(filename.c_str());
+        if (ibis::gVerbose > 6) {
+            logMessage("append", "mask file \"%s\" indicates %lu valid "
+                       "records out of %lu", filename.c_str(),
+                       static_cast<long unsigned>(mtot.cnt()),
+                       static_cast<long unsigned>(mtot.size()));
+#if DEBUG+0 > 0 || _DEBUG+0 > 0
+            LOGGER(ibis::gVerbose > 0) << mtot;
+#endif
+        }
+    }
+    else {
+        remove(filename.c_str()); // no need to have the file
+        if (ibis::gVerbose > 6)
+            logMessage("append", "mask file \"%s\" removed, all "
+                       "%lu records are valid", filename.c_str(),
+                       static_cast<long unsigned>(mtot.size()));
+    }
+    if (thePart == 0 || thePart->currentDataDir() == 0)
+        return ret;
+    if (std::strcmp(dt, thePart->currentDataDir()) == 0) {
+        // update the mask stored internally
+        mask_.swap(mtot);
+    }
     return ret;
 } // ibis::text::append
 

@@ -2892,8 +2892,8 @@ int ibis::bord::backup(const char* dir, const char* tname,
             std::unique_ptr< std::vector<std::string> >
                 values(col.selectStrings(msk0));
             if (values.get() != 0)
-                ierr = ibis::part::writeString
-                    (fdes, nold, nEvents, 0, *values, msk1, msk0);
+                ierr = ibis::part::writeStrings
+                    (cnm.c_str(), nold, nEvents, 0, *values, msk1, msk0);
             else
                 ierr =-4;
             break;}

@@ -2315,14 +2315,14 @@ int ibis::tafel::writeData(const char* dir, const char* tname,
         case ibis::TEXT:
         case ibis::CATEGORY:
             if (col.defval != 0) {
-                ierr = ibis::part::writeString
-                    (fdes, nold, nnew, voffset,
+                ierr = ibis::part::writeStrings
+                    (cnm.c_str(), nold, nnew, voffset,
                      *static_cast<const std::vector<std::string>*>
                      (col.values), msk, col.mask);
             }
             else {
-                ierr = ibis::part::writeString
-                    (fdes, nold, nnew, voffset,
+                ierr = ibis::part::writeStrings
+                    (cnm.c_str(), nold, nnew, voffset,
                      *static_cast<const std::vector<std::string>*>
                      (col.values), msk, col.mask);
             }

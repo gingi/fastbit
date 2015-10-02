@@ -163,7 +163,7 @@ void tester::load(const char *datadir) {
 	}
 
 	LOGGER(select->nRows() != table->nRows() && ibis::gVerbose >= 0)
-	    << "expected to select " << table->nRows() << " row"
+	    << "Warning -- expected to select " << table->nRows() << " row"
 	    << (table->nRows()>1?"s":"") << ", but got " << select->nRows();
     }
     catch (...) { // generate hard-coded data records
@@ -234,7 +234,7 @@ int main(int argc, char** argv) {
 	printf("\nUsage:\n\t%s <datadir> [where_1 [where_2...]]\n\n", *argv);
 	return 0;
     }
-
+    //ibis::gVerbose = 5;
     char *datadir = argv[1];
     tester test0r;
     test0r.load(datadir);

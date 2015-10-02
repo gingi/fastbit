@@ -8860,7 +8860,7 @@ void ibis::index::estimate(const ibis::qDiscreteRange& expr,
                            ibis::bitvector& lower,
                            ibis::bitvector& upper) const {
     LOGGER(ibis::gVerbose > 1)
-        << "Note -- using a dummy version of ibis::index::estimate to "
+        << "Note -- using a dummy version of index::estimate to "
         "evaluate a qDiscreteRange on column " << expr.colName();
     if (col && col->partition()) {
         lower.set(0, col->partition()->nRows());
@@ -8870,7 +8870,7 @@ void ibis::index::estimate(const ibis::qDiscreteRange& expr,
 
 uint32_t ibis::index::estimate(const ibis::qDiscreteRange& expr) const {
     LOGGER(ibis::gVerbose > 1)
-        << " Note -- using a dummy version of ibis::index::estimate to "
+        << " Note -- using a dummy version of index::estimate to "
         "evaluate a qDiscreteRange on column " << expr.colName();
     return (col && col->partition() ? col->partition()->nRows() : 0U);
 } // ibis::index::estimate
@@ -8878,7 +8878,7 @@ uint32_t ibis::index::estimate(const ibis::qDiscreteRange& expr) const {
 float ibis::index::undecidable(const ibis::qDiscreteRange& expr,
                                ibis::bitvector& iffy) const {
     LOGGER(ibis::gVerbose > 2)
-        << "Note -- using a dummy version of ibis::index::undecidable to "
+        << "Note -- using a dummy version of index::undecidable to "
         "evaluate a qDiscreteRange on column " << expr.colName();
     if (col && col->partition())
         iffy.set(1, col->partition()->nRows());

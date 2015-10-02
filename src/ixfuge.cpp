@@ -1233,7 +1233,7 @@ void ibis::fuge::activateCoarse() const {
     else if (coffset64.size() > nobs && coffset64.back() > coffset64.front()) {
         if (str != 0) { // using a ibis::fileManager::storage as back store
             LOGGER(ibis::gVerbose > 8)
-                << mesg << " retrieving data from ibis::fileManager::storage(0x"
+                << mesg << " retrieving data from fileManager::storage(0x"
                 << str << ")";
 
             for (uint32_t i = 0; i < nobs; ++i) {
@@ -1316,7 +1316,7 @@ void ibis::fuge::activateCoarse() const {
     }
     else if (str != 0) { // using a ibis::fileManager::storage as back store
         LOGGER(ibis::gVerbose > 8)
-            << mesg << " retrieving data from ibis::fileManager::storage(0x"
+            << mesg << " retrieving data from fileManager::storage(0x"
             << str << ")";
 
         for (uint32_t i = 0; i < nobs; ++i) {
@@ -1559,7 +1559,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
         if (str != 0) { // using an ibis::fileManager::storage as back store
             LOGGER(ibis::gVerbose > 8)
                 << mesg << '(' << i << ", " << j
-                << ") retrieving data from ibis::fileManager::storage(0x"
+                << ") retrieving data from fileManager::storage(0x"
                 << str << ')';
 
             while (i < j) {
@@ -1641,7 +1641,7 @@ void ibis::fuge::activateCoarse(uint32_t i, uint32_t j) const {
     else if (str != 0) { // using an ibis::fileManager::storage as back store
         LOGGER(ibis::gVerbose > 8)
             << mesg << '(' << i << ", " << j
-            << ") retrieving data from ibis::fileManager::storage(0x"
+            << ") retrieving data from fileManager::storage(0x"
             << str << ")";
 
         while (i < j) {

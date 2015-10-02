@@ -4333,7 +4333,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
                 if (tmp != 0) {
                     if (tmp->cnt() != counts[i]) {
                         LOGGER(ibis::gVerbose >= 0)
-                            << "Warning -- function ibis::bitvector::count "
+                            << "Warning -- function bitvector::count "
                             "did not produce correct answer";
                         (void) bv.count(*bins2[i]);
                     }
@@ -4378,7 +4378,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
                     if (tmp != 0) {
                         if (tmp->cnt() != counts[jc+i]) {
                             LOGGER(ibis::gVerbose >= 0)
-                                << "Warning -- function ibis::bitvector::count "
+                                << "Warning -- function bitvector::count "
                                 "did not produce correct answer";
                             (void) bv.count(*bins2[i]);
                         }
@@ -4421,7 +4421,7 @@ long ibis::part::get2DDistributionI(const ibis::column &col1,
                 if (tmp != 0) {
                     if (tmp->cnt() != counts[jc+i]) {
                         LOGGER(ibis::gVerbose >= 0)
-                            << "Warning -- function ibis::bitvector::count "
+                            << "Warning -- function bitvector::count "
                             "did not produce correct answer, entering it for "
                             "debugging purpose ...";
                         (void) bv.count(*bins2[i]);

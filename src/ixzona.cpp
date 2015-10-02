@@ -212,7 +212,7 @@ void ibis::zona::activateCoarse() const {
     }
     else if (str) { // using a ibis::fileManager::storage as back store
         LOGGER(ibis::gVerbose > 8)
-            << evt << " retrieving data from ibis::fileManager::storage(0x"
+            << evt << " retrieving data from fileManager::storage(0x"
             << str << ")";
 
         if (coffset64.size() > nobs) {
@@ -354,7 +354,7 @@ void ibis::zona::activateCoarse(uint32_t i) const {
     if (str) { // using a ibis::fileManager::storage as back store
         LOGGER(ibis::gVerbose > 8)
             << evt << "(" << i
-            << ") retrieving data from ibis::fileManager::storage(0x"
+            << ") retrieving data from fileManager::storage(0x"
             << str << ")";
 
         if (coffset64.size() > cbits.size()) {
@@ -447,7 +447,7 @@ void ibis::zona::activateCoarse(uint32_t i, uint32_t j) const {
     else if (str) { // using an ibis::fileManager::storage as back store
         LOGGER(ibis::gVerbose > 8)
             << evt << "(" << i << ", " << j
-            << ") retrieving data from ibis::fileManager::storage(0x"
+            << ") retrieving data from fileManager::storage(0x"
             << str << ")";
 
         if (coffset64.size() > cbits.size()) {

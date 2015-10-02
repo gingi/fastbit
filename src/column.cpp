@@ -5978,12 +5978,18 @@ void ibis::column::purgeIndexFile(const char *dir) const {
         remove(fnm.c_str());
         fnm.erase(len);
     }
+#ifdef IBIS_PURGE_CAT_INDEX
     else if (m_type == ibis::CATEGORY) {
         fnm.erase(fnm.size() - 3);
         fnm += "dic";
         ibis::fileManager::instance().flushFile(fnm.c_str());
         remove(fnm.c_str());
+        fnm.erase(fnm.size() - 3);
+        fnm += "int";
+        ibis::fileManager::instance().flushFile(fnm.c_str());
+        remove(fnm.c_str());
     }
+#endif
 } // ibis::column::purgeIndexFile
 
 // expand range condition so that the boundaris are on the bin boundaries

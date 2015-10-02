@@ -1128,7 +1128,7 @@ int ibis::query::evaluate(const bool evalSelect) {
                 }
 
                 LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** ibis::query[" << myID << "]::evaluate("
+                    << "Warning -- query[" << myID << "]::evaluate("
                     << (conds.getString() ? conds.getString() :
                         conds.getExpr() ? "<long expression>" : "<RID query>")
                     << ") failed -- " << e.what();
@@ -1141,7 +1141,7 @@ int ibis::query::evaluate(const bool evalSelect) {
                 }
 
                 LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** ibis::query[" << myID << "]::evaluate("
+                    << "Warning -- query[" << myID << "]::evaluate("
                     << (conds.getString() ? conds.getString() :
                         conds.getExpr() ? "<long expression>" : "<RID query>")
                     << ") failed -- " << e;
@@ -1153,7 +1153,7 @@ int ibis::query::evaluate(const bool evalSelect) {
                     dslock = 0;
                 }
                 LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** ibis::query[" << myID << "]::evaluate("
+                    << "Warning -- query[" << myID << "]::evaluate("
                     << (conds.getString() ? conds.getString() :
                         conds.getExpr() ? "<long expression>" : "<RID query>")
                     << ") failed due to a unexpected exception";

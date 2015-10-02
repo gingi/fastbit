@@ -794,7 +794,7 @@ void ibis::bin::binning(const char* f, const std::vector<double>& bd) {
             << "Warning -- failed to bin column " << col->name()
             << " (type " << (int)(col->type()) << ", "
             << ibis::TYPESTRING[(int)(col->type())] << ')';
-        throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning"
+        throw ibis::bad_alloc("Unexpected data type for bin::binning"
                               IBIS_FILE_LINE);
     }
 } // ibis::bin::binning (specified bin boundaries)
@@ -849,7 +849,7 @@ void ibis::bin::binning(const char* f, const array_t<double>& bd) {
             << "Warning -- failed to bin column " << col->name()
             << " (type " << (int)(col->type()) << ", "
             << ibis::TYPESTRING[(int)(col->type())] << ')';
-        throw ibis::bad_alloc("Unexpected data type for ibis::bin::binning"
+        throw ibis::bad_alloc("Unexpected data type for bin::binning"
                               IBIS_FILE_LINE);
     }
 } // ibis::bin::binning (specified bin boundaries)
@@ -2761,7 +2761,7 @@ void ibis::bin::construct(const char* df) {
                 << "Warning -- failed to bin column " << col->name()
                 << " (type " << (int)(col->type()) << ", "
                 << ibis::TYPESTRING[(int)(col->type())] << ')';
-            throw "Unexpected data type for ibis::bin" IBIS_FILE_LINE;
+            throw "Unexpected data type for bin" IBIS_FILE_LINE;
         }
 #endif
         if (reorder && ! fname.empty())
@@ -2807,7 +2807,7 @@ void ibis::bin::construct(const char* df) {
                     << "Warning -- failed to bin column " << col->name()
                     << " (type " << (int)(col->type()) << ", "
                     << ibis::TYPESTRING[(int)(col->type())] << ')';
-                throw "Unexpected data type for ibis::bin" IBIS_FILE_LINE;
+                throw "Unexpected data type for bin" IBIS_FILE_LINE;
             }
         }
         else {
@@ -2891,7 +2891,7 @@ void ibis::bin::construct(const char* df) {
                 << "Warning -- failed to bin column " << col->name()
                 << " (type " << (int)(col->type()) << ", "
                 << ibis::TYPESTRING[(int)(col->type())] << ')';
-            throw "Unexpected data type for ibis::bin" IBIS_FILE_LINE;
+            throw "Unexpected data type for bin" IBIS_FILE_LINE;
         }
     }
 

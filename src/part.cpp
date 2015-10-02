@@ -1726,7 +1726,7 @@ void ibis::part::writeMetaData(const uint32_t nrows, const columnList &plist,
                             FASTBIT_DIRSEP);
 #else
     int ierr = sprintf(filename, "%s%c-part.txt", dir, FASTBIT_DIRSEP);
-#endif    
+#endif
     if (ierr < 10 || ierr > nfn) {
         LOGGER(ibis::gVerbose >= 0)
             << "Warning -- part::writeMetaData failed to generate the name "
@@ -2750,7 +2750,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -2759,7 +2759,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -2768,7 +2768,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -2793,7 +2793,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -2802,7 +2802,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -2811,7 +2811,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -2836,7 +2836,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -2845,7 +2845,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -2854,7 +2854,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -2879,7 +2879,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -2888,7 +2888,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -2897,7 +2897,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -2922,7 +2922,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectInts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -2931,7 +2931,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectInts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -2940,7 +2940,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectInts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -2965,7 +2965,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -2974,7 +2974,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -2983,7 +2983,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -3008,7 +3008,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -3017,7 +3017,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -3026,7 +3026,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -3051,7 +3051,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -3060,7 +3060,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -3069,7 +3069,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
-            << mask.cnt() << " out of " << mask.size() 
+            << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -3094,7 +3094,7 @@ ibis::array_t<float>* ibis::part::selectFloats
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectFloats(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -3103,7 +3103,7 @@ ibis::array_t<float>* ibis::part::selectFloats
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectFloats(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -3112,7 +3112,7 @@ ibis::array_t<float>* ibis::part::selectFloats
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectFloats(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -3137,7 +3137,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectDoubles(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -3146,7 +3146,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectDoubles(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -3155,7 +3155,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectDoubles(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -3180,7 +3180,7 @@ std::vector<std::string>* ibis::part::selectStrings
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectStrings(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
         delete res;
         res = 0;
@@ -3189,7 +3189,7 @@ std::vector<std::string>* ibis::part::selectStrings
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectStrings(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
         delete res;
         res = 0;
@@ -3198,7 +3198,7 @@ std::vector<std::string>* ibis::part::selectStrings
         LOGGER(ibis::gVerbose > 0)
             << "Warning -- part[" << (m_name ? m_name : "")
             << "]::selectStrings(" << (pname ? pname : "")
-            << ") with mask(" << mask.cnt() << " out of " << mask.size() 
+            << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
         delete res;
         res = 0;
@@ -3738,7 +3738,7 @@ long ibis::part::estimateRange(const ibis::qDiscreteRange &cmp,
         }
         else {
             LOGGER(ibis::gVerbose > 2)
-                << "Warning -- part["<< name() 
+                << "Warning -- part["<< name()
                 << "]::estimateRange failed to find a column named "
                 << cmp.colName();
             high.set(0, nEvents);
@@ -9872,7 +9872,7 @@ long ibis::part::doCompare(const char* file,
                         j = 0;
                         LOGGER(ibis::gVerbose > 0)
                             << "Warning -- part::doCompare expected to read "
-                            << diff << " values from \"" << file 
+                            << diff << " values from \"" << file
                             << "\" but got only " << ierr;
                     }
                     for (i = 0; i < j; ++i) {
@@ -19142,43 +19142,67 @@ int ibis::part::writeColumn(int fdes,
 /// therefore can not contain null characters in them.
 ///
 /// Return the number of strings written to the open file or an error code.
-int ibis::part::writeString(int fdes,
-                            ibis::bitvector::word_t nold,
-                            ibis::bitvector::word_t nnew,
-                            ibis::bitvector::word_t voffset,
-                            const std::vector<std::string>& vals,
-                            ibis::bitvector& totmask,
-                            const ibis::bitvector& newmask) {
-    off_t pos = UnixSeek(fdes, 0, SEEK_END);
+int ibis::part::writeStrings(const char *fnm,
+                             ibis::bitvector::word_t nold,
+                             ibis::bitvector::word_t nnew,
+                             ibis::bitvector::word_t voffset,
+                             const std::vector<std::string>& vals,
+                             ibis::bitvector& totmask,
+                             const ibis::bitvector& newmask) {
+    std::string evt = "part::writeStrings";
+    if (ibis::gVerbose > 0) {
+        evt += "(";
+        evt += fnm;
+        evt += ", ";
+        if (ibis::gVerbose > 2) {
+            std::ostringstream oss;
+            oss << nold << ", " << nnew;
+            evt += oss.str();
+        }
+        evt += "...)";
+    }
+    FILE *fptr = fopen(fnm, "ab");
+    if (fptr == 0) {
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- " << evt << " failed to open the named file: "
+            << (errno ? strerror(errno) : "no free stdio stream");
+        return -1;
+    }
+    off_t pos = ftell(fptr); // pos == end of file
     if (pos < 0) {
         LOGGER(ibis::gVerbose > 0)
-            << "Warning -- part::writeString(" << fdes << ", " << nold
-            << ", " << nnew << " ...) failed to seek to the end of the file";
+            << "Warning -- " << evt << " failed to seek to the end of the file";
         return -3; // failed to find the EOF position
     }
 
-    pos = 0;
+    size_t cnt = 0;
+    ibis::bitvector::word_t nnew0;
     totmask.adjustSize(nold, nold);
     if (vals.size() >= nnew+voffset) {
         for (uint32_t j = voffset; j < voffset+nnew; ++ j)
-            pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
+            cnt += (0 < fwrite(vals[j].c_str(), vals[j].size()+1, 1, fptr));
+        nnew0 = cnt;
     }
     else {
         for (uint32_t j = voffset; j < vals.size(); ++ j)
-            pos += (0 < UnixWrite(fdes, vals[j].c_str(), vals[j].size()+1));
+            cnt += (0 < fwrite(vals[j].c_str(), vals[j].size()+1, 1, fptr));
+        nnew0 = cnt;
         char buf[MAX_LINE];
         memset(buf, 0, MAX_LINE);
         for (uint32_t j = (vals.size()>voffset?vals.size()-voffset:0);
              j < nnew; j += MAX_LINE)
-            pos += UnixWrite(fdes, buf, (j+MAX_LINE<=nnew?MAX_LINE:nnew-j));
+            cnt += fwrite(buf, 1, (j+MAX_LINE<=nnew?MAX_LINE:nnew-j), fptr);
     }
+#if defined(FASTBIT_SYNC_WRITE)
+    (void) fflush(fptr);
+#endif
+    (void) fclose(fptr);
 
     totmask += newmask;
-    totmask.adjustSize(0, nnew+nold);
+    totmask.adjustSize(nold+nnew0, nnew+nold);
     if (ibis::gVerbose > 4) {
         ibis::util::logger lg;
-        lg() << "part::writeString wrote " << pos
-             << " strings (" << nnew << " expected)";
+        lg() << evt << " wrote " << cnt << " strings (" << nnew << " expected)";
 #if DEBUG+0 > 1 || _DEBUG+0 > 1
         lg() << "\nvals[" << vals.size() << "]:";
         for (uint32_t j = 0; j < (nnew <= vals.size() ? nnew : vals.size());
@@ -19192,7 +19216,7 @@ int ibis::part::writeString(int fdes,
         }
     }
     return nnew;
-} // ibis::part::writeString
+} // ibis::part::writeStrings
 
 /// Write raw bytes to an open file.  It also requires a second file to
 /// store starting positions of the raw binary objects.
@@ -20330,7 +20354,7 @@ long ibis::part::vault::seek(double val) {
                              ibis::TYPESTRING[(int)cols[0]->type()],
                              cols[0]->name());
             break;}
-        }       
+        }
     }
     else { // has to go through a file one value at a time
         switch (cols[0]->type()) {
