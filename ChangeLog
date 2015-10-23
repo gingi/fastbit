@@ -1,3 +1,7 @@
+2015-10-22 John Wu <John dot Wu at ACM dot org>
+	* configure.ac: rearrange the test for java directory on mac to
+	accommodate the recent changes in OS X 10.11
+
 2015-10-01 John Wu <John dot Wu at ACM dot org>
 	* src/column.cpp: in function column::purgeIndexFile comment out
 	the code that delete .dic and .int files, this will allow the

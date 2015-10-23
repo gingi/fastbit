@@ -818,42 +818,46 @@ AC_ARG_WITH(java,
 	    AS_HELP_STRING([--with-java=dir],[use dir as Java SDK root directory]),
             [if test -d $with_java -a -f $with_java/bin/javac$EXEEXT; then JAVA_HOME=$with_java; fi])
 #AC_MSG_RESULT([with_java=$with_java])
-if test "x$with_java" != "xyes" ; then
-  if test "x$with_java" = "xno" ; then
-    JAVA_HOME="" # don't use JAVA
-  elif ! test -d "$JAVA_HOME" -a -f "$JAVA_HOME/bin/javac$EXEEXT" ; then
+if test "x$with_java" = "xno" ; then
+  JAVA_HOME="" # don't use JAVA
+elif test "x$JAVA_HOME" != "x" ; then
+  if ! test -d "$JAVA_HOME" -a -f "$JAVA_HOME/bin/javac$EXEEXT" ; then
     AC_MSG_WARN([Can not find $JAVA_HOME/bin/javac$EXEEXT])
     JAVA_HOME="" # don't use JAVA
   fi
-elif test "x$JAVA_HOME" = "x" ; then # guess where is JDK
-  if test "x$JAVA_PATH" != "x" ; then
-     if test -x "$JAVA_PATH"/javac$EXEEXT ; then
-       JAVA_HOME=`basename "$JAVA_PATH"`
-     elif test -x "$JAVA_PATH"/bin/javac$EXEEXT ; then
-       JAVA_HOME="$JAVA_PATH"
-     fi
-  elif test -x /usr/libexec/java_home ; then
-    JAVA_HOME=`/usr/libexec/java_home`
-  else
-    case "${host_os}" in
-    # On Darwin the JDK, if present, is installed in /Library/Java/Home .
-    darwin*)
+elif test "x$JAVA_PATH" != "x" ; then
+   if test -x "$JAVA_PATH"/javac$EXEEXT ; then
+     JAVA_HOME=`basename "$JAVA_PATH"`
+   elif test -x "$JAVA_PATH"/bin/javac$EXEEXT ; then
+     JAVA_HOME="$JAVA_PATH"
+   fi
+elif test -x /usr/libexec/java_home ; then
+  JAVA_HOME=`/usr/libexec/java_home`
+else
+  case "${host_os}" in
+  # On Darwin the JDK, if present, is installed in /Library/Java/Home .
+  darwin*)
+    if test -x "/Library/Java/Home/bin/javac" ; then
       JAVA_HOME="/Library/Java/Home"
-      ;;
-    # On Fedora Core systems the JDK is usually in /usr/java/default , others use /usr
-    linux*)
-      if test -x "/usr/java/default/bin/javac" ; then
-        JAVA_HOME="/usr/java/default"
-      elif test -x "/usr/bin/javac" ; then
-        JAVA_HOME="/usr"
-      else # don't use java
-        JAVA_HOME=""
-      fi
-      ;;
-    *)
+    elif test -x "/usr/bin/javac" ; then
+      JAVA_HOME="/usr"
+    else # don't use java
+      JAVA_HOME=""
+    fi
     ;;
-    esac
-  fi
+  # On Fedora Core systems the JDK is usually in /usr/java/default , others use /usr
+  linux*)
+    if test -x "/usr/java/default/bin/javac" ; then
+      JAVA_HOME="/usr/java/default"
+    elif test -x "/usr/bin/javac" ; then
+      JAVA_HOME="/usr"
+    else # don't use java
+      JAVA_HOME=""
+    fi
+    ;;
+  *)
+  ;;
+  esac
 fi
 
 #AC_MSG_RESULT([JAVA_HOME=$JAVA_HOME])
