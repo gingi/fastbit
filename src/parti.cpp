@@ -112,6 +112,12 @@ long ibis::part::reorder(const ibis::table::stringArray& names) {
 /// read-only at construction time.  If the data partition is not
 /// read-only, then this function will attempt to purge the inactive rows
 /// which will reduce the number of rows in the data partition.
+///
+/// @warning This function does not use string values as sort key!
+/// Incoming names for categorical values and text are simply ignored.
+/// However, in most case, the categorical values would be internally
+/// represented as unsigned integers and be ordered using their integer
+/// representations (*NOT* the string values).
 long ibis::part::reorder(const ibis::table::stringArray& names,
                          const std::vector<bool>& directions) {
     if (nRows() == 0 || nColumns() == 0 || activeDir == 0) return 0;

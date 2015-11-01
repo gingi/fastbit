@@ -1,3 +1,14 @@
+2015-10-30 John Wu <John dot Wu at ACM dot org>
+	* src/category.cpp: comment out the code block in
+	ibis::text::startPositions that fill .sp file when the data file
+	is not present.  This is not necessarily a useful thing to do as
+	pointed out by Steve Enns
+	* src/dictionary.cpp: update doxygen documentation to clarify the
+	merge function
+	* src/mensa.cpp: in function ibis::mensa::mergeCategories, add
+	calls to ibis::dictionary::sort to make sure the new dictionary
+	used is sorted
+
 2015-10-22 John Wu <John dot Wu at ACM dot org>
 	* configure.ac: rearrange the test for java directory on mac to
 	accommodate the recent changes in OS X 10.11

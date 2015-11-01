@@ -253,7 +253,7 @@ public:
     /// specified, it resets the indexing option for the table.
     virtual void indexSpec(const char* opt, const char* colname=0) =0;
     /// Merge the dictionaries of categorical value from different data
-    /// partitions.  The argument is to be list of column names.  If the
+    /// partitions.  The argument is a list of column names.  If the
     /// incoming list is empty, then dictionaries of categorical columns
     /// with the same names are combined.  If a list is provided by the
     /// caller, then all columns with the given names will be placed in a

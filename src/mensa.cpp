@@ -1,4 +1,4 @@
-// File $Id$    
+// File $Id$
 // author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
 // Copyright (c) 2007-2015 the Regents of the University of California
 //
@@ -444,6 +444,12 @@ int ibis::mensa::mergeCategories(const ibis::table::stringArray &nms) {
             }
         }
 
+        // sort the new combined dictionaries
+        for (unsigned k = 0; k < names.size(); ++ k) {
+            ibis::array_t<uint32_t> tmp;
+            words[k]->sort(tmp);
+        }
+
         // loop to update the indexes
         for (ibis::partList::iterator it = parts.begin();
              it != parts.end();
@@ -488,6 +494,11 @@ int ibis::mensa::mergeCategories(const ibis::table::stringArray &nms) {
         }
 
         if (words.size() == 0) return 0;
+        { // sort the new combined dictionary
+            ibis::array_t<uint32_t> tmp;
+            words.sort(tmp);
+        }
+
         // loop to update the indexes
         for (ibis::partList::iterator pit = parts.begin();
              pit != parts.end();
@@ -1303,7 +1314,7 @@ int64_t ibis::mensa::getColumnAsLongs(const char* cn, int64_t* vals,
     return ival;
 } // ibis::mensa::getColumnAsLongs
 
-/// @note All integers can be converted to uint64_t, however, negative 
+/// @note All integers can be converted to uint64_t, however, negative
 /// integers will be treated as unsigned integers.
 int64_t ibis::mensa::getColumnAsULongs(const char* cn, uint64_t* vals,
                                        uint64_t begin, uint64_t end) const {
@@ -2661,7 +2672,7 @@ long ibis::mensa::getHistogram(const char* constraints,
         }
     }
     else {
-        const uint32_t nbins = 1 + 
+        const uint32_t nbins = 1 +
             static_cast<uint32_t>(std::floor((end - begin) / stride));
         counts.resize(nbins);
         for (uint32_t i = 0; i < nbins; ++ i)
@@ -3498,62 +3509,62 @@ int ibis::mensa::cursor::dumpIJ(std::ostream& out, uint32_t i,
         break;}
     case ibis::BYTE: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<signed char> *tmp 
+        const array_t<signed char> *tmp
             = static_cast<const array_t<signed char>*>(buffer[j].cval);
         out << (int) ((*tmp)[i]);
         break;}
     case ibis::UBYTE: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<unsigned char> *tmp 
+        const array_t<unsigned char> *tmp
             = static_cast<const array_t<unsigned char>*>(buffer[j].cval);
         out << (unsigned int) ((*tmp)[i]);
         break;}
     case ibis::SHORT: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<int16_t> *tmp 
+        const array_t<int16_t> *tmp
             = static_cast<const array_t<int16_t>*>(buffer[j].cval);
         out << (*tmp)[i];
         break;}
     case ibis::USHORT: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<uint16_t> *tmp 
+        const array_t<uint16_t> *tmp
             = static_cast<const array_t<uint16_t>*>(buffer[j].cval);
         out << (*tmp)[i];
         break;}
     case ibis::INT: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<int32_t> *tmp 
+        const array_t<int32_t> *tmp
             = static_cast<const array_t<int32_t>*>(buffer[j].cval);
         out << (*tmp)[i];
         break;}
     case ibis::UINT: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<uint32_t> *tmp 
+        const array_t<uint32_t> *tmp
             = static_cast<const array_t<uint32_t>*>(buffer[j].cval);
         out << (*tmp)[i];
         break;}
     case ibis::LONG: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<int64_t> *tmp 
+        const array_t<int64_t> *tmp
             = static_cast<const array_t<int64_t>*>(buffer[j].cval);
         out << (*tmp)[i];
         break;}
     case ibis::OID:
     case ibis::ULONG: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<uint64_t> *tmp 
+        const array_t<uint64_t> *tmp
             = static_cast<const array_t<uint64_t>*>(buffer[j].cval);
         out << (*tmp)[i];
         break;}
     case ibis::FLOAT: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<float> *tmp 
+        const array_t<float> *tmp
             = static_cast<const array_t<float>*>(buffer[j].cval);
         out << std::setprecision(8) << (*tmp)[i];
         break;}
     case ibis::DOUBLE: {
         if (buffer[j].cval == 0) return -1; // null value
-        const array_t<double> *tmp 
+        const array_t<double> *tmp
             = static_cast<const array_t<double>*>(buffer[j].cval);
         out << std::setprecision(18) << (*tmp)[i];
         break;}

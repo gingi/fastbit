@@ -1092,12 +1092,11 @@ void ibis::dictionary::sort(ibis::array_t<uint32_t> &o2n) {
 } // ibis::dictionary::sort
 
 /// Merge the incoming dictionary with this one.  It produces a dictionary
-/// that combines the words in both dictionaries and keep the words in
-/// ascending order.
+/// that combines the words in both dictionaries.  Existing words in the
+/// current dictionary will keep their current assignment.
 ///
 /// Upon successful completion of this function, the return value will be
-/// the new size of the dictionary, i.e., the number of non-empty words.
-/// It returns a negative value to indicate error.
+/// the new size of the dictionary.
 int ibis::dictionary::merge(const ibis::dictionary& rhs) {
     const uint32_t nr = rhs.key_.size();
     if (nr == 0) {

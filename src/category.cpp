@@ -1541,6 +1541,8 @@ void ibis::text::startPositions(const char *dir, char *buf,
          (dir == thePart->currentDataDir() ||
           std::strcmp(dir, thePart->currentDataDir()) == 0));
     if (fdata == 0) { // failed to open data file, assume it is empty
+#ifdef FASTBIT_WEIRED_SETUP
+        // comment out to avoid problem when user removes the data file
         if ((isActiveData || thePart->currentDataDir()== 0)
             && thePart->nRows() > 0) {
             rewind(fsp);
@@ -1548,6 +1550,7 @@ void ibis::text::startPositions(const char *dir, char *buf,
             for (unsigned j = 0; j <= nold; ++ j)
                 (void) fwrite(&pos, sizeof(int64_t), 1, fsp);
         }
+#endif
         fclose(fsp);
         return;
     }
