@@ -1664,6 +1664,19 @@ extern "C" int fastbit_iapi_register_array
         return -2;
 } // fastbit_iapi_register_array
 
+/**
+   @arg nm: name of the array to be extended.
+   @arg dtype: type of the array.
+   @arg addr: address of the new content to be added to the named array.
+   @arg nelm: number of elements in the new content.
+
+   The new content is copied to the existing array resulting a large
+   array.  The newly extended array contains a copy of the content in the
+   buffer at @c addr.
+
+   This function returns an integer error code.  It returns 0 for success,
+   or a negative number to indicate error of some sort.
+ */
 extern "C" int fastbit_iapi_extend_array
 (const char *nm, FastBitDataType dtype, void *addr, uint64_t nelm) {
     if (nm == 0 || *nm == 0 || dtype == FastBitDataTypeUnknown || addr == 0)
