@@ -1,3 +1,12 @@
+2015-11-06 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp: change std::binder1st and std::binder2nd to
+	std::bind1st and std::bind2nd
+
+2015-11-05 John Wu <John dot Wu at ACM dot org>
+	* src/part.cpp, src/column.cpp: invoke
+	ibis::fileManager::instance() to ensure the fileManager is
+	initialized
+
 2015-11-04 John Wu <John dot Wu at ACM dot org>
 	* src/iapi.cpp: add documentation to clarify the operation of
 	fastbit_iapi_extend_array

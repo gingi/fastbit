@@ -58,6 +58,9 @@ ibis::column::column(const ibis::part* tbl, ibis::TYPE_T t,
         lg() << "initialized column " << fullname() << " @ "
              << this << " (" << ibis::TYPESTRING[(int)m_type] << ')';
     }
+    if (thePart == 0) {
+        (void) ibis::fileManager::instance();
+    }
 } // ibis::column::column
 
 /// Reconstitute a column from the content of a file.
@@ -81,6 +84,9 @@ ibis::column::column(const part* tbl, FILE* file)
     if (0 != pthread_mutex_init
         (&mutex, static_cast<const pthread_mutexattr_t *>(0))) {
         throw "column::ctor failed to initialize the mutex" IBIS_FILE_LINE;
+    }
+    if (thePart == 0) {
+        (void) ibis::fileManager::instance();
     }
 
     bool badType = false;
@@ -315,6 +321,9 @@ ibis::column::column(const ibis::column& rhs) :
     }
     if (pthread_mutex_init(&mutex, 0)) {
         throw "column::ctor failed to initialize the mutex" IBIS_FILE_LINE;
+    }
+    if (thePart == 0) {
+        (void) ibis::fileManager::instance();
     }
     if (ibis::gVerbose > 5 && !m_name.empty()) {
         ibis::util::logger lg;
