@@ -70,16 +70,16 @@ static int mydblreader(void *ctx, uint64_t nd, uint64_t *starts,
     - a3 contains 64-bit floating-point numbers that goes from 0 in
       increment of 1/4.
  */
-static void fillarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
+static void fillarray1(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     size_t j;
     for (j = 0; j < n; ++ j) {
         a1[j] = (j & 0x7FFFU);
         a2[j] = (j >> 1);
         a3[j] = j * 0.25;
     }
-} /* fillarrays */
+} /* fillarray1 */
 
-static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
+static void queryarray1(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     int16_t b1 = 5;
     int32_t b2 = 11;
     double b31 = 2.0, b32 = 3.5;
@@ -94,7 +94,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     dblbuffer dbl;
     dbl.n = n;
     dbl.ptr = a3;
-    printf("\n*** queryarrays - starting with n=%lu ***\n", n);
+    printf("\n*** queryarray1 - starting with n=%lu ***\n", n);
 
     ierr = fastbit_iapi_register_array("a1", FastBitDataTypeShort, a1, n);
     if (ierr < 0) {
@@ -278,7 +278,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
                 expected += 6;
             }
             else {
-                expected += (n - 7);
+                expected += (n - 8);
             }
         }
         if (ierr != expected) {
@@ -332,7 +332,7 @@ static void queryarrays(size_t n, int16_t *a1, int32_t *a2, double *a3) {
     free(offsets);
     free(keys);
     free(bms);
-} /* queryarrays */
+} /* queryarray1 */
 
 /** Generate three arrays of specified sizes.
     The three arrays have the following values:
@@ -356,10 +356,11 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
     int16_t b1 = 5;
     int32_t b2 = 11;
     double  b31 = 2.0, b32 = 3;
-    long int i, ierr;
+    long int i, ierr, j;
     FastBitSelectionHandle h1, h2, h3, h4, h5;
     uint64_t cooa[n], coob[n];
     dblbuffer dbl;
+    const long int nloops = 100;
     /* NOTE: keys, offsets and bms are used by FastBit after invoking
        fastbit_iapi_attach_index; they can only be freed after the index is
        no longer needed */
@@ -368,7 +369,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
     uint32_t *bms3=0;
     dbl.n = n;
     dbl.ptr = a3;
-    printf("\n*** queryarray2 - starting with n=%lu ***\n", n);
+    printf("\n*** queryarray2 - starting with n=%lu ***\n", (unsigned long)n);
     fflush(stdout);
 
     ierr = fastbit_iapi_register_array("a1", FastBitDataTypeBitRaw, a1, n);
@@ -457,83 +458,90 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
 
     /* free cached results, not h5 itself */
     fastbit_selection_purge_results(h5);
-
-    /* double the data */
     fflush(stdout);
-    printf("\n*** queryarray2 - will duplicate the data to %lu rows ***\n", n+n);
-    fflush(stdout);
-    ierr = 0;
-    i = fastbit_iapi_extend_array("a1", FastBitDataTypeBitRaw, a1, n);
-    if (i < 0) {
-        printf("Warning -- fastbit_iapi_extend_array failed to register a1, "
-               "ierr = %ld\n", i);
-        fflush(stdout);
-        ierr += i;
-    }
-    i = fastbit_iapi_extend_array("a2", FastBitDataTypeBitRaw, a2, n);
-    if (i < 0) {
-        printf("Warning -- fastbit_iapi_extend_array failed to register a2, "
-               "ierr = %ld\n", i);
-        fflush(stdout);
-        ierr += i;
-    }
-    i = fastbit_iapi_extend_array("a3", FastBitDataTypeDouble, a3, n);
-    if (i < 0) {
-        printf("Warning -- fastbit_iapi_extend_array failed to register a3, "
-               "ierr = %ld\n", i);
-        fflush(stdout);
-        ierr += i;
-    }
 
-    /* build index on a3, automatically attached */
-    i = fastbit_iapi_build_index("a3", "<binning nbins=10/>");
-    if (i < 0) {
-        printf("Warning -- fastbit_iapi_build_index failed to create index "
-               "for a3, ierr=%ld\n", i);
+    for (j = 2; j < nloops; ++ j) {/* extending the data repeatedly */
+        printf("\n*** queryarray2 - will duplicate the data to %lu rows ***\n",
+               n*j);
         fflush(stdout);
-    }
-
-    if (ierr >= 0) {
-        /* Serialize the index for a3 and register the index alone as a3 */
-        uint64_t nk, nf, nb, nv=n+n;
-        ierr = fastbit_iapi_deconstruct_index
-            ("a3", &keys3, &nk, &offsets3, &nf, &bms3, &nb);
-        if (ierr >= 0) {
-            if (msglvl > 3) {
-                fflush(stdout);
-                printf("fastbit_iapi_deconstruct_index returned nk=%lld, "
-                       "nf=%lld, and nb=%lld\n", nk, nf, nb);
-                if (nk==2*(nf-1)) { // binned index
-                    for (i = 0; i < nf-1; ++ i) {
-                        printf("[%lg, %lg) [%lli, %lli)\n", keys3[i],
-                               keys3[nf-1+i], offsets3[i], offsets3[i+1]);
-                    }
-                }
-                else { // unbinned
-                    for (i = 0; i < nf-1; ++ i) {
-                        printf("[%lg] [%lli, %lli)\n", keys3[i],
-                               offsets3[i], offsets3[i+1]);
-                    }
-                }
-                fflush(stdout);
-            }
-
-            fastbit_iapi_free_array("a3");
-            ierr = fastbit_iapi_register_array_index_only
-                ("a3", FastBitDataTypeDouble, &nv, 1,
-                 keys3, nk, offsets3, nf, bms3, mybmreader);
-            if (ierr < 0) {
-                fflush(stdout);
-                printf("Warning -- fastbit_iapi_attach_index failed "
-                       "to attach the index to a3, ierr = %ld\n", ierr);
-                fflush(stdout);
-            }
+        ierr = 0;
+        i = fastbit_iapi_extend_array("a1", FastBitDataTypeBitRaw, a1, n);
+        if (i < 0) {
+            printf("Warning -- fastbit_iapi_extend_array failed to register a1, "
+                   "ierr = %ld\n", i);
+            fflush(stdout);
+            ierr += i;
         }
-        else {
+        i = fastbit_iapi_extend_array("a2", FastBitDataTypeBitRaw, a2, n);
+        if (i < 0) {
+            printf("Warning -- fastbit_iapi_extend_array failed to register a2, "
+                   "ierr = %ld\n", i);
             fflush(stdout);
-            printf("Warning -- fastbit_iapi_deconstruct_index failed "
-                   "to serialize the index of a3, ierr = %ld\n", ierr);
+            ierr += i;
+        }
+        i = fastbit_iapi_extend_array("a3", FastBitDataTypeDouble, a3, n);
+        if (i < 0) {
+            printf("Warning -- fastbit_iapi_extend_array failed to register a3, "
+                   "ierr = %ld\n", i);
             fflush(stdout);
+            ierr += i;
+        }
+        if (ierr > 0) {
+            printf("Warning -- fastbit_iapi_extend_array failed %ld out of 3 "
+                   "cases, stop now\n", ierr);
+            break;
+        }
+
+        /* build index on a3, automatically attached */
+        i = fastbit_iapi_build_index("a3", "<binning nbins=10/>");
+        if (i < 0) {
+            printf("Warning -- fastbit_iapi_build_index failed to create index "
+                   "for a3, ierr=%ld\n", i);
+            fflush(stdout);
+        }
+
+        if (j+1 >= nloops) {
+            /* Serialize the index for a3 and register the index alone as a3 */
+            uint64_t nk, nf, nb, nv=n+n;
+            ierr = fastbit_iapi_deconstruct_index
+                ("a3", &keys3, &nk, &offsets3, &nf, &bms3, &nb);
+            if (ierr >= 0) {
+                if (msglvl > 3) {
+                    fflush(stdout);
+                    printf("fastbit_iapi_deconstruct_index returned nk=%lld, "
+                           "nf=%lld, and nb=%lld\n", nk, nf, nb);
+                    if (nk==2*(nf-1)) { // binned index
+                        for (i = 0; i < nf-1; ++ i) {
+                            printf("[%lg, %lg) [%lli, %lli)\n", keys3[i],
+                                   keys3[nf-1+i], offsets3[i], offsets3[i+1]);
+                        }
+                    }
+                    else { // unbinned
+                        for (i = 0; i < nf-1; ++ i) {
+                            printf("[%lg] [%lli, %lli)\n", keys3[i],
+                                   offsets3[i], offsets3[i+1]);
+                        }
+                    }
+                    fflush(stdout);
+                }
+
+                fastbit_iapi_free_array("a3");
+                ierr = fastbit_iapi_register_array_index_only
+                    ("a3", FastBitDataTypeDouble, &nv, 1,
+                     keys3, nk, offsets3, nf, bms3, mybmreader);
+                if (ierr < 0) {
+                    fflush(stdout);
+                    printf("Warning -- fastbit_iapi_attach_index failed "
+                           "to attach the index to a3, ierr = %ld\n", ierr);
+                    fflush(stdout);
+                }
+            }
+            else {
+                fflush(stdout);
+                printf("Warning -- fastbit_iapi_deconstruct_index failed "
+                       "to serialize the index of a3, ierr = %ld\n", ierr);
+                fflush(stdout);
+            }
         }
 
         ierr = fastbit_selection_evaluate(h5);
@@ -545,8 +553,8 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
         else {
             long int expected = 2*(n/2);
             if (ierr != expected) {
-                printf("Warning -- fastbit_selection_evaluate(...) expected %ld, "
-                       "but got %ld\n", expected, ierr);
+                printf("Warning -- fastbit_selection_evaluate(...) expected "
+                       "%ld, but got %ld\n", expected, ierr);
             }
             else {
                 printf("fastbit_selection_evaluate(...) returned %ld as "
@@ -554,8 +562,8 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
             }
             i = fastbit_selection_get_coordinates(h5, coob, n, 0);
             if (i < 0) {
-                printf("Warning -- fastbit_selection_get_coordinates failed with "
-                       "code %ld in option B\n", i);
+                printf("Warning -- fastbit_selection_get_coordinates failed "
+                       "with code %ld in option B\n", i);
             }
             else {
                 int cnt = 0;
@@ -579,7 +587,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
             }
         }
         fflush(stdout);
-    }
+    } // for (j ...
 
     fastbit_selection_free(h5);
     fastbit_iapi_free_all();
@@ -589,7 +597,7 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
 } /* queryarray2 */
 
 int main(int argc, char **argv) {
-    long int k, nmax=1000;
+    long int k, nmax=1000000;
     int ierr;
     const char *conffile=0;
     int16_t *a1;
@@ -626,13 +634,15 @@ int main(int argc, char **argv) {
     a3 = (double*)malloc(8*nmax);
     fastbit_init(conffile);
     fastbit_set_verbose_level(msglvl);
-    for (k = 1; k <= nmax; k=((k>(nmax/4)&&k<nmax) ? nmax : 4*k)) {
+    for (k = nmax; k <= nmax; k=((k>(nmax/4)&&k<nmax) ? nmax : 4*k)) {
         printf("\n%s -- testing with k = %ld\n", *argv, k);
+
+        fillarray1(k, a1, a2, a3);
+        queryarray1(k, a1, a2, a3);
+
         fillarray2(k, a1, a2, a3);
         queryarray2(k, a1, a2, a3);
 
-        fillarrays(k, a1, a2, a3);
-        queryarrays(k, a1, a2, a3);
         // need to clear all cached objects so that we can reuse the same
         // pointers a1, a2, a3
         fastbit_iapi_free_all();

@@ -1,3 +1,7 @@
+2015-11-07 John Wu <John dot Wu at ACM dot org>
+	* examples/tiapi.c:281 change constant from 7 to 8 in the
+	expression to compute the number of expected values
+
 2015-11-06 John Wu <John dot Wu at ACM dot org>
 	* src/part.cpp: change std::binder1st and std::binder2nd to
 	std::bind1st and std::bind2nd

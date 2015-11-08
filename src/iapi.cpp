@@ -1682,9 +1682,9 @@ extern "C" int fastbit_iapi_extend_array
     if (nm == 0 || *nm == 0 || dtype == FastBitDataTypeUnknown || addr == 0)
         return -1;
     ibis::bord::column *col = __fastbit_iapi_array_by_name(nm);
-    if (col == 0) {
+    if (col == 0) { // new array
         if (__fastbit_iapi_register_array(nm, dtype, addr, nelm) != 0)
-            return 0;
+            return 0; // registered the new array successfully
         else
             return -2;
     }
@@ -1694,8 +1694,10 @@ extern "C" int fastbit_iapi_extend_array
     int ierr = 0;
     switch (dtype) {
     default:
-    case FastBitDataTypeUnknown:
-        return 0;
+        LOGGER(ibis::gVerbose > 0)
+            << "Warning -- fastbit_iapi_extend_array can not support array "
+            << nm << ", only some fixed-sized data types are supported";
+        return -3; 
     case FastBitDataTypeByte: {
         ibis::array_t<signed char> *buf =
             new ibis::array_t<signed char>((signed char*)addr, nelm);
