@@ -634,7 +634,7 @@ int main(int argc, char **argv) {
     a3 = (double*)malloc(8*nmax);
     fastbit_init(conffile);
     fastbit_set_verbose_level(msglvl);
-    for (k = nmax; k <= nmax; k=((k>(nmax/4)&&k<nmax) ? nmax : 4*k)) {
+    for (k = nmax; k <= nmax; k=(k>(nmax/4) ? nmax : 4*k)) {
         printf("\n%s -- testing with k = %ld\n", *argv, k);
 
         fillarray1(k, a1, a2, a3);

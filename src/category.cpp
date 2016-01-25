@@ -250,8 +250,9 @@ void ibis::category::prepareMembers() const {
     if (dic.size() > 0 && idx != 0) return;
     if (thePart == 0) return;
 
-    if (idx == 0) { // attempt to read the index file
-        if (thePart->currentDataDir() == 0) return;
+    writeLock wlock(this, "category::prepareMembers");
+    if (idx == 0 && thePart->currentDataDir() != 0) {
+        // attempt to read the index file
         std::string idxf = thePart->currentDataDir();
         idxf += FASTBIT_DIRSEP;
         idxf += m_name;

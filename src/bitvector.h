@@ -837,21 +837,19 @@ inline void ibis::bitvector::appendFill(int val, word_t n) {
 /// words to copy.
 inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
     // deal with the first word -- attach it to the last word in m_vec
-    if (it.isFill != 0) {
-        if (it.nWords > 1) {
-            append_counter(it.fillBit, it.nWords);
-            nw -= it.nWords;
-        }
-        else if (it.nWords == 1) {
-            active.val = (it.fillBit != 0 ? ALLONES : 0);
-            append_active();
-            -- nw;
-        }
-    }
-    else {
+    if (it.isFill == 0) {
 	active.val = *(it.it);
 	append_active();
 	-- nw;
+    }
+    else if (it.nWords > 1) {
+        append_counter(it.fillBit, it.nWords);
+        nw -= it.nWords;
+    }
+    else if (it.nWords == 1) {
+        active.val = (it.fillBit != 0 ? ALLONES : 0);
+        append_active();
+        -- nw;
     }
     ++ it.it;
     nset = 0;
@@ -874,24 +872,22 @@ inline void ibis::bitvector::copy_runs(run& it, word_t& nw) {
 } // ibis::bitvector::copy_runs
 
 /// Copy the complements of a set of consecutive runs.  It assumes
-/// active to be empty.
+/// active word to be empty.
 inline void ibis::bitvector::copy_runsn(run& it, word_t& nw) {
     // deal with the first word -- need to attach it to the last word in m_vec
-    if (it.isFill != 0) {
-        if (it.nWords > 1) {
-            append_counter(!it.fillBit, it.nWords);
-            nw -= it.nWords;
-        }
-        else if (it.nWords == 1) {
-            active.val = (it.fillBit != 0 ? 0 : ALLONES);
-            append_active();
-            -- nw;
-        }
-    }
-    else {
+    if (it.isFill == 0) {
 	active.val = ALLONES ^ *(it.it);
 	append_active();
 	-- nw;
+    }
+    else if (it.nWords > 1) {
+        append_counter(!it.fillBit, it.nWords);
+        nw -= it.nWords;
+    }
+    else if (it.nWords == 1) {
+        active.val = (it.fillBit != 0 ? 0 : ALLONES);
+        append_active();
+        -- nw;
     }
     ++ it.it; // advance to the next word
     nset = 0;
