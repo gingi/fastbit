@@ -537,7 +537,7 @@ int ibis::dictionary::readKeys1(const char *evt, FILE *fptr) {
     }
     raw_.resize(nkeys+1);
     raw_[0] = 0;
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 7)
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 8)
     key_.reserve(nkeys+nkeys); // older version does not have reserve
 #endif
     for (unsigned j = 0; j < nkeys; ++ j) {
@@ -611,7 +611,7 @@ int ibis::dictionary::readKeys2(const char *evt, FILE *fptr) {
     raw_.resize(maxcode+1);
     for (size_t j = 0; j <= maxcode; ++ j)
         raw_[j] = 0;
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 7)
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 8)
     key_.reserve(nkeys+nkeys); // older version does not have reserve
 #endif
     for (unsigned j = 0; j < nkeys; ++ j) {

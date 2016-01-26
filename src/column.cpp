@@ -12328,28 +12328,48 @@ template long ibis::column::castAndWrite
 void ibis::column::unixTimeScribe::operator()
     (std::ostream &out, int64_t ut) const {
     char buf[80];
-    struct tm mytm;
     const time_t tt = static_cast<time_t>(ut);
+#if (defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)) && defined(_WIN32)
+    struct tm *mytm;
+    if (timezone_ != 0 && (*timezone_ == 'g' || *timezone_ == 'G' ||
+                           *timezone_ == 'u' || *timezone_ == 'U'))
+        mytm = gmtime(&tt);
+    else
+        mytm = localtime(&tt);
+    (void) strftime(buf, 80, format_, mytm);
+#else
+    struct tm mytm;
     if (timezone_ != 0 && (*timezone_ == 'g' || *timezone_ == 'G' ||
                            *timezone_ == 'u' || *timezone_ == 'U'))
         (void) gmtime_r(&tt, &mytm);
     else
         (void) localtime_r(&tt, &mytm);
     (void) strftime(buf, 80, format_, &mytm);
+#endif
     out << buf;
 } // ibis::column::unixTimeScribe::operator()
 
 void ibis::column::unixTimeScribe::operator()
     (std::ostream &out, double ut) const {
     char buf[80];
-    struct tm mytm;
     const time_t tt = static_cast<time_t>(ut);
+#if (defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)) && defined(_WIN32)
+    struct tm *mytm;
+    if (timezone_ != 0 && (*timezone_ == 'g' || *timezone_ == 'G' ||
+                           *timezone_ == 'u' || *timezone_ == 'U'))
+        mytm = gmtime(&tt);
+    else
+        mytm = localtime(&tt);
+    (void) strftime(buf, 80, format_, mytm);
+#else
+    struct tm mytm;
     if (timezone_ != 0 && (*timezone_ == 'g' || *timezone_ == 'G' ||
                            *timezone_ == 'u' || *timezone_ == 'U'))
         (void) gmtime_r(&tt, &mytm);
     else
         (void) localtime_r(&tt, &mytm);
     (void) strftime(buf, 80, format_, &mytm);
+#endif
     out << buf;
 } // ibis::column::unixTimeScribe::operator()
 

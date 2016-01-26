@@ -4092,14 +4092,24 @@ double ibis::math::fromUnixTime::eval(double val) const {
     double res;
     char buf[80];
     const char *str;
-    struct tm mytm;
     const time_t sec = static_cast<time_t>(val);
+#if (defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)) && defined(_WIN32)
+    struct tm *mytm;
+    if (tzname_[0] == 'g' || tzname_[0] == 'G' ||
+        tzname_[0] == 'u' || tzname_[0] == 'U')
+        mytm = gmtime(&sec);
+    else
+        mytm = localtime(&sec);
+    (void) strftime(buf, 80, fmt_.c_str(), mytm);
+#else
+    struct tm mytm;
     if (tzname_[0] == 'g' || tzname_[0] == 'G' ||
         tzname_[0] == 'u' || tzname_[0] == 'U')
         (void) gmtime_r(&sec, &mytm);
     else
         (void) localtime_r(&sec, &mytm);
     (void) strftime(buf, 80, fmt_.c_str(), &mytm);
+#endif
     str = buf;
     ibis::util::readDouble(res, str);
     LOGGER(*str != 0 && ibis::gVerbose > 1)
@@ -4159,10 +4169,24 @@ double ibis::math::toUnixTime::eval(double val) const {
         << mytm.tm_sec << ") is out of range";
 
     if (tzname_[0] == 'g' || tzname_[0] == 'G' ||
-        tzname_[0] == 'u' || tzname_[0] == 'U')
-        res = timegm(&mytm);
-    else
+        tzname_[0] == 'u' || tzname_[0] == 'U') {
+#if  (defined(HAVE_GETPWUID) || defined(HAVE_GETPWUID_R)) && !(defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__))
+        // timegm
+        char *tz = getenv("TZ");
+        tzset();
         res = mktime(&mytm);
+        if (tz != 0)
+            setenv("TZ", tz, 1);
+        else
+            unsetenv("TZ");
+        tzset();
+#else
+        res = mktime(&mytm);
+#endif
+    }
+    else {
+        res = mktime(&mytm);
+    }
     res += val; // add the fraction of second
     return res;
 } // ibis::math::toUnixTime::eval
@@ -4223,14 +4247,24 @@ std::string ibis::math::formatUnixTime::eval(double val) const {
     }
 
     char buf[80];
-    struct tm mytm;
     const time_t sec = static_cast<time_t>(val);
+#if (defined(__MINGW__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)) && defined(_WIN32)
+    struct tm *mytm;
+    if (tzname_[0] == 'g' || tzname_[0] == 'G' ||
+        tzname_[0] == 'u' || tzname_[0] == 'U')
+        mytm = gmtime(&sec);
+    else
+        mytm = localtime(&sec);
+    (void) strftime(buf, 80, fmt_.c_str(), mytm);
+#else
+    struct tm mytm;
     if (tzname_[0] == 'g' || tzname_[0] == 'G' ||
         tzname_[0] == 'u' || tzname_[0] == 'U')
         (void) gmtime_r(&sec, &mytm);
     else
         (void) localtime_r(&sec, &mytm);
     (void) strftime(buf, 80, fmt_.c_str(), &mytm);
+#endif
     return std::string(buf);
 } // ibis::math::formatUnixTime::eval
 

@@ -11,7 +11,6 @@
 // #pragma implementation
 #endif
 #include "array_t.h"
-#include "util.h"
 #include "table.h"      // ibis::TYPE_T
 
 #include <memory>       // std::unique_ptr

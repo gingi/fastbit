@@ -47,8 +47,10 @@
 //  #if defined(__unix__) && !defined(__USE_UNIX98)
 //  #define __USE_UNIX98
 //  #endif
-#if defined(__CYGWIN__) && !defined(HAVE_STRUCT_TIMESPEC)
+#ifndef HAVE_STRUCT_TIMESPEC
+#if defined(__CYGWIN__) || defined(__MINGW32__) || (_MSC_VER+0 >= 1900)
 #  define HAVE_STRUCT_TIMESPEC
+#endif
 #endif
 // // require every compiler to support mutable keyword
 // #if __cplusplus >= 199711L
@@ -96,9 +98,6 @@
 #    include <stdint.h>
 #  endif
 #endif
-#ifndef FASTBIT_STRING
-#define FASTBIT_STRING "FastBit ibis"
-#endif
 
 // section to handle errno in a multithread program
 #if defined(__SUNPRO_CC)
@@ -118,6 +117,9 @@
 #endif /* errno */
 
 // Compiler independent definitions:
+#ifndef FASTBIT_STRING
+#define FASTBIT_STRING "FastBit ibis"
+#endif
 //#define TIME_BUF_LEN 32
 #ifndef MAX_LINE
 #define MAX_LINE 2048
@@ -141,6 +143,7 @@
 #if defined(_CRAY) | defined(__KCC)
 #  define  __LIM_H_PARAM_
 #  include <sys/param.h>
+#  include <inttypes.h>	// int32_t, ...
 
 #elif defined(__sun)
 #  include <limits.h>	// PATH_MAX, OPEN_MAX
@@ -161,7 +164,6 @@
 #  endif
 
 #elif defined(__unix__) || defined(__HOS_AIX__)
-#  include <stdint.h>	// int32_t, ...
 #  include <limits.h>	// PATH_MAX, OPEN_MAX
 #  ifdef __CYGWIN__ // cygwin port of gcc compiler
 //commented out 2005/04/12 #  define __INSIDE_CYGWIN__

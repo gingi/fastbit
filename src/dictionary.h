@@ -8,7 +8,7 @@
 #include "array_t.h"
 #if defined(HAVE_UNORDERED_MAP)
 #include <unordered_map>
-#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ <= 5)
+#elif defined(__GNUC__) && (__GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__+0 <= 5))
 #include <backward/hash_map>
 #else
 #include <unordered_map>
@@ -90,7 +90,7 @@ protected:
     typedef
 #if defined(HAVE_UNORDERED_MAP)
         std::unordered_map
-#elif __GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__ <= 5)
+#elif defined(__GNUC__) && (__GNUC__+0 <= 4 || ( __GNUC__+0 == 4 && __GNUC_MINOR__+0 <= 5))
         __gnu_cxx::hash_map
 #else
         std::unordered_map

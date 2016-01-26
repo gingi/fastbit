@@ -24,7 +24,6 @@
 #include <stdio.h>      // fopen, fread, remove
 #include <stdlib.h>     // malloc, free
 #include <sys/stat.h>   // stat, open
-#include <sys/resource.h>       // getrlimit
 #include <time.h>
 #include <stdexcept>    // std::runtime_error
 #include <iomanip>      // std::setprecision
@@ -38,6 +37,9 @@
 #  include <psapi.h>    // GetPerformanceInfo, struct PERFORMANCE_INFORMATION
 #elif HAVE_MMAP
 #  include <sys/mman.h> // mmap
+#endif
+#if defined(unix) && !defined(_WIN32)
+#include <sys/resource.h>       // getrlimit
 #endif
 
 // initialize static varialbes (class members) of fileManager
@@ -638,7 +640,7 @@ ibis::fileManager::fileManager()
             << " bytes";
 #endif
     }
-#ifdef RLIMIT_DATA
+#if defined(RLIMIT_DATA) && defined(unix) && !defined(_WIN32)
     // limit on data size defined, check its value
     struct rlimit rlim;
     if (getrlimit(RLIMIT_DATA, &rlim) == 0) {

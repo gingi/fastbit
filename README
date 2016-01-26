@@ -1,3 +1,12 @@
+*** COMPILING ON WINDOWS ***
+As of 2014, FastBit source code starts to make use of some C++11x
+features that are not supported yet in MS Visual Studio, therefore,
+there is no way to compile with Visual Studio until C++0x is
+supported.  However, it is possible to compile with CYGWIN.
+****************************
+
+
+
 This directory contains the current version of FastBit (code named
 IBIS).  Please report any problem you've encountered in using this
 package to <fastbit-users@hpcrdm.lbl.gov>.
@@ -59,12 +68,6 @@ The resulting documentation is in directory doc/html.
 Alternatively, you may view the on-line version of the documents at
 http://sdm.lbl.gov/fastbit/doc/.
 
-***COMPILING ON WINDOWS***
-As of 2014, FastBit source code starts to make use of some C++11x
-features that are not supported yet in MS Visual Studio, therefore,
-there is no way to compile with Visual Studio until C++0x is
-supported.  However, it is possible to compile with CYGWIN.
-
 
 The FastBit mailing list could be a valuable resource.  It is archived
 on line at http://hpcrdm.lbl.gov/mailman/private/fastbit-users/.  If you have
@@ -78,4 +81,3 @@ problem still exist with the current source code.  A nightly snapshot of
 the SVN repository for the code is available for download at
 <https://codeforge.lbl.gov/snapshots.php?group_id=44>.  The snapshot is
 built daily between 2 and 3 AM Pacific Time zone (USA).
-

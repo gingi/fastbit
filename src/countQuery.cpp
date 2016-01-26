@@ -703,7 +703,7 @@ void ibis::countQuery::doEstimate(const ibis::qExpr* term,
 #if DEBUG + 0 > 1 || _DEBUG + 0 > 1
     lg() << "low \n" << low << "\nhigh \n" << high;
 #else
-    if (ibis::gVerbose > 30 || (ht.bytes() < (2U << ibis::gVerbose)))
+    if (ibis::gVerbose > 30 || (low.bytes() < (2U << ibis::gVerbose)))
         lg() << "low \n" << low << "\nhigh \n" << high;
 #endif
 #else

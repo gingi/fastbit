@@ -1,3 +1,15 @@
+2016-01-25 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: remove throw statement from destructor of writeLock
+	* runconfig: update command to be used on MinGW (with correctly
+	installed gcc+autoconf+pthread)
+	* src/column.cpp, src/qExpr.cpp: do not attempt to use realtime
+	clock functions on windows platform (following the examples in
+	util.cpp)
+	* src/qExpr.cpp: in function math::toUnixTime::eval, replace
+	timegm with a more call to mktime
+	* src/fileManager.cpp: add conditional macro to limit the use of
+	getrlimit to unix systems
+
 2016-01-23 John Wu <John dot Wu at ACM dot org>
 	* src/category.cpp:253 add writeLock per suggestion from Steven Enns
 	<saenns at a9 dot com>

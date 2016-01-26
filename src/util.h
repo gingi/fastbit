@@ -8,37 +8,37 @@
 /// FastBit.
 ///
 #include "const.h"
-#include <stdlib.h>
 
-#include <cctype>       // std::isspace
-#include <cstring>      // std::strcpy
-#include <stdio.h>      // sprintf, remove
-#include <sys/stat.h>   // stat, mkdir, chmod
-#include <fcntl.h>      // open, close
 #include <map>          // std::map
 #include <string>       // std::string
 #include <limits>       // std::numeric_limits
 #include <sstream>      // std::ostringstream used by ibis::util::logger
+#include <cctype>       // std::isspace
+#include <cstring>      // std::strcpy
 
 #include <float.h>
 #include <math.h>       // fabs, floor, ceil, log10, nextafter...
+#include <stdlib.h>
+#include <stdio.h>      // sprintf, remove
+#include <sys/stat.h>   // stat, mkdir, chmod
+#include <fcntl.h>      // open, close
 #if !defined(unix) && defined(_WIN32)
-#include <windows.h>
-#include <io.h>
-#include <fcntl.h>      // _O_..
-int truncate(const char*, uint32_t);
-#include <direct.h>     // _rmdir
-#include <sys/stat.h>   // _stat, mkdir, chmod
-#define rmdir _rmdir
+#  include <windows.h>
+#  include <io.h>
+#  include <fcntl.h>      // _O_..
+#  include <direct.h>     // _rmdir
+#  include <sys/stat.h>   // _stat, mkdir, chmod
+#  define rmdir _rmdir
+   int truncate(const char*, uint32_t);
 //#elif HAVE_UNISTD_H
 #else
-#include <unistd.h>     // read, lseek, truncate, rmdir
+#  include <unistd.h>     // read, lseek, truncate, rmdir
 #endif
 #if defined(HAVE_FLOCK)
-#include <sys/file.h>   // flock
+#  include <sys/file.h>   // flock
 #endif
 #if defined(HAVE_ATOMIC_TEMPLATE)
-#include <atomic>
+#  include <atomic>
 #endif
 
 // minimum size for invoking mmap operation, default to 1 MB
@@ -47,12 +47,16 @@ int truncate(const char*, uint32_t);
 #endif
 
 #if ! (defined(HAVE_MMAP) || defined(_MSC_VER))
-#  if defined(_XOPEN_SOURCE)
+#  if defined(unix)||defined(__linux__)||defined(__APPLE__)||defined(__CYGWIN__)
+#    define HAVE_MMAP 1
+#  elif defined(__MINGW32__)
+#    undef HAVE_MMAP 
+#  elif defined(_XOPEN_SOURCE)
 #    define HAVE_MMAP _XOPEN_SOURCE - 0 >= 500
 #  elif defined(_POSIX_C_SOURCE)
 #    define HAVE_MMAP _POSIX_C_SOURCE - 0 >= 0
 #  else
-#    define HAVE_MMAP defined(unix)||defined(__linux__)||defined(__APPLE__)||defined(__CYGWIN__)
+#    undef HAVE_MMAP
 #  endif
 #endif
 
@@ -842,10 +846,7 @@ namespace ibis {
             }
             /// Destructor.
             ~writeLock() {
-                int ierr = pthread_rwlock_unlock(lock);
-                if (ierr != 0) {
-                    throw "writeLock failed to release the lock";
-                }
+                (void) pthread_rwlock_unlock(lock);
             }
 
         private:

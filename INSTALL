@@ -1,3 +1,11 @@
+*** COMPILING ON WINDOWS ***
+As of 2014, FastBit source code starts to make use of some C++11x
+features that are not supported yet in MS Visual Studio, therefore,
+there is no way to compile with Visual Studio until C++0x is
+supported.  However, it is possible to compile with CYGWIN or MinGW.
+****************************
+
+
 FastBit is packaged with GNU build tools.  In most cases, this means you
 only need to run
 
@@ -93,8 +101,9 @@ To make sure the Java Native Interface is not compiled, use the option
   --without-java
 
 
-NOTE: FastBit requires pthread support, one such library is pthread
-      win32 <http://sourceware.org/pthreads-win32/>.  One needs to
+NOTE: FastBit requires pthread support, on a MinGW installation, be sure
+      install pthread library.  On MS Windows, install some pthread
+      win32 <http://sourceware.org/pthreads-win32/>.  Users need to
       specify the directory containing the header files and the library
       files using similar procedure.  The "Additional Libary
       Directories" that need to be modified is under "Linker" in the
@@ -349,6 +358,20 @@ whereLexer.cc:1244: error: 'yywrap' was not declared in this scope
      The only command that may need root privillege would be the 'make
      install' command if the files are to be installed in a privilleged
      directory such as /usr or /usr/local.
+
+(15) Compile on windows under various versions of visual studio
+     encounters the following error message:
+     ...VC\INCLUDE\stdint.h(18): error C2632: 'short' followed by 'short' is illegal
+     This reference to stdint.h is caused by the inclusion of STL
+     header file "vector".  In the code we can control, we have avoided
+     referring to stdint.h, but we have to use vector and is not sure
+     how to tell vector not to include stdint.h.  If you know a way to
+     deal with this, please let us know.
+
+(16) the make command on MinGW32 does not appear to function properly in
+     multithread mode; the command 'make -j 2' will be stuck after
+     compiling the first two files.
+
 
 
 ----------
