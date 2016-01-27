@@ -1,7 +1,7 @@
 // File $Id$
 // Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright (c) 2008-2015 the Regents of the University of California
+// Copyright (c) 2008-2016 the Regents of the University of California
 //
 //  The implementation of class ibis::countQuery.
 //

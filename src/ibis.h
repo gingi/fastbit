@@ -2,7 +2,7 @@
 //	Author: John Wu <John.Wu at ACM.org>
 //              Lawrence Berkeley National Laboratory
 //
-// Copyright (c) 2000-2015, The Regents of the University of California,
+// Copyright (c) 2000-2016, The Regents of the University of California,
 // through Lawrence Berkeley National Laboratory (subject to receipt of any
 // required approvals from the U.S. Dept. of Energy).  All rights reserved.
 //
@@ -53,7 +53,7 @@
 and
 <A HREF="https://codeforge.lbl.gov/plugins/scmsvn/viewcvs.php/trunk/ChangeLog?root=fastbit&view=markup">ChangeLog</A>.
 
-\Copyright (c) 2000-2015
+\Copyright (c) 2000-2016
 <A HREF="http://www.universityofcalifornia.edu/">University of California</A>
 
 \section intro Introduction
@@ -254,7 +254,7 @@ Send any comments, bug reports, and patches to
 <fastbit-users@hpcrdm.lbl.gov>.
 
 \section Copyright Notice
-FastBit, Copyright (c) 2000-2015, The Regents of the University of California,
+FastBit, Copyright (c) 2000-2016, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy).  All rights reserved.
 
@@ -275,7 +275,7 @@ derivative works, distribute copies to the public, perform publicly and
 display publicly, and to permit others to do so.
 
 \section License
-"FastBit, Copyright (c) 2000-2015, The Regents of the University of
+"FastBit, Copyright (c) 2000-2016, The Regents of the University of
 California, through Lawrence Berkeley National Laboratory (subject to
 receipt of any required approvals from the U.S. Dept. of Energy).  All
 rights reserved."

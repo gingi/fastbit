@@ -1,7 +1,7 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
 //         Lawrence Berkeley National Laboratory
-// Copyright (c) 2001-2015 the Regents of the University of California
+// Copyright (c) 2001-2016 the Regents of the University of California
 //
 /** @file ibis.cpp
 
@@ -202,7 +202,7 @@ static void usage(const char* name) {
 #else
               << "FastBit ibis1.2"
 #endif
-              << ", Copyright (c) 2000-2015\n\nList of options for " << name
+              << ", Copyright (c) 2000-2016\n\nList of options for " << name
               << "\n\t[-a[ppend] data_dir [output_dir / partition_name]]"
         "\n\t[-b[uild-indexes] [numThreads|indexSpec] -z[ap-existing-indexes]]"
         "\n\t[-c[onf] conf_file]"

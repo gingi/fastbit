@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2006-2015 the Regents of the University of California
+// Copyright (c) 2006-2016 the Regents of the University of California
 
 // This file contains the implementation of the class ibis::fuge.  It
 // defines a two-level index where the coarse level use the interval

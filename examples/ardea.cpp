@@ -1,6 +1,6 @@
 // $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright (c) 2007-2015 the Regents of the University of California
+// Copyright (c) 2007-2016 the Regents of the University of California
 
 /// @defgroup FastBitExamples FastBit IBIS example programs.
 /** @file ardea.cpp

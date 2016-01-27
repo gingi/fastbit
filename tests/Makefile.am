@@ -45,8 +45,8 @@ EXTRA_DIST=test0.csv test1.csv maurel.csv marksdb.csv acmpub.csv \
 # tests with different levels of thoroughness
 check: clean-tmp check-am TESTDIR
 	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} >> $(TESTDIR)/std.log 2>&1
-	make really-small check-thula check-tcapi check-text check-marksdb check-maurel check-ibis check-join check-labeling check-js2
-more-check: check
+	make really-small check-thula check-tcapi check-text check-marksdb check-maurel check-ibis check-join check-labeling
+more-check: check check-js2
 	@$(MAKE) setqgen${EXEEXT} jrf${EXEEXT} >> $(TESTDIR)/std.log 2>&1
 	make check-jrf small-tests check-sq0
 full-check: more-check
@@ -71,7 +71,7 @@ check-thula: $(THULAEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t2/t2a/-part.txt $(T
 check-tcapi: $(TCAPIEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/t0/-part.txt
 	@$(TCAPIEXE) $(TESTDIR)/t1/ "a = 0" 2>&1 | if [ `fgrep " produced 2 hits" | wc -l` -eq 1 ] ; then echo Passed $@ case 1; else echo Did NOT pass $@ case 1; fi
 	@$(TCAPIEXE) $(TESTDIR)/t1 "a = b and -2 <= c < 10" 2>&1 | if [ `fgrep " produced 18 hits" | wc -l` -eq 1 ] ; then echo Passed $@ case 2; else echo Did NOT pass $@ case 2; fi
-	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l 2>&1 | tail -1 > $(TESTDIR)/tcapi-3 ; if [ `diff -w vault/tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
+	@$(TCAPIEXE) $(TESTDIR)/t0 "c < 10" a l | tail -1 > $(TESTDIR)/tcapi-3 ; if [ `diff -w vault/tcapi-3 $(TESTDIR)/tcapi-3 | wc -l` -eq 0 ] ; then echo Passed $@ case 3; else echo Did NOT pass $@ case 3; fi
 	@echo
 check-ibis: $(IBISEXE) $(TESTDIR)/t1/-part.txt $(TESTDIR)/rowlist $(TESTDIR)/t2/t2a/-part.txt $(TESTDIR)/t2/t2b/-part.txt $(TESTDIR)/t2/t2c/-part.txt
 	@rm -f $(TESTDIR)/hist0 $(TESTDIR)/hist1 $(TESTDIR)/hist2 $(TESTDIR)/check-ibis.log $(TESTDIR)/check-ibis-12.log
@@ -112,25 +112,25 @@ check-text: $(IBISEXE) smatch${EXEEXT} inRange${EXEEXT} $(TESTDIR)/t0/-part.txt 
 	@perl -pi -e 's/\"//g' $(TESTDIR)/t0-3
 	@fgrep -v 'a, b' $(TESTDIR)/t0-0 | cut -d',' -f1 - > $(TESTDIR)/t0-4
 	@fgrep -v 'a, b' $(TESTDIR)/t0-3 | cut -d',' -f1 - > $(TESTDIR)/t0-5
-	@if [ `diff $(TESTDIR)/t0-4 $(TESTDIR)/t0-5 | fgrep '>' | wc -l` -eq 1 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
+	@if [ `diff -w $(TESTDIR)/t0-4 $(TESTDIR)/t0-5 | fgrep '>' | wc -l` -eq 1 ] ; then echo Passed $@ case 4; else echo Did NOT pass $@ case 4; fi
 	@$(IBISEXE) -d $(TESTDIR)/t0 -q "select count(*), floor(c/10), 10-floor(c/7) as b, max(c) as mx, avg(c) as av where a in ('1', '11', '21') or c < 29 order by b, av desc" -o $(TESTDIR)/text-0 >> $(TESTDIR)/check-text.log 2>&1
 	@if [ `diff -w vault/text-0 $(TESTDIR)/text-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 5; else echo Did NOT pass $@ case 5; fi
 	@if [ `$(IBISEXE) -d $(TESTDIR)/t0 -yank "c < 10" -z -v 2>&1 | fgrep 'doDeletion purgeInactive(t0) returned 90' | wc -l` -eq 1 ] ; then echo Passed $@ case 6; else echo Did NOT pass $@ case 6; fi
 	@if [ "`$(IBISEXE) -d $(TESTDIR)/t0 -q 'select AVG(c) where -3 < c < 20 || a = \"79\"' 2>&1 | fgrep 15`" == "15" ] ; then echo Passed $@ case 7; else echo Did NOT pass $@ case 7; fi
-	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch 2>&1 | fgrep -v std::exception | diff - vault/smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
+	@if [ `./smatch${EXEEXT} $(TESTDIR)/smatch 2>&1 | fgrep -v std::exception | diff -w - vault/smatch-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 8; else echo Did NOT pass $@ case 8; fi
 	@if [ `./inRange${EXEEXT} $(TESTDIR)/inRange 2>&1 | fgrep -v std::exception | diff -w - vault/inRange-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 9; else echo Did NOT pass $@ case 9; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub1 -v -o $(TESTDIR)/acmpub-0 -q "select v, count(*) where v in (VLDB, SIGMOD)" >> $(TESTDIR)/check-text.log 2>&1
-	@if [ `diff $(TESTDIR)/acmpub-0 vault/acmpub-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
+	@if [ `diff -w $(TESTDIR)/acmpub-0 vault/acmpub-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 10; else echo Did NOT pass $@ case 10; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub1 -v -o $(TESTDIR)/acmpub-1 -q "select v where a contains ('Jim Gray', 'J. Ullman')" >> $(TESTDIR)/check-text.log 2>&1
-	@if [ `diff $(TESTDIR)/acmpub-1 vault/acmpub-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
+	@if [ `diff -w $(TESTDIR)/acmpub-1 vault/acmpub-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 11; else echo Did NOT pass $@ case 11; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub1 -v -q "select count(*) as c where t contains 'aggregation' and a contains 'Joseph M. Hellerstein'" -ouput-with-header $(TESTDIR)/acmpub-2 >> $(TESTDIR)/check-text.log 2>&1
-	@if [ `diff $(TESTDIR)/acmpub-2 vault/acmpub-2 | wc -l` -eq 0 ] ; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
+	@if [ `diff -w $(TESTDIR)/acmpub-2 vault/acmpub-2 | wc -l` -eq 0 ] ; then echo Passed $@ case 12; else echo Did NOT pass $@ case 12; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub2 -v -o $(TESTDIR)/acmpub-3 -q "select v, count(*) where v in (VLDB, SIGMOD)" >> $(TESTDIR)/check-text.log 2>&1
-	@if [ `diff $(TESTDIR)/acmpub-3 vault/acmpub-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
+	@if [ `diff -w $(TESTDIR)/acmpub-3 vault/acmpub-0 | wc -l` -eq 0 ] ; then echo Passed $@ case 13; else echo Did NOT pass $@ case 13; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub2 -v -o $(TESTDIR)/acmpub-4 -q "select v where a contains ('Jim Gray', 'J. Ullman')" >> $(TESTDIR)/check-text.log 2>&1
-	@if [ `diff $(TESTDIR)/acmpub-4 vault/acmpub-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
+	@if [ `diff -w $(TESTDIR)/acmpub-4 vault/acmpub-1 | wc -l` -eq 0 ] ; then echo Passed $@ case 14; else echo Did NOT pass $@ case 14; fi
 	@$(IBISEXE) -d $(TESTDIR)/acmpub2 -v -q "select count(*) as c where t contains 'aggregation' and a contains 'Joseph M. Hellerstein'" -ouput-with-header $(TESTDIR)/acmpub-5 >> $(TESTDIR)/check-text.log 2>&1
-	@if [ `diff $(TESTDIR)/acmpub-5 vault/acmpub-2 | wc -l` -eq 0 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
+	@if [ `diff -w $(TESTDIR)/acmpub-5 vault/acmpub-2 | wc -l` -eq 0 ] ; then echo Passed $@ case 15; else echo Did NOT pass $@ case 15; fi
 	@if [ `scripts/printWarning.pl $(TESTDIR)/check-text.log | wc -l` -eq 0 ]; then echo Log file for $@ contains no warning; else echo Log file for $@ contains some warnings, please examine the file $(TESTDIR)/check-text.log; fi
 	@echo
 check-jrf: $(IBISEXE) $(TESTDIR)/jrf/-part.txt
@@ -370,6 +370,7 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	@echo
 # run a set of tests from Jon Strabala on functions dealing with unix time stamps
 check-js2: $(IBISEXE) $(TESTDIR)/js2/-part.txt
+	@echo "*** $@ contains hard-coded constants that are only suitable in Pacific Time Zone of US, where the original developers are located, test output may NOT be meaningful elsewhere ***"
 	@/bin/date >| $(TESTDIR)/$@.log
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_LOCAL('20110426020156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-1 >> $(TESTDIR)/$@.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_GMT('20110426090156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-2 >> $(TESTDIR)/$@.log 2>&1

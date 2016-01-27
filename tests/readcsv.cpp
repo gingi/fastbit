@@ -1,46 +1,55 @@
 // $Id$
 // Author: John Wu <John.Wu@NERSC.gov> Lawrence Berkeley National Laboratory
-// Copyright 2002-2010 the Regents of the University of California
+// Copyright 2002-2016 the Regents of the University of California
 /**   Read Comma-Separated Values.
 
    Command line options:
 
    csv-file-name [output-dir-name]
 
-   This program takes one mandatory argument and one optional argument.
-   The mandatory argument is the name of the file containing
-   Comma-Separated Values.  This must be the first argument.  The second
-   optional argument is the name of the directory to store the output
-   files.  If the second argument is not provided, the directory named
-   'tmp' is used.  The output files includes a file named -part.txt that
-   describes the contain in the rest of the files, and a list data files
-   named after the columns in the input file.  The content of these data
-   files are raw binary values.  If the output directory already contains
-   files, files with the same names will be overwritten.
+   This program takes one mandatory argument (csv-file-name ) and one
+   optional argument (output-dir-name).  The mandatory argument is the name
+   of the file containing Comma-Separated Values.  It must be the first
+   argument.  The second optional argument is the name of the directory to
+   store the output files.  If the second argument is not provided, the
+   output directory will be 'tmp'.  The output files includes a file named
+   -part.txt that describes the content of other files in the directory,
+   and a list data files named after the columns in the input file.  The
+   content of these data files are raw binary values.  If the output
+   directory already contains files, files with the same names will be
+   overwritten.
 
    The input file is expected to have comma-separated values.  Each line is
    to have the same number of fields and fields are separated by comma.
-   The first line of the file must be a list of strings which are the names
-   of the columns.  This first line must be preceeded by '#' or '--' so
-   that it would not be interpreted by other CSV reader as a regular
-   entries.
+   The first line of the file must be a list of strings that are used as
+   the names of the columns.  This first line must be preceeded by '#' or
+   '--' so that it would be treated as comments by other CSV readers.
 
    The values are outputed as raw binary into a set of files, one per
    column.  The type of the columns are determined as follows.
 
    - As each line is read into memory, the type of each column is
      determined.
+
    - Three types are recognized, int, double and string.  The type checking
      follows the order of int, double and string.
+
    - An int must contain only decimal digits with an optional leading +/-
      sign.
+
    - A double contain decimal digits and either a decimal point
      ('.') or one of 'e' or 'E' followed by an integer.
+
    - Any column that is not recognized as an int or a double is treated as
      a string.
-   - Comment lines starting with '#' (shell style comment) or '--'
-     (SQL style comment) may be included in the input CSV file.  These
-     comment lines are skipped.
+
+   - Comment lines starting with '#' (shell style comment) or '--' (SQL
+     style comment) may be included in the input CSV file as comments.
+     These comment lines are skipped.
+
+   *** The type must be determined by the above rules correctly in the
+   *** first row of the values.  If the types are not determined correctly
+   *** in the row, the content of the binary file may be incorrect!
 */
 #include <stdio.h>	// fopen, fgets
 #include <stdlib.h>	// exit
@@ -74,87 +83,88 @@ struct column {
     FILE*	file;	// pointer to output file
 
     // construct a column from a name.
-    column(std::string &n) : name(n), type(INT), lo(1e300), hi(-1e300),
-			     file(0) {};
+    column(std::string &n) :
+        name(n), type(INT), lo(1.79769e308), hi(-1.79769e308), file(0) {};
 };
 
 typedef std::vector<column> cList;
 cList columns;	// a global list of columns
 
-/// Determine the type of the @arg val.  Use only one loop through the string.
-DATA_TYPE determineType(const char* val) {
-    DATA_TYPE type = INT;
-    if (val == 0) return type;
+// /// Determine the type of the @arg val.  Use only one loop through the string.
+// DATA_TYPE determineType(const char* val) {
+//     DATA_TYPE type = INT;
+//     if (val == 0) return type;
 
-    while (*val != 0 && isspace(*val)) ++ val;
-    if (*val == 0) return type;
+//     while (*val != 0 && isspace(*val)) ++ val;
+//     if (*val == 0) return type;
 
-    unsigned len = (isdigit(*val) ? 1 : 0); // input string length
-    if (val[3] == 0 && ((val[0]=='N' || val[0]=='n') &&
-                        (val[1]=='A' || val[1]=='a') &&
-                        (val[2]=='N' || val[2]=='n'))) {
-        return DOUBLE;
-    }
-    else if (val[7] == 0 && ((val[0]=='I' || val[0]=='i') &&
-                             (val[1]=='N' || val[1]=='n') &&
-                             (val[2]=='F' || val[2]=='f') &&
-                             (val[3]=='I' || val[3]=='i') &&
-                             (val[4]=='N' || val[4]=='n') &&
-                             (val[5]=='I' || val[5]=='i') &&
-                             (val[6]=='T' || val[6]=='t'))) {
-        return DOUBLE;
-    }
-    else if (val[8] == 0 && ((val[0]=='+' || val[0]=='-') &&
-                             (val[1]=='I' || val[0]=='i') &&
-                             (val[2]=='N' || val[1]=='n') &&
-                             (val[3]=='F' || val[2]=='f') &&
-                             (val[4]=='I' || val[3]=='i') &&
-                             (val[5]=='N' || val[4]=='n') &&
-                             (val[6]=='I' || val[5]=='i') &&
-                             (val[7]=='T' || val[6]=='t'))) {
-        return DOUBLE;
-    }
-    else if (len == 0 && *val != '-' && *val != '+' && *val != '.') {
-	return STRING;
-    }
+//     unsigned len = (isdigit(*val) ? 1 : 0); // input string length
+//     if (val[3] == 0 && ((val[0]=='N' || val[0]=='n') &&
+//                         (val[1]=='A' || val[1]=='a') &&
+//                         (val[2]=='N' || val[2]=='n'))) {
+//         return DOUBLE;
+//     }
+//     else if (val[7] == 0 && ((val[0]=='I' || val[0]=='i') &&
+//                              (val[1]=='N' || val[1]=='n') &&
+//                              (val[2]=='F' || val[2]=='f') &&
+//                              (val[3]=='I' || val[3]=='i') &&
+//                              (val[4]=='N' || val[4]=='n') &&
+//                              (val[5]=='I' || val[5]=='i') &&
+//                              (val[6]=='T' || val[6]=='t'))) {
+//         return DOUBLE;
+//     }
+//     else if (val[8] == 0 && ((val[0]=='+' || val[0]=='-') &&
+//                              (val[1]=='I' || val[0]=='i') &&
+//                              (val[2]=='N' || val[1]=='n') &&
+//                              (val[3]=='F' || val[2]=='f') &&
+//                              (val[4]=='I' || val[3]=='i') &&
+//                              (val[5]=='N' || val[4]=='n') &&
+//                              (val[6]=='I' || val[5]=='i') &&
+//                              (val[7]=='T' || val[6]=='t'))) {
+//         return DOUBLE;
+//     }
+//     else if (len == 0 && *val != '-' && *val != '+' && *val != '.') {
+// 	return STRING;
+//     }
 
-    bool seenExp = false;
-    for (++ val; *val != 0; ++ val) {
-	++ len;
-	if (isdigit(*val) != 0) {
-	    continue;
-	}
-	else if (type == INT && *val == '.') {
-	    type = DOUBLE;
-	}
-	else if (seenExp == false && (*val == 'e' || *val == 'E')) {
-	    type = DOUBLE;
-	    seenExp = true;
-	    ++ val; // need to check the next character
-	    if (*val == 0) {
-		type = STRING;
-		break;
-	    }
-	    else if (isdigit(*val) == 0 && *val != '-' && *val != '+') {
-		type = STRING;
-		break;
-	    }
-	}
-	else {
-	    type = STRING;
-	    break;
-	}
-    }
+//     bool seenExp = false;
+//     for (++ val; *val != 0; ++ val) {
+// 	++ len;
+// 	if (isdigit(*val) != 0) {
+// 	    continue;
+// 	}
+// 	else if (type == INT && *val == '.') {
+// 	    type = DOUBLE;
+// 	}
+// 	else if (seenExp == false && (*val == 'e' || *val == 'E')) {
+// 	    type = DOUBLE;
+// 	    seenExp = true;
+// 	    ++ val; // need to check the next character
+// 	    if (*val == 0) {
+// 		type = STRING;
+// 		break;
+// 	    }
+// 	    else if (isdigit(*val) == 0 && *val != '-' && *val != '+') {
+// 		type = STRING;
+// 		break;
+// 	    }
+// 	}
+// 	else {
+// 	    type = STRING;
+// 	    break;
+// 	}
+//     }
 
-    if (type == INT) { // the string might be too long for an int
-	len /= sizeof(int);
-	if (len > 4)
-	    type = STRING;
-	else if (len > 2)
-	    type = DOUBLE;
-    }
-    return type;
-} // determineType
+//     if (type == INT) { // the string might be too long for an int
+// 	if (len > 16)
+//             // integers with more than 16 digits are treated as strings
+// 	    type = STRING;
+// 	else if (len > 9)
+//             // integers with more than 9 digits are treated as double
+// 	    type = DOUBLE;
+//     }
+//     return type;
+// } // determineType
 
 /// Attempt to convert the incoming string into an integer.
 /// Return zero (0) if all characters in @arg str are decimal integers and
@@ -312,7 +322,7 @@ int readString(char *&tmp, std::string &str) {
 // Read a line of the input CSV file.
 int readALine(FILE *fptr, char*& buf, unsigned& lbuf, bool skipcomment=true) {
     long start = ftell(fptr); // start position
-    int retry = 0;
+    int retry;
     if (buf == 0) { // allocate a buffer of 1024 characters
 	buf = new char[1024];
 	lbuf = 1024;
@@ -327,7 +337,7 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf, bool skipcomment=true) {
 	char *tmp = fgets(buf, lbuf, fptr);
 	if (feof(fptr)) {
 	    buf[0] = 0;
-	    return -1;
+	    return 0;
 	}
 	if (tmp != buf) {
 	    std::cerr << "readALine failed to read the next line at position "
@@ -343,6 +353,7 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf, bool skipcomment=true) {
 	    return -3;
 	}
 
+        retry = 0;
 	buf[lbuf-1] = 0;
 	unsigned int len = strlen(buf);
 	if (len+1 < lbuf) {
@@ -357,7 +368,7 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf, bool skipcomment=true) {
 	    }
 	}
 	else if (buf[len-1] != '\n' && feof(fptr) == 0 && ferror(fptr) == 0) {
-	    // did not read the while line, double the buffer space
+	    // did not read the whole line, double the buffer space
 	    lbuf <<= 1;
 	    delete [] buf;
 	    buf = new char[lbuf];
@@ -367,13 +378,19 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf, bool skipcomment=true) {
 		return -4;
 	    }
 	    fseek(fptr, start, SEEK_SET);
-	    retry = 1;
+	    retry = 2;
 	}
 	else { // got a line of text in buf
-	    buf[len-1] = 0;
-	    return len;
+	    while (len > 1 && isspace(buf[len-1]) != 0) {
+                buf[len-1] = 0;
+                -- len;
+            }
+            if (len > 0)
+                return len;
+            else
+                retry = 3;
 	}
-    } while (retry != 0);
+    } while (retry > 0);
     return 0;
 } // readALine
 
@@ -519,7 +536,7 @@ int main(int argc, char** argv) {
 	return -4;
     }
 
-    // read the column names, i.e., the first line of the CSV file
+    // read the first line of the CSV file to extract column names
     unsigned lbuf = 10240;
     char *buf = new char[lbuf];
     readColumnNames(fptr, buf, lbuf);

@@ -1,5 +1,5 @@
 // $Id$
-// Copyright (c) 2000-2015 the Regents of the University of California
+// Copyright (c) 2000-2016 the Regents of the University of California
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
 //
@@ -138,11 +138,13 @@ int ibis::util::makeDir(const char* dir) {
 #elif defined(S_IXGRP) && defined(S_IXOTH)
             pmode = pmode | S_IXGRP | S_IXOTH;
 #endif
-            if (mkdir(buf, pmode) == -1 && errno != EEXIST) {
-                ibis::util::logMessage("Warning", "makeDir failed to "
-                                       "create directory \"%s\"", buf);
-                delete [] buf;
-                return -2;
+            if (mkdir(buf, pmode) == -1) {
+                if (errno != EEXIST) { // check errno produced by mkdir
+                    ibis::util::logMessage("Warning", "makeDir failed to "
+                                           "create directory \"%s\"", buf);
+                    delete [] buf;
+                    return -2;
+                }
             }
         }
         if (tmp > cdir) {

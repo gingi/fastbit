@@ -1,6 +1,6 @@
 // File $Id$
 // Author: John Wu <John.Wu at ACM.org> Lawrence Berkeley National Laboratory
-// Copyright (c) 2009-2015 the Regents of the University of California
+// Copyright (c) 2009-2016 the Regents of the University of California
 //
 // Implements ibis::part::get3DBins that returns vector<bitvector*>.
 #include "countQuery.h" // ibis::countQuery

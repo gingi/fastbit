@@ -1,6 +1,6 @@
 //File: $Id$
 // Author: John Wu <John.Wu at ACM.org>
-// Copyright (c) 2009-2015 the Regents of the University of California
+// Copyright (c) 2009-2016 the Regents of the University of California
 ///@file
 /// Define the class ibis::blob.
 #include "blob.h"

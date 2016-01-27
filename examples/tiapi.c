@@ -2,7 +2,7 @@
  File: $Id$
  Author: John Wu <John.Wu at acm.org>
       Lawrence Berkeley National Laboratory
- Copyright (c) 2014-2015 the Regents of the University of California
+ Copyright (c) 2014-2016 the Regents of the University of California
 */
 /**
    @file tiapi.c
@@ -204,17 +204,20 @@ static void queryarray1(size_t n, int16_t *a1, int32_t *a2, double *a3) {
             if (msglvl > 3) {
                 fflush(stdout);
                 printf("fastbit_iapi_deconstruct_index returned nk=%lld, "
-                       "nf=%lld, and nb=%lld\n", nk, nf, nb);
+                       "nf=%lld, and nb=%lld\n", (long long)nk, (long long)nf,
+                       (long long)nb);
                 if (nk==2*(nf-1)) { // binned index
                     for (i = 0; i < nf-1; ++ i) {
                         printf("[%lg, %lg) [%lli, %lli)\n", keys[i],
-                               keys[nf-1+i], offsets[i], offsets[i+1]);
+                               keys[nf-1+i], (long long)offsets[i],
+                               (long long)offsets[i+1]);
                     }
                 }
                 else { // unbinned
                     for (i = 0; i < nf-1; ++ i) {
                         printf("[%lg] [%lli, %lli)\n", keys[i],
-                               offsets[i], offsets[i+1]);
+                               (long long)offsets[i],
+                               (long long)offsets[i+1]);
                     }
                 }
                 fflush(stdout);
@@ -509,17 +512,20 @@ static void queryarray2(size_t n, void *a1, void *a2, double *a3) {
                 if (msglvl > 3) {
                     fflush(stdout);
                     printf("fastbit_iapi_deconstruct_index returned nk=%lld, "
-                           "nf=%lld, and nb=%lld\n", nk, nf, nb);
+                           "nf=%lld, and nb=%lld\n", (long long)nk, (long long)nf,
+                           (long long)nb);
                     if (nk==2*(nf-1)) { // binned index
                         for (i = 0; i < nf-1; ++ i) {
                             printf("[%lg, %lg) [%lli, %lli)\n", keys3[i],
-                                   keys3[nf-1+i], offsets3[i], offsets3[i+1]);
+                                   keys3[nf-1+i], (long long)offsets3[i],
+                                   (long long)offsets3[i+1]);
                         }
                     }
                     else { // unbinned
                         for (i = 0; i < nf-1; ++ i) {
                             printf("[%lg] [%lli, %lli)\n", keys3[i],
-                                   offsets3[i], offsets3[i+1]);
+                                   (long long)offsets3[i],
+                                   (long long)offsets3[i+1]);
                         }
                     }
                     fflush(stdout);

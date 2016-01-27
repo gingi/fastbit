@@ -1,3 +1,13 @@
+2016-01-26 John Wu <John dot Wu at ACM dot org>
+	* contrib/fbmerge/fbmerge.cpp: include <unistd.h> for getopt
+	* tests/Makefile.am: add flag -w to diff commands to ignore white
+	spaces in comparisons
+	* tests/readcsv.cpp: represent long integers as double or string
+	based on the number of digits (characters) used, previous version
+	was relative to sizeof(int)
+	* src/*: update copyright year
+	* tests/readcsv.cpp: attempt to skip line of spaces in readALine
+
 2016-01-25 John Wu <John dot Wu at ACM dot org>
 	* src/util.h: remove throw statement from destructor of writeLock
 	* runconfig: update command to be used on MinGW (with correctly

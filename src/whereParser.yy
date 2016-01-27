@@ -1,7 +1,7 @@
 /* $Id$ -*- mode: c++ -*- */
 // Author: John Wu <John.Wu at acm.org>
 //      Lawrence Berkeley National Laboratory
-// Copyright (c) 2007-2015 the Regents of the University of California
+// Copyright (c) 2007-2016 the Regents of the University of California
 
 %code top {
 /** \file Defines the parser for the where clause accepted by FastBit IBIS.

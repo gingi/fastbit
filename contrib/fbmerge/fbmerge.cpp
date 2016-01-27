@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h> // getopt
 
 #include <memory>
 
@@ -90,7 +91,7 @@ int mergeDir(char *input_dir, char *output_dir) {
 
 	switch(c->elementSize()) {
 	case 1: {
-	    std::auto_ptr< ibis::array_t<unsigned char> >
+	    std::unique_ptr< ibis::array_t<unsigned char> >
 		tmp(part.selectUBytes(c->name(), *bv));
 	    s8 = tmp->begin();
 	    if (dump_mode) {
@@ -105,7 +106,7 @@ int mergeDir(char *input_dir, char *output_dir) {
 	    }
 	    break;}
 	case 2: {
-	    std::auto_ptr< ibis::array_t<uint16_t> >
+	    std::unique_ptr< ibis::array_t<uint16_t> >
 		tmp(part.selectUShorts(c->name(), *bv));
 	    s16 = tmp->begin();
 	    if (dump_mode) {
@@ -120,7 +121,7 @@ int mergeDir(char *input_dir, char *output_dir) {
 	    }
 	    break;}
 	case 4: {
-	    std::auto_ptr< ibis::array_t<uint32_t> >
+	    std::unique_ptr< ibis::array_t<uint32_t> >
 		tmp(part.selectUInts(c->name(), *bv));
 	    s32 = tmp->begin(); 
 	    if (dump_mode) {
@@ -135,7 +136,7 @@ int mergeDir(char *input_dir, char *output_dir) {
 	    }
 	    break;}
 	case 8: {
-	    std::auto_ptr< ibis::array_t<uint64_t> >
+	    std::unique_ptr< ibis::array_t<uint64_t> >
 		tmp(part.selectULongs(c->name(), *bv));
 	    s64 = tmp->begin();
 	    if (dump_mode) {
