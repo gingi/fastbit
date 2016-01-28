@@ -730,8 +730,8 @@ uninstall-am:
 # tests with different levels of thoroughness
 check: clean-tmp check-am TESTDIR
 	@$(MAKE) readcsv$(EXEEXT) smatch${EXEEXT} inRange${EXEEXT} >> $(TESTDIR)/std.log 2>&1
-	make really-small check-thula check-tcapi check-text check-marksdb check-maurel check-ibis check-join check-labeling check-js2
-more-check: check
+	make really-small check-thula check-tcapi check-text check-marksdb check-maurel check-ibis check-join check-labeling
+more-check: check check-js2
 	@$(MAKE) setqgen${EXEEXT} jrf${EXEEXT} >> $(TESTDIR)/std.log 2>&1
 	make check-jrf small-tests check-sq0
 full-check: more-check
@@ -1043,6 +1043,7 @@ multilevel: scripts/matchCounts.pl scripts/query-count.list $(IBISEXE) $(TESTDIR
 	@echo
 # run a set of tests from Jon Strabala on functions dealing with unix time stamps
 check-js2: $(IBISEXE) $(TESTDIR)/js2/-part.txt
+	@echo "*** $@ contains hard-coded constants that are only suitable in Pacific Time Zone of US, where the original developers are located, test output may NOT be meaningful elsewhere ***"
 	@/bin/date >| $(TESTDIR)/$@.log
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_LOCAL('20110426020156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-1 >> $(TESTDIR)/$@.log 2>&1
 	@$(IBISEXE) -d $(TESTDIR)/js2 -v -q "select id, t, FORMAT_UNIXTIME_LOCAL(t,'%Y%m%d%H%M%S') where ( s > 0 ) and t = TO_UNIXTIME_GMT('20110426090156','%Y%m%d%H%M%S') order by t ASC" -o $(TESTDIR)/js2-2 >> $(TESTDIR)/$@.log 2>&1

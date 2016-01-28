@@ -16,14 +16,14 @@
 }
 
 /* bison declarations */
-%require "2.3"
+%require "2.7"
 %debug
 %error-verbose
 %start START
 %defines
 %skeleton "lalr1.cc"
-%name-prefix="ibis"
-%define "parser_class_name" "whereParser"
+%define api.namespace {ibis}
+%define parser_class_name {whereParser}
 %locations
      /*%expect 1*/
 %initial-action

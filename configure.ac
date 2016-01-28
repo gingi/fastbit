@@ -4,7 +4,7 @@ AC_COPYRIGHT((c) the Regents of the University of California)
 AC_REVISION($Revision$)
 AC_PREREQ(2.59)
 
-AC_INIT([FastBit], [2.0.2.7], [fastbit-users@hpcrdm.lbl.gov])
+AC_INIT([FastBit], [2.0.2.8], [fastbit-users@hpcrdm.lbl.gov])
 #AC_PACKAGE_URL(http://sdm.lbl.gov/fastbit/)
 AC_CONFIG_MACRO_DIR([tests/m4])
 AC_CONFIG_SRCDIR([src/index.cpp])
@@ -611,6 +611,7 @@ else
 fi
 rm -f util.o
 
+if test -s src/whereLexer.cc; then
 # make sure FlexLexer.h defines yywrap
 #AC_CHECK_HEADER([FlexLexer.h], [], [AC_MSG_ERROR([unable to find FlexLexer.h])])
 AC_MSG_CHECKING([if the default FlexLexer.h defines yywrap])
@@ -641,6 +642,7 @@ else
   fi
 fi
 rm -f whereLexer.o
+fi
 
 # check for java include directory
 AC_DEFUN([AC_JNI_INCLUDE_DIR],[
