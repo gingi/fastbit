@@ -337,7 +337,7 @@ int readALine(FILE *fptr, char*& buf, unsigned& lbuf, bool skipcomment=true) {
 	char *tmp = fgets(buf, lbuf, fptr);
 	if (feof(fptr)) {
 	    buf[0] = 0;
-	    return 0;
+	    return -1;
 	}
 	if (tmp != buf) {
 	    std::cerr << "readALine failed to read the next line at position "

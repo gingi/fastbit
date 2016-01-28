@@ -8482,7 +8482,7 @@ long ibis::part::doCompare(const char* file,
     if (ibis::gVerbose > 3) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
              << " from file \"" << file << "\" took "
@@ -8718,7 +8718,7 @@ long ibis::part::doCompare(const char* file,
     if (ibis::gVerbose > 3) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
              << " from file \"" << file << "\" took "
@@ -8964,7 +8964,7 @@ long ibis::part::doCompare(const char* file,
     if (ibis::gVerbose > 3) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
              << " from file \"" << file << "\" took "
@@ -9086,7 +9086,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     if (ibis::gVerbose > 3 && ierr >= 0) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of a "
              << typeid(T).name() << "-array[" << array.size()
@@ -9203,7 +9203,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     if (ibis::gVerbose > 3 && ierr >= 0) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of a "
              << typeid(T).name() << "-array[" << array.size()
@@ -9318,7 +9318,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     if (ibis::gVerbose > 3 && ierr >= 0) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of a "
              << typeid(T).name() << "-array[" << array.size()
@@ -9395,7 +9395,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     if (ibis::gVerbose > 3 && ierr >= 0) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::negativeCompare -- performing comparison with column "
+        lg() << "part::negativeCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt()<< " element"
              << (mask.cnt() > 1 ? "s" : "") << " of a "
              << typeid(T).name() << "-array[" << array.size()
@@ -9632,7 +9632,7 @@ long ibis::part::negativeCompare(const char* file,
             timer.stop();
             ierr = hits.cnt();
             ibis::util::logger lg;
-            lg() << "part::negativeCompare -- performing comparison with column "
+            lg() << "part::negativeCompare -- comparison with column "
                  << cmp.colName() << " on " << mask.cnt() << ' '
                  << typeid(T).name() << "s from file \"" << file << "\" took "
                  << timer.realTime() << " sec elapsed time and produced "
@@ -9760,7 +9760,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     if (ierr >= 0 && ibis::gVerbose > 3) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of a "
              << typeid(T).name() << "-array[" << array.size()
@@ -10001,7 +10001,7 @@ long ibis::part::doCompare(const char* file,
         timer.stop();
         ierr = hits.cnt();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
              << " from file \"" << file << "\" took "
@@ -10085,7 +10085,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     if (ierr >= 0 && ibis::gVerbose > 3) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::negativeCompare -- performing comparison with column "
+        lg() << "part::negativeCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt()<< " element"
              << (mask.cnt() > 1 ? "s" : "") << " of a "
              << typeid(T).name() << "-array[" << array.size()
@@ -10325,7 +10325,7 @@ long ibis::part::negativeCompare(const char* file,
             timer.stop();
             ierr = hits.cnt();
             ibis::util::logger lg;
-            lg() << "part::negativeCompare -- performing comparison with column "
+            lg() << "part::negativeCompare -- comparison with column "
                 << cmp.colName() << " on " << mask.cnt() << ' '
                  << typeid(T).name() << "s from file \"" << file << "\" took "
                  << timer.realTime() << " sec elapsed time and produced "
@@ -10453,7 +10453,7 @@ long ibis::part::doCompare(const array_t<T> &array,
     if (ierr >= 0 && ibis::gVerbose > 3) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::doCompare -- performing comparison with column "
+        lg() << "part::doCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt() << " element"
              << (mask.cnt() > 1 ? "s" : "") << " of a "
              << typeid(T).name() << "-array[" << array.size()
@@ -10693,7 +10693,7 @@ long ibis::part::doCompare(const char* file,
             timer.stop();
             ierr = hits.cnt();
             ibis::util::logger lg;
-            lg() << "part::doCompare -- performing comparison with column "
+            lg() << "part::doCompare -- comparison with column "
                  << cmp.colName() << " on " << mask.cnt() << " element"
                  << (mask.cnt() > 1 ? "s" : "") << " of " << typeid(T).name()
                  << " from file \"" << file << "\" took "
@@ -10776,7 +10776,7 @@ long ibis::part::negativeCompare(const array_t<T> &array,
     if (ibis::gVerbose > 3 && ierr >= 0) {
         timer.stop();
         ibis::util::logger lg;
-        lg() << "part::negativeCompare -- performing comparison with column "
+        lg() << "part::negativeCompare -- comparison with column "
              << cmp.colName() << " on " << mask.cnt()<< " element"
              << (mask.cnt() > 1 ? "s" : "") << " of a "
              << typeid(T).name() << "-array[" << array.size()
@@ -11013,7 +11013,7 @@ long ibis::part::negativeCompare(const char* file,
             timer.stop();
             ierr = hits.cnt();
             ibis::util::logger lg;
-            lg() << "part::negativeCompare -- performing comparison with column "
+            lg() << "part::negativeCompare -- comparison with column "
                  << cmp.colName() << " on " << mask.cnt() << ' '
                  << typeid(T).name() << "s from file \"" << file << "\" took "
                  << timer.realTime() << " sec elapsed time and produced "
@@ -11182,10 +11182,14 @@ long ibis::part::doScan(const array_t<T> &vals,
                 if (uncomp)
                     ierr = doComp0
                         (vals,
-                         std::bind1st<std::less<T> >
-                         (std::less<T>(), leftBound),
-                         std::bind2nd<std::less<T> >
-                         (std::less<T>(), rightBound),
+                         std::bind
+                         (std::less<T>(), leftBound, std::placeholders::_1),
+                         // std::bind1st<std::less<T> >
+                         // (std::less<T>(), leftBound),
+                         std::bind
+                         (std::less<T>(), std::placeholders::_1, rightBound),
+                         // std::bind2nd<std::less<T> >
+                         // (std::less<T>(), rightBound),
                          mask, hits);
                 else
                     ierr = doComp

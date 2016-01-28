@@ -4,6 +4,7 @@
 	require bison version 2.7 and newer, use define api.namespace (the
 	default flex and bison coming with Mac OS X is too old, the
 	versions from macPorts have deprecated the previous macros used)
+	* tests/readcsv.cpp: return -1 from readALine instead of 0
 
 2016-01-26 John Wu <John dot Wu at ACM dot org>
 	* contrib/fbmerge/fbmerge.cpp: include <unistd.h> for getopt
