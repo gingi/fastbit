@@ -1,7 +1,9 @@
 2016-01-27 John Wu <John dot Wu at ACM dot org>
 	* win/FlexLexer.h: use the new version from macPorts for flex 3.0
 	* src/fromParser.yy, src/selectParser.yy, src/whereParser.yy:
-	require bison version 2.7 and newer, use define api.namespace
+	require bison version 2.7 and newer, use define api.namespace (the
+	default flex and bison coming with Mac OS X is too old, the
+	versions from macPorts have deprecated the previous macros used)
 
 2016-01-26 John Wu <John dot Wu at ACM dot org>
 	* contrib/fbmerge/fbmerge.cpp: include <unistd.h> for getopt
