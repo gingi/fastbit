@@ -404,13 +404,13 @@ check-sq0: $(THULAEXE) $(IBISEXE) $(TESTDIR)/sq0 $(TESTDIR)/smallmem1.rc $(TESTD
 #	@$(THULAEXE) -c $(TESTDIR)/smallmem2.rc -d $(TESTDIR)/sq0 -v -t 100 >> $(TESTDIR)/$@.log 2>&1
 $(TESTDIR)/sq0: setqgen$(EXEEXT) TESTDIR
 	@test -d $(TESTDIR)/sq0 || ./setqgen$(EXEEXT) $(TESTDIR)/sq0 1.6e6 7e5 >| $(TESTDIR)/check-sq0.log 2>&1
-# testing with enough rows to fill a 1.6GB memory cache, completing this
-# set of tests might take a couple of hours on a typical machine with at
-# least 4GB of memory.  More memory will typlically reduce the test
-# time, because most of the command lines contains configuration that
-# limits the memory it will use.  The number of rows in the test data is
-# about 25 million.  This test dataset is large enough that it has to be
-# run with one a single thread with smallmem1.rc.
+# this test suite has enough rows to fill a 1.6GB memory cache,
+# completing it might take a couple of hours on a typical PC with at
+# least 4GB of memory.  The number of rows in the test data is about 25
+# million.  More memory will NOT typlically reduce the test time,
+# because most of the command lines contain configurations that limit
+# the memory usage.  The memory limitations are stringent enough to
+# cause instances of query processing to fail.
 check-sq1: $(THULAEXE) $(IBISEXE) $(TESTDIR)/sq1 $(TESTDIR)/smallmem1.rc $(TESTDIR)/smallmem2.rc $(TESTDIR)/smallmem3.rc
 	@$(IBISEXE) -d $(TESTDIR)/sq1 -v -thr 5 -t 100 >> $(TESTDIR)/$@.log 2>&1
 	@$(IBISEXE) -c $(TESTDIR)/smallmem3.rc -d $(TESTDIR)/sq1 -v -thr 3 -t 100 >> $(TESTDIR)/$@.log 2>&1

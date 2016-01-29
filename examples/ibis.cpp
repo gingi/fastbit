@@ -2055,6 +2055,7 @@ static void parse_args(int argc, char** argv, int& mode,
     qlist.clear(); // list of query strings
     slist.clear(); // list of sort request
 
+    bool printargs = true;
     const char* defaultIndexing = 0;
     int accessIndexInWhole = 0;
     std::vector<const char*> confs; // name of the configuration files
@@ -2423,6 +2424,20 @@ static void parse_args(int argc, char** argv, int& mode,
                 }
                 else { // override previous values
                     ibis::gVerbose = strtol(++ptr, 0, 0);
+                }
+                if (ibis::gVerbose > 0 && printargs) {
+                    printargs = false;
+                    std::cerr << std::endl << argv[0];
+                    for (int ii = 1; ii < argc; ++ ii) {
+                        std::cerr << ' ';
+                        if (*argv[ii] != '-' && 0 == isdigit(*argv[ii])) {
+                            std::cerr << '"' << argv[ii] << '"';
+                        }
+                        else {
+                            std::cerr << argv[ii];
+                        }
+                    }
+                    std::cerr << std::endl;
                 }
                 break;}
             case 'y':

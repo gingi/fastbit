@@ -651,6 +651,8 @@ ibis::table* ibis::filter::sift0(const ibis::selectClause  &tms,
             << "Warning -- " << mesg << " failed to append " << msk.cnt()
             << " row" << (msk.cnt() > 1 ? "s" : "") << " from "
             << (*it)->name() << ", ierr = " << ierr;
+        if (ierr < 0)
+            return 0; // failed to process this partition
     }
 
     if (brd1.get() == 0) return 0;
@@ -807,7 +809,7 @@ ibis::table* ibis::filter::sift0S(const ibis::selectClause  &tms,
                 << "Warning -- " << mesg << " failed to append " << msk.cnt()
                 << " row" << (msk.cnt() > 1 ? "s" : "") << " from "
                 << (*it)->name() << ", ierr = " << ierr;
-            continue;
+            return 0;
         }
         if (ierr > 0) {
             std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
@@ -1045,6 +1047,8 @@ ibis::table* ibis::filter::sift1(const ibis::selectClause  &tms,
         LOGGER(ierr < 0 && ibis::gVerbose > 0)
             << "Warning -- " << mesg << " failed to append rows satisfying "
             << cond << " from " << (*it)->name() << ", ierr = " << ierr;
+        if (ierr < 0)
+            return 0;
     }
 
     if (brd1.get() == 0) return 0;
@@ -1195,7 +1199,7 @@ ibis::table* ibis::filter::sift1S(const ibis::selectClause  &tms,
             LOGGER(ibis::gVerbose > 0)
                 << "Warning -- " << mesg << " failed to append rows satisfying "
                 << cond << " from " << (*it)->name() << ", ierr = " << ierr;
-            continue;
+            return 0;
         }
         if (ierr > 0) {
             std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
@@ -1802,6 +1806,8 @@ ibis::table* ibis::filter::sift2(const ibis::selectClause        &tms,
             << "Warning -- " << mesg << " failed to append " << hv->cnt()
             << " row" << (hv->cnt() > 1 ? "s" : "") << " from "
             << plist[j]->name() << ", ierr = " << ierr;
+        if (ierr < 0)
+            return 0;
     }
 
     if (brd1.get() == 0) return 0;
@@ -1987,7 +1993,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause  &tms,
                 << "Warning -- " << mesg << " failed to append " << hits->cnt()
                 << " row" << (hits->cnt() > 1 ? "s" : "") << " from "
                 << (*it)->name() << ", ierr = " << ierr;
-            continue;
+            return 0;
         }
         if (ierr > 0) {
             std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
@@ -2222,7 +2228,7 @@ ibis::table* ibis::filter::sift2S
                 << "Warning -- " << mesg << " failed to append " << hv->cnt()
                 << " row" << (hv->cnt() > 1 ? "s" : "") << " from "
                 << plist[j]->name() << ", ierr = " << ierr;
-            continue;
+            return 0;
         }
         if (ierr > 0) {
             std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));
@@ -2514,7 +2520,7 @@ ibis::table* ibis::filter::sift2S(const ibis::selectClause        &tms,
                 << "Warning -- " << mesg << " failed to append " << hv->cnt()
                 << " row" << (hv->cnt() > 1 ? "s" : "") << " from "
                 << plist[j]->name() << ", ierr = " << ierr;
-            continue;
+            return 0;
         }
         if (ierr > 0) {
             std::unique_ptr<ibis::bord> tmp(ibis::bord::groupbya(*brd1, tms));

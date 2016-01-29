@@ -1,3 +1,17 @@
+2016-01-29 John Wu <John dot Wu at ACM dot org>
+	* src/util.cpp: in util::readDouble check the length of the string
+	before comparing against the constants
+	* src/part.cpp: throw exception rather than return a negative
+	error code after failing to allocate memory
+
+2016-01-28 John Wu <John dot Wu at ACM dot org>
+	* examples/thula.cpp: add statements to print out the command line
+	arguments to aid debugging of trouble reported by check-sq2
+	* src/fileManager.cpp, src/bundle.cpp: change all message prefix
+	"Error" to "Warning"
+	* src/bundle.cpp: in bundles::sort check every column for the
+	minimum number of rows
+
 2016-01-27 John Wu <John dot Wu at ACM dot org>
 	* win/FlexLexer.h: use the new version from macPorts for flex 3.0
 	* src/fromParser.yy, src/selectParser.yy, src/whereParser.yy:

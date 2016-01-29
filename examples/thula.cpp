@@ -88,11 +88,12 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
     ibis::gVerbose += 3;
 #endif
 #endif
-    std::vector<const char*> dirs;
 
     sel = 0;
     frm = 0;
     ord = 0;
+    bool printargs = true;
+    std::vector<const char*> dirs;
     for (int i=1; i<argc; ++i) {
         if (*argv[i] == '-') { // normal arguments starting with -
             switch (argv[i][1]) {
@@ -179,6 +180,20 @@ static void parse_args(int argc, char** argv, ibis::table*& tbl,
                 }
                 else {
                     ibis::gVerbose += strtol(++ptr, 0, 0);
+                }
+                if (ibis::gVerbose > 0 && printargs) {
+                    printargs = false;
+                    std::cerr << std::endl << argv[0];
+                    for (int ii = 1; ii < argc; ++ ii) {
+                        std::cerr << ' ';
+                        if (*argv[ii] != '-' && 0 == isdigit(*argv[ii])) {
+                            std::cerr << '"' << argv[ii] << '"';
+                        }
+                        else {
+                            std::cerr << argv[ii];
+                        }
+                    }
+                    std::cerr << std::endl;
                 }
                 break;}
             case 't':

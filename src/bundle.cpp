@@ -183,8 +183,8 @@ const ibis::RIDSet* ibis::bundle::readRIDs(const char* dir,
     uint32_t len = std::strlen(dir);
     if (len+8 >= PATH_MAX) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundle::readRIDs -- argument dir (" << dir
-            << ") too long";
+            << "Warning -- bundle::readRIDs -- argument dir (" << dir
+            << ") too long" IBIS_FILE_LINE;
         throw "bundle::readRIDs -- argument dir too long" IBIS_FILE_LINE;
     }
 
@@ -394,8 +394,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
     }
     if (comps.empty()) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundle1 can not continue with an empty "
-            "select clause";
+            << "Warning -- bundle1 can not continue with an empty "
+            "select clause" IBIS_FILE_LINE;
         throw "bundle1 can not work with empty select clauses" IBIS_FILE_LINE;
     }
     LOGGER(comps.aggSize() != 1 && ibis::gVerbose > 0)
@@ -425,8 +425,8 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
                 ibis::fileManager::instance().getFile(bdlfile, &bdlstore);
             if (ierr != 0) {
                 LOGGER(ibis::gVerbose >= 0)
-                    << "Error -- bundle1::ctor failed to retrieve bundle file "
-                    << bdlfile;
+                    << "Warning -- bundle1::ctor failed to retrieve bundle "
+                    "file " << bdlfile << IBIS_FILE_LINE;
                 throw ibis::bad_alloc("failed to retrieve bundle file"
                                       IBIS_FILE_LINE);
             }
@@ -521,9 +521,9 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
                 }
                 if (col->size() != hits->cnt()) {
                     LOGGER(ibis::gVerbose >= 0)
-                        << "Error -- bundle1::ctor got " << col->size()
+                        << "Warning -- bundle1::ctor got " << col->size()
                         << " value" << (col->size()>1?"s":"")
-                        << " but expected " << hits->cnt();
+                        << " but expected " << hits->cnt() << IBIS_FILE_LINE;
                     delete col;
                     col = 0;
                     throw ibis::bad_alloc("incorrect number of bundles"
@@ -550,7 +550,7 @@ ibis::bundle1::bundle1(const ibis::query& q, int dir)
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundle1::ctor received an exception, freeing col"
+            << "Warning -- bundle1::ctor received an exception, freeing col"
             IBIS_FILE_LINE;
         delete col;
         throw; // rethrow the exception
@@ -611,10 +611,10 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
             }
             if (col->size() != hits.cnt()) {
                 LOGGER(ibis::gVerbose >= 0)
-                    << "Error -- bundle1::ctor got "
+                    << "Warning -- bundle1::ctor got "
                     << col->size() << " value"
                     << (col->size()>1?"s":"") << ", but expected "
-                    << hits.cnt();
+                    << hits.cnt() << IBIS_FILE_LINE;
                 delete col;
                 col = 0;
                 throw ibis::bad_alloc("incorrect number of bundles"
@@ -623,8 +623,9 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
         }
         else {
             LOGGER(ibis::gVerbose >= 0)
-                << "Error -- bundle1::ctor name \"" << comps.aggName(0)
-                << "\" is not a column in table " << tbl->name();
+                << "Warning -- bundle1::ctor name \"" << comps.aggName(0)
+                << "\" is not a column in table " << tbl->name()
+                << IBIS_FILE_LINE;
             throw ibis::bad_alloc("not a valid column name" IBIS_FILE_LINE);
         }
         sort(dir);
@@ -646,7 +647,7 @@ ibis::bundle1::bundle1(const ibis::query& q, const ibis::bitvector& hits,
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundle1::ctor received an exception, freeing col"
+            << "Warning -- bundle1::ctor received an exception, freeing col"
             IBIS_FILE_LINE;
         delete col;
         throw; // rethrow the exception
@@ -675,8 +676,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
     }
     if (tm == 0 || icol >= comps.aggSize()) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundle1::ctor failed to locate a valid column "
-            "name in " << comps;
+            << "Warning -- bundle1::ctor failed to locate a valid column "
+            "name in " << comps << IBIS_FILE_LINE;
         throw "bundle1::ctor can not find a column name" IBIS_FILE_LINE;
     }
 
@@ -688,8 +689,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
         c = tbl.getColumn(comps.aggName(icol));
     if (c == 0) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundle1 constructor failed to find column "
-            << comps.aggName(icol) << " in " << tbl.name();
+            << "Warning -- bundle1 constructor failed to find column "
+            << comps.aggName(icol) << " in " << tbl.name() << IBIS_FILE_LINE;
         throw "bundle1::ctor can find the named column" IBIS_FILE_LINE;
     }
 
@@ -733,8 +734,8 @@ ibis::bundle1::bundle1(const ibis::part& tbl, const ibis::selectClause& cmps,
 
         if (col == 0) {
             LOGGER(ibis::gVerbose >= 0)
-                << "Error -- bundle1::ctor failed to create an in-memory "
-                "representation for " << *comps;
+                << "Warning -- bundle1::ctor failed to create an in-memory "
+                "representation for " << *comps << IBIS_FILE_LINE;
             throw "bundle1::ctor failed to create a bundle" IBIS_FILE_LINE;
         }
         else if (ibis::gVerbose > 5) {
@@ -1198,8 +1199,8 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
                 ibis::fileManager::instance().getFile(bdlfile, &bdlstore);
             if (ierr != 0) {
                 LOGGER(ibis::gVerbose >= 0)
-                    << "Error -- bundles::ctor failed to retrieve bundle file "
-                    << bdlfile;
+                    << "Warning -- bundles::ctor failed to retrieve bundle "
+                    "file " << bdlfile << IBIS_FILE_LINE;
                 throw ibis::bad_alloc("failed to retrieve bundle file"
                                       IBIS_FILE_LINE);
             }
@@ -1252,9 +1253,9 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
                     }
                     else {
                         LOGGER(ibis::gVerbose >= 0)
-                            << "Error -- bundles::ctor \"" << comps.aggName(i)
+                            << "Warning -- bundles::ctor \"" << comps.aggName(i)
                             << "\" is not the name of a column in table "
-                            << tbl->name();
+                            << tbl->name() << IBIS_FILE_LINE;
                         throw ibis::bad_alloc("unknown column name"
                                               IBIS_FILE_LINE);
                     }
@@ -1285,9 +1286,9 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
             }
             else {
                 LOGGER(ibis::gVerbose >= 0)
-                    << "Error -- bundles::ctor -- query " << q.id()
+                    << "Warning -- bundles::ctor -- query " << q.id()
                     << " contains an invalid hit vector, call the function "
-                    "evaluate to generate a valid hit vector";
+                    "evaluate to generate a valid hit vector" IBIS_FILE_LINE;
                 throw ibis::bad_alloc("bundles::ctor -- no hit vector");
             }
             for (uint32_t i=0; i < ncol; ++i) {
@@ -1323,9 +1324,9 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
                 }
                 else {
                     LOGGER(ibis::gVerbose >= 0)
-                        << "Error -- bundles::ctor \"" << comps.aggName(i)
+                        << "Warning -- bundles::ctor \"" << comps.aggName(i)
                         << "\" is not the name of a column in table "
-                        << tbl->name();
+                        << tbl->name() << IBIS_FILE_LINE;
                     throw ibis::bad_alloc("unknown column name" IBIS_FILE_LINE);
                 }
             }
@@ -1351,8 +1352,8 @@ ibis::bundles::bundles(const ibis::query& q, int dir) : bundle(q) {
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundles::ctor received an exception, "
-            "start cleaning up";
+            << "Warning -- bundles::ctor received an exception, "
+            "start cleaning up" IBIS_FILE_LINE;
         clear();
         throw; // rethrow the exception
     }
@@ -1402,9 +1403,9 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits,
             }
             else {
                 LOGGER(ibis::gVerbose >= 0)
-                    << "Error -- bundles::ctr \"" << comps.aggExpr(i)
+                    << "Warning -- bundles::ctr \"" << comps.aggExpr(i)
                     << "\" is not the name of a column in table "
-                    << tbl->name();
+                    << tbl->name() << IBIS_FILE_LINE;
                 throw ibis::bad_alloc("unknown column name" IBIS_FILE_LINE);
             }
         }
@@ -1435,8 +1436,8 @@ ibis::bundles::bundles(const ibis::query& q, const ibis::bitvector& hits,
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundles::ctor received an exception, "
-            "start cleaning up";
+            << "Warning -- bundles::ctor received an exception, "
+            "start cleaning up" IBIS_FILE_LINE;
         clear();
         throw; // rethrow the exception
     }
@@ -1521,8 +1522,8 @@ ibis::bundles::bundles(const ibis::part& tbl, const ibis::selectClause& cmps,
     }
     catch (...) {
         LOGGER(ibis::gVerbose >= 0)
-            << "Error -- bundles::ctor received an exception, "
-            "start cleaning up";
+            << "Warning -- bundles::ctor received an exception, "
+            "start cleaning up" IBIS_FILE_LINE;
         clear();
         throw; // rethrow the exception
     }
@@ -1643,9 +1644,25 @@ void ibis::bundles::sort(int dir) {
     const uint32_t ncol = cols.size();
     if (ncol == 0) return;
 
+    uint32_t nGroups = 0xFFFFFFFFU; // temporarily store the number of rows
+    for (uint32_t i = 0; i < ncol; ++ i) {
+        if (cols[i] != 0) {
+            if (cols[i]->size() < nGroups)
+                nGroups = cols[i]->size();
+        }
+        else {
+            nGroups = 0;
+        }
+    }
     const uint32_t nplain = comps.numGroupbyKeys();
-    const uint32_t nHits = (cols[0] != 0 ? cols[0]->size() : 0);
-    uint32_t nGroups = nHits;
+    const uint32_t nHits = nGroups;
+    for (uint32_t i = 0; i < ncol; ++ i) {
+        if (cols[i] != 0) {
+            const uint32_t sz = cols[i]->size();
+            if (sz > nHits)
+                cols[i]->erase(nHits, sz);
+        }
+    }
     if (ibis::gVerbose > 5) {
         ibis::util::logger lg;
         lg() << "bundles[" << id << "]::sort starting with "
@@ -1684,7 +1701,8 @@ void ibis::bundles::sort(int dir) {
             LOGGER(ibis::gVerbose >= 0)
                 << "Warning -- bundles::sort failed to sort and segment "
                 "the values of " << cols[0]->name() << " ("
-                << ibis::TYPESTRING[static_cast<int>(cols[0]->getType())] << ")";
+                << ibis::TYPESTRING[static_cast<int>(cols[0]->getType())]
+                << ")";
             return;
         }
 
@@ -1756,7 +1774,8 @@ void ibis::bundles::sort(int dir) {
             LOGGER(ibis::gVerbose >= 0)
                 << "Warning -- bundles::sort failed to sort and segment "
                 "the values of " << cols[0]->name() << " ("
-                << ibis::TYPESTRING[static_cast<int>(cols[0]->getType())] << ")";
+                << ibis::TYPESTRING[static_cast<int>(cols[0]->getType())]
+                << ")";
             return;
         }
         nGroups = starts->size() - 1;
