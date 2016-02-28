@@ -5296,6 +5296,10 @@ int main(int argc, char** argv) {
             ibis::util::counter taskpool;
             thArg args(uid, qlist, taskpool);
             std::vector<pthread_t> tid(nth);
+            LOGGER(ibis::gVerbose > 1)
+                << *argv << " will process " << qlist.size() << " quer"
+                << (qlist.size()>1?"ies":"y") << " using " << nth+1 << " thread"
+                << (nth>0?"s":"");
             for (int i = 0; i < nth; ++ i) { //
                 int ierr = pthread_create(&(tid[i]), 0, thFun, (void*)&args);
                 if (ierr != 0) {
@@ -5305,7 +5309,7 @@ int main(int argc, char** argv) {
                     return(-5);
                 }
             }
-            thFun((void*)&args); // this thread do something too
+            thFun((void*)&args); // this thread does something too
             for (int i = 0; i < nth; ++ i) {
                 void *status;
                 int ierr = pthread_join(tid[i], (void**)&status);

@@ -349,9 +349,10 @@ ibis::table* ibis::filter::select() const {
             ibis::util::logger lg;
             lg() << "Warning -- filter::select absorbed a bad_alloc ("
                  << e.what() << "), will return a nil pointer";
-            if (ibis::gVerbose > 0)
+            if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const std::exception &e) {
         if (ibis::gVerbose >= 0) {
@@ -361,6 +362,7 @@ ibis::table* ibis::filter::select() const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const char *s) {
         if (ibis::gVerbose >= 0) {
@@ -370,6 +372,7 @@ ibis::table* ibis::filter::select() const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (...) {
         if (ibis::gVerbose >= 0) {
@@ -379,6 +382,7 @@ ibis::table* ibis::filter::select() const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     return 0;
 } // ibis::filter::select
@@ -426,9 +430,10 @@ ibis::table* ibis::filter::select(const char* sstr) const {
             ibis::util::logger lg;
             lg() << "Warning -- filter::select absorbed a bad_alloc ("
                  << e.what() << "), will return a nil pointer";
-            if (ibis::gVerbose > 0)
+            if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const std::exception &e) {
         if (ibis::gVerbose >= 0) {
@@ -438,6 +443,7 @@ ibis::table* ibis::filter::select(const char* sstr) const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const char *s) {
         if (ibis::gVerbose >= 0) {
@@ -447,6 +453,7 @@ ibis::table* ibis::filter::select(const char* sstr) const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (...) {
         if (ibis::gVerbose >= 0) {
@@ -456,6 +463,7 @@ ibis::table* ibis::filter::select(const char* sstr) const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     return 0;
 } // ibis::filter::select
@@ -504,9 +512,10 @@ ibis::filter::select(const ibis::table::stringArray& colnames) const {
             ibis::util::logger lg;
             lg() << "Warning -- filter::select absorbed a bad_alloc ("
                  << e.what() << "), will return a nil pointer";
-            if (ibis::gVerbose > 0)
+            if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const std::exception &e) {
         if (ibis::gVerbose >= 0) {
@@ -516,6 +525,7 @@ ibis::filter::select(const ibis::table::stringArray& colnames) const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const char *s) {
         if (ibis::gVerbose >= 0) {
@@ -525,6 +535,7 @@ ibis::filter::select(const ibis::table::stringArray& colnames) const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (...) {
         if (ibis::gVerbose >= 0) {
@@ -534,6 +545,7 @@ ibis::filter::select(const ibis::table::stringArray& colnames) const {
             if (ibis::gVerbose > 1)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     return 0;
 } // ibis::filter::select
@@ -2699,6 +2711,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& mylist,
             if (ibis::gVerbose > 3)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const std::exception &e) {
         if (ibis::gVerbose > 1) {
@@ -2708,6 +2721,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& mylist,
             if (ibis::gVerbose > 3)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const char *s) {
         if (ibis::gVerbose > 1) {
@@ -2717,6 +2731,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& mylist,
             if (ibis::gVerbose > 3)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (...) {
         if (ibis::gVerbose > 1) {
@@ -2726,6 +2741,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& mylist,
             if (ibis::gVerbose > 3)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     return 0;
 } // ibis::table::select
@@ -2767,6 +2783,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& plist,
             if (ibis::gVerbose > 3)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const std::exception &e) {
         if (ibis::gVerbose > 1) {
@@ -2776,6 +2793,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& plist,
             if (ibis::gVerbose > 3)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const char *s) {
         if (ibis::gVerbose > 1) {
@@ -2785,6 +2803,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& plist,
             if (ibis::gVerbose > 3)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (...) {
         if (ibis::gVerbose > 1) {
@@ -2794,6 +2813,7 @@ ibis::table* ibis::table::select(const ibis::constPartList& plist,
             if (ibis::gVerbose > 3)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     return 0;
 } // ibis::table::select

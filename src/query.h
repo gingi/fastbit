@@ -238,6 +238,7 @@ protected:
 
     void logError(const char* event, const char* fmt, ...) const;
     void logWarning(const char* event, const char* fmt, ...) const;
+    void storeErrorMesg(const char*) const;
 
     void reorderExpr(); // reorder query expression
 

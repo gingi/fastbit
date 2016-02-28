@@ -2174,6 +2174,20 @@ ibis::util::logger::~logger() {
     }
 } // ibis::util::logger::~logger
 
+/// Return the current content of the string stream in the form of a
+/// std::string.  The content of the string stream is copied into the
+/// output string.
+std::string ibis::util::logger::str() const {
+    return mybuffer.str();
+} // ibis::util::logger::str
+
+/// Return a nil-terminated version of the string steam content.  This
+/// function relies on the function std::ostringstream::str, which makes
+/// copy of the string stream buffer.
+const char* ibis::util::logger::c_str() const {
+    return mybuffer.str().c_str();
+} // ibis::util::logger::c_str
+
 /// Constructor.  The caller must provide a message string.  If
 /// ibis::gVerbose is no less than lvl, it will create an ibis::horometer
 /// object to keep the time and print the duration of the timer in the

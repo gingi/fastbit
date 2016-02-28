@@ -4713,6 +4713,7 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
             if (ibis::gVerbose > 0)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const std::exception &e) {
         if (ibis::gVerbose >= 0) {
@@ -4722,6 +4723,7 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
             if (ibis::gVerbose > 0)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (const char *s) {
         if (ibis::gVerbose >= 0) {
@@ -4731,6 +4733,7 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
             if (ibis::gVerbose > 0)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     catch (...) {
         if (ibis::gVerbose >= 0) {
@@ -4740,6 +4743,7 @@ ibis::table::select(const char* sel, const ibis::qExpr* cond) const {
             if (ibis::gVerbose > 0)
                 ibis::fileManager::instance().printStatus(lg());
         }
+        ibis::util::emptyCache();
     }
     return 0;
 } // ibis::table::select

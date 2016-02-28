@@ -2756,6 +2756,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
             << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2765,6 +2766,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
             << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2774,6 +2776,7 @@ ibis::array_t<signed char>* ibis::part::selectBytes
             << "]::selectBytes(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2799,6 +2802,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
             << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2808,6 +2812,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
             << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2817,6 +2822,7 @@ ibis::array_t<unsigned char>* ibis::part::selectUBytes
             << "]::selectUBytes(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2842,6 +2848,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
             << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2851,6 +2858,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
             << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2860,6 +2868,7 @@ ibis::array_t<int16_t>* ibis::part::selectShorts
             << "]::selectShorts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2885,6 +2894,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
             << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2894,6 +2904,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
             << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2903,6 +2914,7 @@ ibis::array_t<uint16_t>* ibis::part::selectUShorts
             << "]::selectUShorts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2928,6 +2940,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
             << "]::selectInts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2937,6 +2950,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
             << "]::selectInts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2946,6 +2960,7 @@ ibis::array_t<int32_t>* ibis::part::selectInts
             << "]::selectInts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2971,6 +2986,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
             << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2980,6 +2996,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
             << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -2989,6 +3006,7 @@ ibis::array_t<uint32_t>* ibis::part::selectUInts
             << "]::selectUInts(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3014,6 +3032,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
             << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3023,6 +3042,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
             << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3032,6 +3052,7 @@ ibis::array_t<int64_t>* ibis::part::selectLongs
             << "]::selectLongs(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3057,6 +3078,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
             << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3066,6 +3088,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
             << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3075,6 +3098,7 @@ ibis::array_t<uint64_t>* ibis::part::selectULongs
             << "]::selectULongs(" << (pname ? pname : "") << ") with mask("
             << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3100,6 +3124,7 @@ ibis::array_t<float>* ibis::part::selectFloats
             << "]::selectFloats(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3109,6 +3134,7 @@ ibis::array_t<float>* ibis::part::selectFloats
             << "]::selectFloats(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3118,6 +3144,7 @@ ibis::array_t<float>* ibis::part::selectFloats
             << "]::selectFloats(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3143,6 +3170,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
             << "]::selectDoubles(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3152,6 +3180,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
             << "]::selectDoubles(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3161,6 +3190,7 @@ ibis::array_t<double>* ibis::part::selectDoubles
             << "]::selectDoubles(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3186,6 +3216,7 @@ std::vector<std::string>* ibis::part::selectStrings
             << "]::selectStrings(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following std::exception -- " << e.what();
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3195,6 +3226,7 @@ std::vector<std::string>* ibis::part::selectStrings
             << "]::selectStrings(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received the following string exception -- " << s;
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -3204,6 +3236,7 @@ std::vector<std::string>* ibis::part::selectStrings
             << "]::selectStrings(" << (pname ? pname : "")
             << ") with mask(" << mask.cnt() << " out of " << mask.size()
             << ") received a unexpected exception";
+        ibis::util::emptyCache();
         delete res;
         res = 0;
     }
@@ -5033,6 +5066,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<int64_t>
                     (sname.c_str(), cmp, mask,
@@ -5082,6 +5116,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<uint64_t>
                     (sname.c_str(), cmp, mask,
@@ -5129,6 +5164,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<int32_t>
                     (sname.c_str(), cmp, mask,
@@ -5176,6 +5212,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<uint32_t>
                     (sname.c_str(), cmp, mask,
@@ -5223,6 +5260,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<int16_t>
                     (sname.c_str(), cmp, mask,
@@ -5270,6 +5308,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<uint16_t>
                     (sname.c_str(), cmp, mask,
@@ -5317,6 +5356,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<signed char>
                     (sname.c_str(), cmp, mask,
@@ -5366,6 +5406,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<unsigned char>
                     (sname.c_str(), cmp, mask,
@@ -5409,6 +5450,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<float>
                     (sname.c_str(), cmp, mask,
@@ -5453,6 +5495,7 @@ long ibis::part::doScan(const ibis::qRange &cmp,
             }
         }
         catch (const std::bad_alloc&) {
+            ibis::util::emptyCache();
             if (! sname.empty()) {
                 ierr = doCompare<double>
                     (sname.c_str(), cmp, mask,
@@ -6483,25 +6526,41 @@ int ibis::part::buildIndexes(const char* iopt, int nthr) {
             }
 #endif
             for (long i = 0; i < nthr; ++i) {
-                ierr = pthread_create(&(tid[i]), &tattr,
-                                      ibis_part_build_indexes, (void*)&pool);
-                LOGGER(0 != ierr && ibis::gVerbose > 0)
-                    << "Warning -- " << evt << " could not start the thread # "
-                    << i << " to run ibis_part_build_index (" << strerror(ierr)
-                    << ')';
+                ierr = pthread_create
+                    (&(tid[i]), &tattr, ibis_part_build_indexes, (void*)&pool);
+                if (0 != ierr) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt
+                        << " could not start thread # " << i
+                        << " to run ibis_part_build_index ("
+                        << strerror(ierr) << ')';
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 1)
+                        << evt << " successfully started thread # " << i
+                        << " to run ibis_part_build_index";
+                }
             }
         }
         else {
             LOGGER(ibis::gVerbose > 2)
-                << evt << " -- pthread_attr_init failed with " << ierr
+                << evt << " -- pthread_attr_init completed with " << ierr
                 << ", using default attributes";
             for (long i = 0; i < nthr; ++i) {
-                ierr = pthread_create(&(tid[i]), 0, ibis_part_build_indexes,
-                                      (void*)&pool);
-                LOGGER(0 != ierr && ibis::gVerbose > 0)
-                    << "Warning -- " << evt << " could not start the thread # "
-                    << i << " to run ibis_part_build_index (" << strerror(ierr)
-                    << ')';
+                ierr = pthread_create
+                    (&(tid[i]), 0, ibis_part_build_indexes, (void*)&pool);
+                if (0 != ierr) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt
+                        << " could not start thread # " << i
+                        << " to run ibis_part_build_index ("
+                        << strerror(ierr) << ')';
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 1)
+                        << evt << " successfully started thread # " << i
+                        << " to run ibis_part_build_index";
+                }
             }
         }
         (void) ibis_part_build_indexes((void*)&pool);
@@ -6599,12 +6658,19 @@ int ibis::part::buildIndexes(const ibis::table::stringArray &iopt, int nthr) {
             }
 #endif
             for (long i = 0; i < nthr; ++i) {
-                ierr = pthread_create(&(tid[i]), &tattr,
-                                      ibis_part_build_indexes, (void*)&pool);
-                LOGGER(0 != ierr && ibis::gVerbose > 0)
-                    << "Warning -- " << evt << " could not start the thread # "
-                    << i << " to run ibis_part_build_index (" << strerror(ierr)
-                    << ')';
+                ierr = pthread_create
+                    (&(tid[i]), &tattr, ibis_part_build_indexes, (void*)&pool);
+                if (0 != ierr) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt << " could not start thread # "
+                        << i << " to run ibis_part_build_index ("
+                        << strerror(ierr) << ')';
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 1)
+                        << evt << " successfully started thread # " << i
+                        << " to run ibis_part_build_index";
+                }
             }
         }
         else {
@@ -6612,12 +6678,19 @@ int ibis::part::buildIndexes(const ibis::table::stringArray &iopt, int nthr) {
                 << evt << " -- pthread_attr_init failed with " << ierr
                 << ", using default attributes";
             for (long i = 0; i < nthr; ++i) {
-                ierr = pthread_create(&(tid[i]), 0, ibis_part_build_indexes,
-                                      (void*)&pool);
-                LOGGER(0 != ierr && ibis::gVerbose > 0)
-                    << "Warning -- " << evt << " could not start the thread # "
-                    << i << " to run ibis_part_build_index (" << strerror(ierr)
-                    << ')';
+                ierr = pthread_create
+                    (&(tid[i]), 0, ibis_part_build_indexes, (void*)&pool);
+                if (0 != ierr) {
+                    LOGGER(ibis::gVerbose > 0)
+                        << "Warning -- " << evt << " could not start thread # "
+                        << i << " to run ibis_part_build_index ("
+                        << strerror(ierr) << ')';
+                }
+                else {
+                    LOGGER(ibis::gVerbose > 1)
+                        << evt << " successfully started thread # " << i
+                        << " to run ibis_part_build_index";
+                }
             }
         }
         (void) ibis_part_build_indexes((void*)&pool);
@@ -6625,7 +6698,7 @@ int ibis::part::buildIndexes(const ibis::table::stringArray &iopt, int nthr) {
             void *j;
             pthread_join(tid[i], &j);
             LOGGER(j != 0 && ibis::gVerbose > 0)
-                << "Warning -- part[" << name() << "]::buildIndexes -- thread # "
+                << "Warning -- " << evt << " -- thread # "
                 << i << " returned a nonzero code " << j;
         }
         ++ nthr; // restore the original value
@@ -6995,6 +7068,9 @@ long ibis::part::selfTest(int nth, const char* pref) const {
             int ierr = pthread_attr_init(&tattr);
             const bool myattr = (ierr == 0);
 
+            if (ibis::gVerbose > 1)
+                logMessage("selfTest", "parallel tests with %d thread%s",
+                           (int)(nth+1), (nth>0?"s":""));
             // spawn threads to invoke ibis_part_threadedTestFun1
             if (myattr) {
 #if defined(PTHREAD_SCOPE_SYSTEM)
@@ -7009,13 +7085,17 @@ long ibis::part::selfTest(int nth, const char* pref) const {
                 }
 #endif
                 for (int i = 0; i < nth; ++i) {
-                    ierr = pthread_create(&(tid[i]), &tattr,
-                                          ibis_part_threadedTestFun1,
-                                          (void*)&arg);
+                    ierr = pthread_create
+                        (&(tid[i]), &tattr, ibis_part_threadedTestFun1,
+                         (void*)&arg);
                     if (0 != ierr) {
-                        logWarning("selfTest", "could not start the thread # "
+                        logWarning("selfTest", "could not start thread # "
                                    "%d to run ibis_part_threadedTestFun1 (%s)",
                                    i, strerror(ierr));
+                    }
+                    else if (ibis::gVerbose > 2) {
+                        logMessage("selfTest", "started thread # %d to run "
+                                   "ibis_part_threadedTestFun1", i);
                     }
                 }
             }
@@ -7023,13 +7103,16 @@ long ibis::part::selfTest(int nth, const char* pref) const {
                 logWarning("selfTest", "pthread_attr_init failed with %d, "
                            "using default attributes", ierr);
                 for (int i = 0; i < nth; ++i) {
-                    ierr = pthread_create(&(tid[i]), 0,
-                                          ibis_part_threadedTestFun1,
-                                          (void*)&arg);
+                    ierr = pthread_create
+                        (&(tid[i]), 0, ibis_part_threadedTestFun1, (void*)&arg);
                     if (0 != ierr) {
                         logWarning("selfTest", "could not start the thread # "
                                    "%d to run ibis_part_threadedTestFun1 (%s)",
                                    i, strerror(ierr));
+                    }
+                    else if (ibis::gVerbose > 2) {
+                        logMessage("selfTest", "started thread # %d to run "
+                                   "ibis_part_threadedTestFun1", i);
                     }
                 }
             }
@@ -7070,6 +7153,10 @@ long ibis::part::selfTest(int nth, const char* pref) const {
                                    "%d to run ibis_part_threadedTestFun2 (%s)",
                                    i, strerror(ierr));
                     }
+                    else if (ibis::gVerbose > 2) {
+                        logMessage("selfTest", "started thread # %d to run "
+                                   "ibis_part_threadedTestFun2", i);
+                    }
                 }
 
                 void *j;
@@ -7102,17 +7189,20 @@ long ibis::part::selfTest(int nth, const char* pref) const {
         }
     }
     catch (const std::exception &e) {
+        ibis::util::emptyCache();
         ibis::util::logMessage("Warning", "part::selfTest() received "
                                "the following std::exception\n%s",
                                e.what());
         ++ nerr;
     }
     catch (const char* s) {
+        ibis::util::emptyCache();
         ibis::util::logMessage("Warning", "part::selfTest() received "
                                "the following string exception\n%s", s);
         ++ nerr;
     }
     catch (...) {
+        ibis::util::emptyCache();
         ibis::util::logMessage("Warning", "part::selfTest() received "
                                "an unexpected exception");
         ++ nerr;
@@ -20793,15 +20883,20 @@ void ibis::util::updateDatasets() {
 } // ibis::util::updateDatasets
 
 /// Attempt to remove all currently unused data from memory cache.
-void ibis::util::cleanDatasets() {
+///
+/// @note this function was previously called cleanDatasets.  The new name
+/// should be more precisely describing it actual function.  It also
+/// matches the function is ibis::part::emptyCache.
+void ibis::util::emptyCache() {
     const uint32_t npt = ibis::datasets.size();
     for (uint32_t j = 0; j < npt; ++ j) {
-        if (ibis::datasets[j]->tryWriteAccess() == 0) {
-            ibis::datasets[j]->emptyCache();
-            ibis::datasets[j]->releaseAccess();
-        }
+        ibis::datasets[j]->emptyCache();
+        // if (ibis::datasets[j]->tryWriteAccess() == 0) {
+        //     ibis::datasets[j]->emptyCache();
+        //     ibis::datasets[j]->releaseAccess();
+        // }
     }
-} // ibis::util::cleanDatasets
+} // ibis::util::emptyCache
 
 // explicit instantiations of the templated functions
 template long

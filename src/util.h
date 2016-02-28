@@ -635,7 +635,7 @@ namespace ibis {
         void clear(ibis::array_t<ibis::bitvector*> &bv) throw();
         void clear(ibis::partList &pl) throw();
         void updateDatasets(void);
-        void cleanDatasets(void);
+        void emptyCache(void);
 
         /// Return a pointer to the string designating the version of this
         /// software.
@@ -698,6 +698,8 @@ namespace ibis {
             ~logger();
             /// Return an output stream for caller to build a message.
             std::ostream& operator()(void) {return mybuffer;}
+            std::string str() const;
+            const char* c_str() const;
 
         protected:
             /// The message is stored in this buffer.

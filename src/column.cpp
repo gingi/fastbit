@@ -6173,41 +6173,32 @@ long ibis::column::evaluateRange(const ibis::qContinuousRange& cmp,
     // Common exception handling -- retry the basic options
     low.clear();
     unloadIndex();
-    try {
-        if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
-            ibis::util::quietLock lock(&ibis::util::envLock);
+    if (ibis::fileManager::iBeat() % 3 == 0) { // some delay
+        ibis::util::quietLock lock(&ibis::util::envLock);
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
-            sleep(1);
+        sleep(1);
 #endif
-        }
-        thePart->emptyCache();
-        if (m_sorted) {
-            ierr = searchSorted(cmp, low);
+    }
+    thePart->emptyCache();
+    if (m_sorted) {
+        ierr = searchSorted(cmp, low);
+    }
+    else {
+        indexLock lock(this, evt.c_str());
+        if (idx != 0) {
+            ierr = idx->evaluate(cmp, low);
+            if (low.size() < mask.size()) {
+                ibis::bitvector high, delta;
+                high.adjustSize(low.size(), mask.size());
+                high.flip();
+                ierr = thePart->doScan(cmp, high, delta);
+                low |= delta;
+            }
+            low &= mask;
         }
         else {
-            indexLock lock(this, evt.c_str());
-            if (idx != 0) {
-                ierr = idx->evaluate(cmp, low);
-                if (low.size() < mask.size()) {
-                    ibis::bitvector high, delta;
-                    high.adjustSize(low.size(), mask.size());
-                    high.flip();
-                    ierr = thePart->doScan(cmp, high, delta);
-                    low |= delta;
-                }
-                low &= mask;
-            }
-            else {
-                ierr = thePart->doScan(cmp, mask, low);
-            }
+            ierr = thePart->doScan(cmp, mask, low);
         }
-    }
-    catch (...) {
-        LOGGER(ibis::gVerbose > 1)
-            << evt << " receied an exception from doScan in the "
-            "exception handling code, giving up...";
-        low.clear();
-        ierr = -2;
     }
 
     LOGGER(ibis::gVerbose > 3)
@@ -6462,41 +6453,32 @@ long ibis::column::evaluateRange(const ibis::qDiscreteRange& cmp,
     low.clear();
     unloadIndex();
     if (thePart != 0) {
-        try {
-            if (ibis::fileManager::iBeat() % 3 == 0) { // random delay
-                ibis::util::quietLock lock(&ibis::util::envLock);
+        if (ibis::fileManager::iBeat() % 3 == 0) { // some delay
+            ibis::util::quietLock lock(&ibis::util::envLock);
 #if defined(__unix__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__) || defined(__FreeBSD)
-                sleep(1);
+            sleep(1);
 #endif
-            }
-            thePart->emptyCache();
-            if (m_sorted) {
-                ierr = searchSorted(cmp, low);
+        }
+        thePart->emptyCache();
+        if (m_sorted) {
+            ierr = searchSorted(cmp, low);
+        }
+        else {
+            indexLock lock(this, evt.c_str());
+            if (idx != 0) {
+                idx->evaluate(cmp, low);
+                if (low.size() < mask.size()) {
+                    ibis::bitvector high, delta;
+                    high.adjustSize(low.size(), mask.size());
+                    high.flip();
+                    ierr = thePart->doScan(cmp, high, delta);
+                    low |= delta;
+                }
+                low &= mask;
             }
             else {
-                indexLock lock(this, evt.c_str());
-                if (idx != 0) {
-                    idx->evaluate(cmp, low);
-                    if (low.size() < mask.size()) {
-                        ibis::bitvector high, delta;
-                        high.adjustSize(low.size(), mask.size());
-                        high.flip();
-                        ierr = thePart->doScan(cmp, high, delta);
-                        low |= delta;
-                    }
-                    low &= mask;
-                }
-                else {
-                    ierr = thePart->doScan(cmp, mask, low);
-                }
+                ierr = thePart->doScan(cmp, mask, low);
             }
-        }
-        catch (...) {
-            LOGGER(ibis::gVerbose > 1)
-                << "Warning -- " << evt << " receied an exception "
-                "from doScan in the exception handling code, giving up...";
-            low.clear();
-            ierr = -2;
         }
     }
     else {

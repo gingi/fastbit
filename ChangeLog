@@ -1,8 +1,17 @@
+2016-01-31 John Wu <John dot Wu at ACM dot org>
+	* src/util.h: rename ibis::util::cleanDatasets to ibis::util::emptyCache
+	* src/part.cpp, src/query.cpp, src/filter.cpp: add calls to
+	ibis::util::emptyCache (previously, cleanDatasets)
+
 2016-01-29 John Wu <John dot Wu at ACM dot org>
 	* src/util.cpp: in util::readDouble check the length of the string
 	before comparing against the constants
 	* src/part.cpp: throw exception rather than return a negative
 	error code after failing to allocate memory
+	* src/query.h, src/query.cpp: add function storeErrorMesg,
+	intending to record error message composed with ibis::util::logger
+	* src/util.h: add member functions str and c_str to
+	bis::util::logger class
 
 2016-01-28 John Wu <John dot Wu at ACM dot org>
 	* examples/thula.cpp: add statements to print out the command line

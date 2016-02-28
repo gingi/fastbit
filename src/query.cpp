@@ -814,12 +814,10 @@ int ibis::query::estimate() {
                     dslock = 0;
                 }
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** " << evt << '('
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed due to a memory allocation problem -- "
-                    << e.what();
+                logError("estimate", "encountered a memory allocation error "
+                         "(%s) while resolving \"%s\"", e.what(),
+                         conds.getString());
+                ibis::util::emptyCache();
                 return -9;
             }
             catch (const std::exception& e) {
@@ -828,11 +826,10 @@ int ibis::query::estimate() {
                     dslock = 0;
                 }
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** " << evt << '('
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expressioin>" : "<RID query>")
-                    << ") failed -- " << e.what();
+                logError("estimate", "encountered a std::exception "
+                         "(%s) while resolving \"%s\"", e.what(),
+                         conds.getString());
+                ibis::util::emptyCache();
                 return -9;
             }
             catch (const char* s) {
@@ -841,11 +838,9 @@ int ibis::query::estimate() {
                     dslock = 0;
                 }
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** " << evt << '('
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed -- " << s;
+                logError("estimate", "encountered a string exception (%s) "
+                         "while resolving \"%s\"", s, conds.getString());
+                ibis::util::emptyCache();
                 return -9;
             }
             catch (...) {
@@ -854,11 +849,9 @@ int ibis::query::estimate() {
                     dslock = 0;
                 }
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** " << evt << '('
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed due to a unexpected exception ";
+                logError("estimate", "encountered a unexpected exception "
+                         "while resolving \"%s\"", conds.getString());
+                ibis::util::emptyCache();
                 return -9;
             }
             if (ibis::gVerbose > 0) {
@@ -1098,8 +1091,7 @@ int ibis::query::evaluate(const bool evalSelect) {
                     sleep(1);
 #endif
                 }
-                ibis::util::cleanDatasets();
-                mypart->emptyCache();
+                ibis::util::emptyCache();
 
                 if (dslock == 0) { // acquire read lock on mypart
                     dslock = new ibis::part::readLock(mypart, myID);
@@ -1113,12 +1105,10 @@ int ibis::query::evaluate(const bool evalSelect) {
                     delete dslock;
                     dslock = 0;
                 }
-                LOGGER(ibis::gVerbose >= 0)
-                    << " Error *** query[" << myID << "]::evaluate("
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed due to a memory allocation problem -- "
-                    << e.what();
+                logError("evaluate", "encountered a memory allocation error "
+                         "(%s) while resolving \"%s\"", e.what(),
+                         conds.getString());
+                ibis::util::emptyCache();
                 return -9;
             }
             catch (const std::exception& e) {
@@ -1127,11 +1117,9 @@ int ibis::query::evaluate(const bool evalSelect) {
                     dslock = 0;
                 }
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << "Warning -- query[" << myID << "]::evaluate("
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed -- " << e.what();
+                logError("evaluate", "encountered a std::exception (%s) "
+                         "while resolving \"%s\"", e.what(), conds.getString());
+                ibis::util::emptyCache();
                 return -9;
             }
             catch (const char *e) {
@@ -1140,11 +1128,9 @@ int ibis::query::evaluate(const bool evalSelect) {
                     dslock = 0;
                 }
 
-                LOGGER(ibis::gVerbose >= 0)
-                    << "Warning -- query[" << myID << "]::evaluate("
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed -- " << e;
+                logError("evaluate", "encountered a string exception (%s) "
+                         "while resolving \"%s\"", e, conds.getString());
+                ibis::util::emptyCache();
                 return -9;
             }
             catch (...) {
@@ -1152,11 +1138,9 @@ int ibis::query::evaluate(const bool evalSelect) {
                     delete dslock;
                     dslock = 0;
                 }
-                LOGGER(ibis::gVerbose >= 0)
-                    << "Warning -- query[" << myID << "]::evaluate("
-                    << (conds.getString() ? conds.getString() :
-                        conds.getExpr() ? "<long expression>" : "<RID query>")
-                    << ") failed due to a unexpected exception";
+                logError("evaluate", "encountered a unexpected exception "
+                         "while resolving \"%s\"", conds.getString());
+                ibis::util::emptyCache();
                 return -9;
             }
         }
@@ -2502,6 +2486,27 @@ void ibis::query::printRIDs(const ibis::RIDSet& ridset) const {
         lg() << std::endl;
 } // ibis::query::printRIDs
 
+/// Store the message into member variable lastError for later use.  This
+/// function will truncate long messages because lastError is declared with
+/// a fixed size of MAX_LINE+PATH_MAX.  If the incoming argument is a nil
+/// pointer or an empty sttring, lastError will be set to be an empty
+/// string as if clearErrorMessage is called.
+void ibis::query::storeErrorMesg(const char *msg) const {
+    if (msg == 0 || *msg == 0) {
+        *lastError = 0;
+    }
+    else {
+        size_t len = strlen(msg);
+        if (len < MAX_LINE+PATH_MAX) {
+            (void) strcpy(lastError, msg);
+        }
+        else {
+            (void) strncpy(lastError, msg, MAX_LINE+PATH_MAX-1);
+            lastError[MAX_LINE+PATH_MAX-1] = 0;
+        }
+    }
+} // ibis::query::storeErrorMesg
+
 // three error logging functions
 void ibis::query::logError(const char* event, const char* fmt, ...) const {
     strcpy(lastError, "ERROR: ");
@@ -3143,32 +3148,30 @@ long ibis::query::sequentialScan(ibis::bitvector& res) const {
     catch (const ibis::bad_alloc& e) {
         ierr = -1;
         res.clear();
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- query[" << myID << "]::sequentialScan("
-            << *conds.getExpr()
-            << ") failed due to a memory allocation problem, " << e.what();
+        logError("sequentialScan", "encountered a memory allocation error "
+                 "(%s) while resolving \"%s\"", e.what(), conds.getString());
+        ibis::util::emptyCache();
     }
     catch (const std::exception& e) {
         ierr = -2;
         res.clear();
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- query[" << myID << "]::sequentialScan("
-            << *conds.getExpr() << ") failed due to a std::exception, "
-            << e.what();
+        logError("sequentialScan", "encountered an exception (%s) "
+                 "while resolving \"%s\"", e.what(), conds.getString());
+        ibis::util::emptyCache();
     }
     catch (const char *e) {
         ierr = -3;
         res.clear();
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- query[" << myID << "]::sequentialScan("
-            << *conds.getExpr() << ") failed due to a string exception, " << e;
+        logError("sequentialScan", "encountered a string exception (%s) "
+                 "while resolving \"%s\"", e, conds.getString());
+        ibis::util::emptyCache();
     }
     catch (...) {
         ierr = -4;
         res.clear();
-        LOGGER(ibis::gVerbose >= 0)
-            << "Warning -- query[" << myID << "]::sequentialScan("
-            << *conds.getExpr() << ") failed due to an unexpected exception";
+        logError("sequentialScan", "encountered unexpected exception "
+                 "while resolving \"%s\"", conds.getString());
+        ibis::util::emptyCache();
     }
 
     if (ierr >= 0 && ibis::gVerbose > 2) {

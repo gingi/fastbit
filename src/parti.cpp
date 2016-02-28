@@ -1617,7 +1617,7 @@ long ibis::part::purgeInactive() {
 /// The caller should hold a write lock on this data partition to prevent
 /// concurrent accesses to this part object.
 void ibis::part::emptyCache() const {
-    LOGGER(ibis::gVerbose > 6)
+    LOGGER(ibis::gVerbose > 2)
         << "part[" << name() << "]::emptyCache ...";
     unloadIndexes();
     if (myCleaner != 0)
