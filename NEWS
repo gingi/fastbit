@@ -1,3 +1,26 @@
+Sun Feb 28 23:56:41 PST 2016
+Version 2.0.3
+-- include a patch from Petr Velan to deal with include files related to
+     util.h and pwd.h
+-- make interpretation of internally generated column names of the form
+   __xx in src/part.cpp
+-- lock accesses to values in sharedInt32 and sharedInt64 when atomic
+   operations are not available
+-- rename select clause keyword distinct to countdistinct
+-- address the problem with query evaluation cost reported by Petr Velan
+   on 05/07/2015
+-- add guards to called to strcmp to prevent nil pointer from being used
+-- allocate sufficient space before calling ibis::fileManger::doRead to
+   avoid recursive invocation of mutex locks (i.e., avoid a deadlock
+   situation)
+-- per suggestion from Jon Strabala, change all string read/write
+   functions from unbuffered versions (read/write) to buffered versions
+   (fread/fwrite)
+-- replace std::binder1st and std::binder2nd with std::bind1st and
+   std::bind2nd
+-- rename ibis::util::cleanDatasets to be ibis::util::emptyCache
+
+
 Mon Mar 23 23:14:31 PDT 2015
 Version 2.0.2
 -- address thread safty issue with bitvector::do_cnt
