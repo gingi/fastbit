@@ -1468,7 +1468,7 @@ void ibis::array_t<T>::truncate(size_t nnew, size_t start) {
 template<class T>
 void ibis::array_t<T>::resize(size_t n) {
     if (n > 0x7FFFFFFFU) {
-        throw "array_t must have less than 2^31 elements";
+        throw "array_t must have less than 2^31 elements" IBIS_FILE_LINE;
     }
 
     if (n == 0) {
@@ -1508,7 +1508,7 @@ void ibis::array_t<T>::resize(size_t n) {
 template<class T>
 void ibis::array_t<T>::reserve(size_t n) {
     if (n > 0x7FFFFFFFU) {
-        throw "array_t must have less than 2^31 elements";
+        throw "array_t must have less than 2^31 elements" IBIS_FILE_LINE;
     }
     if (n == 0) { // special case with n = 0
         n = 32 / sizeof(T);
@@ -1586,7 +1586,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, const T& val) {
 
     const difference_type n0 = m_end - m_begin;
     if (n0 >= 0x7FFFFFFFU) {
-        throw "array_t must have less than 2^31 elements";
+        throw "array_t must have less than 2^31 elements" IBIS_FILE_LINE;
     }
 
     if (actual != 0 && actual->filename() == 0 &&
@@ -1650,7 +1650,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p, size_t n,
         const difference_type nold = m_end - m_begin;
         size_t nnew = static_cast<size_t>(nold + (nold>=(long)n?nold:n));
         if (nnew > 0x7FFFFFFFU) {
-            throw "array_t must have less than 2^31 elements";
+            throw "array_t must have less than 2^31 elements" IBIS_FILE_LINE;
         }
 
         const size_t jp = p - m_begin;
@@ -1698,7 +1698,7 @@ ibis::array_t<T>::insert(typename ibis::array_t<T>::iterator p,
                                       m_end - m_begin : 0);
         size_t nnew = static_cast<size_t>(nold + (nold>=n ? nold : n));
         if (nnew > 0x7FFFFFFFU) {
-            throw "array_t must have less than 2^31 elements";
+            throw "array_t must have less than 2^31 elements" IBIS_FILE_LINE;
         }
 
         const size_t jp = p - m_begin;

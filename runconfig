@@ -24,6 +24,11 @@ if (${HOSTNAME} =~ m/^bit/) {
 } elsif (${HOSTNAME} =~ m/^d\w+[.lbl.gov]?$/) {
   # on sdm group's linux machines, know where is java and where to install
   $cmd="./configure --enable-xopt --disable-debug --with-java=/software/jdk1.7.0 --prefix=/fastbit/`uname -s`";
+} elsif (${HOSTNAME} =~ m/^cori\w+[.nersc.gov]?$/) {
+  # on the front end of cori at NERSC, there is a choice to be made about what compiler to use
+  # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-intel PrgEnv-gnu'\n\n";
+  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/cori/gnu";
+  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3' CXXFLAGS='-fPIC -O3' --without-java --prefix=/project/projectdirs/m1248/cori/pgi";
 } elsif (${HOSTNAME} =~ m/^edison\w+[.nersc.gov]?$/) {
   # on the front end of edison at NERSC, the default compiler is from Intel
   print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-intel PrgEnv-gnu'\n\n";
