@@ -1,3 +1,14 @@
+2016-04-21 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp:4048 the comparison (vals[i] > last) should have
+	been (vals[i] != last)
+	* src/bord.cpp:3678 add variable diropt to capture a more complex
+	logical in taking the incoming argument for sorting directions
+	(ascin)
+	* tests/vault/marksdb-3: correct the output expected, previous
+	results was sorted in the in correct oder (thanks to the bug
+	report from Will Glozer <will at kentik dot com> for bringing
+	attention to this problem)
+
 2016-02-28 John Wu <John dot Wu at ACM dot org>
 	* NEWS: update for the new release 2.0.3
 

@@ -3631,7 +3631,7 @@ long ibis::bord::reorder(const ibis::table::stringArray& keys) {
 } // ibis::bord::reorder
 
 long ibis::bord::reorder(const ibis::table::stringArray& cols,
-                         const std::vector<bool>& directions) {
+                         const std::vector<bool>& ascin) {
     long ierr = 0;
     if (nRows() == 0 || nColumns() == 0) return ierr;
 
@@ -3656,7 +3656,7 @@ long ibis::bord::reorder(const ibis::table::stringArray& cols,
     // look through all columns to match the incoming column names
     typedef std::vector<ibis::column*> colVector;
     std::set<const char*, ibis::lessi> used;
-    colVector keys, load; // sort according to the keys
+    colVector keys, load; // columns are separated into keys and payloads
     for (ibis::table::stringArray::const_iterator nit = cols.begin();
          nit != cols.end(); ++ nit) {
         ibis::part::columnList::iterator it = columns.find(*nit);
@@ -3680,23 +3680,42 @@ long ibis::bord::reorder(const ibis::table::stringArray& cols,
         }
     }
 
+    // option for sorting direction,
+    //  1: use ascending order
+    //  0: default to use incoming argument ascin
+    // -1: use descending order
+    int diropt = 0;
     if (keys.empty()) { // use all integral values
-        if (ibis::gVerbose > 0) {
-            if (cols.empty()) {
-                LOGGER(true)
-                    << evt << " -- user did not specify ordering keys, will "
-                    "attempt to use all integer columns as ordering keys";
+        if (cols.empty()) {
+            diropt = 1; // none of specified name is valid, ignore ascin
+            LOGGER(ibis::gVerbose >= 0)
+                << "Warning -- " << evt << " -- user did not specify "
+                "ordering keys, will order with all integer columns";
+        }
+        else {
+            if (ascin.empty() || ascin.size() != cols.size()) {
+                diropt = 1; // ignore ascin, default ascending order
             }
             else {
+                size_t cnt = 0;
+                for (unsigned j = 0; j < ascin.size() && ascin[j] == false;
+                     ++ cnt, ++ j);
+                // if all keys are to be ordered in descending order, then
+                // use descending order even though we will not be using
+                // the originally specified keys (because the keys
+                // specified has only a single distinct value)
+                if (cnt == ascin.size()) diropt = -1;
+            }
+            if (ibis::gVerbose >= 0) {
                 std::ostringstream oss;
                 oss << cols[0];
                 for (unsigned i = 1; i < cols.size(); ++ i)
                     oss << ", " << cols[i];
                 LOGGER(true)
-                    << evt << " -- user specified ordering keys \"" << oss.str()
-                    << "\" does not match any numerical columns with more "
-                    "than one distinct value, will attempt to use "
-                    "all integer columns as ordering keys";
+                    << "Warning -- " << evt << " -- user specified ordering "
+                    "keys (" << oss.str() << ") contain too few distinct "
+                    "values, will order with all integer columns"
+                    << (diropt<0?" in the descending order":"");
             }
         }
 
@@ -3772,7 +3791,9 @@ long ibis::bord::reorder(const ibis::table::stringArray& cols,
                 return -3;
             }
 
-            const bool asc = (directions.size()>i?directions[i]:true);
+            const bool asc = (diropt > 0 ? true :
+                              (diropt < 0 ? false :
+                               (ascin.size()>i?ascin[i]:true)));
             switch (keys[i]->type()) {
             case ibis::CATEGORY:
             case ibis::TEXT:
@@ -4055,7 +4076,7 @@ long ibis::bord::sortValues(array_t<T>& vals,
         starts.push_back(0U);
         T last = vals[0];
         for (uint32_t i = 1; i < nEvents; ++ i) {
-            if (vals[i] > last) {
+            if (vals[i] != last) {
                 starts.push_back(i);
                 last = vals[i];
             }
