@@ -1,3 +1,6 @@
+2016-04-27 John Wu <John dot Wu at ACM dot org>
+	* src/bord.cpp:459 ref[0] should be ref[i], a bug reported by Petr Velan
+
 2016-04-21 John Wu <John dot Wu at ACM dot org>
 	* src/bord.cpp:4048 the comparison (vals[i] > last) should have
 	been (vals[i] != last)

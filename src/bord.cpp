@@ -396,15 +396,18 @@ ibis::bord::bord(const char *tn, const char *td,
 /// Constructor.  It produces an empty data partition for storing values to
 /// be selected by the select clause.  The reference data partition list is
 /// used to determine the data types.  For columns, the type is determined
-/// by the first data partition in the list.  However, for categorical
-/// values it checks to see if all the data partitions have the same
-/// dictionary before deciding what type to use.  If the data partitions
-/// have the same dictionary, then it uses an integer representation for
-/// the column, otherwise it keeps the strings explcitly.  Normally, we
-/// would expect the integer reprepresentation to be more compact and more
-/// efficient to use.
+/// by the first data partition in the list that has the matching name.
+/// However, for categorical values it checks to see if all the data
+/// partitions have the same dictionary before deciding what type to use.
+/// If the data partitions have the same dictionary, then it uses an
+/// integer representation for the column, otherwise it keeps the strings
+/// explcitly.  Normally, we would expect the integer reprepresentation to
+/// be more compact and more efficient to use.
 ///
 /// @note The list of partitions, ref, can not be empty.
+///
+/// @note If the given column name does not appear in any of the given
+/// partitions, this function will throw an exception.
 ibis::bord::bord(const char *tn, const char *td,
                  const ibis::selectClause &sc, const ibis::constPartList &ref)
     : ibis::part("in-core") {
@@ -462,7 +465,7 @@ ibis::bord::bord(const char *tn, const char *td,
             else { // normal name
                 const ibis::column* refcol = 0;
                 for (unsigned i = 0; refcol == 0 && i < ref.size(); ++ i) {
-                    refcol = ref[0]->getColumn(var.variableName());
+                    refcol = ref[i]->getColumn(var.variableName());
                     if (refcol == 0) {
                         size_t nch = std::strlen(ref[i]->name());
                         if (0 == strnicmp(ref[i]->name(), vname, nch) &&
