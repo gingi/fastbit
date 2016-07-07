@@ -370,8 +370,6 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
     if (0 == col->dataFileName(tfname, dir))
         return -2;
 
-    spname = tfname;
-    spname += ".sp";
     int tfdesc = UnixOpen(tfname.c_str(), OPEN_READONLY);
     if (tfdesc < 0) {
         LOGGER(ibis::gVerbose >= 0)
@@ -379,29 +377,31 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
             << tfname << "\", the open function returned " << tfdesc;
         return -3;
     }
-
     IBIS_BLOCK_GUARD(UnixClose, tfdesc);
-    int spdesc = UnixOpen(spname.c_str(), OPEN_READONLY);
-    if (spdesc < 0) {
+
+    spname = tfname;
+    spname += ".sp";
+    FILE* spfile = fopen(spname.c_str(), "rb");
+    if (spfile == NULL) {
         LOGGER(ibis::gVerbose >= 0)
             << "Warning -- keywords::parseTextFile failed to open file \""
-            << spname << "\", the open function returned " << spdesc;
+            << spname << "\" -- " << FASTBIT_STRERR;
         return -4;
     }
+    IBIS_BLOCK_GUARD(fclose, spfile);
 
-    IBIS_BLOCK_GUARD(UnixClose, spdesc);
     int64_t start, end;
-    int64_t ierr = UnixRead(spdesc, &start, sizeof(start));
-    if (ierr < 8) {
+    int64_t ierr = fread(&start, sizeof(start), 1, spfile);
+    if (ierr < 1) {
         LOGGER(ibis::gVerbose > 2)
             << "Warning -- keywords::parseTextFile failed to read the first "
             "value from " << spname;
         return -5;
     }
     nrows = 0;
-    ibis::fileManager::buffer<char> buf(2048);
+    ibis::fileManager::buffer<char> buf(2047);
     // main loop to actually read the strings one row at a time
-    while ((ierr = UnixRead(spdesc, &end, sizeof(end))) == 8) {
+    while ((ierr = fread(&end, sizeof(end), 1, spfile)) == 1) {
         if (start+1 >= end) { // null string
             start = end;
             ++ nrows;
@@ -472,7 +472,7 @@ int ibis::keywords::parseTextFile(ibis::text::tokenizer &tkn,
         }
         start = end;
         ++ nrows;
-    } // read spdesc
+    } // read spfile
 
     for (size_t j = 0; j < bits.size(); ++ j)
         if (bits[j] != 0)

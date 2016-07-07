@@ -27,18 +27,18 @@ if (${HOSTNAME} =~ m/^bit/) {
 } elsif (${HOSTNAME} =~ m/^cori\w+[.nersc.gov]?$/) {
   # on the front end of cori at NERSC, there is a choice to be made about what compiler to use
   # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-intel PrgEnv-gnu'\n\n";
-  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/cori/gnu";
-  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3' CXXFLAGS='-fPIC -O3' --without-java --prefix=/project/projectdirs/m1248/cori/pgi";
+  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/pkgs/cori/gnu";
+  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3' CXXFLAGS='-fPIC -O3' --without-java --prefix=/project/projectdirs/m1248/pkgs/cori/pgi";
 } elsif (${HOSTNAME} =~ m/^edison\w+[.nersc.gov]?$/) {
   # on the front end of edison at NERSC, the default compiler is from Intel
   print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-intel PrgEnv-gnu'\n\n";
-  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/edison/gnu";
-  #$cmd="./configure CC=icc CXX=icpc --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -g -O3' CXXFLAGS='-fPIC -g -O3' --without-java --prefix=/project/projectdirs/m1248/edison/intel";
+  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/pkgs/edison/gnu";
+  #$cmd="./configure CC=icc CXX=icpc --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -g -O3' CXXFLAGS='-fPIC -g -O3' --without-java --prefix=/project/projectdirs/m1248/pkgs/edison/intel";
 } elsif (${HOSTNAME} =~ m/^hopper\w+[.nersc.gov]?$/) {
   # on the front end of hopper at NERSC, there is a choice to be made about what compiler to use
   # print "\nPlease make sure that PrgEnv-gnu is used, for example by executing 'module swap PrgEnv-pgi PrgEnv-gnu'\n\n";
-  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/hopper/gnu";
-  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3' CXXFLAGS='-fPIC -O3' --without-java --prefix=/project/projectdirs/m1248/hopper/pgi";
+  $cmd="./configure --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3 -std=c++11' CXXFLAGS='-fPIC -O3 -std=c++11' --without-java --prefix=/project/projectdirs/m1248/pkgs/hopper/gnu";
+  #$cmd="./configure CC=pgcc CXX=pgCC --without-getpwuid --with-quiet-nan CFLAGS='-fPIC -O3' CXXFLAGS='-fPIC -O3' --without-java --prefix=/project/projectdirs/m1248/pkgs/hopper/pgi";
 } elsif (${HOSTNAME} =~ m/^sith/) {# sith.ccs.ornl.gov
   # on sith at ORNL, try GNU compilers
   $cmd="./configure --prefix=${HOME}/`uname -s`/sith-gnu --without-java --enable-xopt --disable-debug"
@@ -53,11 +53,11 @@ if (${HOSTNAME} =~ m/^bit/) {
   $cmd="env CC=bgclang CXX=bgclang++11 ./configure --prefix=${HOME}/`uname -s` --without-java --disable-debug --disable-shared"
 } elsif (${HOSTNAME} =~ m/^cvr\w+[\.nersc\.gov]?$/) {
   # on carver at NERSC, use the GNU compilers, no debugging
-  $cmd="./configure --without-getpwuid --with-quiet-nan --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/carver";
+  $cmd="./configure --without-getpwuid --with-quiet-nan --enable-xopt --disable-debug --without-java --prefix=/project/projectdirs/m1248/pkgs/carver";
 } elsif (defined $ENV{"NERSC_HOST"}) {
   # on other NERSC machines, use the GNU compilers, no debugging
   use Env qw(NERSC_HOST);
-  $cmd="./configure --prefix=/project/projectdirs/m1248/${NERSC_HOST}/gnu --without-getpwuid --with-quiet-nan --disable-debug --enable-xopt";
+  $cmd="./configure --prefix=/project/projectdirs/m1248/pkgs/${NERSC_HOST}/gnu --without-getpwuid --with-quiet-nan --disable-debug --enable-xopt";
 } else {	# based on system type ${SYS}
   if (${SYS} =~ m/CYGWIN/i || ${SYS} =~ m/MINGW/i) {
     $cmd="env CPPFLAGS=-DHAVE_STRUCT_TIMESPEC CXXPPFLAGS='-std=gnu++0x -U__STRICT_ANSI__ -DHAVE_STRUCT_TIMESPEC' CFLAGS='-O0 -g -DHAVE_STRUCT_TIMESPEC' CXXFLAGS='-O0 -g -DHAVE_STRUCT_TIMESPEC -std=gnu++0x -U__STRICT_ANSI__' ./configure --with-pthread --prefix=${PWD}/${SYS}";

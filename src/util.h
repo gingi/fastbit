@@ -330,6 +330,10 @@ inline uint64_t _rotl64( uint64_t x, int8_t r ) {
 #define IBIS_BLOCK_GUARD                                        \
     ibis::util::guard IBIS_GUARD_NAME = ibis::util::makeGuard
 
+#ifndef FASTBIT_STRERR
+#  define FASTBIT_STRERR (errno ? strerror(errno) : "(no error)")
+#endif // ifndef FASTBIT_STRERR
+
 namespace std { // extend namespace std slightly
     // specialization of less<> to work with char*
     template <> struct less< char* > {

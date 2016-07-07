@@ -397,9 +397,6 @@ typedef int (*FastBitReadExtArray)
 #else
 #  include <iosfwd>	// std::cout, std::clog
 #endif
-// #ifndef REASON
-// #  define REASON " " << strerror(errno) << std::endl;
-// #endif // ifndef REASON
 
 #include <vector>	// std::vector
 #include <functional>	// std::less, std::binary_function<>

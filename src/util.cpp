@@ -1181,9 +1181,9 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
     if (olddir) {
         ierr = chdir(olddir);
         if (0 != ierr) {
-            ibis::util::logMessage("Warning", "util::removeDir cannot "
-                                   "return to %s ... %s", olddir,
-                                   (errno ? strerror(errno) : "???"));
+            ibis::util::logMessage
+                ("Warning", "util::removeDir cannot return to %s ... %s",
+                 olddir, FASTBIT_STRERR);
         }
         delete [] olddir;
     }
@@ -1193,7 +1193,7 @@ void ibis::util::removeDir(const char* name, bool leaveDir) {
         if (ierr != 0) {
             LOGGER(ibis::gVerbose >= 0)
                 << "Warning -- util::removeDir can not remove directory "
-                << name << " ... " << (errno ? strerror(errno) : "???");
+                << name << " ... " << FASTBIT_STRERR;
         }
         else {
             LOGGER(ibis::gVerbose > 0)

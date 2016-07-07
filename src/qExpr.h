@@ -387,7 +387,7 @@ private:
 ///
 /// @note About the name: hod is a portable trough for carrying mortar,
 /// bricks, and so on.  We use it here as a short-hand for container.
-/// Since this class is not meant for user by others, this is a suitable
+/// Since this class is not meant for user by others, this is a suitably
 /// obscure name for it.
 class FASTBIT_CXX_DLLSPEC ibis::qIntHod : public ibis::qRange {
 public:
